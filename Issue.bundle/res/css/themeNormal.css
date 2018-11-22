@@ -1,0 +1,20 @@
+/* 
+ */
+
+body {
+  background-color	: #FFFFFF;
+  color			: #000000;
+}
+
+div#Abstrakt {
+  background-color	: #F0F0F0;
+}
+
+span.AbstraktUntenLinks {
+  color			: #FFF;
+  background-color 	: #000;
+}
+span.AbstraktUntenRechts {
+  color			: #FFF;
+  background-color 	: #A0A0A0;
+}

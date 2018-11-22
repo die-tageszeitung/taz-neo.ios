@@ -1,21 +1,32 @@
 //
 //  AppDelegate.swift
-//  taz.neo
 //
-//  Created by Norbert Thies on 13.11.18.
+//  Created by Norbert Thies on 22.08.18.
 //  Copyright © 2018 Norbert Thies. All rights reserved.
 //
 
 import UIKit
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, DoesLog {
 
   var window: UIWindow?
-
+  
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    super.touchesBegan(touches, with: event)
+    let events = event!.allTouches
+    let touch = events!.first
+    let location = touch!.location(in: self.window)
+    let statusBarFrame = UIApplication.shared.statusBarFrame
+    if statusBarFrame.contains(location) {
+      NotificationCenter.default.post(name: Notification.Name("statusBarTouched"), object: nil)
+    }
+  }
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    // Override point for customization after application launch.
+    self.window = UIWindow(frame: UIScreen.main.bounds)
+    self.window?.rootViewController = NavController()
+    self.window?.makeKeyAndVisible()
     return true
   }
 

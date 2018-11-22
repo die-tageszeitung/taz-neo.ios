@@ -1,0 +1,11 @@
+/*
+ * Balken
+ */
+h4.Dach {
+  background-color	: #e4e9dc;
+  border-top		: 2px solid rgb(147, 157, 147);
+  line-height		: 180%;
+  font-weight		: normal;
+  font-size		: 1.2em;
+  padding-left		: 0.25em;
+}

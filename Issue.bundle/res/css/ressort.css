@@ -1,0 +1,140 @@
+/* 
+ * Ressort Verzeichnis
+ *
+ */
+a:link, a:visited, a:hover, a:active, a:focus {
+  text-decoration	: none;
+  color			: #000000;
+}
+div.VerzeichnisArtikel {
+  margin-left     : 1rem;
+  margin-right    : 1rem;
+  margin-top      : 0.7rem;
+  margin-bottom	  : 0.7rem;
+  border-bottom	  : 1px black solid;
+  padding-bottom  : 1rem;
+}
+
+div.Verweis {
+  margin-bottom	  : 0;
+  padding-bottom  : 0;
+}
+
+div.Balken {
+  border-bottom	  : 0.5rem black solid;
+}
+
+div.PunktBalken {
+  border-width          : 0 0 0.3rem 0;
+  border-style          : dotted;
+  border-color          : rgb(0, 0, 0);
+
+  border-image-source   : url('dots.svg');
+  border-image-slice    : 33% 33%;
+  border-image-repeat   : round;
+}
+
+div.VerzeichnisFoto {
+}
+
+img.VerzeichnisFoto {
+  width		: 100%;
+}
+
+div.VerzeichnisArtikel > div.VerzeichnisFoto {
+  margin-bottom	: 0.7rem;
+}
+
+h4.VerweisRessort::before {
+  /* • ⁕ ⁝ ► ➽ */
+  content	: '➽ ';
+}
+
+h4.Ressort {
+  margin-left     : 1rem;
+  margin-right    : 1rem;
+  margin-top      : 0.7rem;
+  margin-bottom	  : 0.7rem;
+}
+
+/*
+h4.Dach {
+  font-size     : 0.7rem;
+  line-height   : 1.0rem;
+  margin-bottom	: 0.3rem;
+}
+
+.VerzeichnisArtikel .Titel {
+  font-size      : 1.0rem;
+  line-height    : 1.0rem;
+  margin-bottom  : 0.5rem;
+}
+*/
+
+.VerzeichnisArtikel .Unterzeile {
+/*
+  font-size     : 0.8rem;
+  line-height   : 1.0rem;
+*/
+  margin-bottom	: 0rem;
+}
+
+p.VerzeichnisAutor {
+  font-family	: AktivGrotesk,sans-serif;
+  font-weight	: normal;
+  font-size	: 0.8rem;
+  font-weight	: bold;
+  margin-bottom	: 0rem;
+}
+
+.MediaImg {
+  margin-right	: 0.5rem;
+  display	: block;
+}
+
+div.VerzeichnisTazze {
+  position          : fixed;
+  top               : 0.7rem;
+  font-family       : AktivGrotesk;
+  font-weight       : bold;
+  font-size         : 1.2rem;
+  padding-left      : 0.8rem;
+  padding-top       : 0.2rem;
+  padding-bottom    : 0.4rem;
+  width             : 3rem;
+  background-color  : #D50D2E;
+  color             : #ffffff;
+}
+em.ctFontTaz {
+  font-size     : 1.0rem;
+  vertical-align: 0.10rem;
+}
+
+div.VerzeichnisKopf {
+  border-width          : 0 0 0.3rem 0;
+  border-style          : dotted;
+  border-color          : rgb(0, 0, 0);
+
+  border-image-source   : url('dots.svg');
+  border-image-slice    : 33% 33%;
+  border-image-repeat   : round;
+
+  margin-left     : 1rem;
+  margin-right    : 1rem;
+  padding-top     : 0.8rem;
+  text-align      : right;
+  font-family     : AktivGrotesk;
+  font-weight     : bold;
+  font-size       : 1.2rem;
+}
+
+div.VerzeichnisDatum {
+  font-family     : AktivGroteskLight,sans-serif;
+  font-weight     : 200;
+  font-size       : 0.75rem;
+  text-align      : right;
+  margin-left     : 1rem;
+  margin-right    : 1rem;
+  margin-top      : 0rem;
+  margin-bottom	  : 0.75rem;
+}

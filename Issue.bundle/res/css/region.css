@@ -1,0 +1,51 @@
+/* 
+ * spezielle Anpassungen an das Region-Layout
+ */
+#Info {
+  -webkit-region-break-before	: always;
+}
+
+div.share {
+  -webkit-region-break-inside	: avoid;
+}
+div.Autoren {
+}
+
+a.AutorA {
+  -webkit-region-break-inside	: avoid;
+}
+
+img.AutorImg {
+  -webkit-region-break-inside	: avoid;
+}
+
+div.AutorKontakt {
+  -webkit-region-break-inside	: avoid;
+}
+
+div.MediaBio {
+  -webkit-region-break-inside	: avoid;
+}
+
+.Shorty {
+  -webkit-region-break-after	: avoid;
+  -webkit-region-break-inside	: auto;
+}
+
+.ShortyTitel {
+  -webkit-region-break-after	: avoid;
+  -webkit-region-break-inside	: avoid;
+}
+
+p.Korrespondent {
+  -webkit-region-break-after	: avoid;
+  -webkit-region-break-inside	: avoid;
+}
+
+p.Zwischentitel {
+  -webkit-region-break-after	: avoid;
+  -webkit-region-break-inside	: avoid;
+}
+div.EinzelFoto {
+  display       : block;
+}

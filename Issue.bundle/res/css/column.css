@@ -1,0 +1,22 @@
+/* 
+ * spezielle Anpassungen an das Spalten-Layout
+ *
+ * webkit-column-break-* geht nicht, weil dann die Koordinaten falsch sind
+ */
+#Info {
+}
+
+div.share {
+}
+
+div.Autoren {
+}
+
+div.AutorProfil {
+}
+
+div.MediaBio {
+}
+div.EinzelFoto {
+  display       : block;
+}

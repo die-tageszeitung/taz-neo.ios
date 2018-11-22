@@ -1,0 +1,730 @@
+/* Allgemein */
+
+a:link {
+  text-decoration	: underline;
+}
+a:visited {
+  text-decoration	: underline;
+  color:#666;
+}
+a:hover {
+  text-decoration	: underline;
+  color:#C62639;
+}
+a:active {
+  text-decoration	: underline;
+  color:#C62639;
+}
+a:focus {
+  text-decoration	: underline;
+  color:#C62639;
+}
+
+
+html, div, p, h1, h2, h3, span, a, img {
+  padding:0;
+  margin:0;
+}
+
+body {
+  font		: normal 1.0em/130% 'Times New Roman',Times,serif;
+  margin	: 0.6em 1.2em 0.6em 1.2em;
+
+}
+body h1 {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-weight	: bold;
+  font-size	: 1.4em;
+  line-height	: 100%;
+  margin	: 0.0em 0 0.6em 0;
+}
+body h2 {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-weight	: bold;
+  font-size	: 1.4em;
+  line-height	: 100%;
+  margin	: 0.0em 0 0.6em 0;
+}
+body h3 {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-weight	: bold;
+  font-size	: 1.2em;
+  line-height	: 125%;
+  margin	: 0.0em 0 0.8em 0;
+}
+body h4 {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.0em;
+  line-height	: 125%;
+  margin	: 0.0em 0 0.8em 0;
+}
+body h5 {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.0em;
+  line-height	: 125%;
+  margin	: 0.0em 0 0.8em 0;
+}
+body ul,dl {
+  list-style-type	: circle
+}
+body img {
+  border		: none;
+}
+
+/* Auszeichnungen aus Text Marken */
+/* Absatz allgemein */
+
+p {
+  margin	: 0;
+  text-align	: justify;
+}
+p.meinz {
+  text-indent	: 1.5em;
+  text-align	: justify;
+}
+p.oeinz {
+  text-indent	: 0em;
+  text-align	: justify;
+}
+/* Fett */
+strong {
+}
+/* Kursiv */
+em {
+}
+/* Hochstellung */
+sup {
+}
+/* Tiefstellung */
+sub {
+  font		: normal 0.8em/135% 'Times New Roman',Times,serif;
+}
+
+/* Absatz Brottext */
+p.B {
+}
+/* Absatz Autor */
+p.Au {
+  text-align	: left;
+  font-weight	: bold;
+}
+/* Autor */
+span.zAu {
+  display	: block;
+  text-align	: left;
+  font-weight	: bold;
+  text-indent	: 0;
+}
+/* Initial */
+/* alt span.zInitial {
+  font		: normal 4.8em/80% 'Times New Roman',Times,serif;
+  float		: left;
+  text-align	: right;
+  margin	: 0 2px 0 0;
+  padding	: 0 0 0 0;
+}
+*/
+span.zInitial {
+  font-family   : arial,helvetica,verdana, sans-serif;
+  font-size     : 2.5em;
+  line-height   : 0.8;
+  float         : left;
+  margin        : 0.1em 0.1em 0 0;
+  padding       : 0;
+}
+
+/* Initial (Le Monde) */
+p.Initial {
+  font-size:0.9em;
+}
+/* Hinweis */
+p.Hinweis {
+  font-family   : arial,helvetica,verdana, sans-serif;
+  font-size	: 1.0em;
+  font-weight	: bold;
+  border-left	: 0.5em solid #961d2a;
+  padding-left	: 0.3em;
+  margin-top	: 1.0em ;
+}
+/* Hinweis */
+span.zHinweis {
+  font-style	: italic;
+}
+/* Fussnote */
+p.Fussnote {
+}
+/* Spitzmarke */
+span.S {
+  font-weight	: bold;
+}
+/* Spitzmarke Agentur */
+span.SQ {
+  font-weight	: bold;
+}
+/* Seiten Dachzeile */
+h4.SeitenDach {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.0em;
+}
+/* Dachzeile */
+h4.Dach {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.0em;
+}
+/* Vorspann */
+h5.Vorspann {
+}
+/* Seitenvorspann */
+h5.Seitenvorspann {
+}
+/* Titel */
+h2.Titel {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-weight	: bold;
+  font-size	: 1.5em;
+}
+/* Titel/Unterzeile */
+span.zU {
+  font-weight	: bold;
+}
+/* Unterzeile */
+h4.Unterzeile {
+  font		: normal 1.2em/130% 'Times New Roman',Times,serif;
+}
+/* rotes wort anfang unterzeile */
+.TitelSpitz {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-weight	: bold;
+        color  	: #C62639;
+}
+/* Korrespondent */
+p.Korrespondent {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.0em;
+  line-height	: 130%;
+  margin	: 0 0 1.3em 0;
+}
+/* Zwischentitel Über */
+p.ZU {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.0em;
+  line-height	: 130%;
+  margin	: 0 0 1.3em 0;
+}
+/* Zwischentitel */
+.Zwischentitel {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.0em;
+  margin	: 1.3em 0 1.3em 0;
+  padding	: 0;
+}
+/* Zwischentitel */
+.zwischen {
+  border-top	: 1px dotted #000;
+  border-bottom	: 1px dotted #000;
+}
+
+/* Anzeigen */
+/* Balken fuer Programmteil Anzeigen */
+p.AnzBalken {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.1em;
+  line-height	: 130%;
+  padding	: 0 0.8em 0em 0.5em;
+  margin-top	: 0.5em;
+  text-align	: left;
+  border-left	: 1.2em solid #961d2a;
+}
+/* Rubrik fuer Programmteil Anzeigen ohne Einzug */
+p.AnzRubrik {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.1em;
+  line-height	: 1.3em;
+  margin	: 1.3em 0 0.7em 0;
+  border-bottom	: 1px dotted #000;
+  color         : #C62639; /*test*/
+  
+}
+/* Anzeigentext */
+p.Anzeige {
+  margin	: 0 0 1.3em 0;
+}
+/* TV */
+/* Balken fuer TV */
+p.TvBalken {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.0em;
+  line-height	: 125%;
+  margin	: 0;
+  padding	: 0em 0.8em 0em 0.5em;
+  border-left	: 1.0em solid #C62639;
+}
+/* Rubrik fuer TV */
+p.TvRubrik {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-size	: 1.1em;
+  line-height	: 125%;
+  margin	: 1.5em 0 0.5em 0;
+  border-bottom	: 1px dotted #000;
+  
+}
+/* TV */
+p.TV {
+  font-size	: 1.0em;
+  line-height	: 125%;
+}
+/* Korrespondent */
+span.TvZeit {
+  font-weight	: bold;
+}
+
+.Gegendarstellung {
+  margin	: 1.3em 0 1.3em 0; 
+}
+.GegendarstellungTitel {
+  font-family	: taz,sans-serif;
+  font-weight	: bold;
+  font-size	: 1.2em;
+  border-top	: 2px solid #000;
+  color  	: #C62639;
+  margin	: 1em 0 1.1em;
+  padding-top	: 0.5em;
+  text-transform: uppercase;
+}
+
+/* Marken abweichend für die Shortys */
+/* Eingebeteter Shorty */
+div.Shorty {
+  margin	: 1.3em 0 1.3em 0; 
+  /* padding-top	: 1.0em; */
+}
+/* Dachzeile */
+div.ShortyDach {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  margin	: 0 0 1.3em;
+}
+/* Vorspann */
+div.ShortyVorspann {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  margin	: 0 0 1.3em;
+}
+/* Titel */
+div.ShortyTitel {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-weight	: bold;
+  font-size	: 1.1em;
+  border-top	: 1px dotted #000;
+  border-bottom	: 1px dotted #000;
+  color  	: #C62639;
+  margin	: 0 0 1.1em;
+}
+/* Titel/Unterzeile */
+span.ShortyzU {
+}
+/* Unterzeile */
+div.ShortyUnterzeile {
+}
+
+/* Auszeichnungen aus dem Generator */
+
+/* Inhaltsverzeichnis */
+ul.Content {
+}
+/* Eintrag Quelle */
+li.Quelle {
+}
+/* Inhaltsverzeichnis Quelle */
+ul.Quelle {
+}
+/* Eintrag Seite */
+li.Seite {
+}
+/* Inhaltsverzeichnis Seite */
+ul.Seite {
+}
+/* Eintrag Artikel */
+li.Text {
+}
+
+div.logo {
+  margin-top	: 0;
+  text-align	: center;
+}
+blockquote.Quelle {
+  margin-top	: 0;
+  margin-left	: 0;
+  margin-bottom	: 0.2em;
+}
+blockquote.Seite {
+  margin-top	: 0;
+  margin-left	: 1.0em;
+  margin-bottom	: 0.2em;
+}
+div.Quelle {
+  margin-top	: 0;
+  margin-bottom	: 0;
+  font-weight	: bold;
+}
+div.Seite {
+  margin-top	: 0;
+  margin-bottom	: 0;
+}
+div.Text {
+  margin-top	: 0em;
+  margin-bottom	: 0em;
+}
+
+div#start {
+  margin	: 0 0 0 0;
+}
+
+div.Artikel {
+  /* padding  : 0.5em 0 0 0; */
+  clear		: both;
+}
+
+/* Kopf  */
+div.kopf {
+  width			: 100%;
+  left			: 0px;
+  font-family		: arial,helvetica,verdana,sans-serif;
+  border-bottom		: 1px solid black;
+  overflow		: hidden;
+  font-size		: 1.0em;
+  line-height		: 130%;
+  margin-bottom		: 0.8em;
+}
+
+/* Linker KopfTeil */
+div.KopfLinks {
+  font-family		: arial,helvetica,verdana,sans-serif;
+  margin		: 0 0.5em 0 0;
+  float			: left;
+  padding-bottom	: 0;
+}
+/* Rechter KopfTeil */
+div.KopfRechts {
+  float			: right;
+  overflow		: hidden;
+  white-space		: nowrap;
+}
+/* Tabelle Kopf */
+table.Kopf {
+	width			: 100%;
+	border-top-style	: none;
+	border-right-style	: none;
+	border-left-style	: none;
+	border-bottom		: 2px solid black;
+	margin-bottom		: 0.5em;
+	padding-bottom		: 0;
+}
+/* Linker KopfTeil */
+td.KopfLinks {
+	font-weight	: bold;
+	font		: bold 1.1em/135% arial,helvetica,verdana,sans-serif;
+	text-align	: left;
+	padding-bottom	: 0;
+}
+/* Rechter KopfTeil */
+td.KopfRechts {
+	font		: bold 1.1em/135% arial,helvetica,verdana,sans-serif;
+	text-align	: right;
+	padding-bottom	: 0;
+}
+/* Datum im Kopf */
+span.Date {
+}
+/* Quelle im Kopf */
+span.Quelle {
+}
+/* Seite im Kopf */
+span.Seite {
+}
+
+/* Linker KopfTeil */
+div.KopfLinksLMD {
+  font-family		: Arial, Helvetica, sans-serif;
+  margin		: 0 0.8em 0 0;
+  float			: left;
+  padding-bottom	: 0;
+}
+/* Rechter KopfTeil */
+div.KopfRechtsLMD {
+  font-family	: Arial, Helvetica, sans-serif;
+  float		: right;
+}
+/* Datum im Kopf */
+span.DateLMD {
+  font-family	: Arial, Helvetica, sans-serif;
+  font-weight	: bold;
+}
+/* Quelle im Kopf */
+span.QuelleLMD {
+}
+span.QuelleLMDi {
+  font-style	: italic;
+  font-weight	: normal;
+}
+/* Seite im Kopf */
+span.SeiteLMD {
+}
+
+div#Abstrakt {
+	margin		: 0 0 0.8em;
+}
+
+/* Tabelle Abstrakt */
+table.Abstrakt {
+	width			: 100%;
+	border-top-style	: none;
+	border-right-style	: none;
+	border-left-style	: none;
+	border-bottom		: 2px solid black;
+	border-left		: none;
+	border-right		: none;
+	margin-top		: 0;
+	margin-bottom		: 0;
+	padding-bottom		: 0;
+	border-collapse		: collapse;
+	background-color	: #F0F0F0;
+}
+/* Linker AbstraktTeil */
+td.AbstraktLinks {
+	font		: bold 1.1em/135% arial,helvetica,verdana,sans-serif;
+	text-align	: left;
+	vertical-align	: top;
+	padding-top	: 0.5em;
+	padding-bottom	: 0;
+	padding-right	: 0.5em;
+	border-right	: 1px solid black;
+}
+td.AbstraktUnten {
+	text-align	: left;
+	vertical-align	: bottom;
+	margin-top	: 0;
+	padding-top	: 0;
+	padding-bottom	: 0;
+	padding-left	: 0em;
+	border-right	: 1px solid black;
+}
+/* Rechter AbstraktTeil */
+td.AbstraktRechts {
+	font		: normal 1.1em/135% 'Times New Roman',Times,serif;
+	text-align	: left;
+	vertical-align	: top;
+	padding-left	: 0.3em;
+	padding-bottom	: 0;
+}
+span.AbstraktUntenLinks {
+	font			: bold 2.0em/135% arial,helvetica,verdana,sans-serif;
+	color			: #FFFFFF;
+	background-color 	: #000000;
+	padding-left		: 0.3em;
+	padding-right		: 0.3em;
+	padding-bottom		: 0.15em;
+}
+span.AbstraktUntenRechts {
+	font-family		: arial,helvetica,verdana,sans-serif;
+	font-weight		: bold;
+	color			: #FFFFFF;
+	background-color 	: #A0A0A0;
+	padding-left		: 0.3em;
+	padding-right		: 0.1em;
+	text-align		: right;
+	float			: right;
+}
+
+
+
+#content {
+  clear		: both;
+  margin-top	: 0em;
+  padding	: 0em;
+}
+
+div.border {
+  margin	: 0;
+  padding	: 0;
+}
+
+div.Abstrakt {
+  width			: 100%;
+  border-bottom		: 1px solid black;
+  border-top		: 1px solid black;
+  margin		: 0.0em 0 0.8em 0;
+  padding		: 0;
+  background-color	: #F0F0F0;
+  overflow		: hidden;
+}
+
+/* Linker AbstraktTeil */
+h2.AbstraktLinks {
+  font-family	: arial,helvetica,verdana,sans-serif;
+  font-weight	: bold;
+  font-size	: 1.2em;
+  line-height	: 120%;
+  padding	: 0;
+  margin	: 0 0.5em 0.2em 0;
+}
+/* Rechter AbstraktTeil */
+p.AbstraktRechts {
+  font			: normal 1.1em/125% 'Times New Roman',Times,serif;
+  padding-bottom	: 0.0em;
+  margin-bottom		: 0.0em;
+}
+span.AbstraktUntenLinks {
+  font-family		: arial,helvetica,verdana,sans-serif;
+  font-weight		: bold;
+  font-size		: 1.2em;
+  line-height		: 100%;
+  color			: #FFF;
+  background-color 	: #000;
+  padding		: 0 0.3em 0 0.3em;
+  margin		: 0 0.3em 0 0;
+}
+span.AbstraktUntenRechts {
+  font-family		: arial,helvetica,verdana,sans-serif;
+  font-weight		: bold;
+  line-height		: 130%;
+  color			: #FFF;
+  background-color 	: #A0A0A0;
+  padding		: 0 0.1em 0 0.2em;
+  float			: right;
+}
+
+/* Quellenangaben */
+p.Quelle  {
+  font			: normal 0.9em/130% 'Times New Roman',Times,serif;
+  margin-top		: 0.4em;
+  margin-bottom		: 0.8em;
+  border-bottom		: 1px black solid;
+  text-align		: left;
+}
+span.Link {
+  font			: bold 1.0em/135% 'Times New Roman',Times,serif;
+  margin-left		: 0.9em;
+}
+/* Version */
+p.version  {
+  font			: normal 0.9em/135% 'Times New Roman',Times,serif;
+  border-top		: 1px black solid;
+}
+
+/* Seiten Faksimile */
+div.PageImg {
+  margin	: 0;
+  padding	: 0;
+  text-align	: center;
+}
+img.PageImg  {
+  margin	: auto;
+  height	: 100%;
+  width	: auto;
+}
+div.PageLink {
+  height	: 100%;
+  margin	: 0;
+  padding	: 0;
+  text-align	: center;
+  white-space	: nowrap;
+}
+
+/* Tom oder Kari */
+p.Tom {
+  margin-top	: 0;
+  margin-bottom	: 2.0em;
+  border-bottom	: 1px black solid;
+}
+img.Tom  {
+  margin	: 0;
+  padding	: 0;
+  width		: 100%;
+}
+
+/* Bild im Container */
+div.imgContainer {
+  margin-top	: 4.0em;
+  margin-bottom	: 0.0em;
+  text-align	: center;
+  height		: 100%;
+}
+img.imgContainer  {
+  margin	: 0;
+  padding	: 0;
+  width		: 90%;
+}
+
+/* Neuer Fuss: Social Links */
+
+div.share {
+  margin-top	: 0.5em;
+  text-align	: center;
+  bottom	: 0;
+  width		: 100%;
+}
+
+ul.toolbar {
+  margin	: 0px;
+  padding	: 0px;
+}
+
+/*
+ * Höhe und Breite werden automatisch auf das Display angepsst.
+ * Da das Retinadisplay eine doppelte Auflösung hat, 
+ * muss das Icon doppelt so groß sein.
+ * Die Breite kann nicht im Image, sondern nur das das einschließende
+ * Element eingestellt werden.
+ */
+li.share {
+  float			: none;
+  vertical-align	: top;
+  display		: inline-block;
+  list-style-type	: none;
+  width			: 32px;
+  height		: 32px;
+  margin		: 0px;
+  padding		: 4px 4px 0 0;
+}
+
+/* Nur für einen Browser */
+img.share {
+  width		: 32px;
+}
+
+
+/* zusätzlich */
+
+span.Inhalt {
+	font		: bold 1.05em arial,helvetica,verdana,sans-serif;
+}
+span.Faximile {
+	font		: bold 1.05em arial,helvetica,verdana,sans-serif;
+}
+/* Copyright */
+p.Copyright	{
+	font		: normal 0.6em/135% arial,helvetica,verdana,sans-serif;
+	text-align	: left;
+	margin-top	: 0em;
+	margin-bottom	: 0em;
+}
+
+div.voriger {
+  font		: bold 1.0em arial,helvetica,verdana,sans-serif;
+  float		: left;
+  text-align	: left;
+  margin	: 0;
+}
+
+div.naechster {
+  font		: bold 1.0em arial,helvetica,verdana,sans-serif;
+  float		: none;
+  text-align	: right;
+  margin	: 0;
+}
+
+div.ArtikelNav {
+  font		: bold 0.6em arial,helvetica,verdana,sans-serif;
+  clear		: both;
+  margin	: 0;
+  float		: none;
+}

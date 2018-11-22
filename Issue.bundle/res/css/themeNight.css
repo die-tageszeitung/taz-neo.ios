@@ -1,0 +1,57 @@
+/* 
+ */
+a:link {
+  text-decoration	: underline;
+  color:#F05A5A;
+}
+a:visited {
+  text-decoration	: underline;
+  color:#F05A5A;
+}
+
+body {
+  background-color	: #000000;
+  color			: #FFFFFF;
+}
+
+div#Abstrakt {
+  background-color	: #666;
+}
+
+span.AbstraktUntenLinks {
+  color			: #000;
+  background-color 	: #FFF;
+}
+span.AbstraktUntenRechts {
+  color			: #000;
+  background-color 	: #FFF;
+}
+
+div.AnzeigenSonderSeitenTitel::before {
+  color			: #FFFFFF;
+}
+div#AnzeigenSonderSeiten {
+  background-color	: #000;
+}
+
+em.ctColorBlack, div.AnzeigenSonderSeitenTitel, div.AnzeigenSonderSeitenUnterzeile {
+  color	:#FFF;
+}
+
+h4.Dach, div.ArtikelTyp_AKOM1_2017 h4.Dach, div.ArtikelTyp_AKOM2_2017 h4.Dach, div.ArtikelTyp_AKolumne1_2017 h4.Dach,
+div.ArtikelTyp_AKOM1 h4.Dach, div.ArtikelTyp_AKOM2 h4.Dach, div.ArtikelTyp_AKolumne1 h4.Dach {
+  color         : #fff;
+}
+
+h4.AutorName, h5.AutorJob, .TitelSpitz, .Spitzmarke, .Stichwort, div.Shorty, .ShortyTitel, div.Shorty h2.Titel {
+  color	: #FFF;
+}
+
+div.Shorty {
+  border-color		: #fff;
+  border-image-source	: url('dotsNight.svg');
+}
+
+div.Autoren {
+  border-top-color	: #fff;
+}

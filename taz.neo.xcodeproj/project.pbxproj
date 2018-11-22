@@ -7,12 +7,51 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AEBAF568219ACD1900566205 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF567219ACD1900566205 /* AppDelegate.swift */; };
-		AEBAF56A219ACD1900566205 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF569219ACD1900566205 /* ViewController.swift */; };
-		AEBAF56D219ACD1900566205 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF56B219ACD1900566205 /* Main.storyboard */; };
 		AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF56E219ACD1A00566205 /* Assets.xcassets */; };
 		AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF570219ACD1A00566205 /* LaunchScreen.storyboard */; };
 		AEBAF57D219ACD1A00566205 /* taz_neoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF57C219ACD1A00566205 /* taz_neoTests.swift */; };
+		AEBAF589219ACEF600566205 /* Issue.bundle in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF588219ACEF600566205 /* Issue.bundle */; };
+		AEBAF58A219ACEF600566205 /* Issue.bundle in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF588219ACEF600566205 /* Issue.bundle */; };
+		AEBAF592219ACFAC00566205 /* ArticleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58C219ACFAC00566205 /* ArticleData.swift */; };
+		AEBAF593219ACFAC00566205 /* ArticleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58C219ACFAC00566205 /* ArticleData.swift */; };
+		AEBAF594219ACFAC00566205 /* TestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58D219ACFAC00566205 /* TestController.swift */; };
+		AEBAF595219ACFAC00566205 /* TestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58D219ACFAC00566205 /* TestController.swift */; };
+		AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58E219ACFAC00566205 /* AppDelegate.swift */; };
+		AEBAF597219ACFAC00566205 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58E219ACFAC00566205 /* AppDelegate.swift */; };
+		AEBAF598219ACFAC00566205 /* DummyContentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58F219ACFAC00566205 /* DummyContentController.swift */; };
+		AEBAF599219ACFAC00566205 /* DummyContentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58F219ACFAC00566205 /* DummyContentController.swift */; };
+		AEBAF59A219ACFAC00566205 /* DummyContentController.xib in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF590219ACFAC00566205 /* DummyContentController.xib */; };
+		AEBAF59B219ACFAC00566205 /* DummyContentController.xib in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF590219ACFAC00566205 /* DummyContentController.xib */; };
+		AEBAF59C219ACFAC00566205 /* NavController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF591219ACFAC00566205 /* NavController.swift */; };
+		AEBAF59D219ACFAC00566205 /* NavController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF591219ACFAC00566205 /* NavController.swift */; };
+		AEBAF5B0219ACFD900566205 /* AktivGrotesk_W_Rg.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF59F219ACFD800566205 /* AktivGrotesk_W_Rg.ttf */; };
+		AEBAF5B1219ACFD900566205 /* AktivGrotesk_W_Rg.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF59F219ACFD800566205 /* AktivGrotesk_W_Rg.ttf */; };
+		AEBAF5B2219ACFD900566205 /* AktivGrotesk_W_Bd.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF5A0219ACFD800566205 /* AktivGrotesk_W_Bd.ttf */; };
+		AEBAF5B3219ACFD900566205 /* AktivGrotesk_W_Bd.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF5A0219ACFD800566205 /* AktivGrotesk_W_Bd.ttf */; };
+		AEBAF5B4219ACFD900566205 /* Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A2219ACFD900566205 /* Toolbar.swift */; };
+		AEBAF5B5219ACFD900566205 /* Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A2219ACFD900566205 /* Toolbar.swift */; };
+		AEBAF5B6219ACFD900566205 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A3219ACFD900566205 /* Log.swift */; };
+		AEBAF5B7219ACFD900566205 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A3219ACFD900566205 /* Log.swift */; };
+		AEBAF5B8219ACFD900566205 /* Time.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A4219ACFD900566205 /* Time.swift */; };
+		AEBAF5B9219ACFD900566205 /* Time.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A4219ACFD900566205 /* Time.swift */; };
+		AEBAF5BA219ACFD900566205 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A5219ACFD900566205 /* ColorExtensions.swift */; };
+		AEBAF5BB219ACFD900566205 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A5219ACFD900566205 /* ColorExtensions.swift */; };
+		AEBAF5BC219ACFD900566205 /* json.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A6219ACFD900566205 /* json.swift */; };
+		AEBAF5BD219ACFD900566205 /* json.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A6219ACFD900566205 /* json.swift */; };
+		AEBAF5BE219ACFD900566205 /* CoreGraphicsExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A7219ACFD900566205 /* CoreGraphicsExtensions.swift */; };
+		AEBAF5BF219ACFD900566205 /* CoreGraphicsExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A7219ACFD900566205 /* CoreGraphicsExtensions.swift */; };
+		AEBAF5C0219ACFD900566205 /* OldWebViewCollectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A9219ACFD900566205 /* OldWebViewCollectionVC.swift */; };
+		AEBAF5C1219ACFD900566205 /* OldWebViewCollectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5A9219ACFD900566205 /* OldWebViewCollectionVC.swift */; };
+		AEBAF5C2219ACFD900566205 /* NativeBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF5AA219ACFD900566205 /* NativeBridge.js */; };
+		AEBAF5C3219ACFD900566205 /* NativeBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF5AA219ACFD900566205 /* NativeBridge.js */; };
+		AEBAF5C4219ACFD900566205 /* TazWebViewCollectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AB219ACFD900566205 /* TazWebViewCollectionVC.swift */; };
+		AEBAF5C5219ACFD900566205 /* TazWebViewCollectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AB219ACFD900566205 /* TazWebViewCollectionVC.swift */; };
+		AEBAF5C6219ACFD900566205 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AC219ACFD900566205 /* WebView.swift */; };
+		AEBAF5C7219ACFD900566205 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AC219ACFD900566205 /* WebView.swift */; };
+		AEBAF5C8219ACFD900566205 /* WebViewCollectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AD219ACFD900566205 /* WebViewCollectionVC.swift */; };
+		AEBAF5C9219ACFD900566205 /* WebViewCollectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AD219ACFD900566205 /* WebViewCollectionVC.swift */; };
+		AEBAF5CA219ACFD900566205 /* PageCollectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AF219ACFD900566205 /* PageCollectionVC.swift */; };
+		AEBAF5CB219ACFD900566205 /* PageCollectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AF219ACFD900566205 /* PageCollectionVC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,15 +66,34 @@
 
 /* Begin PBXFileReference section */
 		AEBAF564219ACD1900566205 /* taz.neo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.neo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		AEBAF567219ACD1900566205 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		AEBAF569219ACD1900566205 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		AEBAF56C219ACD1900566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AEBAF573219ACD1A00566205 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AEBAF578219ACD1A00566205 /* taz.neoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = taz.neoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF57C219ACD1A00566205 /* taz_neoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = taz_neoTests.swift; sourceTree = "<group>"; };
 		AEBAF57E219ACD1A00566205 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AEBAF588219ACEF600566205 /* Issue.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Issue.bundle; sourceTree = "<group>"; };
+		AEBAF58B219ACFAC00566205 /* taz.neo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "taz.neo-Bridging-Header.h"; sourceTree = "<group>"; };
+		AEBAF58C219ACFAC00566205 /* ArticleData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleData.swift; sourceTree = "<group>"; };
+		AEBAF58D219ACFAC00566205 /* TestController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestController.swift; sourceTree = "<group>"; };
+		AEBAF58E219ACFAC00566205 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		AEBAF58F219ACFAC00566205 /* DummyContentController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DummyContentController.swift; sourceTree = "<group>"; };
+		AEBAF590219ACFAC00566205 /* DummyContentController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = DummyContentController.xib; sourceTree = "<group>"; };
+		AEBAF591219ACFAC00566205 /* NavController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavController.swift; sourceTree = "<group>"; };
+		AEBAF59F219ACFD800566205 /* AktivGrotesk_W_Rg.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = AktivGrotesk_W_Rg.ttf; sourceTree = "<group>"; };
+		AEBAF5A0219ACFD800566205 /* AktivGrotesk_W_Bd.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = AktivGrotesk_W_Bd.ttf; sourceTree = "<group>"; };
+		AEBAF5A2219ACFD900566205 /* Toolbar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Toolbar.swift; sourceTree = "<group>"; };
+		AEBAF5A3219ACFD900566205 /* Log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		AEBAF5A4219ACFD900566205 /* Time.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Time.swift; sourceTree = "<group>"; };
+		AEBAF5A5219ACFD900566205 /* ColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
+		AEBAF5A6219ACFD900566205 /* json.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = json.swift; sourceTree = "<group>"; };
+		AEBAF5A7219ACFD900566205 /* CoreGraphicsExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreGraphicsExtensions.swift; sourceTree = "<group>"; };
+		AEBAF5A9219ACFD900566205 /* OldWebViewCollectionVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OldWebViewCollectionVC.swift; sourceTree = "<group>"; };
+		AEBAF5AA219ACFD900566205 /* NativeBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = NativeBridge.js; sourceTree = "<group>"; };
+		AEBAF5AB219ACFD900566205 /* TazWebViewCollectionVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazWebViewCollectionVC.swift; sourceTree = "<group>"; };
+		AEBAF5AC219ACFD900566205 /* WebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
+		AEBAF5AD219ACFD900566205 /* WebViewCollectionVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewCollectionVC.swift; sourceTree = "<group>"; };
+		AEBAF5AF219ACFD900566205 /* PageCollectionVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PageCollectionVC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +117,7 @@
 		AEBAF55B219ACD1900566205 = {
 			isa = PBXGroup;
 			children = (
+				AEBAF588219ACEF600566205 /* Issue.bundle */,
 				AEBAF566219ACD1900566205 /* taz.neo */,
 				AEBAF57B219ACD1A00566205 /* taz.neoTests */,
 				AEBAF565219ACD1900566205 /* Products */,
@@ -77,12 +136,18 @@
 		AEBAF566219ACD1900566205 /* taz.neo */ = {
 			isa = PBXGroup;
 			children = (
-				AEBAF567219ACD1900566205 /* AppDelegate.swift */,
-				AEBAF569219ACD1900566205 /* ViewController.swift */,
-				AEBAF56B219ACD1900566205 /* Main.storyboard */,
-				AEBAF56E219ACD1A00566205 /* Assets.xcassets */,
-				AEBAF570219ACD1A00566205 /* LaunchScreen.storyboard */,
-				AEBAF573219ACD1A00566205 /* Info.plist */,
+				AEBAF59E219ACFD800566205 /* Fonts */,
+				AEBAF5A1219ACFD900566205 /* General */,
+				AEBAF5AE219ACFD900566205 /* PageCollection */,
+				AEBAF5A8219ACFD900566205 /* WebView */,
+				AEBAF58E219ACFAC00566205 /* AppDelegate.swift */,
+				AEBAF58C219ACFAC00566205 /* ArticleData.swift */,
+				AEBAF58F219ACFAC00566205 /* DummyContentController.swift */,
+				AEBAF590219ACFAC00566205 /* DummyContentController.xib */,
+				AEBAF591219ACFAC00566205 /* NavController.swift */,
+				AEBAF58D219ACFAC00566205 /* TestController.swift */,
+				AEBAF587219ACEC700566205 /* Supporting Files */,
+				AEBAF58B219ACFAC00566205 /* taz.neo-Bridging-Header.h */,
 			);
 			path = taz.neo;
 			sourceTree = "<group>";
@@ -94,6 +159,58 @@
 				AEBAF57E219ACD1A00566205 /* Info.plist */,
 			);
 			path = taz.neoTests;
+			sourceTree = "<group>";
+		};
+		AEBAF587219ACEC700566205 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				AEBAF56E219ACD1A00566205 /* Assets.xcassets */,
+				AEBAF570219ACD1A00566205 /* LaunchScreen.storyboard */,
+				AEBAF573219ACD1A00566205 /* Info.plist */,
+			);
+			path = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		AEBAF59E219ACFD800566205 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				AEBAF59F219ACFD800566205 /* AktivGrotesk_W_Rg.ttf */,
+				AEBAF5A0219ACFD800566205 /* AktivGrotesk_W_Bd.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		AEBAF5A1219ACFD900566205 /* General */ = {
+			isa = PBXGroup;
+			children = (
+				AEBAF5A2219ACFD900566205 /* Toolbar.swift */,
+				AEBAF5A3219ACFD900566205 /* Log.swift */,
+				AEBAF5A4219ACFD900566205 /* Time.swift */,
+				AEBAF5A5219ACFD900566205 /* ColorExtensions.swift */,
+				AEBAF5A6219ACFD900566205 /* json.swift */,
+				AEBAF5A7219ACFD900566205 /* CoreGraphicsExtensions.swift */,
+			);
+			path = General;
+			sourceTree = "<group>";
+		};
+		AEBAF5A8219ACFD900566205 /* WebView */ = {
+			isa = PBXGroup;
+			children = (
+				AEBAF5A9219ACFD900566205 /* OldWebViewCollectionVC.swift */,
+				AEBAF5AA219ACFD900566205 /* NativeBridge.js */,
+				AEBAF5AB219ACFD900566205 /* TazWebViewCollectionVC.swift */,
+				AEBAF5AC219ACFD900566205 /* WebView.swift */,
+				AEBAF5AD219ACFD900566205 /* WebViewCollectionVC.swift */,
+			);
+			path = WebView;
+			sourceTree = "<group>";
+		};
+		AEBAF5AE219ACFD900566205 /* PageCollection */ = {
+			isa = PBXGroup;
+			children = (
+				AEBAF5AF219ACFD900566205 /* PageCollectionVC.swift */,
+			);
+			path = PageCollection;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -146,6 +263,7 @@
 				TargetAttributes = {
 					AEBAF563219ACD1900566205 = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1010;
 					};
 					AEBAF577219ACD1A00566205 = {
 						CreatedOnToolsVersion = 10.1;
@@ -178,8 +296,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
+				AEBAF589219ACEF600566205 /* Issue.bundle in Resources */,
+				AEBAF5C2219ACFD900566205 /* NativeBridge.js in Resources */,
+				AEBAF59A219ACFAC00566205 /* DummyContentController.xib in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
-				AEBAF56D219ACD1900566205 /* Main.storyboard in Resources */,
+				AEBAF5B2219ACFD900566205 /* AktivGrotesk_W_Bd.ttf in Resources */,
+				AEBAF5B0219ACFD900566205 /* AktivGrotesk_W_Rg.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -187,6 +309,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AEBAF59B219ACFAC00566205 /* DummyContentController.xib in Resources */,
+				AEBAF5C3219ACFD900566205 /* NativeBridge.js in Resources */,
+				AEBAF5B1219ACFD900566205 /* AktivGrotesk_W_Rg.ttf in Resources */,
+				AEBAF5B3219ACFD900566205 /* AktivGrotesk_W_Bd.ttf in Resources */,
+				AEBAF58A219ACEF600566205 /* Issue.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -197,8 +324,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AEBAF56A219ACD1900566205 /* ViewController.swift in Sources */,
-				AEBAF568219ACD1900566205 /* AppDelegate.swift in Sources */,
+				AEBAF59C219ACFAC00566205 /* NavController.swift in Sources */,
+				AEBAF5B6219ACFD900566205 /* Log.swift in Sources */,
+				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
+				AEBAF5CA219ACFD900566205 /* PageCollectionVC.swift in Sources */,
+				AEBAF592219ACFAC00566205 /* ArticleData.swift in Sources */,
+				AEBAF5C0219ACFD900566205 /* OldWebViewCollectionVC.swift in Sources */,
+				AEBAF5B8219ACFD900566205 /* Time.swift in Sources */,
+				AEBAF5BA219ACFD900566205 /* ColorExtensions.swift in Sources */,
+				AEBAF5C4219ACFD900566205 /* TazWebViewCollectionVC.swift in Sources */,
+				AEBAF5B4219ACFD900566205 /* Toolbar.swift in Sources */,
+				AEBAF5BC219ACFD900566205 /* json.swift in Sources */,
+				AEBAF598219ACFAC00566205 /* DummyContentController.swift in Sources */,
+				AEBAF5BE219ACFD900566205 /* CoreGraphicsExtensions.swift in Sources */,
+				AEBAF594219ACFAC00566205 /* TestController.swift in Sources */,
+				AEBAF5C6219ACFD900566205 /* WebView.swift in Sources */,
+				AEBAF5C8219ACFD900566205 /* WebViewCollectionVC.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -206,7 +347,23 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AEBAF5BD219ACFD900566205 /* json.swift in Sources */,
+				AEBAF5B5219ACFD900566205 /* Toolbar.swift in Sources */,
+				AEBAF5C9219ACFD900566205 /* WebViewCollectionVC.swift in Sources */,
+				AEBAF5C5219ACFD900566205 /* TazWebViewCollectionVC.swift in Sources */,
+				AEBAF5BB219ACFD900566205 /* ColorExtensions.swift in Sources */,
+				AEBAF597219ACFAC00566205 /* AppDelegate.swift in Sources */,
+				AEBAF599219ACFAC00566205 /* DummyContentController.swift in Sources */,
+				AEBAF5C7219ACFD900566205 /* WebView.swift in Sources */,
+				AEBAF5BF219ACFD900566205 /* CoreGraphicsExtensions.swift in Sources */,
+				AEBAF595219ACFAC00566205 /* TestController.swift in Sources */,
+				AEBAF5C1219ACFD900566205 /* OldWebViewCollectionVC.swift in Sources */,
+				AEBAF593219ACFAC00566205 /* ArticleData.swift in Sources */,
 				AEBAF57D219ACD1A00566205 /* taz_neoTests.swift in Sources */,
+				AEBAF5B9219ACFD900566205 /* Time.swift in Sources */,
+				AEBAF5B7219ACFD900566205 /* Log.swift in Sources */,
+				AEBAF59D219ACFAC00566205 /* NavController.swift in Sources */,
+				AEBAF5CB219ACFD900566205 /* PageCollectionVC.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,14 +378,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		AEBAF56B219ACD1900566205 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				AEBAF56C219ACD1900566205 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		AEBAF570219ACD1A00566205 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -360,15 +509,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
-				INFOPLIST_FILE = taz.neo/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "de.taz.taz-neo";
+				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "taz.neo/taz.neo-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -378,15 +530,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
-				INFOPLIST_FILE = taz.neo/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "de.taz.taz-neo";
+				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "taz.neo/taz.neo-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

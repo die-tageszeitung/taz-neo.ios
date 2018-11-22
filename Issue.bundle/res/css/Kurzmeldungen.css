@@ -1,0 +1,22 @@
+/*
+ * Balken
+ */
+div#Abstrakt {
+  background-color	: #e4e9dc;
+  border-bottom		: 0px;
+  border-top		: 2px solid rgb(147, 157, 147);
+  line-height		: 180%;
+  font-weight		: normal;
+  font-size		: 1.2em;
+  text-transform	: none;
+}
+/* Dachzeile */
+h4.Dach {
+  font-family		: taz,sans-serif;
+  font-size		: 1.0em;
+  text-transform	: uppercase;
+  font-weight		: normal;
+}
+div.foto {
+  margin-top		: 0em;
+}

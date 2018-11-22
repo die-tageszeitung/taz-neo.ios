@@ -1,0 +1,6 @@
+/*
+ * Dachzeile in uppercase
+ */
+h4.Dach {
+  text-transform	: none;
+}

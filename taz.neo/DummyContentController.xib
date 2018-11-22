@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="DummyContentController" customModule="taz_neo" customModuleProvider="target">
+            <connections>
+                <outlet property="shadeView" destination="5ue-5f-Q8z" id="nuv-zA-D20"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="C6g-BP-9ZX"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view alpha="0.20000000000000001" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5ue-5f-Q8z" userLabel="ShadeView">
+                    <rect key="frame" x="310" y="20" width="65" height="647"/>
+                    <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                </view>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fIt-Wd-wBM">
+                    <rect key="frame" x="0.0" y="20" width="310" height="647"/>
+                    <subviews>
+                        <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Seite1-Foto" translatesAutoresizingMaskIntoConstraints="NO" id="acP-9e-2dZ">
+                            <rect key="frame" x="16" y="37" width="150" height="150"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="150" id="KBb-Za-Mgc"/>
+                                <constraint firstAttribute="width" secondItem="acP-9e-2dZ" secondAttribute="height" multiplier="1:1" id="XM5-oH-JYp"/>
+                            </constraints>
+                        </imageView>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="freitag, 18. mai 2018" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aMo-11-GZJ">
+                            <rect key="frame" x="16" y="8" width="155" height="21"/>
+                            <constraints>
+                                <constraint firstAttribute="width" secondItem="aMo-11-GZJ" secondAttribute="height" multiplier="155:21" id="2OZ-JG-1Ua"/>
+                                <constraint firstAttribute="width" constant="155" id="QVe-Mq-2D8"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <nil key="textColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" alignment="top" spacing="-3" translatesAutoresizingMaskIntoConstraints="NO" id="nD8-aW-IRJ" userLabel="Content Stack View">
+                            <rect key="frame" x="16" y="211" width="180" height="406"/>
+                            <subviews>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LnR-cl-Bee">
+                                    <rect key="frame" x="0.0" y="0.0" width="67" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="taz eins">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="3yQ-7a-b8s"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uRe-u6-08B">
+                                    <rect key="frame" x="0.0" y="31" width="53" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="inland">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="a5R-JC-x9T"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OrG-4U-lpf">
+                                    <rect key="frame" x="0.0" y="62" width="165" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="wirtschaft+umwelt">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="tCW-rR-nuP"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="90k-Bb-3VI">
+                                    <rect key="frame" x="0.0" y="93" width="69" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="ausland">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="7su-id-COg"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="N4O-fD-Zch">
+                                    <rect key="frame" x="0.0" y="124" width="180" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="meinung+diskussion">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="00M-LH-BTd"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vkm-tg-vnU">
+                                    <rect key="frame" x="0.0" y="155" width="71" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="taz zwei">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="2vD-Vs-9Yh"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Z1v-UY-F6K">
+                                    <rect key="frame" x="0.0" y="186" width="52" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="kultur">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="wT8-9K-m60"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yB0-BD-FmF">
+                                    <rect key="frame" x="0.0" y="217" width="64" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="medien">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="Sk8-lH-iPI"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8pn-QL-BPK">
+                                    <rect key="frame" x="0.0" y="248" width="128" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="leibesübungen">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="foA-Or-SQb"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vJ0-tb-YNh">
+                                    <rect key="frame" x="0.0" y="279" width="107" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="die wahrheit">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="h2V-x6-cSk"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Im3-yk-HyW">
+                                    <rect key="frame" x="0.0" y="310" width="81" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="taz berlin">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="y7i-ta-0Gr"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="kTE-pF-KLx">
+                                    <rect key="frame" x="0.0" y="341" width="72" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="taz nord">
+                                        <color key="titleColor" red="0.83529411760000005" green="0.050980392159999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="6MJ-mC-C6u"/>
+                                    </connections>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="CZZ-0V-oie">
+                                    <rect key="frame" x="0.0" y="372" width="97" height="34"/>
+                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                    <state key="normal" title="impressum">
+                                        <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    </state>
+                                    <connections>
+                                        <action selector="contentButtonPressed:" destination="-1" eventType="touchUpInside" id="bsm-D6-fre"/>
+                                    </connections>
+                                </button>
+                            </subviews>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="406" id="Jt7-hY-BLB"/>
+                                <constraint firstAttribute="width" constant="180" id="R6r-zl-fbe"/>
+                            </constraints>
+                        </stackView>
+                        <stackView opaque="NO" contentMode="scaleAspectFit" distribution="equalCentering" alignment="center" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="lZt-Qo-71J" userLabel="Icon Stack View">
+                            <rect key="frame" x="197" y="153" width="97" height="26.5"/>
+                            <subviews>
+                                <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Overview" translatesAutoresizingMaskIntoConstraints="NO" id="QuZ-BI-mxR">
+                                    <rect key="frame" x="0.0" y="2" width="23" height="23"/>
+                                    <constraints>
+                                        <constraint firstAttribute="width" secondItem="QuZ-BI-mxR" secondAttribute="height" multiplier="1:1" id="A27-8J-wiE"/>
+                                        <constraint firstAttribute="width" constant="23" id="ard-QT-gCg" userLabel="width = 63"/>
+                                    </constraints>
+                                </imageView>
+                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Tazze" translatesAutoresizingMaskIntoConstraints="NO" id="gPb-JH-DeA">
+                                    <rect key="frame" x="37" y="0.0" width="23" height="26.5"/>
+                                    <constraints>
+                                        <constraint firstAttribute="width" secondItem="gPb-JH-DeA" secondAttribute="height" multiplier="47:54" id="VWY-3O-hCf"/>
+                                        <constraint firstAttribute="width" constant="23" id="q8m-sT-teM"/>
+                                    </constraints>
+                                </imageView>
+                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Settings" translatesAutoresizingMaskIntoConstraints="NO" id="XfL-4x-Bb3">
+                                    <rect key="frame" x="74" y="1.5" width="23" height="23.5"/>
+                                    <constraints>
+                                        <constraint firstAttribute="width" secondItem="XfL-4x-Bb3" secondAttribute="height" multiplier="178:179" id="gn9-ib-rox"/>
+                                        <constraint firstAttribute="width" constant="23" id="rYu-Fm-Haa"/>
+                                    </constraints>
+                                </imageView>
+                            </subviews>
+                        </stackView>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <constraints>
+                        <constraint firstItem="acP-9e-2dZ" firstAttribute="top" secondItem="aMo-11-GZJ" secondAttribute="bottom" constant="8" id="Baw-1E-eya"/>
+                        <constraint firstItem="nD8-aW-IRJ" firstAttribute="leading" secondItem="fIt-Wd-wBM" secondAttribute="leading" constant="16" id="ET8-LA-MlY"/>
+                        <constraint firstItem="lZt-Qo-71J" firstAttribute="trailing" secondItem="fIt-Wd-wBM" secondAttribute="trailing" constant="-16" id="Yha-pA-K5t"/>
+                        <constraint firstItem="aMo-11-GZJ" firstAttribute="leading" secondItem="fIt-Wd-wBM" secondAttribute="leading" constant="16" id="ZQr-kY-l1k"/>
+                        <constraint firstItem="acP-9e-2dZ" firstAttribute="leading" secondItem="fIt-Wd-wBM" secondAttribute="leading" constant="16" id="bfg-4Y-tig"/>
+                        <constraint firstItem="lZt-Qo-71J" firstAttribute="bottom" secondItem="acP-9e-2dZ" secondAttribute="bottom" constant="-7.5" id="l8F-yt-Ujx"/>
+                        <constraint firstItem="nD8-aW-IRJ" firstAttribute="top" secondItem="acP-9e-2dZ" secondAttribute="bottom" constant="24" id="qeA-F9-VLz"/>
+                        <constraint firstItem="lZt-Qo-71J" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="acP-9e-2dZ" secondAttribute="trailing" constant="8" id="wSJ-D1-kEx"/>
+                        <constraint firstItem="aMo-11-GZJ" firstAttribute="top" secondItem="fIt-Wd-wBM" secondAttribute="top" constant="8" id="xfh-6I-751"/>
+                    </constraints>
+                </view>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="oDF-JK-Fnh">
+                    <rect key="frame" x="300" y="31" width="75" height="37"/>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="75" id="InR-fe-6V2"/>
+                        <constraint firstAttribute="width" secondItem="oDF-JK-Fnh" secondAttribute="height" multiplier="67:33" id="Res-os-1kG"/>
+                    </constraints>
+                    <state key="normal" image="taz"/>
+                    <connections>
+                        <action selector="tazButtonPressed:" destination="-1" eventType="touchUpInside" id="MRX-OT-UzG"/>
+                    </connections>
+                </button>
+            </subviews>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <constraints>
+                <constraint firstItem="fIt-Wd-wBM" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="3Fj-i9-jDZ"/>
+                <constraint firstItem="fIt-Wd-wBM" firstAttribute="bottom" secondItem="fnl-2z-Ty3" secondAttribute="bottom" id="3ge-MS-Qce"/>
+                <constraint firstItem="oDF-JK-Fnh" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" constant="11" id="530-EA-KMm"/>
+                <constraint firstItem="fIt-Wd-wBM" firstAttribute="trailing" secondItem="oDF-JK-Fnh" secondAttribute="leading" constant="10" id="9v6-Xg-YxZ"/>
+                <constraint firstItem="5ue-5f-Q8z" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="HMS-o8-DFg"/>
+                <constraint firstItem="oDF-JK-Fnh" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="T85-lO-JUe"/>
+                <constraint firstItem="fIt-Wd-wBM" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="XnN-ow-qQG"/>
+                <constraint firstItem="5ue-5f-Q8z" firstAttribute="leading" secondItem="fIt-Wd-wBM" secondAttribute="trailing" id="tal-Xy-qbb"/>
+                <constraint firstItem="5ue-5f-Q8z" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="vnh-lo-sK2"/>
+                <constraint firstItem="5ue-5f-Q8z" firstAttribute="bottom" secondItem="fnl-2z-Ty3" secondAttribute="bottom" id="y6h-KL-zON"/>
+            </constraints>
+            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
+            <point key="canvasLocation" x="-330.39999999999998" y="78.710644677661179"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="Overview" width="163" height="161"/>
+        <image name="Seite1-Foto" width="272.66665649414062" height="244"/>
+        <image name="Settings" width="178" height="179"/>
+        <image name="Tazze" width="141" height="162"/>
+        <image name="taz" width="67.333335876464844" height="33.666667938232422"/>
+    </resources>
+</document>

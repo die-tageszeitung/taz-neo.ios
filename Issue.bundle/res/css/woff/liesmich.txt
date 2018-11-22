@@ -1,0 +1,16 @@
+AktivGrotesk_W_BdIt.woff	Bold Italic
+AktivGrotesk_W_Bd.woff		Bold
+AktivGrotesk_W_BlkIt.woff	Black Italic
+AktivGrotesk_W_Blk.woff		Black
+AktivGrotesk_W_HairIt.woff	Hairline Italic
+AktivGrotesk_W_Hair.woff	Hairline
+AktivGrotesk_W_It.woff		Italic
+AktivGrotesk_W_LtIt.woff	Light Italic
+AktivGrotesk_W_Lt.woff		Light
+AktivGrotesk_W_MdIt.woff	Medium Italic
+AktivGrotesk_W_Md.woff		Medium
+AktivGrotesk_W_Rg.woff		Regular
+AktivGrotesk_W_ThIt.woff	Thin Italic
+AktivGrotesk_W_Th.woff		Thin
+AktivGrotesk_W_XBdIt.woff	xBold Italic
+AktivGrotesk_W_XBd.woff		xBold
