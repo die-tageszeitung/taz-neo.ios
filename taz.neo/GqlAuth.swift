@@ -10,52 +10,84 @@ import NorthLib
 
 /// Subscription status
 enum GqlSubscriptionStatus: Decodable {  
-  case valid             /// valid authentication
-  case tazIdNotValid     /// tazId not verified
-  case aboIdNotValid     /// AboId not verified
-  case invalidConnection /// AboId valid but connected to different tazId
-  case alreadyLinked     /// valid tazId connected to different AboId
-  case waitForMail       /// we are waiting for eMail confirmation
-  case waitForProc       /// server will confirm later, use polling/push not.
-  case noPollEntry       /// user probably didn't confirm mail
-  case invalidMail       /// invalid mail address 
-  case expired           /// account provided by token is expired
-  case unknown           /// unknown subscription status    
+  case valid                  /// valid authentication
+  case tazIdNotValid          /// tazId not verified
+  case subscriptionIdNotValid /// AboId not verified
+  case invalidConnection      /// AboId valid but connected to different tazId
+  case alreadyLinked          /// valid tazId connected to different AboId
+  case waitForMail            /// we are waiting for eMail confirmation
+  case waitForProc            /// server will confirm later, use polling/push not.
+  case noPollEntry            /// user probably didn't confirm mail
+  case invalidMail            /// invalid mail address 
+  case expired                /// account provided by token is expired
+  case unknown                /// unknown subscription status    
   
   func toString() -> String {
     switch self {
-    case .valid:             return "valid"
-    case .tazIdNotValid:     return "tazIdNotValid"
-    case .aboIdNotValid:     return "aboIdNotValid"
-    case .invalidConnection: return "invalidConnection"
-    case .alreadyLinked:     return "alreadyLinked"
-    case .waitForMail:       return "waitForMail"
-    case .waitForProc:       return "waitForProc"
-    case .noPollEntry:       return "noPollEntry"
-    case .invalidMail:       return "invalidMail"
-    case .expired:           return "expired"
-    case .unknown:           return "unknown"
+    case .valid:                  return "valid"
+    case .tazIdNotValid:          return "tazIdNotValid"
+    case .subscriptionIdNotValid: return "subscriptionIdNotValid"
+    case .invalidConnection:      return "invalidConnection"
+    case .alreadyLinked:          return "alreadyLinked"
+    case .waitForMail:            return "waitForMail"
+    case .waitForProc:            return "waitForProc"
+    case .noPollEntry:            return "noPollEntry"
+    case .invalidMail:            return "invalidMail"
+    case .expired:                return "expired"
+    case .unknown:                return "unknown"
     }
   }
   
   init(from decoder: Decoder) throws {
     let s = try decoder.singleValueContainer().decode(String.self)
     switch s {
-    case "valid"   :          self = .valid
-    case "tazIdNotValid":     self = .tazIdNotValid
-    case "aboIdNotValid":     self = .aboIdNotValid
-    case "invalidConnection": self = .invalidConnection
-    case "alreadyLinked":     self = .alreadyLinked
-    case "waitForMail":       self = .waitForMail
-    case "waitForProc":       self = .waitForProc
-    case "noPollEntry":       self = .noPollEntry
-    case "invalidMail":       self = .invalidMail
-    case "elapsed" :          self = .expired
-    default:                  self = .unknown
+    case "valid"   :               self = .valid
+    case "tazIdNotValid":          self = .tazIdNotValid
+    case "subscriptionIdNotValid": self = .subscriptionIdNotValid
+    case "invalidConnection":      self = .invalidConnection
+    case "alreadyLinked":          self = .alreadyLinked
+    case "waitForMail":            self = .waitForMail
+    case "waitForProc":            self = .waitForProc
+    case "noPollEntry":            self = .noPollEntry
+    case "invalidMail":            self = .invalidMail
+    case "elapsed" :               self = .expired
+    default:                       self = .unknown  
     }
   }
   
 } // GqlSubscriptionStatus
+
+/// Subscription status
+enum GqlPasswordResetInfo: Decodable {
+
+  case ok           /// mail sent to user
+  case invalidMail  /// invalid mail address
+  case mailError    /// currently mail delivery not possible
+  case error        /// internal server error
+  case unknown      /// unknown situation
+  
+  func toString() -> String {
+    switch self {
+    case .ok:          return "mail has been sent"
+    case .invalidMail: return "invalid mail address"
+    case .mailError:   return "currently mail delivery not possible"
+    case .error:       return "internal server error"
+    case .unknown:     return "undefined situation"
+    }
+  }
+  
+  init(from decoder: Decoder) throws {
+    let s = try decoder.singleValueContainer().decode(String.self)
+    switch s {
+    case "ok"   :       self = .ok
+    case "invalidMail": self = .invalidMail
+    case "mailError":   self = .mailError
+    case "error":       self = .error
+    default:            self = .unknown  
+    }
+  }
+
+} // GqlPasswordResetInfo
 
 /// A GqlSubscriptionInfo describes an GqlAuthStatus with an optional message
 struct GqlSubscriptionInfo: GQLObject {  
@@ -69,23 +101,24 @@ struct GqlSubscriptionInfo: GQLObject {
   static var fields = "status message token"
   
   func toString() -> String {
-    var ret = status.toString()
-    if let msg = message { ret += ": (\(msg))" }
+    var ret = "status: \(status.toString())"
+    if let msg = message { ret += "\n message: \(msg)" }
+    if let token = token { ret += "token: \(token)" }
     return ret
   }  
 } // GqlSubscriptionInfo
 
 extension GqlFeeder {
   
-  // Get GqlSubscriptionInfo
-  func subscriptionInfo(installationId: String,
+  // Get GqlSubscriptionInfo (while waiting for mail confirmation)
+  func subscriptionPoll(installationId: String,
                         closure: @escaping(Result<GqlSubscriptionInfo,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
       subscriptionInfo: 
-        subscriptionPoll(installationId: "\(installationId)")" {
+        subscriptionPoll(installationId: "\(installationId)") {
           \(GqlSubscriptionInfo.fields)
         }
     """
@@ -100,5 +133,112 @@ extension GqlFeeder {
       closure(ret)
     }
   }
-
+  
+  // Check whether AboId password is correct
+  func checkSubscriptionId(aboId: String, password: String,
+    closure: @escaping(Result<GqlAuthInfo,Error>)->()) {
+    guard let gqlSession = self.gqlSession else { 
+      closure(.failure(fatal("Not connected"))); return
+    }
+    let request = """
+      checkSubscriptionId(subscriptionId: "\(aboId)", password: "\(password)") {
+        \(GqlAuthInfo.fields)
+      }
+    """
+    gqlSession.query(graphql: request, type: [String:GqlAuthInfo].self) { (res) in
+      var ret: Result<GqlAuthInfo,Error>
+      switch res {
+      case .success(let dict):   
+        let ai = dict["checkSubscriptionId"]!
+        ret = .success(ai)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+  
+  // Connect a legacy subscription ID to a tazId
+  func subscriptionId2tazId(tazId: String, password: String, aboId: String, 
+    aboIdPW: String, surname: String?, firstName: String?, installationId: String,
+    pushToken: String?, deviceType: String? = "apple",
+    closure: @escaping(Result<GqlSubscriptionInfo,Error>)->()) {
+    guard let gqlSession = self.gqlSession else { 
+      closure(.failure(fatal("Not connected"))); return
+    }
+    // TODO: aboId with quotes
+    var args = "tazId: \"\(tazId)\", idPw: \"\(password)\", subscriptionId: \(aboId)"
+    args += ", subscriptionPw: \"\(aboIdPW)\", installationId: \"\(installationId)\""
+    if let str = surname { args += ", surname: \"\(str)\"" }
+    if let str = firstName { args += ", firstName: \"\(str)\"" }
+    if let str = pushToken { args += ", pushToken: \"\(str)\"" }
+    if let str = deviceType { args += ", deviceType: \(str)" }
+    let request = """
+      subscriptionId2tazId(\(args)) {
+        \(GqlSubscriptionInfo.fields)
+      }
+    """
+    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionInfo].self) { (res) in
+      var ret: Result<GqlSubscriptionInfo,Error>
+      switch res {
+      case .success(let dict):   
+        let si = dict["subscriptionId2tazId"]!
+        ret = .success(si)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+  
+  // Inform server about a trial subscriber
+  func trialSubscription(tazId: String, password: String, surname: String?, 
+    firstName: String?, installationId: String, pushToken: String?, 
+    deviceType: String? = "apple",
+    closure: @escaping(Result<GqlSubscriptionInfo,Error>)->()) {
+    guard let gqlSession = self.gqlSession else { 
+      closure(.failure(fatal("Not connected"))); return
+    }
+    // TODO: aboId with quotes
+    var args = "tazId: \"\(tazId)\", idPw: \"\(password)\", installationId: \"\(installationId)\""
+    if let str = surname { args += ", surname: \"\(str)\"" }
+    if let str = firstName { args += ", firstName: \"\(str)\"" }
+    if let str = pushToken { args += ", pushToken: \"\(str)\"" }
+    if let str = deviceType { args += ", deviceType: \(str)" }
+    let request = """
+      trialSubscription(\(args)) {
+        \(GqlSubscriptionInfo.fields)
+      }
+    """
+    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionInfo].self) { (res) in
+      var ret: Result<GqlSubscriptionInfo,Error>
+      switch res {
+      case .success(let dict):   
+        let si = dict["trialSubscription"]!
+        ret = .success(si)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+  
+  // Inform server about a trial subscriber
+  func passwordReset(email: String,
+    closure: @escaping(Result<GqlPasswordResetInfo,Error>)->()) {
+    guard let gqlSession = self.gqlSession else { 
+      closure(.failure(fatal("Not connected"))); return
+    }
+    let request = """
+      passwordReset(eMail: "\(email)")
+    """
+    gqlSession.mutation(graphql: request, type: [String:GqlPasswordResetInfo].self) { (res) in
+      var ret: Result<GqlPasswordResetInfo,Error>
+      switch res {
+      case .success(let dict):   
+        let pi = dict["passwordReset"]!
+        ret = .success(pi)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+  
 } // GqlFeeder

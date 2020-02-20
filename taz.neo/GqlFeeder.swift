@@ -667,4 +667,25 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
   
+  /// Signal server that download has been finished
+  func stopDownload(dlId: String, seconds: Double, 
+                    closure: @escaping(Result<Bool,Error>)->()) {
+    guard let gqlSession = self.gqlSession else { 
+      closure(.failure(fatal("Not connected"))); return
+    }
+    let request = """
+      downloadStop(downloadId: \(dlId), downloadTime: \(seconds))
+    """
+    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
+      var ret: Result<Bool,Error>
+      switch res {
+      case .success(let dict):   
+        let status = dict["downloadStop"]!
+        ret = .success(status)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+
 } // GqlFeeder

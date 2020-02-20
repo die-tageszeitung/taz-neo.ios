@@ -32,6 +32,7 @@
 		AED748A62383F1D600C09D2D /* ArticleDB.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = AED70C8E2243E0EB00487918 /* ArticleDB.xcdatamodel */; };
 		AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		AED748AC238415B200C09D2D /* NorthLib.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		AEED41BC23FE8E6F0072043F /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEED41BB23FE8E6F0072043F /* Authentication.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -95,6 +96,7 @@
 		AED748A9238413D800C09D2D /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		AED748AA238413EB00C09D2D /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = taz.neo.entitlements; sourceTree = "<group>"; };
+		AEED41BB23FE8E6F0072043F /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -192,14 +194,15 @@
 				AECCE11B23FBF3FE007C2276 /* MainNC.swift */,
 				AE822631232A717E00FFBE67 /* DataModel.swift */,
 				AE4AA2AE23F6AD5700EAFE78 /* ViewController */,
-				AE0A4D0123F4297500C44625 /* Views */,
 				AE82262C232A70E000FFBE67 /* GraphQlSession.swift */,
 				AE696F2D23918F9400265FC8 /* GqlFeeder.swift */,
 				AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */,
 				AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */,
-				AE16422D222FFEF200DF07DE /* ArticleDB */,
+				AEED41BB23FE8E6F0072043F /* Authentication.swift */,
 				AEBAF58E219ACFAC00566205 /* AppDelegate.swift */,
 				AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */,
+				AE16422D222FFEF200DF07DE /* ArticleDB */,
+				AE0A4D0123F4297500C44625 /* Views */,
 				AE5D9EC823E307460002C3B8 /* TestController */,
 				AEBAF587219ACEC700566205 /* Supporting Files */,
 			);
@@ -327,6 +330,7 @@
 				AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */,
 				AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */,
 				AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */,
+				AEED41BC23FE8E6F0072043F /* Authentication.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,
 				AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */,

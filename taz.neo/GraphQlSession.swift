@@ -79,18 +79,18 @@ open class GraphQlSession: HttpSession {
     header["Accept-Encoding"] = "gzip"
   }
   
-  public func query<T>(graphql: String, type: T.Type, closure: @escaping(Result<T,Error>)->()) 
+  public func request<T>(requestType: String, graphql: String, type: T.Type, closure: @escaping(Result<T,Error>)->()) 
     where T: Decodable {
     guard let url = self.url else { return }
-    let quoted = "{\(graphql)}".quote()
+    let quoted = "\(requestType) {\(graphql)}".quote()
     let str = "{ \"query\": \(quoted) }"
-    //debug("Sending: \"\(graphql)\"")
+    debug("Sending: \"\(str)\"")
     post(url, data: str.data(using: .utf8)!) { res in
       var result: Result<T,Error>
       switch res {
       case .success(let data):
         if let d = data {
-          //self.debug("Received: \"\(String(decoding: d, as: UTF8.self))\"")
+          self.debug("Received: \"\(String(decoding: d, as: UTF8.self))\"")
           if let gerr = GraphQlError.from(data: d) {
             result = .failure(gerr)
           }
@@ -111,6 +111,16 @@ open class GraphQlSession: HttpSession {
       }
       closure(result)
     }
+  }
+  
+  public func query<T>(graphql: String, type: T.Type, closure: @escaping(Result<T,Error>)->()) 
+    where T: Decodable { 
+      request(requestType: "query", graphql: graphql, type: type, closure: closure)
+  }
+  
+  public func mutation<T>(graphql: String, type: T.Type, closure: @escaping(Result<T,Error>)->()) 
+    where T: Decodable { 
+      request(requestType: "mutation", graphql: graphql, type: type, closure: closure)
   }
   
 } // class GraphQlSession

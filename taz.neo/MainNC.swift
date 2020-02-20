@@ -17,6 +17,7 @@ class MainNC: UINavigationController, SectionVCdelegate {
   let net = NetAvailability()
   var gqlFeeder: GqlFeeder!
   var feeder: Feeder { return gqlFeeder }
+  lazy var authenticator = Authentication(feeder: self.gqlFeeder)
   var feed: Feed?
   var issue: Issue!
   lazy var dloader = Downloader(feeder: feeder)
@@ -78,48 +79,31 @@ class MainNC: UINavigationController, SectionVCdelegate {
     gqlFeeder.overview(feed: feed!, closure: closure) 
   }
   
+  func getOverview(closure: @escaping (Result<[Issue],Error>)->()) {
+    debug(gqlFeeder.toString())
+    feed = gqlFeeder.feeds[0]
+    gqlFeeder.overview(feed: feed!, closure: closure) 
+  }
+  
   func setupFeeder(closure: @escaping (Result<[Issue],Error>)->()) {
     self.gqlFeeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { (res) in
       guard let nfeeds = res.value() else { return }
       self.debug("Feeder \"\(self.feeder.title)\" provides \(nfeeds) feeds.")
       self.writeTazApiCss(topMargin: CGFloat(TopMargin), bottomMargin: CGFloat(BottomMargin))
-      self.feeder.authenticate(account: "test", password: "test") { 
-        [weak self] (res) in
-        guard let _ = res.value() else { return }
-        self?.debug(self?.gqlFeeder.toString())
-        if let feeds = self?.feeder.feeds {
-          self!.feed = feeds[0]
-          self!.gqlFeeder.overview(feed: self!.feed!, closure: closure) 
+      let dfl = Defaults.singleton
+      if let token = dfl["token"] { 
+        self.gqlFeeder.authToken = token
+        self.getOverview(closure: closure)
+      }
+      else {
+        self.authenticator.simpleAuthenticate { [weak self] (res) in
+          guard let _ = res.value() else { return }
+          self?.getOverview(closure: closure)
         }
       }
     }
   }
-  
-  func withLoginData(closure: @escaping (_ id: String?, _ password: String?)->()) {
-    let alert = UIAlertController(title: "Anmeldung", 
-          message: "Bitte melden Sie sich mit Ihren Kundendaten an", 
-          preferredStyle: .actionSheet)
-    alert.addTextField { (textField) in
-      textField.placeholder = "ID"
-      textField.keyboardType = .emailAddress
-    }
-    alert.addTextField { (textField) in
-      textField.placeholder = "Passwort"
-      textField.isSecureTextEntry = true
-    }
-    let loginAction = UIAlertAction(title: "Anmelden", style: .default) { _ in
-      let id = alert.textFields![0]
-      let password = alert.textFields![1]
-      closure(id.text ?? "", password.text ?? "")
-    }
-    let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel) { _ in
-      closure(nil, nil)
-    }
-    alert.addAction(loginAction)
-    alert.addAction(cancelAction)
-    MainNC.singleton.present(alert, animated: true, completion: nil)
-  }
-  
+    
   func loadIssue(closure: @escaping (Error?)->()) {
     self.dloader.downloadIssue(issue: self.issue!) { [weak self] err in
       if err != nil { self?.debug("Issue DL Errors: last = \(err!)") }

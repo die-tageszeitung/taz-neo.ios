@@ -18,6 +18,8 @@ class DLController: UIViewController {
   let net = NetAvailability()
   var feeder: GqlFeeder!
   lazy var dloader = Downloader(feeder: feeder) 
+  lazy var authenticator = Authentication(feeder: self.feeder)
+
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -38,7 +40,7 @@ class DLController: UIViewController {
       self.log("Network down")
     }
     feeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { (res) in
-      self.startup(res)
+      self.authTest(res)
     }
     debug("current dir: '\(Dir.currentPath)'\ntmpdir: '\(Dir.tmpPath)'\n")
   }
@@ -71,24 +73,11 @@ class DLController: UIViewController {
   func authTest(_ res: Result<Int, Error>) {
     guard let n = res.value() else { return }
     debug("\(n) issues\n\(feeder.toString())")
-    feeder.authenticate(account: "test", password: "test") { 
-      [weak self] (res) in
-      guard let key = res.value() else { return }
-      self?.debug("key: \(key)")
-      self?.debug(self?.feeder.toString())
-      if let feeds = self?.feeder.feeds {
-        let feed = feeds[0]
-        self!.feeder.overview(feed: feed) { res in
-          guard let issues = res.value() else { return }
-          self!.feeder.issue(feed: feed, date: issues[0].date) { res in
-            guard let issue = res.value() else { return }
-            self?.dloader.downloadIssue(issue: issue) { err in
-              if err != nil { self?.debug("Errors: last = \(err!)") }
-              else { self?.debug("Issue DL complete") }
-              self?.loadLastSection0(feed: feed, issues: issues)
-            }
-          }
-        }
+    self.authenticator.simpleAuthenticate { [weak self] (res) in
+      guard let _ = res.value() else { return }
+      self?.feeder.passwordReset(email: "bla@me.com") { res in
+        guard let si = res.value() else { return }
+        self?.debug(si.toString())
       }
     }
   }
