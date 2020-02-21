@@ -220,7 +220,7 @@ extension GqlFeeder {
     }
   }
   
-  // Inform server about a trial subscriber
+  // asking for a password reset 
   func passwordReset(email: String,
     closure: @escaping(Result<GqlPasswordResetInfo,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 

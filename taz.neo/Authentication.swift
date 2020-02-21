@@ -86,6 +86,83 @@ public class Authentication: DoesLog {
         closure(.failure(this.error("User refused to log in")))
       }
     }
-  }  
+  }
+    
+    public func linkingIDs(tazID: String, tazPassword: String, aboId:String, aboPw: String, surname: String?, firstname: String?, installID: String, pushToken: String?, device: Device?  ){
+        
+    }
+    
+    public func linkingIDs(tazID: String, tazPassword: String /*, installID: String*/){
+        
+    }
 
+    public func detailedAuthenticate(closure: @escaping (Result<String,Error>)->()) {
+      withLoginData { [weak self] (id, password) in
+        guard let this = self else { return }
+        if let id = id, let password = password {
+            // investigates the type of ID (taz,abo or promo)
+            if id.contains("@") {   // tazID
+                /*
+                 Es muss gecheckt werden ob tazID mit abo verknüpft ist
+                 wenn verknüpft alles super kunde darf lesen
+                 wenn nein, dann verknüfen oder anlegen
+                 */
+                // TODO checkSubscriptionId erwartet aboID aber ich weiß bereits dass es eine tazID ist
+//                this.feeder.checkSubscriptionId(aboId: id, password: password) { res in
+//                    if let AuthInfo = res.value() {
+//                        switch AuthInfo.status {
+//                        case .valid:    // this user has it all aboID and tazID DONE
+//                            break
+//                        case .invalid: // somthings wrong with pw or id
+//                            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+//                        case .expired: // token is expired
+//                            this.message(title: "Fehler", message: "\nIhre Sitzung ist abgelaufen, versuchen Sie es erneut")
+//                        case .unlinked: //aboID an PW okay, but not linked to tazID! :O
+//                            this.linkingIDs(tazID: id, tazPassword: password) 
+//                        default:
+//                            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+//                        }
+//                    }
+//                } //endif
+                
+            }
+            if id.isNumber {        // aboID
+                /*
+                 es muss gecheckt werden ob tazID exestiert
+                 wenn ja dann verknüfen, sonst
+                 tazID erstellen und mit abo verknüfen
+                 */
+                this.feeder.checkSubscriptionId(aboId: id, password: password) { res in
+                    if let AuthInfo = res.value() {
+                        switch AuthInfo.status {
+                        case .valid:    // valid aboID
+                            break
+                        case .invalid: // somthings wrong with pw or id
+                            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+                        case .expired: // token is expired
+                            this.message(title: "Fehler", message: "\nIhre Sitzung ist abgelaufen, versuchen Sie es erneut")
+                        case .unlinked: //aboID an PW okay, but not linked to tazID! :O
+                            this.linkingIDs(tazID: id, tazPassword: password)
+                        default:
+                            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+                        }
+                    }
+                }
+                
+            } //endif
+        } // end if let
+          
+      }
+    }
+
+    private func connectAboWithTazId(aboId: String, aboIdPW: String ) {
+        
+    }
+
+}
+
+extension String  {
+    var isNumber: Bool {
+        return !isEmpty && rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) == nil
+    }
 }
