@@ -88,12 +88,31 @@ public class Authentication: DoesLog {
     }
   }
     
-    public func linkingIDs(tazID: String, tazPassword: String, aboId:String, aboPw: String, surname: String?, firstname: String?, installID: String, pushToken: String?, device: Device?  ){
-        
-    }
-    
-    public func linkingIDs(tazID: String, tazPassword: String /*, installID: String*/){
-        
+    func linkingIDs(closure: @escaping (_ id: String?, _ password: String?)->()  /*, installID: String*/){
+//      var aboID, aboPW : String
+      let alert = UIAlertController(title: "Anmeldung",
+            message: "Bitte melden Sie sich mit Ihren Kundendaten an",
+            preferredStyle: .alert)
+      alert.addTextField { (textField) in
+        textField.placeholder = "ID"
+        textField.keyboardType = .emailAddress
+      }
+      alert.addTextField { (textField) in
+        textField.placeholder = "Passwort"
+        textField.isSecureTextEntry = true
+      }
+      let loginAction = UIAlertAction(title: "Anmelden", style: .default) { _ in
+        let id = alert.textFields![0]
+        let password = alert.textFields![1]
+        closure(id.text ?? "", password.text ?? "")
+      }
+      let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel) { _ in
+//        closure(nil, nil)
+      }
+      alert.addAction(loginAction)
+      alert.addAction(cancelAction)
+      rootVC?.present(alert, animated: true, completion: nil)
+//        feeder.subscriptionId2tazId(tazId: tazID, password: tazPassword, aboId: <#T##String#>, aboIdPW: <#T##String#>, surname: <#T##String?#>, firstName: <#T##String?#>, installationId: <#T##String#>, pushToken: <#T##String?#>, closure: <#T##(Result<GqlSubscriptionInfo, Error>) -> ()#>)
     }
 
     public func detailedAuthenticate(closure: @escaping (Result<String,Error>)->()) {
@@ -107,23 +126,23 @@ public class Authentication: DoesLog {
                  wenn verknüpft alles super kunde darf lesen
                  wenn nein, dann verknüfen oder anlegen
                  */
-                // TODO checkSubscriptionId erwartet aboID aber ich weiß bereits dass es eine tazID ist
-//                this.feeder.checkSubscriptionId(aboId: id, password: password) { res in
-//                    if let AuthInfo = res.value() {
-//                        switch AuthInfo.status {
-//                        case .valid:    // this user has it all aboID and tazID DONE
-//                            break
-//                        case .invalid: // somthings wrong with pw or id
-//                            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
-//                        case .expired: // token is expired
-//                            this.message(title: "Fehler", message: "\nIhre Sitzung ist abgelaufen, versuchen Sie es erneut")
-//                        case .unlinked: //aboID an PW okay, but not linked to tazID! :O
-//                            this.linkingIDs(tazID: id, tazPassword: password) 
-//                        default:
-//                            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
-//                        }
-//                    }
-//                } //endif
+//                 TODO checkSubscriptionId erwartet aboID aber ich weiß bereits dass es eine tazID ist
+                this.feeder.checkSubscriptionId(aboId: id, password: password) { res in
+                    if let AuthInfo = res.value() {
+                        switch AuthInfo.status {
+                        case .valid:    // this user has it all aboID and tazID DONE
+                            break
+                        case .invalid: // somthings wrong with pw or id
+                            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+                        case .expired: // token is expired
+                            this.message(title: "Fehler", message: "\nDas taz-Digiabo ist abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
+                        case .unlinked: //aboID an PW okay, but not linked to tazID! :O
+                          this.linkingIDs{ [weak self] (id, password)}
+                        default:
+                            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+                        }
+                    }
+                } //endif tazID
                 
             }
             if id.isNumber {        // aboID
@@ -140,7 +159,7 @@ public class Authentication: DoesLog {
                         case .invalid: // somthings wrong with pw or id
                             this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
                         case .expired: // token is expired
-                            this.message(title: "Fehler", message: "\nIhre Sitzung ist abgelaufen, versuchen Sie es erneut")
+                            this.message(title: "Fehler", message: "\nDas taz-Digiabo ist abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
                         case .unlinked: //aboID an PW okay, but not linked to tazID! :O
                             this.linkingIDs(tazID: id, tazPassword: password)
                         default:
@@ -149,16 +168,14 @@ public class Authentication: DoesLog {
                     }
                 }
                 
-            } //endif
+            } //endif aboid
+            if !id.contains("@") && !id.isNumber  {
+                self?.debug("Promocode wurde erkannt")
+            } //endif promo
         } // end if let
           
       }
     }
-
-    private func connectAboWithTazId(aboId: String, aboIdPW: String ) {
-        
-    }
-
 }
 
 extension String  {
