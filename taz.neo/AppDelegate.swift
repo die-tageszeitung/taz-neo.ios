@@ -16,24 +16,23 @@ class AppDelegate: NotifiedDelegate {
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     self.window = UIWindow(frame: UIScreen.main.bounds)
-//    self.window?.rootViewController = MainNC()
+    self.window?.rootViewController = MainNC()
 //    self.window?.rootViewController = NavController()
 //    self.window?.rootViewController = ContentVC()
 //    self.window?.rootViewController = UITests()
-    self.window?.rootViewController = DLController()
+//    self.window?.rootViewController = DLController()
     self.window?.makeKeyAndVisible()
     if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
       if shortcutItem.type == "Logging" { wantLogging = true }
     }
-
     return true
   }
   
   /// Enable Logging button on home screen
   public func applicationWillResignActive(_ application: UIApplication) {
-    let shortcut = UIApplicationShortcutItem(type: "Logging", 
-          localizedTitle: "Protokoll einschalten")
-    application.shortcutItems = [shortcut]
+    let proto = UIApplicationShortcutItem(type: "Logging", 
+                localizedTitle: "Protokoll einschalten")
+    application.shortcutItems = [proto]
   }
 
   func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {

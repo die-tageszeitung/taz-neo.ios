@@ -27,11 +27,23 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   public var article: Article? {
     didSet {
       guard let art = article else { return }
-      self.index = article2index(art: art)
+      displaySection(index: article2index(art: art))
     }
   }
+  
   public var delegate: SectionVCdelegate? {
-    didSet { self.setup() }
+    didSet { if oldValue == nil { self.setup() } }
+  }
+  
+  public func displaySection(index: Int) {
+    if index != self.index {
+      debug("Section change to Section #\(index), previous: " +
+        "\(self.index?.description ?? "[undefined]")" )
+      if let curr = currentWebView {
+        self.index = index
+        curr.scrollToTop()
+      }
+    }    
   }
   
   func setup() {
@@ -43,12 +55,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
                 dloader: delegate.dloader, isLargeHeader: true)
     article2sectionHtml = issue.article2sectionHtml
     contentTable?.onSectionPress { [weak self] sectionIndex in
-      self?.index = sectionIndex
+      self?.slider.close()
+      self?.displaySection(index: sectionIndex)
     }
     contentTable?.onImagePress { [weak self] in
-      self?.index = 0
+      self?.slider.close()
+      self?.displaySection(index: 0)
     }
-    onDisplay { [weak self] secIndex in
+    onDisplay { [weak self] (secIndex, cell) in
       self?.setHeader(secIndex: secIndex)
     }
     articleVC = ArticleVC()
@@ -79,6 +93,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   func setHeader(secIndex: Int) {
     header.title = contents[secIndex].title ?? ""
     header.subTitle = issue.date.gLowerDateString(tz: feeder.timeZone)
+    header.hide(false)
   }
     
 } // SectionVC

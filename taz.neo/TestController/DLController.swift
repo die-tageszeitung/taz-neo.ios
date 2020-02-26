@@ -1,6 +1,5 @@
 //
 //  ViewController.swift
-//  dltest
 //
 //  Created by Norbert Thies on 16.05.19.
 //  Copyright © 2019 Norbert Thies. All rights reserved.
@@ -73,11 +72,25 @@ class DLController: UIViewController {
   func authTest(_ res: Result<Int, Error>) {
     guard let n = res.value() else { return }
     debug("\(n) issues\n\(feeder.toString())")
-    self.authenticator.simpleAuthenticate { [weak self] (res) in
+    self.authenticator.simpleAuthenticate { [weak self] res in
       guard let _ = res.value() else { return }
       self?.feeder.passwordReset(email: "bla@me.com") { res in
         guard let si = res.value() else { return }
         self?.debug(si.toString())
+        self?.feeder.trialSubscription(tazId: "bla@me.com", password: "test", 
+          surname: "Bla", firstName: "Buggy", installationId: "1234", 
+          pushToken: "abccffe") { res in
+          guard let info = res.value() else { return }
+          self?.debug(info.toString())
+          self?.feeder.subscriptionReset(aboId: "1234") { res in
+            guard let info = res.value() else { return }
+            self?.debug(info.toString())
+            self?.feeder.unlinkSubscriptionId(aboId: "1234", password: "1234") { res in
+              guard let info = res.value() else { return }
+              self?.debug(info.toString())
+            }
+          }  
+        }
       }
     }
   }

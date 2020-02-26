@@ -58,9 +58,9 @@ public class Authentication: DoesLog {
   }
   
   // Popup message to user
-  private func message(title: String, message: String) {
+  public func message(title: String, message: String, closure: (()->())? = nil) {
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-    let okButton = UIAlertAction(title: "OK", style: .default)
+    let okButton = UIAlertAction(title: "OK", style: .default) { _ in closure?() }
     alert.addAction(okButton)
     rootVC?.present(alert, animated: false, completion: nil)
   }
@@ -73,11 +73,16 @@ public class Authentication: DoesLog {
         this.feeder.authenticate(account: id, password: password) { res in
           if let token = res.value() {
             let dfl = Defaults.singleton
+            let kc = Keychain.singleton
             dfl["token"] = token
             dfl["id"] = id
+            kc["token"] = token
+            kc["id"] = id
+            kc["password"] = password
           }
           else { 
-            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt") 
+            this.message(title: "Fehler", 
+              message: "\nIhre Kundendaten sind nicht korrekt") { exit(0) }
           }
           closure(res)
         }
