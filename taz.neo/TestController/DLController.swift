@@ -48,7 +48,7 @@ class DLController: UIViewController {
   func startup(_ res: Result<Int, Error>) {
     guard let n = res.value() else { return }
     debug("\(n) issues\n\(feeder.toString())")
-    feeder.authenticate(account: "test", password: "test") { 
+    feeder.authenticate(account: "test", password: "test") {
       [weak self] (res) in
       guard let key = res.value() else { return }
       self?.debug("key: \(key)")
@@ -73,7 +73,7 @@ class DLController: UIViewController {
   func authTest(_ res: Result<Int, Error>) {
     guard let n = res.value() else { return }
     debug("\(n) issues\n\(feeder.toString())")
-    self.authenticator.simpleAuthenticate { [weak self] (res) in
+    self.authenticator.detailedAuthenticate { [weak self] (res) in
       guard let _ = res.value() else { return }
       self?.feeder.passwordReset(email: "bla@me.com") { res in
         guard let si = res.value() else { return }
