@@ -49,7 +49,6 @@ open class ArticleVC: ContentVC {
         this.setHeader(artIndex: idx)
       }
     }
-    self.index = 0
    }
     
   // Define Header elements
