@@ -58,9 +58,9 @@ public class Authentication: DoesLog {
   }
   
   /// Popup message to user
-  private func message(title: String, message: String) {
+  public func message(title: String, message: String, closure: (()->())? = nil) {
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-    let okButton = UIAlertAction(title: "OK", style: .default)
+    let okButton = UIAlertAction(title: "OK", style: .default) { _ in closure?() }
     alert.addAction(okButton)
     rootVC?.present(alert, animated: false, completion: nil)
   }
@@ -73,11 +73,16 @@ public class Authentication: DoesLog {
         this.feeder.authenticate(account: id, password: password) { res in
           if let token = res.value() {
             let dfl = Defaults.singleton
+            let kc = Keychain.singleton
             dfl["token"] = token
             dfl["id"] = id
+            kc["token"] = token
+            kc["id"] = id
+            kc["password"] = password
           }
           else { 
-            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt") 
+            this.message(title: "Fehler", 
+              message: "\nIhre Kundendaten sind nicht korrekt") { exit(0) }
           }
           closure(res)
         }
@@ -161,13 +166,13 @@ public class Authentication: DoesLog {
                     dfl["id"] = id
                   }
                   else {
-                    this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+                    this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){ exit(0) }
                   }
               }
                   let authStatus = this.feeder.status?.authInfo.status
                     switch authStatus {
                       case .valid:    // this user has it all aboID and tazID DONE
-                        this.message(title: "Anmeldung erfolgreich", message: "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz")
+                        this.message(title: "Anmeldung erfolgreich", message: "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz"){()}
                         this.debug("valid aboID")
                       case .invalid: // somthings wrong with pw or id
                         this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")

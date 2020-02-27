@@ -57,7 +57,7 @@ enum GqlSubscriptionStatus: Decodable {
   
 } // GqlSubscriptionStatus
 
-/// Subscription status
+/// Password reset info
 enum GqlPasswordResetInfo: Decodable {
 
   case ok           /// mail sent to user
@@ -89,6 +89,38 @@ enum GqlPasswordResetInfo: Decodable {
 
 } // GqlPasswordResetInfo
 
+/// Subscription reset status
+enum GqlSubscriptionResetStatus: Decodable {
+
+  case ok                     /// mail sent to user
+  case invalidSubscriptionId  /// invalid subscription Id
+  case noMail                 /// no mail address known on server
+  case invalidConnection      /// internal server error
+  case unknown                /// unknown situation
+  
+  func toString() -> String {
+    switch self {
+    case .ok:                    return "mail has been sent"
+    case .invalidSubscriptionId: return "invalid subscription ID"
+    case .noMail:                return "unknown mail address"
+    case .invalidConnection:     return "invalid connection"
+    case .unknown:               return "undefined situation"
+    }
+  }
+  
+  init(from decoder: Decoder) throws {
+    let s = try decoder.singleValueContainer().decode(String.self)
+    switch s {
+    case "ok"   :                 self = .ok
+    case "invalidSubscriptionId": self = .invalidSubscriptionId
+    case "noMail":                self = .noMail
+    case "invalidConnection":     self = .invalidConnection
+    default:                      self = .unknown  
+    }
+  }
+
+} // GqlSubscriptionResetStatus
+
 /// A GqlSubscriptionInfo describes an GqlAuthStatus with an optional message
 struct GqlSubscriptionInfo: GQLObject {  
   /// Subscription status
@@ -107,6 +139,22 @@ struct GqlSubscriptionInfo: GQLObject {
     return ret
   }  
 } // GqlSubscriptionInfo
+
+/// A GqlSubscriptionResetInfo describes the result of a subscriptionReset method
+struct GqlSubscriptionResetInfo: GQLObject {  
+  /// Subscription reset status
+  var status:  GqlSubscriptionResetStatus
+  /// Mail recipient or tazId mail address if invalidConnection
+  var mail: String?
+  
+  static var fields = "status mail"
+  
+  func toString() -> String {
+    var ret = "status: \(status.toString())"
+    if let mail = mail { ret += "\n mail: \(mail)" }
+    return ret
+  }  
+} // GqlSubscriptionResetInfo
 
 extension GqlFeeder {
   
@@ -141,7 +189,7 @@ extension GqlFeeder {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
-      checkSubscriptionId(subscriptionId: "\(aboId)", password: "\(password)") {
+      checkSubscriptionId(subscriptionId: \(aboId), password: "\(password)") {
         \(GqlAuthInfo.fields)
       }
     """
@@ -220,7 +268,8 @@ extension GqlFeeder {
     }
   }
   
-  // asking for a password reset 
+  // asking for a password reset
+  // Ask server to send a "password change email" to a user with tazId
   func passwordReset(email: String,
     closure: @escaping(Result<GqlPasswordResetInfo,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
@@ -241,4 +290,50 @@ extension GqlFeeder {
     }
   }
   
+  // Ask server to send a "password change email" to a user with aboId
+  func subscriptionReset(aboId: String,
+    closure: @escaping(Result<GqlSubscriptionResetInfo,Error>)->()) {
+    guard let gqlSession = self.gqlSession else { 
+      closure(.failure(fatal("Not connected"))); return
+    }
+    let request = """
+      subscriptionReset(subscriptionId: \(aboId)) {
+        \(GqlSubscriptionResetInfo.fields)
+      }
+    """
+    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionResetInfo].self) { (res) in
+      var ret: Result<GqlSubscriptionResetInfo,Error>
+      switch res {
+      case .success(let dict):   
+        let si = dict["subscriptionReset"]!
+        ret = .success(si)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+  
+  // Unlink the connection of a certain subsciptionId with a tazId
+  func unlinkSubscriptionId(aboId: String, password: String,
+    closure: @escaping(Result<GqlAuthInfo,Error>)->()) {
+    guard let gqlSession = self.gqlSession else { 
+      closure(.failure(fatal("Not connected"))); return
+    }
+    let request = """
+      unlinkSubscriptionId(subscriptionId: \(aboId), password: "\(password)") {
+        \(GqlAuthInfo.fields)      
+      }
+    """
+    gqlSession.mutation(graphql: request, type: [String:GqlAuthInfo].self) { (res) in
+      var ret: Result<GqlAuthInfo,Error>
+      switch res {
+      case .success(let dict):   
+        let ai = dict["unlinkSubscriptionId"]!
+        ret = .success(ai)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+
 } // GqlFeeder

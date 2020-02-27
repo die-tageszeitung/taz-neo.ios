@@ -85,15 +85,31 @@ class MainNC: UINavigationController, SectionVCdelegate {
     gqlFeeder.overview(feed: feed!, closure: closure) 
   }
   
+  // Popup message to user
+  public func message(title: String, message: String, closure: (()->())? = nil) {
+    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+    let okButton = UIAlertAction(title: "OK", style: .default) { _ in closure?() }
+    alert.addAction(okButton)
+    present(alert, animated: false, completion: nil)
+  }
+
   func setupFeeder(closure: @escaping (Result<[Issue],Error>)->()) {
     self.gqlFeeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { (res) in
       guard let nfeeds = res.value() else { return }
       self.debug("Feeder \"\(self.feeder.title)\" provides \(nfeeds) feeds.")
       self.writeTazApiCss(topMargin: CGFloat(TopMargin), bottomMargin: CGFloat(BottomMargin))
-      let dfl = Defaults.singleton
-      if let token = dfl["token"] { 
+      let (token, _, _) = self.getUserData()
+      if let token = token { 
         self.gqlFeeder.authToken = token
-        self.getOverview(closure: closure)
+        self.getOverview() { [weak self] res in
+          if let _ = res.value() { closure(res) }
+          else { 
+            self?.deleteUserData()
+            self?.message(title: "Fehler", message: "Bei der Anmeldung am Server " +
+              "trat ein Fehler auf, bitte starten Sie die App noch einmal und " +
+              "melden Sie sich erneut an.") { exit(0) }
+          }
+        }
       }
       else {
         self.authenticator.simpleAuthenticate { [weak self] (res) in
@@ -120,22 +136,14 @@ class MainNC: UINavigationController, SectionVCdelegate {
     }   
   }
   
-  func loadArticle(article: Article, closure: @escaping (Error?)->()) {
-    dloader.downloadArticle(issue: self.issue!, article: article) { [weak self] err in
-      if err != nil { self?.debug("Article DL Errors: last = \(err!)") }
-      else { self?.debug("Article DL complete") }
-      closure(err)
-    }   
-  }
-  
   func pushSectionViews() {
     sectionVC = SectionVC()
     if let svc = sectionVC {
       svc.delegate = self
-      pushViewController(svc, animated: false)
-      delay(seconds: 1) {
+      pushViewController(svc, animated: true)
+      delay(seconds: 1.5) {
         svc.slider.open() { _ in
-          delay(seconds: 1) {
+          delay(seconds: 1.5) {
             svc.slider.close() { _ in
               svc.slider.blinkButton()
             }
@@ -146,13 +154,8 @@ class MainNC: UINavigationController, SectionVCdelegate {
     }
   }
   
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    MainNC.singleton = self
-    isNavigationBarHidden = true
-    self.view.addSubview(startupView)
-    pin(startupView, to: self.view)
-    setupLogging()
+  func startup() {
+    startupView.isAnimating = true
     Database( "ArticleDB" ) { db in 
       self.debug("DB opened: \(db)")
       self.setupFeeder { [weak self] res in
@@ -161,21 +164,84 @@ class MainNC: UINavigationController, SectionVCdelegate {
         self?.gqlFeeder.issue(feed: self!.feed!, date: ovwIssues[0].date) { [weak self] res in
           guard let issue = res.value() else { self?.fatal(res.error()!); return }
           self?.issue = issue
-//          self?.loadIssue { err in
-//            if err != nil { self?.fatal(err!) }
-//          }
           // load "Moment" and 1st section HTML before pushing the web view
           self?.loadSection(section: self!.issue!.sections![0]) { [weak self] err in
             if err != nil { self?.fatal(err!) }
             self?.dloader.downloadMoment(issue: self!.issue!) { [weak self] err in
               if err != nil { self?.fatal(err!) }
               self?.pushSectionViews()
+              delay(seconds: 2) { 
+                self?.startupView.isAnimating = false 
+                self?.loadIssue { err in
+                  if err != nil { self?.fatal(err!) }
+                }
+              }
               self?.startupView.isHidden = true
             }
           }
         }
       }
     }
+  } 
+  
+  @objc func goingBackground() {
+    debug("Going background")
+  }
+  
+  @objc func goingForeground() {
+    debug("Entering foreground")
+  }
+ 
+  func deleteAll() {
+    popToRootViewController(animated: false)
+    for f in Dir.appSupport.scan() {
+      debug("remove: \(f)")
+      try! FileManager.default.removeItem(atPath: f)
+    }
+    exit(0)
+  }
+  
+  func getUserData() -> (token: String?, id: String?, password: String?) {
+    let dfl = Defaults.singleton
+    let kc = Keychain.singleton
+    var token = kc["token"]
+    var id = kc["id"]
+    let password = kc["password"]
+    if token == nil { 
+      token = dfl["token"] 
+      if token != nil { kc["token"] = token }
+    }
+    else { dfl["token"] = token }
+    if id == nil { 
+      id = dfl["id"] 
+      if id != nil { kc["id"] = id }
+    }
+    return(token, id, password)
+  }
+  
+  func deleteUserData() {
+    let dfl = Defaults.singleton
+    let kc = Keychain.singleton
+    kc["token"] = nil
+    kc["id"] = nil
+    kc["password"] = nil
+    dfl["token"] = nil
+    dfl["id"] = nil
+  }
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    MainNC.singleton = self
+    isNavigationBarHidden = true
+    self.view.addSubview(startupView)
+    pin(startupView, to: self.view)
+    let nc = NotificationCenter.default
+    nc.addObserver(self, selector: #selector(goingBackground), 
+      name: UIApplication.willResignActiveNotification, object: nil)
+    nc.addObserver(self, selector: #selector(goingForeground), 
+                   name: UIApplication.willEnterForegroundNotification, object: nil)
+    setupLogging()
+    startup()
   }
   
 } // MainNC

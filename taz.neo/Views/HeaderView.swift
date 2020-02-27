@@ -58,14 +58,28 @@ open class HeaderView: UIView {
     }
   } // Regular
   
+  class Mini: UIView {
+    var title = UILabel()
+    
+    func setup() {
+      self.backgroundColor = UIColor.white
+      self.addSubview(title)
+      title.textAlignment = .center
+      title.font = SubTitleFont
+      pin(title.left, to: self.left, dist: 8)
+      pin(title.right, to: self.right, dist: -8)
+      pin(title.top, to: self.top)
+    }
+  } // Mini
+  
   var regular = Regular()
-  var mini = UILabel()
+  var mini = Mini()
   
   public var title: String {
     get { return regular.title.text ?? "" }
     set { 
       regular.title.text = newValue 
-      if isAutoMini { mini.text = newValue }
+      if isAutoMini { mini.title.text = newValue }
     }
   }
   
@@ -75,8 +89,8 @@ open class HeaderView: UIView {
   }  
   
   public var miniTitle: String? {
-    get { return mini.text }
-    set { mini.text = newValue }
+    get { return mini.title.text }
+    set { mini.title.text = newValue }
   }
   
   private var isAutoMini = false
@@ -86,19 +100,17 @@ open class HeaderView: UIView {
   private var miniTop: NSLayoutConstraint?
   
   private func setup(isLarge: Bool) {
+    self.backgroundColor = UIColor.white
     regular.setup(isLarge: isLarge)
-    mini.textAlignment = .center
-    mini.font = SubTitleFont
-    mini.adjustsFontSizeToFitWidth = true
+    mini.setup()
     addSubview(mini)
-    pin(mini.left, to: self.left, dist: 8)
-    pin(mini.right, to: self.right, dist: -8)
+    pin(mini.left, to: self.left)
+    pin(mini.right, to: self.right)
     miniTop = pin(mini.top, to: self.top, dist: -(20+MiniViewHeight))
     mini.pinHeight(MiniViewHeight)
-    mini.backgroundColor = UIColor.white
     addSubview(regular)
-    pin(regular.left, to: self.left, dist: 8)
-    pin(regular.right, to: self.right, dist: -8)
+    pin(regular.left, to: self.left)
+    pin(regular.right, to: self.right)
     regularTop = pin(regular.top, to: self.top)
     miniTitle = nil
     title = ""

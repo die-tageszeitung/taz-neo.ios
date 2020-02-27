@@ -93,6 +93,11 @@ public extension FileEntry {
     }  
   }
   
+  func fileNameExists(inDir: String) -> Bool {
+    let f = File(dir: inDir, fname: fileName)
+    return f.exists && (f.mTime == moTime) && (f.size == size)
+  }  
+
 }
 
 /// Image resolution
@@ -220,8 +225,6 @@ public protocol Content {
   var images: [ImageEntry]? { get }
   /// List of authors (if applicable)
   var authors: [Author]? { get }
-  /// Content type description (e.g. "Article" or "Section")
-  static var contentTypeDescription: String? { get }
 }
 
 public extension Content {

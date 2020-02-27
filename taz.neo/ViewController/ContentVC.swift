@@ -13,7 +13,7 @@ var TopMargin = 65
 var BottomMargin = 34
 
 // A ContentUrl provides a WebView URL for Articles and Sections
-public class ContentUrl: WebViewUrl {
+public class ContentUrl: WebViewUrl, DoesLog {
   
   public var content: Content
   public var path: String
@@ -26,7 +26,8 @@ public class ContentUrl: WebViewUrl {
     get {
       guard !_isAvailable else { return true }
       for f in content.files {
-        if !f.exists(inDir: path) { loadClosure(self); return false }
+        debug("fileNameExists(\(f.fileName)): \(f.fileNameExists(inDir: path))")
+        if !f.fileNameExists(inDir: path) { self.loadClosure(self); return false }
       }
       _isAvailable = true
       return true
@@ -40,11 +41,7 @@ public class ContentUrl: WebViewUrl {
 
   public func waitingView() -> UIView? {
     let view = LoadingView()
-    var str: String
-    if let ctype = type(of: content).contentTypeDescription { str = "\(ctype)\n" }
-    else { str = "" }
-    str += content.title ?? ""
-    view.topText = str
+    view.topText = content.title ?? ""
     view.bottomText = "wird geladen..."
     return view
   }

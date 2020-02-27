@@ -11,10 +11,22 @@ import NorthLib
 let TazRot = UIColor.rgb(0xd50d2e)
 
 class StartupView: UIView {
-  var startupLogo: UIImage?
-  var imageView: UIImageView?
   
-  override init(frame: CGRect) {
+  private var startupLogo: UIImage?
+  private var imageView: UIImageView?
+  
+  private var widthConstraint: NSLayoutConstraint?
+  private var heightConstraint: NSLayoutConstraint?
+  
+  private var animationTimer: Timer?
+  public var isAnimating: Bool = false {
+    didSet { 
+      if isAnimating { animate() } 
+      else { animationTimer?.invalidate() }
+    }
+  }
+  
+  public override init(frame: CGRect) {
     startupLogo = UIImage(named: "StartupLogo")
     imageView = UIImageView(image: startupLogo)
     super.init(frame: frame)
@@ -23,7 +35,44 @@ class StartupView: UIView {
       addSubview(iv)
       pin(iv.centerX, to: self.centerX)
       pin(iv.centerY, to: self.centerY)
+      pinSize(factor: 0.3)
     }
+  }
+  
+  func pinSize(factor: CGFloat = 1) {
+    if let size = startupLogo?.size, let iv = self.imageView {
+      if let con = widthConstraint { con.isActive = false }
+      if let con = heightConstraint { con.isActive = false }
+      widthConstraint = iv.pinWidth(size.width*factor)
+      heightConstraint = iv.pinHeight(size.height*factor)
+    }
+  }
+  
+  func animateSize(seconds: Double, to: CGFloat, atEnd: (()->())? = nil) {
+    UIView.animate(withDuration: seconds, delay: 0, options: .curveEaseOut, 
+      animations: { [weak self] in
+      guard let this = self else { return }
+      this.pinSize(factor: to)
+      this.layoutIfNeeded()
+    }) { _ in if let closure = atEnd { closure() } }
+  }
+  
+  func animateOnce(seconds: Double) {
+    animateSize(seconds: seconds, to: 1) { [weak self] in
+      self?.animateSize(seconds: seconds, to: 0.3)
+    }
+  }
+  
+  func animate(seconds: Double = 1) {
+    animationTimer = Timer.scheduledTimer(withTimeInterval: 2*seconds + 0.001, repeats: true) 
+    { [weak self] timer in
+      if let self = self, self.isAnimating {
+        onMain { self.animateOnce(seconds: seconds) }
+        return
+      }
+      timer.invalidate()
+    }
+    delay(seconds: 0.1) { self.animateOnce(seconds: seconds - 0.1) }
   }
   
   required init?(coder: NSCoder) {

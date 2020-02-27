@@ -9,7 +9,7 @@ import UIKit
 import NorthLib
 
 public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
-  UITableViewDelegate,  UITableViewDataSource {
+  UITableViewDelegate,  UITableViewDataSource, UIContextMenuInteractionDelegate {  
   
   // Colors, Fonts and sizes
   static let SectionColor = UIColor.rgb(0xd50d2e)
@@ -99,7 +99,25 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
       let factor = image.size.width / ContentTableVC.ImageWidth
       let height = image.size.height / factor
       momentHeight = momentView.pinHeight(height)
+      if #available(iOS 13.0, *) {
+        let menuInteraction = UIContextMenuInteraction(delegate: self)
+        momentView.addInteraction(menuInteraction)
+        momentView.isUserInteractionEnabled = true
+      } 
     }
+  }
+  
+  @available(iOS 13.0, *)
+  fileprivate func createContextMenu() -> UIMenu {
+    let deleteAction = UIAction(title: "Alles löschen", 
+      image: UIImage(systemName: "trash")) { action in
+        MainNC.singleton.deleteAll()
+    }
+    let deleteUserDataAction = UIAction(title: "Kundendaten löschen", 
+      image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
+        MainNC.singleton.deleteUserData()
+    }
+    return UIMenu(title: "", children: [deleteAction, deleteUserDataAction])
   }
   
   fileprivate var sectionPressedClosure: ((Int)->())?
@@ -154,6 +172,10 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
     let imageTap = UITapGestureRecognizer(target: self, action: #selector(imageTapped))
     momentView.isUserInteractionEnabled = true
     momentView.addGestureRecognizer(imageTap)
+    momentView.layer.shadowColor = UIColor.black.cgColor
+    momentView.layer.shadowOpacity = 0.2
+    momentView.layer.shadowOffset = CGSize(width: 5, height: 5)
+    momentView.layer.shadowRadius = 1
     contentTableView.delegate = self
     contentTableView.dataSource = self
     contentTableView.backgroundColor = UIColor.white
@@ -177,6 +199,18 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidAppear(animated)
   }
+  
+  // MARK: - UIContextMenuInteractionDelegate protocol
+
+  @available(iOS 13.0, *)
+  public func contextMenuInteraction(_ interaction: UIContextMenuInteraction, 
+    configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+    return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) 
+    { _ -> UIMenu? in 
+      return self.createContextMenu()
+    }
+  }
+
   
   // MARK: - UITableViewDataSource protocol
   

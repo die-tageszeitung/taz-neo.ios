@@ -14,6 +14,7 @@ class UITests: UIViewController {
   lazy var backButton = Button<LeftArrowView>(width: 30, height: 30)
   lazy var loadingView = LoadingView()
   lazy var undefinedView = UndefinedView()
+  lazy var startupView = StartupView()
   
   func buildPinExample() {
     let viewA = UIView()
@@ -65,11 +66,18 @@ class UITests: UIViewController {
     pin(undefinedView, to: self.view)
   }
   
+  func startupViewTest() {
+    self.view.addSubview(startupView)
+    pin(startupView, to: self.view)
+    startupView.isAnimating = true
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     //pinTest()
     //loadingTest()
-    undefinedTest()
+    //undefinedTest()
+    startupViewTest()
   }
   
   override func viewDidAppear(_ animated: Bool) {

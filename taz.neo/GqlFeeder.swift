@@ -16,19 +16,23 @@ protocol GQLObject: Decodable, ToString {
 
 /// Authentication status
 enum GqlAuthStatus: Decodable {  
-  case valid    /// valid authentication token provided
-  case invalid  /// invalid token
-  case expired  /// account provided by token is expired
-  case unlinked /// ID not linked to subscription
-  case unknown  /// unknown authentication status    
+  case valid         /// valid authentication token provided
+  case invalid       /// invalid token
+  case expired       /// account provided by token is expired (ISO-Date in message)
+  case unlinked      /// ID not linked to subscription
+  case notValidMail  /// AboId exists but PW is wrong (mail addr in message)
+  case alreadyLinked /// AboId already linked to tazId
+  case unknown       /// unknown authentication status    
   
   func toString() -> String {
     switch self {
-    case .valid:    return "valid"
-    case .invalid:  return "invalid"
-    case .expired:  return "expired"
-    case .unlinked: return "unlinked"
-    case .unknown:  return "unknown"
+    case .valid:         return "valid"
+    case .invalid:       return "invalid"
+    case .expired:       return "expired"
+    case .unlinked:      return "unlinked"
+    case .notValidMail:  return "notValidMail"
+    case .alreadyLinked: return "alreadyLinked"
+    case .unknown:       return "unknown"
     }
   }
   
@@ -39,6 +43,8 @@ enum GqlAuthStatus: Decodable {
     case "notValid":       self = .invalid
     case "elapsed" :       self = .expired
     case "tazIdNotLinked": self = .unlinked
+    case "notValidMail":   self = .notValidMail
+    case "alreadyLinked":  self = .alreadyLinked
     default:               self = .unknown
     }
   }  
@@ -181,8 +187,6 @@ class GqlArticle: Article, GQLObject {
   var authorList: [GqlAuthor]?
   var authors: [Author]? { return authorList }
 
-  static var contentTypeDescription: String?  { return "Artikel" }
-    
   static var fields = """
   articleHtml { \(GqlFile.fields) }
   audioFile { \(GqlFile.fields) }
@@ -216,8 +220,6 @@ class GqlSection: Section, GQLObject {
   var images: [ImageEntry]? { return imageList }
   /// Optional list of Authors in this section (currently empty)
   var authors: [Author]? { return nil }
-  
-  static var contentTypeDescription: String?  { return "Ressort" }
   
   static var fields = """
   sectionHtml { \(GqlFile.fields) }
@@ -495,7 +497,7 @@ open class GqlFeeder: Feeder, DoesLog {
         switch atoken.authInfo.status {
         case .expired: 
           ret = .failure(FeederError.expiredAccount(atoken.authInfo.message))
-        case .invalid, .unlinked, .unknown:
+        case .invalid, .unlinked, .alreadyLinked, .notValidMail, .unknown:
           ret = .failure(FeederError.invalidAccount(atoken.authInfo.message)) 
         case .valid:
           self?.authToken = atoken.token!
@@ -586,6 +588,7 @@ open class GqlFeeder: Feeder, DoesLog {
         let req = ovw["ovwRequest"]!
         if wasAuthenticated {
           if req.authInfo.status != .valid {
+            self.authToken = nil
             ret = .failure(FeederError.changedAccount(req.authInfo.message))
           }
         }
