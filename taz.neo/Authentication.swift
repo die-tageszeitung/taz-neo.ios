@@ -118,11 +118,11 @@ public class Authentication: DoesLog {
     }
     alert.addTextField { (textField) in //3
       textField.placeholder = "Vorname"
-      textField.isSecureTextEntry = true
+      textField.isSecureTextEntry = false
     }
     alert.addTextField { (textField) in //4
       textField.placeholder = "Nachname"
-      textField.isSecureTextEntry = true
+      textField.isSecureTextEntry = false
     }
     let loginAction = UIAlertAction(title: "Anmelden", style: .default) { _ in
       let id = alert.textFields![0]
@@ -153,14 +153,9 @@ public class Authentication: DoesLog {
       guard let this = self else { return }
       if let id = id, let password = password {
         // investigates the type of ID (taz,abo or promo)
+        
         if id.contains("@") {   // tazID
           this.debug("tazID erkannt: \(id)")
-          /*
-           Es muss gecheckt werden ob tazID mit abo verknüpft ist
-           wenn verknüpft alles super kunde darf lesen
-           wenn nein, dann verknüfen oder anlegen
-           */
-          //                 TODO checkSubscriptionId erwartet aboID aber ich weiß bereits dass es eine tazID ist
           this.feeder.authenticate(account: id, password: password) { result in
             if let token = result.value() {
               let dfl = Defaults.singleton
@@ -182,11 +177,18 @@ public class Authentication: DoesLog {
             this.message(title: "Fehler", message: "\nDas taz-Digiabo ist abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
           case .unlinked: //aboID an PW okay, but not linked to tazID! :O
             this.debug("tazID unlinked")
+            this.withLoginData { (aboID:String?, aboPW:String?) in
+              let dfl = Defaults.singleton
+              let token = dfl["token"]
+              this.feeder.subscriptionId2tazId(tazId: id, password: password, aboId: aboID ?? "", aboIdPW: aboPW ?? "", surname: "", firstName: "", installationId: this.installationId, pushToken: token) { Result in
+                self?.debug(Result.value()?.toString())
+              }
+            }
           default:
             this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
           }
         }
-        if id.isAboID {        // aboID
+        if id.isAboID {        // aboID - digiAboId
           this.debug("AboID erkannt: \(id)")
           /*
            es muss gecheckt werden ob tazID exestiert
