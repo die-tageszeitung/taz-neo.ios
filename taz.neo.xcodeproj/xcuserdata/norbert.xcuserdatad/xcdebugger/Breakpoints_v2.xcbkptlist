@@ -78,9 +78,9 @@
             filePath = "taz.neo/MainNC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "192"
-            endingLineNumber = "192"
-            landmarkName = "goingForeground()"
+            startingLineNumber = "220"
+            endingLineNumber = "220"
+            landmarkName = "startup()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -94,9 +94,9 @@
             filePath = "taz.neo/MainNC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "198"
-            endingLineNumber = "198"
-            landmarkName = "deleteAll()"
+            startingLineNumber = "226"
+            endingLineNumber = "226"
+            landmarkName = "goingBackground()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -110,8 +110,8 @@
             filePath = "taz.neo/MainNC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "115"
-            endingLineNumber = "115"
+            startingLineNumber = "143"
+            endingLineNumber = "143"
             landmarkName = "setupFeeder(closure:)"
             landmarkType = "7">
             <Locations>

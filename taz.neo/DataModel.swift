@@ -35,11 +35,11 @@ public enum FeederError: LocalizedError {
 /**
  A FileStorageType defines where a file is stored.
  */
-public enum FileStorageType: Decodable, ToString {  
-  case issue    /// issue local file
-  case global   /// global to all issues and feeds
-  case resource /// resource local file
-  case unknown  /// unknown storage type
+@objc public enum FileStorageType: Int16, Decodable, ToString {  
+  case issue     = 0  /// issue local file
+  case global    = 1  /// global to all issues and feeds
+  case resource  = 2  /// resource local file
+  case unknown   = 3  /// unknown storage type
   
   public func toString() -> String {
     switch self {
@@ -101,11 +101,11 @@ public extension FileEntry {
 }
 
 /// Image resolution
-public enum ImageResolution: Decodable, ToString {  
-  case small   /// small image resolution used eg. for thumpnails
-  case normal  /// regular resolution used in Articles
-  case high    /// high resolution when Image is displayed in zoom mode
-  case unknown /// unknown image resolution
+@objc public enum ImageResolution: Int16, Decodable, ToString {  
+  case small    = 0  /// small image resolution used eg. for thumpnails
+  case normal   = 1  /// regular resolution used in Articles
+  case high     = 2  /// high resolution when Image is displayed in zoom mode
+  case unknown  = 3  /// unknown image resolution
   
   public func toString() -> String {
     switch self {
@@ -128,12 +128,12 @@ public enum ImageResolution: Decodable, ToString {
 } // ImageResolution
 
 /// Image type
-public enum ImageType: Decodable, ToString {  
-  case picture        /// regular foto/graphic as used in articles
-  case advertisement  /// an advertisement :-(
-  case facsimile      /// eg. of a print page
-  case button         /// a button (eg. the slider button)
-  case unknown        /// unknown image type
+@objc public enum ImageType: Int16, Decodable, ToString {  
+  case picture         = 0  /// regular foto/graphic as used in articles
+  case advertisement   = 1  /// an advertisement :-(
+  case facsimile       = 2  /// eg. of a print page
+  case button          = 3  /// a button (eg. the slider button)
+  case unknown         = 4  /// unknown image type
   
   public func toString() -> String {
     switch self {
@@ -283,9 +283,9 @@ public extension Article {
 /**
  Section type
  */
-public enum SectionType: Decodable, ToString {  
-  case articles       /// a list of articles
-  case unknown        /// unknown section type  
+@objc public enum SectionType: Int16, Decodable, ToString {  
+  case articles   = 0    /// a list of articles
+  case unknown    = 1    /// unknown section type  
   public func toString() -> String {
     switch self {
     case .articles     : return "articles"
@@ -373,11 +373,11 @@ public extension Frame {
 /**
  Page type
  */
-public enum PageType: Decodable, ToString {  
-  case left       /// a left page
-  case right      /// a right page
-  case double     /// a double spread
-  case unknown    /// unknown page type  
+@objc public enum PageType: Int16, Decodable, ToString {  
+  case left     = 0  /// a left page
+  case right    = 1  /// a right page
+  case double   = 2  /// a double spread
+  case unknown  = 3  /// unknown page type  
   public func toString() -> String {
     switch self {
     case .left     : return "left"
@@ -449,12 +449,12 @@ public extension Moment {
 /**
  Access status of an Issue
  */
-public enum IssueStatus: Decodable, ToString {  
-  case regular  /// authenticated Issue acces
-  case demo     /// demo Issue
-  case locked   /// no access
-  case open     /// available for everybody
-  case unknown  /// undefined status
+@objc public enum IssueStatus: Int16, Decodable, ToString {  
+  case regular = 0  /// authenticated Issue acces
+  case demo    = 1  /// demo Issue
+  case locked  = 2  /// no access
+  case open    = 3  /// available for everybody
+  case unknown = 4  /// undefined status
   
   public func toString() -> String {
     switch self {
@@ -588,13 +588,13 @@ public extension Issue {
 } // extension Issue
 
 /// PublicationCycle of a Feed
-public enum PublicationCycle: Decodable, ToString {  
-  case daily     /// published daily
-  case weekly    /// published every week
-  case monthly   /// published every month
-  case quarterly /// published every quarter
-  case yearly    /// published once a year
-  case unknown   /// unknown publication cycle
+@objc public enum PublicationCycle: Int16, Decodable, ToString {  
+  case daily     = 0  /// published daily
+  case weekly    = 1  /// published every week
+  case monthly   = 2  /// published every month
+  case quarterly = 3  /// published every quarter
+  case yearly    = 4  /// published once a year
+  case unknown   = 5  /// unknown publication cycle
   
   public func toString() -> String {
     switch self {
