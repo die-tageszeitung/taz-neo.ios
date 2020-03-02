@@ -165,28 +165,29 @@ public class Authentication: DoesLog {
             else {
               this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){ exit(0) }
             }
-          }
-          let authStatus = this.feeder.status?.authInfo.status
-          switch authStatus {
-          case .valid:    // this user has it all aboID and tazID DONE
-            this.message(title: "Anmeldung erfolgreich", message: "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz"){()}
-            this.debug("valid aboID")
-          case .invalid: // somthings wrong with pw or id
-            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
-          case .expired: // token is expired
-            this.message(title: "Fehler", message: "\nDas taz-Digiabo ist abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
-          case .unlinked: //aboID an PW okay, but not linked to tazID! :O
-            this.debug("tazID unlinked")
-            this.withLoginData { (aboID:String?, aboPW:String?) in
-              let dfl = Defaults.singleton
-              let token = dfl["token"]
-              this.feeder.subscriptionId2tazId(tazId: id, password: password, aboId: aboID ?? "", aboIdPW: aboPW ?? "", surname: "", firstName: "", installationId: this.installationId, pushToken: token) { Result in
-                self?.debug(Result.value()?.toString())
+            let authStatus = this.feeder.status?.authInfo.status
+            switch authStatus {
+            case .valid:    // this user has it all aboID and tazID DONE
+              this.message(title: "Anmeldung erfolgreich", message: "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz"){()}
+              this.debug("valid aboID")
+            case .invalid: // somthings wrong with pw or id
+              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+            case .expired: // token is expired
+              this.message(title: "Fehler", message: "\nDas taz-Digiabo ist abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
+            case .unlinked: //aboID an PW okay, but not linked to tazID! :O
+              this.debug("tazID unlinked")
+              this.withLoginData { (aboID:String?, aboPW:String?) in
+                let dfl = Defaults.singleton
+                let token = dfl["token"]
+                this.feeder.subscriptionId2tazId(tazId: id, password: password, aboId: aboID ?? "", aboIdPW: aboPW ?? "", surname: "", firstName: "", installationId: this.installationId, pushToken: token) { Result in
+                  self?.debug(Result.value()?.toString())
+                }
               }
+            default:
+              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
             }
-          default:
-            this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
           }
+          
         }
         if id.isAboID {        // aboID - digiAboId
           this.debug("AboID erkannt: \(id)")
