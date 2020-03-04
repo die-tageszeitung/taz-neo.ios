@@ -92,6 +92,14 @@ public class Authentication: DoesLog {
       }
     }
   }
+  
+  private func akingAgainForLogin(){
+    self.detailedAuthenticate { res in
+      guard let _ = res.value() else { return }
+      self.debug(res.value() ?? "" + "++--++")
+    }
+  }
+  
   private func askingAgainForUserData(){
     self.askingForUserData { (id: String?, pw: String?, sN:String?, fN:String?) in
       
@@ -163,7 +171,7 @@ public class Authentication: DoesLog {
               dfl["id"] = id
             }
             else {
-              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){ exit(0) }
+              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){ this.akingAgainForLogin()}
             }
             let authStatus = this.feeder.status?.authInfo.status
             switch authStatus {
@@ -171,20 +179,26 @@ public class Authentication: DoesLog {
               this.message(title: "Anmeldung erfolgreich", message: "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz"){()}
               this.debug("valid aboID")
             case .invalid: // somthings wrong with pw or id
-              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.akingAgainForLogin()}
+              
             case .expired: // token is expired
-              this.message(title: "Fehler", message: "\nDas taz-Digiabo ist abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
+              let expirationDate = self?.feeder.date2a((self?.feeder.a2date(this.feeder.status?.authInfo.message ?? ""))!)
+              this.message(title: "Fehler", message: "\nDas taz-Digiabo ist am" + (expirationDate ?? "") + "abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
             case .unlinked: //aboID an PW okay, but not linked to tazID! :O
               this.debug("tazID unlinked")
               this.withLoginData { (aboID:String?, aboPW:String?) in
                 let dfl = Defaults.singleton
                 let token = dfl["token"]
                 this.feeder.subscriptionId2tazId(tazId: id, password: password, aboId: aboID ?? "", aboIdPW: aboPW ?? "", surname: "", firstName: "", installationId: this.installationId, pushToken: token) { Result in
-                  self?.debug(Result.value()?.toString())
+//                  var ret: Result<GqlSubscriptionInfo, Error>
+                  self?.debug(Result.value()?.status.toString())
                 }
               }
+            case .notValidMail :
+              self?.debug(this.feeder.status?.authInfo.message)
+              this.message(title: "aboID bereits verknüpft", message: "die aboID: \"" + id + "\" ist bereits mit der tazID:  \"" + (this.feeder.status?.authInfo.message ?? "") + "\" verknüpft"){this.akingAgainForLogin()}
             default:
-              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.akingAgainForLogin()}
             }
           }
           
@@ -200,13 +214,20 @@ public class Authentication: DoesLog {
             if let AuthInfo = res.value() {
               switch AuthInfo.status {
               case .valid:    // valid aboID
+                let token = self?.feeder.authToken
                 this.askingForUserData { (tazId: String?,tazPassword: String?, surname: String?, firstname: String?) in
-                  
+                  this.feeder.subscriptionId2tazId(tazId: tazId ?? "", password: tazPassword ?? "", aboId: id, aboIdPW: password, surname: surname, firstName: firstname, installationId: this.installationId, pushToken: token) { Result in
+                    let ret: Result<GqlSubscriptionInfo, Error> = Result
+                    self?.debug(Result.value()?.status.toString())
+                    self?.debug(ret.value()?.status.toString())
+                  }
                 }
               case .invalid: // somthings wrong with pw or id
-                this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+                this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.akingAgainForLogin()}
+                
               case .expired: // token is expired
-                this.message(title: "Fehler", message: "\nDas taz-Digiabo ist abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
+                let expirationDate = self?.feeder.date2a((self?.feeder.a2date(AuthInfo.message ?? ""))!)
+                this.message(title: "Fehler", message: "\nDas taz-Digiabo ist am" + (expirationDate ?? "") + "abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
               case .unlinked: //aboID an PW okay, but not linked to tazID! :O
                 this.feeder.authenticate(account: id, password: password) { res in
                   if let token = res.value() {
@@ -214,22 +235,22 @@ public class Authentication: DoesLog {
                     dfl["token"] = token
                     dfl["id"] = id
                     this.askingForUserData { (tazId :String?, tazPassword: String?, surname: String?, firstname: String?) in
+                      self?.debug(token)
                       this.feeder.subscriptionId2tazId(tazId: tazId ?? "", password: tazPassword ?? "", aboId: id, aboIdPW: password, surname: surname, firstName: firstname, installationId: this.installationId, pushToken: token) { Result in
-                        self?.debug(Result.value()?.toString())
+//                        var ret: Result<GqlSubscriptionInfo, Error>
+                        self?.debug(Result.value()?.status.toString())
                       }
                     }
                   } else {
-                    this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+                    this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.akingAgainForLogin()}
                   }
                   closure(res)
                 }
-                this.askingForUserData { (tazId :String?, tazPassword: String?, surname: String?, firstname: String?) in
-                  //                            this.feeder.subscriptionId2tazId(tazId: tazId ?? "", password: tazPassword ?? "", aboId: id, aboIdPW: password, surname: surname, firstName: firstname, installationId: installationId, pushToken: Defaults["token"]) { (Result<GqlSubscriptionInfo, Error>) in
-                  
-                  //                            }
-                }
+              case .alreadyLinked:
+                self?.debug(AuthInfo.message)
+                this.message(title: "aboID bereits verknüpft", message: "die aboID: \"" + id + "\" ist bereits mit der tazID:  \"" + (AuthInfo.message ?? "") + "\" verknüpft"){this.akingAgainForLogin()}
               default:
-                this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt")
+                this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.akingAgainForLogin()}
               }
             }
           }
@@ -237,6 +258,16 @@ public class Authentication: DoesLog {
         } //endif aboid
         if !id.contains("@") && !id.isAboID  {
           self?.debug("Promocode wurde erkannt")
+          this.feeder.authenticate(account: id, password: password) { result in
+            if let token = result.value() {
+              let dfl = Defaults.singleton
+              dfl["token"] = token
+              dfl["id"] = id
+            }
+            else {
+              this.message(title: "Fehler", message: "\nDer Promocode ist nicht korrekt"){ exit(0) }
+            }
+          }
         } //endif promo
       } // end if let
       
