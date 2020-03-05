@@ -167,8 +167,13 @@ public class Authentication: DoesLog {
           this.feeder.authenticate(account: id, password: password) { result in
             if let token = result.value() {
               let dfl = Defaults.singleton
+              let kc = Keychain.singleton
               dfl["token"] = token
               dfl["id"] = id
+              kc["token"] = token
+              kc["id"] = id
+              kc["password"] = password
+              this.feeder.authToken = token
             }
             else {
               this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){ this.akingAgainForLogin()}
@@ -224,16 +229,22 @@ public class Authentication: DoesLog {
                 }
               case .invalid: // somthings wrong with pw or id
                 this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.akingAgainForLogin()}
-                
+              case .notValidMail: //id is correckt, pw is wrong and can be reseted via mail
+                this.message(title: "", message: "")
               case .expired: // token is expired
                 let expirationDate = self?.feeder.date2a((self?.feeder.a2date(AuthInfo.message ?? ""))!)
                 this.message(title: "Fehler", message: "\nDas taz-Digiabo ist am" + (expirationDate ?? "") + "abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
               case .unlinked: //aboID an PW okay, but not linked to tazID! :O
+                // fatal error
                 this.feeder.authenticate(account: id, password: password) { res in
                   if let token = res.value() {
                     let dfl = Defaults.singleton
+                    let kc = Keychain.singleton
                     dfl["token"] = token
                     dfl["id"] = id
+                    kc["token"] = token
+                    kc["id"] = id
+                    kc["password"] = password
                     this.askingForUserData { (tazId :String?, tazPassword: String?, surname: String?, firstname: String?) in
                       self?.debug(token)
                       this.feeder.subscriptionId2tazId(tazId: tazId ?? "", password: tazPassword ?? "", aboId: id, aboIdPW: password, surname: surname, firstName: firstname, installationId: this.installationId, pushToken: token) { Result in
@@ -250,6 +261,7 @@ public class Authentication: DoesLog {
                 self?.debug(AuthInfo.message)
                 this.message(title: "aboID bereits verknüpft", message: "die aboID: \"" + id + "\" ist bereits mit der tazID:  \"" + (AuthInfo.message ?? "") + "\" verknüpft"){this.akingAgainForLogin()}
               default:
+                // fatal error
                 this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.akingAgainForLogin()}
               }
             }
