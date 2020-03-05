@@ -6,9 +6,10 @@
 //
 
 import UIKit
+import MessageUI
 import NorthLib
 
-class MainNC: UINavigationController, SectionVCdelegate {
+class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewControllerDelegate {
 
   var startupView = StartupView()
   lazy var consoleLogger = Log.Logger()
@@ -22,6 +23,7 @@ class MainNC: UINavigationController, SectionVCdelegate {
   var issue: Issue!
   lazy var dloader = Downloader(feeder: feeder)
   static var singleton: MainNC!
+  private var isErrorReporting = false
   
   var sectionVC: SectionVC?
 
@@ -72,6 +74,50 @@ class MainNC: UINavigationController, SectionVCdelegate {
     File.open(path: cssFile.path, mode: "w") { f in f.writeline(cssContent) }
   }
   
+  func produceErrorReport() {
+    let mail =  MFMailComposeViewController()
+    let screenshot = UIWindow.screenshot?.jpeg
+    let logData = fileLogger.data
+    mail.mailComposeDelegate = self
+    mail.setToRecipients(["app@taz.de"])
+    mail.setSubject("Rückmeldung zu taz.neo (iOS)")
+    if let screenshot = screenshot { 
+      mail.addAttachmentData(screenshot, mimeType: "image/jpeg", 
+                             fileName: "taz.neo-screenshot.jpg")
+    }
+    if let logData = logData { 
+      mail.addAttachmentData(logData, mimeType: "text/plain", 
+                             fileName: "taz.neo-logfile.txt")
+    }
+    present(mail, animated: true)
+  }
+  
+  func mailComposeController(_ controller: MFMailComposeViewController, 
+    didFinishWith result: MFMailComposeResult, error: Error?) {
+    controller.dismiss(animated: true)
+    isErrorReporting = false
+  }
+  
+  @objc func errorReportActivated(_ sender: UIGestureRecognizer) {
+    guard !isErrorReporting else { return }
+    guard MFMailComposeViewController.canSendMail() else { return }
+    isErrorReporting = true
+    Alert.confirm(title: "Rückmeldung", 
+      message: "Wollen Sie uns eine Fehlermeldung senden oder haben Sie einen " +
+               "Kommentar zu unserer App?") { yes in
+      if yes { self.produceErrorReport() }
+      else { self.isErrorReporting = false }
+    }
+  }
+  
+  func setupErrorReporting() {
+    let reportLPress = UILongPressGestureRecognizer(target: self, 
+        action: #selector(errorReportActivated))
+    reportLPress.numberOfTouchesRequired = 2
+    self.view.isUserInteractionEnabled = true
+    self.view.addGestureRecognizer(reportLPress)
+  }
+  
   func getFeederOverview(closure: @escaping (Result<[Issue],Error>)->()) {
     debug(gqlFeeder.toString())
     let feeds = feeder.feeds
@@ -85,14 +131,6 @@ class MainNC: UINavigationController, SectionVCdelegate {
     gqlFeeder.overview(feed: feed!, closure: closure) 
   }
   
-  // Popup message to user
-  public func message(title: String, message: String, closure: (()->())? = nil) {
-    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-    let okButton = UIAlertAction(title: "OK", style: .default) { _ in closure?() }
-    alert.addAction(okButton)
-    present(alert, animated: false, completion: nil)
-  }
-
   func setupFeeder(closure: @escaping (Result<[Issue],Error>)->()) {
     self.gqlFeeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { (res) in
       guard let nfeeds = res.value() else { return }
@@ -105,7 +143,7 @@ class MainNC: UINavigationController, SectionVCdelegate {
           if let _ = res.value() { closure(res) }
           else { 
             self?.deleteUserData()
-            self?.message(title: "Fehler", message: "Bei der Anmeldung am Server " +
+            Alert.message(title: "Fehler", message: "Bei der Anmeldung am Server " +
               "trat ein Fehler auf, bitte starten Sie die App noch einmal und " +
               "melden Sie sich erneut an.") { exit(0) }
           }
@@ -233,6 +271,7 @@ class MainNC: UINavigationController, SectionVCdelegate {
     super.viewDidLoad()
     MainNC.singleton = self
     isNavigationBarHidden = true
+    setupErrorReporting()
     self.view.addSubview(startupView)
     pin(startupView, to: self.view)
     let nc = NotificationCenter.default

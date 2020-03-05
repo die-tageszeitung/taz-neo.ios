@@ -15,11 +15,20 @@ public class Authentication: DoesLog {
   public var feeder: GqlFeeder
   /// Temporary Id to identify client if no AuthToken is available
   public var installationId: String 
+  /// Push token for silent notification (poll request)
+  public var pushToken: String?
   /// Root view controller
   private lazy var rootVC: UIViewController? = {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     return appDelegate.window?.rootViewController
   }()
+  
+  // Closure to call when polling of suscription status is required
+  private var whenPollingRequiredClosure: (()->())?
+  /// Define closure to call when polling is necessary
+  public func whenPollingRequired(closure: @escaping ()->()) {
+    whenPollingRequiredClosure = closure
+  }
   
   public init(feeder: GqlFeeder) {
     self.feeder = feeder
@@ -31,7 +40,16 @@ public class Authentication: DoesLog {
     }
   }
   
-  /// Produce action sheet to ask for id/password
+
+
+  /// PollSubscription asks the GraphQL-Server for a new subscription status, if 
+  /// a new status is available, the closure is called with a bool indicating
+  /// whether further polling is necessary (true=>continue polling)
+  public func pollSubscription(closure: (Bool)->()) {
+    // ...
+  }
+  
+  // Produce action sheet to ask for id/password
   private func withLoginData(closure: @escaping (_ id: String?, _ password: String?)->()) {
     let alert = UIAlertController(title: "Anmeldung", 
                                   message: "Bitte melden Sie sich mit Ihren Kundendaten an",

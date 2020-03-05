@@ -77,7 +77,7 @@ class DLController: UIViewController {
       self?.feeder.passwordReset(email: "bla@me.com") { res in
         guard let si = res.value() else { return }
         self?.debug(si.toString())
-        self?.feeder.trialSubscription(tazId: "bla@me.com", password: "test", 
+        self?.feeder.trialSubscription(tazId: "bla@me.com", password: "test",
           surname: "Bla", firstName: "Buggy", installationId: "1234", 
           pushToken: "abccffe") { res in
           guard let info = res.value() else { return }

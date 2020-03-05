@@ -17,7 +17,8 @@ public protocol SectionVCdelegate {
 
 /// The Section view controller managing a collection of Section pages
 open class SectionVC: ContentVC, ArticleVCdelegate {
-  private var articleVC: ArticleVC?  
+  private var articleVC: ArticleVC?
+  private var lastIndex: Int?
   public var sections: [Section] = []
   public var section: Section? { 
     if let i = index, i < sections.count { return sections[i] }
@@ -27,7 +28,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   public var article: Article? {
     didSet {
       guard let art = article else { return }
-      displaySection(index: article2index(art: art))
+      let secIndex = article2index(art: art)
+      if let lidx = lastIndex, secIndex != lidx {
+        displaySection(index: secIndex)
+      }
+      else { lastIndex = secIndex }
     }
   }
   
@@ -39,10 +44,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     if index != self.index {
       debug("Section change to Section #\(index), previous: " +
         "\(self.index?.description ?? "[undefined]")" )
-      if let curr = currentWebView {
-        self.index = index
-        curr.scrollToTop()
-      }
+      if let curr = currentWebView { curr.scrollToTop() }
+      self.index = index
     }    
   }
   
@@ -68,11 +71,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     articleVC = ArticleVC()
     articleVC?.delegate = self
     whenLinkPressed { [weak self] (from, to) in
+      self?.lastIndex = nil
       self?.articleVC?.gotoUrl(url: to)
       self?.navigationController?.pushViewController(self!.articleVC!, 
                                                      animated: false)
     }
-    self.index = 0
   }
   
   // Return nearest section index containig given Article
@@ -94,6 +97,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     header.title = contents[secIndex].title ?? ""
     header.subTitle = issue.date.gLowerDateString(tz: feeder.timeZone)
     header.hide(false)
+  }
+  
+  override public func viewDidLoad() {
+    super.viewDidLoad()
+    self.index = 0
   }
     
 } // SectionVC
