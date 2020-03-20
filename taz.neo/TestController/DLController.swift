@@ -39,7 +39,7 @@ class DLController: UIViewController {
       self.log("Network down")
     }
     feeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { (res) in
-      self.authTest(res)
+      self.startup(res)
     }
     debug("current dir: '\(Dir.currentPath)'\ntmpdir: '\(Dir.tmpPath)'\n")
   }
@@ -47,7 +47,7 @@ class DLController: UIViewController {
   func startup(_ res: Result<Int, Error>) {
     guard let n = res.value() else { return }
     debug("\(n) issues\n\(feeder.toString())")
-    feeder.authenticate(account: "test", password: "test") { 
+    feeder.authenticate(account: "106246", password: "kedztd") { 
       [weak self] (res) in
       guard let key = res.value() else { return }
       self?.debug("key: \(key)")
@@ -61,7 +61,7 @@ class DLController: UIViewController {
             self?.dloader.downloadIssue(issue: issue) { err in
               if err != nil { self?.debug("Errors: last = \(err!)") }
               else { self?.debug("Issue DL complete") }
-              self?.loadLastSection0(feed: feed, issues: issues)
+              print(issue.toString())
             }
           }
         }

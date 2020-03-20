@@ -58,10 +58,17 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
                 dloader: delegate.dloader, isLargeHeader: true)
     article2sectionHtml = issue.article2sectionHtml
     contentTable?.onSectionPress { [weak self] sectionIndex in
+      if sectionIndex < self!.sections.count {
+        self?.debug("*** Action: Section \(sectionIndex) (\(self!.sections[sectionIndex])) in Slider pressed")
+      }
+      else { 
+        self?.debug("*** Action: \"Impressum\" in Slider pressed")
+      }
       self?.slider.close()
       self?.displaySection(index: sectionIndex)
     }
     contentTable?.onImagePress { [weak self] in
+      self?.debug("*** Action: Moment in Slider pressed")
       self?.slider.close()
       self?.displaySection(index: 0)
     }
@@ -71,6 +78,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     articleVC = ArticleVC()
     articleVC?.delegate = self
     whenLinkPressed { [weak self] (from, to) in
+      self?.debug("*** Action: Link pressed from: \(from.lastPathComponent) " 
+        + "to: \(to.lastPathComponent)")
       self?.lastIndex = nil
       self?.articleVC?.gotoUrl(url: to)
       self?.navigationController?.pushViewController(self!.articleVC!, 
@@ -78,7 +87,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     }
   }
   
-  // Return nearest section index containig given Article
+  // Return nearest section index containing given Article
   func article2index(art: Article) -> Int {
     if let sects = article2sectionHtml[art.html.fileName] {
       if let s = section, sects.contains(s.html.fileName) { return index! }
@@ -97,6 +106,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     header.title = contents[secIndex].title ?? ""
     header.subTitle = issue.date.gLowerDateString(tz: feeder.timeZone)
     header.hide(false)
+  }
+  
+  // Reload Section and Article
+  override open func reload() {
+    articleVC?.reload()
+    super.reload()
   }
   
   override public func viewDidLoad() {

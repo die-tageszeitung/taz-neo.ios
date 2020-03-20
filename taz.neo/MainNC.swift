@@ -11,6 +11,9 @@ import NorthLib
 
 class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewControllerDelegate {
 
+  /// Number of seconds to wait until we stop polling for email confirmation
+  let PollTimeout: Int64 = 25*3600
+  
   var startupView = StartupView()
   lazy var consoleLogger = Log.Logger()
   lazy var viewLogger = Log.ViewLogger()
@@ -24,6 +27,13 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
   lazy var dloader = Downloader(feeder: feeder)
   static var singleton: MainNC!
   private var isErrorReporting = false
+  private var isForeground = false
+  private var pollingTimer: Timer?
+  private var pollEnd: Int64?
+  private var pushToken: String?
+  private var serverDownloadId: String?
+  private var serverDownloadStart: UsTime?
+  private var db = Database("ArticleDB")
   
   var sectionVC: SectionVC?
 
@@ -52,34 +62,56 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
         }
       }
     }
-    nd.permitPush { pn in
-      if pn.isPermitted { self.debug("Push Permission granted") }
-      else { self.debug("No push permission") }
-    }
+  } 
+  
+  func setupNotification() {
+    let nd = UIApplication.shared.delegate as! AppDelegate
+    let dfl = Defaults.singleton
+    let oldToken = dfl["pushToken"]
+    self.pushToken = oldToken
     nd.onReceivePush { (pn, payload) in
       self.debug(payload.toString())
     }
-  } 
+    nd.permitPush { pn in
+      if pn.isPermitted { 
+        self.debug("Push permission granted") 
+        self.pushToken = pn.deviceId
+      }
+      else { 
+        self.debug("No push permission") 
+        self.pushToken = nil
+      }
+      dfl["pushToken"] = self.pushToken 
+      if oldToken != self.pushToken {
+        let isTextNotification = dfl["isTextNotification"]!.bool
+        self.gqlFeeder.notification(pushToken: self.pushToken, oldToken: oldToken,
+                                    isTextNotification: isTextNotification) { res in
+          if let err = res.error() { self.error(err) }
+        }
+      }
+    }
+  }
   
   func writeTazApiCss(topMargin: CGFloat, bottomMargin: CGFloat) {
     let dir = feeder.resourcesDir
     dir.create()
     let cssFile = File(dir: dir.path, fname: "tazApi.css")
     let cssContent = """
+      @import "scroll.css";
       #content {
-        padding-top: \(topMargin)px;
-        padding-bottom: \(bottomMargin)px;
+        padding-top: \(topMargin+UIWindow.topInset/2)px;
+        padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
       } 
     """
     File.open(path: cssFile.path, mode: "w") { f in f.writeline(cssContent) }
   }
   
-  func produceErrorReport() {
+  func produceErrorReport(recipient: String) {
     let mail =  MFMailComposeViewController()
     let screenshot = UIWindow.screenshot?.jpeg
     let logData = fileLogger.data
     mail.mailComposeDelegate = self
-    mail.setToRecipients(["app@taz.de"])
+    mail.setToRecipients([recipient])
     mail.setSubject("Rückmeldung zu taz.neo (iOS)")
     if let screenshot = screenshot { 
       mail.addAttachmentData(screenshot, mimeType: "image/jpeg", 
@@ -99,23 +131,55 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
   }
   
   @objc func errorReportActivated(_ sender: UIGestureRecognizer) {
-    guard !isErrorReporting else { return }
-    guard MFMailComposeViewController.canSendMail() else { return }
+    guard let recog = sender as? UILongPressGestureRecognizer,
+          !isErrorReporting && MFMailComposeViewController.canSendMail()
+      else { return }
     isErrorReporting = true
     Alert.confirm(title: "Rückmeldung", 
       message: "Wollen Sie uns eine Fehlermeldung senden oder haben Sie einen " +
                "Kommentar zu unserer App?") { yes in
-      if yes { self.produceErrorReport() }
+                if yes { 
+                  var recipient = "app@taz.de"
+                  if recog.numberOfTouchesRequired == 3 { recipient = "norbert@taz.de" }
+                  self.produceErrorReport(recipient: recipient) 
+                }
       else { self.isErrorReporting = false }
     }
   }
   
-  func setupErrorReporting() {
-    let reportLPress = UILongPressGestureRecognizer(target: self, 
+  @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
+    let logView = viewLogger.logView
+    let actions: [UIAlertAction] = [
+      Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
+      Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
+      Alert.action("Kundendaten löschen") {_ in self.deleteUserData() },
+      Alert.action("Abo-Push anfordern") {_ in self.testNotification(type: NotificationType.subscription) },
+      Alert.action("Download-Push anfordern") {_ in self.testNotification(type: NotificationType.newIssue) },
+      Alert.action("Protokoll an/aus") {_ in 
+        if logView.isHidden {
+          self.view.bringSubviewToFront(logView) 
+          logView.scrollToBottom()
+          logView.isHidden = false
+        }
+        else {
+          self.view.sendSubviewToBack(logView)
+          logView.isHidden = true
+        }
+      }
+    ]
+    Alert.actionSheet(title: "Beta-Test", actions: actions)
+  }
+  
+  func setupTopMenu() {
+    let reportLPress2 = UILongPressGestureRecognizer(target: self, 
         action: #selector(errorReportActivated))
-    reportLPress.numberOfTouchesRequired = 2
+    let reportLPress3 = UILongPressGestureRecognizer(target: self, 
+        action: #selector(threeFingerTouch))
+    reportLPress2.numberOfTouchesRequired = 2
+    reportLPress3.numberOfTouchesRequired = 3
     self.view.isUserInteractionEnabled = true
-    self.view.addGestureRecognizer(reportLPress)
+    self.view.addGestureRecognizer(reportLPress2)
+    self.view.addGestureRecognizer(reportLPress3)
   }
   
   func getFeederOverview(closure: @escaping (Result<[Issue],Error>)->()) {
@@ -131,10 +195,48 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
     gqlFeeder.overview(feed: feed!, closure: closure) 
   }
   
+  func setupPolling() {
+    self.authenticator.whenPollingRequired { self.startPolling() }
+    if let peStr = Defaults.singleton["pollEnd"] {
+      let pe = Int64(peStr)
+      if pe! <= UsTime.now().sec { endPolling() }
+      else {
+        pollEnd = pe
+        self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
+          repeats: true) { _ in self.doPolling() }        
+      }
+    }
+  }
+  
+  func startPolling() {
+    self.pollEnd = UsTime.now().sec + PollTimeout
+    Defaults.singleton["pollEnd"] = "\(pollEnd!)"
+    self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
+      repeats: true) { _ in self.doPolling() }
+  }
+  
+  func doPolling() {
+    self.authenticator.pollSubscription { doContinue in
+      guard let pollEnd = self.pollEnd else { endPolling(); return }
+      if doContinue { if UsTime.now().sec > pollEnd { endPolling() } }
+      else {
+        endPolling() 
+        if self.gqlFeeder.isAuthenticated { reloadIssue() }
+      }
+    }
+  }
+  
+  func endPolling() {
+    self.pollingTimer?.invalidate()
+    self.pollEnd = nil
+    Defaults.singleton["pollEnd"] = nil
+  }
+  
   func setupFeeder(closure: @escaping (Result<[Issue],Error>)->()) {
     self.gqlFeeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { (res) in
       guard let nfeeds = res.value() else { return }
       self.debug("Feeder \"\(self.feeder.title)\" provides \(nfeeds) feeds.")
+      self.authenticator.pushToken = self.pushToken
       self.writeTazApiCss(topMargin: CGFloat(TopMargin), bottomMargin: CGFloat(BottomMargin))
       let (token, _, _) = self.getUserData()
       if let token = token { 
@@ -150,6 +252,7 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
         }
       }
       else {
+        self.setupPolling()
         self.authenticator.simpleAuthenticate { [weak self] (res) in
           guard let _ = res.value() else { return }
           self?.getOverview(closure: closure)
@@ -157,13 +260,41 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
       }
     }
   }
-    
+ 
+  func markStartDownload(feed: Feed, issue: Issue) {
+    let issueName = self.feeder.date2a(issue.date)
+    let idir = feeder.issueDir(feed: feed.name, issue: issueName)
+    if !idir.exists { 
+      let isPush = self.pushToken != nil
+      self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush) { res in
+        if let dlId = res.value() {
+          self.serverDownloadId = dlId
+          self.serverDownloadStart = UsTime.now()
+        }
+      }
+    }
+  }
+  func markStopDownload() {
+    if let dlId = self.serverDownloadId {
+      let nsec = UsTime.now().timeInterval - self.serverDownloadStart!.timeInterval
+      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) {_ in}
+      self.serverDownloadId = nil
+      self.serverDownloadStart = nil
+    }
+  }
+  
   func loadIssue(closure: @escaping (Error?)->()) {
     self.dloader.downloadIssue(issue: self.issue!) { [weak self] err in
-      if err != nil { self?.debug("Issue DL Errors: last = \(err!)") }
-      else { self?.debug("Issue DL complete") }
+      guard let self = self else { return }
+      if err != nil { self.debug("Issue DL Errors: last = \(err!)") }
+      else { self.debug("Issue DL complete") }
       closure(err)
     }
+  }
+  
+  func reloadIssue() {
+    // TODO: for now
+    loadIssue {_ in}
   }
   
   func loadSection(section: Section, closure: @escaping (Error?)->()) {
@@ -194,14 +325,18 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
   
   func startup() {
     startupView.isAnimating = true
-    Database( "ArticleDB" ) { db in 
-      self.debug("DB opened: \(db)")
+    Defaults.singleton.setDefaults(values: ConfigDefaults)
+    db.open { err in 
+      guard err == nil else { exit(1) }
+      self.debug("DB opened: \(self.db)")
       self.setupFeeder { [weak self] res in
+        self?.setupNotification()
         guard let ovwIssues = res.value() else { self?.fatal(res.error()!); return }
         // get most recent issue
         self?.gqlFeeder.issue(feed: self!.feed!, date: ovwIssues[0].date) { [weak self] res in
           guard let issue = res.value() else { self?.fatal(res.error()!); return }
           self?.issue = issue
+          self?.markStartDownload(feed: self!.feed!, issue: issue)
           // load "Moment" and 1st section HTML before pushing the web view
           self?.loadSection(section: self!.issue!.sections![0]) { [weak self] err in
             if err != nil { self?.fatal(err!) }
@@ -212,6 +347,7 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
                 self?.startupView.isAnimating = false 
                 self?.loadIssue { err in
                   if err != nil { self?.fatal(err!) }
+                  else { self?.markStopDownload() }
                 }
               }
               self?.startupView.isHidden = true
@@ -223,10 +359,12 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
   } 
   
   @objc func goingBackground() {
+    isForeground = false
     debug("Going background")
   }
   
   @objc func goingForeground() {
+    isForeground = true
     debug("Entering foreground")
   }
  
@@ -265,13 +403,19 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
     kc["password"] = nil
     dfl["token"] = nil
     dfl["id"] = nil
+    dfl["pushToken"] = nil
+  }
+  
+  func testNotification(type: NotificationType) {
+    self.gqlFeeder.testNotification(pushToken: self.pushToken, request: type) {_ in}
   }
   
   override func viewDidLoad() {
     super.viewDidLoad()
     MainNC.singleton = self
     isNavigationBarHidden = true
-    setupErrorReporting()
+    isForeground = true
+    setupTopMenu()
     self.view.addSubview(startupView)
     pin(startupView, to: self.view)
     let nc = NotificationCenter.default

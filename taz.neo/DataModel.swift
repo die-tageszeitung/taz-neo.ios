@@ -171,7 +171,9 @@ public protocol ImageEntry: FileEntry {
 
 public extension ImageEntry {
   func toString() -> String {
-    return "Image \(name) res \(resolution), type \(type) (\(storageType.toString())), \(size) bytes, \(UsTime(moTime).toString())\n  SHA256: \(sha256)"
+    var sAlpha = ""
+    if let alpha = self.alpha { sAlpha = ", alpha=\(alpha)" }
+    return "Image \(name) res \(resolution), type \(type) (\(storageType.toString()))\(sAlpha), \(size) bytes, \(UsTime(moTime).toString())\n  SHA256: \(sha256)"
   }
 }
 
@@ -284,11 +286,13 @@ public extension Article {
  Section type
  */
 @objc public enum SectionType: Int16, Decodable, ToString {  
-  case articles   = 0    /// a list of articles
-  case unknown    = 1    /// unknown section type  
+  case articles   = 0      /// a list of articles
+  case text       = 1      /// a single HTML text (eg. imprint)
+  case unknown    = 100    /// unknown section type  
   public func toString() -> String {
     switch self {
     case .articles     : return "articles"
+    case .text         : return "text"
     case .unknown      : return "unknown"
     }
   }  
@@ -296,6 +300,7 @@ public extension Article {
     let s = try decoder.singleValueContainer().decode(String.self)
     switch s {
     case "articles"      : self = .articles
+    case "text"          : self = .text    
     default:               self = .unknown
     }
   }  
@@ -313,6 +318,8 @@ public protocol Section: Content, ToString {
   var type: SectionType { get }
   /// List of articles
   var articles: [Article]? { get }
+  /// The image serving as a navigational button
+  var navButton: ImageEntry? { get }
 }
 
 public extension Section {
@@ -320,6 +327,8 @@ public extension Section {
   func toString() -> String {
     var ret = "Section \"\(name)\""
     if let tit = extendedTitle { ret += " (\(tit))" }
+    ret += ", type: \(type.toString())"
+    if let button = navButton { ret += "\n  navButton: \(button.toString())" }
     if let arts = articles {
       ret += ":\n"
       for a in arts { ret += "  - \(a.toString())\n" }
@@ -345,6 +354,9 @@ public extension Section {
     }
     return ret
   }
+  
+  /// Title - either extendedTitle (if available) or name
+  var title: String? { return extendedTitle ?? name }
   
 } // extension Section
 
@@ -484,6 +496,10 @@ public protocol Issue: ToString {
   var feed: Feed { get set }
   /// Issue date
   var date: Date { get }
+  /// The file's modification time
+  var moTime: Date { get }
+  /// Is this Issue a week end edition
+  var isWeekend: Bool? { get }
   /// Issue defining images
   var moment: Moment { get }
   /// persistent Issue key
@@ -700,6 +716,9 @@ extension Feeder {
     }
   }
   
+  /// Returns true if successfully authenticated
+  public var isAuthenticated: Bool { return authToken != nil }
+  
   /// Returns directory where all feed specific data is stored
   public func feedDir(_ feed: String) -> Dir { return Dir(dir: baseDir.path, fname: feed) }
 
@@ -718,7 +737,10 @@ extension Feeder {
     for img in issue.moment.images {
       if img.resolution == resolution {
         let path = "\(issueDir(issue: issue).path)/\(img.fileName)"
-        return UIImage(contentsOfFile: path)
+        if File.extname(path) == "gif" {
+          return UIImage.animatedGif(File(path).data, duration: 1.5)
+        }
+        else { return UIImage(contentsOfFile: path) }
       }
     }
     return nil
@@ -737,3 +759,38 @@ extension Feeder {
   }
   
 } // extension Feeder
+
+/**
+ Type of silent push notifications
+ */
+@objc public enum NotificationType: Int16, Decodable, ToString {  
+  case subscription   = 0    /// new subscription info available
+  case newIssue       = 1    /// new issue available
+  case unknown        = 1000 /// unknown subscription type
+  
+  public func toString() -> String {
+    switch self {
+    case .subscription:    return "subscription"
+    case .newIssue:        return "newIssue"
+    case .unknown:         return "unknown"
+    }
+  }
+  
+  public var encoded: String {
+    switch self {
+    case .subscription:    return "subscriptionPoll"
+    case .newIssue:        return "aboPoll"
+    case .unknown:         return "unknown"
+    }
+  }
+  
+  public init(from decoder: Decoder) throws {
+    let s = try decoder.singleValueContainer().decode(String.self)
+    switch s {
+    case "subscriptionPoll": self = .subscription
+    case "aboPoll":          self = .newIssue
+    default:                 self = .unknown
+    }
+  }  
+  
+} // FileStorageType

@@ -117,7 +117,16 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
       image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
         MainNC.singleton.deleteUserData()
     }
-    return UIMenu(title: "", children: [deleteAction, deleteUserDataAction])
+    let requestSubscriptionNotification = UIAction(title: "Abo-Push anfordern",
+      image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
+        MainNC.singleton.testNotification(type: NotificationType.subscription)
+    }
+    let requestDownloadNotification = UIAction(title: "Download-Push anfordern",
+      image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
+        MainNC.singleton.testNotification(type: NotificationType.subscription)
+    }
+    return UIMenu(title: "", children: [deleteAction, deleteUserDataAction,
+      requestSubscriptionNotification, requestDownloadNotification])
   }
   
   fileprivate var sectionPressedClosure: ((Int)->())?

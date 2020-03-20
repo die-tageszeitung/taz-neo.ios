@@ -14,7 +14,7 @@ public class Authentication: DoesLog {
   /// Ref to feeder providing Data 
   public var feeder: GqlFeeder
   /// Temporary Id to identify client if no AuthToken is available
-  public var installationId: String 
+  public var installationId: String  { App.installationId }
   /// Push token for silent notification (poll request)
   public var pushToken: String?
   /// Root view controller
@@ -32,12 +32,6 @@ public class Authentication: DoesLog {
   
   public init(feeder: GqlFeeder) {
     self.feeder = feeder
-    let dfl = Defaults.singleton
-    if let iid = dfl["installationId"] { self.installationId = iid }
-    else { 
-      self.installationId = UUID().uuidString 
-      dfl["installationId"] = self.installationId
-    }
   }
   
   /// PollSubscription asks the GraphQL-Server for a new subscription status, if 

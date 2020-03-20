@@ -72,18 +72,60 @@ class UITests: UIViewController {
     startupView.isAnimating = true
   }
   
+  func gifTest() {
+    if let path = Bundle.main.path(forResource: "test", ofType: "gif"),
+      let image = UIImage.animatedGif(File(path).data, duration: 1.5) {
+      let iv = UIImageView(image: image)
+      self.view.addSubview(iv)
+      iv.pinSize(image.size)
+      pin(iv.top, to: self.view.topGuide(), dist: 20)
+      pin(iv.left, to: self.view.leftGuide(), dist: 20)
+    }
+  }
+  
+  func fontTest() {
+    print("nodename: \(Utsname.nodename)")
+    print("sysname:  \(Utsname.sysname)")
+    print("release:  \(Utsname.release)")
+    print("version:  \(Utsname.version)")
+    print("machine:  \(Utsname.machine)")
+    if let font = UIFont.new(name: "Aktiv Grotesk Bold", size: 14) {
+      let label = UILabel()
+      label.font = font
+      label.text = "Family: \(font.familyName), Name: \(font.fontName)"
+      self.view.addSubview(label)
+      pin(label.top, to: self.view.topGuide(), dist: 20)
+      pin(label.left, to: self.view.leftGuide(), dist: 20)
+    }
+  }
+  
+  func alertTest() {
+    let actions = [
+      Alert.action("test 1") { s in print(s) },
+      Alert.action("test 2") { s in print(s) },
+      Alert.action("test 3") { s in print(s) },
+      Alert.action("test 4") { s in print(s) }
+    ]
+    Alert.actionSheet(title: "Titel", message: "Test", actions: actions)
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
+    self.view.backgroundColor = UIColor.white
     //pinTest()
     //loadingTest()
     //undefinedTest()
     startupViewTest()
+    delay(seconds: 2) { self.alertTest() }
+    //gifTest()
+    //fontTest()
+    //alertTest()
   }
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    print(self.undefinedView.frame)
-    print(self.undefinedView.label.frame)
+//    print(self.undefinedView.frame)
+//    print(self.undefinedView.label.frame)
 //    print(self.view.frame)
 //    print(toolBar.frame)
 //    print(backButton.frame)

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
 		AE21C46C23E710A600F8B811 /* UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE21C46B23E710A600F8B811 /* UITests.swift */; };
 		AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B723F6BEC400EAFE78 /* LoadingView.swift */; };
@@ -67,6 +68,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE21C46B23E710A600F8B811 /* UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests.swift; sourceTree = "<group>"; };
 		AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionVC.swift; sourceTree = "<group>"; };
@@ -82,7 +84,7 @@
 		AE822631232A717E00FFBE67 /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NorthLib.xcodeproj; path = ../NorthLib/NorthLib.xcodeproj; sourceTree = "<group>"; };
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
-		AEBAF564219ACD1900566205 /* taz.neo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.neo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEBAF564219ACD1900566205 /* taz neo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "taz neo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AEBAF573219ACD1A00566205 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -183,7 +185,7 @@
 		AEBAF565219ACD1900566205 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AEBAF564219ACD1900566205 /* taz.neo.app */,
+				AEBAF564219ACD1900566205 /* taz neo.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -191,15 +193,16 @@
 		AEBAF566219ACD1900566205 /* taz.neo */ = {
 			isa = PBXGroup;
 			children = (
-				AECCE11B23FBF3FE007C2276 /* MainNC.swift */,
 				AE822631232A717E00FFBE67 /* DataModel.swift */,
+				AEBAF58E219ACFAC00566205 /* AppDelegate.swift */,
+				AECCE11B23FBF3FE007C2276 /* MainNC.swift */,
+				AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */,
 				AE4AA2AE23F6AD5700EAFE78 /* ViewController */,
 				AE82262C232A70E000FFBE67 /* GraphQlSession.swift */,
 				AE696F2D23918F9400265FC8 /* GqlFeeder.swift */,
 				AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */,
 				AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */,
 				AEED41BB23FE8E6F0072043F /* Authentication.swift */,
-				AEBAF58E219ACFAC00566205 /* AppDelegate.swift */,
 				AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */,
 				AE16422D222FFEF200DF07DE /* ArticleDB */,
 				AE0A4D0123F4297500C44625 /* Views */,
@@ -238,7 +241,7 @@
 			);
 			name = taz.neo;
 			productName = taz.neo;
-			productReference = AEBAF564219ACD1900566205 /* taz.neo.app */;
+			productReference = AEBAF564219ACD1900566205 /* taz neo.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -319,6 +322,7 @@
 				AEBAF59C219ACFAC00566205 /* NavController.swift in Sources */,
 				AE5D9EC323E1BB2D0002C3B8 /* ContentTableVC.swift in Sources */,
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
+				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				AE5D9EC523E2CD5F0002C3B8 /* DLController.swift in Sources */,
 				AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */,
@@ -478,7 +482,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020022701;
+				CURRENT_PROJECT_VERSION = 2020031801;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
@@ -488,7 +492,7 @@
 				);
 				MARKETING_VERSION = 0.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "taz neo";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -504,7 +508,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020022701;
+				CURRENT_PROJECT_VERSION = 2020031801;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
@@ -514,7 +518,7 @@
 				);
 				MARKETING_VERSION = 0.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "taz neo";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
