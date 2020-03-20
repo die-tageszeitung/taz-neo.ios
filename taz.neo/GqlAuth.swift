@@ -268,6 +268,7 @@ extension GqlFeeder {
     }
   }
   
+  // asking for a password reset
   // Ask server to send a "password change email" to a user with tazId
   func passwordReset(email: String,
     closure: @escaping(Result<GqlPasswordResetInfo,Error>)->()) {
