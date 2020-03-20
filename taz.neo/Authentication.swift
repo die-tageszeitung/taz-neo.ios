@@ -67,8 +67,46 @@ public class Authentication: DoesLog {
     alert.addAction(loginAction)
     alert.addAction(cancelAction)
     rootVC?.present(alert, animated: true, completion: nil)
+  } 
+  
+  /// Produce action sheet to ask for id/password
+  private func withAboId(closure: @escaping (_ id: String?, _ password: String?)->()) {
+    let alert = UIAlertController(title: "Abo-ID zurücksetzen", 
+                                  message: "Bitte \"klassische\" Abo-ID nebst Passwort angeben",
+                                  preferredStyle: .alert)
+    alert.addTextField { (textField) in
+      textField.placeholder = "ID"
+      textField.keyboardType = .emailAddress
+    }
+    alert.addTextField { (textField) in
+      textField.placeholder = "Passwort"
+      textField.isSecureTextEntry = true
+    }
+    let loginAction = UIAlertAction(title: "OK", style: .default) { _ in
+      let id = alert.textFields![0]
+      let password = alert.textFields![1]
+      closure(id.text ?? "", password.text ?? "")
+    }
+    let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel) { _ in
+      closure(nil, nil)
+    }
+    alert.addAction(loginAction)
+    alert.addAction(cancelAction)
+    rootVC?.present(alert, animated: true, completion: nil)
   }
   
+  /// Unlink connection from taz-ID to Abo-ID
+  public func unlinkSubscriptionId() {
+    withAboId { (id, pw) in
+      guard let id = id, let pw = pw else { return }
+      self.feeder.unlinkSubscriptionId(aboId: id, password: pw) { res in
+        if let info = res.value() {
+          self.debug("\(info.toString())")
+        }
+      }
+    }
+  }
+
   /// Popup message to user
   public func message(title: String, message: String, closure: (()->())? = nil) {
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
@@ -242,7 +280,7 @@ public class Authentication: DoesLog {
               this.feeder.authToken = token
             }
             else {
-              this.failedLoginMessage(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt", id: id){ this.askingAgainForLogin()}
+//              this.failedLoginMessage(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt", id: id){ this.askingAgainForLogin()}
             }
             let authStatus = this.feeder.status?.authInfo.status
             switch authStatus {

@@ -153,6 +153,7 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
       Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
       Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
       Alert.action("Kundendaten löschen") {_ in self.deleteUserData() },
+      Alert.action("Abo-Verknüpfung löschen") {_ in self.unlinkSubscriptionId() },
       Alert.action("Abo-Push anfordern") {_ in self.testNotification(type: NotificationType.subscription) },
       Alert.action("Download-Push anfordern") {_ in self.testNotification(type: NotificationType.newIssue) },
       Alert.action("Protokoll an/aus") {_ in 
@@ -253,7 +254,7 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
       }
       else {
         self.setupPolling()
-        self.authenticator.simpleAuthenticate { [weak self] (res) in
+        self.authenticator.detailedAuthenticate { [weak self] (res) in
           guard let _ = res.value() else { return }
           self?.getOverview(closure: closure)
         }
@@ -375,6 +376,10 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
       try! FileManager.default.removeItem(atPath: f)
     }
     exit(0)
+  }
+  
+  func unlinkSubscriptionId() {
+    self.authenticator.unlinkSubscriptionId()
   }
   
   func getUserData() -> (token: String?, id: String?, password: String?) {
