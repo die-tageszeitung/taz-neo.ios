@@ -23,7 +23,7 @@ public class Authentication: DoesLog {
     return appDelegate.window?.rootViewController
   }()
   
-  // Closure to call when polling of suscription status is required
+  /// Closure to call when polling of suscription status is required
   private var whenPollingRequiredClosure: (()->())?
   /// Define closure to call when polling is necessary
   public func whenPollingRequired(closure: @escaping ()->()) {
@@ -49,7 +49,7 @@ public class Authentication: DoesLog {
     // ...
   }
   
-  // Produce action sheet to ask for id/password
+  /// Produce action sheet to ask for id/password
   private func withLoginData(closure: @escaping (_ id: String?, _ password: String?)->()) {
     let alert = UIAlertController(title: "Anmeldung", 
                                   message: "Bitte melden Sie sich mit Ihren Kundendaten an",
@@ -111,6 +111,7 @@ public class Authentication: DoesLog {
     }
   }
   
+  /// restarting the login process
   private func askingAgainForLogin(){
     self.detailedAuthenticate { res in
       guard let _ = res.value() else { return }
@@ -118,10 +119,62 @@ public class Authentication: DoesLog {
     }
   }
   
+  /// recalling askingForUserData( )
   private func askingAgainForUserData(){
     self.askingForUserData { (id: String?, pw: String?, sN:String?, fN:String?) in
       
     }
+  }
+ 
+  
+  /// Popup message to user, with option to reset password
+  public func failedLoginMessage(title: String, message: String, id: String, closure: (()->())? = nil) {
+    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+    let okButton = UIAlertAction(title: "OK", style: .default) { _ in closure?() }
+    let mailButton = UIAlertAction(title: "Password zurücksetzen", style: .destructive) { _ in
+      // Send mail for resetting Password
+      if id.contains("@") {
+        self.feeder.passwordReset(email: id) { (res) in
+          if let restInfo = res.value() {
+            switch restInfo {
+            case .ok:
+              self.message(title: "Erfolg", message: "E-Mail zum Passwordzurücksetzten wurde versendet.")
+            case .invalidMail:
+              self.message(title: "Fehler", message: "Mailadresse \(id) ist fehlerhaft."){}
+              self.debug("\(id) ist fehlerhaft.")
+            case .mailError :
+              self.message(title: "Fehler", message: "Mail kann zur Zeit nicht verschickt werden.")
+            case .error :
+              self.message(title: "Fehler", message: "Interner Fehler")
+            default:
+              self.debug("default: resetting PW for \(id) failed!")
+            }
+          }
+        }
+      } else {
+        self.feeder.subscriptionReset(aboId: id) { result in
+          if let restInfo = result.value()?.status {
+            let mail = result.value()?.mail
+            switch restInfo {
+            case .ok:
+              self.message(title: "Erfolg", message: "E-Mail zum Passwordzurücksetzten wurde an \(mail!) versendet.")
+            case .invalidSubscriptionId:
+              self.message(title: "Fehler", message: "AboID \(id) ist ungültig."){}
+              self.debug("\(id) ist ungültig.")
+            case .noMail :
+              self.message(title: "Fehler", message: "Keine Mail-Adresse hinterlegt")
+            case .invalidConnection :
+              self.message(title: "Fehler", message: "aboId bereits mit tazId verknüpft")
+            default:
+              self.debug("default: resetting PW for \(id) failed!")
+            }
+          }
+        }
+      }
+    }
+    alert.addAction(okButton)
+    alert.addAction(mailButton)
+    rootVC?.present(alert, animated: false, completion: nil)
   }
   
   /// aksing for the nessary information to link the aboID to a tazID
@@ -174,6 +227,7 @@ public class Authentication: DoesLog {
     rootVC?.present(alert, animated: true, completion: nil)
   }
   
+  /// Ask user for id/password, check if abo- or taz-ID and link them if necessary
   public func detailedAuthenticate(closure: @escaping (Result<String,Error>)->()) {
     withLoginData { [weak self] (id, password) in
       guard let this = self else { return }
@@ -194,15 +248,15 @@ public class Authentication: DoesLog {
               this.feeder.authToken = token
             }
             else {
-              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){ this.askingAgainForLogin()}
+              this.failedLoginMessage(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt", id: id){ this.askingAgainForLogin()}
             }
             let authStatus = this.feeder.status?.authInfo.status
             switch authStatus {
-            case .valid:    // this user has it all aboID and tazID DONE
-              this.message(title: "Anmeldung erfolgreich", message: "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz"){()}
+            case .valid:    // valid user with all permissions
               this.debug("valid aboID")
+              this.message(title: "Anmeldung erfolgreich", message: "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz"){()}
             case .invalid: // somthings wrong with pw or id
-              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.askingAgainForLogin()}
+              this.failedLoginMessage(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt", id: id){this.askingAgainForLogin()}
               
             case .expired: // token is expired
               let expirationDate = self?.feeder.date2a((self?.feeder.a2date(this.feeder.status?.authInfo.message ?? ""))!)
@@ -215,11 +269,12 @@ public class Authentication: DoesLog {
                   self?.debug(Result.value()?.status.toString())
                 }
               }
-            case .notValidMail :
+            case .notValidMail : // AboId existiert aber das Passwort ist falsch
               self?.debug(this.feeder.status?.authInfo.message)
               this.message(title: "aboID bereits verknüpft", message: "die aboID: \"" + id + "\" ist bereits mit der tazID:  \"" + (this.feeder.status?.authInfo.message ?? "") + "\" verknüpft"){this.askingAgainForLogin()}
             default:
-              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.askingAgainForLogin()}
+              self?.debug("default: Fehler Kundendaten sind nicht korrekt")
+              this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt."){this.askingAgainForLogin()}
             }
           }
           
@@ -246,8 +301,9 @@ public class Authentication: DoesLog {
               case .invalid: // somthings wrong with pw or id
                 this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.askingAgainForLogin()}
               case .notValidMail: //id is correckt, pw is wrong and can be reseted via mail
-                this.message(title: "", message: "")
-              case .expired: // token is expired
+                let mail = AuthInfo.message
+                this.failedLoginMessage(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt", id: id){this.askingAgainForLogin()}
+              case .expired: // subscription is expired
                 let expirationDate = self?.feeder.date2a((self?.feeder.a2date(AuthInfo.message ?? ""))!)
                 this.message(title: "Fehler", message: "\nDas taz-Digiabo ist am" + (expirationDate ?? "") + "abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
               case .unlinked: //aboID an PW okay, but not linked to tazID! :O
