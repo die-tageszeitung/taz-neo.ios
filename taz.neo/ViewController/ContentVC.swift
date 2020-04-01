@@ -54,6 +54,69 @@ public class ContentUrl: WebViewUrl, DoesLog {
   
 } // ContentUrl
 
+/// The ContentToolBar consists of a ToolBar and an encompassing view to position
+/// the toolbar with enough distance to the bottom safe area
+open class ContentToolbar: UIView {
+  
+  static let ToolbarHeight: CGFloat = 44
+  private var toolbar = Toolbar()
+  private var heightConstraint: NSLayoutConstraint?
+
+  public var totalHeight: CGFloat {
+    return ContentToolbar.ToolbarHeight + UIWindow.bottomInset
+  }
+  
+  public override var backgroundColor: UIColor? {
+    didSet { toolbar.backgroundColor = self.backgroundColor }
+  }
+  
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+    addSubview(toolbar)
+    pin(toolbar.top, to: self.top)
+    pin(toolbar.left, to: self.left)
+    pin(toolbar.right, to: self.right)
+    toolbar.pinHeight(ContentToolbar.ToolbarHeight)
+    self.clipsToBounds = true
+  }
+  
+  required public init?(coder: NSCoder) {
+    super.init(coder: coder)
+  }
+  
+  public func pinTo(_ view: UIView) {
+    view.addSubview(self)
+    pin(self.left, to: view.left)
+    pin(self.right, to: view.right)
+    pin(self.bottom, to: view.bottom)
+    heightConstraint = self.pinHeight(totalHeight)
+  }
+  
+  public func hide(_ isHide: Bool = true) {
+    if isHide {
+      UIView.animate(withDuration: 0.5) { [weak self] in
+        self?.heightConstraint?.isActive = false
+        self?.heightConstraint = self?.pinHeight(0)
+        self?.layoutIfNeeded()
+      }
+    }
+    else {
+      UIView.animate(withDuration: 0.5) { [weak self] in
+        self?.heightConstraint?.isActive = false
+        self?.heightConstraint = self?.pinHeight(self!.totalHeight)
+        self?.layoutIfNeeded()
+      }   
+    }
+  }
+  
+  public func addButton(_ button: ButtonControl, direction: Toolbar.Direction) {
+    toolbar.addButton(button, direction: direction)
+  }
+  
+  public func setButtonColor(_ color: UIColor) { toolbar.setButtonColor(color) }
+
+}
+
 /**
  A ContentVC is a view controller that displays an array of Articles or Sections 
  in a collection of WebViews
@@ -68,7 +131,7 @@ open class ContentVC: WebViewCollectionVC {
   public var dloader: Downloader!
   lazy var slider = ButtonSlider(slider: contentTable!, into: self)
 
-  public var toolBar = Toolbar()
+  public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
   public var backButton = Button<LeftArrowView>()
   private var backClosure: ((ContentVC)->())?
@@ -91,28 +154,7 @@ open class ContentVC: WebViewCollectionVC {
     toolBar.backgroundColor = UIColor.rgb(0x101010)
     toolBar.addButton(backButton, direction: .left)
     toolBar.setButtonColor(UIColor.rgb(0xeeeeee))
-    self.view.addSubview(toolBar)
-    pin(toolBar.left, to: self.view.left)
-    pin(toolBar.right, to: self.view.right)
-    toolBar.pinHeight(44)
-    toolBarConstraint = pin(toolBar.bottom, to: self.view.bottom)
-  }
-  
-  func hideToolBar(hide: Bool = true) {
-    if hide {
-      UIView.animate(withDuration: 0.5) {
-        self.toolBarConstraint?.isActive = false
-        self.toolBarConstraint = pin(self.toolBar.bottom, to: self.view.bottom, dist: 44)
-        self.view.layoutIfNeeded()
-      }
-    }
-    else {
-      UIView.animate(withDuration: 0.5) {
-        self.toolBarConstraint?.isActive = false
-        self.toolBarConstraint = pin(self.toolBar.bottom, to: self.view.bottom)
-        self.view.layoutIfNeeded()
-      }   
-    }
+    toolBar.pinTo(self.view)
   }
   
   override public func viewDidLoad() {
@@ -120,8 +162,8 @@ open class ContentVC: WebViewCollectionVC {
     setupToolbar()
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     whenScrolled { [weak self] ratio in
-      if (ratio < 0) { self?.hideToolBar(); self?.header.hide(true) }
-      else { self?.hideToolBar(hide: false); self?.header.hide(false) }
+      if (ratio < 0) { self?.toolBar.hide(); self?.header.hide(true) }
+      else { self?.toolBar.hide(false); self?.header.hide(false) }
     }
     let img = UIImage.init(named: "logo")
     slider.image = img
@@ -162,6 +204,7 @@ open class ContentVC: WebViewCollectionVC {
     self.contentTable!.image = feeder.momentImage(issue: issue, resolution: .normal)
     self.baseDir = feeder.baseDir.path
     onBack { [weak self] _ in
+      self?.debug("*** Action: <Back> pressed")
       self?.navigationController?.popViewController(animated: false)
     }
   }

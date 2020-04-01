@@ -14,7 +14,7 @@ public class Authentication: DoesLog {
   /// Ref to feeder providing Data 
   public var feeder: GqlFeeder
   /// Temporary Id to identify client if no AuthToken is available
-  public var installationId: String 
+  public var installationId: String  { App.installationId }
   /// Push token for silent notification (poll request)
   public var pushToken: String?
   /// Root view controller
@@ -32,12 +32,6 @@ public class Authentication: DoesLog {
   
   public init(feeder: GqlFeeder) {
     self.feeder = feeder
-    let dfl = Defaults.singleton
-    if let iid = dfl["installationId"] { self.installationId = iid }
-    else { 
-      self.installationId = UUID().uuidString 
-      dfl["installationId"] = self.installationId
-    }
   }
   
 
@@ -73,8 +67,46 @@ public class Authentication: DoesLog {
     alert.addAction(loginAction)
     alert.addAction(cancelAction)
     rootVC?.present(alert, animated: true, completion: nil)
+  } 
+  
+  /// Produce action sheet to ask for id/password
+  private func withAboId(closure: @escaping (_ id: String?, _ password: String?)->()) {
+    let alert = UIAlertController(title: "Abo-ID zurücksetzen", 
+                                  message: "Bitte \"klassische\" Abo-ID nebst Passwort angeben",
+                                  preferredStyle: .alert)
+    alert.addTextField { (textField) in
+      textField.placeholder = "ID"
+      textField.keyboardType = .emailAddress
+    }
+    alert.addTextField { (textField) in
+      textField.placeholder = "Passwort"
+      textField.isSecureTextEntry = true
+    }
+    let loginAction = UIAlertAction(title: "OK", style: .default) { _ in
+      let id = alert.textFields![0]
+      let password = alert.textFields![1]
+      closure(id.text ?? "", password.text ?? "")
+    }
+    let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel) { _ in
+      closure(nil, nil)
+    }
+    alert.addAction(loginAction)
+    alert.addAction(cancelAction)
+    rootVC?.present(alert, animated: true, completion: nil)
   }
   
+  /// Unlink connection from taz-ID to Abo-ID
+  public func unlinkSubscriptionId() {
+    withAboId { (id, pw) in
+      guard let id = id, let pw = pw else { return }
+      self.feeder.unlinkSubscriptionId(aboId: id, password: pw) { res in
+        if let info = res.value() {
+          self.debug("\(info.toString())")
+        }
+      }
+    }
+  }
+
   /// Popup message to user
   public func message(title: String, message: String, closure: (()->())? = nil) {
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
@@ -266,12 +298,13 @@ public class Authentication: DoesLog {
                   }
                 }
               case .notValidMail : // AboId existiert aber das Passwort ist falsch
-                self?.debug(this.feeder.status?.authInfo.message)
-                this.message(title: "aboID bereits verknüpft", message: "die aboID: \"" + id + "\" ist bereits mit der tazID:  \"" + (this.feeder.status?.authInfo.message ?? "") + "\" verknüpft"){this.askingAgainForLogin()}
+                  self?.debug(this.feeder.status?.authInfo.message)
+                  this.message(title: "aboID bereits verknüpft", message: "die aboID: \"" + id + "\" ist bereits mit der tazID:  \"" + (this.feeder.status?.authInfo.message ?? "") + "\" verknüpft"){this.askingAgainForLogin()}
               default:
-                self?.debug("default: Fehler Kundendaten sind nicht korrekt")
-                this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt."){this.askingAgainForLogin()}
-              }
+                  self?.debug("default: Fehler Kundendaten sind nicht korrekt")
+                  this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt."){this.askingAgainForLogin()}
+                  }
+            
             } else {
               this.failedLoginMessage(title: "Fehler", message: "\n Login fehlgeschlagen.", id: id){ this.askingAgainForLogin()}
             }

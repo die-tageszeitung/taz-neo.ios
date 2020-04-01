@@ -41,6 +41,7 @@ class NavController: UINavigationController {
   var feed: Feed?
   var issue: Issue?
   lazy var dloader = Downloader(feeder: feeder)
+  lazy var db = Database("ArticleDB")
   
   var sectionViews: ContentVC?
   var articleViews: ContentVC?
@@ -266,8 +267,9 @@ class NavController: UINavigationController {
     self.view.addSubview(startupView)
     pin(startupView, to: self.view)
     setupLogging()
-    Database( "ArticleDB" ) { db in 
-      self.debug("DB opened: \(db)")
+    db.open { err in 
+      guard err == nil else { return }
+      self.debug("DB opened: \(self.db)")
       self.setupFeeder { [weak self] res in
         guard let ovwIssues = res.value() else { self?.fatal(res.error()!); return }
         // get most recent issue

@@ -134,7 +134,7 @@ class GqlImage: ImageEntry, GQLObject {
   var size: Int64 { return Int64(sSize)! }
   
   //static var fields = "resolution type alpha \(GqlFile.fields)"
-  static var fields = "resolution type \(GqlFile.fields)"  
+  static var fields = "resolution type alpha \(GqlFile.fields)"  
 } // GqlImage
 
 /// A list of resource files
@@ -208,8 +208,6 @@ class GqlSection: Section, GQLObject {
   var name: String
   /// Optional title (not to display in table of contents)
   var extendedTitle: String?
-  /// Title - either extendedTitle (if available) or name
-  var title: String? { return extendedTitle ?? name }
   /// Type of section
   var type: SectionType
   /// List of articles
@@ -220,12 +218,16 @@ class GqlSection: Section, GQLObject {
   var images: [ImageEntry]? { return imageList }
   /// Optional list of Authors in this section (currently empty)
   var authors: [Author]? { return nil }
+  /// Navigation button
+  var sectionNavButton: GqlImage?
+  var navButton: ImageEntry? { return sectionNavButton }
   
   static var fields = """
   sectionHtml { \(GqlFile.fields) }
   name: title
   extendedTitle
   type
+  sectionNavButton: navButton { \(GqlImage.fields) }
   articleList { \(GqlArticle.fields) }
   imageList { \(GqlImage.fields) }
   """
@@ -279,7 +281,7 @@ class GqlMoment: Moment, GQLObject {
 } // GqlMoment
 
 /// One Issue of a Feed
-class GqlIssue: Issue, GQLObject {
+class GqlIssue: Issue, GQLObject {  
   /// Reference to Feed providing this Issue
   var feedRef: GqlFeed?
   /// Return a non nil Feed
@@ -290,6 +292,15 @@ class GqlIssue: Issue, GQLObject {
   /// Issue date
   var sDate: String 
   var date: Date { return UsTime(iso: sDate, tz: GqlFeeder.tz).date }
+  /// Modification time as String of seconds since 1970-01-01 00:00:00 UTC
+  var sMoTime: String?
+  /// Modification time as Date
+  var moTime: Date { 
+    guard let mtime = sMoTime else { return date }
+    return UsTime(mtime).date 
+  }
+  /// Is this Issue a week end edition?
+  var isWeekend: Bool?
   /// Issue defining images
   var gqlMoment: GqlMoment
   var moment: Moment { return gqlMoment }
@@ -321,6 +332,8 @@ class GqlIssue: Issue, GQLObject {
   
   static var ovwFields = """
   sDate: date 
+  sMoTime: moTime
+  isWeekend
   gqlMoment: moment { \(GqlMoment.fields) } 
   baseUrl 
   status
@@ -508,7 +521,76 @@ open class GqlFeeder: Feeder, DoesLog {
       closure(ret)
     }
   }
+  
+  /// Return device info as specifi server
+  public func deviceInfo() -> (type: String, format: String) {
+    var deviceFormat: String
+    switch Device.singleton {
+    case .iPad :  deviceFormat = "tablet"
+    case .iPhone: deviceFormat = "mobile"
+    default: deviceFormat = "desktop"
+    }
+    return ("apple", deviceFormat)
+  }
+  
+  /// Send server notification/device/user infos after successful authentication
+  public func notification(pushToken: String?, oldToken: String?, 
+    isTextNotification: Bool, closure: @escaping(Result<Bool,Error>)->()) {
+    guard let gqlSession = self.gqlSession else { 
+      closure(.failure(fatal("Not connected"))); return
+    }
+    let (deviceType, deviceFormat) = deviceInfo()
+    let pToken = (pushToken == nil) ? "" : "pushToken: \"\(pushToken!)\","
+    let oToken = (oldToken == nil) ? "" : "oldToken: \"\(oldToken!)\","
+    let request = """
+      notification(\(pToken), \(oToken) 
+                   textNotification: \(isTextNotification ? "true" : "false"),
+                   deviceType: \(deviceType), 
+                   deviceFormat: \(deviceFormat), 
+                   appVersion: "\(App.bundleVersion)-\(App.buildNumber)")
+    """
+    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
+      var ret: Result<Bool,Error>
+      switch res {
+      case .success(let dict):   
+        let status = dict["notification"]!
+        ret = .success(status)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
     
+  /// Request push notification from server (test purpose)
+  public func testNotification(pushToken: String?, request: NotificationType, 
+                               closure: @escaping(Result<Bool,Error>)->()) {
+    guard let gqlSession = self.gqlSession else { 
+      closure(.failure(fatal("Not connected"))); return
+    }
+    guard let pushToken = pushToken else { 
+      closure(.failure(error("Notification not allowed"))); return
+    }
+    let (deviceType, _) = deviceInfo()
+    let request = """
+      testNotification(
+        pushToken: "\(pushToken)",
+        sendRequest: \(request.encoded),
+        deviceType: \(deviceType),
+        isSilent: true
+      )
+    """
+    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
+      var ret: Result<Bool,Error>
+      switch res {
+      case .success(let dict):   
+        let status = dict["testNotification"]!
+        ret = .success(status)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+
   /// Requests a ResourceList object from the server
   public func resources(closure: @escaping(Result<Resources,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
@@ -670,14 +752,46 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
   
+  /// Signal server that download has been started
+  public func startDownload(feed: Feed, issue: Issue, isPush: Bool,
+                            closure: @escaping(Result<String,Error>)->()) {
+    guard let gqlSession = self.gqlSession else { 
+      closure(.failure(fatal("Not connected"))); return
+    }
+    let (deviceType, deviceFormat) = deviceInfo()
+    let request = """
+    downloadStart(
+      feedName: "\(feed.name)", 
+      issueDate: "\(self.date2a(issue.date))",
+      deviceName: "\(Utsname.machine) (\(UIDevice.current.name))",
+      deviceVersion: "\(UIDevice.current.systemName) \(UIDevice.current.systemVersion)",
+      appVersion: "\(App.bundleVersion)-\(App.buildNumber)",
+      isPush: \(isPush ? "true" : "false"),
+      installationId: "\(App.installationId)",
+      deviceFormat: \(deviceFormat), 
+      deviceType: \(deviceType)
+    )
+    """
+    gqlSession.mutation(graphql: request, type: [String:String].self) { (res) in
+      var ret: Result<String,Error>
+      switch res {
+      case .success(let dict):   
+        let status = dict["downloadStart"]!
+        ret = .success(status)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+
   /// Signal server that download has been finished
-  func stopDownload(dlId: String, seconds: Double, 
+  public func stopDownload(dlId: String, seconds: Double, 
                     closure: @escaping(Result<Bool,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
-      downloadStop(downloadId: \(dlId), downloadTime: \(seconds))
+      downloadStop(downloadId: "\(dlId)", downloadTime: \(seconds))
     """
     gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
       var ret: Result<Bool,Error>

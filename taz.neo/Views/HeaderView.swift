@@ -106,7 +106,7 @@ open class HeaderView: UIView {
     addSubview(mini)
     pin(mini.left, to: self.left)
     pin(mini.right, to: self.right)
-    miniTop = pin(mini.top, to: self.top, dist: -(20+MiniViewHeight))
+    miniTop = pin(mini.top, to: self.top, dist: -(40+MiniViewHeight))
     mini.pinHeight(MiniViewHeight)
     addSubview(regular)
     pin(regular.left, to: self.left)
@@ -136,7 +136,7 @@ open class HeaderView: UIView {
       UIView.animate(seconds: 0.5) { [weak self] in
         guard let this = self else { return }
         this.regularTop?.isActive = false
-        this.regularTop = pin(this.regular.top, to: this.top, dist: -(20+height))
+        this.regularTop = pin(this.regular.top, to: this.top, dist: -(40+height))
         superview.layoutIfNeeded()
       }
       if isMini {
@@ -155,7 +155,7 @@ open class HeaderView: UIView {
         UIView.animate(seconds: 0.3) { [weak self] in
           guard let this = self else { return }
           this.miniTop?.isActive = false
-          this.miniTop = pin(this.mini.top, to: this.top, dist: -(20+MiniViewHeight))
+          this.miniTop = pin(this.mini.top, to: this.top, dist: -(40+MiniViewHeight))
           superview.layoutIfNeeded()
         }
       }
