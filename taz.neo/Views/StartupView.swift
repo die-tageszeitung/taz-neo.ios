@@ -25,11 +25,19 @@ class StartupView: UIView {
       else { animationTimer?.invalidate() }
     }
   }
+  public var showLogo: Bool = true {
+    didSet {
+      if showLogo { imageView?.isHidden = false }
+      else {
+        isAnimating = false
+        imageView?.isHidden = true
+      }
+    }
+  }
   
-  public override init(frame: CGRect) {
+  private func setup() {
     startupLogo = UIImage(named: "StartupLogo")
     imageView = UIImageView(image: startupLogo)
-    super.init(frame: frame)
     backgroundColor = TazRot
     if let iv = imageView {
       addSubview(iv)
@@ -75,8 +83,14 @@ class StartupView: UIView {
     delay(seconds: 0.1) { self.animateOnce(seconds: seconds - 0.1) }
   }
   
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+
   required init?(coder: NSCoder) {
     super.init(coder: coder)
+    setup()
   }
   
 }
