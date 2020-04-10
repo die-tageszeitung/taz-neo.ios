@@ -143,12 +143,16 @@ class GqlResources: Resources, GQLObject {
   var resourceVersion: Int
   /// Base URL of resource files
   var resourceBaseUrl: String
+  /// name of resource zip file (under resourceBaseUrl)
+  var resourceZipName: String  
   /// List of files
   var files: [GqlFile]
   var resourceFiles: [FileEntry] { return files }
   
   static var fields = """
-  resourceVersion resourceBaseUrl 
+  resourceVersion 
+  resourceBaseUrl 
+  resourceZipName: resourceZip
   files: resourceList { \(GqlFile.fields) }
   """    
 } //  GqlResources
