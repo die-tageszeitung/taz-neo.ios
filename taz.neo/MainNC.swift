@@ -9,12 +9,64 @@ import UIKit
 import MessageUI
 import NorthLib
 
+/// A view allowing the selection of a single Issue using a Picker view
+class IssueSelection: UIView {
+  var intro = UILabel()
+  var picker = Picker()
+  var button = UILabel()
+  var onSelectionClosure: ((Int)->())?
+  
+  func onSelection(closure: ((Int)->())?) { onSelectionClosure = closure}
+  
+  @objc func buttonTapped(sender: UITapGestureRecognizer) {
+    onSelectionClosure?(picker.index)  
+  }
+  
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    let buttonTap = UITapGestureRecognizer(target: self, action: #selector(buttonTapped))
+    button.addGestureRecognizer(buttonTap)
+    button.isUserInteractionEnabled = true
+    addSubview(intro)
+    addSubview(picker)
+    addSubview(button)
+    intro.text = "Ausgaben"
+    intro.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+    intro.textColor = UIColor.white
+    button.text = "laden/anzeigen"
+    button.font = UIFont.preferredFont(forTextStyle: .headline)
+    button.textColor = tintColor
+    picker.textColor = UIColor.white
+    picker.frame = CGRect(x: 0, y: 0, width: 250, height: 400)
+    pin(intro.top, to: self.top, dist: 20)
+    pin(intro.centerX, to: self.centerX)
+    pin(button.bottom, to: self.bottom, dist: -20)
+    pin(button.centerX, to: self.centerX)
+    self.pinWidth(300)
+    self.pinHeight(500)
+    isUserInteractionEnabled = true
+    backgroundColor = UIColor.clear
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  override func layoutSubviews() {
+    let w = bounds.size.width
+    let h = bounds.size.height
+    picker.center = CGPoint(x: w/2, y: h/2)
+  }
+}
+
 class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewControllerDelegate {
 
   /// Number of seconds to wait until we stop polling for email confirmation
   let PollTimeout: Int64 = 25*3600
   
   var startupView = StartupView()
+  var showAnimations = false
+  lazy var issueSelection = IssueSelection()
   lazy var consoleLogger = Log.Logger()
   lazy var viewLogger = Log.ViewLogger()
   lazy var fileLogger = Log.FileLogger()
@@ -33,7 +85,6 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
   private var pushToken: String?
   private var serverDownloadId: String?
   private var serverDownloadStart: UsTime?
-  private var db = Database("ArticleDB")
   
   var sectionVC: SectionVC?
 
@@ -48,6 +99,7 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
     net.onChange { (flags) in self.log("net changed: \(flags)") }
     net.whenUp { self.log("Network up") }
     net.whenDown { self.log("Network down") }
+    if !net.isAvailable { error("Network not available") }
     let nd = UIApplication.shared.delegate as! AppDelegate
     nd.onSbTap { tview in 
       if nd.wantLogging {
@@ -62,6 +114,8 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
         }
       }
     }
+    log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
+        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)")
   } 
   
   func setupNotification() {
@@ -113,6 +167,9 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
     mail.mailComposeDelegate = self
     mail.setToRecipients([recipient])
     mail.setSubject("Rückmeldung zu taz.neo (iOS)")
+    mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
+      "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
+      isHTML: false)
     if let screenshot = screenshot { 
       mail.addAttachmentData(screenshot, mimeType: "image/jpeg", 
                              fileName: "taz.neo-screenshot.jpg")
@@ -254,7 +311,7 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
       }
       else {
         self.setupPolling()
-        self.authenticator.detailedAuthenticate { [weak self] (res) in
+        self.authenticator.simpleAuthenticate { [weak self] (res) in
           guard let _ = res.value() else { return }
           self?.getOverview(closure: closure)
         }
@@ -311,49 +368,78 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
     if let svc = sectionVC {
       svc.delegate = self
       pushViewController(svc, animated: true)
-      delay(seconds: 1.5) {
-        svc.slider.open() { _ in
-          delay(seconds: 1.5) {
-            svc.slider.close() { _ in
-              svc.slider.blinkButton()
+      if showAnimations {
+        delay(seconds: 1.5) {
+          svc.slider.open() { _ in
+            delay(seconds: 1.5) {
+              svc.slider.close() { _ in
+                svc.slider.blinkButton()
+              }
             }
           }
         }
       }
-
+    }
+  }
+  
+  func showIssue(issue: Issue) {
+    gqlFeeder.issue(feed: feed!, date: issue.date) { [weak self] res in
+      guard let issue = res.value() else { self?.fatal(res.error()!); return }
+      self?.issue = issue
+      self?.markStartDownload(feed: self!.feed!, issue: issue)
+      // load "Moment" and 1st section HTML before pushing the web view
+      self?.loadSection(section: self!.issue!.sections![0]) { [weak self] err in
+        if err != nil { self?.fatal(err!) }
+        self?.dloader.downloadMoment(issue: self!.issue!) { [weak self] err in
+          if err != nil { self?.fatal(err!) }
+          self?.pushSectionViews()
+          delay(seconds: 2) { 
+            self?.startupView.isAnimating = false 
+            self?.loadIssue { err in
+              if err != nil { self?.fatal(err!) }
+              else { self?.markStopDownload() }
+            }
+          }
+          self?.startupView.isHidden = true
+          self?.issueSelection.isHidden = true
+        }
+      }
     }
   }
   
   func startup() {
+    let dfl = Defaults.singleton
+    dfl.setDefaults(values: ConfigDefaults)
+    let oneWeek = 7*24*3600
+    let nStarted = dfl["nStarted"]!.int!
+    let lastStarted = dfl["lastStarted"]!.usTime
+    debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
+    let now = UsTime.now()
+    self.showAnimations = (nStarted < 2) || (now.sec - lastStarted.sec) > oneWeek
+    ContentTableVC.showAnimations = self.showAnimations
+    dfl["nStarted"] = "\(nStarted + 1)"
+    dfl["lastStarted"] = "\(now.sec)"
     startupView.isAnimating = true
-    Defaults.singleton.setDefaults(values: ConfigDefaults)
-    db.open { err in 
+    ArticleDB.singleton.open { err in 
       guard err == nil else { exit(1) }
-      self.debug("DB opened: \(self.db)")
+      self.debug("DB opened: \(ArticleDB.singleton)")
+      self.issueSelection.isHidden = true
+      self.view.addSubview(self.issueSelection)
+      pin(self.issueSelection.centerX, to: self.view.centerX)
+      pin(self.issueSelection.centerY, to: self.view.centerY)
       self.setupFeeder { [weak self] res in
         self?.setupNotification()
         guard let ovwIssues = res.value() else { self?.fatal(res.error()!); return }
-        // get most recent issue
-        self?.gqlFeeder.issue(feed: self!.feed!, date: ovwIssues[0].date) { [weak self] res in
-          guard let issue = res.value() else { self?.fatal(res.error()!); return }
-          self?.issue = issue
-          self?.markStartDownload(feed: self!.feed!, issue: issue)
-          // load "Moment" and 1st section HTML before pushing the web view
-          self?.loadSection(section: self!.issue!.sections![0]) { [weak self] err in
-            if err != nil { self?.fatal(err!) }
-            self?.dloader.downloadMoment(issue: self!.issue!) { [weak self] err in
-              if err != nil { self?.fatal(err!) }
-              self?.pushSectionViews()
-              delay(seconds: 2) { 
-                self?.startupView.isAnimating = false 
-                self?.loadIssue { err in
-                  if err != nil { self?.fatal(err!) }
-                  else { self?.markStopDownload() }
-                }
-              }
-              self?.startupView.isHidden = true
-            }
-          }
+        let issueDates = ovwIssues.map { $0.date.gLowerDateString(tz: self!.feeder.timeZone) }
+        self?.issueSelection.picker.items = issueDates
+        self?.issueSelection.isHidden = false
+        self?.startupView.showLogo = false
+        self?.issueSelection.onSelection { i in 
+          self?.issueSelection.isHidden = true          
+          self?.startupView.isHidden = false
+          self?.startupView.showLogo = true
+          self?.startupView.isAnimating = true
+          self?.showIssue(issue: ovwIssues[i]) 
         }
       }
     }

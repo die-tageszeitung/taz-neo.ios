@@ -13,5 +13,7 @@ import NorthLib
  */
 
 public let ConfigDefaults = Defaults.Values([
-  "isTextNotification" : "true"
+  "isTextNotification" : "true", // shall text notifications be displayed on notification screen
+  "nStarted" : "0",              // number of starts since installation
+  "lastStarted": "0",            // last time app has been started (as UsTime)
 ])
