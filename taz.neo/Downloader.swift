@@ -89,6 +89,9 @@ open class Downloader: DoesLog {
     feeder.resources { [weak self] result in
       guard let res = result.value() else { return }
       guard let self = self else { return }
+      /////////////
+      let _ = StoredResources.persist(res: res, localDir: self.feeder.resourcesDir.path)
+      /////////////
       let hloader = HttpLoader(session: self.dlSession, baseUrl: res.resourceBaseUrl,
                                toDir: self.feeder.resourcesDir.path)
       hloader.download(res.resourceFiles) { [weak self] hl in
