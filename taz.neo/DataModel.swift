@@ -185,11 +185,15 @@ public protocol Resources: ToString {
   var resourceVersion: Int { get }
   /// Base URL of resource files
   var resourceBaseUrl: String { get }
+  /// name of resource zip file (under resourceBaseUrl)
+  var resourceZipName: String { get }
   /// List of files
   var resourceFiles: [FileEntry] { get }
 } // ResourceList
 
 public extension Resources {
+  /// URL of zip file
+  var resourceZipUrl: String { "\(resourceBaseUrl)/\(resourceZipName)" }
   func toString() -> String {
     var ret = "Resources (v) \(resourceVersion) @ \(resourceBaseUrl):\n"
     for f in resourceFiles {
