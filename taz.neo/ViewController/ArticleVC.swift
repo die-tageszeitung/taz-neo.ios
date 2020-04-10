@@ -53,7 +53,8 @@ open class ArticleVC: ContentVC {
       self?.delegate?.displaySection(index: 0)
       self?.navigationController?.popViewController(animated: false)
     }
-    onDisplay { [weak self] (idx, cell) in
+    onDisplay { [weak self] (idx) in
+      self?.debug("on display: \(idx)")
       if let this = self {
         this.delegate?.article = this.articles[idx]
         this.setHeader(artIndex: idx)

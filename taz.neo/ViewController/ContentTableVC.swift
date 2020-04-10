@@ -19,6 +19,9 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   static let DateTextFont = UIFont.systemFont(ofSize: 14)
   static let CellHeight = CGFloat(30)
   static let ImageWidth = CGFloat(150)
+
+  /// Perform table view animations
+  static var showAnimations = true
   
   // The TableView cell name
   fileprivate let sectionCell = "sectionCell"
@@ -203,9 +206,11 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    if ContentTableVC.nAnimations < 2 {
-      animateContent()
-      ContentTableVC.nAnimations += 1
+    if ContentTableVC.showAnimations {
+      if ContentTableVC.nAnimations < 2 {
+        animateContent()
+        ContentTableVC.nAnimations += 1
+      }
     }
   }
   

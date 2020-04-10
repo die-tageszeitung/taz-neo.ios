@@ -32,7 +32,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       if let lidx = lastIndex, secIndex != lidx {
         displaySection(index: secIndex)
       }
-      else { lastIndex = secIndex }
+      lastIndex = secIndex
     }
   }
   
@@ -72,7 +72,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       self?.slider.close()
       self?.displaySection(index: 0)
     }
-    onDisplay { [weak self] (secIndex, cell) in
+    onDisplay { [weak self] (secIndex) in
       self?.setHeader(secIndex: secIndex)
     }
     articleVC = ArticleVC()
