@@ -14,7 +14,7 @@ public extension Date {
   static let gWeekDays = ["", "Sonntag", "Montag", "Dienstag", "Mittwoch", 
                           "Donnerstag", "Freitag", "Samstag"]
   /// German month names
-  static let gMonthNames = ["", "Januar", "Februar", "März", "Mai", "Juni", "Juli", 
+  static let gMonthNames = ["", "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", 
                             "August", "September", "Oktober", "November", "Dezember"]
   
   /// Returns String in German format: <weekday>, <day>.<monthname> <year>
