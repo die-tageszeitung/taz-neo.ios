@@ -122,6 +122,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   
   /// Look for newer issues on the server
   func checkForNewIssues() {
+    guard issues.count > 0 else { return }
     let now = UsTime.now()
     let latestLoaded = UsTime(issues[0].date)
     let nHours = (now.sec - latestLoaded.sec) / 3600
@@ -151,7 +152,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   }
   
   /// Setup SectionVC and push it onto the VC stack
-  func pushSectionViews() {
+  func pushSectionVC() {
     sectionVC = SectionVC()
     if let svc = sectionVC {
       svc.delegate = self
@@ -180,7 +181,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
       downloadSection(section: issue.sections![0]) { [weak self] err in
         guard let self = self else { return }
         if err != nil { self.handleDownloadError(error: err); return }
-        self.pushSectionViews()
+        self.pushSectionVC()
         delay(seconds: 2) { 
           self.dloader.downloadIssue(issue: issue) { [weak self] err in
             guard let self = self else { return }
@@ -250,6 +251,11 @@ public class IssueVC: UIViewController, SectionVCdelegate {
     nc.addObserver(self, selector: #selector(goingForeground), 
                    name: UIApplication.willEnterForegroundNotification, object: nil)
 
+  }
+  
+  public override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    checkForNewIssues()
   }
   
   @objc private func goingBackground() {}
