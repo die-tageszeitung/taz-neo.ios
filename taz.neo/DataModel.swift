@@ -105,7 +105,7 @@ public extension FileEntry {
   case small    = 0  /// small image resolution used eg. for thumpnails
   case normal   = 1  /// regular resolution used in Articles
   case high     = 2  /// high resolution when Image is displayed in zoom mode
-  case unknown  = 3  /// unknown image resolution
+  case unknown  = -1 /// unknown image resolution
   
   public func toString() -> String {
     switch self {
@@ -169,7 +169,7 @@ public protocol ImageEntry: FileEntry {
   var alpha: Float? { get }
 }
 
-public extension ImageEntry {
+public extension ImageEntry {  
   func toString() -> String {
     var sAlpha = ""
     if let alpha = self.alpha { sAlpha = ", alpha=\(alpha)" }
@@ -448,19 +448,48 @@ public extension Page {
 public protocol Moment: ToString {
   /// The images in different resolutions
   var images: [ImageEntry] { get }
+  var creditedImages: [ImageEntry] { get }
 }
 
 public extension Moment {
   
   func toString() -> String {
-    var ret = "Moment (\(images.count) images):"
+    var ret = "Moment (\(images.count) images, \(creditedImages.count) credits):"
     for img in images { ret += "\n  \(img.toString())" }
+    for img in creditedImages { ret += "\n  credit: \(img.toString())"}
     return ret
   }
   
-  /// Moment images in all resolutions
-  var files: [ImageEntry] { return images }
-}
+  /// Moment images in all resolutions and with credits
+  var files: [ImageEntry] { return images + creditedImages }
+  
+  /// Highres Moment files
+  var highresFiles: [ImageEntry] {
+    let h = self.highres!
+    let c = self.creditedHighres
+    var ret = [h]
+    if let img = c, img.name != h.name { ret += img }
+    return ret
+  }
+ 
+  /// Return the image with the highest resolution
+  func highest(images: [ImageEntry]) -> ImageEntry? {
+    var ret: ImageEntry?
+    for img in images {
+      if let highest = ret, img.resolution.rawValue <= highest.resolution.rawValue
+      { continue }
+      else { ret = img }
+    }
+    return ret
+  }
+
+  /// Image in highest resolution
+  var highres: ImageEntry? { highest(images: images) }
+  
+  /// Credited image in highest resolution
+  var creditedHighres: ImageEntry? { highest(images: creditedImages) ?? highres }
+
+} // Moment
 
 /**
  Access status of an Issue
@@ -735,21 +764,24 @@ extension Feeder {
     return issueDir(feed: issue.feed.name, issue: date2a(issue.date))
   }
 
-  /// Returns the "Moment" Image in given resolution
-  public func momentImage(issue: Issue, resolution: ImageResolution = .normal) 
+  /// Returns the "Moment" Image in highest resolution
+  public func momentImage(issue: Issue, isCredited: Bool = false) 
     -> UIImage? {
-    for img in issue.moment.images {
-      if img.resolution == resolution {
-        let path = "\(issueDir(issue: issue).path)/\(img.fileName)"
-        if File.extname(path) == "gif" {
-          return UIImage.animatedGif(File(path).data, duration: 1.5)
-        }
-        else { return UIImage(contentsOfFile: path) }
+    let highres = isCredited ? issue.moment.creditedHighres : issue.moment.highres
+    if let img = highres {
+      let path = "\(issueDir(issue: issue).path)/\(img.fileName)"
+      if File.extname(path) == "gif" {
+        return UIImage.animatedGif(File(path).data, duration: 1.5)
       }
+      else { return UIImage(contentsOfFile: path) }
     }
     return nil
   }
   
+  /// Returns the credited "Moment" Image in highest resolution
+  public func creditedMomentImage(issue: Issue) 
+    -> UIImage? { return momentImage(issue: issue, isCredited: true) }
+
   /// Returns a Date for a String in ISO format relative to the
   /// Feeder's time zone.
   public func a2date(_ iso: String) -> Date {

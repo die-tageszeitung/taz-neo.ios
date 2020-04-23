@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19E266" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19E287" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" syncable="YES" codeGenerationType="class">
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="onlineLink" optional="YES" attributeType="String"/>
@@ -17,7 +17,7 @@
         <attribute name="name" attributeType="String"/>
         <relationship name="articles" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Article" inverseName="authors" inverseEntity="Article"/>
         <relationship name="descriptors" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Descriptor" inverseName="authors" inverseEntity="Descriptor"/>
-        <relationship name="photo" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="author" inverseEntity="ImageEntry"/>
+        <relationship name="photo" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="author" inverseEntity="ImageEntry"/>
         <fetchIndex name="Index">
             <fetchIndexElement property="name" type="Binary" order="ascending"/>
         </fetchIndex>
@@ -72,8 +72,9 @@
         <attribute name="storageType" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="articleAudio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Article" inverseName="audio" inverseEntity="Article"/>
         <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="html" inverseEntity="Content"/>
+        <relationship name="image" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="file" inverseEntity="ImageEntry"/>
         <relationship name="page" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Page" inverseName="pdf" inverseEntity="Page"/>
-        <relationship name="payload" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Payload" inverseName="files" inverseEntity="Payload"/>
+        <relationship name="payload" maxCount="1" deletionRule="Nullify" destinationEntity="Payload" inverseName="files" inverseEntity="Payload"/>
         <fetchIndex name="Index">
             <fetchIndexElement property="name" type="Binary" order="ascending"/>
             <fetchIndexElement property="sha256" type="Binary" order="ascending"/>
@@ -88,11 +89,12 @@
         <relationship name="article" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Article" inverseName="frames" inverseEntity="Article"/>
         <relationship name="page" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Page" inverseName="frames" inverseEntity="Page"/>
     </entity>
-    <entity name="ImageEntry" representedClassName="PersistentImageEntry" parentEntity="FileEntry" syncable="YES" codeGenerationType="class">
-        <attribute name="alpha" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+    <entity name="ImageEntry" representedClassName="PersistentImageEntry" syncable="YES" codeGenerationType="class">
+        <attribute name="alpha" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="resolution" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="type" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <relationship name="author" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Author" inverseName="photo" inverseEntity="Author"/>
+        <relationship name="author" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Author" inverseName="photo" inverseEntity="Author"/>
+        <relationship name="file" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="image" inverseEntity="FileEntry"/>
         <relationship name="imageContent" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Content" inverseName="images" inverseEntity="Content"/>
         <relationship name="moment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="images" inverseEntity="Moment"/>
         <relationship name="navSection" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Section" inverseName="navButton" inverseEntity="Section"/>
@@ -174,9 +176,9 @@
         <element name="Descriptor" positionX="-51924.47265625" positionY="-35092.5859375" width="128" height="118"/>
         <element name="Feed" positionX="-52533.1796875" positionY="-34944.84375" width="128" height="208"/>
         <element name="Feeder" positionX="-52810.859375" positionY="-34899.69140625" width="128" height="163"/>
-        <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="193"/>
+        <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="208"/>
         <element name="Frame" positionX="-51920.18359375" positionY="-34620.09375" width="128" height="148"/>
-        <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="148"/>
+        <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="163"/>
         <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="328"/>
         <element name="Moment" positionX="-52992" positionY="-35010" width="128" height="88"/>
         <element name="Page" positionX="-52203.38671875" positionY="-34559.82421875" width="128" height="148"/>

@@ -22,7 +22,7 @@ class ArticleDB: Database {
 private protocol PersistentObject: NSManagedObject, DoesLog {}
 
 extension PersistentObject {
-  /// The object ID as String
+  /// The unique ID of every CoredData entity as String
   var id: String { objectID.uriRepresentation().absoluteString }
   /// Get object using its ID
   static func get(id: String) -> Self? { 
@@ -36,7 +36,7 @@ extension PersistentObject {
   }
 } // PersistentObject
 
-/// A Protocol to extent StoredObjects (ie. PersistentObject Wrappers)
+/// A StoredObjects is in essence a PersistentObject Wrapper
 private protocol StoredObject: DoesLog {
   associatedtype PO: PersistentObject
   var pr: PO { get }                      // persistent record
@@ -105,6 +105,11 @@ class StoredFileEntry: FileEntry, StoredObject {
   var moTime: Date { pr.moTime! }
   var size: Int64 { pr.size }
   var sha256: String { pr.sha256! }
+  var payload: StoredPayload { StoredPayload(persistent: pr.payload!) }
+  var image: StoredImageEntry? {
+    if let img = pr.image { return StoredImageEntry(persistent: img) }
+    else { return nil }
+  }
   
   required init(persistent: PersistentFileEntry) { self.pr = persistent }
 
@@ -142,7 +147,7 @@ class StoredFileEntry: FileEntry, StoredObject {
   }
   
   /// Return all records of a payload
-  static func payload(payload: StoredPayload) -> [StoredFileEntry] {
+  static func filesInPayload(payload: StoredPayload) -> [StoredFileEntry] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "payload = %@", payload.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
@@ -151,6 +156,79 @@ class StoredFileEntry: FileEntry, StoredObject {
   
 } // StoredFileEntry
 
+extension PersistentImageEntry: PersistentObject {}
+
+/// A stored FileEntry
+class StoredImageEntry: ImageEntry, StoredObject {  
+  
+  static var entity = "ImageEntry"
+  var pr: PersistentImageEntry // persistent record
+  var pf: PersistentFileEntry!
+  var name: String { pf.name! }
+  var storageType: FileStorageType { FileStorageType(rawValue: pf.storageType)! }
+  var moTime: Date { pf.moTime! }
+  var size: Int64 { pf.size }
+  var sha256: String { pf.sha256! }
+  var resolution: ImageResolution { ImageResolution(rawValue: pr.resolution)! }
+  var type: ImageType { ImageType(rawValue: pr.type)! }
+  var alpha: Float? { pr.alpha }
+  var author: StoredAuthor? { 
+    if let au = pr.author { return StoredAuthor(persistent: au) }
+    else { return nil }
+  }
+  
+  required init(persistent: PersistentImageEntry) { 
+    self.pr = persistent 
+    if let pf = persistent.file { self.pf = pf }
+  }
+
+  /// Overwrite the persistent values
+  func update(file: ImageEntry) {
+    if pf == nil { pf = StoredFileEntry.new().pr }
+    pf.name = file.name
+    pf.storageType = file.storageType.rawValue
+    pf.moTime = file.moTime
+    pf.size = file.size
+    pf.sha256 = file.sha256
+    pr.resolution = file.resolution.rawValue
+    pr.type = file.type.rawValue
+    pr.alpha = file.alpha ?? 1.0
+    pf.image = pr
+  }
+  
+  /// Return stored record with given name  
+  static func get(name: String) -> [StoredImageEntry] {
+    let files = StoredFileEntry.get(name: name)
+    if files.count > 0 {
+      if let img = files[0].image {
+        return [img]
+      }
+    }
+    return []
+  }
+  
+  /// Create a new persistent record if not available and store the passed FileEntry into it
+  static func persist(file: ImageEntry) -> StoredImageEntry {
+    let sies = get(name: file.name)
+    var sr: StoredImageEntry
+    if sies.count == 0 { sr = new() }
+    else { sr = sies[0] }
+    sr.update(file: file)
+    return sr
+  }
+  
+  /// Return stored record with given SHA256  
+  static func get(sha256: String) -> [StoredImageEntry] {
+    let files = StoredFileEntry.get(sha256: sha256)
+    if files.count > 0 {
+      if let img = files[0].image {
+        return [img]
+      }
+    }
+    return []
+  }
+  
+} // StoredImageEntry
 
 extension PersistentPayload: PersistentObject {}
 
@@ -188,7 +266,9 @@ class StoredPayload: StoredObject {
     set { pr.remoteZipName = newValue }
   }
 
-  lazy var files: [StoredFileEntry] = { StoredFileEntry.payload(payload: self) }()
+  lazy var files: [StoredFileEntry] = { 
+    StoredFileEntry.filesInPayload(payload: self) 
+  }()
 
   required init(persistent: PersistentPayload) { self.pr = persistent }
   
@@ -218,6 +298,7 @@ class StoredPayload: StoredObject {
 
 extension PersistentResources: PersistentObject {}
 
+/// A stored list of resource files
 class StoredResources: Resources, StoredObject {
     
   static var entity = "Resources"
@@ -252,4 +333,60 @@ class StoredResources: Resources, StoredObject {
     return sr
   }
 
-}
+} // StoredResources
+
+extension PersistentAuthor: PersistentObject {}
+
+/// A stored Author
+class StoredAuthor: Author, StoredObject {
+  
+  static var entity = "Author"
+  var pr: PersistentAuthor // persistent record
+  var name: String? { pr.name }
+  var photo: ImageEntry? { 
+    if let p = pr.photo { return StoredImageEntry(persistent: p) }
+    else { return nil }
+  }
+  
+  required init(persistent: PersistentAuthor) { self.pr = persistent }
+
+  /// Overwrite the persistent values
+  func update(object: Author) {
+    pr.name = object.name
+    if let photo = object.photo {
+      let imageEntry = StoredImageEntry.persist(file: photo)
+      pr.photo = imageEntry.pr
+      imageEntry.pr.author = pr
+    }
+    else { pr.photo = nil }
+  }
+  
+  /// Return stored record with given name  
+  static func get(name: String) -> [StoredAuthor] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "name = %@", name)
+    return get(request: request)
+  }
+  
+  /// Return stored record with given photo  
+  static func get(photo: ImageEntry) -> [StoredAuthor] {
+    let imgs = StoredImageEntry.get(name: photo.name) 
+    if imgs.count > 0 {
+      if let au = imgs[0].author {
+        return [au]
+      }
+    }
+    return []
+  }
+  
+  /// Create a new persistent record if not available and store the passed Author into it
+  static func persist(object: Author) -> StoredAuthor {
+    var pers: [StoredAuthor] = []
+    if let n = object.name { pers = get(name: n) }
+    else { pers = get(photo: object.photo!) }
+    if pers.count == 0 { pers = [new()] }
+    pers[0].update(object: object)
+    return pers[0]
+  }
+  
+} // StoredFileEntry
