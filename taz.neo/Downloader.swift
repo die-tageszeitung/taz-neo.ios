@@ -80,12 +80,18 @@ open class Downloader: DoesLog {
     }    
   }
   
-  /// Download most current Resources 
-  private func downloadResources(closure: @escaping (Error?)->()) {
+  /// Returns true when Resources out of date or not already downloaded
+  public func needDownloadResources() -> Bool {
     let vCurrent = feeder.resourceVersion
     let vStored = feeder.storedResVersion
-    guard vStored < vCurrent else { closure(nil); return }
-    debug("resources at version \(vStored) < current version \(vCurrent)")
+    let dlNeeded = vStored < vCurrent
+    debug("resources at version \(vStored) \(dlNeeded ? "<" : ">=") current version \(vCurrent)")
+    return dlNeeded
+  }
+  
+  /// Download most current Resources 
+  private func downloadResources(closure: @escaping (Error?)->()) {
+    guard needDownloadResources() else { closure(nil); return }
     feeder.resources { [weak self] result in
       guard let res = result.value() else { return }
       guard let self = self else { return }
@@ -95,10 +101,11 @@ open class Downloader: DoesLog {
       let hloader = HttpLoader(session: self.dlSession, baseUrl: res.resourceBaseUrl,
                                toDir: self.feeder.resourcesDir.path)
       hloader.download(res.resourceFiles) { [weak self] hl in
-        self?.debug("Resource files:\n\(hloader)")
+        guard let self = self else { return }
+        self.debug("Resource files:\n\(hloader)")
         if hloader.errors > 0 { closure(hloader.lastError) }
         else { 
-          self?.feeder.storedResVersion = vCurrent
+          self.feeder.storedResVersion = self.feeder.resourceVersion
           closure(nil) 
         }
       }
@@ -125,7 +132,9 @@ open class Downloader: DoesLog {
   
   /// Download "Moment" files"
   public func downloadMoment(issue: Issue, closure: @escaping (Error?)->()) {
-    downloadIssueData(issue: issue, files: issue.moment.files, closure: closure)
+    let name = self.feeder.date2a(issue.date)
+    downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, issue: name,
+                       files: issue.moment.highresFiles, closure: closure)
   }
 
   /// Download complete Issue

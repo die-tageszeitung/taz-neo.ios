@@ -14,7 +14,7 @@ class UITests: UIViewController {
   lazy var backButton = Button<LeftArrowView>(width: 30, height: 30)
   lazy var loadingView = LoadingView()
   lazy var undefinedView = UndefinedView()
-  lazy var startupView = StartupView()
+  lazy var startupView = LogoStartupView()
   
   func buildPinExample() {
     let viewA = UIView()

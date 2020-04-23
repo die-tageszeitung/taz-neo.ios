@@ -11,7 +11,7 @@ import NorthLib
 /// The protocol used to communicate with calling VCs
 public protocol SectionVCdelegate {
   var feeder: Feeder { get }
-  var issue: Issue! { get }
+  var issue: Issue { get }
   var dloader: Downloader { get }
 }
 
@@ -40,6 +40,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     didSet { if oldValue == nil { self.setup() } }
   }
   
+  /// Perform slider animations?
+  static var showAnimations = true
+
   public func displaySection(index: Int) {
     if index != self.index {
       debug("Section change to Section #\(index), previous: " +
@@ -117,6 +120,22 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   override public func viewDidLoad() {
     super.viewDidLoad()
     self.index = 0
+  }
+  
+  override public func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    if SectionVC.showAnimations {
+      SectionVC.showAnimations = false
+      delay(seconds: 1.5) {
+        self.slider.open() { _ in
+          delay(seconds: 1.5) {
+            self.slider.close() { _ in
+              self.slider.blinkButton()
+            }
+          }
+        }
+      }
+    }
   }
     
 } // SectionVC

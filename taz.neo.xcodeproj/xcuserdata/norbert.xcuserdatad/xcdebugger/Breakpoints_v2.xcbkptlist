@@ -14,8 +14,8 @@
             filePath = "taz.neo/Views/StartupView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "68"
-            endingLineNumber = "68"
+            startingLineNumber = "119"
+            endingLineNumber = "119"
             landmarkName = "animateOnce(seconds:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -30,8 +30,8 @@
             filePath = "taz.neo/MainNC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "293"
-            endingLineNumber = "293"
+            startingLineNumber = "245"
+            endingLineNumber = "245"
             landmarkName = "setupFeeder(closure:)"
             landmarkType = "7">
             <Locations>
@@ -141,8 +141,8 @@
             filePath = "taz.neo/MainNC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "198"
-            endingLineNumber = "198"
+            startingLineNumber = "156"
+            endingLineNumber = "156"
             landmarkName = "errorReportActivated(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -157,26 +157,10 @@
             filePath = "taz.neo/MainNC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "163"
-            endingLineNumber = "163"
+            startingLineNumber = "121"
+            endingLineNumber = "121"
             landmarkName = "produceErrorReport(recipient:)"
             landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "CA0CBF23-8FE3-42D5-B138-7BCD62E19C90"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "taz.neo/DataModel.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "743"
-            endingLineNumber = "743"
-            landmarkName = "unknown"
-            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -189,8 +173,8 @@
             filePath = "taz.neo/MainNC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "322"
-            endingLineNumber = "322"
+            startingLineNumber = "278"
+            endingLineNumber = "278"
             landmarkName = "markStartDownload(feed:issue:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -205,8 +189,8 @@
             filePath = "taz.neo/MainNC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "335"
-            endingLineNumber = "335"
+            startingLineNumber = "293"
+            endingLineNumber = "293"
             landmarkName = "markStopDownload()"
             landmarkType = "7">
          </BreakpointContent>
@@ -301,8 +285,8 @@
             filePath = "taz.neo/MainNC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "501"
-            endingLineNumber = "501"
+            startingLineNumber = "396"
+            endingLineNumber = "396"
             landmarkName = "testNotification(type:)"
             landmarkType = "7">
             <Locations>
@@ -461,8 +445,8 @@
             filePath = "taz.neo/MainNC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "315"
-            endingLineNumber = "315"
+            startingLineNumber = "271"
+            endingLineNumber = "271"
             landmarkName = "setupFeeder(closure:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -541,8 +525,8 @@
             filePath = "taz.neo/ViewController/SectionVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "44"
-            endingLineNumber = "44"
+            startingLineNumber = "47"
+            endingLineNumber = "47"
             landmarkName = "displaySection(index:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -614,33 +598,81 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "4A93A047-ED22-40F8-850E-2CCCC44EC0B0"
+            uuid = "F046495D-5FD6-4D2B-840D-38D3CFDACE7C"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "taz.neo/MainNC.swift"
+            filePath = "../NorthLib/NorthLib/Views/CarouselView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "418"
-            endingLineNumber = "418"
-            landmarkName = "startup()"
+            startingLineNumber = "317"
+            endingLineNumber = "317"
+            landmarkName = "offset2index(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "BB5FEB00-A4A4-40B6-9C1C-DBFE0607596B"
-            shouldBeEnabled = "Yes"
+            uuid = "3627F6FD-BE60-44BC-9228-773C914E0246"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "taz.neo/DataModel.swift"
+            filePath = "../NorthLib/NorthLib/Views/CarouselView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "189"
-            endingLineNumber = "189"
-            landmarkName = "unknown"
-            landmarkType = "0">
+            startingLineNumber = "340"
+            endingLineNumber = "340"
+            landmarkName = "scrollViewWillEndDragging(_:withVelocity:targetContentOffset:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "C6BEDD14-3C65-4589-B43B-9D7D4BEEFE65"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "taz.neo/ViewController/IssueVC.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "207"
+            endingLineNumber = "207"
+            landmarkName = "viewDidLoad()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "4CEFCC96-9328-4BCD-9C2E-AAF62285AD6C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "taz.neo/MainNC.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "307"
+            endingLineNumber = "307"
+            landmarkName = "showIssueVC(issues:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "BFE23B8B-E965-4B0A-BF7B-7B9E9211E9D9"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "taz.neo/ViewController/IssueVC.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "125"
+            endingLineNumber = "125"
+            landmarkName = "checkForNewIssues()"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

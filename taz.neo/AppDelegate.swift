@@ -21,6 +21,7 @@ class AppDelegate: NotifiedDelegate {
 //    self.window?.rootViewController = ContentVC()
 //    self.window?.rootViewController = UITests()
 //    self.window?.rootViewController = DLController()
+//    self.window?.rootViewController = CarouselVC()
     self.window?.makeKeyAndVisible()
     if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
       if shortcutItem.type == "Logging" { wantLogging = true }

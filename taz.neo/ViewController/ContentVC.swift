@@ -201,7 +201,7 @@ open class ContentVC: WebViewCollectionVC {
     self.isLargeHeader = isLargeHeader
     self.contentTable!.feeder = feeder
     self.contentTable!.issue = issue
-    self.contentTable!.image = feeder.momentImage(issue: issue, resolution: .normal)
+    self.contentTable!.image = feeder.momentImage(issue: issue)
     self.baseDir = feeder.baseDir.path
     onBack { [weak self] _ in
       self?.debug("*** Action: <Back> pressed")

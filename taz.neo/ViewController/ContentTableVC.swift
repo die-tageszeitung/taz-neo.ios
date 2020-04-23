@@ -215,7 +215,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   }
   
   override public func viewDidDisappear(_ animated: Bool) {
-    super.viewDidAppear(animated)
+    super.viewDidDisappear(animated)
   }
   
   // MARK: - UIContextMenuInteractionDelegate protocol
