@@ -1,97 +1,52 @@
 
 /**
- CarouselTest:
- A demonstration of the CarouselView class which is a CollectionView acting like a carousel
+ CarouselVC:
+ A demonstration of the IssueCarousel class which is a CollectionView acting 
+ like a carousel while showing Issue images.
 */ 
 
 import UIKit
 import NorthLib
 
-/// A simple view to populate Carousel
-class TestView: UIView, Touchable {
-  var label = UILabel()
-  var recognizer = TapRecognizer()
-  
-  init(frame: CGRect, n: Int) {
-    super.init(frame: frame)
-    label.text = "\(n)"
-    let col: UIColor = [.red, .green, .yellow][n%3]
-    backgroundColor = col
-    addSubview(label)
-    pin(label.centerX, to: self.centerX)
-    pin(label.centerY, to: self.centerY)
-    isUserInteractionEnabled = true
-    onTap {_ in self.debug(self.label.text) }
-  }
-  
-  required init?(coder: NSCoder) { super.init(coder: coder) }
-}
 
-/// Main view controller with a logView
-class ViewController: UIViewController {
-  var viewLogger = Log.ViewLogger()
-  var carousel = CarouselView()
-  
-  override func loadView() {
-    let view = UIView()
-    view.backgroundColor = .white
-    view.addSubview(viewLogger.logView)
-    viewLogger.logView.pinToView(view)
-    Log.append(logger: viewLogger)
-    Log.minLogLevel = .Debug
-    viewLogger.logView.onTap {_ in
-      self.carousel.isHidden = !self.carousel.isHidden
-    }
-    view.addSubview(carousel)
-    pin(carousel.left, to: view.left)
-    pin(carousel.right, to: view.right)
-    pin(carousel.centerY, to: view.centerY)
-    carousel.pinHeight(400)
-    carousel.backgroundColor = .lightGray
-    carousel.scrollFromLeftToRight = true
-    carousel.viewProvider { (i, oview) in
-      let tv = TestView(frame: CGRect(), n: i+1)
-      tv.pinHeight(300)
-      return tv
-    }
-    carousel.onDisplay { idx in 
-      if (idx != 0) && ((idx % 7) == 0) { self.carousel.count += 10 }
-    }
-    self.view = view
-  }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    self.carousel.count = 10
-    self.carousel.index = 0
-  }
-}
-
-class IssueTestVC: UIViewController {
+class CarouselVC: UIViewController {
   var issueCarousel = IssueCarousel()
   var images: [UIImage] = []
+  var isInitialized: Bool = false
   
-  override func loadView() {
-    let view = UIView()
+  override func viewDidLoad() {
     view.backgroundColor = .black
-    let consoleLogger = Log.Logger()
-    Log.append(logger: consoleLogger)
-    Log.minLogLevel = .Debug
+    if navigationController == nil {
+      let consoleLogger = Log.Logger()
+      Log.append(logger: consoleLogger)
+      Log.minLogLevel = .Debug
+    }
     view.addSubview(issueCarousel)
     pin(issueCarousel, to: view)
-    issueCarousel.scrollFromLeftToRight = true
-    issueCarousel.relativePageWidth = 0.6
-    issueCarousel.relativeSpacing = 0.12
-    issueCarousel.onDisplay { idx in 
+    issueCarousel.carousel.scrollFromLeftToRight = true
+    issueCarousel.carousel.onDisplay { (idx, view) in 
+      if !self.isInitialized {
+        self.isInitialized = true
+        self.issueCarousel.showAnimations()
+      }
       self.debug("display: \(idx)")
     }
-    issueCarousel.onPress { idx in 
-      self.debug("tap: \(idx)")
+    issueCarousel.onTap { idx in 
+      let isActive = self.issueCarousel.getActivity(idx: idx)
+      self.issueCarousel.setActivity(idx: idx, isActivity: !isActive)
     }
-    self.view = view
+    images = [1,2,3,4,5,6].map { UIImage(named:"Moment 0\($0)")! }
+    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
+      self.debug(title)
+    }
+    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") { title in
+      self.debug(title)
+    }
+    issueCarousel.addMenuItem(title: "Kontakt", icon: "envelope") { title in
+      self.debug(title)
+    }
+    issueCarousel.appendIssues(images)
+    issueCarousel.index = 0
   }
   
-  override func viewDidAppear(_ animated: Bool) {
-    images = [1,2,3,4,5,6].map { UIImage(named:"Moment 0\($0)")! }
-    issueCarousel.appendIssues(images)
-  }
 }
