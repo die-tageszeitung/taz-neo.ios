@@ -10,13 +10,12 @@ import MessageUI
 import NorthLib
 
 
-class MainNC: UINavigationController, SectionVCdelegate, IssueVCdelegate,
+class MainNC: UINavigationController, IssueVCdelegate,
               MFMailComposeViewControllerDelegate, UIGestureRecognizerDelegate {
   
   /// Number of seconds to wait until we stop polling for email confirmation
   let PollTimeout: Int64 = 25*3600
   
-  var startupView = SpinnerStartupView()
   var showAnimations = false
   lazy var consoleLogger = Log.Logger()
   lazy var viewLogger = Log.ViewLogger()
@@ -39,12 +38,8 @@ class MainNC: UINavigationController, SectionVCdelegate, IssueVCdelegate,
   private var pushToken: String?
   private var serverDownloadId: String?
   private var serverDownloadStart: UsTime?
-  /// Light status bar because of dark background
-  override public var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
-
-  
-  var issueVC: IssueVC?
-  var sectionVC: SectionVC?
+  private var inIntro = true
+  private var ovwIssues: [Issue]?
 
   func setupLogging() {
     let logView = viewLogger.logView
@@ -73,10 +68,11 @@ class MainNC: UINavigationController, SectionVCdelegate, IssueVCdelegate,
       }
     }
     log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)")
+        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
+        "Path: \(Dir.appSupportPath)")
   } 
   
-  func setupNotification() {
+  func setupRemoteNotifications() {
     let nd = UIApplication.shared.delegate as! AppDelegate
     let dfl = Defaults.singleton
     let oldToken = dfl["pushToken"]
@@ -186,7 +182,7 @@ class MainNC: UINavigationController, SectionVCdelegate, IssueVCdelegate,
     Alert.actionSheet(title: "Beta-Test", actions: actions)
   }
   
-  func setupTopMenu() {
+  func setupTopMenus() {
     let reportLPress2 = UILongPressGestureRecognizer(target: self, 
         action: #selector(errorReportActivated))
     let reportLPress3 = UILongPressGestureRecognizer(target: self, 
@@ -198,10 +194,17 @@ class MainNC: UINavigationController, SectionVCdelegate, IssueVCdelegate,
     self.view.addGestureRecognizer(reportLPress3)
   }
     
-  func getOverview(closure: @escaping (Result<[Issue],Error>)->()) {
-    debug(gqlFeeder.toString())
-    _feed = gqlFeeder.feeds[0]
-    gqlFeeder.issues(feed: feed, count: 20, closure: closure)
+  func getOverview() {
+    gqlFeeder.issues(feed: feed, count: 20) { res in
+      if let issues = res.value() {
+        Notification.send("overviewReceived", object: issues)
+      }
+    }
+  }
+  
+  func overviewReceived(issues: [Issue]) {
+    if inIntro { ovwIssues = issues }
+    else { showIssueVC(issues: issues) }
   }
   
   func setupPolling() {
@@ -242,36 +245,33 @@ class MainNC: UINavigationController, SectionVCdelegate, IssueVCdelegate,
     Defaults.singleton["pollEnd"] = nil
   }
   
-  func setupFeeder(closure: @escaping (Result<[Issue],Error>)->()) {
+  func setupFeeder(closure: @escaping (Result<Feeder,Error>)->()) {
     self._gqlFeeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { [weak self] (res) in
       guard let self = self else { return }
       guard let nfeeds = res.value() else { return }
       self.debug("Feeder \"\(self.feeder.title)\" provides \(nfeeds) feeds.")
+      self.debug(self.gqlFeeder.toString())
+      self._feed = self.gqlFeeder.feeds[0]
       self.authenticator.pushToken = self.pushToken
       self.writeTazApiCss(topMargin: CGFloat(TopMargin), bottomMargin: CGFloat(BottomMargin))
       let (token, _, _) = self.getUserData()
+      Notification.receive("overviewReceived") { [weak self] issues in
+        if let issues = issues as? [Issue] {
+          self?.overviewReceived(issues: issues) 
+        }
+      }
       if let token = token { 
         self.gqlFeeder.authToken = token
-        self.getOverview() { [weak self] res in
-          guard let self = self else { return }
-          if let _ = res.value() { 
-            closure(res)
-          }
-          else { 
-            self.deleteUserData()
-            Alert.message(title: "Fehler", message: "Bei der Anmeldung am Server " +
-              "trat ein Fehler auf, bitte starten Sie die App noch einmal und " +
-              "melden Sie sich erneut an.") { exit(0) }
-          }
-        }
+        self.getOverview()
       }
       else {
         self.setupPolling()
         self.authenticator.simpleAuthenticate { [weak self] (res) in
           guard let _ = res.value() else { return }
-          self?.getOverview(closure: closure)
+          self?.getOverview()
         }
       }
+      closure(.success(self.feeder))
     }
   }
  
@@ -300,13 +300,34 @@ class MainNC: UINavigationController, SectionVCdelegate, IssueVCdelegate,
   }
     
   func showIssueVC(issues: [Issue]) {
-    startupView.isAnimating = false 
-    issueVC = IssueVC()
-    if let ivc = issueVC {
-      ivc.delegate = self
-      ivc.issuesReceived(issues: issues)
-      pushViewController(ivc, animated: true)
+    self.setupRemoteNotifications()
+    let ivc = IssueVC()
+    ivc.delegate = self
+    ivc.issuesReceived(issues: issues)
+    pushViewController(ivc, animated: false)
+  }
+  
+  func showIntro() {
+    let hasAccepted = Keychain.singleton["dataPolicyAccepted"]
+    if hasAccepted != nil && !hasAccepted!.bool {
+      inIntro = true
+      let introVC = IntroVC()
+      let resdir = feeder.resourcesDir.path
+      introVC.htmlDataPolicy = resdir + "/welcomeSlidesDataPolicy.html"
+      introVC.htmlIntro = resdir + "/welcomeSlides.html"
+      Notification.receive("dataPolicyAccepted") { [weak self] obj in
+        self?.introHasFinished()
+      }
+      pushViewController(introVC, animated: false)
     }
+  }
+  
+  func introHasFinished() {
+    popViewController(animated: false)
+    let kc = Keychain.singleton
+//    kc["dataPolicyAccepted"] = "true"
+    kc["dataPolicyAccepted"] = "false"
+    if let issues = ovwIssues { showIssueVC(issues: issues) }
   }
   
   func startup() {
@@ -323,16 +344,13 @@ class MainNC: UINavigationController, SectionVCdelegate, IssueVCdelegate,
     ContentTableVC.showAnimations = self.showAnimations
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
-    startupView.isAnimating = true
     ArticleDB.singleton.open { [weak self] err in 
       guard let self = self else { return }
       guard err == nil else { exit(1) }
       self.debug("DB opened: \(ArticleDB.singleton)")
       self.setupFeeder { [weak self] res in
         guard let self = self else { return }
-        self.setupNotification()
-        guard let ovwIssues = res.value() else { self.fatal(res.error()!); return }
-        self.showIssueVC(issues: ovwIssues)
+        self.dloader.downloadResources { _ in self.showIntro() }
       }
     }
   } 
@@ -398,12 +416,11 @@ class MainNC: UINavigationController, SectionVCdelegate, IssueVCdelegate,
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    pushViewController(StartupVC(), animated: false)
     MainNC.singleton = self
     isNavigationBarHidden = true
     isForeground = true
-    setupTopMenu()
-    self.view.addSubview(startupView)
-    pin(startupView, to: self.view)
+    setupTopMenus()
     let nc = NotificationCenter.default
     nc.addObserver(self, selector: #selector(goingBackground), 
       name: UIApplication.willResignActiveNotification, object: nil)
