@@ -180,7 +180,11 @@ public extension ImageEntry {
 /**
  A list of resource files
  */
-public protocol Resources: ToString {
+public protocol Resources: ToString, AnyObject {
+  /// Are these Resources currently being downloaded
+  var isDownloading: Bool { get set }
+  /// Have these Ressources been downloaded
+  var isComplete: Bool { get set }
   /// Resource list version
   var resourceVersion: Int { get }
   /// Base URL of resource files
@@ -449,6 +453,7 @@ public protocol Moment: ToString {
   /// The images in different resolutions
   var images: [ImageEntry] { get }
   var creditedImages: [ImageEntry] { get }
+  var animation: [FileEntry] { get }
 }
 
 public extension Moment {
@@ -457,6 +462,7 @@ public extension Moment {
     var ret = "Moment (\(images.count) images, \(creditedImages.count) credits):"
     for img in images { ret += "\n  \(img.toString())" }
     for img in creditedImages { ret += "\n  credit: \(img.toString())"}
+    for img in animation { ret += "\n  animation: \(img.toString())"}
     return ret
   }
   
@@ -488,6 +494,14 @@ public extension Moment {
   
   /// Credited image in highest resolution
   var creditedHighres: ImageEntry? { highest(images: creditedImages) ?? highres }
+  
+  /// Animated Gif if available
+  var animatedGif: FileEntry? {
+    for f in animation {
+      if File.basename(f.name) == "moment.gif" { return f }
+    }
+    return nil
+  }
 
 } // Moment
 
@@ -524,15 +538,19 @@ public extension Moment {
 } // IssueStatus
 
 /// One Issue of a Feed
-public protocol Issue: ToString {  
+public protocol Issue: ToString, AnyObject {  
+  /// Is this Issue currently being downloaded
+  var isDownloading: Bool { get set }
+  /// Has this Issue been downloaded
+  var isComplete: Bool { get set }
   /// Reference to Feed providing this Issue
   var feed: Feed { get set }
   /// Issue date
   var date: Date { get }
-  /// The file's modification time
+  /// The date/time of the latest modification
   var moTime: Date { get }
   /// Is this Issue a week end edition
-  var isWeekend: Bool? { get }
+  var isWeekend: Bool { get }
   /// Issue defining images
   var moment: Moment { get }
   /// persistent Issue key
@@ -669,6 +687,32 @@ public extension Issue {
   }
 } // PublicationCycle
 
+/// Type of a Feed
+@objc public enum FeedType: Int16, Decodable, ToString {  
+  case publication = 0  /// regular publication
+  case bookmarks   = 1  /// a feed of bookmarks
+  case info        = 2  /// info and help texts
+  case unknown     = -1
+  public func toString() -> String {
+    switch self {
+    case .publication:  return "daily"
+    case .bookmarks:    return "bookmarks"
+    case .info:         return "info"
+    case .unknown:      return "unknown"
+    }
+  }
+  
+  public init(from decoder: Decoder) throws {
+    let s = try decoder.singleValueContainer().decode(String.self)
+    switch s {
+    case "publication" : self = .publication
+    case "bookmarks"   : self = .bookmarks
+    case "info"        : self = .info
+    default            : self = .unknown
+    }
+  }
+} // FeedType
+
 /**
  A Feed is a somewhat abstract form of a publication
  */
@@ -677,19 +721,28 @@ public protocol Feed: ToString {
   var name: String { get }
   /// Publication cycle
   var cycle: PublicationCycle { get }
+  /// Feed type
+  var type: FeedType { get }
   /// width/height of "Moment"-Image
   var momentRatio: Float { get }  
   /// Number of issues available
   var issueCnt: Int { get }
   /// Date of last issue available (newest)
   var lastIssue: Date { get }
+  /// Date of issue last read
+  var lastIssueRead: Date? { get }
+  /// Date/Time of last server update regarding this feed
+  var lastUpdated: Date? { get }
   /// Date of first issue available (oldest)  
   var firstIssue: Date { get }
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
 } // Feed
 
-public extension Feed {
+public extension Feed {  
+  var type: FeedType { .unknown }
+  var lastIssueRead: Date? { nil }
+  var lastUpdated: Date? { nil }
   func toString() -> String {
     return "\(name): \(cycle), \(issueCnt) issues total"
   }
@@ -712,8 +765,6 @@ public protocol Feeder {
   var title: String { get }
   /// The last time feeds have been requested
   var lastUpdated: Date? { get }
-  /// The next time to ask for Feed updates
-  var validUntil: Date? { get }
   /// Current resource version
   var resourceVersion: Int { get }
   /// The Feeds this Feeder is providing
@@ -764,11 +815,12 @@ extension Feeder {
     return issueDir(feed: issue.feed.name, issue: date2a(issue.date))
   }
 
-  /// Returns the "Moment" Image in highest resolution
+  /// Returns the "Moment" Image as Gif-Animation or in highest resolution
   public func momentImage(issue: Issue, isCredited: Bool = false) 
     -> UIImage? {
-    let highres = isCredited ? issue.moment.creditedHighres : issue.moment.highres
-    if let img = highres {
+    var file = issue.moment.animatedGif
+    if file == nil { file = isCredited ? issue.moment.creditedHighres : issue.moment.highres }
+    if let img = file {
       let path = "\(issueDir(issue: issue).path)/\(img.fileName)"
       if File.extname(path) == "gif" {
         return UIImage.animatedGif(File(path).data, duration: 1.5)
