@@ -90,22 +90,26 @@ open class Downloader: DoesLog {
   }
   
   /// Download most current Resources 
-  private func downloadResources(closure: @escaping (Error?)->()) {
+  public func downloadResources(closure: @escaping (Error?)->()) {
     guard needDownloadResources() else { closure(nil); return }
     feeder.resources { [weak self] result in
       guard let res = result.value() else { return }
       guard let self = self else { return }
+      if res.isDownloading || res.isComplete { closure(nil); return }
       /////////////
       let _ = StoredResources.persist(res: res, localDir: self.feeder.resourcesDir.path)
       /////////////
+      res.isDownloading = true
       let hloader = HttpLoader(session: self.dlSession, baseUrl: res.resourceBaseUrl,
                                toDir: self.feeder.resourcesDir.path)
       hloader.download(res.resourceFiles) { [weak self] hl in
         guard let self = self else { return }
+        res.isDownloading = false
         self.debug("Resource files:\n\(hloader)")
         if hloader.errors > 0 { closure(hloader.lastError) }
         else { 
           self.feeder.storedResVersion = self.feeder.resourceVersion
+          res.isComplete = true
           closure(nil) 
         }
       }
@@ -115,6 +119,7 @@ open class Downloader: DoesLog {
   /// Download Issue data
   public func downloadIssueData(issue: Issue, files: [FileEntry], 
                                 closure: @escaping (Error?)->()) {
+    if issue.isComplete { closure(nil); return }
     downloadResources { [weak self] err in
       guard err == nil else { closure(err); return }
       guard let self = self else { return }
@@ -132,26 +137,38 @@ open class Downloader: DoesLog {
   
   /// Download "Moment" files"
   public func downloadMoment(issue: Issue, closure: @escaping (Error?)->()) {
-    let name = self.feeder.date2a(issue.date)
-    downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, issue: name,
-                       files: issue.moment.highresFiles, closure: closure)
+    if issue.isComplete { closure(nil) }
+    else {
+      let name = self.feeder.date2a(issue.date)
+      downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, issue: name,
+                         files: issue.moment.highresFiles, closure: closure)
+    }
   }
 
   /// Download complete Issue
   public func downloadIssue(issue: Issue, closure: @escaping (Error?)->()) {
-    downloadIssueData(issue: issue, files: issue.files, closure: closure)
+    if issue.isDownloading || issue.isComplete { closure(nil) }
+    else {
+      downloadIssueData(issue: issue, files: issue.files) { err in
+        issue.isDownloading = false
+        if err == nil { issue.isComplete = true }
+        closure(err)
+      }
+    }
   }
   
   /// Download Section (no articles)
   public func downloadSection(issue: Issue, section: Section, 
                               closure: @escaping (Error?)->()) {
-    downloadIssueData(issue: issue, files: section.files, closure: closure)
+    if issue.isComplete { closure(nil) }
+    else { downloadIssueData(issue: issue, files: section.files, closure: closure) }
   }
 
   /// Download Article
   public func downloadArticle(issue: Issue, article: Article, 
                               closure: @escaping (Error?)->()) {
-    downloadIssueData(issue: issue, files: article.files, closure: closure)
+    if issue.isComplete { closure(nil) }
+    else { downloadIssueData(issue: issue, files: article.files, closure: closure) }
   }
 
 } // Downloader

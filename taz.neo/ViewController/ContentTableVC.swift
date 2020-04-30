@@ -229,7 +229,6 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
     }
   }
 
-  
   // MARK: - UITableViewDataSource protocol
   
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int)

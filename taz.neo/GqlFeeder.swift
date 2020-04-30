@@ -148,6 +148,16 @@ class GqlResources: Resources, GQLObject {
   /// List of files
   var files: [GqlFile]
   var resourceFiles: [FileEntry] { return files }
+  var _isDownloading: Bool? = nil
+  var isDownloading: Bool {
+    get { if _isDownloading != nil { return _isDownloading! } else { return false } }
+    set { _isDownloading = newValue }
+  }
+  var _isComplete: Bool? = nil
+  var isComplete: Bool {
+    get { if _isComplete != nil { return _isComplete! } else { return false } }
+    set { _isComplete = newValue }
+  }
   
   static var fields = """
   resourceVersion 
@@ -279,10 +289,17 @@ class GqlPage: Page, GQLObject {
 class GqlMoment: Moment, GQLObject {
   /// The images in different resolutions
   public var imageList: [GqlImage]
-  public var creditList: [GqlImage]?
+  public var creditList: [GqlImage]?  
+  public var momentList: [GqlFile]?
   public var images: [ImageEntry] { return imageList }
   public var creditedImages: [ImageEntry] { return creditList ?? [] }
+  public var animation: [FileEntry] { return momentList ?? [] }
 
+//  static var fields = """
+//    imageList { \(GqlImage.fields) }
+//    creditList { \(GqlImage.fields) }
+//    momentList { \(GqlFile.fields) }
+//  """
   static var fields = """
     imageList { \(GqlImage.fields) }
     creditList { \(GqlImage.fields) }
@@ -290,7 +307,7 @@ class GqlMoment: Moment, GQLObject {
 } // GqlMoment
 
 /// One Issue of a Feed
-class GqlIssue: Issue, GQLObject {  
+class GqlIssue: Issue, GQLObject {
   /// Reference to Feed providing this Issue
   var feedRef: GqlFeed?
   /// Return a non nil Feed
@@ -309,7 +326,8 @@ class GqlIssue: Issue, GQLObject {
     return UsTime(mtime).date 
   }
   /// Is this Issue a week end edition?
-  var isWeekend: Bool?
+  var isWeekend: Bool { return sIsWeekend ?? false }
+  var sIsWeekend: Bool?
   /// Issue defining images
   var gqlMoment: GqlMoment
   var moment: Moment { return gqlMoment }
@@ -338,11 +356,21 @@ class GqlIssue: Issue, GQLObject {
   /// List of PDF pages (if any)
   var pageList : [GqlPage]?
   var pages: [Page]? { return pageList }
-  
+  var _isDownloading: Bool? = nil
+  var isDownloading: Bool {
+    get { if _isDownloading != nil { return _isDownloading! } else { return false } }
+    set { _isDownloading = newValue }
+  }
+  var _isComplete: Bool? = nil
+  var isComplete: Bool {
+    get { if _isComplete != nil { return _isComplete! } else { return false } }
+    set { _isComplete = newValue }
+  }
+
   static var ovwFields = """
   sDate: date 
   sMoTime: moTime
-  isWeekend
+  sIsWeekend: isWeekend
   gqlMoment: moment { \(GqlMoment.fields) } 
   baseUrl 
   status
@@ -446,8 +474,6 @@ open class GqlFeeder: Feeder, DoesLog {
   public var title: String
   /// The last time feeds have been requested
   public var lastUpdated: Date?
-  /// The next time to ask for Feed updates
-  public var validUntil: Date?
   /// Current resource version
   public var resourceVersion: Int {
     guard let st = status else { return -1 }
@@ -691,7 +717,7 @@ open class GqlFeeder: Feeder, DoesLog {
         }
         if ret == nil { 
           if let issues = req.feeds[0].issues, issues.count > 0 {
-            for var issue in issues { issue.feed = feed }
+            for issue in issues { issue.feed = feed }
             ret = .success(issues) 
           }
           else {

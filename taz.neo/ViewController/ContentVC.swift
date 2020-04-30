@@ -26,7 +26,6 @@ public class ContentUrl: WebViewUrl, DoesLog {
     get {
       guard !_isAvailable else { return true }
       for f in content.files {
-        debug("fileNameExists(\(f.fileName)): \(f.fileNameExists(inDir: path))")
         if !f.fileNameExists(inDir: path) { self.loadClosure(self); return false }
       }
       _isAvailable = true

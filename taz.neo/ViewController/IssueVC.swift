@@ -40,6 +40,8 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   public var index: Int { issueCarousel.index! }
   /// The Section view controller
   public var sectionVC: SectionVC?
+  /// Is Download in progress?
+  public var isDownloading: Bool = false
   
   // The last Alert shown
   private var lastAlert: UIAlertController?
@@ -62,6 +64,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
       }
       issues.insert(issue, at: idx)
       issueCarousel.insertIssue(img, at: idx)
+      if let idx = issueCarousel.index { setLabel(idx: idx) }
     }
   }
   
@@ -85,8 +88,6 @@ public class IssueVC: UIViewController, SectionVCdelegate {
     // TODO: Check for stored Issues
     // TODO: store new issues in DB
     var newIssues = iss
-//    print("received: \(iss.count) issues")
-//    for i in iss { print("  \(UsTime(i.date).toString())") }
     if (issues.count > 0) && (issues.last!.date == newIssues.first!.date) {
       newIssues.removeFirst()
     }
@@ -136,10 +137,6 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   
   /// Download one section
   func downloadSection(section: Section, closure: @escaping (Error?)->()) {
-    if dloader.needDownloadResources() {
-      lastAlert = Alert.message(message: 
-        "Es müssen noch Ressourcen geladen werden, dies kann einen kleinen Moment dauern")
-    }
     dloader.downloadSection(issue: self.issue, section: section) { [weak self] err in
       if err != nil { self?.debug("Section DL Errors: last = \(err!)") }
       else { 
@@ -173,29 +170,40 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   
   /// Download Issue at index
   func downloadIssue(index: Int) {
-    if index < issues.count {
+    debug("Displaying: \(index)")
+    if index < issues.count && !isDownloading {
       let issue = issues[index]
+      isDownloading = true
       issueCarousel.index = index
       issueCarousel.setActivity(idx: index, isActivity: true)
       delegate.markStartDownload(feed: feed, issue: issue)
       downloadSection(section: issue.sections![0]) { [weak self] err in
         guard let self = self else { return }
-        if err != nil { self.handleDownloadError(error: err); return }
+        self.isDownloading = false
+        if err != nil { 
+          self.handleDownloadError(error: err)
+          return
+        }
         self.pushSectionVC()
-        delay(seconds: 2) { 
-          self.dloader.downloadIssue(issue: issue) { [weak self] err in
-            guard let self = self else { return }
-            if err != nil { 
-              self.error("Issue DL Errors: last = \(err!)")
-              self.handleDownloadError(error: err); 
-              return 
-            }
-            else { 
-              self.debug("Issue DL complete")
-              self.issueCarousel.setActivity(idx: index, isActivity: false)
-              self.delegate.markStopDownload()
+        if !issue.isComplete { 
+          delay(seconds: 2) { 
+            self.dloader.downloadIssue(issue: issue) { [weak self] err in
+              guard let self = self else { return }
+              if err != nil { 
+                self.error("Issue \(issue.date.isoDate()) DL Errors: last = \(err!)")
+                self.handleDownloadError(error: err); 
+                return 
+              }
+              else { 
+                self.debug("Issue \(issue.date.isoDate()) DL complete")
+                self.issueCarousel.setActivity(idx: index, isActivity: false)
+                self.delegate.markStopDownload()
+              }
             }
           }
+        }
+        else {
+          self.issueCarousel.setActivity(idx: index, isActivity: false)
         }
       }
     }
@@ -203,6 +211,15 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   
   // last index displayed
   fileprivate var lastIndex: Int?
+ 
+  func setLabel(idx: Int) {
+    let sdate = self.issues[idx].date.gLowerDateString(tz: self.feeder.timeZone)
+    if let last = self.lastIndex, last != idx {
+      self.issueCarousel.setText(sdate, isUp: idx > last)
+    }
+    else { self.issueCarousel.text = sdate }
+    self.lastIndex = idx
+  } 
   
   public override func viewDidLoad() {
     super.viewDidLoad()
@@ -233,15 +250,10 @@ public class IssueVC: UIViewController, SectionVCdelegate {
     }
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
-      let sdate = self.issues[idx].date.gLowerDateString(tz: self.feeder.timeZone)
-      if let last = self.lastIndex {
-        self.issueCarousel.setText(sdate, isUp: idx > last)
-      }
-      else { self.issueCarousel.text = sdate }
-      self.lastIndex = idx
+      self.setLabel(idx: idx)
       if IssueVC.showAnimations {
         IssueVC.showAnimations = false
-        self.issueCarousel.showAnimations()
+        //self.issueCarousel.showAnimations()
       }
       if idx == (self.issueCarousel.carousel.count - 10) { self.getCurrentIssues() }
     }
