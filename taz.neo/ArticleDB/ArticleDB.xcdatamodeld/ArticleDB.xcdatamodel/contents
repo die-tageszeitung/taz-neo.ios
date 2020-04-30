@@ -47,6 +47,7 @@
         <attribute name="lastIssue" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="lastIssueRead" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="momentRatio" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="name" attributeType="String"/>
         <attribute name="order" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="type" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -70,9 +71,11 @@
         <attribute name="sha256" attributeType="String"/>
         <attribute name="size" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="storageType" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="storedSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="articleAudio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Article" inverseName="audio" inverseEntity="Article"/>
         <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="html" inverseEntity="Content"/>
         <relationship name="image" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="file" inverseEntity="ImageEntry"/>
+        <relationship name="momentAnimated" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="animation" inverseEntity="Moment"/>
         <relationship name="page" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Page" inverseName="pdf" inverseEntity="Page"/>
         <relationship name="payload" maxCount="1" deletionRule="Nullify" destinationEntity="Payload" inverseName="files" inverseEntity="Payload"/>
         <fetchIndex name="Index">
@@ -97,6 +100,7 @@
         <relationship name="file" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="image" inverseEntity="FileEntry"/>
         <relationship name="imageContent" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Content" inverseName="images" inverseEntity="Content"/>
         <relationship name="moment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="images" inverseEntity="Moment"/>
+        <relationship name="momentCredit" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="creditedImages" inverseEntity="Moment"/>
         <relationship name="navSection" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Section" inverseName="navButton" inverseEntity="Section"/>
     </entity>
     <entity name="Issue" representedClassName="PersistentIssue" syncable="YES" codeGenerationType="class">
@@ -122,6 +126,8 @@
     </entity>
     <entity name="Moment" representedClassName="PersistentMoment" syncable="YES" codeGenerationType="class">
         <attribute name="data" optional="YES" attributeType="Binary"/>
+        <relationship name="animation" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="momentAnimated" inverseEntity="FileEntry"/>
+        <relationship name="creditedImages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="momentCredit" inverseEntity="ImageEntry"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="moment" inverseEntity="ImageEntry"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="moment" inverseEntity="Issue"/>
     </entity>
@@ -170,17 +176,17 @@
         <relationship name="navButton" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="navSection" inverseEntity="ImageEntry"/>
     </entity>
     <elements>
-        <element name="Article" positionX="-52304.70703125" positionY="-34778.95703125" width="128" height="208"/>
+        <element name="Article" positionX="-52304.70703125" positionY="-34778.95703125" width="128" height="28"/>
         <element name="Author" positionX="-52485.62890625" positionY="-35092.16015625" width="128" height="103"/>
         <element name="Content" positionX="-52600.859375" positionY="-34418.77734375" width="128" height="118"/>
         <element name="Descriptor" positionX="-51924.47265625" positionY="-35092.5859375" width="128" height="118"/>
-        <element name="Feed" positionX="-52533.1796875" positionY="-34944.84375" width="128" height="208"/>
+        <element name="Feed" positionX="-52533.1796875" positionY="-34944.84375" width="128" height="223"/>
         <element name="Feeder" positionX="-52810.859375" positionY="-34899.69140625" width="128" height="163"/>
-        <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="208"/>
+        <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="28"/>
         <element name="Frame" positionX="-51920.18359375" positionY="-34620.09375" width="128" height="148"/>
-        <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="163"/>
+        <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="178"/>
         <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="328"/>
-        <element name="Moment" positionX="-52992" positionY="-35010" width="128" height="88"/>
+        <element name="Moment" positionX="-52992" positionY="-35010" width="128" height="118"/>
         <element name="Page" positionX="-52203.38671875" positionY="-34559.82421875" width="128" height="148"/>
         <element name="Payload" positionX="-53189.828125" positionY="-34824.89453125" width="128" height="193"/>
         <element name="Remark" positionX="-52138.01171875" positionY="-35159.59375" width="128" height="118"/>
