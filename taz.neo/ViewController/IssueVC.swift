@@ -213,6 +213,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   fileprivate var lastIndex: Int?
  
   func setLabel(idx: Int) {
+    guard idx >= 0 && idx < self.issues.count else { return }
     let sdate = self.issues[idx].date.gLowerDateString(tz: self.feeder.timeZone)
     if let last = self.lastIndex, last != idx {
       self.issueCarousel.setText(sdate, isUp: idx > last)
