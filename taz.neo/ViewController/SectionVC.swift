@@ -81,12 +81,20 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     articleVC = ArticleVC()
     articleVC?.delegate = self
     whenLinkPressed { [weak self] (from, to) in
-      self?.debug("*** Action: Link pressed from: \(from.lastPathComponent) " 
-        + "to: \(to.lastPathComponent)")
-      self?.lastIndex = nil
-      self?.articleVC?.gotoUrl(url: to)
-      self?.navigationController?.pushViewController(self!.articleVC!, 
-                                                     animated: false)
+      guard let self = self else { return }
+      let fn = to.lastPathComponent
+      self.debug("*** Action: Link pressed from: \(from.lastPathComponent) " 
+        + "to: \(fn)")
+      if self.article2sectionHtml[fn] != nil {
+        self.lastIndex = nil
+        self.articleVC?.gotoUrl(url: to)
+        self.navigationController?.pushViewController(self.articleVC!, animated: false)
+      }
+      else {
+        for s in self.sections {
+          if fn == s.html.name { self.gotoUrl(url: to) }
+        }
+      }
     }
   }
   
