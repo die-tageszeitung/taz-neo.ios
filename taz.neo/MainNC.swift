@@ -10,8 +10,8 @@ import MessageUI
 import NorthLib
 
 
-class MainNC: UINavigationController, IssueVCdelegate,
-              MFMailComposeViewControllerDelegate, UIGestureRecognizerDelegate {
+class MainNC: NavigationController, IssueVCdelegate,
+              MFMailComposeViewControllerDelegate {
   
   /// Number of seconds to wait until we stop polling for email confirmation
   let PollTimeout: Int64 = 25*3600
@@ -46,7 +46,7 @@ class MainNC: UINavigationController, IssueVCdelegate,
     logView.isHidden = true
     view.addSubview(logView)
     logView.pinToView(view)
-    Log.append(logger: consoleLogger, viewLogger, fileLogger)
+    Log.append(logger: consoleLogger, /*viewLogger,*/ fileLogger)
     Log.minLogLevel = .Debug
     Log.onFatal { msg in self.log("fatal closure called, error id: \(msg.id)") }
     net.onChange { (flags) in self.log("net changed: \(flags)") }
@@ -309,7 +309,7 @@ class MainNC: UINavigationController, IssueVCdelegate,
   
   func showIntro() {
     let hasAccepted = Keychain.singleton["dataPolicyAccepted"]
-    if hasAccepted != nil && !hasAccepted!.bool {
+    if true || hasAccepted != nil && !hasAccepted!.bool {
       inIntro = true
       let introVC = IntroVC()
       let resdir = feeder.resourcesDir.path
@@ -325,8 +325,7 @@ class MainNC: UINavigationController, IssueVCdelegate,
   func introHasFinished() {
     popViewController(animated: false)
     let kc = Keychain.singleton
-//    kc["dataPolicyAccepted"] = "true"
-    kc["dataPolicyAccepted"] = "false"
+    kc["dataPolicyAccepted"] = "true"
     if let issues = ovwIssues { showIssueVC(issues: issues) }
   }
   
@@ -420,23 +419,21 @@ class MainNC: UINavigationController, IssueVCdelegate,
     MainNC.singleton = self
     isNavigationBarHidden = true
     isForeground = true
+    onPopViewController { vc in
+      if vc is IssueVC || vc is IntroVC {
+        return false
+      }
+      return true
+    }
+    // isEdgeDetection = true
     setupTopMenus()
     let nc = NotificationCenter.default
     nc.addObserver(self, selector: #selector(goingBackground), 
       name: UIApplication.willResignActiveNotification, object: nil)
     nc.addObserver(self, selector: #selector(goingForeground), 
                    name: UIApplication.willEnterForegroundNotification, object: nil)
-    // allow swipe from left edge to pop view controllers
-    interactivePopGestureRecognizer?.delegate = self
     setupLogging()
     startup()
   }
 
-  // MARK: UIGestureRecognizerDelegate protocol
-
-  // necessary to allow swipe from left edge to pop view controllers
-  func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-    return true
-  }
-  
 } // MainNC
