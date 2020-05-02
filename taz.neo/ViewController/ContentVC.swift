@@ -134,6 +134,10 @@ open class ContentVC: WebViewCollectionVC {
   private var toolBarConstraint: NSLayoutConstraint?
   public var backButton = Button<LeftArrowView>()
   private var backClosure: ((ContentVC)->())?
+  public var homeButton = Button<ImageView>()
+  private var homeClosure: ((ContentVC)->())?
+  public var shareButton = Button<ImageView>()
+  private var shareClosure: ((ContentVC)->())?
   
   public var header = HeaderView()
   public var isLargeHeader = false
@@ -142,17 +146,43 @@ open class ContentVC: WebViewCollectionVC {
   public func onBack(closure: @escaping (ContentVC)->()) 
     { backClosure = closure }
   
+  /// Define the closure to call when the home button is tapped
+  public func onHome(closure: @escaping (ContentVC)->()) 
+    { homeClosure = closure }
+  /// Define the closure to call when the home button is tapped
+  
+  public func onShare(closure: @escaping (ContentVC)->()) 
+  { shareClosure = closure; shareButton.isHidden = false }
+  
   func setupToolbar() {
     backButton.onPress { [weak self] _ in 
-      if let closure = self?.backClosure { closure(self!) } 
+      guard let self = self else { return }
+      self.backClosure?(self)
+    }
+    homeButton.onPress { [weak self] _ in 
+      guard let self = self else { return }
+      self.homeClosure?(self)
+    }
+    shareButton.onPress { [weak self] _ in 
+      guard let self = self else { return }
+      self.shareClosure?(self)
     }
     backButton.pinWidth(30)
     backButton.pinHeight(30)
     backButton.isBistable = false
-    backButton.lineWidth = 0.06
-    toolBar.backgroundColor = UIColor.rgb(0x101010)
+    backButton.lineWidth = 0.08
+    homeButton.pinWidth(30)
+    homeButton.pinHeight(30)
+    homeButton.buttonView.symbol = "house"
+    shareButton.pinWidth(30)
+    shareButton.pinHeight(30)
+    shareButton.buttonView.symbol = "square.and.arrow.up"
+    shareButton.isHidden = true
     toolBar.addButton(backButton, direction: .left)
+    toolBar.addButton(homeButton, direction: .right)
+    toolBar.addButton(shareButton, direction: .center)
     toolBar.setButtonColor(UIColor.rgb(0xeeeeee))
+    toolBar.backgroundColor = UIColor.rgb(0x101010)
     toolBar.pinTo(self.view)
   }
   
@@ -166,7 +196,7 @@ open class ContentVC: WebViewCollectionVC {
     }
     let img = UIImage.init(named: "logo")
     slider.image = img
-    slider.buttonAlpha = 0.9
+    slider.buttonAlpha = 1.0
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
       ContentUrl(path: path, issue: issue, content: cnt) { [weak self] curl in
@@ -204,7 +234,11 @@ open class ContentVC: WebViewCollectionVC {
     self.baseDir = feeder.baseDir.path
     onBack { [weak self] _ in
       self?.debug("*** Action: <Back> pressed")
-      self?.navigationController?.popViewController(animated: false)
+      self?.navigationController?.popViewController(animated: true)
+    }
+    onHome { [weak self] _ in
+      self?.debug("*** Action: <Home> pressed")
+      self?.navigationController?.popToRootViewController(animated: true)
     }
   }
   
