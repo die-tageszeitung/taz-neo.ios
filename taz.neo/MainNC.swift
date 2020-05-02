@@ -304,7 +304,7 @@ class MainNC: NavigationController, IssueVCdelegate,
     let ivc = IssueVC()
     ivc.delegate = self
     ivc.issuesReceived(issues: issues)
-    pushViewController(ivc, animated: false)
+    replaceTopViewController(with: ivc, animated: false)
   }
   
   func showIntro() {
