@@ -151,7 +151,11 @@ open class Downloader: DoesLog {
     else {
       downloadIssueData(issue: issue, files: issue.files) { err in
         issue.isDownloading = false
-        if err == nil { issue.isComplete = true }
+        if err == nil { 
+          let mark = self.feeder.issueDir(issue: issue).path + "/.downloaded"
+          File.open(path: mark) { file in file.writeline("done") }
+          issue.isComplete = true 
+        }
         closure(err)
       }
     }

@@ -717,7 +717,11 @@ open class GqlFeeder: Feeder, DoesLog {
         }
         if ret == nil { 
           if let issues = req.feeds[0].issues, issues.count > 0 {
-            for issue in issues { issue.feed = feed }
+            for issue in issues { 
+              issue.feed = feed 
+              let mark = self.issueDir(issue: issue).path + "/.downloaded"
+              if File(mark).exists { issue.isComplete = true }
+            }
             ret = .success(issues) 
           }
           else {
