@@ -39,7 +39,7 @@ open class ArticleVC: ContentVC {
     contentTable?.onSectionPress { [weak self] sectionIndex in
       guard let this = self else { return }
       if sectionIndex >= delegate.sections.count {
-         this.debug("*** Action: Impressum pressed")
+        this.debug("*** Action: Impressum pressed")
       }
       else {
         this.debug("*** Action: Section \(sectionIndex) " +
@@ -60,7 +60,7 @@ open class ArticleVC: ContentVC {
         this.setHeader(artIndex: idx)
       }
     }
-   }
+  }
     
   // Define Header elements
   func setHeader(artIndex: Int) {
@@ -69,8 +69,44 @@ open class ArticleVC: ContentVC {
     }
   }
   
+  // Export/Share article
+  func exportArticle(article: Article?, from button: UIView? = nil) {
+    if let art = article {
+      if let link = art.onlineLink, !link.isEmpty {
+        if let url = URL(string: art.onlineLink!) {
+          let actions = UIAlertController.init( title: nil, message: nil,
+            preferredStyle:  .actionSheet )
+          actions.addAction( UIAlertAction.init( title: "Teilen", style: .default,
+            handler: { handler in
+            let dialogue = ExportDialogue<Any>()
+            dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)", 
+              view: button, subject: art.title)
+          } ) )
+          actions.addAction( UIAlertAction.init( title: "Online-Version", style: .default,
+          handler: {
+            (handler: UIAlertAction) in
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+          } ) )
+          actions.addAction( UIAlertAction.init( title: "Abbrechen", style: .default,
+          handler: {
+            (handler: UIAlertAction) in
+          } ) )
+          actions.presentAt(button)
+        } 
+      }
+    } 
+  }
+  
   public override func viewDidLoad() {
     super.viewDidLoad()
+  }
+  
+  public override func viewDidAppear(_ animated: Bool) {
+    onShare { [weak self] _ in
+      guard let self = self else { return }
+      self.debug("*** Action: Share Article")
+      self.exportArticle(article: self.article, from: self.shareButton)
+    }
   }
     
 } // ArticleVC
