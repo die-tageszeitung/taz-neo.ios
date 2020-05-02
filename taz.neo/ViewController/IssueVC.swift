@@ -170,9 +170,12 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   
   /// Download Issue at index
   func downloadIssue(index: Int) {
-    debug("Displaying: \(index)")
+    guard index >= 0 && index < issues.count else { return }
+    let issue = issues[index]
+    debug("*** Action: Entering \(issue.feed.name)-" +
+          "\(issue.date.isoDate(tz: feeder.timeZone))")
+    if issue.isComplete { self.pushSectionVC(); return }
     if index < issues.count && !isDownloading {
-      let issue = issues[index]
       isDownloading = true
       issueCarousel.index = index
       issueCarousel.setActivity(idx: index, isActivity: true)
@@ -197,6 +200,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
               else { 
                 self.debug("Issue \(issue.date.isoDate()) DL complete")
                 self.issueCarousel.setActivity(idx: index, isActivity: false)
+                self.setLabel(idx: index)
                 self.delegate.markStopDownload()
               }
             }
@@ -204,6 +208,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
         }
         else {
           self.issueCarousel.setActivity(idx: index, isActivity: false)
+          self.setLabel(idx: index)
         }
       }
     }
@@ -214,13 +219,23 @@ public class IssueVC: UIViewController, SectionVCdelegate {
  
   func setLabel(idx: Int) {
     guard idx >= 0 && idx < self.issues.count else { return }
-    let sdate = self.issues[idx].date.gLowerDateString(tz: self.feeder.timeZone)
+    let issue = self.issues[idx]
+    var sdate = issue.date.gLowerDateString(tz: self.feeder.timeZone)
+    if !issue.isComplete { sdate += " \u{2601}" }
     if let last = self.lastIndex, last != idx {
       self.issueCarousel.setText(sdate, isUp: idx > last)
     }
     else { self.issueCarousel.text = sdate }
     self.lastIndex = idx
   } 
+  
+  func exportMoment(issue: Issue) {
+    if let img = feeder.momentImage(issue: issue, isCredited: true) {
+      let dialogue = ExportDialogue<Any>()
+      let fname = "\(issue.feed.name)-\(issue.date.isoDate(tz: self.feeder.timeZone)).jpg"
+      if let jpg = img.jpeg { dialogue.present(item: jpg, subject: fname) }
+    }
+  }
   
   public override func viewDidLoad() {
     super.viewDidLoad()
@@ -238,7 +253,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
       Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
     }
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
-      Alert.message(title: "Baustelle", message: "Hier kommt später der 'Teilen'-Dialog")
+      self.exportMoment(issue: self.issue)
     }
     issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") { title in
       Alert.message(title: "Baustelle", message: "Hiermit wird die markierte Ausgabe gelöscht")
