@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03543E9B243BA9F700E72F23 /* RegisterView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 03543E9A243BA9F700E72F23 /* RegisterView.xib */; };
+		035BA68A244B6DAF006348FD /* RegisterVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 035BA689244B6DAF006348FD /* RegisterVC.swift */; };
+		035F8BF0243B1C5F0094A8AA /* LoginVC.xib in Resources */ = {isa = PBXBuildFile; fileRef = 035F8BEF243B1C5F0094A8AA /* LoginVC.xib */; };
+		035F8BF2243B1C6E0094A8AA /* LoginVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 035F8BF1243B1C6E0094A8AA /* LoginVC.swift */; };
+		03C006D5245DD4D800785F7B /* Login.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 03C006D4245DD4D800785F7B /* Login.storyboard */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
 		AE21C46C23E710A600F8B811 /* UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE21C46B23E710A600F8B811 /* UITests.swift */; };
@@ -68,6 +73,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		03543E9A243BA9F700E72F23 /* RegisterView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RegisterView.xib; sourceTree = "<group>"; };
+		035BA689244B6DAF006348FD /* RegisterVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterVC.swift; sourceTree = "<group>"; };
+		035F8BEF243B1C5F0094A8AA /* LoginVC.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = LoginVC.xib; sourceTree = "<group>"; };
+		035F8BF1243B1C6E0094A8AA /* LoginVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginVC.swift; sourceTree = "<group>"; };
+		03C006D4245DD4D800785F7B /* Login.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Login.storyboard; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE21C46B23E710A600F8B811 /* UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests.swift; sourceTree = "<group>"; };
@@ -143,11 +153,16 @@
 		AE4AA2AE23F6AD5700EAFE78 /* ViewController */ = {
 			isa = PBXGroup;
 			children = (
+				035F8BEF243B1C5F0094A8AA /* LoginVC.xib */,
+				03543E9A243BA9F700E72F23 /* RegisterView.xib */,
+				035BA689244B6DAF006348FD /* RegisterVC.swift */,
+				035F8BF1243B1C6E0094A8AA /* LoginVC.swift */,
 				AEBAF5AB219ACFD900566205 /* ContentVC.swift */,
 				AE5D9EC123E1BB2D0002C3B8 /* ContentTableVC.swift */,
 				AE5D9EC223E1BB2D0002C3B8 /* ContentTableVC.xib */,
 				AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */,
 				AE4AA2B323F6B01A00EAFE78 /* ArticleVC.swift */,
+				03C006D4245DD4D800785F7B /* Login.storyboard */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -307,7 +322,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
+				03543E9B243BA9F700E72F23 /* RegisterView.xib in Resources */,
+				03C006D5245DD4D800785F7B /* Login.storyboard in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
+				035F8BF0243B1C5F0094A8AA /* LoginVC.xib in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -328,6 +346,7 @@
 				AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */,
 				AE5D9EC023E1B82B0002C3B8 /* Downloader.swift in Sources */,
 				AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */,
+				035BA68A244B6DAF006348FD /* RegisterVC.swift in Sources */,
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				AECCE11823FBD006007C2276 /* ArticleVC.swift in Sources */,
 				AE5D9EBD23E1B8160002C3B8 /* GraphQlSession.swift in Sources */,
@@ -341,6 +360,7 @@
 				AEBAF594219ACFAC00566205 /* TestController.swift in Sources */,
 				AED748A62383F1D600C09D2D /* ArticleDB.xcdatamodel in Sources */,
 				AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */,
+				035F8BF2243B1C6E0094A8AA /* LoginVC.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
