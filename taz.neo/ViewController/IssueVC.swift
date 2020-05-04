@@ -14,6 +14,7 @@ public protocol IssueVCdelegate {
   var gqlFeeder: GqlFeeder { get }
   var feed: Feed { get }
   var dloader: Downloader { get }
+  var ovwIssues: [Issue]? { get }
   func markStartDownload(feed: Feed, issue: Issue)
   func markStopDownload()
 }
@@ -277,8 +278,10 @@ public class IssueVC: UIViewController, SectionVCdelegate {
     nc.addObserver(self, selector: #selector(goingBackground), 
       name: UIApplication.willResignActiveNotification, object: nil)
     nc.addObserver(self, selector: #selector(goingForeground), 
-                   name: UIApplication.willEnterForegroundNotification, object: nil)
-
+      name: UIApplication.willEnterForegroundNotification, object: nil)
+    if let issues = delegate.ovwIssues, issues.count > 0 {
+      issuesReceived(issues: issues)
+    }
   }
   
   public override func viewDidAppear(_ animated: Bool) {

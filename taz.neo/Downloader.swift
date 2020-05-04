@@ -31,8 +31,8 @@ open class Downloader: DoesLog {
   /// Initialize with base directory and create global sub directories
   public init(feeder: Feeder) {
     self.feeder = feeder
-    self.dlSession = HttpSession.background("DL:\(feeder.baseUrl)")
-    //self.dlSession = HttpSession(name: "DL:\(feeder.baseUrl)")
+    //self.dlSession = HttpSession.background("DL:\(feeder.baseUrl)")
+    self.dlSession = HttpSession(name: "DL:\(feeder.baseUrl)")
     createDirs()
   }
   

@@ -38,8 +38,8 @@ class MainNC: NavigationController, IssueVCdelegate,
   private var pushToken: String?
   private var serverDownloadId: String?
   private var serverDownloadStart: UsTime?
-  private var inIntro = true
-  private var ovwIssues: [Issue]?
+  private var inIntro = false
+  public var ovwIssues: [Issue]?
 
   func setupLogging() {
     let logView = viewLogger.logView
@@ -203,8 +203,8 @@ class MainNC: NavigationController, IssueVCdelegate,
   }
   
   func overviewReceived(issues: [Issue]) {
-    if inIntro { ovwIssues = issues }
-    else { showIssueVC(issues: issues) }
+    ovwIssues = issues
+    if !inIntro { showIssueVC() }
   }
   
   func setupPolling() {
@@ -262,13 +262,19 @@ class MainNC: NavigationController, IssueVCdelegate,
       }
       if let token = token { 
         self.gqlFeeder.authToken = token
-        self.getOverview()
+        self.dloader.downloadResources {_ in 
+          self.showIntro() 
+          self.getOverview()
+        }
       }
       else {
         self.setupPolling()
         self.authenticator.simpleAuthenticate { [weak self] (res) in
           guard let _ = res.value() else { return }
-          self?.getOverview()
+          self?.dloader.downloadResources {_ in 
+            self?.showIntro() 
+            self?.getOverview()
+          }
         }
       }
       closure(.success(self.feeder))
@@ -299,17 +305,17 @@ class MainNC: NavigationController, IssueVCdelegate,
     }
   }
     
-  func showIssueVC(issues: [Issue]) {
+  func showIssueVC() {
     self.setupRemoteNotifications()
     let ivc = IssueVC()
     ivc.delegate = self
-    ivc.issuesReceived(issues: issues)
     replaceTopViewController(with: ivc, animated: false)
   }
   
   func showIntro() {
     let hasAccepted = Keychain.singleton["dataPolicyAccepted"]
-    if true || hasAccepted != nil && !hasAccepted!.bool {
+    if hasAccepted == nil || !hasAccepted!.bool {
+      debug("Showing Intro")
       inIntro = true
       let introVC = IntroVC()
       let resdir = feeder.resourcesDir.path
@@ -320,13 +326,14 @@ class MainNC: NavigationController, IssueVCdelegate,
       }
       pushViewController(introVC, animated: false)
     }
+    else if ovwIssues != nil { showIssueVC() }
   }
   
   func introHasFinished() {
     popViewController(animated: false)
     let kc = Keychain.singleton
     kc["dataPolicyAccepted"] = "true"
-    if let issues = ovwIssues { showIssueVC(issues: issues) }
+    if ovwIssues != nil { showIssueVC() }
   }
   
   func startup() {
@@ -347,9 +354,9 @@ class MainNC: NavigationController, IssueVCdelegate,
       guard let self = self else { return }
       guard err == nil else { exit(1) }
       self.debug("DB opened: \(ArticleDB.singleton)")
-      self.setupFeeder { [weak self] res in
+      self.setupFeeder { [weak self] _ in
         guard let self = self else { return }
-        self.dloader.downloadResources { _ in self.showIntro() }
+        self.debug("Feeder ready.")
       }
     }
   } 
@@ -401,6 +408,7 @@ class MainNC: NavigationController, IssueVCdelegate,
     kc["token"] = nil
     kc["id"] = nil
     kc["password"] = nil
+    kc["dataPolicyAccepted"] = nil
     dfl["token"] = nil
     dfl["id"] = nil
     dfl["pushToken"] = nil
