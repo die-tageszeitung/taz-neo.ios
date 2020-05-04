@@ -108,11 +108,13 @@ public class Authentication: DoesLog {
   }
 
   /// Popup message to user
+  var myalert : UIAlertController?
   public func message(title: String, message: String, closure: (()->())? = nil) {
-    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+    myalert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+    guard let myalert = myalert else { return}
     let okButton = UIAlertAction(title: "OK", style: .default) { _ in closure?() }
-    alert.addAction(okButton)
-    rootVC?.present(alert, animated: false, completion: nil)
+    myalert.addAction(okButton)
+    rootVC?.present(myalert, animated: false, completion: nil)
   }
   
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
@@ -158,6 +160,49 @@ public class Authentication: DoesLog {
     }
   }
  
+  /// Password reset for aboid or tazid
+  public func resetPassword(id: String) {
+    if id.contains("@") {
+      self.feeder.passwordReset(email: id) { (res) in
+        if let restInfo = res.value() {
+          switch restInfo {
+          case .ok:
+            self.message(title: "Erfolg", message: "E-Mail zum Passwordzurücksetzten wurde versendet.")
+          case .invalidMail:
+            self.message(title: "Fehler", message: "Mailadresse \(id) ist fehlerhaft."){}
+            self.debug("\(id) ist fehlerhaft.")
+          case .mailError :
+            self.message(title: "Fehler", message: "Mail kann zur Zeit nicht verschickt werden.")
+          case .error :
+            self.message(title: "Fehler", message: "Interner Fehler")
+          default:
+            self.message(title: "Fehler", message: "Unbekannte Antwort vom Server")
+            self.debug("default: resetting PW for \(id) failed!")
+          }
+        }
+      }
+    } else {
+      self.feeder.subscriptionReset(aboId: id) { result in
+        if let restInfo = result.value()?.status {
+          let mail = result.value()?.mail
+          switch restInfo {
+          case .ok:
+            self.message(title: "Erfolg", message: "E-Mail zum Passwordzurücksetzten wurde an \(mail!) versendet.")
+          case .invalidSubscriptionId:
+            self.message(title: "Fehler", message: "AboID \(id) ist ungültig."){}
+            self.debug("\(id) ist ungültig.")
+          case .noMail :
+            self.message(title: "Fehler", message: "Keine Mail-Adresse hinterlegt")
+          case .invalidConnection :
+            self.message(title: "Fehler", message: "aboId bereits mit tazId verknüpft")
+          default:
+            self.message(title: "Fehler", message: "Unbekannte Antwort vom Server")
+            self.debug("default: resetting PW for \(id) failed!")
+          }
+        }
+      }
+    }
+  }
   
   /// Popup message to user, with option to reset password
   public func failedLoginMessage(title: String, message: String, id: String, closure: (()->())? = nil) {
@@ -165,44 +210,7 @@ public class Authentication: DoesLog {
     let okButton = UIAlertAction(title: "OK", style: .default) { _ in closure?() }
     let mailButton = UIAlertAction(title: "Password zurücksetzen", style: .destructive) { _ in
       // Send mail for resetting Password
-      if id.contains("@") {
-        self.feeder.passwordReset(email: id) { (res) in
-          if let restInfo = res.value() {
-            switch restInfo {
-            case .ok:
-              self.message(title: "Erfolg", message: "E-Mail zum Passwordzurücksetzten wurde versendet.")
-            case .invalidMail:
-              self.message(title: "Fehler", message: "Mailadresse \(id) ist fehlerhaft."){}
-              self.debug("\(id) ist fehlerhaft.")
-            case .mailError :
-              self.message(title: "Fehler", message: "Mail kann zur Zeit nicht verschickt werden.")
-            case .error :
-              self.message(title: "Fehler", message: "Interner Fehler")
-            default:
-              self.debug("default: resetting PW for \(id) failed!")
-            }
-          }
-        }
-      } else {
-        self.feeder.subscriptionReset(aboId: id) { result in
-          if let restInfo = result.value()?.status {
-            let mail = result.value()?.mail
-            switch restInfo {
-            case .ok:
-              self.message(title: "Erfolg", message: "E-Mail zum Passwordzurücksetzten wurde an \(mail!) versendet.")
-            case .invalidSubscriptionId:
-              self.message(title: "Fehler", message: "AboID \(id) ist ungültig."){}
-              self.debug("\(id) ist ungültig.")
-            case .noMail :
-              self.message(title: "Fehler", message: "Keine Mail-Adresse hinterlegt")
-            case .invalidConnection :
-              self.message(title: "Fehler", message: "aboId bereits mit tazId verknüpft")
-            default:
-              self.debug("default: resetting PW for \(id) failed!")
-            }
-          }
-        }
-      }
+      self.resetPassword(id: id)
     }
     alert.addAction(okButton)
     alert.addAction(mailButton)
@@ -259,7 +267,160 @@ public class Authentication: DoesLog {
     rootVC?.present(alert, animated: true, completion: nil)
   }
   
-  /// Ask user for id/password, check if abo- or taz-ID and link them if necessary
+  /// Authentication with tazID or aboID and binds them if necessary.
+  /// - Parameter id: String containing Numbers as aboID or Email as tazID
+  /// - Parameter password: String containing password
+  /// - Parameter closure:
+  public func authenticateAndBind(id: String?, password: String?, closure: @escaping (Result<String,Error>)->()) {
+//    guard let this = self else { return }
+    if let id = id, let password = password {
+      // investigates the type of ID (taz,abo or promo)
+      
+      if id.contains("@") {   // tazID
+        self.debug("tazID erkannt: \(id)")
+        self.feeder.authenticate(account: id, password: password) { result in
+          if let token = result.value() {
+            let dfl = Defaults.singleton
+            let kc = Keychain.singleton
+            dfl["token"] = token
+            dfl["id"] = id
+            kc["token"] = token
+            kc["id"] = id
+            kc["password"] = password
+            self.feeder.authToken = token
+            let authStatus = self.feeder.status?.authInfo.status
+            switch authStatus {
+            case .valid:    // valid user with all permissions
+              self.debug("valid aboID")
+              self.message(title: "Anmeldung erfolgreich", message: "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz"){()}
+              return closure(.success("valid"))
+            case .invalid: // somthings wrong with pw or id
+              self.failedLoginMessage(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt", id: id){}
+              return closure(.success("invalid"))
+            case .expired: // token is expired
+              let expirationDate = self.feeder.date2a((self.feeder.a2date(self.feeder.status?.authInfo.message ?? "")))
+              self.message(title: "Fehler", message: "\nDas taz-Digiabo ist am \(expirationDate) abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
+            case .unlinked: //aboID an PW okay, but not linked to tazID! :O
+              self.debug("tazID unlinked")
+              self.message(title: "Fehler", message: "\n Bitte geben Sie zuerst ihre aboID an")
+              
+            case .notValidMail : // AboId existiert aber das Passwort ist falsch
+              self.debug(self.feeder.status?.authInfo.message)
+              self.message(title: "aboID bereits verknüpft", message: "die aboID: \"" + id + "\" ist bereits mit der tazID:  \"" + (self.feeder.status?.authInfo.message ?? "") + "\" verknüpft"){self.askingAgainForLogin()}
+            default:
+              self.debug("default: Fehler Kundendaten sind nicht korrekt bzw Unbekannte Antwort vom Server")
+              self.message(title: "Fehler", message: "\nUnbekannte Antwort vom Server."){self.askingAgainForLogin()}
+            }
+            
+          } else {
+            self.failedLoginMessage(title: "Fehler", message: "\n Login fehlgeschlagen.\n Kein Token erhalten.", id: id){ self.askingAgainForLogin()}
+          }
+          
+          closure(result)
+        }
+      }
+      if id.isAboID {        // aboID - digiAboId
+        self.debug("AboID erkannt: \(id)")
+        /*
+         es muss gecheckt werden ob tazID exestiert
+         wenn ja dann verknüfen, sonst
+         tazID erstellen und mit abo verknüfen
+         */
+        self.feeder.checkSubscriptionId(aboId: id, password: password) { resAuthInfo in
+          if let AuthInfo = resAuthInfo.value() {
+            switch AuthInfo.status {
+            case .valid:    // valid aboID
+              return closure(.success("valid aboID"))
+            case .invalid: // somthings wrong with pw or id
+              self.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){self.askingAgainForLogin()}
+            case .notValidMail: //id is correckt, pw is wrong and can be reseted via mail
+//              let mail = AuthInfo.message
+              self.failedLoginMessage(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt", id: id){self.askingAgainForLogin()}
+            case .expired: // subscription is expired
+              let expirationDate = self.feeder.date2a((self.feeder.a2date(AuthInfo.message ?? "")))
+              self.message(title: "Fehler", message: "\nDas taz-Digiabo ist am \(expirationDate) abgelaufen, bitte kontaktieren sie unseren Service digiabo@taz.de")
+            case .unlinked: //aboID an PW okay, but not linked to tazID! :O
+              // fatal error
+              self.feeder.authenticate(account: id, password: password) { res in
+                if let token = res.value() {
+                  let dfl = Defaults.singleton
+                  let kc = Keychain.singleton
+                  dfl["token"] = token
+                  dfl["id"] = id
+                  kc["token"] = token
+                  kc["id"] = id
+                  kc["password"] = password
+                  self.feeder.authToken = token
+                  return closure(.success("unlinked"))
+                } else {
+                  self.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){self.askingAgainForLogin()}
+                }
+                closure(res)
+              }
+            case .alreadyLinked:
+              self.debug(AuthInfo.message)
+              self.message(title: "aboID bereits verknüpft", message: "die aboID: \"" + id + "\" ist bereits mit der tazID:  \"" + (AuthInfo.message ?? "") + "\" verknüpft"){self.askingAgainForLogin()}
+            default:
+              // fatal error
+              self.message(title: "Fehler", message: "\nUnbekannte Antwort vom Server"){self.askingAgainForLogin()}
+            }
+          }
+          switch resAuthInfo {
+          case .success(let info):
+            closure(.success(info.message ?? ""))
+          case .failure:
+            closure(.failure(self.error("User refused to log in")))
+          }
+        }
+        
+      } //endif aboid
+      if !id.contains("@") && !id.isAboID  {
+        self.debug("Promocode wurde erkannt")
+        self.feeder.authenticate(account: id, password: password) { result in
+          if let token = result.value() {
+            let dfl = Defaults.singleton
+            dfl["token"] = token
+            dfl["id"] = id
+          }
+          else {
+            self.message(title: "Fehler", message: "\nDer Promocode ist nicht korrekt"){ exit(0) }
+          }
+//          closure(result)
+        }
+      } //endif promo
+    } //end if let
+  }
+  
+  /// registering a trialsubscription to the given tazID
+  public func trail4tazID(mail : String, password: String, surname: String?, firstname: String?) {
+    if !mail.contains("@") {
+      self.message(title: "Fehler", message: "\nBitte geben Sie eine E-Mail Adresse an.")
+      return
+    }
+    
+    self.feeder.trialSubscription(tazId: mail, password: password, surname: surname ?? "", firstName: firstname ?? "", installationId: self.installationId, pushToken: self.pushToken) { result in
+      // Result<GqlSubscriptionInfo, Error>
+      let substat = result.value()?.status
+      switch substat {
+      case .waitForProc:
+        self.feeder.subscriptionPoll(installationId: self.installationId) { res in
+          
+        }
+      case .waitForMail:
+        self.message(title: "Mail wurde versand", message: "Danke für Ihre Registrirung! Wir haben Ihnen eine Mail an \(mail) geschickt. Bitte öffnn Sie die Mail und bestädtigen Sie Ihre Adresse. Sobald die Mail-Adresse bestätigt wurde, können Sie die neue taz-App nutzen.")
+      case .alreadyLinked:
+        self.message(title: "Fehler", message: "\nDie eMail-Adresse ist bereits mit einem Digiabo verbunden.")
+      case .tazIdNotValid:
+        self.message(title: "Fehler", message: "\nWir haben Ihnen eine eMail geschickt.")
+      case .invalidMail:
+        self.message(title: "Fehler", message: "\nKeine gültige eMail-Adresse.")
+      default :
+        self.message(title: "Fehler", message: "\nUnbekannte Antwort vom Server.")
+      }
+    }
+  }
+  
+  /// Ask user for id/password, check abo- or taz-ID and link them if necessary
   public func detailedAuthenticate(closure: @escaping (Result<String,Error>)->()) {
     withLoginData { [weak self] (id, password) in
       guard let this = self else { return }
@@ -301,8 +462,8 @@ public class Authentication: DoesLog {
                   self?.debug(this.feeder.status?.authInfo.message)
                   this.message(title: "aboID bereits verknüpft", message: "die aboID: \"" + id + "\" ist bereits mit der tazID:  \"" + (this.feeder.status?.authInfo.message ?? "") + "\" verknüpft"){this.askingAgainForLogin()}
               default:
-                  self?.debug("default: Fehler Kundendaten sind nicht korrekt")
-                  this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt."){this.askingAgainForLogin()}
+                  self?.debug("default: Unbekannte Antwort vom Server")
+                  this.message(title: "Fehler", message: "\nUnbekannte Antwort vom Server."){this.askingAgainForLogin()}
                   }
             
             } else {
@@ -334,7 +495,7 @@ public class Authentication: DoesLog {
               case .invalid: // somthings wrong with pw or id
                 this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.askingAgainForLogin()}
               case .notValidMail: //id is correckt, pw is wrong and can be reseted via mail
-                let mail = AuthInfo.message
+//                let mail = AuthInfo.message
                 this.failedLoginMessage(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt", id: id){this.askingAgainForLogin()}
               case .expired: // subscription is expired
                 let expirationDate = self?.feeder.date2a((self?.feeder.a2date(AuthInfo.message ?? ""))!)
@@ -356,6 +517,12 @@ public class Authentication: DoesLog {
                       this.feeder.subscriptionId2tazId(tazId: tazId ?? "", password: tazPassword ?? "", aboId: id, aboIdPW: password, surname: surname, firstName: firstname, installationId: this.installationId, pushToken: this.pushToken) { Result in
 //                        var ret: Result<GqlSubscriptionInfo, Error>
                         self?.debug(Result.value()?.status.toString())
+                        switch Result {
+                        case .success(let info):
+                          closure(.success(info.message ?? ""))
+                        case .failure:
+                          closure(.failure(this.error("User refused to log in")))
+                        }
                       }
                     }
                   } else {
@@ -368,7 +535,7 @@ public class Authentication: DoesLog {
                 this.message(title: "aboID bereits verknüpft", message: "die aboID: \"" + id + "\" ist bereits mit der tazID:  \"" + (AuthInfo.message ?? "") + "\" verknüpft"){this.askingAgainForLogin()}
               default:
                 // fatal error
-                this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.askingAgainForLogin()}
+                this.message(title: "Fehler", message: "\nUnbekannte Antwort vom Server"){this.askingAgainForLogin()}
               }
             }
               switch resAuthInfo {
