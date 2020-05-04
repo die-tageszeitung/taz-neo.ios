@@ -170,13 +170,18 @@ open class ContentVC: WebViewCollectionVC {
     backButton.pinWidth(30)
     backButton.pinHeight(30)
     backButton.isBistable = false
-    backButton.lineWidth = 0.08
-    homeButton.pinWidth(30)
-    homeButton.pinHeight(30)
-    homeButton.buttonView.symbol = "house"
-    shareButton.pinWidth(30)
-    shareButton.pinHeight(30)
-    shareButton.buttonView.symbol = "square.and.arrow.up"
+    backButton.lineWidth = 0.07
+    homeButton.pinWidth(25)
+    homeButton.pinHeight(25)
+    homeButton.buttonView.name = "home"
+    shareButton.pinWidth(25)
+    shareButton.pinHeight(25)
+    if #available(iOS 13.0, *) {
+      shareButton.buttonView.symbol = "square.and.arrow.up"
+    }
+    else {
+      shareButton.buttonView.name = "share"
+    }
     shareButton.isHidden = true
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(homeButton, direction: .right)
