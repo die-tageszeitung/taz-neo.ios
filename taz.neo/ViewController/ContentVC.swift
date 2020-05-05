@@ -202,6 +202,7 @@ open class ContentVC: WebViewCollectionVC {
     let img = UIImage.init(named: "logo")
     slider.image = img
     slider.buttonAlpha = 1.0
+    header.leftIndent = 8 + slider.visibleButtonWidth
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
       ContentUrl(path: path, issue: issue, content: cnt) { [weak self] curl in

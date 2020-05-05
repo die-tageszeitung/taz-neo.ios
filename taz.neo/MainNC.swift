@@ -35,9 +35,7 @@ class MainNC: NavigationController, IssueVCdelegate,
   private var isForeground = false
   private var pollingTimer: Timer?
   private var pollEnd: Int64?
-  private var pushToken: String?
-  private var serverDownloadId: String?
-  private var serverDownloadStart: UsTime?
+  public var pushToken: String?
   private var inIntro = false
   public var ovwIssues: [Issue]?
 
@@ -278,30 +276,6 @@ class MainNC: NavigationController, IssueVCdelegate,
         }
       }
       closure(.success(self.feeder))
-    }
-  }
- 
-  func markStartDownload(feed: Feed, issue: Issue) {
-    let issueName = self.feeder.date2a(issue.date)
-    let idir = feeder.issueDir(feed: feed.name, issue: issueName)
-    if !idir.exists { 
-      let isPush = self.pushToken != nil
-      self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush) { [weak self] res in
-        guard let self = self else { return }
-        if let dlId = res.value() {
-          self.serverDownloadId = dlId
-          self.serverDownloadStart = UsTime.now()
-        }
-      }
-    }
-  }
-  
-  func markStopDownload() {
-    if let dlId = self.serverDownloadId {
-      let nsec = UsTime.now().timeInterval - self.serverDownloadStart!.timeInterval
-      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) {_ in}
-      self.serverDownloadId = nil
-      self.serverDownloadStart = nil
     }
   }
     

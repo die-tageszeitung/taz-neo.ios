@@ -8,8 +8,8 @@
 import UIKit
 import NorthLib
 
-fileprivate var LargeTitleFont = UIFont.boldSystemFont(ofSize: 20)
-fileprivate var SmallTitleFont = UIFont.boldSystemFont(ofSize: 16)
+fileprivate var LargeTitleFont = UIFont.boldSystemFont(ofSize: 28)
+fileprivate var SmallTitleFont = UIFont.boldSystemFont(ofSize: 20)
 fileprivate var SubTitleFont = UIFont.systemFont(ofSize: 14)
 fileprivate var LargeTopMargin = CGFloat(8)
 fileprivate var SmallTopMargin = CGFloat(16)
@@ -25,13 +25,15 @@ open class HeaderView: UIView {
     var line = DottedLineView()
     var subTitle: UILabel?
     var isLarge: Bool { return subTitle != nil }
+    var leftIndent: NSLayoutConstraint?
 
     func setup(isLarge: Bool) {
       self.backgroundColor = UIColor.white
       self.addSubview(title)
       self.addSubview(line)
       title.textAlignment = .right
-      pin(title.left, to: self.left, dist: 8)
+      title.adjustsFontSizeToFitWidth = true
+      leftIndent = pin(title.left, to: self.left, dist: 8)
       pin(title.right, to: self.right, dist: -8)
       pin(line.left, to: self.left, dist: 8)
       pin(line.right, to: self.right, dist: -8)
@@ -65,6 +67,7 @@ open class HeaderView: UIView {
       self.backgroundColor = UIColor.white
       self.addSubview(title)
       title.textAlignment = .center
+      title.adjustsFontSizeToFitWidth = true
       title.font = SubTitleFont
       pin(title.left, to: self.left, dist: 8)
       pin(title.right, to: self.right, dist: -8)
@@ -80,6 +83,14 @@ open class HeaderView: UIView {
     set { 
       regular.title.text = newValue 
       if isAutoMini { mini.title.text = newValue }
+    }
+  }
+  
+  public var leftIndent: CGFloat {
+    get { regular.leftIndent?.constant ?? 0 }
+    set {
+      regular.leftIndent?.isActive = false
+      regular.leftIndent = pin(regular.title.left, to: regular.left, dist: newValue)
     }
   }
   

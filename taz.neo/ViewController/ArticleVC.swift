@@ -16,6 +16,7 @@ public protocol ArticleVCdelegate {
   var section: Section? { get }
   var sections: [Section] { get }
   var article: Article? { get set }
+  var article2section: [String:[Section]] { get }
   func displaySection(index: Int)
 }
 
@@ -64,8 +65,18 @@ open class ArticleVC: ContentVC {
     
   // Define Header elements
   func setHeader(artIndex: Int) {
-    if let section = delegate?.section {
-      header.title = section.title ?? ""
+    if let art = article, 
+      let sections = delegate?.article2section[art.html.name],
+      sections.count > 0 {
+      let section = sections[0]
+      if let title = section.title, let articles = section.articles {
+        var i = 0
+        for a in articles {
+          if a.html.name == article?.html.name { break }
+          i += 1
+        }
+        header.title = "\(i+1)/\(articles.count)  \(title)"
+      }        
     }
   }
   

@@ -72,21 +72,36 @@ public class MomentView: UIView, UIContextMenuInteractionDelegate, Touchable {
     setup()
   }
   
-  /// Define the menu to display on long touch
+  /// Define the menu to display on long touch (iOS >= 13)
   public var menu: [(title: String, icon: String, closure: (String)->())] = [] {
     willSet {
       if menu.count == 0 {
+        imageView.isUserInteractionEnabled = true   
         if #available(iOS 13.0, *) {
           let menuInteraction = UIContextMenuInteraction(delegate: self)
           imageView.addInteraction(menuInteraction)      
-          imageView.isUserInteractionEnabled = true   
+        }
+        else {
+          let longTouch = UILongPressGestureRecognizer(target: self, 
+                            action: #selector(actionMenuTapped))
+          longTouch.numberOfTouchesRequired = 1
+          imageView.addGestureRecognizer(longTouch)
         }
       }      
     }
   }
+
+  @objc func actionMenuTapped(_ sender: UIGestureRecognizer) {
+    var actionMenu: [UIAlertAction] = []
+    for m in menu {
+      actionMenu += Alert.action(m.title, closure: m.closure)
+    }
+    Alert.actionSheet(actions: actionMenu)
+  }
   
   /// Add an additional menu item
-  public func addMenuItem(title: String, icon: String, closure: @escaping (String)->()) {
+  public func addMenuItem(title: String, icon: String, 
+                          closure: @escaping (String)->()) {
     menu += (title: title, icon: icon, closure: closure)
   }
   

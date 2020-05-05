@@ -24,6 +24,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     if let i = index, i < sections.count { return sections[i] }
     return nil
   }
+  public var article2section: [String:[Section]] = [:]
   private var article2sectionHtml: [String:[String]] = [:]
   public var article: Article? {
     didSet {
@@ -59,6 +60,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     if let imp = delegate.issue.imprint { contents += imp }
     super.setup(feeder: delegate.feeder, issue: delegate.issue, contents: contents, 
                 dloader: delegate.dloader, isLargeHeader: true)
+    article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
     contentTable?.onSectionPress { [weak self] sectionIndex in
       if sectionIndex < self!.sections.count {

@@ -651,6 +651,23 @@ public extension Issue {
     }
     return ret
   }
+  
+  /// article2section returns a Dictionary with keys of articleHtml
+  /// file names and values of arrays of Sections which 
+  /// refer to that article named in the key
+  var article2section: [String:[Section]] {
+    var ret: [String:[Section]] = [:]
+    if let sects = sections, sects.count > 0 {
+      for sect in sects { 
+        for art in sect.articles ?? [] {
+          let artHtml = art.html.fileName
+          if ret[artHtml] != nil { ret[artHtml]! += sect }
+          else { ret[artHtml] = [sect] }
+        }
+      }
+    }
+    return ret
+  }
 
 } // extension Issue
 

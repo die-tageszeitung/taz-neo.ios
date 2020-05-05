@@ -27,10 +27,16 @@ public class IssueCarousel: UIView {
     set { carousel.index = newValue }
   }
   
-  /// Text to show in label
+  /// Text to show in label with rotation
   public var text: String? {
     get { label.text }
     set { label.text = newValue }
+  }
+  
+  /// Text to show in label without rotation
+  public var pureText: String? {
+    get { label.pureText }
+    set { label.pureText = newValue }
   }
   
   /// Text to show in label and defining the scrolling direction in the CubeLabel

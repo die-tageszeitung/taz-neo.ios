@@ -15,8 +15,7 @@ public protocol IssueVCdelegate {
   var feed: Feed { get }
   var dloader: Downloader { get }
   var ovwIssues: [Issue]? { get }
-  func markStartDownload(feed: Feed, issue: Issue)
-  func markStopDownload()
+  var pushToken: String? { get }
 }
 
 public class IssueVC: UIViewController, SectionVCdelegate {
@@ -53,6 +52,8 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   /// Light status bar because of black background
   override public var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
 
+  private var serverDownloadId: String?
+  private var serverDownloadStart: UsTime?
   
   /// Add moment image to carousel
   func addMoment(issue: Issue) {
@@ -169,6 +170,32 @@ public class IssueVC: UIViewController, SectionVCdelegate {
     }
   }
   
+  /// Tell server we are starting to download
+  func markStartDownload(feed: Feed, issue: Issue) {
+    let issueName = self.feeder.date2a(issue.date)
+    let idir = feeder.issueDir(feed: feed.name, issue: issueName)
+    if !idir.exists { 
+      let isPush = delegate.pushToken != nil
+      self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush) { [weak self] res in
+        guard let self = self else { return }
+        if let dlId = res.value() {
+          self.serverDownloadId = dlId
+          self.serverDownloadStart = UsTime.now()
+        }
+      }
+    }
+  }
+  
+  /// Tell server we stopped downloading
+  func markStopDownload() {
+    if let dlId = self.serverDownloadId {
+      let nsec = UsTime.now().timeInterval - self.serverDownloadStart!.timeInterval
+      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) {_ in}
+      self.serverDownloadId = nil
+      self.serverDownloadStart = nil
+    }
+  }
+  
   /// Download Issue at index
   func downloadIssue(index: Int) {
     guard index >= 0 && index < issues.count else { return }
@@ -180,7 +207,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
       isDownloading = true
       issueCarousel.index = index
       issueCarousel.setActivity(idx: index, isActivity: true)
-      delegate.markStartDownload(feed: feed, issue: issue)
+      markStartDownload(feed: feed, issue: issue)
       downloadSection(section: issue.sections![0]) { [weak self] err in
         guard let self = self else { return }
         self.isDownloading = false
@@ -202,7 +229,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
                 self.debug("Issue \(issue.date.isoDate()) DL complete")
                 self.issueCarousel.setActivity(idx: index, isActivity: false)
                 self.setLabel(idx: index)
-                self.delegate.markStopDownload()
+                self.markStopDownload()
               }
             }
           }
@@ -218,16 +245,19 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   // last index displayed
   fileprivate var lastIndex: Int?
  
-  func setLabel(idx: Int) {
+  func setLabel(idx: Int, isRotate: Bool = false) {
     guard idx >= 0 && idx < self.issues.count else { return }
     let issue = self.issues[idx]
     var sdate = issue.date.gLowerDateString(tz: self.feeder.timeZone)
     if !issue.isComplete { sdate += " \u{2601}" }
-    if let last = self.lastIndex, last != idx {
-      self.issueCarousel.setText(sdate, isUp: idx > last)
+    if isRotate {
+      if let last = self.lastIndex, last != idx {
+        self.issueCarousel.setText(sdate, isUp: idx > last)
+      }
+      else { self.issueCarousel.pureText = sdate }
+      self.lastIndex = idx
     }
-    else { self.issueCarousel.text = sdate }
-    self.lastIndex = idx
+    else { self.issueCarousel.pureText = sdate }
   } 
   
   func exportMoment(issue: Issue) {
@@ -236,6 +266,21 @@ public class IssueVC: UIViewController, SectionVCdelegate {
       let fname = "\(issue.feed.name)-\(issue.date.isoDate(tz: self.feeder.timeZone)).jpg"
       if let jpg = img.jpeg { dialogue.present(item: jpg, subject: fname) }
     }
+  }
+  
+  func deleteIssue() {
+    let name = feeder.date2a(issue.date)
+    let idir = feeder.issueDir(feed: feed.name, issue: name)
+    let momentFiles = issue.moment.files.map { $0.name }
+    let files = idir.contents()
+    for f in files {
+      if !momentFiles.contains(f) {
+        print("rm \(f)")
+        File("\(idir.path)/\(f)").remove()
+      }
+    }
+    issue.isComplete = false
+    setLabel(idx: index)
   }
   
   public override func viewDidLoad() {
@@ -256,18 +301,15 @@ public class IssueVC: UIViewController, SectionVCdelegate {
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
       self.exportMoment(issue: self.issue)
     }
-    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") { title in
-      Alert.message(title: "Baustelle", message: "Hiermit wird die markierte Ausgabe gelöscht")
-    }
-    issueCarousel.addMenuItem(title: "Ausgabe nicht automatisch löschen", icon: "trash.slash") { title in
-      Alert.message(title: "Baustelle", message: "Hiermit wird die markierte Ausgabe vom automatischen Löschen ausgenommen")
+    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {_ in
+      self.deleteIssue()
     }
     issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in
       self.issueCarousel.carousel.scrollFromLeftToRight = !self.issueCarousel.carousel.scrollFromLeftToRight
     }
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
-      self.setLabel(idx: idx)
+      self.setLabel(idx: idx, isRotate: true)
       if IssueVC.showAnimations {
         IssueVC.showAnimations = false
         //self.issueCarousel.showAnimations()
