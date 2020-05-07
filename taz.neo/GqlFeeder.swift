@@ -295,15 +295,15 @@ class GqlMoment: Moment, GQLObject {
   public var creditedImages: [ImageEntry] { return creditList ?? [] }
   public var animation: [FileEntry] { return momentList ?? [] }
 
-//  static var fields = """
-//    imageList { \(GqlImage.fields) }
-//    creditList { \(GqlImage.fields) }
-//    momentList { \(GqlFile.fields) }
-//  """
   static var fields = """
     imageList { \(GqlImage.fields) }
     creditList { \(GqlImage.fields) }
+    momentList { \(GqlFile.fields) }
   """
+//  static var fields = """
+//    imageList { \(GqlImage.fields) }
+//    creditList { \(GqlImage.fields) }
+//  """
 } // GqlMoment
 
 /// One Issue of a Feed
