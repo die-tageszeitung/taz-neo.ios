@@ -98,20 +98,6 @@ class MainNC: NavigationController, IssueVCdelegate,
     }
   }
   
-  func writeTazApiCss(topMargin: CGFloat, bottomMargin: CGFloat) {
-    let dir = feeder.resourcesDir
-    dir.create()
-    let cssFile = File(dir: dir.path, fname: "tazApi.css")
-    let cssContent = """
-      @import "scroll.css";
-      #content {
-        padding-top: \(topMargin+UIWindow.topInset/2)px;
-        padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
-      } 
-    """
-    File.open(path: cssFile.path, mode: "w") { f in f.writeline(cssContent) }
-  }
-  
   func produceErrorReport(recipient: String) {
     let mail =  MFMailComposeViewController()
     let screenshot = UIWindow.screenshot?.jpeg
@@ -192,10 +178,31 @@ class MainNC: NavigationController, IssueVCdelegate,
     self.view.addGestureRecognizer(reportLPress3)
   }
     
+  func handleFeederError(_ err: FeederError) {
+    var text = ""
+    switch err {
+    case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
+    case .expiredAccount: text = "Ihr Abo ist abgelaufen."
+    case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+    case .unexpectedResponse: 
+      Alert.message(title: "Fehler", 
+                    message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
+        exit(0)               
+      }
+    }
+    deleteUserData()
+    Alert.message(title: "Fehler", message: text) {
+      Notification.send("userLogin", object: nil)
+    }
+  }
+  
   func getOverview() {
     gqlFeeder.issues(feed: feed, count: 20) { res in
       if let issues = res.value() {
         Notification.send("overviewReceived", object: issues)
+      }
+      else if let err = res.error() as? FeederError {
+        self.handleFeederError(err)
       }
     }
   }
@@ -243,6 +250,40 @@ class MainNC: NavigationController, IssueVCdelegate,
     Defaults.singleton["pollEnd"] = nil
   }
   
+  func userLogin(closure: @escaping (Error?)->()) {
+    self.authenticator.pushToken = self.pushToken
+    let (token,_,_) = self.getUserData()
+    if let token = token { 
+      self.gqlFeeder.authToken = token
+      closure(nil)
+    }
+    else {
+      self.setupPolling()
+      self.authenticator.simpleAuthenticate { res in
+        switch res {
+        case .success: closure(nil)
+        case .failure (let err): 
+          if let err = err as? FeederError {
+            var text = ""
+            switch err {
+            case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
+            case .expiredAccount: text = "Ihr Abo ist abgelaufen."
+            case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+            case .unexpectedResponse:                
+              text = "Es gab ein Problem bei der Kommunikation mit dem Server."
+            }
+            Alert.message(title: "Fehler", message: text) { closure(err) }
+          }
+          else { 
+            Alert.message(title: "Fehler", message: "Anmeldung gescheitert.") {
+              closure(err)
+            }
+          }
+        }
+      }
+    }
+  }
+  
   func setupFeeder(closure: @escaping (Result<Feeder,Error>)->()) {
     self._gqlFeeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { [weak self] (res) in
       guard let self = self else { return }
@@ -250,31 +291,22 @@ class MainNC: NavigationController, IssueVCdelegate,
       self.debug("Feeder \"\(self.feeder.title)\" provides \(nfeeds) feeds.")
       self.debug(self.gqlFeeder.toString())
       self._feed = self.gqlFeeder.feeds[0]
-      self.authenticator.pushToken = self.pushToken
-      self.writeTazApiCss(topMargin: CGFloat(TopMargin), bottomMargin: CGFloat(BottomMargin))
-      let (token, _, _) = self.getUserData()
       Notification.receive("overviewReceived") { [weak self] issues in
         if let issues = issues as? [Issue] {
           self?.overviewReceived(issues: issues) 
         }
       }
-      if let token = token { 
-        self.gqlFeeder.authToken = token
-        self.dloader.downloadResources {_ in 
-          self.showIntro() 
-          self.getOverview()
-        }
-      }
-      else {
-        self.setupPolling()
-        self.authenticator.simpleAuthenticate { [weak self] (res) in
-          guard let _ = res.value() else { return }
-          self?.dloader.downloadResources {_ in 
-            self?.showIntro() 
-            self?.getOverview()
+      Notification.receive("userLogin") { [weak self] _ in
+        self?.userLogin() { [weak self] err in
+          guard let self = self else { return }
+          if err != nil { exit(0) }
+          self.dloader.downloadResources {_ in 
+            self.showIntro() 
+            self.getOverview()
           }
         }
       }
+      Notification.send("userLogin")
       closure(.success(self.feeder))
     }
   }
