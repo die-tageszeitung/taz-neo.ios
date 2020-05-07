@@ -24,7 +24,7 @@ class IntroVC: UIViewController {
     self.view.addSubview(webView)
     pin(webView, to: self.view)
     webView.buttonMargin = 26
-    webView.buttonLabel.backgroundColor = TazRot
+    webView.buttonLabel.backgroundColor = AppColors.tazRot
     webView.buttonLabel.textColor = .white
     webView.buttonLabel.font = UIFont.boldSystemFont(ofSize: 18)
     webView.buttonLabel.text = "Akzeptieren"

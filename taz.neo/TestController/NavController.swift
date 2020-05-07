@@ -16,7 +16,7 @@ class LocalStartupView: UIView {
     startupLogo = UIImage(named: "StartupLogo")
     imageView = UIImageView(image: startupLogo)
     super.init(frame: frame)
-    backgroundColor = TazRot
+    backgroundColor = AppColors.tazRot
     if let iv = imageView {
       addSubview(iv)
       pin(iv.centerX, to: self.centerX)
@@ -100,7 +100,6 @@ class NavController: UINavigationController {
     self.feeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { (res) in
       guard let nfeeds = res.value() else { return }
       self.debug("Feeder \"\(self.feeder.title)\" provides \(nfeeds) feeds.")
-      self.writeTazApiCss(topMargin: CGFloat(TopMargin), bottomMargin: CGFloat(BottomMargin))
       self.feeder.authenticate(account: "test", password: "test") { 
         [weak self] (res) in
         guard let _ = res.value() else { return }

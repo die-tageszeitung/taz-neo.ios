@@ -8,8 +8,6 @@
 import UIKit
 import NorthLib
 
-public let TazRot = UIColor.rgb(0xd50d2e)
-
 /// A StartupView simply shows some content and allows "some" animation
 /// of this content
 public protocol StartupView where Self: UIView {
@@ -88,7 +86,7 @@ class LogoStartupView: UIView, StartupView {
   private func setup() {
     startupLogo = UIImage(named: "StartupLogo")
     imageView = UIImageView(image: startupLogo)
-    backgroundColor = TazRot
+    backgroundColor = AppColors.tazRot
     if let iv = imageView {
       addSubview(iv)
       pin(iv.centerX, to: self.centerX)
