@@ -467,7 +467,8 @@ public extension Moment {
   }
   
   /// Moment images in all resolutions and with credits
-  var files: [ImageEntry] { return images + creditedImages }
+  var allImages: [ImageEntry] { images + creditedImages }
+  var files: [FileEntry] { images + creditedImages + animation }
   
   /// Highres Moment files
   var highresFiles: [ImageEntry] {
@@ -477,6 +478,9 @@ public extension Moment {
     if let img = c, img.name != h.name { ret += img }
     return ret
   }
+  
+  /// Highres + animation files
+  var carouselFiles: [FileEntry] { highresFiles + animation }
  
   /// Return the image with the highest resolution
   func highest(images: [ImageEntry]) -> ImageEntry? {
@@ -836,7 +840,8 @@ extension Feeder {
   public func momentImage(issue: Issue, isCredited: Bool = false) 
     -> UIImage? {
     var file = issue.moment.animatedGif
-    if file == nil { file = isCredited ? issue.moment.creditedHighres : issue.moment.highres }
+    if isCredited { file = issue.moment.creditedHighres }
+    if file == nil { file = issue.moment.highres }
     if let img = file {
       let path = "\(issueDir(issue: issue).path)/\(img.fileName)"
       if File.extname(path) == "gif" {
