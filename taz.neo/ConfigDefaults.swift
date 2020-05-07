@@ -20,5 +20,11 @@ public let ConfigDefaults = Defaults.Values([
   // last time app has been started (as UsTime)
   "lastStarted": "0", 
   // has our data policy been accepted
-  "dataPolicyAccepted" : "false" 
+  "dataPolicyAccepted" : "false",
+  // Article/Section font size in percent (100% => 18px)
+  "articleTextSize" : "100",
+  // Text alignment in Articles (eg. left/justify)
+  "textAlign" : "left",
+  // Color mode - currently dark/light
+  "colorMode" : "light",
 ])

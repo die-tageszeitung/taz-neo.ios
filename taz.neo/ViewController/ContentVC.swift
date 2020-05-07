@@ -9,9 +9,6 @@ import UIKit
 import NorthLib
 
 
-var TopMargin = 65
-var BottomMargin = 34
-
 // A ContentUrl provides a WebView URL for Articles and Sections
 public class ContentUrl: WebViewUrl, DoesLog {
   
@@ -122,6 +119,10 @@ open class ContentToolbar: UIView {
  */
 open class ContentVC: WebViewCollectionVC {
 
+  /// CSS Margins for Articles and Sections
+  public static let TopMargin: CGFloat = 65
+  public static let BottomMargin: CGFloat = 34
+
   public var contentTable: ContentTableVC?
   public var contents: [Content] = []
   public var feeder: Feeder { return contentTable!.feeder! }
@@ -132,7 +133,8 @@ open class ContentVC: WebViewCollectionVC {
 
   public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
-  public var backButton = Button<LeftArrowView>()
+  public var backButton = Button<LeftArrowView>()  
+//  public var backButton = Button<ImageView>()
   private var backClosure: ((ContentVC)->())?
   public var homeButton = Button<ImageView>()
   private var homeClosure: ((ContentVC)->())?
@@ -141,6 +143,38 @@ open class ContentVC: WebViewCollectionVC {
   
   public var header = HeaderView()
   public var isLargeHeader = false
+  
+  private static var _tazApiCss: File? = nil
+  public var tazApiCss: File {
+    if ContentVC._tazApiCss == nil 
+    { ContentVC._tazApiCss = File(dir: feeder.resourcesDir.path, fname: "tazApi.css") }
+    return ContentVC._tazApiCss!
+  }
+
+  /// Write tazApi.css to resource directory
+  public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin) {
+    let dfl = Defaults.singleton
+    let textSize = Int(dfl["articleTextSize"]!)!
+    let colorMode = dfl["colorMode"]
+    let textAlign = dfl["textAlign"]
+    var colorModeImport: String = ""
+    if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\";" }
+    let cssContent = """
+      \(colorModeImport)
+      @import "scroll.css";
+      html, body { 
+        font-size: \((CGFloat(textSize)*18)/100)px; 
+      }
+      body {
+        padding-top: \(topMargin+UIWindow.topInset/2)px;
+        padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
+      } 
+      p {
+        text-align: \(textAlign!);
+      }
+    """
+    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent) }
+  }
   
   /// Define the closure to call when the back button is tapped
   public func onBack(closure: @escaping (ContentVC)->()) 
@@ -167,32 +201,39 @@ open class ContentVC: WebViewCollectionVC {
       guard let self = self else { return }
       self.shareClosure?(self)
     }
-    backButton.pinWidth(30)
-    backButton.pinHeight(30)
+    backButton.pinWidth(40)
+    backButton.pinHeight(40)
+    backButton.vinset = 0.43
     backButton.isBistable = false
-    backButton.lineWidth = 0.07
-    homeButton.pinWidth(25)
-    homeButton.pinHeight(25)
+    backButton.lineWidth = 0.06
+    homeButton.pinWidth(40)
+    homeButton.pinHeight(40)
+    homeButton.inset = 0.20
     homeButton.buttonView.name = "home"
-    shareButton.pinWidth(25)
-    shareButton.pinHeight(25)
+    shareButton.pinWidth(40)
+    shareButton.pinHeight(40)
+    shareButton.inset = 0.16
     if #available(iOS 13.0, *) {
+//      backButton.buttonView.symbol = "chevron.left"
       shareButton.buttonView.symbol = "square.and.arrow.up"
     }
     else {
+//      backButton.buttonView.name = "leftArrow"
+//      backButton.inset = 0.3
       shareButton.buttonView.name = "share"
     }
     shareButton.isHidden = true
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(homeButton, direction: .right)
     toolBar.addButton(shareButton, direction: .center)
-    toolBar.setButtonColor(UIColor.rgb(0xeeeeee))
-    toolBar.backgroundColor = UIColor.rgb(0x101010)
+    toolBar.setButtonColor(AppColors.darkTintColor)
+    toolBar.backgroundColor = AppColors.darkToolbar
     toolBar.pinTo(self.view)
   }
   
   override public func viewDidLoad() {
     super.viewDidLoad()
+    if !tazApiCss.exists { writeTazApiCss() }
     setupToolbar()
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     whenScrolled { [weak self] ratio in
