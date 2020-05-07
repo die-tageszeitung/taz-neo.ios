@@ -78,6 +78,30 @@ open class HeaderView: UIView {
   var regular = Regular()
   var mini = Mini()
   
+  public var isDarkMode: Bool = false {
+    didSet {
+      var bgcol: UIColor
+      var txtcol: UIColor
+      if isDarkMode {
+        bgcol = AppColors.Dark.HBackground
+        txtcol = AppColors.Dark.HText
+      }
+      else {
+        bgcol = AppColors.Light.HBackground
+        txtcol = AppColors.Light.HText
+      }
+      self.backgroundColor = bgcol
+      regular.backgroundColor = bgcol
+      regular.title.textColor = txtcol
+      regular.subTitle?.textColor = txtcol
+      regular.line.backgroundColor = bgcol
+      regular.line.fillColor = txtcol
+      regular.line.strokeColor = txtcol
+      mini.backgroundColor = bgcol
+      mini.title.textColor = txtcol
+    }
+  }
+  
   public var title: String {
     get { return regular.title.text ?? "" }
     set { 
