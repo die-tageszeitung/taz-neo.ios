@@ -141,7 +141,7 @@ open class Downloader: DoesLog {
     else {
       let name = self.feeder.date2a(issue.date)
       downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, issue: name,
-                         files: issue.moment.highresFiles, closure: closure)
+                         files: issue.moment.carouselFiles, closure: closure)
     }
   }
 
