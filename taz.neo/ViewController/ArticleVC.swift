@@ -84,7 +84,7 @@ open class ArticleVC: ContentVC {
   func exportArticle(article: Article?, from button: UIView? = nil) {
     if let art = article {
       if let link = art.onlineLink, !link.isEmpty {
-        if let url = URL(string: art.onlineLink!) {
+        if let url = URL(string: link) {
           let actions = UIAlertController.init( title: nil, message: nil,
             preferredStyle:  .actionSheet )
           actions.addAction( UIAlertAction.init( title: "Teilen", style: .default,
@@ -96,6 +96,7 @@ open class ArticleVC: ContentVC {
           actions.addAction( UIAlertAction.init( title: "Online-Version", style: .default,
           handler: {
             (handler: UIAlertAction) in
+            self.debug("Going to online version: \(link)")
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
           } ) )
           actions.addAction( UIAlertAction.init( title: "Abbrechen", style: .default,
