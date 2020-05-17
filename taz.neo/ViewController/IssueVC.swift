@@ -261,10 +261,12 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   } 
   
   func exportMoment(issue: Issue) {
-    if let img = feeder.momentImage(issue: issue, isCredited: true) {
+    if let fn = feeder.momentImageName(issue: issue, isCredited: true) {
+      let file = File(fn)
+      let ext = file.extname
       let dialogue = ExportDialogue<Any>()
-      let fname = "\(issue.feed.name)-\(issue.date.isoDate(tz: self.feeder.timeZone)).jpg"
-      if let jpg = img.jpeg { dialogue.present(item: jpg, subject: fname) }
+      let name = "\(issue.feed.name)-\(issue.date.isoDate(tz: self.feeder.timeZone)).\(ext)"
+      dialogue.present(item: file.url, subject: name)
     }
   }
   

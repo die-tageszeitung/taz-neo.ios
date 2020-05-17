@@ -497,7 +497,7 @@ public extension Moment {
   var highres: ImageEntry? { highest(images: images) }
   
   /// Credited image in highest resolution
-  var creditedHighres: ImageEntry? { highest(images: creditedImages) ?? highres }
+  var creditedHighres: ImageEntry? { highest(images: creditedImages) }
   
   /// Animated Gif if available
   var animatedGif: FileEntry? {
@@ -835,26 +835,32 @@ extension Feeder {
   public func issueDir(issue: Issue) -> Dir {
     return issueDir(feed: issue.feed.name, issue: date2a(issue.date))
   }
+  
+  /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
+  public func momentImageName(issue: Issue, isCredited: Bool = false) 
+    -> String? {
+    var file = issue.moment.animatedGif
+    if isCredited, let highres = issue.moment.creditedHighres {       
+      file = highres 
+    }
+    if file == nil { file = issue.moment.highres }
+    if let img = file {
+      return "\(issueDir(issue: issue).path)/\(img.fileName)"
+    }
+    return nil
+  }
 
   /// Returns the "Moment" Image as Gif-Animation or in highest resolution
   public func momentImage(issue: Issue, isCredited: Bool = false) 
     -> UIImage? {
-    var file = issue.moment.animatedGif
-    if isCredited { file = issue.moment.creditedHighres }
-    if file == nil { file = issue.moment.highres }
-    if let img = file {
-      let path = "\(issueDir(issue: issue).path)/\(img.fileName)"
-      if File.extname(path) == "gif" {
-        return UIImage.animatedGif(File(path).data, duration: 1.5)
+    if let fn = momentImageName(issue: issue, isCredited: isCredited) {
+      if File.extname(fn) == "gif" {
+        return UIImage.animatedGif(File(fn).data, duration: 1.5)
       }
-      else { return UIImage(contentsOfFile: path) }
+      else { return UIImage(contentsOfFile: fn) }
     }
     return nil
   }
-  
-  /// Returns the credited "Moment" Image in highest resolution
-  public func creditedMomentImage(issue: Issue) 
-    -> UIImage? { return momentImage(issue: issue, isCredited: true) }
 
   /// Returns a Date for a String in ISO format relative to the
   /// Feeder's time zone.
