@@ -174,11 +174,11 @@ class NavController: UINavigationController {
     if let index = sectionIndexFromCurrentArticle() { article2section(index: index) }
   }
   
-  func pushArticleViews(from: URL, link: URL) {
-    debug("\(from.lastPathComponent) -> \(link.lastPathComponent)")
+  func pushArticleViews(from: URL?, link: URL?) {
+    debug("\(from?.lastPathComponent ?? "undefined") -> \(link?.lastPathComponent ?? "undefined")")
 //    let path = feeder.issueDir(issue: issue!).path
     if currentSection == nil {
-      currentSection = from.lastPathComponent
+      currentSection = from?.lastPathComponent
       if articleViews == nil {
         articleViews = ContentVC(feeder: feeder, issue: issue!, contents: issue!.allArticles, 
                                  dloader: dloader, isLargeHeader: false)
@@ -194,7 +194,7 @@ class NavController: UINavigationController {
         pushViewController(articleViews!, animated: false)
       }
     }
-    articleViews?.gotoUrl(url: link)
+    if let link = link { articleViews?.gotoUrl(url: link) }
   }
   
   func moveSection(to index: Int) {
