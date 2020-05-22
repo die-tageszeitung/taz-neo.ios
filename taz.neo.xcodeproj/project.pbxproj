@@ -22,6 +22,7 @@
 		AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */ = {isa = PBXBuildFile; fileRef = AE5D9EC223E1BB2D0002C3B8 /* ContentTableVC.xib */; };
 		AE5D9EC523E2CD5F0002C3B8 /* DLController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE696E0323896F0A00265FC8 /* DLController.swift */; };
 		AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */; };
+		AE7542942473EA69008878CA /* NativeBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = AE7542912473EA68008878CA /* NativeBridge.js */; };
 		AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9F6245421AC0043F497 /* WebViewTests.swift */; };
 		AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9FA245497F80043F497 /* IntroVC.swift */; };
 		AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE80A3942449C3250012DFFA /* IssueVC.swift */; };
@@ -41,7 +42,6 @@
 		AED748A62383F1D600C09D2D /* ArticleDB.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = AED70C8E2243E0EB00487918 /* ArticleDB.xcdatamodel */; };
 		AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		AED748AC238415B200C09D2D /* NorthLib.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		AEEB1A07245D62230083CB55 /* TazAppIcons-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = AEEB1A06245D62230083CB55 /* TazAppIcons-Regular.otf */; };
 		AEED41BC23FE8E6F0072043F /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEED41BB23FE8E6F0072043F /* Authentication.swift */; };
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
@@ -96,6 +96,7 @@
 		AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GermanDate.swift; sourceTree = "<group>"; };
 		AE696E0323896F0A00265FC8 /* DLController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLController.swift; sourceTree = "<group>"; };
 		AE696F2D23918F9400265FC8 /* GqlFeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlFeeder.swift; sourceTree = "<group>"; };
+		AE7542912473EA68008878CA /* NativeBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = NativeBridge.js; sourceTree = "<group>"; };
 		AE76F9F6245421AC0043F497 /* WebViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewTests.swift; sourceTree = "<group>"; };
 		AE76F9FA245497F80043F497 /* IntroVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroVC.swift; sourceTree = "<group>"; };
 		AE80A3942449C3250012DFFA /* IssueVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueVC.swift; sourceTree = "<group>"; };
@@ -120,7 +121,6 @@
 		AED748A9238413D800C09D2D /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		AED748AA238413EB00C09D2D /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = taz.neo.entitlements; sourceTree = "<group>"; };
-		AEEB1A06245D62230083CB55 /* TazAppIcons-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "TazAppIcons-Regular.otf"; sourceTree = "<group>"; };
 		AEED41BB23FE8E6F0072043F /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 		AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCarousel.swift; sourceTree = "<group>"; };
 		AEF2DF34244766E400D1482D /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
@@ -251,12 +251,12 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				AE7542912473EA68008878CA /* NativeBridge.js */,
 				AEBAF56E219ACD1A00566205 /* Assets.xcassets */,
 				AEBAF570219ACD1A00566205 /* LaunchScreen.storyboard */,
 				AE4C49422450412D001A40BE /* LogoLaunchScreen.storyboard */,
 				AEBAF573219ACD1A00566205 /* Info.plist */,
 				AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */,
-				AEEB1A06245D62230083CB55 /* TazAppIcons-Regular.otf */,
 			);
 			path = "Supporting Files";
 			sourceTree = "<group>";
@@ -345,7 +345,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
-				AEEB1A07245D62230083CB55 /* TazAppIcons-Regular.otf in Resources */,
+				AE7542942473EA69008878CA /* NativeBridge.js in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
 			);
@@ -540,7 +540,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020050702;
+				CURRENT_PROJECT_VERSION = 2020052003;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
@@ -548,7 +548,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.4;
+				MARKETING_VERSION = 0.3.5;
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo;
 				PRODUCT_NAME = "taz neo";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -566,7 +566,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020050702;
+				CURRENT_PROJECT_VERSION = 2020052003;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
@@ -574,7 +574,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.4;
+				MARKETING_VERSION = 0.3.5;
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo;
 				PRODUCT_NAME = "taz neo";
 				PROVISIONING_PROFILE_SPECIFIER = "";
