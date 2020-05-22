@@ -27,8 +27,8 @@ class MainNC: NavigationController, IssueVCdelegate,
   lazy var authenticator = Authentication(feeder: self.gqlFeeder)
   var _feed: Feed?
   var feed: Feed { return _feed! }
-  var currentIssue: Issue?
-  var issue: Issue { return currentIssue! }
+  var storedFeeder: StoredFeeder!
+  var storedFeed: StoredFeed!
   lazy var dloader = Downloader(feeder: feeder)
   static var singleton: MainNC!
   private var isErrorReporting = false
@@ -209,6 +209,9 @@ class MainNC: NavigationController, IssueVCdelegate,
   
   func overviewReceived(issues: [Issue]) {
     ovwIssues = issues
+//    for issue in issues {
+//      let sissues = StoredIssue.get(date: issue.date, inFeed: storedFeed) 
+//    }
     if !inIntro { showIssueVC() }
   }
   
@@ -291,6 +294,7 @@ class MainNC: NavigationController, IssueVCdelegate,
       self.debug("Feeder \"\(self.feeder.title)\" provides \(nfeeds) feeds.")
       self.debug(self.gqlFeeder.toString())
       self._feed = self.gqlFeeder.feeds[0]
+      self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
       Notification.receive("overviewReceived") { [weak self] issues in
         if let issues = issues as? [Issue] {
           self?.overviewReceived(issues: issues) 

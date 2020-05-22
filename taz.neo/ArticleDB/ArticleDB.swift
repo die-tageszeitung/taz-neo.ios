@@ -367,7 +367,8 @@ class StoredPayload: StoredObject {
   required init(persistent: PersistentPayload) { self.pr = persistent }
   
   /// Store all FileEntries as one new Payload
-  static func persist(files: [FileEntry], localDir: String, remoteBaseUrl: String? = nil,
+  static func persist(files: [FileEntry], localDir: String, 
+                      remoteBaseUrl: String? = nil,
                       remoteZipName: String? = nil) -> StoredPayload {
     let sr = new()
     var bytesTotal: Int64 = 0
@@ -718,8 +719,10 @@ class StoredIssue: Issue, StoredObject {
   var feed: Feed { 
     get { StoredFeed(persistent: pr.feed!) }
     set { 
-      pr.feed = StoredFeed.persist(object: newValue).pr
-      pr.feed?.addToIssues(self.pr)
+      if let sfeed = newValue as? StoredFeed {
+        pr.feed = sfeed.pr
+        pr.feed?.addToIssues(self.pr)
+      }
     }
   }
   var date: Date {
@@ -810,18 +813,19 @@ class StoredIssue: Issue, StoredObject {
   }
   
   /// Return stored record with given name  
-  static func get(date: Date) -> [StoredIssue] {
+  static func get(date: Date, inFeed feed: StoredFeed) -> [StoredIssue] {
     let nsdate = NSDate(timeIntervalSinceReferenceDate:
                         date.timeIntervalSinceReferenceDate)
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "date = %@", nsdate)
+    request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)", 
+                                    nsdate, feed.pr)
     return get(request: request)
   }
   
   /// Create a new persistent record if not available and store the passed 
   /// Article into it
-  static func persist(object: Issue) -> StoredIssue {
-    let tmp = get(date: object.date)
+  static func persist(object: Issue, inFeed feed: StoredFeed) -> StoredIssue {
+    let tmp = get(date: object.date, inFeed: feed)
     var sissue: StoredIssue
     if tmp.count == 0 { sissue = new() }
     else { sissue = tmp[0] }
@@ -891,6 +895,7 @@ class StoredFeed: Feed, StoredObject {
     self.name = object.name
     self.cycle = object.cycle
     self.type = object.type
+    self.issueCnt = object.issueCnt
     self.momentRatio = object.momentRatio
     self.firstIssue = object.firstIssue
     self.lastIssue = object.lastIssue
@@ -898,23 +903,24 @@ class StoredFeed: Feed, StoredObject {
     self.lastUpdated = object.lastUpdated
     if let iss = object.issues {
       for issue in iss {
-        let sissue = StoredIssue.persist(object: issue)
+        let sissue = StoredIssue.persist(object: issue, inFeed: self)
         sissue.pr.feed = pr
       }
     }
   }
   
-  /// Return stored record with given name  
-  static func get(name: String) -> [StoredFeed] {
+  /// Return stored Issue with given name in Feeder
+  static func get(name: String, inFeeder feeder: StoredFeeder) -> [StoredFeed] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "name = %@", name)
+    request.predicate = NSPredicate(format: "(name = %@) AND (feeder = %@)", 
+                                    name, feeder.pr)
     return get(request: request)
   }
   
   /// Create a new persistent record if not available and store the passed 
   /// Article into it
-  static func persist(object: Feed) -> StoredFeed {
-    let tmp = get(name: object.name)
+  static func persist(object: Feed, inFeeder: StoredFeeder) -> StoredFeed {
+    let tmp = get(name: object.name, inFeeder: inFeeder)
     var sfeed: StoredFeed
     if tmp.count == 0 { sfeed = new() }
     else { sfeed = tmp[0] }
@@ -980,7 +986,7 @@ class StoredFeeder: Feeder, StoredObject {
     self.resourceVersion = object.resourceVersion
     self.lastUpdated = object.lastUpdated
     for feed in object.feeds {
-      let sfeed = StoredFeed.persist(object: feed)
+      let sfeed = StoredFeed.persist(object: feed, inFeeder: self)
       sfeed.pr.feeder = pr
     }
   }
@@ -1026,4 +1032,5 @@ class StoredFeeder: Feeder, StoredObject {
   func resources(closure: @escaping(Result<Resources,Error>)->()) {
     closure(.failure(error("Currently no resources available")))
   }
+  
 } // StoredFeeder

@@ -773,7 +773,7 @@ public extension Feed {
  A Feeder is an abstract datatype handling the communication with a server
  providing Feeds.
  */
-public protocol Feeder {  
+public protocol Feeder: ToString {  
   /// Timezone Feeder lives in
   var timeZone: String { get }
   /// URL of GraphQL server
@@ -803,6 +803,20 @@ public protocol Feeder {
 } // Feeder
 
 extension Feeder {
+  
+  public func toString() -> String {
+    var ret = "Feeder \"\(title)\" (\(timeZone)), \(feeds.count) feeds:\n"
+    ret += "  baseUrl         = \(baseUrl)\n"
+    ret += "  globalBaseUrl   = \(globalBaseUrl)\n"
+    ret += "  authToken       = \((authToken ?? "[undefined]").prefix(20))...\n"
+    ret += "  resourceVersion = \(resourceVersion)\n"
+    ret += "  lastUpdated     = \(lastUpdated?.isoTime() ?? "[undefined]")\n"
+    if feeds.count > 0 {
+      ret += "  Feeds:"
+      for f in feeds { ret += "\n\(f.toString().indent(by: 4))" }
+    }
+    return ret
+  }
   
   /// The base directory
   public var baseDir: Dir { return Dir(dir: Dir.appSupportPath, fname: title) }
