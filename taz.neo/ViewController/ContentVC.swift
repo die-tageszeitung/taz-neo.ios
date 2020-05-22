@@ -150,6 +150,12 @@ open class ContentVC: WebViewCollectionVC {
     { ContentVC._tazApiCss = File(dir: feeder.resourcesDir.path, fname: "tazApi.css") }
     return ContentVC._tazApiCss!
   }
+  private static var _tazApiJs: File? = nil
+  public var tazApiJs: File {
+    if ContentVC._tazApiJs == nil 
+    { ContentVC._tazApiJs = File(dir: feeder.resourcesDir.path, fname: "tazApi.js") }
+    return ContentVC._tazApiJs!
+  }
 
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin) {
@@ -174,6 +180,18 @@ open class ContentVC: WebViewCollectionVC {
       }
     """
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent) }
+  }
+  
+  /// Write tazApi.js to resource directory
+  public func writeTazApiJs() {
+    guard let path = Bundle.main.path(forResource: "NativeBridge", ofType: "js")
+      else { error("Can't find NativeBridge.js"); return }
+    let bridge = File(path)
+    tazApiJs.data = bridge.data
+    File.open(path: tazApiJs.path, mode: "a") { f in
+      f.writeline("var tazApi = new NativeBridge(\"tazApi\")")
+      f.writeline("tazApi.openUrl = function (url) { window.location.href = url }")
+    }
   }
   
   /// Define the closure to call when the back button is tapped
@@ -233,7 +251,8 @@ open class ContentVC: WebViewCollectionVC {
   
   override public func viewDidLoad() {
     super.viewDidLoad()
-    if !tazApiCss.exists { writeTazApiCss() }
+    writeTazApiCss()
+    writeTazApiJs()
     setupToolbar()
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     whenScrolled { [weak self] ratio in
