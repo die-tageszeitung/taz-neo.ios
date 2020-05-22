@@ -18,6 +18,7 @@ public protocol ArticleVCdelegate {
   var article: Article? { get set }
   var article2section: [String:[Section]] { get }
   func displaySection(index: Int)
+  func linkPressed(from: URL?, to: URL?)
 }
 
 /// The Article view controller managing a collection of Article pages
@@ -61,6 +62,10 @@ open class ArticleVC: ContentVC {
         this.setHeader(artIndex: idx)
       }
     }
+    whenLinkPressed { [weak self] (from, to) in
+      self?.delegate?.linkPressed(from: from, to: to)
+    }
+
   }
     
   // Define Header elements

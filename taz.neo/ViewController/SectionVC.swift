@@ -53,6 +53,41 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     }    
   }
   
+  public func linkPressed(from: URL?, to: URL?) {
+    guard let to = to else { return }
+    let fn = to.lastPathComponent
+    let top = navigationController?.topViewController
+    debug("*** Action: Link pressed from: \(from?.lastPathComponent ?? "[undefined]") to: \(fn)")
+    if to.isFileURL {
+      if article2sectionHtml[fn] != nil {
+        lastIndex = nil
+        articleVC?.gotoUrl(url: to)
+        if top != articleVC {
+          navigationController?.pushViewController(articleVC!, animated: true)
+        }
+      }    
+      else {
+        for s in self.sections {
+          if fn == s.html.name { 
+            self.gotoUrl(url: to) 
+            if top == articleVC {
+              navigationController?.popViewController(animated: true)
+            }
+          }
+        }
+      }
+    }
+    else {
+      self.debug("Calling application for: \(to.absoluteString)")
+      if UIApplication.shared.canOpenURL(to) {
+        UIApplication.shared.open(to, options: [:], completionHandler: nil)
+      }
+      else {         
+        error("No application or no permission for: \(to.absoluteString)")         
+      }
+    }
+  }
+  
   func setup() {
     guard let delegate = self.delegate else { return }
     self.sections = delegate.issue.sections ?? []
@@ -83,20 +118,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     articleVC = ArticleVC()
     articleVC?.delegate = self
     whenLinkPressed { [weak self] (from, to) in
-      guard let self = self else { return }
-      let fn = to.lastPathComponent
-      self.debug("*** Action: Link pressed from: \(from.lastPathComponent) " 
-        + "to: \(fn)")
-      if self.article2sectionHtml[fn] != nil {
-        self.lastIndex = nil
-        self.articleVC?.gotoUrl(url: to)
-        self.navigationController?.pushViewController(self.articleVC!, animated: false)
-      }
-      else {
-        for s in self.sections {
-          if fn == s.html.name { self.gotoUrl(url: to) }
-        }
-      }
+      self?.linkPressed(from: from, to: to)
     }
   }
   
