@@ -8,9 +8,60 @@
 import UIKit
 import NorthLib
 
-let TazRot = UIColor.rgb(0xd50d2e)
+/// A StartupView simply shows some content and allows "some" animation
+/// of this content
+public protocol StartupView where Self: UIView {
+  var isAnimating: Bool { get set }
+}
 
-class StartupView: UIView {
+/// A SpinnerView show a Spinner on a black (by default) background
+public class SpinnerStartupView: UIView, StartupView {
+  
+  private var spinner = UIActivityIndicatorView()
+  public var isAnimating: Bool {
+    get { return spinner.isAnimating }
+    set {
+      if newValue { 
+        self.isHidden = false
+        spinner.startAnimating() 
+      } 
+      else { 
+        spinner.stopAnimating() 
+        self.isHidden = true
+      }
+    }
+  }
+  
+  private func setup() {
+    if #available(iOS 13, *) { 
+      spinner.style = .large 
+      spinner.color = .white
+    }
+    else { spinner.style = .whiteLarge }
+    spinner.hidesWhenStopped = true
+    addSubview(spinner)
+    pin(spinner.centerX, to: self.centerX)
+    pin(spinner.centerY, to: self.centerY)
+    self.bringSubviewToFront(spinner)
+    self.backgroundColor = .black
+    self.isAnimating = false
+  }
+  
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
+  }
+
+} // SpinnerStartupView
+
+/// This StatupView shows the taz logo which shrinks/expands when the animation
+/// is switched on
+class LogoStartupView: UIView, StartupView {
   
   private var startupLogo: UIImage?
   private var imageView: UIImageView?
@@ -21,22 +72,28 @@ class StartupView: UIView {
   private var animationTimer: Timer?
   public var isAnimating: Bool = false {
     didSet { 
-      if isAnimating { animate() } 
-      else { animationTimer?.invalidate() }
+      if isAnimating { 
+        self.isHidden = false
+        animate() 
+      } 
+      else { 
+        self.isHidden = true
+        animationTimer?.invalidate() 
+      }
     }
   }
   
-  public override init(frame: CGRect) {
+  private func setup() {
     startupLogo = UIImage(named: "StartupLogo")
     imageView = UIImageView(image: startupLogo)
-    super.init(frame: frame)
-    backgroundColor = TazRot
+    backgroundColor = AppColors.tazRot
     if let iv = imageView {
       addSubview(iv)
       pin(iv.centerX, to: self.centerX)
       pin(iv.centerY, to: self.centerY)
       pinSize(factor: 0.3)
     }
+    isAnimating = false
   }
   
   func pinSize(factor: CGFloat = 1) {
@@ -75,8 +132,14 @@ class StartupView: UIView {
     delay(seconds: 0.1) { self.animateOnce(seconds: seconds - 0.1) }
   }
   
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+
   required init?(coder: NSCoder) {
     super.init(coder: coder)
+    setup()
   }
   
 }

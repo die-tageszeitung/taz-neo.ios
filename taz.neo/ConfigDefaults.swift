@@ -13,5 +13,18 @@ import NorthLib
  */
 
 public let ConfigDefaults = Defaults.Values([
-  "isTextNotification" : "true"
+  // shall text notifications be displayed on notification screen
+  "isTextNotification" : "true", 
+  // number of starts since installation
+  "nStarted" : "0", 
+  // last time app has been started (as UsTime)
+  "lastStarted": "0", 
+  // has our data policy been accepted
+  "dataPolicyAccepted" : "false",
+  // Article/Section font size in percent (100% => 18px)
+  "articleTextSize" : "100",
+  // Text alignment in Articles (eg. left/justify)
+  "textAlign" : "left",
+  // Color mode - currently dark/light
+  "colorMode" : "light",
 ])

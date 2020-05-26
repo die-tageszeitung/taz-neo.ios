@@ -65,7 +65,7 @@ class TestController: PageCollectionVC {
       views += TestView()
       views[i].index = i
     }
-    viewProvider { (index) in
+    viewProvider { (index, oview) in
       return views[index]
     }
   }

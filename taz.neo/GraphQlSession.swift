@@ -100,8 +100,8 @@ open class GraphQlSession: HttpSession {
               let dict = try dec.decode([String:T].self, from: d)
               result = .success(dict["data"]!)
             }
-            catch let derr {
-              result = .failure(derr)
+            catch {
+              result = .failure(self.error("JSON decoding error"))
             }
           }
         }

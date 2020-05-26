@@ -65,5 +65,10 @@ open class LoadingView: UIView {
   override open func layoutSubviews() {
     setNeedsDisplay()
   }
+  
+  override public func draw(_ rect: CGRect) {
+    super.draw(rect)
+    spinner.startAnimating()
+  }
 
 } // LoadingView

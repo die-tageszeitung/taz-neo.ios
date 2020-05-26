@@ -9,9 +9,6 @@ import UIKit
 import NorthLib
 
 
-var TopMargin = 65
-var BottomMargin = 34
-
 // A ContentUrl provides a WebView URL for Articles and Sections
 public class ContentUrl: WebViewUrl, DoesLog {
   
@@ -26,7 +23,6 @@ public class ContentUrl: WebViewUrl, DoesLog {
     get {
       guard !_isAvailable else { return true }
       for f in content.files {
-        debug("fileNameExists(\(f.fileName)): \(f.fileNameExists(inDir: path))")
         if !f.fileNameExists(inDir: path) { self.loadClosure(self); return false }
       }
       _isAvailable = true
@@ -123,6 +119,10 @@ open class ContentToolbar: UIView {
  */
 open class ContentVC: WebViewCollectionVC {
 
+  /// CSS Margins for Articles and Sections
+  public static let TopMargin: CGFloat = 65
+  public static let BottomMargin: CGFloat = 34
+
   public var contentTable: ContentTableVC?
   public var contents: [Content] = []
   public var feeder: Feeder { return contentTable!.feeder! }
@@ -133,32 +133,126 @@ open class ContentVC: WebViewCollectionVC {
 
   public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
-  public var backButton = Button<LeftArrowView>()
+  public var backButton = Button<LeftArrowView>()  
+//  public var backButton = Button<ImageView>()
   private var backClosure: ((ContentVC)->())?
+  public var homeButton = Button<ImageView>()
+  private var homeClosure: ((ContentVC)->())?
+  public var shareButton = Button<ImageView>()
+  private var shareClosure: ((ContentVC)->())?
   
   public var header = HeaderView()
   public var isLargeHeader = false
+  
+  private static var _tazApiCss: File? = nil
+  public var tazApiCss: File {
+    if ContentVC._tazApiCss == nil 
+    { ContentVC._tazApiCss = File(dir: feeder.resourcesDir.path, fname: "tazApi.css") }
+    return ContentVC._tazApiCss!
+  }
+  private static var _tazApiJs: File? = nil
+  public var tazApiJs: File {
+    if ContentVC._tazApiJs == nil 
+    { ContentVC._tazApiJs = File(dir: feeder.resourcesDir.path, fname: "tazApi.js") }
+    return ContentVC._tazApiJs!
+  }
+
+  /// Write tazApi.css to resource directory
+  public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin) {
+    let dfl = Defaults.singleton
+    let textSize = Int(dfl["articleTextSize"]!)!
+    let colorMode = dfl["colorMode"]
+    let textAlign = dfl["textAlign"]
+    var colorModeImport: String = ""
+    if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\";" }
+    let cssContent = """
+      \(colorModeImport)
+      @import "scroll.css";
+      html, body { 
+        font-size: \((CGFloat(textSize)*18)/100)px; 
+      }
+      body {
+        padding-top: \(topMargin+UIWindow.topInset/2)px;
+        padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
+      } 
+      p {
+        text-align: \(textAlign!);
+      }
+    """
+    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent) }
+  }
+  
+  /// Write tazApi.js to resource directory
+  public func writeTazApiJs() {
+    guard let path = Bundle.main.path(forResource: "NativeBridge", ofType: "js")
+      else { error("Can't find NativeBridge.js"); return }
+    let bridge = File(path)
+    tazApiJs.data = bridge.data
+    File.open(path: tazApiJs.path, mode: "a") { f in
+      f.writeline("var tazApi = new NativeBridge(\"tazApi\")")
+      f.writeline("tazApi.openUrl = function (url) { window.location.href = url }")
+    }
+  }
   
   /// Define the closure to call when the back button is tapped
   public func onBack(closure: @escaping (ContentVC)->()) 
     { backClosure = closure }
   
+  /// Define the closure to call when the home button is tapped
+  public func onHome(closure: @escaping (ContentVC)->()) 
+    { homeClosure = closure }
+  /// Define the closure to call when the home button is tapped
+  
+  public func onShare(closure: @escaping (ContentVC)->()) 
+  { shareClosure = closure; shareButton.isHidden = false }
+  
   func setupToolbar() {
     backButton.onPress { [weak self] _ in 
-      if let closure = self?.backClosure { closure(self!) } 
+      guard let self = self else { return }
+      self.backClosure?(self)
     }
-    backButton.pinWidth(30)
-    backButton.pinHeight(30)
+    homeButton.onPress { [weak self] _ in 
+      guard let self = self else { return }
+      self.homeClosure?(self)
+    }
+    shareButton.onPress { [weak self] _ in 
+      guard let self = self else { return }
+      self.shareClosure?(self)
+    }
+    backButton.pinWidth(40)
+    backButton.pinHeight(40)
+    backButton.vinset = 0.43
     backButton.isBistable = false
     backButton.lineWidth = 0.06
-    toolBar.backgroundColor = UIColor.rgb(0x101010)
+    homeButton.pinWidth(40)
+    homeButton.pinHeight(40)
+    homeButton.inset = 0.20
+    homeButton.buttonView.name = "home"
+    shareButton.pinWidth(40)
+    shareButton.pinHeight(40)
+    shareButton.inset = 0.16
+    if #available(iOS 13.0, *) {
+//      backButton.buttonView.symbol = "chevron.left"
+      shareButton.buttonView.symbol = "square.and.arrow.up"
+    }
+    else {
+//      backButton.buttonView.name = "leftArrow"
+//      backButton.inset = 0.3
+      shareButton.buttonView.name = "share"
+    }
+    shareButton.isHidden = true
     toolBar.addButton(backButton, direction: .left)
-    toolBar.setButtonColor(UIColor.rgb(0xeeeeee))
+    toolBar.addButton(homeButton, direction: .right)
+    toolBar.addButton(shareButton, direction: .center)
+    toolBar.setButtonColor(AppColors.darkTintColor)
+    toolBar.backgroundColor = AppColors.darkToolbar
     toolBar.pinTo(self.view)
   }
   
   override public func viewDidLoad() {
     super.viewDidLoad()
+    writeTazApiCss()
+    writeTazApiJs()
     setupToolbar()
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     whenScrolled { [weak self] ratio in
@@ -167,7 +261,8 @@ open class ContentVC: WebViewCollectionVC {
     }
     let img = UIImage.init(named: "logo")
     slider.image = img
-    slider.buttonAlpha = 0.9
+    slider.buttonAlpha = 1.0
+    header.leftIndent = 8 + slider.visibleButtonWidth
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
       ContentUrl(path: path, issue: issue, content: cnt) { [weak self] curl in
@@ -201,11 +296,15 @@ open class ContentVC: WebViewCollectionVC {
     self.isLargeHeader = isLargeHeader
     self.contentTable!.feeder = feeder
     self.contentTable!.issue = issue
-    self.contentTable!.image = feeder.momentImage(issue: issue, resolution: .normal)
+    self.contentTable!.image = feeder.momentImage(issue: issue)
     self.baseDir = feeder.baseDir.path
     onBack { [weak self] _ in
       self?.debug("*** Action: <Back> pressed")
-      self?.navigationController?.popViewController(animated: false)
+      self?.navigationController?.popViewController(animated: true)
+    }
+    onHome { [weak self] _ in
+      self?.debug("*** Action: <Home> pressed")
+      self?.navigationController?.popToRootViewController(animated: true)
     }
   }
   

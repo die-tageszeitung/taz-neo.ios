@@ -148,10 +148,6 @@ public class Authentication: DoesLog {
             kc["id"] = id
             kc["password"] = password
           }
-          else { 
-            this.message(title: "Fehler", 
-                         message: "\nIhre Kundendaten sind nicht korrekt") { exit(0) }
-          }
           closure(res)
         }
       }
@@ -550,7 +546,7 @@ public class Authentication: DoesLog {
               case .invalid: // somthings wrong with pw or id
                 this.message(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt"){this.askingAgainForLogin()}
               case .notValidMail: //id is correckt, pw is wrong and can be reseted via mail
-//                let mail = AuthInfo.message
+                // let mail = AuthInfo.message
                 this.failedLoginMessage(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt", id: id){this.askingAgainForLogin()}
               case .expired: // subscription is expired
                 let expirationDate = self?.feeder.date2a((self?.feeder.a2date(AuthInfo.message ?? ""))!)

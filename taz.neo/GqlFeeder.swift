@@ -143,12 +143,26 @@ class GqlResources: Resources, GQLObject {
   var resourceVersion: Int
   /// Base URL of resource files
   var resourceBaseUrl: String
+  /// name of resource zip file (under resourceBaseUrl)
+  var resourceZipName: String  
   /// List of files
   var files: [GqlFile]
   var resourceFiles: [FileEntry] { return files }
+  var _isDownloading: Bool? = nil
+  var isDownloading: Bool {
+    get { if _isDownloading != nil { return _isDownloading! } else { return false } }
+    set { _isDownloading = newValue }
+  }
+  var _isComplete: Bool? = nil
+  var isComplete: Bool {
+    get { if _isComplete != nil { return _isComplete! } else { return false } }
+    set { _isComplete = newValue }
+  }
   
   static var fields = """
-  resourceVersion resourceBaseUrl 
+  resourceVersion 
+  resourceBaseUrl 
+  resourceZipName: resourceZip
   files: resourceList { \(GqlFile.fields) }
   """    
 } //  GqlResources
@@ -275,13 +289,23 @@ class GqlPage: Page, GQLObject {
 class GqlMoment: Moment, GQLObject {
   /// The images in different resolutions
   public var imageList: [GqlImage]
+  public var creditList: [GqlImage]?  
+  public var momentList: [GqlFile]?
   public var images: [ImageEntry] { return imageList }
-  
-  static var fields = "imageList { \(GqlImage.fields) }"
+  public var creditedImages: [ImageEntry] { return creditList ?? [] }
+  public var animation: [FileEntry] { return momentList ?? [] }
+  public var animationDuration: Float?
+
+  static var fields = """
+    imageList { \(GqlImage.fields) }
+    creditList { \(GqlImage.fields) }
+    momentList { \(GqlFile.fields) }
+    animationDuration: duration
+  """
 } // GqlMoment
 
 /// One Issue of a Feed
-class GqlIssue: Issue, GQLObject {  
+class GqlIssue: Issue, GQLObject {
   /// Reference to Feed providing this Issue
   var feedRef: GqlFeed?
   /// Return a non nil Feed
@@ -300,7 +324,8 @@ class GqlIssue: Issue, GQLObject {
     return UsTime(mtime).date 
   }
   /// Is this Issue a week end edition?
-  var isWeekend: Bool?
+  var isWeekend: Bool { return sIsWeekend ?? false }
+  var sIsWeekend: Bool?
   /// Issue defining images
   var gqlMoment: GqlMoment
   var moment: Moment { return gqlMoment }
@@ -329,11 +354,21 @@ class GqlIssue: Issue, GQLObject {
   /// List of PDF pages (if any)
   var pageList : [GqlPage]?
   var pages: [Page]? { return pageList }
-  
+  var _isDownloading: Bool? = nil
+  var isDownloading: Bool {
+    get { if _isDownloading != nil { return _isDownloading! } else { return false } }
+    set { _isDownloading = newValue }
+  }
+  var _isComplete: Bool? = nil
+  var isComplete: Bool {
+    get { if _isComplete != nil { return _isComplete! } else { return false } }
+    set { _isComplete = newValue }
+  }
+
   static var ovwFields = """
   sDate: date 
   sMoTime: moTime
-  isWeekend
+  sIsWeekend: isWeekend
   gqlMoment: moment { \(GqlMoment.fields) } 
   baseUrl 
   status
@@ -437,8 +472,6 @@ open class GqlFeeder: Feeder, DoesLog {
   public var title: String
   /// The last time feeds have been requested
   public var lastUpdated: Date?
-  /// The next time to ask for Feed updates
-  public var validUntil: Date?
   /// Current resource version
   public var resourceVersion: Int {
     guard let st = status else { return -1 }
@@ -632,72 +665,16 @@ open class GqlFeeder: Feeder, DoesLog {
       closure(ret)
     }
   }
-  
-  // Get Issue overview
-  public func overview(feed: Feed, count: Int = 20, from: Date? = nil,
-                       closure: @escaping(Result<[Issue],Error>)->()) { 
-    struct OvwRequest: Decodable {
-      var authInfo: GqlAuthInfo
-      var feeds: [GqlFeed]
-      static func request(feedName: String, count: Int = 20, from: Date? = nil) -> String {
-        var dateArg = ""
-        if let date = from {
-          dateArg = ",issueDate:\"\(date.isoDate(tz: GqlFeeder.tz))\""
-        }
-        return """
-        ovwRequest: product {
-          authInfo { \(GqlAuthInfo.fields) }
-          feeds: feedList(name:"\(feedName)") {
-            \(GqlFeed.fields)
-            gqlIssues: issueList(limit:\(count)\(dateArg)) {
-              \(GqlIssue.ovwFields)
-            }
-          }
-        }
-        """
-      }
-    }
-    guard let gqlSession = self.gqlSession else { 
-      closure(.failure(fatal("Not connected"))); return
-    }
-    let wasAuthenticated: Bool = authToken != nil
-    let request = OvwRequest.request(feedName: feed.name, count: count, from: from)
-    gqlSession.query(graphql: request,
-      type: [String:OvwRequest].self) { (res) in
-      var ret: Result<[Issue],Error>? = nil
-      switch res {
-      case .success(let ovw):  
-        let req = ovw["ovwRequest"]!
-        if wasAuthenticated {
-          if req.authInfo.status != .valid {
-            self.authToken = nil
-            ret = .failure(FeederError.changedAccount(req.authInfo.message))
-          }
-        }
-        if ret == nil { 
-          if let issues = req.feeds[0].issues, issues.count > 0 {
-            for var issue in issues { issue.feed = feed }
-            ret = .success(issues) 
-          }
-          else {
-            ret = .failure(FeederError.unexpectedResponse(
-              "Server didn't return issues"))
-          }
-        }
-      case .failure(let err):
-        ret = .failure(err)
-      }
-      closure(ret!)
-    }
-  }
-  
-  // Get Issue
-  public func issue(feed: Feed, date: Date? = nil, key: String? = nil,
-                    closure: @escaping(Result<Issue,Error>)->()) { 
+ 
+  // Get Issues
+  public func issues(feed: Feed, date: Date? = nil, key: String? = nil,
+    count: Int = 20, isOverview: Bool = false,
+    closure: @escaping(Result<[Issue],Error>)->()) { 
     struct FeedRequest: Decodable {
       var authInfo: GqlAuthInfo
       var feeds: [GqlFeed]
-      static func request(feedName: String, date: Date? = nil, key: String? = nil) -> String {
+      static func request(feedName: String, date: Date?, key: String?,
+                          count: Int, isOverview: Bool) -> String {
         var dateArg = ""
         if let date = date {
           dateArg = ",issueDate:\"\(date.isoDate(tz: GqlFeeder.tz))\""
@@ -711,8 +688,8 @@ open class GqlFeeder: Feeder, DoesLog {
           authInfo { \(GqlAuthInfo.fields) }
           feeds: feedList(name:"\(feedName)") {
             \(GqlFeed.fields)
-            gqlIssues: issueList(limit:1\(dateArg)\(keyArg)) {
-              \(GqlIssue.fields)
+            gqlIssues: issueList(limit:\(count)\(dateArg)\(keyArg)) {
+              \(isOverview ? GqlIssue.ovwFields : GqlIssue.fields)
             }
           }
         }
@@ -723,10 +700,11 @@ open class GqlFeeder: Feeder, DoesLog {
       closure(.failure(fatal("Not connected"))); return
     }
     let wasAuthenticated: Bool = authToken != nil
-    let request = FeedRequest.request(feedName: feed.name, date: date, key: key)
+    let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
+                                      count: count, isOverview: isOverview)
     gqlSession.query(graphql: request,
       type: [String:FeedRequest].self) { (res) in
-      var ret: Result<Issue,Error>? = nil
+      var ret: Result<[Issue],Error>? = nil
       switch res {
       case .success(let frq):  
         let req = frq["feedRequest"]!
@@ -736,9 +714,13 @@ open class GqlFeeder: Feeder, DoesLog {
           }
         }
         if ret == nil { 
-          if var issues = req.feeds[0].issues, issues.count > 0 {
-            issues[0].feed = feed
-            ret = .success(issues[0]) 
+          if let issues = req.feeds[0].issues, issues.count > 0 {
+            for issue in issues { 
+              issue.feed = feed 
+              let mark = self.issueDir(issue: issue).path + "/.downloaded"
+              if File(mark).exists { issue.isComplete = true }
+            }
+            ret = .success(issues) 
           }
           else {
             ret = .failure(FeederError.unexpectedResponse(
@@ -751,7 +733,29 @@ open class GqlFeeder: Feeder, DoesLog {
       closure(ret!)
     }
   }
+ 
+  // Get Issue overview
+  public func overview(feed: Feed, count: Int = 20, from: Date? = nil,
+                       closure: @escaping(Result<[Issue],Error>)->()) { 
+    issues(feed: feed, date: from, key: nil, count: count, isOverview: true,
+           closure: closure)
+  }
   
+  // Get Issue
+  public func issue(feed: Feed, date: Date? = nil, key: String? = nil,
+                    closure: @escaping(Result<Issue,Error>)->()) { 
+    issues(feed: feed, date: date, key: key, count: 1, isOverview: false) { res in
+      if let issues = res.value() {
+        if issues.count > 0 { closure(.success(issues[0])) }
+        else { 
+          closure(.failure(FeederError.unexpectedResponse(
+            "Server didn't return issues")))
+        }
+      }
+      else { closure(.failure(res.error()!)) }
+    }
+  }
+    
   /// Signal server that download has been started
   public func startDownload(feed: Feed, issue: Issue, isPush: Bool,
                             closure: @escaping(Result<String,Error>)->()) {

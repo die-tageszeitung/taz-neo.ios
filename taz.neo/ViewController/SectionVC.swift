@@ -11,7 +11,7 @@ import NorthLib
 /// The protocol used to communicate with calling VCs
 public protocol SectionVCdelegate {
   var feeder: Feeder { get }
-  var issue: Issue! { get }
+  var issue: Issue { get }
   var dloader: Downloader { get }
 }
 
@@ -24,6 +24,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     if let i = index, i < sections.count { return sections[i] }
     return nil
   }
+  public var article2section: [String:[Section]] = [:]
   private var article2sectionHtml: [String:[String]] = [:]
   public var article: Article? {
     didSet {
@@ -32,7 +33,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       if let lidx = lastIndex, secIndex != lidx {
         displaySection(index: secIndex)
       }
-      else { lastIndex = secIndex }
+      lastIndex = secIndex
     }
   }
   
@@ -40,6 +41,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     didSet { if oldValue == nil { self.setup() } }
   }
   
+  /// Perform slider animations?
+  static var showAnimations = true
+
   public func displaySection(index: Int) {
     if index != self.index {
       debug("Section change to Section #\(index), previous: " +
@@ -49,6 +53,41 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     }    
   }
   
+  public func linkPressed(from: URL?, to: URL?) {
+    guard let to = to else { return }
+    let fn = to.lastPathComponent
+    let top = navigationController?.topViewController
+    debug("*** Action: Link pressed from: \(from?.lastPathComponent ?? "[undefined]") to: \(fn)")
+    if to.isFileURL {
+      if article2sectionHtml[fn] != nil {
+        lastIndex = nil
+        articleVC?.gotoUrl(url: to)
+        if top != articleVC {
+          navigationController?.pushViewController(articleVC!, animated: true)
+        }
+      }    
+      else {
+        for s in self.sections {
+          if fn == s.html.name { 
+            self.gotoUrl(url: to) 
+            if top == articleVC {
+              navigationController?.popViewController(animated: true)
+            }
+          }
+        }
+      }
+    }
+    else {
+      self.debug("Calling application for: \(to.absoluteString)")
+      if UIApplication.shared.canOpenURL(to) {
+        UIApplication.shared.open(to, options: [:], completionHandler: nil)
+      }
+      else {         
+        error("No application or no permission for: \(to.absoluteString)")         
+      }
+    }
+  }
+  
   func setup() {
     guard let delegate = self.delegate else { return }
     self.sections = delegate.issue.sections ?? []
@@ -56,6 +95,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     if let imp = delegate.issue.imprint { contents += imp }
     super.setup(feeder: delegate.feeder, issue: delegate.issue, contents: contents, 
                 dloader: delegate.dloader, isLargeHeader: true)
+    article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
     contentTable?.onSectionPress { [weak self] sectionIndex in
       if sectionIndex < self!.sections.count {
@@ -72,18 +112,13 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       self?.slider.close()
       self?.displaySection(index: 0)
     }
-    onDisplay { [weak self] (secIndex, cell) in
+    onDisplay { [weak self] (secIndex) in
       self?.setHeader(secIndex: secIndex)
     }
     articleVC = ArticleVC()
     articleVC?.delegate = self
     whenLinkPressed { [weak self] (from, to) in
-      self?.debug("*** Action: Link pressed from: \(from.lastPathComponent) " 
-        + "to: \(to.lastPathComponent)")
-      self?.lastIndex = nil
-      self?.articleVC?.gotoUrl(url: to)
-      self?.navigationController?.pushViewController(self!.articleVC!, 
-                                                     animated: false)
+      self?.linkPressed(from: from, to: to)
     }
   }
   
@@ -117,6 +152,22 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   override public func viewDidLoad() {
     super.viewDidLoad()
     self.index = 0
+  }
+  
+  override public func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    if SectionVC.showAnimations {
+      SectionVC.showAnimations = false
+      delay(seconds: 1.5) {
+        self.slider.open() { _ in
+          delay(seconds: 1.5) {
+            self.slider.close() { _ in
+              self.slider.blinkButton()
+            }
+          }
+        }
+      }
+    }
   }
     
 } // SectionVC

@@ -12,13 +12,52 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   UITableViewDelegate,  UITableViewDataSource, UIContextMenuInteractionDelegate {  
   
   // Colors, Fonts and sizes
-  static let SectionColor = UIColor.rgb(0xd50d2e)
-  static let ArticleColor = UIColor.darkGray
-  static let DateColor = UIColor.darkGray
-  static let TextFont = UIFont.boldSystemFont(ofSize: 18)
-  static let DateTextFont = UIFont.systemFont(ofSize: 14)
-  static let CellHeight = CGFloat(30)
-  static let ImageWidth = CGFloat(150)
+  static var BackgroundColor = UIColor.white
+  static var ShadowColor = UIColor.black
+  static var SectionColor = UIColor.rgb(0xd50d2e)
+  static var ArticleColor = UIColor.darkGray
+  static var DateColor = UIColor.darkGray
+  static var IsDarkMode = false
+  static var TextFont = UIFont.boldSystemFont(ofSize: 18)
+  static var DateTextFont = UIFont.systemFont(ofSize: 14)
+  static var CellHeight = CGFloat(30)
+  static var ImageWidth = CGFloat(150)
+  
+  // Setup colors depending on Defaults["colorMode"]
+  private func setupColors() {
+    if let mode = Defaults.singleton["colorMode"], mode == "dark" {
+      Self.IsDarkMode = true
+      Self.BackgroundColor = AppColors.Dark.CTBackground
+      Self.ShadowColor = UIColor.white
+      Self.SectionColor = AppColors.Dark.CTSection
+      Self.ArticleColor = AppColors.Dark.CTArticle
+      Self.DateColor = AppColors.Dark.CTDate
+    }
+    else {
+      Self.IsDarkMode = false
+      Self.BackgroundColor = AppColors.Light.CTBackground
+      Self.ShadowColor = UIColor.black
+      Self.SectionColor = AppColors.Light.CTSection
+      Self.ArticleColor = AppColors.Light.CTArticle
+      Self.DateColor = AppColors.Light.CTDate
+    }
+  }
+  
+  private func resetColors() {
+    setupColors()
+    view.backgroundColor = ContentTableVC.BackgroundColor
+    issueDateLabel.backgroundColor = UIColor.clear
+    issueDateLabel.textColor = ContentTableVC.DateColor
+    issueDateLabel.font = ContentTableVC.DateTextFont
+    momentView.layer.shadowColor = ContentTableVC.ShadowColor.cgColor
+    if ContentTableVC.IsDarkMode {
+      contentTableView.indicatorStyle = .white
+    }
+    else { contentTableView.indicatorStyle = .black }
+  }
+
+  /// Perform table view animations
+  static var showAnimations = true
   
   // The TableView cell name
   fileprivate let sectionCell = "sectionCell"
@@ -28,7 +67,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
     
     lazy var cellView: UIView = {
       let view = UIView()
-      view.backgroundColor = UIColor.white
+      view.backgroundColor = UIColor.clear
       view.translatesAutoresizingMaskIntoConstraints = false
       return view
     }()
@@ -44,7 +83,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
     }()
     
     func setup() {
-      self.backgroundColor = UIColor.white
+      self.backgroundColor = UIColor.clear
       addSubview(cellView)
       cellView.addSubview(cellLabel)
       self.selectionStyle = .none
@@ -178,21 +217,23 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   override public func viewDidLoad() {
     super.viewDidLoad()
-    view.backgroundColor = UIColor.white
-    issueDateLabel.backgroundColor = UIColor.white
-    issueDateLabel.textColor = ContentTableVC.DateColor
-    issueDateLabel.font = ContentTableVC.DateTextFont
+    resetColors()
+    Defaults.receive { [weak self] nfn in
+      if nfn.key == "colorMode" { 
+        self?.resetColors() 
+        self?.contentTableView.reloadData()
+      }
+    }
     let imageTap = UITapGestureRecognizer(target: self, action: #selector(imageTapped))
     momentView.isUserInteractionEnabled = true
     momentView.addGestureRecognizer(imageTap)
-    momentView.layer.shadowColor = UIColor.black.cgColor
     momentView.layer.shadowOpacity = 0.2
     momentView.layer.shadowOffset = CGSize(width: 5, height: 5)
     momentView.layer.shadowRadius = 1
     contentTableView.delegate = self
     contentTableView.dataSource = self
-    contentTableView.backgroundColor = UIColor.white
-    contentTableView.separatorColor = UIColor.white
+    contentTableView.backgroundColor = UIColor.clear
+    contentTableView.separatorColor = UIColor.clear
     contentTableView.register(SectionCell.self, forCellReuseIdentifier: sectionCell)
     resetIssue()
     resetImage()
@@ -203,14 +244,22 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    if ContentTableVC.nAnimations < 2 {
-      animateContent()
-      ContentTableVC.nAnimations += 1
+    if ContentTableVC.showAnimations {
+      if ContentTableVC.nAnimations < 2 {
+        animateContent()
+        ContentTableVC.nAnimations += 1
+      }
     }
+//    delay(seconds: 3) { 
+//      Defaults.singleton["colorMode"] = "dark" 
+//      delay(seconds: 3) {
+//        Defaults.singleton["colorMode"] = "light"
+//      }
+//    }
   }
   
   override public func viewDidDisappear(_ animated: Bool) {
-    super.viewDidAppear(animated)
+    super.viewDidDisappear(animated)
   }
   
   // MARK: - UIContextMenuInteractionDelegate protocol
@@ -224,7 +273,6 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
     }
   }
 
-  
   // MARK: - UITableViewDataSource protocol
   
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int)

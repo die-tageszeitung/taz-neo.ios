@@ -11,10 +11,9 @@ import NorthLib
 
 class UITests: UIViewController {
   lazy var toolBar = Toolbar()
-  lazy var backButton = Button<LeftArrowView>(width: 30, height: 30)
   lazy var loadingView = LoadingView()
   lazy var undefinedView = UndefinedView()
-  lazy var startupView = StartupView()
+  lazy var startupView = LogoStartupView()
   
   func buildPinExample() {
     let viewA = UIView()
@@ -43,14 +42,44 @@ class UITests: UIViewController {
     self.view.backgroundColor = UIColor.rgb(0xeeeeee)
     toolBar.placeInView(self.view, isTop: false)
     toolBar.backgroundColor = UIColor.rgb(0x101010)
+    let backButton = Button<LeftArrowView>(width: 30, height: 30)
+    let symButton = Button<ImageView>()
     backButton.pinWidth(30)
     backButton.pinHeight(30)
     toolBar.addButton(backButton, direction: .left)
+    symButton.buttonView.symbol = "house"
+    symButton.pinWidth(30)
+    symButton.pinHeight(30)
+    toolBar.addButton(symButton, direction: .right)
     toolBar.setButtonColor(UIColor.rgb(0xeeeeee))
     backButton.onPress {_ in 
-      print(self.backButton.frame)
+      print(backButton.frame)
     }
-    buildPinExample()
+    symButton.onPress {_ in
+      print(symButton.frame)      
+    }
+    //buildPinExample()
+//    let label = UILabel()
+//    label.font = UIFont(name: "TazAppIcons-Regular", size: 16)!
+//    label.text = "ALSXabcdehilstvx"
+//    label.backgroundColor = UIColor.rgb(0xdddddd)
+//    self.view.addSubview(label)
+//    pin(label.centerX, to: self.view.centerX)
+//    pin(label.centerY, to: self.view.centerY)
+//    let biv = Button<SImageView>()
+//    let iv = biv.buttonView
+//      iv.symbol = "trash"
+//      view.addSubview(biv)
+//      pin(biv.centerX, to: self.view.centerX)
+//      pin(biv.centerY, to: self.view.centerY)
+//      biv.pinWidth(100)
+//      biv.pinHeight(100)
+//      biv.backgroundColor = .blue
+//      iv.backgroundColor = .yellow
+//      biv.onPress {_ in
+//        print("button press")
+//      }
+    
   }
   
   func loadingTest() {
@@ -99,6 +128,13 @@ class UITests: UIViewController {
     }
   }
   
+  func printFontNames() {
+    for family in UIFont.familyNames.sorted() {
+      let names = UIFont.fontNames(forFamilyName: family)
+      print("Family: \(family) Font names: \(names)")
+    }
+  }
+  
   func alertTest() {
     let actions = [
       Alert.action("test 1") { s in print(s) },
@@ -112,14 +148,15 @@ class UITests: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = UIColor.white
-    //pinTest()
+    pinTest()
     //loadingTest()
     //undefinedTest()
-    startupViewTest()
-    delay(seconds: 2) { self.alertTest() }
+    //startupViewTest()
+    //delay(seconds: 2) { self.alertTest() }
     //gifTest()
     //fontTest()
     //alertTest()
+    //printFontNames()
   }
   
   override func viewDidAppear(_ animated: Bool) {

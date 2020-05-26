@@ -105,7 +105,7 @@ public extension FileEntry {
   case small    = 0  /// small image resolution used eg. for thumpnails
   case normal   = 1  /// regular resolution used in Articles
   case high     = 2  /// high resolution when Image is displayed in zoom mode
-  case unknown  = 3  /// unknown image resolution
+  case unknown  = -1 /// unknown image resolution
   
   public func toString() -> String {
     switch self {
@@ -169,7 +169,7 @@ public protocol ImageEntry: FileEntry {
   var alpha: Float? { get }
 }
 
-public extension ImageEntry {
+public extension ImageEntry {  
   func toString() -> String {
     var sAlpha = ""
     if let alpha = self.alpha { sAlpha = ", alpha=\(alpha)" }
@@ -180,16 +180,24 @@ public extension ImageEntry {
 /**
  A list of resource files
  */
-public protocol Resources: ToString {
+public protocol Resources: ToString, AnyObject {
+  /// Are these Resources currently being downloaded
+  var isDownloading: Bool { get set }
+  /// Have these Ressources been downloaded
+  var isComplete: Bool { get set }
   /// Resource list version
   var resourceVersion: Int { get }
   /// Base URL of resource files
   var resourceBaseUrl: String { get }
+  /// name of resource zip file (under resourceBaseUrl)
+  var resourceZipName: String { get }
   /// List of files
   var resourceFiles: [FileEntry] { get }
 } // ResourceList
 
 public extension Resources {
+  /// URL of zip file
+  var resourceZipUrl: String { "\(resourceBaseUrl)/\(resourceZipName)" }
   func toString() -> String {
     var ret = "Resources (v) \(resourceVersion) @ \(resourceBaseUrl):\n"
     for f in resourceFiles {
@@ -444,19 +452,66 @@ public extension Page {
 public protocol Moment: ToString {
   /// The images in different resolutions
   var images: [ImageEntry] { get }
+  /// Images with additional data about creator(s)
+  var creditedImages: [ImageEntry] { get }
+  /// A number of files comprising an animation e.g. a gif file
+  var animation: [FileEntry] { get }
+  /// Especially for gif files the duration of the animation
+  var animationDuration: Float? { get }
 }
 
 public extension Moment {
   
   func toString() -> String {
-    var ret = "Moment (\(images.count) images):"
+    var ret = "Moment (\(images.count) images, \(creditedImages.count) credits):"
     for img in images { ret += "\n  \(img.toString())" }
+    for img in creditedImages { ret += "\n  credit: \(img.toString())"}
+    for img in animation { ret += "\n  animation: \(img.toString())"}
     return ret
   }
   
-  /// Moment images in all resolutions
-  var files: [ImageEntry] { return images }
-}
+  /// Moment images in all resolutions and with credits
+  var allImages: [ImageEntry] { images + creditedImages }
+  var files: [FileEntry] { images + creditedImages + animation }
+  
+  /// Highres Moment files
+  var highresFiles: [ImageEntry] {
+    let h = self.highres!
+    let c = self.creditedHighres
+    var ret = [h]
+    if let img = c, img.name != h.name { ret += img }
+    return ret
+  }
+  
+  /// Highres + animation files
+  var carouselFiles: [FileEntry] { highresFiles + animation }
+ 
+  /// Return the image with the highest resolution
+  func highest(images: [ImageEntry]) -> ImageEntry? {
+    var ret: ImageEntry?
+    for img in images {
+      if let highest = ret, img.resolution.rawValue <= highest.resolution.rawValue
+      { continue }
+      else { ret = img }
+    }
+    return ret
+  }
+
+  /// Image in highest resolution
+  var highres: ImageEntry? { highest(images: images) }
+  
+  /// Credited image in highest resolution
+  var creditedHighres: ImageEntry? { highest(images: creditedImages) }
+  
+  /// Animated Gif if available
+  var animatedGif: FileEntry? {
+    for f in animation {
+      if File.basename(f.name) == "moment.gif" { return f }
+    }
+    return nil
+  }
+
+} // Moment
 
 /**
  Access status of an Issue
@@ -491,15 +546,19 @@ public extension Moment {
 } // IssueStatus
 
 /// One Issue of a Feed
-public protocol Issue: ToString {  
+public protocol Issue: ToString, AnyObject {  
+  /// Is this Issue currently being downloaded
+  var isDownloading: Bool { get set }
+  /// Has this Issue been downloaded
+  var isComplete: Bool { get set }
   /// Reference to Feed providing this Issue
   var feed: Feed { get set }
   /// Issue date
   var date: Date { get }
-  /// The file's modification time
+  /// The date/time of the latest modification
   var moTime: Date { get }
   /// Is this Issue a week end edition
-  var isWeekend: Bool? { get }
+  var isWeekend: Bool { get }
   /// Issue defining images
   var moment: Moment { get }
   /// persistent Issue key
@@ -600,6 +659,23 @@ public extension Issue {
     }
     return ret
   }
+  
+  /// article2section returns a Dictionary with keys of articleHtml
+  /// file names and values of arrays of Sections which 
+  /// refer to that article named in the key
+  var article2section: [String:[Section]] {
+    var ret: [String:[Section]] = [:]
+    if let sects = sections, sects.count > 0 {
+      for sect in sects { 
+        for art in sect.articles ?? [] {
+          let artHtml = art.html.fileName
+          if ret[artHtml] != nil { ret[artHtml]! += sect }
+          else { ret[artHtml] = [sect] }
+        }
+      }
+    }
+    return ret
+  }
 
 } // extension Issue
 
@@ -636,6 +712,32 @@ public extension Issue {
   }
 } // PublicationCycle
 
+/// Type of a Feed
+@objc public enum FeedType: Int16, Decodable, ToString {  
+  case publication = 0  /// regular publication
+  case bookmarks   = 1  /// a feed of bookmarks
+  case info        = 2  /// info and help texts
+  case unknown     = -1
+  public func toString() -> String {
+    switch self {
+    case .publication:  return "daily"
+    case .bookmarks:    return "bookmarks"
+    case .info:         return "info"
+    case .unknown:      return "unknown"
+    }
+  }
+  
+  public init(from decoder: Decoder) throws {
+    let s = try decoder.singleValueContainer().decode(String.self)
+    switch s {
+    case "publication" : self = .publication
+    case "bookmarks"   : self = .bookmarks
+    case "info"        : self = .info
+    default            : self = .unknown
+    }
+  }
+} // FeedType
+
 /**
  A Feed is a somewhat abstract form of a publication
  */
@@ -644,19 +746,28 @@ public protocol Feed: ToString {
   var name: String { get }
   /// Publication cycle
   var cycle: PublicationCycle { get }
+  /// Feed type
+  var type: FeedType { get }
   /// width/height of "Moment"-Image
   var momentRatio: Float { get }  
   /// Number of issues available
   var issueCnt: Int { get }
   /// Date of last issue available (newest)
   var lastIssue: Date { get }
+  /// Date of issue last read
+  var lastIssueRead: Date? { get }
+  /// Date/Time of last server update regarding this feed
+  var lastUpdated: Date? { get }
   /// Date of first issue available (oldest)  
   var firstIssue: Date { get }
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
 } // Feed
 
-public extension Feed {
+public extension Feed {  
+  var type: FeedType { .unknown }
+  var lastIssueRead: Date? { nil }
+  var lastUpdated: Date? { nil }
   func toString() -> String {
     return "\(name): \(cycle), \(issueCnt) issues total"
   }
@@ -666,7 +777,7 @@ public extension Feed {
  A Feeder is an abstract datatype handling the communication with a server
  providing Feeds.
  */
-public protocol Feeder {  
+public protocol Feeder: ToString {  
   /// Timezone Feeder lives in
   var timeZone: String { get }
   /// URL of GraphQL server
@@ -679,8 +790,6 @@ public protocol Feeder {
   var title: String { get }
   /// The last time feeds have been requested
   var lastUpdated: Date? { get }
-  /// The next time to ask for Feed updates
-  var validUntil: Date? { get }
   /// Current resource version
   var resourceVersion: Int { get }
   /// The Feeds this Feeder is providing
@@ -698,6 +807,20 @@ public protocol Feeder {
 } // Feeder
 
 extension Feeder {
+  
+  public func toString() -> String {
+    var ret = "Feeder \"\(title)\" (\(timeZone)), \(feeds.count) feeds:\n"
+    ret += "  baseUrl         = \(baseUrl)\n"
+    ret += "  globalBaseUrl   = \(globalBaseUrl)\n"
+    ret += "  authToken       = \((authToken ?? "[undefined]").prefix(20))...\n"
+    ret += "  resourceVersion = \(resourceVersion)\n"
+    ret += "  lastUpdated     = \(lastUpdated?.isoTime() ?? "[undefined]")\n"
+    if feeds.count > 0 {
+      ret += "  Feeds:"
+      for f in feeds { ret += "\n\(f.toString().indent(by: 4))" }
+    }
+    return ret
+  }
   
   /// The base directory
   public var baseDir: Dir { return Dir(dir: Dir.appSupportPath, fname: title) }
@@ -730,22 +853,34 @@ extension Feeder {
   public func issueDir(issue: Issue) -> Dir {
     return issueDir(feed: issue.feed.name, issue: date2a(issue.date))
   }
-
-  /// Returns the "Moment" Image in given resolution
-  public func momentImage(issue: Issue, resolution: ImageResolution = .normal) 
-    -> UIImage? {
-    for img in issue.moment.images {
-      if img.resolution == resolution {
-        let path = "\(issueDir(issue: issue).path)/\(img.fileName)"
-        if File.extname(path) == "gif" {
-          return UIImage.animatedGif(File(path).data, duration: 1.5)
-        }
-        else { return UIImage(contentsOfFile: path) }
-      }
+  
+  /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
+  public func momentImageName(issue: Issue, isCredited: Bool = false) 
+    -> String? {
+    var file = issue.moment.animatedGif
+    if isCredited, let highres = issue.moment.creditedHighres {       
+      file = highres 
+    }
+    if file == nil { file = issue.moment.highres }
+    if let img = file {
+      return "\(issueDir(issue: issue).path)/\(img.fileName)"
     }
     return nil
   }
-  
+
+  /// Returns the "Moment" Image as Gif-Animation or in highest resolution
+  public func momentImage(issue: Issue, isCredited: Bool = false) 
+    -> UIImage? {
+    if let fn = momentImageName(issue: issue, isCredited: isCredited) {
+      if File.extname(fn) == "gif" {
+        let duration = Double(issue.moment.animationDuration ?? 300.0) / 100.0
+        return UIImage.animatedGif(File(fn).data, duration: duration)
+      }
+      else { return UIImage(contentsOfFile: fn) }
+    }
+    return nil
+  }
+
   /// Returns a Date for a String in ISO format relative to the
   /// Feeder's time zone.
   public func a2date(_ iso: String) -> Date {

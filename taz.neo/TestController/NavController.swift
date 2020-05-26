@@ -16,7 +16,7 @@ class LocalStartupView: UIView {
     startupLogo = UIImage(named: "StartupLogo")
     imageView = UIImageView(image: startupLogo)
     super.init(frame: frame)
-    backgroundColor = TazRot
+    backgroundColor = AppColors.tazRot
     if let iv = imageView {
       addSubview(iv)
       pin(iv.centerX, to: self.centerX)
@@ -100,7 +100,6 @@ class NavController: UINavigationController {
     self.feeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { (res) in
       guard let nfeeds = res.value() else { return }
       self.debug("Feeder \"\(self.feeder.title)\" provides \(nfeeds) feeds.")
-      self.writeTazApiCss(topMargin: CGFloat(TopMargin), bottomMargin: CGFloat(BottomMargin))
       self.feeder.authenticate(account: "test", password: "test") { 
         [weak self] (res) in
         guard let _ = res.value() else { return }
@@ -175,11 +174,11 @@ class NavController: UINavigationController {
     if let index = sectionIndexFromCurrentArticle() { article2section(index: index) }
   }
   
-  func pushArticleViews(from: URL, link: URL) {
-    debug("\(from.lastPathComponent) -> \(link.lastPathComponent)")
+  func pushArticleViews(from: URL?, link: URL?) {
+    debug("\(from?.lastPathComponent ?? "undefined") -> \(link?.lastPathComponent ?? "undefined")")
 //    let path = feeder.issueDir(issue: issue!).path
     if currentSection == nil {
-      currentSection = from.lastPathComponent
+      currentSection = from?.lastPathComponent
       if articleViews == nil {
         articleViews = ContentVC(feeder: feeder, issue: issue!, contents: issue!.allArticles, 
                                  dloader: dloader, isLargeHeader: false)
@@ -190,12 +189,12 @@ class NavController: UINavigationController {
         articleViews!.contentTable?.onImagePress { [weak self] in
           self?.article2section(index: 0)
         }
-        articleViews!.onDisplay { (idx,view) in self.setArticleHeader() }
+        articleViews!.onDisplay { (idx) in self.setArticleHeader() }
         //articleViews?.displayFiles(path: path, files: issue!.articleHtml)
         pushViewController(articleViews!, animated: false)
       }
     }
-    articleViews?.gotoUrl(url: link)
+    if let link = link { articleViews?.gotoUrl(url: link) }
   }
   
   func moveSection(to index: Int) {
@@ -244,7 +243,7 @@ class NavController: UINavigationController {
       self?.sectionViews!.slider.close()
       self?.moveSection(to: 0)
     }
-    sectionViews!.onDisplay { (idx, cell) in 
+    sectionViews!.onDisplay { (idx) in 
       self.setSectionHeader(index: idx)
     }
     pushViewController(sectionViews!, animated: false)
