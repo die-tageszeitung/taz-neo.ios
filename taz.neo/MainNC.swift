@@ -218,11 +218,11 @@ class MainNC: UINavigationController, SectionVCdelegate, MFMailComposeViewContro
   
   func doPolling() {
     self.authenticator.pollSubscription { doContinue in
-      guard let pollEnd = self.pollEnd else { endPolling(); return }
-      if doContinue { if UsTime.now().sec > pollEnd { endPolling() } }
+      guard let pollEnd = self.pollEnd else { self.endPolling(); return }
+      if doContinue { if UsTime.now().sec > pollEnd { self.endPolling() } }
       else {
-        endPolling() 
-        if self.gqlFeeder.isAuthenticated { reloadIssue() }
+        self.endPolling() 
+        if self.gqlFeeder.isAuthenticated { self.reloadIssue() }
       }
     }
   }
