@@ -17,6 +17,7 @@ class RegisterVC : UIViewController {
   
   var id, pw : String?
   var topLabelText = "Um die neue App zu nutzten, müssen Sie sich zukünftgig mit Ihrer Email-Adresse und selbstgewähltem Passwort einloggen."
+  var returnclosure : ((Result<String,Error>)->())!
   
   // from Top to Bottom in RegisterView
   // MARK: Outlets
@@ -34,8 +35,41 @@ class RegisterVC : UIViewController {
   
   // MARK: Actions
   @IBAction func forgotPasswordButtonPressed(_ sender: UIButton) {
+    if let id : String = emailTextField.text,  !emailTextField.text!.isEmpty {
+      self.authenticator.resetPassword(id: id)
+    }
   }
   @IBAction func registerButtonPressed(_ sender: UIButton) {
+    if emailTextField.text!.isEmpty || passwordTF.text!.isEmpty || repeatPasswordTF.text!.isEmpty {
+      authenticator.message(title: "Fehler", message: "\nNutzername und Password dürfen nicht leer sein.")
+    } else {
+      if !emailTextField.text!.contains("@") {
+        authenticator.message(title: "Fehler", message: "\nBitte geben Sie eine E-Mail Adresse an.")
+        return
+      }
+      if passwordTF.text == repeatPasswordTF.text {
+        self.authenticator.bindingIDs(tazId: emailTextField.text!, password: passwordTF.text!, aboId: id!, aboIdPW: pw!, surname: surnameTF.text, firstName: nameTF.text) { bindResult in
+          switch bindResult {
+          case .success(let str) :
+            self.debug(str)
+            switch str {
+            case "valid", "waitForMail", "alreadyLinked":
+              self.returnclosure(.success(str))
+              self.dismiss(animated: true, completion: nil)
+            case "invalidMail", "tazIdNotValid" :
+              break
+            case "waitForProc":
+              // QUERY SUBSCRIPTIONPOLLL
+              break
+            default:
+              break
+            }
+          case .failure(let err) :
+            self.debug(err.description)
+          }
+        }
+      }
+    }
   }
   @IBAction func cancelButtonPressed(_ sender: UIButton) {
     self.dismiss(animated: false, completion: nil)
@@ -54,53 +88,5 @@ class RegisterVC : UIViewController {
     passwordTF.passwordRules = pwRule
     repeatPasswordTF.passwordRules = pwRule
     topLabel.text = topLabelText
-  }
-}
-
-// MARK: TrailsubcriptionVC
-class TrailsubcriptionVC: RegisterVC {
-  
-  override func viewDidLoad() {
-    
-    super.viewDidLoad()
-    topLabel.text = "Hier können Sie die digitale taz 14 Tage kostenlos testen."
-    registerButton.titleLabel?.text = "Regestrieren"
-    forgotPasswordButton.layer.cornerRadius = 5
-    registerButton.layer.cornerRadius = 5
-    cancelButton.layer.cornerRadius = 5
-  }
-  
-  override func registerButtonPressed(_ sender: UIButton) {
-    if emailTextField.text!.isEmpty || passwordTF.text!.isEmpty || repeatPasswordTF.text!.isEmpty {
-      authenticator.message(title: "Fehler", message: "\nNutzername und Password dürfen nicht leer sein.")
-    } else {
-      if !emailTextField.text!.contains("@") {
-        authenticator.message(title: "Fehler", message: "\nBitte geben Sie eine E-Mail Adresse an.")
-        return
-      }
-      let email = emailTextField.text
-      if passwordTF.text == repeatPasswordTF.text {
-        self.authenticator.feeder.trialSubscription(tazId: email!, password: passwordTF.text!, surname: nameTF.text ?? "", firstName: surnameTF.text ?? "", installationId: authenticator.installationId, pushToken: authenticator.pushToken) { result in
-          // Result<GqlSubscriptionInfo, Error>
-          let substat = result.value()?.status
-          switch substat {
-          case .waitForProc:
-            self.feeder.subscriptionPoll(installationId: self.authenticator.installationId) { res in
-
-            }
-          case .waitForMail:
-            self.authenticator.message(title: "Mail wurde versand", message: "Danke für Ihre Registrirung! Wir haben Ihnen eine Mail an \(email!) geschickt. Bitte öffnn Sie die Mail und bestädtigen Sie Ihre Adresse. Sobald die Mail-Adresse bestätigt wurde, können Sie die neue taz-App nutzen.")
-          case .alreadyLinked:
-            self.authenticator.message(title: "Fehler", message: "\nDie eMail-Adresse ist bereits mit einem Digiabo verbunden.")
-          case .tazIdNotValid:
-            self.authenticator.message(title: "Fehler", message: "\nWir haben Ihnen eine eMail geschickt.")
-          case .invalidMail:
-            self.authenticator.message(title: "Fehler", message: "\nKeine gültige eMail-Adresse.")
-          default :
-            self.authenticator.message(title: "Fehler", message: "\nUnbekannte Antwort vom Server.")
-          }
-        }
-      }
-    } //
   }
 }
