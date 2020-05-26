@@ -10,7 +10,7 @@ import NorthLib
 
 /// A MomentView displays an Image, an optional Spinner and an
 /// optinal Menue.
-public class MomentView: UIView, UIContextMenuInteractionDelegate, Touchable {
+public class MomentView: UIView, Touchable {
   
   /// The ImageView
   public var imageView: UIImageView = UIImageView()
@@ -72,57 +72,8 @@ public class MomentView: UIView, UIContextMenuInteractionDelegate, Touchable {
     setup()
   }
   
-  /// Define the menu to display on long touch (iOS >= 13)
-  public var menu: [(title: String, icon: String, closure: (String)->())] = [] {
-    willSet {
-      if menu.count == 0 {
-        imageView.isUserInteractionEnabled = true   
-        if #available(iOS 13.0, *) {
-          let menuInteraction = UIContextMenuInteraction(delegate: self)
-          imageView.addInteraction(menuInteraction)      
-        }
-        else {
-          let longTouch = UILongPressGestureRecognizer(target: self, 
-                            action: #selector(actionMenuTapped))
-          longTouch.numberOfTouchesRequired = 1
-          imageView.addGestureRecognizer(longTouch)
-        }
-      }      
-    }
-  }
-
-  @objc func actionMenuTapped(_ sender: UIGestureRecognizer) {
-    var actionMenu: [UIAlertAction] = []
-    for m in menu {
-      actionMenu += Alert.action(m.title, closure: m.closure)
-    }
-    Alert.actionSheet(actions: actionMenu)
-  }
+  /// The context menu
+  public lazy var menu = ContextMenu(view: imageView)
   
-  /// Add an additional menu item
-  public func addMenuItem(title: String, icon: String, 
-                          closure: @escaping (String)->()) {
-    menu += (title: title, icon: icon, closure: closure)
-  }
-  
-  @available(iOS 13.0, *)
-  fileprivate func createContextMenu() -> UIMenu {
-    let menuItems = menu.map { m in
-      UIAction(title: m.title, image: UIImage(systemName: m.icon)) {_ in m.closure(m.title) }
-    }
-    return UIMenu(title: "", children: menuItems)
-  }
-  
-  // MARK: - UIContextMenuInteractionDelegate protocol
-
-  @available(iOS 13.0, *)
-  public func contextMenuInteraction(_ interaction: UIContextMenuInteraction, 
-    configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-    return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) 
-    { _ -> UIMenu? in 
-      return self.createContextMenu()
-    }
-  }
-
 } // MomentView
 

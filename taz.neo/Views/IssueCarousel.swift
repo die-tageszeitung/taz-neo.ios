@@ -123,7 +123,7 @@ public class IssueCarousel: UIView {
       if moment == nil { moment = MomentView() }
       moment!.image = self.issues[idx].issue
       moment!.isActivity = self.issues[idx].isActivity
-      moment!.menu = self.menu
+      moment!.menu.menu = self.menu
       moment!.onTap {_ in self.tapClosure?(idx) }
       return moment!
     }
