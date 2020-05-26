@@ -282,7 +282,7 @@ class StoredMoment: Moment, StoredObject {
   static var entity = "Moment"
   var pr: PersistentMoment // persistent record
   var data: Data? {
-    get { return pr.data }
+    get { pr.data }
     set { pr.data = newValue }
   }
   var image: UIImage? { (data == nil) ? nil : UIImage(data: data!) }
@@ -290,6 +290,10 @@ class StoredMoment: Moment, StoredObject {
   var creditedImages: [ImageEntry] 
     { StoredImageEntry.creditedImagesInMoment(moment: self) }
   var animation: [FileEntry] { StoredFileEntry.animationInMoment(moment: self) }
+  var animationDuration: Float? { 
+    get { (pr.animationDuration < 0) ? nil : pr.animationDuration }
+    set { pr.animationDuration = newValue ?? -1.0 }
+  }
   
   required init(persistent: PersistentMoment) { 
     self.pr = persistent 

@@ -125,6 +125,7 @@
         <relationship name="sections" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Section" inverseName="issue" inverseEntity="Section"/>
     </entity>
     <entity name="Moment" representedClassName="PersistentMoment" syncable="YES" codeGenerationType="class">
+        <attribute name="animationDuration" optional="YES" attributeType="Float" defaultValueString="-1" usesScalarValueType="YES"/>
         <attribute name="data" optional="YES" attributeType="Binary"/>
         <relationship name="animation" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="momentAnimated" inverseEntity="FileEntry"/>
         <relationship name="creditedImages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="momentCredit" inverseEntity="ImageEntry"/>
@@ -186,7 +187,7 @@
         <element name="Frame" positionX="-51920.18359375" positionY="-34620.09375" width="128" height="148"/>
         <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="178"/>
         <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="328"/>
-        <element name="Moment" positionX="-52992" positionY="-35010" width="128" height="118"/>
+        <element name="Moment" positionX="-52992" positionY="-35010" width="128" height="133"/>
         <element name="Page" positionX="-52203.38671875" positionY="-34559.82421875" width="128" height="148"/>
         <element name="Payload" positionX="-53189.828125" positionY="-34824.89453125" width="128" height="193"/>
         <element name="Remark" positionX="-52138.01171875" positionY="-35159.59375" width="128" height="118"/>

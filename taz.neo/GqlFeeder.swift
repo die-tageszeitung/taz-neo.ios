@@ -294,16 +294,14 @@ class GqlMoment: Moment, GQLObject {
   public var images: [ImageEntry] { return imageList }
   public var creditedImages: [ImageEntry] { return creditList ?? [] }
   public var animation: [FileEntry] { return momentList ?? [] }
+  public var animationDuration: Float?
 
   static var fields = """
     imageList { \(GqlImage.fields) }
     creditList { \(GqlImage.fields) }
     momentList { \(GqlFile.fields) }
+    animationDuration: duration
   """
-//  static var fields = """
-//    imageList { \(GqlImage.fields) }
-//    creditList { \(GqlImage.fields) }
-//  """
 } // GqlMoment
 
 /// One Issue of a Feed

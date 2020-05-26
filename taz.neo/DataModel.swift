@@ -452,8 +452,12 @@ public extension Page {
 public protocol Moment: ToString {
   /// The images in different resolutions
   var images: [ImageEntry] { get }
+  /// Images with additional data about creator(s)
   var creditedImages: [ImageEntry] { get }
+  /// A number of files comprising an animation e.g. a gif file
   var animation: [FileEntry] { get }
+  /// Especially for gif files the duration of the animation
+  var animationDuration: Float? { get }
 }
 
 public extension Moment {
@@ -869,7 +873,8 @@ extension Feeder {
     -> UIImage? {
     if let fn = momentImageName(issue: issue, isCredited: isCredited) {
       if File.extname(fn) == "gif" {
-        return UIImage.animatedGif(File(fn).data, duration: 1.5)
+        let duration = Double(issue.moment.animationDuration ?? 300.0) / 100.0
+        return UIImage.animatedGif(File(fn).data, duration: duration)
       }
       else { return UIImage(contentsOfFile: fn) }
     }
