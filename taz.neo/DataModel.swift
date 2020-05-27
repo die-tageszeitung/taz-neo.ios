@@ -873,8 +873,7 @@ extension Feeder {
     -> UIImage? {
     if let fn = momentImageName(issue: issue, isCredited: isCredited) {
       if File.extname(fn) == "gif" {
-        let duration = Double(issue.moment.animationDuration ?? 300.0) / 100.0
-        return UIImage.animatedGif(File(fn).data, duration: duration)
+        return UIImage.animatedGif(File(fn).data)
       }
       else { return UIImage(contentsOfFile: fn) }
     }

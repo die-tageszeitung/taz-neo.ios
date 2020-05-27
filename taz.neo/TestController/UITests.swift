@@ -103,7 +103,7 @@ class UITests: UIViewController {
   
   func gifTest() {
     if let path = Bundle.main.path(forResource: "test", ofType: "gif"),
-      let image = UIImage.animatedGif(File(path).data, duration: 1.5) {
+      let image = UIImage.animatedGif(File(path).data) {
       let iv = UIImageView(image: image)
       self.view.addSubview(iv)
       iv.pinSize(image.size)
