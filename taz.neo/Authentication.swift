@@ -317,7 +317,7 @@ public class Authentication: DoesLog {
             switch authStatus {
             case .valid:    // valid user with all permissions
               self.debug("valid tazID")
-              self.message(title: "Anmeldung erfolgreich", message: "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz"){()}
+              self.message(title: "Anmeldung erfolgreich", message: "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz"){MainNC.singleton.popViewController(animated: false)}
               return closure(.success("valid tazID"))
             case .invalid: // somthings wrong with pw or id
               self.failedLoginMessage(title: "Fehler", message: "\nIhre Kundendaten sind nicht korrekt", id: id){}

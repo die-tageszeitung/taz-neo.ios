@@ -54,8 +54,7 @@ class RegisterVC : UIViewController {
             self.debug(str)
             switch str {
             case "valid", "waitForMail", "alreadyLinked":
-              self.returnclosure(.success(str))
-              self.dismiss(animated: true, completion: nil)
+              MainNC.singleton.popViewController(animated: false)
             case "invalidMail", "tazIdNotValid" :
               break
             case "waitForProc":
@@ -72,7 +71,24 @@ class RegisterVC : UIViewController {
     }
   }
   @IBAction func cancelButtonPressed(_ sender: UIButton) {
-    self.dismiss(animated: false, completion: nil)
+    MainNC.singleton.popViewController(animated: false)
+  }
+  @IBAction func tappedInView(_ sender: Any){
+    if emailTextField.isFirstResponder {
+      emailTextField.resignFirstResponder()
+    }
+    if passwordTF.isFirstResponder {
+      passwordTF.resignFirstResponder()
+    }
+    if repeatPasswordTF.isFirstResponder{
+      repeatPasswordTF.resignFirstResponder()
+    }
+    if nameTF.isFirstResponder {
+      nameTF.resignFirstResponder()
+    }
+    if surnameTF.isFirstResponder {
+      surnameTF.resignFirstResponder()
+    }
   }
   
   override func viewDidLoad() {
@@ -82,7 +98,7 @@ class RegisterVC : UIViewController {
     self.registerButton?.layer.cornerRadius = 5
     self.cancelButton?.layer.cornerRadius = 5
     self.forgotPasswordButton?.backgroundColor = UIColor.darkGray
-    self.registerButton?.backgroundColor = TazRot
+    self.registerButton?.backgroundColor = AppColors.tazRot
     cancelButton?.backgroundColor = UIColor.darkGray
     let pwRule = UITextInputPasswordRules(descriptor: "required: upper; required: lower; required: digit; required: [-().&@?'#,/&quot;+]; max-consecutive: 2; minlength: 8;")
     passwordTF.passwordRules = pwRule

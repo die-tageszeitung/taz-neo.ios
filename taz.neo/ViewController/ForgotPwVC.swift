@@ -23,7 +23,7 @@ class ForgotPwVC: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    sendButton.backgroundColor = TazRot
+    sendButton.backgroundColor = AppColors.tazRot
     cancelButton.backgroundColor = UIColor.darkGray
     sendButton.layer.cornerRadius = 5
     cancelButton.layer.cornerRadius = 5
@@ -35,7 +35,7 @@ class ForgotPwVC: UIViewController {
     }
   }
   @IBAction func cancelButtonPressed(_ sender: UIButton) {
-    self.dismiss(animated: true, completion: nil )
+    MainNC.singleton.popViewController(animated: false)
   }
 
 }

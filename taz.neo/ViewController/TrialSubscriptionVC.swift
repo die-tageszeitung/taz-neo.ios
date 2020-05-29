@@ -40,8 +40,25 @@ class TrialSubscriptionVC: UIViewController {
   }
   
   // MARK: Actions
+  @IBAction func tappedInView(_ sender: Any) {
+    if emailTextField.isFirstResponder {
+      emailTextField.resignFirstResponder()
+    }
+    if passwordTF.isFirstResponder {
+      passwordTF.resignFirstResponder()
+    }
+    if repeatPasswordTF.isFirstResponder{
+      repeatPasswordTF.resignFirstResponder()
+    }
+    if firstnameTF.isFirstResponder {
+      firstnameTF.resignFirstResponder()
+    }
+    if surnameTF.isFirstResponder {
+      surnameTF.resignFirstResponder()
+    }
+  }
   @IBAction func cancelButtonPressed(_ sender: Any) {
-    self.dismiss(animated: false, completion: nil)
+    MainNC.singleton.popViewController(animated: false)
   }
   @IBAction func registerButtonPressed(_ sender: UIButton) {
     if emailTextField.text!.isEmpty || passwordTF.text!.isEmpty || repeatPasswordTF.text!.isEmpty {

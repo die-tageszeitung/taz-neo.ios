@@ -26,7 +26,7 @@ class LoginVC : UIViewController {
   
 
   override func viewDidLoad() {
-    loginButton.backgroundColor = TazRot
+    loginButton.backgroundColor = AppColors.tazRot
     triralButton.backgroundColor = UIColor.darkGray
     passwordResetButton.backgroundColor = UIColor.darkGray
     loginButton.layer.cornerRadius = 5
@@ -34,6 +34,8 @@ class LoginVC : UIViewController {
     passwordResetButton.layer.cornerRadius = 5
     
     UIApplication.shared.keyWindow?.bringSubviewToFront(self.view)
+    let reportLPress3 = UILongPressGestureRecognizer(target: MainNC.singleton,action: #selector(MainNC.threeFingerTouch))
+    self.view.addGestureRecognizer(reportLPress3)
   }
   
   // MARK: Actions
@@ -47,7 +49,8 @@ class LoginVC : UIViewController {
         case .success(let value):
           switch value{
           case "valid tazID":
-            self.dismiss(animated: true, completion: nil )
+//            MainNC.singleton.popViewController(animated: false)
+//            self.dismiss(animated: true, completion: nil )
             self.returnclosure(.success(value))
           case "unlinked", "valid aboID":
             self.performSegue(withIdentifier: "tazID", sender: nil)
@@ -76,9 +79,11 @@ class LoginVC : UIViewController {
     self.performSegue(withIdentifier: "trial", sender: nil)
   }
   @IBAction func resendPasswordButtonPressed(_ sender: UIButton) {
-    if let id : String = userTextField.text,  !userTextField.text!.isEmpty {
-      self.authenticator.resetPassword(id: id)
-    }
+//    if let id : String = userTextField.text,  !userTextField.text!.isEmpty {
+//      self.authenticator.resetPassword(id: id)
+//    } else {
+//      self.performSegue(withIdentifier: "forgotPW", sender: nil)
+//    }
   }
   
   @IBAction func tappedInView(_ sender: UITapGestureRecognizer) {
