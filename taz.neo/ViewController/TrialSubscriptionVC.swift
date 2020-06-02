@@ -34,6 +34,8 @@ class TrialSubscriptionVC: UIViewController {
     registerButton.titleLabel?.text = "Regestrieren"
     registerButton.layer.cornerRadius = 5
     cancelButton.layer.cornerRadius = 5
+    self.registerButton?.backgroundColor = AppColors.tazRot
+    cancelButton?.backgroundColor = UIColor.darkGray
     let pwRule = UITextInputPasswordRules(descriptor: "required: upper; required: lower; required: digit; required: [-().&@?'#,/&quot;+]; max-consecutive: 2; minlength: 8;")
     passwordTF.passwordRules = pwRule
     repeatPasswordTF.passwordRules = pwRule
