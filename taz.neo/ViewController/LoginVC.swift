@@ -76,14 +76,10 @@ class LoginVC : UIViewController {
     }
   }
   @IBAction func registerButtonPressed(_ sender: UIButton) {
-    self.performSegue(withIdentifier: "trial", sender: nil)
+    
   }
   @IBAction func resendPasswordButtonPressed(_ sender: UIButton) {
-//    if let id : String = userTextField.text,  !userTextField.text!.isEmpty {
-//      self.authenticator.resetPassword(id: id)
-//    } else {
-//      self.performSegue(withIdentifier: "forgotPW", sender: nil)
-//    }
+    
   }
   
   @IBAction func tappedInView(_ sender: UITapGestureRecognizer) {
