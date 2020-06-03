@@ -169,7 +169,11 @@ public protocol ImageEntry: FileEntry {
   var alpha: Float? { get }
 }
 
-public extension ImageEntry {  
+public extension ImageEntry { 
+  static func prefix(_ fname: String) -> String {
+    File.progname(File.progname(fname)) 
+  }
+  var prefix: String { Self.prefix(self.fileName) }
   func toString() -> String {
     var sAlpha = ""
     if let alpha = self.alpha { sAlpha = ", alpha=\(alpha)" }
@@ -259,8 +263,39 @@ public extension Content {
     }
     return ret
   }
+  
+  /// photoDict returns a dictionary of images tuples
+  var photoDict: [String : (normal: ImageEntry?, high: ImageEntry?)] {
+    guard let images = self.images else { return [:] }
+    var dict: [String : (normal: ImageEntry?, high: ImageEntry?)] = [:]
+    for img in images {
+      if img.resolution == .normal || img.resolution == .high {
+        let key = img.prefix
+        if let val = dict[key] {
+          if img.resolution == .normal { dict[key] = (normal:img, high:val.high) }
+          else { dict[key] = (normal:val.normal, high:img) }
+        }
+        else {
+          if img.resolution == .normal { dict[key] = (normal:img, high:nil) }
+          else { dict[key] = (normal:nil, high:img) }
+        }
+      }
+    }
+    return dict
+  }
+  
+  /// photoPairs returns an array of images in resolutions (normal,high)
+  var photoPairs: [(normal: ImageEntry?, high: ImageEntry?)] {
+    var ret: [(normal: ImageEntry?, high: ImageEntry?)] = []
+    let all = self.photos
+    let pairs = self.photoDict
+    for img in all {
+      if let p = pairs[img.prefix] { ret += p }
+    }
+    return ret
+  }
 
-}
+} // Content
 
 /**
  An Article
