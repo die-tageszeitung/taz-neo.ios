@@ -116,6 +116,14 @@ open class Downloader: DoesLog {
     }
   }
 
+  /// Download Issue files
+  public func downloadIssueFiles(issue: Issue, files: [FileEntry], 
+                                 closure: @escaping (Error?)->()) {
+    let name = self.feeder.date2a(issue.date)
+    self.downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, 
+      issue: name, files: files, closure: closure)   
+  }
+                                
   /// Download Issue data
   public func downloadIssueData(issue: Issue, files: [FileEntry], 
                                 closure: @escaping (Error?)->()) {
@@ -126,11 +134,7 @@ open class Downloader: DoesLog {
       self.downloadGlobalFiles(files: files) { [weak self] err in
         guard err == nil else { closure(err); return }
         guard let self = self else { return }
-        let name = self.feeder.date2a(issue.date)
-        self.downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, 
-                                issue: name, files: files) { err in
-          closure(err)
-        }
+        self.downloadIssueFiles(issue: issue, files: files, closure: closure)
       }
     }
   }
