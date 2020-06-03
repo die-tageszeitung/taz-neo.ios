@@ -117,7 +117,7 @@ open class ContentToolbar: UIView {
  A ContentVC is a view controller that displays an array of Articles or Sections 
  in a collection of WebViews
  */
-open class ContentVC: WebViewCollectionVC {
+open class ContentVC: WebViewCollectionVC, IssueInfo {
 
   /// CSS Margins for Articles and Sections
   public static let TopMargin: CGFloat = 65
@@ -128,7 +128,8 @@ open class ContentVC: WebViewCollectionVC {
   public var feeder: Feeder { return contentTable!.feeder! }
   public var issue: Issue { return contentTable!.issue! }
   public var feed: Feed { return issue.feed }
-  public var dloader: Downloader!
+  public var downloader: Downloader!
+  public var dloader: Downloader { downloader }
   lazy var slider = ButtonSlider(slider: contentTable!, into: self)
 
   public var toolBar = ContentToolbar()
@@ -182,16 +183,32 @@ open class ContentVC: WebViewCollectionVC {
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent) }
   }
   
+  /// Setup JS bridge
+  private func setupBridge() {
+    self.bridge = JSBridgeObject(name: "tazApi")
+    self.bridge?.addfunc("openImage") { jscall in
+      if let args = jscall.args, args.count > 0,
+         let img = args[0] as? String {
+        let current = self.contents[self.index!]
+        let imgVC = ContentImageVC(content: current, delegate: self,
+                                   imageTapped: img)
+        self.navigationController?.pushViewController(imgVC, animated: false)
+      }
+      return NSNull()
+    }
+  }
+  
   /// Write tazApi.js to resource directory
   public func writeTazApiJs() {
-    guard let path = Bundle.main.path(forResource: "NativeBridge", ofType: "js")
-      else { error("Can't find NativeBridge.js"); return }
-    let bridge = File(path)
-    tazApiJs.data = bridge.data
-    File.open(path: tazApiJs.path, mode: "a") { f in
-      f.writeline("var tazApi = new NativeBridge(\"tazApi\")")
-      f.writeline("tazApi.openUrl = function (url) { window.location.href = url }")
-    }
+    setupBridge()
+    let apiJs = """
+      var tazApi = new NativeBridge("tazApi");
+      tazApi.openUrl = function (url) { window.location.href = url };
+      tazApi.openImage = function (url) { tazApi.call("openImage", undefined, url) };
+      log2bridge(tazApi);
+      console.log("tazApi loaded.");
+    """
+    tazApiJs.string = JSBridgeObject.js + apiJs
   }
   
   /// Define the closure to call when the back button is tapped
@@ -289,7 +306,7 @@ open class ContentVC: WebViewCollectionVC {
   public func setup(feeder: Feeder, issue: Issue, contents: [Content],
                     dloader: Downloader, isLargeHeader: Bool) {
     self.contents = contents
-    self.dloader = dloader
+    self.downloader = dloader
     self.isLargeHeader = isLargeHeader
     self.contentTable!.feeder = feeder
     self.contentTable!.issue = issue
