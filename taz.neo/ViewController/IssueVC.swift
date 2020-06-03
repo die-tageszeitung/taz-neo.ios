@@ -46,6 +46,9 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   // The last Alert shown
   private var lastAlert: UIAlertController?
   
+  // Is initial appearance
+  private var isInitial = true
+  
   /// Perform carousel animations?
   static var showAnimations = true
   
@@ -64,6 +67,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
         if iss.date < issue.date { break }
         idx += 1
       }
+      debug("inserting issue \(issue.date.isoDate()) at \(idx)")
       issues.insert(issue, at: idx)
       issueCarousel.insertIssue(img, at: idx)
       if let idx = issueCarousel.index { setLabel(idx: idx) }
@@ -87,6 +91,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   
   /// Issues received from server
   func issuesReceived(issues iss: [Issue]) {
+    debug()
     // TODO: Check for stored Issues
     // TODO: store new issues in DB
     var newIssues = iss
@@ -330,13 +335,14 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    checkForNewIssues()
+    if self.isInitial { isInitial = false }
+    else { checkForNewIssues() }
   }
   
   @objc private func goingBackground() {}
   
   @objc private func goingForeground() {
-    checkForNewIssues()
+    //checkForNewIssues()
   }
   
 } // IssueVC

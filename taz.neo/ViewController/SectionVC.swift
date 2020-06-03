@@ -9,14 +9,11 @@ import UIKit
 import NorthLib
 
 /// The protocol used to communicate with calling VCs
-public protocol SectionVCdelegate {
-  var feeder: Feeder { get }
-  var issue: Issue { get }
-  var dloader: Downloader { get }
-}
+public protocol SectionVCdelegate: IssueInfo {}
 
 /// The Section view controller managing a collection of Section pages
 open class SectionVC: ContentVC, ArticleVCdelegate {
+  
   private var articleVC: ArticleVC?
   private var lastIndex: Int?
   public var sections: [Section] = []

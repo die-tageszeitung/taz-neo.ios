@@ -9,10 +9,7 @@ import UIKit
 import NorthLib
 
 /// The protocol used to communicate with calling VCs
-public protocol ArticleVCdelegate {
-  var feeder: Feeder { get }
-  var issue: Issue { get }
-  var dloader: Downloader! { get }
+public protocol ArticleVCdelegate: IssueInfo {
   var section: Section? { get }
   var sections: [Section] { get }
   var article: Article? { get set }
