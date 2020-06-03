@@ -12,7 +12,7 @@ import NorthLib
 class WebViewTests: UIViewController {
   
   // The WebView to test
-  var webView = ButtonedWebView()
+  var webView = WebView()
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -22,18 +22,33 @@ class WebViewTests: UIViewController {
     let html = """
     <h1>This is a test</h1>
     """
-    //webView.webView.load("https://www.taz.de")
-    webView.webView.load(html: html)
-    webView.buttonMargin = 16
-    webView.buttonLabel.backgroundColor = .red
-    webView.buttonLabel.textColor = .white
-    webView.buttonLabel.font = UIFont.boldSystemFont(ofSize: 18)
-    webView.buttonLabel.text = "  Akzeptieren  "
-    webView.onTap { str in
-      print(str)
+    let bo = JSBridgeObject(name: "Test")
+    bo.addfunc("bridgeTest") { jsCall in
+      print(jsCall.toString())
+      return NSNull()
     }
-    self.webView.onX {
-      print("X pressed")
+    bo.addfunc("getInt") { jscall in
+      return 14
+    }
+    webView.addBridge(bo)
+    webView.log2bridge(bo)
+    let js = """
+      Test.f1 = function() { Test.call("bridgeTest", Test.f3, 1, "huhu") }
+      Test.f3 = function(arg) { console.log("called back: ", arg) }
+      Test.getInt = function() { Test.call("getInt", Test.f3) }
+
+      Test.f1()
+      Test.getInt()
+      Test.log("A ", "small ", "test")
+      alert("Another ", "simple ", "test")
+      console.log("to whom", " it may concern")
+    """
+    webView.jsexec(js) { _ in
+      print(js)
+    }
+    webView.load(html: html)
+    delay(seconds: 5.0) {
+      self.webView.jsexec("console.log(\"a delayed test\")")
     }
   } 
 
