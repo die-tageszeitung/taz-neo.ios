@@ -25,7 +25,7 @@ public class ZoomedImage: OptionalImage {
   }
 }
 
-public class ContentImageVC: UIViewController {
+public class ContentImageVC: UIViewController, CanRotate {
   
   /// The Content whoose images are to display
   var content: Content
@@ -35,7 +35,7 @@ public class ContentImageVC: UIViewController {
   var delegate: IssueInfo
   /// The ZoomedImage
   var image = ZoomedImage()
-  
+    
   private func setup() {
     guard let img = self.imageTapped else { return }
     let pdict = content.photoDict
@@ -77,6 +77,8 @@ public class ContentImageVC: UIViewController {
     self.view.addSubview(imageView)
     pin(imageView, to: self.view)
     imageView.onX {
+      let portrait = UIInterfaceOrientation.portrait.rawValue
+      UIDevice.current.setValue(portrait, forKey: "orientation")
       self.navigationController?.popViewController(animated: false)
     }
   }
