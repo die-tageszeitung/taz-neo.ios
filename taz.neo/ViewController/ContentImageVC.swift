@@ -24,8 +24,8 @@ public class ZoomedImage: OptionalImage {
     set { if newValue { availableClosure?() } }
   }
 }
-
-public class ContentImageVC: UIViewController, CanRotate {
+/// WARNING Changing the DeviceOrientation manually results in unexpected behaviour in ZoomedImageView
+public class ContentImageVC: UIViewController {
   
   /// The Content whoose images are to display
   var content: Content
@@ -73,12 +73,13 @@ public class ContentImageVC: UIViewController, CanRotate {
       self.navigationController?.popViewController(animated: false)
       return
     }
-    let imageView = ZoomedImageView(optionalImage: self.image)
+    let imageView = ZoomedImageView(optionalImage: self.image, verifyInterfaceOrientationOnStart: true)
     self.view.addSubview(imageView)
     pin(imageView, to: self.view)
     imageView.onX {
-      let portrait = UIInterfaceOrientation.portrait.rawValue
-      UIDevice.current.setValue(portrait, forKey: "orientation")
+      /// WARNING Changing the DeviceOrientation manually results in unexpected behaviour in ZoomedImageView
+//      let portrait = UIInterfaceOrientation.portrait.rawValue
+//      UIDevice.current.setValue(portrait, forKey: "orientation")
       self.navigationController?.popViewController(animated: false)
     }
   }
