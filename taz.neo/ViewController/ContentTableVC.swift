@@ -227,9 +227,9 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
     let imageTap = UITapGestureRecognizer(target: self, action: #selector(imageTapped))
     momentView.isUserInteractionEnabled = true
     momentView.addGestureRecognizer(imageTap)
-    momentView.layer.shadowOpacity = 0.2
-    momentView.layer.shadowOffset = CGSize(width: 5, height: 5)
-    momentView.layer.shadowRadius = 1
+    momentView.layer.shadowOpacity = 0.16
+    momentView.layer.shadowOffset = CGSize(width: 0, height: 3)
+    momentView.layer.shadowRadius = 6
     contentTableView.delegate = self
     contentTableView.dataSource = self
     contentTableView.backgroundColor = UIColor.clear
