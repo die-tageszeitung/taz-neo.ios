@@ -205,8 +205,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
       var tazApi = new NativeBridge("tazApi");
       tazApi.openUrl = function (url) { window.location.href = url };
       tazApi.openImage = function (url) { tazApi.call("openImage", undefined, url) };
-      log2bridge(tazApi);
-      console.log("tazApi loaded.");
     """
     tazApiJs.string = JSBridgeObject.js + apiJs
   }
@@ -276,6 +274,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
     let img = UIImage.init(named: "logo")
     slider.image = img
     slider.buttonAlpha = 1.0
+    slider.button.layer.shadowOpacity = 0.30
+    slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
+    slider.button.layer.shadowRadius = 6
+    if let mode = Defaults.singleton["colorMode"], mode == "dark" {
+      slider.button.layer.shadowColor = UIColor.white.cgColor
+    }
+    else {
+      slider.button.layer.shadowColor = UIColor.black.cgColor      
+    }
     header.leftIndent = 8 + slider.visibleButtonWidth
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
