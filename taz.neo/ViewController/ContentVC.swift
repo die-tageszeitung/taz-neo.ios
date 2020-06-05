@@ -274,9 +274,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
     let img = UIImage.init(named: "logo")
     slider.image = img
     slider.buttonAlpha = 1.0
-    slider.button.layer.shadowOpacity = 0.30
+    slider.button.layer.shadowOpacity = 0.25
     slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
-    slider.button.layer.shadowRadius = 6
+    slider.button.layer.shadowRadius = 4
     if let mode = Defaults.singleton["colorMode"], mode == "dark" {
       slider.button.layer.shadowColor = UIColor.white.cgColor
     }
