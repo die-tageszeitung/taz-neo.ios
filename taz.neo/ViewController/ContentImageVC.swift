@@ -25,7 +25,7 @@ public class ZoomedImage: OptionalImage {
   }
 }
 
-public class ContentImageVC: UIViewController, CanRotate {
+public class ContentImageVC: ImageCollectionVC, CanRotate {
   
   /// The Content whoose images are to display
   var content: Content
@@ -34,34 +34,95 @@ public class ContentImageVC: UIViewController, CanRotate {
   /// The delegate providing Issue infos
   var delegate: IssueInfo
   /// The ZoomedImage
-  var image = ZoomedImage()
-    
-  private func setup() {
-    guard let img = self.imageTapped else { return }
+  var image: ZoomedImage?
+  
+  /// Light status bar because of black background
+  override public var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
+  
+  /// Create a ZoomedImage from a pair of images
+  private func zoomedImage(pair: (normal: ImageEntry?, high: ImageEntry?)) -> ZoomedImage? {
+    guard let normal = pair.normal else { return nil }
+    let image = ZoomedImage()
+    let path = delegate.feeder.issueDir(issue: delegate.issue).path
+    image.waitingImage = UIImage(contentsOfFile: "\(path)/\(normal.fileName)")
+    if let high = pair.high {
+      delegate.dloader.downloadIssueFiles(issue: delegate.issue, files: [high]) 
+      { err in
+        if err == nil { 
+          image.image = UIImage(contentsOfFile: "\(path)/\(high.fileName)")
+        } else { image.image = image.waitingImage }
+        image.isAvailable = true 
+      }
+    }
+    else { image.image = image.waitingImage }
+    return image
+  } 
+  
+  /// Create a ZoomedImage from a content and an image name
+  private func zoomedImage(content: Content, name: String) -> ZoomedImage? {
+    let pdict = content.photoDict
+    let pref = StoredImageEntry.prefix(name)
+    if let pair = pdict[pref] { return zoomedImage(pair: pair) }
+    else { return nil }
+  }
+  
+  /// Create ZoomedImages for all images of a content
+  private func zoomedImages(content: Content) -> [ZoomedImage] {
+    content.photoPairs.map { zoomedImage(pair: $0) }.filter { $0 != nil } as! [ZoomedImage]
+  }
+  
+  /// Create ZoomedImages for all images of a content, load tapped image first
+  private func zoomedImages(content: Content, name: String) -> 
+    (Int, [ZoomedImage]) {
+    var ret: [ZoomedImage] = []
+    var idx = 0
+    if let tapped = zoomedImage(content: content, name: name) {
+      for (i,pair) in content.photoPairs.enumerated() {
+        if pair.normal?.fileName == name { ret += tapped; idx = i }
+        else { if let zimg = zoomedImage(pair: pair) { ret += zimg } }
+      }
+    }
+    return (idx, ret)
+  }
+  
+  private func popVC(setPortrait: Bool = false) {
+    if setPortrait {
+      let portrait = UIInterfaceOrientation.portrait.rawValue
+      UIDevice.current.setValue(portrait, forKey: "orientation")
+    }
+    self.navigationController?.popViewController(animated: false)
+  }
+  
+  private func setupImageView() {
+    guard let img = self.imageTapped else { popVC(); return }      
     let pdict = content.photoDict
     let pref = StoredImageEntry.prefix(img)
-    if let pair = pdict[pref], let normal = pair.normal {
-      let path = delegate.feeder.issueDir(issue: delegate.issue).path
-      if let high = pair.high {
-        image.waitingImage = UIImage(contentsOfFile: "\(path)/\(normal.fileName)")
-        delegate.dloader.downloadIssueFiles(issue: delegate.issue, files: [high]) 
-        { [weak self] err in
-          guard let self = self else { return }
-          if err == nil { 
-            self.image.image = UIImage(contentsOfFile: "\(path)/\(high.fileName)")
-          } else { self.image.image = self.image.waitingImage }
-          self.image.isAvailable = true 
-        }
-      }
-    }    
+    if let pair = pdict[pref] { image = zoomedImage(pair: pair) }
+    guard let image = self.image else { popVC(); return }
+    let imageView = ZoomedImageView(optionalImage: image)
+    self.view.addSubview(imageView)
+    pin(imageView, to: self.view)
+    imageView.onX { self.popVC(setPortrait: true) }
+  }
+  
+  private func setupImageCollectionVC() {
+    if let img = self.imageTapped { 
+      let (n,images) = zoomedImages(content: self.content, name: img)
+      self.images = images
+      self.index = n
+    }
+    else { 
+      self.images = zoomedImages(content: self.content)
+      self.index = 0
+    }
+    self.onX { self.popVC(setPortrait: true) }
   }
   
   public init(content: Content, delegate: IssueInfo, imageTapped: String? = nil) {
     self.content = content
     self.delegate = delegate
     self.imageTapped = imageTapped
-    super.init(nibName: nil, bundle: nil) 
-    setup()
+    super.init() 
   }
   
   required init?(coder: NSCoder) {
@@ -69,18 +130,9 @@ public class ContentImageVC: UIViewController, CanRotate {
   }
   
   public override func viewDidLoad() {
-    guard image.waitingImage != nil else { 
-      self.navigationController?.popViewController(animated: false)
-      return
-    }
-    let imageView = ZoomedImageView(optionalImage: self.image)
-    self.view.addSubview(imageView)
-    pin(imageView, to: self.view)
-    imageView.onX {
-      let portrait = UIInterfaceOrientation.portrait.rawValue
-      UIDevice.current.setValue(portrait, forKey: "orientation")
-      self.navigationController?.popViewController(animated: false)
-    }
+    super.viewDidLoad()
+    setupImageCollectionVC()
+//    setupImageView()
   }
     
 } // ContentImageVC
