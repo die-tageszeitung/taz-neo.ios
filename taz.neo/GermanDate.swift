@@ -16,7 +16,14 @@ public extension Date {
   /// German month names
   static let gMonthNames = ["", "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", 
                             "August", "September", "Oktober", "November", "Dezember"]
-  
+ 
+  /// Returns String in German format: <weekday>, <day>.<month>.<year>
+  func gDate(tz: String? = nil) -> String {
+    let dc = components(tz: tz)
+    return "\(Date.gWeekDays[dc.weekday!]), \(dc.day!)." +
+           "\(dc.month!).\(dc.year!)"
+  }  
+
   /// Returns String in German format: <weekday>, <day>.<monthname> <year>
   func gDateString(tz: String? = nil) -> String {
     let dc = components(tz: tz)
