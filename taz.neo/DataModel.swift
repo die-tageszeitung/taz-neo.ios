@@ -170,10 +170,26 @@ public protocol ImageEntry: FileEntry {
 }
 
 public extension ImageEntry { 
+  
+  /// Returns the prefix of an image name, ie. the name without resolution
+  /// and extension: media.nnn.high.jpg -> media.nnn
   static func prefix(_ fname: String) -> String {
     File.progname(File.progname(fname)) 
   }
+  
+  /// Returns the high resolution filename, eg. media.nnn.high.jpg
+  static func highRes(_ fname: String) -> String {
+    let prefix = self.prefix(fname)
+    let ext = File.extname(fname)
+    return "\(prefix).high.\(ext)"
+  }
+  
+  /// The prefix of the filename
   var prefix: String { Self.prefix(self.fileName) }
+  
+  /// The high resolution filename
+  var highRes: String { Self.highRes(self.fileName) }
+  
   func toString() -> String {
     var sAlpha = ""
     if let alpha = self.alpha { sAlpha = ", alpha=\(alpha)" }
