@@ -136,7 +136,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   // Define Header elements
   func setHeader(secIndex: Int) {
     header.title = contents[secIndex].title ?? ""
-    header.subTitle = issue.date.gLowerDateString(tz: feeder.timeZone)
+    header.subTitle = issue.date.gDate(tz: feeder.timeZone)
     header.hide(false)
   }
   

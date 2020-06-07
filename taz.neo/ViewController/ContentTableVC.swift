@@ -121,7 +121,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   fileprivate func resetIssue() {
     if let issue = issue, let feeder = feeder, let label = issueDateLabel,
       let tableView = contentTableView {
-      label.text = issue.date.gLowerDateString(tz: feeder.timeZone)
+      label.text = issue.date.gDate(tz: feeder.timeZone)
       tableView.reloadData() 
     }
   } 
