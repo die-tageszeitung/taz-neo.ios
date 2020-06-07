@@ -40,8 +40,10 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   public var index: Int { issueCarousel.index! }
   /// The Section view controller
   public var sectionVC: SectionVC?
-  /// Is Download in progress?
+  /// Is Issue Download in progress?
   public var isDownloading: Bool = false
+  /// Issue Moments to download
+  public var issueMoments: [Issue]? 
   
   // The last Alert shown
   private var lastAlert: UIAlertController?
@@ -81,16 +83,29 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   
   /// Download Moment images from server if necessary
   func getMoments(_ newIssues: [Issue]) {
+    guard issueMoments == nil else { return }
+    issueMoments = newIssues    
     for issue in newIssues {
       dloader.downloadMoment(issue: issue) { [weak self] err in
-        if err == nil { self?.addMoment(issue: issue) }
-        else { self?.handleDownloadError(error: err) }
+        guard let self = self else { return }
+        if err == nil { self.addMoment(issue: issue) }
+        else { self.handleDownloadError(error: err) }
+        if let idx = self.issueMoments?.firstIndex(where: 
+          { $0.date == issue.date } ) {
+          self.issueMoments?.remove(at: idx)
+        }
+        if self.issueMoments?.count == 0 { 
+          self.issueMoments = nil 
+          self.debug("\(newIssues.count) Moments downloaded")
+        }
+        
       }
     }
   }
   
   /// Issues received from server
   func issuesReceived(issues iss: [Issue]) {
+    guard issueMoments == nil else { return }
     debug()
     // TODO: Check for stored Issues
     // TODO: store new issues in DB
@@ -121,7 +136,8 @@ public class IssueVC: UIViewController, SectionVCdelegate {
     }
     else {
       if let lastDate = issues.last?.date {
-        gqlFeeder.issues(feed: feed, date: lastDate, count: 20) { [weak self] res in
+        gqlFeeder.issues(feed: feed, date: lastDate, count: 20) 
+        { [weak self] res in
           self?.issuesReceived(result: res)
         }
       }
@@ -253,7 +269,7 @@ public class IssueVC: UIViewController, SectionVCdelegate {
   func setLabel(idx: Int, isRotate: Bool = false) {
     guard idx >= 0 && idx < self.issues.count else { return }
     let issue = self.issues[idx]
-    var sdate = issue.date.gLowerDateString(tz: self.feeder.timeZone)
+    var sdate = issue.date.gDate(tz: self.feeder.timeZone)
     if !issue.isComplete { sdate += " \u{2601}" }
     if isRotate {
       if let last = self.lastIndex, last != idx {
