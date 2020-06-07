@@ -58,6 +58,19 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     return image
   } 
   
+  /// Create a ZoomedImage from a pair of images
+  private func zoomedImage(fname: String) -> ZoomedImage? {
+    let image = ZoomedImage()
+    let path = delegate.feeder.issueDir(issue: delegate.issue).path
+    let highRes = StoredImageEntry.highRes(fname)
+    if File("\(path)/\(highRes)").exists {
+      image.image = UIImage(contentsOfFile: "\(path)/\(highRes)")
+    }
+    else { image.image = UIImage(contentsOfFile: "\(path)/\(fname)") }
+    image.isAvailable = true 
+    return image
+  }
+  
   /// Create a ZoomedImage from a content and an image name
   private func zoomedImage(content: Content, name: String) -> ZoomedImage? {
     let pdict = content.photoDict
@@ -75,12 +88,16 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   private func zoomedImages(content: Content, name: String) -> 
     (Int, [ZoomedImage]) {
     var ret: [ZoomedImage] = []
-    var idx = 0
+    var idx: Int = -1
     if let tapped = zoomedImage(content: content, name: name) {
       for (i,pair) in content.photoPairs.enumerated() {
         if pair.normal?.fileName == name { ret += tapped; idx = i }
         else { if let zimg = zoomedImage(pair: pair) { ret += zimg } }
       }
+    }
+    if idx < 0 { 
+      if let zimg = zoomedImage(fname: name) { ret += zimg }
+      idx = ret.count - 1
     }
     return (idx, ret)
   }
@@ -123,6 +140,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     self.delegate = delegate
     self.imageTapped = imageTapped
     super.init() 
+    super.pinTopToSafeArea = false
   }
   
   required init?(coder: NSCoder) {
