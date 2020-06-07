@@ -16,6 +16,7 @@ public protocol ArticleVCdelegate: IssueInfo {
   var article2section: [String:[Section]] { get }
   func displaySection(index: Int)
   func linkPressed(from: URL?, to: URL?)
+  func closeIssue()
 }
 
 /// The Article view controller managing a collection of Article pages
@@ -26,15 +27,25 @@ open class ArticleVC: ContentVC {
     if let i = index { return articles[i] }
     return nil
   }
-  public var delegate: ArticleVCdelegate? {
-    didSet { if oldValue == nil { self.setup() } }
+  
+  public override var delegate: IssueInfo! {
+    didSet { 
+      guard let _ = delegate as? ArticleVCdelegate else {
+        fatal("ArticleVC.delegate must be of type ArticleVCdelegate")
+        return
+      }
+      if oldValue == nil { self.setup() } 
+    }
+  }
+  public var adelegate: ArticleVCdelegate? {
+    get { delegate as? ArticleVCdelegate }
+    set { delegate = newValue }
   }
   
   func setup() {
-    guard let delegate = self.delegate else { return }
+    guard let delegate = self.adelegate else { return }
     self.articles = delegate.issue.allArticles
-    super.setup(feeder: delegate.feeder, issue: delegate.issue, contents: articles, 
-                dloader: delegate.dloader, isLargeHeader: false)
+    super.setup(contents: articles, isLargeHeader: false)
     contentTable?.onSectionPress { [weak self] sectionIndex in
       guard let this = self else { return }
       if sectionIndex >= delegate.sections.count {
@@ -44,23 +55,24 @@ open class ArticleVC: ContentVC {
         this.debug("*** Action: Section \(sectionIndex) " +
           "(delegate.sections[sectionIndex])) in Slider pressed")
       }
-      this.delegate?.displaySection(index: sectionIndex)
+      delegate.displaySection(index: sectionIndex)
       this.navigationController?.popViewController(animated: false)
     }
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")
-      self?.delegate?.displaySection(index: 0)
+      self?.slider.close()
       self?.navigationController?.popViewController(animated: false)
+      self?.adelegate?.closeIssue()
     }
     onDisplay { [weak self] (idx) in
       self?.debug("on display: \(idx)")
       if let this = self {
-        this.delegate?.article = this.articles[idx]
+        this.adelegate?.article = this.articles[idx]
         this.setHeader(artIndex: idx)
       }
     }
     whenLinkPressed { [weak self] (from, to) in
-      self?.delegate?.linkPressed(from: from, to: to)
+      self?.adelegate?.linkPressed(from: from, to: to)
     }
 
   }
@@ -68,7 +80,7 @@ open class ArticleVC: ContentVC {
   // Define Header elements
   func setHeader(artIndex: Int) {
     if let art = article, 
-      let sections = delegate?.article2section[art.html.name],
+      let sections = adelegate?.article2section[art.html.name],
       sections.count > 0 {
       let section = sections[0]
       if let title = section.title, let articles = section.articles {

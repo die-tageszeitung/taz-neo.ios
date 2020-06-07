@@ -18,7 +18,7 @@ public protocol IssueVCdelegate {
   var pushToken: String? { get }
 }
 
-public class IssueVC: UIViewController, SectionVCdelegate {
+public class IssueVC: UIViewController, IssueInfo {
   
   /// The Feeder providing data (from delegate)
   public var gqlFeeder: GqlFeeder { return delegate.gqlFeeder }  
@@ -59,6 +59,11 @@ public class IssueVC: UIViewController, SectionVCdelegate {
 
   private var serverDownloadId: String?
   private var serverDownloadStart: UsTime?
+  
+  /// Reset list of Issues to the first (most current) one
+  public func resetIssueList() {
+    issueCarousel.index = 0
+  }
   
   /// Add moment image to carousel
   func addMoment(issue: Issue) {

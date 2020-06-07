@@ -123,13 +123,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
   public static let TopMargin: CGFloat = 65
   public static let BottomMargin: CGFloat = 34
 
+  public var delegate: IssueInfo!
   public var contentTable: ContentTableVC?
   public var contents: [Content] = []
-  public var feeder: Feeder { return contentTable!.feeder! }
-  public var issue: Issue { return contentTable!.issue! }
-  public var feed: Feed { return issue.feed }
-  public var downloader: Downloader!
-  public var dloader: Downloader { downloader }
+  public var feeder: Feeder { delegate.feeder }
+  public var issue: Issue { delegate.issue }
+  public var feed: Feed { issue.feed }
+  public var dloader: Downloader { delegate.dloader }
   lazy var slider = ButtonSlider(slider: contentTable!, into: self)
 
   public var toolBar = ContentToolbar()
@@ -157,6 +157,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
     { ContentVC._tazApiJs = File(dir: feeder.resourcesDir.path, fname: "tazApi.js") }
     return ContentVC._tazApiJs!
   }
+  
+  public func resetIssueList() { delegate.resetIssueList() }  
 
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin) {
@@ -310,10 +312,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
     super.init()
   }
   
-  public func setup(feeder: Feeder, issue: Issue, contents: [Content],
-                    dloader: Downloader, isLargeHeader: Bool) {
+  public func setup(contents: [Content], isLargeHeader: Bool) {
     self.contents = contents
-    self.downloader = dloader
     self.isLargeHeader = isLargeHeader
     self.contentTable!.feeder = feeder
     self.contentTable!.issue = issue
@@ -325,15 +325,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
     }
     onHome { [weak self] _ in
       self?.debug("*** Action: <Home> pressed")
+      self?.resetIssueList()
       self?.navigationController?.popToRootViewController(animated: true)
     }
   }
   
-  public convenience init(feeder: Feeder, issue: Issue, contents: [Content],
-                          dloader: Downloader, isLargeHeader: Bool) {
+  public convenience init(contents: [Content], isLargeHeader: Bool) {
     self.init()
-    setup(feeder: feeder, issue: issue, contents: contents, dloader: dloader,
-          isLargeHeader: isLargeHeader)
+    setup(contents: contents, isLargeHeader: isLargeHeader)
   }
   
   required public init?(coder: NSCoder) {

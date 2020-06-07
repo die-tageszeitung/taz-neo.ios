@@ -17,6 +17,8 @@ public protocol IssueInfo {
   var issue: Issue { get }
   /// The Downloader to get data from the Feeder
   var dloader: Downloader { get }
+  /// Reset the list of Issues to the most current issue
+  func resetIssueList()
 }
 
 public extension IssueInfo {

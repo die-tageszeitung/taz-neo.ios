@@ -8,9 +8,6 @@
 import UIKit
 import NorthLib
 
-/// The protocol used to communicate with calling VCs
-public protocol SectionVCdelegate: IssueInfo {}
-
 /// The Section view controller managing a collection of Section pages
 open class SectionVC: ContentVC, ArticleVCdelegate {
   
@@ -34,7 +31,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     }
   }
   
-  public var delegate: SectionVCdelegate? {
+  public override var delegate: IssueInfo! {
     didSet { if oldValue == nil { self.setup() } }
   }
   
@@ -85,13 +82,16 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     }
   }
   
+  public func closeIssue() {
+    self.navigationController?.popViewController(animated: false)
+  }
+  
   func setup() {
     guard let delegate = self.delegate else { return }
     self.sections = delegate.issue.sections ?? []
     var contents: [Content] = sections
     if let imp = delegate.issue.imprint { contents += imp }
-    super.setup(feeder: delegate.feeder, issue: delegate.issue, contents: contents, 
-                dloader: delegate.dloader, isLargeHeader: true)
+    super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
     contentTable?.onSectionPress { [weak self] sectionIndex in
@@ -107,7 +107,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")
       self?.slider.close()
-      self?.displaySection(index: 0)
+      self?.closeIssue()
     }
     onDisplay { [weak self] (secIndex) in
       self?.setHeader(secIndex: secIndex)
