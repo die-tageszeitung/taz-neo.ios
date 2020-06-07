@@ -180,8 +180,7 @@ class NavController: UINavigationController {
     if currentSection == nil {
       currentSection = from?.lastPathComponent
       if articleViews == nil {
-        articleViews = ContentVC(feeder: feeder, issue: issue!, contents: issue!.allArticles, 
-                                 dloader: dloader, isLargeHeader: false)
+        articleViews = ContentVC(contents: issue!.allArticles, isLargeHeader: false)
         articleViews!.contentTable?.onSectionPress { [weak self] sectionIndex in
           self?.article2section(index: sectionIndex)
         }
@@ -228,8 +227,7 @@ class NavController: UINavigationController {
   func pushSectionViews() {
     var contents: [Content] = issue!.sections!
     contents += issue!.imprint!
-    sectionViews = ContentVC(feeder: feeder, issue: issue!, contents: contents, 
-                             dloader: dloader, isLargeHeader: true)
+    sectionViews = ContentVC(contents: contents, isLargeHeader: true)
     article2sections = issue!.article2sectionHtml
     //let path = feeder.issueDir(issue: issue!).path
     sectionViews!.whenLinkPressed { [weak self] (from, link) in
