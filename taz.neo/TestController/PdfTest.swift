@@ -9,7 +9,6 @@ import UIKit
 import NorthLib
 
 class PdfTest: UIViewController {
-  var doc: PdfDoc = PdfDoc(fname: File(inMain: "s1.pdf")!.path)
   var imageView = ImageView()
   var pdfs = ["s1.pdf", "s2.pdf", "s3.pdf"]
   var current: Int?
