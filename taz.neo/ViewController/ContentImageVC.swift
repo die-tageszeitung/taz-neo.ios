@@ -9,6 +9,14 @@ import UIKit
 import NorthLib
 
 public class ZoomedImage: OptionalImage {
+  public func onHighResImgNeeded(zoomFactor: CGFloat, closure: @escaping (@escaping (UIImage?) -> ()) -> ()) {
+    //TBD
+  }
+  
+  public func onTap(closure: @escaping (Double, Double) -> ()) {
+    //TBD
+  }
+  
   /// The main image to display
   public var image: UIImage?
   /// An alternate image to display when the main image is not yet available
