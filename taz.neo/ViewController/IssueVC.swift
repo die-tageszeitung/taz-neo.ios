@@ -115,8 +115,10 @@ public class IssueVC: UIViewController, IssueInfo {
     // TODO: Check for stored Issues
     // TODO: store new issues in DB
     var newIssues = iss
-    if (issues.count > 0) && (issues.last!.date == newIssues.first!.date) {
-      newIssues.removeFirst()
+    if issues.count > 0 {
+      if issues.last!.date == newIssues.first!.date {
+        newIssues.removeFirst()
+      }
     }
     else { 
       issues = [] 
@@ -313,13 +315,15 @@ public class IssueVC: UIViewController, IssueInfo {
   
   public override func viewDidLoad() {
     super.viewDidLoad()
+    let dfl = Defaults.singleton
     view.backgroundColor = .black
     view.addSubview(issueCarousel)
     pin(issueCarousel.top, to: view.top)
     pin(issueCarousel.left, to: view.left)
     pin(issueCarousel.right, to: view.right)
     pin(issueCarousel.bottom, to: view.bottom, dist: -(80+UIWindow.bottomInset))
-    issueCarousel.carousel.scrollFromLeftToRight = false    
+    issueCarousel.carousel.scrollFromLeftToRight = 
+      dfl["carouselScrollFromLeft"]!.bool    
     issueCarousel.onTap { [weak self] idx in
       self?.downloadIssue(index: idx)
     }
@@ -334,6 +338,8 @@ public class IssueVC: UIViewController, IssueInfo {
     }
     issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in
       self.issueCarousel.carousel.scrollFromLeftToRight = !self.issueCarousel.carousel.scrollFromLeftToRight
+      dfl["carouselScrollFromLeft"] =
+        self.issueCarousel.carousel.scrollFromLeftToRight ? "true" : "false"
     }
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
