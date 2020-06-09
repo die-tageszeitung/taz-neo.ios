@@ -95,7 +95,8 @@ public extension FileEntry {
   
   func fileNameExists(inDir: String) -> Bool {
     let f = File(dir: inDir, fname: fileName)
-    return f.exists && (f.mTime == moTime) && (f.size == size)
+    let exists = f.exists
+    return exists
   }  
 
 }
