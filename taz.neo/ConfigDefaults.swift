@@ -27,4 +27,6 @@ public let ConfigDefaults = Defaults.Values([
   "textAlign" : "left",
   // Color mode - currently dark/light
   "colorMode" : "light",
+  // Carousel scroll from left to right
+  "carouselScrollFromLeft" : "false",
 ])
