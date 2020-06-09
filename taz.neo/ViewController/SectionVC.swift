@@ -114,6 +114,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     }
     articleVC = ArticleVC()
     articleVC?.delegate = self
+    super.showImageGallery = false
     whenLinkPressed { [weak self] (from, to) in
       self?.linkPressed(from: from, to: to)
     }

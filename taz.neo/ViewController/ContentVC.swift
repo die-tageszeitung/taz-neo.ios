@@ -131,7 +131,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
   public var feed: Feed { issue.feed }
   public var dloader: Downloader { delegate.dloader }
   lazy var slider = ButtonSlider(slider: contentTable!, into: self)
-
+  /// Whether to show all content images in a gallery
+  public var showImageGallery = true
   public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
   public var backButton = Button<LeftArrowView>()  
@@ -194,6 +195,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
         let current = self.contents[self.index!]
         let imgVC = ContentImageVC(content: current, delegate: self,
                                    imageTapped: img)
+        imgVC.showImageGallery = self.showImageGallery
         self.navigationController?.pushViewController(imgVC, animated: false)
       }
       return NSNull()
