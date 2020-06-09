@@ -35,6 +35,8 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   var delegate: IssueInfo
   /// The ZoomedImage
   var image: ZoomedImage?
+  /// Show an image gallery if available
+  var showImageGallery = true
   
   /// Light status bar because of black background
   override public var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -51,6 +53,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
         if err == nil { 
           image.image = UIImage(contentsOfFile: "\(path)/\(high.fileName)")
         } else { image.image = image.waitingImage }
+        self.debug("image \(high.fileName): \(image.image!.size)")
         image.isAvailable = true 
       }
     }
@@ -58,7 +61,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     return image
   } 
   
-  /// Create a ZoomedImage from a pair of images
+  /// Create a ZoomedImage from an image file name
   private func zoomedImage(fname: String) -> ZoomedImage? {
     let image = ZoomedImage()
     let path = delegate.feeder.issueDir(issue: delegate.issue).path
@@ -124,9 +127,17 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   
   private func setupImageCollectionVC() {
     if let img = self.imageTapped { 
-      let (n,images) = zoomedImages(content: self.content, name: img)
-      self.images = images
-      self.index = n
+      if showImageGallery {
+        let (n,images) = zoomedImages(content: self.content, name: img)
+        self.images = images
+        self.index = n
+      }
+      else {
+        if let image = zoomedImage(fname: img) {
+          self.images = [image]
+          self.index = 0
+        }
+      }
     }
     else { 
       self.images = zoomedImages(content: self.content)
