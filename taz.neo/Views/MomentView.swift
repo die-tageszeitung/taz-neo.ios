@@ -9,7 +9,7 @@ import UIKit
 import NorthLib
 
 /// A MomentView displays an Image, an optional Spinner and an
-/// optinal Menue.
+/// optional Menue.
 public class MomentView: UIView, Touchable {
   
   /// The ImageView
