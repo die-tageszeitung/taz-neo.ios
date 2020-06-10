@@ -9,14 +9,6 @@ import UIKit
 import NorthLib
 
 public class ZoomedImage: OptionalImage {
-  public func onHighResImgNeeded(zoomFactor: CGFloat, closure: @escaping (@escaping (UIImage?) -> ()) -> ()) {
-    //TBD
-  }
-  
-  public func onTap(closure: @escaping (Double, Double) -> ()) {
-    //TBD
-  }
-  
   /// The main image to display
   public var image: UIImage?
   /// An alternate image to display when the main image is not yet available
@@ -31,6 +23,9 @@ public class ZoomedImage: OptionalImage {
     get { return image != nil }
     set { if newValue { availableClosure?() } }
   }
+  public func onHighResImgNeeded(zoomFactor: CGFloat, closure: 
+    @escaping (@escaping (UIImage?) -> ()) -> ()) {}
+  public func onTap(closure: @escaping (Double, Double) -> ()) {}
 }
 
 public class ContentImageVC: ImageCollectionVC, CanRotate {
@@ -141,7 +136,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
         self.index = n
       }
       else {
-        if let image = zoomedImage(fname: img) {
+        if let image = zoomedImage(content: self.content, name: img) {
           self.images = [image]
           self.index = 0
         }
