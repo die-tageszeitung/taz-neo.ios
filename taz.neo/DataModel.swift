@@ -64,7 +64,7 @@ public enum FeederError: LocalizedError {
 /**
  A FileEntry describes a file as a member of a Feed or an Issue
  */
-public protocol FileEntry: DlFile, ToString {
+public protocol FileEntry: DlFile, ToString, DoesLog {
   /// Name of file (no path)
   var name: String { get }
   /// Storage type (global, issue, ...)
@@ -95,7 +95,10 @@ public extension FileEntry {
   
   func fileNameExists(inDir: String) -> Bool {
     let f = File(dir: inDir, fname: fileName)
-    let exists = f.exists
+    let exists = f.exists 
+    if exists && (f.mTime == moTime) && (f.size == size) {
+      log("* Warning: File \(fileName) exists but mtime and/or size are wrong")
+    }
     return exists
   }  
 
