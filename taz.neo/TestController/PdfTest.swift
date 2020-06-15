@@ -81,7 +81,7 @@ class PdfTest: ImageCollectionVC, CanRotate {
     
     for case let zoomedPdfImage as ZoomedPdfImage in self.images {
       /// **Optional:** generate preview Image
-      zoomedPdfImage.waitingImage = zoomedPdfImage.renderImageWithScale(scale: 0.25)
+      zoomedPdfImage.waitingImage = zoomedPdfImage.renderImageWithScale(scale: 0.125)
     }
 
     self.onX { [weak self] in
