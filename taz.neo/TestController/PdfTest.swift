@@ -14,7 +14,6 @@ import NorthLib
 class ZoomedPdfImage: OptionalImageItem, ZoomedPdfImageSpec {
   public private(set) var pdfFilename: String
   public private(set) var maxRenderingZoomScale: CGFloat
-  public var currentRenderingZoomScale: CGFloat?
   private var pdfPage: PdfPage?
   
   func renderImageWithScale(scale: CGFloat) -> UIImage?{
@@ -83,7 +82,6 @@ class PdfTest: ImageCollectionVC, CanRotate {
     for case let zoomedPdfImage as ZoomedPdfImage in self.images {
       /// **Optional:** generate preview Image
       zoomedPdfImage.waitingImage = zoomedPdfImage.renderImageWithScale(scale: 0.25)
-      zoomedPdfImage.currentRenderingZoomScale = 0.25
     }
 
     self.onX { [weak self] in
@@ -131,7 +129,6 @@ class PdfTest: ImageCollectionVC, CanRotate {
       
       DispatchQueue.main.async {
         zoomedPdfImage.image = img
-        zoomedPdfImage.currentRenderingZoomScale = nextZoomScale
       }
         print("sleep", zoomedPdfImage.pdfFilename)
         sleep(10)//10s
