@@ -20,8 +20,9 @@ class ZoomedPdfImage: OptionalImageItem, ZoomedPdfImageSpec {
     if scale > maxRenderingZoomScale { return nil }
     return pdfPage?.image(width: UIScreen.main.nativeBounds.width*scale)
   }
-  
-  public required init(pdfFilename: String, _ maxRenderingZoomScale : CGFloat = 8.0 ) {
+  //iPhone 6 iOS 12.2 crashes at 8x // iPhone X iOS 13 returns nil
+  //at 4x iPhone 6 allocates 400MB Memory due Render Image (ScreenScale 2x!) if user requests 2nd Image Render App will crash
+  public required init(pdfFilename: String, _ maxRenderingZoomScale : CGFloat = 4.0 ) {
     self.pdfFilename = pdfFilename
     self.maxRenderingZoomScale = maxRenderingZoomScale
     self.pdfPage = PdfDoc(fname: File(inMain: pdfFilename)!.path)[0]
@@ -64,18 +65,30 @@ class PdfTest: ImageCollectionVC, CanRotate {
       self.images.append(ZoomedPdfImage(pdfFilename: pdf))
     }
     
+    //ensure just one render high res image thread
+    let serialQueue = DispatchQueue(label: "pdfrender.detail.serial.queue",
+                                     qos: .userInitiated)
+    
     self.onHighResImgNeeded { (oimg, callback) in
       guard var pdf_img = oimg as? ZoomedPdfImageSpec else {
         ///Not implemented yet, wrong type for render Detail Image
         _ = callback(false)
         return
       }
-      DispatchQueue(label: "pdfrender.detail.serial.queue").async {
+      serialQueue.async {
+        let group = DispatchGroup()
+        group.enter()
+//        print("Do Render", Thread.current, pdf_img.pdfFilename)
         let img = pdf_img.renderImageWithNextScale()
-        DispatchQueue.main.async {
+//        print("Render done", Thread.current, pdf_img.pdfFilename)
+        DispatchQueue.main.async(){
           if img != nil {pdf_img.image = img}
           _ = callback(img != nil)
+          group.leave()
+//          print("Render callback done", Thread.current, pdf_img.pdfFilename)
         }
+        group.wait()
+//        print("Render done free thread", Thread.current, pdf_img.pdfFilename)
       }
     }
     
