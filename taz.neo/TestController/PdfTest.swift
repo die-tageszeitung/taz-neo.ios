@@ -18,7 +18,7 @@ class ZoomedPdfImage: OptionalImageItem, ZoomedPdfImageSpec {
   
   func renderImageWithScale(scale: CGFloat) -> UIImage?{
     if scale > maxRenderingZoomScale { return nil }
-    return pdfPage?.image(width: UIScreen.main.bounds.width*scale)
+    return pdfPage?.image(width: UIScreen.main.nativeBounds.width*scale)
   }
   
   public required init(pdfFilename: String, _ maxRenderingZoomScale : CGFloat = 8.0 ) {
