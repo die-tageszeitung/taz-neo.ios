@@ -23,6 +23,11 @@ public extension Date {
     return "\(Date.gWeekDays[dc.weekday!]), \(dc.day!)." +
            "\(dc.month!).\(dc.year!)"
   }  
+  
+  /// Returns String in German format: <weekday>, <day>.<month>.<year>
+  func gLowerDate(tz: String? = nil) -> String {
+    return gDate(tz: tz).lowercased()
+  }  
 
   /// Returns String in German format: <weekday>, <day>.<monthname> <year>
   func gDateString(tz: String? = nil) -> String {
