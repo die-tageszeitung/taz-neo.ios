@@ -8,24 +8,58 @@
 import UIKit
 import NorthLib
 
-fileprivate var LargeTitleFont = UIFont.boldSystemFont(ofSize: 28)
-fileprivate var SmallTitleFont = UIFont.boldSystemFont(ofSize: 20)
-fileprivate var SubTitleFont = UIFont.systemFont(ofSize: 14)
-fileprivate var LargeTopMargin = CGFloat(8)
-fileprivate var SmallTopMargin = CGFloat(16)
-fileprivate var DottedLineHeight = CGFloat(3)
-fileprivate var MiniViewHeight = CGFloat(20)
+fileprivate let LargeTitleFontSize = CGFloat(34)
+fileprivate let LargeTitleReducedFontSize = CGFloat(25)
+fileprivate let SmallTitleFontSize = CGFloat(16)
+fileprivate let PageNumberFontSize = CGFloat(14)
+fileprivate let SubTitleFontSize = CGFloat(16)
+fileprivate let MiniTitleFontSize = CGFloat(14)
+fileprivate let MiniPageNumberFontSize = CGFloat(12)
+
+fileprivate let LargeTopMargin = CGFloat(3)
+fileprivate let LargeReducedTopMargin = CGFloat(15)
+fileprivate let LineTopMargin = CGFloat(45)
+fileprivate let SmallTopMargin = CGFloat(24)
+fileprivate let DottedLineHeight = CGFloat(3)
+fileprivate let MiniViewHeight = CGFloat(20)
+fileprivate let RightMargin = CGFloat(16)
 
 
+/// The Header to show on top of sections and articles
 open class HeaderView: UIView {
   
   class Regular: UIView {
     
-    var title = UILabel()
+    var title = Label()
+    var titleFont: UIFont!
+    var reducedTitleFont: UIFont!
     var line = DottedLineView()
-    var subTitle: UILabel?
+    var subTitle: Label?
+    var subTitleFont: UIFont!
+    var pageNumber: Label?
+    var pageNumberFont: UIFont!
     var isLarge: Bool { return subTitle != nil }
     var leftIndent: NSLayoutConstraint?
+    var topIndent: NSLayoutConstraint?
+
+    /// Use large title font if in large mode  
+    var isLargeTitleFont = false {
+      didSet {
+        if isLarge {
+          if isLargeTitleFont {
+            title.font = titleFont
+            topIndent?.isActive = false
+            topIndent = pin(title.top, to: self.top, dist: LargeTopMargin)
+          } 
+          else {
+            title.font = reducedTitleFont
+            topIndent?.isActive = false
+            topIndent = pin(title.top, to: self.top, dist: LargeReducedTopMargin)
+          }
+        }
+      }
+    }
+
 
     func setup(isLarge: Bool) {
       self.backgroundColor = UIColor.white
@@ -33,50 +67,74 @@ open class HeaderView: UIView {
       self.addSubview(line)
       title.textAlignment = .right
       title.adjustsFontSizeToFitWidth = true
-      leftIndent = pin(title.left, to: self.left, dist: 8)
-      pin(title.right, to: self.right, dist: -8)
+      pin(title.right, to: self.right, dist: -RightMargin)
       pin(line.left, to: self.left, dist: 8)
-      pin(line.right, to: self.right, dist: -8)
-      pin(line.top, to: title.bottom, dist: 4)
+      pin(line.right, to: self.right, dist: -RightMargin)
+      pin(line.top, to: self.top, dist: LineTopMargin)
       line.pinHeight(DottedLineHeight)
       if isLarge {
-        let sub = UILabel()
+        let sub = Label()
         subTitle = sub
         sub.textAlignment = .right
         self.addSubview(sub)
-        title.font = LargeTitleFont
-        sub.font = SubTitleFont
-        pin(sub.top, to: line.bottom, dist: 4)
+        titleFont = AppFonts.titleFont(size: LargeTitleFontSize)
+        reducedTitleFont = AppFonts.titleFont(size: LargeTitleReducedFontSize)
+        subTitleFont = AppFonts.contentFont(size: SubTitleFontSize)
+        sub.font = subTitleFont
+        isLargeTitleFont = false
+        pin(sub.top, to: line.bottom, dist: 0)
         pin(sub.left, to: self.left, dist: 8)
-        pin(sub.right, to: self.right, dist: -8)
-        pin(title.top, to: self.top, dist: LargeTopMargin)
-        pin(self.bottom, to: sub.bottom, dist: 8)        
+        pin(sub.right, to: self.right, dist: -RightMargin)
+        pin(self.bottom, to: sub.bottom, dist: 12)        
+        leftIndent = pin(title.left, to: self.left, dist: 8)
       }
       else {
-        title.font = SmallTitleFont
-        pin(title.top, to: self.top, dist: SmallTopMargin)
-        pin(self.bottom, to: line.bottom, dist: 8)        
+        let pgn = Label()
+        pageNumber = pgn
+        pageNumberFont = AppFonts.contentFont(size: PageNumberFontSize)
+        pgn.font = pageNumberFont
+        self.addSubview(pgn)
+        pin(pgn.bottom, to: title.bottom, dist: -1)
+        pin(pgn.right, to: title.left, dist: -6)
+        titleFont = AppFonts.titleFont(size: SubTitleFontSize)
+        title.font = titleFont
+        topIndent = pin(title.top, to: self.top, dist: SmallTopMargin)
+        pin(self.bottom, to: title.bottom, dist: 20)        
       }
     }
   } // Regular
   
   class Mini: UIView {
-    var title = UILabel()
+    var title = Label()
+    var titleFont: UIFont!
+    var pageNumber = Label()
+    var pageNumberFont: UIFont!
     
     func setup() {
       self.backgroundColor = UIColor.white
       self.addSubview(title)
       title.textAlignment = .center
       title.adjustsFontSizeToFitWidth = true
-      title.font = SubTitleFont
-      pin(title.left, to: self.left, dist: 8)
-      pin(title.right, to: self.right, dist: -8)
+      titleFont = AppFonts.contentFont(size: MiniTitleFontSize)
+      title.font = titleFont
+      pageNumberFont = AppFonts.contentFont(size: MiniPageNumberFontSize)
+      pageNumber.font = pageNumberFont
+      pin(title.right, to: self.right, dist: -RightMargin)
       pin(title.top, to: self.top)
+      self.addSubview(pageNumber)
+      pin(pageNumber.bottom, to: title.bottom, dist: -1)
+      pin(pageNumber.right, to: title.left, dist: -4)
     }
   } // Mini
   
   var regular = Regular()
   var mini = Mini()
+
+  /// Use large title font if in large mode  
+  public var isLargeTitleFont: Bool {
+    get { return regular.isLargeTitleFont }
+    set { regular.isLargeTitleFont = newValue }
+  }
   
   public var isDarkMode: Bool = false {
     didSet {
@@ -110,11 +168,21 @@ open class HeaderView: UIView {
     }
   }
   
+  public var pageNumber: String? {
+    get { return regular.pageNumber?.text ?? "" }
+    set { 
+      regular.pageNumber?.text = newValue 
+      if isAutoMini { mini.pageNumber.text = newValue }
+    }
+  }
+  
   public var leftIndent: CGFloat {
     get { regular.leftIndent?.constant ?? 0 }
     set {
-      regular.leftIndent?.isActive = false
-      regular.leftIndent = pin(regular.title.left, to: regular.left, dist: newValue)
+      if regular.isLarge {
+        regular.leftIndent?.isActive = false
+        regular.leftIndent = pin(regular.title.left, to: regular.left, dist: newValue)
+      }
     }
   }
   
@@ -133,6 +201,24 @@ open class HeaderView: UIView {
   
   private var regularTop: NSLayoutConstraint?
   private var miniTop: NSLayoutConstraint?
+  private var mainBottom: NSLayoutConstraint?
+  
+  private var onTitleClosure: ((String?)->())?
+  
+  /// Define closure to call if a title has been touched
+  public func onTitle(closure: @escaping (String?)->()) {
+    onTitleClosure = closure
+    setupTap()
+  }
+  
+  private func setupTap() {
+    regular.title.onTap {_ in 
+      self.onTitleClosure?(self.regular.title.text)
+    }
+    mini.title.onTap {_ in 
+      self.onTitleClosure?(self.regular.title.text)
+    }
+  }
   
   private func setup(isLarge: Bool) {
     self.backgroundColor = UIColor.white
@@ -147,6 +233,7 @@ open class HeaderView: UIView {
     pin(regular.left, to: self.left)
     pin(regular.right, to: self.right)
     regularTop = pin(regular.top, to: self.top)
+    mainBottom = pin(self.bottom, to: regular.bottom)
     miniTitle = nil
     title = ""
     subTitle = ""
@@ -179,11 +266,13 @@ open class HeaderView: UIView {
           guard let this = self else { return }
           this.miniTop?.isActive = false
           this.miniTop = pin(this.mini.top, to: this.top)
+          this.mainBottom?.isActive = false
+          this.mainBottom = pin(this.bottom, to: this.mini.bottom)
           superview.layoutIfNeeded()
         }
       }
     }
-    else {
+    else { // unhide
       var delay: Double = 0
       if isMini {
         delay = 0.2
@@ -191,6 +280,8 @@ open class HeaderView: UIView {
           guard let this = self else { return }
           this.miniTop?.isActive = false
           this.miniTop = pin(this.mini.top, to: this.top, dist: -(40+MiniViewHeight))
+          this.mainBottom?.isActive = false
+          this.mainBottom = pin(this.bottom, to: this.regular.bottom)
           superview.layoutIfNeeded()
         }
       }
