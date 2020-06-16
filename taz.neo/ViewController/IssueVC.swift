@@ -276,7 +276,7 @@ public class IssueVC: UIViewController, IssueInfo {
   func setLabel(idx: Int, isRotate: Bool = false) {
     guard idx >= 0 && idx < self.issues.count else { return }
     let issue = self.issues[idx]
-    var sdate = issue.date.gDate(tz: self.feeder.timeZone)
+    var sdate = issue.date.gLowerDate(tz: self.feeder.timeZone)
     if !issue.isComplete { sdate += " \u{2601}" }
     if isRotate {
       if let last = self.lastIndex, last != idx {
@@ -341,6 +341,7 @@ public class IssueVC: UIViewController, IssueInfo {
       dfl["carouselScrollFromLeft"] =
         self.issueCarousel.carousel.scrollFromLeftToRight ? "true" : "false"
     }
+    issueCarousel.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
       self.setLabel(idx: idx, isRotate: true)
