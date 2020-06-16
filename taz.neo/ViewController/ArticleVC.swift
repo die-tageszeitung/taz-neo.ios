@@ -74,7 +74,10 @@ open class ArticleVC: ContentVC {
     whenLinkPressed { [weak self] (from, to) in
       self?.adelegate?.linkPressed(from: from, to: to)
     }
-
+    header.onTitle { [weak self] _ in
+      self?.debug("*** Action: ToSection pressed")
+      self?.navigationController?.popViewController(animated: true)
+    }
   }
     
   // Define Header elements
@@ -89,7 +92,8 @@ open class ArticleVC: ContentVC {
           if a.html.name == article?.html.name { break }
           i += 1
         }
-        header.title = "\(i+1)/\(articles.count)  \(title)"
+        header.title = "\(title)"
+        header.pageNumber = "\(i+1)/\(articles.count)"
       }        
     }
   }
