@@ -16,7 +16,7 @@ class LocalStartupView: UIView {
     startupLogo = UIImage(named: "StartupLogo")
     imageView = UIImageView(image: startupLogo)
     super.init(frame: frame)
-    backgroundColor = AppColors.tazRot
+    backgroundColor = AppColors.ciColor
     if let iv = imageView {
       addSubview(iv)
       pin(iv.centerX, to: self.centerX)
