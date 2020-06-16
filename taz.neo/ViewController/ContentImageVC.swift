@@ -128,6 +128,13 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     imageView.onX { self.popVC(setPortrait: true) }
   }
   
+  private func exportImage() {
+    if let img = self.images[self.index!] as? ZoomedImage {
+      let dialogue = ExportDialogue<Any>()
+      dialogue.present(item: img.image!, subject: "Bild")
+    }
+  }
+  
   private func setupImageCollectionVC() {
     if let img = self.imageTapped { 
       if showImageGallery {
@@ -147,6 +154,10 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
       self.index = 0
     }
     self.onX { self.popVC(setPortrait: true) }
+    self.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
+      self.exportImage()
+    }
+    self.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
   }
   
   public init(content: Content, delegate: IssueInfo, imageTapped: String? = nil) {
