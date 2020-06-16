@@ -511,8 +511,6 @@ public protocol Moment: ToString {
   var creditedImages: [ImageEntry] { get }
   /// A number of files comprising an animation e.g. a gif file
   var animation: [FileEntry] { get }
-  /// Especially for gif files the duration of the animation
-  var animationDuration: Float? { get }
 }
 
 public extension Moment {
