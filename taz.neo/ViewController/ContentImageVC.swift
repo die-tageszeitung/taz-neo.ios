@@ -16,7 +16,7 @@ public class ZoomedImage: OptionalImage {
   /// Returns true if 'image' is available
   private var availableClosure: (()->())?
   /// Defines a closure to call when the main image becomes available
-  public func whenAvailable(closure: @escaping ()->()) {
+  public func whenAvailable(closure: (() -> ())?) {
     self.availableClosure = closure
   }
   public var isAvailable: Bool {

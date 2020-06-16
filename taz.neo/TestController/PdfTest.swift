@@ -8,14 +8,24 @@
 import UIKit
 import NorthLib
 
-
-public class ZoomedPdfImage: OptionalImageItem {
+/// OptionalImage extension to use pdf's an renders the images from pdf
+/// only used page 1 at index 0 by default
+/// provides functionallity to render the image in requested zoom scale
+class ZoomedPdfImage: OptionalImageItem, ZoomedPdfImageSpec {
+  public private(set) var pdfFilename: String
+  public private(set) var maxRenderingZoomScale: CGFloat
+  private var pdfPage: PdfPage?
   
-  public var pdfFilename: String?
-  public var detailZoomScale: CGFloat?
-  
-  public required init(pdfFilename: String?) {
+  func renderImageWithScale(scale: CGFloat) -> UIImage?{
+    if scale > maxRenderingZoomScale { return nil }
+    return pdfPage?.image(width: UIScreen.main.nativeBounds.width*scale)
+  }
+  //iPhone 6 iOS 12.2 crashes at 8x // iPhone X iOS 13 returns nil
+  //at 4x iPhone 6 allocates 400MB Memory due Render Image (ScreenScale 2x!) if user requests 2nd Image Render App will crash
+  public required init(pdfFilename: String, _ maxRenderingZoomScale : CGFloat = 4.0 ) {
     self.pdfFilename = pdfFilename
+    self.maxRenderingZoomScale = maxRenderingZoomScale
+    self.pdfPage = PdfDoc(fname: File(inMain: pdfFilename)!.path)[0]
   }
   
   required init(waitingImage: UIImage? = nil) {
@@ -51,64 +61,91 @@ class PdfTest: ImageCollectionVC, CanRotate {
     self.view.backgroundColor = UIColor.red
     self.collectionView.backgroundColor = UIColor.blue
     
-    
-    for pdf in ["s1.pdf", "s2.pdf", "s3.pdf"] {
+    for pdf in ["s1.pdf", "s2.pdf", "s3.pdf", "s1.pdf", "s2.pdf", "s3.pdf"] {
       self.images.append(ZoomedPdfImage(pdfFilename: pdf))
     }
     
-    for zoomedPdfImage in self.images {
-      guard let zoomedPdfImage = zoomedPdfImage as? ZoomedPdfImage,
-        let filename = zoomedPdfImage.pdfFilename else { continue }
+    //ensure just one render high res image thread
+    let serialQueue = DispatchQueue(label: "pdfrender.detail.serial.queue",
+                                     qos: .userInitiated)
+    
+    self.onHighResImgNeeded { (oimg, callback) in
+      guard var pdf_img = oimg as? ZoomedPdfImageSpec else {
+        ///Not implemented yet, wrong type for render Detail Image
+        _ = callback(false)
+        return
+      }
+      serialQueue.async {
+        let group = DispatchGroup()
+        group.enter()
+//        print("Do Render", Thread.current, pdf_img.pdfFilename)
+        let img = pdf_img.renderImageWithNextScale()
+//        print("Render done", Thread.current, pdf_img.pdfFilename)
+        DispatchQueue.main.async(){
+          if img != nil {pdf_img.image = img}
+          _ = callback(img != nil)
+          group.leave()
+//          print("Render callback done", Thread.current, pdf_img.pdfFilename)
+        }
+        group.wait()
+//        print("Render done free thread", Thread.current, pdf_img.pdfFilename)
+      }
+    }
+    
+    for case let zoomedPdfImage as ZoomedPdfImage in self.images {
       /// **Optional:** generate preview Image
-      zoomedPdfImage.waitingImage = PdfDoc(fname: File(inMain: filename)!.path)[0]?
-        .image(width: UIScreen.main.bounds.width/4)
-      zoomedPdfImage.detailZoomScale = 0.25
-      ///append HighResRequested Handler
-      zoomedPdfImage.onHighResImgNeeded(zoomFactor: 1.1) { (callback: @escaping (UIImage?) -> ()) in
-        DispatchQueue(label: "pdfrender.detail.serial.queue").async {
-          guard let filename = zoomedPdfImage.pdfFilename else { return }
-          let nextZoomScale = (zoomedPdfImage.detailZoomScale ?? 0) * 2
-          print("nextZoomScale:", nextZoomScale)
-          let img = PdfDoc(fname: File(inMain: filename)!.path)[0]?
-            .image(width: UIScreen.main.bounds.width*nextZoomScale)
-          zoomedPdfImage.detailZoomScale = nextZoomScale
-          DispatchQueue.main.async {
-            if img?.size == CGSize.zero {
-              self.error("PDF Renderer returned Empty Image,"
-                      + " this happens in high Zoom Scales!")
-              callback(nil)
+      zoomedPdfImage.waitingImage = zoomedPdfImage.renderImageWithScale(scale: 0.125)
+    }
+
+    self.onX { [weak self] in
+      guard let strongSelf = self else { return }
+      if strongSelf.addedOnTap {
+        print("removed Tap Recogniser for all Items!")
+        strongSelf.onTap(closure: nil)
+      }
+      else {
+        print("added Tap Recogniser for all Items!")
+        strongSelf.onTap { (oImg, x, y) in
+          let filename : String = {
+            if let zPdfI = oImg as? ZoomedPdfImage {
+              return zPdfI.pdfFilename
             }
-            else {
-              self.error("PDF Renderer returned Image:"
-                       + " \(String.init(describing: img))")
-               callback(img)
-            }
-          }
+            return "-"
+          }()
+          print("You Tapped at: \(x)/\(y) in: \(filename)")
         }
       }
-      
-      zoomedPdfImage.onTap { (x, y) in
-        self.log("You Tapped at: \(x),\(y)"
-               + " in \(zoomedPdfImage.pdfFilename ?? "-")")
-      }
-      
-      DispatchQueue(label: "pdfrender.serial.queue").async {
-        self.renderInitialPdfs()
-      }
+      strongSelf.addedOnTap = !strongSelf.addedOnTap
+    }
+    
+    //Prerender if needed!
+    DispatchQueue(label: "PdfTest.viewDidLoad.prerender.detail.queue").async {
+      self.renderInitialPdfs()
     }
   }
+  
+  private var addedOnTap = false//For self.onX Demo above
   
   private func renderInitialPdfs(){
-    for zoomedPdfImage in self.images {
-      guard let zoomedPdfImage = zoomedPdfImage as? ZoomedPdfImage,
-        let filename = zoomedPdfImage.pdfFilename else { continue }
-      let img = PdfDoc(fname: File(inMain: filename)!.path)[0]?
-        .image(width: UIScreen.main.bounds.width*2)
+    for case let zoomedPdfImage as ZoomedPdfImage in self.images {
+      if zoomedPdfImage.image != nil { continue }
+      let nextZoomScale : CGFloat = 1
+      let img = zoomedPdfImage.renderImageWithScale(scale: nextZoomScale)
+      if img == nil {
+        self.debug("PDF Pre-Renderer returned no Image:"
+          + " \(String.init(describing: img)) at zoomScale: \(nextZoomScale)")
+        continue
+      }
+      
+      self.debug("PDF Pre-Renderer Image:"
+      + " \(String.init(describing: img)) with zoomScale: \(nextZoomScale)")
+      
       DispatchQueue.main.async {
         zoomedPdfImage.image = img
-        zoomedPdfImage.detailZoomScale = 2
       }
+        print("sleep", zoomedPdfImage.pdfFilename)
+        sleep(10)//10s
+        print("sleep done")
     }
   }
-  
 } // PdfTest
