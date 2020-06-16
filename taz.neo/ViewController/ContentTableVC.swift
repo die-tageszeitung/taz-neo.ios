@@ -16,7 +16,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   static var ShadowColor = UIColor.black
   static var SectionColor = UIColor.rgb(0xd50d2e)
   static var ArticleColor = UIColor.darkGray
-  static var DateColor = UIColor.darkGray
+  static var DateColor = UIColor.black
   static var IsDarkMode = false
   static var TextFont = UIFont.boldSystemFont(ofSize: 18)
   static var DateTextFont = UIFont.systemFont(ofSize: 14)
@@ -121,7 +121,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   fileprivate func resetIssue() {
     if let issue = issue, let feeder = feeder, let label = issueDateLabel,
       let tableView = contentTableView {
-      label.text = issue.date.gDate(tz: feeder.timeZone)
+      label.text = issue.date.gLowerDate(tz: feeder.timeZone)
       tableView.reloadData() 
     }
   } 
@@ -134,7 +134,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
       momentView.image = image
       momentWidth?.isActive = false
       momentHeight?.isActive = false
-      momentWidth = momentView.pinWidth(ContentTableVC.ImageWidth)
+      momentWidth = momentView.pinWidth(to: self.view.width, factor: 0.5)
       let factor = image.size.width / ContentTableVC.ImageWidth
       let height = image.size.height / factor
       momentHeight = momentView.pinHeight(height)
