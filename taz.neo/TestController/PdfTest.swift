@@ -4,7 +4,7 @@
 //  Created by Norbert Thies on 08.06.20.
 //  Copyright © 2020 Norbert Thies. All rights reserved.
 //
-
+/*
 import UIKit
 import NorthLib
 
@@ -149,3 +149,4 @@ class PdfTest: ImageCollectionVC, CanRotate {
     }
   }
 } // PdfTest
+*/
