@@ -42,16 +42,22 @@ public struct AppColors {
 /// Various App specific font values
 public struct AppFonts {
   
-  /// The font to use for content
-  static func contentFont(size: CGFloat) -> UIFont {
-    UIFont.new(name: "Aktiv Grotesk", size: size) ??
-      UIFont.systemFont(ofSize: size)
+  static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
+  static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
+  
+  static func font(name: String?, size: CGFloat) -> UIFont {
+    var font: UIFont? = nil
+    if let name = name { font = UIFont(name: name, size: size) }
+    if font == nil { font = UIFont.systemFont(ofSize: size) }
+    return font!
   }
   
+  /// The font to use for content
+  static func contentFont(size: CGFloat) -> UIFont 
+    { return font(name: contentFontName, size: size) }
+  
   /// The font to use in titles
-  static func titleFont(size: CGFloat) -> UIFont {
-    UIFont.new(name: "Aktiv Grotesk Bold", size: size) ??
-      UIFont.boldSystemFont(ofSize: size)
-  }
+  static func titleFont(size: CGFloat) -> UIFont
+    { return font(name: titleFontName, size: size) }
   
 }
