@@ -118,7 +118,8 @@ class UITests: UIViewController {
     print("release:  \(Utsname.release)")
     print("version:  \(Utsname.version)")
     print("machine:  \(Utsname.machine)")
-    if let font = UIFont.new(name: "Aktiv Grotesk Bold", size: 14) {
+    if let fontName = UIFont.register(name: "Aktiv Grotesk Bold"),
+       let font = UIFont(name: fontName, size: 20) {
       let label = UILabel()
       label.font = font
       label.text = "Family: \(font.familyName), Name: \(font.fontName)"
