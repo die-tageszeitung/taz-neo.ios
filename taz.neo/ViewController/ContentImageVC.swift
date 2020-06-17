@@ -9,6 +9,7 @@ import UIKit
 import NorthLib
 
 public class ZoomedImage: OptionalImage {
+    
   /// The main image to display
   public var image: UIImage?
   /// An alternate image to display when the main image is not yet available
@@ -16,15 +17,15 @@ public class ZoomedImage: OptionalImage {
   /// Returns true if 'image' is available
   private var availableClosure: (()->())?
   /// Defines a closure to call when the main image becomes available
-  public func whenAvailable(closure: (() -> ())?) {
+  public func whenAvailable(closure: @escaping () -> ()) {
     self.availableClosure = closure
   }
   public var isAvailable: Bool {
     get { return image != nil }
     set { if newValue { availableClosure?() } }
   }
-  public func onHighResImgNeeded(zoomFactor: CGFloat, closure: 
-    @escaping (@escaping (UIImage?) -> ()) -> ()) {}
+  public func onHighResImgNeeded(zoomFactor: CGFloat, closure: @escaping
+    (@escaping (UIImage?) -> ()) -> ()) {}  
   public func onTap(closure: @escaping (Double, Double) -> ()) {}
 }
 
