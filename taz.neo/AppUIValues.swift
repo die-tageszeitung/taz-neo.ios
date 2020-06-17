@@ -23,7 +23,7 @@ public struct AppColors {
     static let CTBackground = UIColor.white
     static let CTSection = ciColor
     static let CTArticle = UIColor.darkGray
-    static let CTDate = CTArticle
+    static let CTDate = UIColor.black
     static let HBackground = UIColor.white
     static let HText = UIColor.black
   }
@@ -32,7 +32,7 @@ public struct AppColors {
     static let CTBackground = darkSecondaryBG
     static let CTSection = darkSecondaryText
     static let CTArticle = UIColor.rgb(0xacace0)
-    static let CTDate = CTArticle
+    static let CTDate = UIColor.white
     static let HBackground = darkSecondaryBG
     static let HText = darkSecondaryText
   }
