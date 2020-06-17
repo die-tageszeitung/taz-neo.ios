@@ -163,7 +163,8 @@ class MainNC: NavigationController, IssueVCdelegate,
         }
       }
     ]
-    Alert.actionSheet(title: "Beta-Test", actions: actions)
+    Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)", 
+      actions: actions)
   }
   
   func setupTopMenus() {
