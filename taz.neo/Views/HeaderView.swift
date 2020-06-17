@@ -10,17 +10,17 @@ import NorthLib
 
 fileprivate let LargeTitleFontSize = CGFloat(34)
 fileprivate let LargeTitleReducedFontSize = CGFloat(25)
-fileprivate let SmallTitleFontSize = CGFloat(16)
+fileprivate let SmallTitleFontSize = CGFloat(18)
 fileprivate let PageNumberFontSize = CGFloat(14)
 fileprivate let SubTitleFontSize = CGFloat(16)
 fileprivate let MiniTitleFontSize = CGFloat(14)
 fileprivate let MiniPageNumberFontSize = CGFloat(12)
 
 fileprivate let LargeTopMargin = CGFloat(3)
-fileprivate let LargeReducedTopMargin = CGFloat(15)
+fileprivate let LargeReducedTopMargin = CGFloat(13)
 fileprivate let LineTopMargin = CGFloat(45)
-fileprivate let SmallTopMargin = CGFloat(24)
-fileprivate let DottedLineHeight = CGFloat(3)
+fileprivate let SmallTopMargin = CGFloat(19)
+fileprivate let DottedLineHeight = CGFloat(2.4)
 fileprivate let MiniViewHeight = CGFloat(20)
 fileprivate let RightMargin = CGFloat(16)
 
@@ -82,7 +82,7 @@ open class HeaderView: UIView {
         subTitleFont = AppFonts.contentFont(size: SubTitleFontSize)
         sub.font = subTitleFont
         isLargeTitleFont = false
-        pin(sub.top, to: line.bottom, dist: 0)
+        pin(sub.top, to: line.bottom, dist: 1)
         pin(sub.left, to: self.left, dist: 8)
         pin(sub.right, to: self.right, dist: -RightMargin)
         pin(self.bottom, to: sub.bottom, dist: 12)        
@@ -94,7 +94,7 @@ open class HeaderView: UIView {
         pageNumberFont = AppFonts.contentFont(size: PageNumberFontSize)
         pgn.font = pageNumberFont
         self.addSubview(pgn)
-        pin(pgn.bottom, to: title.bottom, dist: -1)
+        pin(pgn.top, to: self.top, dist: SmallTopMargin + 2)
         pin(pgn.right, to: title.left, dist: -6)
         titleFont = AppFonts.titleFont(size: SubTitleFontSize)
         title.font = titleFont
