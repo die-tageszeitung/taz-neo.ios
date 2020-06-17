@@ -28,7 +28,6 @@
 		AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9F6245421AC0043F497 /* WebViewTests.swift */; };
 		AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9FA245497F80043F497 /* IntroVC.swift */; };
 		AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE80A3942449C3250012DFFA /* IssueVC.swift */; };
-		AE864870248E274F007096B4 /* PdfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE86486F248E274F007096B4 /* PdfTest.swift */; };
 		AE864872248E3162007096B4 /* s1.pdf in Resources */ = {isa = PBXBuildFile; fileRef = AE864871248E3162007096B4 /* s1.pdf */; };
 		AE864874248E3168007096B4 /* s2.pdf in Resources */ = {isa = PBXBuildFile; fileRef = AE864873248E3168007096B4 /* s2.pdf */; };
 		AE864876248E316D007096B4 /* s3.pdf in Resources */ = {isa = PBXBuildFile; fileRef = AE864875248E316D007096B4 /* s3.pdf */; };
@@ -41,6 +40,7 @@
 		AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58E219ACFAC00566205 /* AppDelegate.swift */; };
 		AEBAF59C219ACFAC00566205 /* NavController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF591219ACFAC00566205 /* NavController.swift */; };
 		AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AB219ACFD900566205 /* ContentVC.swift */; };
+		AEC7D467249920DF008630FB /* PdfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE86486F248E274F007096B4 /* PdfTest.swift */; };
 		AECCE11823FBD006007C2276 /* ArticleVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B323F6B01A00EAFE78 /* ArticleVC.swift */; };
 		AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */; };
 		AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainNC.swift */; };
@@ -390,7 +390,7 @@
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
-				AE864870248E274F007096B4 /* PdfTest.swift in Sources */,
+				AEC7D467249920DF008630FB /* PdfTest.swift in Sources */,
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
@@ -568,7 +568,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020061601;
+				CURRENT_PROJECT_VERSION = 2020061602;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
@@ -594,7 +594,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020061601;
+				CURRENT_PROJECT_VERSION = 2020061602;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
