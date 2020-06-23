@@ -44,13 +44,13 @@ public struct AppFonts {
   
   /// The font to use for content
   static func contentFont(size: CGFloat) -> UIFont {
-    UIFont.new(name: "Aktiv Grotesk", size: size) ??
+    UIFont(name: "Aktiv Grotesk", size: size) ??
       UIFont.systemFont(ofSize: size)
   }
   
   /// The font to use in titles
   static func titleFont(size: CGFloat) -> UIFont {
-    UIFont.new(name: "Aktiv Grotesk Bold", size: size) ??
+    UIFont(name: "Aktiv Grotesk Bold", size: size) ??
       UIFont.boldSystemFont(ofSize: size)
   }
   
