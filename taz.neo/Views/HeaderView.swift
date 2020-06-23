@@ -282,14 +282,14 @@ open class HeaderView: UIView {
           this.miniTop = pin(this.mini.top, to: this.top, dist: -(40+MiniViewHeight))
           this.mainBottom?.isActive = false
           this.mainBottom = pin(this.bottom, to: this.regular.bottom)
-          superview.layoutIfNeeded()
+          this.layoutIfNeeded()
         }
       }
       UIView.animate(seconds: 0.5, delay: delay) { [weak self] in
         guard let this = self else { return }
         this.regularTop?.isActive = false
         this.regularTop = pin(this.regular.top, to: this.top)
-        superview.layoutIfNeeded()
+        this.layoutIfNeeded()
       }
     }
   }
