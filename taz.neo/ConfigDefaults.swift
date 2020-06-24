@@ -11,7 +11,6 @@ import NorthLib
 /**
  Configuration variables and default values to store in Apple's UserDefaults
  */
-
 public let ConfigDefaults = Defaults.Values([
   // shall text notifications be displayed on notification screen
   "isTextNotification" : "true", 
@@ -29,4 +28,10 @@ public let ConfigDefaults = Defaults.Values([
   "colorMode" : "light",
   // Carousel scroll from left to right
   "carouselScrollFromLeft" : "false",
+  // Use mobile networks
+  "useMobile" : "true",
+  // Automtically download new issues
+  "autoDownload" : "true",
+  // Allow automatic download over mobile networks
+  "autoMobileDownloads" : "false",
 ])
