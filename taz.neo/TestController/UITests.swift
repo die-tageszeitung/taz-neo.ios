@@ -59,26 +59,26 @@ class UITests: UIViewController {
       print(symButton.frame)      
     }
     //buildPinExample()
-//    let label = UILabel()
-//    label.font = UIFont(name: "TazAppIcons-Regular", size: 16)!
-//    label.text = "ALSXabcdehilstvx"
-//    label.backgroundColor = UIColor.rgb(0xdddddd)
-//    self.view.addSubview(label)
-//    pin(label.centerX, to: self.view.centerX)
-//    pin(label.centerY, to: self.view.centerY)
-//    let biv = Button<SImageView>()
-//    let iv = biv.buttonView
-//      iv.symbol = "trash"
-//      view.addSubview(biv)
-//      pin(biv.centerX, to: self.view.centerX)
-//      pin(biv.centerY, to: self.view.centerY)
-//      biv.pinWidth(100)
-//      biv.pinHeight(100)
-//      biv.backgroundColor = .blue
-//      iv.backgroundColor = .yellow
-//      biv.onPress {_ in
-//        print("button press")
-//      }
+    //    let label = UILabel()
+    //    label.font = UIFont(name: "TazAppIcons-Regular", size: 16)!
+    //    label.text = "ALSXabcdehilstvx"
+    //    label.backgroundColor = UIColor.rgb(0xdddddd)
+    //    self.view.addSubview(label)
+    //    pin(label.centerX, to: self.view.centerX)
+    //    pin(label.centerY, to: self.view.centerY)
+    //    let biv = Button<SImageView>()
+    //    let iv = biv.buttonView
+    //      iv.symbol = "trash"
+    //      view.addSubview(biv)
+    //      pin(biv.centerX, to: self.view.centerX)
+    //      pin(biv.centerY, to: self.view.centerY)
+    //      biv.pinWidth(100)
+    //      biv.pinHeight(100)
+    //      biv.backgroundColor = .blue
+    //      iv.backgroundColor = .yellow
+    //      biv.onPress {_ in
+    //        print("button press")
+    //      }
     
   }
   
@@ -118,15 +118,46 @@ class UITests: UIViewController {
     print("release:  \(Utsname.release)")
     print("version:  \(Utsname.version)")
     print("machine:  \(Utsname.machine)")
+    var offset : CGFloat = 20
+    let demo = "\nAaBbCcDdEeFfGgHh@§$%&?ßöäü"
+    //    static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
+    //    static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
     if let fontName = UIFont.register(name: "Aktiv Grotesk Bold"),
-       let font = UIFont(name: fontName, size: 20) {
+      let font = UIFont(name: fontName, size: 20) {
       let label = UILabel()
       label.font = font
-      label.text = "Family: \(font.familyName), Name: \(font.fontName)"
+      label.text = "Family: \(font.familyName), \nName: \(font.fontName)\(demo)"
+      label.numberOfLines = 3
       self.view.addSubview(label)
-      pin(label.top, to: self.view.topGuide(), dist: 20)
+      pin(label.top, to: self.view.topGuide(), dist: offset)
       pin(label.left, to: self.view.leftGuide(), dist: 20)
+      pin(label.right, to: self.view.rightGuide(), dist: 20)
+      offset += 90
     }
+    
+    if let fontName = UIFont.register(name: "Aktiv Grotesk"),
+      let font = UIFont(name: fontName, size: 20) {
+      let label = UILabel()
+      label.font = font
+      label.text = "Family: \(font.familyName), \nName: \(font.fontName)\(demo)"
+      label.numberOfLines = 3
+      self.view.addSubview(label)
+      pin(label.top, to: self.view.topGuide(), dist: offset)
+      pin(label.left, to: self.view.leftGuide(), dist: 20)
+      pin(label.right, to: self.view.rightGuide(), dist: 20)
+      offset += 90
+    }
+    
+    let label = UILabel()
+    let font = UIFont.systemFont(ofSize: 20)
+    label.font = font
+    label.text = "Family: \(font.familyName), \nName: \(font.fontName)\(demo)"
+    label.numberOfLines = 3
+    self.view.addSubview(label)
+    pin(label.top, to: self.view.topGuide(), dist: offset)
+    pin(label.left, to: self.view.leftGuide(), dist: 20)
+    pin(label.right, to: self.view.rightGuide(), dist: 20)
+  
   }
   
   func printFontNames() {
@@ -149,24 +180,24 @@ class UITests: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = UIColor.white
-    pinTest()
+    //    pinTest()
     //loadingTest()
     //undefinedTest()
     //startupViewTest()
     //delay(seconds: 2) { self.alertTest() }
     //gifTest()
-    //fontTest()
+    fontTest()
     //alertTest()
     //printFontNames()
   }
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-//    print(self.undefinedView.frame)
-//    print(self.undefinedView.label.frame)
-//    print(self.view.frame)
-//    print(toolBar.frame)
-//    print(backButton.frame)
+    //    print(self.undefinedView.frame)
+    //    print(self.undefinedView.label.frame)
+    //    print(self.view.frame)
+    //    print(toolBar.frame)
+    //    print(backButton.frame)
   }
   
 }
