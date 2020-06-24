@@ -293,6 +293,7 @@
 				AEBAF560219ACD1900566205 /* Sources */,
 				AEBAF561219ACD1900566205 /* Frameworks */,
 				AEBAF562219ACD1900566205 /* Resources */,
+				00B1A85924A3A1050041B9C5 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -375,6 +376,30 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		00B1A85924A3A1050041B9C5 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk Bold.ttf",
+				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk.ttf",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Aktiv Grotesk Bold.ttf",
+				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Aktiv Grotesk.ttf",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "COUNTER=0\nwhile [ $COUNTER -lt ${SCRIPT_INPUT_FILE_COUNT} ]; do\n  FILE_IN=\"SCRIPT_INPUT_FILE_$COUNTER\"\n  FILE_OUT=\"SCRIPT_OUTPUT_FILE_$COUNTER\"\n  ls \"${!FILE_IN}\"\n  if [ -f \"${!FILE_IN}\" ]; then\n    cp \"${!FILE_IN}\" \"${!FILE_OUT}\"\n    echo \"copied ${!FILE_IN} to Intermediate Folder: ${!FILE_OUT}\"\n  else\n    echo \"Optional File not found at ${!FILE_IN}, and will be 'MISSING'\"\n  fi\n  let COUNTER=COUNTER+1\ndone\necho \"done\"\nexit 0\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		AEBAF560219ACD1900566205 /* Sources */ = {
