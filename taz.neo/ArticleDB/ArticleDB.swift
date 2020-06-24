@@ -11,15 +11,25 @@ import NorthLib
 
 /// A quite simple Database derivation
 class ArticleDB: Database {  
-  private init() { super.init("ArticleDB") }    
+  
   /// There is only one article DB in the app
-  static var singleton: ArticleDB = ArticleDB()  
+  static var singleton: ArticleDB!
+  
+  /// Initialize with name of database, open it and call the passed closure
+  @discardableResult
+  public init(name: String, closure: @escaping (Error?)->()) { 
+    super.init(name: name, model: "ArticleDB") 
+    ArticleDB.singleton = self
+    self.open { err in closure(err) }
+  }    
+  
   /// The managed object context
-  static var context: NSManagedObjectContext { return singleton.context! }  
+  static var context: NSManagedObjectContext { return singleton.context! } 
+  
 } // ArticleDB
 
 /// A Protocol to extend CoreData objects
-private protocol PersistentObject: NSManagedObject, DoesLog {}
+protocol PersistentObject: NSManagedObject, DoesLog {}
 
 extension PersistentObject {
   /// The unique ID of every CoredData entity as String
@@ -36,8 +46,8 @@ extension PersistentObject {
   }
 } // PersistentObject
 
-/// A StoredObjects is in essence a PersistentObject Wrapper
-private protocol StoredObject: DoesLog {
+/// A StoredObject is in essence a PersistentObject Wrapper
+protocol StoredObject: DoesLog {
   associatedtype PO: PersistentObject
   var pr: PO { get }                      // persistent record
   var id: String { get }                  // ID of persistent record
@@ -363,6 +373,9 @@ class StoredPayload: StoredObject {
   lazy var files: [StoredFileEntry] = { 
     StoredFileEntry.filesInPayload(payload: self) 
   }()
+  
+  var isComplete: Bool { bytesTotal <= bytesLoaded }
+
 
   required init(persistent: PersistentPayload) { self.pr = persistent }
   
@@ -405,7 +418,10 @@ class StoredResources: Resources, StoredObject {
   var localDir: String { payload.localDir }
   var resourceFiles: [FileEntry] { payload.files }
   var isDownloading: Bool = false
-  var isComplete: Bool = false
+  var isComplete: Bool { 
+    get { return payload.isComplete }
+    set {}
+  }
 
   required init(persistent: PersistentResources) { self.pr = persistent }
 
@@ -414,6 +430,18 @@ class StoredResources: Resources, StoredObject {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "resourceVersion = %d", version)
     return get(request: request)
+  }
+  
+  /// Return stored record with latest (largest) resourceVersion
+  static func latest() -> StoredResources? {
+    let request = fetchRequest
+    request.fetchLimit = 1
+    request.sortDescriptors = [
+      NSSortDescriptor(key: "resourceVersion", ascending: false)
+    ]
+    let res = get(request: request)
+    if res.count > 0 { return res[0] }
+    else { return nil }
   }
   
   /// Create a new persistent record if not available and store the passed 
@@ -940,44 +968,44 @@ class StoredFeed: Feed, StoredObject {
 extension PersistentFeeder: PersistentObject {}
 
 /// A stored Feeder
-class StoredFeeder: Feeder, StoredObject {
+public class StoredFeeder: Feeder, StoredObject {
 
   static var entity = "Feeder"
   var pr: PersistentFeeder // persistent record
-  var title: String {
+  public var title: String {
     get { return pr.title! }
     set { pr.title = newValue }
   }
-  var timeZone: String {
+  public var timeZone: String {
     get { return pr.timeZone! }
     set { pr.timeZone = newValue }
   }
-  var baseUrl: String {
+  public var baseUrl: String {
     get { return pr.baseUrl! }
     set { pr.baseUrl = newValue }
   }
-  var globalBaseUrl: String {
+  public var globalBaseUrl: String {
     get { return pr.globalBaseUrl! }
     set { pr.globalBaseUrl = newValue }
   }
-  var authToken: String? {
+  public var authToken: String? {
     get { return pr.authToken }
     set { pr.authToken = newValue }
   }
-  var lastUpdated: Date? {
+  public var lastUpdated: Date? {
     get { return pr.lastUpdated }
     set { pr.lastUpdated = newValue }
   }
-  var resourceVersion: Int {
+  public var resourceVersion: Int {
     get { return Int(pr.resourceVersion) }
     set { pr.resourceVersion = Int32(newValue) }
   }
-  var feeds: [Feed] { StoredFeed.feedsOfFeeder(feeder: self) }
+  public var feeds: [Feed] { StoredFeed.feedsOfFeeder(feeder: self) }
   
-  required init(persistent: PersistentFeeder) { self.pr = persistent }
+  public required init(persistent: PersistentFeeder) { self.pr = persistent }
 
   /// Overwrite the persistent values
-  func update(object: Feeder) {
+  public func update(object: Feeder) {
     self.title = object.title
     self.timeZone = object.timeZone
     self.baseUrl = object.baseUrl
@@ -992,7 +1020,7 @@ class StoredFeeder: Feeder, StoredObject {
   }
   
   /// Return stored record with given name/title 
-  static func get(name: String) -> [StoredFeeder] {
+  public static func get(name: String) -> [StoredFeeder] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "title = %@", name)
     return get(request: request)
@@ -1000,7 +1028,7 @@ class StoredFeeder: Feeder, StoredObject {
   
   /// Create a new persistent record if not available and store the passed 
   /// Article into it
-  static func persist(object: Feeder) -> StoredFeeder {
+  public static func persist(object: Feeder) -> StoredFeeder {
     let tmp = get(name: object.title)
     var sfeeder: StoredFeeder
     if tmp.count == 0 { sfeeder = new() }
@@ -1009,14 +1037,14 @@ class StoredFeeder: Feeder, StoredObject {
     return sfeeder
   }
   
-  required init(title: String, url: String, closure:
-    @escaping(Result<Int,Error>)->()) {
+  public required init(title: String, url: String, closure:
+    @escaping(Result<Feeder,Error>)->()) {
     let request = StoredFeeder.fetchRequest
     request.predicate = NSPredicate(format: "title = %@", title)
     let pfeeders = StoredFeeder.getPersistent(request: request)
     if pfeeders.count > 0 {
       self.pr = pfeeders[0]
-      closure(.success(pfeeders[0].feeds!.count))
+      closure(.success(self))
     }
     else {
       pr = PersistentFeeder()
@@ -1024,12 +1052,12 @@ class StoredFeeder: Feeder, StoredObject {
     }
   }
 
-  func authenticate(account: String, password: String, closure: 
+  public func authenticate(account: String, password: String, closure: 
     @escaping (Result<String, Error>) -> ()) {
     closure(.failure(error("Can't authenticate at DB Feeder")))
   }
   
-  func resources(closure: @escaping(Result<Resources,Error>)->()) {
+  public func resources(closure: @escaping(Result<Resources,Error>)->()) {
     closure(.failure(error("Currently no resources available")))
   }
   

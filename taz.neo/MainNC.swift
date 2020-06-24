@@ -287,12 +287,11 @@ class MainNC: NavigationController, IssueVCdelegate,
       }
     }
   }
-  
+    
   func setupFeeder(closure: @escaping (Result<Feeder,Error>)->()) {
     self._gqlFeeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { [weak self] (res) in
       guard let self = self else { return }
-      guard let nfeeds = res.value() else { return }
-      self.debug("Feeder \"\(self.feeder.title)\" provides \(nfeeds) feeds.")
+      guard res.value() != nil else { return }
       self.debug(self.gqlFeeder.toString())
       self._feed = self.gqlFeeder.feeds[0]
       self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
@@ -361,10 +360,11 @@ class MainNC: NavigationController, IssueVCdelegate,
     ContentTableVC.showAnimations = self.showAnimations
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
-    ArticleDB.singleton.open { [weak self] err in 
+    Database.dbRename(old: "ArticleDB", new: "taz")
+    ArticleDB(name: "taz") { [weak self] err in 
       guard let self = self else { return }
       guard err == nil else { exit(1) }
-      self.debug("DB opened: \(ArticleDB.singleton)")
+      self.debug("DB opened: \(ArticleDB.singleton!)")
       self.setupFeeder { [weak self] _ in
         guard let self = self else { return }
         self.debug("Feeder ready.")

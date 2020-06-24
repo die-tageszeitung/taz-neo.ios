@@ -849,7 +849,7 @@ public protocol Feeder: ToString {
   var feeds: [Feed] { get }
   
   /// Initilialize with name/title and URL of server
-  init(title: String, url: String, closure: @escaping(Result<Int,Error>)->())
+  init(title: String, url: String, closure: @escaping(Result<Feeder,Error>)->())
   
   /// Request authentication token from GraphQL server
   func authenticate(account: String, password: String,

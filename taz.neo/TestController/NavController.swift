@@ -41,7 +41,7 @@ class NavController: UINavigationController {
   var feed: Feed?
   var issue: Issue?
   lazy var dloader = Downloader(feeder: feeder)
-  lazy var db = Database("ArticleDB")
+  lazy var db = Database(name: "taz", model: "ArticleDB")
   
   var sectionViews: ContentVC?
   var articleViews: ContentVC?

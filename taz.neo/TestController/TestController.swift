@@ -8,9 +8,7 @@
 import UIKit
 import NorthLib
 
-class TestView: UITextView, UIGestureRecognizerDelegate {
-  
-  static var font = UIFont(name: "Menlo-Regular", size: 14.0)
+class TestView: SimpleLogView {
   
   var index = 0 {
     didSet {
@@ -23,7 +21,7 @@ class TestView: UITextView, UIGestureRecognizerDelegate {
   }
   
   init() {
-    super.init(frame: CGRect(), textContainer: nil)
+    super.init(frame: CGRect())
     self.isEditable = true    
   }
   
@@ -35,8 +33,9 @@ class TestView: UITextView, UIGestureRecognizerDelegate {
 
 class TestController: PageCollectionVC {
   var logView = TestView()
+  var feederContext: FeederContext?
   lazy var consoleLogger = Log.Logger()
-  lazy var viewLogger = Log.ViewLogger()
+  lazy var viewLogger = Log.ViewLogger(logView: logView)
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -46,6 +45,7 @@ class TestController: PageCollectionVC {
     nd.statusBar.backgroundColor = UIColor.green
     nd.onSbTap { view in
       self.debug("Tapped")
+      ArticleDB.singleton.reset {_ in}
     }
     nd.permitPush { pn in
       if pn.isPermitted { self.debug("Permission granted") }
@@ -68,6 +68,28 @@ class TestController: PageCollectionVC {
     viewProvider { (index, oview) in
       return views[index]
     }
+    ArticleDB(name: "taz") { [weak self] err in 
+      guard let self = self else { return }
+      guard err == nil else { exit(1) }
+      self.debug("DB opened: \(ArticleDB.singleton!)")
+      self.feederContext = FeederContext(name: "taz", 
+                                         url: "https://dl.taz.de/appGraphQl")
+      Notification.receive("feederReady") { fctx in 
+        guard let fctx = fctx as? FeederContext else { return }
+        self.debug(fctx.storedFeeder.toString())
+        if let latestResources = StoredResources.latest() {
+          self.debug(latestResources.toString())
+        }
+        else { self.debug("no resources stored") }
+      }
+      Notification.receive("feederReachable") {_ in 
+        self.debug("feeder is reachable")
+      }
+      Notification.receive("feederNotReachable") {_ in 
+        self.debug("feeder is not reachable")
+      }
+    }
+
   }
   
 }

@@ -44,9 +44,9 @@ class DLController: UIViewController {
     debug("current dir: '\(Dir.currentPath)'\ntmpdir: '\(Dir.tmpPath)'\n")
   }
   
-  func startup(_ res: Result<Int, Error>) {
-    guard let n = res.value() else { return }
-    debug("\(n) issues\n\(feeder.toString())")
+  func startup(_ res: Result<Feeder, Error>) {
+    guard let _ = res.value() else { return }
+    debug("\(feeder.toString())")
     feeder.authenticate(account: "test", password: "test") {
       [weak self] (res) in
       guard let key = res.value() else { return }

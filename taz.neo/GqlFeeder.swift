@@ -502,21 +502,22 @@ open class GqlFeeder: Feeder, DoesLog {
   
   /// Initilialize with name/title and URL of GraphQL server
   required public init(title: String, url: String,
-    closure: @escaping(Result<Int,Error>)->()) {
+    closure: @escaping(Result<Feeder,Error>)->()) {
     self.baseUrl = url
     self.title = title
     self.gqlSession = GraphQlSession(url)
     self.feederStatus { [weak self] (res) in
-      var ret: Result<Int,Error>
+      guard let self = self else { return }
+      var ret: Result<Feeder,Error>
       switch res {
       case .success(let st):   
-        ret = .success(st.feeds.count)
-        self?.status = st
-        self?.lastUpdated = Date()
+        ret = .success(self)
+        self.status = st
+        self.lastUpdated = Date()
       case .failure(let err):  
         ret = .failure(err)
       }
-      self?.lastUpdated = UsTime.now().date
+      self.lastUpdated = UsTime.now().date
       closure(ret)
     }
   }
