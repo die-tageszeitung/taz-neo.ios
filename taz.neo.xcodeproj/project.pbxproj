@@ -46,8 +46,6 @@
 		AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */; };
 		AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainNC.swift */; };
 		AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
-		AED52FC92492763100CC082E /* Aktiv Grotesk Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AED52FC62492763100CC082E /* Aktiv Grotesk Bold.ttf */; };
-		AED52FCC2492768F00CC082E /* Aktiv Grotesk.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AED52FCB2492768F00CC082E /* Aktiv Grotesk.ttf */; };
 		AED748A62383F1D600C09D2D /* ArticleDB.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = AED70C8E2243E0EB00487918 /* ArticleDB.xcdatamodel */; };
 		AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		AEED41BC23FE8E6F0072043F /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEED41BB23FE8E6F0072043F /* Authentication.swift */; };
@@ -370,11 +368,9 @@
 				AE864874248E3168007096B4 /* s2.pdf in Resources */,
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
 				AE864876248E316D007096B4 /* s3.pdf in Resources */,
-				AED52FCC2492768F00CC082E /* Aktiv Grotesk.ttf in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
 				AE864872248E3162007096B4 /* s1.pdf in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
-				AED52FC92492763100CC082E /* Aktiv Grotesk Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
