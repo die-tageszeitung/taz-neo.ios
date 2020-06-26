@@ -522,9 +522,25 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
   
-  /// Requests an GqlAuthToken object from server
+  /**
+   Authenticate with server.
+   
+   If the authentication was successful, the provided authentication token
+   is written to self.authToken and passed to 'closure' as Result.success.
+   If an error was encountered, the closure is called with Result.failure and
+   an Error is passed along. If this Error is of type FeederError, then 
+   a GqlAuthInfo object is written to self.status.authInfo and may be interpreted 
+   for further information.
+   
+   - parameters:
+     - account:  tazId or AboId
+     - password: account password 
+     - closure:  is called when the communication with the server has been
+                 finished
+     - result:   Either auth token or Error
+  */
   public func authenticate(account: String, password: String, 
-    closure: @escaping(Result<String,Error>)->()) {
+    closure: @escaping(_ result: Result<String,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
@@ -593,7 +609,7 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
     
-  /// Request push notification from server (test purpose)
+  /// Request push notification from server (test purpose).
   public func testNotification(pushToken: String?, request: NotificationType, 
                                closure: @escaping(Result<Bool,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
