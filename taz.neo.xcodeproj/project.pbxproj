@@ -28,9 +28,6 @@
 		AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9F6245421AC0043F497 /* WebViewTests.swift */; };
 		AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9FA245497F80043F497 /* IntroVC.swift */; };
 		AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE80A3942449C3250012DFFA /* IssueVC.swift */; };
-		AE864872248E3162007096B4 /* s1.pdf in Resources */ = {isa = PBXBuildFile; fileRef = AE864871248E3162007096B4 /* s1.pdf */; };
-		AE864874248E3168007096B4 /* s2.pdf in Resources */ = {isa = PBXBuildFile; fileRef = AE864873248E3168007096B4 /* s2.pdf */; };
-		AE864876248E316D007096B4 /* s3.pdf in Resources */ = {isa = PBXBuildFile; fileRef = AE864875248E316D007096B4 /* s3.pdf */; };
 		AEAABADE24641BFA001BE414 /* AppUIValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAABADD24641BFA001BE414 /* AppUIValues.swift */; };
 		AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */; };
 		AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAEE0002456D9EC00F627FE /* StartupVC.swift */; };
@@ -46,8 +43,6 @@
 		AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */; };
 		AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainNC.swift */; };
 		AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
-		AED52FC92492763100CC082E /* Aktiv Grotesk Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AED52FC62492763100CC082E /* Aktiv Grotesk Bold.ttf */; };
-		AED52FCC2492768F00CC082E /* Aktiv Grotesk.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AED52FCB2492768F00CC082E /* Aktiv Grotesk.ttf */; };
 		AED748A62383F1D600C09D2D /* ArticleDB.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = AED70C8E2243E0EB00487918 /* ArticleDB.xcdatamodel */; };
 		AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		AEED41BC23FE8E6F0072043F /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEED41BB23FE8E6F0072043F /* Authentication.swift */; };
@@ -99,9 +94,6 @@
 		AE82262C232A70E000FFBE67 /* GraphQlSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphQlSession.swift; sourceTree = "<group>"; };
 		AE822631232A717E00FFBE67 /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		AE86486F248E274F007096B4 /* PdfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfTest.swift; sourceTree = "<group>"; };
-		AE864871248E3162007096B4 /* s1.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = s1.pdf; sourceTree = "<group>"; };
-		AE864873248E3168007096B4 /* s2.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = s2.pdf; sourceTree = "<group>"; };
-		AE864875248E316D007096B4 /* s3.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = s3.pdf; sourceTree = "<group>"; };
 		AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NorthLib.xcodeproj; path = ../NorthLib/NorthLib.xcodeproj; sourceTree = "<group>"; };
 		AEAABADD24641BFA001BE414 /* AppUIValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUIValues.swift; sourceTree = "<group>"; };
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
@@ -115,11 +107,10 @@
 		AEBAF591219ACFAC00566205 /* NavController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavController.swift; sourceTree = "<group>"; };
 		AEBAF5AB219ACFD900566205 /* ContentVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentVC.swift; sourceTree = "<group>"; };
 		AEC7D46C249A598B008630FB /* FeederContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeederContext.swift; sourceTree = "<group>"; };
+		AEC7D4CE24A5E797008630FB /* addResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addResources.sh; sourceTree = "<group>"; };
 		AECAC8FC2440AF1F00D32175 /* CarouselController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselController.swift; sourceTree = "<group>"; };
 		AECCE11B23FBF3FE007C2276 /* MainNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNC.swift; sourceTree = "<group>"; };
 		AECCE11D23FBF449007C2276 /* StartupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupView.swift; sourceTree = "<group>"; };
-		AED52FC62492763100CC082E /* Aktiv Grotesk Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Aktiv Grotesk Bold.ttf"; sourceTree = "<group>"; };
-		AED52FCB2492768F00CC082E /* Aktiv Grotesk.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Aktiv Grotesk.ttf"; sourceTree = "<group>"; };
 		AED70C8E2243E0EB00487918 /* ArticleDB.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; name = ArticleDB.xcdatamodel; path = ArticleDB.xcdatamodeld/ArticleDB.xcdatamodel; sourceTree = "<group>"; };
 		AED748A9238413D800C09D2D /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		AED748AA238413EB00C09D2D /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
@@ -203,9 +194,6 @@
 				AE0C32DE246310E500E4AEA8 /* SliderTest.swift */,
 				AE44F8EA248949B0009DA152 /* ColorTests.swift */,
 				AE86486F248E274F007096B4 /* PdfTest.swift */,
-				AE864871248E3162007096B4 /* s1.pdf */,
-				AE864873248E3168007096B4 /* s2.pdf */,
-				AE864875248E316D007096B4 /* s3.pdf */,
 			);
 			path = TestController;
 			sourceTree = "<group>";
@@ -266,6 +254,7 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				AEC7D4C624A5E1D3008630FB /* Scripts */,
 				AED52FCA2492764500CC082E /* Fonts */,
 				AEBAF56E219ACD1A00566205 /* Assets.xcassets */,
 				AEBAF570219ACD1A00566205 /* LaunchScreen.storyboard */,
@@ -276,11 +265,17 @@
 			path = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		AEC7D4C624A5E1D3008630FB /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				AEC7D4CE24A5E797008630FB /* addResources.sh */,
+			);
+			path = Scripts;
+			sourceTree = "<group>";
+		};
 		AED52FCA2492764500CC082E /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
-				AED52FC62492763100CC082E /* Aktiv Grotesk Bold.ttf */,
-				AED52FCB2492768F00CC082E /* Aktiv Grotesk.ttf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -295,6 +290,7 @@
 				AEBAF560219ACD1900566205 /* Sources */,
 				AEBAF561219ACD1900566205 /* Frameworks */,
 				AEBAF562219ACD1900566205 /* Resources */,
+				AEC7D4C324A5DE07008630FB /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -367,18 +363,37 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AE864874248E3168007096B4 /* s2.pdf in Resources */,
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
-				AE864876248E316D007096B4 /* s3.pdf in Resources */,
-				AED52FCC2492768F00CC082E /* Aktiv Grotesk.ttf in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
-				AE864872248E3162007096B4 /* s1.pdf in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
-				AED52FC92492763100CC082E /* Aktiv Grotesk Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		AEC7D4C324A5DE07008630FB /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk Bold.ttf",
+				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk.ttf",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Aktiv Grotesk Bold.ttf",
+				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Aktiv Grotesk.ttf",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = ". $SRCROOT/$PROJECT_NAME/\"Supporting Files\"/Scripts/addResources.sh\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		AEBAF560219ACD1900566205 /* Sources */ = {
