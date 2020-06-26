@@ -95,6 +95,7 @@
     <entity name="ImageEntry" representedClassName="PersistentImageEntry" syncable="YES" codeGenerationType="class">
         <attribute name="alpha" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="resolution" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="sharable" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="type" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="author" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Author" inverseName="photo" inverseEntity="Author"/>
         <relationship name="file" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="image" inverseEntity="FileEntry"/>
@@ -184,7 +185,7 @@
         <element name="Feeder" positionX="-52810.859375" positionY="-34899.69140625" width="128" height="163"/>
         <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="28"/>
         <element name="Frame" positionX="-51920.18359375" positionY="-34620.09375" width="128" height="148"/>
-        <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="178"/>
+        <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="193"/>
         <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="328"/>
         <element name="Moment" positionX="-52992" positionY="-35010" width="128" height="118"/>
         <element name="Page" positionX="-52203.38671875" positionY="-34559.82421875" width="128" height="148"/>

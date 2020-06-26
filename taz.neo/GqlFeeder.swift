@@ -126,6 +126,10 @@ class GqlImage: ImageEntry, GQLObject {
   var sha256: String
   /// File size in bytes
   var sSize: String
+  /// Optional sharable
+  var oSharable: Bool?
+  /// Is the image sharable
+  var sharable: Bool { oSharable ?? false }
   
   /// Modification time as Date
   var moTime: Date { return UsTime(sMoTime).date }
@@ -134,7 +138,7 @@ class GqlImage: ImageEntry, GQLObject {
   var size: Int64 { return Int64(sSize)! }
   
   //static var fields = "resolution type alpha \(GqlFile.fields)"
-  static var fields = "resolution type alpha \(GqlFile.fields)"  
+  static var fields = "resolution type alpha oSharable:sharable \(GqlFile.fields)"  
 } // GqlImage
 
 /// A list of resource files

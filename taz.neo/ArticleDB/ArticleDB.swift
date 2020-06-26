@@ -198,6 +198,7 @@ class StoredImageEntry: ImageEntry, StoredObject {
   var resolution: ImageResolution { ImageResolution(rawValue: pr.resolution)! }
   var type: ImageType { ImageType(rawValue: pr.type)! }
   var alpha: Float? { pr.alpha }
+  var sharable: Bool { pr.sharable }
   var author: StoredAuthor? { 
     if let au = pr.author { return StoredAuthor(persistent: au) }
     else { return nil }
@@ -219,6 +220,7 @@ class StoredImageEntry: ImageEntry, StoredObject {
     pr.resolution = file.resolution.rawValue
     pr.type = file.type.rawValue
     pr.alpha = file.alpha ?? 1.0
+    pr.sharable = file.sharable
     pf.image = pr
   }
   

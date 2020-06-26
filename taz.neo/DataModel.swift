@@ -171,6 +171,8 @@ public protocol ImageEntry: FileEntry {
   var type: ImageType { get }
   /// Transparency
   var alpha: Float? { get }
+  /// Is the image sharable
+  var sharable: Bool { get }
 }
 
 public extension ImageEntry { 
