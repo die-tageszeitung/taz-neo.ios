@@ -200,16 +200,13 @@ public class IssueVC: UIViewController, IssueInfo {
   
   /// Tell server we are starting to download
   func markStartDownload(feed: Feed, issue: Issue) {
-    let issueName = self.feeder.date2a(issue.date)
-    let idir = feeder.issueDir(feed: feed.name, issue: issueName)
-    if !idir.exists { 
-      let isPush = delegate.pushToken != nil
-      self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush) { [weak self] res in
-        guard let self = self else { return }
-        if let dlId = res.value() {
-          self.serverDownloadId = dlId
-          self.serverDownloadStart = UsTime.now()
-        }
+    let isPush = delegate.pushToken != nil
+    debug("Sending start of download to server")
+    self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush) { [weak self] res in
+      guard let self = self else { return }
+      if let dlId = res.value() {
+        self.serverDownloadId = dlId
+        self.serverDownloadStart = UsTime.now()
       }
     }
   }
@@ -218,6 +215,7 @@ public class IssueVC: UIViewController, IssueInfo {
   func markStopDownload() {
     if let dlId = self.serverDownloadId {
       let nsec = UsTime.now().timeInterval - self.serverDownloadStart!.timeInterval
+      debug("Sending stop of download to server")
       self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) {_ in}
       self.serverDownloadId = nil
       self.serverDownloadStart = nil
