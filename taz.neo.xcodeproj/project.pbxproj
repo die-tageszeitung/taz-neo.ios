@@ -28,9 +28,6 @@
 		AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9F6245421AC0043F497 /* WebViewTests.swift */; };
 		AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9FA245497F80043F497 /* IntroVC.swift */; };
 		AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE80A3942449C3250012DFFA /* IssueVC.swift */; };
-		AE864872248E3162007096B4 /* s1.pdf in Resources */ = {isa = PBXBuildFile; fileRef = AE864871248E3162007096B4 /* s1.pdf */; };
-		AE864874248E3168007096B4 /* s2.pdf in Resources */ = {isa = PBXBuildFile; fileRef = AE864873248E3168007096B4 /* s2.pdf */; };
-		AE864876248E316D007096B4 /* s3.pdf in Resources */ = {isa = PBXBuildFile; fileRef = AE864875248E316D007096B4 /* s3.pdf */; };
 		AEAABADE24641BFA001BE414 /* AppUIValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAABADD24641BFA001BE414 /* AppUIValues.swift */; };
 		AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */; };
 		AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAEE0002456D9EC00F627FE /* StartupVC.swift */; };
@@ -97,9 +94,6 @@
 		AE82262C232A70E000FFBE67 /* GraphQlSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphQlSession.swift; sourceTree = "<group>"; };
 		AE822631232A717E00FFBE67 /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		AE86486F248E274F007096B4 /* PdfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfTest.swift; sourceTree = "<group>"; };
-		AE864871248E3162007096B4 /* s1.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = s1.pdf; sourceTree = "<group>"; };
-		AE864873248E3168007096B4 /* s2.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = s2.pdf; sourceTree = "<group>"; };
-		AE864875248E316D007096B4 /* s3.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = s3.pdf; sourceTree = "<group>"; };
 		AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NorthLib.xcodeproj; path = ../NorthLib/NorthLib.xcodeproj; sourceTree = "<group>"; };
 		AEAABADD24641BFA001BE414 /* AppUIValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUIValues.swift; sourceTree = "<group>"; };
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
@@ -200,9 +194,6 @@
 				AE0C32DE246310E500E4AEA8 /* SliderTest.swift */,
 				AE44F8EA248949B0009DA152 /* ColorTests.swift */,
 				AE86486F248E274F007096B4 /* PdfTest.swift */,
-				AE864871248E3162007096B4 /* s1.pdf */,
-				AE864873248E3168007096B4 /* s2.pdf */,
-				AE864875248E316D007096B4 /* s3.pdf */,
 			);
 			path = TestController;
 			sourceTree = "<group>";
@@ -372,11 +363,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AE864874248E3168007096B4 /* s2.pdf in Resources */,
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
-				AE864876248E316D007096B4 /* s3.pdf in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
-				AE864872248E3162007096B4 /* s1.pdf in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
