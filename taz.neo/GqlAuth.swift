@@ -20,6 +20,8 @@ enum GqlSubscriptionStatus: Decodable {
   case noPollEntry            /// user probably didn't confirm mail
   case invalidMail            /// invalid mail address 
   case expired                /// account provided by token is expired
+  case noSurname              /// no surname provided
+  case noFirstname            /// no firstname provided
   case unknown                /// unknown subscription status    
   
   func toString() -> String {
@@ -34,6 +36,8 @@ enum GqlSubscriptionStatus: Decodable {
     case .noPollEntry:            return "noPollEntry"
     case .invalidMail:            return "invalidMail"
     case .expired:                return "expired"
+    case .noSurname:              return "noSurname"
+    case .noFirstname:            return "noFirstname"
     case .unknown:                return "unknown"
     }
   }
@@ -51,6 +55,8 @@ enum GqlSubscriptionStatus: Decodable {
     case "noPollEntry":            self = .noPollEntry
     case "invalidMail":            self = .invalidMail
     case "elapsed" :               self = .expired
+    case "noSurname" :             self = .noSurname
+    case "noFirstName" :           self = .noFirstname
     default:                       self = .unknown  
     }
   }
