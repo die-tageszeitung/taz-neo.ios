@@ -9,7 +9,9 @@ import UIKit
 import NorthLib
 
 public class ZoomedImage: OptionalImage {
-    
+  
+  /// The ImageEntry of the image to display
+  public var imageEntry: ImageEntry? 
   /// The main image to display
   public var image: UIImage?
   /// An alternate image to display when the main image is not yet available
@@ -52,6 +54,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     let path = delegate.feeder.issueDir(issue: delegate.issue).path
     image.waitingImage = UIImage(contentsOfFile: "\(path)/\(normal.fileName)")
     if let high = pair.high {
+      image.imageEntry = high
       delegate.dloader.downloadIssueFiles(issue: delegate.issue, files: [high]) 
       { err in
         if err == nil { 
@@ -61,7 +64,10 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
         image.isAvailable = true 
       }
     }
-    else { image.image = image.waitingImage }
+    else { 
+      image.imageEntry = normal
+      image.image = image.waitingImage 
+    }
     return image
   } 
   
@@ -137,6 +143,19 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   }
   
   private func setupImageCollectionVC() {
+    self.onX { self.popVC(setPortrait: true) }
+    self.onDisplay { [weak self] idx in
+      guard let self = self else { return }
+      if let zi = self.images[idx] as? ZoomedImage,
+         zi.imageEntry?.sharable ?? true {
+        if let ziv = self.currentView as? ZoomedImageView, ziv.menu.menu.count == 0 {
+          ziv.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
+            self.exportImage()
+          }
+          ziv.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
+        }
+      }
+    }
     if let img = self.imageTapped { 
       if showImageGallery {
         let (n,images) = zoomedImages(content: self.content, name: img)
@@ -154,13 +173,8 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
       self.images = zoomedImages(content: self.content)
       self.index = 0
     }
-    self.onX { self.popVC(setPortrait: true) }
-    self.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
-      self.exportImage()
-    }
-    self.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
   }
-  
+    
   public init(content: Content, delegate: IssueInfo, imageTapped: String? = nil) {
     self.content = content
     self.delegate = delegate
