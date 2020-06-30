@@ -15,39 +15,20 @@ protocol GQLObject: Decodable, ToString {
 }
 
 /// Authentication status
-enum GqlAuthStatus: Decodable {  
-  case valid         /// valid authentication token provided
-  case invalid       /// invalid token
-  case expired       /// account provided by token is expired (ISO-Date in message)
-  case unlinked      /// ID not linked to subscription
-  case notValidMail  /// AboId exists but PW is wrong (mail addr in message)
-  case alreadyLinked /// AboId already linked to tazId
-  case unknown       /// unknown authentication status    
-  
-  func toString() -> String {
-    switch self {
-    case .valid:         return "valid"
-    case .invalid:       return "invalid"
-    case .expired:       return "expired"
-    case .unlinked:      return "unlinked"
-    case .notValidMail:  return "notValidMail"
-    case .alreadyLinked: return "alreadyLinked"
-    case .unknown:       return "unknown"
-    }
-  }
-  
-  init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "valid"   :       self = .valid
-    case "notValid":       self = .invalid
-    case "elapsed" :       self = .expired
-    case "tazIdNotLinked": self = .unlinked
-    case "notValidMail":   self = .notValidMail
-    case "alreadyLinked":  self = .alreadyLinked
-    default:               self = .unknown
-    }
-  }  
+enum GqlAuthStatus: String, CodableEnum {  
+  /// valid authentication token provided
+  case valid = "valid"      
+  /// invalid (or no) token
+  case invalid = "invalid(notValid)" 
+  /// account provided by token is expired (ISO-Date in message)
+  case expired = "expired(elapsed)"      
+  /// ID not linked to subscription
+  case unlinked = "unlinked(tazIdNotLinked)"  
+  // AboId exists but PW is wrong 
+  case notValidMail = "notValidMail" 
+  /// AboId already linked to tazId
+  case alreadyLinked = "alreadyLinked" 
+  case unknown   = "unknown"   /// decoded from unknown string
 } // GqlAuthStatus
 
 /// A GqlAuthInfo describes an GqlAuthStatus with an optional message
@@ -626,7 +607,7 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = """
       testNotification(
         pushToken: "\(pushToken)",
-        sendRequest: \(request.encoded),
+        sendRequest: \(request.external),
         deviceType: \(deviceType),
         isSilent: true
       )

@@ -11,7 +11,7 @@ import NorthLib
 /**
  Errors a Feeder may encounter
  */
-public enum FeederError: LocalizedError {
+public enum FeederError: SimpleError {
   case invalidAccount(String?)
   case expiredAccount(String?)
   case changedAccount(String?)
@@ -35,30 +35,11 @@ public enum FeederError: LocalizedError {
 /**
  A FileStorageType defines where a file is stored.
  */
-@objc public enum FileStorageType: Int16, Decodable, ToString {  
-  case issue     = 0  /// issue local file
-  case global    = 1  /// global to all issues and feeds
-  case resource  = 2  /// resource local file
-  case unknown   = 3  /// unknown storage type
-  
-  public func toString() -> String {
-    switch self {
-    case .issue:    return "issue"
-    case .global:   return "global"
-    case .resource: return "resource"
-    case .unknown:  return "unknown"
-    }
-  }
-  
-  public init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "issue":    self = .issue
-    case "global":   self = .global
-    case "resource": self = .resource
-    default:         self = .unknown
-    }
-  }  
+public enum FileStorageType: String, CodableEnum {  
+  case issue     = "issue"     /// issue local file
+  case global    = "global"    /// global to all issues and feeds
+  case resource  = "resource"  /// resource local file
+  case unknown   = "unknown"   /// decoded from unknown string
 } // FileStorageType
 
 /**
@@ -105,60 +86,20 @@ public extension FileEntry {
 }
 
 /// Image resolution
-@objc public enum ImageResolution: Int16, Decodable, ToString {  
-  case small    = 0  /// small image resolution used eg. for thumpnails
-  case normal   = 1  /// regular resolution used in Articles
-  case high     = 2  /// high resolution when Image is displayed in zoom mode
-  case unknown  = -1 /// unknown image resolution
-  
-  public func toString() -> String {
-    switch self {
-    case .small:   return "small"
-    case .normal:  return "normal"
-    case .high:    return "high"
-    case .unknown: return "unknown"
-    }
-  }
-  
-  public init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "small"   : self = .small
-    case "normal"  : self = .normal
-    case "high"    : self = .high
-    default:         self = .unknown
-    }
-  }  
+public enum ImageResolution: String, CodableEnum {  
+  case small  = "small"  /// small image resolution used eg. for thumpnails
+  case normal = "normal" /// regular resolution used in Articles
+  case high   = "high"   /// high resolution when Image is zoomed 
+  case unknown = "unknown"   /// decoded from unknown string
 } // ImageResolution
 
 /// Image type
-@objc public enum ImageType: Int16, Decodable, ToString {  
-  case picture         = 0  /// regular foto/graphic as used in articles
-  case advertisement   = 1  /// an advertisement :-(
-  case facsimile       = 2  /// eg. of a print page
-  case button          = 3  /// a button (eg. the slider button)
-  case unknown         = 4  /// unknown image type
-  
-  public func toString() -> String {
-    switch self {
-    case .picture      : return "picture"
-    case .advertisement: return "advertisement"
-    case .facsimile    : return "facsimile"
-    case .button       : return "button"
-    case .unknown      : return "unknown"
-    }
-  }
-  
-  public init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "picture"       : self = .picture
-    case "advertisement" : self = .advertisement
-    case "facsimile"     : self = .facsimile
-    case "button"        : self = .button
-    default:               self = .unknown
-    }
-  }  
+public enum ImageType: String, CodableEnum {  
+  case picture       = "picture"       /// regular foto/graphic as used in articles
+  case advertisement = "advertisement" /// an advertisement :-(
+  case facsimile     = "facsimile"     /// eg. of a print page
+  case button        = "button"        /// a button (eg. the slider button)
+  case unknown       = "unknown"       /// decoded from unknown string
 } // ImageType
 
 /**
@@ -350,25 +291,10 @@ public extension Article {
 /**
  Section type
  */
-@objc public enum SectionType: Int16, Decodable, ToString {  
-  case articles   = 0      /// a list of articles
-  case text       = 1      /// a single HTML text (eg. imprint)
-  case unknown    = 100    /// unknown section type  
-  public func toString() -> String {
-    switch self {
-    case .articles     : return "articles"
-    case .text         : return "text"
-    case .unknown      : return "unknown"
-    }
-  }  
-  public init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "articles"      : self = .articles
-    case "text"          : self = .text    
-    default:               self = .unknown
-    }
-  }  
+public enum SectionType: String, CodableEnum {  
+  case articles = "articles"  /// a list of articles
+  case text     = "text"      /// a single HTML text (eg. imprint)
+  case unknown  = "unknown"   /// decoded from unknown string
 } // SectionType
 
 /**
@@ -450,28 +376,11 @@ public extension Frame {
 /**
  Page type
  */
-@objc public enum PageType: Int16, Decodable, ToString {  
-  case left     = 0  /// a left page
-  case right    = 1  /// a right page
-  case double   = 2  /// a double spread
-  case unknown  = 3  /// unknown page type  
-  public func toString() -> String {
-    switch self {
-    case .left     : return "left"
-    case .right    : return "left"
-    case .double   : return "left"
-    case .unknown  : return "unknown"
-    }
-  }  
-  public init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "left"     : self = .left
-    case "right"    : self = .right
-    case "panorama" : self = .double
-    default:          self = .unknown
-    }
-  }  
+public enum PageType: String, CodableEnum {  
+  case left     = "left"              /// a left page
+  case right    = "right"             /// a right page
+  case double   = "double(panorama)"  /// a double spread
+  case unknown  = "unknown"   /// decoded from unknown string
 } // PageType
 
 /**
@@ -571,33 +480,12 @@ public extension Moment {
 /**
  Access status of an Issue
  */
-@objc public enum IssueStatus: Int16, Decodable, ToString {  
-  case regular = 0  /// authenticated Issue acces
-  case demo    = 1  /// demo Issue
-  case locked  = 2  /// no access
-  case open    = 3  /// available for everybody
-  case unknown = 4  /// undefined status
-  
-  public func toString() -> String {
-    switch self {
-    case .regular: return "regular"
-    case .demo:    return "demo"
-    case .locked:  return "locked"
-    case .open:    return "public"
-    case .unknown: return "unknown"
-    }
-  }
-  
-  public init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "regular" : self = .regular
-    case "demo"    : self = .demo
-    case "locked"  : self = .locked
-    case "public"  : self = .open
-    default        : self = .unknown
-    }
-  }  
+public enum IssueStatus: String, CodableEnum {  
+  case regular = "regular"       /// authenticated Issue acces
+  case demo    = "demo"          /// demo Issue
+  case locked  = "locked"        /// no access
+  case open    = "open(public)"  /// available for everybody
+  case unknown = "unknown"       /// decoded from unknown string
 } // IssueStatus
 
 /// One Issue of a Feed
@@ -735,62 +623,21 @@ public extension Issue {
 } // extension Issue
 
 /// PublicationCycle of a Feed
-@objc public enum PublicationCycle: Int16, Decodable, ToString {  
-  case daily     = 0  /// published daily
-  case weekly    = 1  /// published every week
-  case monthly   = 2  /// published every month
-  case quarterly = 3  /// published every quarter
-  case yearly    = 4  /// published once a year
-  case unknown   = 5  /// unknown publication cycle
-  
-  public func toString() -> String {
-    switch self {
-    case .daily:     return "daily"
-    case .weekly:    return "weekly"
-    case .monthly:   return "monthly"
-    case .quarterly: return "quarterly"
-    case .yearly:    return "yearly"
-    case .unknown:   return "unknown"
-    }
-  }
-  
-  public init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "daily"     : self = .daily
-    case "weekly"    : self = .weekly
-    case "monthly"   : self = .monthly
-    case "quarterly" : self = .quarterly
-    case "yearly"    : self = .yearly
-    default          : self = .unknown
-    }
-  }
+public enum PublicationCycle: String, CodableEnum {  
+  case daily     = "daily"     /// published daily
+  case weekly    = "weekly"    /// published every week
+  case monthly   = "monthly"   /// published every month
+  case quarterly = "quarterly" /// published every quarter
+  case yearly    = "yearly"    /// published once a year
+  case unknown   = "unknown"   /// decoded from unknown string
 } // PublicationCycle
 
 /// Type of a Feed
-@objc public enum FeedType: Int16, Decodable, ToString {  
-  case publication = 0  /// regular publication
-  case bookmarks   = 1  /// a feed of bookmarks
-  case info        = 2  /// info and help texts
-  case unknown     = -1
-  public func toString() -> String {
-    switch self {
-    case .publication:  return "daily"
-    case .bookmarks:    return "bookmarks"
-    case .info:         return "info"
-    case .unknown:      return "unknown"
-    }
-  }
-  
-  public init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "publication" : self = .publication
-    case "bookmarks"   : self = .bookmarks
-    case "info"        : self = .info
-    default            : self = .unknown
-    }
-  }
+public enum FeedType: String, CodableEnum {  
+  case publication = "publication" /// regular publication
+  case bookmarks   = "bookmarks"   /// a feed of bookmarks
+  case info        = "info"        /// info and help texts
+  case unknown     = "unknown"     /// decoded from unknown string
 } // FeedType
 
 /**
@@ -820,7 +667,7 @@ public protocol Feed: ToString {
 } // Feed
 
 public extension Feed {  
-  var type: FeedType { .unknown }
+  var type: FeedType { .publication }
   var lastIssueRead: Date? { nil }
   var lastUpdated: Date? { nil }
   func toString() -> String {
@@ -952,34 +799,10 @@ extension Feeder {
 /**
  Type of silent push notifications
  */
-@objc public enum NotificationType: Int16, Decodable, ToString {  
-  case subscription   = 0    /// new subscription info available
-  case newIssue       = 1    /// new issue available
-  case unknown        = 1000 /// unknown subscription type
-  
-  public func toString() -> String {
-    switch self {
-    case .subscription:    return "subscription"
-    case .newIssue:        return "newIssue"
-    case .unknown:         return "unknown"
-    }
-  }
-  
-  public var encoded: String {
-    switch self {
-    case .subscription:    return "subscriptionPoll"
-    case .newIssue:        return "aboPoll"
-    case .unknown:         return "unknown"
-    }
-  }
-  
-  public init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "subscriptionPoll": self = .subscription
-    case "aboPoll":          self = .newIssue
-    default:                 self = .unknown
-    }
-  }  
-  
-} // FileStorageType
+public enum NotificationType: String, CodableEnum { 
+  /// new subscription info available
+  case subscription = "subscription(subscriptionPoll)" 
+  /// new issue available
+  case newIssue     = "newIssue(aboPoll)"    
+  case unknown      = "unknown"   /// decoded from unknown string
+} // NotificationType

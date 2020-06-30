@@ -116,7 +116,7 @@ class StoredFileEntry: FileEntry, StoredObject {
   static var entity = "FileEntry"
   var pr: PersistentFileEntry // persistent record
   var name: String { pr.name! }
-  var storageType: FileStorageType { FileStorageType(rawValue: pr.storageType)! }
+  var storageType: FileStorageType { FileStorageType(pr.storageType!)! }
   var moTime: Date { pr.moTime! }
   var size: Int64 { pr.size }
   var storedSize: Int64 { 
@@ -135,7 +135,7 @@ class StoredFileEntry: FileEntry, StoredObject {
   /// Overwrite the persistent values
   func update(file: FileEntry) {
     pr.name = file.name
-    pr.storageType = file.storageType.rawValue
+    pr.storageType = file.storageType.representation
     pr.moTime = file.moTime
     pr.size = file.size
     pr.sha256 = file.sha256      
@@ -191,12 +191,12 @@ class StoredImageEntry: ImageEntry, StoredObject {
   var pr: PersistentImageEntry // persistent record
   var pf: PersistentFileEntry!
   var name: String { pf.name! }
-  var storageType: FileStorageType { FileStorageType(rawValue: pf.storageType)! }
+  var storageType: FileStorageType { FileStorageType(pf.storageType!)! }
   var moTime: Date { pf.moTime! }
   var size: Int64 { pf.size }
   var sha256: String { pf.sha256! }
-  var resolution: ImageResolution { ImageResolution(rawValue: pr.resolution)! }
-  var type: ImageType { ImageType(rawValue: pr.type)! }
+  var resolution: ImageResolution { ImageResolution(pr.resolution!)! }
+  var type: ImageType { ImageType(pr.type!)! }
   var alpha: Float? { pr.alpha }
   var sharable: Bool { pr.sharable }
   var author: StoredAuthor? { 
@@ -213,7 +213,7 @@ class StoredImageEntry: ImageEntry, StoredObject {
   func update(file: ImageEntry) {
     if pf == nil { pf = StoredFileEntry.new().pr }
     pf.name = file.name
-    pf.storageType = file.storageType.rawValue
+    pf.storageType = file.storageType.representation
     pf.moTime = file.moTime
     pf.size = file.size
     pf.sha256 = file.sha256
@@ -658,8 +658,8 @@ class StoredSection: Section, StoredObject {
     set { pr.extendedTitle = newValue }
   }
   var type: SectionType {
-    get { return SectionType(rawValue: pr.type)! }
-    set { pr.type = newValue.rawValue }
+    get { return SectionType(pr.type!)! }
+    set { pr.type = newValue.representation }
   }
   var html: FileEntry {
     get { return StoredFileEntry(persistent: pr.html!) }
@@ -783,8 +783,8 @@ class StoredIssue: Issue, StoredObject {
     set { pr.baseUrl = newValue }
   }
   var status: IssueStatus {
-    get { return IssueStatus(rawValue: pr.status)! }
-    set { pr.status = newValue.rawValue }
+    get { return IssueStatus(pr.status!)! }
+    set { pr.status = newValue.representation }
   }
   var minResourceVersion: Int {
     get { return Int(pr.minResourceVersion) }
@@ -884,12 +884,12 @@ class StoredFeed: Feed, StoredObject {
     set { pr.name = newValue }
   }
   var cycle: PublicationCycle {
-    get { return PublicationCycle(rawValue: pr.cycle)! }
-    set { pr.cycle = newValue.rawValue }
+    get { return PublicationCycle(pr.cycle!)! }
+    set { pr.cycle = newValue.representation }
   }
   var type: FeedType {
-    get { return FeedType(rawValue: pr.type)! }
-    set { pr.type = newValue.rawValue }
+    get { return FeedType(pr.type!)! }
+    set { pr.type = newValue.representation }
   }
   var momentRatio: Float {
     get { return pr.momentRatio }

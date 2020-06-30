@@ -9,122 +9,58 @@ import Foundation
 import NorthLib
 
 /// Subscription status
-enum GqlSubscriptionStatus: Decodable {  
-  case valid                  /// valid authentication
-  case tazIdNotValid          /// tazId not verified
-  case subscriptionIdNotValid /// AboId not verified
-  case invalidConnection      /// AboId valid but connected to different tazId
-  case alreadyLinked          /// valid tazId connected to different AboId
-  case waitForMail            /// we are waiting for eMail confirmation
-  case waitForProc            /// server will confirm later, use polling/push not.
-  case noPollEntry            /// user probably didn't confirm mail
-  case invalidMail            /// invalid mail address 
-  case expired                /// account provided by token is expired
-  case noSurname              /// no surname provided
-  case noFirstname            /// no firstname provided
-  case unknown                /// unknown subscription status    
-  
-  func toString() -> String {
-    switch self {
-    case .valid:                  return "valid"
-    case .tazIdNotValid:          return "tazIdNotValid"
-    case .subscriptionIdNotValid: return "subscriptionIdNotValid"
-    case .invalidConnection:      return "invalidConnection"
-    case .alreadyLinked:          return "alreadyLinked"
-    case .waitForMail:            return "waitForMail"
-    case .waitForProc:            return "waitForProc"
-    case .noPollEntry:            return "noPollEntry"
-    case .invalidMail:            return "invalidMail"
-    case .expired:                return "expired"
-    case .noSurname:              return "noSurname"
-    case .noFirstname:            return "noFirstname"
-    case .unknown:                return "unknown"
-    }
-  }
-  
-  init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "valid"   :               self = .valid
-    case "tazIdNotValid":          self = .tazIdNotValid
-    case "subscriptionIdNotValid": self = .subscriptionIdNotValid
-    case "invalidConnection":      self = .invalidConnection
-    case "alreadyLinked":          self = .alreadyLinked
-    case "waitForMail":            self = .waitForMail
-    case "waitForProc":            self = .waitForProc
-    case "noPollEntry":            self = .noPollEntry
-    case "invalidMail":            self = .invalidMail
-    case "elapsed" :               self = .expired
-    case "noSurname" :             self = .noSurname
-    case "noFirstName" :           self = .noFirstname
-    default:                       self = .unknown  
-    }
-  }
-  
+enum GqlSubscriptionStatus: String, CodableEnum { 
+  /// valid authentication
+  case valid = "valid"  
+  /// tazId not verified
+  case tazIdNotValid = "tazIdNotValid"     
+  /// AboId not verified
+  case subscriptionIdNotValid = "subscriptionIdNotValid" 
+  /// AboId valid but connected to different tazId
+  case invalidConnection = "invalidConnection"  
+  /// valid tazId connected to different AboId
+  case alreadyLinked = "alreadyLinked" 
+  /// we are waiting for eMail confirmation (using push/poll)
+  case waitForMail = "waitForMail" 
+  /// server will confirm later (using push/poll)
+  case waitForProc = "waitForProc"     
+  /// user probably didn't confirm mail
+  case noPollEntry = "noPollEntry" 
+  /// invalid mail address (only syntactic check)
+  case invalidMail = "invalidMail"    
+  /// account provided by token is expired
+  case expired = "expired(elapsed)"      
+  /// no surname provided - seems to be necessary fro trial subscriptions
+  case noSurname = "noSurname"  
+  /// no firstname provided 
+  case noFirstname = "noFirstname(noFirstName)"           
+  case unknown     = "unknown"   /// decoded from unknown string
 } // GqlSubscriptionStatus
 
 /// Password reset info
-enum GqlPasswordResetInfo: Decodable {
-
-  case ok           /// mail sent to user
-  case invalidMail  /// invalid mail address
-  case mailError    /// currently mail delivery not possible
-  case error        /// internal server error
-  case unknown      /// unknown situation
-  
-  func toString() -> String {
-    switch self {
-    case .ok:          return "mail has been sent"
-    case .invalidMail: return "invalid mail address"
-    case .mailError:   return "currently mail delivery not possible"
-    case .error:       return "internal server error"
-    case .unknown:     return "undefined situation"
-    }
-  }
-  
-  init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "ok"   :       self = .ok
-    case "invalidMail": self = .invalidMail
-    case "mailError":   self = .mailError
-    case "error":       self = .error
-    default:            self = .unknown  
-    }
-  }
-
+enum GqlPasswordResetInfo: String, CodableEnum {
+  /// mail sent to user
+  case ok = "ok"     
+  /// invalid mail address
+  case invalidMail = "invalidMailAddress(invalidMail)" 
+  /// currently mail delivery not possible
+  case mailError = "mailError"     
+  /// internal server error
+  case serverError = "serverError(error)" 
+  case unknown     = "unknown"   /// decoded from unknown string
 } // GqlPasswordResetInfo
 
 /// Subscription reset status
-enum GqlSubscriptionResetStatus: Decodable {
-
-  case ok                     /// mail sent to user
-  case invalidSubscriptionId  /// invalid subscription Id
-  case noMail                 /// no mail address known on server
-  case invalidConnection      /// internal server error
-  case unknown                /// unknown situation
-  
-  func toString() -> String {
-    switch self {
-    case .ok:                    return "mail has been sent"
-    case .invalidSubscriptionId: return "invalid subscription ID"
-    case .noMail:                return "unknown mail address"
-    case .invalidConnection:     return "invalid connection"
-    case .unknown:               return "undefined situation"
-    }
-  }
-  
-  init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer().decode(String.self)
-    switch s {
-    case "ok"   :                 self = .ok
-    case "invalidSubscriptionId": self = .invalidSubscriptionId
-    case "noMail":                self = .noMail
-    case "invalidConnection":     self = .invalidConnection
-    default:                      self = .unknown  
-    }
-  }
-
+enum GqlSubscriptionResetStatus: String, CodableEnum {
+  /// mail sent to user
+  case ok = "ok"
+  /// invalid/unknown subscription Id aka AboId
+  case invalidSubscriptionId = "invalidSubscriptionId" 
+  /// unknown mail address
+  case unknownMailAdress = "unknownMailAddress(noMail)"
+  /// AboId already connected with tazId
+  case alreadyConnected = "alreadyConnected(invalidConnection)"     
+  case unknown          = "unknown"   /// decoded from unknown string
 } // GqlSubscriptionResetStatus
 
 /// A GqlSubscriptionInfo describes an GqlAuthStatus with an optional message

@@ -41,7 +41,7 @@
         </fetchIndex>
     </entity>
     <entity name="Feed" representedClassName="PersistentFeed" syncable="YES" codeGenerationType="class">
-        <attribute name="cycle" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="cycle" attributeType="String"/>
         <attribute name="firstIssue" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="issueCnt" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="lastIssue" attributeType="Date" usesScalarValueType="NO"/>
@@ -50,7 +50,7 @@
         <attribute name="momentRatio" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="name" attributeType="String"/>
         <attribute name="order" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="type" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="type" attributeType="String"/>
         <relationship name="feeder" maxCount="1" deletionRule="Nullify" destinationEntity="Feeder" inverseName="feeds" inverseEntity="Feeder"/>
         <relationship name="issues" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Issue" inverseName="feed" inverseEntity="Issue"/>
     </entity>
@@ -70,7 +70,7 @@
         <attribute name="order" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="sha256" attributeType="String"/>
         <attribute name="size" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="storageType" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="storageType" attributeType="String"/>
         <attribute name="storedSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="articleAudio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Article" inverseName="audio" inverseEntity="Article"/>
         <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="html" inverseEntity="Content"/>
@@ -94,9 +94,9 @@
     </entity>
     <entity name="ImageEntry" representedClassName="PersistentImageEntry" syncable="YES" codeGenerationType="class">
         <attribute name="alpha" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="resolution" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="resolution" attributeType="String"/>
         <attribute name="sharable" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="type" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="type" attributeType="String"/>
         <relationship name="author" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Author" inverseName="photo" inverseEntity="Author"/>
         <relationship name="file" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="image" inverseEntity="FileEntry"/>
         <relationship name="imageContent" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Content" inverseName="images" inverseEntity="Content"/>
@@ -113,7 +113,7 @@
         <attribute name="lastPageRead" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="minResourceVersion" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="moTime" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="status" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="status" attributeType="String"/>
         <attribute name="zipName" attributeType="String"/>
         <attribute name="zipNamePdf" attributeType="String"/>
         <relationship name="articles" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Article" inverseName="issues" inverseEntity="Article"/>
@@ -171,7 +171,7 @@
     <entity name="Section" representedClassName="PersistentSection" parentEntity="Content" syncable="YES" codeGenerationType="class">
         <attribute name="extendedTitle" optional="YES" attributeType="String"/>
         <attribute name="name" attributeType="String"/>
-        <attribute name="type" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="type" attributeType="String"/>
         <relationship name="articles" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Article" inverseName="sections" inverseEntity="Article"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="sections" inverseEntity="Issue"/>
         <relationship name="navButton" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="navSection" inverseEntity="ImageEntry"/>
@@ -183,7 +183,7 @@
         <element name="Descriptor" positionX="-51924.47265625" positionY="-35092.5859375" width="128" height="118"/>
         <element name="Feed" positionX="-52533.1796875" positionY="-34944.84375" width="128" height="223"/>
         <element name="Feeder" positionX="-52810.859375" positionY="-34899.69140625" width="128" height="163"/>
-        <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="28"/>
+        <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="238"/>
         <element name="Frame" positionX="-51920.18359375" positionY="-34620.09375" width="128" height="148"/>
         <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="193"/>
         <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="328"/>
