@@ -38,7 +38,7 @@ public class RegisterView: UIView {
   lazy var introLabel : UILabel = {
     let lb = UILabel()
     lb.paddingTop = 120
-    lb.text = NSLocalizedString("Sollten sie bereits bei taz.de mit E-Mail-Adresse und Passwort registriert sein (um dort Texte zu kommentieren oder das Archiev zu nutzen) geben Sie hier bitte diese Daten an.", comment: "e")
+    lb.text = NSLocalizedString("login_missing_credentials_header_registration", comment: "taz Id Account Create")
     lb.numberOfLines = 0
     lb.textAlignment = .center
     return lb
@@ -47,7 +47,8 @@ public class RegisterView: UIView {
   // MARK: switchToTazIdButton
   lazy var switchToTazIdButton : UIButton = {
     let btn = UIButton()
-    btn.setTitle("habe schon taz id", for: .normal)
+    let txt = NSLocalizedString("login_missing_credentials_switch_to_login", comment: "taz Id Account Create")
+    btn.setTitle(txt, for: .normal)
     btn.backgroundColor = .clear
     //    btn.paddingBottom = 112
     btn.setTitleColor(.red, for: .normal)
