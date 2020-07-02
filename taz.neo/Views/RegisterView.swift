@@ -77,27 +77,39 @@ public class RegisterView: UIView {
     tf.addBorder(.cyan)
     return tf
   }()
+  
+  // MARK: agbAcceptLabel
+  lazy var agbAcceptLabel : UILabel = {
+    let lb = UILabel()
+    lb.paddingTop = 120
+    lb.text = NSLocalizedString("login_missing_credentials_header_registration", comment: "taz Id Account Create")
+    lb.numberOfLines = 0
+    lb.textAlignment = .center
+    return lb
+  }()
+  
+  
   // MARK: - setup
   func setup() {
     addAndPin(registerViews)
     self.backgroundColor = .yellow
-
-    /*
-     Performance Test in Simulator
-     Dauer auf 4.2GHZ 4Cores*2Threads < 10s
-     Resultat: Kein Memory Impact!
-    for i in 0...500000 {
-//      print("Loop:", i)
-      let v = UIView()
-      //200MB => 32MB
-//      v.backgroundColor = .red
-      //178MB => 33MB
-      v.paddingTop = 1
-      v.paddingBottom = 1
-    }
-     */
-    
-    
+  }
+  
+  private func runPerformanceTest(){
+    /* ************************
+       Performance Test in Simulator
+       Dauer auf 4.2GHZ 4Cores*2Threads < 10s
+    **** Resultat: Kein Memory Impact! ****
+     setzen der backgroundColor Max 200MB After 32MB
+     setzen paddingTop& Max 180MB After 33MB
+        ****************************/
+        for _ in 0...500000 {
+    //      print("Loop:", i)
+          let v = UIView()
+    //      v.backgroundColor = .red
+          v.paddingTop = 1
+          v.paddingBottom = 1
+        }
   }
   
   lazy var registerViews : [UIView] = {
