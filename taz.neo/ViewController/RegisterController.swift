@@ -14,19 +14,27 @@ class RegisterController: UIViewController {
   
   var registerView = RegisterView()
   var scrollView = UIScrollView()
-
+  
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.view.addSubview(scrollView)
+    // First setupRegisterview before add to ScrollView, otherwise
+    // NSLayoutConstraint Unsatisfiable error, due Priority conflicts
     scrollView.addSubview(registerView)
-//    NorthLib.pin(registerView.centerX, to: scrollView.centerX)
-//    NorthLib.pin(registerView.centerY, to: scrollView.centerY)
+    NorthLib.pin(registerView, to: scrollView)
+    let wConstraint = registerView.pinWidth(to: self.view.width)
+    wConstraint.constant = UIScreen.main.bounds.width
+    wConstraint.priority = .required
+    //Now we can add/setup the Scrollview
+    self.view.addSubview(scrollView)
     NorthLib.pin(scrollView, toSafe: self.view)
-//    let constrains = NorthLib.pin(registerView, toSafe: scrollView)
-    registerView.pinWidth(to: self.view.width).priority = .defaultHigh
-    registerView.pinHeight(to: self.view.height).priority = .defaultLow
-    NorthLib.pin(registerView.left, to: scrollView.left)
-    NorthLib.pin(registerView.top, to: scrollView.top)
-//    constrains.bottom.priority = .defaultLow
+    
+    /// Add Handler
+    registerView.switchToTazIdButton.addTarget(self,
+                                               action: #selector(switchToTazIdButtonTapped),
+                                               for: .touchUpInside)
+  }
+  
+  @IBAction func switchToTazIdButtonTapped(_ sender: UIButton) {
+    print("switch Form")
   }
 }
