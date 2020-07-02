@@ -196,7 +196,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
         let imgVC = ContentImageVC(content: current, delegate: self,
                                    imageTapped: img)
         imgVC.showImageGallery = self.showImageGallery
-        self.navigationController?.pushViewController(imgVC, animated: false)
+        let overlay = Overlay(overlay:imgVC , into: self)
+        overlay.maxAlpha = 0.9
+        overlay.open(animated: true, fromBottom: true)
+        imgVC.onX {
+          overlay.close(animated: true, toBottom: true)
+        }
       }
       return NSNull()
     }
