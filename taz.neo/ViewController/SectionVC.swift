@@ -109,7 +109,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       self?.slider.close()
       self?.closeIssue()
     }
-    onDisplay { [weak self] (secIndex) in
+    onDisplay { [weak self] (secIndex, oview) in
       self?.debug("onDisplay: \(secIndex)")
       self?.setHeader(secIndex: secIndex)
     }
