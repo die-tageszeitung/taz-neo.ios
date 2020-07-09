@@ -110,6 +110,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       self?.closeIssue()
     }
     onDisplay { [weak self] (secIndex) in
+      self?.debug("onDisplay: \(secIndex)")
       self?.setHeader(secIndex: secIndex)
     }
     articleVC = ArticleVC()
