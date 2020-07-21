@@ -9,7 +9,7 @@
 import UIKit
 import NorthLib
 
-
+fileprivate let DefaultFontSize = CGFloat(16)
 fileprivate let LargeTitleFontSize = CGFloat(34)
 fileprivate let DottedLineHeight = CGFloat(2.4)
 
@@ -18,13 +18,15 @@ fileprivate let DottedLineHeight = CGFloat(2.4)
 /// A RegisterView displays an RegisterForm
 public class RegisterView: UIView {
   
+  fileprivate let textColor : UIColor = .gray
+  
   /// The type of device currently in use
   public enum RegisterFormType {
     case login, createTazId
   }
   
   var views : [UIView] = []
-    
+  
   // MARK: - init
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -34,46 +36,19 @@ public class RegisterView: UIView {
     super.init(coder: coder)
   }
   
-  public init(_ type: RegisterFormType) {
+  public init(_ views: [UIView]) {
     self.init()
-    switch type {
-    case .login:
-      self.views = [header, introLabel, switchToTazIdButton, mailInput, pwInput]
-    case .createTazId:
-      self.views = [header, switchToTazIdButton, mailInput, pwInput]
-    }
+    self.views = views
     setup()
   }
   
+  // MARK: Container for Content in ScrollView
   let container = UIView()
     
-  // MARK: tageszeitung label + dotted line
-  lazy var header : UIView = {
-    let container = UIView()
-    let title = UILabel()
-    let line = DottedLineView()
-    
-    title.text = NSLocalizedString("die tageszeitung",
-                                   comment: "taz_title")
-    title.font = AppFonts.contentFont(size: LargeTitleFontSize)
-    title.textAlignment = .right
-    
-    container.addSubview(title)
-    container.addSubview(line)
-    
-    pin(title, to: container, dist: 0, exclude: .bottom)
-    pin(line, to: container, dist: 0, exclude: .top)
-    NorthLib.pin(line.top, to: title.bottom)
-    line.pinHeight(DottedLineHeight)
-  
-    return container
-  }()
-  
-  // MARK: intro
-  lazy var introLabel : UILabel = {
+  // MARK: Probeabo Intro
+  lazy var probeaboLabel : UILabel = {
     let lb = UILabel()
     lb.paddingTop = 120
-    lb.text = NSLocalizedString("login_missing_credentials_header_registration", comment: "taz Id Account Create")
     lb.numberOfLines = 0
     lb.textAlignment = .center
     return lb
@@ -90,27 +65,140 @@ public class RegisterView: UIView {
     btn.addBorder(.purple)
     return btn
   }()
-  
-  // MARK: mail input
-  lazy var mailInput : UITextField = {
-    let tf = UITextField()
-    tf.pinHeight(40)
-    tf.paddingTop = 120
-    //      tf.paddingBottom = 820
-    tf.placeholder = "E-Mail *"
-    tf.addBorder(.magenta)
-    return tf
+     
+  // MARK: sendButton
+  lazy var loginButton : UIButton = {
+    return Self.button()
   }()
   
+  static func header() -> UIView {
+    let container = UIView()
+    let title = UILabel()
+    let line = DottedLineView()
+    
+    title.text = NSLocalizedString("die tageszeitung",
+                                   comment: "taz_title")
+    title.font = AppFonts.contentFont(size: LargeTitleFontSize)
+    title.textAlignment = .right
+    
+    container.addSubview(title)
+    container.addSubview(line)
+    
+    pin(title, to: container, dist: 0, exclude: .bottom)
+    pin(line, to: container, dist: 0, exclude: .top)
+    NorthLib.pin(line.top, to: title.bottom)
+    line.pinHeight(DottedLineHeight)
+    
+    return container
+  }
+    
+  
+  static func label(title: String? = nil,
+                    font: UIFont = AppFonts.contentFont(size: DefaultFontSize),
+                    paddingTop: CGFloat = 8,
+                    paddingBottom: CGFloat = 8) -> UILabel {
+    let lb = UILabel()
+    lb.text = title
+    lb.font = font
+    lb.paddingTop = paddingTop
+    lb.paddingBottom = paddingBottom
+    lb.numberOfLines = 0
+    lb.textAlignment = .center
+    return lb
+  }
+  
+  
+  static func button(title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
+                     color: UIColor = TazColor.Test.color,
+                     textColor: UIColor = .white,
+                     height: CGFloat = 40,
+                     paddingTop: CGFloat = 20,
+                     paddingBottom: CGFloat = 20,
+                     target: Any? = nil,
+                     action: Selector? = nil) -> UIButton {
+    let btn = UIButton()
+    if let title = title {
+      btn.setTitle(title, for: .normal)
+    }
+    btn.backgroundColor = color
+    btn.setTitleColor(textColor, for: .normal)
+    btn.pinHeight(height)
+    btn.paddingTop = paddingTop
+    btn.paddingBottom = paddingBottom
+    if let target = target, let action = action {
+      btn.addTarget(target, action: action, for: .touchUpInside)
+    }
+    return btn
+  }
+  
+  static func outlineButton(title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
+                     paddingTop: CGFloat = 20,
+                     paddingBottom: CGFloat = 20,
+                     target: Any? = nil,
+                     action: Selector? = nil) -> UIButton {
+    let btn = Self.button(title:title,
+                          paddingTop: paddingTop,
+                          paddingBottom: paddingBottom,
+                          target: target,
+                          action: action)
+    btn.backgroundColor = .clear
+    btn.addBorder(AppColors.ciColor, 1.0)
+    btn.setTitleColor(AppColors.ciColor, for: .normal)
+    return btn
+  }
+  
+  
+//  // MARK: mail input
+//  lazy var mailInput : UITextField = {
+//    let tf = UITextField()
+//    tf.pinHeight(40)
+//    tf.paddingTop = 40
+//    tf.placeholder = NSLocalizedString("login_username_hint", comment: "E-Mail Input")
+//    tf.addBorder(.gray, 1.0, only:UIRectEdge.bottom)
+//    return tf
+//  }()
+  
   // MARK: pwInput
-  lazy var pwInput : UITextField = {
+  static func textField(prefilledText: String? = nil,
+                        placeholder: String? = nil,
+                        textContentType: UITextContentType? = nil,
+                        color: UIColor = AppColors.ciColor,
+                        textColor: UIColor = .white,
+                        height: CGFloat = 40,
+                        paddingTop: CGFloat = 40,
+                        paddingBottom: CGFloat = 40,
+                        isSecureTextEntry: Bool = false,
+                        target: Any? = nil,
+                        action: Selector? = nil) -> UITextField {
     let tf = UITextField()
-    //    tf.paddingTop = 110
-    tf.pinHeight(40)
-    tf.borderStyle = .line
-    tf.placeholder = "Passwort *"
-    tf.addBorder(.cyan)
+    tf.pinHeight(height)
+    tf.paddingTop = paddingTop
+    tf.paddingBottom = paddingBottom
+    tf.placeholder = placeholder
+    //tf.borderStyle = .line //Border Bottom Alternative
+    tf.addBorder(.gray, 1.0, only:UIRectEdge.bottom)
+    tf.textContentType = .password
+    tf.isSecureTextEntry = isSecureTextEntry
+    
+    if #available(iOS 13.0, *), isSecureTextEntry {
+      let imgEye = UIImage(systemName: "eye.fill")?.withRenderingMode(.alwaysOriginal).withTintColor(.lightGray)
+      let imgEyeSlash = UIImage(systemName: "eye.slash.fill")?.withRenderingMode(.alwaysOriginal).withTintColor(.lightGray)
+      let eye = UIImageView(image: imgEyeSlash)
+      eye.onTapping(closure: { _ in
+        tf.isSecureTextEntry = !tf.isSecureTextEntry
+        eye.image = tf.isSecureTextEntry ? imgEyeSlash : imgEye
+      })
+      tf.rightView = eye
+      tf.rightViewMode = .always
+    }
     return tf
+  }
+
+  lazy var pwInput : UITextField = {
+    return Self.textField(placeholder: NSLocalizedString("login_password_hint", comment: "Passwort Input"),
+                          textContentType: .password,
+                          isSecureTextEntry: true
+                          )
   }()
   
   // MARK: agbAcceptLabel
@@ -127,27 +215,27 @@ public class RegisterView: UIView {
   // MARK: - setup
   func setup() {
     addAndPin(views)
-    self.backgroundColor = .yellow
+    self.backgroundColor = .white
   }
   
   private func runPerformanceTest(){
     /* ************************
-       Performance Test in Simulator
-       Dauer auf 4.2GHZ 4Cores*2Threads < 10s
-    **** Resultat: Kein Memory Impact! ****
+     Performance Test in Simulator
+     Dauer auf 4.2GHZ 4Cores*2Threads < 10s
+     **** Resultat: Kein Memory Impact! ****
      setzen der backgroundColor Max 200MB After 32MB
      setzen paddingTop& Max 180MB After 33MB
-        ****************************/
-        for _ in 0...500000 {
-    //      print("Loop:", i)
-          let v = UIView()
-    //      v.backgroundColor = .red
-          v.paddingTop = 1
-          v.paddingBottom = 1
-        }
+     ****************************/
+    for _ in 0...500000 {
+      //      print("Loop:", i)
+      let v = UIView()
+      //      v.backgroundColor = .red
+      v.paddingTop = 1
+      v.paddingBottom = 1
+    }
   }
   
-
+  
   
   func addAndPin(_ views: [UIView]){
     let margin : CGFloat = 12.0
@@ -175,40 +263,86 @@ public class RegisterView: UIView {
       self.addSubview(sv)
       NorthLib.pin(sv, to: self)
     }
-    else {
-      self.addSubview(container)
-      NorthLib.pin(container, to: self)
-    }
+    //Preparation for not use ScrollView
+    //    else {
+    //      self.addSubview(container)
+    //      NorthLib.pin(container, to: self)
+    //    }
   }
 }
 
+public typealias tblrConstrains = (
+  top: NSLayoutConstraint?,
+  bottom: NSLayoutConstraint?,
+  left: NSLayoutConstraint?,
+  right: NSLayoutConstraint?)
+
+
 /// Pin all edges, except one of one view to the edges of another view's safe layout guide
 @discardableResult
-public func pin(_ view: UIView,
-                to: UIView,
-                dist: CGFloat = 0,
-                exclude: UIRectEdge? = nil)
-                -> ( top: NSLayoutConstraint?,
-                     bottom: NSLayoutConstraint?,
-                     left: NSLayoutConstraint?,
-                     right: NSLayoutConstraint?) {
-                      var top:NSLayoutConstraint?,
-                      left:NSLayoutConstraint?,
-                      bottom:NSLayoutConstraint?,
-                      right:NSLayoutConstraint?
-  exclude != UIRectEdge.top ? top = NorthLib.pin(view.top, to: to.top, dist: dist) : nil
-  exclude != UIRectEdge.left ? left = NorthLib.pin(view.left, to: to.left, dist: dist) : nil
-  exclude != UIRectEdge.right ? right = NorthLib.pin(view.right, to: to.right, dist: -dist) : nil
-  exclude != UIRectEdge.bottom ? bottom = NorthLib.pin(view.bottom, to: to.bottom, dist: -dist) : nil
-                      
-                      return (top, bottom, left, right)
+public func pin(_ view: UIView, to: UIView, dist: CGFloat = 0, exclude: UIRectEdge? = nil) -> tblrConstrains {
+    var top:NSLayoutConstraint?, left:NSLayoutConstraint?, bottom:NSLayoutConstraint?, right:NSLayoutConstraint?
+    exclude != UIRectEdge.top ? top = NorthLib.pin(view.top, to: to.top, dist: dist) : nil
+    exclude != UIRectEdge.left ? left = NorthLib.pin(view.left, to: to.left, dist: dist) : nil
+    exclude != UIRectEdge.right ? right = NorthLib.pin(view.right, to: to.right, dist: -dist) : nil
+    exclude != UIRectEdge.bottom ? bottom = NorthLib.pin(view.bottom, to: to.bottom, dist: -dist) : nil
+    return (top, bottom, left, right)
 }
 
 /// borders Helper
 extension UIView {
-  func addBorder(_ color:UIColor = .red, _ width:CGFloat=1.0){
-    self.layer.borderColor = color.cgColor
-    self.layer.borderWidth = width
+  fileprivate class BorderView : UIView {}
+  
+  func addBorder(_ color:UIColor = .red, _ width:CGFloat=1.0, only: UIRectEdge? = nil){
+    if only == nil {
+      self.layer.borderColor = color.cgColor
+      self.layer.borderWidth = width
+      return
+    }
+    
+    removeBorders()
+    
+    let b = BorderView()
+    b.backgroundColor = color
+    
+    self.addSubview(b)
+    if only == UIRectEdge.top || only == UIRectEdge.bottom {
+      b.pinHeight(width)
+      pin(b.left, to: self.left)
+      pin(b.right, to: self.right)
+    }
+    else {
+      b.pinWidth(width)
+      pin(b.top, to: self.top)
+      pin(b.bottom, to: self.bottom)
+    }
+    
+    if only == UIRectEdge.top {
+      pin(b.top, to: self.top)
+    }
+    else if only == UIRectEdge.bottom {
+      pin(b.bottom, to: self.bottom)
+    }
+    else if only == UIRectEdge.left {
+      pin(b.left, to: self.left)
+    }
+    else if only == UIRectEdge.right {
+      pin(b.right, to: self.right)
+    }
+  }
+  
+  func removeBorders(){
+    self.layer.borderColor = UIColor.clear.cgColor
+    self.layer.borderWidth = 0.0
+    
+    for case let border as BorderView in self.subviews {
+      border.removeFromSuperview()
+    }
+  }
+  
+  func onTapping(closure: @escaping (UITapGestureRecognizer)->()){
+    let gr = TapRecognizer()
+    gr.onTap(view: self, closure: closure)
   }
 }
 
