@@ -64,7 +64,7 @@ open class ArticleVC: ContentVC {
       self?.navigationController?.popViewController(animated: false)
       self?.adelegate?.closeIssue()
     }
-    onDisplay { [weak self] (idx) in
+    onDisplay { [weak self] (idx, oview) in
       self?.debug("on display: \(idx)")
       if let this = self {
         this.adelegate?.article = this.articles[idx]

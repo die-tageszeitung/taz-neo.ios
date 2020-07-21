@@ -142,6 +142,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
   private var homeClosure: ((ContentVC)->())?
   public var shareButton = Button<ImageView>()
   private var shareClosure: ((ContentVC)->())?
+  private var imageOverlay: Overlay?
   
   public var header = HeaderView()
   public var isLargeHeader = false
@@ -196,35 +197,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
         let imgVC = ContentImageVC(content: current, delegate: self,
                                    imageTapped: img)
         imgVC.showImageGallery = self.showImageGallery
-        let overlay = Overlay(overlay:imgVC , into: self)
-        overlay.maxAlpha = 0.9
-        overlay.open(animated: true, fromBottom: true)
-        /** Inform Application to re-evaluate Orientation for current ViewController
-            No Matter which way, this works only on first open
-            if i close and re-open in Landscape the gallery opens in portrait
-
-            initially application..supportedInterfaceOrientationsFor is called 4 times
-            on 2nd ff attempt ist called just once, no matter if VC's get poped, pushed, Device rotated...
-         */
-        //V1 by orientationDidChangeNotification
-        NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification, object: nil)
-        //V2 by set current value after set intermediate value to trigger change
-        // let currentOrientation = UIDevice.current.orientation.rawValue
-        // UIDevice.current.setValue( UIInterfaceOrientation.unknown.rawValue, forKey: "orientation")
-        // UIDevice.current.setValue(currentOrientation, forKey: "orientation")
-        overlay.onClose {
-//          UIDevice.current.beginGeneratingDeviceOrientationNotifications()
-          /**
-            The following line "destroys" the ability to open overlay direct in landscape at 2nd attempt
-            using:  beginGeneratingDeviceOrientationNotifications, endGeneratingDeviceOrientationNotifications, orientationDidChangeNotification did not work TODO
-           */
+        self.imageOverlay = Overlay(overlay:imgVC , into: self)
+        self.imageOverlay!.maxAlpha = 0.9
+        self.imageOverlay!.open(animated: true, fromBottom: true)
+        // Inform Application to re-evaluate Orientation for current ViewController
+        NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
+                                        object: nil)
+        self.imageOverlay!.onClose {
+          // reset orientation to portrait
           UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-//          UIDevice.current.endGeneratingDeviceOrientationNotifications()
-//          NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification, object: nil)
-               
+          self.imageOverlay = nil
         }
-        imgVC.onX {
-          overlay.close(animated: true, toBottom: true)
+        imgVC.toClose {
+          self.imageOverlay!.close(animated: true, toBottom: true)
         }
       }
       return NSNull()
@@ -336,12 +321,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     slider.close()
+    if let overlay = imageOverlay { overlay.close(animated: false) }
   }
 
   public override init() {
     self.contentTable = ContentTableVC.loadFromNib()
     super.init()
-  }
+  }  
   
   public func setup(contents: [Content], isLargeHeader: Bool) {
     self.contents = contents

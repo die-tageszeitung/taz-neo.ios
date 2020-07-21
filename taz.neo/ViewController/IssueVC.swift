@@ -368,7 +368,7 @@ public class IssueVC: UIViewController, IssueInfo {
   @objc private func goingBackground() {}
   
   @objc private func goingForeground() {
-    //checkForNewIssues()
+    checkForNewIssues()
   }
   
 } // IssueVC

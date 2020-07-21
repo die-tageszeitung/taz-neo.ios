@@ -97,6 +97,11 @@ public class IssueCarousel: UIView {
   /// Define Tap handler
   public func onLabelTap(closure: ((Int)->())?) { labelTapClosure = closure }
   
+  /// First index of Moment in Issue-Array
+  private func firstMoment(moment: MomentView) -> Int? {
+    issues.firstIndex { $0.issue == moment.image }
+  }
+  
   // Define view provider
   private func setup() {
     guard carousel.provider == nil else { return }
@@ -118,13 +123,18 @@ public class IssueCarousel: UIView {
       self.labelTapClosure?(self.index!)
     }
     carousel.viewProvider { [weak self] (idx, view) in
+      self?.debug("tap index: \(idx)")
       guard let self = self else { return MomentView() }
       var moment: MomentView? = view as? MomentView
       if moment == nil { moment = MomentView() }
       moment!.image = self.issues[idx].issue
       moment!.isActivity = self.issues[idx].isActivity
       moment!.menu.menu = self.menu
-      moment!.onTap {_ in self.tapClosure?(idx) }
+      moment!.onTap {_ in
+        if let currentIndex = self.firstMoment(moment: moment!) {
+          self.tapClosure?(currentIndex)
+        }
+      }
       return moment!
     }
   }

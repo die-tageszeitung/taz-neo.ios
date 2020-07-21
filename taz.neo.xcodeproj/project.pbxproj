@@ -79,6 +79,8 @@
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextSettingsVC.swift; sourceTree = "<group>"; };
 		AE0C32DE246310E500E4AEA8 /* SliderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SliderTest.swift; sourceTree = "<group>"; };
+		AE11F79724B894710080CF51 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
+		AE11F79824B894710080CF51 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LogoLaunchScreen.strings; sourceTree = "<group>"; };
 		AE21C46B23E710A600F8B811 /* UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests.swift; sourceTree = "<group>"; };
 		AE44F8E324815AF4009DA152 /* ContentImageVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentImageVC.swift; sourceTree = "<group>"; };
 		AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueInfoProtocol.swift; sourceTree = "<group>"; };
@@ -341,6 +343,7 @@
 			knownRegions = (
 				en,
 				Base,
+				de,
 			);
 			mainGroup = AEBAF55B219ACD1900566205;
 			productRefGroup = AEBAF565219ACD1900566205 /* Products */;
@@ -476,6 +479,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				AE4C49432450412D001A40BE /* Base */,
+				AE11F79824B894710080CF51 /* de */,
 			);
 			name = LogoLaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -484,6 +488,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				AEBAF571219ACD1A00566205 /* Base */,
+				AE11F79724B894710080CF51 /* de */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -495,6 +500,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -556,6 +562,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -615,7 +622,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020062601;
+				CURRENT_PROJECT_VERSION = 2020070901;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
@@ -623,7 +630,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.8;
+				MARKETING_VERSION = 0.3.9;
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo;
 				PRODUCT_NAME = "taz neo";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -641,7 +648,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020062601;
+				CURRENT_PROJECT_VERSION = 2020070901;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
@@ -649,7 +656,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.8;
+				MARKETING_VERSION = 0.3.9;
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo;
 				PRODUCT_NAME = "taz neo";
 				PROVISIONING_PROFILE_SPECIFIER = "";

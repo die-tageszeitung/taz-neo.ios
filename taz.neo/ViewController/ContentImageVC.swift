@@ -44,6 +44,12 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   /// Show an image gallery if available
   var showImageGallery = true
   
+  /// Closure to call when this VC wishes to close itself
+  private var toCloseClosure: (()->())?
+  
+  /// Define closure this VC may call to close itself
+  func toClose(closure: @escaping ()->()) { toCloseClosure = closure }
+  
   /// Light status bar because of black background
   override public var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
   
@@ -114,27 +120,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     }
     return (idx, ret)
   }
-  
-  private func popVC(setPortrait: Bool = false) {
-    if setPortrait {
-      let portrait = UIInterfaceOrientation.portrait.rawValue
-      UIDevice.current.setValue(portrait, forKey: "orientation")
-    }
-    self.navigationController?.popViewController(animated: false)
-  }
-  
-  private func setupImageView() {
-    guard let img = self.imageTapped else { popVC(); return }      
-    let pdict = content.photoDict
-    let pref = StoredImageEntry.prefix(img)
-    if let pair = pdict[pref] { image = zoomedImage(pair: pair) }
-    guard let image = self.image else { popVC(); return }
-    let imageView = ZoomedImageView(optionalImage: image)
-    self.view.addSubview(imageView)
-    pin(imageView, to: self.view)
-    imageView.onX { self.popVC(setPortrait: true) }
-  }
-  
+    
   private func exportImage() {
     if let img = self.images[self.index!] as? ZoomedImage {
       let dialogue = ExportDialogue<Any>()
@@ -143,14 +129,21 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   }
   
   private func setupImageCollectionVC() {
-    self.onX { self.popVC(setPortrait: true) }
-    self.onDisplay { [weak self] idx in
+    self.xButton.isHidden = true
+    self.onTap { (_,_,_) in self.xButton.isHidden.toggle() }
+    self.onX { [weak self] in self?.toCloseClosure?() }
+    self.onDisplay { [weak self] (idx, oview) in
       guard let self = self else { return }
-      if let zi = self.images[idx] as? ZoomedImage,
-         zi.imageEntry?.sharable ?? true {
+      if let zi = self.images[idx] as? ZoomedImage {
         if let ziv = self.currentView as? ZoomedImageView, ziv.menu.menu.count == 0 {
-          ziv.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
-            self.exportImage()
+          if zi.imageEntry?.sharable ?? true {
+            ziv.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
+              self.exportImage()
+            }
+          }
+          ziv.addMenuItem(title: "Zurück zum Text", icon: "arrow.uturn.left.circle") { 
+            [weak self] _ in
+            self?.toCloseClosure?()
           }
           ziv.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
         }
@@ -190,7 +183,6 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   public override func viewDidLoad() {
     super.viewDidLoad()
     setupImageCollectionVC()
-//    setupImageView()
   }
     
 } // ContentImageVC

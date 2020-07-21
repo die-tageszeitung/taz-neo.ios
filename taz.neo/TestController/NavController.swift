@@ -188,7 +188,7 @@ class NavController: UINavigationController {
         articleViews!.contentTable?.onImagePress { [weak self] in
           self?.article2section(index: 0)
         }
-        articleViews!.onDisplay { (idx) in self.setArticleHeader() }
+        articleViews!.onDisplay { (idx, oview) in self.setArticleHeader() }
         //articleViews?.displayFiles(path: path, files: issue!.articleHtml)
         pushViewController(articleViews!, animated: false)
       }
@@ -241,7 +241,7 @@ class NavController: UINavigationController {
       self?.sectionViews!.slider.close()
       self?.moveSection(to: 0)
     }
-    sectionViews!.onDisplay { (idx) in 
+    sectionViews!.onDisplay { (idx, oview) in 
       self.setSectionHeader(index: idx)
     }
     pushViewController(sectionViews!, animated: false)
