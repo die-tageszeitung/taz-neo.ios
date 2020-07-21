@@ -9,29 +9,64 @@
 import UIKit
 import NorthLib
 
-/// A MomentView displays an Image, an optional Spinner and an
-/// optional Menue.
+
+fileprivate let LargeTitleFontSize = CGFloat(34)
+fileprivate let DottedLineHeight = CGFloat(2.4)
+
+
+
+/// A RegisterView displays an RegisterForm
 public class RegisterView: UIView {
   
+  /// The type of device currently in use
+  public enum RegisterFormType {
+    case login, createTazId
+  }
+  
+  var views : [UIView] = []
+    
   // MARK: - init
   public override init(frame: CGRect) {
     super.init(frame: frame)
-    setup()
   }
   
   public required init?(coder: NSCoder) {
     super.init(coder: coder)
+  }
+  
+  public init(_ type: RegisterFormType) {
+    self.init()
+    switch type {
+    case .login:
+      self.views = [header, introLabel, switchToTazIdButton, mailInput, pwInput]
+    case .createTazId:
+      self.views = [header, switchToTazIdButton, mailInput, pwInput]
+    }
     setup()
   }
   
-  
+  let container = UIView()
+    
   // MARK: tageszeitung label + dotted line
   lazy var header : UIView = {
-    let v = UIView()
-    v.backgroundColor = .red
-    v.pinHeight(70)
-    v.addBorder(.green)
-    return v
+    let container = UIView()
+    let title = UILabel()
+    let line = DottedLineView()
+    
+    title.text = NSLocalizedString("die tageszeitung",
+                                   comment: "taz_title")
+    title.font = AppFonts.contentFont(size: LargeTitleFontSize)
+    title.textAlignment = .right
+    
+    container.addSubview(title)
+    container.addSubview(line)
+    
+    pin(title, to: container, dist: 0, exclude: .bottom)
+    pin(line, to: container, dist: 0, exclude: .top)
+    NorthLib.pin(line.top, to: title.bottom)
+    line.pinHeight(DottedLineHeight)
+  
+    return container
   }()
   
   // MARK: intro
@@ -91,7 +126,7 @@ public class RegisterView: UIView {
   
   // MARK: - setup
   func setup() {
-    addAndPin(registerViews)
+    addAndPin(views)
     self.backgroundColor = .yellow
   }
   
@@ -112,37 +147,61 @@ public class RegisterView: UIView {
         }
   }
   
-  lazy var registerViews : [UIView] = {
-    return [header, introLabel, switchToTazIdButton, mailInput, pwInput]
-  }()
+
   
   func addAndPin(_ views: [UIView]){
     let margin : CGFloat = 12.0
     var previous : UIView?
     for v in views {
       //add
-      self.addSubview(v)
+      container.addSubview(v)
       //pin
       if previous == nil {
-        pin(v, to: self, dist: margin, exclude: .bottom)
+        pin(v, to: container, dist: margin, exclude: .bottom)
       }
       else {
-        NorthLib.pin(v.left, to: self.left, dist: margin)
-        NorthLib.pin(v.right, to: self.right, dist: -margin)
+        NorthLib.pin(v.left, to: container.left, dist: margin)
+        NorthLib.pin(v.right, to: container.right, dist: -margin)
         NorthLib.pin(v.top, to: previous!.bottom, dist: padding(previous!, v))
       }
       previous = v
     }
-    NorthLib.pin(previous!.bottom, to: self.bottom, dist: -margin)
+    NorthLib.pin(previous!.bottom, to: container.bottom, dist: -margin)
+    
+    if true {
+      let sv = UIScrollView()
+      sv.addSubview(container)
+      NorthLib.pin(container, to: sv)
+      self.addSubview(sv)
+      NorthLib.pin(sv, to: self)
+    }
+    else {
+      self.addSubview(container)
+      NorthLib.pin(container, to: self)
+    }
   }
 }
 
 /// Pin all edges, except one of one view to the edges of another view's safe layout guide
-public func pin(_ view: UIView, to: UIView, dist: CGFloat = 0, exclude: UIRectEdge? = nil) {
-  exclude != UIRectEdge.top ? _ = NorthLib.pin(view.top, to: to.top, dist: dist) : nil
-  exclude != UIRectEdge.left ? _ = NorthLib.pin(view.left, to: to.left, dist: dist) : nil
-  exclude != UIRectEdge.right ? _ = NorthLib.pin(view.right, to: to.right, dist: -dist) : nil
-  exclude != UIRectEdge.bottom ? _ = NorthLib.pin(view.bottom, to: to.bottom, dist: -dist) : nil
+@discardableResult
+public func pin(_ view: UIView,
+                to: UIView,
+                dist: CGFloat = 0,
+                exclude: UIRectEdge? = nil)
+                -> ( top: NSLayoutConstraint?,
+                     bottom: NSLayoutConstraint?,
+                     left: NSLayoutConstraint?,
+                     right: NSLayoutConstraint?) {
+                      var top:NSLayoutConstraint?,
+                      left:NSLayoutConstraint?,
+                      bottom:NSLayoutConstraint?,
+                      right:NSLayoutConstraint?
+  exclude != UIRectEdge.top ? top = NorthLib.pin(view.top, to: to.top, dist: dist) : nil
+  exclude != UIRectEdge.left ? left = NorthLib.pin(view.left, to: to.left, dist: dist) : nil
+  exclude != UIRectEdge.right ? right = NorthLib.pin(view.right, to: to.right, dist: -dist) : nil
+  exclude != UIRectEdge.bottom ? bottom = NorthLib.pin(view.bottom, to: to.bottom, dist: -dist) : nil
+                      
+                      return (top, bottom, left, right)
 }
 
 /// borders Helper

@@ -12,21 +12,17 @@ import NorthLib
 /// A view controller to show introductory HTML-files
 class RegisterController: UIViewController {
   
-  var registerView = RegisterView()
-  var scrollView = UIScrollView()
+  var registerView = RegisterView(.createTazId)
+  var loginView = RegisterView(.login)
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    // First setupRegisterview before add to ScrollView, otherwise
-    // NSLayoutConstraint Unsatisfiable error, due Priority conflicts
-    scrollView.addSubview(registerView)
-    NorthLib.pin(registerView, to: scrollView)
-    let wConstraint = registerView.pinWidth(to: self.view.width)
+
+    let wConstraint = registerView.container.pinWidth(to: self.view.width)
     wConstraint.constant = UIScreen.main.bounds.width
     wConstraint.priority = .required
-    //Now we can add/setup the Scrollview
-    self.view.addSubview(scrollView)
-    NorthLib.pin(scrollView, toSafe: self.view)
+    self.view.addSubview(registerView)
+    NorthLib.pin(registerView, toSafe: self.view)
     
     /// Add Handler
     registerView.switchToTazIdButton.addTarget(self,
