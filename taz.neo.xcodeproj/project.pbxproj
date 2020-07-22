@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		004D4EFE24ACDBA7008C4EE7 /* RegisterController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFD24ACDBA7008C4EE7 /* RegisterController.swift */; };
-		004D4F0024ACDC1F008C4EE7 /* RegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* RegisterView.swift */; };
+		004D4F0024ACDC1F008C4EE7 /* FormularView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */; };
 		080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
@@ -73,7 +73,7 @@
 
 /* Begin PBXFileReference section */
 		004D4EFD24ACDBA7008C4EE7 /* RegisterController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterController.swift; sourceTree = "<group>"; };
-		004D4EFF24ACDC1F008C4EE7 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
+		004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormularView.swift; sourceTree = "<group>"; };
 		080271C624ADDD68002CD2F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Localizable.strings; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
@@ -160,7 +160,7 @@
 				AECCE11D23FBF449007C2276 /* StartupView.swift */,
 				AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */,
 				AEF2DF34244766E400D1482D /* MomentView.swift */,
-				004D4EFF24ACDC1F008C4EE7 /* RegisterView.swift */,
+				004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -442,7 +442,7 @@
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,
 				AECCE11823FBD006007C2276 /* ArticleVC.swift in Sources */,
-				004D4F0024ACDC1F008C4EE7 /* RegisterView.swift in Sources */,
+				004D4F0024ACDC1F008C4EE7 /* FormularView.swift in Sources */,
 				AEF2DF35244766E400D1482D /* MomentView.swift in Sources */,
 				AE5D9EBD23E1B8160002C3B8 /* GraphQlSession.swift in Sources */,
 				AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */,

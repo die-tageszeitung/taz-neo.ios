@@ -48,6 +48,7 @@ enum TazColor{
   case HBackground
   case HText
   case Test
+  case CIColor
   
   var color : UIColor {
     get{
@@ -88,6 +89,8 @@ enum TazColor{
       return (UIColor.black, AppColors.darkSecondaryText,nil,nil)
     case .Test:
       return (UIColor.red, UIColor.green, UIColor.blue,UIColor.magenta)
+    case .CIColor:
+      return (AppColors.ciColor,nil,nil,nil)
     }
   }
 }

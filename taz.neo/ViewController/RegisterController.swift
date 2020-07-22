@@ -12,72 +12,38 @@ import NorthLib
 /// A view controller to show introductory HTML-files
 class RegisterController: UIViewController {
   
-  lazy var loginView = RegisterView(loginSubviews)
-  lazy var loginSubviews : [UIView] = {
-    return [
-      RegisterView.header(),
-      RegisterView.label(title: NSLocalizedString("login_missing_credentials_header_login",
-                                                  comment: "login header")),
-      RegisterView.textField(placeholder: NSLocalizedString("login_username_hint", comment: "E-Mail Input")
-                            ),
-      RegisterView.textField(placeholder: NSLocalizedString("login_password_hint", comment: "Passwort Input"),
-                            textContentType: .password,
-                            isSecureTextEntry: true
-                            ),
-      RegisterView.button(title: NSLocalizedString("login_button", comment: "login"),
-                          target: self, action: #selector(handleLogin)),
-      RegisterView.label(title: NSLocalizedString("dssaD",
-                                                  comment: "login header")),
-      RegisterView.outlineButton(title: NSLocalizedString("REG", comment: "login"),
-                          target: self, action: #selector(handleLogin)),
-    ]
-  }()
-  
+  lazy var loginView = LoginView()
   
   override func viewDidLoad() {
     super.viewDidLoad()
-//    if #available(iOS 13.0, *) {
-//      #if DEBUG
-//      // change the appearance only while testing
-//      // test the combination with high Contrast with Environment Overrides Button Below
-//      // seams the simulator did not handle env correctly
-//      overrideUserInterfaceStyle = .dark
-//      #endif
-//    }
+    loginView.loginClosure = { [weak self] (id, password) in
+      self?.handleLogin(id: id, password: password)
+    }
+    loginView.pwForgotClosure = { [weak self] id in
+      self?.handlePwForgot(id: id)
+    }
+    
     let wConstraint = loginView.container.pinWidth(to: self.view.width)
     wConstraint.constant = UIScreen.main.bounds.width
     wConstraint.priority = .required
     self.view.addSubview(loginView)
-    NorthLib.pin(loginView, toSafe: self.view)
+    pin(loginView, to: self.view, exclude: .top)
+    let c = pin(loginView.top, to: self.view.topGuide())
+    c.priority = UILayoutPriority(rawValue: 10)
     
-    /// Add Handler
-    loginView.switchToTazIdButton.addTarget(self,
-                                             action: #selector(switchToTazIdButtonTapped),
-                                             for: .touchUpInside)
+    
+    
+
+//    pin(loginView, to: self.view)
   }
   
-  
-  
-  @IBAction func switchToTazIdButtonTapped(_ sender: UIButton) {
-    print("switch Form")
+  func handleLogin(id: String?, password:String?) {
+    print("handle login with: \(id), pass: \(password)")
+  }
+
+  func handlePwForgot(id: String?) {
+    print("handle handlePwForgot with: \(id)")
   }
   
-  
-  @IBAction func handleLogin(_ sender: UIButton) {
-    print("handleLogin")
-  }
-  
-  
-//  @objc func flip() {
-//      let transitionOptions: UIView.AnimationOptions = [.transitionFlipFromRight, .showHideTransitionViews]
-//
-//      UIView.transition(with: firstView, duration: 1.0, options: transitionOptions, animations: {
-//          self.firstView.isHidden = true
-//      })
-//
-//      UIView.transition(with: secondView, duration: 1.0, options: transitionOptions, animations: {
-//          self.secondView.isHidden = false
-//      })
-//  }
-  
+
 }
