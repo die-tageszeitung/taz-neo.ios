@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		004D4EFE24ACDBA7008C4EE7 /* RegisterController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFD24ACDBA7008C4EE7 /* RegisterController.swift */; };
+		0032A4D924C89E4800284723 /* FormsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0032A4D824C89E4800284723 /* FormsController.swift */; };
+		0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0032A4DA24C89F1100284723 /* PwForgotController.swift */; };
+		004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */; };
 		004D4F0024ACDC1F008C4EE7 /* FormularView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */; };
 		080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
@@ -72,7 +74,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		004D4EFD24ACDBA7008C4EE7 /* RegisterController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterController.swift; sourceTree = "<group>"; };
+		0032A4D824C89E4800284723 /* FormsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormsController.swift; sourceTree = "<group>"; };
+		0032A4DA24C89F1100284723 /* PwForgotController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PwForgotController.swift; sourceTree = "<group>"; };
+		004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginController.swift; sourceTree = "<group>"; };
 		004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormularView.swift; sourceTree = "<group>"; };
 		080271C624ADDD68002CD2F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Localizable.strings; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
@@ -142,6 +146,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0032A4D624C89E1600284723 /* Forms */ = {
+			isa = PBXGroup;
+			children = (
+				004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */,
+				0032A4D824C89E4800284723 /* FormsController.swift */,
+				0032A4DA24C89F1100284723 /* PwForgotController.swift */,
+			);
+			path = Forms;
+			sourceTree = "<group>";
+		};
+		0032A4D724C89E3100284723 /* Forms */ = {
+			isa = PBXGroup;
+			children = (
+				004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */,
+			);
+			path = Forms;
+			sourceTree = "<group>";
+		};
 		080271BE24ADDD36002CD2F7 /* Base.lproj */ = {
 			isa = PBXGroup;
 			children = (
@@ -155,12 +177,12 @@
 		AE0A4D0123F4297500C44625 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				0032A4D724C89E3100284723 /* Forms */,
 				AE0A4D0223F429D800C44625 /* HeaderView.swift */,
 				AE4AA2B723F6BEC400EAFE78 /* LoadingView.swift */,
 				AECCE11D23FBF449007C2276 /* StartupView.swift */,
 				AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */,
 				AEF2DF34244766E400D1482D /* MomentView.swift */,
-				004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -186,6 +208,7 @@
 		AE4AA2AE23F6AD5700EAFE78 /* ViewController */ = {
 			isa = PBXGroup;
 			children = (
+				0032A4D624C89E1600284723 /* Forms */,
 				AEBAF5AB219ACFD900566205 /* ContentVC.swift */,
 				AE5D9EC123E1BB2D0002C3B8 /* ContentTableVC.swift */,
 				AE5D9EC223E1BB2D0002C3B8 /* ContentTableVC.xib */,
@@ -197,7 +220,6 @@
 				AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */,
 				AE44F8E324815AF4009DA152 /* ContentImageVC.swift */,
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
-				004D4EFD24ACDBA7008C4EE7 /* RegisterController.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -435,9 +457,10 @@
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
 				AE5D9EC523E2CD5F0002C3B8 /* DLController.swift in Sources */,
-				004D4EFE24ACDBA7008C4EE7 /* RegisterController.swift in Sources */,
+				004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */,
 				AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */,
 				AE5D9EC023E1B82B0002C3B8 /* Downloader.swift in Sources */,
+				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,
 				AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */,
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,
@@ -451,6 +474,7 @@
 				AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */,
 				AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */,
 				AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */,
+				0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */,
 				AEED41BC23FE8E6F0072043F /* Authentication.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,

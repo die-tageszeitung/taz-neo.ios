@@ -14,94 +14,88 @@ fileprivate let DefaultFontSize = CGFloat(16)
 fileprivate let LargeTitleFontSize = CGFloat(34)
 fileprivate let DottedLineHeight = CGFloat(2.4)
 
+// MARK: - PwForgotView
 public class PwForgotView: FormularView {
   var cancelClosure: ( ()  -> ())?
   var sendClosure: ( (_ id: String?)  -> ())?
-
+  
   var idInput: UITextField
     = FormularView.textField(placeholder: NSLocalizedString("login_username_hint",
                                                             comment: "E-Mail Input")
-                        )
+  )
   
-  override func setup() {
-    self.views = formViews
-    super.setup()
-  }
+  //  override func setup() {
+  //    self.views = formViews
+  //    super.setup()
+  //  }
   
   lazy var formViews : [UIView] = {
     return [
       Self.header(),
       Self.label(title: NSLocalizedString("login_forgot_password_header",
-                                                  comment: "passwort vergessen header")),
+                                          comment: "passwort vergessen header")),
       idInput,
       Self.button(title: NSLocalizedString("login_forgot_password_send", comment: "login"),
-                          target: self, action: #selector(handleSend)),
+                  target: self, action: #selector(handleSend)),
       Self.labelLikeButton(title: NSLocalizedString("cancel_button", comment: "abbrechen"),
-      target: self, action: #selector(handleCancel)),
+                           target: self, action: #selector(handleCancel)),
     ]
   }()
-
+  
   @IBAction func handleCancel(_ sender: UIButton) {
     cancelClosure?()
   }
   
   @IBAction func handleSend(_ sender: UIButton) {
-    sendClosure?(idInput.text)
+    sendClosure?(idInput.text?.trim)
   }
 }
 
 
-
+// MARK: - LoginView
 public class LoginView: FormularView {
   var loginClosure: ( (_ id: String?, _ password: String?)  -> ())?
   var registerClosure: ( ()  -> ())?
   var pwForgotClosure: ( (_ id: String?)  -> ())?
-
+  
   var idInput: UITextField
     = FormularView.textField(placeholder: NSLocalizedString("login_username_hint",
                                                             comment: "E-Mail Input")
-                        )
+  )
   var passInput: UITextField
     = FormularView.textField(placeholder: NSLocalizedString("login_password_hint",
-                                                    comment: "Passwort Input"),
-                        textContentType: .password,
-                        isSecureTextEntry: true
-                        )
+                                                            comment: "Passwort Input"),
+                             textContentType: .password,
+                             isSecureTextEntry: true
+  )
   
-  override func setup() {
-    self.views = formViews
-    super.setup()
+  
+  
+  
+  override func setup(){
+    views = formViews
   }
   
   lazy var formViews : [UIView] = {
     return [
       Self.header(),
       Self.label(title: NSLocalizedString("login_missing_credentials_header_login",
-                                                  comment: "login header")),
-      
-//      Self.label(title: NSLocalizedString("login_missing_credentials_header_login", comment: "login header")),
-//      Self.label(title: NSLocalizedString("login_missing_credentials_header_login", comment: "login header")),
-//      Self.label(title: NSLocalizedString("login_missing_credentials_header_login", comment: "login header")),
-//      Self.label(title: NSLocalizedString("login_missing_credentials_header_login", comment: "login header")),
-//      Self.label(title: NSLocalizedString("login_missing_credentials_header_login", comment: "login header")),
-//      Self.label(title: NSLocalizedString("login_missing_credentials_header_login", comment: "login header")),
-//      Self.label(title: NSLocalizedString("login_missing_credentials_header_login", comment: "login header")),
-
+                                          comment: "login header")),
       idInput,
       passInput,
       Self.button(title: NSLocalizedString("login_button", comment: "login"),
-                          target: self, action: #selector(handleLogin)),
+                  target: self, action: #selector(handleLogin)),
       Self.label(title: NSLocalizedString("trial_subscription_title",
-                                                  comment: "14 tage probeabo text")),
+                                          comment: "14 tage probeabo text")),
       Self.outlineButton(title: NSLocalizedString("register_button", comment: "registrieren"),
-                          target: self, action: #selector(handleLogin)),
+                         target: self, action: #selector(handleLogin)),
       Self.labelLikeButton(title: NSLocalizedString("login_forgot_password", comment: "registrieren"),
-      target: self, action: #selector(handlePwForgot)),
+                           target: self, action: #selector(handlePwForgot)),
     ]
   }()
-
+  
   @IBAction func handleLogin(_ sender: UIButton) {
-    loginClosure?(idInput.text, passInput.text)
+    loginClosure?(idInput.text?.trim, passInput.text?.trim)
   }
   
   @IBAction func handleRegister(_ sender: UIButton) {
@@ -113,17 +107,19 @@ public class LoginView: FormularView {
   }
 }
 
-
+// MARK: - FormularView
 /// A RegisterView displays an RegisterForm
 public class FormularView: UIView {
   
-  /// The type of device currently in use
-  public enum RegisterFormType {
-    case login, register
+  var views : [UIView] = []{
+    didSet{
+      addAndPin(views)
+      self.backgroundColor = TazColor.CTBackground.color
+    }
   }
   
-  var views : [UIView] = []
-  
+  // MARK: Container for Content in ScrollView
+  let container = UIView()
   // MARK: - init
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -135,9 +131,8 @@ public class FormularView: UIView {
     setup()
   }
   
-  // MARK: Container for Content in ScrollView
-  let container = UIView()
-    
+  func setup(){}
+  
   static func header() -> UIView {
     let container = UIView()
     let title = UILabel()
@@ -158,7 +153,7 @@ public class FormularView: UIView {
     
     return container
   }
-    
+  
   
   static func label(title: String? = nil,
                     font: UIFont = AppFonts.contentFont(size: DefaultFontSize),
@@ -200,10 +195,10 @@ public class FormularView: UIView {
   }
   
   static func outlineButton(title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
-                     paddingTop: CGFloat = 20,
-                     paddingBottom: CGFloat = 20,
-                     target: Any? = nil,
-                     action: Selector? = nil) -> UIButton {
+                            paddingTop: CGFloat = 20,
+                            paddingBottom: CGFloat = 20,
+                            target: Any? = nil,
+                            action: Selector? = nil) -> UIButton {
     let btn = Self.button(title:title,
                           paddingTop: paddingTop,
                           paddingBottom: paddingBottom,
@@ -216,10 +211,10 @@ public class FormularView: UIView {
   }
   
   static func labelLikeButton(title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
-                     paddingTop: CGFloat = 20,
-                     paddingBottom: CGFloat = 20,
-                     target: Any? = nil,
-                     action: Selector? = nil) -> UIButton {
+                              paddingTop: CGFloat = 20,
+                              paddingBottom: CGFloat = 20,
+                              target: Any? = nil,
+                              action: Selector? = nil) -> UIButton {
     let btn = Self.button(title:title,
                           paddingTop: paddingTop,
                           paddingBottom: paddingBottom,
@@ -230,7 +225,7 @@ public class FormularView: UIView {
     return btn
   }
   
-    
+  
   // MARK: pwInput
   static func textField(prefilledText: String? = nil,
                         placeholder: String? = nil,
@@ -249,7 +244,7 @@ public class FormularView: UIView {
     tf.paddingBottom = paddingBottom
     tf.placeholder = placeholder
     //tf.borderStyle = .line //Border Bottom Alternative
-//    tf.addBorder(.gray, 1.0, only:UIRectEdge.bottom)
+    //    tf.addBorder(.gray, 1.0, only:UIRectEdge.bottom)
     tf.textContentType = .password
     tf.isSecureTextEntry = isSecureTextEntry
     
@@ -270,13 +265,13 @@ public class FormularView: UIView {
     }
     return tf
   }
-
+  
   lazy var pwInput : UITextField = {
     return Self.textField(placeholder: NSLocalizedString("login_password_hint",
                                                          comment: "Passwort Input"),
                           textContentType: .password,
                           isSecureTextEntry: true
-                          )
+    )
   }()
   
   // MARK: agbAcceptLabel
@@ -290,12 +285,6 @@ public class FormularView: UIView {
     return lb
   }()
   
-  
-  // MARK: - setup
-  func setup() {
-    addAndPin(views)
-    self.backgroundColor = TazColor.CTBackground.color
-  }
   
   private func runPerformanceTest(){
     /* ************************
@@ -317,6 +306,8 @@ public class FormularView: UIView {
   
   // MARK: addAndPin
   func addAndPin(_ views: [UIView]){
+    self.subviews.forEach({ $0.removeFromSuperview() })
+    
     if views.isEmpty { return }
     
     let margin : CGFloat = 12.0
@@ -337,29 +328,29 @@ public class FormularView: UIView {
     }
     NorthLib.pin(previous!.bottom, to: container.bottom, dist: -margin)
     
-//    if true {
-      let sv = UIScrollView()
-      sv.addSubview(container)
-      NorthLib.pin(container, to: sv)
-      self.addSubview(sv)
-//      svHC = sv.pinHeight(0)
-//      svHC?.priority = .fittingSizeLevel
-      NorthLib.pin(sv, to: self)
-//    }
-//    else {// not use ScrollView
-//      self.addSubview(container)
-//      NorthLib.pin(container, to: self)
-//    }
+    //    if true {
+    let sv = UIScrollView()
+    sv.addSubview(container)
+    NorthLib.pin(container, to: sv)
+    self.addSubview(sv)
+    //      svHC = sv.pinHeight(0)
+    //      svHC?.priority = .fittingSizeLevel
+    NorthLib.pin(sv, to: self)
+    //    }
+    //    else {// not use ScrollView
+    //      self.addSubview(container)
+    //      NorthLib.pin(container, to: self)
+    //    }
   }
   
-//  var svHC : NSLayoutConstraint?
-//
-//  public override func layoutSubviews() {
-//    super.layoutSubviews()
-//    container.setNeedsLayout()
-//    container.layoutIfNeeded()
-//    svHC?.constant = min(UIScreen.main.bounds.height, container.frame.size.height)
-//  }
+  //  var svHC : NSLayoutConstraint?
+  //
+  //  public override func layoutSubviews() {
+  //    super.layoutSubviews()
+  //    container.setNeedsLayout()
+  //    container.layoutIfNeeded()
+  //    svHC?.constant = min(UIScreen.main.bounds.height, container.frame.size.height)
+  //  }
 }
 
 public typealias tblrConstrains = (
@@ -373,21 +364,21 @@ public typealias tblrConstrains = (
 /// Pin all edges, except one of one view to the edges of another view's safe layout guide
 @discardableResult
 public func pin(_ view: UIView, to: UIView, dist: CGFloat = 0, exclude: UIRectEdge? = nil) -> tblrConstrains {
-    var top:NSLayoutConstraint?, left:NSLayoutConstraint?, bottom:NSLayoutConstraint?, right:NSLayoutConstraint?
-    exclude != UIRectEdge.top ? top = NorthLib.pin(view.top, to: to.top, dist: dist) : nil
-    exclude != UIRectEdge.left ? left = NorthLib.pin(view.left, to: to.left, dist: dist) : nil
-    exclude != UIRectEdge.right ? right = NorthLib.pin(view.right, to: to.right, dist: -dist) : nil
-    exclude != UIRectEdge.bottom ? bottom = NorthLib.pin(view.bottom, to: to.bottom, dist: -dist) : nil
-    return (top, bottom, left, right)
+  var top:NSLayoutConstraint?, left:NSLayoutConstraint?, bottom:NSLayoutConstraint?, right:NSLayoutConstraint?
+  exclude != UIRectEdge.top ? top = NorthLib.pin(view.top, to: to.top, dist: dist) : nil
+  exclude != UIRectEdge.left ? left = NorthLib.pin(view.left, to: to.left, dist: dist) : nil
+  exclude != UIRectEdge.right ? right = NorthLib.pin(view.right, to: to.right, dist: -dist) : nil
+  exclude != UIRectEdge.bottom ? bottom = NorthLib.pin(view.bottom, to: to.bottom, dist: -dist) : nil
+  return (top, bottom, left, right)
 }
 
 public func pin(_ view: UIView, toSafe: UIView, dist: CGFloat = 0, exclude: UIRectEdge? = nil) -> tblrConstrains {
-    var top:NSLayoutConstraint?, left:NSLayoutConstraint?, bottom:NSLayoutConstraint?, right:NSLayoutConstraint?
-    exclude != UIRectEdge.top ? top = NorthLib.pin(view.top, to: toSafe.topGuide(), dist: dist) : nil
-    exclude != UIRectEdge.left ? left = NorthLib.pin(view.left, to: toSafe.leftGuide(), dist: dist) : nil
-    exclude != UIRectEdge.right ? right = NorthLib.pin(view.right, to: toSafe.rightGuide(), dist: -dist) : nil
-    exclude != UIRectEdge.bottom ? bottom = NorthLib.pin(view.bottom, to: toSafe.bottomGuide(), dist: -dist) : nil
-    return (top, bottom, left, right)
+  var top:NSLayoutConstraint?, left:NSLayoutConstraint?, bottom:NSLayoutConstraint?, right:NSLayoutConstraint?
+  exclude != UIRectEdge.top ? top = NorthLib.pin(view.top, to: toSafe.topGuide(), dist: dist) : nil
+  exclude != UIRectEdge.left ? left = NorthLib.pin(view.left, to: toSafe.leftGuide(), dist: dist) : nil
+  exclude != UIRectEdge.right ? right = NorthLib.pin(view.right, to: toSafe.rightGuide(), dist: -dist) : nil
+  exclude != UIRectEdge.bottom ? bottom = NorthLib.pin(view.bottom, to: toSafe.bottomGuide(), dist: -dist) : nil
+  return (top, bottom, left, right)
 }
 
 class BorderView : UIView {}
@@ -484,7 +475,7 @@ class TazTextField : UITextField, UITextFieldDelegate{
     self.addTarget(self, action: #selector(textFieldEditingDidEnd),
                    for: UIControl.Event.editingDidEnd)
   }
-
+  
   override open var placeholder: String?{
     didSet{
       super.placeholder = placeholder
@@ -521,6 +512,8 @@ class TazTextField : UITextField, UITextFieldDelegate{
     }
   }
   @objc public func textFieldEditingDidEnd(_ textField: UITextField) {
+    //textField.text = textField.text?.trim //work not good "123 456" => "123"
+    //push (e.g.) pw forgott child let end too late
     UIView.animate(seconds: 0.3) { [weak self] in
       self?.border.backgroundColor = TazColor.CTArticle.color
       self?.borderHeightConstraint?.constant = 1.0

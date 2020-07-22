@@ -458,9 +458,9 @@ class MainNC: NavigationController, IssueVCdelegate,
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     self.modalPresentationStyle = .formSheet
-    let registerController = RegisterController()
+    let registerController = LoginController()
     if #available(iOS 13.0, *) {
-//      registerController.isModalInPresentation = true
+      registerController.isModalInPresentation = true
     }
     self.present(registerController, animated: true, completion: {
       print("reg presented")
