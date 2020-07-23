@@ -14,6 +14,9 @@ fileprivate let DefaultFontSize = CGFloat(16)
 fileprivate let LargeTitleFontSize = CGFloat(34)
 fileprivate let DottedLineHeight = CGFloat(2.4)
 
+fileprivate let DefaultPadding = CGFloat(15.0)
+fileprivate let TextBottomPadding = CGFloat(24.0)
+
 // MARK: - FormularView
 /// A RegisterView displays an RegisterForm
 public class FormularView: UIView {
@@ -120,8 +123,8 @@ public class FormularView: UIView {
                      color: UIColor = TazColor.CIColor.color,
                      textColor: UIColor = .white,
                      height: CGFloat = 40,
-                     paddingTop: CGFloat = 20,
-                     paddingBottom: CGFloat = 20,
+                     paddingTop: CGFloat = DefaultPadding,
+                     paddingBottom: CGFloat = DefaultPadding,
                      target: Any? = nil,
                      action: Selector? = nil) -> UIButton {
     let btn = UIButton()
@@ -141,8 +144,8 @@ public class FormularView: UIView {
   }
   
   static func outlineButton(title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
-                            paddingTop: CGFloat = 20,
-                            paddingBottom: CGFloat = 20,
+                            paddingTop: CGFloat = DefaultPadding,
+                            paddingBottom: CGFloat = DefaultPadding,
                             target: Any? = nil,
                             action: Selector? = nil) -> UIButton {
     let btn = Self.button(title:title,
@@ -157,8 +160,8 @@ public class FormularView: UIView {
   }
   
   static func labelLikeButton(title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
-                              paddingTop: CGFloat = 20,
-                              paddingBottom: CGFloat = 20,
+                              paddingTop: CGFloat = DefaultPadding,
+                              paddingBottom: CGFloat = DefaultPadding,
                               target: Any? = nil,
                               action: Selector? = nil) -> UIButton {
     let btn = Self.button(title:title,
@@ -178,8 +181,8 @@ public class FormularView: UIView {
                         color: UIColor = TazColor.CIColor.color,
                         textColor: UIColor = TazColor.CIColor.color,
                         height: CGFloat = 40,
-                        paddingTop: CGFloat = 40,
-                        paddingBottom: CGFloat = 40,
+                        paddingTop: CGFloat = DefaultPadding,
+                        paddingBottom: CGFloat = TextBottomPadding,
                         isSecureTextEntry: Bool = false,
                         target: Any? = nil,
                         action: Selector? = nil) -> UITextField {
@@ -219,16 +222,6 @@ public class FormularView: UIView {
     )
   }()
   
-  // MARK: agbAcceptLabel
-  lazy var agbAcceptLabel : UILabel = {
-    let lb = UILabel()
-    lb.paddingTop = 120
-    lb.text = NSLocalizedString("login_missing_credentials_header_registration",
-                                comment: "taz Id Account Create")
-    lb.numberOfLines = 0
-    lb.textAlignment = .center
-    return lb
-  }()
   
   
   private func runPerformanceTest(){

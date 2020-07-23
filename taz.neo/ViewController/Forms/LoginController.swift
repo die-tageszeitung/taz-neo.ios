@@ -29,6 +29,8 @@ class LoginController: FormsController {
   // MARK: viewDidLoad Action
   override func viewDidLoad() {
     self.contentView = FormularView()
+    idInput.text = ""
+    passInput.text = ""
     passForgottButton.isHidden = true
     self.contentView?.views =   [
          FormularView.header(),
@@ -113,20 +115,27 @@ class LoginController: FormsController {
         case .success(let info):
           //ToDo #900
           switch info.status {
-          case .alreadyLinked:
-            fallthrough
-          case .expired:
-            fallthrough
-          case .unlinked:
-            fallthrough
-          case .invalid:
-            fallthrough
-          case .notValidMail:
-            fallthrough
-          case .alreadyLinked:
-            fallthrough
-          default:
-            print("done success")
+            case .valid:
+              let child = ConnectTazIDController()
+              child.modalPresentationStyle = .overCurrentContext
+              child.modalTransitionStyle = .flipHorizontal
+              self.present(child, animated: true, completion: nil)
+              break;
+            case .alreadyLinked:
+              fallthrough
+            case .expired:
+              fallthrough
+            case .unlinked:
+              fallthrough
+            case .invalid://tested 111&111
+              fallthrough
+            case .notValidMail://tested
+              fallthrough
+            default:
+              self.contentView?.errorLabel.text = NSLocalizedString("toast_login_failed_retry",
+                                                                    comment: "abbrechen")
+              self.showPwForgottButton()
+              print("Succeed with status: \(info.status) message: \(info.message)")
           }
         case .failure:
           self.contentView?.errorLabel.text = "ein Fehler..."
