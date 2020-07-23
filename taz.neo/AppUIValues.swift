@@ -39,6 +39,62 @@ public struct AppColors {
   
 } // AppColors
 
+
+enum TazColor{
+  case CTBackground
+  case CTSection
+  case CTArticle
+  case CTDate
+  case HBackground
+  case HText
+  case Test
+  case CIColor
+  
+  var color : UIColor {
+    get{
+      let set = colors(name: self)
+      if #available(iOS 13, *) {
+        return UIColor { (traitCollection: UITraitCollection) -> UIColor in
+          switch(traitCollection.userInterfaceStyle,
+                 traitCollection.accessibilityContrast)
+          {
+          case (.dark, .high): return ((set.darkHigh != nil) ? set.darkHigh : set.dark) ?? set.light
+          case (.dark, _):     return set.dark ?? set.light
+          case (_, .high):     return  set.lightHigh ?? set.light
+          default:             return set.light
+          }
+        }
+      }
+      else {
+        return set.light
+      }
+    }
+  }
+  
+  fileprivate typealias ColorSet = ( light: UIColor, dark: UIColor?, lightHigh: UIColor?, darkHigh: UIColor?)
+  
+  fileprivate func colors(name: TazColor) -> ColorSet {
+    switch name {
+    case .CTBackground:
+      return (UIColor.white, AppColors.darkSecondaryBG,nil,nil)
+    case .CTSection:
+      return (AppColors.ciColor, AppColors.darkSecondaryText,nil,nil)
+    case .CTArticle:
+      return (UIColor.darkGray, UIColor.rgb(0xacace0),nil,nil)
+    case .CTDate:
+      return (UIColor.black, UIColor.white,nil,nil)
+    case .HBackground:
+      return (UIColor.white, AppColors.darkSecondaryBG,nil,nil)
+    case .HText:
+      return (UIColor.black, AppColors.darkSecondaryText,nil,nil)
+    case .Test:
+      return (UIColor.red, UIColor.green, UIColor.blue,UIColor.magenta)
+    case .CIColor:
+      return (AppColors.ciColor,nil,nil,nil)
+    }
+  }
+}
+
 /// Various App specific font values
 public struct AppFonts {
   
