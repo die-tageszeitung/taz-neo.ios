@@ -7,28 +7,161 @@
 //
 import UIKit
 
-/// A view controller to show introductory HTML-files
+// MARK: - LoginController
+/// Presents Login Form and Functionallity
+/// ChildViews/Controller are pushed modaly
 class LoginController: FormsController {
-  lazy var loginView = LoginView()
   
+  var idInput: UITextField
+    = FormularView.textField(placeholder: NSLocalizedString("login_username_hint",
+                                                            comment: "E-Mail Input")
+  )
+  var passInput: UITextField
+    = FormularView.textField(placeholder: NSLocalizedString("login_password_hint",
+                                                            comment: "Passwort Input"),
+                             textContentType: .password,
+                             isSecureTextEntry: true)
+      
+  var passForgottButton: UIButton
+    =   FormularView.labelLikeButton(title: NSLocalizedString("login_forgot_password", comment: "registrieren"),
+                                target: self, action: #selector(handlePwForgot))
+  
+  // MARK: viewDidLoad Action
   override func viewDidLoad() {
-    contentView = loginView
+    self.contentView = FormularView()
+    idInput.text = ""
+    passInput.text = ""
+    passForgottButton.isHidden = true
+    self.contentView?.views =   [
+         FormularView.header(),
+         FormularView.label(title: NSLocalizedString("login_missing_credentials_header_login",
+                                             comment: "login header")),
+         idInput,
+         passInput,
+         contentView!.errorLabel,
+         FormularView.button(title: NSLocalizedString("login_button", comment: "login"),
+                     target: self, action: #selector(handleLogin)),
+         FormularView.label(title: NSLocalizedString("trial_subscription_title",
+                                             comment: "14 tage probeabo text")),
+         FormularView.outlineButton(title: NSLocalizedString("register_button", comment: "registrieren"),
+                            target: self, action: #selector(handleRegister)),
+         passForgottButton
+       ]
     super.viewDidLoad()
-    loginView.loginClosure = { [weak self] (id, password) in
-      self?.handleLogin(id: id, password: password)
+  }
+  
+  // MARK: handleLogin Action
+  @IBAction func handleLogin(_ sender: UIButton) {
+    let id = idInput.text ?? ""
+    if id.isEmpty {
+      self.contentView?.errorLabel.text
+        = NSLocalizedString("login_username_error_empty")
+      showPwForgottButton()
+      return
     }
-    loginView.pwForgotClosure = { [weak self] id in
-      self?.handlePwForgot(id: id)
+    let pass = passInput.text ?? ""
+    if pass.isEmpty {
+      self.contentView?.errorLabel.text
+        = NSLocalizedString("login_password_error_empty")
+      showPwForgottButton()
+      return
+    }
+    self.contentView?.errorLabel.text = nil
+    if id.isNumber {
+      self.queryCheckSubscriptionId(id,pass)
+    }
+    else{
+      self.queryAuthToken(id,pass)
     }
   }
   
-  func handleLogin(id: String?, password:String?) {
-    print("handle login with: \(id), pass: \(password)")
+  // MARK: queryAuthToken
+  func queryAuthToken(_ id: String, _ pass: String){
+    print("queryAuthToken with: \(id), \(pass)"); return;
+    SharedFeeder.shared.feeder?.authenticate(account: id, password: pass, closure:{ (result) in
+      switch result {
+      case .success(let info):
+        print("done success \(info.bool)")
+//        switch info {
+//        case .ok:
+//          let successCtrl = PasswordResetRequestedSuccessController()
+//          successCtrl.modalPresentationStyle = .overCurrentContext
+//          successCtrl.modalTransitionStyle = .flipHorizontal
+//          self.present(successCtrl, animated: true, completion:{
+//            self.view.isHidden = true
+//          })
+//        case .invalidMail:
+//          self.contentView?.errorLabel.text
+//            = NSLocalizedString("error_invalid_email_or_abo_id",
+//                                comment: "abbrechen")
+//        case .mailError:
+//          fallthrough
+//        default:
+//          self.contentView?.errorLabel.text
+//            = NSLocalizedString("error",
+//                                comment: "error")
+//        }
+      case .failure:
+        self.contentView?.errorLabel.text = "ein Fehler..."
+        //        print("An error occured: \(String(describing: result.error()))")
+      }
+    })
   }
-
-  func handlePwForgot(id: String?) {
-    let child = SubscriptionResetSuccess()
-//    child.pwForgotView.idInput.text = id
+  
+  // MARK: queryCheckSubscriptionId
+    func queryCheckSubscriptionId(_ aboId: String, _ password: String){
+      SharedFeeder.shared.feeder?.checkSubscriptionId(aboId: aboId, password: password, closure: { (result) in
+        switch result {
+        case .success(let info):
+          //ToDo #900
+          switch info.status {
+            case .valid:
+              let child = ConnectTazIDController()
+              child.modalPresentationStyle = .overCurrentContext
+              child.modalTransitionStyle = .flipHorizontal
+              self.present(child, animated: true, completion: nil)
+              break;
+            case .alreadyLinked:
+              fallthrough
+            case .expired:
+              fallthrough
+            case .unlinked:
+              fallthrough
+            case .invalid://tested 111&111
+              fallthrough
+            case .notValidMail://tested
+              fallthrough
+            default:
+              self.contentView?.errorLabel.text = NSLocalizedString("toast_login_failed_retry",
+                                                                    comment: "abbrechen")
+              self.showPwForgottButton()
+              print("Succeed with status: \(info.status) message: \(info.message)")
+          }
+        case .failure:
+          self.contentView?.errorLabel.text = "ein Fehler..."
+        }
+      })
+    }
+  
+  // MARK: showPwForgottButton
+  func showPwForgottButton(){
+    if self.passForgottButton.isHidden == false { return }
+    self.passForgottButton.alpha = 0.0
+    self.passForgottButton.isHidden = false
+    UIView.animate(seconds: 0.3) {
+      self.passForgottButton.alpha = 1.0
+    }
+  }
+  
+  // MARK: handleRegister Action
+  @IBAction func handleRegister(_ sender: UIButton) {
+    print("handle handleRegister")
+  }
+  
+  // MARK: handlePwForgot Action
+  @IBAction func handlePwForgot(_ sender: UIButton) {
+    let child = PwForgottController()
+    child.idInput.text = idInput.text?.trim
     child.modalPresentationStyle = .overCurrentContext
     child.modalTransitionStyle = .flipHorizontal
     self.present(child, animated: true, completion: nil)
