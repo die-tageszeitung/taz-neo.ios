@@ -13,23 +13,23 @@ import UIKit
 /// ChildViews/Controller are pushed modaly
 class ConnectTazIDController: FormsController {
   
-  var mailInput: UITextField
+  var mailInput
     = FormularView.textField(placeholder: NSLocalizedString("login_username_hint")
   )
-  var passInput: UITextField
+  var passInput
     = FormularView.textField(placeholder: NSLocalizedString("login_password_hint"),
                              textContentType: .password,
                              isSecureTextEntry: true)
   
-  var pass2Input: UITextField
+  var pass2Input
     = FormularView.textField(placeholder: NSLocalizedString("login_password_hint"),
                              textContentType: .password,
                              isSecureTextEntry: true)
       
-  var firstnameInput: UITextField
+  var firstnameInput
     = FormularView.textField(placeholder: NSLocalizedString("login_username_hint"))
   
-  var lastnameInput: UITextField
+  var lastnameInput
     = FormularView.textField(placeholder: NSLocalizedString("login_username_hint"))
   
   // MARK: viewDidLoad Action
@@ -65,7 +65,11 @@ class ConnectTazIDController: FormsController {
   
   // MARK: handleLogin Action
   @IBAction func handleSend(_ sender: UIButton) {
-   
+    mailInput.bottomMessage = "ÄÖÜ Tatügqçµ∑{¿±Á‰£ÆÇÇ"
+    passInput.bottomMessage = "ÄÖÜ Tatügqçµ∑{¿±Á‰£ÆÇÇ"
+    pass2Input.bottomMessage = "ÄÖÜ Tatügqçµ∑{¿±Á‰£ÆÇÇ"
+    firstnameInput.bottomMessage = "ÄÖÜ Tatügqçµ∑{¿±Á‰£ÆÇÇ"
+    lastnameInput.bottomMessage = "ÄÖÜ Tatügqçµ∑{¿±Á‰£ÆÇÇ"
   }
   
   // MARK: handleLogin Action

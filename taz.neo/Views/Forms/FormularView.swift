@@ -15,7 +15,7 @@ fileprivate let LargeTitleFontSize = CGFloat(34)
 fileprivate let DottedLineHeight = CGFloat(2.4)
 
 fileprivate let DefaultPadding = CGFloat(15.0)
-fileprivate let TextBottomPadding = CGFloat(24.0)
+fileprivate let TextFieldPadding = CGFloat(10.0)
 
 // MARK: - FormularView
 /// A RegisterView displays an RegisterForm
@@ -180,12 +180,12 @@ public class FormularView: UIView {
                         textContentType: UITextContentType? = nil,
                         color: UIColor = TazColor.CIColor.color,
                         textColor: UIColor = TazColor.CIColor.color,
-                        height: CGFloat = 40,
-                        paddingTop: CGFloat = DefaultPadding,
-                        paddingBottom: CGFloat = TextBottomPadding,
+                        height: CGFloat = TazTextField.recomendedHeight,
+                        paddingTop: CGFloat = TextFieldPadding,
+                        paddingBottom: CGFloat = TextFieldPadding,
                         isSecureTextEntry: Bool = false,
                         target: Any? = nil,
-                        action: Selector? = nil) -> UITextField {
+                        action: Selector? = nil) -> TazTextField {
     let tf = TazTextField()
     tf.pinHeight(height)
     tf.paddingTop = paddingTop
@@ -214,7 +214,7 @@ public class FormularView: UIView {
     return tf
   }
   
-  lazy var pwInput : UITextField = {
+  lazy var pwInput : TazTextField = {
     return Self.textField(placeholder: NSLocalizedString("login_password_hint",
                                                          comment: "Passwort Input"),
                           textContentType: .password,
@@ -388,9 +388,10 @@ extension UIView {
 
 // MARK: - TazTextField
 class TazTextField : UITextField, UITextFieldDelegate{
-  
+  static let recomendedHeight:CGFloat = 56.0
   private let border = BorderView()
-  private let topLabel = UILabel()
+  let topLabel = UILabel()
+  let bottomLabel = UILabel()
   private var borderHeightConstraint: NSLayoutConstraint?
   
   public override init(frame: CGRect){
@@ -404,13 +405,14 @@ class TazTextField : UITextField, UITextFieldDelegate{
   }
   
   func setup(){
+//    self.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 15, right: 0)
     self.addSubview(border)
     self.delegate = self
     self.border.backgroundColor = TazColor.CTArticle.color
     self.borderHeightConstraint = border.pinHeight(1)
     pin(border.left, to: self.left)
     pin(border.right, to: self.right)
-    pin(border.bottom, to: self.bottom)
+    pin(border.bottom, to: self.bottom, dist: -15)
     self.addTarget(self, action: #selector(textFieldEditingDidChange),
                    for: UIControl.Event.editingChanged)
     self.addTarget(self, action: #selector(textFieldEditingDidBegin),
@@ -425,12 +427,34 @@ class TazTextField : UITextField, UITextFieldDelegate{
       topLabel.text = placeholder
       if topLabel.superview == nil && placeholder?.isEmpty == false{
         topLabel.alpha = 0.0
+        topLabel.numberOfLines = 1
         self.addSubview(topLabel)
         pin(topLabel.left, to: self.left)
         pin(topLabel.right, to: self.right)
-        pin(topLabel.bottom, to: self.top)
+        pin(topLabel.top, to: self.top, dist: -2)
         topLabel.font = AppFonts.contentFont(size: MiniPageNumberFontSize)
-        topLabel.textColor = TazColor.CIColor.color
+        self.topLabel.textColor = TazColor.CTArticle.color
+      
+      }
+    }
+  }
+  
+  open var bottomMessage: String?{
+    didSet{
+      bottomLabel.text = bottomMessage
+      if bottomLabel.superview == nil && bottomMessage?.isEmpty == false{
+        bottomLabel.alpha = 0.0
+        bottomLabel.numberOfLines = 1
+        self.addSubview(bottomLabel)
+        pin(bottomLabel.left, to: self.left)
+        pin(bottomLabel.right, to: self.right)
+        pin(bottomLabel.bottom, to: self.bottom)
+        bottomLabel.font = AppFonts.contentFont(size: MiniPageNumberFontSize)
+        bottomLabel.textColor = TazColor.CIColor.color
+      }
+      
+      UIView.animate(seconds: 0.3) { [weak self] in
+        self?.bottomLabel.alpha = self?.bottomMessage?.isEmpty == false ? 1.0 : 0.0
       }
     }
   }
@@ -451,6 +475,7 @@ class TazTextField : UITextField, UITextFieldDelegate{
   @objc public func textFieldEditingDidBegin(_ textField: UITextField) {
     UIView.animate(seconds: 0.3) { [weak self] in
       self?.border.backgroundColor = TazColor.CIColor.color
+      self?.topLabel.textColor = TazColor.CIColor.color
       self?.borderHeightConstraint?.constant = 2.0
     }
   }
@@ -459,6 +484,7 @@ class TazTextField : UITextField, UITextFieldDelegate{
     //push (e.g.) pw forgott child let end too late
     UIView.animate(seconds: 0.3) { [weak self] in
       self?.border.backgroundColor = TazColor.CTArticle.color
+      self?.topLabel.textColor = TazColor.CTArticle.color
       self?.borderHeightConstraint?.constant = 1.0
     }
   }
