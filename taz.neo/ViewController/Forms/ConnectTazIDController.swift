@@ -50,13 +50,10 @@ class ConnectTazIDController: FormsController {
          pass2Input,
          firstnameInput,
          lastnameInput,
-         FormularView.label(title:
-          Localized("login_missing_credentials_header_login")),
          contentView!.agbAcceptTV,
          FormularView.button(title: Localized("login_button"),
                      target: self,
                      action: #selector(handleSend)),
-         FormularView.label(title: Localized("trial_subscription_title")),
          FormularView.outlineButton(title: Localized("cancel"),
                             target: self,
                             action: #selector(handleCancel)),
@@ -73,6 +70,7 @@ class ConnectTazIDController: FormsController {
     pass2Input.bottomMessage = ""
     firstnameInput.bottomMessage = ""
     lastnameInput.bottomMessage = ""
+    self.contentView?.agbAcceptTV.error = false
     
     if (mailInput.text ?? "").isEmpty {
       errors = true
@@ -105,13 +103,18 @@ class ConnectTazIDController: FormsController {
       lastnameInput.bottomMessage = Localized("login_surname_error_empty")
     }
     
-    if errors {
-      Toast.show("Es sind fehler aufgetreten Es sind fehler aufgetreten Es sind fehler aufgetreten Es sind fehler aufgetreten bla\n\nbla la la Es sind fehler aufgetreten Es sind fehler aufgetreten Es sind fehler aufgetreten\n\nBye!", .alert)
-          Toast.show("Bye!")
-      return
-      
+    var errormessage = Localized("register_validation_issue")
+    
+    if self.contentView?.agbAcceptTV.checked == false {
+      self.contentView?.agbAcceptTV.error = true
+      errors = true
+      errormessage = Localized("register_validation_issue_agb")
     }
-
+    
+    if errors {
+      Toast.show(errormessage, .alert)
+      return
+    }
   }
   
   // MARK: handleLogin Action

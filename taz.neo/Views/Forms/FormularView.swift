@@ -148,9 +148,10 @@ public class FormularView: UIView {
     lazy var agbAcceptTV : CheckboxWithText = {
       let view = CheckboxWithText()
       view.textView.isEditable = false
-  //    view.textView.isSelectable = false
-      view.textView.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed(String.cssStyles(AppFonts.contentFont(size: DefaultFontSize), .green, "a{ color:#ff00ff}"))
-//      view.textView.textAlignment = .center
+      view.textView.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed("")
+      view.textView.linkTextAttributes = [.foregroundColor : TazColor.CIColor.color, .underlineColor: UIColor.clear]
+      view.textView.font = AppFonts.contentFont(size: DefaultFontSize)
+      view.textView.textColor = TazColor.HText.color
       return view
     }()
  
@@ -526,9 +527,16 @@ class Checkbox : UIButton {
 
 // MARK: -  CheckboxWithText
 class CheckboxWithText:UIView{
-  public var ckecked : Bool { get {checkbox.isSelected}}
+  public var checked : Bool { get {checkbox.isSelected}}
   public let textView = UITextView()
   public let checkbox = Checkbox()
+  
+  public var error : Bool = false {
+    didSet {
+      checkbox.layer.borderColor
+        = error ? TazColor.CIColor.color.cgColor : TazColor.CTArticle.color.cgColor
+    }
+  }
   
   private var heightConstraint: NSLayoutConstraint?
   
