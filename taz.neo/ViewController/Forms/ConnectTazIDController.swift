@@ -62,7 +62,6 @@ class ConnectTazIDController: FormsController {
                             action: #selector(handleCancel)),
        ]
     super.viewDidLoad()
-    contentView!.agbAcceptTV.pinHeight(100)
   }
   
   // MARK: handleLogin Action

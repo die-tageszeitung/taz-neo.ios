@@ -99,7 +99,7 @@ public class FormularView: UIView {
     btn.setBackgroundColor(color: color.withAlphaComponent(0.8), forState: .selected)
     
     btn.setTitleColor(textColor, for: .normal)
-    btn.layer.cornerRadius = 4.0
+    btn.layer.cornerRadius = 3.0
     btn.pinHeight(height)
     btn.paddingTop = paddingTop
     btn.paddingBottom = paddingBottom
@@ -144,18 +144,16 @@ public class FormularView: UIView {
     return btn
   }
   
-  // MARK: agbAcceptLabel
-    lazy var agbAcceptTV : UITextView = {
-      let tv = UITextView()
-      tv.isEditable = false
-  //    tv.isSelectable = false
-      tv.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed(String.cssStyles(AppFonts.contentFont(size: DefaultFontSize), .green, "a{ color:#ff00ff}"))
-      tv.textAlignment = .center
-      return tv
+  // MARK: agbAcceptLabel with Checkbox
+    lazy var agbAcceptTV : CheckboxWithText = {
+      let view = CheckboxWithText()
+      view.textView.isEditable = false
+  //    view.textView.isSelectable = false
+      view.textView.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed(String.cssStyles(AppFonts.contentFont(size: DefaultFontSize), .green, "a{ color:#ff00ff}"))
+//      view.textView.textAlignment = .center
+      return view
     }()
-  
-  
-  
+ 
   
   // MARK: pwInput
   static func textField(prefilledText: String? = nil,
@@ -511,6 +509,71 @@ extension String {
   }
 }
 
+
+class Checkbox : UIButton {
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+      setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
+  }
+  
+  func setup(){
+    self.setBackgroundImage(UIImage(name: "xmark"), for: .selected)
+    self.tintColor = TazColor.CTArticle.color
+    self.layer.borderColor = TazColor.CTArticle.color.cgColor
+    self.layer.borderWidth = 1.0
+    self.layer.cornerRadius = 3.0
+    self.isSelected = true
+    self.addTarget(self, action: #selector(toggle), for: .touchUpInside)
+  }
+  
+  @IBAction func toggle(_ sender: UIButton) {
+    self.isSelected = !self.isSelected
+  }
+}
+
+
+class CheckboxWithText:UIView{
+  public var ckecked : Bool { get {checkbox.isSelected}}
+  public let textView = UITextView()
+  public let checkbox = Checkbox()
+  
+  private var heightConstraint: NSLayoutConstraint?
+  
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+      setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
+  }
+  
+  func setup(){
+    self.addSubview(checkbox)
+    self.addSubview(textView)
+    pin(checkbox.left, to: self.left)
+    pin(textView.left, to: checkbox.right, dist: 8)
+    pin(textView.right, to: self.right)
+    pin(textView.top, to: self.top)
+    pin(textView.bottom, to: self.bottom)
+    checkbox.pinSize(CGSize(width: 20, height: 20))
+    pin(checkbox.centerY, to: self.centerY)
+    heightConstraint = textView.pinHeight(50)
+    heightConstraint?.priority = .defaultLow
+  }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    heightConstraint?.constant = textView.sizeThatFits(textView.frame.size).height
+  }
+  
+}
 
 extension UIButton {
     func setBackgroundColor(color: UIColor, forState: UIControl.State) {
