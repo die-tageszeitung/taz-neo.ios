@@ -496,20 +496,9 @@ extension UIView {
     }
   }
 }
-public func Localized(_ key: String) -> String {
-  return NSLocalizedString(key, comment: "n/a")
-}
 
 
-extension String {
-  func isValidEmail() -> Bool {
-      let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
-      let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
-      return emailPred.evaluate(with: self)
-  }
-}
-
-
+// MARK: -  Checkbox
 class Checkbox : UIButton {
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -527,7 +516,6 @@ class Checkbox : UIButton {
     self.layer.borderColor = TazColor.CTArticle.color.cgColor
     self.layer.borderWidth = 1.0
     self.layer.cornerRadius = 3.0
-    self.isSelected = true
     self.addTarget(self, action: #selector(toggle), for: .touchUpInside)
   }
   
@@ -536,7 +524,7 @@ class Checkbox : UIButton {
   }
 }
 
-
+// MARK: -  CheckboxWithText
 class CheckboxWithText:UIView{
   public var ckecked : Bool { get {checkbox.isSelected}}
   public let textView = UITextView()
@@ -575,6 +563,7 @@ class CheckboxWithText:UIView{
   
 }
 
+// MARK: - extension UIButton:setBackgroundColor
 extension UIButton {
     func setBackgroundColor(color: UIColor, forState: UIControl.State) {
         self.clipsToBounds = true  // support corner radius
@@ -589,6 +578,7 @@ extension UIButton {
     }
 }
 
+// MARK: - extension UIImage with systemName fallback named
 extension UIImage {
   convenience init?(name:String) {
     if #available(iOS 13.0, *){
@@ -598,4 +588,18 @@ extension UIImage {
       self.init(named: name)
     }
   }
+}
+
+// MARK: - extension String isValidEmail
+extension String {
+  func isValidEmail() -> Bool {
+      let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+      let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+      return emailPred.evaluate(with: self)
+  }
+}
+
+// MARK: - Localized Helper without Comment
+public func Localized(_ key: String) -> String {
+  return NSLocalizedString(key, comment: "n/a")
 }
