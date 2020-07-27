@@ -45,9 +45,14 @@ class LoginController: FormsController {
                                              comment: "14 tage probeabo text")),
          FormularView.outlineButton(title: NSLocalizedString("register_button", comment: "registrieren"),
                             target: self, action: #selector(handleRegister)),
-         passForgottButton
+         passForgottButton,
+         FormularView.button(title: "x",
+                     target: self, action: #selector(handleX)),
        ]
     super.viewDidLoad()
+  }
+  @IBAction func handleX(_ sender: UIButton) {
+    self.dismiss(animated: true, completion: nil)
   }
   
   // MARK: handleLogin Action
@@ -123,7 +128,7 @@ class LoginController: FormsController {
           //ToDo #900
           switch info.status {
             case .valid:
-              let child = ConnectTazIDController()
+              let child = ConnectTazIDController(aboId: aboId, aboIdPassword: password)
               child.modalPresentationStyle = .overCurrentContext
               child.modalTransitionStyle = .flipHorizontal
               self.present(child, animated: true, completion: nil)
@@ -148,6 +153,9 @@ class LoginController: FormsController {
         }
       })
     }
+  
+  
+  
   
   // MARK: showPwForgottButton
   func showPwForgottButton(){
