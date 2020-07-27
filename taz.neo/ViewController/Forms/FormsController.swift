@@ -28,6 +28,7 @@ internal class SharedFeeder {
         guard let self = self else { return }
         print("Feeder ready.\(String(describing: self.feeder?.toString()))")
       }
+      Toast.alertBackgroundColor = TazColor.CIColor.color
     }
   
   // MARK: setupFeeder

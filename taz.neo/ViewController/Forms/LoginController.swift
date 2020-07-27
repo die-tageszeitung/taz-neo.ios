@@ -6,17 +6,18 @@
 // Copyright © 2020 Ringo Müller-Gromes for "taz" digital newspaper. All rights reserved.
 //
 import UIKit
+import NorthLib
 
 // MARK: - LoginController
 /// Presents Login Form and Functionallity
 /// ChildViews/Controller are pushed modaly
 class LoginController: FormsController {
   
-  var idInput: UITextField
+  var idInput
     = FormularView.textField(placeholder: NSLocalizedString("login_username_hint",
                                                             comment: "E-Mail Input")
   )
-  var passInput: UITextField
+  var passInput
     = FormularView.textField(placeholder: NSLocalizedString("login_password_hint",
                                                             comment: "Passwort Input"),
                              textContentType: .password,
@@ -38,7 +39,6 @@ class LoginController: FormsController {
                                              comment: "login header")),
          idInput,
          passInput,
-         contentView!.errorLabel,
          FormularView.button(title: NSLocalizedString("login_button", comment: "login"),
                      target: self, action: #selector(handleLogin)),
          FormularView.label(title: NSLocalizedString("trial_subscription_title",
@@ -52,25 +52,32 @@ class LoginController: FormsController {
   
   // MARK: handleLogin Action
   @IBAction func handleLogin(_ sender: UIButton) {
+    
+    var errors = false
+    idInput.bottomMessage = ""
+    passInput.bottomMessage = ""
     let id = idInput.text ?? ""
-    if id.isEmpty {
-      self.contentView?.errorLabel.text
-        = NSLocalizedString("login_username_error_empty")
-      showPwForgottButton()
-      return
-    }
     let pass = passInput.text ?? ""
+    
+    if id.isEmpty {
+      idInput.bottomMessage = Localized("login_username_error_empty")
+      errors = true
+    }
+    
     if pass.isEmpty {
-      self.contentView?.errorLabel.text
-        = NSLocalizedString("login_password_error_empty")
+      passInput.bottomMessage = Localized("login_password_error_empty")
+      errors = true
+    }
+    
+    if errors {
       showPwForgottButton()
       return
     }
-    self.contentView?.errorLabel.text = nil
+    
     if id.isNumber {
-      self.queryCheckSubscriptionId(id,pass)
+      self.queryCheckSubscriptionId((idInput.text ?? ""),pass)
     }
-    else{
+    else {
       self.queryAuthToken(id,pass)
     }
   }
@@ -102,7 +109,7 @@ class LoginController: FormsController {
 //                                comment: "error")
 //        }
       case .failure:
-        self.contentView?.errorLabel.text = "ein Fehler..."
+        Toast.show("ein Fehler...")
         //        print("An error occured: \(String(describing: result.error()))")
       }
     })
@@ -132,13 +139,12 @@ class LoginController: FormsController {
             case .notValidMail://tested
               fallthrough
             default:
-              self.contentView?.errorLabel.text = NSLocalizedString("toast_login_failed_retry",
-                                                                    comment: "abbrechen")
+              Toast.show(Localized("toast_login_failed_retry"))
               self.showPwForgottButton()
               print("Succeed with status: \(info.status) message: \(info.message)")
           }
         case .failure:
-          self.contentView?.errorLabel.text = "ein Fehler..."
+          Toast.show("ein Fehler...")
         }
       })
     }

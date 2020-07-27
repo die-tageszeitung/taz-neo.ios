@@ -8,6 +8,7 @@
 
 import UIKit
 import MessageUI
+import NorthLib
 
 // MARK: - PwForgottController
 /// Presents PwForgott Form and Functionallity for request Subscription Data or reset Password for tazID Accounts
@@ -28,7 +29,6 @@ class PwForgottController: FormsController {
       FormularView.button(title: NSLocalizedString("login_forgot_password_send",
                                                    comment: "login"),
                           target: self, action: #selector(handleSend)),
-      self.contentView!.errorLabel,
       FormularView.labelLikeButton(title: NSLocalizedString("cancel_button",
                                                             comment: "abbrechen"),
                                    target: self, action: #selector(handleCancel)),
@@ -67,19 +67,13 @@ class PwForgottController: FormsController {
             self.view.isHidden = true
           })
         case .invalidSubscriptionId:
-          self.contentView?.errorLabel.text
-            = NSLocalizedString("error_invalid_email_or_abo_id",
-                                comment: "abbrechen")
+          Toast.show(Localized("error_invalid_email_or_abo_id"))
         default:
-          self.contentView?.errorLabel.text
-            = NSLocalizedString("error",
-                                comment: "error")
+          Toast.show(Localized("error"))
         }
         //ToDo #901        
       case .failure:
-        self.contentView?.errorLabel.text
-          = NSLocalizedString("error",
-                              comment: "error")
+        Toast.show(Localized("error"))
         self.log("An error occured: \(String(describing: result.error()))")
       }
     })
@@ -99,18 +93,14 @@ class PwForgottController: FormsController {
             self.view.isHidden = true
           })
         case .invalidMail:
-          self.contentView?.errorLabel.text
-            = NSLocalizedString("error_invalid_email_or_abo_id",
-                                comment: "abbrechen")
+          Toast.show(Localized("error_invalid_email_or_abo_id"))
         case .mailError:
           fallthrough
         default:
-          self.contentView?.errorLabel.text
-            = NSLocalizedString("error",
-                                comment: "error")
+          Toast.show(Localized("error"))
         }
       case .failure:
-        self.contentView?.errorLabel.text = "ein Fehler..."
+        Toast.show("ein Fehler...")
         //        print("An error occured: \(String(describing: result.error()))")
       }
     })

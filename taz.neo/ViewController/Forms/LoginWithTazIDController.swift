@@ -7,6 +7,7 @@
 // 
 
 import UIKit
+import NorthLib
 
 // MARK: - LoginController
 /// Presents Login Form and Functionallity
@@ -34,17 +35,16 @@ class LoginWithTazIDController: FormsController {
     passForgottButton.isHidden = true
     self.contentView?.views =   [
       FormularView.header(),
-      FormularView.label(title: NSLocalizedString("login_missing_credentials_header_login")),
-      FormularView.labelLikeButton(title: NSLocalizedString("fragment_login_missing_credentials_switch_to_registration"),
+      FormularView.label(title: Localized("login_missing_credentials_header_login")),
+      FormularView.labelLikeButton(title: Localized("fragment_login_missing_credentials_switch_to_registration"),
                                    target: self,
                                    action: #selector(handleCancel)),
       idInput,
       passInput,
-      contentView!.errorLabel,
       FormularView.button(title: NSLocalizedString("login_button", comment: "login"),
                           target: self,
                           action: #selector(handleLogin)),
-      FormularView.labelLikeButton(title: NSLocalizedString("login_forgot_password"),
+      FormularView.labelLikeButton(title: Localized("login_forgot_password"),
                                    target: self,
                                    action: #selector(handlePwForgot))
     ]
@@ -55,24 +55,20 @@ class LoginWithTazIDController: FormsController {
   @IBAction func handleLogin(_ sender: UIButton) {
     let id = idInput.text ?? ""
     if id.isEmpty {
-      self.contentView?.errorLabel.text
-        = NSLocalizedString("login_email_error_empty")
+      Toast.show(Localized("login_email_error_empty"))
       return
     }
     
     if id.isNumber {
-      self.contentView?.errorLabel.text
-        = NSLocalizedString("login_email_error_no_email")
+      Toast.show(Localized("login_email_error_no_email"))
       return
     }
     
     let pass = passInput.text ?? ""
     if pass.isEmpty {
-      self.contentView?.errorLabel.text
-        = NSLocalizedString("login_password_error_empty")
+      Toast.show(Localized("login_password_error_empty"))
       return
     }
-    self.contentView?.errorLabel.text = nil
     
     //self.queryAuthToken(id,pass)
   }
@@ -104,7 +100,7 @@ class LoginWithTazIDController: FormsController {
         //                                comment: "error")
         //        }
         case .failure:
-          self.contentView?.errorLabel.text = "ein Fehler..."
+          Toast.show("ein Fehler...")
         //        print("An error occured: \(String(describing: result.error()))")
       }
     })

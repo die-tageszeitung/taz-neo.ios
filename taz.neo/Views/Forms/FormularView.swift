@@ -20,50 +20,11 @@ fileprivate let TextFieldPadding = CGFloat(10.0)
 // MARK: - FormularView
 /// A RegisterView displays an RegisterForm
 public class FormularView: UIView {
-  
+
   var views : [UIView] = []{
     didSet{
       addAndPin(views)
       self.backgroundColor = TazColor.CTBackground.color
-    }
-  }
-  
-  lazy var errorLabel: UILabel = {
-    let lb = ErrorLabel()
-    lb.font = AppFonts.contentFont(size: DefaultFontSize)
-    lb.numberOfLines = 0
-    lb.textColor = TazColor.CIColor.color
-    lb.textAlignment = .center
-    return lb
-  }()
-  
-  fileprivate class ErrorLabel : UILabel {
-    override init(frame: CGRect) {
-      super.init(frame:frame)
-      setup()
-    }
-    
-    required init?(coder: NSCoder) {
-      super.init(coder:coder)
-      setup()
-    }
-    
-    func setup(){
-      heightConstraint = self.pinHeight(0)
-      self.alpha = 0.0
-    }
-    var heightConstraint:NSLayoutConstraint?
-    
-    override var text: String?{
-      didSet{
-        let newHeight = self.sizeThatFits(CGSize(width: self.frame.size.width,
-                                                 height: .infinity)).height
-        self.heightConstraint?.constant = (self.text ?? "").isEmpty ? 0 : newHeight
-        UIView.animate(withDuration: 0.2) {
-          self.superview?.layoutIfNeeded()
-          self.alpha = (self.text ?? "").isEmpty ? 0 : 1
-        }
-      }
     }
   }
   
@@ -80,8 +41,11 @@ public class FormularView: UIView {
     setup()
   }
   
+  // MARK: setup
+  /// override in subclasses if needed
   func setup(){}
   
+  // MARK: static helper: header
   static func header(paddingBottom: CGFloat = 30) -> UIView {
     let container = UIView()
     let title = UILabel()
@@ -103,7 +67,7 @@ public class FormularView: UIView {
     return container
   }
   
-  
+  // MARK: static helper: label
   static func label(title: String? = nil,
                     font: UIFont = AppFonts.contentFont(size: DefaultFontSize),
                     paddingTop: CGFloat = 8,
@@ -118,7 +82,7 @@ public class FormularView: UIView {
     return lb
   }
   
-  
+  // MARK: static helper: button
   static func button(title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
                      color: UIColor = TazColor.CIColor.color,
                      textColor: UIColor = .white,
@@ -132,6 +96,8 @@ public class FormularView: UIView {
       btn.setTitle(title, for: .normal)
     }
     btn.backgroundColor = color
+    btn.setBackgroundColor(color: color.withAlphaComponent(0.8), forState: .selected)
+    
     btn.setTitleColor(textColor, for: .normal)
     btn.layer.cornerRadius = 4.0
     btn.pinHeight(height)
@@ -143,6 +109,7 @@ public class FormularView: UIView {
     return btn
   }
   
+  // MARK: static helper: outlineButton
   static func outlineButton(title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
                             paddingTop: CGFloat = DefaultPadding,
                             paddingBottom: CGFloat = DefaultPadding,
@@ -154,11 +121,13 @@ public class FormularView: UIView {
                           target: target,
                           action: action)
     btn.backgroundColor = .clear
+    btn.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .selected)
     btn.addBorder(TazColor.CIColor.color, 1.0)
     btn.setTitleColor(TazColor.CIColor.color, for: .normal)
     return btn
   }
   
+  // MARK: static helper: labelLikeButton
   static func labelLikeButton(title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
                               paddingTop: CGFloat = DefaultPadding,
                               paddingBottom: CGFloat = DefaultPadding,
@@ -170,9 +139,23 @@ public class FormularView: UIView {
                           target: target,
                           action: action)
     btn.backgroundColor = .clear
+    btn.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .selected)
     btn.setTitleColor(TazColor.CIColor.color, for: .normal)
     return btn
   }
+  
+  // MARK: agbAcceptLabel
+    lazy var agbAcceptTV : UITextView = {
+      let tv = UITextView()
+      tv.isEditable = false
+  //    tv.isSelectable = false
+      tv.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed(String.cssStyles(AppFonts.contentFont(size: DefaultFontSize), .green, "a{ color:#ff00ff}"))
+      tv.textAlignment = .center
+      return tv
+    }()
+  
+  
+  
   
   // MARK: pwInput
   static func textField(prefilledText: String? = nil,
@@ -247,12 +230,7 @@ public class FormularView: UIView {
     self.subviews.forEach({ $0.removeFromSuperview() })
     
     if views.isEmpty { return }
-    
-    var views = views
-    if views.contains(errorLabel) == false {
-      views.append(errorLabel)
-    }
-    
+        
     let margin : CGFloat = 12.0
     var previous : UIView?
     for v in views {
@@ -523,6 +501,30 @@ extension UIView {
     }
   }
 }
-public func NSLocalizedString(_ key: String) -> String {
+public func Localized(_ key: String) -> String {
   return NSLocalizedString(key, comment: "n/a")
+}
+
+
+extension String {
+  func isValidEmail() -> Bool {
+      let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+      let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+      return emailPred.evaluate(with: self)
+  }
+}
+
+
+extension UIButton {
+    func setBackgroundColor(color: UIColor, forState: UIControl.State) {
+        self.clipsToBounds = true  // support corner radius
+        UIGraphicsBeginImageContext(CGSize(width: 1, height: 1))
+        if let context = UIGraphicsGetCurrentContext() {
+            context.setFillColor(color.cgColor)
+            context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+            let colorImage = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            self.setBackgroundImage(colorImage, for: forState)
+        }
+    }
 }
