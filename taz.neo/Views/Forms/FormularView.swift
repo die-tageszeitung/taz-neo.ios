@@ -179,14 +179,11 @@ public class FormularView: UIView {
     tf.textContentType = .password
     tf.isSecureTextEntry = isSecureTextEntry
     
-    if #available(iOS 13.0, *), isSecureTextEntry {
-      let imgEye = UIImage(systemName: "eye.fill")?
-        .withRenderingMode(.alwaysOriginal)
-        .withTintColor(TazColor.CTArticle.color)
-      let imgEyeSlash = UIImage(systemName: "eye.slash.fill")?
-        .withRenderingMode(.alwaysOriginal)
-        .withTintColor(TazColor.CTArticle.color)
+    if isSecureTextEntry {
+      let imgEye = UIImage(name: "eye.fill")
+      let imgEyeSlash = UIImage(name: "eye.slash.fill")
       let eye = UIImageView(image: imgEyeSlash)
+      eye.tintColor = TazColor.CTArticle.color
       eye.onTapping(closure: { _ in
         tf.isSecureTextEntry = !tf.isSecureTextEntry
         eye.image = tf.isSecureTextEntry ? imgEyeSlash : imgEye
@@ -527,4 +524,15 @@ extension UIButton {
             self.setBackgroundImage(colorImage, for: forState)
         }
     }
+}
+
+extension UIImage {
+  convenience init?(name:String) {
+    if #available(iOS 13.0, *){
+      self.init(systemName: name)
+    }
+    else{
+      self.init(named: name)
+    }
+  }
 }

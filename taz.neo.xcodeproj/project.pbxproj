@@ -12,6 +12,7 @@
 		004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */; };
 		004D4F0024ACDC1F008C4EE7 /* FormularView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */; };
 		080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
+		08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */; };
 		08D6045424C9D3A70045EBE7 /* ConnectTazIDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIDController.swift */; };
 		08D6045824C9DC8A0045EBE7 /* LoginWithTazIDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045724C9DC8A0045EBE7 /* LoginWithTazIDController.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
@@ -81,6 +82,7 @@
 		004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginController.swift; sourceTree = "<group>"; };
 		004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormularView.swift; sourceTree = "<group>"; };
 		080271C624ADDD68002CD2F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Localizable.strings; sourceTree = "<group>"; };
+		08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = FallbackAssets.xcassets; sourceTree = "<group>"; };
 		08D6045324C9D3A70045EBE7 /* ConnectTazIDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIDController.swift; sourceTree = "<group>"; };
 		08D6045724C9DC8A0045EBE7 /* LoginWithTazIDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginWithTazIDController.swift; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
@@ -308,6 +310,7 @@
 				AEBAF56E219ACD1A00566205 /* Assets.xcassets */,
 				AEBAF573219ACD1A00566205 /* Info.plist */,
 				AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */,
+				08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */,
 			);
 			path = "Supporting Files";
 			sourceTree = "<group>";
@@ -412,6 +415,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
+				08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */,
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
