@@ -26,11 +26,11 @@ class LoginController: FormsController {
     =   FormularView.labelLikeButton(title: NSLocalizedString("login_forgot_password", comment: "registrieren"),
                                 target: self, action: #selector(handlePwForgot))
   
+  var loginButton: UIButton?
+  
   // MARK: viewDidLoad Action
   override func viewDidLoad() {
     self.contentView = FormularView()
-//    idInput.text = ""
-//    passInput.text = ""
     passForgottButton.isHidden = true
     self.contentView?.views =   [
          FormularView.header(),
@@ -44,52 +44,58 @@ class LoginController: FormsController {
                                              comment: "14 tage probeabo text")),
          FormularView.outlineButton(title: NSLocalizedString("register_button", comment: "registrieren"),
                             target: self, action: #selector(handleRegister)),
-         passForgottButton,
-         FormularView.button(title: "x",
-                     target: self, action: #selector(handleX)),
+         passForgottButton
        ]
     super.viewDidLoad()
-  }
-  @IBAction func handleX(_ sender: UIButton) {
-    self.dismiss(animated: true, completion: nil)
   }
   
   // MARK: handleLogin Action
   @IBAction func handleLogin(_ sender: UIButton) {
+    loginButton = sender
+    loginButton?.isEnabled = false
     
+    if let errormessage = self.validate() {
+      Toast.show(errormessage, .alert)
+      sender.isEnabled = true
+      showPwForgottButton()
+      return
+    }
+    
+    if (idInput.text ?? "").isNumber {
+      self.queryCheckSubscriptionId((idInput.text ?? ""),passInput.text ?? "")
+    }
+    else {
+      self.queryAuthToken((idInput.text ?? ""),passInput.text ?? "")
+    }
+  }
+  
+  ///Validates the Form returns translated Errormessage String for Popup/Toast
+  ///Mark issue fields with hints
+  func validate() -> String?{
     var errors = false
     idInput.bottomMessage = ""
     passInput.bottomMessage = ""
-    let id = idInput.text ?? ""
-    let pass = passInput.text ?? ""
     
-    if id.isEmpty {
+    if (idInput.text ?? "").isEmpty {
       idInput.bottomMessage = Localized("login_username_error_empty")
       errors = true
     }
     
-    if pass.isEmpty {
+    if (passInput.text ?? "").isEmpty {
       passInput.bottomMessage = Localized("login_password_error_empty")
       errors = true
     }
     
     if errors {
-      showPwForgottButton()
-      return
+      return Localized("register_validation_issue")
     }
-    
-    if id.isNumber {
-      self.queryCheckSubscriptionId((idInput.text ?? ""),pass)
-    }
-    else {
-      self.queryAuthToken(id,pass)
-    }
+    return nil
   }
   
   // MARK: queryAuthToken
   func queryAuthToken(_ id: String, _ pass: String){
-    print("queryAuthToken with: \(id), \(pass)"); return;
     SharedFeeder.shared.feeder?.authenticate(account: id, password: pass, closure:{ (result) in
+      self.loginButton?.isEnabled = true
       switch result {
       case .success(let info):
         print("done success \(info.bool)")
@@ -122,19 +128,19 @@ class LoginController: FormsController {
   // MARK: queryCheckSubscriptionId
     func queryCheckSubscriptionId(_ aboId: String, _ password: String){
       SharedFeeder.shared.feeder?.checkSubscriptionId(aboId: aboId, password: password, closure: { (result) in
+        self.loginButton?.isEnabled = true
         switch result {
         case .success(let info):
           //ToDo #900
           switch info.status {
             case .valid:
-              let child = ConnectTazIDController(aboId: aboId, aboIdPassword: password)
-              child.modalPresentationStyle = .overCurrentContext
-              child.modalTransitionStyle = .flipHorizontal
-              self.present(child, animated: true, completion: nil)
+              self.modalFlip(ConnectTazIDController(aboId: aboId,
+                                                    aboIdPassword: password))
               break;
-            case .alreadyLinked:
-              fallthrough
             case .expired:
+              self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: info.message,
+                                                             dismissType: .current))
+            case .alreadyLinked:
               fallthrough
             case .unlinked:
               fallthrough
@@ -145,16 +151,13 @@ class LoginController: FormsController {
             default:
               Toast.show(Localized("toast_login_failed_retry"))
               self.showPwForgottButton()
-              print("Succeed with status: \(info.status) message: \(info.message)")
+              print("Succeed with status: \(info.status) message: \(info.message ?? "-")")
           }
         case .failure:
-          Toast.show("ein Fehler...")
+          Toast.show(Localized("toast_login_failed_retry"))
         }
       })
     }
-  
-  
-  
   
   // MARK: showPwForgottButton
   func showPwForgottButton(){
@@ -178,6 +181,28 @@ class LoginController: FormsController {
     child.modalPresentationStyle = .overCurrentContext
     child.modalTransitionStyle = .flipHorizontal
     self.present(child, animated: true, completion: nil)
+  }
+}
+
+class SubscriptionIdElapsedController: FormsController_Result_Controller {
+  private(set) var expiredDate : String = ""
+  
+  convenience init(expireDateMessage:String?, dismissType:dismissType) {
+    self.init(nibName:nil, bundle:nil)
+    var dateString = "-"
+    if let msg = expireDateMessage {
+      dateString = UsTime(iso:msg).date.gDate()
+    }
+
+    self.views =  [
+      FormularView.header(),
+      CustomTextView(htmlText: Localized(keyWithFormat: "subscription_id_expired", dateString),
+                     textAlignment: .center,
+                     linkTextAttributes: CustomTextView.boldLinks),
+      FormularView.button(title: "d",
+                          target: self, action: #selector(handleBack)),
+      
+    ]
   }
 }
 

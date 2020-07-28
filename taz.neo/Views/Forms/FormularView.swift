@@ -148,12 +148,35 @@ public class FormularView: UIView {
     lazy var agbAcceptTV : CheckboxWithText = {
       let view = CheckboxWithText()
       view.textView.isEditable = false
-      view.textView.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed("")
+      view.textView.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed
       view.textView.linkTextAttributes = [.foregroundColor : TazColor.CIColor.color, .underlineColor: UIColor.clear]
       view.textView.font = AppFonts.contentFont(size: DefaultFontSize)
       view.textView.textColor = TazColor.HText.color
       return view
     }()
+  
+  // MARK: textView with htmlText as Attributed Text
+  static func textView(htmlText: String,
+                       additionalCss: String = "",
+                       paddingTop: CGFloat = TextFieldPadding,
+                       paddingBottom: CGFloat = TextFieldPadding,
+                       font: UIFont = AppFonts.contentFont(size: DefaultFontSize),
+                       textColor: UIColor = TazColor.HText.color,
+                       linkTextAttributes: [NSAttributedString.Key : Any] = [.foregroundColor : TazColor.CIColor.color,
+                                                                             .underlineColor: UIColor.clear]
+    
+    
+  ) -> UITextView {
+    let tv = CustomTextView()
+    tv.paddingTop = paddingTop
+    tv.paddingBottom = paddingBottom
+    tv.attributedText = htmlText.htmlAttributed
+    tv.linkTextAttributes = [.foregroundColor : TazColor.CIColor.color, .underlineColor: UIColor.clear]
+    tv.font = font
+    tv.textColor = textColor
+    
+    return tv
+  }
  
   
   // MARK: pwInput
@@ -525,10 +548,70 @@ class Checkbox : UIButton {
   }
 }
 
+class CustomTextView : UITextView{
+  
+  private var heightConstraint: NSLayoutConstraint?
+  
+  static var boldLinks : [NSAttributedString.Key : Any] {
+    get {
+      return [.foregroundColor : TazColor.CIColor.color,
+              .font: AppFonts.titleFont(size: DefaultFontSize),
+              .underlineColor: UIColor.clear]
+    }
+  }
+  
+  required init(htmlText: String,
+       paddingTop: CGFloat = TextFieldPadding,
+       paddingBottom: CGFloat = TextFieldPadding,
+       font: UIFont = AppFonts.contentFont(size: DefaultFontSize),
+       textColor: UIColor = TazColor.HText.color,
+       textAlignment: NSTextAlignment = .left,
+       linkTextAttributes: [NSAttributedString.Key : Any] = [.foregroundColor : TazColor.CIColor.color,
+                                                             .underlineColor: UIColor.clear]) {
+    super.init(frame: .zero, textContainer:nil)
+    self.paddingTop = paddingTop
+    self.paddingBottom = paddingBottom
+    self.attributedText = htmlText.htmlAttributed
+    self.font = font
+    self.textColor = textColor
+    self.textAlignment = textAlignment
+    self.linkTextAttributes = linkTextAttributes
+    
+    //unfortunately link font is overwritten by self font so we need to toggle this attributes
+    if let linkFont = linkTextAttributes[.font] {
+      let originalText = NSMutableAttributedString(attributedString: self.attributedText)
+      let newString = NSMutableAttributedString(attributedString: self.attributedText)
+      originalText.enumerateAttributes(in: NSRange(0..<originalText.length), options: .reverse) { (attributes, range, pointer) in
+          if let _ = attributes[.link] {
+              newString.removeAttribute(NSAttributedString.Key.font, range: range)
+              newString.addAttribute(NSAttributedString.Key.font, value: linkFont, range: range)
+          }
+      }
+      self.attributedText = newString
+    }
+    heightConstraint = self.pinHeight(10)
+    heightConstraint?.priority = .defaultLow
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  public init(){
+      super.init(frame: .zero, textContainer:nil)
+  }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    heightConstraint?.constant = self.sizeThatFits(self.frame.size).height
+  }
+  
+}
+
 // MARK: -  CheckboxWithText
 class CheckboxWithText:UIView{
   public var checked : Bool { get {checkbox.isSelected}}
-  public let textView = UITextView()
+  public let textView = CustomTextView()
   public let checkbox = Checkbox()
   
   public var error : Bool = false {
@@ -537,8 +620,6 @@ class CheckboxWithText:UIView{
         = error ? TazColor.CIColor.color.cgColor : TazColor.CTArticle.color.cgColor
     }
   }
-  
-  private var heightConstraint: NSLayoutConstraint?
   
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -560,15 +641,8 @@ class CheckboxWithText:UIView{
     pin(textView.bottom, to: self.bottom)
     checkbox.pinSize(CGSize(width: 20, height: 20))
     pin(checkbox.centerY, to: self.centerY)
-    heightConstraint = textView.pinHeight(50)
-    heightConstraint?.priority = .defaultLow
+
   }
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    heightConstraint?.constant = textView.sizeThatFits(textView.frame.size).height
-  }
-  
 }
 
 // MARK: - extension UIButton:setBackgroundColor
@@ -610,4 +684,8 @@ extension String {
 // MARK: - Localized Helper without Comment
 public func Localized(_ key: String) -> String {
   return NSLocalizedString(key, comment: "n/a")
+}
+
+public func Localized(keyWithFormat: String, _ arguments: CVarArg...) -> String {
+  return String(format: Localized(keyWithFormat), arguments)
 }
