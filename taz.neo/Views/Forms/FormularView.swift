@@ -571,24 +571,39 @@ class CustomTextView : UITextView{
     super.init(frame: .zero, textContainer:nil)
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
-    self.attributedText = htmlText.htmlAttributed
-    self.font = font
-    self.textColor = textColor
-    self.textAlignment = textAlignment
+    self.backgroundColor = .clear
+
+    var attributedString = htmlText.mutableAttributedStringFromHtml
+    let all = NSRange(location: 0, length: attributedString?.length ?? 0)
+
+    /// unfortunately underlines are cut-off with our custom font
+    /// fix it by set .lineHeightMultiple = 1.2
+    let style = NSMutableParagraphStyle()
+    style.lineHeightMultiple = 1.12
+    style.alignment = textAlignment
+
+    /// prefer setting styles of the attributedString instead of self.font due this overwrites the whole
+    /// attributed string whis needs to be set first
+    attributedString?.addAttribute(.paragraphStyle, value: style, range: all)
+    attributedString?.addAttribute(.font, value: font, range: all)
+    attributedString?.addAttribute(.foregroundColor, value: textColor, range: all)
+
     self.linkTextAttributes = linkTextAttributes
-    
     //unfortunately link font is overwritten by self font so we need to toggle this attributes
-    if let linkFont = linkTextAttributes[.font] {
-      let originalText = NSMutableAttributedString(attributedString: self.attributedText)
-      let newString = NSMutableAttributedString(attributedString: self.attributedText)
+    //esspecially the combination with different link font did not work
+    if let linkFont = linkTextAttributes[.font], let originalText = attributedString {
+      let newString = NSMutableAttributedString(attributedString: originalText)
       originalText.enumerateAttributes(in: NSRange(0..<originalText.length), options: .reverse) { (attributes, range, pointer) in
-          if let _ = attributes[.link] {
-              newString.removeAttribute(NSAttributedString.Key.font, range: range)
-              newString.addAttribute(NSAttributedString.Key.font, value: linkFont, range: range)
-          }
+        if let _ = attributes[.link] {
+          newString.removeAttribute(.font, range: range)
+          newString.addAttribute(.font, value: linkFont, range: range)
+        }
       }
-      self.attributedText = newString
+      attributedString = newString
     }
+    
+    self.attributedText = attributedString
+  
     heightConstraint = self.pinHeight(10)
     heightConstraint?.priority = .defaultLow
   }
@@ -685,7 +700,6 @@ extension String {
 public func Localized(_ key: String) -> String {
   return NSLocalizedString(key, comment: "n/a")
 }
-
-public func Localized(keyWithFormat: String, _ arguments: CVarArg...) -> String {
-  return String(format: Localized(keyWithFormat), arguments)
+public func Localized(keyWithFormat: String, _  arguments: CVarArg...) -> String {
+  return String(format: Localized(keyWithFormat), arguments: arguments)
 }

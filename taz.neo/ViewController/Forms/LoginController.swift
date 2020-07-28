@@ -185,6 +185,15 @@ class LoginController: FormsController {
 }
 
 class SubscriptionIdElapsedController: FormsController_Result_Controller {
+  /**
+      Discussion TextView with Attributed String for format & handle Links/E-Mail Adresses
+        or multiple Views with individual button/click Handler
+        Pro: AttributedString Con: multiple views
+        + minimal UICreation Code => solve by using compose views...
+        - hande of link leaves the app => solve by using individual handler
+        - ugly html & data handling
+        + super simple add & exchange text
+   */
   private(set) var expiredDate : String = ""
   
   convenience init(expireDateMessage:String?, dismissType:dismissType) {
@@ -193,13 +202,13 @@ class SubscriptionIdElapsedController: FormsController_Result_Controller {
     if let msg = expireDateMessage {
       dateString = UsTime(iso:msg).date.gDate()
     }
-
+    
     self.views =  [
       FormularView.header(),
       CustomTextView(htmlText: Localized(keyWithFormat: "subscription_id_expired", dateString),
                      textAlignment: .center,
                      linkTextAttributes: CustomTextView.boldLinks),
-      FormularView.button(title: "d",
+      FormularView.button(title: Localized("cancel_button"),
                           target: self, action: #selector(handleBack)),
       
     ]
