@@ -1,5 +1,4 @@
 //
-//
 // LoginController.swift
 //
 // Created by Ringo Müller-Gromes on 01.07.20.
@@ -30,8 +29,8 @@ class LoginController: FormsController {
   // MARK: viewDidLoad Action
   override func viewDidLoad() {
     self.contentView = FormularView()
-    idInput.text = ""
-    passInput.text = ""
+//    idInput.text = ""
+//    passInput.text = ""
     passForgottButton.isHidden = true
     self.contentView?.views =   [
          FormularView.header(),

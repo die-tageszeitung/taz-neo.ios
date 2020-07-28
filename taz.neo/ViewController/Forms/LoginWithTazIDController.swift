@@ -32,6 +32,7 @@ class LoginWithTazIDController: FormsController {
   // MARK: viewDidLoad Action
   override func viewDidLoad() {
     self.contentView = FormularView()
+
     passForgottButton.isHidden = true
     self.contentView?.views =   [
       FormularView.header(),
@@ -49,6 +50,7 @@ class LoginWithTazIDController: FormsController {
                                    action: #selector(handlePwForgot))
     ]
     super.viewDidLoad()
+
   }
   
   // MARK: handleLogin Action

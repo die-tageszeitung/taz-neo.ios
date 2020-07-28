@@ -74,9 +74,10 @@ class ConnectTazIDController: FormsController {
     super.viewDidLoad()
   }
   
-  // MARK: handleLogin Action
-  @IBAction func handleSend(_ sender: UIButton) {
-    sender.isEnabled = false
+  ///Validates the Form returns translated Errormessage String for Popup/Toast
+  ///Mark issue fields with hints
+  func validate() -> String?{
+    return nil;
     var errors = false
     
     mailInput.bottomMessage = ""
@@ -86,19 +87,15 @@ class ConnectTazIDController: FormsController {
     lastnameInput.bottomMessage = ""
     self.contentView?.agbAcceptTV.error = false
     
-    let mail = mailInput.text ?? ""
-    
-    if mail.isEmpty {
+    if (mailInput.text ?? "").isEmpty {
       errors = true
       mailInput.bottomMessage = Localized("login_email_error_empty")
-    } else if mail.isValidEmail() == false {
+    } else if (mailInput.text ?? "").isValidEmail() == false {
       errors = true
       mailInput.bottomMessage = Localized("login_email_error_no_email")
     }
     
-    let pass = passInput.text ?? ""
-    
-    if pass.isEmpty {
+    if (passInput.text ?? "").isEmpty {
       errors = true
       passInput.bottomMessage = Localized("login_password_error_empty")
     }
@@ -107,44 +104,53 @@ class ConnectTazIDController: FormsController {
       errors = true
       pass2Input.bottomMessage = Localized("login_password_error_empty")
     }
-    else if pass != pass2Input.text {
+    else if pass2Input.text != pass2Input.text {
       pass2Input.bottomMessage = Localized("login_password_confirmation_error_match")
     }
     
-    let firstname = firstnameInput.text ?? ""
-    
-    if firstname.isEmpty {
+    if (firstnameInput.text ?? "").isEmpty {
       errors = true
       firstnameInput.bottomMessage = Localized("login_first_name_error_empty")
     }
     
-    let lastname = lastnameInput.text ?? ""
-    
-    if lastname.isEmpty {
+    if (lastnameInput.text ?? "").isEmpty {
       errors = true
       lastnameInput.bottomMessage = Localized("login_surname_error_empty")
     }
     
-    var errormessage = Localized("register_validation_issue")
-    
     if self.contentView?.agbAcceptTV.checked == false {
       self.contentView?.agbAcceptTV.error = true
-      errors = true
-      errormessage = Localized("register_validation_issue_agb")
+      return Localized("register_validation_issue_agb")
     }
     
     if errors {
+      return Localized("register_validation_issue")
+    }
+    
+    return nil
+  }
+  
+  // MARK: handleLogin Action
+  @IBAction func handleSend(_ sender: UIButton) {
+    sender.isEnabled = false
+    
+    if let errormessage = self.validate() {
       Toast.show(errormessage, .alert)
       sender.isEnabled = true
       return
     }
     
+    let mail = mailInput.text ?? ""
+    let pass = passInput.text ?? ""
+    let lastname = lastnameInput.text ?? ""
+    let firstname = firstnameInput.text ?? ""
+       
     let dfl = Defaults.singleton
     let pushToken = dfl["pushToken"]
     let installationId = dfl["installationId"] ?? App.installationId
     
     //Start mutationSubscriptionId2tazId
-//      spinner.enabler=true
+    //spinner.enabler=true
     SharedFeeder.shared.feeder?.subscriptionId2tazId(tazId: mail, password: pass, aboId: self.aboId, aboIdPW: aboIdPassword, surname: lastname, firstName: firstname, installationId: installationId, pushToken: pushToken, closure: { (result) in
       //Re-Enable Button if needed
       sender.isEnabled = true
@@ -155,57 +161,19 @@ class ConnectTazIDController: FormsController {
           switch info.status {
             /// we are waiting for eMail confirmation (using push/poll)
             case .waitForMail:
-              let successCtrl
-                = ConnectTazID_Result_Controller(message: Localized("fragment_login_confirm_email_header"),
-                                                 backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                                 closeHandler: {
-                                                  ///ToDO: THIS DID NOT WORK :-(
-                                                  let parent = self.presentingViewController as? LoginController
-                                                  self.dismiss(animated: true, completion: nil)
-                                                  parent?.dismiss(animated: false, completion: nil)
-                                                  
-                                                  self.presentedViewController?.dismiss(animated: true, completion: nil)
-                                                  self.presentingViewController?.dismiss(animated: false, completion: nil)
-                                                  self.dismiss(animated: false, completion: nil)
-                                                })
-              successCtrl.modalPresentationStyle = .overCurrentContext
-              successCtrl.modalTransitionStyle = .flipHorizontal
-              self.present(successCtrl, animated: true, completion:{
-                self.view.isHidden = true
-              })
+              self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
+                                  backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                  dismissType: .all)
             /// valid authentication
             case .valid:
-              let successCtrl
-                = ConnectTazID_Result_Controller(message: Localized("fragment_login_registration_successful_header"),
-                                                 backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                                 closeHandler: {
-                                                  self.presentedViewController?.dismiss(animated: true, completion: nil)
-                                                  self.presentingViewController?.dismiss(animated: false, completion: nil)
-                                                  self.dismiss(animated: false, completion: nil)
-                                                })
-              successCtrl.modalPresentationStyle = .overCurrentContext
-              successCtrl.modalTransitionStyle = .flipHorizontal
-//              if let token = token {
-//                self.gqlFeeder.authToken = token
-//                closure(nil)
-//              }
-              self.present(successCtrl, animated: true, completion:{
-                self.view.isHidden = true
-              })
+              self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
+                                  backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                  dismissType: .all)
             /// valid tazId connected to different AboId
             case .alreadyLinked:
-              let successCtrl
-                = ConnectTazID_Result_Controller(message: Localized("subscriptionId2tazId_alreadyLinked"),
-                                                 backButtonTitle: Localized("back_to_login"),
-                                                 closeHandler: {
-                                                  self.presentedViewController?.dismiss(animated: true, completion: nil)
-                                                  self.dismiss(animated: false, completion: nil)
-                                                })
-              successCtrl.modalPresentationStyle = .overCurrentContext
-              successCtrl.modalTransitionStyle = .flipHorizontal
-              self.present(successCtrl, animated: true, completion:{
-                self.view.isHidden = true
-              })
+              self.showResultWith(message: Localized("subscriptionId2tazId_alreadyLinked"),
+                                  backButtonTitle: Localized("back_to_login"),
+                                  dismissType: .leftFirst)
             /// invalid mail address (only syntactic check)
             case .invalidMail:
               self.mailInput.bottomMessage = Localized("login_email_error_no_email")
@@ -238,12 +206,23 @@ class ConnectTazIDController: FormsController {
               fallthrough
             default:
               Toast.show(Localized("toast_login_failed_retry"))
-              print("Succeed with status: \(info.status) message: \(info.message)")
+              print("Succeed with status: \(info.status) message: \(info.message ?? "-")")
         }
         case .failure:
           Toast.show("ein Fehler...")
       }
     })
+  }
+  
+  
+  fileprivate func showResultWith(message:String, backButtonTitle:String,dismissType:dismissType){
+    let successCtrl
+       = ConnectTazID_Result_Controller(message: message,
+                                        backButtonTitle: backButtonTitle,
+                                       dismissType: dismissType)
+     successCtrl.modalPresentationStyle = .overCurrentContext
+     successCtrl.modalTransitionStyle = .flipHorizontal
+     self.present(successCtrl, animated: true, completion:nil)
   }
   
   // MARK: handleLogin Action
@@ -259,7 +238,7 @@ class ConnectTazIDController: FormsController {
   }
 }
 
-
+fileprivate enum dismissType {case all, current, leftFirst}
 
 // MARK: - ConnectTazID_WaitForMail_Controller
 class ConnectTazID_WaitForMail_Controller: FormsController {
@@ -292,12 +271,12 @@ class ConnectTazID_Result_Controller: FormsController {
   
   let message:String
   let backButtonTitle:String
-  let closeHandler: (()->())
+  fileprivate let dismissType:dismissType
   
-  init(message:String, backButtonTitle:String, closeHandler: @escaping (()->())) {
+  fileprivate init(message:String, backButtonTitle:String, dismissType:dismissType) {
     self.message = message
     self.backButtonTitle = backButtonTitle
-    self.closeHandler = closeHandler
+    self.dismissType = dismissType
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -323,25 +302,59 @@ class ConnectTazID_Result_Controller: FormsController {
   
   // MARK: handleBack Action
   @IBAction func handleBack(_ sender: UIButton) {
-    var vc:UIViewController = self
-    while true {
-      if let pc = vc.presentingViewController {
-        vc=pc
-      } else {
-        vc.dismiss(animated: true, completion: nil)
+    var stack = self.modalStack
+    switch dismissType {
+      case .all:
+        _ = stack.popLast()//removes self
+        stack.forEach { $0.view.isHidden = true }
+        self.dismiss(animated: true) {
+          stack.forEach { $0.dismiss(animated: false, completion: nil)}
+        }
+      case .leftFirst:
+        _ = stack.popLast()//removes self
+        _ = stack.pop()//removes first
+        stack.forEach { $0.view.isHidden = true }
+        self.dismiss(animated: true) {
+          stack.forEach { $0.dismiss(animated: false, completion: nil)}
+        }
+      case .current:
+        self.dismiss(animated: true, completion: nil)
+    }
+  }
+}
+
+extension UIViewController{
+  var rootPresentingViewController : UIViewController {
+    get{
+      var vc = self
+      while true {
+        if let pvc = vc.presentingViewController {
+          vc = pvc
+        }
+        return vc
       }
     }
-    
-//    self.dismiss(animated: true, completion: nil)
-//    for vc in vcs {
-//      vc.dismiss(animated: false, completion: nil)
-//    }
-    /**
-     ToDo Errors: 2020-07-27 18:57:36.779450+0200 taz neo[37958:894911] Warning: Attempt to dismiss from view controller <taz_neo.LoginController: 0x7fad47722ab0> while a presentation or dismiss is in progress!
-     2020-07-27 18:57:36.782304+0200 taz neo[37958:894911] [Assert] Trying to dismiss the presentation controller while transitioning already. (<_UIOverCurrentContextPresentationController: 0x7fad475235c0>)
-     2020-07-27 18:57:36.788914+0200 taz neo[37958:894911] Null transitionViewForCurrentTransition block, aborting _scheduleTransition:
-     
-     
-     */
   }
+    
+  var rootModalViewController : UIViewController? {
+    get{
+      return self.rootPresentingViewController.presentedViewController
+    }
+  }
+  
+  var modalStack : [UIViewController] {
+     get{
+       var stack:[UIViewController] = []
+        var vc:UIViewController = self
+        while true {
+          if let pc = vc.presentingViewController {
+            stack.append(vc)
+            vc = pc
+          }
+          else {
+            return stack.reversed()
+          }
+      }
+     }
+   }
 }
