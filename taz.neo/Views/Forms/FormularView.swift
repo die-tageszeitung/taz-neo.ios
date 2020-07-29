@@ -20,7 +20,7 @@ fileprivate let TextFieldPadding = CGFloat(10.0)
 // MARK: - FormularView
 /// A RegisterView displays an RegisterForm
 public class FormularView: UIView {
-
+  
   var views : [UIView] = []{
     didSet{
       addAndPin(views)
@@ -30,6 +30,8 @@ public class FormularView: UIView {
   
   // MARK: Container for Content in ScrollView
   let container = UIView()
+  let scrollView = UIScrollView()
+  
   // MARK: - init
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -145,15 +147,15 @@ public class FormularView: UIView {
   }
   
   // MARK: agbAcceptLabel with Checkbox
-    lazy var agbAcceptTV : CheckboxWithText = {
-      let view = CheckboxWithText()
-      view.textView.isEditable = false
-      view.textView.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed
-      view.textView.linkTextAttributes = [.foregroundColor : TazColor.CIColor.color, .underlineColor: UIColor.clear]
-      view.textView.font = AppFonts.contentFont(size: DefaultFontSize)
-      view.textView.textColor = TazColor.HText.color
-      return view
-    }()
+  lazy var agbAcceptTV : CheckboxWithText = {
+    let view = CheckboxWithText()
+    view.textView.isEditable = false
+    view.textView.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed
+    view.textView.linkTextAttributes = [.foregroundColor : TazColor.CIColor.color, .underlineColor: UIColor.clear]
+    view.textView.font = AppFonts.contentFont(size: DefaultFontSize)
+    view.textView.textColor = TazColor.HText.color
+    return view
+  }()
   
   // MARK: textView with htmlText as Attributed Text
   static func textView(htmlText: String,
@@ -177,7 +179,7 @@ public class FormularView: UIView {
     
     return tv
   }
- 
+  
   
   // MARK: pwInput
   static func textField(prefilledText: String? = nil,
@@ -243,16 +245,38 @@ public class FormularView: UIView {
     }
   }
   
+  @objc func keyboardWillShow(_ notification: Notification) {
+    if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue {
+      let keyboardRectangle = keyboardFrame.cgRectValue
+      let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardRectangle.height, right: 0)
+      scrollView.contentInset = contentInsets
+    }
+  }
+  
+  @objc func keyboardWillHide(notification:NSNotification){
+    let contentInset:UIEdgeInsets = UIEdgeInsets.zero
+    scrollView.contentInset = contentInset
+  }
+  
   
   // MARK: addAndPin
   func addAndPin(_ views: [UIView]){
     self.subviews.forEach({ $0.removeFromSuperview() })
     
     if views.isEmpty { return }
-        
+    
     let margin : CGFloat = 12.0
     var previous : UIView?
+    
+    var tfTags : Int = 100
+    
     for v in views {
+      
+      if v is UITextField {
+        v.tag = tfTags
+        tfTags += 1
+      }
+      
       //add
       container.addSubview(v)
       //pin
@@ -268,29 +292,21 @@ public class FormularView: UIView {
     }
     NorthLib.pin(previous!.bottom, to: container.bottom, dist: -margin)
     
-    //    if true {
-    let sv = UIScrollView()
-    sv.addSubview(container)
-    NorthLib.pin(container, to: sv)
-    self.addSubview(sv)
-    //      svHC = sv.pinHeight(0)
-    //      svHC?.priority = .fittingSizeLevel
-    NorthLib.pin(sv, to: self)
-    //    }
-    //    else {// not use ScrollView
-    //      self.addSubview(container)
-    //      NorthLib.pin(container, to: self)
-    //    }
+    let notificationCenter = NotificationCenter.default
+    
+    notificationCenter.addObserver(self,
+                                   selector: #selector(keyboardWillShow),
+                                   name:UIResponder.keyboardWillShowNotification,
+                                   object: nil)
+    notificationCenter.addObserver(self,
+                                   selector: #selector(keyboardWillHide),
+                                   name:UIResponder.keyboardWillHideNotification,
+                                   object: nil)
+    scrollView.addSubview(container)
+    NorthLib.pin(container, to: scrollView)
+    self.addSubview(scrollView)
+    NorthLib.pin(scrollView, to: self)
   }
-  
-  //  var svHC : NSLayoutConstraint?
-  //
-  //  public override func layoutSubviews() {
-  //    super.layoutSubviews()
-  //    container.setNeedsLayout()
-  //    container.layoutIfNeeded()
-  //    svHC?.constant = min(UIScreen.main.bounds.height, container.frame.size.height)
-  //  }
 }
 
 public typealias tblrConstrains = (
@@ -402,7 +418,6 @@ class TazTextField : UITextField, UITextFieldDelegate{
   }
   
   func setup(){
-//    self.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 15, right: 0)
     self.addSubview(border)
     self.delegate = self
     self.border.backgroundColor = TazColor.CTArticle.color
@@ -431,7 +446,7 @@ class TazTextField : UITextField, UITextFieldDelegate{
         pin(topLabel.top, to: self.top, dist: -2)
         topLabel.font = AppFonts.contentFont(size: MiniPageNumberFontSize)
         self.topLabel.textColor = TazColor.CTArticle.color
-      
+        
       }
     }
   }
@@ -469,7 +484,65 @@ class TazTextField : UITextField, UITextFieldDelegate{
     }
   }
   
+  lazy var inputToolbar: UIToolbar = {
+    var toolbar = UIToolbar()
+    toolbar.barStyle = .default
+    toolbar.isTranslucent = true
+    toolbar.sizeToFit()
+    
+    var doneButton  = UIBarButtonItem(image: UIImage(name: "checkmark")?.withRenderingMode(.alwaysTemplate),
+                                      style: .done,
+                                      target: self,
+                                      action: #selector(textFieldToolbarDoneButtonPressed))
+    
+    var prevButton  = UIBarButtonItem(title: "❮",
+                                      style: .plain,
+                                      target: self,
+                                      action: #selector(textFieldToolbarPrevButtonPressed))
+    
+    
+    var nextButton  = UIBarButtonItem(title: "❯",
+                                      style: .plain,
+                                      target: self,
+                                      action: #selector(textFieldToolbarNextButtonPressed))
+    
+    prevButton.tintColor = AppColors.ciColor
+    nextButton.tintColor = AppColors.ciColor
+    doneButton.tintColor = AppColors.ciColor
+    
+    var flexibleSpaceButton = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+    var fixedSpaceButton = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
+    fixedSpaceButton.width = 30
+    
+    toolbar.setItems([prevButton, fixedSpaceButton, nextButton, flexibleSpaceButton, doneButton], animated: false)
+    toolbar.isUserInteractionEnabled = true
+    
+    return toolbar
+  }()
+  
+  @objc func textFieldToolbarDoneButtonPressed(sender: UIBarButtonItem) {
+    self.resignFirstResponder()
+  }
+  
+  @objc func textFieldToolbarPrevButtonPressed(sender: UIBarButtonItem) {
+    if let nextField = self.superview?.viewWithTag(self.tag - 1) as? UITextField {
+      nextField.becomeFirstResponder()
+    } else {
+      self.resignFirstResponder()
+    }
+  }
+  
+  @objc func textFieldToolbarNextButtonPressed(sender: UIBarButtonItem) {
+    if let nextField = self.superview?.viewWithTag(self.tag + 1) as? UITextField {
+      nextField.becomeFirstResponder()
+    } else {
+      self.resignFirstResponder()
+    }
+  }
+  
   @objc public func textFieldEditingDidBegin(_ textField: UITextField) {
+    textField.inputAccessoryView = inputToolbar
+    
     UIView.animate(seconds: 0.3) { [weak self] in
       self?.border.backgroundColor = TazColor.CIColor.color
       self?.topLabel.textColor = TazColor.CIColor.color
@@ -526,7 +599,7 @@ extension UIView {
 class Checkbox : UIButton {
   public override init(frame: CGRect) {
     super.init(frame: frame)
-      setup()
+    setup()
   }
   
   required init?(coder: NSCoder) {
@@ -561,33 +634,33 @@ class CustomTextView : UITextView{
   }
   
   required init(htmlText: String,
-       paddingTop: CGFloat = TextFieldPadding,
-       paddingBottom: CGFloat = TextFieldPadding,
-       font: UIFont = AppFonts.contentFont(size: DefaultFontSize),
-       textColor: UIColor = TazColor.HText.color,
-       textAlignment: NSTextAlignment = .left,
-       linkTextAttributes: [NSAttributedString.Key : Any] = [.foregroundColor : TazColor.CIColor.color,
-                                                             .underlineColor: UIColor.clear]) {
+                paddingTop: CGFloat = TextFieldPadding,
+                paddingBottom: CGFloat = TextFieldPadding,
+                font: UIFont = AppFonts.contentFont(size: DefaultFontSize),
+                textColor: UIColor = TazColor.HText.color,
+                textAlignment: NSTextAlignment = .left,
+                linkTextAttributes: [NSAttributedString.Key : Any] = [.foregroundColor : TazColor.CIColor.color,
+                                                                      .underlineColor: UIColor.clear]) {
     super.init(frame: .zero, textContainer:nil)
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
     self.backgroundColor = .clear
-
+    
     var attributedString = htmlText.mutableAttributedStringFromHtml
     let all = NSRange(location: 0, length: attributedString?.length ?? 0)
-
+    
     /// unfortunately underlines are cut-off with our custom font
     /// fix it by set .lineHeightMultiple = 1.2
     let style = NSMutableParagraphStyle()
     style.lineHeightMultiple = 1.12
     style.alignment = textAlignment
-
+    
     /// prefer setting styles of the attributedString instead of self.font due this overwrites the whole
     /// attributed string whis needs to be set first
     attributedString?.addAttribute(.paragraphStyle, value: style, range: all)
     attributedString?.addAttribute(.font, value: font, range: all)
     attributedString?.addAttribute(.foregroundColor, value: textColor, range: all)
-
+    
     self.linkTextAttributes = linkTextAttributes
     //unfortunately link font is overwritten by self font so we need to toggle this attributes
     //esspecially the combination with different link font did not work
@@ -603,7 +676,7 @@ class CustomTextView : UITextView{
     }
     
     self.attributedText = attributedString
-  
+    
     heightConstraint = self.pinHeight(10)
     heightConstraint?.priority = .defaultLow
   }
@@ -613,7 +686,7 @@ class CustomTextView : UITextView{
   }
   
   public init(){
-      super.init(frame: .zero, textContainer:nil)
+    super.init(frame: .zero, textContainer:nil)
   }
   
   override func layoutSubviews() {
@@ -638,7 +711,7 @@ class CheckboxWithText:UIView{
   
   public override init(frame: CGRect) {
     super.init(frame: frame)
-      setup()
+    setup()
   }
   
   required init?(coder: NSCoder) {
@@ -656,27 +729,39 @@ class CheckboxWithText:UIView{
     pin(textView.bottom, to: self.bottom)
     checkbox.pinSize(CGSize(width: 20, height: 20))
     pin(checkbox.centerY, to: self.centerY)
-
+    
   }
 }
 
 // MARK: - extension UIButton:setBackgroundColor
 extension UIButton {
-    func setBackgroundColor(color: UIColor, forState: UIControl.State) {
-        self.clipsToBounds = true  // support corner radius
-        UIGraphicsBeginImageContext(CGSize(width: 1, height: 1))
-        if let context = UIGraphicsGetCurrentContext() {
-            context.setFillColor(color.cgColor)
-            context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
-            let colorImage = UIGraphicsGetImageFromCurrentImageContext()
-            UIGraphicsEndImageContext()
-            self.setBackgroundImage(colorImage, for: forState)
-        }
+  func setBackgroundColor(color: UIColor, forState: UIControl.State) {
+    self.clipsToBounds = true  // support corner radius
+    UIGraphicsBeginImageContext(CGSize(width: 1, height: 1))
+    if let context = UIGraphicsGetCurrentContext() {
+      context.setFillColor(color.cgColor)
+      context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+      let colorImage = UIGraphicsGetImageFromCurrentImageContext()
+      UIGraphicsEndImageContext()
+      self.setBackgroundImage(colorImage, for: forState)
     }
+  }
 }
 
 // MARK: - extension UIImage with systemName fallback named
 extension UIImage {
+  /// Creates an image
+  /// iOS 13 and later: object containing a system symbol image referenced by given name
+  /// earlier: using the named image asset
+  ///
+  /// Example
+  /// ```
+  /// UIImage(name: "checkmark") // Creates image
+  /// ```
+  ///
+  /// - Warning: May return nil if Image for given name does not exist
+  /// - Parameter name: the image name
+  /// - Returns: UIImage related to `name`.
   convenience init?(name:String) {
     if #available(iOS 13.0, *){
       self.init(systemName: name)
@@ -690,9 +775,9 @@ extension UIImage {
 // MARK: - extension String isValidEmail
 extension String {
   func isValidEmail() -> Bool {
-      let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
-      let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
-      return emailPred.evaluate(with: self)
+    let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+    let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+    return emailPred.evaluate(with: self)
   }
 }
 
