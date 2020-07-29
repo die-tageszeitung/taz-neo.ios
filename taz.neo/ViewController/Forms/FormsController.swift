@@ -93,6 +93,7 @@ class FormsController_Result_Controller: FormsController {
 
   convenience init(message:String, backButtonTitle:String, dismissType:dismissType) {
     self.init(nibName:nil, bundle:nil)
+    self.dismissType = dismissType
     self.views =  [
          FormularView.header(),
          FormularView.label(title: message,
