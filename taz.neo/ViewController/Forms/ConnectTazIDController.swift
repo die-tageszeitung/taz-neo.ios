@@ -52,12 +52,17 @@ class ConnectTazIDController: FormsController {
     self.contentView?.views =   [
       FormularView.header(),
       FormularView.label(title:
-        Localized("fragment_login_missing_credentials_header_registration")),
+        Localized("taz_id_account_create_intro")),
       mailInput,
       passInput,
       pass2Input,
       firstnameInput,
       lastnameInput,
+      FormularView.label(title:
+        Localized("fragment_login_request_test_subscription_existing_account")),
+      FormularView.labelLikeButton(title: Localized("login_forgot_password"),
+                                   target: self,
+                                   action: #selector(handlePwForgot)),
       contentView!.agbAcceptTV,
       FormularView.button(title: Localized("login_button"),
                           target: self,
@@ -67,6 +72,15 @@ class ConnectTazIDController: FormsController {
                                  action: #selector(handleCancel)),
     ]
     super.viewDidLoad()
+  }
+  
+  // MARK: handlePwForgot Action
+  @IBAction func handlePwForgot(_ sender: UIButton) {
+    let child = PwForgottController()
+    child.idInput.text = mailInput.text?.trim
+    child.modalPresentationStyle = .overCurrentContext
+    child.modalTransitionStyle = .flipHorizontal
+    self.present(child, animated: true, completion: nil)
   }
   
   // MARK: handleLogin Action
@@ -83,7 +97,7 @@ class ConnectTazIDController: FormsController {
     let pass = passInput.text ?? ""
     let lastname = lastnameInput.text ?? ""
     let firstname = firstnameInput.text ?? ""
-       
+    
     let dfl = Defaults.singleton
     let pushToken = dfl["pushToken"]
     let installationId = dfl["installationId"] ?? App.installationId
@@ -93,7 +107,7 @@ class ConnectTazIDController: FormsController {
     SharedFeeder.shared.feeder?.subscriptionId2tazId(tazId: mail, password: pass, aboId: self.aboId, aboIdPW: aboIdPassword, surname: lastname, firstName: firstname, installationId: installationId, pushToken: pushToken, closure: { (result) in
       //Re-Enable Button if needed
       sender.isEnabled = true
-//      spinner.enabler=false
+      //      spinner.enabler=false
       switch result {
         case .success(let info):
           //ToDo #900
