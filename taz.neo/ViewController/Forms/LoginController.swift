@@ -36,8 +36,7 @@ class LoginController: FormsController {
     passForgottButton.isHidden = true
     self.contentView?.views =   [
          FormularView.header(),
-         FormularView.label(title: NSLocalizedString("login_missing_credentials_header_login",
-                                             comment: "login header")),
+         FormularView.label(title: Localized("article_read_onreadon")),
          idInput,
          passInput,
          FormularView.button(title: NSLocalizedString("login_button", comment: "login"),
@@ -97,32 +96,23 @@ class LoginController: FormsController {
   // MARK: queryAuthToken
   func queryAuthToken(_ id: String, _ pass: String){
     SharedFeeder.shared.feeder?.authenticate(account: id, password: pass, closure:{ (result) in
+      //ToDo #902
       self.loginButton?.isEnabled = true
       switch result {
-      case .success(let info):
-        print("done success \(info.bool)")
-//        switch info {
-//        case .ok:
-//          let successCtrl = PasswordResetRequestedSuccessController()
-//          successCtrl.modalPresentationStyle = .overCurrentContext
-//          successCtrl.modalTransitionStyle = .flipHorizontal
-//          self.present(successCtrl, animated: true, completion:{
-//            self.view.isHidden = true
-//          })
-//        case .invalidMail:
-//          self.contentView?.errorLabel.text
-//            = NSLocalizedString("error_invalid_email_or_abo_id",
-//                                comment: "abbrechen")
-//        case .mailError:
-//          fallthrough
-//        default:
-//          self.contentView?.errorLabel.text
-//            = NSLocalizedString("error",
-//                                comment: "error")
-//        }
-      case .failure:
-        Toast.show("ein Fehler...")
-        //        print("An error occured: \(String(describing: result.error()))")
+        case .success(let info):
+          //ToDo Persist Auth
+          print("done success \(info)")
+          self.dismiss(animated: true, completion: nil)
+        case .failure:
+          //Falsche Credentials
+          self.showPwForgottButton()
+          self.failedLoginCount += 1
+          if self.failedLoginCount < 3 {//just 2 fails
+            Toast.show(Localized("toast_login_failed_retry"))
+          }
+          else {
+            self.handlePwForgot(self.passForgottButton)
+        }
       }
     })
   }
@@ -145,10 +135,10 @@ class LoginController: FormsController {
             case .alreadyLinked:
               self.idInput.text = info.message
               self.passInput.text = ""
-              Toast.show(Localized("toast_login_with_email"))
-//              self.showResultWith(message: Localized("toast_login_with_email"),
-//                                backButtonTitle: Localized("back_to_login"),
-//                                dismissType: .leftFirst)
+//              Toast.show(Localized("toast_login_with_email"))
+              self.showResultWith(message: Localized("toast_login_with_email"),
+                                backButtonTitle: Localized("back_to_login"),
+                                dismissType: .leftFirst)
             case .unlinked: fallthrough
             case .invalid: fallthrough //tested 111&111
             case .notValidMail: fallthrough//tested
