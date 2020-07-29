@@ -59,22 +59,21 @@ class PwForgottController: FormsController {
       switch result {
       case .success(let info):
         switch info.status {
-        case .ok:
+        case .ok: fallthrough
+        case .invalidSubscriptionId: fallthrough
+        case .alreadyConnected: fallthrough
+        default:
           let successCtrl = SubscriptionResetSuccessController()
           successCtrl.modalPresentationStyle = .overCurrentContext
           successCtrl.modalTransitionStyle = .flipHorizontal
           self.present(successCtrl, animated: true, completion:{
             self.view.isHidden = true
           })
-        case .invalidSubscriptionId:
-          Toast.show(Localized("error_invalid_email_or_abo_id"))
-        default:
-          Toast.show(Localized("error"))
         }
-        //ToDo #901        
+        //ToDo #901
       case .failure:
         Toast.show(Localized("error"))
-        self.log("An error occured: \(String(describing: result.error()))")
+        self.log("An error occured in mutateSubscriptionReset: \(String(describing: result.error()))")
       }
     })
   }
@@ -100,8 +99,8 @@ class PwForgottController: FormsController {
           Toast.show(Localized("error"))
         }
       case .failure:
-        Toast.show("ein Fehler...")
-        //        print("An error occured: \(String(describing: result.error()))")
+        Toast.show(Localized("error"))
+        self.log("An error occured in mutatePasswordReset: \(String(describing: result.error()))")
       }
     })
   }
