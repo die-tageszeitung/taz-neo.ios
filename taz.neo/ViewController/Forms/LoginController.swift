@@ -12,6 +12,8 @@ import NorthLib
 /// ChildViews/Controller are pushed modaly
 class LoginController: FormsController {
   
+  var failedLoginCount : Int = 0
+  
   var idInput
     = FormularView.textField(placeholder: NSLocalizedString("login_username_hint",
                                                             comment: "E-Mail Input")
@@ -141,17 +143,25 @@ class LoginController: FormsController {
               self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: info.message,
                                                              dismissType: .current))
             case .alreadyLinked:
-              fallthrough
-            case .unlinked:
-              fallthrough
-            case .invalid://tested 111&111
-              fallthrough
-            case .notValidMail://tested
-              fallthrough
-            default:
-              Toast.show(Localized("toast_login_failed_retry"))
-              self.showPwForgottButton()
+              self.idInput.text = info.message
+              self.passInput.text = ""
+              Toast.show(Localized("toast_login_with_email"))
+//              self.showResultWith(message: Localized("toast_login_with_email"),
+//                                backButtonTitle: Localized("back_to_login"),
+//                                dismissType: .leftFirst)
+            case .unlinked: fallthrough
+            case .invalid: fallthrough //tested 111&111
+            case .notValidMail: fallthrough//tested
+            default: //Falsche Credentials
               print("Succeed with status: \(info.status) message: \(info.message ?? "-")")
+              self.showPwForgottButton()
+              self.failedLoginCount += 1
+              if self.failedLoginCount < 3 {//just 2 fails
+                Toast.show(Localized("toast_login_failed_retry"))
+              }
+              else {
+                self.handlePwForgot(self.passForgottButton)
+              }
           }
         case .failure:
           Toast.show(Localized("toast_login_failed_retry"))
