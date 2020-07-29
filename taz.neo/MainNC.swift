@@ -301,6 +301,7 @@ class MainNC: NavigationController, IssueVCdelegate,
         }
       }
       Notification.receive("userLogin_DISABLED") { [weak self] _ in
+//      Notification.receive("userLogin") { [weak self] _ in
         self?.userLogin() { [weak self] err in
           guard let self = self else { return }
           if err != nil { exit(0) }

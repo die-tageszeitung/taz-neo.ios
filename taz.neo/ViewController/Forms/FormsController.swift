@@ -121,6 +121,7 @@ class FormsController_Result_Controller: FormsController {
         stack.forEach { $0.view.isHidden = true }
         self.dismiss(animated: true) {
           stack.forEach { $0.dismiss(animated: false, completion: nil)}
+          Notification.send("ExternalUserLogin")
         }
       case .leftFirst:
         _ = stack.popLast()//removes self

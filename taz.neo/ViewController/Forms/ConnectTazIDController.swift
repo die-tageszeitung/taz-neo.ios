@@ -12,7 +12,7 @@ import NorthLib
 // MARK: - ConnectTazIDController
 /// Presents Register TazID Form and Functionallity
 /// ChildViews/Controller are pushed modaly
-class ConnectTazIDController: FormsController {
+class ConnectTazIDController : TrialSubscriptionController {
   
   var aboId:String
   var aboIdPassword:String
@@ -26,25 +26,6 @@ class ConnectTazIDController: FormsController {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
-  var mailInput
-    = FormularView.textField(placeholder: Localized("login_email_hint")
-  )
-  var passInput
-    = FormularView.textField(placeholder: Localized("login_password_hint"),
-                             textContentType: .password,
-                             isSecureTextEntry: true)
-  
-  var pass2Input
-    = FormularView.textField(placeholder: Localized("login_password_confirmation_hint"),
-                             textContentType: .password,
-                             isSecureTextEntry: true)
-  
-  var firstnameInput
-    = FormularView.textField(placeholder: Localized("login_first_name_hint"))
-  
-  var lastnameInput
-    = FormularView.textField(placeholder: Localized("login_surname_hint"))
   
   // MARK: viewDidLoad Action
   override func viewDidLoad() {
@@ -73,18 +54,9 @@ class ConnectTazIDController: FormsController {
     ]
     super.viewDidLoad()
   }
-  
-  // MARK: handlePwForgot Action
-  @IBAction func handlePwForgot(_ sender: UIButton) {
-    let child = PwForgottController()
-    child.idInput.text = mailInput.text?.trim
-    child.modalPresentationStyle = .overCurrentContext
-    child.modalTransitionStyle = .flipHorizontal
-    self.present(child, animated: true, completion: nil)
-  }
-  
+    
   // MARK: handleLogin Action
-  @IBAction func handleSend(_ sender: UIButton) {
+  @IBAction override func handleSend(_ sender: UIButton) {
     sender.isEnabled = false
     
     if let errormessage = self.validate() {
@@ -114,6 +86,7 @@ class ConnectTazIDController: FormsController {
           switch info.status {
             /// we are waiting for eMail confirmation (using push/poll)
             case .waitForMail:
+              self.registerForSubscriptionPoll(installationId: installationId)
               self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
@@ -139,13 +112,13 @@ class ConnectTazIDController: FormsController {
             case .tazIdNotValid:
               Toast.show(Localized("toast_login_failed_retry"))//ToDo
             /// AboId not verified
+            /// server will confirm later (using push/poll)
+            case .waitForProc:
+              self.registerForSubscriptionPoll(installationId: installationId)
             case .subscriptionIdNotValid:
               fallthrough
             /// AboId valid but connected to different tazId
             case .invalidConnection:
-              fallthrough
-            /// server will confirm later (using push/poll)
-            case .waitForProc:
               fallthrough
             /// user probably didn't confirm mail
             case .noPollEntry:
@@ -166,74 +139,9 @@ class ConnectTazIDController: FormsController {
               print("Succeed with status: \(info.status) message: \(info.message ?? "-")")
         }
         case .failure:
-          Toast.show("ein Fehler...")
+          Toast.show(Localized("error"))
       }
     })
-  }
-  
-  ///Validates the Form returns translated Errormessage String for Popup/Toast
-  ///Mark issue fields with hints
-  func validate() -> String?{
-    var errors = false
-    
-    mailInput.bottomMessage = ""
-    passInput.bottomMessage = ""
-    pass2Input.bottomMessage = ""
-    firstnameInput.bottomMessage = ""
-    lastnameInput.bottomMessage = ""
-    self.contentView?.agbAcceptTV.error = false
-    
-    if (mailInput.text ?? "").isEmpty {
-      errors = true
-      mailInput.bottomMessage = Localized("login_email_error_empty")
-    } else if (mailInput.text ?? "").isValidEmail() == false {
-      errors = true
-      mailInput.bottomMessage = Localized("login_email_error_no_email")
-    }
-    
-    if (passInput.text ?? "").isEmpty {
-      errors = true
-      passInput.bottomMessage = Localized("login_password_error_empty")
-    }
-    else if (passInput.text ?? "").length < 7 {
-      errors = true
-      passInput.bottomMessage = Localized("password_too_short")
-    }
-    
-    if (pass2Input.text ?? "").isEmpty {
-      errors = true
-      pass2Input.bottomMessage = Localized("login_password_error_empty")
-    }
-    else if pass2Input.text != pass2Input.text {
-      pass2Input.bottomMessage = Localized("login_password_confirmation_error_match")
-    }
-    
-    if (firstnameInput.text ?? "").isEmpty {
-      errors = true
-      firstnameInput.bottomMessage = Localized("login_first_name_error_empty")
-    }
-    
-    if (lastnameInput.text ?? "").isEmpty {
-      errors = true
-      lastnameInput.bottomMessage = Localized("login_surname_error_empty")
-    }
-    
-    if self.contentView?.agbAcceptTV.checked == false {
-      self.contentView?.agbAcceptTV.error = true
-      return Localized("register_validation_issue_agb")
-    }
-    
-    if errors {
-      return Localized("register_validation_issue")
-    }
-    
-    return nil
-  }
-  
-  
-  // MARK: handleLogin Action
-  @IBAction func handleCancel(_ sender: UIButton) {
-    self.dismiss(animated: true, completion: nil)
   }
 }
 

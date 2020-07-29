@@ -34,6 +34,7 @@ class LoginController: FormsController {
   override func viewDidLoad() {
     self.contentView = FormularView()
     passForgottButton.isHidden = true
+    idInput.text = MainNC.singleton.getUserData().id
     self.contentView?.views =   [
       FormularView.header(),
       FormularView.label(title: Localized("article_read_onreadon")),
@@ -171,16 +172,14 @@ class LoginController: FormsController {
   
   // MARK: handleRegister Action
   @IBAction func handleRegister(_ sender: UIButton) {
-    print("handle handleRegister")
+    modalFlip(TrialSubscriptionController())
   }
   
   // MARK: handlePwForgot Action
   @IBAction func handlePwForgot(_ sender: UIButton) {
     let child = PwForgottController()
     child.idInput.text = idInput.text?.trim
-    child.modalPresentationStyle = .overCurrentContext
-    child.modalTransitionStyle = .flipHorizontal
-    self.present(child, animated: true, completion: nil)
+    modalFlip(child)
   }
 }
 
