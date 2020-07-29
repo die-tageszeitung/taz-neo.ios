@@ -687,6 +687,8 @@ class CustomTextView : UITextView{
   
   public init(){
     super.init(frame: .zero, textContainer:nil)
+    heightConstraint = self.pinHeight(50)
+    heightConstraint?.priority = .defaultLow
   }
   
   override func layoutSubviews() {
