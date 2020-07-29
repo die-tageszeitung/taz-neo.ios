@@ -53,11 +53,6 @@ class ConnectTazIDController: FormsController {
       FormularView.header(),
       FormularView.label(title:
         Localized("fragment_login_missing_credentials_header_registration")),
-      FormularView.labelLikeButton(title: Localized("fragment_login_missing_credentials_switch_to_login"),
-                                   paddingTop: 0,
-                                   paddingBottom: 0,
-                                   target: self,
-                                   action: #selector(handleAlreadyHaveTazID)),
       mailInput,
       passInput,
       pass2Input,
@@ -216,17 +211,10 @@ class ConnectTazIDController: FormsController {
     return nil
   }
   
-
+  
   // MARK: handleLogin Action
   @IBAction func handleCancel(_ sender: UIButton) {
     self.dismiss(animated: true, completion: nil)
-  }
-  
-  @IBAction func handleAlreadyHaveTazID(_ sender: UIButton) {
-    let child = LoginWithTazIDController()
-    child.modalPresentationStyle = .overCurrentContext
-    child.modalTransitionStyle = .flipHorizontal
-    self.present(child, animated: true, completion: nil)
   }
 }
 
