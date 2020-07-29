@@ -111,7 +111,8 @@ class ConnectTazIDController: FormsController {
             /// valid tazId connected to different AboId
             case .alreadyLinked:
               if let loginCtrl = self.presentingViewController as? LoginController {
-                loginCtrl.idInput.text = info.message
+                loginCtrl.idInput.text = self.mailInput.text
+                loginCtrl.passInput.text = self.passInput.text
               }
               self.showResultWith(message: Localized("subscriptionId2tazId_alreadyLinked"),
                                   backButtonTitle: Localized("back_to_login"),
