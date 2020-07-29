@@ -23,10 +23,10 @@ class LoginController: FormsController {
                                                             comment: "Passwort Input"),
                              textContentType: .password,
                              isSecureTextEntry: true)
-      
+  
   var passForgottButton: UIButton
     =   FormularView.labelLikeButton(title: NSLocalizedString("login_forgot_password", comment: "registrieren"),
-                                target: self, action: #selector(handlePwForgot))
+                                     target: self, action: #selector(handlePwForgot))
   
   var loginButton: UIButton?
   
@@ -35,18 +35,18 @@ class LoginController: FormsController {
     self.contentView = FormularView()
     passForgottButton.isHidden = true
     self.contentView?.views =   [
-         FormularView.header(),
-         FormularView.label(title: Localized("article_read_onreadon")),
-         idInput,
-         passInput,
-         FormularView.button(title: NSLocalizedString("login_button", comment: "login"),
-                     target: self, action: #selector(handleLogin)),
-         FormularView.label(title: NSLocalizedString("trial_subscription_title",
-                                             comment: "14 tage probeabo text")),
-         FormularView.outlineButton(title: NSLocalizedString("register_button", comment: "registrieren"),
-                            target: self, action: #selector(handleRegister)),
-         passForgottButton
-       ]
+      FormularView.header(),
+      FormularView.label(title: Localized("article_read_onreadon")),
+      idInput,
+      passInput,
+      FormularView.button(title: NSLocalizedString("login_button", comment: "login"),
+                          target: self, action: #selector(handleLogin)),
+      FormularView.label(title: NSLocalizedString("trial_subscription_title",
+                                                  comment: "14 tage probeabo text")),
+      FormularView.outlineButton(title: NSLocalizedString("register_button", comment: "registrieren"),
+                                 target: self, action: #selector(handleRegister)),
+      passForgottButton
+    ]
     super.viewDidLoad()
   }
   
@@ -118,10 +118,10 @@ class LoginController: FormsController {
   }
   
   // MARK: queryCheckSubscriptionId
-    func queryCheckSubscriptionId(_ aboId: String, _ password: String){
-      SharedFeeder.shared.feeder?.checkSubscriptionId(aboId: aboId, password: password, closure: { (result) in
-        self.loginButton?.isEnabled = true
-        switch result {
+  func queryCheckSubscriptionId(_ aboId: String, _ password: String){
+    SharedFeeder.shared.feeder?.checkSubscriptionId(aboId: aboId, password: password, closure: { (result) in
+      self.loginButton?.isEnabled = true
+      switch result {
         case .success(let info):
           //ToDo #900
           switch info.status {
@@ -135,10 +135,10 @@ class LoginController: FormsController {
             case .alreadyLinked:
               self.idInput.text = info.message
               self.passInput.text = ""
-//              Toast.show(Localized("toast_login_with_email"))
+              //              Toast.show(Localized("toast_login_with_email"))
               self.showResultWith(message: Localized("toast_login_with_email"),
-                                backButtonTitle: Localized("back_to_login"),
-                                dismissType: .leftFirst)
+                                  backButtonTitle: Localized("back_to_login"),
+                                  dismissType: .leftFirst)
             case .unlinked: fallthrough
             case .invalid: fallthrough //tested 111&111
             case .notValidMail: fallthrough//tested
@@ -151,13 +151,13 @@ class LoginController: FormsController {
               }
               else {
                 self.handlePwForgot(self.passForgottButton)
-              }
-          }
+            }
+        }
         case .failure:
           Toast.show(Localized("toast_login_failed_retry"))
-        }
-      })
-    }
+      }
+    })
+  }
   
   // MARK: showPwForgottButton
   func showPwForgottButton(){
@@ -186,13 +186,13 @@ class LoginController: FormsController {
 
 class SubscriptionIdElapsedController: FormsController_Result_Controller {
   /**
-      Discussion TextView with Attributed String for format & handle Links/E-Mail Adresses
-        or multiple Views with individual button/click Handler
-        Pro: AttributedString Con: multiple views
-        + minimal UICreation Code => solve by using compose views...
-        - hande of link leaves the app => solve by using individual handler
-        - ugly html & data handling
-        + super simple add & exchange text
+   Discussion TextView with Attributed String for format & handle Links/E-Mail Adresses
+   or multiple Views with individual button/click Handler
+   Pro: AttributedString Con: multiple views
+   + minimal UICreation Code => solve by using compose views...
+   - hande of link leaves the app => solve by using individual handler
+   - ugly html & data handling
+   + super simple add & exchange text
    */
   private(set) var expiredDate : String = ""
   
