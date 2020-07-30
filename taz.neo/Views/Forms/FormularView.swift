@@ -485,10 +485,28 @@ class TazTextField : UITextField, UITextFieldDelegate{
   }
   
   lazy var inputToolbar: UIToolbar = {
-    var toolbar = UIToolbar()
+    /// setting toolbar width fixes the h Autolayout issue, unfortunatly not the v one no matter which height
+    var toolbar =  UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0))
     toolbar.barStyle = .default
     toolbar.isTranslucent = true
     toolbar.sizeToFit()
+    
+    /// Info: Issue with Autolayout
+    /// the solution did not solve our problem:
+    /// https://developer.apple.com/forums/thread/121474
+    /// because we use autocorection/password toolbar also
+    /// also the following options did not worked:
+    ///   UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 50))
+    ///   toolbar.setContentCompressionResistancePriority(.fittingSizeLevel, for: .vertical)
+    ///   toolbar.setContentHuggingPriority(.fittingSizeLevel, for: .vertical)
+    ///   toolbar.autoresizesSubviews = false
+    ///   toolbar.translatesAutoresizingMaskIntoConstraints = true/false
+    ///   ....
+    ///   toolbar.sizeToFit()
+    ///   toolbar.pinHeight(toolbar.frame.size.height).priority = .required
+    ///   ....
+    /// Maybe extend: CustomToolbar : UIToolbar and invoke updateConstraints/layoutSubviews
+    /// to reduce constraint priority or set frame/size
     
     var doneButton  = UIBarButtonItem(image: UIImage(name: "checkmark")?.withRenderingMode(.alwaysTemplate),
                                       style: .done,
