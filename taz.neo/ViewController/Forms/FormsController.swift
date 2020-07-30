@@ -117,15 +117,15 @@ class FormsController_Result_Controller: FormsController {
     var stack = self.modalStack
     switch dismissType {
       case .all:
-        _ = stack.popLast()//removes self
+        _ = stack.pop()//removes self
         stack.forEach { $0.view.isHidden = true }
         self.dismiss(animated: true) {
           stack.forEach { $0.dismiss(animated: false, completion: nil)}
           Notification.send("ExternalUserLogin")
         }
       case .leftFirst:
-        _ = stack.popLast()//removes self
-        _ = stack.pop()//removes first
+        _ = stack.popLast()//removes first
+        _ = stack.pop()//removes self
         stack.forEach { $0.view.isHidden = true }
         self.dismiss(animated: true) {
           stack.forEach { $0.dismiss(animated: false, completion: nil)}
@@ -165,7 +165,7 @@ extension UIViewController{
             vc = pc
           }
           else {
-            return stack.reversed()
+            return stack
           }
       }
      }
