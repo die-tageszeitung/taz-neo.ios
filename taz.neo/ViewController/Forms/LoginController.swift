@@ -96,26 +96,74 @@ class LoginController: FormsController {
   
   // MARK: queryAuthToken
   func queryAuthToken(_ id: String, _ pass: String){
-    SharedFeeder.shared.feeder?.authenticate(account: id, password: pass, closure:{ (result) in
+    SharedFeeder.shared.feeder?.authenticateWithTazId(account: id, password: pass, closure:{ [weak self] (result) in
       //ToDo #902
+      guard let self = self else { return }
       self.loginButton?.isEnabled = true
       switch result {
         case .success(let info):
           //ToDo Persist Auth
           print("done success \(info)")
           self.dismiss(animated: true, completion: nil)
-        case .failure:
-          //Falsche Credentials
-          self.showPwForgottButton()
-          self.failedLoginCount += 1
-          if self.failedLoginCount < 3 {//just 2 fails
-            Toast.show(Localized("toast_login_failed_retry"))
+        case .failure(let error):
+          guard let authStatusError = error as? AuthStatusError else {
+            //generell error e.g. no connection
+            Toast.show(Localized("something_went_wrong_try_later"))
+            return
           }
-          else {
-            self.handlePwForgot(self.passForgottButton)
+          switch authStatusError.status {
+            case .invalid:
+              //Falsche Credentials
+              self.showPwForgottButton()
+              self.failedLoginCount += 1
+              if self.failedLoginCount < 3 {//just 2 fails
+                Toast.show(Localized("toast_login_failed_retry"))
+              }
+              else {
+                self.handlePwForgot(self.passForgottButton)
+            }
+            
+            case .expired:
+              self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
+                                  backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                  dismissType: .all)
+            case .unlinked:
+              self.showAskForTrial()
+            case .notValidMail: fallthrough
+            case .unknown: fallthrough
+            case .alreadyLinked: fallthrough //Makes no sense here!
+            default:
+              self.log("Auth with tazID should not have alreadyLinked as result", logLevel: .Error)
+              Toast.show(Localized("something_went_wrong_try_later"))
         }
       }
     })
+  }
+  
+  func showAskForTrial(){
+    class AskForTrial_Controller : FormsController_Result_Controller {
+      override func viewDidLoad() {
+        self.views = [
+          FormularView.header(),
+          FormularView.label(title: Localized("ask_for_trial_subscription_title"),
+                             paddingTop: 30,
+                             paddingBottom: 30
+          ),
+          FormularView.button(title: Localized("yes_trial_subscroption"),
+                              target: self, action: #selector(handleTrial)),
+          FormularView.labelLikeButton(title: Localized("cancel_button"),
+                                       target: self, action: #selector(handleBack)),
+          
+        ]
+        super.viewDidLoad()
+      }
+      
+      // MARK: handleBack Action
+      @IBAction func handleTrial(_ sender: UIButton) {
+        modalFlip(TrialSubscriptionController())
+      }
+    }
+    modalFlip(AskForTrial_Controller())
   }
   
   // MARK: queryCheckSubscriptionId
@@ -209,9 +257,6 @@ class SubscriptionIdElapsedController: FormsController_Result_Controller {
                      linkTextAttributes: CustomTextView.boldLinks),
       FormularView.button(title: Localized("cancel_button"),
                           target: self, action: #selector(handleBack)),
-      
     ]
   }
 }
-
-

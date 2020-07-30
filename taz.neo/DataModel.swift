@@ -32,6 +32,10 @@ public enum FeederError: SimpleError {
   public var errorDescription: String? { return description }
 } // FeederError
 
+struct AuthStatusError: Swift.Error {
+    var status:  GqlAuthStatus
+}
+
 /**
  A FileStorageType defines where a file is stored.
  */

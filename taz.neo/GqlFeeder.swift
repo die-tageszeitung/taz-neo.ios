@@ -555,6 +555,53 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
   
+  /**
+   Authenticate with server.
+   
+   If the authentication was successful, the provided authentication token
+   is written to self.authToken and passed to 'closure' as Result.success.
+   If an error was encountered, the closure is called with Result.failure and
+   an Error is passed along. If this Error is of type FeederError, then
+   a GqlAuthInfo object is written to self.status.authInfo and may be interpreted
+   for further information.
+   
+   - parameters:
+     - account:  tazId or AboId
+     - password: account password
+     - closure:  is called when the communication with the server has been
+                 finished
+     - result:   Either auth token or Error
+  */
+  func authenticateWithTazId(account: String, password: String,
+    closure: @escaping(_ result: Result<String,Error>)->()) {
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected"))); return
+    }
+    let request = """
+      authToken: authentificationToken(user:"\(account)", password: "\(password)") {
+        \(GqlAuthToken.fields)
+      }
+    """
+    gqlSession.query(graphql: request, type: [String:GqlAuthToken].self) { [weak self] (res) in
+      var ret: Result<String,Error>
+      switch res {
+        case .success(let auth):
+          let atoken = auth["authToken"]!
+          self?.status?.authInfo = atoken.authInfo
+          switch atoken.authInfo.status {
+            case .expired, .unlinked, .invalid, .alreadyLinked, .notValidMail, .unknown:
+              ret = .failure(AuthStatusError(status: atoken.authInfo.status))
+            case .valid:
+              self?.authToken = atoken.token!
+              ret = .success(atoken.token!)
+        }
+        case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+  
+  
   /// Return device info as specifi server
   public func deviceInfo() -> (type: String, format: String) {
     var deviceFormat: String
