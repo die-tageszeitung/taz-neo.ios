@@ -108,7 +108,7 @@ class ConnectTazIDController : TrialSubscriptionController {
                                   dismissType: .all)
             /// valid authentication
             case .valid:
-              self.showResultWith(message: Localized("ask_for_trial_subscription_title"),
+              self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
             /// valid tazId connected to different AboId
