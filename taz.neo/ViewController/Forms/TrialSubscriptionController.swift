@@ -6,16 +6,6 @@
 // Copyright © 2020 Ringo Müller-Gromes for "taz" digital newspaper. All rights reserved.
 // 
 
-import Foundation
-
-//
-//
-// ConnectTazIDController.swift
-//
-// Created by Ringo Müller-Gromes on 23.07.20.
-// Copyright © 2020 Ringo Müller-Gromes for "taz" digital newspaper. All rights reserved.
-//
-
 import UIKit
 import NorthLib
 
@@ -33,9 +23,7 @@ class TrialSubscriptionController : FormsController {
                              isSecureTextEntry: true)
   
   var pass2Input
-    = FormularView.textField(placeholder: Localized("login_password_confirmation_hint"),
-                             textContentType: .password,
-                             isSecureTextEntry: true)
+    =  TazTextField()
   
   var firstnameInput
     = FormularView.textField(placeholder: Localized("login_first_name_hint"))
@@ -81,7 +69,8 @@ class TrialSubscriptionController : FormsController {
     lastnameInput.keyboardType = .namePhonePad
     lastnameInput.textContentType = .familyName
     lastnameInput.autocapitalizationType = .words
-    
+    pass2Input.textContentType = .password
+    pass2Input.isSecureTextEntry = true
 //    passInput.textContentType = .password
 //    pass2Input.textContentType = .password
 //    

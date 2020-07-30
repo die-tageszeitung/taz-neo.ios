@@ -399,6 +399,21 @@ extension UIView {
   }
 }
 
+public extension UITextField
+{
+    // ⚠️ Prefer english keyboards
+    //
+    override var textInputMode: UITextInputMode?
+    {
+        let locale = Locale.current // your preferred locale
+
+        return
+            UITextInputMode.activeInputModes.first(where: { $0.primaryLanguage == locale.languageCode })
+            ??
+            super.textInputMode
+    }
+}
+
 // MARK: - TazTextField
 class TazTextField : UITextField, UITextFieldDelegate{
   static let recomendedHeight:CGFloat = 56.0
@@ -434,6 +449,7 @@ class TazTextField : UITextField, UITextFieldDelegate{
   }
   
   func setup(){
+    print("Current Lang is:\(Locale.current.languageCode ?? "-")")
     self.addSubview(border)
     self.delegate = self
     self.border.backgroundColor = TazColor.CTArticle.color
