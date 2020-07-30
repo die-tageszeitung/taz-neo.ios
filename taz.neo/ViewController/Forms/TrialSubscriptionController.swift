@@ -67,6 +67,21 @@ class TrialSubscriptionController : FormsController {
                                  target: self,
                                  action: #selector(handleCancel)),
     ]
+    mailInput.textContentType = .emailAddress
+    mailInput.autocapitalizationType = .none
+    mailInput.keyboardType = .emailAddress
+    
+    firstnameInput.keyboardType = .namePhonePad
+    firstnameInput.textContentType = .givenName
+    firstnameInput.autocapitalizationType = .words
+    
+    lastnameInput.keyboardType = .namePhonePad
+    lastnameInput.textContentType = .familyName
+    lastnameInput.autocapitalizationType = .words
+    
+    passInput.textContentType = .password
+    pass2Input.textContentType = .password
+    
     super.viewDidLoad()
   }
   

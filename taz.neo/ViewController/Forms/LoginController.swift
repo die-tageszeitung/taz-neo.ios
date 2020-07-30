@@ -48,6 +48,9 @@ class LoginController: FormsController {
                                  target: self, action: #selector(handleRegister)),
       passForgottButton
     ]
+    idInput.autocapitalizationType = .none
+    idInput.textContentType = .emailAddress
+    
     super.viewDidLoad()
   }
   

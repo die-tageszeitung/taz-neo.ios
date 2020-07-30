@@ -33,6 +33,10 @@ class PwForgottController: FormsController {
                                                             comment: "abbrechen"),
                                    target: self, action: #selector(handleCancel)),
     ]
+    
+    idInput.autocapitalizationType = .none
+    idInput.textContentType = .emailAddress
+    
     super.viewDidLoad()
   }
   
