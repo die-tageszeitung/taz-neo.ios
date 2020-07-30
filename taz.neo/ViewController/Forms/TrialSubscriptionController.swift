@@ -287,9 +287,11 @@ class TrialSubscriptionController : FormsController {
   }
   
   func subscriptionPollSucceed(){
-    self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
-                        backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                        dismissType: .all)
+    onMain {
+      self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
+                          backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                          dismissType: .all)
+    }
   }
 }
 
