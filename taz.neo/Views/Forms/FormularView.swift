@@ -551,11 +551,20 @@ class TazTextField : UITextField, UITextFieldDelegate{
   }
   
   @objc func textFieldToolbarNextButtonPressed(sender: UIBarButtonItem) {
+    nextOrEndEdit()
+  }
+  
+  func nextOrEndEdit(){
     if let nextField = self.superview?.viewWithTag(self.tag + 1) as? UITextField {
       nextField.becomeFirstResponder()
     } else {
       self.resignFirstResponder()
     }
+  }
+  
+  @objc func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+     nextOrEndEdit()
+     return true
   }
   
   @objc public func textFieldEditingDidBegin(_ textField: UITextField) {
