@@ -38,6 +38,7 @@ class PwForgottController: FormsController {
     super.viewDidLoad()
     idInput.autocapitalizationType = .none
     idInput.textContentType = .emailAddress
+    idInput.keyboardType = .emailAddress
   }
   
   // MARK: handleCancel

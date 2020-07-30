@@ -54,6 +54,10 @@ class LoginController: FormsController {
     
     idInput.autocapitalizationType = .none
     idInput.textContentType = .emailAddress
+    idInput.keyboardType = .emailAddress
+    
+    passInput.textContentType = .password
+    passInput.keyboardType = .asciiCapable
   }
   
   // MARK: handleLogin Action
