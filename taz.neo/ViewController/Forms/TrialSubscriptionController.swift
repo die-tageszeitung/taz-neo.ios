@@ -82,8 +82,11 @@ class TrialSubscriptionController : FormsController {
     lastnameInput.textContentType = .familyName
     lastnameInput.autocapitalizationType = .words
     
-    passInput.textContentType = .password
-    pass2Input.textContentType = .password
+//    passInput.textContentType = .password
+//    pass2Input.textContentType = .password
+//    
+//    passInput.keyboardType = .asciiCapable
+//    pass2Input.keyboardType = .asciiCapable
   }
   
   // MARK: handlePwForgot Action

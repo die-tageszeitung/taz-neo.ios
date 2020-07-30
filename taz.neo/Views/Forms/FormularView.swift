@@ -407,6 +407,22 @@ class TazTextField : UITextField, UITextFieldDelegate{
   let bottomLabel = UILabel()
   private var borderHeightConstraint: NSLayoutConstraint?
   
+  /// prefer German Keyboard if possible
+  /// for unknown Reason in Login the keyboard Lang is DE in TrialSubscription its EN
+  /// so if your password contains z or y and user did not take care user cannot login
+  /// tried to set all same keyboard type, textcontentType ...did not work
+  /// removed     passInput.textContentType = .password worked
+  /// this did not work: https://stackoverflow.com/a/61502284
+//  override var textInputMode: UITextInputMode?
+//  {
+//      let locale = Locale(identifier: "de-DE")
+//
+//      return
+//          UITextInputMode.activeInputModes.first(where: { $0.primaryLanguage == locale.languageCode })
+//          ??
+//          super.textInputMode
+//  }
+  
   public override init(frame: CGRect){
     super.init(frame: frame)
     setup()
