@@ -181,52 +181,6 @@ public class FormularView: UIView {
   }
   
   
-  // MARK: pwInput
-  static func textField(prefilledText: String? = nil,
-                        placeholder: String? = nil,
-                        textContentType: UITextContentType? = nil,
-                        color: UIColor = TazColor.CIColor.color,
-                        textColor: UIColor = TazColor.CIColor.color,
-                        height: CGFloat = TazTextField.recomendedHeight,
-                        paddingTop: CGFloat = TextFieldPadding,
-                        paddingBottom: CGFloat = TextFieldPadding,
-                        isSecureTextEntry: Bool = false,
-                        target: Any? = nil,
-                        action: Selector? = nil) -> TazTextField {
-    let tf = TazTextField()
-    tf.pinHeight(height)
-    tf.paddingTop = paddingTop
-    tf.paddingBottom = paddingBottom
-    tf.placeholder = placeholder
-    //tf.borderStyle = .line //Border Bottom Alternative
-    //    tf.addBorder(.gray, 1.0, only:UIRectEdge.bottom)
-    tf.textContentType = .password
-    tf.isSecureTextEntry = isSecureTextEntry
-    
-    if isSecureTextEntry {
-      let imgEye = UIImage(name: "eye.fill")
-      let imgEyeSlash = UIImage(name: "eye.slash.fill")
-      let eye = UIImageView(image: imgEyeSlash)
-      eye.tintColor = TazColor.CTArticle.color
-      eye.onTapping(closure: { _ in
-        tf.isSecureTextEntry = !tf.isSecureTextEntry
-        eye.image = tf.isSecureTextEntry ? imgEyeSlash : imgEye
-      })
-      tf.rightView = eye
-      tf.rightViewMode = .always
-    }
-    return tf
-  }
-  
-  lazy var pwInput : TazTextField = {
-    return Self.textField(placeholder: NSLocalizedString("login_password_hint",
-                                                         comment: "Passwort Input"),
-                          textContentType: .password,
-                          isSecureTextEntry: true
-    )
-  }()
-  
-  
   
   private func runPerformanceTest(){
     /* ************************
@@ -399,20 +353,6 @@ extension UIView {
   }
 }
 
-public extension UITextField
-{
-    // ⚠️ Prefer english keyboards
-    //
-    override var textInputMode: UITextInputMode?
-    {
-        let locale = Locale.current // your preferred locale
-
-        return
-            UITextInputMode.activeInputModes.first(where: { $0.primaryLanguage == locale.languageCode })
-            ??
-            super.textInputMode
-    }
-}
 
 // MARK: - TazTextField
 class TazTextField : UITextField, UITextFieldDelegate{
@@ -422,21 +362,50 @@ class TazTextField : UITextField, UITextFieldDelegate{
   let bottomLabel = UILabel()
   private var borderHeightConstraint: NSLayoutConstraint?
   
-  /// prefer German Keyboard if possible
-  /// for unknown Reason in Login the keyboard Lang is DE in TrialSubscription its EN
-  /// so if your password contains z or y and user did not take care user cannot login
-  /// tried to set all same keyboard type, textcontentType ...did not work
-  /// removed     passInput.textContentType = .password worked
-  /// this did not work: https://stackoverflow.com/a/61502284
-//  override var textInputMode: UITextInputMode?
-//  {
-//      let locale = Locale(identifier: "de-DE")
-//
-//      return
-//          UITextInputMode.activeInputModes.first(where: { $0.primaryLanguage == locale.languageCode })
-//          ??
-//          super.textInputMode
-//  }
+  
+  // MARK: pwInput
+  required init(prefilledText: String? = nil,
+                placeholder: String? = nil,
+                color: UIColor = TazColor.CIColor.color,
+                textColor: UIColor = TazColor.CIColor.color,
+                height: CGFloat = TazTextField.recomendedHeight,
+                paddingTop: CGFloat = TextFieldPadding,
+                paddingBottom: CGFloat = TextFieldPadding,
+                textContentType: UITextContentType? = .givenName,
+                isSecureTextEntry: Bool = false,
+                enablesReturnKeyAutomatically: Bool = false,
+                keyboardType: UIKeyboardType = .default,
+                autocapitalizationType: UITextAutocapitalizationType = .words,
+                target: Any? = nil,
+                action: Selector? = nil) {
+    super.init(frame:.zero)
+    pinHeight(height)
+    self.paddingTop = paddingTop
+    self.paddingBottom = paddingBottom
+    self.placeholder = placeholder
+    //tf.borderStyle = .line //Border Bottom Alternative
+    //    tf.addBorder(.gray, 1.0, only:UIRectEdge.bottom)
+    self.keyboardType = keyboardType
+    self.textContentType = .givenName
+    self.autocapitalizationType = .words
+    self.enablesReturnKeyAutomatically = enablesReturnKeyAutomatically
+    self.isSecureTextEntry = isSecureTextEntry
+    if isSecureTextEntry {
+      let imgEye = UIImage(name: "eye.fill")
+      let imgEyeSlash = UIImage(name: "eye.slash.fill")
+      let eye = UIImageView(image: imgEyeSlash)
+      eye.tintColor = TazColor.CTArticle.color
+      eye.onTapping(closure: { _ in
+        self.isSecureTextEntry = !self.isSecureTextEntry
+        eye.image = self.isSecureTextEntry ? imgEyeSlash : imgEye
+      })
+      self.rightView = eye
+      self.rightViewMode = .always
+    }
+    setup()
+  }
+  
+  
   
   public override init(frame: CGRect){
     super.init(frame: frame)
@@ -449,7 +418,6 @@ class TazTextField : UITextField, UITextFieldDelegate{
   }
   
   func setup(){
-    print("Current Lang is:\(Locale.current.languageCode ?? "-")")
     self.addSubview(border)
     self.delegate = self
     self.border.backgroundColor = TazColor.CTArticle.color

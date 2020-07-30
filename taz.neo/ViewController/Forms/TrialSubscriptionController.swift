@@ -15,21 +15,40 @@ import NorthLib
 class TrialSubscriptionController : FormsController {
   
   var mailInput
-    = FormularView.textField(placeholder: Localized("login_email_hint")
+    = TazTextField(placeholder: Localized("login_email_hint"),
+                   textContentType: .emailAddress,
+                   enablesReturnKeyAutomatically: true,
+                   keyboardType: .emailAddress,
+                   autocapitalizationType: .none
   )
+  
   var passInput
-    = FormularView.textField(placeholder: Localized("login_password_hint"),
-                             textContentType: .password,
-                             isSecureTextEntry: true)
+    = TazTextField(placeholder: Localized("login_password_hint"),
+                   textContentType: .password,
+                   isSecureTextEntry: true,
+                   enablesReturnKeyAutomatically: true)
   
   var pass2Input
-    =  TazTextField()
+    = TazTextField(placeholder: Localized("login_password_hint"),
+                   textContentType: .password,
+                   isSecureTextEntry: true,
+                   enablesReturnKeyAutomatically: true)
   
   var firstnameInput
-    = FormularView.textField(placeholder: Localized("login_first_name_hint"))
+    = TazTextField(placeholder: Localized("login_first_name_hint"),
+                   textContentType: .givenName,
+                   enablesReturnKeyAutomatically: true,
+                   keyboardType: .namePhonePad,
+                   autocapitalizationType: .words
+  )
   
   var lastnameInput
-    = FormularView.textField(placeholder: Localized("login_surname_hint"))
+    = TazTextField(placeholder: Localized("login_surname_hint"),
+                   textContentType: .familyName,
+                   enablesReturnKeyAutomatically: true,
+                   keyboardType: .namePhonePad,
+                   autocapitalizationType: .words
+  )
   
   override func getContentViews() -> [UIView] {
     return  [
@@ -53,29 +72,6 @@ class TrialSubscriptionController : FormsController {
                                  target: self,
                                  action: #selector(handleCancel)),
     ]
-  }
-  
-  // MARK: viewDidLoad Action
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    mailInput.textContentType = .emailAddress
-    mailInput.autocapitalizationType = .none
-    mailInput.keyboardType = .emailAddress
-    
-    firstnameInput.keyboardType = .namePhonePad
-    firstnameInput.textContentType = .givenName
-    firstnameInput.autocapitalizationType = .words
-    
-    lastnameInput.keyboardType = .namePhonePad
-    lastnameInput.textContentType = .familyName
-    lastnameInput.autocapitalizationType = .words
-    pass2Input.textContentType = .password
-    pass2Input.isSecureTextEntry = true
-//    passInput.textContentType = .password
-//    pass2Input.textContentType = .password
-//    
-//    passInput.keyboardType = .asciiCapable
-//    pass2Input.keyboardType = .asciiCapable
   }
   
   // MARK: handlePwForgot Action

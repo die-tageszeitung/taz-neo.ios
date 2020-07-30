@@ -15,17 +15,21 @@ class LoginController: FormsController {
   var failedLoginCount : Int = 0
   
   var idInput
-    = FormularView.textField(placeholder: NSLocalizedString("login_username_hint",
-                                                            comment: "E-Mail Input")
+    = TazTextField(placeholder: Localized("login_username_hint"),
+                   textContentType: .emailAddress,
+                   enablesReturnKeyAutomatically: true,
+                   keyboardType: .emailAddress,
+                   autocapitalizationType: .none
   )
+  
   var passInput
-    = FormularView.textField(placeholder: NSLocalizedString("login_password_hint",
-                                                            comment: "Passwort Input"),
-                             textContentType: .password,
-                             isSecureTextEntry: true)
+    = TazTextField(placeholder: Localized("login_password_hint"),
+                   textContentType: .password,
+                   isSecureTextEntry: true,
+                   enablesReturnKeyAutomatically: true)
   
   var passForgottButton: UIButton
-    =   FormularView.labelLikeButton(title: NSLocalizedString("login_forgot_password", comment: "registrieren"),
+    =   FormularView.labelLikeButton(title: Localized("login_forgot_password"),
                                      target: self, action: #selector(handlePwForgot))
   
   var loginButton: UIButton?
@@ -36,11 +40,10 @@ class LoginController: FormsController {
       FormularView.label(title: Localized("article_read_onreadon")),
       idInput,
       passInput,
-      FormularView.button(title: NSLocalizedString("login_button", comment: "login"),
+      FormularView.button(title: Localized("login_button"),
                           target: self, action: #selector(handleLogin)),
-      FormularView.label(title: NSLocalizedString("ask_for_trial_subscription_title",
-                                                  comment: "14 tage probeabo text")),
-      FormularView.outlineButton(title: NSLocalizedString("register_button", comment: "registrieren"),
+      FormularView.label(title: Localized("ask_for_trial_subscription_title")),
+      FormularView.outlineButton(title: Localized("register_button"),
                                  target: self, action: #selector(handleRegister)),
       passForgottButton
     ]
@@ -51,13 +54,6 @@ class LoginController: FormsController {
     super.viewDidLoad()
     passForgottButton.isHidden = true
     idInput.text = MainNC.singleton.getUserData().id
-    
-    idInput.autocapitalizationType = .none
-    idInput.textContentType = .emailAddress
-    idInput.keyboardType = .emailAddress
-    
-    passInput.textContentType = .password
-    passInput.keyboardType = .asciiCapable
   }
   
   // MARK: handleLogin Action

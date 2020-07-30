@@ -16,20 +16,16 @@ import NorthLib
 class PwForgottController: FormsController {
   
   var idInput: UITextField
-    = FormularView.textField(placeholder: NSLocalizedString("login_username_hint",
-                                                            comment: "E-Mail Input"))
+    = TazTextField(placeholder: Localized("login_username_hint"))
   
   override func getContentViews() -> [UIView] {
     return  [
       FormularView.header(),
-      FormularView.label(title: NSLocalizedString("login_forgot_password_header",
-                                                  comment: "passwort vergessen header")),
+      FormularView.label(title: Localized("login_forgot_password_header")),
       idInput,
-      FormularView.button(title: NSLocalizedString("login_forgot_password_send",
-                                                   comment: "login"),
+      FormularView.button(title: Localized("login_forgot_password_send"),
                           target: self, action: #selector(handleSend)),
-      FormularView.labelLikeButton(title: NSLocalizedString("cancel_button",
-                                                            comment: "abbrechen"),
+      FormularView.labelLikeButton(title: Localized("cancel_button"),
                                    target: self, action: #selector(handleCancel)),
     ]
   }
@@ -116,23 +112,17 @@ class SubscriptionResetSuccessController: FormsController, MFMailComposeViewCont
   override func getContentViews() -> [UIView] {
     return   [
       FormularView.header(),
-      FormularView.label(title: NSLocalizedString("login_forgot_password_email_sent_header",
-                                                  comment: "mail to reset send")
+      FormularView.label(title: Localized("login_forgot_password_email_sent_header")
       ),
-      FormularView.label(title: NSLocalizedString("subscription_reset_found_link",
-                                                  comment: "login found link")
+      FormularView.label(title: Localized("subscription_reset_found_link")
       ),
-      FormularView.button(title: NSLocalizedString("login_forgot_password_email_sent_back",
-                                                   comment: "zurück"),
+      FormularView.button(title: Localized("login_forgot_password_email_sent_back"),
                           target: self, action: #selector(handleBack)),
-      FormularView.label(title: NSLocalizedString("login_subscription_taken_body",
-                                                  comment: "contact service")
+      FormularView.label(title: Localized("login_subscription_taken_body")
       ),
-      FormularView.labelLikeButton(title: NSLocalizedString("digiabo_email",
-                                                            comment: "digitalabo@taz.de"),
+      FormularView.labelLikeButton(title: Localized("digiabo_email"),
                                    target: self, action: #selector(handleMail)),
-      FormularView.outlineButton(title: NSLocalizedString("cancel_button",
-                                                          comment: "abbrechen"),
+      FormularView.outlineButton(title: Localized("cancel_button"),
                                  target: self, action: #selector(handleBack))
     ]
   }
@@ -152,12 +142,9 @@ class SubscriptionResetSuccessController: FormsController, MFMailComposeViewCont
     composeVC.mailComposeDelegate = self
     
     // Configure the fields of the interface.
-    composeVC.setToRecipients([NSLocalizedString("digiabo_email",
-                                                 comment: "digitalabo@taz.de")])
-    composeVC.setSubject(NSLocalizedString("digiabo_access_request_subject",
-                                           comment: "Mail Subject"))
-    composeVC.setMessageBody(NSLocalizedString("digiabo_access_request_message",
-                                               comment: "Mail Content"),
+    composeVC.setToRecipients([Localized("digiabo_email")])
+    composeVC.setSubject(Localized("digiabo_access_request_subject"))
+    composeVC.setMessageBody(Localized("digiabo_access_request_message"),
                              isHTML: false)
     // Present the view controller modally.
     self.present(composeVC, animated: true, completion: nil)
@@ -174,13 +161,11 @@ class PasswordResetRequestedSuccessController: FormsController {
   override func getContentViews() -> [UIView] {
     return  [
       FormularView.header(),
-      FormularView.label(title: NSLocalizedString("login_forgot_password_email_sent_header",
-                                                  comment: "mail to reset send"),
+      FormularView.label(title: Localized("login_forgot_password_email_sent_header"),
                          paddingTop: 30,
                          paddingBottom: 30
       ),
-      FormularView.button(title: NSLocalizedString("login_forgot_password_email_sent_back",
-                                                   comment: "zurück"),
+      FormularView.button(title: Localized("login_forgot_password_email_sent_back"),
                           target: self, action: #selector(handleBack)),
       
     ]
