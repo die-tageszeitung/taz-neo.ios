@@ -18,10 +18,9 @@ class PwForgottController: FormsController {
   var idInput: UITextField
     = FormularView.textField(placeholder: NSLocalizedString("login_username_hint",
                                                             comment: "E-Mail Input"))
-  // MARK: viewDidLoad
-  override func viewDidLoad() {
-    self.contentView = FormularView()
-    self.contentView?.views =  [
+  
+  override func getContentViews() -> [UIView] {
+    return  [
       FormularView.header(),
       FormularView.label(title: NSLocalizedString("login_forgot_password_header",
                                                   comment: "passwort vergessen header")),
@@ -33,11 +32,12 @@ class PwForgottController: FormsController {
                                                             comment: "abbrechen"),
                                    target: self, action: #selector(handleCancel)),
     ]
-    
+  }
+  // MARK: viewDidLoad
+  override func viewDidLoad() {
+    super.viewDidLoad()
     idInput.autocapitalizationType = .none
     idInput.textContentType = .emailAddress
-    
-    super.viewDidLoad()
   }
   
   // MARK: handleCancel
@@ -61,23 +61,23 @@ class PwForgottController: FormsController {
   func mutateSubscriptionReset(_ id: String){
     SharedFeeder.shared.feeder?.subscriptionReset(aboId: id, closure: { (result) in
       switch result {
-      case .success(let info):
-        switch info.status {
-        case .ok: fallthrough
-        case .invalidSubscriptionId: fallthrough
-        case .alreadyConnected: fallthrough
-        default:
-          let successCtrl = SubscriptionResetSuccessController()
-          successCtrl.modalPresentationStyle = .overCurrentContext
-          successCtrl.modalTransitionStyle = .flipHorizontal
-          self.present(successCtrl, animated: true, completion:{
-            self.view.isHidden = true
-          })
+        case .success(let info):
+          switch info.status {
+            case .ok: fallthrough
+            case .invalidSubscriptionId: fallthrough
+            case .alreadyConnected: fallthrough
+            default:
+              let successCtrl = SubscriptionResetSuccessController()
+              successCtrl.modalPresentationStyle = .overCurrentContext
+              successCtrl.modalTransitionStyle = .flipHorizontal
+              self.present(successCtrl, animated: true, completion:{
+                self.view.isHidden = true
+              })
         }
         //ToDo #901
-      case .failure:
-        Toast.show(Localized("error"))
-        self.log("An error occured in mutateSubscriptionReset: \(String(describing: result.error()))")
+        case .failure:
+          Toast.show(Localized("error"))
+          self.log("An error occured in mutateSubscriptionReset: \(String(describing: result.error()))")
       }
     })
   }
@@ -86,25 +86,25 @@ class PwForgottController: FormsController {
   func mutatePasswordReset(_ id: String){
     SharedFeeder.shared.feeder?.passwordReset(email: id, closure: { (result) in
       switch result {
-      case .success(let info):
-        switch info {
-        case .ok:
-          let successCtrl = PasswordResetRequestedSuccessController()
-          successCtrl.modalPresentationStyle = .overCurrentContext
-          successCtrl.modalTransitionStyle = .flipHorizontal
-          self.present(successCtrl, animated: true, completion:{
-            self.view.isHidden = true
-          })
-        case .invalidMail:
-          Toast.show(Localized("error_invalid_email_or_abo_id"))
-        case .mailError:
-          fallthrough
-        default:
-          Toast.show(Localized("error"))
+        case .success(let info):
+          switch info {
+            case .ok:
+              let successCtrl = PasswordResetRequestedSuccessController()
+              successCtrl.modalPresentationStyle = .overCurrentContext
+              successCtrl.modalTransitionStyle = .flipHorizontal
+              self.present(successCtrl, animated: true, completion:{
+                self.view.isHidden = true
+              })
+            case .invalidMail:
+              Toast.show(Localized("error_invalid_email_or_abo_id"))
+            case .mailError:
+              fallthrough
+            default:
+              Toast.show(Localized("error"))
         }
-      case .failure:
-        Toast.show(Localized("error"))
-        self.log("An error occured in mutatePasswordReset: \(String(describing: result.error()))")
+        case .failure:
+          Toast.show(Localized("error"))
+          self.log("An error occured in mutatePasswordReset: \(String(describing: result.error()))")
       }
     })
   }
@@ -112,9 +112,8 @@ class PwForgottController: FormsController {
 
 // MARK: - SubscriptionResetSuccessController
 class SubscriptionResetSuccessController: FormsController, MFMailComposeViewControllerDelegate {
-  override func viewDidLoad() {
-    self.contentView = FormularView()
-    self.contentView?.views =  [
+  override func getContentViews() -> [UIView] {
+    return   [
       FormularView.header(),
       FormularView.label(title: NSLocalizedString("login_forgot_password_email_sent_header",
                                                   comment: "mail to reset send")
@@ -135,7 +134,6 @@ class SubscriptionResetSuccessController: FormsController, MFMailComposeViewCont
                                                           comment: "abbrechen"),
                                  target: self, action: #selector(handleBack))
     ]
-    super.viewDidLoad()
   }
   
   // MARK: handleBack Action
@@ -172,9 +170,8 @@ class SubscriptionResetSuccessController: FormsController, MFMailComposeViewCont
 
 // MARK: - PasswordResetRequestedSuccessController
 class PasswordResetRequestedSuccessController: FormsController {
-  override func viewDidLoad() {
-    self.contentView = FormularView()
-    self.contentView?.views =  [
+  override func getContentViews() -> [UIView] {
+    return  [
       FormularView.header(),
       FormularView.label(title: NSLocalizedString("login_forgot_password_email_sent_header",
                                                   comment: "mail to reset send"),
@@ -186,7 +183,6 @@ class PasswordResetRequestedSuccessController: FormsController {
                           target: self, action: #selector(handleBack)),
       
     ]
-    super.viewDidLoad()
   }
   
   // MARK: handleBack Action

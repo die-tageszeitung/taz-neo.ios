@@ -563,8 +563,8 @@ class TazTextField : UITextField, UITextFieldDelegate{
   }
   
   @objc func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-     nextOrEndEdit()
-     return true
+    nextOrEndEdit()
+    return true
   }
   
   @objc public func textFieldEditingDidBegin(_ textField: UITextField) {

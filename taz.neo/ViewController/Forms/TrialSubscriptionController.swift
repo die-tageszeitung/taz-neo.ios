@@ -43,10 +43,8 @@ class TrialSubscriptionController : FormsController {
   var lastnameInput
     = FormularView.textField(placeholder: Localized("login_surname_hint"))
   
-  // MARK: viewDidLoad Action
-  override func viewDidLoad() {
-    self.contentView = FormularView()
-    self.contentView?.views =   [
+  override func getContentViews() -> [UIView] {
+    return  [
       FormularView.header(),
       FormularView.label(title: Localized("trial_subscription_title")),
       mailInput,
@@ -56,10 +54,10 @@ class TrialSubscriptionController : FormsController {
       lastnameInput,
       FormularView.label(title:
         Localized("fragment_login_request_test_subscription_existing_account")),
-//      FormularView.labelLikeButton(title: Localized("login_forgot_password"),
-//                                   target: self,
-//                                   action: #selector(handlePwForgot)),
-      contentView!.agbAcceptTV,
+      //      FormularView.labelLikeButton(title: Localized("login_forgot_password"),
+      //                                   target: self,
+      //                                   action: #selector(handlePwForgot)),
+      contentView.agbAcceptTV,
       FormularView.button(title: Localized("register_button"),
                           target: self,
                           action: #selector(handleSend)),
@@ -67,6 +65,11 @@ class TrialSubscriptionController : FormsController {
                                  target: self,
                                  action: #selector(handleCancel)),
     ]
+  }
+  
+  // MARK: viewDidLoad Action
+  override func viewDidLoad() {
+    super.viewDidLoad()
     mailInput.textContentType = .emailAddress
     mailInput.autocapitalizationType = .none
     mailInput.keyboardType = .emailAddress
@@ -81,8 +84,6 @@ class TrialSubscriptionController : FormsController {
     
     passInput.textContentType = .password
     pass2Input.textContentType = .password
-    
-    super.viewDidLoad()
   }
   
   // MARK: handlePwForgot Action
@@ -194,7 +195,7 @@ class TrialSubscriptionController : FormsController {
     pass2Input.bottomMessage = ""
     firstnameInput.bottomMessage = ""
     lastnameInput.bottomMessage = ""
-    self.contentView?.agbAcceptTV.error = false
+    self.contentView.agbAcceptTV.error = false
     
     if (mailInput.text ?? "").isEmpty {
       errors = true
@@ -231,8 +232,8 @@ class TrialSubscriptionController : FormsController {
       lastnameInput.bottomMessage = Localized("login_surname_error_empty")
     }
     
-    if self.contentView?.agbAcceptTV.checked == false {
-      self.contentView?.agbAcceptTV.error = true
+    if self.contentView.agbAcceptTV.checked == false {
+      self.contentView.agbAcceptTV.error = true
       return Localized("register_validation_issue_agb")
     }
     
@@ -251,8 +252,8 @@ class TrialSubscriptionController : FormsController {
   func registerForSubscriptionPoll(installationId:String) {
     /// 2 ways: timeout, incomming "silent" push notification
     DispatchQueue.global().asyncAfter(deadline: .now() + 5) {
-        self.querrySubscriptionPoll(installationId: installationId)
-      }
+      self.querrySubscriptionPoll(installationId: installationId)
+    }
     
     let pn = PushNotification()
     pn.onReceive { (pn,payload) in
@@ -260,27 +261,27 @@ class TrialSubscriptionController : FormsController {
       self.querrySubscriptionPoll(installationId: installationId)
     }
   }
-    
+  
   func querrySubscriptionPoll(installationId:String) {
     SharedFeeder.shared.feeder?.subscriptionPoll(installationId: installationId, closure: { (result) in
       switch result{
         case .success(let info):
-           self.log("subscriptionPoll succeed with status: \(info.status) message: \(info.message ?? "-")")
+          self.log("subscriptionPoll succeed with status: \(info.status) message: \(info.message ?? "-")")
           switch info.status {
             case .valid:
-               self.subscriptionPollSucceed()
+              self.subscriptionPollSucceed()
             case .waitForProc: fallthrough
             case .waitForMail: fallthrough
             default:
               DispatchQueue.global().asyncAfter(deadline: .now() + 5) {
                 self.querrySubscriptionPoll(installationId: installationId)
-              }
-          }
+            }
+        }
         case .failure(let err):
           self.log("subscriptionPoll failed with error: \(err)")
           DispatchQueue.global().asyncAfter(deadline: .now() + 5) {
             self.querrySubscriptionPoll(installationId: installationId)
-          }
+        }
       }
     })
   }

@@ -27,10 +27,8 @@ class ConnectTazIDController : TrialSubscriptionController {
     fatalError("init(coder:) has not been implemented")
   }
   
-  // MARK: viewDidLoad Action
-  override func viewDidLoad() {
-    self.contentView = FormularView()
-    self.contentView?.views =   [
+  override func getContentViews() -> [UIView] {
+    return [
       FormularView.header(),
       FormularView.label(title:
         Localized("taz_id_account_create_intro")),
@@ -44,7 +42,7 @@ class ConnectTazIDController : TrialSubscriptionController {
       FormularView.labelLikeButton(title: Localized("login_forgot_password"),
                                    target: self,
                                    action: #selector(handlePwForgot)),
-      contentView!.agbAcceptTV,
+      contentView.agbAcceptTV,
       FormularView.button(title: Localized("login_button"),
                           target: self,
                           action: #selector(handleSend)),
@@ -52,25 +50,8 @@ class ConnectTazIDController : TrialSubscriptionController {
                                  target: self,
                                  action: #selector(handleCancel)),
     ]
-    
-    mailInput.textContentType = .emailAddress
-    mailInput.autocapitalizationType = .none
-    mailInput.keyboardType = .emailAddress
-    
-    firstnameInput.keyboardType = .namePhonePad
-    firstnameInput.textContentType = .givenName
-    firstnameInput.autocapitalizationType = .words
-    
-    lastnameInput.keyboardType = .namePhonePad
-    lastnameInput.textContentType = .familyName
-    lastnameInput.autocapitalizationType = .words
-    
-    passInput.textContentType = .password
-    pass2Input.textContentType = .password
-    
-    super.viewDidLoad()
   }
-    
+  
   // MARK: handleLogin Action
   @IBAction override func handleSend(_ sender: UIButton) {
     sender.isEnabled = false

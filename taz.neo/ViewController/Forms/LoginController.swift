@@ -30,28 +30,30 @@ class LoginController: FormsController {
   
   var loginButton: UIButton?
   
-  // MARK: viewDidLoad Action
-  override func viewDidLoad() {
-    self.contentView = FormularView()
-    passForgottButton.isHidden = true
-    idInput.text = MainNC.singleton.getUserData().id
-    self.contentView?.views =   [
+  override func getContentViews() -> [UIView] {
+    return   [
       FormularView.header(),
       FormularView.label(title: Localized("article_read_onreadon")),
       idInput,
       passInput,
       FormularView.button(title: NSLocalizedString("login_button", comment: "login"),
                           target: self, action: #selector(handleLogin)),
-      FormularView.label(title: NSLocalizedString("trial_subscription_title",
+      FormularView.label(title: NSLocalizedString("ask_for_trial_subscription_title",
                                                   comment: "14 tage probeabo text")),
       FormularView.outlineButton(title: NSLocalizedString("register_button", comment: "registrieren"),
                                  target: self, action: #selector(handleRegister)),
       passForgottButton
     ]
+  }
+  
+  // MARK: viewDidLoad Action
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    passForgottButton.isHidden = true
+    idInput.text = MainNC.singleton.getUserData().id
+    
     idInput.autocapitalizationType = .none
     idInput.textContentType = .emailAddress
-    
-    super.viewDidLoad()
   }
   
   // MARK: handleLogin Action
@@ -145,8 +147,9 @@ class LoginController: FormsController {
   
   func showAskForTrial(){
     class AskForTrial_Controller : FormsController_Result_Controller {
-      override func viewDidLoad() {
-        self.views = [
+      
+      override func getContentViews() -> [UIView] {
+        return [
           FormularView.header(),
           FormularView.label(title: Localized("ask_for_trial_subscription_title"),
                              paddingTop: 30,
@@ -158,7 +161,6 @@ class LoginController: FormsController {
                                        target: self, action: #selector(handleBack)),
           
         ]
-        super.viewDidLoad()
       }
       
       // MARK: handleBack Action
@@ -244,16 +246,17 @@ class SubscriptionIdElapsedController: FormsController_Result_Controller {
    - ugly html & data handling
    + super simple add & exchange text
    */
-  private(set) var expiredDate : String = ""
+  private(set) var dateString : String = "-"
   
   convenience init(expireDateMessage:String?, dismissType:dismissType) {
     self.init(nibName:nil, bundle:nil)
-    var dateString = "-"
     if let msg = expireDateMessage {
       dateString = UsTime(iso:msg).date.gDate()
     }
-    
-    self.views =  [
+  }
+  
+  override func getContentViews() -> [UIView] {
+    return [
       FormularView.header(),
       CustomTextView(htmlText: Localized(keyWithFormat: "subscription_id_expired", dateString),
                      textAlignment: .center,
