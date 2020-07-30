@@ -85,7 +85,17 @@ class FormsController: UIViewController {
   func modalFlip(_ controller:UIViewController){
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .flipHorizontal
-    self.present(controller, animated: true, completion:nil)
+    
+    var topmostModalVc : UIViewController = self
+    while true {
+      if let modal = topmostModalVc.presentedViewController {
+        topmostModalVc = modal
+      }
+      else{
+        topmostModalVc.present(controller, animated: true, completion:nil)
+        break
+      }
+    }
   }
 }
 
