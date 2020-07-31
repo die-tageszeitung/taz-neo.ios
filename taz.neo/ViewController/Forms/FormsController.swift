@@ -56,7 +56,7 @@ class FormsController: UIViewController {
   
   //Overwrite this in child to have individual Content
   func getContentViews() -> [UIView] {
-    return [FormularView.header()]
+    return [TazHeader()]
   }
   
   override func viewDidLoad() {
@@ -109,13 +109,13 @@ class FormsController_Result_Controller: FormsController {
   
   override func getContentViews() -> [UIView] {
     return  [
-      FormularView.header(),
-      FormularView.label(title: message,
-                         paddingTop: 30,
-                         paddingBottom: 30
+      TazHeader(),
+      UILabel(title: message,
+              paddingTop: 30,
+              paddingBottom: 30
       ),
-      FormularView.button(title: backButtonTitle,
-                          target: self, action: #selector(handleBack)),
+      UIButton(title: backButtonTitle,
+               target: self, action: #selector(handleBack)),
       
     ]
   }

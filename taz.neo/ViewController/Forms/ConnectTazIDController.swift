@@ -29,26 +29,28 @@ class ConnectTazIDController : TrialSubscriptionController {
   
   override func getContentViews() -> [UIView] {
     return [
-      FormularView.header(),
-      FormularView.label(title:
+      TazHeader(),
+      UILabel(title:
         Localized("taz_id_account_create_intro")),
       mailInput,
       passInput,
       pass2Input,
       firstnameInput,
       lastnameInput,
-      FormularView.label(title:
+      UILabel(title:
         Localized("fragment_login_request_test_subscription_existing_account")),
-      FormularView.labelLikeButton(title: Localized("login_forgot_password"),
-                                   target: self,
-                                   action: #selector(handlePwForgot)),
+      UIButton(type: .label,
+               title: Localized("login_forgot_password"),
+               target: self,
+               action: #selector(handlePwForgot)),
       contentView.agbAcceptTV,
-      FormularView.button(title: Localized("login_button"),
-                          target: self,
-                          action: #selector(handleSend)),
-      FormularView.outlineButton(title: Localized("cancel_button"),
-                                 target: self,
-                                 action: #selector(handleCancel)),
+      UIButton(title: Localized("login_button"),
+               target: self,
+               action: #selector(handleSend)),
+      UIButton(type: .outline,
+               title: Localized("cancel_button"),
+               target: self,
+               action: #selector(handleCancel)),
     ]
   }
   

@@ -29,22 +29,23 @@ class LoginController: FormsController {
                    enablesReturnKeyAutomatically: true)
   
   var passForgottButton: UIButton
-    =   FormularView.labelLikeButton(title: Localized("login_forgot_password"),
-                                     target: self, action: #selector(handlePwForgot))
+    =   UIButton(type: .label,
+                 title: Localized("login_forgot_password"), target: self, action: #selector(handlePwForgot))
   
   var loginButton: UIButton?
   
   override func getContentViews() -> [UIView] {
     return   [
-      FormularView.header(),
-      FormularView.label(title: Localized("article_read_onreadon")),
+      TazHeader(),
+      UILabel(title: Localized("article_read_onreadon")),
       idInput,
       passInput,
-      FormularView.button(title: Localized("login_button"),
-                          target: self, action: #selector(handleLogin)),
-      FormularView.label(title: Localized("ask_for_trial_subscription_title")),
-      FormularView.outlineButton(title: Localized("register_button"),
-                                 target: self, action: #selector(handleRegister)),
+      UIButton(title: Localized("login_button"),
+               target: self, action: #selector(handleLogin)),
+      UILabel(title: Localized("ask_for_trial_subscription_title")),
+      UIButton(type: .outline,
+               title: Localized("register_button"),
+               target: self, action: #selector(handleRegister)),
       passForgottButton
     ]
   }
@@ -150,15 +151,16 @@ class LoginController: FormsController {
       
       override func getContentViews() -> [UIView] {
         return [
-          FormularView.header(),
-          FormularView.label(title: Localized("ask_for_trial_subscription_title"),
-                             paddingTop: 30,
-                             paddingBottom: 30
+          TazHeader(),
+          UILabel(title: Localized("ask_for_trial_subscription_title"),
+                  paddingTop: 30,
+                  paddingBottom: 30
           ),
-          FormularView.button(title: Localized("yes_trial_subscroption"),
-                              target: self, action: #selector(handleTrial)),
-          FormularView.labelLikeButton(title: Localized("cancel_button"),
-                                       target: self, action: #selector(handleBack)),
+          UIButton(title: Localized("yes_trial_subscroption"),
+                   target: self, action: #selector(handleTrial)),
+          UIButton(type: .label,
+                   title: Localized("cancel_button"),
+                   target: self, action: #selector(handleBack)),
           
         ]
       }
@@ -257,12 +259,12 @@ class SubscriptionIdElapsedController: FormsController_Result_Controller {
   
   override func getContentViews() -> [UIView] {
     return [
-      FormularView.header(),
+      TazHeader(),
       CustomTextView(htmlText: Localized(keyWithFormat: "subscription_id_expired", dateString),
                      textAlignment: .center,
                      linkTextAttributes: CustomTextView.boldLinks),
-      FormularView.button(title: Localized("cancel_button"),
-                          target: self, action: #selector(handleBack)),
+      UIButton(title: Localized("cancel_button"),
+               target: self, action: #selector(handleBack)),
     ]
   }
 }

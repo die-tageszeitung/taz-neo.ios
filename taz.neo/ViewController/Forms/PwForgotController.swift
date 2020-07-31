@@ -20,13 +20,16 @@ class PwForgottController: FormsController {
   
   override func getContentViews() -> [UIView] {
     return  [
-      FormularView.header(),
-      FormularView.label(title: Localized("login_forgot_password_header")),
+      TazHeader(),
+      UILabel(title: Localized("login_forgot_password_header")),
       idInput,
-      FormularView.button(title: Localized("login_forgot_password_send"),
-                          target: self, action: #selector(handleSend)),
-      FormularView.labelLikeButton(title: Localized("cancel_button"),
-                                   target: self, action: #selector(handleCancel)),
+      UIButton(title: Localized("login_forgot_password_send"),
+               target: self,
+               action: #selector(handleSend)),
+      UIButton(type: .label,
+               title: Localized("cancel_button"),
+               target: self,
+               action: #selector(handleCancel)),
     ]
   }
   // MARK: viewDidLoad
@@ -111,19 +114,19 @@ class PwForgottController: FormsController {
 class SubscriptionResetSuccessController: FormsController, MFMailComposeViewControllerDelegate {
   override func getContentViews() -> [UIView] {
     return   [
-      FormularView.header(),
-      FormularView.label(title: Localized("login_forgot_password_email_sent_header")
+      TazHeader(),
+      UILabel(title: Localized("login_forgot_password_email_sent_header")
       ),
-      FormularView.label(title: Localized("subscription_reset_found_link")
+      UILabel(title: Localized("subscription_reset_found_link")
       ),
-      FormularView.button(title: Localized("login_forgot_password_email_sent_back"),
-                          target: self, action: #selector(handleBack)),
-      FormularView.label(title: Localized("login_subscription_taken_body")
+      UIButton(title: Localized("login_forgot_password_email_sent_back"),
+               target: self, action: #selector(handleBack)),
+      UILabel(title: Localized("login_subscription_taken_body")
       ),
-      FormularView.labelLikeButton(title: Localized("digiabo_email"),
-                                   target: self, action: #selector(handleMail)),
-      FormularView.outlineButton(title: Localized("cancel_button"),
-                                 target: self, action: #selector(handleBack))
+      UIButton(type: .label, title: Localized("digiabo_email"),
+               target: self, action: #selector(handleMail)),
+      UIButton(type: .outline ,title: Localized("cancel_button"),
+               target: self, action: #selector(handleBack))
     ]
   }
   
@@ -160,13 +163,13 @@ class SubscriptionResetSuccessController: FormsController, MFMailComposeViewCont
 class PasswordResetRequestedSuccessController: FormsController {
   override func getContentViews() -> [UIView] {
     return  [
-      FormularView.header(),
-      FormularView.label(title: Localized("login_forgot_password_email_sent_header"),
-                         paddingTop: 30,
-                         paddingBottom: 30
+      TazHeader(),
+      UILabel(title: Localized("login_forgot_password_email_sent_header"),
+              paddingTop: 30,
+              paddingBottom: 30
       ),
-      FormularView.button(title: Localized("login_forgot_password_email_sent_back"),
-                          target: self, action: #selector(handleBack)),
+      UIButton(title: Localized("login_forgot_password_email_sent_back"),
+               target: self, action: #selector(handleBack)),
       
     ]
   }
