@@ -149,6 +149,19 @@ class LoginController: FormsController {
   func showAskForTrial(){
     class AskForTrial_Controller : FormsController_Result_Controller {
       
+      var id:String?
+      var pass:String?
+      
+      init(id:String?, pass:String?) {
+        self.id = id
+        self.pass = pass
+        super.init(nibName: nil, bundle: nil)
+      }
+      
+      required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+      }
+      
       override func getContentViews() -> [UIView] {
         return [
           TazHeader(),
@@ -167,10 +180,14 @@ class LoginController: FormsController {
       
       // MARK: handleBack Action
       @IBAction func handleTrial(_ sender: UIButton) {
-        modalFlip(TrialSubscriptionController())
+        let ctrl = TrialSubscriptionController()
+        ctrl.mailInput.text = self.id
+        ctrl.passInput.text = self.pass
+        ctrl.pass2Input.text = self.pass
+        modalFlip(ctrl)
       }
     }
-    modalFlip(AskForTrial_Controller())
+    modalFlip(AskForTrial_Controller(id: self.idInput.text, pass: self.passInput.text))
   }
   
   // MARK: queryCheckSubscriptionId
@@ -227,7 +244,14 @@ class LoginController: FormsController {
   
   // MARK: handleRegister Action
   @IBAction func handleRegister(_ sender: UIButton) {
-    modalFlip(TrialSubscriptionController())
+    let ctrl = TrialSubscriptionController()
+    /// Prefill register Form with current Input if idInput contains a valid E-Mail
+    if (self.idInput.text ?? "").isValidEmail() {
+      ctrl.mailInput.text = self.idInput.text
+      ctrl.passInput.text = self.passInput.text
+      ctrl.pass2Input.text = self.passInput.text
+    }
+    modalFlip(ctrl)
   }
   
   // MARK: handlePwForgot Action
