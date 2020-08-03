@@ -24,11 +24,10 @@ internal class SharedFeeder {
   // Initialization
   
   private init() {
-    feeder = MainNC.singleton.gqlFeeder
-    //      self.setupFeeder { [weak self] _ in
-    //        guard let self = self else { return }
-    //        print("Feeder ready.\(String(describing: self.feeder?.toString()))")
-    //      }
+    self.setupFeeder { [weak self] _ in
+      guard let self = self else { return }
+      print("Feeder ready.\(String(describing: self.feeder?.toString()))")
+    }
     Toast.alertBackgroundColor = TazColor.CIColor.color
   }
   
