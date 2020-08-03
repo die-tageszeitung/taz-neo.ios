@@ -131,12 +131,10 @@ class FormsController_Result_Controller: FormsController {
     var stack = self.modalStack
     switch dismissType {
       case .all:
-        _ = stack.pop()//removes self
         stack.forEach { $0.view.isHidden = true }
-        self.dismiss(animated: true) {
-          stack.forEach { $0.dismiss(animated: false, completion: nil)}
+        UIViewController.dismiss(stack: stack, animated: false, completion: {
           Notification.send("ExternalUserLogin")
-      }
+        })
       case .leftFirst:
         _ = stack.popLast()//removes first
         _ = stack.pop()//removes self
@@ -151,6 +149,19 @@ class FormsController_Result_Controller: FormsController {
 }
 
 extension UIViewController{
+  
+  static func dismiss(stack:[UIViewController], animated:Bool, completion: @escaping(() -> Void)){
+    var stack = stack
+    let vc = stack.pop()
+    vc?.dismiss(animated: animated, completion: {
+      if stack.count > 0 {
+        UIViewController.dismiss(stack: stack, animated: false, completion: completion)
+      } else {
+        completion()
+      }
+    })
+  }
+  
   var rootPresentingViewController : UIViewController {
     get{
       var vc = self
