@@ -206,7 +206,7 @@ class TrialSubscriptionController : FormsController {
       errors = true
       pass2Input.bottomMessage = Localized("login_password_error_empty")
     }
-    else if pass2Input.text != pass2Input.text {
+    else if pass2Input.text != passInput.text {
       pass2Input.bottomMessage = Localized("login_password_confirmation_error_match")
     }
     
