@@ -590,7 +590,7 @@ open class GqlFeeder: Feeder, DoesLog {
           self?.status?.authInfo = atoken.authInfo
           switch atoken.authInfo.status {
             case .expired, .unlinked, .invalid, .alreadyLinked, .notValidMail, .unknown:
-              ret = .failure(AuthStatusError(status: atoken.authInfo.status))
+              ret = .failure(AuthStatusError(status: atoken.authInfo.status, message: atoken.authInfo.message))
             case .valid:
               self?.authToken = atoken.token!
               ret = .success(atoken.token!)

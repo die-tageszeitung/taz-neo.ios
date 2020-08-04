@@ -33,7 +33,8 @@ public enum FeederError: SimpleError {
 } // FeederError
 
 struct AuthStatusError: Swift.Error {
-    var status:  GqlAuthStatus
+  var status:  GqlAuthStatus
+  var message: String?
 }
 
 /**

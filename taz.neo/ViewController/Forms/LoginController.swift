@@ -130,9 +130,8 @@ class LoginController: FormsController {
             }
             
             case .expired:
-              self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
-                                  backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                  dismissType: .all)
+              self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: authStatusError.message,
+                                                             dismissType: .current))
             case .unlinked:
               self.showAskForTrial()
             case .notValidMail: fallthrough

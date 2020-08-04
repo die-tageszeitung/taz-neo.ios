@@ -257,6 +257,7 @@ class TrialSubscriptionController : FormsController {
           self.log("subscriptionPoll succeed with status: \(info.status) message: \(info.message ?? "-")")
           switch info.status {
             case .valid:
+              //todo save token in: info.token
               self.subscriptionPollSucceed()
             case .waitForProc: fallthrough
             case .waitForMail: fallthrough
