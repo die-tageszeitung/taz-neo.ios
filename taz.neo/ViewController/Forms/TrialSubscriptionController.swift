@@ -168,7 +168,7 @@ class TrialSubscriptionController : FormsController {
               print("Succeed with status: \(info.status) message: \(info.message ?? "-")")
         }
         case .failure:
-          Toast.show("ein Fehler...")
+          Toast.show(Localized("toast_login_failed_retry"))
       }
     })
   }
