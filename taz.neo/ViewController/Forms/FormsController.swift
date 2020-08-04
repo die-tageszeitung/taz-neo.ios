@@ -51,7 +51,7 @@ internal class SharedFeeder {
 }
 
 class FormsController: UIViewController {
-  var contentView = FormularView()
+  var contentView = FormView()
   
   //Overwrite this in child to have individual Content
   func getContentViews() -> [UIView] {

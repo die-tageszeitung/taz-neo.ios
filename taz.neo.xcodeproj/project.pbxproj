@@ -10,7 +10,7 @@
 		0032A4D924C89E4800284723 /* FormsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0032A4D824C89E4800284723 /* FormsController.swift */; };
 		0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0032A4DA24C89F1100284723 /* PwForgotController.swift */; };
 		004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */; };
-		004D4F0024ACDC1F008C4EE7 /* FormularView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */; };
+		004D4F0024ACDC1F008C4EE7 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* FormView.swift */; };
 		006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006007E124D1D333001680B6 /* TrialSubscriptionController.swift */; };
 		006E17E924D418090092DC0D /* FormComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006E17E824D418090092DC0D /* FormComponents.swift */; };
 		006E17ED24D418490092DC0D /* UIHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006E17EC24D418490092DC0D /* UIHelper.swift */; };
@@ -82,7 +82,7 @@
 		0032A4D824C89E4800284723 /* FormsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormsController.swift; sourceTree = "<group>"; };
 		0032A4DA24C89F1100284723 /* PwForgotController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PwForgotController.swift; sourceTree = "<group>"; };
 		004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginController.swift; sourceTree = "<group>"; };
-		004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormularView.swift; sourceTree = "<group>"; };
+		004D4EFF24ACDC1F008C4EE7 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		006007E124D1D333001680B6 /* TrialSubscriptionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialSubscriptionController.swift; sourceTree = "<group>"; };
 		006E17E824D418090092DC0D /* FormComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormComponents.swift; sourceTree = "<group>"; };
 		006E17EC24D418490092DC0D /* UIHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIHelper.swift; sourceTree = "<group>"; };
@@ -171,7 +171,7 @@
 		0032A4D724C89E3100284723 /* Forms */ = {
 			isa = PBXGroup;
 			children = (
-				004D4EFF24ACDC1F008C4EE7 /* FormularView.swift */,
+				004D4EFF24ACDC1F008C4EE7 /* FormView.swift */,
 				006E17E824D418090092DC0D /* FormComponents.swift */,
 				006E17EC24D418490092DC0D /* UIHelper.swift */,
 			);
@@ -484,7 +484,7 @@
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,
 				AECCE11823FBD006007C2276 /* ArticleVC.swift in Sources */,
-				004D4F0024ACDC1F008C4EE7 /* FormularView.swift in Sources */,
+				004D4F0024ACDC1F008C4EE7 /* FormView.swift in Sources */,
 				AEF2DF35244766E400D1482D /* MomentView.swift in Sources */,
 				AE5D9EBD23E1B8160002C3B8 /* GraphQlSession.swift in Sources */,
 				AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */,

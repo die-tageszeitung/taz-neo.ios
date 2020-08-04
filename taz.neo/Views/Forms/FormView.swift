@@ -1,6 +1,6 @@
 //
 //
-// RegisterView.swift
+// FormView.swift
 //
 // Created by Ringo Müller-Gromes on 01.07.20.
 // Copyright © 2020 Ringo Müller-Gromes for "taz" digital newspaper. All rights reserved.
@@ -13,7 +13,7 @@ fileprivate let DefaultFontSize = CGFloat(16)
 
 // MARK: - FormularView
 /// A RegisterView displays an RegisterForm
-public class FormularView: UIView {
+public class FormView: UIView {
   
   var views : [UIView] = []{
     didSet{
