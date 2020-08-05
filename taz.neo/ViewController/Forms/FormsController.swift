@@ -53,6 +53,12 @@ internal class SharedFeeder {
 class FormsController: UIViewController {
   var contentView = FormView()
   
+  public var uiBlocked : Bool = false {
+    didSet{
+      contentView.blockingView.enabled = uiBlocked
+    }
+  }
+  
   //Overwrite this in child to have individual Content
   func getContentViews() -> [UIView] {
     return [TazHeader()]

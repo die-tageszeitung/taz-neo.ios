@@ -55,6 +55,50 @@ class TazHeader: UIView{
   }
 }
 
+// MARK: - TazHeader
+class BlockingProcessView : UIView{
+
+let spinner = UIActivityIndicatorView()
+  
+  public var enabled : Bool = false {
+    didSet{
+      if enabled {
+        self.isHidden = false
+        spinner.startAnimating()
+        UIView.animate(seconds: 0.3) { [weak self] in
+          self?.alpha = 1.0
+        }
+      }
+      else {
+        spinner.stopAnimating()
+        UIView.animate(withDuration: 0.3, animations: { [weak self] in
+          self?.alpha = 0.0
+        }) { [weak self] _ in
+          self?.isHidden = true
+        }
+      }
+    }
+  }
+
+  override init(frame: CGRect) {
+    super.init(frame:frame)
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    super.init(coder:coder)
+    setup()
+  }
+  
+  func setup() {
+    self.isHidden = true
+    self.addSubview(spinner)
+    self.backgroundColor = TazColor.CTBackground.color.withAlphaComponent(0.5)
+    pin(spinner.centerX, to: self.centerX)
+    pin(spinner.centerY, to: self.centerY)
+  }
+}
+
 
 // MARK: - UILabel Extension taz Label
 extension UILabel{

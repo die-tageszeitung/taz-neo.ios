@@ -14,7 +14,14 @@ import NorthLib
 /// ChildViews/Controller are pushed modaly
 class TrialSubscriptionController : FormsController {
   
-  var mailInput
+  override public var uiBlocked : Bool {
+    didSet{
+      super.uiBlocked = uiBlocked
+      submitButton.isEnabled = !uiBlocked
+    }
+  }
+  
+  let mailInput
     = TazTextField(placeholder: Localized("login_email_hint"),
                    textContentType: .emailAddress,
                    enablesReturnKeyAutomatically: true,
@@ -22,19 +29,19 @@ class TrialSubscriptionController : FormsController {
                    autocapitalizationType: .none
   )
   
-  var passInput
+  let passInput
     = TazTextField(placeholder: Localized("login_password_hint"),
                    textContentType: .password,
                    isSecureTextEntry: true,
                    enablesReturnKeyAutomatically: true)
   
-  var pass2Input
+  let pass2Input
     = TazTextField(placeholder: Localized("login_password_hint"),
                    textContentType: .password,
                    isSecureTextEntry: true,
                    enablesReturnKeyAutomatically: true)
   
-  var firstnameInput
+  let firstnameInput
     = TazTextField(placeholder: Localized("login_first_name_hint"),
                    textContentType: .givenName,
                    enablesReturnKeyAutomatically: true,
@@ -42,13 +49,17 @@ class TrialSubscriptionController : FormsController {
                    autocapitalizationType: .words
   )
   
-  var lastnameInput
+  let lastnameInput
     = TazTextField(placeholder: Localized("login_surname_hint"),
                    textContentType: .familyName,
                    enablesReturnKeyAutomatically: true,
                    keyboardType: .namePhonePad,
                    autocapitalizationType: .words
   )
+  
+  let submitButton = UIButton(title: Localized("register_button"),
+           target: self,
+           action: #selector(handleSend))
   
   override func getContentViews() -> [UIView] {
     return  [
@@ -65,9 +76,7 @@ class TrialSubscriptionController : FormsController {
       //                                   target: self,
       //                                   action: #selector(handlePwForgot)),
       contentView.agbAcceptTV,
-      UIButton(title: Localized("register_button"),
-               target: self,
-               action: #selector(handleSend)),
+      submitButton,
       UIButton(type: .outline, title: Localized("cancel_button"),
                target: self,
                action: #selector(handleCancel)),
@@ -85,11 +94,11 @@ class TrialSubscriptionController : FormsController {
   
   // MARK: handleLogin Action
   @IBAction func handleSend(_ sender: UIButton) {
-    sender.isEnabled = false
+    self.uiBlocked = true
     
     if let errormessage = self.validate() {
       Toast.show(errormessage, .alert)
-      sender.isEnabled = true
+      self.uiBlocked = false
       return
     }
     
@@ -103,12 +112,7 @@ class TrialSubscriptionController : FormsController {
     let installationId = dfl["installationId"] ?? App.installationId
     
     //Start mutationSubscriptionId2tazId
-    //spinner.enabler=true
-    
     SharedFeeder.shared.feeder?.trialSubscription(tazId: mail, password: pass, surname: lastname, firstName: firstname, installationId: installationId, pushToken: pushToken, closure: { (result) in
-      //Re-Enable Button if needed
-      sender.isEnabled = true
-      //      spinner.enabler=false
       switch result {
         case .success(let info):
           //ToDo #900
@@ -170,6 +174,7 @@ class TrialSubscriptionController : FormsController {
         case .failure:
           Toast.show(Localized("toast_login_failed_retry"))
       }
+      self.uiBlocked = false
     })
   }
   

@@ -28,25 +28,22 @@ class ConnectTazIDController : TrialSubscriptionController {
   }
   
   override func getContentViews() -> [UIView] {
+    submitButton.setTitle(Localized("login_button"), for: .normal)
     return [
       TazHeader(),
-      UILabel(title:
-        Localized("taz_id_account_create_intro")),
+      UILabel(title: Localized("taz_id_account_create_intro")),
       mailInput,
       passInput,
       pass2Input,
       firstnameInput,
       lastnameInput,
-      UILabel(title:
-        Localized("fragment_login_request_test_subscription_existing_account")),
+      UILabel(title: Localized("fragment_login_request_test_subscription_existing_account")),
       UIButton(type: .label,
                title: Localized("login_forgot_password"),
                target: self,
                action: #selector(handlePwForgot)),
       contentView.agbAcceptTV,
-      UIButton(title: Localized("login_button"),
-               target: self,
-               action: #selector(handleSend)),
+      submitButton,
       UIButton(type: .outline,
                title: Localized("cancel_button"),
                target: self,
@@ -56,11 +53,11 @@ class ConnectTazIDController : TrialSubscriptionController {
   
   // MARK: handleLogin Action
   @IBAction override func handleSend(_ sender: UIButton) {
-    sender.isEnabled = false
+    uiBlocked = true
     
     if let errormessage = self.validate() {
       Toast.show(errormessage, .alert)
-      sender.isEnabled = true
+      uiBlocked = false
       return
     }
     
@@ -76,9 +73,6 @@ class ConnectTazIDController : TrialSubscriptionController {
     //Start mutationSubscriptionId2tazId
     //spinner.enabler=true
     SharedFeeder.shared.feeder?.subscriptionId2tazId(tazId: mail, password: pass, aboId: self.aboId, aboIdPW: aboIdPassword, surname: lastname, firstName: firstname, installationId: installationId, pushToken: pushToken, closure: { (result) in
-      //Re-Enable Button if needed
-      sender.isEnabled = true
-      //      spinner.enabler=false
       switch result {
         case .success(let info):
           //ToDo #900
@@ -140,6 +134,8 @@ class ConnectTazIDController : TrialSubscriptionController {
         case .failure:
           Toast.show(Localized("error"))
       }
+      //Re-Enable Button if needed
+      self.uiBlocked = false
     })
   }
 }

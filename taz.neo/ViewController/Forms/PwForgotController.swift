@@ -15,6 +15,13 @@ import NorthLib
 /// ChildViews/Controller are pushed modaly
 class PwForgottController: FormsController {
   
+  override public var uiBlocked : Bool {
+    didSet{
+      super.uiBlocked = uiBlocked
+      submitButton.isEnabled = !uiBlocked
+    }
+  }
+  
   let idInput
     = TazTextField(placeholder: Localized("login_username_hint"))
   
@@ -49,7 +56,7 @@ class PwForgottController: FormsController {
   
   // MARK: handleSend
   @IBAction func handleSend(_ sender: UIButton) {
-    submitButton.isEnabled = false
+    uiBlocked = true
     guard let id = idInput.text, !id.isEmpty  else {
       idInput.bottomMessage = Localized("login_username_error_empty")
       Toast.show(Localized("register_validation_issue"))
@@ -93,7 +100,7 @@ class PwForgottController: FormsController {
           Toast.show(Localized("error"))
           self.log("An error occured in mutateSubscriptionReset: \(String(describing: result.error()))")
       }
-      self.submitButton.isEnabled = true
+      self.uiBlocked = false
     })
   }
   
@@ -122,7 +129,7 @@ class PwForgottController: FormsController {
           Toast.show(Localized("error"))
           self.log("An error occured in mutatePasswordReset: \(String(describing: result.error()))")
       }
-      self.submitButton.isEnabled = true
+      self.uiBlocked = false
     })
   }
 }

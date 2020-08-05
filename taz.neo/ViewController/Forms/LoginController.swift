@@ -12,6 +12,13 @@ import NorthLib
 /// ChildViews/Controller are pushed modaly
 class LoginController: FormsController {
   
+  override public var uiBlocked : Bool {
+    didSet{
+      super.uiBlocked = uiBlocked
+      loginButton?.isEnabled = !uiBlocked
+    }
+  }
+  
   var failedLoginCount : Int = 0
   
   var idInput
@@ -60,11 +67,11 @@ class LoginController: FormsController {
   // MARK: handleLogin Action
   @IBAction func handleLogin(_ sender: UIButton) {
     loginButton = sender
-    loginButton?.isEnabled = false
-    
+    self.uiBlocked = true
+        
     if let errormessage = self.validate() {
       Toast.show(errormessage, .alert)
-      sender.isEnabled = true
+      self.uiBlocked = false
       showPwForgottButton()
       return
     }
@@ -105,7 +112,6 @@ class LoginController: FormsController {
     SharedFeeder.shared.feeder?.authenticateWithTazId(account: id, password: pass, closure:{ [weak self] (result) in
       //ToDo #902
       guard let self = self else { return }
-      self.loginButton?.isEnabled = true
       switch result {
         case .success(let info):
           //ToDo Persist Auth
@@ -142,6 +148,7 @@ class LoginController: FormsController {
               Toast.show(Localized("something_went_wrong_try_later"))
         }
       }
+      self.uiBlocked = false
     })
   }
   
@@ -192,7 +199,6 @@ class LoginController: FormsController {
   // MARK: queryCheckSubscriptionId
   func queryCheckSubscriptionId(_ aboId: String, _ password: String){
     SharedFeeder.shared.feeder?.checkSubscriptionId(aboId: aboId, password: password, closure: { (result) in
-      self.loginButton?.isEnabled = true
       switch result {
         case .success(let info):
           //ToDo #900
@@ -228,6 +234,7 @@ class LoginController: FormsController {
         case .failure:
           Toast.show(Localized("toast_login_failed_retry"))
       }
+      self.uiBlocked = false
     })
   }
   

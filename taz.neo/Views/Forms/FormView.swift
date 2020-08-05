@@ -15,6 +15,8 @@ fileprivate let DefaultFontSize = CGFloat(16)
 /// A RegisterView displays an RegisterForm
 public class FormView: UIView {
   
+  let blockingView = BlockingProcessView()
+  
   var views : [UIView] = []{
     didSet{
       addAndPin(views)
@@ -115,5 +117,8 @@ public class FormView: UIView {
     NorthLib.pin(container, to: scrollView)
     self.addSubview(scrollView)
     NorthLib.pin(scrollView, to: self)
+    
+    self.addSubview(blockingView)
+    NorthLib.pin(blockingView, to: self)
   }
 }
