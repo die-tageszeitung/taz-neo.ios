@@ -255,6 +255,7 @@ class LoginController: FormsController {
   
   // MARK: handlePwForgot Action
   @IBAction func handlePwForgot(_ sender: UIButton) {
+    self.failedLoginCount = 0//reset failed count
     let child = PwForgottController()
     child.idInput.text = idInput.text?.trim
     modalFlip(child)
