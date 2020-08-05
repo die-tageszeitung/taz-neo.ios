@@ -224,6 +224,21 @@ class TazTextField : UITextField, UITextFieldDelegate{
                    for: UIControl.Event.editingDidEnd)
   }
   
+  override open var text: String?{
+    didSet{
+       if let _text = text, _text.isEmpty {
+           UIView.animate(seconds: 0.3) { [weak self] in
+             self?.topLabel.alpha = 0.0
+           }
+         }
+         else {
+           UIView.animate(seconds: 0.3) { [weak self] in
+             self?.topLabel.alpha = 1.0
+           }
+         }
+    }
+  }
+  
   // MARK: > placeholder
   override open var placeholder: String?{
     didSet{
