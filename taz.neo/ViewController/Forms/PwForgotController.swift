@@ -15,17 +15,19 @@ import NorthLib
 /// ChildViews/Controller are pushed modaly
 class PwForgottController: FormsController {
   
-  var idInput: UITextField
+  let idInput
     = TazTextField(placeholder: Localized("login_username_hint"))
+  
+  let submitButton = UIButton(title: Localized("login_forgot_password_send"),
+             target: self,
+             action: #selector(handleSend))
   
   override func getContentViews() -> [UIView] {
     return  [
       TazHeader(),
       UILabel(title: Localized("login_forgot_password_header")),
       idInput,
-      UIButton(title: Localized("login_forgot_password_send"),
-               target: self,
-               action: #selector(handleSend)),
+      submitButton,
       UIButton(type: .label,
                title: Localized("cancel_button"),
                target: self,
@@ -47,10 +49,21 @@ class PwForgottController: FormsController {
   
   // MARK: handleSend
   @IBAction func handleSend(_ sender: UIButton) {
-    guard let id = idInput.text else { return }
-    if id.isEmpty { return }
+    submitButton.isEnabled = false
+    guard let id = idInput.text, !id.isEmpty  else {
+      idInput.bottomMessage = Localized("login_username_error_empty")
+      Toast.show(Localized("register_validation_issue"))
+      sender.isEnabled = true
+      return
+    }
+    
     if id.isNumber {
       self.mutateSubscriptionReset(id)
+    }
+    else if !id.isValidEmail(){
+      idInput.bottomMessage = Localized("error_invalid_email_or_abo_id")
+      Toast.show(Localized("register_validation_issue"))
+      sender.isEnabled = true
     }
     else{
       self.mutatePasswordReset(id)
@@ -59,7 +72,8 @@ class PwForgottController: FormsController {
   
   // MARK: mutateSubscriptionReset
   func mutateSubscriptionReset(_ id: String){
-    SharedFeeder.shared.feeder?.subscriptionReset(aboId: id, closure: { (result) in
+    SharedFeeder.shared.feeder?.subscriptionReset(aboId: id, closure: { [weak self]  (result) in
+      guard let self = self else { return }
       switch result {
         case .success(let info):
           switch info.status {
@@ -79,12 +93,14 @@ class PwForgottController: FormsController {
           Toast.show(Localized("error"))
           self.log("An error occured in mutateSubscriptionReset: \(String(describing: result.error()))")
       }
+      self.submitButton.isEnabled = true
     })
   }
   
   // MARK: mutatePasswordReset
   func mutatePasswordReset(_ id: String){
-    SharedFeeder.shared.feeder?.passwordReset(email: id, closure: { (result) in
+    SharedFeeder.shared.feeder?.passwordReset(email: id, closure: { [weak self]  (result) in
+      guard let self = self else { return }
       switch result {
         case .success(let info):
           switch info {
@@ -106,6 +122,7 @@ class PwForgottController: FormsController {
           Toast.show(Localized("error"))
           self.log("An error occured in mutatePasswordReset: \(String(describing: result.error()))")
       }
+      self.submitButton.isEnabled = true
     })
   }
 }
