@@ -62,6 +62,7 @@ class TrialSubscriptionController : FormsController {
            action: #selector(handleSend))
   
   override func getContentViews() -> [UIView] {
+    contentView.agbAcceptTV.textView.delegate = self
     return  [
       TazHeader(),
       UILabel(title: Localized("trial_subscription_title")),

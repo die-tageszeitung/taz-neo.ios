@@ -102,6 +102,22 @@ class FormsController: UIViewController {
       }
     }
   }
+  
+  func modalFromBottom(_ controller:UIViewController){
+    controller.modalPresentationStyle = .overCurrentContext
+    controller.modalTransitionStyle = .coverVertical
+    
+    var topmostModalVc : UIViewController = self
+    while true {
+      if let modal = topmostModalVc.presentedViewController {
+        topmostModalVc = modal
+      }
+      else{
+        topmostModalVc.present(controller, animated: true, completion:nil)
+        break
+      }
+    }
+  }
 }
 
 enum dismissType {case all, current, leftFirst}
@@ -151,6 +167,51 @@ class FormsController_Result_Controller: FormsController {
       case .current:
         self.dismiss(animated: true, completion: nil)
     }
+  }
+}
+
+extension FormsController: UITextViewDelegate {
+  func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
+    ///Handle AGB Demo Url come from Localizable.strings
+    ///"fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/!106726'>AGB</a> sowie die Hinweise zum <a href='https://taz.de'>Widerruf (N/A)</a> und <a href='https://taz.de/!166598'>Datenschutz</a>.";
+    if URL.absoluteString.contains("taz.de/!106726"){
+      let introVC = IntroVC()
+      guard let resdir = SharedFeeder.shared.feeder?.resourcesDir.path else {
+        return true //Open in Safari
+      }
+      let dataPolicy = File(resdir + "/welcomeSlidesDataPolicy.html")
+      introVC.webView.webView.load(url: dataPolicy.url)
+      modalFromBottom(introVC)
+      introVC.webView.onX {
+        introVC.dismiss(animated: true, completion: nil)
+      }
+      if false /*Use footer close Button*/{
+        introVC.webView.buttonLabel.text = Localized("back_button")
+        introVC.webView.onTap {_ in
+        introVC.dismiss(animated: true, completion: nil)
+        }
+      }
+      else{//Or
+        introVC.webView.webView.atEndOfContent {_ in
+          //Do nothing overwrite appear Bottom Label/View
+        }
+      }
+      
+      
+      return false
+    }
+    else if URL.absoluteString.contains("taz.de/datenschutz"){
+      //ToDo
+    }
+    else if URL.absoluteString.contains("taz.de/hinweisewiderruf"){
+      
+    }
+    else{
+      Toast.show(Localized(keyWithFormat: "prevent_open_url",
+                           URL.absoluteString),
+                 .alert)
+    }
+    return true//Open in Safari
   }
 }
 
