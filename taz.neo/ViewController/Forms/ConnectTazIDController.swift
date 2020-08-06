@@ -28,6 +28,7 @@ class ConnectTazIDController : TrialSubscriptionController {
   }
   
   override func getContentViews() -> [UIView] {
+    contentView.agbAcceptTV.textView.delegate = self
     submitButton.setTitle(Localized("login_button"), for: .normal)
     return [
       TazHeader(),
