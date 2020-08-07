@@ -12,6 +12,7 @@
 		AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */; };
 		AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DE246310E500E4AEA8 /* SliderTest.swift */; };
 		AE21C46C23E710A600F8B811 /* UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE21C46B23E710A600F8B811 /* UITests.swift */; };
+		AE27B7D724DD640C007ABE5E /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE27B7D624DD640C007ABE5E /* Authenticator.swift */; };
 		AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8E324815AF4009DA152 /* ContentImageVC.swift */; };
 		AE44F8E62481621C009DA152 /* IssueInfoProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */; };
 		AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8EA248949B0009DA152 /* ColorTests.swift */; };
@@ -45,7 +46,7 @@
 		AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
 		AED748A62383F1D600C09D2D /* ArticleDB.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = AED70C8E2243E0EB00487918 /* ArticleDB.xcdatamodel */; };
 		AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
-		AEED41BC23FE8E6F0072043F /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEED41BB23FE8E6F0072043F /* Authentication.swift */; };
+		AEED41BC23FE8E6F0072043F /* SimpleAuthenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEED41BB23FE8E6F0072043F /* SimpleAuthenticator.swift */; };
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
@@ -76,6 +77,7 @@
 		AE11F79724B894710080CF51 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		AE11F79824B894710080CF51 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LogoLaunchScreen.strings; sourceTree = "<group>"; };
 		AE21C46B23E710A600F8B811 /* UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests.swift; sourceTree = "<group>"; };
+		AE27B7D624DD640C007ABE5E /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		AE44F8E324815AF4009DA152 /* ContentImageVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentImageVC.swift; sourceTree = "<group>"; };
 		AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueInfoProtocol.swift; sourceTree = "<group>"; };
 		AE44F8EA248949B0009DA152 /* ColorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorTests.swift; sourceTree = "<group>"; };
@@ -119,7 +121,7 @@
 		AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = taz.neo.entitlements; sourceTree = "<group>"; };
 		AEE3D4E6247D316D00BEDEA3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		AEE3D4E9247D31FA00BEDEA3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
-		AEED41BB23FE8E6F0072043F /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
+		AEED41BB23FE8E6F0072043F /* SimpleAuthenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleAuthenticator.swift; sourceTree = "<group>"; };
 		AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCarousel.swift; sourceTree = "<group>"; };
 		AEF2DF34244766E400D1482D /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -243,7 +245,8 @@
 				AE696F2D23918F9400265FC8 /* GqlFeeder.swift */,
 				AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */,
 				AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */,
-				AEED41BB23FE8E6F0072043F /* Authentication.swift */,
+				AEED41BB23FE8E6F0072043F /* SimpleAuthenticator.swift */,
+				AE27B7D624DD640C007ABE5E /* Authenticator.swift */,
 				AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */,
 				AE16422D222FFEF200DF07DE /* ArticleDB */,
 				AE0A4D0123F4297500C44625 /* Views */,
@@ -413,6 +416,7 @@
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				AEC7D467249920DF008630FB /* PdfTest.swift in Sources */,
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
+				AE27B7D724DD640C007ABE5E /* Authenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
@@ -431,7 +435,7 @@
 				AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */,
 				AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */,
 				AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */,
-				AEED41BC23FE8E6F0072043F /* Authentication.swift in Sources */,
+				AEED41BC23FE8E6F0072043F /* SimpleAuthenticator.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,
 				AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */,
