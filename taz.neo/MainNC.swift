@@ -24,7 +24,7 @@ class MainNC: NavigationController, IssueVCdelegate,
   var _gqlFeeder: GqlFeeder!  
   var gqlFeeder: GqlFeeder { return _gqlFeeder }
   var feeder: Feeder { return gqlFeeder }
-  lazy var authenticator = Authentication(feeder: self.gqlFeeder)
+  lazy var authenticator = SimpleAuthenticator(feeder: self.gqlFeeder)
   var _feed: Feed?
   var feed: Feed { return _feed! }
   var storedFeeder: StoredFeeder!
@@ -255,36 +255,14 @@ class MainNC: NavigationController, IssueVCdelegate,
   }
   
   func userLogin(closure: @escaping (Error?)->()) {
-    self.authenticator.pushToken = self.pushToken
-    let (token,_,_) = self.getUserData()
+    let (_,_,token) = SimpleAuthenticator.getUserData()
     if let token = token { 
       self.gqlFeeder.authToken = token
       closure(nil)
     }
     else {
       self.setupPolling()
-      self.authenticator.simpleAuthenticate { res in
-        switch res {
-        case .success: closure(nil)
-        case .failure (let err): 
-          if let err = err as? FeederError {
-            var text = ""
-            switch err {
-            case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
-            case .expiredAccount: text = "Ihr Abo ist abgelaufen."
-            case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
-            case .unexpectedResponse:                
-              text = "Es gab ein Problem bei der Kommunikation mit dem Server."
-            }
-            Alert.message(title: "Fehler", message: text) { closure(err) }
-          }
-          else { 
-            Alert.message(title: "Fehler", message: "Anmeldung gescheitert.") {
-              closure(err)
-            }
-          }
-        }
-      }
+      self.authenticator.authenticate { err in closure(err) }
     }
   }
     

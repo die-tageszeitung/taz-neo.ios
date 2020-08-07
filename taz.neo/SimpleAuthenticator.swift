@@ -5,18 +5,13 @@
 //  Copyright © 2020 Norbert Thies. All rights reserved.
 //
 
-import Foundation
 import UIKit
 import NorthLib
 
-public class Authentication: DoesLog {
+public class SimpleAuthenticator: Authenticator {
   
   /// Ref to feeder providing Data 
   public var feeder: GqlFeeder
-  /// Temporary Id to identify client if no AuthToken is available
-  public var installationId: String  { App.installationId }
-  /// Push token for silent notification (poll request)
-  public var pushToken: String?
   /// Root view controller
   private lazy var rootVC: UIViewController? = {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -32,29 +27,13 @@ public class Authentication: DoesLog {
   
   /// Closure to call when authentication succeeded
   private var authenticationSucceededClosure: (()->())?
-  /// Define closure to call when the authentication succeeded
-  public func whenAuthenticationSucceeded(closure: @escaping ()->()) {
-    authenticationSucceededClosure = closure
-  }
   
-  public init(feeder: GqlFeeder) {
+  required public init(feeder: GqlFeeder) {
     self.feeder = feeder
   }
   
-  /**
-   This method is called when either a polling timer fires or a push notification
-   indicating authentication changes on the server has been received.
-   
-   PollSubscription asks the GraphQL-Server for a new subscription status, if 
-   a new status is available, the closure is called with a bool indicating
-   whether further polling is necessary (true=>continue polling)
-   
-   - parameters:
-     - closure: closure to call when communication with the server has been finished
-     - continue: set to true if polling should be continued
-  */
   public func pollSubscription(closure: (_ continue: Bool)->()) {
-    // ...
+    // nothing to do in simple case
   }
   
   /// Produce action sheet to ask for id/password
@@ -96,25 +75,38 @@ public class Authentication: DoesLog {
   }
   
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  public func simpleAuthenticate(closure: @escaping (Result<String,Error>)->()) {
+  public func authenticate(closure: @escaping (Error?)->()) {
     withLoginData { [weak self] (id, password) in
       guard let this = self else { return }
       if let id = id, let password = password {
         this.feeder.authenticate(account: id, password: password) { res in
-          if let token = res.value() {
-            let dfl = Defaults.singleton
-            let kc = Keychain.singleton
-            dfl["token"] = token
-            dfl["id"] = id
-            kc["token"] = token
-            kc["id"] = id
-            kc["password"] = password
+          switch res {
+            case .success(let token): 
+              SimpleAuthenticator.storeUserData(id: id, password: password, 
+                                                token: token)
+              closure(nil)
+            case .failure(let err):
+              if let err = err as? FeederError {
+                var text = ""
+                switch err {
+                  case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
+                  case .expiredAccount: text = "Ihr Abo ist abgelaufen."
+                  case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+                  case .unexpectedResponse:                
+                    text = "Es gab ein Problem bei der Kommunikation mit dem Server."
+                }
+                Alert.message(title: "Fehler", message: text) { closure(err) }
+              }
+              else { 
+                Alert.message(title: "Fehler", message: "Anmeldung gescheitert.") {
+                  closure(err)
+                }
+            }
           }
-          closure(res)
         }
       }
       else {
-        closure(.failure(this.error("User refused to log in")))
+        closure(this.error("User refused to log in"))
       }
     }
   }

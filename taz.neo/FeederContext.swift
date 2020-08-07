@@ -26,9 +26,9 @@ open class FeederContext: DoesLog {
   public var name: String
   /// URL of Feeder (as String)
   public var url: String
-  /// The GraphQL Feeder
+  /// The GraphQL Feeder (from server)
   public var gqlFeeder: GqlFeeder?
-  /// The stored Feeder
+  /// The stored Feeder (from DB)
   public var storedFeeder: StoredFeeder!
   /// The Downloader to use 
   public var dloader: Downloader?

@@ -17,7 +17,7 @@ class DLController: UIViewController {
   let net = NetAvailability()
   var feeder: GqlFeeder!
   lazy var dloader = Downloader(feeder: feeder) 
-  lazy var authenticator = Authentication(feeder: self.feeder)
+  lazy var authenticator = SimpleAuthenticator(feeder: self.feeder)
 
   
   override func viewDidLoad() {
