@@ -300,8 +300,8 @@ class MainNC: NavigationController, IssueVCdelegate,
           self?.overviewReceived(issues: issues) 
         }
       }
-      Notification.receive("userLogin_DISABLED") { [weak self] _ in
-//      Notification.receive("userLogin") { [weak self] _ in
+
+      Notification.receive("userLogin") { [weak self] _ in
         self?.userLogin() { [weak self] err in
           guard let self = self else { return }
           if err != nil { exit(0) }
@@ -311,16 +311,12 @@ class MainNC: NavigationController, IssueVCdelegate,
           }
         }
       }
-      ///@ToDo: :REMOVE THE FOLLOWING
-      Notification.receive("ExternalUserLogin") { [weak self] _ in
-          guard let self = self else { return }
-          self.dloader.downloadResources {_ in
+      //END
+//      Notification.send("userLogin")
+      self.dloader.downloadResources {_ in
             self.showIntro()
             self.getOverview()
-          }
       }
-      //END
-      Notification.send("userLogin")
       closure(.success(self.feeder))
     }
   }
@@ -464,18 +460,4 @@ class MainNC: NavigationController, IssueVCdelegate,
     setupLogging()
     startup()
   }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    self.modalPresentationStyle = .formSheet
-    let registerController = LoginController()
-    if #available(iOS 13.0, *) {
-      registerController.isModalInPresentation = true
-    }
-    self.present(registerController, animated: true, completion: {
-      print("reg presented")
-      Notification.send("ExternalUserLogin")
-    })
-  }
-
 } // MainNC
