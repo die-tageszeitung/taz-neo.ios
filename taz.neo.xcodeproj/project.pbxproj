@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0015B73724DD86B30037A8D6 /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0015B73524DD86B30037A8D6 /* Authenticator.swift */; };
+		0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0015B73624DD86B30037A8D6 /* SimpleAuthenticator.swift */; };
+		0015B73A24DD87DA0037A8D6 /* DefaultAuthenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0015B73924DD87DA0037A8D6 /* DefaultAuthenticator.swift */; };
 		0032A4D924C89E4800284723 /* FormsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0032A4D824C89E4800284723 /* FormsController.swift */; };
 		0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0032A4DA24C89F1100284723 /* PwForgotController.swift */; };
 		004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */; };
@@ -55,7 +58,6 @@
 		AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
 		AED748A62383F1D600C09D2D /* ArticleDB.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = AED70C8E2243E0EB00487918 /* ArticleDB.xcdatamodel */; };
 		AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
-		AEED41BC23FE8E6F0072043F /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEED41BB23FE8E6F0072043F /* Authentication.swift */; };
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
@@ -79,6 +81,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0015B73524DD86B30037A8D6 /* Authenticator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
+		0015B73624DD86B30037A8D6 /* SimpleAuthenticator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleAuthenticator.swift; sourceTree = "<group>"; };
+		0015B73924DD87DA0037A8D6 /* DefaultAuthenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultAuthenticator.swift; sourceTree = "<group>"; };
 		0032A4D824C89E4800284723 /* FormsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormsController.swift; sourceTree = "<group>"; };
 		0032A4DA24C89F1100284723 /* PwForgotController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PwForgotController.swift; sourceTree = "<group>"; };
 		004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginController.swift; sourceTree = "<group>"; };
@@ -139,7 +144,6 @@
 		AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = taz.neo.entitlements; sourceTree = "<group>"; };
 		AEE3D4E6247D316D00BEDEA3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		AEE3D4E9247D31FA00BEDEA3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
-		AEED41BB23FE8E6F0072043F /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 		AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCarousel.swift; sourceTree = "<group>"; };
 		AEF2DF34244766E400D1482D /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -286,6 +290,9 @@
 		AEBAF566219ACD1900566205 /* taz.neo */ = {
 			isa = PBXGroup;
 			children = (
+				0015B73524DD86B30037A8D6 /* Authenticator.swift */,
+				0015B73924DD87DA0037A8D6 /* DefaultAuthenticator.swift */,
+				0015B73624DD86B30037A8D6 /* SimpleAuthenticator.swift */,
 				AE822631232A717E00FFBE67 /* DataModel.swift */,
 				AEBAF58E219ACFAC00566205 /* AppDelegate.swift */,
 				AECCE11B23FBF3FE007C2276 /* MainNC.swift */,
@@ -297,7 +304,6 @@
 				AE696F2D23918F9400265FC8 /* GqlFeeder.swift */,
 				AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */,
 				AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */,
-				AEED41BB23FE8E6F0072043F /* Authentication.swift */,
 				AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */,
 				AE16422D222FFEF200DF07DE /* ArticleDB */,
 				AE0A4D0123F4297500C44625 /* Views */,
@@ -466,10 +472,12 @@
 				AE5D9EC323E1BB2D0002C3B8 /* ContentTableVC.swift in Sources */,
 				006E17ED24D418490092DC0D /* UIHelper.swift in Sources */,
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
+				0015B73724DD86B30037A8D6 /* Authenticator.swift in Sources */,
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				AEC7D467249920DF008630FB /* PdfTest.swift in Sources */,
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
+				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
@@ -478,6 +486,7 @@
 				004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */,
 				AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */,
 				AE5D9EC023E1B82B0002C3B8 /* Downloader.swift in Sources */,
+				0015B73A24DD87DA0037A8D6 /* DefaultAuthenticator.swift in Sources */,
 				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,
 				AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */,
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,
@@ -494,7 +503,6 @@
 				AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */,
 				AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */,
 				0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */,
-				AEED41BC23FE8E6F0072043F /* Authentication.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,
 				AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */,
