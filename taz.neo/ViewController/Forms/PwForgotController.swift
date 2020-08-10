@@ -62,7 +62,7 @@ class PwForgottController: FormsController {
     guard let id = idInput.text, !id.isEmpty  else {
       idInput.bottomMessage = Localized("login_username_error_empty")
       Toast.show(Localized("register_validation_issue"))
-      sender.isEnabled = true
+      uiBlocked = false
       return
     }
     
@@ -72,7 +72,7 @@ class PwForgottController: FormsController {
     else if !id.isValidEmail(){
       idInput.bottomMessage = Localized("error_invalid_email_or_abo_id")
       Toast.show(Localized("register_validation_issue"))
-      sender.isEnabled = true
+      uiBlocked = false
     }
     else{
       self.mutatePasswordReset(id)
