@@ -86,15 +86,11 @@ struct GqlSubscriptionInfo: GQLObject {
 struct GqlSubscriptionResetInfo: GQLObject {  
   /// Subscription reset status
   var status:  GqlSubscriptionResetStatus
-  /// Mail recipient or tazId mail address if invalidConnection
-  var mail: String?
   
-  static var fields = "status mail"
+  static var fields = "status"
   
   func toString() -> String {
-    var ret = "status: \(status.toString())"
-    if let mail = mail { ret += "\n mail: \(mail)" }
-    return ret
+    "status: \(status.toString())"
   }  
 } // GqlSubscriptionResetInfo
 
