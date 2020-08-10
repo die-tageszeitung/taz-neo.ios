@@ -25,9 +25,11 @@ class PwForgottController: FormsController {
   let idInput
     = TazTextField(placeholder: Localized("login_username_hint"))
   
-  let submitButton = UIButton(title: Localized("login_forgot_password_send"),
+  lazy var submitButton:UIButton = {
+    return UIButton(title: Localized("login_forgot_password_send"),
              target: self,
              action: #selector(handleSend))
+  }()
   
   override func getContentViews() -> [UIView] {
     return  [
