@@ -69,7 +69,6 @@ open class ArticleVC: ContentVC {
       if let this = self {
         this.adelegate?.article = this.articles[idx]
         this.setHeader(artIndex: idx)
-        this.setLoginFooterIfNeeded()
       }
     }
     whenLinkPressed { [weak self] (from, to) in
@@ -78,26 +77,6 @@ open class ArticleVC: ContentVC {
     header.onTitle { [weak self] _ in
       self?.debug("*** Action: ToSection pressed")
       self?.navigationController?.popViewController(animated: true)
-    }
-  }
-  
-  func setLoginFooterIfNeeded() {
-//    provider.
-    print("setLoginFooterIfNeeded")
-    if let curr = currentWebView{
-      print("setLoginFooterIfNeeded \(curr.scrollView)")
-    }
-    if let curr = currentWebView, let content = curr.scrollView.subviews.first{
-      
-      class CrazyView : UIView{}
-      
-      let red = CrazyView()//frame: CGRect(x: 10, y: 10, width: 100, height: 150))
-      red.backgroundColor = UIColor.red
-      red.pinHeight(200)
-      red.pinWidth(200)
-      content.addSubview(red)
-      pin(red.bottom, to: content.bottom)
-      pin(red.left, to: content.left)
     }
   }
     
@@ -158,8 +137,6 @@ open class ArticleVC: ContentVC {
       self.debug("*** Action: Share Article")
       self.exportArticle(article: self.article, from: self.shareButton)
     }
-    
-        self.setLoginFooterIfNeeded()
   }
 } // ArticleVC
 
