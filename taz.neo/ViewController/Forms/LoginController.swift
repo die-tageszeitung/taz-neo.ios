@@ -34,10 +34,12 @@ class LoginController: FormsController {
                    textContentType: .password,
                    isSecureTextEntry: true,
                    enablesReturnKeyAutomatically: true)
+
   
-  var passForgottButton: UIButton
-    =   UIButton(type: .label,
+  lazy var passForgottButton: UIButton = {
+    return UIButton(type: .label,
                  title: Localized("login_forgot_password"), target: self, action: #selector(handlePwForgot))
+  }()
   
   var loginButton: UIButton?
   
@@ -53,6 +55,7 @@ class LoginController: FormsController {
       UIButton(type: .outline,
                title: Localized("register_button"),
                target: self, action: #selector(handleRegister)),
+      defaultCancelButton,
       passForgottButton
     ]
   }
@@ -84,6 +87,8 @@ class LoginController: FormsController {
     }
   }
   
+
+  
   ///Validates the Form returns translated Errormessage String for Popup/Toast
   ///Mark issue fields with hints
   func validate() -> String?{
@@ -109,14 +114,14 @@ class LoginController: FormsController {
   
   // MARK: queryAuthToken
   func queryAuthToken(_ id: String, _ pass: String){
-    SharedFeeder.shared.feeder?.authenticateWithTazId(account: id, password: pass, closure:{ [weak self] (result) in
+    auth.feeder.authenticateWithTazId(account: id, password: pass, closure:{ [weak self] (result) in
       //ToDo #902
       guard let self = self else { return }
       switch result {
-        case .success(let info):
-          //ToDo Persist Auth
-          print("done success \(info)")
+        case .success(let token):
+          DefaultAuthenticator.storeUserData(id: id, password: pass, token: token)
           self.dismiss(animated: true, completion: nil)
+          self.auth.authenticationSucceededClosure?(nil)
         case .failure(let error):
           guard let authStatusError = error as? AuthStatusError else {
             //generell error e.g. no connection
@@ -137,7 +142,7 @@ class LoginController: FormsController {
             
             case .expired:
               self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: authStatusError.message,
-                                                             dismissType: .current))
+                                                             dismissType: .current, auth: self.auth))
             case .unlinked:
               self.showAskForTrial()
             case .notValidMail: fallthrough
@@ -158,10 +163,10 @@ class LoginController: FormsController {
       var id:String?
       var pass:String?
       
-      init(id:String?, pass:String?) {
+      init(id:String?, pass:String?, auth: AuthMediator) {
         self.id = id
         self.pass = pass
-        super.init(nibName: nil, bundle: nil)
+        super.init(auth)
       }
       
       required init?(coder: NSCoder) {
@@ -186,30 +191,30 @@ class LoginController: FormsController {
       
       // MARK: handleBack Action
       @IBAction func handleTrial(_ sender: UIButton) {
-        let ctrl = TrialSubscriptionController()
+        let ctrl = TrialSubscriptionController(self.auth)
         ctrl.mailInput.text = self.id
         ctrl.passInput.text = self.pass
         ctrl.pass2Input.text = self.pass
         modalFlip(ctrl)
       }
     }
-    modalFlip(AskForTrial_Controller(id: self.idInput.text, pass: self.passInput.text))
+    modalFlip(AskForTrial_Controller(id: self.idInput.text, pass: self.passInput.text, auth: self.auth))
   }
   
   // MARK: queryCheckSubscriptionId
   func queryCheckSubscriptionId(_ aboId: String, _ password: String){
-    SharedFeeder.shared.feeder?.checkSubscriptionId(aboId: aboId, password: password, closure: { (result) in
+    auth.feeder.checkSubscriptionId(aboId: aboId, password: password, closure: { (result) in
       switch result {
         case .success(let info):
           //ToDo #900
           switch info.status {
             case .valid:
               self.modalFlip(ConnectTazIDController(aboId: aboId,
-                                                    aboIdPassword: password))
+                                                    aboIdPassword: password, auth: self.auth))
               break;
             case .expired:
               self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: info.message,
-                                                             dismissType: .current))
+                                                             dismissType: .current, auth: self.auth))
             case .alreadyLinked:
               self.idInput.text = info.message
               self.passInput.text = ""
@@ -250,7 +255,7 @@ class LoginController: FormsController {
   
   // MARK: handleRegister Action
   @IBAction func handleRegister(_ sender: UIButton) {
-    let ctrl = TrialSubscriptionController()
+    let ctrl = TrialSubscriptionController(self.auth)
     /// Prefill register Form with current Input if idInput contains a valid E-Mail
     if (self.idInput.text ?? "").isValidEmail() {
       ctrl.mailInput.text = self.idInput.text
@@ -263,7 +268,7 @@ class LoginController: FormsController {
   // MARK: handlePwForgot Action
   @IBAction func handlePwForgot(_ sender: UIButton) {
     self.failedLoginCount = 0//reset failed count
-    let child = PwForgottController()
+    let child = PwForgottController(self.auth)
     child.idInput.text = idInput.text?.trim
     modalFlip(child)
   }
@@ -281,8 +286,8 @@ class SubscriptionIdElapsedController: FormsController_Result_Controller {
    */
   private(set) var dateString : String = "-"
   
-  convenience init(expireDateMessage:String?, dismissType:dismissType) {
-    self.init(nibName:nil, bundle:nil)
+  convenience init(expireDateMessage:String?, dismissType:dismissType, auth: AuthMediator) {
+    self.init(auth)
     if let msg = expireDateMessage {
       dateString = UsTime(iso:msg).date.gDate()
     }

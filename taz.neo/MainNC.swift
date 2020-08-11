@@ -21,10 +21,10 @@ class MainNC: NavigationController, IssueVCdelegate,
   lazy var viewLogger = Log.ViewLogger()
   lazy var fileLogger = Log.FileLogger()
   let net = NetAvailability()
-  var _gqlFeeder: GqlFeeder!  
+  var _gqlFeeder: GqlFeeder!
   var gqlFeeder: GqlFeeder { return _gqlFeeder }
   var feeder: Feeder { return gqlFeeder }
-  lazy var authenticator = SimpleAuthenticator(feeder: self.gqlFeeder)
+  lazy var authenticator = DefaultAuthenticator(feeder: self.gqlFeeder)
   var _feed: Feed?
   var feed: Feed { return _feed! }
   var storedFeeder: StoredFeeder!
@@ -52,10 +52,10 @@ class MainNC: NavigationController, IssueVCdelegate,
     net.whenDown { self.log("Network down") }
     if !net.isAvailable { error("Network not available") }
     let nd = UIApplication.shared.delegate as! AppDelegate
-    nd.onSbTap { tview in 
+    nd.onSbTap { tview in
       if nd.wantLogging {
         if logView.isHidden {
-          self.view.bringSubviewToFront(logView) 
+          self.view.bringSubviewToFront(logView)
           logView.scrollToBottom()
           logView.isHidden = false
         }
@@ -68,7 +68,7 @@ class MainNC: NavigationController, IssueVCdelegate,
     log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
         "Path: \(Dir.appSupportPath)")
-  } 
+  }
   
   func setupRemoteNotifications() {
     let nd = UIApplication.shared.delegate as! AppDelegate
@@ -79,15 +79,15 @@ class MainNC: NavigationController, IssueVCdelegate,
       self.debug(payload.toString())
     }
     nd.permitPush { pn in
-      if pn.isPermitted { 
-        self.debug("Push permission granted") 
+      if pn.isPermitted {
+        self.debug("Push permission granted")
         self.pushToken = pn.deviceId
       }
-      else { 
-        self.debug("No push permission") 
+      else {
+        self.debug("No push permission")
         self.pushToken = nil
       }
-      dfl["pushToken"] = self.pushToken 
+      dfl["pushToken"] = self.pushToken
       if oldToken != self.pushToken {
         let isTextNotification = dfl["isTextNotification"]!.bool
         self.gqlFeeder.notification(pushToken: self.pushToken, oldToken: oldToken,
@@ -108,18 +108,18 @@ class MainNC: NavigationController, IssueVCdelegate,
     mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
       "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
       isHTML: false)
-    if let screenshot = screenshot { 
-      mail.addAttachmentData(screenshot, mimeType: "image/jpeg", 
+    if let screenshot = screenshot {
+      mail.addAttachmentData(screenshot, mimeType: "image/jpeg",
                              fileName: "taz.neo-screenshot.jpg")
     }
-    if let logData = logData { 
-      mail.addAttachmentData(logData, mimeType: "text/plain", 
+    if let logData = logData {
+      mail.addAttachmentData(logData, mimeType: "text/plain",
                              fileName: "taz.neo-logfile.txt")
     }
     present(mail, animated: true)
   }
   
-  func mailComposeController(_ controller: MFMailComposeViewController, 
+  func mailComposeController(_ controller: MFMailComposeViewController,
     didFinishWith result: MFMailComposeResult, error: Error?) {
     controller.dismiss(animated: true)
     isErrorReporting = false
@@ -130,13 +130,13 @@ class MainNC: NavigationController, IssueVCdelegate,
           !isErrorReporting && MFMailComposeViewController.canSendMail()
       else { return }
     isErrorReporting = true
-    Alert.confirm(title: "Rückmeldung", 
+    Alert.confirm(title: "Rückmeldung",
       message: "Wollen Sie uns eine Fehlermeldung senden oder haben Sie einen " +
                "Kommentar zu unserer App?") { yes in
-                if yes { 
+                if yes {
                   var recipient = "app@taz.de"
                   if recog.numberOfTouchesRequired == 3 { recipient = "norbert@taz.de" }
-                  self.produceErrorReport(recipient: recipient) 
+                  self.produceErrorReport(recipient: recipient)
                 }
       else { self.isErrorReporting = false }
     }
@@ -151,9 +151,9 @@ class MainNC: NavigationController, IssueVCdelegate,
       Alert.action("Abo-Verknüpfung löschen") {_ in self.unlinkSubscriptionId() },
       Alert.action("Abo-Push anfordern") {_ in self.testNotification(type: NotificationType.subscription) },
       Alert.action("Download-Push anfordern") {_ in self.testNotification(type: NotificationType.newIssue) },
-      Alert.action("Protokoll an/aus") {_ in 
+      Alert.action("Protokoll an/aus") {_ in
         if logView.isHidden {
-          self.view.bringSubviewToFront(logView) 
+          self.view.bringSubviewToFront(logView)
           logView.scrollToBottom()
           logView.isHidden = false
         }
@@ -163,14 +163,14 @@ class MainNC: NavigationController, IssueVCdelegate,
         }
       }
     ]
-    Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)", 
+    Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)",
       actions: actions)
   }
   
   func setupTopMenus() {
-    let reportLPress2 = UILongPressGestureRecognizer(target: self, 
+    let reportLPress2 = UILongPressGestureRecognizer(target: self,
         action: #selector(errorReportActivated))
-    let reportLPress3 = UILongPressGestureRecognizer(target: self, 
+    let reportLPress3 = UILongPressGestureRecognizer(target: self,
         action: #selector(threeFingerTouch))
     reportLPress2.numberOfTouchesRequired = 2
     reportLPress3.numberOfTouchesRequired = 3
@@ -185,10 +185,10 @@ class MainNC: NavigationController, IssueVCdelegate,
     case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
     case .expiredAccount: text = "Ihr Abo ist abgelaufen."
     case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
-    case .unexpectedResponse: 
-      Alert.message(title: "Fehler", 
+    case .unexpectedResponse:
+      Alert.message(title: "Fehler",
                     message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
-        exit(0)               
+        exit(0)
       }
     }
     deleteUserData()
@@ -211,7 +211,7 @@ class MainNC: NavigationController, IssueVCdelegate,
   func overviewReceived(issues: [Issue]) {
     ovwIssues = issues
 //    for issue in issues {
-//      let sissues = StoredIssue.get(date: issue.date, inFeed: storedFeed) 
+//      let sissues = StoredIssue.get(date: issue.date, inFeed: storedFeed)
 //    }
     if !inIntro { showIssueVC() }
   }
@@ -223,8 +223,8 @@ class MainNC: NavigationController, IssueVCdelegate,
       if pe! <= UsTime.now().sec { endPolling() }
       else {
         pollEnd = pe
-        self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
-          repeats: true) { _ in self.doPolling() }        
+        self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0,
+          repeats: true) { _ in self.doPolling() }
       }
     }
   }
@@ -232,7 +232,7 @@ class MainNC: NavigationController, IssueVCdelegate,
   func startPolling() {
     self.pollEnd = UsTime.now().sec + PollTimeout
     Defaults.singleton["pollEnd"] = "\(pollEnd!)"
-    self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
+    self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0,
       repeats: true) { _ in self.doPolling() }
   }
   
@@ -242,7 +242,7 @@ class MainNC: NavigationController, IssueVCdelegate,
       guard let pollEnd = self.pollEnd else { self.endPolling(); return }
       if doContinue { if UsTime.now().sec > pollEnd { self.endPolling() } }
       else {
-        self.endPolling() 
+        self.endPolling()
         if self.gqlFeeder.isAuthenticated { /*reloadIssue()*/ }
       }
     }
@@ -255,8 +255,8 @@ class MainNC: NavigationController, IssueVCdelegate,
   }
   
   func userLogin(closure: @escaping (Error?)->()) {
-    let (_,_,token) = SimpleAuthenticator.getUserData()
-    if let token = token { 
+    let (_,_,token) = DefaultAuthenticator.getUserData()
+    if let token = token {
       self.gqlFeeder.authToken = token
       closure(nil)
     }
@@ -275,26 +275,20 @@ class MainNC: NavigationController, IssueVCdelegate,
       self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
       Notification.receive("overviewReceived") { [weak self] issues in
         if let issues = issues as? [Issue] {
-          self?.overviewReceived(issues: issues) 
+          self?.overviewReceived(issues: issues)
         }
       }
-
       Notification.receive("userLogin") { [weak self] _ in
         self?.userLogin() { [weak self] err in
           guard let self = self else { return }
           if err != nil { exit(0) }
-          self.dloader.downloadResources {_ in 
-            self.showIntro() 
+          self.dloader.downloadResources {_ in
+            self.showIntro()
             self.getOverview()
           }
         }
       }
-      //END
-//      Notification.send("userLogin")
-      self.dloader.downloadResources {_ in
-            self.showIntro()
-            self.getOverview()
-      }
+      Notification.send("userLogin")
       closure(.success(self.feeder))
     }
   }
@@ -345,7 +339,7 @@ class MainNC: NavigationController, IssueVCdelegate,
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
     Database.dbRename(old: "ArticleDB", new: "taz")
-    ArticleDB(name: "taz") { [weak self] err in 
+    ArticleDB(name: "taz") { [weak self] err in
       guard let self = self else { return }
       guard err == nil else { exit(1) }
       self.debug("DB opened: \(ArticleDB.singleton!)")
@@ -354,7 +348,7 @@ class MainNC: NavigationController, IssueVCdelegate,
         self.debug("Feeder ready.")
       }
     }
-  } 
+  }
   
   @objc func goingBackground() {
     isForeground = false
@@ -376,7 +370,7 @@ class MainNC: NavigationController, IssueVCdelegate,
   }
   
   func unlinkSubscriptionId() {
-    self.authenticator.unlinkSubscriptionId()
+    SimpleAuthenticator(feeder: self.gqlFeeder).unlinkSubscriptionId()
   }
   
   func getUserData() -> (token: String?, id: String?, password: String?) {
@@ -385,13 +379,13 @@ class MainNC: NavigationController, IssueVCdelegate,
     var token = kc["token"]
     var id = kc["id"]
     let password = kc["password"]
-    if token == nil { 
+    if token == nil {
       token = dfl["token"] 
       if token != nil { kc["token"] = token }
     }
     else { dfl["token"] = token }
-    if id == nil { 
-      id = dfl["id"] 
+    if id == nil {
+      id = dfl["id"]
       if id != nil { kc["id"] = id }
     }
     return(token, id, password)
@@ -433,9 +427,10 @@ class MainNC: NavigationController, IssueVCdelegate,
     let nc = NotificationCenter.default
     nc.addObserver(self, selector: #selector(goingBackground), 
       name: UIApplication.willResignActiveNotification, object: nil)
-    nc.addObserver(self, selector: #selector(goingForeground), 
+    nc.addObserver(self, selector: #selector(goingForeground),
                    name: UIApplication.willEnterForegroundNotification, object: nil)
     setupLogging()
     startup()
   }
+
 } // MainNC

@@ -78,15 +78,13 @@ class TrialSubscriptionController : FormsController {
       //                                   action: #selector(handlePwForgot)),
       contentView.agbAcceptTV,
       submitButton,
-      UIButton(type: .outline, title: Localized("cancel_button"),
-               target: self,
-               action: #selector(handleCancel)),
+      defaultCancelButton
     ]
   }
   
   // MARK: handlePwForgot Action
   @IBAction func handlePwForgot(_ sender: UIButton) {
-    let child = PwForgottController()
+    let child = PwForgottController(auth)
     child.idInput.text = mailInput.text?.trim
     child.modalPresentationStyle = .overCurrentContext
     child.modalTransitionStyle = .flipHorizontal
@@ -113,17 +111,16 @@ class TrialSubscriptionController : FormsController {
     let installationId = dfl["installationId"] ?? App.installationId
     
     //Start mutationSubscriptionId2tazId
-    SharedFeeder.shared.feeder?.trialSubscription(tazId: mail, password: pass, surname: lastname, firstName: firstname, installationId: installationId, pushToken: pushToken, closure: { (result) in
+    auth.feeder.trialSubscription(tazId: mail, password: pass, surname: lastname, firstName: firstname, installationId: installationId, pushToken: pushToken, closure: { (result) in
       switch result {
         case .success(let info):
-          //ToDo #900
           switch info.status {
             /// we are waiting for eMail confirmation (using push/poll)
             case .waitForMail:
-              self.registerForSubscriptionPoll(installationId: installationId)
               self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
+              self.auth.pollSubscription(tmpId: mail, tmpPassword: pass)
             /// valid authentication
             case .valid:
               self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
@@ -148,7 +145,7 @@ class TrialSubscriptionController : FormsController {
             /// AboId not verified
             /// server will confirm later (using push/poll)
             case .waitForProc:
-              self.registerForSubscriptionPoll(installationId: installationId)
+              self.auth.pollSubscription(tmpId: mail, tmpPassword: pass)
             case .subscriptionIdNotValid:
               fallthrough
             /// AboId valid but connected to different tazId
@@ -236,57 +233,6 @@ class TrialSubscriptionController : FormsController {
     }
     
     return nil
-  }
-  
-  // MARK: handleLogin Action
-  @IBAction func handleCancel(_ sender: UIButton) {
-    self.dismiss(animated: true, completion: nil)
-  }
-  
-  func registerForSubscriptionPoll(installationId:String) {
-    /// 2 ways: timeout, incomming "silent" push notification
-    DispatchQueue.global().asyncAfter(deadline: .now() + 5) {
-      self.querrySubscriptionPoll(installationId: installationId)
-    }
-    
-    let pn = PushNotification()
-    pn.onReceive { (pn,payload) in
-      self.log("Recived PushNotification with:: \(payload)")
-      self.querrySubscriptionPoll(installationId: installationId)
-    }
-  }
-  
-  func querrySubscriptionPoll(installationId:String) {
-    SharedFeeder.shared.feeder?.subscriptionPoll(installationId: installationId, closure: { (result) in
-      switch result{
-        case .success(let info):
-          self.log("subscriptionPoll succeed with status: \(info.status) message: \(info.message ?? "-")")
-          switch info.status {
-            case .valid:
-              //todo save token in: info.token
-              self.subscriptionPollSucceed()
-            case .waitForProc: fallthrough
-            case .waitForMail: fallthrough
-            default:
-              DispatchQueue.global().asyncAfter(deadline: .now() + 5) {
-                self.querrySubscriptionPoll(installationId: installationId)
-            }
-        }
-        case .failure(let err):
-          self.log("subscriptionPoll failed with error: \(err)")
-          DispatchQueue.global().asyncAfter(deadline: .now() + 5) {
-            self.querrySubscriptionPoll(installationId: installationId)
-        }
-      }
-    })
-  }
-  
-  func subscriptionPollSucceed(){
-    onMain {
-      self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
-                          backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                          dismissType: .all)
-    }
   }
 }
 

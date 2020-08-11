@@ -17,10 +17,10 @@ class ConnectTazIDController : TrialSubscriptionController {
   var aboId:String
   var aboIdPassword:String
   
-  init(aboId:String, aboIdPassword:String) {
+  init(aboId:String, aboIdPassword:String, auth:AuthMediator) {
     self.aboId = aboId
     self.aboIdPassword = aboIdPassword
-    super.init(nibName: nil, bundle: nil)
+    super.init(auth)
   }
   
   required init?(coder: NSCoder) {
@@ -45,10 +45,7 @@ class ConnectTazIDController : TrialSubscriptionController {
                action: #selector(handlePwForgot)),
       contentView.agbAcceptTV,
       submitButton,
-      UIButton(type: .outline,
-               title: Localized("cancel_button"),
-               target: self,
-               action: #selector(handleCancel)),
+      defaultCancelButton
     ]
   }
   
@@ -73,24 +70,22 @@ class ConnectTazIDController : TrialSubscriptionController {
     
     //Start mutationSubscriptionId2tazId
     //spinner.enabler=true
-    SharedFeeder.shared.feeder?.subscriptionId2tazId(tazId: mail, password: pass, aboId: self.aboId, aboIdPW: aboIdPassword, surname: lastname, firstName: firstname, installationId: installationId, pushToken: pushToken, closure: { (result) in
+    auth.feeder.subscriptionId2tazId(tazId: mail, password: pass, aboId: self.aboId, aboIdPW: aboIdPassword, surname: lastname, firstName: firstname, installationId: installationId, pushToken: pushToken, closure: { (result) in
       switch result {
         case .success(let info):
-          //ToDo #900
           switch info.status {
-            /// we are waiting for eMail confirmation (using push/poll)
-            case .waitForMail:
-              self.registerForSubscriptionPoll(installationId: installationId)
-              self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
-                                  backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                  dismissType: .all)
-            /// valid authentication
-            case .valid:
+            case .valid:/// valid authentication
+              DefaultAuthenticator.storeUserData(id: mail, password: pass, token: info.token ?? "")
               self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
-            /// valid tazId connected to different AboId
-            case .alreadyLinked:
+              self.auth.authenticationSucceededClosure?(nil)
+            case .waitForMail:///user need to confirm mail
+              self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
+                                  backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                  dismissType: .all)
+              self.auth.pollSubscription(tmpId: mail, tmpPassword: pass)
+            case .alreadyLinked:/// valid tazId connected to different AboId
               if let loginCtrl = self.presentingViewController as? LoginController {
                 loginCtrl.idInput.text = self.mailInput.text
                 loginCtrl.passInput.text = self.passInput.text
@@ -98,33 +93,26 @@ class ConnectTazIDController : TrialSubscriptionController {
               self.showResultWith(message: Localized("subscriptionId2tazId_alreadyLinked"),
                                   backButtonTitle: Localized("back_to_login"),
                                   dismissType: .leftFirst)
-            /// invalid mail address (only syntactic check)
-            case .invalidMail:
+           
+            case .invalidMail: /// invalid mail address (only syntactic check)
               self.mailInput.bottomMessage = Localized("login_email_error_no_email")
               Toast.show(Localized("register_validation_issue"))
             /// tazId not verified
             case .tazIdNotValid:
               Toast.show(Localized("toast_login_failed_retry"))//ToDo
-            /// AboId not verified
-            /// server will confirm later (using push/poll)
-            case .waitForProc:
-              self.registerForSubscriptionPoll(installationId: installationId)
+            case .waitForProc:// AboId not verified, server will confirm later (using push/poll)
+              self.auth.pollSubscription(tmpId: mail, tmpPassword: pass)
             case .subscriptionIdNotValid:
               fallthrough
-            /// AboId valid but connected to different tazId
-            case .invalidConnection:
+            case .invalidConnection:/// AboId valid but connected to different tazId
               fallthrough
-            /// user probably didn't confirm mail
-            case .noPollEntry:
+            case .noPollEntry: /// user probably didn't confirm mail
               fallthrough
-            /// account provided by token is expired
-            case .expired:
+            case .expired: /// account provided by token is expired
               fallthrough
-            /// no surname provided - seems to be necessary fro trial subscriptions
-            case .noSurname:
+            case .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
               fallthrough
-            /// no firstname provided
-            case .noFirstname:
+            case .noFirstname: /// no firstname provided
               fallthrough
             case .unknown:  /// decoded from unknown string
               fallthrough

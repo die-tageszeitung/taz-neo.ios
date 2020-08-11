@@ -9,6 +9,9 @@
 import UIKit
 import NorthLib
 
+
+/// #TODO: move to NorthLib String Extension
+// MARK: - String extension
 extension String{
   var isNumber : Bool {
     get {
@@ -17,46 +20,34 @@ extension String{
   }
 }
 
-internal class SharedFeeder {
-  // MARK: - Properties
-  var feeder : GqlFeeder?
-  static let shared = SharedFeeder()
-  // Initialization
-  
-  private init() {
-    self.setupFeeder { [weak self] _ in
-      guard let self = self else { return }
-      print("Feeder ready.\(String(describing: self.feeder?.toString()))")
-    }
-    Toast.alertBackgroundColor = TazColor.CIColor.color
-  }
-  
-  // MARK: setupFeeder
-  func setupFeeder(closure: @escaping (Result<Feeder,Error>)->()) {
-    self.feeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { [weak self] (res) in
-      guard let self = self else { return }
-      guard res.value() != nil else { return }
-      //Notification.send("userLogin")
-      if let feeder = self.feeder {
-        print("success")
-        closure(.success(feeder))
-      }
-      else {
-        print("fail")
-        closure(.failure(NSError(domain: "taz.test", code: 123, userInfo: nil)))
-      }
-    }
-  }
-  
-}
-
+// MARK: - FormsController
 class FormsController: UIViewController {
+  
+  //Subview where the COntent/Form is displayed
   var contentView = FormView()
+  //Reference for AuthMediator to interact with the rest of the App
+  var auth:AuthMediator
+  
+  lazy var defaultCancelButton:UIButton = {
+    return UIButton(type: .outline,
+                    title: Localized("cancel_button"),
+                    target: self,
+                    action: #selector(handleDefaultCancel))
+  }()
   
   public var uiBlocked : Bool = false {
     didSet{
       contentView.blockingView.enabled = uiBlocked
     }
+  }
+  
+  init(_ auth:AuthMediator) {
+     self.auth = auth
+     super.init(nibName: nil, bundle: nil)
+   }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
   
   //Overwrite this in child to have individual Content
@@ -66,7 +57,6 @@ class FormsController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    _ = SharedFeeder.shared //setup once
     
     self.contentView.views = getContentViews()
     
@@ -81,11 +71,18 @@ class FormsController: UIViewController {
     let successCtrl
       = FormsController_Result_Controller(message: message,
                                           backButtonTitle: backButtonTitle,
-                                          dismissType: dismissType)
+                                          dismissType: dismissType, auth: self.auth)
     modalFlip(successCtrl)
-    
   }
   
+  // MARK: handleCancel Action
+   @IBAction func handleDefaultCancel(_ sender: UIButton) {
+    self.dismiss(animated: true, completion: nil)
+   }
+}
+
+// MARK: - Modal Present extension for FormsController
+extension FormsController{
   /// Present given VC on topmost Viewcontroller with flip transition
   func modalFlip(_ controller:UIViewController){
     controller.modalPresentationStyle = .overCurrentContext
@@ -120,6 +117,7 @@ class FormsController: UIViewController {
   }
 }
 
+// MARK: - Modal dismissType
 enum dismissType {case all, current, leftFirst}
 
 // MARK: - ConnectTazID_Result_Controller
@@ -141,8 +139,8 @@ class FormsController_Result_Controller: FormsController {
     ]
   }
   
-  convenience init(message:String, backButtonTitle:String, dismissType:dismissType) {
-    self.init(nibName:nil, bundle:nil)
+  convenience init(message:String, backButtonTitle:String, dismissType:dismissType, auth:AuthMediator) {
+    self.init(auth)
     self.message = message
     self.backButtonTitle = backButtonTitle
     self.dismissType = dismissType
@@ -170,15 +168,14 @@ class FormsController_Result_Controller: FormsController {
   }
 }
 
+// MARK: - ext: FormsController:UITextViewDelegate
 extension FormsController: UITextViewDelegate {
   func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
     ///Handle AGB Demo Url come from Localizable.strings
     ///"fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/!106726'>AGB</a> sowie die Hinweise zum <a href='https://taz.de'>Widerruf (N/A)</a> und <a href='https://taz.de/!166598'>Datenschutz</a>.";
     if URL.absoluteString.contains("taz.de/!106726"){
       let introVC = IntroVC()
-      guard let resdir = SharedFeeder.shared.feeder?.resourcesDir.path else {
-        return true //Open in Safari
-      }
+      let resdir = auth.feeder.resourcesDir.path
       let dataPolicy = File(resdir + "/welcomeSlidesDataPolicy.html")
       introVC.webView.webView.load(url: dataPolicy.url)
       modalFromBottom(introVC)
@@ -215,8 +212,9 @@ extension FormsController: UITextViewDelegate {
   }
 }
 
+// MARK: - ext: UIViewController
 extension UIViewController{
-  
+  /// dismiss helper for stack of modal presented VC's
   static func dismiss(stack:[UIViewController], animated:Bool, completion: @escaping(() -> Void)){
     var stack = stack
     let vc = stack.pop()
@@ -229,6 +227,7 @@ extension UIViewController{
     })
   }
   
+  /// helper to find presenting VC for stack of modal presented VC's
   var rootPresentingViewController : UIViewController {
     get{
       var vc = self
@@ -241,12 +240,14 @@ extension UIViewController{
     }
   }
   
+  /// helper to find 1st presended VC in stack of modal presented VC's
   var rootModalViewController : UIViewController? {
     get{
       return self.rootPresentingViewController.presentedViewController
     }
   }
   
+  /// helper for stack of modal presented VC's, to get all modal presented VC's below self
   var modalStack : [UIViewController] {
     get{
       var stack:[UIViewController] = []

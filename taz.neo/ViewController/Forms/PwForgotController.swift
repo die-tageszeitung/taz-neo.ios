@@ -37,10 +37,7 @@ class PwForgottController: FormsController {
       UILabel(title: Localized("login_forgot_password_header")),
       idInput,
       submitButton,
-      UIButton(type: .label,
-               title: Localized("cancel_button"),
-               target: self,
-               action: #selector(handleCancel)),
+      defaultCancelButton
     ]
   }
   // MARK: viewDidLoad
@@ -50,12 +47,7 @@ class PwForgottController: FormsController {
     idInput.textContentType = .emailAddress
     idInput.keyboardType = .emailAddress
   }
-  
-  // MARK: handleCancel
-  @IBAction func handleCancel(_ sender: UIButton) {
-    self.dismiss(animated: true, completion:nil)
-  }
-  
+    
   // MARK: handleSend
   @IBAction func handleSend(_ sender: UIButton) {
     uiBlocked = true
@@ -81,7 +73,7 @@ class PwForgottController: FormsController {
   
   // MARK: mutateSubscriptionReset
   func mutateSubscriptionReset(_ id: String){
-    SharedFeeder.shared.feeder?.subscriptionReset(aboId: id, closure: { [weak self]  (result) in
+    auth.feeder.subscriptionReset(aboId: id, closure: { [weak self]  (result) in
       guard let self = self else { return }
       switch result {
         case .success(let info):
@@ -90,7 +82,7 @@ class PwForgottController: FormsController {
             case .invalidSubscriptionId: fallthrough
             case .alreadyConnected: fallthrough
             default:
-              let successCtrl = SubscriptionResetSuccessController()
+              let successCtrl = SubscriptionResetSuccessController(self.auth)
               successCtrl.modalPresentationStyle = .overCurrentContext
               successCtrl.modalTransitionStyle = .flipHorizontal
               self.present(successCtrl, animated: true, completion:{
@@ -108,13 +100,13 @@ class PwForgottController: FormsController {
   
   // MARK: mutatePasswordReset
   func mutatePasswordReset(_ id: String){
-    SharedFeeder.shared.feeder?.passwordReset(email: id, closure: { [weak self]  (result) in
+    auth.feeder.passwordReset(email: id, closure: { [weak self]  (result) in
       guard let self = self else { return }
       switch result {
         case .success(let info):
           switch info {
             case .ok:
-              let successCtrl = PasswordResetRequestedSuccessController()
+              let successCtrl = PasswordResetRequestedSuccessController(self.auth)
               successCtrl.modalPresentationStyle = .overCurrentContext
               successCtrl.modalTransitionStyle = .flipHorizontal
               self.present(successCtrl, animated: true, completion:{
