@@ -20,7 +20,6 @@ public class FormView: UIView {
   var views : [UIView] = []{
     didSet{
       addAndPin(views)
-      self.backgroundColor = TazColor.CTBackground.color
     }
   }
   

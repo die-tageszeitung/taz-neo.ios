@@ -63,8 +63,14 @@ class FormsController: UIViewController {
     let wConstraint = self.contentView.container.pinWidth(to: self.view.width)
     wConstraint.constant = UIScreen.main.bounds.width
     wConstraint.priority = .required
+    
+    self.view.backgroundColor = TazColor.CTBackground.color
     self.view.addSubview(self.contentView)
-    pin(self.contentView, to: self.view)
+    if #available(iOS 13.0, *) {
+      pin(self.contentView, to: self.view)
+    } else{
+      pin(self.contentView, toSafe: self.view)
+    }
   }
   
   func showResultWith(message:String, backButtonTitle:String,dismissType:dismissType){
