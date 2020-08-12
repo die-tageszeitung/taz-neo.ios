@@ -262,7 +262,7 @@ class MainNC: NavigationController, IssueVCdelegate,
     }
     else {
       self.setupPolling()
-      self.authenticator.authenticate(isFullScreen: true) { err in closure(err) }
+      self.authenticator.authenticate{ err in closure(err) }
     }
   }
     

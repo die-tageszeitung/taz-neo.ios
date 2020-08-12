@@ -75,7 +75,7 @@ public class SimpleAuthenticator: Authenticator {
   }
   
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  public func authenticate(isFullScreen: Bool = true, closure: @escaping (Error?)->()) {
+  public func authenticate(closure: @escaping (Error?)->()) {
     withLoginData { [weak self] (id, password) in
       guard let this = self else { return }
       if let id = id, let password = password {
