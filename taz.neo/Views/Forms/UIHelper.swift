@@ -167,6 +167,17 @@ extension UIImage {
   /// UIImage(name: "checkmark") // Creates image
   /// ```
   ///
+  /// #challenge: SFSymbol's images for iOS 12
+  ///  using: https://github.com/davedelong/sfsymbols
+  ///  but currently it has an issue, and uses Thin Symbol Images
+  ///  so convert images that way:
+  ///  sfsymbols --symbol-name eye.slash.fill  --font-file /Library/Fonts/SF-Pro-Display-Regular.otf --font-size 18 --format pdf --output converted
+  ///  to ensure same "eye" size eye.slash has font-size 17 and eye font-size 18 ;-)
+  ///
+  ///  While import to xcassets ensure:
+  ///  - Scales: single scale
+  ///  - Render as: Template Image
+  ///
   /// - Warning: May return nil if Image for given name does not exist
   /// - Parameter name: the image name
   /// - Returns: UIImage related to `name`.
@@ -175,6 +186,8 @@ extension UIImage {
       self.init(systemName: name)
     }
     else{
+      ///Symbol Names with a dot like eye.slash cannot be loaded from asset catalog
+      let name = name.replacingOccurrences(of: ".", with: "_")
       self.init(named: name)
     }
   }

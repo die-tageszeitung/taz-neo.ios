@@ -229,6 +229,7 @@ class TazTextField : UITextField, UITextFieldDelegate{
       let imgEye = UIImage(name: "eye.fill")
       let imgEyeSlash = UIImage(name: "eye.slash.fill")
       let eye = UIImageView(image: imgEyeSlash)
+      eye.contentMode = .scaleAspectFit
       eye.tintColor = TazColor.CTArticle.color
       eye.onTapping(closure: { _ in
         self.isSecureTextEntry = !self.isSecureTextEntry
