@@ -55,7 +55,7 @@ class LoginController: FormsController {
       UIButton(type: .outline,
                title: Localized("register_button"),
                target: self, action: #selector(handleRegister)),
-      defaultCancelButton,
+//      defaultCancelButton,
       passForgottButton
     ]
   }
@@ -209,7 +209,7 @@ class LoginController: FormsController {
           //ToDo #900
           switch info.status {
             case .valid:
-              self.modalFlip(ConnectTazIDController(aboId: aboId,
+              self.modalFlip(CreateTazIDController(aboId: aboId,
                                                     aboIdPassword: password, auth: self.auth))
               break;
             case .expired:

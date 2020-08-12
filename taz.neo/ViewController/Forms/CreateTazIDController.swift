@@ -12,7 +12,7 @@ import NorthLib
 // MARK: - ConnectTazIDController
 /// Presents Register TazID Form and Functionallity
 /// ChildViews/Controller are pushed modaly
-class ConnectTazIDController : TrialSubscriptionController {
+class CreateTazIDController : TrialSubscriptionController {
   
   var aboId:String
   var aboIdPassword:String
@@ -33,6 +33,10 @@ class ConnectTazIDController : TrialSubscriptionController {
     return [
       TazHeader(),
       UILabel(title: Localized("taz_id_account_create_intro")),
+      UIButton(type: .label,
+               title: Localized("login_forgot_password"),
+               target: self,
+               action: #selector(handleAlreadyHaveTazId)),
       mailInput,
       passInput,
       pass2Input,
@@ -47,6 +51,14 @@ class ConnectTazIDController : TrialSubscriptionController {
       submitButton,
       defaultCancelButton
     ]
+  }
+  
+  // MARK: handleLogin Action
+  @IBAction func handleAlreadyHaveTazId(_ sender: UIButton) {
+    let child = ConnectExistingTazIdController(self.auth)
+    child.idInput.text = mailInput.text?.trim
+    child.idInput.text = passInput.text?.trim
+    modalFlip(child)
   }
   
   // MARK: handleLogin Action
@@ -81,6 +93,14 @@ class ConnectTazIDController : TrialSubscriptionController {
                                   dismissType: .all)
               self.auth.authenticationSucceededClosure?(nil)
             case .waitForMail:///user need to confirm mail
+              if (info.token ?? "").length > 0 {//@ToDo Maybe API Change
+                DefaultAuthenticator.storeUserData(id: mail, password: pass, token: info.token ?? "")
+                self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
+                                       backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                       dismissType: .all)
+                self.auth.authenticationSucceededClosure?(nil)
+                return
+              }
               self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
