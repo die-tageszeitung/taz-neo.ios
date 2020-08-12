@@ -52,7 +52,7 @@ public protocol Authenticator: DoesLog {
   
   /// Ask user for id/password, check with GraphQL-Server, store using method 
   /// 'storeUserData' and call closure to indicate success (closure(nil) is success)
-  func authenticate(closure: @escaping (Error?)->())
+  func authenticate(isFullScreen: Bool, closure: @escaping (Error?)->())
   
   /**
    Use this method to store user authentication data in user defaults and keychain
@@ -81,7 +81,7 @@ public protocol Authenticator: DoesLog {
    */
   static func deleteUserData()
 
-}
+} // Authenticator 
 
 extension Authenticator {
   /// Returns the App's installation ID
@@ -122,4 +122,4 @@ extension Authenticator {
     dfl["id"] = nil
   }
 
-}
+} // Authenticator extension
