@@ -34,7 +34,7 @@ class CreateTazIDController : TrialSubscriptionController {
       TazHeader(),
       UILabel(title: Localized("taz_id_account_create_intro")),
       UIButton(type: .label,
-               title: Localized("login_forgot_password"),
+               title: Localized("login_missing_credentials_switch_to_login"),
                target: self,
                action: #selector(handleAlreadyHaveTazId)),
       mailInput,
@@ -55,9 +55,7 @@ class CreateTazIDController : TrialSubscriptionController {
   
   // MARK: handleLogin Action
   @IBAction func handleAlreadyHaveTazId(_ sender: UIButton) {
-    let child = ConnectExistingTazIdController(self.auth)
-    child.idInput.text = mailInput.text?.trim
-    child.idInput.text = passInput.text?.trim
+    let child = ConnectExistingTazIdController(aboId: aboId, aboIdPassword: aboIdPassword, auth: auth)
     modalFlip(child)
   }
   
