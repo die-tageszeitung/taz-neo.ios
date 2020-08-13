@@ -77,9 +77,9 @@ open class HeaderView: UIView {
         subTitle = sub
         sub.textAlignment = .right
         self.addSubview(sub)
-        titleFont = AppFonts.titleFont(size: LargeTitleFontSize)
-        reducedTitleFont = AppFonts.titleFont(size: LargeTitleReducedFontSize)
-        subTitleFont = AppFonts.contentFont(size: SubTitleFontSize)
+        titleFont = Const.Fonts.titleFont(size: LargeTitleFontSize)
+        reducedTitleFont = Const.Fonts.titleFont(size: LargeTitleReducedFontSize)
+        subTitleFont = Const.Fonts.contentFont(size: SubTitleFontSize)
         sub.font = subTitleFont
         isLargeTitleFont = false
         pin(sub.top, to: line.bottom, dist: 1)
@@ -91,12 +91,12 @@ open class HeaderView: UIView {
       else {
         let pgn = Label()
         pageNumber = pgn
-        pageNumberFont = AppFonts.contentFont(size: PageNumberFontSize)
+        pageNumberFont = Const.Fonts.contentFont(size: PageNumberFontSize)
         pgn.font = pageNumberFont
         self.addSubview(pgn)
         pin(pgn.top, to: self.top, dist: SmallTopMargin + 2)
         pin(pgn.right, to: title.left, dist: -6)
-        titleFont = AppFonts.titleFont(size: SubTitleFontSize)
+        titleFont = Const.Fonts.titleFont(size: SubTitleFontSize)
         title.font = titleFont
         topIndent = pin(title.top, to: self.top, dist: SmallTopMargin)
         pin(self.bottom, to: title.bottom, dist: 20)        
@@ -115,9 +115,9 @@ open class HeaderView: UIView {
       self.addSubview(title)
       title.textAlignment = .center
       title.adjustsFontSizeToFitWidth = true
-      titleFont = AppFonts.contentFont(size: MiniTitleFontSize)
+      titleFont = Const.Fonts.contentFont(size: MiniTitleFontSize)
       title.font = titleFont
-      pageNumberFont = AppFonts.contentFont(size: MiniPageNumberFontSize)
+      pageNumberFont = Const.Fonts.contentFont(size: MiniPageNumberFontSize)
       pageNumber.font = pageNumberFont
       pin(title.right, to: self.right, dist: -RightMargin)
       pin(title.top, to: self.top)
@@ -141,12 +141,12 @@ open class HeaderView: UIView {
       var bgcol: UIColor
       var txtcol: UIColor
       if isDarkMode {
-        bgcol = AppColors.Dark.HBackground
-        txtcol = AppColors.Dark.HText
+        bgcol = Const.Colors.Dark.HBackground
+        txtcol = Const.Colors.Dark.HText
       }
       else {
-        bgcol = AppColors.Light.HBackground
-        txtcol = AppColors.Light.HText
+        bgcol = Const.Colors.Light.HBackground
+        txtcol = Const.Colors.Light.HText
       }
       self.backgroundColor = bgcol
       regular.backgroundColor = bgcol

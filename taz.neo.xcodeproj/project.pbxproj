@@ -29,7 +29,7 @@
 		AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9F6245421AC0043F497 /* WebViewTests.swift */; };
 		AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9FA245497F80043F497 /* IntroVC.swift */; };
 		AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE80A3942449C3250012DFFA /* IssueVC.swift */; };
-		AEAABADE24641BFA001BE414 /* AppUIValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAABADD24641BFA001BE414 /* AppUIValues.swift */; };
+		AEAABADE24641BFA001BE414 /* Const.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAABADD24641BFA001BE414 /* Const.swift */; };
 		AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */; };
 		AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAEE0002456D9EC00F627FE /* StartupVC.swift */; };
 		AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF56E219ACD1A00566205 /* Assets.xcassets */; };
@@ -99,7 +99,7 @@
 		AE822631232A717E00FFBE67 /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		AE86486F248E274F007096B4 /* PdfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfTest.swift; sourceTree = "<group>"; };
 		AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NorthLib.xcodeproj; path = ../NorthLib/NorthLib.xcodeproj; sourceTree = "<group>"; };
-		AEAABADD24641BFA001BE414 /* AppUIValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUIValues.swift; sourceTree = "<group>"; };
+		AEAABADD24641BFA001BE414 /* Const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Const.swift; sourceTree = "<group>"; };
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
 		AEBAF564219ACD1900566205 /* taz neo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "taz neo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -239,7 +239,7 @@
 				AECCE11B23FBF3FE007C2276 /* MainNC.swift */,
 				AEC7D46C249A598B008630FB /* FeederContext.swift */,
 				AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */,
-				AEAABADD24641BFA001BE414 /* AppUIValues.swift */,
+				AEAABADD24641BFA001BE414 /* Const.swift */,
 				AE4AA2AE23F6AD5700EAFE78 /* ViewController */,
 				AE82262C232A70E000FFBE67 /* GraphQlSession.swift */,
 				AE696F2D23918F9400265FC8 /* GqlFeeder.swift */,
@@ -407,7 +407,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AEBAF59C219ACFAC00566205 /* NavController.swift in Sources */,
-				AEAABADE24641BFA001BE414 /* AppUIValues.swift in Sources */,
+				AEAABADE24641BFA001BE414 /* Const.swift in Sources */,
 				AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */,
 				AE4F51DB2438C8E800BC9548 /* ArticleDB.swift in Sources */,
 				AE5D9EC323E1BB2D0002C3B8 /* ContentTableVC.swift in Sources */,
