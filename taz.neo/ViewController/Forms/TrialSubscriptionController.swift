@@ -14,6 +14,13 @@ import NorthLib
 /// ChildViews/Controller are pushed modaly
 class TrialSubscriptionController : FormsController {
   
+  lazy var defaultPWForgotButton:UIButton = {
+    return UIButton(type: .label,
+             title: Localized("login_forgot_password"),
+             target: self,
+             action: #selector(handlePwForgot))
+  }()
+  
   override public var uiBlocked : Bool {
     didSet{
       super.uiBlocked = uiBlocked
@@ -73,9 +80,6 @@ class TrialSubscriptionController : FormsController {
       lastnameInput,
       UILabel(title:
         Localized("fragment_login_request_test_subscription_existing_account")),
-      //      FormularView.labelLikeButton(title: Localized("login_forgot_password"),
-      //                                   target: self,
-      //                                   action: #selector(handlePwForgot)),
       contentView.agbAcceptTV,
       submitButton,
       defaultCancelButton

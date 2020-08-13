@@ -42,20 +42,20 @@ class CreateTazIDController : TrialSubscriptionController {
       pass2Input,
       firstnameInput,
       lastnameInput,
-      UILabel(title: Localized("fragment_login_request_test_subscription_existing_account")),
-      UIButton(type: .label,
-               title: Localized("login_forgot_password"),
-               target: self,
-               action: #selector(handlePwForgot)),
       contentView.agbAcceptTV,
       submitButton,
-      defaultCancelButton
+      defaultCancelButton,
+      defaultPWForgotButton
     ]
   }
   
   // MARK: handleLogin Action
   @IBAction func handleAlreadyHaveTazId(_ sender: UIButton) {
-    let child = ConnectExistingTazIdController(aboId: aboId, aboIdPassword: aboIdPassword, auth: auth)
+    let child = ConnectExistingTazIdController(tazId: (mailInput.text ?? "").trim,
+                                               tazIdPassword: (passInput.text ?? "").trim,
+                                               aboId: aboId,
+                                               aboIdPassword: aboIdPassword,
+                                               auth: auth)
     modalFlip(child)
   }
   
@@ -71,8 +71,14 @@ class CreateTazIDController : TrialSubscriptionController {
     
     let mail = mailInput.text ?? ""
     let pass = passInput.text ?? ""
-    let lastname = lastnameInput.text ?? ""
-    let firstname = firstnameInput.text ?? ""
+    let lastName = lastnameInput.text ?? ""
+    let firstName = firstnameInput.text ?? ""
+    
+    self.connectWith(tazId: mail, tazIdPassword: pass, aboId: self.aboId, aboIdPW: self.aboIdPassword, lastName: lastName, firstName: firstName)
+  }
+  
+  
+  func connectWith(tazId: String, tazIdPassword: String, aboId: String, aboIdPW: String, lastName: String, firstName: String){
     
     let dfl = Defaults.singleton
     let pushToken = dfl["pushToken"]
@@ -80,19 +86,19 @@ class CreateTazIDController : TrialSubscriptionController {
     
     //Start mutationSubscriptionId2tazId
     //spinner.enabler=true
-    auth.feeder.subscriptionId2tazId(tazId: mail, password: pass, aboId: self.aboId, aboIdPW: aboIdPassword, surname: lastname, firstName: firstname, installationId: installationId, pushToken: pushToken, closure: { (result) in
+    auth.feeder.subscriptionId2tazId(tazId: tazId, password: tazIdPassword, aboId: self.aboId, aboIdPW: aboIdPassword, surname: lastName, firstName: firstName, installationId: installationId, pushToken: pushToken, closure: { (result) in
       switch result {
         case .success(let info):
           switch info.status {
             case .valid:/// valid authentication
-              DefaultAuthenticator.storeUserData(id: mail, password: pass, token: info.token ?? "")
+              DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
               self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
               self.auth.authenticationSucceededClosure?(nil)
             case .waitForMail:///user need to confirm mail
               if (info.token ?? "").length > 0 {//@ToDo Maybe API Change
-                DefaultAuthenticator.storeUserData(id: mail, password: pass, token: info.token ?? "")
+                DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
                 self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
                                        backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                        dismissType: .all)
@@ -102,7 +108,7 @@ class CreateTazIDController : TrialSubscriptionController {
               self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
-              self.auth.pollSubscription(tmpId: mail, tmpPassword: pass)
+              self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
             case .alreadyLinked:/// valid tazId connected to different AboId
               if let loginCtrl = self.presentingViewController as? LoginController {
                 loginCtrl.idInput.text = self.mailInput.text
@@ -119,7 +125,7 @@ class CreateTazIDController : TrialSubscriptionController {
             case .tazIdNotValid:
               Toast.show(Localized("toast_login_failed_retry"))//ToDo
             case .waitForProc:// AboId not verified, server will confirm later (using push/poll)
-              self.auth.pollSubscription(tmpId: mail, tmpPassword: pass)
+              self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
             case .subscriptionIdNotValid:
               fallthrough
             case .invalidConnection:/// AboId valid but connected to different tazId
