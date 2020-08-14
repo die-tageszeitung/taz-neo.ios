@@ -15,8 +15,8 @@ public struct Const {
     /// Some resource filenames
     static let dataPolicy = "welcomeSlidesDataPolicy.html"
     static let welcomeSlides = "welcomeSlides.html"
-    static let revocation = "welcomeWiderruf.html"
-    static let terms = "welcomeAgb.html"
+    static let revocation = "welcomeRevocation.html"
+    static let terms = "welcomeTerms.html"
   } // Filename
   
   /// Various color values
