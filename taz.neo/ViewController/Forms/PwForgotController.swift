@@ -11,50 +11,33 @@ import MessageUI
 import NorthLib
 
 // MARK: - PwForgottController
-/// Presents PwForgott Form and Functionallity for request Subscription Data or reset Password for tazID Accounts
-/// ChildViews/Controller are pushed modaly
 class PwForgottController: FormsController {
   
-  override public var uiBlocked : Bool {
-    didSet{
-      super.uiBlocked = uiBlocked
-      submitButton.isEnabled = !uiBlocked
-    }
+  private var contentView = PwForgottView()
+  override var ui : PwForgottView { get { return contentView }}
+  
+  /**
+   #todo move that to the place where its needed
+   idInput.autocapitalizationType = .none
+   idInput.textContentType = .emailAddress
+   idInput.keyboardType = .emailAddress
+   */
+  
+  // MARK: init
+  convenience init(id:String?, auth: AuthMediator) {
+    self.init(auth)
+    ui.idInput.text = id
+    ui.submitButton.touch(self, action: #selector(handleSubmit))
+    ui.cancelButton.touch(self, action: #selector(handleBack))
   }
   
-  let idInput
-    = TazTextField(placeholder: Localized("login_username_hint"))
-  
-  lazy var submitButton:UIButton = {
-    return UIButton(title: Localized("login_forgot_password_send"),
-             target: self,
-             action: #selector(handleSend))
-  }()
-  
-  override func getContentViews() -> [UIView] {
-    return  [
-      TazHeader(),
-      UILabel(title: Localized("login_forgot_password_header")),
-      idInput,
-      submitButton,
-      defaultCancelButton
-    ]
-  }
-  // MARK: viewDidLoad
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    idInput.autocapitalizationType = .none
-    idInput.textContentType = .emailAddress
-    idInput.keyboardType = .emailAddress
-  }
-    
   // MARK: handleSend
-  @IBAction func handleSend(_ sender: UIButton) {
-    uiBlocked = true
-    guard let id = idInput.text, !id.isEmpty  else {
-      idInput.bottomMessage = Localized("login_username_error_empty")
+  @IBAction func handleSubmit(_ sender: UIButton) {
+    ui.blocked = true
+    guard let id = ui.idInput.text, !id.isEmpty  else {
+      ui.idInput.bottomMessage = Localized("login_username_error_empty")
       Toast.show(Localized("register_validation_issue"))
-      uiBlocked = false
+      ui.blocked = false
       return
     }
     
@@ -62,9 +45,9 @@ class PwForgottController: FormsController {
       self.mutateSubscriptionReset(id)
     }
     else if !id.isValidEmail(){
-      idInput.bottomMessage = Localized("error_invalid_email_or_abo_id")
+      ui.idInput.bottomMessage = Localized("error_invalid_email_or_abo_id")
       Toast.show(Localized("register_validation_issue"))
-      uiBlocked = false
+      ui.blocked = false
     }
     else{
       self.mutatePasswordReset(id)
@@ -82,19 +65,14 @@ class PwForgottController: FormsController {
             case .invalidSubscriptionId: fallthrough
             case .alreadyConnected: fallthrough
             default:
-              let successCtrl = SubscriptionResetSuccessController(self.auth)
-              successCtrl.modalPresentationStyle = .overCurrentContext
-              successCtrl.modalTransitionStyle = .flipHorizontal
-              self.present(successCtrl, animated: true, completion:{
-                self.view.isHidden = true
-              })
+              self.modalFlip(SubscriptionResetSuccessController())
         }
         //ToDo #901
         case .failure:
           Toast.show(Localized("error"))
           self.log("An error occured in mutateSubscriptionReset: \(String(describing: result.error()))")
       }
-      self.uiBlocked = false
+      self.ui.blocked = false
     })
   }
   
@@ -106,12 +84,7 @@ class PwForgottController: FormsController {
         case .success(let info):
           switch info {
             case .ok:
-              let successCtrl = PasswordResetRequestedSuccessController(self.auth)
-              successCtrl.modalPresentationStyle = .overCurrentContext
-              successCtrl.modalTransitionStyle = .flipHorizontal
-              self.present(successCtrl, animated: true, completion:{
-                self.view.isHidden = true
-              })
+              self.modalFlip(PasswordResetRequestedSuccessController())
             case .invalidMail:
               Toast.show(Localized("error_invalid_email_or_abo_id"))
             case .mailError:
@@ -123,15 +96,41 @@ class PwForgottController: FormsController {
           Toast.show(Localized("error"))
           self.log("An error occured in mutatePasswordReset: \(String(describing: result.error()))")
       }
-      self.uiBlocked = false
+      self.ui.blocked = false
     })
   }
 }
 
+// MARK: - PasswordResetRequestedSuccessController
+class PasswordResetRequestedSuccessController: FormsResultController {
+  convenience init(expireDateMessage:String?,
+                   dismissType:dismissType) {
+    self.init()
+    ui.views =  [
+      TazHeader(),
+      UILabel(title: Localized("login_forgot_password_email_sent_header"),
+              paddingTop: 30,
+              paddingBottom: 30
+      ),
+      UIButton(title: Localized("login_forgot_password_email_sent_back"),
+               target: self, action: #selector(handleBack)),
+      
+    ]
+  }
+  // MARK: handleBack Action
+  @IBAction override func handleBack(_ sender: UIButton) {
+    let parent = self.presentingViewController as? PwForgottController
+    self.dismiss(animated: true, completion: nil)
+    parent?.dismiss(animated: false, completion: nil)
+  }
+}
+
 // MARK: - SubscriptionResetSuccessController
-class SubscriptionResetSuccessController: FormsController, MFMailComposeViewControllerDelegate {
-  override func getContentViews() -> [UIView] {
-    return   [
+class SubscriptionResetSuccessController: FormsResultController, MFMailComposeViewControllerDelegate {
+  
+  init(){
+    super.init(nibName: nil, bundle: nil)
+    ui.views =   [
       TazHeader(),
       UILabel(title: Localized("login_forgot_password_email_sent_header")
       ),
@@ -148,8 +147,12 @@ class SubscriptionResetSuccessController: FormsController, MFMailComposeViewCont
     ]
   }
   
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+  }
+  
   // MARK: handleBack Action
-  @IBAction func handleBack(_ sender: UIButton) {
+  @IBAction override func handleBack(_ sender: UIButton) {
     let parent = self.presentingViewController as? PwForgottController
     self.dismiss(animated: true, completion: nil)
     parent?.dismiss(animated: false, completion: nil)
@@ -174,28 +177,5 @@ class SubscriptionResetSuccessController: FormsController, MFMailComposeViewCont
   // MARK: Mail Dismiss
   func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
     controller.dismiss(animated: true)
-  }
-}
-
-// MARK: - PasswordResetRequestedSuccessController
-class PasswordResetRequestedSuccessController: FormsController {
-  override func getContentViews() -> [UIView] {
-    return  [
-      TazHeader(),
-      UILabel(title: Localized("login_forgot_password_email_sent_header"),
-              paddingTop: 30,
-              paddingBottom: 30
-      ),
-      UIButton(title: Localized("login_forgot_password_email_sent_back"),
-               target: self, action: #selector(handleBack)),
-      
-    ]
-  }
-  
-  // MARK: handleBack Action
-  @IBAction func handleBack(_ sender: UIButton) {
-    let parent = self.presentingViewController as? PwForgottController
-    self.dismiss(animated: true, completion: nil)
-    parent?.dismiss(animated: false, completion: nil)
   }
 }

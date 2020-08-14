@@ -7,102 +7,75 @@
 import UIKit
 import NorthLib
 
-// MARK: - LoginController
+// MARK: - LoginCtrl
 /// Presents Login Form and Functionallity
 /// ChildViews/Controller are pushed modaly
 class LoginController: FormsController {
   
-  override public var uiBlocked : Bool {
-    didSet{
-      super.uiBlocked = uiBlocked
-      loginButton?.isEnabled = !uiBlocked
-    }
-  }
-  
   var failedLoginCount : Int = 0
   
-  var idInput
-    = TazTextField(placeholder: Localized("login_username_hint"),
-                   textContentType: .emailAddress,
-                   enablesReturnKeyAutomatically: true,
-                   keyboardType: .emailAddress,
-                   autocapitalizationType: .none
-  )
+  private var contentView = LoginView()
+  override var ui : LoginView { get { return contentView }}
   
-  var passInput
-    = TazTextField(placeholder: Localized("login_password_hint"),
-                   textContentType: .password,
-                   isSecureTextEntry: true,
-                   enablesReturnKeyAutomatically: true)
-
-  
-  lazy var passForgottButton: UIButton = {
-    return UIButton(type: .label,
-                 title: Localized("login_forgot_password"), target: self, action: #selector(handlePwForgot))
-  }()
-  
-  var loginButton: UIButton?
-  
-  override func getContentViews() -> [UIView] {
-    return   [
-      TazHeader(),
-      UILabel(title: Localized("article_read_onreadon")),
-      idInput,
-      passInput,
-      UIButton(title: Localized("login_button"),
-               target: self, action: #selector(handleLogin)),
-      UILabel(title: Localized("ask_for_trial_subscription_title")),
-      UIButton(type: .outline,
-               title: Localized("register_button"),
-               target: self, action: #selector(handleRegister)),
-//      defaultCancelButton,
-      passForgottButton
-    ]
-  }
-  
-  // MARK: viewDidLoad Action
+  // MARK: viewDidLoad
   override func viewDidLoad() {
     super.viewDidLoad()
-    passForgottButton.isHidden = true
-    idInput.text = MainNC.singleton.getUserData().id
+    ui.idInput.text = MainNC.singleton.getUserData().id
+    ui.loginButton.touch(self, action: #selector(handleLogin))
+    ui.registerButton.touch(self, action: #selector(handleRegister))
+    ui.passForgottButton.touch(self, action: #selector(handlePwForgot))
   }
   
-  // MARK: handleLogin Action
+  // MARK: Button Actions
   @IBAction func handleLogin(_ sender: UIButton) {
-    loginButton = sender
-    self.uiBlocked = true
-        
+    ui.blocked = true
     if let errormessage = self.validate() {
       Toast.show(errormessage, .alert)
-      self.uiBlocked = false
+      ui.blocked = false
       showPwForgottButton()
       return
     }
     
-    if (idInput.text ?? "").isNumber {
-      self.queryCheckSubscriptionId((idInput.text ?? ""),passInput.text ?? "")
+    if (ui.idInput.text ?? "").isNumber {
+      self.queryCheckSubscriptionId((ui.idInput.text ?? ""),ui.passInput.text ?? "")
     }
     else {
-      self.queryAuthToken((idInput.text ?? ""),passInput.text ?? "")
+      self.queryAuthToken((ui.idInput.text ?? ""),ui.passInput.text ?? "")
     }
   }
   
-
+  @IBAction func handleRegister(_ sender: UIButton) {
+    let ctrl = TrialSubscriptionController(self.auth)
+    // Prefill register Form with current Input if idInput contains a valid E-Mail
+    if (self.ui.idInput.text ?? "").isValidEmail() {
+      ctrl.ui.mailInput.text = self.ui.idInput.text
+      ctrl.ui.passInput.text = self.ui.passInput.text
+      ctrl.ui.pass2Input.text = self.ui.passInput.text
+    }
+    modalFlip(ctrl)
+  }
   
+  @IBAction func handlePwForgot(_ sender: UIButton) {
+    self.failedLoginCount = 0//reset failed count
+    modalFlip(PwForgottController(id: ui.idInput.text?.trim,
+                                  auth: auth))
+  }
+  
+  // MARK: validate()
   ///Validates the Form returns translated Errormessage String for Popup/Toast
   ///Mark issue fields with hints
   func validate() -> String?{
     var errors = false
-    idInput.bottomMessage = ""
-    passInput.bottomMessage = ""
+    ui.idInput.bottomMessage = ""
+    ui.passInput.bottomMessage = ""
     
-    if (idInput.text ?? "").isEmpty {
-      idInput.bottomMessage = Localized("login_username_error_empty")
+    if (ui.idInput.text ?? "").isEmpty {
+      ui.idInput.bottomMessage = Localized("login_username_error_empty")
       errors = true
     }
     
-    if (passInput.text ?? "").isEmpty {
-      passInput.bottomMessage = Localized("login_password_error_empty")
+    if (ui.passInput.text ?? "").isEmpty {
+      ui.passInput.bottomMessage = Localized("login_password_error_empty")
       errors = true
     }
     
@@ -115,7 +88,6 @@ class LoginController: FormsController {
   // MARK: queryAuthToken
   func queryAuthToken(_ id: String, _ pass: String){
     auth.feeder.authenticateWithTazId(account: id, password: pass, closure:{ [weak self] (result) in
-      //ToDo #902
       guard let self = self else { return }
       switch result {
         case .success(let token):
@@ -130,21 +102,23 @@ class LoginController: FormsController {
           }
           switch authStatusError.status {
             case .invalid:
-              //Falsche Credentials
+              //wrong Credentials
               self.showPwForgottButton()
               self.failedLoginCount += 1
               if self.failedLoginCount < 3 {//just 2 fails
                 Toast.show(Localized("toast_login_failed_retry"))
               }
               else {
-                self.handlePwForgot(self.passForgottButton)
+                self.handlePwForgot(self.ui.passForgottButton)
             }
             
             case .expired:
               self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: authStatusError.message,
-                                                             dismissType: .current, auth: self.auth))
+                                                             dismissType: .current))
             case .unlinked:
-              self.showAskForTrial()
+              self.modalFlip(AskForTrial_Controller(id: self.ui.idInput.text,
+                                                    pass: self.ui.passInput.text,
+                                                    auth: self.auth))
             case .notValidMail: fallthrough
             case .unknown: fallthrough
             case .alreadyLinked: fallthrough //Makes no sense here!
@@ -153,52 +127,8 @@ class LoginController: FormsController {
               Toast.show(Localized("something_went_wrong_try_later"))
         }
       }
-      self.uiBlocked = false
+      self.ui.blocked = false
     })
-  }
-  
-  func showAskForTrial(){
-    class AskForTrial_Controller : FormsController_Result_Controller {
-      
-      var id:String?
-      var pass:String?
-      
-      init(id:String?, pass:String?, auth: AuthMediator) {
-        self.id = id
-        self.pass = pass
-        super.init(auth)
-      }
-      
-      required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-      }
-      
-      override func getContentViews() -> [UIView] {
-        return [
-          TazHeader(),
-          UILabel(title: Localized("ask_for_trial_subscription_title"),
-                  paddingTop: 30,
-                  paddingBottom: 30
-          ),
-          UIButton(title: Localized("yes_trial_subscroption"),
-                   target: self, action: #selector(handleTrial)),
-          UIButton(type: .label,
-                   title: Localized("cancel_button"),
-                   target: self, action: #selector(handleBack)),
-          
-        ]
-      }
-      
-      // MARK: handleBack Action
-      @IBAction func handleTrial(_ sender: UIButton) {
-        let ctrl = TrialSubscriptionController(self.auth)
-        ctrl.mailInput.text = self.id
-        ctrl.passInput.text = self.pass
-        ctrl.pass2Input.text = self.pass
-        modalFlip(ctrl)
-      }
-    }
-    modalFlip(AskForTrial_Controller(id: self.idInput.text, pass: self.passInput.text, auth: self.auth))
   }
   
   // MARK: queryCheckSubscriptionId
@@ -209,15 +139,14 @@ class LoginController: FormsController {
           //ToDo #900
           switch info.status {
             case .valid:
-              self.modalFlip(CreateTazIDController(aboId: aboId,
+              self.modalFlip(ConnectTazIdController(aboId: aboId,
                                                     aboIdPassword: password, auth: self.auth))
-              break;
             case .expired:
               self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: info.message,
-                                                             dismissType: .current, auth: self.auth))
+                                                             dismissType: .current))
             case .alreadyLinked:
-              self.idInput.text = info.message
-              self.passInput.text = ""
+              self.ui.idInput.text = info.message
+              self.ui.passInput.text = ""
               //              Toast.show(Localized("toast_login_with_email"))
               self.showResultWith(message: Localized("toast_login_with_email"),
                                   backButtonTitle: Localized("back_to_login"),
@@ -233,74 +162,93 @@ class LoginController: FormsController {
                 Toast.show(Localized("toast_login_failed_retry"))
               }
               else {
-                self.handlePwForgot(self.passForgottButton)
+                self.handlePwForgot(self.ui.passForgottButton)
             }
         }
         case .failure:
           Toast.show(Localized("toast_login_failed_retry"))
       }
-      self.uiBlocked = false
+      self.ui.blocked = false
     })
   }
   
   // MARK: showPwForgottButton
   func showPwForgottButton(){
-    if self.passForgottButton.isHidden == false { return }
-    self.passForgottButton.alpha = 0.0
-    self.passForgottButton.isHidden = false
+    if ui.passForgottButton.isHidden == false { return }
+    self.ui.passForgottButton.alpha = 0.0
+    self.ui.passForgottButton.isHidden = false
     UIView.animate(seconds: 0.3) {
-      self.passForgottButton.alpha = 1.0
+      self.ui.passForgottButton.alpha = 1.0
     }
-  }
-  
-  // MARK: handleRegister Action
-  @IBAction func handleRegister(_ sender: UIButton) {
-    let ctrl = TrialSubscriptionController(self.auth)
-    /// Prefill register Form with current Input if idInput contains a valid E-Mail
-    if (self.idInput.text ?? "").isValidEmail() {
-      ctrl.mailInput.text = self.idInput.text
-      ctrl.passInput.text = self.passInput.text
-      ctrl.pass2Input.text = self.passInput.text
-    }
-    modalFlip(ctrl)
-  }
-  
-  // MARK: handlePwForgot Action
-  @IBAction func handlePwForgot(_ sender: UIButton) {
-    self.failedLoginCount = 0//reset failed count
-    let child = PwForgottController(self.auth)
-    child.idInput.text = idInput.text?.trim
-    modalFlip(child)
   }
 }
 
-class SubscriptionIdElapsedController: FormsController_Result_Controller {
-  /**
-   Discussion TextView with Attributed String for format & handle Links/E-Mail Adresses
-   or multiple Views with individual button/click Handler
-   Pro: AttributedString Con: multiple views
-   + minimal UICreation Code => solve by using compose views...
-   - hande of link leaves the app => solve by using individual handler
-   - ugly html & data handling
-   + super simple add & exchange text
-   */
-  private(set) var dateString : String = "-"
-  
-  convenience init(expireDateMessage:String?, dismissType:dismissType, auth: AuthMediator) {
-    self.init(auth)
+// MARK: - SubscriptionIdElapsedCtrl
+class SubscriptionIdElapsedController: FormsResultController {
+  convenience init(expireDateMessage:String?,
+                   dismissType:dismissType) {
+    self.init()
+    var dateString : String = "-"
     if let msg = expireDateMessage {
       dateString = UsTime(iso:msg).date.gDate()
     }
-  }
-  
-  override func getContentViews() -> [UIView] {
-    return [
+    let htmlText = Localized(keyWithFormat: "subscription_id_expired", dateString)
+    ui.views = [
       TazHeader(),
-      CustomTextView(htmlText: Localized(keyWithFormat: "subscription_id_expired", dateString),
+      CustomTextView(htmlText:htmlText,
                      textAlignment: .center,
                      linkTextAttributes: CustomTextView.boldLinks),
-      UIButton(title: Localized("cancel_button"),
-               target: self, action: #selector(handleBack)),
+      UIButton(type: .outline,
+               title: Localized("cancel_button"),
+               target: self,
+               action: #selector(handleBack))]
+  }
+}
+
+// MARK: - AskForTrial_Controller
+class AskForTrial_Controller: FormsController {
+  var id:String?
+  var pass:String?
+  
+  convenience init(id:String?,
+                   pass:String?,
+                   auth: AuthMediator) {
+    self.init(auth)
+    self.id = id
+    self.pass = pass
+    ui.views = [
+      TazHeader(),
+      UILabel(title: Localized("unconnected_taz_id_header"),
+              paddingTop: 30,
+              paddingBottom: 30
+      ),
+      UIButton(title: Localized("connect_abo_id"),
+               target: self, action: #selector(showAboIdConnect)),
+      UILabel(title: Localized("ask_for_trial_subscription_title"),
+              paddingTop: 30,
+              paddingBottom: 30
+      ),
+      UIButton(title: Localized("trial_subscroption"),
+               target: self, action: #selector(handleRegister)),
+      UIButton(type:.outline,
+               title: Localized("cancel_button"),
+               target: self, action: #selector(handleBack))
     ]
+  }
+  
+  // MARK: Button Actions
+  @IBAction func showAboIdConnect(_ sender: UIButton) {
+    ///#ToDO
+  }
+  
+  @IBAction func handleRegister(_ sender: UIButton) {
+    let ctrl = TrialSubscriptionController(self.auth)
+    /// Prefill register Form with current Input if idInput contains a valid E-Mail
+    //    if (self.idInput.text ?? "").isValidEmail() {
+    //      ctrl.mailInput.text = self.idInput.text
+    //      ctrl.passInput.text = self.passInput.text
+    //      ctrl.pass2Input.text = self.passInput.text
+    //    }
+    modalFlip(ctrl)
   }
 }

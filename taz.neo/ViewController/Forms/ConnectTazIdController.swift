@@ -12,10 +12,14 @@ import NorthLib
 // MARK: - ConnectTazIDController
 /// Presents Register TazID Form and Functionallity
 /// ChildViews/Controller are pushed modaly
-class CreateTazIDController : TrialSubscriptionController {
+class ConnectTazIdController : FormsController {
   
+  // MARK: vars/const
   var aboId:String
   var aboIdPassword:String
+  
+  private var contentView = ConnectTazIdView()
+  override var ui : ConnectTazIdView { get { return contentView }}
   
   init(aboId:String, aboIdPassword:String, auth:AuthMediator) {
     self.aboId = aboId
@@ -27,52 +31,38 @@ class CreateTazIDController : TrialSubscriptionController {
     fatalError("init(coder:) has not been implemented")
   }
   
-  override func getContentViews() -> [UIView] {
-    contentView.agbAcceptTV.textView.delegate = self
-    submitButton.setTitle(Localized("login_button"), for: .normal)
-    return [
-      TazHeader(),
-      UILabel(title: Localized("taz_id_account_create_intro")),
-      UIButton(type: .label,
-               title: Localized("login_missing_credentials_switch_to_login"),
-               target: self,
-               action: #selector(handleAlreadyHaveTazId)),
-      mailInput,
-      passInput,
-      pass2Input,
-      firstnameInput,
-      lastnameInput,
-      contentView.agbAcceptTV,
-      submitButton,
-      defaultCancelButton,
-      defaultPWForgotButton
-    ]
+  // MARK: viewDidLoad
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    ui.alreadyHaveTazIdButton.touch(self, action: #selector(handleAlreadyHaveTazId))
+    ui.registerButton.touch(self, action: #selector(handleSubmit))
+    ui.cancelButton.touch(self, action: #selector(handleBack))
   }
   
   // MARK: handleLogin Action
   @IBAction func handleAlreadyHaveTazId(_ sender: UIButton) {
-    let child = ConnectExistingTazIdController(tazId: (mailInput.text ?? "").trim,
-                                               tazIdPassword: (passInput.text ?? "").trim,
-                                               aboId: aboId,
-                                               aboIdPassword: aboIdPassword,
-                                               auth: auth)
-    modalFlip(child)
+        let child = ConnectExistingTazIdController(tazId: (ui.mailInput.text ?? "").trim,
+                                                   tazIdPassword: (ui.passInput.text ?? "").trim,
+                                                   aboId: aboId,
+                                                   aboIdPassword: aboIdPassword,
+                                                   auth: auth)
+        modalFlip(child)
   }
   
   // MARK: handleLogin Action
-  @IBAction override func handleSend(_ sender: UIButton) {
-    uiBlocked = true
+  @IBAction func handleSubmit(_ sender: UIButton) {
+    ui.blocked = true
     
-    if let errormessage = self.validate() {
+    if let errormessage = ui.validate() {
       Toast.show(errormessage, .alert)
-      uiBlocked = false
+      ui.blocked = false
       return
     }
     
-    let mail = mailInput.text ?? ""
-    let pass = passInput.text ?? ""
-    let lastName = lastnameInput.text ?? ""
-    let firstName = firstnameInput.text ?? ""
+    let mail = ui.mailInput.text ?? ""
+    let pass = ui.passInput.text ?? ""
+    let lastName = ui.lastnameInput.text ?? ""
+    let firstName = ui.firstnameInput.text ?? ""
     
     self.connectWith(tazId: mail, tazIdPassword: pass, aboId: self.aboId, aboIdPW: self.aboIdPassword, lastName: lastName, firstName: firstName)
   }
@@ -100,8 +90,8 @@ class CreateTazIDController : TrialSubscriptionController {
               if (info.token ?? "").length > 0 {//@ToDo Maybe API Change
                 DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
                 self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
-                                       backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                       dismissType: .all)
+                                    backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                    dismissType: .all)
                 self.auth.authenticationSucceededClosure?(nil)
                 return
               }
@@ -111,15 +101,15 @@ class CreateTazIDController : TrialSubscriptionController {
               self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
             case .alreadyLinked:/// valid tazId connected to different AboId
               if let loginCtrl = self.presentingViewController as? LoginController {
-                loginCtrl.idInput.text = self.mailInput.text
-                loginCtrl.passInput.text = self.passInput.text
+                loginCtrl.ui.idInput.text = self.ui.mailInput.text
+                loginCtrl.ui.passInput.text = self.ui.passInput.text
               }
               self.showResultWith(message: Localized("subscriptionId2tazId_alreadyLinked"),
                                   backButtonTitle: Localized("back_to_login"),
                                   dismissType: .leftFirst)
-           
+            
             case .invalidMail: /// invalid mail address (only syntactic check)
-              self.mailInput.bottomMessage = Localized("login_email_error_no_email")
+              self.ui.mailInput.bottomMessage = Localized("login_email_error_no_email")
               Toast.show(Localized("register_validation_issue"))
             /// tazId not verified
             case .tazIdNotValid:
@@ -148,11 +138,100 @@ class CreateTazIDController : TrialSubscriptionController {
           Toast.show(Localized("error"))
       }
       //Re-Enable Button if needed
-      self.uiBlocked = false
+      self.ui.blocked = false
     })
   }
 }
 
+class ConnectExistingTazIdController : ConnectTazIdController {
+  
+    convenience init(tazId: String, tazIdPassword: String, aboId:String, aboIdPassword:String, auth:AuthMediator) {
+      self.init(aboId: aboId, aboIdPassword: aboIdPassword, auth: auth)
+      ui.mailInput.text = tazId
+      ui.passInput.text = tazIdPassword
+      
+      ui.registerButton.setTitle(Localized("login_button"), for: .normal)
+      
+      ui.views = [
+        TazHeader(),
+        UILabel(title: Localized("login_missing_credentials_header_login")),
+        UIButton(type: .label,
+                 title: Localized("fragment_login_missing_credentials_switch_to_registration"),
+                 target: self,
+                 action: #selector(handleBack)),//just Pop current
+        ui.mailInput,
+        ui.passInput,
+        ui.agbAcceptTV,
+        ui.registerButton,
+       UIButton(type: .outline,
+                  title: Localized("login_forgot_password"),
+                  target: self,
+                  action: #selector(handlePwForgot)),//just Pop current
+        UIButton(type: .label,
+                  title: Localized("cancel_button"),
+                  target: self,
+                  action: #selector(handleBack)),//just Pop current
+      ]
+    }
+  
+    // MARK: handleLogin Action
+    @IBAction override func handleSubmit(_ sender: UIButton) {
+      ui.blocked = true
+  
+      if let errormessage = self.validate() {
+        Toast.show(errormessage, .alert)
+        ui.blocked = false
+        return
+      }
+  
+      let mail = ui.mailInput.text ?? ""
+      let pass = ui.passInput.text ?? ""
+      let lastName = ""
+      let firstName = ""
+  
+      self.connectWith(tazId: mail, tazIdPassword: pass, aboId: self.aboId, aboIdPW: self.aboIdPassword, lastName: lastName, firstName: firstName)
+    }
+  
+  @IBAction func handlePwForgot(_ sender: UIButton) {
+    modalFlip(PwForgottController(id: ui.mailInput.text?.trim,
+                                  auth: auth))
+  }
+  
+  ///Validates the Form returns translated Errormessage String for Popup/Toast
+  ///Mark issue fields with hints
+  func validate() -> String?{
+    var errors = false
+    
+    ui.mailInput.bottomMessage = ""
+    ui.passInput.bottomMessage = ""
+    ui.agbAcceptTV.error = false
+    
+    if (ui.mailInput.text ?? "").isEmpty {
+      errors = true
+      ui.mailInput.bottomMessage = Localized("login_email_error_empty")
+    } else if (ui.mailInput.text ?? "").isValidEmail() == false {
+      errors = true
+      ui.mailInput.bottomMessage = Localized("login_email_error_no_email")
+    }
+    
+    if (ui.passInput.text ?? "").isEmpty {
+      errors = true
+      ui.passInput.bottomMessage = Localized("login_password_error_empty")
+    }
+    
+    if ui.agbAcceptTV.checked == false {
+      ui.agbAcceptTV.error = true
+      return Localized("register_validation_issue_agb")
+    }
+    
+    if errors {
+      return Localized("register_validation_issue")
+    }
+    return nil
+  }
+  
+  
+}
 
 
 

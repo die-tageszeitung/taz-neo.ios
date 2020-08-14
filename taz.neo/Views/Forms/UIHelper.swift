@@ -202,6 +202,12 @@ extension String {
   }
 }
 
+extension UIButton {
+  func touch(_ target: Any?, action:Selector){
+    self.addTarget(target, action: action, for: .touchUpInside)
+  }
+}
+
 // MARK: - Localized Helper without Comment
 public func Localized(_ key: String) -> String {
   return NSLocalizedString(key, comment: "n/a")

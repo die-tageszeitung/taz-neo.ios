@@ -57,8 +57,8 @@ class TazHeader: UIView{
 
 // MARK: - TazHeader
 class BlockingProcessView : UIView{
-
-let spinner = UIActivityIndicatorView()
+  
+  let spinner = UIActivityIndicatorView()
   
   public var enabled : Bool = false {
     didSet{
@@ -79,7 +79,7 @@ let spinner = UIActivityIndicatorView()
       }
     }
   }
-
+  
   override init(frame: CGRect) {
     super.init(frame:frame)
     setup()
@@ -271,16 +271,16 @@ class TazTextField : UITextField, UITextFieldDelegate{
   
   override open var text: String?{
     didSet{
-       if let _text = text, _text.isEmpty {
-           UIView.animate(seconds: 0.3) { [weak self] in
-             self?.topLabel.alpha = 0.0
-           }
-         }
-         else {
-           UIView.animate(seconds: 0.3) { [weak self] in
-             self?.topLabel.alpha = 1.0
-           }
-         }
+      if let _text = text, _text.isEmpty {
+        UIView.animate(seconds: 0.3) { [weak self] in
+          self?.topLabel.alpha = 0.0
+        }
+      }
+      else {
+        UIView.animate(seconds: 0.3) { [weak self] in
+          self?.topLabel.alpha = 1.0
+        }
+      }
     }
   }
   
@@ -330,6 +330,7 @@ class TazTextField : UITextField, UITextFieldDelegate{
 
 // MARK: - TazTextField : Toolbar
 extension TazTextField{
+  
   fileprivate func createToolbar() -> UIToolbar{
     /// setting toolbar width fixes the h Autolayout issue, unfortunatly not the v one no matter which height
     let toolbar =  UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0))

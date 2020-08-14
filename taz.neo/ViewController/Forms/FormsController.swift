@@ -21,74 +21,141 @@ extension String{
 }
 
 // MARK: - FormsController
-class FormsController: UIViewController {
-  
-  //Subview where the COntent/Form is displayed
-  var contentView = FormView()
+/**
+ The Forms Controller is the Base Class for all Login, taz-ID Forms delivers an interface to acces
+ the feeder via AuthMediator.
+ 
+ **TODO Discussion**: Move the AuthMediator to Initially Presented VC (LoginController)
+ 
+ **Initially** the **LoginController** will be presented.
+ - using UIKit's default **ModalPresent to display ** further/relating Views(ViewController)
+ - using UIKit's default **MVC** mechanism with View/ViewController
+ - generic FormView for simple ui
+ - concrete, inherited from FormView for more complex ui
+ - inherited FormController for to Controll its FormView
+ - the controllers are structured according to their base (API) functionalities
+ - **FormsController** (no API functionality)
+ - **FormsController_Result_Controller**
+ - **SubscriptionIdElapsedController**
+ - **LoginController**
+ - **PwForgottController**
+ - **ConnectTazIdController**
+ - **TrialSubscriptionController**
+ 
+ 
+ 
+ #TODO REMOVE AFTER REFACTOR
+ We have the following inheritance
+ - FormsController: UIViewController
+ - **LoginController**
+ - FormsController_Result_Controller
+ - AskForTrial_Controller
+ - SubscriptionIdElapsedController
+ - PwForgottController
+ - SubscriptionResetSuccessController
+ - PasswordResetRequestedSuccessController
+ - TrialSubscriptionController
+ - CreateTazIDController
+ - ConnectExistingTazIdController
+ 
+ 
+ #Discussion TextView with Attributed String for format & handle Links/E-Mail Adresses
+ or multiple Views with individual button/click Handler
+ Pro: AttributedString Con: multiple views
+ + minimal UICreation Code => solve by using compose views...
+ - hande of link leaves the app => solve by using individual handler
+ - ugly html & data handling
+ + super simple add & exchange text
+ 
+ 
+ */
+
+class FormsController: FormsResultController {
   //Reference for AuthMediator to interact with the rest of the App
   var auth:AuthMediator
-  
-  lazy var defaultCancelButton:UIButton = {
-    return UIButton(type: .outline,
-                    title: Localized("cancel_button"),
-                    target: self,
-                    action: #selector(handleDefaultCancel))
-  }()
-  
-  public var uiBlocked : Bool = false {
-    didSet{
-      contentView.blockingView.enabled = uiBlocked
-    }
-  }
-  
+  /// **TODO** Try to create a convience init out of it!!
   init(_ auth:AuthMediator) {
-     self.auth = auth
-     super.init(nibName: nil, bundle: nil)
-   }
-  
+    self.auth = auth
+    super.init(nibName: nil, bundle: nil)
+  }
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+}
+
+// MARK: - Modal dismissType
+enum dismissType {case all, current, leftFirst}
+
+class FormsResultController: UIViewController {
+  //Acces to related View, overwritten in subclasses with concrete view
+  private var contentView = FormView()
+  var ui : FormView { get { return contentView }}
   
-  //Overwrite this in child to have individual Content
-  func getContentViews() -> [UIView] {
-    return [TazHeader()]
-  }
+  var dismissType:dismissType = .current
   
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    self.contentView.views = getContentViews()
-    
-    let wConstraint = self.contentView.container.pinWidth(to: self.view.width)
+    let wConstraint = ui.container.pinWidth(to: self.view.width)
     wConstraint.constant = UIScreen.main.bounds.width
     wConstraint.priority = .required
     
     self.view.backgroundColor = TazColor.CTBackground.color
-    self.view.addSubview(self.contentView)
+    self.view.addSubview(ui)
     if #available(iOS 13.0, *) {
-      pin(self.contentView, to: self.view)
+      pin(ui, to: self.view)
     } else{
-      pin(self.contentView, toSafe: self.view)
+      pin(ui, toSafe: self.view)
     }
+  }
+  
+  convenience init(message:String, backButtonTitle:String, dismissType:dismissType) {
+    self.init()
+    ui.views = [
+      TazHeader(),
+      UILabel(title: message,
+              paddingTop: 30,
+              paddingBottom: 30
+      ),
+      UIButton(title: backButtonTitle,
+               target: self, action: #selector(handleBack)),
+      
+    ]
+    self.dismissType = dismissType
   }
   
   func showResultWith(message:String, backButtonTitle:String,dismissType:dismissType){
     let successCtrl
-      = FormsController_Result_Controller(message: message,
-                                          backButtonTitle: backButtonTitle,
-                                          dismissType: dismissType, auth: self.auth)
+      = FormsResultController(message: message,
+                              backButtonTitle: backButtonTitle,
+                              dismissType: dismissType)
     modalFlip(successCtrl)
   }
   
-  // MARK: handleCancel Action
-   @IBAction func handleDefaultCancel(_ sender: UIButton) {
-    self.dismiss(animated: true, completion: nil)
-   }
+  // MARK: handleBack Action
+  @IBAction func handleBack(_ sender: UIButton) {
+    var stack = self.modalStack
+    switch dismissType {
+      case .all:
+        stack.forEach { $0.view.isHidden = true }
+        UIViewController.dismiss(stack: stack, animated: false, completion: {
+          Notification.send("ExternalUserLogin")
+        })
+      case .leftFirst:
+        _ = stack.popLast()//removes first
+        _ = stack.pop()//removes self
+        stack.forEach { $0.view.isHidden = true }
+        self.dismiss(animated: true) {
+          stack.forEach { $0.dismiss(animated: false, completion: nil)}
+      }
+      case .current:
+        self.dismiss(animated: true, completion: nil)
+    }
+  }
 }
 
-// MARK: - Modal Present extension for FormsController
-extension FormsController{
+// MARK: - Modal Present extension for FormsResultController
+extension FormsResultController{
   /// Present given VC on topmost Viewcontroller with flip transition
   func modalFlip(_ controller:UIViewController){
     controller.modalPresentationStyle = .overCurrentContext
@@ -123,56 +190,6 @@ extension FormsController{
   }
 }
 
-// MARK: - Modal dismissType
-enum dismissType {case all, current, leftFirst}
-
-// MARK: - ConnectTazID_Result_Controller
-class FormsController_Result_Controller: FormsController {
-  var message:String = ""
-  var backButtonTitle:String = ""
-  var dismissType:dismissType = .current
-  
-  override func getContentViews() -> [UIView] {
-    return  [
-      TazHeader(),
-      UILabel(title: message,
-              paddingTop: 30,
-              paddingBottom: 30
-      ),
-      UIButton(title: backButtonTitle,
-               target: self, action: #selector(handleBack)),
-      
-    ]
-  }
-  
-  convenience init(message:String, backButtonTitle:String, dismissType:dismissType, auth:AuthMediator) {
-    self.init(auth)
-    self.message = message
-    self.backButtonTitle = backButtonTitle
-    self.dismissType = dismissType
-  }
-  
-  // MARK: handleBack Action
-  @IBAction func handleBack(_ sender: UIButton) {
-    var stack = self.modalStack
-    switch dismissType {
-      case .all:
-        stack.forEach { $0.view.isHidden = true }
-        UIViewController.dismiss(stack: stack, animated: false, completion: {
-          Notification.send("ExternalUserLogin")
-        })
-      case .leftFirst:
-        _ = stack.popLast()//removes first
-        _ = stack.pop()//removes self
-        stack.forEach { $0.view.isHidden = true }
-        self.dismiss(animated: true) {
-          stack.forEach { $0.dismiss(animated: false, completion: nil)}
-      }
-      case .current:
-        self.dismiss(animated: true, completion: nil)
-    }
-  }
-}
 
 // MARK: - ext: FormsController:UITextViewDelegate
 extension FormsController: UITextViewDelegate {
@@ -191,7 +208,7 @@ extension FormsController: UITextViewDelegate {
       if false /*Use footer close Button*/{
         introVC.webView.buttonLabel.text = Localized("back_button")
         introVC.webView.onTap {_ in
-        introVC.dismiss(animated: true, completion: nil)
+          introVC.dismiss(animated: true, completion: nil)
         }
       }
       else{//Or
