@@ -242,6 +242,8 @@ class AskForTrial_Controller: FormsController {
   }
   
   @IBAction func handleRegister(_ sender: UIButton) {
+    modalFlip(PasswordResetRequestedSuccessController())
+    return;
     let ctrl = TrialSubscriptionController(self.auth)
     /// Prefill register Form with current Input if idInput contains a valid E-Mail
     //    if (self.idInput.text ?? "").isValidEmail() {
