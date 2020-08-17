@@ -84,7 +84,8 @@ class FormsController: FormsResultController {
 }
 
 // MARK: - Modal dismissType
-enum dismissType {case all, current, leftFirst}
+enum dismissType {case all, current, leftFirst, two}
+//enum dismissUntilType {case left, dismiss, all} @Idea
 
 class FormsResultController: UIViewController {
   //Acces to related View, overwritten in subclasses with concrete view
@@ -92,6 +93,9 @@ class FormsResultController: UIViewController {
   var ui : FormView { get { return contentView }}
   
   var dismissType:dismissType = .current
+  /// dispisses all modal until the first occurence of given type
+  /// so dismissUntil should be a UIViewController
+//  var dismissUntil:Any.Type?@Idea
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -135,9 +139,16 @@ class FormsResultController: UIViewController {
   // MARK: handleBack Action
   @IBAction func handleBack(_ sender: UIButton) {
     var stack = self.modalStack
+    //Idea
+//    if let dismissStay = dismissUntil {
+//      let arr = stack.split(separator: dismissStay)
+//      arr[0]
+//      stack.po
+//    }
+    
     switch dismissType {
       case .all:
-        stack.forEach { $0.view.isHidden = true }
+        stack.forEach { $0.view.isHidden = $0 != self ? true : false }
         UIViewController.dismiss(stack: stack, animated: false, completion: {
           Notification.send("ExternalUserLogin")
         })
@@ -150,6 +161,15 @@ class FormsResultController: UIViewController {
       }
       case .current:
         self.dismiss(animated: true, completion: nil)
+      case .two:
+        if let parent = self.presentingViewController, parent.presentingViewController != nil {
+          parent.view.isHidden = true
+          self.dismiss(animated: true, completion: {
+            parent.dismiss(animated: false, completion: nil)
+          })
+        } else {
+          self.dismiss(animated: true, completion: nil)
+        }
     }
   }
 }

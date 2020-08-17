@@ -43,3 +43,27 @@ public class LoginView : FormView{
     ]
   }
 }
+
+
+public class NotLinkedLoginAboIDView : LoginView {
+  
+  var aboIdInput = TazTextField(placeholder: Localized("login_subscription_hint"),
+                             textContentType: .emailAddress,
+                             enablesReturnKeyAutomatically: true,
+                             keyboardType: .numberPad,
+                             autocapitalizationType: .none)
+  
+  var connectButton = UIButton(title: Localized("connect_this_abo_id_with_taz_id"))
+  
+  override func createSubviews() -> [UIView] {
+    loginButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
+    return   [
+      TazHeader(),
+      UILabel(title: Localized("connect_abo_id_title")),
+      aboIdInput,
+      passInput,
+      connectButton,
+      passForgottButton
+    ]
+  }
+}

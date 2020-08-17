@@ -103,9 +103,9 @@ class PwForgottController: FormsController {
 
 // MARK: - PasswordResetRequestedSuccessController
 class PasswordResetRequestedSuccessController: FormsResultController {
-  convenience init(expireDateMessage:String?,
-                   dismissType:dismissType) {
-    self.init()
+  init(){
+    super.init(nibName: nil, bundle: nil)
+    self.dismissType = .two
     ui.views =  [
       TazHeader(),
       UILabel(title: Localized("login_forgot_password_email_sent_header"),
@@ -117,11 +117,16 @@ class PasswordResetRequestedSuccessController: FormsResultController {
       
     ]
   }
+  
+  required init?(coder: NSCoder) { super.init(coder: coder)}
+  
   // MARK: handleBack Action
   @IBAction override func handleBack(_ sender: UIButton) {
-    let parent = self.presentingViewController as? PwForgottController
-    self.dismiss(animated: true, completion: nil)
-    parent?.dismiss(animated: false, completion: nil)
+    if let pwForgottCtrl = self.presentingViewController as? PwForgottController,
+      let loginCtrl = self.presentingViewController?.presentingViewController as? LoginController{
+      loginCtrl.ui.idInput.text = pwForgottCtrl.ui.idInput.text
+    }
+    super.handleBack(sender)
   }
 }
 
@@ -130,6 +135,7 @@ class SubscriptionResetSuccessController: FormsResultController, MFMailComposeVi
   
   init(){
     super.init(nibName: nil, bundle: nil)
+    self.dismissType = .two
     ui.views =   [
       TazHeader(),
       UILabel(title: Localized("login_forgot_password_email_sent_header")
@@ -147,15 +153,15 @@ class SubscriptionResetSuccessController: FormsResultController, MFMailComposeVi
     ]
   }
   
-  required init?(coder: NSCoder) {
-    super.init(coder: coder)
-  }
+  required init?(coder: NSCoder) { super.init(coder: coder)}
   
   // MARK: handleBack Action
   @IBAction override func handleBack(_ sender: UIButton) {
-    let parent = self.presentingViewController as? PwForgottController
-    self.dismiss(animated: true, completion: nil)
-    parent?.dismiss(animated: false, completion: nil)
+    if let pwForgottCtrl = self.presentingViewController as? PwForgottController,
+      let loginCtrl = self.presentingViewController?.presentingViewController as? LoginController{
+      loginCtrl.ui.idInput.text = pwForgottCtrl.ui.idInput.text
+    }
+    super.handleBack(sender)
   }
   
   // MARK: handleMail Action

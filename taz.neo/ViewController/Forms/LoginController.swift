@@ -37,10 +37,10 @@ class LoginController: FormsController {
     }
     
     if (ui.idInput.text ?? "").isNumber {
-      self.queryCheckSubscriptionId((ui.idInput.text ?? ""),ui.passInput.text ?? "")
+      self.queryCheckSubscriptionId(aboId: (ui.idInput.text ?? ""),aboIdPass: ui.passInput.text ?? "")
     }
     else {
-      self.queryAuthToken((ui.idInput.text ?? ""),ui.passInput.text ?? "")
+      self.queryAuthToken(tazId: (ui.idInput.text ?? ""),tazIdPass: ui.passInput.text ?? "")
     }
   }
   
@@ -86,12 +86,12 @@ class LoginController: FormsController {
   }
   
   // MARK: queryAuthToken
-  func queryAuthToken(_ id: String, _ pass: String){
-    auth.feeder.authenticateWithTazId(account: id, password: pass, closure:{ [weak self] (result) in
+  func queryAuthToken(tazId: String, tazIdPass: String){
+    auth.feeder.authenticateWithTazId(account: tazId, password: tazIdPass, closure:{ [weak self] (result) in
       guard let self = self else { return }
       switch result {
         case .success(let token):
-          DefaultAuthenticator.storeUserData(id: id, password: pass, token: token)
+          DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPass, token: token)
           self.dismiss(animated: true, completion: nil)
           self.auth.authenticationSucceededClosure?(nil)
         case .failure(let error):
@@ -116,8 +116,8 @@ class LoginController: FormsController {
               self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: authStatusError.message,
                                                              dismissType: .current))
             case .unlinked:
-              self.modalFlip(AskForTrial_Controller(id: self.ui.idInput.text,
-                                                    pass: self.ui.passInput.text,
+              self.modalFlip(AskForTrial_Controller(tazId: tazId,
+                                                    tazIdPass: tazIdPass,
                                                     auth: self.auth))
             case .notValidMail: fallthrough
             case .unknown: fallthrough
@@ -132,15 +132,15 @@ class LoginController: FormsController {
   }
   
   // MARK: queryCheckSubscriptionId
-  func queryCheckSubscriptionId(_ aboId: String, _ password: String){
-    auth.feeder.checkSubscriptionId(aboId: aboId, password: password, closure: { (result) in
+  func queryCheckSubscriptionId(aboId: String, aboIdPass: String){
+    auth.feeder.checkSubscriptionId(aboId: aboId, password: aboIdPass, closure: { (result) in
       switch result {
         case .success(let info):
           //ToDo #900
           switch info.status {
             case .valid:
               self.modalFlip(ConnectTazIdController(aboId: aboId,
-                                                    aboIdPassword: password, auth: self.auth))
+                                                    aboIdPassword: aboIdPass, auth: self.auth))
             case .expired:
               self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: info.message,
                                                              dismissType: .current))
@@ -206,16 +206,17 @@ class SubscriptionIdElapsedController: FormsResultController {
 }
 
 // MARK: - AskForTrial_Controller
+///USer has valid taz-Id Credentials
 class AskForTrial_Controller: FormsController {
-  var id:String?
-  var pass:String?
+  var tazId:String
+  var tazIdPass:String
   
-  convenience init(id:String?,
-                   pass:String?,
+  init(tazId:String,
+                   tazIdPass:String,
                    auth: AuthMediator) {
-    self.init(auth)
-    self.id = id
-    self.pass = pass
+    self.tazId = tazId
+    self.tazIdPass = tazIdPass
+    super.init(auth)
     ui.views = [
       TazHeader(),
       UILabel(title: Localized("unconnected_taz_id_header"),
@@ -223,7 +224,7 @@ class AskForTrial_Controller: FormsController {
               paddingBottom: 30
       ),
       UIButton(title: Localized("connect_abo_id"),
-               target: self, action: #selector(showAboIdConnect)),
+               target: self, action: #selector(handleConnectAboId)),
       UILabel(title: Localized("ask_for_trial_subscription_title"),
               paddingTop: 30,
               paddingBottom: 30
@@ -236,14 +237,18 @@ class AskForTrial_Controller: FormsController {
     ]
   }
   
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
   // MARK: Button Actions
-  @IBAction func showAboIdConnect(_ sender: UIButton) {
-    ///#ToDO
+  @IBAction func handleConnectAboId(_ sender: UIButton) {
+    modalFlip(NotLinkedLoginAboID_Controller(tazId: self.tazId,
+                                             tazIdPass: self.tazIdPass,
+                                             auth: self.auth))
   }
   
   @IBAction func handleRegister(_ sender: UIButton) {
-    modalFlip(PasswordResetRequestedSuccessController())
-    return;
     let ctrl = TrialSubscriptionController(self.auth)
     /// Prefill register Form with current Input if idInput contains a valid E-Mail
     //    if (self.idInput.text ?? "").isValidEmail() {
@@ -253,4 +258,125 @@ class AskForTrial_Controller: FormsController {
     //    }
     modalFlip(ctrl)
   }
+}
+
+// MARK: - AskForTrial_Controller
+///USer has valid taz-Id Credentials
+class NotLinkedLoginAboID_Controller: LoginController {
+  
+  private var contentView = NotLinkedLoginAboIDView()
+  override var ui : NotLinkedLoginAboIDView { get { return contentView }}
+  
+  var tazId:String
+  var tazIdPass:String
+  
+  init(tazId:String,
+                   tazIdPass:String,
+                   auth: AuthMediator) {
+    self.tazId = tazId
+    self.tazIdPass = tazIdPass
+    super.init(auth)
+
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  // MARK: viewDidLoad
+   override func viewDidLoad() {
+     super.viewDidLoad()
+     ui.idInput.text = MainNC.singleton.getUserData().id
+     ui.connectButton.touch(self, action: #selector(handleConnect))
+   }
+  
+  // MARK: Button Actions
+  @IBAction func handleConnect(_ sender: UIButton) {
+    ui.blocked = true
+    
+//    if let errormessage = ui.validate() {
+//      Toast.show(errormessage, .alert)
+//      ui.blocked = false
+//      return
+//    }
+    
+    let aboId = ui.aboIdInput.text ?? ""
+    let aboIdPass = ui.passInput.text ?? ""
+    
+///ToDo work on.....
+      
+      let dfl = Defaults.singleton
+      let pushToken = dfl["pushToken"]
+      let installationId = dfl["installationId"] ?? App.installationId
+      
+      //Start mutationSubscriptionId2tazId
+      //spinner.enabler=true
+      auth.feeder.subscriptionId2tazId(tazId: tazId, password: tazIdPassword, aboId: self.aboId, aboIdPW: aboIdPassword, surname: lastName, firstName: firstName, installationId: installationId, pushToken: pushToken, closure: { (result) in
+        switch result {
+          case .success(let info):
+            switch info.status {
+              case .valid:/// valid authentication
+                DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
+                self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
+                                    backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                    dismissType: .all)
+                self.auth.authenticationSucceededClosure?(nil)
+              case .waitForMail:///user need to confirm mail
+                if (info.token ?? "").length > 0 {//@ToDo Maybe API Change
+                  DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
+                  self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
+                                      backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                      dismissType: .all)
+                  self.auth.authenticationSucceededClosure?(nil)
+                  return
+                }
+                self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
+                                    backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                    dismissType: .all)
+                self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
+              case .alreadyLinked:/// valid tazId connected to different AboId
+                if let loginCtrl = self.presentingViewController as? LoginController {
+                  loginCtrl.ui.idInput.text = self.ui.mailInput.text
+                  loginCtrl.ui.passInput.text = self.ui.passInput.text
+                }
+                self.showResultWith(message: Localized("subscriptionId2tazId_alreadyLinked"),
+                                    backButtonTitle: Localized("back_to_login"),
+                                    dismissType: .leftFirst)
+              
+              case .invalidMail: /// invalid mail address (only syntactic check)
+                self.ui.mailInput.bottomMessage = Localized("login_email_error_no_email")
+                Toast.show(Localized("register_validation_issue"))
+              /// tazId not verified
+              case .tazIdNotValid:
+                Toast.show(Localized("toast_login_failed_retry"))//ToDo
+              case .waitForProc:// AboId not verified, server will confirm later (using push/poll)
+                self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
+              case .subscriptionIdNotValid:
+                fallthrough
+              case .invalidConnection:/// AboId valid but connected to different tazId
+                fallthrough
+              case .noPollEntry: /// user probably didn't confirm mail
+                fallthrough
+              case .expired: /// account provided by token is expired
+                fallthrough
+              case .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
+                fallthrough
+              case .noFirstname: /// no firstname provided
+                fallthrough
+              case .unknown:  /// decoded from unknown string
+                fallthrough
+              default:
+                Toast.show(Localized("toast_login_failed_retry"))
+                print("Succeed with status: \(info.status) message: \(info.message ?? "-")")
+          }
+          case .failure:
+            Toast.show(Localized("error"))
+        }
+        //Re-Enable Button if needed
+        self.ui.blocked = false
+      })
+    }
+  }
+  
+  
 }
