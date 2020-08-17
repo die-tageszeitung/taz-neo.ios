@@ -306,4 +306,11 @@ extension UIViewController{
       }
     }
   }
+  
+  /// helper for stack of modal presented VC's, to get all modal presented VC's below self
+  var baseLoginController : LoginController? {
+    get{
+      return self.modalStack.last as? LoginController
+    }
+  }
 }
