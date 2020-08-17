@@ -83,19 +83,39 @@ public class ConnectTazIdView : FormView{
     passInput.bottomMessage = ""
     agbAcceptTV.error = false
     
-    if (mailInput.text ?? "").isEmpty {
+    if mailInput.isUsed, (mailInput.text ?? "").isEmpty {
       errors = true
       mailInput.bottomMessage = Localized("login_email_error_empty")
-    } else if (mailInput.text ?? "").isValidEmail() == false {
+    } else if mailInput.isUsed, (mailInput.text ?? "").isValidEmail() == false {
       errors = true
       mailInput.bottomMessage = Localized("login_email_error_no_email")
     }
     
-    if (passInput.text ?? "").isEmpty {
+    if passInput.isUsed, (passInput.text ?? "").isEmpty {
       errors = true
       passInput.bottomMessage = Localized("login_password_error_empty")
     }
-    if agbAcceptTV.checked == false {
+    
+    if pass2Input.isUsed, pass2Input.isVisible, (pass2Input.text ?? "").isEmpty {
+      errors = true
+      pass2Input.bottomMessage = Localized("login_password_error_empty")
+    }
+    else if pass2Input.isUsed, pass2Input.text != passInput.text {
+      pass2Input.bottomMessage = Localized("login_password_confirmation_error_match")
+    }
+    
+    if firstnameInput.isUsed, (firstnameInput.text ?? "").isEmpty {
+      errors = true
+      firstnameInput.bottomMessage = Localized("login_first_name_error_empty")
+    }
+    
+    if lastnameInput.isUsed, (lastnameInput.text ?? "").isEmpty {
+      errors = true
+      lastnameInput.bottomMessage = Localized("login_surname_error_empty")
+    }
+    
+    
+    if agbAcceptTV.isUsed, agbAcceptTV.checked == false {
       agbAcceptTV.error = true
       return Localized("register_validation_issue_agb")
     }
@@ -105,5 +125,13 @@ public class ConnectTazIdView : FormView{
     }
     
     return nil
+  }
+}
+
+fileprivate extension UIView{
+  var isUsed : Bool{
+    get{
+      return self.superview != nil && self.isHidden == false
+    }
   }
 }
