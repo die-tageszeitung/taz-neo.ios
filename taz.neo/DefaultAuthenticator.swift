@@ -133,7 +133,7 @@ extension AuthMediator {
 extension DefaultAuthenticator : AuthMediator{
   public func pollSubscription(tmpId:String, tmpPassword:String){
     Self.storeTempUserData(tmpId: tmpId, tmpPassword: tmpPassword)
-    performPollingClosure?()//tell Norbert start polling for incomming push or start timer!
+    performPollingClosure?()//tell app start polling for incomming push or start timer!
   }
 }
 
