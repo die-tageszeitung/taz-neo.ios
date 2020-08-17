@@ -17,8 +17,9 @@ class ConnectTazIdController : FormsController {
   // MARK: vars/const
   var aboId:String
   var aboIdPassword:String
+  var onMissingNameRequested:(()->())?
   
-  private var contentView = ConnectTazIdView()
+  fileprivate var contentView = ConnectTazIdView()
   override var ui : ConnectTazIdView { get { return contentView }}
   
   init(aboId:String, aboIdPassword:String, auth:AuthMediator) {
@@ -41,12 +42,13 @@ class ConnectTazIdController : FormsController {
   
   // MARK: handleLogin Action
   @IBAction func handleAlreadyHaveTazId(_ sender: UIButton) {
-        let child = ConnectExistingTazIdController(tazId: (ui.mailInput.text ?? "").trim,
-                                                   tazIdPassword: (ui.passInput.text ?? "").trim,
-                                                   aboId: aboId,
-                                                   aboIdPassword: aboIdPassword,
-                                                   auth: auth)
-        modalFlip(child)
+    let child = ConnectTazIdRequestTazIdCtrl(aboId: self.aboId,
+                                             aboIdPassword: self.aboIdPassword,
+                                             auth: auth)
+    ///may the user already wrote its credentials before he recognize there is a already have taz-Id button
+    child.ui.mailInput.text = ui.mailInput.text
+    child.ui.passInput.text = ui.passInput.text
+    modalFlip(child)
   }
   
   // MARK: handleLogin Action
@@ -68,7 +70,7 @@ class ConnectTazIdController : FormsController {
   }
   
   
-  func connectWith(tazId: String, tazIdPassword: String, aboId: String, aboIdPW: String, lastName: String, firstName: String){
+  func connectWith(tazId: String, tazIdPassword: String, aboId: String, aboIdPW: String, lastName: String? = nil, firstName: String?=nil){
     
     let dfl = Defaults.singleton
     let pushToken = dfl["pushToken"]
@@ -100,14 +102,13 @@ class ConnectTazIdController : FormsController {
                                   dismissType: .all)
               self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
             case .alreadyLinked:/// valid tazId connected to different AboId
-              if let loginCtrl = self.presentingViewController as? LoginController {
+              if let loginCtrl = self.baseLoginController {
                 loginCtrl.ui.idInput.text = self.ui.mailInput.text
                 loginCtrl.ui.passInput.text = self.ui.passInput.text
               }
               self.showResultWith(message: Localized("subscriptionId2tazId_alreadyLinked"),
                                   backButtonTitle: Localized("back_to_login"),
                                   dismissType: .leftFirst)
-            
             case .invalidMail: /// invalid mail address (only syntactic check)
               self.ui.mailInput.bottomMessage = Localized("login_email_error_no_email")
               Toast.show(Localized("register_validation_issue"))
@@ -116,6 +117,13 @@ class ConnectTazIdController : FormsController {
               Toast.show(Localized("toast_login_failed_retry"))//ToDo
             case .waitForProc:// AboId not verified, server will confirm later (using push/poll)
               self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
+            case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
+              if self.onMissingNameRequested != nil {
+                self.onMissingNameRequested?()
+              }
+              else{
+                  fallthrough
+              }
             case .subscriptionIdNotValid:
               fallthrough
             case .invalidConnection:/// AboId valid but connected to different tazId
@@ -124,12 +132,10 @@ class ConnectTazIdController : FormsController {
               fallthrough
             case .expired: /// account provided by token is expired
               fallthrough
-            case .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
-              fallthrough
-            case .noFirstname: /// no firstname provided
-              fallthrough
+       
             case .unknown:  /// decoded from unknown string
               fallthrough
+            // case .tazIdNotValid: ///not available here
             default:
               Toast.show(Localized("toast_login_failed_retry"))
               print("Succeed with status: \(info.status) message: \(info.message ?? "-")")
@@ -143,96 +149,171 @@ class ConnectTazIdController : FormsController {
   }
 }
 
-class ConnectExistingTazIdController : ConnectTazIdController {
+/// This is a verry special version of the ConnectTazIdController
+/// it requests only aboId + password and
+/// appears if a user tries to login with a taz-Id without connected Abo-Id
+class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
   
-    convenience init(tazId: String, tazIdPassword: String, aboId:String, aboIdPassword:String, auth:AuthMediator) {
-      self.init(aboId: aboId, aboIdPassword: aboIdPassword, auth: auth)
-      ui.mailInput.text = tazId
-      ui.passInput.text = tazIdPassword
+  var tazId:String
+  var tazIdPassword:String
+  
+  init(tazId: String, tazIdPassword: String, auth:AuthMediator) {
+    self.tazId = tazId
+    self.tazIdPassword = tazIdPassword
+    super.init(aboId: "", aboIdPassword: "", auth: auth)
+    
+    ui.mailInput.keyboardType = .numberPad
+    ui.mailInput.placeholder = Localized("login_subscription_hint")
+
+    ui.registerButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
+    
+    ui.views = [
+      TazHeader(),
+      UILabel(title: Localized("connect_abo_id_title")),
+      ui.mailInput,
+      ui.passInput,
+      ui.agbAcceptTV,
+      ui.registerButton,
+      ui.cancelButton,
+///      ui.passforgottButton??!!# TODO
+    ]
+    
+    self.onMissingNameRequested = {
+      ///#Attention: Yes its correct! Do not use ConnectTazIdController aboId!
+      let aboId = self.ui.mailInput.text ?? ""
+      let aboIdPassword = self.ui.passInput.text ?? ""
       
-      ui.registerButton.setTitle(Localized("login_button"), for: .normal)
-      
-      ui.views = [
-        TazHeader(),
-        UILabel(title: Localized("login_missing_credentials_header_login")),
-        UIButton(type: .label,
-                 title: Localized("fragment_login_missing_credentials_switch_to_registration"),
-                 target: self,
-                 action: #selector(handleBack)),//just Pop current
-        ui.mailInput,
-        ui.passInput,
-        ui.agbAcceptTV,
-        ui.registerButton,
-       UIButton(type: .outline,
-                  title: Localized("login_forgot_password"),
-                  target: self,
-                  action: #selector(handlePwForgot)),//just Pop current
-        UIButton(type: .label,
-                  title: Localized("cancel_button"),
-                  target: self,
-                  action: #selector(handleBack)),//just Pop current
-      ]
+      let ctrl
+        = ConnectTazIdRequestNameCtrl(tazId: tazId,
+                                      tazIdPassword: tazIdPassword,
+                                      aboId:aboId,
+                                      aboIdPassword: aboIdPassword,
+                                      auth: auth)
+      self.modalFlip(ctrl)
     }
-  
-    // MARK: handleLogin Action
-    @IBAction override func handleSubmit(_ sender: UIButton) {
-      ui.blocked = true
-  
-      if let errormessage = self.validate() {
-        Toast.show(errormessage, .alert)
-        ui.blocked = false
-        return
-      }
-  
-      let mail = ui.mailInput.text ?? ""
-      let pass = ui.passInput.text ?? ""
-      let lastName = ""
-      let firstName = ""
-  
-      self.connectWith(tazId: mail, tazIdPassword: pass, aboId: self.aboId, aboIdPW: self.aboIdPassword, lastName: lastName, firstName: firstName)
-    }
-  
-  @IBAction func handlePwForgot(_ sender: UIButton) {
-    modalFlip(PwForgottController(id: ui.mailInput.text?.trim,
-                                  auth: auth))
   }
   
-  ///Validates the Form returns translated Errormessage String for Popup/Toast
-  ///Mark issue fields with hints
-  func validate() -> String?{
-    var errors = false
-    
-    ui.mailInput.bottomMessage = ""
-    ui.passInput.bottomMessage = ""
-    ui.agbAcceptTV.error = false
-    
-    if (ui.mailInput.text ?? "").isEmpty {
-      errors = true
-      ui.mailInput.bottomMessage = Localized("login_email_error_empty")
-    } else if (ui.mailInput.text ?? "").isValidEmail() == false {
-      errors = true
-      ui.mailInput.bottomMessage = Localized("login_email_error_no_email")
-    }
-    
-    if (ui.passInput.text ?? "").isEmpty {
-      errors = true
-      ui.passInput.bottomMessage = Localized("login_password_error_empty")
-    }
-    
-    if ui.agbAcceptTV.checked == false {
-      ui.agbAcceptTV.error = true
-      return Localized("register_validation_issue_agb")
-    }
-    
-    if errors {
-      return Localized("register_validation_issue")
-    }
-    return nil
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
   
+  // MARK: handleLogin Action
+  @IBAction override func handleSubmit(_ sender: UIButton) {
+    ui.blocked = true
+    
+    if let errormessage = ui.validateAsRequestAboIdLogin() {
+      Toast.show(errormessage, .alert)
+      ui.blocked = false
+      return
+    }
+    
+    let inputAboId = ui.mailInput.text ?? ""
+    let inputAboIdPassword = ui.passInput.text ?? ""
+    
+    self.connectWith(tazId: self.tazId, tazIdPassword: self.tazIdPassword , aboId: inputAboId, aboIdPW: inputAboIdPassword)
+  }
+}
+
+/// This is a verry special version of the ConnectTazIdController
+/// it requests only firstname and lastname and
+/// appears if a user tries to login with a taz-Id without connected Abo-Id and still gave its Abo-Id + pass
+/// and the api answered that there is missing first/lastname
+class ConnectTazIdRequestNameCtrl : ConnectTazIdController{
   
+  var tazId:String
+  var tazIdPassword:String
+  
+  init(tazId: String, tazIdPassword: String, aboId:String, aboIdPassword:String, auth:AuthMediator) {
+    self.tazId = tazId
+    self.tazIdPassword = tazIdPassword
+    super.init(aboId: aboId, aboIdPassword: aboIdPassword, auth: auth)
+    ui.registerButton.setTitle(Localized("send_button"), for: .normal)
+    ui.views = [
+      TazHeader(),
+      UILabel(title: Localized("taz_id_account_create_intro")),
+      ui.firstnameInput,
+      ui.lastnameInput,
+      ui.registerButton,
+      ui.cancelButton,
+    ]
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  // MARK: handleLogin Action
+  @IBAction override func handleSubmit(_ sender: UIButton) {
+    ui.blocked = true
+    
+    if let errormessage = ui.validateAsRequestName() {
+      Toast.show(errormessage, .alert)
+      ui.blocked = false
+      return
+    }
+    
+    let firstname = ui.firstnameInput.text ?? ""
+    let lastname = ui.lastnameInput.text ?? ""
+    
+    self.connectWith(tazId: self.tazId, tazIdPassword: self.tazIdPassword, aboId: self.aboId, aboIdPW: self.aboIdPassword, lastName: lastname, firstName: firstname)
+  }
 }
 
 
+/// This is a verry special version of the ConnectTazIdController
+/// it requests only tazId + password and
+/// appears if a user clicks handleAlreadyHaveTazId in ConnectTazIdController
+fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
+  
+  override init(aboId:String, aboIdPassword:String, auth:AuthMediator) {
+    super.init(aboId: aboId, aboIdPassword: aboIdPassword, auth: auth)
+    ui.mailInput.keyboardType = .emailAddress
+    ui.mailInput.placeholder = Localized("login_tazid_hint")
 
+    ui.registerButton.setTitle(Localized("login_button"), for: .normal)
+    
+    ui.views = [
+      TazHeader(),
+      UILabel(title: Localized("fragment_login_request_test_subscription_existing_account")),
+      ui.mailInput,
+      ui.passInput,
+      ui.agbAcceptTV,
+      ui.registerButton,
+      ui.cancelButton,
+    ]
+    
+    self.onMissingNameRequested = {
+      let tazId = self.ui.mailInput.text ?? ""
+      let tazIdPassword = self.ui.passInput.text ?? ""
+      
+      let ctrl
+        = ConnectTazIdRequestNameCtrl(tazId: tazId,
+                                      tazIdPassword: tazIdPassword,
+                                      aboId:aboId,
+                                      aboIdPassword: aboIdPassword,
+                                      auth: auth)
+      self.modalFlip(ctrl)
+    }
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  // MARK: handleLogin Action
+  @IBAction override func handleSubmit(_ sender: UIButton) {
+    ui.blocked = true
+    
+    if let errormessage = ui.validateAsRequestTazIdLogin() {
+      Toast.show(errormessage, .alert)
+      ui.blocked = false
+      return
+    }
+    
+    let tazId = ui.mailInput.text ?? ""
+    let tazIdPassword = ui.passInput.text ?? ""
+    
+    self.connectWith(tazId: tazId, tazIdPassword: tazIdPassword , aboId: self.aboId, aboIdPW: self.aboIdPassword)
+  }
+}
 

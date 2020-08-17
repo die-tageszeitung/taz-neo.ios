@@ -81,41 +81,43 @@ public class ConnectTazIdView : FormView{
     
     mailInput.bottomMessage = ""
     passInput.bottomMessage = ""
+    firstnameInput.bottomMessage = ""
+    lastnameInput.bottomMessage = ""
     agbAcceptTV.error = false
     
-    if mailInput.isUsed, (mailInput.text ?? "").isEmpty {
+    if (mailInput.text ?? "").isEmpty {
       errors = true
       mailInput.bottomMessage = Localized("login_email_error_empty")
-    } else if mailInput.isUsed, (mailInput.text ?? "").isValidEmail() == false {
+    } else if (mailInput.text ?? "").isValidEmail() == false {
       errors = true
       mailInput.bottomMessage = Localized("login_email_error_no_email")
     }
     
-    if passInput.isUsed, (passInput.text ?? "").isEmpty {
+    if (passInput.text ?? "").isEmpty {
       errors = true
       passInput.bottomMessage = Localized("login_password_error_empty")
     }
     
-    if pass2Input.isUsed, pass2Input.isVisible, (pass2Input.text ?? "").isEmpty {
+    if pass2Input.isVisible, (pass2Input.text ?? "").isEmpty {
       errors = true
       pass2Input.bottomMessage = Localized("login_password_error_empty")
     }
-    else if pass2Input.isUsed, pass2Input.text != passInput.text {
+    else if pass2Input.text != passInput.text {
       pass2Input.bottomMessage = Localized("login_password_confirmation_error_match")
     }
     
-    if firstnameInput.isUsed, (firstnameInput.text ?? "").isEmpty {
+    if (firstnameInput.text ?? "").isEmpty {
       errors = true
       firstnameInput.bottomMessage = Localized("login_first_name_error_empty")
     }
     
-    if lastnameInput.isUsed, (lastnameInput.text ?? "").isEmpty {
+    if (lastnameInput.text ?? "").isEmpty {
       errors = true
       lastnameInput.bottomMessage = Localized("login_surname_error_empty")
     }
     
     
-    if agbAcceptTV.isUsed, agbAcceptTV.checked == false {
+    if agbAcceptTV.checked == false {
       agbAcceptTV.error = true
       return Localized("register_validation_issue_agb")
     }
@@ -126,12 +128,98 @@ public class ConnectTazIdView : FormView{
     
     return nil
   }
-}
-
-fileprivate extension UIView{
-  var isUsed : Bool{
-    get{
-      return self.superview != nil && self.isHidden == false
+  
+  func validateAsRequestTazIdLogin() -> String?{
+    var errors = false
+    
+    mailInput.bottomMessage = ""
+    passInput.bottomMessage = ""
+    agbAcceptTV.error = false
+        
+     if (mailInput.text ?? "").isEmpty {
+         errors = true
+         mailInput.bottomMessage = Localized("login_email_error_empty")
+       } else if (mailInput.text ?? "").isValidEmail() == false {
+         errors = true
+         mailInput.bottomMessage = Localized("login_email_error_no_email")
+       }
+    
+    if (passInput.text ?? "").isEmpty {
+      errors = true
+      passInput.bottomMessage = Localized("login_password_error_empty")
     }
+    
+    if agbAcceptTV.checked == false {
+      agbAcceptTV.error = true
+      return Localized("register_validation_issue_agb")
+    }
+    
+    if errors {
+      return Localized("register_validation_issue")
+    }
+    
+    return nil
+  }
+  
+  
+  
+  func validateAsRequestAboIdLogin() -> String?{
+    var errors = false
+    
+    mailInput.bottomMessage = ""
+    passInput.bottomMessage = ""
+    agbAcceptTV.error = false
+        
+    if (mailInput.text ?? "").isEmpty {
+      errors = true
+      mailInput.bottomMessage = Localized("login_subscription_error_empty")
+    }
+    
+    if (passInput.text ?? "").isEmpty {
+      errors = true
+      passInput.bottomMessage = Localized("login_password_error_empty")
+    }
+    
+    if agbAcceptTV.checked == false {
+      agbAcceptTV.error = true
+      return Localized("register_validation_issue_agb")
+    }
+    
+    if errors {
+      return Localized("register_validation_issue")
+    }
+    
+    return nil
+  }
+  
+  ///Validates the Form returns translated Errormessage String for Popup/Toast
+  ///Mark issue fields with hints
+  func validateAsRequestName() -> String?{
+    var errors = false
+    
+    firstnameInput.bottomMessage = ""
+    lastnameInput.bottomMessage = ""
+    agbAcceptTV.error = false
+ 
+    if (firstnameInput.text ?? "").isEmpty {
+      errors = true
+      firstnameInput.bottomMessage = Localized("login_first_name_error_empty")
+    }
+    
+    if (lastnameInput.text ?? "").isEmpty {
+      errors = true
+      lastnameInput.bottomMessage = Localized("login_surname_error_empty")
+    }
+    
+    if agbAcceptTV.checked == false {
+      agbAcceptTV.error = true
+      return Localized("register_validation_issue_agb")
+    }
+    
+    if errors {
+      return Localized("register_validation_issue")
+    }
+    
+    return nil
   }
 }

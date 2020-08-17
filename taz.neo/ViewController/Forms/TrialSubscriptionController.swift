@@ -24,6 +24,8 @@ import NorthLib
  */
 class TrialSubscriptionController : FormsController {
   
+  var onMissingNameRequested:(()->())?
+  
   private var contentView = TrialSubscriptionView()
   override var ui : TrialSubscriptionView { get { return contentView }}
   
@@ -53,7 +55,7 @@ class TrialSubscriptionController : FormsController {
     createTrialSubscription(tazId: mail, tazIdPassword: pass, lastName: lastName, firstName: firstName)
   }
   
-  func createTrialSubscription(tazId: String, tazIdPassword: String, lastName: String, firstName: String, controllerToBeFlipedIn:FormsController?=nil){
+  func createTrialSubscription(tazId: String, tazIdPassword: String, lastName: String? = nil, firstName: String? = nil){
     let dfl = Defaults.singleton
     let pushToken = dfl["pushToken"]
     let installationId = dfl["installationId"] ?? App.installationId
@@ -98,11 +100,13 @@ class TrialSubscriptionController : FormsController {
             case .waitForProc:
               /// AboId not verified server will confirm later (using push/poll)
               self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
-            case .noSurname, .noFirstname:
-              /// no surname/firstname provided - necessary fro trial subscriptions
-              /// present this one with just theese 2 Inputs
-              /// **TODO** self.contentView.subviews = []
-              controllerToBeFlipedIn?.modalFlip(self)
+             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
+                          if self.onMissingNameRequested != nil {
+                            self.onMissingNameRequested?()
+                          }
+                          else{
+                              fallthrough
+                          }
             case .subscriptionIdNotValid:
               fallthrough
             case .invalidConnection:
@@ -114,7 +118,6 @@ class TrialSubscriptionController : FormsController {
             case .expired:
               /// account provided by token is expired
               fallthrough
-            
             case .unknown:
               /// decoded from unknown string
               fallthrough
@@ -127,5 +130,53 @@ class TrialSubscriptionController : FormsController {
       }
       self.ui.blocked = false
     })
+  }
+}
+
+
+
+/// This is a verry special version of the TrialSubscriptionController
+/// it requests only firstname and lastname and
+/// appears if a user tries to login with a taz-Id without connected Abo-Id and wants a trialSubscription
+class TrialSubscriptionRequestNameCtrl : TrialSubscriptionController{
+  
+  var tazId:String
+  var tazIdPassword:String
+  
+  init(tazId: String, tazIdPassword: String, auth:AuthMediator) {
+    self.tazId = tazId
+    self.tazIdPassword = tazIdPassword
+    super.init(auth)
+    
+    ui.registerButton.setTitle(Localized("send_button"), for: .normal)
+       ui.views = [
+         TazHeader(),
+         UILabel(title: Localized("tbd")),///#TODO
+         ui.firstnameInput,
+         ui.lastnameInput,
+         ui.agbAcceptTV,
+         ui.registerButton,
+         ui.cancelButton,
+       ]
+     }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  // MARK: handleLogin Action
+  @IBAction override func handleSubmit(_ sender: UIButton) {
+    ui.blocked = true
+    
+    if let errormessage = ui.validate() {
+      Toast.show(errormessage, .alert)
+      ui.blocked = false
+      return
+    }
+    
+    let inputFirstname = ui.firstnameInput.text ?? ""
+    let inputLastname = ui.lastnameInput.text ?? ""
+    
+    self.createTrialSubscription(tazId: self.tazId, tazIdPassword: self.tazIdPassword, lastName: inputLastname, firstName: inputFirstname)
   }
 }
