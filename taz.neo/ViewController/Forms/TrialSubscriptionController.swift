@@ -72,7 +72,6 @@ class TrialSubscriptionController : FormsController {
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
               self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
-            
             case .valid:
               /// valid authentication
               self.showResultWith(message: Localized("fragment_login_registration_successful_header"),

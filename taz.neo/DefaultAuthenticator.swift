@@ -141,7 +141,7 @@ public class DefaultAuthenticator: Authenticator {
   
   /// Ref to feeder providing Data
   public var feeder: GqlFeeder
-
+  
   private var firstPresentedAuthController:UIViewController?
   
   /// Root view controller to present Forms
@@ -170,11 +170,9 @@ public class DefaultAuthenticator: Authenticator {
     feeder.subscriptionPoll(installationId: installationId) { (result) in
       switch result{
         case .success(let info):
-          self.log("subscriptionPoll succeed with status: \(info.status) message: \(info.message ?? "-")")
           switch info.status {
             case .valid:
               guard let token = info.token, token.length > 10 else {
-                self.log("Expected Subscription Poll Success have jwt token as info.message, got something else: \(info.message ?? "-")")
                 closure(true)//continue polling
                 return;
               }
