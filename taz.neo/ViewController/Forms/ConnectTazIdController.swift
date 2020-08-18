@@ -70,7 +70,7 @@ class ConnectTazIdController : FormsController {
   }
   
   
-  func connectWith(tazId: String, tazIdPassword: String, aboId: String, aboIdPW: String, lastName: String? = nil, firstName: String?=nil){
+  func connectWith(tazId: String, tazIdPassword: String, aboId _aboId: String, aboIdPW _aboIdPassword: String, lastName: String? = nil, firstName: String?=nil){
     
     let dfl = Defaults.singleton
     let pushToken = dfl["pushToken"]
@@ -78,7 +78,7 @@ class ConnectTazIdController : FormsController {
     
     //Start mutationSubscriptionId2tazId
     //spinner.enabler=true
-    auth.feeder.subscriptionId2tazId(tazId: tazId, password: tazIdPassword, aboId: self.aboId, aboIdPW: aboIdPassword, surname: lastName, firstName: firstName, installationId: installationId, pushToken: pushToken, closure: { (result) in
+    auth.feeder.subscriptionId2tazId(tazId: tazId, password: tazIdPassword, aboId: _aboId, aboIdPW: _aboIdPassword, surname: lastName, firstName: firstName, installationId: installationId, pushToken: pushToken, closure: { (result) in
       switch result {
         case .success(let info):
           switch info.status {
