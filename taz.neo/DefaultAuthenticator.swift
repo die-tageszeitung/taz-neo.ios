@@ -173,7 +173,7 @@ public class DefaultAuthenticator: Authenticator {
           self.log("subscriptionPoll succeed with status: \(info.status) message: \(info.message ?? "-")")
           switch info.status {
             case .valid:
-              guard let token = info.message, token.length > 10 else {
+              guard let token = info.token, token.length > 10 else {
                 self.log("Expected Subscription Poll Success have jwt token as info.message, got something else: \(info.message ?? "-")")
                 closure(true)//continue polling
                 return;
