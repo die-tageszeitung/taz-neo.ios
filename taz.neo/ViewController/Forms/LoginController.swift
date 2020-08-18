@@ -53,7 +53,6 @@ class LoginController: FormsController {
   }
   
   @IBAction func handlePwForgot(_ sender: UIButton) {
-    self.failedLoginCount = 0//reset failed count
     modalFlip(PwForgottController(id: ui.idInput.text?.trim,
                                   auth: auth))
   }
