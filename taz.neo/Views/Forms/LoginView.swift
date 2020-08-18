@@ -30,7 +30,6 @@ public class LoginView : FormView{
                                    title: Localized("login_forgot_password"))
   
   override func createSubviews() -> [UIView] {
-    passForgottButton.isHidden = true
     return   [
       TazHeader(),
       UILabel(title: Localized("article_read_onreadon")),

@@ -12,8 +12,6 @@ import NorthLib
 /// ChildViews/Controller are pushed modaly
 class LoginController: FormsController {
   
-  var failedLoginCount : Int = 0
-  
   private var contentView = LoginView()
   override var ui : LoginView { get { return contentView }}
   
@@ -32,7 +30,6 @@ class LoginController: FormsController {
     if let errormessage = self.validate() {
       Toast.show(errormessage, .alert)
       ui.blocked = false
-      showPwForgottButton()
       return
     }
     
@@ -103,15 +100,8 @@ class LoginController: FormsController {
         switch authStatusError.status {
         case .invalid:
           //wrong Credentials
-          self.showPwForgottButton()
-          self.failedLoginCount += 1
-          if self.failedLoginCount < 3 {//just 2 fails
-            Toast.show(Localized("toast_login_failed_retry"))
-          }
-          else {
-            self.handlePwForgot(self.ui.passForgottButton)
-          }
-          
+          Toast.show(Localized("toast_login_failed_retry"), .alert)
+          self.ui.passInput.bottomMessage = Localized("register_validation_issue")
         case .expired:
           self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: authStatusError.message,
                                                          dismissType: .current))
@@ -155,31 +145,14 @@ class LoginController: FormsController {
         case .invalid: fallthrough //tested 111&111
         case .notValidMail: fallthrough//tested
         default: //Falsche Credentials
-          print("Succeed with status: \(info.status) message: \(info.message ?? "-")")
-          self.showPwForgottButton()
-          self.failedLoginCount += 1
-          if self.failedLoginCount < 3 {//just 2 fails
-            Toast.show(Localized("toast_login_failed_retry"))
-          }
-          else {
-            self.handlePwForgot(self.ui.passForgottButton)
-          }
+          Toast.show(Localized("toast_login_failed_retry"), .alert)
+          self.ui.passInput.bottomMessage = Localized("register_validation_issue")
         }
       case .failure:
         Toast.show(Localized("toast_login_failed_retry"))
       }
       self.ui.blocked = false
     })
-  }
-  
-  // MARK: showPwForgottButton
-  func showPwForgottButton(){
-    if ui.passForgottButton.isHidden == false { return }
-    self.ui.passForgottButton.alpha = 0.0
-    self.ui.passForgottButton.isHidden = false
-    UIView.animate(seconds: 0.3) {
-      self.ui.passForgottButton.alpha = 1.0
-    }
   }
 }
 
