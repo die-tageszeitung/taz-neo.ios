@@ -44,10 +44,10 @@ class LoginController: FormsController {
   @IBAction func handleRegister(_ sender: UIButton) {
     let ctrl = TrialSubscriptionController(self.auth)
     // Prefill register Form with current Input if idInput contains a valid E-Mail
-    if (self.ui.idInput.text ?? "").isValidEmail() {
-      ctrl.ui.mailInput.text = self.ui.idInput.text
-      ctrl.ui.passInput.text = self.ui.passInput.text
-      ctrl.ui.pass2Input.text = self.ui.passInput.text
+    if (self.ui.idInput.text ?? "").trim.isValidEmail() {
+      ctrl.ui.mailInput.text = self.ui.idInput.text?.trim
+      ctrl.ui.passInput.text = self.ui.passInput.text?.trim
+      ctrl.ui.pass2Input.text = self.ui.passInput.text?.trim
     }
     modalFlip(ctrl)
   }
