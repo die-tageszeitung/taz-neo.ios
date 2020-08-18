@@ -151,7 +151,7 @@ class TrialSubscriptionRequestNameCtrl : TrialSubscriptionController{
     ui.registerButton.setTitle(Localized("send_button"), for: .normal)
        ui.views = [
          TazHeader(),
-         UILabel(title: Localized("tbd")),///#TODO
+         UILabel(title: Localized("fragment_login_missing__names_header")),///#TODO
          ui.firstnameInput,
          ui.lastnameInput,
          ui.agbAcceptTV,
