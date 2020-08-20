@@ -121,12 +121,8 @@ class ConnectTazIdController : FormsController {
                                               dismissType: .all)
               self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword, requestSoon: true)
             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
-              if self.onMissingNameRequested != nil {
-                self.onMissingNameRequested?()
-              }
-              else{
-                  fallthrough
-              }
+              if self.onMissingNameRequested == nil { fallthrough }
+              self.onMissingNameRequested?()
             case .subscriptionIdNotValid:
               fallthrough
             case .invalidConnection:/// AboId valid but connected to different tazId
