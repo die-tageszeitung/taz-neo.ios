@@ -91,11 +91,6 @@ class TrialSubscriptionController : FormsController {
               /// invalid mail address (only syntactic check)
               self.ui.mailInput.bottomMessage = Localized("login_email_error_no_email")
               Toast.show(Localized("register_validation_issue"))
-            
-            case .tazIdNotValid:
-              /// tazId not verified
-              Toast.show(Localized("toast_login_failed_retry"))//ToDo
-            
             case .waitForProc:
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Localized("fragment_login_success_login_back_article"),
@@ -114,12 +109,14 @@ class TrialSubscriptionController : FormsController {
             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
               if self.onMissingNameRequested == nil { fallthrough }
               self.onMissingNameRequested?()
-            case .subscriptionIdNotValid:
+            case .tazIdNotValid: /// depreciated should not arrear here, tazId not verified
               fallthrough
-            case .invalidConnection:
+            case .subscriptionIdNotValid:/// from different context should not arrear here
+              fallthrough
+            case .invalidConnection:///should not arrear here
               /// AboId valid but connected to different tazId
               fallthrough
-            case .noPollEntry:
+            case .noPollEntry:///should not arrear here
               /// user probably didn't confirm mail
               fallthrough
             case .expired:
