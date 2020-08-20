@@ -97,6 +97,7 @@ class TrialSubscriptionController : FormsController {
               Toast.show(Localized("toast_login_failed_retry"))//ToDo
             
             case .waitForProc:
+              //ToDo Result Page!!, proc takes some seconds
               /// AboId not verified server will confirm later (using push/poll)
               self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
              case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions

@@ -116,6 +116,8 @@ class ConnectTazIdController : FormsController {
             case .tazIdNotValid:
               Toast.show(Localized("toast_login_failed_retry"))//ToDo
             case .waitForProc:// AboId not verified, server will confirm later (using push/poll)
+              //ToDo Result Page!!, proc takes some seconds
+              //In simulator only poll subscription takes too long
               self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
               if self.onMissingNameRequested != nil {
