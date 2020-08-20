@@ -15,7 +15,7 @@ class PwForgottController: FormsController {
   
   private var contentView = PwForgottView()
   override var ui : PwForgottView { get { return contentView }}
-  
+  var childDismissType:dismissType?
   /**
    #todo move that to the place where its needed
    idInput.autocapitalizationType = .none
@@ -65,7 +65,9 @@ class PwForgottController: FormsController {
             case .invalidSubscriptionId: fallthrough
             case .alreadyConnected: fallthrough
             default:
-              self.modalFlip(SubscriptionResetSuccessController())
+              let ctrl = SubscriptionResetSuccessController()
+              if let cdt = self.childDismissType { ctrl.dismissType = cdt}
+              self.modalFlip(ctrl)
         }
         //ToDo #901
         case .failure:
@@ -84,7 +86,9 @@ class PwForgottController: FormsController {
         case .success(let info):
           switch info {
             case .ok:
-              self.modalFlip(PasswordResetRequestedSuccessController())
+              let ctrl = PasswordResetRequestedSuccessController()
+              if let cdt = self.childDismissType { ctrl.dismissType = cdt}
+              self.modalFlip(ctrl)
             case .invalidMail:
               Toast.show(Localized("error_invalid_email_or_abo_id"))
             case .mailError:

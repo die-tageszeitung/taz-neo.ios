@@ -11,11 +11,12 @@ public class PwForgottView : FormView{
   var idInput = TazTextField(placeholder: Localized("login_username_hint"))
   var submitButton =  UIButton(title: Localized("login_forgot_password_send"))
   var cancelButton =  UIButton(type:.outline, title: Localized("cancel_button"))
+  var introLabel = UILabel(title: Localized("login_forgot_password_header"))
   
   override func createSubviews() -> [UIView] {
     return  [
       TazHeader(),
-      UILabel(title: Localized("login_forgot_password_header")),
+      introLabel,
       idInput,
       submitButton,
       cancelButton

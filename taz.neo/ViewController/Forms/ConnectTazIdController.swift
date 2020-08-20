@@ -152,9 +152,9 @@ class ConnectTazIdController : FormsController {
   }
 }
 
-/// This is a verry special version of the ConnectTazIdController
-/// it requests only aboId + password and
-/// appears if a user tries to login with a taz-Id without connected Abo-Id
+/// This is a special version of the ConnectTazIdController
+/// to request aboId + password
+/// used if user logs in with tazID(tazIdNotLinked) and user choose "Connect existing Abo"
 class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
   
   var tazId:String
@@ -164,7 +164,7 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
     self.tazId = tazId
     self.tazIdPassword = tazIdPassword
     super.init(aboId: "", aboIdPassword: "", auth: auth)
-    
+    //Change to Number Input
     ui.mailInput.keyboardType = .numberPad
     ui.mailInput.placeholder = Localized("login_subscription_hint")
 
@@ -173,12 +173,14 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
     ui.views = [
       TazHeader(),
       UILabel(title: Localized("connect_abo_id_title")),
-      ui.mailInput,
+      ui.mailInput,//Is now Number Input
       ui.passInput,
       ui.agbAcceptTV,
       ui.registerButton,
       ui.cancelButton,
-///      ui.passforgottButton??!!# TODO
+      UIButton(type: .label, title: Localized("login_forgot_password"),
+               target: self,
+               action: #selector(handlePwForgot))
     ]
     
     self.onMissingNameRequested = {
@@ -200,7 +202,7 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
     fatalError("init(coder:) has not been implemented")
   }
   
-  // MARK: handleLogin Action
+  // MARK: Button Actions
   @IBAction override func handleSubmit(_ sender: UIButton) {
     ui.blocked = true
     
@@ -215,10 +217,21 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
     
     self.connectWith(tazId: self.tazId, tazIdPassword: self.tazIdPassword , aboId: inputAboId, aboIdPW: inputAboIdPassword)
   }
+  
+  @IBAction func handlePwForgot(_ sender: UIButton) {
+    let ctrl = PwForgottController(id: ui.mailInput.text?.trim, auth: auth)
+    //Change to SubscriptionReset
+    ctrl.ui.idInput.keyboardType = .numberPad
+    ctrl.ui.idInput.placeholder = Localized("login_subscription_hint")
+    ctrl.ui.introLabel.text = Localized("login_forgot_subscription_password_header")
+    
+    ctrl.dismissType = .two //Reset & ResetSuccess
+    modalFlip(ctrl)
+  }
 }
 
-/// This is a verry special version of the ConnectTazIdController
-/// it requests only firstname and lastname and
+/// This is a special version of the ConnectTazIdController
+/// to request irstname and lastname
 /// appears if a user tries to login with a taz-Id without connected Abo-Id and still gave its Abo-Id + pass
 /// and the api answered that there is missing first/lastname
 class ConnectTazIdRequestNameCtrl : ConnectTazIdController{
@@ -237,7 +250,7 @@ class ConnectTazIdRequestNameCtrl : ConnectTazIdController{
       ui.firstnameInput,
       ui.lastnameInput,
       ui.registerButton,
-      ui.cancelButton,
+      ui.cancelButton
     ]
   }
   
@@ -262,10 +275,9 @@ class ConnectTazIdRequestNameCtrl : ConnectTazIdController{
   }
 }
 
-
-/// This is a verry special version of the ConnectTazIdController
-/// it requests only tazId + password and
-/// appears if a user clicks handleAlreadyHaveTazId in ConnectTazIdController
+/// This is a special version of the ConnectTazIdController
+/// to request tazId + password
+/// used if user logs in with unlinked AboID, ConnectTazIdController appeared user choosed handleAlreadyHaveTazId
 fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
   
   override init(aboId:String, aboIdPassword:String, auth:AuthMediator) {
