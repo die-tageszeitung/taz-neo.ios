@@ -221,7 +221,7 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
     ctrl.ui.idInput.placeholder = Localized("login_subscription_hint")
     ctrl.ui.introLabel.text = Localized("login_forgot_subscription_password_header")
     
-    ctrl.dismissType = .two //Reset & ResetSuccess
+    ctrl.childDismissType = .two //Reset & ResetSuccess
     modalFlip(ctrl)
   }
 }
