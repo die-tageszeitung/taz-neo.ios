@@ -97,17 +97,23 @@ class TrialSubscriptionController : FormsController {
               Toast.show(Localized("toast_login_failed_retry"))//ToDo
             
             case .waitForProc:
-             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
-                          if self.onMissingNameRequested != nil {
-                            self.onMissingNameRequested?()
-                          }
-                          else{
-                              fallthrough
-                          }
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                               dismissType: .all)
               self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword, requestSoon: true)
+            case .invalidFirstname: //What if No Form and this Issue occours? @Test with: Web Change Name prepared the +12 Account
+              self.ui.firstnameInput.bottomMessage = Localized("invalid_chars")
+              Toast.show(Localized("register_validation_issue"))
+            case .invalidSurname:
+              self.ui.lastnameInput.bottomMessage = Localized("invalid_chars")
+              Toast.show(Localized("register_validation_issue"))
+            case .invalidAccountholder:
+              self.ui.firstnameInput.bottomMessage = Localized("invalid_chars")
+              self.ui.lastnameInput.bottomMessage = Localized("invalid_chars")
+              Toast.show(Localized("register_validation_issue"))
+            case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
+              if self.onMissingNameRequested == nil { fallthrough }
+              self.onMissingNameRequested?()
             case .subscriptionIdNotValid:
               fallthrough
             case .invalidConnection:

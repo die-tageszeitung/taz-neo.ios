@@ -32,8 +32,14 @@ enum GqlSubscriptionStatus: String, CodableEnum {
   case expired = "expired(elapsed)"      
   /// no surname provided - seems to be necessary fro trial subscriptions
   case noSurname = "noSurname"  
-  /// no firstname provided 
-  case noFirstname = "noFirstname(noFirstName)"           
+  /// no firstname provided
+  case noFirstname = "noFirstname(noFirstName)"
+  /// firstname and lastname only contain invalid chars
+  case invalidAccountholder = "invalidAccountHolder"
+  /// invalid char in surname
+  case invalidSurname = "invalidSurname"
+  /// invalid char in firstname
+  case invalidFirstname = "invalidFirstname(invalidFirstName)"
   case unknown     = "unknown"   /// decoded from unknown string
 } // GqlSubscriptionStatus
 
