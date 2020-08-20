@@ -97,6 +97,13 @@ class TrialSubscriptionController : FormsController {
               Toast.show(Localized("toast_login_failed_retry"))//ToDo
             
             case .waitForProc:
+             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
+                          if self.onMissingNameRequested != nil {
+                            self.onMissingNameRequested?()
+                          }
+                          else{
+                              fallthrough
+                          }
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                               dismissType: .all)
