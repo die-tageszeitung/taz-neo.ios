@@ -137,7 +137,7 @@ class ConnectTazIdController : FormsController {
             // case .tazIdNotValid: ///not available here
             default:
               Toast.show(Localized("toast_login_failed_retry"))
-              print("Succeed with status: \(info.status) message: \(info.message ?? "-")")
+              self.log("Succeed with status: \(info.status) message: \(info.message ?? "-")", logLevel: .Debug)
         }
         case .failure:
           Toast.show(Localized("error"))

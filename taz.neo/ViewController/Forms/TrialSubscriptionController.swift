@@ -127,10 +127,10 @@ class TrialSubscriptionController : FormsController {
               fallthrough
             default:
               Toast.show(Localized("toast_login_failed_retry"))
-              print("Succeed with status: \(info.status) message: \(info.message ?? "-")")
+              self.log("Succeed with status: \(info.status) message: \(info.message ?? "-")")
         }
         case .failure:
-          Toast.show(Localized("toast_login_failed_retry"))
+          Toast.show(Localized("toast_login_failed_retry")+"\n(Fehler!)")
       }
       self.ui.blocked = false
     })
