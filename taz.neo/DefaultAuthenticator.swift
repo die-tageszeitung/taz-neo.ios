@@ -71,17 +71,20 @@ import NorthLib
  */
 public protocol AuthMediator : Authenticator {
   
-  func pollSubscription(tmpId:String, tmpPassword:String)
-  /**
-   Use this method to store user authentication data in user defaults and keychain
-   
-   id is stored in user defaults and keychain whereas the password is
-   only written to the keychain.
-   
-   - parameters:
-     - id: the user's ID
-     - password: the user's password
-  */
+  
+  ///  save temporary credentials in Keychain and setup pollSubscription (timer/apn)
+  /// - Parameters:
+  ///   - tmpId: temporary taz-ID
+  ///   - tmpPassword: temporary taz-ID Password
+  ///   - requestSoon: request the first poll after short timeout, e.g. used in case of `waitForProc`
+  func pollSubscription(tmpId:String, tmpPassword:String, requestSoon:Bool)
+  
+  /// Use this method to store user authentication data in user defaults and keychain
+  /// id is stored in user defaults and keychain whereas the password is
+  /// only written to the keychain.
+  /// - Parameters:
+  ///   - tmpId: temporary taz-ID
+  ///   - tmpPassword: temporary taz-ID Password
   static func storeTempUserData(tmpId: String, tmpPassword: String)
   
   /**
@@ -103,6 +106,10 @@ public protocol AuthMediator : Authenticator {
 
 
 extension AuthMediator {
+  
+  func pollSubscription(tmpId:String, tmpPassword:String){
+    return pollSubscription(tmpId:tmpId, tmpPassword:tmpPassword, requestSoon:false)
+  }
   
   static var keychainTempId: String { return "tmpId" }
   static var keychainTempIdPassword: String { return "tmpPassword" }
@@ -131,8 +138,20 @@ extension AuthMediator {
 
 
 extension DefaultAuthenticator : AuthMediator{
-  public func pollSubscription(tmpId:String, tmpPassword:String){
+  
+  public func pollSubscription(tmpId:String, tmpPassword:String, requestSoon:Bool = false){
     Self.storeTempUserData(tmpId: tmpId, tmpPassword: tmpPassword)
+    if requestSoon == true {
+      DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
+        self.pollSubscription {  [weak self] (resume) in
+          guard let self = self else {return;}
+          if resume == true {
+            self.performPollingClosure?()
+          }
+        }
+      }
+      return;
+    }//eof: requestSoon == true
     performPollingClosure?()//tell app start polling for incomming push or start timer!
   }
 }

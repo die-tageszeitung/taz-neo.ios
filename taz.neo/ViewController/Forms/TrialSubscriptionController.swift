@@ -97,16 +97,10 @@ class TrialSubscriptionController : FormsController {
               Toast.show(Localized("toast_login_failed_retry"))//ToDo
             
             case .waitForProc:
-              //ToDo Result Page!!, proc takes some seconds
-              /// AboId not verified server will confirm later (using push/poll)
-              self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
-             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
-                          if self.onMissingNameRequested != nil {
-                            self.onMissingNameRequested?()
-                          }
-                          else{
-                              fallthrough
-                          }
+              self.showResultWith(message: Localized("wait_for_proc_result_Text"),
+                                              backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                              dismissType: .all)
+              self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword, requestSoon: true)
             case .subscriptionIdNotValid:
               fallthrough
             case .invalidConnection:
