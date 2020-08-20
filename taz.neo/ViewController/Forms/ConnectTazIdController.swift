@@ -89,14 +89,6 @@ class ConnectTazIdController : FormsController {
                                   dismissType: .all)
               self.auth.authenticationSucceededClosure?(nil)
             case .waitForMail:///user need to confirm mail
-              if (info.token ?? "").length > 0 {//@ToDo Maybe API Change
-                DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
-                self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
-                                    backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                    dismissType: .all)
-                self.auth.authenticationSucceededClosure?(nil)
-                return
-              }
               self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
@@ -131,7 +123,6 @@ class ConnectTazIdController : FormsController {
               fallthrough
             case .expired: /// account provided by token is expired
               fallthrough
-       
             case .unknown:  /// decoded from unknown string
               fallthrough
             // case .tazIdNotValid: ///not available here
