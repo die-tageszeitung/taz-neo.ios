@@ -47,7 +47,6 @@ public protocol AuthMediator : Authenticator {
   var authenticationSucceededClosure: ((Error?)->())? { get set}
 }
 
-
 extension AuthMediator {
   
   func pollSubscription(tmpId:String, tmpPassword:String){
@@ -76,9 +75,7 @@ extension AuthMediator {
     kc[Self.keychainTempId] = nil
     kc[Self.keychainTempIdPassword] = nil
   }
-
 }
-
 
 extension DefaultAuthenticator : AuthMediator{
   
