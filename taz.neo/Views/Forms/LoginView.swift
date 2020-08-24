@@ -41,6 +41,30 @@ public class LoginView : FormView{
       passForgottButton
     ]
   }
+  
+  // MARK: validate()
+  ///Validates the Form returns translated Errormessage String for Popup/Toast
+  ///Mark issue fields with hints
+  func validate() -> String?{
+    var errors = false
+    idInput.bottomMessage = ""
+    passInput.bottomMessage = ""
+    
+    if (idInput.text ?? "").isEmpty {
+      idInput.bottomMessage = Localized("login_username_error_empty")
+      errors = true
+    }
+    
+    if (passInput.text ?? "").isEmpty {
+      passInput.bottomMessage = Localized("login_password_error_empty")
+      errors = true
+    }
+    
+    if errors {
+      return Localized("register_validation_issue")
+    }
+    return nil
+  }
 }
 
 

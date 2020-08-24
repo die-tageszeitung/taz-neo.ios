@@ -27,7 +27,7 @@ class LoginController: FormsController {
   // MARK: Button Actions
   @IBAction func handleLogin(_ sender: UIButton) {
     ui.blocked = true
-    if let errormessage = self.validate() {
+    if let errormessage = ui.validate() {
       Toast.show(errormessage, .alert)
       ui.blocked = false
       return
@@ -57,29 +57,7 @@ class LoginController: FormsController {
                                   auth: auth))
   }
   
-  // MARK: validate()
-  ///Validates the Form returns translated Errormessage String for Popup/Toast
-  ///Mark issue fields with hints
-  func validate() -> String?{
-    var errors = false
-    ui.idInput.bottomMessage = ""
-    ui.passInput.bottomMessage = ""
-    
-    if (ui.idInput.text ?? "").isEmpty {
-      ui.idInput.bottomMessage = Localized("login_username_error_empty")
-      errors = true
-    }
-    
-    if (ui.passInput.text ?? "").isEmpty {
-      ui.passInput.bottomMessage = Localized("login_password_error_empty")
-      errors = true
-    }
-    
-    if errors {
-      return Localized("register_validation_issue")
-    }
-    return nil
-  }
+  
   
   // MARK: queryAuthToken
   func queryAuthToken(tazId: String, tazIdPass: String){
