@@ -116,7 +116,7 @@ public class DefaultAuthenticator: Authenticator {
     performPollingClosure = closure
   }
   
-  /// Closure to call when authentication succeeded
+  /// Closure to call when authentication succeeded, set in authenticate(...)
   public var authenticationSucceededClosure: ((Error?)->())?
   
   required public init(feeder: GqlFeeder) {
@@ -145,12 +145,13 @@ public class DefaultAuthenticator: Authenticator {
                 backButtonTitle: Localized("fragment_login_success_login_back_article"),
                 dismissType: .all)
               }
+              self.authenticationSucceededClosure?(nil)
               closure(false)//stop polling
               return;
             case .noPollEntry:
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
               /// In this case user recived the E-Mail for PW Reset,
-              /// and connects them next time, so stop polling
+              self.authenticationSucceededClosure?(Log.log("noPollEntry", object: result, logLevel: .Error) as? Error)
               closure(false)//stop polling
               return;
             case .waitForProc: fallthrough

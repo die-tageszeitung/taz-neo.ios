@@ -73,11 +73,18 @@ class TrialSubscriptionController : FormsController {
                                   dismissType: .all)
               self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
             case .valid:
+              if let token = info.token {
+                DefaultAuthenticator.storeUserData(id: tazId,
+                                      password: tazIdPassword,
+                                      token: token)
+                self.auth.authenticationSucceededClosure?(nil)
+                return;
+              }
               /// valid authentication
               self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
-            
+              self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
             case .alreadyLinked:
               /// valid tazId connected to different AboId
               if let loginCtrl = self.presentingViewController as? LoginController {
