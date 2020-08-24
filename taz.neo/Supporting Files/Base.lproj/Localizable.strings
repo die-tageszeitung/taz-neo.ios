@@ -117,15 +117,8 @@
 /* translation from Android */
 "login_surname_error_empty" = "Bitte den Nachnamen angeben";
 
-
-/* translation from Android */
-"login_password_hint" = "Passwort";
-
 /* translation from Android */
 "login_password_confirmation_hint" = "Passwort bestätigen";
-
-/* translation from Android */
-"login_password_error_empty" = "Passwort darf nicht leer sein.";
 
 /* translation from Android */
 "login_password_confirmation_error_match" = "Passwörter stimmen nicht überein";
@@ -160,9 +153,6 @@
 
 /* translation from Android */
 "subscription_id_expired" = "Ihr taz-Digiabo ist seit %@ abgelaufen.<br><br>Bitte kontaktieren Sie unseren Service:<br><br><a href='mailto:abo@taz.de'>abo@taz.de</a>";
-
-/* login back to Login */
-"back_to_login" = "Zurück zur Anmeldung";
 
 /* login back to Login */
 "back_to_login" = "Zurück zur Anmeldung";
