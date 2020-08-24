@@ -8,63 +8,6 @@
 
 import UIKit
 import NorthLib
-
-/**
-  # strategy finding discussion: What is this class? Which technique connects the caller (somewhere in the app) with the forms.
-  # Problem: Ich habe 5+ ViewController (ConnectTazIDController, TrialSubscriptionController, Login...), die eine gemeinsame Schnittstelle zur App benötigen
-  
-  # Lösungsidee #1
-  - VC's kümmern sich nur um ihr UI
-  - ich habe 7 Requests und deren Behandlung in 4 VC's
-  - hier werden die Requests gebündelt und verarbeitet,
-  - **nein**, wird unübersichtlich, da an einer stelle requests gemacht werden an anderer stelle darauf im UI reagiert wird
-  - Requests werden wie gehabt an entsprechende Stelle im VC implementiert
-    
-  # Problematik
-  - der DefaultAuthenticator müsste "verfügbar sein"
-  #1 Singleton NO: Singeltons are bad: loose of transparency, don't use them if there is a better solution
-  #2 als Diese Instanz/Klasse Parameter übergeben // reference nightmare: child holds parents reference
-  #3 #2 entkoppeln via Protokoll Erweiterung vom Authenticator
-     
-  # Lösungsskizze
-  - App calls DefaultAuthenticator().authenticate()
-    DefaultAuthenticator => presents LoginController...
- 
-    Wohin geht die Reise?  Zustandsautomat?
-    => Nein, ich muss mir keinen Zustand merken, der nach App Neustart wieder hergestellt wird
-     
-    Alternative: Anlehnung an **Mediator Pattern**: Die Instanz dieser Klasse vermittelt zwischen App und den Formularen!
- */
-
-/**
- # Name finding Discussion: Wie heist die Protokoll Erweiterung zum Authenticator?
- 
- # Die Klasse, welche die Erweiterung vom Authenticator implementiert heißt: DefaultAuthenticator : Authenticator, ????
- 
- # Das Protokoll soll als Vermittler zwischen den Anmelde/Register Dialogen und der App (externen Aufrufhierachie) dienen und stellt dafür folgende funktionalitäten bereit:
- - storeTempUserData
- - getTempUserData
- - deleteTempUserData
- - pollSubscription(id, pass)
- - ZUgriff auf den Feeder vom erweiterten/vererbten Authenticator Protokoll
-  
-# Wie heißen die Nutzer dieses Protokolls:
- - LoginController -> FormsController
- - TrialSubscriptionController -> FormsController
- - ConnectTazIDController -> TrialSubscriptionController -> FormsController
- - ...
- 
- # Wer wird Wie die Referenz zur Instanz halten?
- - FormsController als z.B. **Delegate**, **???Authenticator**
- 
- # Kandidaten für Namen
- - AuthenticatorDelegate: zu allgemein, nichtssagend
- - ViewsAuthenticator: zu allgemein, nichtssagend
- - ExtendedAuthenticator: nichtssagend
- - **AuthMediator**: am zutreffensten => AuthMediator ist eine Erweiterung von Authenticator!
- */
-
-
 /**
  This Protocol defines the handling between AuthForms e.g. LoginForm and the App.
  It extends the Authenticator for Functions to wait for poll with temporary taz-Id and temporara taz-Id Password
