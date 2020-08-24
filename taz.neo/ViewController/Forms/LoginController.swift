@@ -64,34 +64,35 @@ class LoginController: FormsController {
     auth.feeder.authenticateWithTazId(account: tazId, password: tazIdPass, closure:{ [weak self] (result) in
       guard let self = self else { return }
       switch result {
-      case .success(let token):
-        DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPass, token: token)
-        self.dismiss(animated: true, completion: nil)
-        self.auth.authenticationSucceededClosure?(nil)
-      case .failure(let error):
-        guard let authStatusError = error as? AuthStatusError else {
-          //generell error e.g. no connection
-          Toast.show(Localized("something_went_wrong_try_later"))
-          return
-        }
-        switch authStatusError.status {
-        case .invalid:
-          //wrong Credentials
-          Toast.show(Localized("toast_login_failed_retry"), .alert)
-          self.ui.passInput.bottomMessage = Localized("register_validation_issue")
-        case .expired:
-          self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: authStatusError.message,
-                                                         dismissType: .current))
-        case .unlinked:
-          self.modalFlip(AskForTrial_Controller(tazId: tazId,
-                                                tazIdPass: tazIdPass,
-                                                auth: self.auth))
-        case .notValidMail: fallthrough
-        case .unknown: fallthrough
-        case .alreadyLinked: fallthrough //Makes no sense here!
-        default:
-          self.log("Auth with tazID should not have alreadyLinked as result", logLevel: .Error)
-          Toast.show(Localized("something_went_wrong_try_later"))
+        case .success(let token):
+          DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPass, token: token)
+          self.dismiss(animated: true, completion: nil)
+          self.auth.authenticationSucceededClosure?(nil)
+        case .failure(let error):
+          guard let authStatusError = error as? AuthStatusError else {
+            //generell error e.g. no connection
+            Toast.show(Localized("something_went_wrong_try_later"))
+            self.ui.blocked = false
+            return
+          }
+          switch authStatusError.status {
+            case .invalid:
+              //wrong Credentials
+              Toast.show(Localized("toast_login_failed_retry"), .alert)
+              self.ui.passInput.bottomMessage = Localized("register_validation_issue")
+            case .expired:
+              self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: authStatusError.message,
+                                                             dismissType: .current))
+            case .unlinked:
+              self.modalFlip(AskForTrial_Controller(tazId: tazId,
+                                                    tazIdPass: tazIdPass,
+                                                    auth: self.auth))
+            case .notValidMail: fallthrough
+            case .unknown: fallthrough
+            case .alreadyLinked: fallthrough //Makes no sense here!
+            default:
+              self.log("Auth with tazID should not have alreadyLinked as result", logLevel: .Error)
+              Toast.show(Localized("something_went_wrong_try_later"))
         }
       }
       self.ui.blocked = false
@@ -102,31 +103,31 @@ class LoginController: FormsController {
   func queryCheckSubscriptionId(aboId: String, aboIdPass: String){
     auth.feeder.checkSubscriptionId(aboId: aboId, password: aboIdPass, closure: { (result) in
       switch result {
-      case .success(let info):
-        //ToDo #900
-        switch info.status {
-        case .valid:
-          self.modalFlip(ConnectTazIdController(aboId: aboId,
-                                                aboIdPassword: aboIdPass, auth: self.auth))
-        case .expired:
-          self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: info.message,
-                                                         dismissType: .current))
-        case .alreadyLinked:
-          self.ui.idInput.text = info.message
-          self.ui.passInput.text = ""
-          //              Toast.show(Localized("toast_login_with_email"))
-          self.showResultWith(message: Localized("toast_login_with_email"),
-                              backButtonTitle: Localized("back_to_login"),
-                              dismissType: .leftFirst)
-        case .unlinked: fallthrough
-        case .invalid: fallthrough //tested 111&111
-        case .notValidMail: fallthrough//tested
-        default: //Falsche Credentials
-          Toast.show(Localized("toast_login_failed_retry"), .alert)
-          self.ui.passInput.bottomMessage = Localized("register_validation_issue")
+        case .success(let info):
+          //ToDo #900
+          switch info.status {
+            case .valid:
+              self.modalFlip(ConnectTazIdController(aboId: aboId,
+                                                    aboIdPassword: aboIdPass, auth: self.auth))
+            case .expired:
+              self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: info.message,
+                                                             dismissType: .current))
+            case .alreadyLinked:
+              self.ui.idInput.text = info.message
+              self.ui.passInput.text = ""
+              //              Toast.show(Localized("toast_login_with_email"))
+              self.showResultWith(message: Localized("toast_login_with_email"),
+                                  backButtonTitle: Localized("back_to_login"),
+                                  dismissType: .leftFirst)
+            case .unlinked: fallthrough
+            case .invalid: fallthrough //tested 111&111
+            case .notValidMail: fallthrough//tested
+            default: //Falsche Credentials
+              Toast.show(Localized("toast_login_failed_retry"), .alert)
+              self.ui.passInput.bottomMessage = Localized("register_validation_issue")
         }
-      case .failure:
-        Toast.show(Localized("toast_login_failed_retry"))
+        case .failure:
+          Toast.show(Localized("toast_login_failed_retry"))
       }
       self.ui.blocked = false
     })
