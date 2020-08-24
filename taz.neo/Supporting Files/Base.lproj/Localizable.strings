@@ -16,7 +16,7 @@
 "login_button" = "Anmelden";
 
 /* translation from Android */
-"login_username_hint" = "Nutzername oder Abo-ID";
+"login_username_hint" = "E-Mail-Adresse oder Abo-ID";
 
 /* translation from Android */
 "login_password_hint" = "Passwort";
@@ -80,7 +80,7 @@
 "error_invalid_email_or_abo_id" = "Keine gültige E-Mail-Adresse oder AboId";
 
 /* Fehler ID/Mail empty */
-"login_username_error_empty" = "Nutzername oder Abo-ID darf nicht leer sein.";
+"login_username_error_empty" = "E-Mail-Adresse oder Abo-ID darf nicht leer sein.";
 
 /* translation from Android */
 "login_password_error_empty" = "Passwort darf nicht leer sein.";
