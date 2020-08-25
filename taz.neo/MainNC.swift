@@ -278,6 +278,8 @@ class MainNC: NavigationController, IssueVCdelegate,
           self?.overviewReceived(issues: issues)
         }
       }
+      self.dloader.downloadResources{ _ in}
+      
       Notification.receive("userLogin") { [weak self] _ in
         self?.userLogin() { [weak self] err in
           guard let self = self else { return }
