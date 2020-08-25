@@ -214,44 +214,30 @@ extension FormsResultController{
 // MARK: - ext: FormsController:UITextViewDelegate
 extension FormsController: UITextViewDelegate {
   func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
-    ///Handle AGB Demo Url come from Localizable.strings
-    ///"fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/!106726'>AGB</a> sowie die Hinweise zum <a href='https://taz.de'>Widerruf (N/A)</a> und <a href='https://taz.de/!166598'>Datenschutz</a>.";
-    if URL.absoluteString.contains("taz.de/!106726"){
+    var localRessource:File?
+    if URL.absoluteString.contains("taz.de/\(Const.Filename.dataPolicy)"){
+      localRessource = File(auth.feeder.dataPolicy)
+    }
+    else if URL.absoluteString.contains("taz.de/\(Const.Filename.revocation)"){
+      localRessource = File(auth.feeder.revocation)
+    }
+    else if URL.absoluteString.contains("taz.de/\(Const.Filename.terms)"){
+      localRessource = File(auth.feeder.terms)
+    }
+    
+    if let localRessource = localRessource, localRessource.exists {
       let introVC = IntroVC()
-      let resdir = auth.feeder.resourcesDir.path
-      let dataPolicy = File(resdir + "/welcomeSlidesDataPolicy.html")
-      introVC.webView.webView.load(url: dataPolicy.url)
+      introVC.webView.webView.load(url: localRessource.url)
       modalFromBottom(introVC)
       introVC.webView.onX {
         introVC.dismiss(animated: true, completion: nil)
       }
-      if false /*Use footer close Button*/{
-        introVC.webView.buttonLabel.text = Localized("back_button")
-        introVC.webView.onTap {_ in
-          introVC.dismiss(animated: true, completion: nil)
-        }
-      }
-      else{//Or
-        introVC.webView.webView.atEndOfContent {_ in
-          //Do nothing overwrite appear Bottom Label/View
-        }
-      }
-      
-      
+      introVC.webView.webView.atEndOfContent {_ in }
       return false
     }
-    else if URL.absoluteString.contains("taz.de/datenschutz"){
-      //ToDo
-    }
-    else if URL.absoluteString.contains("taz.de/hinweisewiderruf"){
-      
-    }
-    else{
-      Toast.show(Localized(keyWithFormat: "prevent_open_url",
-                           URL.absoluteString),
-                 .alert)
-    }
-    return true//Open in Safari
+    
+    return true//If not yet downloaded open in Safari, so the url is called
+    //and we see how often app users cannot open the AGB etc from local ressources
   }
 }
 

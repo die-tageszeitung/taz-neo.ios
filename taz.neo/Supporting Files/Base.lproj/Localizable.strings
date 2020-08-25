@@ -130,7 +130,7 @@
 "login_password_confirmation_error_match" = "Passwörter stimmen nicht überein";
 
 /* translation from Android */
-"fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/!106726'>AGB</a> sowie die Hinweise zum <a href='https://taz.de'>Widerruf (N/A)</a> und <a href='https://taz.de/!166598'>Datenschutz</a>.";
+"fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/welcomeTerms.html'>AGB</a> sowie die Hinweise zum <a href='https://taz.de/welcomeRevocation.html'>Widerruf</a> und <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutz</a>.";
 
 /* translation from Android */
 "something_went_wrong_try_later" = "Etwas unerwartetes ist passiert. Bitte versuchen Sie es später erneut.";
