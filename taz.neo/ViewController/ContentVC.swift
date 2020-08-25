@@ -274,8 +274,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(homeButton, direction: .right)
     toolBar.addButton(shareButton, direction: .center)
-    toolBar.setButtonColor(AppColors.darkTintColor)
-    toolBar.backgroundColor = AppColors.darkToolbar
+    toolBar.setButtonColor(Const.Colors.darkTintColor)
+    toolBar.backgroundColor = Const.Colors.darkToolbar
     toolBar.pinTo(self.view)
   }
   

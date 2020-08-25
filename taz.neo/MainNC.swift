@@ -308,9 +308,8 @@ class MainNC: NavigationController, IssueVCdelegate,
       debug("Showing Intro")
       inIntro = true
       let introVC = IntroVC()
-      let resdir = feeder.resourcesDir.path
-      introVC.htmlDataPolicy = resdir + "/welcomeSlidesDataPolicy.html"
-      introVC.htmlIntro = resdir + "/welcomeSlides.html"
+      introVC.htmlDataPolicy = feeder.dataPolicy
+      introVC.htmlIntro = feeder.welcomeSlides
       Notification.receive("dataPolicyAccepted") { [weak self] obj in
         self?.introHasFinished()
       }

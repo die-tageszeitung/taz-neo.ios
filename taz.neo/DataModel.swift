@@ -738,6 +738,15 @@ extension Feeder {
   /// The resources version file
   public var resVersionFile: File { return File(dir: resourcesDir.path, 
                                                 fname: "ResourceVersion") }
+  /// Pathname to Welcome slides (in HTML)
+  public var welcomeSlides: String { resourcesDir.path + "/" + Const.Filename.welcomeSlides }
+  /// Pathname data policy
+  public var dataPolicy: String { resourcesDir.path + "/" + Const.Filename.dataPolicy }
+  /// Pathname to declaration of revocation
+  public var revocation: String { resourcesDir.path + "/" + Const.Filename.revocation }
+  /// Pathname to terms & conditions
+  public var terms: String { resourcesDir.path + "/" + Const.Filename.terms }
+
   /// resource version as Int
   public var storedResVersion: Int {
     get { return Int(resVersionFile.string.trim) ?? 0 }

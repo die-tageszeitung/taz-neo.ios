@@ -27,19 +27,19 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   private func setupColors() {
     if let mode = Defaults.singleton["colorMode"], mode == "dark" {
       Self.IsDarkMode = true
-      Self.BackgroundColor = AppColors.Dark.CTBackground
+      Self.BackgroundColor = Const.Colors.Dark.CTBackground
       Self.ShadowColor = UIColor.white
-      Self.SectionColor = AppColors.Dark.CTSection
-      Self.ArticleColor = AppColors.Dark.CTArticle
-      Self.DateColor = AppColors.Dark.CTDate
+      Self.SectionColor = Const.Colors.Dark.CTSection
+      Self.ArticleColor = Const.Colors.Dark.CTArticle
+      Self.DateColor = Const.Colors.Dark.CTDate
     }
     else {
       Self.IsDarkMode = false
-      Self.BackgroundColor = AppColors.Light.CTBackground
+      Self.BackgroundColor = Const.Colors.Light.CTBackground
       Self.ShadowColor = UIColor.black
-      Self.SectionColor = AppColors.Light.CTSection
-      Self.ArticleColor = AppColors.Light.CTArticle
-      Self.DateColor = AppColors.Light.CTDate
+      Self.SectionColor = Const.Colors.Light.CTSection
+      Self.ArticleColor = Const.Colors.Light.CTArticle
+      Self.DateColor = Const.Colors.Light.CTDate
     }
   }
   
