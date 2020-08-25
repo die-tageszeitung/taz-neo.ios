@@ -7,6 +7,7 @@
 // 
 
 import UIKit
+import NorthLib
 
 public class LoginView : FormView{
   
@@ -29,16 +30,22 @@ public class LoginView : FormView{
   var passForgottButton = UIButton(type: .label,
                                    title: Localized("login_forgot_password"))
   
+  var helpLabel = UILabel(title: Localized("help"))
   override func createSubviews() -> [UIView] {
+    helpLabel.textColor = TazColor.CIColor.color
+    helpLabel.onTapping {  _ in
+      Alert.message(title: Localized("help"), message: Localized("article_read_onreadon"), buttonColor: TazColor.CIColor.color)
+    }
     return   [
       TazHeader(),
-      UILabel(title: Localized("article_read_onreadon")),
+      UILabel(title: Localized("login_required")),
       idInput,
       passInput,
       loginButton,
       UILabel(title: Localized("ask_for_trial_subscription_title")),
       registerButton,
-      passForgottButton
+      passForgottButton,
+      helpLabel
     ]
   }
   
