@@ -119,7 +119,7 @@ class LoginController: FormsController {
 //              self.showResultWith(message: Localized("toast_login_with_email"),
 //                                  backButtonTitle: Localized("back_to_login"),
 //                                  dismissType: .leftFirst)
-              Alert.message2(message: Localized("toast_login_with_email"), buttonColor: TazColor.CIColor.color)
+              Alert.message2(message: Localized("toast_login_with_email"))
             case .unlinked: fallthrough
             case .invalid: fallthrough //tested 111&111
             case .notValidMail: fallthrough//tested

@@ -34,7 +34,7 @@ public class LoginView : FormView{
   override func createSubviews() -> [UIView] {
     helpLabel.textColor = TazColor.CIColor.color
     helpLabel.onTapping {  _ in
-      Alert.message(title: Localized("help"), message: Localized("article_read_onreadon"), buttonColor: TazColor.CIColor.color)
+      Alert.message2(title: Localized("help"), message: Localized("article_read_onreadon"))
     }
     return   [
       TazHeader(),
