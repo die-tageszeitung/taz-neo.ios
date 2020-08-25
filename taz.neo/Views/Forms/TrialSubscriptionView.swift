@@ -50,7 +50,7 @@ public class TrialSubscriptionView : FormView{
     view.textView.isEditable = false
     view.textView.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed
     view.textView.linkTextAttributes = [.foregroundColor : TazColor.CIColor.color, .underlineColor: UIColor.clear]
-    view.textView.font = AppFonts.contentFont(size: DefaultFontSize)
+    view.textView.font = Const.Fonts.contentFont(size: DefaultFontSize)
     view.textView.textColor = TazColor.HText.color
     return view
   }()

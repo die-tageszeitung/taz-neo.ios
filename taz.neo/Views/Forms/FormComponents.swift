@@ -41,7 +41,7 @@ class TazHeader: UIView{
     line.fillColor = TazColor.CTDate.color
     title.text = NSLocalizedString("die tageszeitung",
                                    comment: "taz_title")
-    title.font = AppFonts.contentFont(size: LargeTitleFontSize)
+    title.font = Const.Fonts.contentFont(size: LargeTitleFontSize)
     title.textAlignment = .right
     
     self.addSubview(title)
@@ -103,7 +103,7 @@ class BlockingProcessView : UIView{
 // MARK: - UILabel Extension taz Label
 extension UILabel{
   convenience init(title: String? = nil,
-                   font: UIFont = AppFonts.contentFont(size: DefaultFontSize),
+                   font: UIFont = Const.Fonts.contentFont(size: DefaultFontSize),
                    paddingTop: CGFloat = 8,
                    paddingBottom: CGFloat = 8) {
     self.init()
@@ -296,7 +296,7 @@ class TazTextField : UITextField, UITextFieldDelegate{
         pin(topLabel.left, to: self.left)
         pin(topLabel.right, to: self.right)
         pin(topLabel.top, to: self.top, dist: -2)
-        topLabel.font = AppFonts.contentFont(size: MiniPageNumberFontSize)
+        topLabel.font = Const.Fonts.contentFont(size: MiniPageNumberFontSize)
         self.topLabel.textColor = TazColor.CTArticle.color
         
       }
@@ -314,7 +314,7 @@ class TazTextField : UITextField, UITextFieldDelegate{
         pin(bottomLabel.left, to: self.left)
         pin(bottomLabel.right, to: self.right)
         pin(bottomLabel.bottom, to: self.bottom)
-        bottomLabel.font = AppFonts.contentFont(size: MiniPageNumberFontSize)
+        bottomLabel.font = Const.Fonts.contentFont(size: MiniPageNumberFontSize)
         bottomLabel.textColor = TazColor.CIColor.color
       }
       
@@ -371,9 +371,9 @@ extension TazTextField{
                                       target: self,
                                       action: #selector(textFieldToolbarNextButtonPressed))
     
-    prevButton.tintColor = AppColors.ciColor
-    nextButton.tintColor = AppColors.ciColor
-    doneButton.tintColor = AppColors.ciColor
+    prevButton.tintColor = Const.Colors.ciColor
+    nextButton.tintColor = Const.Colors.ciColor
+    doneButton.tintColor = Const.Colors.ciColor
     
     let flexibleSpaceButton = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
     let fixedSpaceButton = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
@@ -459,7 +459,7 @@ class CustomTextView : UITextView{
   static var boldLinks : [NSAttributedString.Key : Any] {
     get {
       return [.foregroundColor : TazColor.CIColor.color,
-              .font: AppFonts.titleFont(size: DefaultFontSize),
+              .font: Const.Fonts.titleFont(size: DefaultFontSize),
               .underlineColor: UIColor.clear]
     }
   }
@@ -467,7 +467,7 @@ class CustomTextView : UITextView{
   required init(htmlText: String,
                 paddingTop: CGFloat = TextFieldPadding,
                 paddingBottom: CGFloat = TextFieldPadding,
-                font: UIFont = AppFonts.contentFont(size: DefaultFontSize),
+                font: UIFont = Const.Fonts.contentFont(size: DefaultFontSize),
                 textColor: UIColor = TazColor.HText.color,
                 textAlignment: NSTextAlignment = .left,
                 linkTextAttributes: [NSAttributedString.Key : Any] = [.foregroundColor : TazColor.CIColor.color,
