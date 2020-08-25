@@ -155,7 +155,7 @@
 "trialsubscription_successful_header" = "Vielen Dank für Ihre Anmeldung! Viel Spaß mit der neuen digitalen taz!";
 
 /* success connected text */
-"tazid_connected_successful_header" = "Sie haben Ihr taz Abo erfolgreich mit Ihrer E-Mail-Adresse verknüpft. Viel Spaß beim Lesen.";
+"tazid_connect_create_successful_header" = "Sie haben Ihr taz Abo erfolgreich mit Ihrer E-Mail-Adresse verknüpft. Viel Spaß beim Lesen.";
 
 /* subscriptionId2tazId -> alreadyLinked */
 "subscriptionId2tazId_alreadyLinked" = "Ihre E-Mail-Adresse ist bereits mit einem anderen Digiabo verknüpft.";

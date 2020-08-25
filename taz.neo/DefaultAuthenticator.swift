@@ -116,7 +116,7 @@ public class DefaultAuthenticator: Authenticator {
     get {
       if let text = _resultSuccessText { return text}
       if let text = Defaults.singleton["resultSuccessText"] { return text}
-      return Localized("new_registration_successful_header")
+      return Localized("trialsubscription_successful_header")
     }
     set {
       _resultSuccessText = newValue
@@ -149,7 +149,8 @@ public class DefaultAuthenticator: Authenticator {
   
   //Called if incomming PushNotification comes or Timer fires
   public func pollSubscription(closure: @escaping (_ continue: Bool)->()) {
-    feeder.subscriptionPoll(installationId: installationId) { (result) in
+    feeder.subscriptionPoll(installationId: installationId) { [weak self] (result) in
+      guard let self = self else { return;}
       switch result{
         case .success(let info):
           switch info.status {
@@ -164,7 +165,7 @@ public class DefaultAuthenticator: Authenticator {
                                  token: token)
               if let loginFormVc = self.firstPresentedAuthController as? FormsController {
                 //Present Success Ctrl if still presenting one of the Auth Controller
-                loginFormVc.showResultWith(message: Localized("new_registration_successful_header"),
+                loginFormVc.showResultWith(message: self.resultSuccessText,
                 backButtonTitle: Localized("fragment_login_success_login_back_article"),
                 dismissType: .all)
               }
