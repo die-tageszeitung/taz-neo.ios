@@ -71,7 +71,10 @@ class TrialSubscriptionController : FormsController {
               self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
-              self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
+              self.auth.pollSubscription(tmpId: tazId,
+                                         tmpPassword: tazIdPassword,
+                                         requestSoon: false,
+                                         resultSuccessText: Localized("trialsubscription_successful_header"))
             case .valid:
               if let token = info.token {
                 DefaultAuthenticator.storeUserData(id: tazId,
@@ -81,10 +84,13 @@ class TrialSubscriptionController : FormsController {
                 return;
               }
               /// valid authentication
-              self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
+              self.showResultWith(message: Localized("trialsubscription_successful_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
-              self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
+              self.auth.pollSubscription(tmpId: tazId,
+                                         tmpPassword: tazIdPassword,
+                                         requestSoon: false,
+                                         resultSuccessText: Localized("trialsubscription_successful_header"))
             case .alreadyLinked:
               /// valid tazId connected to different AboId
               if let loginCtrl = self.presentingViewController as? LoginController {
@@ -102,7 +108,10 @@ class TrialSubscriptionController : FormsController {
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                               dismissType: .all)
-              self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword, requestSoon: true)
+              self.auth.pollSubscription(tmpId: tazId,
+                                         tmpPassword: tazIdPassword,
+                                         requestSoon: true,
+                                         resultSuccessText: Localized("trialsubscription_successful_header"))
             case .invalidFirstname: //What if No Form and this Issue occours? @Test with: Web Change Name prepared the +12 Account
               self.ui.firstnameInput.bottomMessage = Localized("invalid_chars")
               Toast.show(Localized("register_validation_issue"))

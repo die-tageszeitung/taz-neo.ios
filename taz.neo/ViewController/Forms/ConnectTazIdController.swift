@@ -84,7 +84,7 @@ class ConnectTazIdController : FormsController {
           switch info.status {
             case .valid:/// valid authentication
               DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
-              self.showResultWith(message: Localized("fragment_login_registration_successful_header"),
+              self.showResultWith(message: Localized("tazid_connected_successful_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
               self.auth.authenticationSucceededClosure?(nil)
@@ -92,7 +92,10 @@ class ConnectTazIdController : FormsController {
               self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
-              self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword)
+              self.auth.pollSubscription(tmpId: tazId,
+                                         tmpPassword: tazIdPassword,
+                                         requestSoon: false,
+                                         resultSuccessText: Localized("tazid_connected_successful_header"))
             case .alreadyLinked:/// valid tazId connected to different AboId
               if let loginCtrl = self.baseLoginController {
                 loginCtrl.ui.idInput.text = self.ui.mailInput.text
@@ -111,7 +114,10 @@ class ConnectTazIdController : FormsController {
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                               dismissType: .all)
-              self.auth.pollSubscription(tmpId: tazId, tmpPassword: tazIdPassword, requestSoon: true)
+              self.auth.pollSubscription(tmpId: tazId,
+                                         tmpPassword: tazIdPassword,
+                                         requestSoon: true,
+                                         resultSuccessText: Localized("tazid_connected_successful_header"))
             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
               if self.onMissingNameRequested == nil { fallthrough }
               self.onMissingNameRequested?()

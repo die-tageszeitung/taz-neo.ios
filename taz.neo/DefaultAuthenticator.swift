@@ -20,7 +20,7 @@ public protocol AuthMediator : Authenticator {
   ///   - tmpId: temporary taz-ID
   ///   - tmpPassword: temporary taz-ID Password
   ///   - requestSoon: request the first poll after short timeout, e.g. used in case of `waitForProc`
-  func pollSubscription(tmpId:String, tmpPassword:String, requestSoon:Bool)
+  func pollSubscription(tmpId:String, tmpPassword:String, requestSoon:Bool, resultSuccessText:String?)
   
   /// Use this method to store user authentication data in user defaults and keychain
   /// id is stored in user defaults and keychain whereas the password is
@@ -50,9 +50,13 @@ public protocol AuthMediator : Authenticator {
 extension AuthMediator {
   
   func pollSubscription(tmpId:String, tmpPassword:String){
-    return pollSubscription(tmpId:tmpId, tmpPassword:tmpPassword, requestSoon:false)
+    return pollSubscription(tmpId:tmpId, tmpPassword:tmpPassword, requestSoon:false, resultSuccessText: nil)
   }
   
+  func pollSubscription(tmpId:String, tmpPassword:String, requestSoon:Bool){
+    return pollSubscription(tmpId:tmpId, tmpPassword:tmpPassword, requestSoon:requestSoon, resultSuccessText: nil)
+  }
+
   static var keychainTempId: String { return "tmpId" }
   static var keychainTempIdPassword: String { return "tmpPassword" }
   
@@ -78,8 +82,14 @@ extension AuthMediator {
 }
 
 extension DefaultAuthenticator : AuthMediator{
+  public func pollSubscription(tmpId: String, tmpPassword: String, requestSoon: Bool = false) {
+    pollSubscription(tmpId: tmpId, tmpPassword: tmpPassword, requestSoon: requestSoon, resultSuccessText: nil)
+  }
   
-  public func pollSubscription(tmpId:String, tmpPassword:String, requestSoon:Bool = false){
+  public func pollSubscription(tmpId:String, tmpPassword:String, requestSoon:Bool = false, resultSuccessText:String?){
+    
+    if let rt = resultSuccessText { self.resultSuccessText = rt}
+  
     Self.storeTempUserData(tmpId: tmpId, tmpPassword: tmpPassword)
     if requestSoon == true {
       DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
@@ -100,6 +110,19 @@ public class DefaultAuthenticator: Authenticator {
   
   /// Ref to feeder providing Data
   public var feeder: GqlFeeder
+  
+  private var _resultSuccessText:String?
+  fileprivate var resultSuccessText:String {
+    get {
+      if let text = _resultSuccessText { return text}
+      if let text = Defaults.singleton["resultSuccessText"] { return text}
+      return Localized("new_registration_successful_header")
+    }
+    set {
+      _resultSuccessText = newValue
+      Defaults.singleton["resultSuccessText"] = newValue
+    }
+  }
   
   private var firstPresentedAuthController:UIViewController?
   
@@ -141,7 +164,7 @@ public class DefaultAuthenticator: Authenticator {
                                  token: token)
               if let loginFormVc = self.firstPresentedAuthController as? FormsController {
                 //Present Success Ctrl if still presenting one of the Auth Controller
-                loginFormVc.showResultWith(message: Localized("fragment_login_registration_successful_header"),
+                loginFormVc.showResultWith(message: Localized("new_registration_successful_header"),
                 backButtonTitle: Localized("fragment_login_success_login_back_article"),
                 dismissType: .all)
               }
