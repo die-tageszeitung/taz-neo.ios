@@ -164,7 +164,7 @@
 "back_to_login" = "Zurück zur Anmeldung";
 
 /* translation from Android */
-"toast_login_with_email" = "Bitte loggen Sie sich mit Ihrer taz-ID ein.";
+"toast_login_with_email" = "Bitte melden Sie sich mit Ihrer taz-ID an!";
 
 /* from website */
 "password_too_short" = "Dein Passwort ist zu kurz (min. 8 Zeichen)!";
