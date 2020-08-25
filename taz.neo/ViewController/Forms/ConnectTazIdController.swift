@@ -38,6 +38,7 @@ class ConnectTazIdController : FormsController {
     ui.alreadyHaveTazIdButton.touch(self, action: #selector(handleAlreadyHaveTazId))
     ui.registerButton.touch(self, action: #selector(handleSubmit))
     ui.cancelButton.touch(self, action: #selector(handleBack))
+    ui.agbAcceptTV.textView.delegate = self ///FormsController cares
   }
   
   // MARK: handleLogin Action
