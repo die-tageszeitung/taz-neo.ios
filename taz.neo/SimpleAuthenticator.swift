@@ -26,7 +26,7 @@ public class SimpleAuthenticator: Authenticator {
   }
   
   /// Closure to call when authentication succeeded
-  private var authenticationSucceededClosure: (()->())?
+  private var authenticationSucceededClosure: ((Error?, String?)->())?
   
   required public init(feeder: GqlFeeder) {
     self.feeder = feeder
@@ -75,7 +75,7 @@ public class SimpleAuthenticator: Authenticator {
   }
   
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  public func authenticate(closure: @escaping (Error?)->()) {
+  public func authenticate(closure: @escaping (Error?, String?)->()) {
     withLoginData { [weak self] (id, password) in
       guard let this = self else { return }
       if let id = id, let password = password {
@@ -84,7 +84,7 @@ public class SimpleAuthenticator: Authenticator {
             case .success(let token): 
               SimpleAuthenticator.storeUserData(id: id, password: password, 
                                                 token: token)
-              closure(nil)
+              closure(nil,token)
             case .failure(let err):
               if let err = err as? FeederError {
                 var text = ""
@@ -95,18 +95,18 @@ public class SimpleAuthenticator: Authenticator {
                   case .unexpectedResponse:                
                     text = "Es gab ein Problem bei der Kommunikation mit dem Server."
                 }
-                Alert.message(title: "Fehler", message: text) { closure(err) }
+                Alert.message(title: "Fehler", message: text) { closure(err,nil) }
               }
               else { 
                 Alert.message(title: "Fehler", message: "Anmeldung gescheitert.") {
-                  closure(err)
+                  closure(err,nil)
                 }
             }
           }
         }
       }
       else {
-        closure(this.error("User refused to log in"))
+        closure(this.error("User refused to log in"),nil)
       }
     }
   }

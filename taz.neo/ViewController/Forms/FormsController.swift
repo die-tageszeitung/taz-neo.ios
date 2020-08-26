@@ -90,6 +90,7 @@ enum dismissType {case all, current, leftFirst, two}
 class FormsResultController: UIViewController {
   //Acces to related View, overwritten in subclasses with concrete view
   private var contentView = FormView()
+  private var dismissAllFinishedClosure: (()->())?
   var ui : FormView { get { return contentView }}
   
   var dismissType:dismissType = .current
@@ -113,7 +114,9 @@ class FormsResultController: UIViewController {
     }
   }
   
-  convenience init(message:String, backButtonTitle:String, dismissType:dismissType) {
+  convenience init(message:String,
+                   backButtonTitle:String,
+                   dismissType:dismissType) {
     self.init()
     ui.views = [
       TazHeader(),
@@ -128,30 +131,34 @@ class FormsResultController: UIViewController {
     self.dismissType = dismissType
   }
   
-  func showResultWith(message:String, backButtonTitle:String,dismissType:dismissType){
+  
+  /// Flips (Modal Push) a new FormsResultController on existinf Form* Controller
+  /// - Parameters:
+  ///   - message: Message displayed in FormsResultController
+  ///   - backButtonTitle: -
+  ///   - dismissType: action on back e.g. dismiss all or leftFirst
+  ///   - dismissAllFinishedClosure: closure for dismissAll
+  ///     currently there is only a closure for dismiss all but more is not needed yet
+  ///     currently only UIViewController.dismiss provides needed functionallity
+  func showResultWith(message:String,
+                      backButtonTitle:String,
+                      dismissType:dismissType,
+                      dismissAllFinishedClosure: (()->())? = nil){
     let successCtrl
       = FormsResultController(message: message,
                               backButtonTitle: backButtonTitle,
                               dismissType: dismissType)
+    successCtrl.dismissAllFinishedClosure = dismissAllFinishedClosure
     modalFlip(successCtrl)
   }
   
   // MARK: handleBack Action
   @IBAction func handleBack(_ sender: UIButton) {
     var stack = self.modalStack
-    //Idea
-//    if let dismissStay = dismissUntil {
-//      let arr = stack.split(separator: dismissStay)
-//      arr[0]
-//      stack.po
-//    }
-    
     switch dismissType {
       case .all:
         stack.forEach { $0.view.isHidden = $0 != self ? true : false }
-        UIViewController.dismiss(stack: stack, animated: false, completion: {
-          Notification.send("ExternalUserLogin")
-        })
+        UIViewController.dismiss(stack: stack, animated: false, completion: self.dismissAllFinishedClosure)
       case .leftFirst:
         _ = stack.popLast()//removes first
         _ = stack.pop()//removes self
@@ -244,14 +251,14 @@ extension FormsController: UITextViewDelegate {
 // MARK: - ext: UIViewController
 extension UIViewController{
   /// dismiss helper for stack of modal presented VC's
-  static func dismiss(stack:[UIViewController], animated:Bool, completion: @escaping(() -> Void)){
+  static func dismiss(stack:[UIViewController], animated:Bool, completion: (() -> Void)?){
     var stack = stack
     let vc = stack.pop()
     vc?.dismiss(animated: animated, completion: {
       if stack.count > 0 {
         UIViewController.dismiss(stack: stack, animated: false, completion: completion)
       } else {
-        completion()
+        completion?()
       }
     })
   }

@@ -254,15 +254,15 @@ class MainNC: NavigationController, IssueVCdelegate,
     Defaults.singleton["pollEnd"] = nil
   }
   
-  func userLogin(closure: @escaping (Error?)->()) {
+  func userLogin(closure: @escaping (Error?, String?)->()) {
     let (_,_,token) = DefaultAuthenticator.getUserData()
     if let token = token {
       self.gqlFeeder.authToken = token
-      closure(nil)
+      closure(nil,token)
     }
     else {
       self.setupPolling()
-      self.authenticator.authenticate{ err in closure(err) }
+      self.authenticator.authenticate{ (err,token) in closure(err,token) }
     }
   }
     
@@ -281,9 +281,27 @@ class MainNC: NavigationController, IssueVCdelegate,
       self.dloader.downloadResources{ _ in}
       
       Notification.receive("userLogin") { [weak self] _ in
-        self?.userLogin() { [weak self] err in
+        self?.userLogin() { [weak self] err, token in
           guard let self = self else { return }
           if err != nil { exit(0) }
+          
+          ///Either here or in end-Polling need to update authToken!
+          ///@see DefaultAuthenticator->pollSubscription-> showResultWith callback
+          /// execute self.authenticationSucceededClosure?(nil) & closure(false)
+          /// currently lines 170ff
+          /// earlier keychain has been updated with auth token
+          /// but Main NC's feeder did not know untill this lines
+          /// Discussion where to update the feeder
+          /// by keychain its ugly
+          /// so user login expect logged in user why not closure callback var?
+          /// Umgestellt auf err, token
+          /// Problem, lange verzögerung bis abgeglichen ist, dass intro da ist.
+//          let (_,_,token) = DefaultAuthenticator.getUserData()
+          if let token = token {
+            self.gqlFeeder.authToken = token
+          }
+//          self.showIntro()//Test: Bringt auch nichts dann bleibt IssueVC schwarz
+          ///@Norbert Integration
           self.dloader.downloadResources {_ in
             self.showIntro()
             self.getOverview()

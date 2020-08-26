@@ -23,10 +23,10 @@
 
 
 /* translation from Android */
-"article_read_onreadon" = "Wir möchten Ihnen den Zugang zu unseren digitalen Produkten erleichtern und stellen deshalb unser Anmeldeverfahren in einem zweistufigen Verfahren um. Geben Sie bitte zunächst Ihre bisherige Abo-ID und Passwort ein. In einem zweiten Schritt werden Sie gebeten sich mit einer gültigen E-Mail-Adresse und einem selbst gewählten Passwort anzumelden. Fertig! Sie können sich ab jetzt nur noch mit Ihrer E-Mail-Adresse anmelden.";
+"article_read_onreadon" = "Wir möchten Ihnen den Zugang zu unseren digitalen Produkten erleichtern und stellen deshalb unser Anmeldeverfahren in einem zweistufigen Verfahren um. Geben Sie bitte zunächst Ihre bisherige Abo-ID und Passwort ein. In einem zweiten Schritt werden Sie gebeten sich mit einer gültigen E-Mail-Adresse und einem selbst gewählten Passwort anzumelden. Fertig! Sie können sich ab jetzt mit Ihrer E-Mail-Adresse anmelden.";
 
 /* login erforderlich */
-"login_required" = "Bitte melden Sie sich an um weiterzulesen";
+"login_required" = "Bitte melden Sie sich an, um weiterzulesen.";
 
 /* login erforderlich */
 "help" = "Hilfe";

@@ -44,7 +44,7 @@ public protocol AuthMediator : Authenticator {
   static func deleteTempUserData()
 
   var performPollingClosure: (()->())? { get set}
-  var authenticationSucceededClosure: ((Error?)->())? { get set}
+  var authenticationSucceededClosure: ((Error?, String?)->())? { get set}
 }
 
 extension AuthMediator {
@@ -82,6 +82,7 @@ extension AuthMediator {
 }
 
 extension DefaultAuthenticator : AuthMediator{
+  
   public func pollSubscription(tmpId: String, tmpPassword: String, requestSoon: Bool = false) {
     pollSubscription(tmpId: tmpId, tmpPassword: tmpPassword, requestSoon: requestSoon, resultSuccessText: nil)
   }
@@ -140,11 +141,12 @@ public class DefaultAuthenticator: Authenticator {
   }
   
   /// Closure to call when authentication succeeded, set in authenticate(...)
-  public var authenticationSucceededClosure: ((Error?)->())?
+  public var authenticationSucceededClosure: ((Error?, String?)->())?
   
   required public init(feeder: GqlFeeder) {
     self.feeder = feeder
-    self.pollSubscription { (_) in }
+    //An oda aus?
+//    self.pollSubscription { (_) in }
   }
   
   //Called if incomming PushNotification comes or Timer fires
@@ -163,19 +165,28 @@ public class DefaultAuthenticator: Authenticator {
               Self.storeUserData(id: tempData.tmpId ?? "",
                                  password: tempData.tmpPassword ?? "",
                                  token: token)
+              Self.deleteTempUserData()
               if let loginFormVc = self.firstPresentedAuthController as? FormsController {
                 //Present Success Ctrl if still presenting one of the Auth Controller
                 loginFormVc.showResultWith(message: self.resultSuccessText,
                 backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                dismissType: .all)
+                dismissType: .all, dismissAllFinishedClosure: { [weak self] in
+                  guard let self = self else {return;}
+                  self.authenticationSucceededClosure?(nil, token)
+                  closure(false)//stop polling
+                })
               }
-              self.authenticationSucceededClosure?(nil)
-              closure(false)//stop polling
+              else {//No Form displayed anymore directly execute callbacks
+                  self.authenticationSucceededClosure?(nil, token)
+                  closure(false)//stop polling
+              }
+              
               return;
             case .noPollEntry:
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
               /// In this case user recived the E-Mail for PW Reset,
-              self.authenticationSucceededClosure?(Log.log("noPollEntry", object: result, logLevel: .Error) as? Error)
+              let err = self.error("noPollEntry")
+              self.authenticationSucceededClosure?(err, nil)
               closure(false)//stop polling
               return;
             case .waitForProc: fallthrough
@@ -191,7 +202,7 @@ public class DefaultAuthenticator: Authenticator {
   }
   
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  public func authenticate(closure: @escaping (Error?)->()) {
+  public func authenticate(closure: @escaping ((Error?, String?)->())) {
     guard let rootVC = rootVC else { return }
     rootVC.modalPresentationStyle = .formSheet
     let registerController = LoginController(self)
@@ -201,7 +212,7 @@ public class DefaultAuthenticator: Authenticator {
       registerController.isModalInPresentation = true
     }
     firstPresentedAuthController = registerController
-    authenticationSucceededClosure = closure
+    self.authenticationSucceededClosure = closure
     rootVC.present(registerController, animated: true, completion: nil)
   }
 }

@@ -88,7 +88,7 @@ class ConnectTazIdController : FormsController {
               self.showResultWith(message: Localized("tazid_connect_create_successful_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
-              self.auth.authenticationSucceededClosure?(nil)
+              self.auth.authenticationSucceededClosure?(nil, info.token ?? "")
             case .waitForMail:///user need to confirm mail
               self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),

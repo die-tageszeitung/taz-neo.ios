@@ -80,7 +80,7 @@ class TrialSubscriptionController : FormsController {
                 DefaultAuthenticator.storeUserData(id: tazId,
                                       password: tazIdPassword,
                                       token: token)
-                self.auth.authenticationSucceededClosure?(nil)
+                self.auth.authenticationSucceededClosure?(nil, token)
                 return;
               }
               /// valid authentication
