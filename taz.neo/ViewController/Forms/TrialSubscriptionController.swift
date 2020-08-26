@@ -64,6 +64,9 @@ class TrialSubscriptionController : FormsController {
     auth.feeder.trialSubscription(tazId: tazId, password: tazIdPassword, surname: lastName, firstName: firstName, installationId: installationId, pushToken: pushToken, closure: { (result) in
       switch result {
         case .success(let info):
+          if self.ui.agbAcceptTV.checked == true {
+            Keychain.singleton["dataPolicyAccepted"] = "true"
+          }
           switch info.status {
             
             case .waitForMail:

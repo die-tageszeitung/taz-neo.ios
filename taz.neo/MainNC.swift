@@ -296,6 +296,7 @@ class MainNC: NavigationController, IssueVCdelegate,
           /// so user login expect logged in user why not closure callback var?
           /// Umgestellt auf err, token
           /// Problem, lange verzögerung bis abgeglichen ist, dass intro da ist.
+          /// **One more thing:** in cases the User accepted AGB and more we do not neet to show him this!
 //          let (_,_,token) = DefaultAuthenticator.getUserData()
           if let token = token {
             self.gqlFeeder.authToken = token
