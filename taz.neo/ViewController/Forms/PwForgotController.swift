@@ -65,6 +65,7 @@ class PwForgottController: FormsController {
             case .invalidSubscriptionId: fallthrough
             case .alreadyConnected: fallthrough
             default:
+              self.updateParentIfApplyable(id)
               let ctrl = SubscriptionResetSuccessController()
               if let cdt = self.childDismissType { ctrl.dismissType = cdt}
               self.modalFlip(ctrl)
@@ -86,6 +87,7 @@ class PwForgottController: FormsController {
         case .success(let info):
           switch info {
             case .ok:
+              self.updateParentIfApplyable(id)
               let ctrl = PasswordResetRequestedSuccessController()
               if let cdt = self.childDismissType { ctrl.dismissType = cdt}
               self.modalFlip(ctrl)
@@ -102,6 +104,19 @@ class PwForgottController: FormsController {
       }
       self.ui.blocked = false
     })
+  }
+  
+  func updateParentIfApplyable(_ idOrMail:String){
+    guard let parent = self.presentingViewController as? FormsController else { return;}
+    if let loginView = parent.ui as? LoginView {
+      loginView.idInput.text = idOrMail
+    }
+    else if let connectView = parent.ui as? ConnectTazIdView {
+      connectView.mailInput.text = idOrMail
+    }
+    else if let trialSView = parent.ui as? TrialSubscriptionView {
+      trialSView.mailInput.text = idOrMail
+    }
   }
 }
 
