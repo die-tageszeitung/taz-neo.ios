@@ -34,6 +34,8 @@ enum GqlSubscriptionStatus: String, CodableEnum {
   case noSurname = "noSurname"  
   /// no firstname provided
   case noFirstname = "noFirstname(noFirstName)"
+  /// firstname+lastname is too long
+   case nameToLong = "nameToLong"
   /// firstname and lastname only contain invalid chars
   case invalidAccountholder = "invalidAccountHolder"
   /// invalid char in surname
