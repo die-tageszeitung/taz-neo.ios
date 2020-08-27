@@ -286,16 +286,23 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     ui.mailInput.keyboardType = .emailAddress
     ui.mailInput.placeholder = Localized("login_tazid_hint")
 
-    ui.registerButton.setTitle(Localized("login_button"), for: .normal)
+    ui.registerButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     
     ui.views = [
       TazHeader(),
       UILabel(title: Localized("fragment_login_request_test_subscription_existing_account")),
+      UIButton(type: .label,
+               title: Localized("fragment_login_missing_credentials_switch_to_registration"),
+               target: self,
+               action: #selector(handleBack)),
       ui.mailInput,
       ui.passInput,
       ui.agbAcceptTV,
       ui.registerButton,
       ui.cancelButton,
+      UIButton(type: .label, title: Localized("login_forgot_password"),
+                  target: self,
+                  action: #selector(handlePwForgot))
     ]
     
     self.onMissingNameRequested = {
@@ -330,6 +337,17 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     let tazIdPassword = ui.passInput.text ?? ""
     
     self.connectWith(tazId: tazId, tazIdPassword: tazIdPassword , aboId: self.aboId, aboIdPW: self.aboIdPassword)
+  }
+  
+  @IBAction func handlePwForgot(_ sender: UIButton) {
+    let ctrl = PwForgottController(id: ui.mailInput.text?.trim, auth: auth)
+    //Change to SubscriptionReset
+    ctrl.ui.idInput.keyboardType = .emailAddress
+    ctrl.ui.idInput.placeholder = Localized("login_tazid_hint")
+    ctrl.ui.introLabel.text = Localized("login_forgot_tazid_password_header")
+    
+    ctrl.childDismissType = .two //Reset & ResetSuccess
+    modalFlip(ctrl)
   }
 }
 
