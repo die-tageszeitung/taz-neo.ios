@@ -82,16 +82,16 @@ class ConnectTazIdController : FormsController {
     auth.feeder.subscriptionId2tazId(tazId: tazId, password: tazIdPassword, aboId: _aboId, aboIdPW: _aboIdPassword, surname: lastName, firstName: firstName, installationId: installationId, pushToken: pushToken, closure: { (result) in
       switch result {
         case .success(let info):
-          if self.ui.agbAcceptTV.checked == true {
-            Keychain.singleton["dataPolicyAccepted"] = "true"
-          }
+//          if self.ui.agbAcceptTV.checked == true {
+//            Keychain.singleton["dataPolicyAccepted"] = "true"
+//          }
           switch info.status {
             case .valid:/// valid authentication
               DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
               self.showResultWith(message: Localized("tazid_connect_create_successful_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
                                   dismissType: .all)
-              self.auth.authenticationSucceededClosure?(nil, info.token ?? "")
+              self.auth.authenticationSucceededClosure?(nil)
             case .waitForMail:///user need to confirm mail
               self.showResultWith(message: Localized("fragment_login_confirm_email_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),

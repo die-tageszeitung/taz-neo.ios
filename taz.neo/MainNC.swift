@@ -254,15 +254,15 @@ class MainNC: NavigationController, IssueVCdelegate,
     Defaults.singleton["pollEnd"] = nil
   }
   
-  func userLogin(closure: @escaping (Error?, String?)->()) {
+  func userLogin(closure: @escaping (Error?)->()) {
     let (_,_,token) = DefaultAuthenticator.getUserData()
     if let token = token {
       self.gqlFeeder.authToken = token
-      closure(nil,token)
+      closure(nil)
     }
     else {
       self.setupPolling()
-      self.authenticator.authenticate{ (err,token) in closure(err,token) }
+      self.authenticator.authenticate{ err in closure(err) }
     }
   }
     
@@ -281,30 +281,37 @@ class MainNC: NavigationController, IssueVCdelegate,
       self.dloader.downloadResources{ _ in}
       
       Notification.receive("userLogin") { [weak self] _ in
-        self?.userLogin() { [weak self] err, token in
+        self?.userLogin() { [weak self] err in
           guard let self = self else { return }
           if err != nil { exit(0) }
-          
-          ///Either here or in end-Polling need to update authToken!
-          ///@see DefaultAuthenticator->pollSubscription-> showResultWith callback
-          /// execute self.authenticationSucceededClosure?(nil) & closure(false)
-          /// currently lines 170ff
-          /// earlier keychain has been updated with auth token
-          /// but Main NC's feeder did not know untill this lines
-          /// Discussion where to update the feeder
-          /// by keychain its ugly
-          /// so user login expect logged in user why not closure callback var?
-          /// Umgestellt auf err, token
-          /// Problem, lange verzögerung bis abgeglichen ist, dass intro da ist.
-          /// **One more thing:** in cases the User accepted AGB and more we do not neet to show him this!
-//          let (_,_,token) = DefaultAuthenticator.getUserData()
-          if let token = token {
-            self.gqlFeeder.authToken = token
-          }
-//          self.showIntro()//Test: Bringt auch nichts dann bleibt IssueVC schwarz
+          /// #1 Update authToken: [SOLVED]
+          /// in GqlFeeder => public func authenticate
+          /// ...
+          /// case .success(let auth):
+          /// let atoken = auth["authToken"]!
+          /// self?.status?.authInfo = atoken.authInfo
+          /// ...
+          /// Not In:  extension GqlFeeder => subscriptionPoll, subscriptionId2tazId, trialSubscription
+          /// Previous Version did update this by authenticate(closure: @escaping (Error?, String?)->())
+          /// Still had some edge cases with just Preview Articles, after App Restart they worked
+          /// ...
+          /// So moved update the shared gqlFeeder.auth when setting token to keychain
+          /// ...
+          ///  Other Option acces here the Keychain stored earlier is more complicated due store keychain needs to be called before callback
+          ///  Maybe refactor:  extension Authenticator => public static func storeUserData(id: String, password: String, token: String)
+          ///  to instance function to update its feeder, but then the GqlFeeder => public func authenticate makes his own thing
+          ///  nth Option: let (_,_,token) = DefaultAuthenticator.getUserData()
+          ///
+          /// #2 Problem, lange verzögerung bis download files abgeglichen sind und Intro gezeigt wird [SOLVED]
+          /// together with line 281: self.dloader.downloadResou... and authToken Store this is the best Solution!
+          ///
+          /// #3 User accepts AGB and more twice
+          /// due he still accept is in various cases in createtazID or trialSubscription
+          /// so we need seperate intro store userDefaults for already seen Intro!
+          self.showIntro()
           ///@Norbert Integration
           self.dloader.downloadResources {_ in
-            self.showIntro()
+//            self.showIntro()
             self.getOverview()
           }
         }

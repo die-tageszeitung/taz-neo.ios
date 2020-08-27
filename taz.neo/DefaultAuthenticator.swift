@@ -44,7 +44,7 @@ public protocol AuthMediator : Authenticator {
   static func deleteTempUserData()
 
   var performPollingClosure: (()->())? { get set}
-  var authenticationSucceededClosure: ((Error?, String?)->())? { get set}
+  var authenticationSucceededClosure: ((Error?)->())? { get set}
 }
 
 extension AuthMediator {
@@ -141,7 +141,7 @@ public class DefaultAuthenticator: Authenticator {
   }
   
   /// Closure to call when authentication succeeded, set in authenticate(...)
-  public var authenticationSucceededClosure: ((Error?, String?)->())?
+  public var authenticationSucceededClosure: ((Error?)->())?
   
   required public init(feeder: GqlFeeder) {
     self.feeder = feeder
@@ -165,6 +165,7 @@ public class DefaultAuthenticator: Authenticator {
               Self.storeUserData(id: tempData.tmpId ?? "",
                                  password: tempData.tmpPassword ?? "",
                                  token: token)
+              self.feeder.authToken = token
               Self.deleteTempUserData()
               if let loginFormVc = self.firstPresentedAuthController as? FormsController {
                 //Present Success Ctrl if still presenting one of the Auth Controller
@@ -172,12 +173,12 @@ public class DefaultAuthenticator: Authenticator {
                 backButtonTitle: Localized("fragment_login_success_login_back_article"),
                 dismissType: .all, dismissAllFinishedClosure: { [weak self] in
                   guard let self = self else {return;}
-                  self.authenticationSucceededClosure?(nil, token)
+                  self.authenticationSucceededClosure?(nil)
                   closure(false)//stop polling
                 })
               }
               else {//No Form displayed anymore directly execute callbacks
-                  self.authenticationSucceededClosure?(nil, token)
+                  self.authenticationSucceededClosure?(nil)
                   closure(false)//stop polling
               }
               
@@ -186,7 +187,7 @@ public class DefaultAuthenticator: Authenticator {
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
               /// In this case user recived the E-Mail for PW Reset,
               let err = self.error("noPollEntry")
-              self.authenticationSucceededClosure?(err, nil)
+              self.authenticationSucceededClosure?(err)
               closure(false)//stop polling
               return;
             case .waitForProc: fallthrough
@@ -202,7 +203,7 @@ public class DefaultAuthenticator: Authenticator {
   }
   
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  public func authenticate(closure: @escaping ((Error?, String?)->())) {
+  public func authenticate(closure: @escaping (Error?)->()) {
     guard let rootVC = rootVC else { return }
     rootVC.modalPresentationStyle = .formSheet
     let registerController = LoginController(self)

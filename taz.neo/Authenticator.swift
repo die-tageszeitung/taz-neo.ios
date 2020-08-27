@@ -51,8 +51,8 @@ public protocol Authenticator: DoesLog {
   func pollSubscription(closure: @escaping (_ continue: Bool)->())
   
   /// Ask user for id/password, check with GraphQL-Server, store using method 
-  /// 'storeUserData' and call closure to indicate success (closure(nil, token) is success)
-  func authenticate(closure: @escaping (Error?, String?)->())
+  /// 'storeUserData' and call closure to indicate success (closure(nil) is success)
+  func authenticate(closure: @escaping (Error?)->())
   
   /**
    Use this method to store user authentication data in user defaults and keychain
