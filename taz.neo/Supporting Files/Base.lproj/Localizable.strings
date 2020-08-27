@@ -49,6 +49,9 @@
 /* PW Vergessen bei Subscription Reset nach mit bestehender taz-ID verknüpfen */
 "login_forgot_subscription_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre Abo-ID an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
 
+/* PW Vergessen für taz id */
+"login_forgot_tazid_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre E-Mail-Adresse an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
+
 /* translation from Android */
 "login_forgot_password_send" = "Senden und Link anfordern";
 
@@ -217,3 +220,8 @@
 /* Invalid Chars in Firstname/Lastname e.g.: ÈÉ */
 "invalid_chars" = "Enthält ungültige Zeichen";
 
+/* Vor und Nachname zu viele Zeichen */
+"name_too_long_issue" = "Vor- und Nachname zusammen darf leider nur 25 Zeichen lang sein. Bitte überprüfen Sie Ihre Eingaben.";
+
+/* Vor und Nachname zu viele Zeichen */
+"too_many_chars" = "Zu viele Zeichen";
