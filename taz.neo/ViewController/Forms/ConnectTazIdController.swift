@@ -336,7 +336,27 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     let tazId = ui.mailInput.text ?? ""
     let tazIdPassword = ui.passInput.text ?? ""
     
-    self.connectWith(tazId: tazId, tazIdPassword: tazIdPassword , aboId: self.aboId, aboIdPW: self.aboIdPassword)
+    /// We're in tazID login Form, check if credentials are invalid, everything else
+    /// is handled by subscriptionId2tazId
+    auth.feeder.authenticateWithTazId(account: tazId,
+                                      password: tazIdPassword,
+                                      closure:{ [weak self] (result) in
+      guard let self = self else { return }
+      if case .failure(let error) = result,
+        let authStatusError = error as? AuthStatusError,
+        authStatusError.status == .invalid {
+        //wrong Credentials
+        Toast.show(Localized("toast_login_failed_retry"), .alert)
+        self.ui.passInput.bottomMessage = Localized("register_validation_issue")
+        self.ui.blocked = false
+      }
+      else {
+        self.connectWith(tazId: tazId,
+                         tazIdPassword: tazIdPassword ,
+                         aboId: self.aboId,
+                         aboIdPW: self.aboIdPassword)
+      }
+    })
   }
   
   @IBAction func handlePwForgot(_ sender: UIButton) {
