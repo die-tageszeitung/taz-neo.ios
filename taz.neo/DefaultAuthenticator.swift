@@ -177,7 +177,9 @@ public class DefaultAuthenticator: Authenticator {
                   closure(false)//stop polling
                 }
                 ///If  already a FormsResultController on top of modal stack use its exchange function
-                if let resultCtrl = UIViewController.top(controller: loginFormVc) as? FormsResultController {
+                if let resultCtrl = UIViewController.top(controller: loginFormVc) as? FormsResultController,/// as? is also valid for LoginController
+                  type(of: resultCtrl) === FormsResultController.self
+                {
                   resultCtrl.exchangeWith(self.resultSuccessText)
                   resultCtrl.dismissType = .all
                   resultCtrl.dismissAllFinishedClosure = dismissFinishedClosure
