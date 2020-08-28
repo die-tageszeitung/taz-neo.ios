@@ -112,12 +112,10 @@ class ConnectTazIdController : FormsController {
               self.ui.mailInput.bottomMessage = Localized("login_email_error_no_email")
               Toast.show(Localized("register_validation_issue"))
             /// tazId not verified
-            case .nameToLong:
+            case .nameTooLong:
               self.ui.lastnameInput.bottomMessage = Localized("too_many_chars")
               self.ui.firstnameInput.bottomMessage = Localized("too_many_chars")
               Toast.show(Localized("name_too_long_issue"))
-            case .tazIdNotValid:
-              Toast.show(Localized("toast_login_failed_retry"))//ToDo
             case .waitForProc:// AboId not verified, server will confirm later (using push/poll)
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Localized("fragment_login_success_login_back_article"),
