@@ -82,9 +82,6 @@ class ConnectTazIdController : FormsController {
     auth.feeder.subscriptionId2tazId(tazId: tazId, password: tazIdPassword, aboId: _aboId, aboIdPW: _aboIdPassword, surname: lastName, firstName: firstName, installationId: installationId, pushToken: pushToken, closure: { (result) in
       switch result {
         case .success(let info):
-//          if self.ui.agbAcceptTV.checked == true {
-//            Keychain.singleton["dataPolicyAccepted"] = "true"
-//          }
           switch info.status {
             case .valid:/// valid authentication
               DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
