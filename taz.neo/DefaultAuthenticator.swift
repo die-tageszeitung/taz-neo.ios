@@ -157,31 +157,44 @@ public class DefaultAuthenticator: Authenticator {
         case .success(let info):
           switch info.status {
             case .valid:
+              /// Check if we have a token otherwise continue polling and return
               guard let token = info.token, token.length > 10 else {
                 closure(true)//continue polling
                 return;
               }
+              /// Store temp user data as user data and store the token, update the feeder, delete temp
               let tempData = Self.getTempUserData()
               Self.storeUserData(id: tempData.tmpId ?? "",
                                  password: tempData.tmpPassword ?? "",
                                  token: token)
               self.feeder.authToken = token
               Self.deleteTempUserData()
+              /// Present Result to User, if Login shown!
               if let loginFormVc = self.firstPresentedAuthController as? FormsController {
-                //Present Success Ctrl if still presenting one of the Auth Controller
-                loginFormVc.showResultWith(message: self.resultSuccessText,
-                backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                dismissType: .all, dismissAllFinishedClosure: { [weak self] in
+                let dismissFinishedClosure = { [weak self] in
                   guard let self = self else {return;}
                   self.authenticationSucceededClosure?(nil)
                   closure(false)//stop polling
-                })
+                }
+                ///If  already a FormsResultController on top of modal stack use its exchange function
+                if let resultCtrl = UIViewController.top(controller: loginFormVc) as? FormsResultController {
+                  resultCtrl.exchangeWith(self.resultSuccessText)
+                  resultCtrl.dismissType = .all
+                  resultCtrl.dismissAllFinishedClosure = dismissFinishedClosure
+                }
+                else {
+                  /// if there is no FormsResultController yet, present a new  FormsResultController
+                  loginFormVc.showResultWith(message: self.resultSuccessText,
+                                             backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                             dismissType: .all,
+                                             dismissAllFinishedClosure: dismissFinishedClosure)
+                }
               }
+              /// If No Login shown, just execute the callbacks
               else {//No Form displayed anymore directly execute callbacks
-                  self.authenticationSucceededClosure?(nil)
-                  closure(false)//stop polling
+                self.authenticationSucceededClosure?(nil)
+                closure(false)//stop polling
               }
-              
               return;
             case .noPollEntry:
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
@@ -197,8 +210,8 @@ public class DefaultAuthenticator: Authenticator {
         }
         case .failure(let err):
           self.log("subscriptionPoll failed with error: \(err)")
-        }
-        closure(true)//continue polling in case of errors, wait status or invalid
+      }
+      closure(true)//continue polling in case of errors, wait status or invalid
     }
   }
   
@@ -212,6 +225,7 @@ public class DefaultAuthenticator: Authenticator {
       //the default < iOS 13 Behaviour
       registerController.isModalInPresentation = true
     }
+
     firstPresentedAuthController = registerController
     self.authenticationSucceededClosure = closure
     rootVC.present(registerController, animated: true, completion: nil)

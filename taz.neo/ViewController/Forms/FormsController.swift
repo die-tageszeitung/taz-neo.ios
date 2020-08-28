@@ -90,7 +90,20 @@ enum dismissType {case all, current, leftFirst, two}
 class FormsResultController: UIViewController {
   //Acces to related View, overwritten in subclasses with concrete view
   private var contentView = FormView()
-  private var dismissAllFinishedClosure: (()->())?
+  var dismissAllFinishedClosure: (()->())?
+  
+  private var messageLabel = UILabel(paddingTop: 30, paddingBottom: 30)
+  
+  
+  func exchangeWith(_ newText:String?){
+    self.messageLabel.setTextAnimated(newText)
+  }
+  
+  /// Particullary no because AppNeustart!!!
+//  fileprivate var showSpinner:Bool = false
+//  fileprivate var validExchangedText:String? = nil
+//  var canExchange:Bool {get{ return validExchangedText != nil }}
+  
   var ui : FormView { get { return contentView }}
   
   var dismissType:dismissType = .current
@@ -118,12 +131,12 @@ class FormsResultController: UIViewController {
                    backButtonTitle:String,
                    dismissType:dismissType) {
     self.init()
+    messageLabel.text = message
+    messageLabel.numberOfLines = 0
+    
     ui.views = [
       TazHeader(),
-      UILabel(title: message,
-              paddingTop: 30,
-              paddingBottom: 30
-      ),
+      messageLabel,
       UIButton(title: backButtonTitle,
                target: self, action: #selector(handleBack)),
       
@@ -143,6 +156,8 @@ class FormsResultController: UIViewController {
   func showResultWith(message:String,
                       backButtonTitle:String,
                       dismissType:dismissType,
+                      showSpinner:Bool = false,
+                      validExchangedText:String? = nil,
                       dismissAllFinishedClosure: (()->())? = nil){
     let successCtrl
       = FormsResultController(message: message,

@@ -140,6 +140,54 @@ extension UIView {
   }
 }
 
+extension UILabel {
+  /// sets the new text animate height and alpha with a smooth Animation
+  /// - Parameter newText: text to set
+  func setTextAnimated(_ newText:String?){
+    ///usually animate 3 levels heigher in case of ugly behaviour look for an scrollview
+    /// or container that is not pinned top and bottom
+    let viewToAnimate =
+      self.superview?.superview ?? self.superview ?? self
+    
+    //animate hight while hiding using snaphot
+    if true, let snapshot = self.snapshotView(afterScreenUpdates: false){
+      snapshot.frame = self.frame
+      self.superview?.addSubview(snapshot)
+      self.alpha = 0.0
+      self.text = newText
+      viewToAnimate.setNeedsUpdateConstraints()
+       
+      UIView.animateKeyframes(withDuration: 2.0, delay: 0.0, animations: {
+        UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.55) {
+          snapshot.alpha = 0.0 //hide 0...0.4
+        }
+        UIView.addKeyframe(withRelativeStartTime: 0.25, relativeDuration: 0.5) {
+          viewToAnimate.layoutIfNeeded()//height 0.2...0.8
+        }
+        UIView.addKeyframe(withRelativeStartTime: 0.45, relativeDuration: 0.55) {
+          self.alpha = 1.0// show 0.6 ...1
+        }
+      }, completion:{ (_) in
+        snapshot.removeFromSuperview()
+      })
+    }
+    else {//animate in steps, 1st hide then size&alpha
+      UIView.animate(withDuration: 1.0, animations: {
+        self.alpha = 0.0
+      }, completion: { (_) in
+        self.text = newText
+        viewToAnimate.setNeedsUpdateConstraints()
+        UIView.animate(withDuration: 1.5,animations: {
+          viewToAnimate.layoutIfNeeded()
+        })
+        UIView.animate(withDuration: 0.7, delay: 1.3, animations: {
+          self.alpha = 1.0
+        })
+      })
+    }
+  }
+}
+
 
 // MARK: - extension UIButton:setBackgroundColor
 extension UIButton {
