@@ -148,7 +148,7 @@
 "taz_id_register_intro" = "Um die neue App zu nutzen, müssen Sie sich zukünftig mit Ihrer E-Mail-Adresse und selbst gewähltem Passwort anmelden.";
 
 /* translation from Android */
-"fragment_login_confirm_email_header" = "Danke für Ihre Registrierung! Wir haben Ihnen eine Mail geschickt. Bitte öffnen Sie die Mail und bestätigen Sie Ihre Adresse. Sobald die Mail-Adresse bestätigt wurde können Sie die neue taz-App nutzen.";
+"fragment_login_confirm_email_header" = "Danke für Ihre Registrierung! Wir haben Ihnen eine Mail an %@ geschickt. Bitte öffnen Sie die Mail und bestätigen Sie Ihre Adresse. Sobald die Mail-Adresse bestätigt wurde können Sie die neue taz-App nutzen.";
 
 /* translation from Android */
 "fragment_login_success_login_back_article" = "Zurück zum Artikel";
