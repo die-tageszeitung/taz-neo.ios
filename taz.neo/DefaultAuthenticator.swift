@@ -93,7 +93,7 @@ extension DefaultAuthenticator : AuthMediator{
   
     Self.storeTempUserData(tmpId: tmpId, tmpPassword: tmpPassword)
     if requestSoon == true {
-      DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
+      DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
         self.pollSubscription {  [weak self] (resume) in
           guard let self = self else {return;}
           if resume == true {
