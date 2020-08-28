@@ -92,18 +92,26 @@ class FormsResultController: UIViewController {
   private var contentView = FormView()
   var dismissAllFinishedClosure: (()->())?
   
-  private var messageLabel = UILabel(paddingTop: 30, paddingBottom: 30)
+  private var messageLabel = UILabel(paddingTop: 30, paddingBottom: 15)
+  private var messageLabel2 = UILabel(paddingTop: 15, paddingBottom: 30)
   
   
-  func exchangeWith(_ newText:String?){
-    self.messageLabel.setTextAnimated(newText)
+  /// Exchange the displayed text with the new one
+  /// - Parameters:
+  ///   - newText: text to exchange
+  ///   - showBoth: show both text for a while
+  func exchangeWith(_ newText:String?, _ showBoth:Bool = true){
+    if showBoth == false {
+      self.messageLabel.setTextAnimated(newText)
+      return
+    }
+    
+    self.messageLabel2.setTextAnimated(newText)
+    delay(seconds: 2) {
+      self.messageLabel.setTextAnimated("")
+    }
   }
-  
-  /// Particullary no because AppNeustart!!!
-//  fileprivate var showSpinner:Bool = false
-//  fileprivate var validExchangedText:String? = nil
-//  var canExchange:Bool {get{ return validExchangedText != nil }}
-  
+    
   var ui : FormView { get { return contentView }}
   
   var dismissType:dismissType = .current
@@ -134,9 +142,13 @@ class FormsResultController: UIViewController {
     messageLabel.text = message
     messageLabel.numberOfLines = 0
     
+    messageLabel2.text = ""
+    messageLabel2.numberOfLines = 0
+    
     ui.views = [
       TazHeader(),
       messageLabel,
+      messageLabel2,
       UIButton(title: backButtonTitle,
                target: self, action: #selector(handleBack)),
       
