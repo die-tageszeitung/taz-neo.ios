@@ -198,10 +198,10 @@ public class DefaultAuthenticator: Authenticator {
                 closure(false)//stop polling
               }
               return;
-            case .noPollEntry:
+            case .noPollEntry, .tooManyPollTrys:
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
               /// In this case user recived the E-Mail for PW Reset,
-              let err = self.error("noPollEntry")
+              let err = self.error(info.status.rawValue)
               self.authenticationSucceededClosure?(err)
               closure(false)//stop polling
               return;
