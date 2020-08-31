@@ -61,7 +61,7 @@ class LoginController: FormsController {
   
   // MARK: queryAuthToken
   func queryAuthToken(tazId: String, tazIdPass: String){
-    auth.feeder.authenticateWithTazId(account: tazId, password: tazIdPass, closure:{ [weak self] (result) in
+    auth.feeder.authenticate(account: tazId, password: tazIdPass, closure:{ [weak self] (result) in
       guard let self = self else { return }
       switch result {
         case .success(let token):

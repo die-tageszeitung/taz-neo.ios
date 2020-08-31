@@ -441,7 +441,7 @@ class GqlFeederStatus: GQLObject {
  This class provides the necessary functionality to handle all data transfer 
  operations with the taz/lmd GraphQL server.
  */
-open class GqlFeeder: Feeder, DoesLog {  
+open class GqlFeeder: Feeder, DoesLog {
 
   /// Time zone Feeder lives in ;-(
   public static var tz = "Europe/Berlin"
@@ -513,54 +513,6 @@ open class GqlFeeder: Feeder, DoesLog {
    If the authentication was successful, the provided authentication token
    is written to self.authToken and passed to 'closure' as Result.success.
    If an error was encountered, the closure is called with Result.failure and
-   an Error is passed along. If this Error is of type FeederError, then 
-   a GqlAuthInfo object is written to self.status.authInfo and may be interpreted 
-   for further information.
-   
-   - parameters:
-     - account:  tazId or AboId
-     - password: account password 
-     - closure:  is called when the communication with the server has been
-                 finished
-     - result:   Either auth token or Error
-  */
-  public func authenticate(account: String, password: String, 
-    closure: @escaping(_ result: Result<String,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
-      closure(.failure(fatal("Not connected"))); return
-    }
-    let request = """
-      authToken: authentificationToken(user:"\(account)", password: "\(password)") {
-        \(GqlAuthToken.fields)
-      }
-    """
-    gqlSession.query(graphql: request, type: [String:GqlAuthToken].self) { [weak self] (res) in
-      var ret: Result<String,Error>
-      switch res {
-      case .success(let auth): 
-        let atoken = auth["authToken"]!
-        self?.status?.authInfo = atoken.authInfo
-        switch atoken.authInfo.status {
-        case .expired: 
-          ret = .failure(FeederError.expiredAccount(atoken.authInfo.message))
-        case .invalid, .unlinked, .alreadyLinked, .notValidMail, .unknown:
-          ret = .failure(FeederError.invalidAccount(atoken.authInfo.message)) 
-        case .valid:
-          self?.authToken = atoken.token!
-          ret = .success(atoken.token!)
-        }
-      case .failure(let err):  ret = .failure(err)
-      }
-      closure(ret)
-    }
-  }
-  
-  /**
-   Authenticate with server.
-   
-   If the authentication was successful, the provided authentication token
-   is written to self.authToken and passed to 'closure' as Result.success.
-   If an error was encountered, the closure is called with Result.failure and
    an Error is passed along. If this Error is of type FeederError, then
    a GqlAuthInfo object is written to self.status.authInfo and may be interpreted
    for further information.
@@ -572,7 +524,7 @@ open class GqlFeeder: Feeder, DoesLog {
                  finished
      - result:   Either auth token or Error
   */
-  func authenticateWithTazId(account: String, password: String,
+  public func authenticate(account: String, password: String,
     closure: @escaping(_ result: Result<String,Error>)->()) {
     guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return

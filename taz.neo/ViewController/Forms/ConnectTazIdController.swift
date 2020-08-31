@@ -333,7 +333,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     
     /// We're in tazID login Form, check if credentials are invalid, everything else
     /// is handled by subscriptionId2tazId
-    auth.feeder.authenticateWithTazId(account: tazId,
+    auth.feeder.authenticate(account: tazId,
                                       password: tazIdPassword,
                                       closure:{ [weak self] (result) in
       guard let self = self else { return }
