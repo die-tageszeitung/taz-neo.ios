@@ -22,15 +22,15 @@ public class LoginView : FormView{
                                isSecureTextEntry: true,
                                enablesReturnKeyAutomatically: true)
   
-  var loginButton = Padded.PUIButton(title: Localized("login_button"))
+  var loginButton = Padded.Button(title: Localized("login_button"))
   
-  var registerButton = Padded.PUIButton(type: .outline,
+  var registerButton = Padded.Button(type: .outline,
                                 title: Localized("register_button"))
   
-  var passForgottButton = Padded.PUIButton(type: .label,
+  var passForgottButton = Padded.Button(type: .label,
                                    title: Localized("login_forgot_password"))
   
-  var helpLabel = Padded.PUILabel(title: Localized("help"))
+  var helpLabel = Padded.Label(title: Localized("help"))
   override func createSubviews() -> [UIView] {
     helpLabel.textColor = TazColor.CIColor.color
     helpLabel.onTapping {  _ in
@@ -38,11 +38,11 @@ public class LoginView : FormView{
     }
     return   [
       TazHeader(),
-      Padded.PUILabel(title: Localized("login_required")),
+      Padded.Label(title: Localized("login_required")),
       idInput,
       passInput,
       loginButton,
-      Padded.PUILabel(title: Localized("ask_for_trial_subscription_title")),
+      Padded.Label(title: Localized("ask_for_trial_subscription_title")),
       registerButton,
       passForgottButton,
       helpLabel
@@ -83,13 +83,13 @@ public class NotLinkedLoginAboIDView : LoginView {
                              keyboardType: .numberPad,
                              autocapitalizationType: .none)
   
-  var connectButton = Padded.PUIButton(title: Localized("connect_this_abo_id_with_taz_id"))
+  var connectButton = Padded.Button(title: Localized("connect_this_abo_id_with_taz_id"))
   
   override func createSubviews() -> [UIView] {
     loginButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     return   [
       TazHeader(),
-      Padded.PUILabel(title: Localized("connect_abo_id_title")),
+      Padded.Label(title: Localized("connect_abo_id_title")),
       aboIdInput,
       passInput,
       connectButton,

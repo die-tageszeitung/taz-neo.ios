@@ -39,12 +39,12 @@ public class ConnectTazIdView : FormView{
                                    keyboardType: .namePhonePad,
                                    autocapitalizationType: .words)
   
-  var alreadyHaveTazIdButton = Padded.PUIButton(type: .label,
+  var alreadyHaveTazIdButton = Padded.Button(type: .label,
                                         title: Localized("login_missing_credentials_switch_to_login"))
   
-  var registerButton = Padded.PUIButton(title: Localized("register_button"))
+  var registerButton = Padded.Button(title: Localized("register_button"))
   
-  var cancelButton =  Padded.PUIButton(type:.outline, title: Localized("cancel_button"))
+  var cancelButton =  Padded.Button(type:.outline, title: Localized("cancel_button"))
   
   
   
@@ -62,7 +62,7 @@ public class ConnectTazIdView : FormView{
   override func createSubviews() -> [UIView] {
     return [
       TazHeader(),
-      Padded.PUILabel(title: Localized("taz_id_account_create_intro")),
+      Padded.Label(title: Localized("taz_id_account_create_intro")),
       alreadyHaveTazIdButton,
       mailInput,
       passInput,

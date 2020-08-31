@@ -92,8 +92,8 @@ class FormsResultController: UIViewController {
   private var contentView = FormView()
   var dismissAllFinishedClosure: (()->())?
   
-  private var messageLabel = Padded.PUILabel(paddingTop: 30, paddingBottom: 15)
-  private var messageLabel2 = Padded.PUILabel(paddingTop: 15, paddingBottom: 30)
+  private var messageLabel = Padded.Label(paddingTop: 30, paddingBottom: 15)
+  private var messageLabel2 = Padded.Label(paddingTop: 15, paddingBottom: 30)
   
   
   /// Exchange the displayed text with the new one
@@ -149,7 +149,7 @@ class FormsResultController: UIViewController {
       TazHeader(),
       messageLabel,
       messageLabel2,
-      Padded.PUIButton(title: backButtonTitle,
+      Padded.Button(title: backButtonTitle,
                target: self, action: #selector(handleBack)),
       
     ]
