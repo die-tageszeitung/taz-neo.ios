@@ -18,7 +18,7 @@ fileprivate let DefaultPadding = CGFloat(15.0)
 fileprivate let TextFieldPadding = CGFloat(10.0)
 
 // MARK: - TazHeader
-class TazHeader: UIView{
+class TazHeader: Padded.PUIView{
   override init(frame: CGRect) {
     super.init(frame:frame)
     setup()
@@ -101,7 +101,7 @@ class BlockingProcessView : UIView{
 
 
 // MARK: - UILabel Extension taz Label
-extension UILabel{
+extension Padded.PUILabel{
   convenience init(title: String? = nil,
                    font: UIFont = Const.Fonts.contentFont(size: DefaultFontSize),
                    paddingTop: CGFloat = 8,
@@ -117,7 +117,7 @@ extension UILabel{
 }
 
 // MARK: - taz UIButton
-extension UIButton{
+extension Padded.PUIButton{
   
   enum tazButtonType { case normal, outline, label }
   
@@ -190,7 +190,7 @@ class Checkbox : UIButton {
 }
 
 // MARK: - TazTextField
-class TazTextField : UITextField, UITextFieldDelegate{
+class TazTextField : Padded.PUITextField, UITextFieldDelegate{
   static let recomendedHeight:CGFloat = 56.0
   private let border = BorderView()
   let topLabel = UILabel()
@@ -452,7 +452,7 @@ extension TazTextField{
 }
 
 // MARK: - CustomTextView : UITextView
-class CustomTextView : UITextView{
+class CustomTextView : Padded.PUITextView{
   
   private var heightConstraint: NSLayoutConstraint?
   

@@ -103,43 +103,6 @@ extension UIView {
   }
 }
 
-
-
-
-// MARK: -  PaddingHelper
-/// Max PaddingHelper
-func padding(_ topView:UIView, _ bottomView:UIView) -> CGFloat{
-  return max(topView.paddingBottom, bottomView.paddingTop)
-}
-
-/// View additional Properties (Padding) Helper, add static properties to Instances
-extension UIView {
-  private static var _paddingTop = [String:CGFloat]()
-  private static var _paddingBottom = [String:CGFloat]()
-  
-  var paddingTop:CGFloat {
-    get {
-      let tmpAddress = String(format: "%p", unsafeBitCast(self, to: Int.self))
-      return UIView._paddingTop[tmpAddress] ?? 12.0
-    }
-    set(newValue) {
-      let tmpAddress = String(format: "%p", unsafeBitCast(self, to: Int.self))
-      UIView._paddingTop[tmpAddress] = newValue
-    }
-  }
-  
-  var paddingBottom:CGFloat {
-    get {
-      let tmpAddress = String(format: "%p", unsafeBitCast(self, to: Int.self))
-      return UIView._paddingBottom[tmpAddress] ?? 12.0
-    }
-    set(newValue) {
-      let tmpAddress = String(format: "%p", unsafeBitCast(self, to: Int.self))
-      UIView._paddingBottom[tmpAddress] = newValue
-    }
-  }
-}
-
 extension UILabel {
   /// sets the new text animate height and alpha with a smooth Animation
   /// - Parameter newText: text to set

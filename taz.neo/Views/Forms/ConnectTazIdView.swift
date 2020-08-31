@@ -6,6 +6,7 @@
 // Copyright © 2020 Ringo Müller-Gromes for "taz" digital newspaper. All rights reserved.
 // 
 import UIKit
+import NorthLib
 
 public class ConnectTazIdView : FormView{
   
@@ -38,12 +39,12 @@ public class ConnectTazIdView : FormView{
                                    keyboardType: .namePhonePad,
                                    autocapitalizationType: .words)
   
-  var alreadyHaveTazIdButton = UIButton(type: .label,
+  var alreadyHaveTazIdButton = Padded.PUIButton(type: .label,
                                         title: Localized("login_missing_credentials_switch_to_login"))
   
-  var registerButton = UIButton(title: Localized("register_button"))
+  var registerButton = Padded.PUIButton(title: Localized("register_button"))
   
-  var cancelButton =  UIButton(type:.outline, title: Localized("cancel_button"))
+  var cancelButton =  Padded.PUIButton(type:.outline, title: Localized("cancel_button"))
   
   
   
@@ -61,7 +62,7 @@ public class ConnectTazIdView : FormView{
   override func createSubviews() -> [UIView] {
     return [
       TazHeader(),
-      UILabel(title: Localized("taz_id_account_create_intro")),
+      Padded.PUILabel(title: Localized("taz_id_account_create_intro")),
       alreadyHaveTazIdButton,
       mailInput,
       passInput,

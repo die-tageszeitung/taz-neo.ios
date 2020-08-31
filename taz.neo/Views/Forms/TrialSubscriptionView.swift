@@ -7,6 +7,7 @@
 // 
 
 import UIKit
+import NorthLib
 
 public class TrialSubscriptionView : FormView{
   
@@ -39,9 +40,9 @@ public class TrialSubscriptionView : FormView{
                                    keyboardType: .namePhonePad,
                                    autocapitalizationType: .words)
   
-  var registerButton = UIButton(title: Localized("register_button"))
+  var registerButton = Padded.PUIButton(title: Localized("register_button"))
   
-  var cancelButton =  UIButton(type:.outline, title: Localized("cancel_button"))
+  var cancelButton =  Padded.PUIButton(type:.outline, title: Localized("cancel_button"))
   
   
   // MARK: agbAcceptLabel with Checkbox
@@ -58,13 +59,13 @@ public class TrialSubscriptionView : FormView{
   override func createSubviews() -> [UIView] {
     return   [
       TazHeader(),
-      UILabel(title: Localized("trial_subscription_title")),
+      Padded.PUILabel(title: Localized("trial_subscription_title")),
       mailInput,
       passInput,
       pass2Input,
       firstnameInput,
       lastnameInput,
-      UILabel(title:
+      Padded.PUILabel(title:
         Localized("fragment_login_request_test_subscription_existing_account")),
       agbAcceptTV,
       registerButton,

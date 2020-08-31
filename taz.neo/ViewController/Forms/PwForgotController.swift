@@ -127,11 +127,11 @@ class PasswordResetRequestedSuccessController: FormsResultController {
     self.dismissType = .two
     ui.views =  [
       TazHeader(),
-      UILabel(title: Localized("login_forgot_password_email_sent_header"),
+      Padded.PUILabel(title: Localized("login_forgot_password_email_sent_header"),
               paddingTop: 30,
               paddingBottom: 30
       ),
-      UIButton(title: Localized("login_forgot_password_email_sent_back"),
+      Padded.PUIButton(title: Localized("login_forgot_password_email_sent_back"),
                target: self, action: #selector(handleBack)),
       
     ]
@@ -157,17 +157,17 @@ class SubscriptionResetSuccessController: FormsResultController, MFMailComposeVi
     self.dismissType = .two
     ui.views =   [
       TazHeader(),
-      UILabel(title: Localized("login_forgot_password_email_sent_header")
+      Padded.PUILabel(title: Localized("login_forgot_password_email_sent_header")
       ),
-      UILabel(title: Localized("subscription_reset_found_link")
+      Padded.PUILabel(title: Localized("subscription_reset_found_link")
       ),
-      UIButton(title: Localized("login_forgot_password_email_sent_back"),
+      Padded.PUIButton(title: Localized("login_forgot_password_email_sent_back"),
                target: self, action: #selector(handleBack)),
-      UILabel(title: Localized("login_subscription_taken_body")
+      Padded.PUILabel(title: Localized("login_subscription_taken_body")
       ),
-      UIButton(type: .label, title: Localized("digiabo_email"),
+      Padded.PUIButton(type: .label, title: Localized("digiabo_email"),
                target: self, action: #selector(handleMail)),
-      UIButton(type: .outline ,title: Localized("cancel_button"),
+      Padded.PUIButton(type: .outline ,title: Localized("cancel_button"),
                target: self, action: #selector(handleBack))
     ]
   }

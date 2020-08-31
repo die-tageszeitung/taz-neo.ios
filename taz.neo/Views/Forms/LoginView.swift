@@ -22,15 +22,15 @@ public class LoginView : FormView{
                                isSecureTextEntry: true,
                                enablesReturnKeyAutomatically: true)
   
-  var loginButton = UIButton(title: Localized("login_button"))
+  var loginButton = Padded.PUIButton(title: Localized("login_button"))
   
-  var registerButton = UIButton(type: .outline,
+  var registerButton = Padded.PUIButton(type: .outline,
                                 title: Localized("register_button"))
   
-  var passForgottButton = UIButton(type: .label,
+  var passForgottButton = Padded.PUIButton(type: .label,
                                    title: Localized("login_forgot_password"))
   
-  var helpLabel = UILabel(title: Localized("help"))
+  var helpLabel = Padded.PUILabel(title: Localized("help"))
   override func createSubviews() -> [UIView] {
     helpLabel.textColor = TazColor.CIColor.color
     helpLabel.onTapping {  _ in
@@ -38,11 +38,11 @@ public class LoginView : FormView{
     }
     return   [
       TazHeader(),
-      UILabel(title: Localized("login_required")),
+      Padded.PUILabel(title: Localized("login_required")),
       idInput,
       passInput,
       loginButton,
-      UILabel(title: Localized("ask_for_trial_subscription_title")),
+      Padded.PUILabel(title: Localized("ask_for_trial_subscription_title")),
       registerButton,
       passForgottButton,
       helpLabel
@@ -83,13 +83,13 @@ public class NotLinkedLoginAboIDView : LoginView {
                              keyboardType: .numberPad,
                              autocapitalizationType: .none)
   
-  var connectButton = UIButton(title: Localized("connect_this_abo_id_with_taz_id"))
+  var connectButton = Padded.PUIButton(title: Localized("connect_this_abo_id_with_taz_id"))
   
   override func createSubviews() -> [UIView] {
     loginButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     return   [
       TazHeader(),
-      UILabel(title: Localized("connect_abo_id_title")),
+      Padded.PUILabel(title: Localized("connect_abo_id_title")),
       aboIdInput,
       passInput,
       connectButton,

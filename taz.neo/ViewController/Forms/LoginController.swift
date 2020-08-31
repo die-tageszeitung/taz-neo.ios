@@ -146,7 +146,7 @@ class SubscriptionIdElapsedController: FormsResultController {
       CustomTextView(htmlText:htmlText,
                      textAlignment: .center,
                      linkTextAttributes: CustomTextView.boldLinks),
-      UIButton(type: .outline,
+      Padded.PUIButton(type: .outline,
                title: Localized("cancel_button"),
                target: self,
                action: #selector(handleBack))]
@@ -167,19 +167,19 @@ class AskForTrial_Controller: FormsController {
     super.init(auth)
     ui.views = [
       TazHeader(),
-      UILabel(title: Localized("unconnected_taz_id_header"),
+      Padded.PUILabel(title: Localized("unconnected_taz_id_header"),
               paddingTop: 30,
               paddingBottom: 30
       ),
-      UIButton(title: Localized("connect_abo_id"),
+      Padded.PUIButton(title: Localized("connect_abo_id"),
                target: self, action: #selector(handleConnectAboId)),
-      UILabel(title: Localized("ask_for_trial_subscription_title"),
+      Padded.PUILabel(title: Localized("ask_for_trial_subscription_title"),
               paddingTop: 30,
               paddingBottom: 30
       ),
-      UIButton(title: Localized("trial_subscroption"),
+      Padded.PUIButton(title: Localized("trial_subscroption"),
                target: self, action: #selector(handleTrialSubscroption)),
-      UIButton(type:.outline,
+      Padded.PUIButton(type:.outline,
                title: Localized("cancel_button"),
                target: self, action: #selector(handleBack))
     ]

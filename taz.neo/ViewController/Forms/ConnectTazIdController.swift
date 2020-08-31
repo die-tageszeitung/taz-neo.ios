@@ -168,13 +168,13 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
     
     ui.views = [
       TazHeader(),
-      UILabel(title: Localized("connect_abo_id_title")),
+      Padded.PUILabel(title: Localized("connect_abo_id_title")),
       ui.mailInput,//Is now Number Input
       ui.passInput,
       ui.agbAcceptTV,
       ui.registerButton,
       ui.cancelButton,
-      UIButton(type: .label, title: Localized("login_forgot_password"),
+      Padded.PUIButton(type: .label, title: Localized("login_forgot_password"),
                target: self,
                action: #selector(handlePwForgot))
     ]
@@ -242,7 +242,7 @@ class ConnectTazIdRequestNameCtrl : ConnectTazIdController{
     ui.registerButton.setTitle(Localized("send_button"), for: .normal)
     ui.views = [
       TazHeader(),
-      UILabel(title: Localized("taz_id_account_create_intro")),
+      Padded.PUILabel(title: Localized("taz_id_account_create_intro")),
       ui.firstnameInput,
       ui.lastnameInput,
       ui.registerButton,
@@ -285,8 +285,8 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     
     ui.views = [
       TazHeader(),
-      UILabel(title: Localized("fragment_login_request_test_subscription_existing_account")),
-      UIButton(type: .label,
+      Padded.PUILabel(title: Localized("fragment_login_request_test_subscription_existing_account")),
+      Padded.PUIButton(type: .label,
                title: Localized("fragment_login_missing_credentials_switch_to_registration"),
                target: self,
                action: #selector(handleBack)),
@@ -295,7 +295,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
       ui.agbAcceptTV,
       ui.registerButton,
       ui.cancelButton,
-      UIButton(type: .label, title: Localized("login_forgot_password"),
+      Padded.PUIButton(type: .label, title: Localized("login_forgot_password"),
                   target: self,
                   action: #selector(handlePwForgot))
     ]
