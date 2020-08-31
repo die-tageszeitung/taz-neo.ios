@@ -277,56 +277,6 @@ extension FormsController: UITextViewDelegate {
 
 // MARK: - ext: UIViewController
 extension UIViewController{
-  /// dismiss helper for stack of modal presented VC's
-  static func dismiss(stack:[UIViewController], animated:Bool, completion: (() -> Void)?){
-    var stack = stack
-    let vc = stack.pop()
-    vc?.dismiss(animated: animated, completion: {
-      if stack.count > 0 {
-        UIViewController.dismiss(stack: stack, animated: false, completion: completion)
-      } else {
-        completion?()
-      }
-    })
-  }
-  
-  /// helper to find presenting VC for stack of modal presented VC's
-  var rootPresentingViewController : UIViewController {
-    get{
-      var vc = self
-      while true {
-        if let pvc = vc.presentingViewController {
-          vc = pvc
-        }
-        return vc
-      }
-    }
-  }
-  
-  /// helper to find 1st presended VC in stack of modal presented VC's
-  var rootModalViewController : UIViewController? {
-    get{
-      return self.rootPresentingViewController.presentedViewController
-    }
-  }
-  
-  /// helper for stack of modal presented VC's, to get all modal presented VC's below self
-  var modalStack : [UIViewController] {
-    get{
-      var stack:[UIViewController] = []
-      var vc:UIViewController = self
-      while true {
-        if let pc = vc.presentingViewController {
-          stack.append(vc)
-          vc = pc
-        }
-        else {
-          return stack
-        }
-      }
-    }
-  }
-  
   /// helper for stack of modal presented VC's, to get all modal presented VC's below self
   var baseLoginController : LoginController? {
     get{
