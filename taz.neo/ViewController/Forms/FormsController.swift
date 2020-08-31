@@ -126,7 +126,7 @@ class FormsResultController: UIViewController {
     wConstraint.constant = UIScreen.main.bounds.width
     wConstraint.priority = .required
     
-    self.view.backgroundColor = TazColor.CTBackground.color
+    self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(ui)
     if #available(iOS 13.0, *) {
       pin(ui, to: self.view)

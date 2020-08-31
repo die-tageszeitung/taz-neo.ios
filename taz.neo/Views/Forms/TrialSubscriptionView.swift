@@ -50,9 +50,9 @@ public class TrialSubscriptionView : FormView{
     let view = CheckboxWithText()
     view.textView.isEditable = false
     view.textView.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed
-    view.textView.linkTextAttributes = [.foregroundColor : TazColor.CIColor.color, .underlineColor: UIColor.clear]
+    view.textView.linkTextAttributes = [.foregroundColor : Const.SetColor.CIColor.color, .underlineColor: UIColor.clear]
     view.textView.font = Const.Fonts.contentFont(size: DefaultFontSize)
-    view.textView.textColor = TazColor.HText.color
+    view.textView.textColor = Const.SetColor.HText.color
     return view
   }()
   

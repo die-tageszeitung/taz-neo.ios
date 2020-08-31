@@ -38,7 +38,7 @@ class TazHeader: Padded.View{
   func setup() {
     let title = UILabel()
     let line = DottedLineView()
-    line.fillColor = TazColor.CTDate.color
+    line.fillColor = Const.SetColor.CTDate.color
     title.text = NSLocalizedString("die tageszeitung",
                                    comment: "taz_title")
     title.font = Const.Fonts.contentFont(size: LargeTitleFontSize)
@@ -93,7 +93,7 @@ class BlockingProcessView : UIView{
   func setup() {
     self.isHidden = true
     self.addSubview(spinner)
-    self.backgroundColor = TazColor.CTBackground.color.withAlphaComponent(0.5)
+    self.backgroundColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.5)
     pin(spinner.centerX, to: self.centerX)
     pin(spinner.centerY, to: self.centerY)
   }
@@ -123,7 +123,7 @@ extension Padded.Button{
   
   convenience init( type: tazButtonType = .normal,
                     title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
-                    color: UIColor = TazColor.CIColor.color,
+                    color: UIColor = Const.SetColor.CIColor.color,
                     textColor: UIColor = .white,
                     height: CGFloat = 40,
                     paddingTop: CGFloat = DefaultPadding,
@@ -150,12 +150,12 @@ extension Padded.Button{
       case .outline:
         self.backgroundColor = .clear
         self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .selected)
-        self.addBorder(TazColor.CIColor.color, 1.0)
-        self.setTitleColor(TazColor.CIColor.color, for: .normal)
+        self.addBorder(Const.SetColor.CIColor.color, 1.0)
+        self.setTitleColor(Const.SetColor.CIColor.color, for: .normal)
       case .label:
         self.backgroundColor = .clear
         self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .selected)
-        self.setTitleColor(TazColor.CIColor.color, for: .normal)
+        self.setTitleColor(Const.SetColor.CIColor.color, for: .normal)
       case .normal: fallthrough
       default:
         self.backgroundColor = color
@@ -177,8 +177,8 @@ class Checkbox : UIButton {
   
   func setup(){
     self.setBackgroundImage(UIImage(name: "xmark"), for: .selected)
-    self.tintColor = TazColor.CTArticle.color
-    self.layer.borderColor = TazColor.CTArticle.color.cgColor
+    self.tintColor = Const.SetColor.CTArticle.color
+    self.layer.borderColor = Const.SetColor.CTArticle.color.cgColor
     self.layer.borderWidth = 1.0
     self.layer.cornerRadius = 3.0
     self.addTarget(self, action: #selector(toggle), for: .touchUpInside)
@@ -201,8 +201,8 @@ class TazTextField : Padded.TextField, UITextFieldDelegate{
   // MARK: > pwInput
   required init(prefilledText: String? = nil,
                 placeholder: String? = nil,
-                color: UIColor = TazColor.CIColor.color,
-                textColor: UIColor = TazColor.CIColor.color,
+                color: UIColor = Const.SetColor.CIColor.color,
+                textColor: UIColor = Const.SetColor.CIColor.color,
                 height: CGFloat = TazTextField.recomendedHeight,
                 paddingTop: CGFloat = TextFieldPadding,
                 paddingBottom: CGFloat = TextFieldPadding,
@@ -230,7 +230,7 @@ class TazTextField : Padded.TextField, UITextFieldDelegate{
       let imgEyeSlash = UIImage(name: "eye.slash.fill")
       let eye = UIImageView(image: imgEyeSlash)
       eye.contentMode = .scaleAspectFit
-      eye.tintColor = TazColor.CTArticle.color
+      eye.tintColor = Const.SetColor.CTArticle.color
       eye.onTapping(closure: { _ in
         self.isSecureTextEntry = !self.isSecureTextEntry
         eye.image = self.isSecureTextEntry ? imgEyeSlash : imgEye
@@ -256,7 +256,7 @@ class TazTextField : Padded.TextField, UITextFieldDelegate{
   func setup(){
     self.addSubview(border)
     self.delegate = self
-    self.border.backgroundColor = TazColor.CTArticle.color
+    self.border.backgroundColor = Const.SetColor.CTArticle.color
     self.borderHeightConstraint = border.pinHeight(1)
     pin(border.left, to: self.left)
     pin(border.right, to: self.right)
@@ -297,7 +297,7 @@ class TazTextField : Padded.TextField, UITextFieldDelegate{
         pin(topLabel.right, to: self.right)
         pin(topLabel.top, to: self.top, dist: -2)
         topLabel.font = Const.Fonts.contentFont(size: MiniPageNumberFontSize)
-        self.topLabel.textColor = TazColor.CTArticle.color
+        self.topLabel.textColor = Const.SetColor.CTArticle.color
         
       }
     }
@@ -315,7 +315,7 @@ class TazTextField : Padded.TextField, UITextFieldDelegate{
         pin(bottomLabel.right, to: self.right)
         pin(bottomLabel.bottom, to: self.bottom)
         bottomLabel.font = Const.Fonts.contentFont(size: MiniPageNumberFontSize)
-        bottomLabel.textColor = TazColor.CIColor.color
+        bottomLabel.textColor = Const.SetColor.CIColor.color
       }
       
       UIView.animate(seconds: 0.3) { [weak self] in
@@ -434,8 +434,8 @@ extension TazTextField{
     textField.inputAccessoryView = inputToolbar
     
     UIView.animate(seconds: 0.3) { [weak self] in
-      self?.border.backgroundColor = TazColor.CIColor.color
-      self?.topLabel.textColor = TazColor.CIColor.color
+      self?.border.backgroundColor = Const.SetColor.CIColor.color
+      self?.topLabel.textColor = Const.SetColor.CIColor.color
       self?.borderHeightConstraint?.constant = 2.0
     }
   }
@@ -444,8 +444,8 @@ extension TazTextField{
     //textField.text = textField.text?.trim //work not good "123 456" => "123"
     //push (e.g.) pw forgott child let end too late
     UIView.animate(seconds: 0.3) { [weak self] in
-      self?.border.backgroundColor = TazColor.CTArticle.color
-      self?.topLabel.textColor = TazColor.CTArticle.color
+      self?.border.backgroundColor = Const.SetColor.CTArticle.color
+      self?.topLabel.textColor = Const.SetColor.CTArticle.color
       self?.borderHeightConstraint?.constant = 1.0
     }
   }
@@ -458,7 +458,7 @@ class CustomTextView : Padded.TextView{
   
   static var boldLinks : [NSAttributedString.Key : Any] {
     get {
-      return [.foregroundColor : TazColor.CIColor.color,
+      return [.foregroundColor : Const.SetColor.CIColor.color,
               .font: Const.Fonts.titleFont(size: DefaultFontSize),
               .underlineColor: UIColor.clear]
     }
@@ -468,9 +468,9 @@ class CustomTextView : Padded.TextView{
                 paddingTop: CGFloat = TextFieldPadding,
                 paddingBottom: CGFloat = TextFieldPadding,
                 font: UIFont = Const.Fonts.contentFont(size: DefaultFontSize),
-                textColor: UIColor = TazColor.HText.color,
+                textColor: UIColor = Const.SetColor.HText.color,
                 textAlignment: NSTextAlignment = .left,
-                linkTextAttributes: [NSAttributedString.Key : Any] = [.foregroundColor : TazColor.CIColor.color,
+                linkTextAttributes: [NSAttributedString.Key : Any] = [.foregroundColor : Const.SetColor.CIColor.color,
                                                                       .underlineColor: UIColor.clear]) {
     super.init(frame: .zero, textContainer:nil)
     self.paddingTop = paddingTop
@@ -541,7 +541,7 @@ class CheckboxWithText:UIView{
   public var error : Bool = false {
     didSet {
       checkbox.layer.borderColor
-        = error ? TazColor.CIColor.color.cgColor : TazColor.CTArticle.color.cgColor
+        = error ? Const.SetColor.CIColor.color.cgColor : Const.SetColor.CTArticle.color.cgColor
     }
   }
   

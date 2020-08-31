@@ -32,7 +32,7 @@ public class LoginView : FormView{
   
   var helpLabel = Padded.Label(title: Localized("help"))
   override func createSubviews() -> [UIView] {
-    helpLabel.textColor = TazColor.CIColor.color
+    helpLabel.textColor = Const.SetColor.CIColor.color
     helpLabel.onTapping {  _ in
       Alert.message(title: Localized("help"), message: Localized("article_read_onreadon"))
     }

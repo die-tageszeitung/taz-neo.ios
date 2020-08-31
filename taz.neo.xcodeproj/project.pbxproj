@@ -16,7 +16,6 @@
 		004D4F0024ACDC1F008C4EE7 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* FormView.swift */; };
 		006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006007E124D1D333001680B6 /* TrialSubscriptionController.swift */; };
 		006E17E924D418090092DC0D /* FormComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006E17E824D418090092DC0D /* FormComponents.swift */; };
-		006E17ED24D418490092DC0D /* UIHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006E17EC24D418490092DC0D /* UIHelper.swift */; };
 		00E3D2A124E68F1B00AE075A /* ConnectTazIdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */; };
 		00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */; };
 		00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A624E68F4600AE075A /* LoginView.swift */; };
@@ -94,7 +93,6 @@
 		004D4EFF24ACDC1F008C4EE7 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		006007E124D1D333001680B6 /* TrialSubscriptionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialSubscriptionController.swift; sourceTree = "<group>"; };
 		006E17E824D418090092DC0D /* FormComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormComponents.swift; sourceTree = "<group>"; };
-		006E17EC24D418490092DC0D /* UIHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIHelper.swift; sourceTree = "<group>"; };
 		00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdView.swift; sourceTree = "<group>"; };
 		00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialSubscriptionView.swift; sourceTree = "<group>"; };
 		00E3D2A624E68F4600AE075A /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -189,7 +187,6 @@
 				00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */,
 				00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */,
 				006E17E824D418090092DC0D /* FormComponents.swift */,
-				006E17EC24D418490092DC0D /* UIHelper.swift */,
 			);
 			path = Forms;
 			sourceTree = "<group>";
@@ -482,7 +479,6 @@
 				AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */,
 				AE4F51DB2438C8E800BC9548 /* ArticleDB.swift in Sources */,
 				AE5D9EC323E1BB2D0002C3B8 /* ContentTableVC.swift in Sources */,
-				006E17ED24D418490092DC0D /* UIHelper.swift in Sources */,
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
 				0015B73724DD86B30037A8D6 /* Authenticator.swift in Sources */,
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
