@@ -44,7 +44,6 @@ public protocol AuthMediator : Authenticator {
   static func deleteTempUserData()
 
   var performPollingClosure: (()->())? { get set}
-  var authenticationSucceededClosure: ((Error?)->())? { get set}
 }
 
 extension AuthMediator {
@@ -139,10 +138,7 @@ public class DefaultAuthenticator: Authenticator {
   public func whenPollingRequired(closure: @escaping ()->()) {
     performPollingClosure = closure
   }
-  
-  /// Closure to call when authentication succeeded, set in authenticate(...)
-  public var authenticationSucceededClosure: ((Error?)->())?
-  
+    
   required public init(feeder: GqlFeeder) {
     self.feeder = feeder
     //An oda aus?
@@ -171,9 +167,8 @@ public class DefaultAuthenticator: Authenticator {
               Self.deleteTempUserData()
               /// Present Result to User, if Login shown!
               if let loginFormVc = self.firstPresentedAuthController as? FormsController {
-                let dismissFinishedClosure = { [weak self] in
-                  guard let self = self else {return;}
-                  self.authenticationSucceededClosure?(nil)
+                let dismissFinishedClosure = {
+                  Notification.send("authenticationSucceeded")
                   closure(false)//stop polling
                 }
                 ///If  already a FormsResultController on top of modal stack use its exchange function
@@ -194,15 +189,15 @@ public class DefaultAuthenticator: Authenticator {
               }
               /// If No Login shown, just execute the callbacks
               else {//No Form displayed anymore directly execute callbacks
-                self.authenticationSucceededClosure?(nil)
+                Notification.send("authenticationSucceeded")
                 closure(false)//stop polling
               }
               return;
             case .noPollEntry, .tooManyPollTrys:
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
               /// In this case user recived the E-Mail for PW Reset,
-              let err = self.error(info.status.rawValue)
-              self.authenticationSucceededClosure?(err)
+              _ = self.error(info.status.rawValue)
+              Notification.send("authenticationSucceeded")
               closure(false)//stop polling
               return;
             case .waitForProc: fallthrough
@@ -218,7 +213,7 @@ public class DefaultAuthenticator: Authenticator {
   }
   
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  public func authenticate(closure: @escaping (Error?)->()) {
+  public func authenticate() {
     guard let rootVC = rootVC else { return }
     rootVC.modalPresentationStyle = .formSheet
     let registerController = LoginController(self)
@@ -229,7 +224,6 @@ public class DefaultAuthenticator: Authenticator {
     }
 
     firstPresentedAuthController = registerController
-    self.authenticationSucceededClosure = closure
     rootVC.present(registerController, animated: true, completion: nil)
   }
 }

@@ -67,7 +67,7 @@ class LoginController: FormsController {
         case .success(let token):
           DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPass, token: token)
           self.dismiss(animated: true, completion: nil)
-          self.auth.authenticationSucceededClosure?(nil)
+          Notification.send("authenticationSucceeded")
         case .failure(let error):
           guard let authStatusError = error as? AuthStatusError else {
             //generell error e.g. no connection
