@@ -293,7 +293,7 @@ class GqlIssue: Issue, GQLObject {
   var feedRef: GqlFeed?
   /// Return a non nil Feed
   var feed: Feed { 
-    get { return feedRef! }
+    get { return feedRef! as Feed }
     set { feedRef = newValue as? GqlFeed }
   }
   /// Issue date
@@ -322,12 +322,8 @@ class GqlIssue: Issue, GQLObject {
   var minResourceVersion: Int
   /// Name of zip file with all data minus PDF
   var zipName: String?
-  /// List of files in this Issue without PDF
-  var fileList: [String]?
   /// Name of zip file with all data plus PDF
   var zipNamePdf: String?
-  /// List of files in this Issue with PDF
-  var fileListPdf: [String]?
   /// Issue imprint
   var gqlImprint: GqlArticle?
   var imprint: Article? { return gqlImprint }
@@ -362,9 +358,7 @@ class GqlIssue: Issue, GQLObject {
   \(ovwFields)
   key 
   zipName
-  fileList
   zipNamePdf: zipPdfName
-  fileListPdf
   gqlImprint: imprint { \(GqlArticle.fields) }
   sectionList { \(GqlSection.fields) }
   pageList { \(GqlPage.fields) }
@@ -464,6 +458,11 @@ open class GqlFeeder: Feeder, DoesLog {
   public var globalBaseUrl: String {
     guard let st = status else { return "" }
     return st.globalBaseUrl
+  }
+  /// base URL of resource files
+  public var resourceBaseUrl: String {
+    guard let st = status else { return "" }
+    return st.resourceBaseUrl
   }
   /// The Feeds this Feeder is providing
   public var feeds: [Feed] {
@@ -716,9 +715,11 @@ open class GqlFeeder: Feeder, DoesLog {
         if ret == nil { 
           if let issues = req.feeds[0].issues, issues.count > 0 {
             for issue in issues { 
-              issue.feed = feed 
-              let mark = self.issueDir(issue: issue).path + "/.downloaded"
-              if File(mark).exists { issue.isComplete = true }
+              if let _ = feed as? GqlFeed {
+                issue.feed = feed 
+                let mark = self.issueDir(issue: issue).path + "/.downloaded"
+                if File(mark).exists { issue.isComplete = true }
+              }
             }
             ret = .success(issues) 
           }

@@ -40,7 +40,7 @@ class TestController: PageCollectionVC {
   override func viewDidLoad() {
     super.viewDidLoad()
     Log.minLogLevel = .Debug
-    Log.append(logger: consoleLogger, viewLogger)
+    Log.append(logger: consoleLogger/*, viewLogger*/)
     let nd = NotifiedDelegate.singleton!
     nd.statusBar.backgroundColor = UIColor.green
     nd.onSbTap { view in
@@ -69,18 +69,45 @@ class TestController: PageCollectionVC {
       return views[index]
     }
     ArticleDB(name: "taz") { [weak self] err in 
+      var nIssues = 0
       guard let self = self else { return }
       guard err == nil else { exit(1) }
       self.debug("DB opened: \(ArticleDB.singleton!)")
       self.feederContext = FeederContext(name: "taz", 
                                          url: "https://dl.taz.de/appGraphQl")
-      Notification.receive("feederReady") { fctx in 
-        guard let fctx = fctx as? FeederContext else { return }
-        self.debug(fctx.storedFeeder.toString())
-        if let latestResources = StoredResources.latest() {
-          self.debug(latestResources.toString())
+      var completedIssue: StoredIssue? = nil
+      Notification.receive("issueOverview") { notification in
+        if let issue = notification.content as? StoredIssue {
+          self.debug("OVW \(issue)")
+          nIssues += 1
+          if nIssues == 10 {
+            completedIssue = issue
+            self.feederContext?.getCompleteIssue(issue: issue)
+          }
         }
-        else { self.debug("no resources stored") }
+      }
+      Notification.receiveOnce("issue", from: completedIssue) { notif in  
+        guard let issue = notif.content as? StoredIssue else { return }
+        if issue.isReduced {
+          self.feederContext?.authenticator?.authenticate(isFullScreen: true) { err in
+            if err == nil { self.feederContext?.getCompleteIssue(issue: issue) }
+          }
+        }
+      }
+      Notification.receive("issueProgress") { notif in
+        if let (loaded,total) = notif.content as? (Int64,Int64) {
+          print("issue progress: \(loaded)/\(total)")
+        }        
+      }
+      Notification.receive("resourcesProgress") { notification in
+        guard let (loaded, total) = notification.content as? (Int64,Int64) else {return }
+        print("dl: \(loaded)/\(total)")
+      }
+      Notification.receive("feederReady") { notification in 
+        guard let fctx = notification.sender as? FeederContext else { return }
+        self.debug(fctx.storedFeeder.toString())
+        let feed = StoredFeed.get(name: "taz", inFeeder: fctx.storedFeeder)[0]
+        fctx.getOvwIssues(feed: feed, count: 20) 
       }
       Notification.receive("feederReachable") {_ in 
         self.debug("feeder is reachable")
@@ -89,7 +116,6 @@ class TestController: PageCollectionVC {
         self.debug("feeder is not reachable")
       }
     }
-
   }
   
 }

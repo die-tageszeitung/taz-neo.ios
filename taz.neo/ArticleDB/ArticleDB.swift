@@ -10,10 +10,10 @@ import CoreData
 import NorthLib
 
 /// A quite simple Database derivation
-class ArticleDB: Database {  
+public class ArticleDB: Database {  
   
   /// There is only one article DB in the app
-  static var singleton: ArticleDB!
+  public static var singleton: ArticleDB!
   
   /// Initialize with name of database, open it and call the passed closure
   @discardableResult
@@ -24,14 +24,17 @@ class ArticleDB: Database {
   }    
   
   /// The managed object context
-  static var context: NSManagedObjectContext { return singleton.context! } 
+  public static var context: NSManagedObjectContext { return singleton.context! } 
+  
+  /// Save the singleton's context
+  public static func save() { singleton.save() }
   
 } // ArticleDB
 
 /// A Protocol to extend CoreData objects
-protocol PersistentObject: NSManagedObject, DoesLog {}
+public protocol PersistentObject: NSManagedObject, DoesLog {}
 
-extension PersistentObject {
+public extension PersistentObject {
   /// The unique ID of every CoredData entity as String
   var id: String { objectID.uriRepresentation().absoluteString }
   /// Get object using its ID
@@ -47,7 +50,7 @@ extension PersistentObject {
 } // PersistentObject
 
 /// A StoredObject is in essence a PersistentObject Wrapper
-protocol StoredObject: DoesLog {
+public protocol StoredObject: DoesLog {
   associatedtype PO: PersistentObject
   var pr: PO { get }                      // persistent record
   var id: String { get }                  // ID of persistent record
@@ -56,7 +59,7 @@ protocol StoredObject: DoesLog {
   static var fetchRequest: NSFetchRequest<PO> { get } // fetch request for persistent record
 }
 
-extension StoredObject {  
+public extension StoredObject {  
   
   var id: String { pr.id } // ID of persistent record
   static var fetchRequest: NSFetchRequest<PO> { NSFetchRequest<PO>(entityName: entity) }
@@ -100,40 +103,72 @@ extension StoredObject {
     let request = fetchRequest
     return get(request: request)
   }
+  
+  func save() { ArticleDB.save() }
 
-}
+} // StoredObject
 
 extension PersistentFileEntry: PersistentObject {
   // Remove file if record is deleted
   public override func prepareForDeletion() {
-    if let fn = name { File(fn).remove() }
+    if let fn = name, let sd = subdir { 
+      let path = "\(Database.appDir)/\(sd)/\(fn)"
+      File(path).remove() 
+    }
   }
 }
 
 /// A stored FileEntry
-class StoredFileEntry: FileEntry, StoredObject {
+public class StoredFileEntry: FileEntry, StoredObject {
   
-  static var entity = "FileEntry"
-  var pr: PersistentFileEntry // persistent record
-  var name: String { pr.name! }
-  var storageType: FileStorageType { FileStorageType(pr.storageType!)! }
-  var moTime: Date { pr.moTime! }
-  var size: Int64 { pr.size }
-  var storedSize: Int64 { 
+  public static var entity = "FileEntry"
+  public var pr: PersistentFileEntry // persistent record
+  public var name: String { pr.name! }
+  /// Sub directory relative to Database.appDir where the file is stored
+  public var subdir: String? { 
+    get { pr.subdir }
+    set { pr.subdir = newValue }
+  }
+  /// Absolute directory where the file is stored
+  public var dir: String? {
+    get {
+      guard let sd = subdir else { return nil }
+      return Database.appDir + "/" + sd
+    }
+    set (str) {
+      guard let d = str else { return }
+      subdir = String(d.dropFirst(Database.appDir.count + 1))
+    }
+  }
+  /// Pathname of file (absolute path)
+  public var path: String? { 
+    guard let d = dir else { return nil }
+    return d + "/" + name 
+  }
+  public var storageType: FileStorageType { FileStorageType(pr.storageType!)! }
+  public var moTime: Date { pr.moTime! }
+  public var size: Int64 { pr.size }
+  public var storedSize: Int64 { 
     get { pr.storedSize }
     set { pr.storedSize = newValue }
   }
-  var sha256: String { pr.sha256! }
-  var payload: StoredPayload { StoredPayload(persistent: pr.payload!) }
-  var image: StoredImageEntry? {
+  public var sha256: String { pr.sha256! }
+  public var payloads: [StoredPayload] { 
+    var pls: [StoredPayload] = []
+    for plpr in pr.payloads! { 
+      pls += StoredPayload(persistent: plpr as! PersistentPayload) 
+    }
+    return pls
+  }
+  public var image: StoredImageEntry? {
     if let img = pr.image { return StoredImageEntry(persistent: img) }
     else { return nil }
   }
   
-  required init(persistent: PersistentFileEntry) { self.pr = persistent }
+  public required init(persistent: PersistentFileEntry) { self.pr = persistent }
 
   /// Overwrite the persistent values
-  func update(file: FileEntry) {
+  public func update(file: FileEntry) {
     pr.name = file.name
     pr.storageType = file.storageType.representation
     pr.moTime = file.moTime
@@ -142,14 +177,14 @@ class StoredFileEntry: FileEntry, StoredObject {
   }
   
   /// Return stored record with given name  
-  static func get(name: String) -> [StoredFileEntry] {
+  public static func get(name: String) -> [StoredFileEntry] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "name = %@", name)
     return get(request: request)
   }
   
   /// Create a new persistent record if not available and store the passed FileEntry into it
-  static func persist(file: FileEntry) -> StoredFileEntry {
+  public static func persist(file: FileEntry) -> StoredFileEntry {
     let sfes = get(name: file.name)
     var sr: StoredFileEntry
     if sfes.count == 0 { sr = new() }
@@ -159,22 +194,22 @@ class StoredFileEntry: FileEntry, StoredObject {
   }
   
   /// Return stored record with given SHA256  
-  static func get(sha256: String) -> [StoredFileEntry] {
+  public static func get(sha256: String) -> [StoredFileEntry] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "sha256 = %@", sha256)
     return get(request: request)
   }
   
   /// Return all records of a payload
-  static func filesInPayload(payload: StoredPayload) -> [StoredFileEntry] {
+  public static func filesInPayload(payload: StoredPayload) -> [StoredFileEntry] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "payload = %@", payload.pr)
+    request.predicate = NSPredicate(format: "%@ IN payloads", payload.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
   
   /// Return all animation files of a Moment
-  static func animationInMoment(moment: StoredMoment) -> [StoredFileEntry] {
+  public static func animationInMoment(moment: StoredMoment) -> [StoredFileEntry] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "momentAnimated = %@", moment.pr)
     return get(request: request)
@@ -185,32 +220,32 @@ class StoredFileEntry: FileEntry, StoredObject {
 extension PersistentImageEntry: PersistentObject {}
 
 /// A stored FileEntry
-class StoredImageEntry: ImageEntry, StoredObject {  
+public class StoredImageEntry: ImageEntry, StoredObject {  
   
-  static var entity = "ImageEntry"
-  var pr: PersistentImageEntry // persistent record
-  var pf: PersistentFileEntry!
-  var name: String { pf.name! }
-  var storageType: FileStorageType { FileStorageType(pf.storageType!)! }
-  var moTime: Date { pf.moTime! }
-  var size: Int64 { pf.size }
-  var sha256: String { pf.sha256! }
-  var resolution: ImageResolution { ImageResolution(pr.resolution!)! }
-  var type: ImageType { ImageType(pr.type!)! }
-  var alpha: Float? { pr.alpha }
-  var sharable: Bool { pr.sharable }
-  var author: StoredAuthor? { 
+  public static var entity = "ImageEntry"
+  public var pr: PersistentImageEntry // persistent record
+  public var pf: PersistentFileEntry!
+  public var name: String { pf.name! }
+  public var storageType: FileStorageType { FileStorageType(pf.storageType!)! }
+  public var moTime: Date { pf.moTime! }
+  public var size: Int64 { pf.size }
+  public var sha256: String { pf.sha256! }
+  public var resolution: ImageResolution { ImageResolution(pr.resolution!)! }
+  public var type: ImageType { ImageType(pr.type!)! }
+  public var alpha: Float? { pr.alpha }
+  public var sharable: Bool { pr.sharable }
+  public var author: StoredAuthor? { 
     if let au = pr.author { return StoredAuthor(persistent: au) }
     else { return nil }
   }
   
-  required init(persistent: PersistentImageEntry) { 
+  public required init(persistent: PersistentImageEntry) { 
     self.pr = persistent 
     if let pf = persistent.file { self.pf = pf }
   }
 
   /// Overwrite the persistent values
-  func update(file: ImageEntry) {
+  public func update(file: ImageEntry) {
     if pf == nil { pf = StoredFileEntry.new().pr }
     pf.name = file.name
     pf.storageType = file.storageType.representation
@@ -225,18 +260,23 @@ class StoredImageEntry: ImageEntry, StoredObject {
   }
   
   /// Return stored record with given name  
-  static func get(name: String) -> [StoredImageEntry] {
+  public static func get(name: String) -> [StoredImageEntry] {
     let files = StoredFileEntry.get(name: name)
     if files.count > 0 {
       if let img = files[0].image {
         return [img]
+      }
+      else {
+        let sr = new()
+        sr.pf = files[0].pr
+        return [sr]
       }
     }
     return []
   }
   
   /// Create a new persistent record if not available and store the passed FileEntry into it
-  static func persist(file: ImageEntry) -> StoredImageEntry {
+  public static func persist(file: ImageEntry) -> StoredImageEntry {
     let sies = get(name: file.name)
     var sr: StoredImageEntry
     if sies.count == 0 { sr = new() }
@@ -246,7 +286,7 @@ class StoredImageEntry: ImageEntry, StoredObject {
   }
   
   /// Return stored record with given SHA256  
-  static func get(sha256: String) -> [StoredImageEntry] {
+  public static func get(sha256: String) -> [StoredImageEntry] {
     let files = StoredFileEntry.get(sha256: sha256)
     if files.count > 0 {
       if let img = files[0].image {
@@ -257,30 +297,34 @@ class StoredImageEntry: ImageEntry, StoredObject {
   }
   
   /// Return all images of a Moment
-  static func imagesInMoment(moment: StoredMoment) -> [StoredImageEntry] {
+  public static func imagesInMoment(moment: StoredMoment) -> [StoredImageEntry] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "moment = %@", moment.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
   
   /// Return all images of an Article
-  static func imagesInArticle(article: StoredArticle) -> [StoredImageEntry] {
+  public static func imagesInArticle(article: StoredArticle) -> [StoredImageEntry] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "imageContent = %@", article.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
   
   /// Return all images of a Section
-  static func imagesInSection(section: StoredSection) -> [StoredImageEntry] {
+  public static func imagesInSection(section: StoredSection) -> [StoredImageEntry] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "imageContent = %@", section.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
   
   /// Return all credited images of a Moment
-  static func creditedImagesInMoment(moment: StoredMoment) -> [StoredImageEntry] {
+  public static func creditedImagesInMoment(moment: StoredMoment) -> [StoredImageEntry] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "momentCredit = %@", moment.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
   
@@ -288,27 +332,27 @@ class StoredImageEntry: ImageEntry, StoredObject {
 
 extension PersistentMoment: PersistentObject {}
 
-/// A stored FileEntry
-class StoredMoment: Moment, StoredObject {
+/// A stored Moment image
+public class StoredMoment: Moment, StoredObject {
 
-  static var entity = "Moment"
-  var pr: PersistentMoment // persistent record
-  var data: Data? {
+  public static var entity = "Moment"
+  public var pr: PersistentMoment // persistent record
+  public var data: Data? {
     get { pr.data }
     set { pr.data = newValue }
   }
-  var image: UIImage? { (data == nil) ? nil : UIImage(data: data!) }
-  var images: [ImageEntry] { StoredImageEntry.imagesInMoment(moment: self) }
-  var creditedImages: [ImageEntry] 
+  public var image: UIImage? { (data == nil) ? nil : UIImage(data: data!) }
+  public var images: [ImageEntry] { StoredImageEntry.imagesInMoment(moment: self) }
+  public var creditedImages: [ImageEntry] 
     { StoredImageEntry.creditedImagesInMoment(moment: self) }
-  var animation: [FileEntry] { StoredFileEntry.animationInMoment(moment: self) }
+  public var animation: [FileEntry] { StoredFileEntry.animationInMoment(moment: self) }
   
-  required init(persistent: PersistentMoment) { 
+  public required init(persistent: PersistentMoment) { 
     self.pr = persistent 
   }
   
   /// Store all data as a new entry
-  static func persist(obj: Moment) -> StoredMoment {
+  public static func persist(obj: Moment) -> StoredMoment {
     let sr = new()
     for img in obj.images {
       let se = StoredImageEntry.persist(file: img)
@@ -325,12 +369,11 @@ class StoredMoment: Moment, StoredObject {
       fe.pr.momentAnimated = sr.pr
       sr.pr.addToAnimation(fe.pr)
     }
-    ArticleDB.singleton.save()
     return sr
   }
   
   /// Read Image data from file and store it in persistent record
-  func storeData(from file: String) {
+  public func storeData(from file: String) {
     self.data = File(file).data
   }
   
@@ -339,58 +382,66 @@ class StoredMoment: Moment, StoredObject {
 extension PersistentPayload: PersistentObject {}
 
 /// A stored Payload
-class StoredPayload: StoredObject {
+public class StoredPayload: StoredObject {
   
-  static var entity = "Payload"  
-  var pr: PersistentPayload // persistent record
-  var bytesLoaded: Int64 {
+  public static var entity = "Payload"  
+  public var pr: PersistentPayload // persistent record
+  public var bytesLoaded: Int64 {
     get { return pr.bytesLoaded }
     set { pr.bytesLoaded = newValue }
   }
-  var bytesTotal: Int64 {
+  public var bytesTotal: Int64 {
     get { return pr.bytesTotal }
     set { pr.bytesTotal = newValue }
   }
-  var downloadStarted: Date? {
+  public var downloadStarted: Date? {
     get { return pr.downloadStarted }
     set { pr.downloadStarted = newValue }
   }
-  var downloadStopped: Date? {
+  public var downloadStopped: Date? {
     get { return pr.downloadStopped }
     set { pr.downloadStopped = newValue }
   }
-  var localDir: String {
+  public var localDir: String {
     get { return pr.localDir! }
     set { pr.localDir = newValue }
   }
-  var remoteBaseUrl: String? {
+  public var remoteBaseUrl: String? {
     get { return pr.remoteBaseUrl }
     set { pr.remoteBaseUrl = newValue }
   }
-  var remoteZipName: String? {
+  public var remoteZipName: String? {
     get { return pr.remoteZipName }
     set { pr.remoteZipName = newValue }
   }
 
-  lazy var files: [StoredFileEntry] = { 
-    StoredFileEntry.filesInPayload(payload: self) 
+  public lazy var files: [StoredFileEntry] = { 
+    var fls: [StoredFileEntry] = []
+    if let files = pr.files {
+      for f in files {
+        fls += StoredFileEntry(persistent: f as! PersistentFileEntry)
+      }
+    }
+    return fls
   }()
   
-  var isComplete: Bool { bytesTotal <= bytesLoaded }
+  public var isComplete: Bool { bytesTotal <= bytesLoaded }
 
-
-  required init(persistent: PersistentPayload) { self.pr = persistent }
+  public required init(persistent: PersistentPayload) { self.pr = persistent }
   
   /// Store all FileEntries as one new Payload
-  static func persist(files: [FileEntry], localDir: String, 
+  public static func persist(files: [FileEntry], localDir: String, 
                       remoteBaseUrl: String? = nil,
                       remoteZipName: String? = nil) -> StoredPayload {
     let sr = new()
     var bytesTotal: Int64 = 0
     var order: Int64 = 0
+    let subdir = String(localDir.dropFirst(Database.appDir.count + 1))
     for f in files {
       let fe = StoredFileEntry.persist(file: f)
       fe.pr.order = order
+      fe.pr.addToPayloads(sr.pr)
+      fe.pr.subdir = subdir
       order += 1
       sr.pr.addToFiles(fe.pr)
       bytesTotal += f.size
@@ -400,7 +451,7 @@ class StoredPayload: StoredObject {
     sr.localDir = localDir
     sr.remoteBaseUrl = remoteBaseUrl
     sr.remoteZipName = remoteZipName
-    ArticleDB.singleton.save()
+    ArticleDB.save()
     return sr
   }
 
@@ -409,33 +460,33 @@ class StoredPayload: StoredObject {
 extension PersistentResources: PersistentObject {}
 
 /// A stored list of resource files
-class StoredResources: Resources, StoredObject {
+public class StoredResources: Resources, StoredObject {
     
-  static var entity = "Resources"
-  var pr: PersistentResources // persistent record
-  lazy var payload = StoredPayload(persistent: pr.payload!)
-  var resourceBaseUrl: String { payload.remoteBaseUrl! }
-  var resourceZipName: String { payload.remoteZipName! }
-  var resourceVersion: Int { Int(pr.resourceVersion) }
-  var localDir: String { payload.localDir }
-  var resourceFiles: [FileEntry] { payload.files }
-  var isDownloading: Bool = false
-  var isComplete: Bool { 
+  public static var entity = "Resources"
+  public var pr: PersistentResources // persistent record
+  public lazy var payload = StoredPayload(persistent: pr.payload!)
+  public var resourceBaseUrl: String { payload.remoteBaseUrl! }
+  public var resourceZipName: String { payload.remoteZipName! }
+  public var resourceVersion: Int { Int(pr.resourceVersion) }
+  public var localDir: String { payload.localDir }
+  public var resourceFiles: [FileEntry] { payload.files }
+  public var isDownloading: Bool = false
+  public var isComplete: Bool { 
     get { return payload.isComplete }
     set {}
   }
 
-  required init(persistent: PersistentResources) { self.pr = persistent }
+  public required init(persistent: PersistentResources) { self.pr = persistent }
 
   /// Return stored record with given resourceVersion  
-  static func get(version: Int) -> [StoredResources] {
+  public static func get(version: Int) -> [StoredResources] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "resourceVersion = %d", version)
     return get(request: request)
   }
   
   /// Return stored record with latest (largest) resourceVersion
-  static func latest() -> StoredResources? {
+  public static func latest() -> StoredResources? {
     let request = fetchRequest
     request.fetchLimit = 1
     request.sortDescriptors = [
@@ -448,7 +499,7 @@ class StoredResources: Resources, StoredObject {
   
   /// Create a new persistent record if not available and store the passed 
   /// Resources into it
-  static func persist(res: Resources, localDir: String) -> StoredResources {
+  public static func persist(res: Resources, localDir: String) -> StoredResources {
     let sfes = get(version: res.resourceVersion)
     var sr: StoredResources
     if sfes.count == 0 { sr = new() }
@@ -457,7 +508,7 @@ class StoredResources: Resources, StoredObject {
       remoteBaseUrl: res.resourceBaseUrl, remoteZipName: res.resourceZipName)
     sr.pr.payload = spl.pr
     sr.pr.resourceVersion = Int32(res.resourceVersion)
-    ArticleDB.singleton.save()
+    ArticleDB.save()
     return sr
   }
 
@@ -466,20 +517,20 @@ class StoredResources: Resources, StoredObject {
 extension PersistentAuthor: PersistentObject {}
 
 /// A stored Author
-class StoredAuthor: Author, StoredObject {
+public class StoredAuthor: Author, StoredObject {
   
-  static var entity = "Author"
-  var pr: PersistentAuthor // persistent record
-  var name: String? { pr.name }
-  var photo: ImageEntry? { 
+  public static var entity = "Author"
+  public var pr: PersistentAuthor // persistent record
+  public var name: String? { pr.name }
+  public var photo: ImageEntry? { 
     if let p = pr.photo { return StoredImageEntry(persistent: p) }
     else { return nil }
   }
   
-  required init(persistent: PersistentAuthor) { self.pr = persistent }
+  public required init(persistent: PersistentAuthor) { self.pr = persistent }
 
   /// Overwrite the persistent values
-  func update(object: Author) {
+  public func update(object: Author) {
     pr.name = object.name
     if let photo = object.photo {
       let imageEntry = StoredImageEntry.persist(file: photo)
@@ -490,14 +541,14 @@ class StoredAuthor: Author, StoredObject {
   }
   
   /// Return stored record with given name  
-  static func get(name: String) -> [StoredAuthor] {
+  public static func get(name: String) -> [StoredAuthor] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "name = %@", name)
     return get(request: request)
   }
   
   /// Return stored record with given photo  
-  static func get(photo: ImageEntry) -> [StoredAuthor] {
+  public static func get(photo: ImageEntry) -> [StoredAuthor] {
     let imgs = StoredImageEntry.get(name: photo.name) 
     if imgs.count > 0 {
       if let au = imgs[0].author {
@@ -508,7 +559,7 @@ class StoredAuthor: Author, StoredObject {
   }
   
   /// Create a new persistent record if not available and store the passed Author into it
-  static func persist(object: Author) -> StoredAuthor {
+  public static func persist(object: Author) -> StoredAuthor {
     var pers: [StoredAuthor] = []
     if let n = object.name { pers = get(name: n) }
     else { pers = get(photo: object.photo!) }
@@ -518,9 +569,9 @@ class StoredAuthor: Author, StoredObject {
   }
   
   /// Return all Authors of an Article
-  static func authorsOfArticle(article: StoredArticle) -> [StoredAuthor] {
+  public static func authorsOfArticle(article: StoredArticle) -> [StoredAuthor] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "articles = %@", article.pr)
+    request.predicate = NSPredicate(format: "%@ IN articles", article.pr)
     return get(request: request)
   }
   
@@ -529,26 +580,26 @@ class StoredAuthor: Author, StoredObject {
 extension PersistentArticle: PersistentObject {}
 
 /// A stored Article
-class StoredArticle: Article, StoredObject {
+public class StoredArticle: Article, StoredObject {
   
-  static var entity = "Article"
-  var pr: PersistentArticle // persistent record
-  var text: String? {
+  public static var entity = "Article"
+  public var pr: PersistentArticle // persistent record
+  public var text: String? {
     get { return pr.text }
     set { pr.text = newValue }
   }
-  var title: String? {
+  public var title: String? {
     get { return pr.title }
     set { pr.title = newValue }
   }
-  var html: FileEntry {
+  public var html: FileEntry {
     get { return StoredFileEntry(persistent: pr.html!) }
     set { 
       pr.html = StoredFileEntry.persist(file: newValue).pr 
       pr.html!.content = pr
     }
   }
-  var audio: FileEntry? {
+  public var audio: FileEntry? {
     get { 
       if let pau = pr.audio { return StoredFileEntry(persistent: pau) }
       else { return nil } 
@@ -561,26 +612,26 @@ class StoredArticle: Article, StoredObject {
       else { pr.audio = nil }      
     }
   }
-  var lastArticlePosition: Int {
+  public var lastArticlePosition: Int {
     get { return Int(pr.lastArticlePosition) }
     set { pr.lastArticlePosition = Int64(newValue) }
   }
-  var onlineLink: String? {
+  public var onlineLink: String? {
     get { return pr.onlineLink }
     set { pr.onlineLink = newValue }
   }
-  var teaser: String? {
+  public var teaser: String? {
     get { return pr.teaser }
     set { pr.teaser = newValue }
   }
-  var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
-  var authors: [Author]? { StoredAuthor.authorsOfArticle(article: self) }
-  var pageNames: [String]? { nil }
+  public var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
+  public var authors: [Author]? { StoredAuthor.authorsOfArticle(article: self) }
+  public var pageNames: [String]? { nil }
   
-  required init(persistent: PersistentArticle) { self.pr = persistent }
+  public required init(persistent: PersistentArticle) { self.pr = persistent }
 
   /// Overwrite the persistent values
-  func update(object: Article) {
+  public func update(object: Article) {
     if let sobject = object as? StoredArticle {
       self.text = sobject.text
       self.lastArticlePosition = sobject.lastArticlePosition
@@ -605,7 +656,7 @@ class StoredArticle: Article, StoredObject {
   }
   
   /// Return stored record with given name  
-  static func get(file: String) -> [StoredArticle] {
+  public static func get(file: String) -> [StoredArticle] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "html.name = %@", file)
     return get(request: request)
@@ -613,7 +664,7 @@ class StoredArticle: Article, StoredObject {
   
   /// Create a new persistent record if not available and store the passed 
   /// Article into it
-  static func persist(object: Article) -> StoredArticle {
+  public static func persist(object: Article) -> StoredArticle {
     let tmp = get(file: object.html.name)
     var sart: StoredArticle
     if tmp.count == 0 { sart = new() }
@@ -623,16 +674,21 @@ class StoredArticle: Article, StoredObject {
   }
   
   /// Return all Articles in a Section
-  static func articlesInSection(section: StoredSection) -> [StoredArticle] {
+  public static func articlesInSection(section: StoredSection) -> [StoredArticle] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "sections = %@", section.pr)
+    request.predicate = NSPredicate(format: "%@ IN sections", section.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
   
   /// Return all Articles in an Issue
-  static func articlesInIssue(issue: StoredIssue) -> [StoredArticle] {
+  public static func articlesInIssue(issue: StoredIssue) -> [StoredArticle] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "issues = %@", issue.pr)
+    request.predicate = NSPredicate(format: "%@ IN issues", issue.pr)
+    request.sortDescriptors = [
+      NSSortDescriptor(key: "Section.order", ascending: true),
+      NSSortDescriptor(key: "order", ascending: true)
+    ]
     return get(request: request)
   }
 
@@ -641,34 +697,34 @@ class StoredArticle: Article, StoredObject {
 extension PersistentSection: PersistentObject {}
 
 /// A stored Section
-class StoredSection: Section, StoredObject {
+public class StoredSection: Section, StoredObject {
   
-  static var entity = "Section"
-  var pr: PersistentSection // persistent record
-  var text: String? {
+  public static var entity = "Section"
+  public var pr: PersistentSection // persistent record
+  public var text: String? {
     get { return pr.text }
     set { pr.text = newValue }
   }
-  var name: String {
+  public var name: String {
     get { return pr.name! }
     set { pr.name = newValue }
   }
-  var extendedTitle: String? {
+  public var extendedTitle: String? {
     get { return pr.extendedTitle }
     set { pr.extendedTitle = newValue }
   }
-  var type: SectionType {
+  public var type: SectionType {
     get { return SectionType(pr.type!)! }
     set { pr.type = newValue.representation }
   }
-  var html: FileEntry {
+  public var html: FileEntry {
     get { return StoredFileEntry(persistent: pr.html!) }
     set { 
       pr.html = StoredFileEntry.persist(file: newValue).pr 
       pr.html!.content = pr
     }
   }
-  var navButton: ImageEntry? {
+  public var navButton: ImageEntry? {
     get { 
       if let pbutton = pr.navButton { return StoredImageEntry(persistent: pbutton) }
       else { return nil } 
@@ -682,14 +738,14 @@ class StoredSection: Section, StoredObject {
     }
   }
 
-  var images: [ImageEntry]? { StoredImageEntry.imagesInSection(section: self) }
-  var authors: [Author]? { nil }
-  var articles: [Article]? { StoredArticle.articlesInSection(section: self) }
+  public var images: [ImageEntry]? { StoredImageEntry.imagesInSection(section: self) }
+  public var authors: [Author]? { nil }
+  public var articles: [Article]? { StoredArticle.articlesInSection(section: self) }
   
-  required init(persistent: PersistentSection) { self.pr = persistent }
+  public required init(persistent: PersistentSection) { self.pr = persistent }
 
   /// Overwrite the persistent values
-  func update(object: Section) {
+  public func update(object: Section) {
     if let sobject = object as? StoredSection {
       self.text = sobject.text
     }
@@ -699,21 +755,27 @@ class StoredSection: Section, StoredObject {
     self.html = object.html
     self.navButton = object.navButton
     if let imgs = object.images {
+      var order: Int32 = 0
       for img in imgs {
         let imageEntry = StoredImageEntry.persist(file: img)
         imageEntry.pr.addToImageContent(pr)
+        imageEntry.pr.order = order
+        order += 1
       }
     }
     if let arts = object.articles {
+      var order: Int32 = 0
       for art in arts {
         let newArt = StoredArticle.persist(object: art)
         newArt.pr.addToSections(self.pr)
+        newArt.pr.order = order
+        order += 1
       }
     }
   }
   
   /// Return stored record with given name  
-  static func get(file: String) -> [StoredSection] {
+  public static func get(file: String) -> [StoredSection] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "html.name = %@", file)
     return get(request: request)
@@ -721,7 +783,7 @@ class StoredSection: Section, StoredObject {
   
   /// Create a new persistent record if not available and store the passed 
   /// Section into it
-  static func persist(object: Section) -> StoredSection {
+  public static func persist(object: Section) -> StoredSection {
     let tmp = get(file: object.html.name)
     var ssec: StoredSection
     if tmp.count == 0 { ssec = new() }
@@ -731,9 +793,10 @@ class StoredSection: Section, StoredObject {
   }
   
   /// Return all Sections in an Issue
-  static func sectionsInIssue(issue: StoredIssue) -> [StoredSection] {
+  public static func sectionsInIssue(issue: StoredIssue) -> [StoredSection] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "issue = %@", issue.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
 
@@ -742,11 +805,11 @@ class StoredSection: Section, StoredObject {
 extension PersistentIssue: PersistentObject {}
 
 /// A stored Issue
-class StoredIssue: Issue, StoredObject {
+public class StoredIssue: Issue, StoredObject {
   
-  static var entity = "Issue"
-  var pr: PersistentIssue // persistent record
-  var feed: Feed { 
+  public static var entity = "Issue"
+  public var pr: PersistentIssue // persistent record
+  public var feed: Feed { 
     get { StoredFeed(persistent: pr.feed!) }
     set { 
       if let sfeed = newValue as? StoredFeed {
@@ -755,52 +818,52 @@ class StoredIssue: Issue, StoredObject {
       }
     }
   }
-  var date: Date {
+  public var date: Date {
     get { return pr.date! }
     set { pr.date = newValue }
   }
-  var moTime: Date {
+  public var moTime: Date {
     get { return pr.moTime! }
     set { pr.moTime = newValue }
   }
-  var isWeekend: Bool {
+  public var isWeekend: Bool {
     get { return pr.isWeekend }
     set { pr.isWeekend = newValue }
   }
-  var moment: Moment { 
+  public var moment: Moment { 
     get { StoredMoment(persistent: pr.moment!) }
     set { 
       pr.moment = StoredMoment.persist(obj: newValue).pr
       pr.moment?.issue = self.pr
     }
   }
-  var key: String? {
+  public var key: String? {
     get { return pr.key }
     set { pr.key = newValue }
   }
-  var baseUrl: String {
+  public var baseUrl: String {
     get { return pr.baseUrl! }
     set { pr.baseUrl = newValue }
   }
-  var status: IssueStatus {
+  public var status: IssueStatus {
     get { return IssueStatus(pr.status!)! }
     set { pr.status = newValue.representation }
   }
-  var minResourceVersion: Int {
+  public var minResourceVersion: Int {
     get { return Int(pr.minResourceVersion) }
     set { pr.minResourceVersion = Int32(newValue) }
   }
-  var zipName: String? {
+  public var zipName: String? {
     get { return pr.zipName }
     set { pr.zipName = newValue }
   }
-  var zipNamePdf: String? {
+  public var zipNamePdf: String? {
     get { return pr.zipNamePdf }
     set { pr.zipNamePdf = newValue }
   }
-  var fileList: [String]? { nil }
-  var fileListPdf: [String]? { nil }
-  var imprint: Article? {
+  public var fileList: [String]? { nil }
+  public var fileListPdf: [String]? { nil }
+  public var imprint: Article? {
     get {
       if let pim = pr.imprint { return StoredArticle(persistent: pim) }
       else { return nil }
@@ -812,17 +875,35 @@ class StoredIssue: Issue, StoredObject {
       }
       else { pr.imprint = nil }
     }
+  }  
+  public var isComplete: Bool {
+    get { return pr.isComplete }
+    set { 
+      pr.isComplete = newValue 
+      if newValue { pr.isOvwComplete = newValue }
+    }    
   }
-  var sections: [Section]? { StoredSection.sectionsInIssue(issue: self) }
-  var pages: [Page]? { nil }
-  var isDownloading: Bool = false
-  var isComplete: Bool = false
+  public var isOvwComplete: Bool {
+    get { return pr.isOvwComplete }
+    set { pr.isOvwComplete = newValue }    
+  }
+  public var payload: StoredPayload? {
+    get { 
+      if let pl = pr.payload { return StoredPayload(persistent: pl) }
+      else { return nil }
+    }
+    set { pr.payload = (newValue != nil) ? newValue!.pr : nil }
+  }
 
-  required init(persistent: PersistentIssue) { self.pr = persistent }
+  public var sections: [Section]? { StoredSection.sectionsInIssue(issue: self) }
+  public var pages: [Page]? { nil }
+  public var isDownloading: Bool = false
+
+  public required init(persistent: PersistentIssue) { self.pr = persistent }
 
   /// Overwrite the persistent values
-  func update(object: Issue) {
-    self.feed = object.feed
+  public func update(object: Issue, inFeed feed: StoredFeed) {
+    self.feed = feed
     self.date = object.date
     self.moTime = object.moTime
     self.isWeekend = object.isWeekend
@@ -834,16 +915,28 @@ class StoredIssue: Issue, StoredObject {
     self.zipNamePdf = object.zipNamePdf
     self.imprint = object.imprint
     self.status = object.status
+    var isOverview = true
     if let secs = object.sections {
+      var order: Int32 = 0
       for section in secs {
         let ssection = StoredSection.persist(object: section)
         ssection.pr.issue = self.pr
+        ssection.pr.order = order
+        order += 1
       }
+      if order > 0 { isOverview = false }
+    }
+    if !isOverview {
+      let spl = StoredPayload.persist(files: object.files, 
+        localDir: feed.feeder.issueDir(issue: self).path, 
+        remoteBaseUrl: self.baseUrl, remoteZipName: self.zipName)
+      if let pl = payload { pl.delete() }
+      payload = spl
     }
   }
   
   /// Return stored record with given name  
-  static func get(date: Date, inFeed feed: StoredFeed) -> [StoredIssue] {
+  public static func get(date: Date, inFeed feed: StoredFeed) -> [StoredIssue] {
     let nsdate = NSDate(timeIntervalSinceReferenceDate:
                         date.timeIntervalSinceReferenceDate)
     let request = fetchRequest
@@ -854,19 +947,27 @@ class StoredIssue: Issue, StoredObject {
   
   /// Create a new persistent record if not available and store the passed 
   /// Article into it
-  static func persist(object: Issue, inFeed feed: StoredFeed) -> StoredIssue {
+  @discardableResult
+  public static func persist(object: Issue, inFeed feed: StoredFeed) -> StoredIssue {
     let tmp = get(date: object.date, inFeed: feed)
     var sissue: StoredIssue
     if tmp.count == 0 { sissue = new() }
     else { sissue = tmp[0] }
-    sissue.update(object: object)
+    sissue.update(object: object, inFeed: feed)
     return sissue
   }
   
-  /// Return all Issues in a Feed
-  static func issuesInFeed(feed: StoredFeed) -> [StoredIssue] {
+  /// Return an array of Issues in a Feed
+  public static func issuesInFeed(feed: StoredFeed, count: Int = -1, fromDate: Date? = nil) 
+    -> [StoredIssue] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "feed = %@", feed.pr)
+    if let fromDate = fromDate {
+      let nsdate = NSDate(timeIntervalSinceReferenceDate: fromDate.timeIntervalSinceReferenceDate)
+      request.predicate = NSPredicate(format: "feed = %@ AND date <= %@", feed.pr, nsdate)
+    }
+    else { request.predicate = NSPredicate(format: "feed = %@", feed.pr) }      
+    request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+    if count > 0 { request.fetchLimit = count }
     return get(request: request)
   }
   
@@ -875,53 +976,57 @@ class StoredIssue: Issue, StoredObject {
 extension PersistentFeed: PersistentObject {}
 
 /// A stored Feed
-class StoredFeed: Feed, StoredObject {
+public class StoredFeed: Feed, StoredObject {
   
-  static var entity = "Feed"
-  var pr: PersistentFeed // persistent record
-  var name: String {
+  public static var entity = "Feed"
+  public var pr: PersistentFeed // persistent record
+  public var name: String {
     get { return pr.name! }
     set { pr.name = newValue }
   }
-  var cycle: PublicationCycle {
+  public var cycle: PublicationCycle {
     get { return PublicationCycle(pr.cycle!)! }
     set { pr.cycle = newValue.representation }
   }
-  var type: FeedType {
+  public var type: FeedType {
     get { return FeedType(pr.type!)! }
     set { pr.type = newValue.representation }
   }
-  var momentRatio: Float {
+  public var momentRatio: Float {
     get { return pr.momentRatio }
     set { pr.momentRatio = newValue }
   }
-  var issueCnt: Int {
+  public var issueCnt: Int {
     get { return Int(pr.issueCnt) }
     set { pr.issueCnt = Int64(newValue) }
   }
-  var firstIssue: Date {
+  public var firstIssue: Date {
     get { return pr.firstIssue! }
     set { pr.firstIssue = newValue }
   }
-  var lastIssue: Date {
+  public var lastIssue: Date {
     get { return pr.lastIssue! }
     set { pr.lastIssue = newValue }
   }
-  var lastIssueRead: Date? {
+  public var lastIssueRead: Date? {
     get { return pr.lastIssueRead }
     set { pr.lastIssueRead = newValue }
   }
-  var lastUpdated: Date? {
+  public var lastUpdated: Date? {
     get { return pr.lastUpdated }
     set { pr.lastUpdated = newValue }
   }
+  public var feeder: StoredFeeder {
+    get { return StoredFeeder(persistent: pr.feeder!) }
+    set { pr.feeder = newValue.pr }
+  }
 
-  var issues: [Issue]? { StoredIssue.issuesInFeed(feed: self) }
+  public var issues: [Issue]? { StoredIssue.issuesInFeed(feed: self) }
   
-  required init(persistent: PersistentFeed) { self.pr = persistent }
+  public required init(persistent: PersistentFeed) { self.pr = persistent }
 
   /// Overwrite the persistent values
-  func update(object: Feed) {
+  public func update(object: Feed, inFeeder feeder: StoredFeeder) {
     self.name = object.name
     self.cycle = object.cycle
     self.type = object.type
@@ -931,6 +1036,7 @@ class StoredFeed: Feed, StoredObject {
     self.lastIssue = object.lastIssue
     self.lastIssueRead = object.lastIssueRead
     self.lastUpdated = object.lastUpdated
+    self.feeder = feeder
     if let iss = object.issues {
       for issue in iss {
         let sissue = StoredIssue.persist(object: issue, inFeed: self)
@@ -940,7 +1046,7 @@ class StoredFeed: Feed, StoredObject {
   }
   
   /// Return stored Issue with given name in Feeder
-  static func get(name: String, inFeeder feeder: StoredFeeder) -> [StoredFeed] {
+  public static func get(name: String, inFeeder feeder: StoredFeeder) -> [StoredFeed] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "(name = %@) AND (feeder = %@)", 
                                     name, feeder.pr)
@@ -949,17 +1055,17 @@ class StoredFeed: Feed, StoredObject {
   
   /// Create a new persistent record if not available and store the passed 
   /// Article into it
-  static func persist(object: Feed, inFeeder: StoredFeeder) -> StoredFeed {
+  public static func persist(object: Feed, inFeeder: StoredFeeder) -> StoredFeed {
     let tmp = get(name: object.name, inFeeder: inFeeder)
     var sfeed: StoredFeed
     if tmp.count == 0 { sfeed = new() }
     else { sfeed = tmp[0] }
-    sfeed.update(object: object)
+    sfeed.update(object: object, inFeeder: inFeeder)
     return sfeed
   }
   
   /// Return all Feeds of a Feeder
-  static func feedsOfFeeder(feeder: StoredFeeder) -> [StoredFeed] {
+  public static func feedsOfFeeder(feeder: StoredFeeder) -> [StoredFeed] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "feeder = %@", feeder.pr)
     return get(request: request)
@@ -972,8 +1078,8 @@ extension PersistentFeeder: PersistentObject {}
 /// A stored Feeder
 public class StoredFeeder: Feeder, StoredObject {
 
-  static var entity = "Feeder"
-  var pr: PersistentFeeder // persistent record
+  public static var entity = "Feeder"
+  public var pr: PersistentFeeder // persistent record
   public var title: String {
     get { return pr.title! }
     set { pr.title = newValue }
@@ -989,6 +1095,10 @@ public class StoredFeeder: Feeder, StoredObject {
   public var globalBaseUrl: String {
     get { return pr.globalBaseUrl! }
     set { pr.globalBaseUrl = newValue }
+  }
+  public var resourceBaseUrl: String {
+    get { return pr.resourceBaseUrl! }
+    set { pr.resourceBaseUrl = newValue }
   }
   public var authToken: String? {
     get { return pr.authToken }
@@ -1012,6 +1122,7 @@ public class StoredFeeder: Feeder, StoredObject {
     self.timeZone = object.timeZone
     self.baseUrl = object.baseUrl
     self.globalBaseUrl = object.globalBaseUrl
+    self.resourceBaseUrl = object.resourceBaseUrl
     self.authToken = object.authToken
     self.resourceVersion = object.resourceVersion
     self.lastUpdated = object.lastUpdated

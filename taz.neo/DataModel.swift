@@ -481,11 +481,11 @@ public extension Moment {
  Access status of an Issue
  */
 public enum IssueStatus: String, CodableEnum {  
-  case regular = "regular"       /// authenticated Issue acces
-  case demo    = "demo"          /// demo Issue
-  case locked  = "locked"        /// no access
-  case open    = "open(public)"  /// available for everybody
-  case unknown = "unknown"       /// decoded from unknown string
+  case regular = "regular"          /// authenticated Issue access 
+  case demo    = "demo"             /// demo Issue
+  case locked  = "locked"           /// no access
+  case reduced = "reduced(public)"  /// available for everybody/incomplete articles
+  case unknown = "unknown"          /// decoded from unknown string
 } // IssueStatus
 
 /// One Issue of a Feed
@@ -516,10 +516,6 @@ public protocol Issue: ToString, AnyObject {
   var zipName: String? { get }
   /// Name of zip file with all data plus PDF
   var zipNamePdf: String? { get }
-  /// List of files in this Issue without PDF
-  var fileList: [String]? { get }
-  /// List of files in this Issue with PDF
-  var fileListPdf: [String]? { get }
   /// Issue imprint
   var imprint: Article? { get }
   /// List of sections in this Issue
@@ -542,7 +538,7 @@ public extension Issue {
     return ret
   }
   
-  /// All Articles in one Issue (one Article may be appear multiple
+  /// All Articles in one Issue (one Article may appear multiple
   /// times in the resulting array if it is referenced in more than
   /// one section).
   var allArticles: [Article] {
@@ -619,6 +615,9 @@ public extension Issue {
     }
     return ret
   }
+  
+  /// isReduced returns true if the Issue references "shortened" Articles
+  var isReduced: Bool { return status == .reduced }
 
 } // extension Issue
 
@@ -686,6 +685,8 @@ public protocol Feeder: ToString {
   var baseUrl: String { get }
   /// base URL of global files
   var globalBaseUrl: String { get }
+  /// base URL of resource files
+  var resourceBaseUrl: String { get }
   /// Authentication token got from server
   var authToken: String? { get }
   /// title/name of Feeder

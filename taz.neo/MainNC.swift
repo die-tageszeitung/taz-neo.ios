@@ -193,14 +193,14 @@ class MainNC: NavigationController, IssueVCdelegate,
     }
     deleteUserData()
     Alert.message(title: "Fehler", message: text) {
-      Notification.send("userLogin", object: nil)
+      Notification.send("userLogin")
     }
   }
   
   func getOverview() {
     gqlFeeder.issues(feed: feed, count: 20) { res in
       if let issues = res.value() {
-        Notification.send("overviewReceived", object: issues)
+        Notification.send("overviewReceived", content: issues)
       }
       else if let err = res.error() as? FeederError {
         self.handleFeederError(err)
@@ -273,8 +273,8 @@ class MainNC: NavigationController, IssueVCdelegate,
       self.debug(self.gqlFeeder.toString())
       self._feed = self.gqlFeeder.feeds[0]
       self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
-      Notification.receive("overviewReceived") { [weak self] issues in
-        if let issues = issues as? [Issue] {
+      Notification.receive("overviewReceived") { [weak self] notification in
+        if let issues = notification.content as? [Issue] {
           self?.overviewReceived(issues: issues) 
         }
       }

@@ -28,6 +28,50 @@ open class Downloader: DoesLog {
   // The HttpSession to use for downloading files
   private var dlSession: HttpSession
   
+  // Payload queue entry
+  private struct PayloadEntry {
+    var payload: StoredPayload 
+    var onProgress: ((Int64, Int64)->())?
+    var atEnd: (Error?)->()
+    
+    public func download(dl: Downloader) {
+      var files = payload.files
+      if files.count > 0 {
+        dl.downloadStoredGlobalFiles(files: files) { err in
+          guard err == nil else { self.atEnd(err); return }
+          let hloader = HttpLoader(session: dl.dlSession, 
+                                   baseUrl: self.payload.remoteBaseUrl!,
+                                   toDir: self.payload.localDir)
+          var isComplete = false
+          self.payload.downloadStarted = Date()
+          files = files.filter { $0.storageType != .global }
+          hloader.download(self.payload.files,
+            onProgress: { (hl, bytesLoaded, totalBytes) in
+              if !isComplete {
+                self.onProgress?(bytesLoaded, totalBytes)
+                isComplete = bytesLoaded == totalBytes
+              }
+            },
+            atEnd: { hl in
+              self.payload.bytesLoaded = hl.downloadSize
+              self.payload.downloadStopped = Date()
+              for f in files { f.storedSize = f.size }
+              ArticleDB.save()
+              dl.debug("Payload:\n\(hloader)")
+              if hloader.errors > 0 { self.atEnd(hloader.lastError) }
+              else { self.atEnd(nil) }
+            }
+          )
+        }
+      }
+      else { dl.error("Can't download empty payload") }
+    }
+    
+  } // PayloadEntry 
+  
+  // Queue of pending payloads
+  private var payloadQueue: [PayloadEntry] = []
+  
   /// Initialize with base directory and create global sub directories
   public init(feeder: Feeder) {
     self.feeder = feeder
@@ -52,16 +96,37 @@ open class Downloader: DoesLog {
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
   }
   
+  /// Update StoredFileEntries
+  private func updateStoredFiles(files: [StoredFileEntry], toDir: String) {
+    for f in files {
+      f.storedSize = f.size
+      f.subdir = String(toDir.dropFirst(Database.appDir.count + 1))
+    }    
+  }
+  
   /// Download global files (ie. files with storage type .global)
   private func downloadGlobalFiles(files: [FileEntry], closure: @escaping (Error?)->()) {
     let globals = files.filter { $0.storageType == .global }
     if globals.count == 0 { closure(nil); return }
+    let toDir = feeder.globalDir.path
     let hloader = HttpLoader(session: dlSession, baseUrl: feeder.globalBaseUrl,
-                             toDir: feeder.globalDir.path)
+                             toDir: toDir)
     hloader.download(globals) { [weak self] hl in
       self?.debug("Global files:\n\(hloader)")
       if hloader.errors > 0 { closure(hloader.lastError) }
       else { closure(nil) }
+    }
+  }
+  
+  /// Download global files to store in the DB
+  public func downloadStoredGlobalFiles(files: [StoredFileEntry],  
+                                         closure: @escaping (Error?)->()) {
+    let globals = files.filter { $0.storageType == .global }
+    guard globals.count > 0 else { closure(nil); return }
+    downloadGlobalFiles(files: globals) { [weak self] err in
+      guard let self = self, err == nil else { closure(err); return }
+      self.updateStoredFiles(files: globals, toDir: self.feeder.globalDir.path)
+      closure(nil)
     }
   }
   
@@ -78,6 +143,19 @@ open class Downloader: DoesLog {
       if hloader.errors > 0 { closure(hloader.lastError) }
       else { closure(nil) }
     }    
+  }
+  
+  /// Download files with storage type .issue to store in the DB
+  private func downloadStoredIssueFiles(url: String, feed: String, issue: String,
+                                        files: [StoredFileEntry],  
+                                        closure: @escaping (Error?)->()) {
+    downloadIssueFiles(url: url, feed: feed, issue: issue, files: files) { 
+      [weak self] err in
+      guard let self = self, err == nil else { closure(err); return }
+      let idir = self.feeder.issueDir(feed: feed, issue: issue)
+      self.updateStoredFiles(files: files, toDir: idir.path)
+      closure(nil)
+    }
   }
   
   /// Returns true when Resources out of date or not already downloaded
@@ -115,6 +193,21 @@ open class Downloader: DoesLog {
       }
     }
   }
+  
+  /// Download a payload of files
+  public func downloadPayload(payload: StoredPayload, 
+                              onProgress: ((Int64, Int64)->())? = nil, 
+                              atEnd: @escaping (Error?)->()) {
+    let pe = PayloadEntry(payload: payload, onProgress: onProgress) { [weak self] err in
+      if let self = self {
+        self.payloadQueue.removeFirst()
+        if self.payloadQueue.count > 0 { self.payloadQueue[0].download(dl: self) }
+        atEnd(err)
+      }
+    }
+    payloadQueue += pe
+    if payloadQueue.count == 1 { pe.download(dl: self) }
+  }
 
   /// Download Issue files
   public func downloadIssueFiles(issue: Issue, files: [FileEntry], 
@@ -146,6 +239,24 @@ open class Downloader: DoesLog {
       let name = self.feeder.date2a(issue.date)
       downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, issue: name,
                          files: issue.moment.carouselFiles, closure: closure)
+    }
+  }
+  
+  /// Download "Moment" files" to store in the DB
+  public func downloadStoredMoment(issue: StoredIssue, closure: @escaping (Error?)->()) {
+    if issue.isOvwComplete { closure(nil) }
+    else {
+      let name = self.feeder.date2a(issue.date)
+      var files: [StoredFileEntry] = []
+      for f in issue.moment.carouselFiles {
+        switch f {
+          case let f as StoredFileEntry: files += f
+          case let img as StoredImageEntry: files += StoredFileEntry(persistent: img.pf)
+          default: break 
+        }
+      }
+      downloadStoredIssueFiles(url: issue.baseUrl, feed: issue.feed.name, issue: name,
+                               files: files, closure: closure)
     }
   }
 

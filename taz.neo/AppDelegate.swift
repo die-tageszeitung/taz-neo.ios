@@ -16,8 +16,8 @@ class AppDelegate: NotifiedDelegate {
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     self.window = UIWindow(frame: UIScreen.main.bounds)
-    self.window?.rootViewController = MainNC()
-//    self.window?.rootViewController = TestController()
+//    self.window?.rootViewController = MainNC()
+    self.window?.rootViewController = TestController()
 //    self.window?.rootViewController = NavController()
 //    self.window?.rootViewController = ContentVC()
 //    self.window?.rootViewController = UITests()
