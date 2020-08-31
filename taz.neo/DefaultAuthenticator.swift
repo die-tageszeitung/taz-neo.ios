@@ -167,6 +167,14 @@ public class DefaultAuthenticator: Authenticator {
               Self.deleteTempUserData()
               /// Present Result to User, if Login shown!
               if let loginFormVc = self.firstPresentedAuthController as? FormsController {
+                ///Fix User dismissed modal Login, nort be able to send notification due this just come in dismiss callback
+                if loginFormVc.presentingViewController == nil {
+                  self.firstPresentedAuthController = nil
+                  Notification.send("authenticationSucceeded")
+                  closure(false)//stop polling
+                  return;
+                }
+                
                 let dismissFinishedClosure = {
                   Notification.send("authenticationSucceeded")
                   closure(false)//stop polling
