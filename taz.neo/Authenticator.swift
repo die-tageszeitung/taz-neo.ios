@@ -48,11 +48,11 @@ public protocol Authenticator: DoesLog {
      - closure: closure to call when communication with the server has been finished
      - continue: set to true if polling should be continued
   */
-  func pollSubscription(closure: (_ continue: Bool)->())
+  func pollSubscription(closure: @escaping (_ continue: Bool)->())
   
   /// Ask user for id/password, check with GraphQL-Server, store using method 
   /// 'storeUserData' and call closure to indicate success (closure(nil) is success)
-  func authenticate(isFullScreen: Bool, closure: @escaping (Error?)->())
+  func authenticate()
   
   /**
    Use this method to store user authentication data in user defaults and keychain

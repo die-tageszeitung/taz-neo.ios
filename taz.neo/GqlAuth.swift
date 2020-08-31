@@ -11,9 +11,7 @@ import NorthLib
 /// Subscription status
 enum GqlSubscriptionStatus: String, CodableEnum { 
   /// valid authentication
-  case valid = "valid"  
-  /// tazId not verified
-  case tazIdNotValid = "tazIdNotValid"     
+  case valid = "valid"
   /// AboId not verified
   case subscriptionIdNotValid = "subscriptionIdNotValid" 
   /// AboId valid but connected to different tazId
@@ -32,8 +30,19 @@ enum GqlSubscriptionStatus: String, CodableEnum {
   case expired = "expired(elapsed)"      
   /// no surname provided - seems to be necessary fro trial subscriptions
   case noSurname = "noSurname"  
-  /// no firstname provided 
-  case noFirstname = "noFirstname(noFirstName)"           
+  /// no firstname provided
+  case noFirstname = "noFirstname(noFirstName)"
+  /// firstname+lastname is too long
+   case nameTooLong = "nameTooLong"
+  /// firstname and lastname only contain invalid chars
+  case invalidAccountholder = "invalidAccountHolder"
+  /// invalid char in surname
+  case invalidSurname = "invalidSurname"
+  /// invalid char in firstname
+  case invalidFirstname = "invalidFirstname(invalidFirstName)"
+  /// too many poll tries
+  case tooManyPollTrys = "tooManyPollTrys"
+  ///not handling payment:   ibanInvalidChecksum,   ibanNoSepaCountry,   invalidCity,   invalidCountry,   invalidPostcode,   invalidStreet,   priceNotValid
   case unknown     = "unknown"   /// decoded from unknown string
 } // GqlSubscriptionStatus
 

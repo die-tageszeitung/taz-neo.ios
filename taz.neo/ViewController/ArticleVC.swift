@@ -138,7 +138,6 @@ open class ArticleVC: ContentVC {
       self.exportArticle(article: self.article, from: self.shareButton)
     }
   }
-    
 } // ArticleVC
 
 
