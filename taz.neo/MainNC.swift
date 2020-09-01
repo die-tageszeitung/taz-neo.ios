@@ -262,6 +262,9 @@ class MainNC: NavigationController, IssueVCdelegate,
     }
     else {
       self.setupPolling()
+      Notification.receive("authenticationSucceeded") {_ in 
+        closure(nil)
+      }
       self.authenticator.authenticate()
     }
   }
