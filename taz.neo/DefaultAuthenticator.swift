@@ -184,14 +184,14 @@ public class DefaultAuthenticator: Authenticator {
                   type(of: resultCtrl) === FormsResultController.self
                 {
                   resultCtrl.exchangeWith(self.resultSuccessText)
-                  resultCtrl.dismissType = .all
+                  resultCtrl.dismissType = .allReal
                   resultCtrl.dismissAllFinishedClosure = dismissFinishedClosure
                 }
                 else {
                   /// if there is no FormsResultController yet, present a new  FormsResultController
                   loginFormVc.showResultWith(message: self.resultSuccessText,
                                              backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                             dismissType: .all,
+                                             dismissType: .allReal,
                                              dismissAllFinishedClosure: dismissFinishedClosure)
                 }
               }

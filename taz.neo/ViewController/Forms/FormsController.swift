@@ -84,7 +84,7 @@ class FormsController: FormsResultController {
 }
 
 // MARK: - Modal dismissType
-enum dismissType {case all, current, leftFirst, two}
+enum dismissType {case allReal, all, current, leftFirst, two}
 //enum dismissUntilType {case left, dismiss, all} @Idea
 
 class FormsResultController: UIViewController {
@@ -183,10 +183,10 @@ class FormsResultController: UIViewController {
   @IBAction func handleBack(_ sender: UIButton) {
     var stack = self.modalStack
     switch dismissType {
-      case .all:
+      case .allReal:
         stack.forEach { $0.view.isHidden = $0 != self ? true : false }
         UIViewController.dismiss(stack: stack, animated: false, completion: self.dismissAllFinishedClosure)
-      case .leftFirst:
+      case .leftFirst, .all:
         _ = stack.popLast()//removes first
         _ = stack.pop()//removes self
         stack.forEach { $0.view.isHidden = true }
