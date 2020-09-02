@@ -26,7 +26,11 @@ fileprivate let RightMargin = CGFloat(16)
 
 
 /// The Header to show on top of sections and articles
-open class HeaderView: UIView {
+open class HeaderView: UIView,  AdoptingColorSheme{
+  func adoptColorSheme() {
+    isDarkMode = Defaults.darkMode
+  }
+  
   
   class Regular: UIView {
     
@@ -138,16 +142,16 @@ open class HeaderView: UIView {
   
   public var isDarkMode: Bool = false {
     didSet {
-      var bgcol: UIColor
-      var txtcol: UIColor
-      if isDarkMode {
-        bgcol = Const.Colors.Dark.HBackground
-        txtcol = Const.Colors.Dark.HText
-      }
-      else {
-        bgcol = Const.Colors.Light.HBackground
-        txtcol = Const.Colors.Light.HText
-      }
+      let bgcol: UIColor = Const.SetColor.HBackground.color
+      let txtcol: UIColor = Const.SetColor.HBackground.color
+//      if isDarkMode {
+//        bgcol = Const.Colors.Dark.HBackground
+//        txtcol = Const.Colors.Dark.HText
+//      }
+//      else {
+//        bgcol = Const.Colors.Light.HBackground
+//        txtcol = Const.Colors.Light.HText
+//      }
       self.backgroundColor = bgcol
       regular.backgroundColor = bgcol
       regular.title.textColor = txtcol
@@ -220,6 +224,13 @@ open class HeaderView: UIView {
     }
   }
   
+  @DefaultInt(key: "articleTextSize")
+   private var articleTextSize: Int {
+     didSet{
+       print("articleTextSize changed. in header..")
+     }
+   }
+  
   private func setup(isLarge: Bool) {
     self.backgroundColor = UIColor.white
     regular.setup(isLarge: isLarge)
@@ -237,6 +248,7 @@ open class HeaderView: UIView {
     miniTitle = nil
     title = ""
     subTitle = ""
+    registerHandler()
   }
   
   func installIn(view: UIView, isLarge: Bool, isMini: Bool = false) {

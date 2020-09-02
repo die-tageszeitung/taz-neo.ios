@@ -6,9 +6,15 @@
 //
 
 import UIKit
+import NorthLib
 
 /// Some Constants
 public struct Const {
+  
+  /// Notifications
+  struct Notifications {
+     static let colorModeChanged = "colorModeChanged"
+  }
   
   /// Filenames
   struct Filename {
@@ -49,6 +55,57 @@ public struct Const {
       static let HText = darkSecondaryText
     }
     
+    
+    
+    struct iOSLight {
+      static let label = UIColor.rgb(0x000000) // The color for text labels that contain primary content
+      static let secondaryLabel = UIColor.rgb(0x3C3C43).withAlphaComponent(0.60) // The color for text labels that contain secondary content
+      static let tertiaryLabel = UIColor.rgb(0x3C3C43).withAlphaComponent(0.30) // The color for text labels that contain tertiary content
+      static let quaternaryLabel = UIColor.rgb(0x3C3C43).withAlphaComponent(0.18) // The color for text labels that contain quaternary content
+      static let systemFill = UIColor.rgb(0x787880).withAlphaComponent(0.20) // An overlay fill color for thin and small shapes
+      static let secondarySystemFill = UIColor.rgb(0x787880).withAlphaComponent(0.16) // An overlay fill color for medium-size shapes
+      static let tertiarySystemFill = UIColor.rgb(0x767680).withAlphaComponent(0.12) // An overlay fill color for large shapes
+      static let quaternarySystemFill = UIColor.rgb(0x747480).withAlphaComponent(0.08) // An overlay fill color for large areas that contain complex content
+      static let placeholderText = UIColor.rgb(0x3C3C43).withAlphaComponent(0.30) // The color for placeholder text in controls or text views
+      static let systemBackground = UIColor.rgb(0xFFFFFF) // The color for the main background of your interface
+      static let secondarySystemBackground = UIColor.rgb(0xF2F2F7) // The color for content layered on top of the main background
+      static let tertiarySystemBackground = UIColor.rgb(0xFFFFFF) // The color for content layered on top of secondary backgrounds
+      static let _tertiarySystemBackgroundDown = UIColor.rgb(0xE2E2E7)// The color for content layered on top of quaternary backgrounds e.g. active/down states
+      static let systemGroupedBackground = UIColor.rgb(0xF2F2F7) // The color for the main background of your grouped interface
+      static let secondarySystemGroupedBackground = UIColor.rgb(0xFFFFFF) // The color for content layered on top of the main background of your grouped interface
+      static let tertiarySystemGroupedBackground = UIColor.rgb(0xF2F2F7) // The color for content layered on top of secondary backgrounds of your grouped interface
+      static let separator = UIColor.rgb(0x3C3C43).withAlphaComponent(0.29) // The color for thin borders or divider lines that allows some underlying content to be visible
+      static let opaqueSeparator = UIColor.rgb(0xC6C6C8) // The color for borders or divider lines that hides any underlying content
+      static let link = UIColor.rgb(0x007AFF) // The color for links
+      static let darkText = UIColor.rgb(0x000000) // The nonadaptable system color for text on a light background
+      static let lightText = UIColor.rgb(0xFFFFFF).withAlphaComponent(0.60) // The nonadaptable system color for text on a dark background
+      static let tintColor = UIColor.rgb(0x007AFF) // The tint color to apply to the button title and image
+    }
+    
+    struct iOSDark {
+      static let label = UIColor.rgb(0xFFFFFF)// The color for text labels that contain primary content
+      static let secondaryLabel = UIColor.rgb(0xEBEBF5).withAlphaComponent(0.60)// The color for text labels that contain secondary content
+      static let tertiaryLabel = UIColor.rgb(0xEBEBF5).withAlphaComponent(0.30)// The color for text labels that contain tertiary content
+      static let quaternaryLabel = UIColor.rgb(0xEBEBF5).withAlphaComponent(0.18)// The color for text labels that contain quaternary content
+      static let systemFill = UIColor.rgb(0x787880).withAlphaComponent(0.36)// An overlay fill color for thin and small shapes
+      static let secondarySystemFill = UIColor.rgb(0x787880).withAlphaComponent(0.32)// An overlay fill color for medium-size shapes
+      static let tertiarySystemFill = UIColor.rgb(0x767680).withAlphaComponent(0.24)// An overlay fill color for large shapes
+      static let quaternarySystemFill = UIColor.rgb(0x767680).withAlphaComponent(0.18)// An overlay fill color for large areas that contain complex content
+      static let placeholderText = UIColor.rgb(0xEBEBF5).withAlphaComponent(0.30)// The color for placeholder text in controls or text views
+      static let systemBackground = UIColor.rgb(0x000000)// The color for the main background of your interface
+      static let secondarySystemBackground = UIColor.rgb(0x1C1C1E)// The color for content layered on top of the main background
+      static let tertiarySystemBackground = UIColor.rgb(0x2C2C2E)// The color for content layered on top of secondary backgrounds
+      static let _tertiarySystemBackgroundDown = UIColor.rgb(0x3C3C3E)// The color for content layered on top of quaternary backgrounds e.g. active/down states
+      static let systemGroupedBackground = UIColor.rgb(0x000000)// The color for the main background of your grouped interface
+      static let secondarySystemGroupedBackground = UIColor.rgb(0x1C1C1E)// The color for content layered on top of the main background of your grouped interface
+      static let tertiarySystemGroupedBackground = UIColor.rgb(0x2C2C2E)// The color for content layered on top of secondary backgrounds of your grouped interface
+      static let separator = UIColor.rgb(0x545458).withAlphaComponent(0.60)// The color for thin borders or divider lines that allows some underlying content to be visible
+      static let opaqueSeparator = UIColor.rgb(0x38383A)// The color for borders or divider lines that hides any underlying content
+      static let link = UIColor.rgb(0x0984FF)// The color for links
+      static let darkText = UIColor.rgb(0x000000)// The nonadaptable system color for text on a light background
+      static let lightText = UIColor.rgb(0xFFFFFF).withAlphaComponent(0.60)// The nonadaptable system color for text on a dark background
+      static let tintColor = UIColor.rgb(0x0A84FF)// The tint color to apply to the button title and image
+    }
   } // Colors
   
   // MARK: - Color Helper to use iOS Build in Dark/LightMode
@@ -63,13 +120,36 @@ public struct Const {
     case HText
     case Test
     case CIColor
-    
+    case ios(iOS_SystemColors)
+    enum iOS_SystemColors {
+      case label
+      case secondaryLabel
+      case tertiaryLabel
+      case quaternaryLabel
+      case systemFill
+      case secondarySystemFill
+      case tertiarySystemFill
+      case quaternarySystemFill
+      case placeholderText
+      case systemBackground
+      case secondarySystemBackground
+      case tertiarySystemBackground
+      case systemGroupedBackground
+      case secondarySystemGroupedBackground
+      case tertiarySystemGroupedBackground
+      case separator
+      case opaqueSeparator
+      case link
+      case darkText
+      case lightText
+      case tintColor
+      case _tertiarySystemBackgroundDown
+    }
+      
     var color : UIColor {
       get{
         let set = colors(name: self)
         if #available(iOS 13, *) {
-          
-          
           return UIColor { (traitCollection: UITraitCollection) -> UIColor in
             switch(traitCollection.userInterfaceStyle,
                    traitCollection.accessibilityContrast)
@@ -82,7 +162,7 @@ public struct Const {
           }
         }
         else {
-          return set.light
+          return Defaults.darkMode ? set.dark ??  set.light : set.light
         }
       }
     }
@@ -107,6 +187,50 @@ public struct Const {
           return (UIColor.red, UIColor.green, UIColor.blue,UIColor.magenta)
         case .CIColor:
           return (Const.Colors.ciColor,nil,nil,nil)
+        case .ios(.label):
+          return (Const.Colors.iOSLight.label, Const.Colors.iOSDark.label, nil, nil)
+        case .ios(.secondaryLabel):
+          return (Const.Colors.iOSLight.secondaryLabel, Const.Colors.iOSDark.secondaryLabel, nil, nil)
+        case .ios(.tertiaryLabel):
+          return (Const.Colors.iOSLight.tertiaryLabel, Const.Colors.iOSDark.tertiaryLabel, nil, nil)
+        case .ios(.quaternaryLabel):
+          return (Const.Colors.iOSLight.quaternaryLabel, Const.Colors.iOSDark.quaternaryLabel, nil, nil)
+        case .ios(.systemFill):
+          return (Const.Colors.iOSLight.systemFill, Const.Colors.iOSDark.systemFill, nil, nil)
+        case .ios(.secondarySystemFill):
+          return (Const.Colors.iOSLight.secondarySystemFill, Const.Colors.iOSDark.secondarySystemFill, nil, nil)
+        case .ios(.tertiarySystemFill):
+          return (Const.Colors.iOSLight.tertiarySystemFill, Const.Colors.iOSDark.tertiarySystemFill, nil, nil)
+        case .ios(.quaternarySystemFill):
+          return (Const.Colors.iOSLight.quaternarySystemFill, Const.Colors.iOSDark.quaternarySystemFill, nil, nil)
+        case .ios(.placeholderText):
+          return (Const.Colors.iOSLight.placeholderText, Const.Colors.iOSDark.placeholderText, nil, nil)
+        case .ios(.systemBackground):
+          return (Const.Colors.iOSLight.systemBackground, Const.Colors.iOSDark.systemBackground, nil, nil)
+        case .ios(.secondarySystemBackground):
+          return (Const.Colors.iOSLight.secondarySystemBackground, Const.Colors.iOSDark.secondarySystemBackground, nil, nil)
+        case .ios(.tertiarySystemBackground):
+          return (Const.Colors.iOSLight.tertiarySystemBackground, Const.Colors.iOSDark.tertiarySystemBackground, nil, nil)
+        case .ios(._tertiarySystemBackgroundDown):
+          return (Const.Colors.iOSLight._tertiarySystemBackgroundDown, Const.Colors.iOSDark._tertiarySystemBackgroundDown, nil, nil)
+        case .ios(.systemGroupedBackground):
+          return (Const.Colors.iOSLight.systemGroupedBackground, Const.Colors.iOSDark.systemGroupedBackground, nil, nil)
+        case .ios(.secondarySystemGroupedBackground):
+          return (Const.Colors.iOSLight.secondarySystemGroupedBackground, Const.Colors.iOSDark.secondarySystemGroupedBackground, nil, nil)
+        case .ios(.tertiarySystemGroupedBackground):
+          return (Const.Colors.iOSLight.tertiarySystemGroupedBackground, Const.Colors.iOSDark.tertiarySystemGroupedBackground, nil, nil)
+        case .ios(.separator):
+          return (Const.Colors.iOSLight.separator, Const.Colors.iOSDark.separator, nil, nil)
+        case .ios(.opaqueSeparator):
+          return (Const.Colors.iOSLight.opaqueSeparator, Const.Colors.iOSDark.opaqueSeparator, nil, nil)
+        case .ios(.link):
+          return (Const.Colors.iOSLight.link, Const.Colors.iOSDark.link, nil, nil)
+        case .ios(.darkText):
+          return (Const.Colors.iOSLight.darkText, Const.Colors.iOSDark.darkText, nil, nil)
+        case .ios(.lightText):
+          return (Const.Colors.iOSLight.lightText, Const.Colors.iOSDark.lightText, nil, nil)
+        case .ios(.tintColor):
+          return (Const.Colors.iOSLight.tintColor, Const.Colors.iOSDark.tintColor, nil, nil)
       }
     }
   } // SetColors
