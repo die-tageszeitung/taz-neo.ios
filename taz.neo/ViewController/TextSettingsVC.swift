@@ -8,28 +8,6 @@
 import UIKit
 import NorthLib
 
-enum ColorMode{ case light, dark, auto}
-
-protocol AdoptingColorSheme {
-  func adoptColorSheme()
-  func registerHandler()
-//  var currentColorMode : ColorMode { get set}
-  
-}
-
-extension AdoptingColorSheme {
-  func registerHandler(){
-    self.adoptColorSheme()
-    if #available(iOS 13.0, *) {
-      //Do Nothing, handled by: UIApplication.shared.keyWindow?.overrideUserInterfaceStyle = .dark
-    } else {
-      Notification.receive(Const.Notifications.colorModeChanged) {_ in
-        self.adoptColorSheme()
-      }
-    }
-  }
-}
-
 /**
  The TextSettingsVC is responsible for setting text attributes
  like fontsize of Articles.
@@ -50,7 +28,11 @@ class TextSettingsVC: UIViewController, AdoptingColorSheme {
   private var colorMode: String?
   
   private func setupButtons() {
-    func setSize(_ s: Int) { textSettings.textSize = s; articleTextSize = s }
+    func setSize(_ s: Int) {
+      textSettings.textSize = s
+      articleTextSize = s
+      NorthLib.Notification.send(globalStylesChangedNotification)
+    }
     var textSize = articleTextSize
     textSettings.textSize = textSize
     textSettings.smallA.onPress {_ in
@@ -64,28 +46,14 @@ class TextSettingsVC: UIViewController, AdoptingColorSheme {
     }
     textSettings.day.onPress {_ in
       Defaults.darkMode = false
-//      self.colorMode = "light"
-//      if #available(iOS 13.0, *) {
-//        UIApplication.shared.keyWindow?.overrideUserInterfaceStyle = .light
-//      } else {
-//        // Fallback on earlier versions
-//        self.adoptColorSheme()
-//      }
     }
     textSettings.night.onPress {_ in
       Defaults.darkMode = true
-//      self.colorMode = "dark"
-//      if #available(iOS 13.0, *) {
-//        UIApplication.shared.keyWindow?.overrideUserInterfaceStyle = .dark
-//      } else {
-//        // Fallback on earlier versions
-//        self.adoptColorSheme()
-//      }
     }
   }
   
   
-  func adoptColorSheme() {
+  func adoptColorSheme(_:Bool) {
     print("doing TextSettingsVC")
     self.view.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
     textSettings.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
@@ -95,7 +63,6 @@ class TextSettingsVC: UIViewController, AdoptingColorSheme {
     super.viewDidLoad()
     self.view.addSubview(textSettings)
     setupButtons()
-    adoptColorSheme()
     textSettings.pinHeight(130)
     pin(textSettings.top, to: self.view.top)
     pin(textSettings.left, to: self.view.left, dist: 8)
@@ -167,12 +134,7 @@ class TextSettingsView: UIView, AdoptingColorSheme {
     registerHandler()
   }
   
-  func adoptColorSheme() {
-    print("doing TextSettingsView")
-//    self.view.backgroundColor = Const.SetColor.ios.secondarySystemBackground.color
-//    textSettings.backgroundColor = Const.SetColor.ios.secondarySystemBackground.color
-    
-    
+  func adoptColorSheme(_:Bool) {
     [smallA.buttonView,
          largeA.buttonView,
           percent.buttonView,

@@ -345,15 +345,28 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, AdoptingColorSheme {
       }
     }
     displayUrls(urls: curls)
-        registerHandler()
+        registerHandler(true)
   }
   
-  func adoptColorSheme() {
-    slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
-    settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
+  public func adoptColorSheme(_ forNewer:Bool) {
+    if forNewer == true {
+      ///Later toDo: inject CSS with js
+      ///https://stackoverflow.com/questions/33123093/insert-css-into-loaded-html-in-uiwebview-wkwebview/33126467
+      writeTazApiCss()
+      reload()
+    } else {
+      slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
+      settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
       settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
-    writeTazApiCss()
-    reload()
+      writeTazApiCss()
+      reload()
+       setNeedsStatusBarAppearanceUpdate()
+    }
+  }
+  
+  
+  open override var preferredStatusBarStyle: UIStatusBarStyle {
+    return Defaults.darkMode ?  .lightContent : .default
   }
 
   override public func viewDidAppear(_ animated: Bool) {

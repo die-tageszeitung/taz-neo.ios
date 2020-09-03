@@ -55,7 +55,9 @@ public class IssueVC: UIViewController, IssueInfo {
   static var showAnimations = true
   
   /// Light status bar because of black background
-  override public var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
+  public override var preferredStatusBarStyle: UIStatusBarStyle {
+    return .lightContent
+  }
 
   private var serverDownloadId: String?
   private var serverDownloadStart: UsTime?

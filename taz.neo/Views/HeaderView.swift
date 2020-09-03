@@ -27,7 +27,7 @@ fileprivate let RightMargin = CGFloat(16)
 
 /// The Header to show on top of sections and articles
 open class HeaderView: UIView,  AdoptingColorSheme{
-  func adoptColorSheme() {
+ public func adoptColorSheme(_ forNewer:Bool) {
     isDarkMode = Defaults.darkMode
   }
   
@@ -115,7 +115,6 @@ open class HeaderView: UIView,  AdoptingColorSheme{
     var pageNumberFont: UIFont!
     
     func setup() {
-      self.backgroundColor = UIColor.white
       self.addSubview(title)
       title.textAlignment = .center
       title.adjustsFontSizeToFitWidth = true
@@ -143,15 +142,7 @@ open class HeaderView: UIView,  AdoptingColorSheme{
   public var isDarkMode: Bool = false {
     didSet {
       let bgcol: UIColor = Const.SetColor.HBackground.color
-      let txtcol: UIColor = Const.SetColor.HBackground.color
-//      if isDarkMode {
-//        bgcol = Const.Colors.Dark.HBackground
-//        txtcol = Const.Colors.Dark.HText
-//      }
-//      else {
-//        bgcol = Const.Colors.Light.HBackground
-//        txtcol = Const.Colors.Light.HText
-//      }
+      let txtcol: UIColor = Const.SetColor.HText.color
       self.backgroundColor = bgcol
       regular.backgroundColor = bgcol
       regular.title.textColor = txtcol
@@ -159,6 +150,8 @@ open class HeaderView: UIView,  AdoptingColorSheme{
       regular.line.backgroundColor = bgcol
       regular.line.fillColor = txtcol
       regular.line.strokeColor = txtcol
+      regular.pageNumber?.textColor = txtcol
+      mini.pageNumber.textColor = txtcol
       mini.backgroundColor = bgcol
       mini.title.textColor = txtcol
     }
@@ -248,7 +241,7 @@ open class HeaderView: UIView,  AdoptingColorSheme{
     miniTitle = nil
     title = ""
     subTitle = ""
-    registerHandler()
+    registerHandler(true)
   }
   
   func installIn(view: UIView, isLarge: Bool, isMini: Bool = false) {

@@ -33,6 +33,7 @@ class AppDelegate: NotifiedDelegate {
     }
     return true
   }
+
   
   /// Enable Logging button on home screen
   public func applicationWillResignActive(_ application: UIApplication) {

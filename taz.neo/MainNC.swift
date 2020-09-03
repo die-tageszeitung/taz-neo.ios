@@ -10,7 +10,7 @@ import MessageUI
 import NorthLib
 
 
-class MainNC: NavigationController, IssueVCdelegate,
+class MainNC: NavigationController, IssueVCdelegate, AdoptingColorSheme,
               MFMailComposeViewControllerDelegate {
   
   /// Number of seconds to wait until we stop polling for email confirmation
@@ -461,6 +461,18 @@ class MainNC: NavigationController, IssueVCdelegate,
                    name: UIApplication.willEnterForegroundNotification, object: nil)
     setupLogging()
     startup()
+    registerHandler(true)
   }
+  func adoptColorSheme(_ forneewer:Bool) {
+      self.view.backgroundColor = Const.SetColor.HBackground.color
+    setNeedsStatusBarAppearanceUpdate()
+
+  }
+  
+  override var preferredStatusBarStyle: UIStatusBarStyle {
+    return Defaults.darkMode ?  .lightContent : .default
+  }
+
+      
 
 } // MainNC

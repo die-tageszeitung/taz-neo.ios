@@ -11,11 +11,6 @@ import NorthLib
 /// Some Constants
 public struct Const {
   
-  /// Notifications
-  struct Notifications {
-     static let colorModeChanged = "colorModeChanged"
-  }
-  
   /// Filenames
   struct Filename {
     /// Some resource filenames
