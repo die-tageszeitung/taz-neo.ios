@@ -310,9 +310,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewDidLoad() {
     super.viewDidLoad()
-    setupSettingsBottomSheet()
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    writeTazApiCss()
     writeTazApiJs()
+    setupSettingsBottomSheet()
     setupToolbar()
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     whenScrolled { [weak self] ratio in
@@ -336,6 +336,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
     }
     displayUrls(urls: curls)
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
   public func applyStyles() {
