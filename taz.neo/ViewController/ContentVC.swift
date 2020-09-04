@@ -310,9 +310,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewDidLoad() {
     super.viewDidLoad()
-    writeTazApiCss()
-    writeTazApiJs()
     setupSettingsBottomSheet()
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    writeTazApiJs()
     setupToolbar()
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     whenScrolled { [weak self] ratio in
@@ -325,12 +325,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider.button.layer.shadowOpacity = 0.25
     slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
     slider.button.layer.shadowRadius = 4
-//    if let mode = Defaults.singleton["colorMode"], mode == "dark" {
-//      slider.button.layer.shadowColor = UIColor.white.cgColor
-//    }
-//    else {
-//      slider.button.layer.shadowColor = UIColor.black.cgColor
-//    }
     header.leftIndent = 8 + slider.visibleButtonWidth
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
@@ -342,7 +336,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
     }
     displayUrls(urls: curls)
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
   public func applyStyles() {
