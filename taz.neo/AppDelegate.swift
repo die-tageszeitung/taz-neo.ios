@@ -31,6 +31,11 @@ class AppDelegate: NotifiedDelegate {
     if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
       if shortcutItem.type == "Logging" { wantLogging = true }
     }
+    
+    if #available(iOS 13.0, *) {
+      UIApplication.shared.keyWindow?.overrideUserInterfaceStyle
+        = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
+    } 
     return true
   }
   
