@@ -12,7 +12,7 @@ import NorthLib
  The TextSettingsVC is responsible for setting text attributes
  like fontsize of Articles.
  */
-class TextSettingsVC: UIViewController, AdoptingColorSheme {
+class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
   
   /// View responsible for text settings representation
   private var textSettings = TextSettingsView()
@@ -53,8 +53,7 @@ class TextSettingsVC: UIViewController, AdoptingColorSheme {
   }
   
   
-  func adoptColorSheme(_:Bool) {
-    print("doing TextSettingsVC")
+  func applyStyles() {
     self.view.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
     textSettings.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
   }
@@ -67,12 +66,12 @@ class TextSettingsVC: UIViewController, AdoptingColorSheme {
     pin(textSettings.top, to: self.view.top)
     pin(textSettings.left, to: self.view.left, dist: 8)
     pin(textSettings.right, to: self.view.right, dist: -8)
-    registerHandler()
+    registerForStyleUpdates()
   }
   
 }
 
-class TextSettingsView: UIView, AdoptingColorSheme {
+class TextSettingsView: UIView, UIStyleChangeDelegate {
   
   /// Default font
   private static let defaultFont = UIFont.boldSystemFont(ofSize: 20)
@@ -131,10 +130,10 @@ class TextSettingsView: UIView, AdoptingColorSheme {
     verticalStack.addArrangedSubview(modeStack)
     addSubview(verticalStack)
     pin(verticalStack, to: self, dist: 4)
-    registerHandler()
+    registerForStyleUpdates()
   }
   
-  func adoptColorSheme(_:Bool) {
+  func applyStyles() {
     [smallA.buttonView,
          largeA.buttonView,
           percent.buttonView,

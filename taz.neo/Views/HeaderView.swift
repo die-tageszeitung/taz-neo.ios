@@ -26,8 +26,8 @@ fileprivate let RightMargin = CGFloat(16)
 
 
 /// The Header to show on top of sections and articles
-open class HeaderView: UIView,  AdoptingColorSheme{
- public func adoptColorSheme(_ forNewer:Bool) {
+open class HeaderView: UIView,  UIStyleChangeDelegate{
+ public func applyStyles() {
     isDarkMode = Defaults.darkMode
   }
   
@@ -241,7 +241,7 @@ open class HeaderView: UIView,  AdoptingColorSheme{
     miniTitle = nil
     title = ""
     subTitle = ""
-    registerHandler(true)
+    registerForStyleUpdates()
   }
   
   func installIn(view: UIView, isLarge: Bool, isMini: Bool = false) {

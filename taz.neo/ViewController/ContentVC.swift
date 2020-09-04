@@ -116,7 +116,7 @@ open class ContentToolbar: UIView {
  A ContentVC is a view controller that displays an array of Articles or Sections 
  in a collection of WebViews
  */
-open class ContentVC: WebViewCollectionVC, IssueInfo, AdoptingColorSheme {
+open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   /// CSS Margins for Articles and Sections
   public static let TopMargin: CGFloat = 65
@@ -341,26 +341,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, AdoptingColorSheme {
       }
     }
     displayUrls(urls: curls)
-        registerHandler(true)
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
-  public func adoptColorSheme(_ forNewer:Bool) {
-    if forNewer == true {
-      ///Later toDo: inject CSS with js
-      ///https://stackoverflow.com/questions/33123093/insert-css-into-loaded-html-in-uiwebview-wkwebview/33126467
-       writeTazApiCss{
-         super.reloadAllWebViews()
-       }
-    } else {
+  public func applyStyles() {
       slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
       settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
       settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
       writeTazApiCss{
         super.reloadAllWebViews()
       }
-    }
   }
-  
   
   open override var preferredStatusBarStyle: UIStatusBarStyle {
     return Defaults.darkMode ?  .lightContent : .default
