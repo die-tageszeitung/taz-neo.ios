@@ -311,10 +311,10 @@ class MainNC: NavigationController, IssueVCdelegate, AdoptingColorSheme,
           /// #3 User accepts AGB and more twice
           /// due he still accept is in various cases in createtazID or trialSubscription
           /// so we need seperate intro store userDefaults for already seen Intro!
-          self.showIntro()
+//          self.showIntro()
           ///@Norbert Integration
           self.dloader.downloadResources {_ in
-//            self.showIntro()
+            self.showIntro()
             self.getOverview()
           }
         }
