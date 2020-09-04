@@ -167,7 +167,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, AdoptingColorSheme {
   public func resetIssueList() { delegate.resetIssueList() }  
 
   /// Write tazApi.css to resource directory
-  public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin) {
+  public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin, callback: (()->())? = nil) {
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
     let colorMode = dfl["colorMode"]
@@ -188,7 +188,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, AdoptingColorSheme {
         text-align: \(textAlign!);
       }
     """
-    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent) }
+    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
+      callback?()
+    }
   }
   
   /// Setup JS bridge
@@ -346,16 +348,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, AdoptingColorSheme {
     if forNewer == true {
       ///Later toDo: inject CSS with js
       ///https://stackoverflow.com/questions/33123093/insert-css-into-loaded-html-in-uiwebview-wkwebview/33126467
-      writeTazApiCss()
-      super.reloadAllWebViews()
-      
+       writeTazApiCss{
+         super.reloadAllWebViews()
+       }
     } else {
       slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
       settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
       settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
-      writeTazApiCss()
-      reload()
-       setNeedsStatusBarAppearanceUpdate()
+      writeTazApiCss{
+        super.reloadAllWebViews()
+      }
     }
   }
   
