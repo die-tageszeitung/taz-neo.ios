@@ -153,6 +153,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   override public func viewDidLoad() {
     super.viewDidLoad()
     self.index = 0
+    self.view.backgroundColor = .clear
+    registerHandler(true)
+  }
+  
+    func adoptColorSheme(forneewer:Bool) {
+    super.adoptColorSheme(forneewer)
   }
   
   override public func viewDidAppear(_ animated: Bool) {

@@ -8,7 +8,6 @@
 import UIKit
 import NorthLib
 
-
 // A ContentUrl provides a WebView URL for Articles and Sections
 public class ContentUrl: WebViewUrl, DoesLog {
   
@@ -117,7 +116,7 @@ open class ContentToolbar: UIView {
  A ContentVC is a view controller that displays an array of Articles or Sections 
  in a collection of WebViews
  */
-open class ContentVC: WebViewCollectionVC, IssueInfo {
+open class ContentVC: WebViewCollectionVC, IssueInfo, AdoptingColorSheme {
 
   /// CSS Margins for Articles and Sections
   public static let TopMargin: CGFloat = 65
@@ -140,9 +139,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
   private var backClosure: ((ContentVC)->())?
   public var homeButton = Button<ImageView>()
   private var homeClosure: ((ContentVC)->())?
+  public var settingsButton = Button<ImageView>()
+  private var settingsClosure: ((ContentVC)->())?
   public var shareButton = Button<ImageView>()
   private var shareClosure: ((ContentVC)->())?
   private var imageOverlay: Overlay?
+  
+  private var settingsBottomSheet: BottomSheet!
+  private var textSettingsVC = TextSettingsVC()
   
   public var header = HeaderView()
   public var isLargeHeader = false
@@ -163,7 +167,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
   public func resetIssueList() { delegate.resetIssueList() }  
 
   /// Write tazApi.css to resource directory
-  public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin) {
+  public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin, callback: (()->())? = nil) {
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
     let colorMode = dfl["colorMode"]
@@ -184,7 +188,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
         text-align: \(textAlign!);
       }
     """
-    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent) }
+    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
+      callback?()
+    }
   }
   
   /// Setup JS bridge
@@ -232,12 +238,28 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
     { backClosure = closure }
   
   /// Define the closure to call when the home button is tapped
+  public func onSettings(closure: @escaping (ContentVC)->())
+    { settingsClosure = closure }
+  
+  /// Define the closure to call when the home button is tapped
   public func onHome(closure: @escaping (ContentVC)->()) 
     { homeClosure = closure }
-  /// Define the closure to call when the home button is tapped
   
   public func onShare(closure: @escaping (ContentVC)->()) 
   { shareClosure = closure; shareButton.isHidden = false }
+  
+  
+  func setupSettingsBottomSheet() {
+    settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
+//    settingsBottomSheet.color = Const.SetColor.ios.econdarySystemBackground.color
+    settingsBottomSheet.coverage = 230
+//    settingsBottomSheet.handleColor = Const.SetColor.ios.opaqueSeparator.color
+    onSettings{ [weak self] _ in
+      guard let self = self else { return }
+      self.debug("*** Action: <Settings> pressed")
+      self.settingsBottomSheet.open()
+    }
+  }
   
   func setupToolbar() {
     backButton.onPress { [weak self] _ in 
@@ -252,28 +274,34 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
       guard let self = self else { return }
       self.shareClosure?(self)
     }
+    settingsButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      self.settingsClosure?(self)
+    }
+    
     backButton.pinWidth(40)
     backButton.pinHeight(40)
     backButton.vinset = 0.43
     backButton.isBistable = false
     backButton.lineWidth = 0.06
+    settingsButton.pinWidth(55)
+    settingsButton.pinHeight(40)
+    settingsButton.inset = 0.0
+    settingsButton.buttonView.symbol = "textformat.size"
+    settingsButton.buttonView.imageView.iosLower13?.pinWidth(44)
     homeButton.pinWidth(40)
     homeButton.pinHeight(40)
     homeButton.inset = 0.20
     homeButton.buttonView.name = "Home"
-    shareButton.pinWidth(40)
+    shareButton.buttonView.symbol = "square.and.arrow.up"
+    shareButton.pinWidth(55)
     shareButton.pinHeight(40)
-    shareButton.inset = 0.16
-    if #available(iOS 13.0, *) {
-      shareButton.buttonView.symbol = "square.and.arrow.up"
-    }
-    else {
-      shareButton.buttonView.name = "Share"
-    }
+    shareButton.inset = 0.24
     shareButton.isHidden = true
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(homeButton, direction: .right)
     toolBar.addButton(shareButton, direction: .center)
+    toolBar.addButton(settingsButton, direction: .center)
     toolBar.setButtonColor(Const.Colors.darkTintColor)
     toolBar.backgroundColor = Const.Colors.darkToolbar
     toolBar.pinTo(self.view)
@@ -283,6 +311,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
     super.viewDidLoad()
     writeTazApiCss()
     writeTazApiJs()
+    setupSettingsBottomSheet()
     setupToolbar()
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     whenScrolled { [weak self] ratio in
@@ -295,12 +324,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
     slider.button.layer.shadowOpacity = 0.25
     slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
     slider.button.layer.shadowRadius = 4
-    if let mode = Defaults.singleton["colorMode"], mode == "dark" {
-      slider.button.layer.shadowColor = UIColor.white.cgColor
-    }
-    else {
-      slider.button.layer.shadowColor = UIColor.black.cgColor      
-    }
+//    if let mode = Defaults.singleton["colorMode"], mode == "dark" {
+//      slider.button.layer.shadowColor = UIColor.white.cgColor
+//    }
+//    else {
+//      slider.button.layer.shadowColor = UIColor.black.cgColor
+//    }
     header.leftIndent = 8 + slider.visibleButtonWidth
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
@@ -312,6 +341,29 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
       }
     }
     displayUrls(urls: curls)
+        registerHandler(true)
+  }
+  
+  public func adoptColorSheme(_ forNewer:Bool) {
+    if forNewer == true {
+      ///Later toDo: inject CSS with js
+      ///https://stackoverflow.com/questions/33123093/insert-css-into-loaded-html-in-uiwebview-wkwebview/33126467
+       writeTazApiCss{
+         super.reloadAllWebViews()
+       }
+    } else {
+      slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
+      settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
+      settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
+      writeTazApiCss{
+        super.reloadAllWebViews()
+      }
+    }
+  }
+  
+  
+  open override var preferredStatusBarStyle: UIStatusBarStyle {
+    return Defaults.darkMode ?  .lightContent : .default
   }
 
   override public func viewDidAppear(_ animated: Bool) {

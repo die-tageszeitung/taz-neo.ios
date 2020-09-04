@@ -37,6 +37,9 @@ class TestController: PageCollectionVC {
   lazy var consoleLogger = Log.Logger()
   lazy var viewLogger = Log.ViewLogger(logView: logView)
   
+  override public var preferredStatusBarStyle: UIStatusBarStyle { .default }
+  
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     Log.minLogLevel = .Debug
