@@ -353,7 +353,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, AdoptingColorSheme {
       ///Later toDo: inject CSS with js
       ///https://stackoverflow.com/questions/33123093/insert-css-into-loaded-html-in-uiwebview-wkwebview/33126467
       writeTazApiCss()
-      reload()
+      super.reloadAllWebViews()
+      
     } else {
       slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
       settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
