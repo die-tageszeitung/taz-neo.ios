@@ -24,6 +24,10 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
     }
   }
   
+  func updateButtonValuesOnOpen(){
+    textSettings.textSize = articleTextSize
+  }
+  
   @Default(key: "colorMode")
   private var colorMode: String?
   
@@ -33,16 +37,15 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
       articleTextSize = s
       NorthLib.Notification.send(globalStylesChangedNotification)
     }
-    var textSize = articleTextSize
-    textSettings.textSize = textSize
+    textSettings.textSize = articleTextSize
     textSettings.smallA.onPress {_ in
-      if textSize > 30 { textSize -= 10; setSize(textSize) }
+      if self.articleTextSize > 30 { setSize(self.articleTextSize-10) }
     }
     textSettings.largeA.onPress {_ in
-      if textSize < 200 { textSize += 10; setSize(textSize) }
+      if self.articleTextSize < 200 { setSize(self.articleTextSize+10) }
     }
     textSettings.percent.onPress {_ in
-      if textSize != 100 { textSize = 100; setSize(textSize) }
+      if self.articleTextSize != 100 { setSize(100) }
     }
     textSettings.day.onPress {_ in
       Defaults.darkMode = false

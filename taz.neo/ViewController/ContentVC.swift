@@ -258,6 +258,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.debug("*** Action: <Settings> pressed")
       self.settingsBottomSheet.open()
+      self.textSettingsVC.updateButtonValuesOnOpen()
     }
   }
   
