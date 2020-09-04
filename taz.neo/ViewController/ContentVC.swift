@@ -8,7 +8,6 @@
 import UIKit
 import NorthLib
 
-
 // A ContentUrl provides a WebView URL for Articles and Sections
 public class ContentUrl: WebViewUrl, DoesLog {
   
@@ -277,30 +276,25 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, AdoptingColorSheme {
       guard let self = self else { return }
       self.settingsClosure?(self)
     }
+    
     backButton.pinWidth(40)
     backButton.pinHeight(40)
     backButton.vinset = 0.43
     backButton.isBistable = false
     backButton.lineWidth = 0.06
-    settingsButton.pinWidth(40)
+    settingsButton.pinWidth(55)
     settingsButton.pinHeight(40)
-    settingsButton.vinset = 0.43
-    settingsButton.isBistable = false
-    settingsButton.lineWidth = 0.06
+    settingsButton.inset = 0.0
     settingsButton.buttonView.symbol = "textformat.size"
+    settingsButton.buttonView.imageView.iosLower13?.pinWidth(44)
     homeButton.pinWidth(40)
     homeButton.pinHeight(40)
     homeButton.inset = 0.20
     homeButton.buttonView.name = "Home"
-    shareButton.pinWidth(40)
+    shareButton.buttonView.symbol = "square.and.arrow.up"
+    shareButton.pinWidth(55)
     shareButton.pinHeight(40)
-    shareButton.inset = 0.16
-    if #available(iOS 13.0, *) {
-      shareButton.buttonView.symbol = "square.and.arrow.up"
-    }
-    else {
-      shareButton.buttonView.name = "Share"
-    }
+    shareButton.inset = 0.24
     shareButton.isHidden = true
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(homeButton, direction: .right)
