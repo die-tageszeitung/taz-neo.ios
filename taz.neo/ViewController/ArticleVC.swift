@@ -127,11 +127,6 @@ open class ArticleVC: ContentVC {
     } 
   }
   
-  public override func viewDidLoad() {
-    super.viewDidLoad()
-    self.view.backgroundColor = .clear
-  }
-  
   public override func viewDidAppear(_ animated: Bool) {
     onShare { [weak self] _ in
       guard let self = self else { return }

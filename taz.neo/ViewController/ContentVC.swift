@@ -315,9 +315,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewDidLoad() {
     super.viewDidLoad()
-    writeTazApiCss()
-    writeTazApiJs()
     setupSettingsBottomSheet()
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    writeTazApiJs()
     setupToolbar()
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     whenScrolled { [weak self] ratio in
@@ -341,13 +341,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
     }
     displayUrls(urls: curls)
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
   public func applyStyles() {
       slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
       settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
       settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
+      self.collectionView.backgroundColor = Const.SetColor.CTBackground.color
+      self.view.backgroundColor = Const.SetColor.CTBackground.color
       writeTazApiCss{
         super.reloadAllWebViews()
       }
@@ -360,6 +361,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
   }
+  
   
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)

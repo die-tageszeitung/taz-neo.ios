@@ -153,7 +153,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   override public func viewDidLoad() {
     super.viewDidLoad()
     self.index = 0
-    self.view.backgroundColor = .clear
   }
   
 //  public override func applyStyles() {
