@@ -225,3 +225,7 @@
 
 /* Vor und Nachname zu viele Zeichen */
 "too_many_chars" = "Zu viele Zeichen";
+
+
+/* Kein Netz */
+"communication_breakdown" = "Es gab ein Problem bei der Kommunikation mit dem Server.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";

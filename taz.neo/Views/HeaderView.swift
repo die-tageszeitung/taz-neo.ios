@@ -26,7 +26,22 @@ fileprivate let RightMargin = CGFloat(16)
 
 
 /// The Header to show on top of sections and articles
-open class HeaderView: UIView {
+open class HeaderView: UIView,  UIStyleChangeDelegate{
+  public func applyStyles() {
+    let bgcol: UIColor = Const.SetColor.HBackground.color
+    let txtcol: UIColor = Const.SetColor.HText.color
+    self.backgroundColor = bgcol
+    regular.backgroundColor = bgcol
+    regular.title.textColor = txtcol
+    regular.subTitle?.textColor = txtcol
+    regular.line.backgroundColor = bgcol
+    regular.line.fillColor = txtcol
+    regular.line.strokeColor = txtcol
+    regular.pageNumber?.textColor = txtcol
+    mini.pageNumber.textColor = txtcol
+    mini.backgroundColor = bgcol
+    mini.title.textColor = txtcol
+  }
   
   class Regular: UIView {
     
@@ -62,7 +77,6 @@ open class HeaderView: UIView {
 
 
     func setup(isLarge: Bool) {
-      self.backgroundColor = UIColor.white
       self.addSubview(title)
       self.addSubview(line)
       title.textAlignment = .right
@@ -111,7 +125,6 @@ open class HeaderView: UIView {
     var pageNumberFont: UIFont!
     
     func setup() {
-      self.backgroundColor = UIColor.white
       self.addSubview(title)
       title.textAlignment = .center
       title.adjustsFontSizeToFitWidth = true
@@ -135,31 +148,7 @@ open class HeaderView: UIView {
     get { return regular.isLargeTitleFont }
     set { regular.isLargeTitleFont = newValue }
   }
-  
-  public var isDarkMode: Bool = false {
-    didSet {
-      var bgcol: UIColor
-      var txtcol: UIColor
-      if isDarkMode {
-        bgcol = Const.Colors.Dark.HBackground
-        txtcol = Const.Colors.Dark.HText
-      }
-      else {
-        bgcol = Const.Colors.Light.HBackground
-        txtcol = Const.Colors.Light.HText
-      }
-      self.backgroundColor = bgcol
-      regular.backgroundColor = bgcol
-      regular.title.textColor = txtcol
-      regular.subTitle?.textColor = txtcol
-      regular.line.backgroundColor = bgcol
-      regular.line.fillColor = txtcol
-      regular.line.strokeColor = txtcol
-      mini.backgroundColor = bgcol
-      mini.title.textColor = txtcol
-    }
-  }
-  
+    
   public var title: String {
     get { return regular.title.text ?? "" }
     set { 
@@ -220,8 +209,14 @@ open class HeaderView: UIView {
     }
   }
   
+  @DefaultInt(key: "articleTextSize")
+   private var articleTextSize: Int {
+     didSet{
+       print("articleTextSize changed. in header..")
+     }
+   }
+  
   private func setup(isLarge: Bool) {
-    self.backgroundColor = UIColor.white
     regular.setup(isLarge: isLarge)
     mini.setup()
     addSubview(mini)
@@ -237,6 +232,7 @@ open class HeaderView: UIView {
     miniTitle = nil
     title = ""
     subTitle = ""
+    registerForStyleUpdates()
   }
   
   func installIn(view: UIView, isLarge: Bool, isMini: Bool = false) {

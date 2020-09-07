@@ -44,7 +44,7 @@ public class FormView: UIView {
   // MARK: addAndPin
   func addAndPin(_ views: [UIView]){
     self.subviews.forEach({ $0.removeFromSuperview() })
-    
+    self.backgroundColor = Const.SetColor.CTBackground.color
     if views.isEmpty { return }
     
     let margin : CGFloat = 12.0
