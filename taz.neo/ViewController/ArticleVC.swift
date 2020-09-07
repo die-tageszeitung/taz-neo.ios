@@ -129,6 +129,7 @@ open class ArticleVC: ContentVC {
   
   public override func viewDidLoad() {
     super.viewDidLoad()
+    self.view.backgroundColor = .clear
   }
   
   public override func viewDidAppear(_ animated: Bool) {

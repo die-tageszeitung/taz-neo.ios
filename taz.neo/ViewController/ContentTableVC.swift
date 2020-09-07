@@ -25,7 +25,8 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   // Setup colors depending on Defaults["colorMode"]
   private func setupColors() {
-    if let mode = Defaults.singleton["colorMode"], mode == "dark" {
+    
+    if Defaults.darkMode{
       Self.IsDarkMode = true
       Self.BackgroundColor = Const.Colors.Dark.CTBackground
       Self.ShadowColor = UIColor.white

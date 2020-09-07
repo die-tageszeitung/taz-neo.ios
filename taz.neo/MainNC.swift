@@ -10,11 +10,24 @@ import MessageUI
 import NorthLib
 
 
-class MainNC: NavigationController, IssueVCdelegate,
+class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
               MFMailComposeViewControllerDelegate {
   
   /// Number of seconds to wait until we stop polling for email confirmation
   let PollTimeout: Int64 = 25*3600
+  /* Prevent Black Screen / White Screen Issue
+   
+   Description:
+   - Black Screen appears if 0.4.X Version starts without Internet
+      - Issue Scider (Overview) displayed, no Feeder Success Callback, No Downloads, Nothing
+   - White Screen appears, if new Istallation, User starts the App an is logged in before Ressources are downloaded
+   
+   Generell Idea: let monitor = Network.NWPathMonitor()
+   react on Internet on/off not available due min iOS 12, currently Build for iOS 11.3
+   
+   Idea: Popup User should check Internet, if press OK retry...
+   */
+  
   
   var showAnimations = false
   lazy var consoleLogger = Log.Logger()
@@ -262,7 +275,7 @@ class MainNC: NavigationController, IssueVCdelegate,
     }
     else {
       self.setupPolling()
-      Notification.receive("authenticationSucceeded") { notif in
+      Notification.receive("authenticationSucceeded") {_ in
         closure(nil)
       }
       self.authenticator.authenticate()
@@ -272,7 +285,14 @@ class MainNC: NavigationController, IssueVCdelegate,
   func setupFeeder(closure: @escaping (Result<Feeder,Error>)->()) {
     self._gqlFeeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { [weak self] (res) in
       guard let self = self else { return }
-      guard res.value() != nil else { return }
+      guard res.value() != nil else {
+        Alert.message(title: "Fehler",
+                       message: Localized("communication_breakdown")) { [weak self] in
+                        guard let self = self else {return}
+                        self.setupFeeder(closure: closure)
+        }
+        return;
+      }
       self.debug(self.gqlFeeder.toString())
       self._feed = self.gqlFeeder.feeds[0]
       self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
@@ -311,10 +331,10 @@ class MainNC: NavigationController, IssueVCdelegate,
           /// #3 User accepts AGB and more twice
           /// due he still accept is in various cases in createtazID or trialSubscription
           /// so we need seperate intro store userDefaults for already seen Intro!
-          self.showIntro()
+//          self.showIntro()
           ///@Norbert Integration
           self.dloader.downloadResources {_ in
-//            self.showIntro()
+            self.showIntro()
             self.getOverview()
           }
         }
@@ -410,7 +430,7 @@ class MainNC: NavigationController, IssueVCdelegate,
     var id = kc["id"]
     let password = kc["password"]
     if token == nil {
-      token = dfl["token"] 
+      token = dfl["token"]
       if token != nil { kc["token"] = token }
     }
     else { dfl["token"] = token }
@@ -455,12 +475,24 @@ class MainNC: NavigationController, IssueVCdelegate,
     // isEdgeDetection = true
     setupTopMenus()
     let nc = NotificationCenter.default
-    nc.addObserver(self, selector: #selector(goingBackground), 
+    nc.addObserver(self, selector: #selector(goingBackground),
       name: UIApplication.willResignActiveNotification, object: nil)
     nc.addObserver(self, selector: #selector(goingForeground),
                    name: UIApplication.willEnterForegroundNotification, object: nil)
     setupLogging()
     startup()
+    registerForStyleUpdates()
   }
+  func applyStyles() {
+      self.view.backgroundColor = Const.SetColor.HBackground.color
+    setNeedsStatusBarAppearanceUpdate()
+
+  }
+  
+  override var preferredStatusBarStyle: UIStatusBarStyle {
+    return Defaults.darkMode ?  .lightContent : .default
+  }
+
+      
 
 } // MainNC
