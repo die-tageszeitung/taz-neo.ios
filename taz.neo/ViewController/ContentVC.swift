@@ -251,9 +251,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
-//    settingsBottomSheet.color = Const.SetColor.ios.econdarySystemBackground.color
-    settingsBottomSheet.coverage = 230
-//    settingsBottomSheet.handleColor = Const.SetColor.ios.opaqueSeparator.color
+    
+    if UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0 > 0 {
+      settingsBottomSheet.coverage = 235
+    }
+    else {
+      settingsBottomSheet.coverage = 200
+    }
+    
     onSettings{ [weak self] _ in
       guard let self = self else { return }
       self.debug("*** Action: <Settings> pressed")
