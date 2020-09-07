@@ -39,6 +39,8 @@ public struct Const {
       static let CTDate = UIColor.black
       static let HBackground = UIColor.white
       static let HText = UIColor.black
+      static let ForegroundLight = UIColor.lightGray
+      static let ForegroundHeavy = UIColor.darkGray
     }
     
     struct Dark {
@@ -48,6 +50,8 @@ public struct Const {
       static let CTDate = UIColor.white
       static let HBackground = darkSecondaryBG
       static let HText = darkSecondaryText
+      static let ForegroundLight = UIColor.darkGray
+      static let ForegroundHeavy = UIColor.lightGray
     }
     
     
@@ -110,6 +114,8 @@ public struct Const {
     case CTBackground
     case CTSection
     case CTArticle
+    case ForegroundLight
+    case ForegroundHeavy
     case CTDate
     case HBackground
     case HText
@@ -170,6 +176,10 @@ public struct Const {
           return (UIColor.white, Const.Colors.darkSecondaryBG,nil,nil)
         case .CTSection:
           return (Const.Colors.ciColor, Const.Colors.darkSecondaryText,nil,nil)
+        case .ForegroundLight:
+          return (Const.Colors.Light.ForegroundLight, Const.Colors.Dark.ForegroundLight,nil,nil)
+        case .ForegroundHeavy:
+          return (Const.Colors.Light.ForegroundHeavy, Const.Colors.Dark.ForegroundHeavy,nil,nil)
         case .CTArticle:
           return (UIColor.darkGray, UIColor.rgb(0xacace0),nil,nil)
         case .CTDate:
