@@ -356,9 +356,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   open override var preferredStatusBarStyle: UIStatusBarStyle {
     return Defaults.darkMode ?  .lightContent : .default
   }
-
-  override public func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
+  
+  override public func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    self.collectionView.backgroundColor = Const.SetColor.CTBackground.color
+    self.view.backgroundColor = Const.SetColor.CTBackground.color
   }
   
   override public func viewDidDisappear(_ animated: Bool) {
