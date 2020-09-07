@@ -454,6 +454,7 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
     dfl["isTextNotification"] = "true"
     dfl["nStarted"] = "0"
     dfl["lastStarted"] = "0"
+    endPolling()
   }
   
   func testNotification(type: NotificationType) {
