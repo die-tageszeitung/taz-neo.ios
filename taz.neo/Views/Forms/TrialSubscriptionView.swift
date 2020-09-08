@@ -9,7 +9,23 @@
 import UIKit
 import NorthLib
 
+extension TrialSubscriptionView : UITextFieldDelegate {
+  public func textFieldDidBeginEditing(_ textField: UITextField) {
+    if exchangeResponder == false {
+      exchangeResponder = true
+      firstnameInput.becomeFirstResponder()
+      textField.becomeFirstResponder()
+      exchangeResponder = false
+    }
+    
+  }
+}
+
+
+
 public class TrialSubscriptionView : FormView{
+  
+  var exchangeResponder = false
   
   var mailInput = TazTextField(placeholder: Localized("login_email_hint"),
                                textContentType: .emailAddress,
@@ -57,6 +73,12 @@ public class TrialSubscriptionView : FormView{
   }()
   
   override func createSubviews() -> [UIView] {
+    if #available(iOS 12.0, *) {
+      passInput.textContentType = .newPassword
+    }
+    passInput.delegate = self
+    pass2Input.delegate = self
+    
     return   [
       TazHeader(),
       Padded.Label(title: Localized("trial_subscription_title")),
