@@ -311,8 +311,6 @@ public class IssueVC: UIViewController, IssueInfo {
     setLabel(idx: index)
   }
   
-  private var datePicker = UIPickerView()
-  
   public override func viewDidLoad() {
     super.viewDidLoad()
     let dfl = Defaults.singleton
