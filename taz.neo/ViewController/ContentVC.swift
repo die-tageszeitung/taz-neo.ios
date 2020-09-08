@@ -72,6 +72,7 @@ open class ContentToolbar: UIView {
     pin(toolbar.left, to: self.left)
     pin(toolbar.right, to: self.right)
     toolbar.pinHeight(ContentToolbar.ToolbarHeight)
+    toolbar.createBars(2)
     self.clipsToBounds = true
   }
   
@@ -107,6 +108,17 @@ open class ContentToolbar: UIView {
   public func addButton(_ button: ButtonControl, direction: Toolbar.Direction) {
     toolbar.addButton(button, direction: direction)
   }
+  
+  public func addArticleButton(_ button: ButtonControl, direction: Toolbar.Direction) {
+    toolbar.addButton(button, direction: direction, at: 1)
+  }
+  
+  public func addSectionButton(_ button: ButtonControl, direction: Toolbar.Direction) {
+    toolbar.addButton(button, direction: direction, at: 0)
+  }
+  
+  func setArticleBar() { toolbar.bar = 1 }
+  func setSectionBar() { toolbar.bar = 0 }
   
   public func setButtonColor(_ color: UIColor) { toolbar.setButtonColor(color) }
 
@@ -246,7 +258,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     { homeClosure = closure }
   
   public func onShare(closure: @escaping (ContentVC)->()) 
-  { shareClosure = closure; shareButton.isHidden = false }
+  { shareClosure = closure; toolBar.setArticleBar() }
   
   
   func setupSettingsBottomSheet() {
@@ -303,10 +315,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     shareButton.pinWidth(55)
     shareButton.pinHeight(40)
     shareButton.inset = 0.24
-    shareButton.isHidden = true
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(homeButton, direction: .right)
-    toolBar.addButton(shareButton, direction: .center)
+    toolBar.addArticleButton(shareButton, direction: .center)
+    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     toolBar.addButton(settingsButton, direction: .center)
     toolBar.setButtonColor(Const.Colors.darkTintColor)
     toolBar.backgroundColor = Const.Colors.darkToolbar
