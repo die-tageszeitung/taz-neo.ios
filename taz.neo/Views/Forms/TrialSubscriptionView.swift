@@ -107,6 +107,7 @@ public class TrialSubscriptionView : FormView{
       pass2Input.bottomMessage = Localized("login_password_error_empty")
     }
     else if pass2Input.isUsed, pass2Input.text != passInput.text {
+      errors = true
       pass2Input.bottomMessage = Localized("login_password_confirmation_error_match")
     }
     
