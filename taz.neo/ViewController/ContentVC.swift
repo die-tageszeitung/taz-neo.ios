@@ -251,9 +251,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
-//    settingsBottomSheet.color = Const.SetColor.ios.econdarySystemBackground.color
-    settingsBottomSheet.coverage = 230
-//    settingsBottomSheet.handleColor = Const.SetColor.ios.opaqueSeparator.color
+    
+    if UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0 > 0 {
+      settingsBottomSheet.coverage = 235
+    }
+    else {
+      settingsBottomSheet.coverage = 200
+    }
+    
     onSettings{ [weak self] _ in
       guard let self = self else { return }
       self.debug("*** Action: <Settings> pressed")
@@ -351,9 +356,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   open override var preferredStatusBarStyle: UIStatusBarStyle {
     return Defaults.darkMode ?  .lightContent : .default
   }
-
-  override public func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
+  
+  override public func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    self.collectionView.backgroundColor = Const.SetColor.CTBackground.color
+    self.view.backgroundColor = Const.SetColor.CTBackground.color
   }
   
   override public func viewDidDisappear(_ animated: Bool) {
