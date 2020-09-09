@@ -185,7 +185,14 @@ class SubscriptionResetSuccessController: FormsResultController, MFMailComposeVi
   
   // MARK: handleMail Action
   @IBAction func handleMail(_ sender: UIButton) {
-    if MFMailComposeViewController.canSendMail() == false { return }
+    if MFMailComposeViewController.canSendMail() == false {
+      if sender.isEnabled == false { return }
+      sender.isEnabled = false
+      Alert.message(title: Localized("no_mail_title"), message: Localized("no_mail_text"), closure: {
+        sender.isEnabled = true
+      })
+      return
+    }
     
     let composeVC = MFMailComposeViewController()
     composeVC.mailComposeDelegate = self

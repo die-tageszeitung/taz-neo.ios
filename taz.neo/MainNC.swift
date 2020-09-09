@@ -117,7 +117,14 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
     let logData = fileLogger.data
     mail.mailComposeDelegate = self
     mail.setToRecipients([recipient])
-    mail.setSubject("Rückmeldung zu taz.neo (iOS)")
+    
+    var tazIdText = ""
+    let data = DefaultAuthenticator.getUserData()
+    if let tazID = data.id, tazID.isEmpty == false {
+      tazIdText = " taz-ID: \(tazID)"
+    }
+    
+    mail.setSubject("Feedback \"\(App.name)\" (iOS)\(tazIdText)")
     mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
       "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
       isHTML: false)
@@ -139,16 +146,23 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
   }
   
   @objc func errorReportActivated(_ sender: UIGestureRecognizer) {
-    guard let recog = sender as? UILongPressGestureRecognizer,
-          !isErrorReporting && MFMailComposeViewController.canSendMail()
-      else { return }
+    if isErrorReporting == true { return }//Prevent multiple Calls
     isErrorReporting = true
+    
+    guard let recog = sender as? UILongPressGestureRecognizer,
+      MFMailComposeViewController.canSendMail()
+      else {
+        Alert.message(title: Localized("no_mail_title"), message: Localized("no_mail_text"), closure: {
+          self.isErrorReporting = false
+        })
+        return
+    }
     Alert.confirm(title: "Rückmeldung",
       message: "Wollen Sie uns eine Fehlermeldung senden oder haben Sie einen " +
                "Kommentar zu unserer App?") { yes in
                 if yes {
                   var recipient = "app@taz.de"
-                  if recog.numberOfTouchesRequired == 3 { recipient = "norbert@taz.de" }
+                  if recog.numberOfTouchesRequired == 3 { recipient = "ios-entwickler@taz.de" }
                   self.produceErrorReport(recipient: recipient)
                 }
       else { self.isErrorReporting = false }
