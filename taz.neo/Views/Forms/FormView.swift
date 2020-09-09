@@ -84,6 +84,21 @@ public class FormView: UIView {
   }
 }
 
+extension FormView {
+  @objc public func showRegisterTips(_ textField: UITextField) {
+     Alert.message(title: Localized("register_tips_button"), message: Localized("register_tips_text"))
+  }
+  
+  var registerTipsButton:UIButton{
+    get{
+      return Padded.Button(type: .label,
+                           title: Localized("register_tips_button"),
+                           target: self,
+                           action: #selector(showRegisterTips))
+    }
+  }
+}
+
 // MARK: Keyboard Action, set ScrollView Insets if Keyboard appears
 extension FormView {
   fileprivate func setKeyboardObserving(){

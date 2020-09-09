@@ -274,7 +274,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     onSettings{ [weak self] _ in
       guard let self = self else { return }
       self.debug("*** Action: <Settings> pressed")
-      self.settingsBottomSheet.open()
+      if self.settingsBottomSheet.isOpen {
+          self.settingsBottomSheet.close()
+      }
+      else {
+        self.settingsBottomSheet.open()
+      }
+      
       self.textSettingsVC.updateButtonValuesOnOpen()
     }
   }
@@ -357,12 +363,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   public func applyStyles() {
-      slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
-      settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
-      settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
-      writeTazApiCss{
-        super.reloadAllWebViews()
-      }
+    slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
+    settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
+    settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
+    self.collectionView.backgroundColor = Const.SetColor.CTBackground.color
+    self.view.backgroundColor = Const.SetColor.CTBackground.color
+    writeTazApiCss{
+      super.reloadAllWebViews()
+    }
   }
   
   open override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -378,6 +386,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     slider.close()
+    self.settingsBottomSheet.close()
     if let overlay = imageOverlay { overlay.close(animated: false) }
   }
 

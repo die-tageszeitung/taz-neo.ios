@@ -8,7 +8,20 @@
 import UIKit
 import NorthLib
 
+extension ConnectTazIdView : UITextFieldDelegate {
+  public func textFieldDidBeginEditing(_ textField: UITextField) {
+    if exchangeResponder == false {
+      exchangeResponder = true
+      firstnameInput.becomeFirstResponder()
+      textField.becomeFirstResponder()
+      exchangeResponder = false
+    }
+  }
+}
+
 public class ConnectTazIdView : FormView{
+  
+  var exchangeResponder = false
   
   var mailInput = TazTextField(placeholder: Localized("login_email_hint"),
                                textContentType: .emailAddress,
@@ -60,6 +73,12 @@ public class ConnectTazIdView : FormView{
   }()
   
   override func createSubviews() -> [UIView] {
+    if #available(iOS 12.0, *) {
+      passInput.textContentType = .newPassword
+    }
+    passInput.delegate = self
+    pass2Input.delegate = self
+    
     return [
       TazHeader(),
       Padded.Label(title: Localized("taz_id_account_create_intro")),
