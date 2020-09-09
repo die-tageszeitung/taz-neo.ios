@@ -11,7 +11,7 @@ import NorthLib
 fileprivate var TopFont = UIFont.boldSystemFont(ofSize: 24)
 fileprivate var BottomFont = UIFont.boldSystemFont(ofSize: 18)
 
-open class LoadingView: UIView {
+open class LoadingView: UIView, UIStyleChangeDelegate {
   
   private var stack = UIStackView()
   private var topLabel = UILabel()
@@ -31,6 +31,7 @@ open class LoadingView: UIView {
   public func stop() { spinner.stopAnimating() }
   
   private func setup() {
+    registerForStyleUpdates()
     backgroundColor = UIColor.clear
     topLabel.font = TopFont
     topLabel.numberOfLines = 0
@@ -38,10 +39,11 @@ open class LoadingView: UIView {
     bottomLabel.font = BottomFont
     bottomLabel.numberOfLines = 0
     bottomLabel.textAlignment = .center
+
     if #available(iOS 13.0, *) {
       spinner.style = .large
     }
-    spinner.color = UIColor.black
+
     spinner.startAnimating()
     for view in [topLabel, spinner, bottomLabel] {
       stack.addArrangedSubview(view)
@@ -50,6 +52,12 @@ open class LoadingView: UIView {
     stack.distribution = .fillEqually
     addSubview(stack)
     pin(stack, to: self)
+  }
+  
+  public func applyStyles(){
+    spinner.color = Const.SetColor.CTDate.color
+    topLabel.textColor = Const.SetColor.CTDate.color
+    bottomLabel.textColor = Const.SetColor.CTDate.color
   }
   
   public override init(frame: CGRect) {

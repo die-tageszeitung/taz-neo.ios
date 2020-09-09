@@ -363,12 +363,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   public func applyStyles() {
-      slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
-      settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
-      settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
-      writeTazApiCss{
-        super.reloadAllWebViews()
-      }
+    slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
+    settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
+    settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
+    self.collectionView.backgroundColor = Const.SetColor.CTBackground.color
+    self.view.backgroundColor = Const.SetColor.CTBackground.color
+    writeTazApiCss{
+      super.reloadAllWebViews()
+    }
   }
   
   open override var preferredStatusBarStyle: UIStatusBarStyle {
