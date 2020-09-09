@@ -87,7 +87,8 @@ public class TrialSubscriptionView : FormView{
         Localized("fragment_login_request_test_subscription_existing_account")),
       agbAcceptTV,
       registerButton,
-      cancelButton
+      cancelButton,
+      registerTipsButton
     ]
   }
   

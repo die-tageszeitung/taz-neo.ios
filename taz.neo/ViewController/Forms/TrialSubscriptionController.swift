@@ -179,6 +179,8 @@ class TrialSubscriptionRequestNameCtrl : TrialSubscriptionController{
          ui.agbAcceptTV,
          ui.registerButton,
          ui.cancelButton,
+         ui.registerTipsButton
+
        ]
      }
   
