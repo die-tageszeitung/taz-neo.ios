@@ -384,6 +384,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     slider.close()
+    self.settingsBottomSheet.close()
     if let overlay = imageOverlay { overlay.close(animated: false) }
   }
 
