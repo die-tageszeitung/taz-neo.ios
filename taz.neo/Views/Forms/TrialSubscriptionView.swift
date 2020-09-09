@@ -17,11 +17,8 @@ extension TrialSubscriptionView : UITextFieldDelegate {
       textField.becomeFirstResponder()
       exchangeResponder = false
     }
-    
   }
 }
-
-
 
 public class TrialSubscriptionView : FormView{
   
@@ -60,7 +57,6 @@ public class TrialSubscriptionView : FormView{
   
   var cancelButton =  Padded.Button(type:.outline, title: Localized("cancel_button"))
   
-  
   // MARK: agbAcceptLabel with Checkbox
   lazy var agbAcceptTV : CheckboxWithText = {
     let view = CheckboxWithText()
@@ -71,7 +67,7 @@ public class TrialSubscriptionView : FormView{
     view.textView.textColor = Const.SetColor.HText.color
     return view
   }()
-  
+    
   override func createSubviews() -> [UIView] {
     if #available(iOS 12.0, *) {
       passInput.textContentType = .newPassword
