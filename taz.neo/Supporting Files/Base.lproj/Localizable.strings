@@ -181,13 +181,10 @@
 "toast_login_with_email" = "Bitte melden Sie sich mit Ihrer taz-ID an!";
 
 /* from website */
-"password_too_short" = "Dein Passwort ist zu kurz (min. 8 Zeichen)!";
+"password_too_short" = "Ihr Passwort ist zu kurz (min. 8 Zeichen)!";
 
 /* zum Probeabo */
 "trial_subscroption" = "Probeabo abschließen";
-
-/* Das öffnend der URL wurde verhindert, wenn delegate gesetzt */
-"prevent_open_url" = "Das öffnend der %@ wurde verhindert!";
 
 /* Header tazID ohne Abo ID */
 "unconnected_taz_id_header" = "Bisher ist kein Abo mit Ihrer taz-ID verknüpft.\n\nMöchten Sie ein bestehendes Abo mit Ihrer taz-ID verknüpfen?";
@@ -229,7 +226,7 @@
 "invalid_chars" = "Enthält ungültige Zeichen";
 
 /* Vor und Nachname zu viele Zeichen */
-"name_too_long_issue" = "Vor- und Nachname zusammen darf leider nur 25 Zeichen lang sein. Bitte überprüfen Sie Ihre Eingaben.";
+"name_too_long_issue" = "Der Vor- und Nachname dürfen zusammen leider nur 25 Zeichen lang sein. Bitte überprüfen Sie Ihre Eingaben.";
 
 /* Vor und Nachname zu viele Zeichen */
 "too_many_chars" = "Zu viele Zeichen";
