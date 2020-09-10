@@ -181,7 +181,8 @@ class AskForTrial_Controller: FormsController {
                target: self, action: #selector(handleTrialSubscroption)),
       Padded.Button(type:.outline,
                title: Localized("cancel_button"),
-               target: self, action: #selector(handleBack))
+               target: self, action: #selector(handleBack)),
+      ui.registerTipsButton
     ]
   }
   
