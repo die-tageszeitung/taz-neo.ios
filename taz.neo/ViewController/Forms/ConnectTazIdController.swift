@@ -17,7 +17,6 @@ class ConnectTazIdController : FormsController {
   // MARK: vars/const
   var aboId:String
   var aboIdPassword:String
-  var onMissingNameRequested:(()->())?
   
   fileprivate var contentView = ConnectTazIdView()
   override var ui : ConnectTazIdView { get { return contentView }}
@@ -121,9 +120,8 @@ class ConnectTazIdController : FormsController {
                                          tmpPassword: tazIdPassword,
                                          requestSoon: true,
                                          resultSuccessText: Localized("tazid_connect_create_successful_header"))
-            case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
-              if self.onMissingNameRequested == nil { fallthrough }
-              self.onMissingNameRequested?()
+            case .noFirstname, .noSurname:/// Only for trial subscriptions!
+              fallthrough
             case .subscriptionIdNotValid:
               fallthrough
             case .invalidConnection:/// AboId valid but connected to different tazId
@@ -178,20 +176,6 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
                target: self,
                action: #selector(handlePwForgot))
     ]
-    
-    self.onMissingNameRequested = {
-      ///#Attention: Yes its correct! Do not use ConnectTazIdController aboId!
-      let aboId = self.ui.mailInput.text ?? ""
-      let aboIdPassword = self.ui.passInput.text ?? ""
-      
-      let ctrl
-        = ConnectTazIdRequestNameCtrl(tazId: tazId,
-                                      tazIdPassword: tazIdPassword,
-                                      aboId:aboId,
-                                      aboIdPassword: aboIdPassword,
-                                      auth: auth)
-      self.modalFlip(ctrl)
-    }
   }
   
   required init?(coder: NSCoder) {
@@ -299,19 +283,6 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
                   target: self,
                   action: #selector(handlePwForgot))
     ]
-    
-    self.onMissingNameRequested = {
-      let tazId = self.ui.mailInput.text ?? ""
-      let tazIdPassword = self.ui.passInput.text ?? ""
-      
-      let ctrl
-        = ConnectTazIdRequestNameCtrl(tazId: tazId,
-                                      tazIdPassword: tazIdPassword,
-                                      aboId:aboId,
-                                      aboIdPassword: aboIdPassword,
-                                      auth: auth)
-      self.modalFlip(ctrl)
-    }
   }
   
   required init?(coder: NSCoder) {
