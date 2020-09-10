@@ -112,7 +112,7 @@ class ConnectTazIdController : FormsController {
             case .nameTooLong:
               self.ui.lastnameInput.bottomMessage = Localized("too_many_chars")
               self.ui.firstnameInput.bottomMessage = Localized("too_many_chars")
-              Toast.show(Localized("name_too_long_issue"))
+              Alert.message(title: Localized("info"), message: Localized("name_too_long_issue"))
             case .waitForProc:// AboId not verified, server will confirm later (using push/poll)
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Localized("fragment_login_success_login_back_article"),

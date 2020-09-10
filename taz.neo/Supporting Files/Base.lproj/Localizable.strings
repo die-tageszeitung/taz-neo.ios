@@ -28,8 +28,8 @@
 /* login erforderlich */
 "login_required" = "Bitte melden Sie sich an, um weiterzulesen.";
 
-/* login erforderlich */
 "help" = "Hilfe";
+"info" = "Hinweis";
 
 /* translation from Android */
 "trial_subscription_title" = "Sie möchten die digitale Ausgabe der taz 6 Wochen kostenlos testen?";

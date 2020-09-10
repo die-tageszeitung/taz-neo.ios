@@ -125,7 +125,8 @@ class TrialSubscriptionController : FormsController {
             case .nameTooLong:
                self.ui.lastnameInput.bottomMessage = Localized("too_many_chars")
                self.ui.firstnameInput.bottomMessage = Localized("too_many_chars")
-               Toast.show(Localized("name_too_long_issue"))
+               Alert.message(title: Localized("info"), message: Localized("name_too_long_issue"))
+//               Toast.show(Localized("name_too_long_issue"))
             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
               if self.onMissingNameRequested == nil { fallthrough }
               self.onMissingNameRequested?()
