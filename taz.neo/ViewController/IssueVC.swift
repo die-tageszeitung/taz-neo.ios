@@ -326,7 +326,8 @@ public class IssueVC: UIViewController, IssueInfo {
       self?.downloadIssue(index: idx)
     }
     issueCarousel.onLabelTap { idx in
-      Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
+      self.showDatePicker()
+//      Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
     }
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
       self.exportMoment(issue: self.issue)
@@ -358,6 +359,13 @@ public class IssueVC: UIViewController, IssueInfo {
       issuesReceived(issues: issues)
     }
   }
+
+  
+   func showDatePicker(){
+    let mp = MonthPicker(targetView: issueCarousel)
+    mp.txtDatePicker.becomeFirstResponder()
+   }
+   
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
