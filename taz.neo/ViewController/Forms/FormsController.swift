@@ -92,6 +92,9 @@ class FormsResultController: UIViewController {
   private var contentView = FormView()
   var dismissAllFinishedClosure: (()->())?
   
+  @DefaultBool(key: "offerTrialSubscription")
+  var offerTrialSubscription: Bool
+  
   private var messageLabel = Padded.Label(paddingTop: 30, paddingBottom: 15)
   private var messageLabel2 = Padded.Label(paddingTop: 15, paddingBottom: 30)
   

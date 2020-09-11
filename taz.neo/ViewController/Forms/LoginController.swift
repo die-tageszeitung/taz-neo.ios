@@ -165,24 +165,44 @@ class AskForTrial_Controller: FormsController {
     self.tazId = tazId
     self.tazIdPass = tazIdPass
     super.init(auth)
-    ui.views = [
-      TazHeader(),
-      Padded.Label(title: Localized("unconnected_taz_id_header"),
-              paddingTop: 30,
-              paddingBottom: 30
-      ),
-      Padded.Button(title: Localized("connect_abo_id"),
-               target: self, action: #selector(handleConnectAboId)),
-      Padded.Label(title: Localized("ask_for_trial_subscription_title"),
-              paddingTop: 30,
-              paddingBottom: 30
-      ),
-      Padded.Button(title: Localized("trial_subscroption"),
-               target: self, action: #selector(handleTrialSubscroption)),
-      Padded.Button(type:.outline,
-               title: Localized("cancel_button"),
-               target: self, action: #selector(handleBack))
-    ]
+    
+    if offerTrialSubscription {
+      // Dialog mit Probeabo
+      ui.views = [
+        TazHeader(),
+        Padded.Label(title: Localized("unconnected_taz_id_header"),
+                paddingTop: 30,
+                paddingBottom: 30
+        ),
+        Padded.Button(title: Localized("connect_abo_id"),
+                 target: self, action: #selector(handleConnectAboId)),
+        Padded.Label(title: Localized("ask_for_trial_subscription_title"),
+                paddingTop: 30,
+                paddingBottom: 30
+        ),
+        Padded.Button(title: Localized("trial_subscroption"),
+                 target: self, action: #selector(handleTrialSubscroption)),
+        Padded.Button(type:.outline,
+                 title: Localized("cancel_button"),
+                 target: self, action: #selector(handleBack)),
+        ui.registerTipsButton
+      ]
+    }
+    else {
+      // Dialog ohne Probeabo
+      ui.views = [
+        TazHeader(),
+        Padded.Label(title: Localized("unconnected_taz_id_header"),
+                paddingTop: 30,
+                paddingBottom: 30
+        ),
+        Padded.Button(title: Localized("connect_abo_id"),
+                 target: self, action: #selector(handleConnectAboId)),
+        Padded.Button(type:.outline,
+                 title: Localized("cancel_button"),
+                 target: self, action: #selector(handleBack))
+      ]
+    }
   }
   
   required init?(coder: NSCoder) {
