@@ -172,18 +172,34 @@ class TrialSubscriptionRequestNameCtrl : TrialSubscriptionController{
     super.init(auth)
     
     ui.registerButton.setTitle(Localized("send_button"), for: .normal)
-       ui.views = [
-         TazHeader(),
-         Padded.Label(title: Localized("fragment_login_missing__names_header")),///#TODO
-         ui.firstnameInput,
-         ui.lastnameInput,
-         ui.agbAcceptTV,
-         ui.registerButton,
-         ui.cancelButton,
-         ui.registerTipsButton
-
-       ]
-     }
+    
+    if offerTrialSubscription {
+      // Dialog mit Probeabo
+      ui.views = [
+        TazHeader(),
+        Padded.Label(title: Localized("fragment_login_missing__names_header")),
+        ui.firstnameInput,
+        ui.lastnameInput,
+        ui.agbAcceptTV,
+        ui.registerButton,
+        ui.cancelButton,
+        ui.registerTipsButton
+        
+      ]
+    }
+    else {
+      // Dialog ohne Probeabo
+      ui.views = [
+        TazHeader(),
+        Padded.Label(title: Localized("fragment_login_missing__names_header")),
+        ui.firstnameInput,
+        ui.lastnameInput,
+        ui.agbAcceptTV,
+        ui.registerButton,
+        ui.cancelButton,
+      ]
+    }
+  }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
