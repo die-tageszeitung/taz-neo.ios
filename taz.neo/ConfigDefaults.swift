@@ -35,5 +35,5 @@ public let ConfigDefaults = Defaults.Values([
   // Allow automatic download over mobile networks
   "autoMobileDownloads" : "false",
   // Allow trial subscriptions
-  "offerTrialSubscription" : "true",
+  "offerTrialSubscription" : "false",
 ])
