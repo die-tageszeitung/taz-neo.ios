@@ -45,7 +45,6 @@ public class LoginView : FormView{
         idInput,
         passInput,
         loginButton,
-        Padded.Label(title: Localized("ask_for_trial_subscription_title")),
         registerButton,
         passForgottButton,
         helpLabel
@@ -63,8 +62,6 @@ public class LoginView : FormView{
         helpLabel
       ]
      }
-    
-    
   }
   
   // MARK: validate()
