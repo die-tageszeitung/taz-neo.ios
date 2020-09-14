@@ -473,6 +473,28 @@ open class GqlFeeder: Feeder, DoesLog {
   /// The GraphQL server delivering the Feeds
   public var gqlSession: GraphQlSession?
   
+  let deviceType = "apple"
+  lazy var deviceInfoString : String = {
+    var deviceFormat = ""
+    switch Device.singleton {
+      case .iPad :  deviceFormat = "tablet"
+      case .iPhone: deviceFormat = "mobile"
+      default:deviceFormat = "desktop"
+    }
+    
+    //Taz App (de.taz.taz.2) Version 0.4.9 (#2020090951)
+    let appVersion = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
+    return ""
+      + "deviceType: \(deviceType), "   //apple Default
+      + "deviceName: \"\(UIDevice().model)\", " // e.g.: iPhone iPad iPod touch (Ringos iPhone)
+      //e.g. iPhone12,3 (modelName) for iPhone 11 Pro (modelNameReadable)
+      + "deviceVersion: \"\(Utsname.machineModel)\", "//e.g. iPhone 11 Pro
+      + "deviceFormat: \(deviceFormat), " //e.g.: mobile, tablet
+      + "appVersion: \"\(appVersion)\", " //e.g.: Taz App (de.taz.taz.2) Version 0.4.9 (#2020090951)
+      + "deviceOS: \"iOS \(UIDevice.current.systemVersion)\""
+  }()
+  
+  
   // The FeederStatus
   var status: GqlFeederStatus?
   
@@ -530,7 +552,7 @@ open class GqlFeeder: Feeder, DoesLog {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
-      authToken: authentificationToken(user:"\(account)", password: "\(password)") {
+      authToken: authentificationToken(\(self.deviceInfoString), user:"\(account)", password: "\(password)") {
         \(GqlAuthToken.fields)
       }
     """
@@ -554,32 +576,18 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   
   
-  /// Return device info as specifi server
-  public func deviceInfo() -> (type: String, format: String) {
-    var deviceFormat: String
-    switch Device.singleton {
-    case .iPad :  deviceFormat = "tablet"
-    case .iPhone: deviceFormat = "mobile"
-    default: deviceFormat = "desktop"
-    }
-    return ("apple", deviceFormat)
-  }
-  
   /// Send server notification/device/user infos after successful authentication
   public func notification(pushToken: String?, oldToken: String?, 
     isTextNotification: Bool, closure: @escaping(Result<Bool,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
-    let (deviceType, deviceFormat) = deviceInfo()
     let pToken = (pushToken == nil) ? "" : "pushToken: \"\(pushToken!)\","
     let oToken = (oldToken == nil) ? "" : "oldToken: \"\(oldToken!)\","
     let request = """
       notification(\(pToken), \(oToken) 
                    textNotification: \(isTextNotification ? "true" : "false"),
-                   deviceType: \(deviceType), 
-                   deviceFormat: \(deviceFormat), 
-                   appVersion: "\(App.bundleVersion)-\(App.buildNumber)")
+                   \(deviceInfoString)
     """
     gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
       var ret: Result<Bool,Error>
@@ -602,12 +610,11 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let pushToken = pushToken else { 
       closure(.failure(error("Notification not allowed"))); return
     }
-    let (deviceType, _) = deviceInfo()
     let request = """
       testNotification(
         pushToken: "\(pushToken)",
         sendRequest: \(request.external),
-        deviceType: \(deviceType),
+        \(deviceInfoString),
         isSilent: true
       )
     """
@@ -761,18 +768,13 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
-    let (deviceType, deviceFormat) = deviceInfo()
     let request = """
     downloadStart(
       feedName: "\(feed.name)", 
       issueDate: "\(self.date2a(issue.date))",
-      deviceName: "\(Utsname.machine) (\(UIDevice.current.name))",
-      deviceVersion: "\(UIDevice.current.systemName) \(UIDevice.current.systemVersion)",
-      appVersion: "\(App.bundleVersion)-\(App.buildNumber)",
       isPush: \(isPush ? "true" : "false"),
       installationId: "\(App.installationId)",
-      deviceFormat: \(deviceFormat), 
-      deviceType: \(deviceType)
+       \(deviceInfoString)
     )
     """
     gqlSession.mutation(graphql: request, type: [String:String].self) { (res) in
@@ -794,7 +796,7 @@ open class GqlFeeder: Feeder, DoesLog {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
-      downloadStop(downloadId: "\(dlId)", downloadTime: \(seconds))
+      downloadStop(\(deviceInfoString), downloadId: "\(dlId)", downloadTime: \(seconds))
     """
     gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
       var ret: Result<Bool,Error>
