@@ -176,10 +176,6 @@ class AskForTrial_Controller: FormsController {
         ),
         Padded.Button(title: Localized("connect_abo_id"),
                  target: self, action: #selector(handleConnectAboId)),
-        Padded.Label(title: Localized("ask_for_trial_subscription_title"),
-                paddingTop: 30,
-                paddingBottom: 30
-        ),
         Padded.Button(title: Localized("trial_subscroption"),
                  target: self, action: #selector(handleTrialSubscroption)),
         Padded.Button(type:.outline,

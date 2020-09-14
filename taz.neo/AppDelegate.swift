@@ -15,6 +15,7 @@ class AppDelegate: NotifiedDelegate {
   var wantLogging = false
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    updateDefaultsIfNeeded()
     self.window = UIWindow(frame: UIScreen.main.bounds)
     self.window?.rootViewController = MainNC()
 //    self.window?.rootViewController = TestController()
@@ -37,6 +38,10 @@ class AppDelegate: NotifiedDelegate {
         = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
     } 
     return true
+  }
+  
+  func updateDefaultsIfNeeded(){
+    Defaults.singleton["offerTrialSubscription"]=nil
   }
   
   /// Enable Logging button on home screen
