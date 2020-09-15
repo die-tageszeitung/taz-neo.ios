@@ -113,7 +113,7 @@ extension GqlFeeder {
     }
     let request = """
       subscriptionInfo: 
-        subscriptionPoll(installationId: "\(installationId)") {
+        subscriptionPoll(\(deviceInfoString), installationId: "\(installationId)") {
           \(GqlSubscriptionInfo.fields)
         }
     """
@@ -136,7 +136,7 @@ extension GqlFeeder {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
-      checkSubscriptionId(subscriptionId: \(aboId), password: "\(password)") {
+      checkSubscriptionId(\(self.deviceInfoString), subscriptionId: \(aboId), password: "\(password)"){
         \(GqlAuthInfo.fields)
       }
     """
@@ -166,7 +166,7 @@ extension GqlFeeder {
     if let str = surname { args += ", surname: \"\(str)\"" }
     if let str = firstName { args += ", firstName: \"\(str)\"" }
     if let str = pushToken { args += ", pushToken: \"\(str)\"" }
-    if let str = deviceType { args += ", deviceType: \(str)" }
+    args += ", \(deviceInfoString)"
     let request = """
       subscriptionId2tazId(\(args)) {
         \(GqlSubscriptionInfo.fields)
@@ -197,7 +197,7 @@ extension GqlFeeder {
     if let str = surname { args += ", surname: \"\(str)\"" }
     if let str = firstName { args += ", firstName: \"\(str)\"" }
     if let str = pushToken { args += ", pushToken: \"\(str)\"" }
-    if let str = deviceType { args += ", deviceType: \(str)" }
+    args += ", \(deviceInfoString)"
     let request = """
       trialSubscription(\(args)) {
         \(GqlSubscriptionInfo.fields)
@@ -223,7 +223,7 @@ extension GqlFeeder {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
-      passwordReset(eMail: "\(email)")
+      passwordReset(\(deviceInfoString), eMail: "\(email)")
     """
     gqlSession.mutation(graphql: request, type: [String:GqlPasswordResetInfo].self) { (res) in
       var ret: Result<GqlPasswordResetInfo,Error>
@@ -244,7 +244,7 @@ extension GqlFeeder {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
-      subscriptionReset(subscriptionId: \(aboId)) {
+      subscriptionReset(\(deviceInfoString), subscriptionId: \(aboId)) {
         \(GqlSubscriptionResetInfo.fields)
       }
     """
@@ -267,7 +267,7 @@ extension GqlFeeder {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
-      unlinkSubscriptionId(subscriptionId: \(aboId), password: "\(password)") {
+      unlinkSubscriptionId(\(self.deviceInfoString), subscriptionId: \(aboId), password: "\(password)") {
         \(GqlAuthInfo.fields)      
       }
     """
