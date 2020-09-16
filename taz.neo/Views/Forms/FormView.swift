@@ -12,9 +12,6 @@ import NorthLib
 // MARK: - FormularView
 public class FormView: UIView {
   
-  @DefaultBool(key: "offerTrialSubscription")
-  var offerTrialSubscription: Bool
-  
   let DefaultFontSize = CGFloat(16)
   
   // MARK: Container for Content in ScrollView

@@ -36,32 +36,17 @@ public class LoginView : FormView{
     helpLabel.onTapping {  _ in
       Alert.message(title: Localized("help"), message: Localized("article_read_onreadon"))
     }
-    
-    if offerTrialSubscription {
-       // Dialog mit Probeabo
-      return   [
-        TazHeader(),
-        Padded.Label(title: Localized("login_required")),
-        idInput,
-        passInput,
-        loginButton,
-        registerButton,
-        passForgottButton,
-        helpLabel
-      ]
-     }
-     else {
-       // Dialog ohne Probeabo
-      return   [
-        TazHeader(),
-        Padded.Label(title: Localized("login_required")),
-        idInput,
-        passInput,
-        loginButton,
-        passForgottButton,
-        helpLabel
-      ]
-     }
+    return   [
+      TazHeader(),
+      Padded.Label(title: Localized("login_required")),
+      idInput,
+      passInput,
+      loginButton,
+      Padded.Label(title: Localized("ask_for_trial_subscription_title")),
+      registerButton,
+      passForgottButton,
+      helpLabel
+    ]
   }
   
   // MARK: validate()

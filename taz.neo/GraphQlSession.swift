@@ -84,7 +84,8 @@ open class GraphQlSession: HttpSession {
     guard let url = self.url else { return }
     let quoted = "\(requestType) {\(graphql)}".quote()
     let str = "{ \"query\": \(quoted) }"
-    //debug("Sending: \"\(str)\"")
+    debug("Sending: \"\(str)\"")
+      debug(graphql)
     post(url, data: str.data(using: .utf8)!) { res in
       var result: Result<T,Error>
       switch res {

@@ -351,21 +351,57 @@ public class IssueVC: UIViewController, IssueInfo {
       if idx == (self.issueCarousel.carousel.count - 10) { self.getCurrentIssues() }
     }
     let nc = NotificationCenter.default
-    nc.addObserver(self, selector: #selector(goingBackground), 
-      name: UIApplication.willResignActiveNotification, object: nil)
-    nc.addObserver(self, selector: #selector(goingForeground), 
-      name: UIApplication.willEnterForegroundNotification, object: nil)
+    nc.addObserver(self, selector: #selector(goingBackground),
+                   name: UIApplication.willResignActiveNotification, object: nil)
+    nc.addObserver(self, selector: #selector(goingForeground),
+                   name: UIApplication.willEnterForegroundNotification, object: nil)
     if let issues = delegate.ovwIssues, issues.count > 0 {
       issuesReceived(issues: issues)
     }
   }
-
   
-   func showDatePicker(){
-    let mp = MonthPicker(targetView: issueCarousel)
-    mp.txtDatePicker.becomeFirstResponder()
-   }
-   
+  func handeleMonthPickerDone(){
+    overlay?.close(animated: true)
+  }
+  
+  func handeleMonthPickerCancel(){
+    overlay?.close(animated: true)
+  }
+  
+  var overlay : Overlay?
+  func showDatePicker(){
+    let mpc = MonthPickerController(onDoneHandler: {[weak self] in
+      guard let self = self else {return}
+      self.handeleMonthPickerDone()
+    }, onCancelHandler:  {[weak self] in
+         guard let self = self else {return}
+      self.handeleMonthPickerCancel()
+       })
+    //      mpc.view.backgroundColor = UIColor.yellow.withAlphaComponent(0.2)
+    
+    overlay = Overlay(overlay:mpc , into: self)
+    overlay?.enablePinchAndPan = false
+    guard let overlay = overlay else {return}
+    
+    overlay.maxAlpha = 0.4
+    mpc.view.setNeedsUpdateConstraints()
+    mpc.view.updateConstraintsIfNeeded()
+    mpc.view.setNeedsLayout()
+    mpc.view.layoutIfNeeded()
+    var toFrame = mpc.content.frame
+    toFrame.origin.y = toFrame.origin.y - 20.0
+    
+    overlay.openAnimated(fromFrame: issueCarousel.label.frame, toFrame: toFrame)
+    
+    overlay.onClose {
+      // reset orientation to portrait
+      UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+      //           self.imageOverlay = nil
+    }
+    //         imgVC.toClose {
+    //           self.imageOverlay!.close(animated: true, toBottom: true)
+    //         }
+  }
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)

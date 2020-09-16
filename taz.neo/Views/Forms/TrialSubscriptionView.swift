@@ -44,13 +44,13 @@ public class TrialSubscriptionView : FormView{
   var firstnameInput = TazTextField(placeholder: Localized("login_first_name_hint"),
                                     textContentType: .givenName,
                                     enablesReturnKeyAutomatically: true,
-                                    keyboardType: .default,
+                                    keyboardType: .namePhonePad,
                                     autocapitalizationType: .words)
   
   var lastnameInput = TazTextField(placeholder: Localized("login_surname_hint"),
                                    textContentType: .familyName,
                                    enablesReturnKeyAutomatically: true,
-                                   keyboardType: .default,
+                                   keyboardType: .namePhonePad,
                                    autocapitalizationType: .words)
   
   var registerButton = Padded.Button(title: Localized("register_button"))
