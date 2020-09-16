@@ -193,7 +193,7 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
   }
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
-    let logView = viewLogger.logView
+//    let logView = viewLogger.logView
     let actions: [UIAlertAction] = [
       Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
       Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
@@ -201,17 +201,17 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
       Alert.action("Abo-Verknüpfung löschen") {_ in self.unlinkSubscriptionId() },
       Alert.action("Abo-Push anfordern") {_ in self.testNotification(type: NotificationType.subscription) },
       Alert.action("Download-Push anfordern") {_ in self.testNotification(type: NotificationType.newIssue) },
-      Alert.action("Protokoll an/aus") {_ in
-        if logView.isHidden {
-          self.view.bringSubviewToFront(logView)
-          logView.scrollToBottom()
-          logView.isHidden = false
-        }
-        else {
-          self.view.sendSubviewToBack(logView)
-          logView.isHidden = true
-        }
-      }
+//      Alert.action("Protokoll an/aus") {_ in
+//        if logView.isHidden {
+//          self.view.bringSubviewToFront(logView)
+//          logView.scrollToBottom()
+//          logView.isHidden = false
+//        }
+//        else {
+//          self.view.sendSubviewToBack(logView)
+//          logView.isHidden = true
+//        }
+//      }
     ]
     Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)",
       actions: actions)
