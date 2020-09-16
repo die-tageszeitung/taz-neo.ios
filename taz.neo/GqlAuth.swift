@@ -160,9 +160,12 @@ extension GqlFeeder {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
-    // TODO: aboId with quotes
-    var args = "tazId: \"\(tazId)\", idPw: \"\(password)\", subscriptionId: \(aboId)"
-    args += ", subscriptionPw: \"\(aboIdPW)\", installationId: \"\(installationId)\""
+    let aid = Int32(aboId) ?? 0
+    var args = """
+    tazId: \(tazId.quote()), idPw: \(password.quote()),
+    subscriptionId: \(aid), subscriptionPw: \(aboIdPW.quote()), 
+    installationId: "\(installationId)"
+    """
     if let str = surname { args += ", surname: \"\(str)\"" }
     if let str = firstName { args += ", firstName: \"\(str)\"" }
     if let str = pushToken { args += ", pushToken: \"\(str)\"" }
@@ -192,8 +195,10 @@ extension GqlFeeder {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
-    // TODO: aboId with quotes
-    var args = "tazId: \"\(tazId)\", idPw: \"\(password)\", installationId: \"\(installationId)\""
+    var args = """
+    tazId: \(tazId.quote()), idPw: \(password.quote()), 
+    installationId: "\(installationId)"
+    """
     if let str = surname { args += ", surname: \"\(str)\"" }
     if let str = firstName { args += ", firstName: \"\(str)\"" }
     if let str = pushToken { args += ", pushToken: \"\(str)\"" }
@@ -266,8 +271,9 @@ extension GqlFeeder {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
+    let id = Int32(aboId) ?? 0
     let request = """
-      unlinkSubscriptionId(\(self.deviceInfoString), subscriptionId: \(aboId), password: "\(password)") {
+    unlinkSubscriptionId(\(self.deviceInfoString), subscriptionId: \(id), password: \(password.quote())) {
         \(GqlAuthInfo.fields)      
       }
     """

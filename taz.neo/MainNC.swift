@@ -59,7 +59,10 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
     logView.pinToView(view)
     Log.append(logger: consoleLogger, /*viewLogger,*/ fileLogger)
     Log.minLogLevel = .Debug
-    Log.onFatal { msg in self.log("fatal closure called, error id: \(msg.id)") }
+    Log.onFatal { msg in 
+      self.log("fatal closure called, error id: \(msg.id)") 
+      self.reportFatalError(err: msg)
+    }
     net.onChange { (flags) in self.log("net changed: \(flags)") }
     net.whenUp { self.log("Network up") }
     net.whenDown { self.log("Network down") }
@@ -111,32 +114,35 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
     }
   }
   
-  func produceErrorReport(recipient: String) {
-    let mail =  MFMailComposeViewController()
-    let screenshot = UIWindow.screenshot?.jpeg
-    let logData = fileLogger.data
-    mail.mailComposeDelegate = self
-    mail.setToRecipients([recipient])
-    
-    var tazIdText = ""
-    let data = DefaultAuthenticator.getUserData()
-    if let tazID = data.id, tazID.isEmpty == false {
-      tazIdText = " taz-ID: \(tazID)"
+  func produceErrorReport(recipient: String, subject: String = "Feedback", 
+                          completion: (()->())? = nil) {
+    if MFMailComposeViewController.canSendMail() {
+      let mail =  MFMailComposeViewController()
+      let screenshot = UIWindow.screenshot?.jpeg
+      let logData = fileLogger.data
+      mail.mailComposeDelegate = self
+      mail.setToRecipients([recipient])
+      
+      var tazIdText = ""
+      let data = DefaultAuthenticator.getUserData()
+      if let tazID = data.id, tazID.isEmpty == false {
+        tazIdText = " taz-ID: \(tazID)"
+      }
+      
+      mail.setSubject("\(subject) \"\(App.name)\" (iOS)\(tazIdText)")
+      mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
+        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
+        isHTML: false)
+      if let screenshot = screenshot {
+        mail.addAttachmentData(screenshot, mimeType: "image/jpeg",
+                               fileName: "taz.neo-screenshot.jpg")
+      }
+      if let logData = logData {
+        mail.addAttachmentData(logData, mimeType: "text/plain",
+                               fileName: "taz.neo-logfile.txt")
+      }
+      present(mail, animated: true, completion: completion)
     }
-    
-    mail.setSubject("Feedback \"\(App.name)\" (iOS)\(tazIdText)")
-    mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-      "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
-      isHTML: false)
-    if let screenshot = screenshot {
-      mail.addAttachmentData(screenshot, mimeType: "image/jpeg",
-                             fileName: "taz.neo-screenshot.jpg")
-    }
-    if let logData = logData {
-      mail.addAttachmentData(logData, mimeType: "text/plain",
-                             fileName: "taz.neo-logfile.txt")
-    }
-    present(mail, animated: true)
   }
   
   func mailComposeController(_ controller: MFMailComposeViewController,
@@ -160,17 +166,34 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
     Alert.confirm(title: "Rückmeldung",
       message: "Wollen Sie uns eine Fehlermeldung senden oder haben Sie einen " +
                "Kommentar zu unserer App?") { yes in
-                if yes {
-                  var recipient = "app@taz.de"
-                  if recog.numberOfTouchesRequired == 3 { recipient = "ios-entwickler@taz.de" }
-                  self.produceErrorReport(recipient: recipient)
-                }
+      if yes {
+        var recipient = "app@taz.de"
+        if recog.numberOfTouchesRequired == 3 { recipient = "ios-entwickler@taz.de" }
+        self.produceErrorReport(recipient: recipient, subject: "Interner Fehler")
+      }
+      else { self.isErrorReporting = false }
+    }
+  }
+  
+  func reportFatalError(err: Log.Message) {
+    guard !isErrorReporting else { return }
+    isErrorReporting = true
+    if self.presentedViewController != nil {
+      dismiss(animated: false)
+    }
+    Alert.confirm(title: "Interner Fehler",
+                  message: "Es liegt ein schwerwiegender interner Fehler vor, möchten Sie uns " +
+                           "darüber mit einer Nachricht informieren?\n" +
+                           "Interne Fehlermeldung:\n\(err)") { yes in
+      if yes {
+        self.produceErrorReport(recipient: "app@taz.de", subject: "Interner Fehler") 
+      }
       else { self.isErrorReporting = false }
     }
   }
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
-    let logView = viewLogger.logView
+//    let logView = viewLogger.logView
     let actions: [UIAlertAction] = [
       Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
       Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
@@ -178,17 +201,17 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
       Alert.action("Abo-Verknüpfung löschen") {_ in self.unlinkSubscriptionId() },
       Alert.action("Abo-Push anfordern") {_ in self.testNotification(type: NotificationType.subscription) },
       Alert.action("Download-Push anfordern") {_ in self.testNotification(type: NotificationType.newIssue) },
-      Alert.action("Protokoll an/aus") {_ in
-        if logView.isHidden {
-          self.view.bringSubviewToFront(logView)
-          logView.scrollToBottom()
-          logView.isHidden = false
-        }
-        else {
-          self.view.sendSubviewToBack(logView)
-          logView.isHidden = true
-        }
-      }
+//      Alert.action("Protokoll an/aus") {_ in
+//        if logView.isHidden {
+//          self.view.bringSubviewToFront(logView)
+//          logView.scrollToBottom()
+//          logView.isHidden = false
+//        }
+//        else {
+//          self.view.sendSubviewToBack(logView)
+//          logView.isHidden = true
+//        }
+//      }
     ]
     Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)",
       actions: actions)
