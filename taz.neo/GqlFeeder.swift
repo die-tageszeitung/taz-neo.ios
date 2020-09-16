@@ -588,6 +588,7 @@ open class GqlFeeder: Feeder, DoesLog {
       notification(\(pToken), \(oToken) 
                    textNotification: \(isTextNotification ? "true" : "false"),
                    \(deviceInfoString)
+                  )
     """
     gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
       var ret: Result<Bool,Error>
