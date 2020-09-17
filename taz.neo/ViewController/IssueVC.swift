@@ -383,15 +383,11 @@ public class IssueVC: UIViewController, IssueInfo {
     overlay?.enablePinchAndPan = false
     guard let overlay = overlay else {return}
     
-    overlay.maxAlpha = 0.4
-    mpc.view.setNeedsUpdateConstraints()
-    mpc.view.updateConstraintsIfNeeded()
-    mpc.view.setNeedsLayout()
-    mpc.view.layoutIfNeeded()
-    var toFrame = mpc.content.frame
-    toFrame.origin.y = toFrame.origin.y - 20.0
-    
-    overlay.openAnimated(fromFrame: issueCarousel.label.frame, toFrame: toFrame)
+    overlay.maxAlpha = 0.0
+
+//    var toFrame = mpc.content.frame
+//    toFrame.origin.y = toFrame.origin.y - 20.0
+    overlay.openAnimated(fromView: issueCarousel.label, toView: mpc.content)
     
     overlay.onClose {
       // reset orientation to portrait

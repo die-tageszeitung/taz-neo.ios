@@ -30,55 +30,49 @@ open class MonthPickerController: UIViewController, UIPickerViewDelegate, UIPick
   
   let picker = UIPickerView()
   let content = UIView()
+  let applyButton = UIButton()
   
   open override func viewDidLoad() {
     picker.delegate = self
     picker.dataSource = self
-    picker.backgroundColor = UIColor.white.withAlphaComponent(0.8)
+//    picker.backgroundColor = UIColor.white.withAlphaComponent(0.8)
     germanMonthNames = Date.gMonthNames
      
     
     content.addSubview(picker)
     pin(picker.bottomGuide(), to: content.bottomGuide())
-    pin(picker.leftGuide(), to: content.leftGuide())
-    pin(picker.rightGuide(), to: content.rightGuide())
+    pin(picker.topGuide(), to: content.topGuide())
+    pin(picker.leftGuide(), to: content.leftGuide(), dist: 90)
+    pin(picker.rightGuide(), to: content.rightGuide(), dist: -90)
     
-    let toolbar = UIToolbar();
-    let doneButton = UIBarButtonItem(title: "Done",
-                                     style: .plain,
-                                     target: self,
-                                     action: #selector(donedatePicker));
-    let spaceButton = UIBarButtonItem(barButtonSystemItem: .flexibleSpace,
-                                      target: nil,
-                                      action: nil)
-    let cancelButton = UIBarButtonItem(title: "Cancel",
-                                       style: .plain,
-                                       target: self,
-                                       action: #selector(cancelDatePicker));
-    toolbar.setItems([cancelButton, spaceButton, doneButton], animated: false)
-    content.addSubview(toolbar)
-    pin(toolbar.topGuide(), to: content.topGuide())
-    pin(toolbar.leftGuide(), to: content.leftGuide())
-    pin(toolbar.rightGuide(), to: content.rightGuide())
-    pin(toolbar.bottomGuide(), to: picker.topGuide())
+    applyButton.setTitle("OK", for: .normal)
+    applyButton.pinSize(CGSize(width: 24, height: 24))
+    applyButton.layer.cornerRadius = 12
+    applyButton.addBorder(.white)
+    applyButton.setBackgroundColor(color: .clear, forState: .normal)
+    applyButton.addTarget(self, action: #selector(donedatePicker), for: .touchUpInside)
     
+    content.addSubview(applyButton)
+    pin(picker.rightGuide(), to: applyButton.leftGuide(), dist: -10)
+    pin(picker.centerY, to: applyButton.centerY)
+        
     self.view.addSubview(content)
+    
+    pin(content.topGuide(), to: self.view.topGuide()).priority = .fittingSizeLevel
+    content.pinHeight(181).priority = .required
     pin(content.bottomGuide(), to: self.view.bottomGuide())
     pin(content.leftGuide(), to: self.view.leftGuide())
     pin(content.rightGuide(), to: self.view.rightGuide())
     
     if true {//Debug
       self.view.addBorder(UIColor.yellow.withAlphaComponent(0.3))
-      toolbar.addBorder(.green)
       picker.addBorder(.red)
+      content.addBorder(UIColor.green.withAlphaComponent(0.3), 5)
     }
     
     self.picker.selectRow(3, inComponent: 0, animated: false)
     self.picker.selectRow(2018, inComponent: 1, animated: false)
   }
-  
-  
-
   
   open var minimumDate = Date(timeIntervalSince1970: 0)
     open var maximumDate = Date()
@@ -91,7 +85,7 @@ open class MonthPickerController: UIViewController, UIPickerViewDelegate, UIPick
     }
     
     /// The color to use for text
-    open var textColor = UIColor.black
+    open var textColor = UIColor.white
     
     // The closure to call upon selection
     var selectionClosure: ((Int)->())?
