@@ -16,11 +16,11 @@ open class MonthPickerController: UIViewController, UIPickerViewDelegate, UIPick
   private var onCancelHandler: (() -> ())
   private var onDoneHandler: (() -> ())
   
-  init(onDoneHandler: @escaping (() -> ()), onCancelHandler: @escaping (() -> ()), minimumDate:Date, maximumDate:Date) {
+  init(onDoneHandler: @escaping (() -> ()), onCancelHandler: @escaping (() -> ()), minimumDate:Date, maximumDate:Date, selectedDate:Date) {
     self.onDoneHandler = onDoneHandler
     self.onCancelHandler = onCancelHandler
     
-    epoch = wtf(minimumDate: minimumDate, maximumDate: maximumDate)
+    epoch = wtf(minimumDate: minimumDate, maximumDate: maximumDate, selectedDate: selectedDate)
     
     super.init(nibName: nil, bundle: nil)
   }
@@ -72,9 +72,8 @@ open class MonthPickerController: UIViewController, UIPickerViewDelegate, UIPick
       picker.addBorder(.red)
       content.addBorder(UIColor.green.withAlphaComponent(0.3), 5)
     }
-    
-    self.picker.selectRow(3, inComponent: 0, animated: false)
-    self.picker.selectRow(2018, inComponent: 1, animated: false)
+    self.picker.selectRow((epoch.selectedDate.components().month ?? 0) - 1, inComponent: 0, animated: false)
+    self.picker.selectRow((epoch.selectedDate.components().year ?? 0) - epoch.minimumYear, inComponent: 1, animated: false)
   }
   
   open var minimumDate = Date(timeIntervalSince1970: 0)
@@ -188,6 +187,7 @@ class wtf {
   
   let minimumDate : Date
   let maximumDate : Date
+  let selectedDate : Date
   
   let minimumMonth : Int
   let minimumYear : Int
@@ -197,9 +197,10 @@ class wtf {
   let monthIniciesCount : Int
   let yearIniciesCount : Int
   
-  init(minimumDate : Date, maximumDate : Date) {
+  init(minimumDate : Date, maximumDate : Date, selectedDate : Date) {
     self.minimumDate = minimumDate
     self.maximumDate = maximumDate
+    self.selectedDate = maximumDate
     
     germanMonthNames = Date.gMonthNames
 
@@ -212,13 +213,11 @@ class wtf {
     let intervall = Calendar.current.dateComponents([.month, .year], from: minimumDate, to: maximumDate)
     
     yearIniciesCount = 1 + (intervall.year ?? 0)
-    monthIniciesCount = 1 + (intervall.month ?? 0) + yearIniciesCount * 12
+    monthIniciesCount = 12
   }
 
   func monthLabel(idx:Int) -> String {
-    let year = (minimumMonth+idx)/12 + minimumYear
-    
-    return "\(germanMonthNames.valueAt((minimumMonth+idx)%12+1) ?? "") \(year)"
+    return "\(germanMonthNames.valueAt(idx+1) ?? "")"
   }
   
   func yearLabel(idx:Int) -> String {

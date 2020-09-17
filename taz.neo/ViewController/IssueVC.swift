@@ -382,7 +382,7 @@ public class IssueVC: UIViewController, IssueInfo {
       }, onCancelHandler:  {[weak self] in
            guard let self = self else {return}
         self.handeleMonthPickerCancel()
-         }, minimumDate: fromDate, maximumDate: toDate
+        }, minimumDate: fromDate, maximumDate: toDate, selectedDate:toDate
          )
     }
     guard let mpc = mpc else {
