@@ -370,9 +370,9 @@ public class IssueVC: UIViewController, IssueInfo {
   var mpc:MonthPickerController?
   var overlay : Overlay?
   func showDatePicker(){
-//DateComponents(calendar: Calendar.current, timeZone: .current, year: 2020, month: 9, day: 17).date
-//    let fromDate = DateComponents(calendar: Calendar.current, year: 2018, month: 1, day: 1, hour: 12).date ?? Date()
-    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, month: 6, day: 1, hour: 12).date ?? Date()
+    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, month: 6, day: 1, hour: 12).date
+      ?? Date()
+    
     let toDate = Date()
     
     if mpc == nil {
@@ -403,9 +403,6 @@ public class IssueVC: UIViewController, IssueInfo {
     overlay.onClose {
       print("\(mpc.selectedVal())")
     }
-    //         imgVC.toClose {
-    //           self.imageOverlay!.close(animated: true, toBottom: true)
-    //         }
   }
   
   public override func viewDidAppear(_ animated: Bool) {

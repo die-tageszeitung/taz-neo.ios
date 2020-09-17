@@ -200,7 +200,7 @@ class wtf {
   init(minimumDate : Date, maximumDate : Date, selectedDate : Date) {
     self.minimumDate = minimumDate
     self.maximumDate = maximumDate
-    self.selectedDate = maximumDate
+    self.selectedDate = selectedDate
     
     germanMonthNames = Date.gMonthNames
 
