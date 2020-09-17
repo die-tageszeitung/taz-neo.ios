@@ -367,17 +367,28 @@ public class IssueVC: UIViewController, IssueInfo {
   func handeleMonthPickerCancel(){
     overlay?.close(animated: true)
   }
-  
+  var mpc:MonthPickerController?
   var overlay : Overlay?
   func showDatePicker(){
-    let mpc = MonthPickerController(onDoneHandler: {[weak self] in
-      guard let self = self else {return}
-      self.handeleMonthPickerDone()
-    }, onCancelHandler:  {[weak self] in
-         guard let self = self else {return}
-      self.handeleMonthPickerCancel()
-       })
-    //      mpc.view.backgroundColor = UIColor.yellow.withAlphaComponent(0.2)
+//DateComponents(calendar: Calendar.current, timeZone: .current, year: 2020, month: 9, day: 17).date
+//    let fromDate = DateComponents(calendar: Calendar.current, year: 2018, month: 1, day: 1, hour: 12).date ?? Date()
+    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, month: 6, day: 1, hour: 12).date ?? Date()
+    let toDate = Date()
+    
+    if mpc == nil {
+      mpc = MonthPickerController(onDoneHandler: {[weak self] in
+        guard let self = self else {return}
+        self.handeleMonthPickerDone()
+      }, onCancelHandler:  {[weak self] in
+           guard let self = self else {return}
+        self.handeleMonthPickerCancel()
+         }, minimumDate: fromDate, maximumDate: toDate
+         )
+    }
+    guard let mpc = mpc else {
+      return
+    }
+    
     
     overlay = Overlay(overlay:mpc , into: self)
     overlay?.enablePinchAndPan = false
@@ -390,9 +401,7 @@ public class IssueVC: UIViewController, IssueInfo {
     overlay.openAnimated(fromView: issueCarousel.label, toView: mpc.content)
     
     overlay.onClose {
-      // reset orientation to portrait
-      UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-      //           self.imageOverlay = nil
+      print("\(mpc.selectedVal())")
     }
     //         imgVC.toClose {
     //           self.imageOverlay!.close(animated: true, toBottom: true)

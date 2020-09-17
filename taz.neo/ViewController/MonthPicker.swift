@@ -16,9 +16,12 @@ open class MonthPickerController: UIViewController, UIPickerViewDelegate, UIPick
   private var onCancelHandler: (() -> ())
   private var onDoneHandler: (() -> ())
   
-  init(onDoneHandler: @escaping (() -> ()), onCancelHandler: @escaping (() -> ())) {
+  init(onDoneHandler: @escaping (() -> ()), onCancelHandler: @escaping (() -> ()), minimumDate:Date, maximumDate:Date) {
     self.onDoneHandler = onDoneHandler
     self.onCancelHandler = onCancelHandler
+    
+    epoch = wtf(minimumDate: minimumDate, maximumDate: maximumDate)
+    
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -26,7 +29,7 @@ open class MonthPickerController: UIViewController, UIPickerViewDelegate, UIPick
     fatalError("init(coder:) has not been implemented")
   }
   
-    var yearIdicies : YearsAndInicies = YearsAndInicies(minimum: 0, minimumSelectable: 1980, maximum: 4020, maximumSelectable: 2020)
+  let epoch : wtf
   
   let picker = UIPickerView()
   let content = UIView()
@@ -64,7 +67,7 @@ open class MonthPickerController: UIViewController, UIPickerViewDelegate, UIPick
     pin(content.leftGuide(), to: self.view.leftGuide())
     pin(content.rightGuide(), to: self.view.rightGuide())
     
-    if true {//Debug
+    if false {//Debug
       self.view.addBorder(UIColor.yellow.withAlphaComponent(0.3))
       picker.addBorder(.red)
       content.addBorder(UIColor.green.withAlphaComponent(0.3), 5)
@@ -103,7 +106,7 @@ open class MonthPickerController: UIViewController, UIPickerViewDelegate, UIPick
   //      formatter.dateFormat = "dd/MM/yyyy"
   //      txtDatePicker.text = formatter.string(from: datePicker.date)
   //      self.endEditing(true)
-        txtDatePicker.resignFirstResponder()
+//        txtDatePicker.resignFirstResponder()
       }
 
       @objc func cancelDatePicker(){
@@ -117,6 +120,13 @@ open class MonthPickerController: UIViewController, UIPickerViewDelegate, UIPick
 
  // MARK: - UIPickerViewDelegate protocol
 extension MonthPickerController {
+  
+  public func selectedVal()->String{
+    
+    return "\(epoch.monthLabel(idx: self.picker.selectedRow(inComponent: 0))) - \(epoch.yearLabel(idx: self.picker.selectedRow(inComponent: 1)))"
+    
+  }
+  
   public func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
     var label = view as? UILabel
     if label == nil {
@@ -126,11 +136,12 @@ extension MonthPickerController {
     }
     label!.textColor = textColor
     if component == 0 {
-      label!.text = "\(germanMonthNames.valueAt(row+1) ?? "")"
+      label!.text = epoch.monthLabel(idx: row)
+      print("set lb txt: \(label!.text)")
     }
     else if component == 1 {
-      label!.textColor = yearIdicies.isValidIndex(row) ? textColor : UIColor.red
-      label!.text = "\(yearIdicies.valueForIndex(row))"
+      label!.text = epoch.yearLabel(idx: row)
+      
     } else {
       label!.text = "*"
     }
@@ -139,6 +150,10 @@ extension MonthPickerController {
   }
   
   public func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+    if component == 0 {
+        print("idx: \(row%12)")
+    }
+    print("...sel")
     self.selectionClosure?(row)
   }
 }
@@ -150,10 +165,10 @@ extension MonthPickerController{
   
   public func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
     if component == 0 {
-      return 12
+      return epoch.monthIniciesCount
     }
     else if component == 1 {
-      return yearIdicies.maximumIndex
+      return epoch.yearIniciesCount
     }
     return 0
   }
@@ -165,21 +180,60 @@ extension Array{
   }
 }
 
-class YearsAndInicies {
-  //    0            2               4            8
-  let minimum, minimumSelectable, maximum, maximumSelectable : Int
-  init(minimum: Int, minimumSelectable: Int, maximum: Int, maximumSelectable: Int){
-    //TODO: ensure minimum < minimumSelectable < maximumSelectable < maximum
-    self.minimum = minimum
-    self.minimumSelectable = minimumSelectable
-    self.maximum = maximum
-    self.maximumSelectable = maximumSelectable
+
+
+class wtf {
+  
+  var germanMonthNames : [String]
+  
+  let minimumDate : Date
+  let maximumDate : Date
+  
+  let minimumMonth : Int
+  let minimumYear : Int
+  let maximumMonth : Int
+  let maximumYear : Int
+  
+  let monthIniciesCount : Int
+  let yearIniciesCount : Int
+  
+  init(minimumDate : Date, maximumDate : Date) {
+    self.minimumDate = minimumDate
+    self.maximumDate = maximumDate
+    
+    germanMonthNames = Date.gMonthNames
+
+    minimumMonth = minimumDate.components().month ?? 0
+    minimumYear = minimumDate.components().year ?? 0
+    
+    maximumMonth = maximumDate.components().month ?? 0
+    maximumYear = maximumDate.components().year ?? 0
+    
+    let intervall = Calendar.current.dateComponents([.month, .year], from: minimumDate, to: maximumDate)
+    
+    yearIniciesCount = 1 + (intervall.year ?? 0)
+    monthIniciesCount = 1 + (intervall.month ?? 0) + yearIniciesCount * 12
+  }
+
+  func monthLabel(idx:Int) -> String {
+    let year = (minimumMonth+idx)/12 + minimumYear
+    
+    return "\(germanMonthNames.valueAt((minimumMonth+idx)%12+1) ?? "") \(year)"
   }
   
-  let minimumIndex : Int = 0
-  var minimumSelectableIndex : Int { get { return minimumSelectable - minimum}}
-  var maximumSelectableIndex : Int { get { return maximumSelectable - minimum}}
-  var maximumIndex : Int { get { return maximum - minimum}}
-  func valueForIndex(_ index : Int) -> Int { return index - minimum }
-  func isValidIndex(_ index : Int) -> Bool { return minimumSelectableIndex ... maximumSelectableIndex ~= index }
+  func yearLabel(idx:Int) -> String {
+    return "\(minimumYear + idx)"
+  }
 }
+/****************************************************************************
+
+TODO's
+  
+  - wert bereitstellen in Format Date()
+  - wenn Monat jahr überschreitet dann 2. Picker erhöhen erniedrigen!
+      XXX Problematisch, da nur in view for row for component registriert wird, wann ein wechsel stattfindet, genaues datum fehlt aber
+      XXX Kompliziert, da dies mit beiden Pickern implementiert werden muss
+ ==> erstmal einfache Lösung!
+
+
+****************************************************************************/
