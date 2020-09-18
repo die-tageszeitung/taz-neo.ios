@@ -242,6 +242,7 @@ extension Array{
 TODO's
  - Check done handlers
  - Cleanup
+ - icons for ios 11/12
   - wert bereitstellen in Format Date() DONE
   - wenn Monat jahr überschreitet dann 2. Picker erhöhen erniedrigen!
       XXX Problematisch, da nur in view for row for component registriert wird, wann ein wechsel stattfindet, genaues datum fehlt aber
