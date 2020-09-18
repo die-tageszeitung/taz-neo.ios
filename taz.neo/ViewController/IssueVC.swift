@@ -401,7 +401,7 @@ public class IssueVC: UIViewController, IssueInfo {
     overlay.openAnimated(fromView: issueCarousel.label, toView: mpc.content)
     
     overlay.onClose {
-      print("\(mpc.selectedVal())")
+      print("Selected: \(mpc.selectedDate)")
     }
   }
   
