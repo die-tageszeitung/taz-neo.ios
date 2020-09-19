@@ -169,7 +169,7 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
       if yes {
         var recipient = "app@taz.de"
         if recog.numberOfTouchesRequired == 3 { recipient = "ios-entwickler@taz.de" }
-        self.produceErrorReport(recipient: recipient, subject: "Interner Fehler")
+        self.produceErrorReport(recipient: recipient)
       }
       else { self.isErrorReporting = false }
     }
