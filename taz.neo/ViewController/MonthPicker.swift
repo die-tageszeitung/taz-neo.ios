@@ -18,9 +18,6 @@ open class MonthPickerController: UIViewController, UIPickerViewDelegate, UIPick
   
     
     
-    
-    
-    
   var initialSelectedDate : Date?
   
   public var selectedDate : Date {
