@@ -234,3 +234,6 @@
 
 /* Kein Netz */
 "communication_breakdown" = "Es gab ein Problem bei der Kommunikation mit dem Server.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
+
+/* FAQ Button Text */
+"open_faq_in_browser" = "Öffne FAQ im Browser";

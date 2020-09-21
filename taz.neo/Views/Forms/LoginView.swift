@@ -34,11 +34,13 @@ public class LoginView : FormView{
   override func createSubviews() -> [UIView] {
     helpLabel.textColor = Const.SetColor.CIColor.color
     helpLabel.onTapping {  _ in
-      Alert.message(title: Localized("help"), message: Localized("article_read_onreadon"))
+      let fullText = "\(Localized("login_missing_credentials_header_login"))\n\(Localized("article_read_onreadon"))"
+      Alert.message(title: Localized("help"), message: fullText, additionalActions:[self.openFaqAction()])
     }
+      
     return   [
       TazHeader(),
-      Padded.Label(title: Localized("login_required")),
+      Padded.Label(title: Localized("login_missing_credentials_header_login")),
       idInput,
       passInput,
       loginButton,
