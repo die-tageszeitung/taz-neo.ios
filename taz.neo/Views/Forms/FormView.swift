@@ -12,9 +12,6 @@ import NorthLib
 // MARK: - FormularView
 public class FormView: UIView {
   
-  @DefaultBool(key: "offerTrialSubscription")
-  var offerTrialSubscription: Bool
-  
   let DefaultFontSize = CGFloat(16)
   
   // MARK: Container for Content in ScrollView
@@ -88,8 +85,16 @@ public class FormView: UIView {
 }
 
 extension FormView {
+  func openFaqAction() -> UIAlertAction {
+    return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
+      guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
+      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    }
+  }
+      
   @objc public func showRegisterTips(_ textField: UITextField) {
-     Alert.message(title: Localized("register_tips_button"), message: Localized("register_tips_text"))
+     Alert.message(title: Localized("register_tips_button"),
+                  message: Localized("register_tips_text"), additionalActions:[openFaqAction()])
   }
   
   var registerTipsButton:UIButton{

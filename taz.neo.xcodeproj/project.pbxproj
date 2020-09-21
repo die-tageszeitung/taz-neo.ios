@@ -64,6 +64,7 @@
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
+		C73EDBE9250A6E1000525719 /* MonthPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73EDBE8250A6E1000525719 /* MonthPicker.swift */; };
 		C794F23524FED184007168AC /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C794F23424FED184007168AC /* Helper.swift */; };
 /* End PBXBuildFile section */
 
@@ -153,6 +154,7 @@
 		AEE3D4E9247D31FA00BEDEA3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCarousel.swift; sourceTree = "<group>"; };
 		AEF2DF34244766E400D1482D /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
+		C73EDBE8250A6E1000525719 /* MonthPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthPicker.swift; sourceTree = "<group>"; };
 		C794F23424FED184007168AC /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -249,6 +251,7 @@
 				AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */,
 				AE44F8E324815AF4009DA152 /* ContentImageVC.swift */,
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
+				C73EDBE8250A6E1000525719 /* MonthPicker.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -520,6 +523,7 @@
 				0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,
+				C73EDBE9250A6E1000525719 /* MonthPicker.swift in Sources */,
 				AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */,
 				AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */,
 				AE44F8E62481621C009DA152 /* IssueInfoProtocol.swift in Sources */,
@@ -690,7 +694,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020091452;
+				CURRENT_PROJECT_VERSION = 2020091653;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
@@ -698,8 +702,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.10;
-				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
+				MARKETING_VERSION = 0.4.11;
+				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo;
 				PRODUCT_NAME = "taz App";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -716,7 +720,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020091452;
+				CURRENT_PROJECT_VERSION = 2020091653;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
@@ -724,8 +728,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.10;
-				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
+				MARKETING_VERSION = 0.4.11;
+				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo;
 				PRODUCT_NAME = "taz App";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

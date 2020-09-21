@@ -19,7 +19,7 @@ public class IssueCarousel: UIView {
   // The Carousel
   public var carousel = CarouselView()
   // Label for the center image
-  private var label = CrossfadeLabel()
+  private(set) var label = CrossfadeLabel()
   
   /// Current central image
   public var index: Int? {

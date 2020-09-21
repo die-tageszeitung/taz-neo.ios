@@ -326,7 +326,8 @@ public class IssueVC: UIViewController, IssueInfo {
       self?.downloadIssue(index: idx)
     }
     issueCarousel.onLabelTap { idx in
-      Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
+      self.showDatePicker()
+//      Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
     }
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
       self.exportMoment(issue: self.issue)
@@ -351,12 +352,57 @@ public class IssueVC: UIViewController, IssueInfo {
       if idx == (self.issueCarousel.carousel.count - 10) { self.getCurrentIssues() }
     }
     let nc = NotificationCenter.default
-    nc.addObserver(self, selector: #selector(goingBackground), 
-      name: UIApplication.willResignActiveNotification, object: nil)
-    nc.addObserver(self, selector: #selector(goingForeground), 
-      name: UIApplication.willEnterForegroundNotification, object: nil)
+    nc.addObserver(self, selector: #selector(goingBackground),
+                   name: UIApplication.willResignActiveNotification, object: nil)
+    nc.addObserver(self, selector: #selector(goingForeground),
+                   name: UIApplication.willEnterForegroundNotification, object: nil)
     if let issues = delegate.ovwIssues, issues.count > 0 {
       issuesReceived(issues: issues)
+    }
+  }
+  
+  func handeleMonthPickerDone(){
+    overlay?.close(animated: true)
+  }
+  
+  func handeleMonthPickerCancel(){
+    overlay?.close(animated: true)
+  }
+  var mpc:MonthPickerController?
+  var overlay : Overlay?
+  func showDatePicker(){
+    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, month: 6, day: 1, hour: 12).date
+      ?? Date()
+    
+    let toDate = Date()
+    
+    if mpc == nil {
+      mpc = MonthPickerController(onDoneHandler: {[weak self] in
+        guard let self = self else {return}
+        self.handeleMonthPickerDone()
+      }, onCancelHandler:  {[weak self] in
+           guard let self = self else {return}
+        self.handeleMonthPickerCancel()
+        }, minimumDate: fromDate, maximumDate: toDate, selectedDate:toDate
+         )
+    }
+    guard let mpc = mpc else {
+      return
+    }
+    
+    
+    overlay = Overlay(overlay:mpc , into: self)
+    overlay?.enablePinchAndPan = false
+    guard let overlay = overlay else {return}
+    
+    overlay.maxAlpha = 0.0
+
+//    var toFrame = mpc.content.frame
+//    toFrame.origin.y = toFrame.origin.y - 20.0
+    overlay.openAnimated(fromView: issueCarousel.label, toView: mpc.content)
+    
+    overlay.onClose {
+      print("Selected: \(mpc.selectedDate)")
     }
   }
   
