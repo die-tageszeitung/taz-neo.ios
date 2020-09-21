@@ -551,8 +551,10 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
+    let pwd = password.quote()
     let request = """
-      authToken: authentificationToken(\(self.deviceInfoString), user:"\(account)", password: "\(password)") {
+      authToken: authentificationToken(\(self.deviceInfoString), user:"\(account)", 
+        password: \(pwd)) {
         \(GqlAuthToken.fields)
       }
     """
@@ -587,7 +589,8 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = """
       notification(\(pToken), \(oToken) 
                    textNotification: \(isTextNotification ? "true" : "false"),
-                   \(deviceInfoString))
+                   \(deviceInfoString)
+                  )
     """
     gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
       var ret: Result<Bool,Error>

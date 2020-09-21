@@ -340,7 +340,8 @@ public class IssueVC: UIViewController, IssueInfo {
       dfl["carouselScrollFromLeft"] =
         self.issueCarousel.carousel.scrollFromLeftToRight ? "true" : "false"
     }
-    issueCarousel.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
+    
+    issueCarousel.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
       self.setLabel(idx: idx, isRotate: true)

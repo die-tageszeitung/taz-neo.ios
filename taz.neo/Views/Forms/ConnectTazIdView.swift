@@ -43,13 +43,13 @@ public class ConnectTazIdView : FormView{
   var firstnameInput = TazTextField(placeholder: Localized("login_first_name_hint"),
                                     textContentType: .givenName,
                                     enablesReturnKeyAutomatically: true,
-                                    keyboardType: .namePhonePad,
+                                    keyboardType: .default,
                                     autocapitalizationType: .words)
   
   var lastnameInput = TazTextField(placeholder: Localized("login_surname_hint"),
                                    textContentType: .familyName,
                                    enablesReturnKeyAutomatically: true,
-                                   keyboardType: .namePhonePad,
+                                   keyboardType: .default,
                                    autocapitalizationType: .words)
   
   var alreadyHaveTazIdButton = Padded.Button(type: .label,
