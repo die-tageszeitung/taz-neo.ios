@@ -551,10 +551,9 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
-    let pwd = password.quote()
     let request = """
-      authToken: authentificationToken(\(self.deviceInfoString), user:"\(account)", 
-        password: \(pwd)) {
+      authToken: authentificationToken(\(self.deviceInfoString), 
+    user: \(account.quote()), password: \(password.quote())) {
         \(GqlAuthToken.fields)
       }
     """

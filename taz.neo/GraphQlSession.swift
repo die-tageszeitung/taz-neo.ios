@@ -84,14 +84,13 @@ open class GraphQlSession: HttpSession {
     guard let url = self.url else { return }
     let quoted = "\(requestType) {\(graphql)}".quote()
     let str = "{ \"query\": \(quoted) }"
-    debug("Sending: \"\(str)\"")
-      debug(graphql)
+//    debug("Sending: \(graphql)")
     post(url, data: str.data(using: .utf8)!) { res in
       var result: Result<T,Error>
       switch res {
       case .success(let data):
         if let d = data {
-          //self.debug("Received: \"\(String(decoding: d, as: UTF8.self))\"")
+//          self.debug("Received: \"\(String(decoding: d, as: UTF8.self)[0..<2000])\"")
           if let gerr = GraphQlError.from(data: d) {
             self.error("Errorneous data sent to server: \(graphql)")
             self.fatal("GraphQL-Server encountered error:\n\(gerr)")
