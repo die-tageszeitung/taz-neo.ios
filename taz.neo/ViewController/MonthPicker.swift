@@ -151,14 +151,20 @@ extension MonthPickerController {
     } else {
       label!.text = "*"
     }
-
+    
     return label!
   }
   
   public func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-    UIView.animate(withDuration: 0.9) {
-      self.applyButton.transform = self.applyButton.transform.rotated(by: CGFloat.pi)
-      self.applyButton.transform = self.applyButton.transform.rotated(by: CGFloat.pi)
+    let kRotationAnimationKey = "rotationanimationkey"
+    if self.applyButton.layer.animation(forKey: kRotationAnimationKey) == nil {
+        let rotationAnimation = CABasicAnimation(keyPath: "transform.rotation")
+        rotationAnimation.fromValue = 0.0
+        rotationAnimation.toValue = Float.pi * 2.0
+        rotationAnimation.duration = 0.9
+        rotationAnimation.repeatCount = 1
+
+      self.applyButton.layer.add(rotationAnimation, forKey: kRotationAnimationKey)
     }
     
     if self.selectedDate < self.data.minimumDate {
