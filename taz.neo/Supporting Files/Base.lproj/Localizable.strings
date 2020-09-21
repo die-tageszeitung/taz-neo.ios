@@ -237,3 +237,7 @@
 
 /* FAQ Button Text */
 "open_faq_in_browser" = "Öffne FAQ im Browser";
+
+
+/* abo-id-validation error digit */
+"abo_id_validation_error_digit" = "Abo-ID muss eine max. 9-stellige Zahl sein.";

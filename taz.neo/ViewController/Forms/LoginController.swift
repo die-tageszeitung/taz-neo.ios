@@ -34,7 +34,14 @@ class LoginController: FormsController {
     }
     
     if (ui.idInput.text ?? "").isNumber {
-      self.queryCheckSubscriptionId(aboId: (ui.idInput.text ?? ""),aboIdPass: ui.passInput.text ?? "")
+      if let txt = ui.idInput.text, let i = Int32(txt){
+        self.queryCheckSubscriptionId(aboId: "\(i)" ,aboIdPass: ui.passInput.text ?? "")
+      } else {
+        ui.idInput.bottomMessage = Localized("abo_id_validation_error_digit")
+        Toast.show(Localized("register_validation_issue"), .alert)
+        ui.blocked = false
+        return
+      }
     }
     else {
       self.queryAuthToken(tazId: (ui.idInput.text ?? ""),tazIdPass: ui.passInput.text ?? "")

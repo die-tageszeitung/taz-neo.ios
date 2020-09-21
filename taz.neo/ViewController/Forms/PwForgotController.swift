@@ -42,7 +42,14 @@ class PwForgottController: FormsController {
     }
     
     if id.isNumber {
-      self.mutateSubscriptionReset(id)
+      if let i = Int32(id){
+        self.mutateSubscriptionReset("\(i)")
+      } else {
+        ui.idInput.bottomMessage = Localized("abo_id_validation_error_digit")
+        Toast.show(Localized("register_validation_issue"), .alert)
+        ui.blocked = false
+        return
+      }
     }
     else if !id.isValidEmail(){
       ui.idInput.bottomMessage = Localized("error_invalid_email_or_abo_id")
