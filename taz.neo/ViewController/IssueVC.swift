@@ -371,39 +371,7 @@ public class IssueVC: UIViewController, IssueInfo {
   var mpc:MonthPickerController?
   var overlay : Overlay?
   func showDatePicker(){
-    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, month: 6, day: 1, hour: 12).date
-      ?? Date()
-    
-    let toDate = Date()
-    
-    if mpc == nil {
-      mpc = MonthPickerController(onDoneHandler: {[weak self] in
-        guard let self = self else {return}
-        self.handeleMonthPickerDone()
-      }, onCancelHandler:  {[weak self] in
-           guard let self = self else {return}
-        self.handeleMonthPickerCancel()
-        }, minimumDate: fromDate, maximumDate: toDate, selectedDate:toDate
-         )
-    }
-    guard let mpc = mpc else {
-      return
-    }
-    
-    
-    overlay = Overlay(overlay:mpc , into: self)
-    overlay?.enablePinchAndPan = false
-    guard let overlay = overlay else {return}
-    
-    overlay.maxAlpha = 0.0
-
-//    var toFrame = mpc.content.frame
-//    toFrame.origin.y = toFrame.origin.y - 20.0
-    overlay.openAnimated(fromView: issueCarousel.label, toView: mpc.content)
-    
-    overlay.onClose {
-      print("Selected: \(mpc.selectedDate)")
-    }
+    Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
   }
   
   public override func viewDidAppear(_ animated: Bool) {
