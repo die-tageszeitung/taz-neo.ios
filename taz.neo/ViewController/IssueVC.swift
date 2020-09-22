@@ -361,15 +361,6 @@ public class IssueVC: UIViewController, IssueInfo {
     }
   }
   
-  func handeleMonthPickerDone(){
-    overlay?.close(animated: true)
-  }
-  
-  func handeleMonthPickerCancel(){
-    overlay?.close(animated: true)
-  }
-  var mpc:MonthPickerController?
-  var overlay : Overlay?
   func showDatePicker(){
     Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
   }
