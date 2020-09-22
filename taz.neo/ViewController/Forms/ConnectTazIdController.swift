@@ -192,7 +192,7 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
       return
     }
     
-    guard let _inputAboId = ui.mailInput.text ?? "", let inputAboIdNumeric = Int32(_inputAboId) else{
+    guard let _inputAboId = ui.mailInput.text, let inputAboIdNumeric = Int32(_inputAboId) else{
       ui.mailInput.bottomMessage = Localized("abo_id_validation_error_digit")
       Toast.show(Localized("register_validation_issue"), .alert)
       ui.blocked = false

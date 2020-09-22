@@ -4,12 +4,15 @@
 //
 // Created by Ringo Müller-Gromes on 14.08.20.
 // Copyright © 2020 Ringo Müller-Gromes for "taz" digital newspaper. All rights reserved.
-// 
+//
 
 import UIKit
 import NorthLib
 
 public class LoginView : FormView{
+  
+  @DefaultBool(key: "offerTrialSubscription")
+  var offerTrialSubscription: Bool
   
   var idInput = TazTextField(placeholder: Localized("login_username_hint"),
                              textContentType: .emailAddress,
@@ -31,17 +34,31 @@ public class LoginView : FormView{
                                    title: Localized("login_forgot_password"))
   
   override func createSubviews() -> [UIView] {
-    return   [
-      TazHeader(),
-      Padded.Label(title: Localized("login_missing_credentials_header_login")),
-      idInput,
-      passInput,
-      loginButton,
-      Padded.Label(title: Localized("ask_for_trial_subscription_title")),
-      registerButton,
-      passForgottButton,
-      loginTipsButton
-    ]
+    if offerTrialSubscription {
+       // Dialog mit Probeabo
+      return   [
+        TazHeader(),
+        Padded.Label(title: Localized("login_required")),
+        idInput,
+        passInput,
+        loginButton,
+        registerButton,
+        passForgottButton,
+        loginTipsButton
+      ]
+     }
+     else {
+       // Dialog ohne Probeabo
+      return   [
+        TazHeader(),
+        Padded.Label(title: Localized("login_required")),
+        idInput,
+        passInput,
+        loginButton,
+        passForgottButton,
+        loginTipsButton
+      ]
+     }
   }
   
   // MARK: validate()
