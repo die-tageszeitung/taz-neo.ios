@@ -4,12 +4,15 @@
 //
 // Created by Ringo Müller-Gromes on 14.08.20.
 // Copyright © 2020 Ringo Müller-Gromes for "taz" digital newspaper. All rights reserved.
-// 
+//
 
 import UIKit
 import NorthLib
 
 public class LoginView : FormView{
+  
+  @DefaultBool(key: "offerTrialSubscription")
+  var offerTrialSubscription: Bool
   
   var idInput = TazTextField(placeholder: Localized("login_username_hint"),
                              textContentType: .emailAddress,
@@ -30,13 +33,7 @@ public class LoginView : FormView{
   var passForgottButton = Padded.Button(type: .label,
                                    title: Localized("login_forgot_password"))
   
-  var helpLabel = Padded.Label(title: Localized("help"))
   override func createSubviews() -> [UIView] {
-    helpLabel.textColor = Const.SetColor.CIColor.color
-    helpLabel.onTapping {  _ in
-      Alert.message(title: Localized("help"), message: Localized("article_read_onreadon"))
-    }
-    
     if offerTrialSubscription {
        // Dialog mit Probeabo
       return   [
@@ -47,7 +44,7 @@ public class LoginView : FormView{
         loginButton,
         registerButton,
         passForgottButton,
-        helpLabel
+        loginTipsButton
       ]
      }
      else {
@@ -59,7 +56,7 @@ public class LoginView : FormView{
         passInput,
         loginButton,
         passForgottButton,
-        helpLabel
+        loginTipsButton
       ]
      }
   }

@@ -71,7 +71,7 @@ class ConnectTazIdController : FormsController {
   
   
   func connectWith(tazId: String, tazIdPassword: String, aboId _aboId: String, aboIdPW _aboIdPassword: String, lastName: String? = nil, firstName: String?=nil){
-    
+
     let dfl = Defaults.singleton
     let pushToken = dfl["pushToken"]
     let installationId = dfl["installationId"] ?? App.installationId
@@ -192,7 +192,13 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
       return
     }
     
-    let inputAboId = ui.mailInput.text ?? ""
+    guard let _inputAboId = ui.mailInput.text, let inputAboIdNumeric = Int32(_inputAboId) else{
+      ui.mailInput.bottomMessage = Localized("abo_id_validation_error_digit")
+      Toast.show(Localized("register_validation_issue"), .alert)
+      ui.blocked = false
+      return
+    }
+    let inputAboId = "\(inputAboIdNumeric)"
     let inputAboIdPassword = ui.passInput.text ?? ""
     
     self.connectWith(tazId: self.tazId, tazIdPassword: self.tazIdPassword , aboId: inputAboId, aboIdPW: inputAboIdPassword)

@@ -326,7 +326,8 @@ public class IssueVC: UIViewController, IssueInfo {
       self?.downloadIssue(index: idx)
     }
     issueCarousel.onLabelTap { idx in
-      Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
+      self.showDatePicker()
+//      Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
     }
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
       self.exportMoment(issue: self.issue)
@@ -351,13 +352,17 @@ public class IssueVC: UIViewController, IssueInfo {
       if idx == (self.issueCarousel.carousel.count - 10) { self.getCurrentIssues() }
     }
     let nc = NotificationCenter.default
-    nc.addObserver(self, selector: #selector(goingBackground), 
-      name: UIApplication.willResignActiveNotification, object: nil)
-    nc.addObserver(self, selector: #selector(goingForeground), 
-      name: UIApplication.willEnterForegroundNotification, object: nil)
+    nc.addObserver(self, selector: #selector(goingBackground),
+                   name: UIApplication.willResignActiveNotification, object: nil)
+    nc.addObserver(self, selector: #selector(goingForeground),
+                   name: UIApplication.willEnterForegroundNotification, object: nil)
     if let issues = delegate.ovwIssues, issues.count > 0 {
       issuesReceived(issues: issues)
     }
+  }
+  
+  func showDatePicker(){
+    Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
   }
   
   public override func viewDidAppear(_ animated: Bool) {

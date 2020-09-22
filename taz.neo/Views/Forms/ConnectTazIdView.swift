@@ -91,6 +91,7 @@ public class ConnectTazIdView : FormView{
       agbAcceptTV,
       registerButton,
       cancelButton,
+      loginTipsButton
     ]
   }
   
