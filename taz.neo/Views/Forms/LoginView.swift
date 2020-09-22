@@ -30,14 +30,7 @@ public class LoginView : FormView{
   var passForgottButton = Padded.Button(type: .label,
                                    title: Localized("login_forgot_password"))
   
-  var helpLabel = Padded.Label(title: Localized("help"))
   override func createSubviews() -> [UIView] {
-    helpLabel.textColor = Const.SetColor.CIColor.color
-    helpLabel.onTapping {  _ in
-      let fullText = "\(Localized("login_missing_credentials_header_login"))\n\(Localized("article_read_onreadon"))"
-      Alert.message(title: Localized("help"), message: fullText, additionalActions:[self.openFaqAction()])
-    }
-      
     return   [
       TazHeader(),
       Padded.Label(title: Localized("login_missing_credentials_header_login")),
@@ -47,7 +40,7 @@ public class LoginView : FormView{
       Padded.Label(title: Localized("ask_for_trial_subscription_title")),
       registerButton,
       passForgottButton,
-      helpLabel
+      loginTipsButton
     ]
   }
   

@@ -97,6 +97,11 @@ extension FormView {
                   message: Localized("register_tips_text"), additionalActions:[openFaqAction()])
   }
   
+  @objc public func showLoginTips(_ textField: UITextField) {
+    let fullText = "\(Localized("login_missing_credentials_header_login"))\n\(Localized("article_read_onreadon"))"
+    Alert.message(title: Localized("help"), message: fullText, additionalActions:[self.openFaqAction()])
+  }
+  
   var registerTipsButton:UIButton{
     get{
       return Padded.Button(type: .label,
@@ -105,7 +110,18 @@ extension FormView {
                            action: #selector(showRegisterTips))
     }
   }
+  
+  
+  var loginTipsButton:UIButton{
+    get{
+      return Padded.Button(type: .label,
+                           title: Localized("help"),
+                           target: self,
+                           action: #selector(showLoginTips))
+    }
+  }
 }
+
 
 // MARK: Keyboard Action, set ScrollView Insets if Keyboard appears
 extension FormView {
