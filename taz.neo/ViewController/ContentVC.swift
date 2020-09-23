@@ -368,6 +368,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
     self.collectionView.backgroundColor = Const.SetColor.CTBackground.color
     self.view.backgroundColor = Const.SetColor.CTBackground.color
+    self.indicatorStyle = Defaults.darkMode ?  .white : .black
     writeTazApiCss{
       super.reloadAllWebViews()
     }
