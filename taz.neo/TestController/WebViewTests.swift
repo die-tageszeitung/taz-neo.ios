@@ -20,7 +20,11 @@ class WebViewTests: UIViewController {
     self.view.addSubview(webView)
     pin(webView, toSafe: self.view)
     let html = """
-    <h1>This is a test</h1>
+    <body>
+      <h1>This is a test</h1>
+      This is a link to <a href="https://taz.de/">taz.de</a>
+      This is a link to <a href="mailto:norbert@taz.de">norbert@taz.de</a>
+    </body>
     """
     let bo = JSBridgeObject(name: "Test")
     bo.addfunc("bridgeTest") { jsCall in
