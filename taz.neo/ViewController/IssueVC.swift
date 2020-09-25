@@ -326,8 +326,11 @@ public class IssueVC: UIViewController, IssueInfo {
       self?.downloadIssue(index: idx)
     }
     issueCarousel.onLabelTap { idx in
-      self.showDatePicker()
-//      Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
+      if true /* SET TRUE TO USE DATEPICKER */ {
+        self.showDatePicker()
+        return;
+      }
+      Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
     }
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
       self.exportMoment(issue: self.issue)
@@ -361,8 +364,33 @@ public class IssueVC: UIViewController, IssueInfo {
     }
   }
   
+  var pickerCtrl : MonthPickerController?
+  var overlay : Overlay?
   func showDatePicker(){
-    Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
+    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, month: 6, day: 1, hour: 12).date
+      ?? Date()
+    
+    let toDate = Date()
+    
+    if pickerCtrl == nil {
+      pickerCtrl = MonthPickerController(minimumDate: fromDate,
+                                         maximumDate: toDate,
+                                         selectedDate: toDate)
+    }
+    guard let pickerCtrl = pickerCtrl else { return }
+    
+    if overlay == nil {
+      overlay = Overlay(overlay:pickerCtrl , into: self)
+      overlay?.enablePinchAndPan = false
+      overlay?.maxAlpha = 0.0
+    }
+        
+    pickerCtrl.doneHandler = {
+      self.overlay?.close(animated: true)
+      print("Selected: \(pickerCtrl.selectedDate)")
+    }
+//    overlay?.open(animated: true, fromBottom: true)
+    overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
   
   public override func viewDidAppear(_ animated: Bool) {
