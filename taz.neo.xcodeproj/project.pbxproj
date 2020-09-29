@@ -690,7 +690,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020092251;
+				CURRENT_PROJECT_VERSION = 2020092951;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
@@ -698,7 +698,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.14;
+				MARKETING_VERSION = 0.4.15;
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
 				PRODUCT_NAME = "die tageszeitung";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -716,7 +716,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020092251;
+				CURRENT_PROJECT_VERSION = 2020092951;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
@@ -724,7 +724,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.14;
+				MARKETING_VERSION = 0.4.15;
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
 				PRODUCT_NAME = "die tageszeitung";
 				PROVISIONING_PROFILE_SPECIFIER = "";

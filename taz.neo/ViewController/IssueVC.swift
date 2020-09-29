@@ -326,7 +326,7 @@ public class IssueVC: UIViewController, IssueInfo {
       self?.downloadIssue(index: idx)
     }
     issueCarousel.onLabelTap { idx in
-      if true /* SET TRUE TO USE DATEPICKER */ {
+      if false /* SET TRUE TO USE DATEPICKER */ {
         self.showDatePicker()
         return;
       }
