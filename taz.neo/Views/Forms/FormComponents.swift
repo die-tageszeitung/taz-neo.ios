@@ -41,7 +41,7 @@ class TazHeader: Padded.View{
     line.fillColor = Const.SetColor.CTDate.color
     title.text = NSLocalizedString("die tageszeitung",
                                    comment: "taz_title")
-    title.font = Const.Fonts.contentFont(size: LargeTitleFontSize)
+    title.font = Const.Fonts.titleFont(size: LargeTitleFontSize)
     title.textAlignment = .right
     title.textColor = Const.SetColor.CTDate.color
     
