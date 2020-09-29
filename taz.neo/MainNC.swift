@@ -498,6 +498,7 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
     dfl["isTextNotification"] = "true"
     dfl["nStarted"] = "0"
     dfl["lastStarted"] = "0"
+    dfl["installationId"] = nil
     endPolling()
   }
   
