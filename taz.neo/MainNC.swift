@@ -141,7 +141,7 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
         mail.addAttachmentData(logData, mimeType: "text/plain",
                                fileName: "taz.neo-logfile.txt")
       }
-      present(mail, animated: true, completion: completion)
+      self.topmostModalVc.present(mail, animated: true, completion: completion)
     }
   }
   
@@ -224,9 +224,16 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
         action: #selector(threeFingerTouch))
     reportLPress2.numberOfTouchesRequired = 2
     reportLPress3.numberOfTouchesRequired = 3
-    self.view.isUserInteractionEnabled = true
-    self.view.addGestureRecognizer(reportLPress2)
-    self.view.addGestureRecognizer(reportLPress3)
+    
+    if let targetView = UIApplication.shared.keyWindow {
+      targetView.isUserInteractionEnabled = true
+      targetView.addGestureRecognizer(reportLPress2)
+      targetView.addGestureRecognizer(reportLPress3)
+    } else {
+      self.view.isUserInteractionEnabled = true
+      self.view.addGestureRecognizer(reportLPress2)
+      self.view.addGestureRecognizer(reportLPress3)
+    }
   }
     
   func handleFeederError(_ err: FeederError) {
@@ -511,7 +518,6 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
       return true
     }
     // isEdgeDetection = true
-    setupTopMenus()
     let nc = NotificationCenter.default
     nc.addObserver(self, selector: #selector(goingBackground),
       name: UIApplication.willResignActiveNotification, object: nil)
@@ -521,6 +527,12 @@ class MainNC: NavigationController, IssueVCdelegate, UIStyleChangeDelegate,
     startup()
     registerForStyleUpdates()
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    setupTopMenus()
+  }
+  
   func applyStyles() {
       self.view.backgroundColor = Const.SetColor.HBackground.color
     setNeedsStatusBarAppearanceUpdate()
