@@ -42,6 +42,7 @@ public class LoginView : FormView{
         idInput,
         passInput,
         loginButton,
+        Padded.Label(title: Localized("trial_subscription_title")),
         registerButton,
         passForgottButton,
         loginTipsButton
