@@ -45,6 +45,7 @@
 "register_button" = "Registrieren";
 
 "register_tips_button" = "Hinweise zum taz Probeabo";
+"register_free_button" = "Kostenlos Probelesen";
 
 "register_tips_text" = "Nach Ihrer Bestellung erhalten Sie eine Bestätigungs-E-Mail mit Aktivierungs-Link. Durch Aufruf dieses Links, wird Ihr Probeabo aktiviert. Sollten Sie diese E-Mail nicht erhalten, überprüfen Sie bitte Ihren Spam Ordner.\nDie digitale Ausgabe der taz steht Ihnen bereits am Vorabend des Erscheinungstages in der App zur Verfügung.\nDas Probeabo endet automatisch.";
 
