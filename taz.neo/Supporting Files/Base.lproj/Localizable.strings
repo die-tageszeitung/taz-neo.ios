@@ -32,7 +32,7 @@
 "info" = "Hinweis";
 
 /* translation from Android */
-"trial_subscription_title" = "Registrierung";
+"trial_subscription_title" = "Sie möchten die digitale Ausgabe der taz 6 Wochen kostenlos testen?";
 
 /* translation from Android */
 "ask_for_trial_subscription_title" = "Möchten Sie die digitale Ausgabe der taz 6 Wochen kostenlos testen?";
@@ -44,7 +44,7 @@
 /* translation from Android */
 "register_button" = "Registrieren";
 
-"register_tips_button" = "Hinweise";
+"register_tips_button" = "Hinweise zum taz Probeabo";
 
 "register_tips_text" = "Nach Ihrer Bestellung erhalten Sie eine Bestätigungs-E-Mail mit Aktivierungs-Link. Durch Aufruf dieses Links, wird Ihr Probeabo aktiviert. Sollten Sie diese E-Mail nicht erhalten, überprüfen Sie bitte Ihren Spam Ordner.\nDie digitale Ausgabe der taz steht Ihnen bereits am Vorabend des Erscheinungstages in der App zur Verfügung.\nDas Probeabo endet automatisch.";
 
@@ -79,7 +79,7 @@
 "login_subscription_taken_body" = "Oder wenden Sie sich an unseren Service unter:";
 
 /* Abo Mail */
-"digiabo_email" = "digiabo@taz.de";
+"digiabo_email" = "app@taz.de";
 
 /* Abo Mail Betreff*/
 "digiabo_access_request_subject" = "Digiabo Zugangsdaten";
