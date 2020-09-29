@@ -32,7 +32,7 @@
 "info" = "Hinweis";
 
 /* translation from Android */
-"trial_subscription_title" = "Sie möchten die digitale Ausgabe der taz 6 Wochen kostenlos testen?";
+"trial_subscription_title" = "Sie möchten die digitale Ausgabe der taz 6 Wochen kostenlos und unverbindlich testen?";
 
 /* translation from Android */
 "ask_for_trial_subscription_title" = "Möchten Sie die digitale Ausgabe der taz 6 Wochen kostenlos testen?";
@@ -42,7 +42,7 @@
 "no_mail_text" = "Zum Senden des Feedbacks verwendet diese App die iOS Mail Funktionalität.\nLeider kann derzeit von Ihrem Gerät keine E-Mail versendet werden. Bitte überprüfen Sie die Einstellungen zum Senden von E-Mails oder senden Sie Ihr Feedback direkt an: app@taz.de.\nBei Problemen oder Rückfragen geben Sie bitte auch Ihre taz-ID oder Abo-ID an.";
 
 /* translation from Android */
-"register_button" = "Registrieren";
+"register_button" = "Kostenlos Probelesen";
 
 "register_tips_button" = "Hinweise zum taz Probeabo";
 
