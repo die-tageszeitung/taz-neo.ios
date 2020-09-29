@@ -79,7 +79,7 @@
 "login_subscription_taken_body" = "Oder wenden Sie sich an unseren Service unter:";
 
 /* Abo Mail */
-"digiabo_email" = "digiabo@taz.de";
+"digiabo_email" = "app@taz.de";
 
 /* Abo Mail Betreff*/
 "digiabo_access_request_subject" = "Digiabo Zugangsdaten";
