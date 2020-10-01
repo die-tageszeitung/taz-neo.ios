@@ -41,4 +41,15 @@ public extension Date {
     return gDateString(tz: tz).lowercased()
   }
   
+  /// German month and year <month> <year>
+  func gMonthYear(tz: String?) -> String {
+    let dc = components(tz: tz)
+    return "\(Date.gMonthNames[dc.month!]) \(dc.year!)"
+  }
+  
+  /// German month and year in lowercase letters
+  func gLowerMonthYear(tz: String?) -> String {
+    return gMonthYear(tz: tz).lowercased()
+  }
+  
 }
