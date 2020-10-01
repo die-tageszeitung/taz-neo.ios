@@ -326,7 +326,7 @@ public class IssueVC: UIViewController, IssueInfo {
       self?.downloadIssue(index: idx)
     }
     issueCarousel.onLabelTap { idx in
-      if false /* SET TRUE TO USE DATEPICKER */ {
+      if true /* SET TRUE TO USE DATEPICKER */ {
         self.showDatePicker()
         return;
       }
@@ -367,8 +367,8 @@ public class IssueVC: UIViewController, IssueInfo {
   var pickerCtrl : MonthPickerController?
   var overlay : Overlay?
   func showDatePicker(){
-    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, month: 6, day: 1, hour: 12).date
-      ?? Date()
+    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, 
+                                  month: 6, day: 1, hour: 12).date ?? Date()
     
     let toDate = Date()
     
@@ -387,7 +387,9 @@ public class IssueVC: UIViewController, IssueInfo {
         
     pickerCtrl.doneHandler = {
       self.overlay?.close(animated: true)
-      print("Selected: \(pickerCtrl.selectedDate)")
+      let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
+      Alert.message(title: "Baustelle", 
+        message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.")
     }
 //    overlay?.open(animated: true, fromBottom: true)
     overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
