@@ -27,6 +27,12 @@
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
 		AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */; };
 		AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DE246310E500E4AEA8 /* SliderTest.swift */; };
+		AE10BEE42526295A009F230D /* Beta@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE02526295A009F230D /* Beta@3x.png */; };
+		AE10BEE52526295A009F230D /* Alpha@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE12526295A009F230D /* Alpha@3x.png */; };
+		AE10BEE62526295A009F230D /* Beta@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE22526295A009F230D /* Beta@2x.png */; };
+		AE10BEE72526295A009F230D /* Alpha@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE32526295A009F230D /* Alpha@2x.png */; };
+		AE10BEEA25262CC1009F230D /* Release@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE825262CC1009F230D /* Release@3x.png */; };
+		AE10BEEB25262CC1009F230D /* Release@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE925262CC1009F230D /* Release@2x.png */; };
 		AE21C46C23E710A600F8B811 /* UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE21C46B23E710A600F8B811 /* UITests.swift */; };
 		AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8E324815AF4009DA152 /* ContentImageVC.swift */; };
 		AE44F8E62481621C009DA152 /* IssueInfoProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */; };
@@ -105,6 +111,12 @@
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextSettingsVC.swift; sourceTree = "<group>"; };
 		AE0C32DE246310E500E4AEA8 /* SliderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SliderTest.swift; sourceTree = "<group>"; };
+		AE10BEE02526295A009F230D /* Beta@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@3x.png"; sourceTree = "<group>"; };
+		AE10BEE12526295A009F230D /* Alpha@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Alpha@3x.png"; sourceTree = "<group>"; };
+		AE10BEE22526295A009F230D /* Beta@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@2x.png"; sourceTree = "<group>"; };
+		AE10BEE32526295A009F230D /* Alpha@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Alpha@2x.png"; sourceTree = "<group>"; };
+		AE10BEE825262CC1009F230D /* Release@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Release@3x.png"; sourceTree = "<group>"; };
+		AE10BEE925262CC1009F230D /* Release@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Release@2x.png"; sourceTree = "<group>"; };
 		AE11F79724B894710080CF51 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		AE11F79824B894710080CF51 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LogoLaunchScreen.strings; sourceTree = "<group>"; };
 		AE21C46B23E710A600F8B811 /* UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests.swift; sourceTree = "<group>"; };
@@ -214,6 +226,19 @@
 				AEF2DF34244766E400D1482D /* MomentView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		AE10BEDF2526292F009F230D /* Alternate Icons */ = {
+			isa = PBXGroup;
+			children = (
+				AE10BEE925262CC1009F230D /* Release@2x.png */,
+				AE10BEE825262CC1009F230D /* Release@3x.png */,
+				AE10BEE32526295A009F230D /* Alpha@2x.png */,
+				AE10BEE12526295A009F230D /* Alpha@3x.png */,
+				AE10BEE22526295A009F230D /* Beta@2x.png */,
+				AE10BEE02526295A009F230D /* Beta@3x.png */,
+			);
+			path = "Alternate Icons";
 			sourceTree = "<group>";
 		};
 		AE16422D222FFEF200DF07DE /* ArticleDB */ = {
@@ -328,6 +353,7 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				AE10BEDF2526292F009F230D /* Alternate Icons */,
 				080271BE24ADDD36002CD2F7 /* Base.lproj */,
 				AEC7D4C624A5E1D3008630FB /* Scripts */,
 				AED52FCA2492764500CC082E /* Fonts */,
@@ -439,10 +465,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
+				AE10BEE52526295A009F230D /* Alpha@3x.png in Resources */,
 				08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */,
+				AE10BEE72526295A009F230D /* Alpha@2x.png in Resources */,
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
+				AE10BEEA25262CC1009F230D /* Release@3x.png in Resources */,
+				AE10BEE62526295A009F230D /* Beta@2x.png in Resources */,
+				AE10BEE42526295A009F230D /* Beta@3x.png in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
+				AE10BEEB25262CC1009F230D /* Release@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -690,7 +722,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020093051;
+				CURRENT_PROJECT_VERSION = 2020100101;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
@@ -698,7 +730,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.15;
+				MARKETING_VERSION = 0.4.16;
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
 				PRODUCT_NAME = "die tageszeitung";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -716,7 +748,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020093051;
+				CURRENT_PROJECT_VERSION = 2020100101;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
@@ -724,7 +756,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.15;
+				MARKETING_VERSION = 0.4.16;
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
 				PRODUCT_NAME = "die tageszeitung";
 				PROVISIONING_PROFILE_SPECIFIER = "";
