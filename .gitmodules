@@ -1,0 +1,3 @@
+[submodule "NorthLib"]
+	path = NorthLib
+	url = git@github.com:nthies/NorthLib.git

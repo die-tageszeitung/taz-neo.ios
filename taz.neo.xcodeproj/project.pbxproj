@@ -66,22 +66,22 @@
 		AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainNC.swift */; };
 		AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
 		AED748A62383F1D600C09D2D /* ArticleDB.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = AED70C8E2243E0EB00487918 /* ArticleDB.xcdatamodel */; };
-		AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
 		C794F23524FED184007168AC /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C794F23424FED184007168AC /* Helper.swift */; };
+		D84C92C32537331F00B9CE79 /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D84C92BC253732C900B9CE79 /* NorthLib.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		AE98512C2320F83900EAC9D8 /* PBXContainerItemProxy */ = {
+		D84C92BB253732C900B9CE79 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = AE7122C523197AFA00B715A8;
 			remoteInfo = NorthLib;
 		};
-		AE98512E2320F83900EAC9D8 /* PBXContainerItemProxy */ = {
+		D84C92BD253732C900B9CE79 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */;
 			proxyType = 2;
@@ -140,7 +140,7 @@
 		AE82262C232A70E000FFBE67 /* GraphQlSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphQlSession.swift; sourceTree = "<group>"; };
 		AE822631232A717E00FFBE67 /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		AE86486F248E274F007096B4 /* PdfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfTest.swift; sourceTree = "<group>"; };
-		AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NorthLib.xcodeproj; path = ../NorthLib/NorthLib.xcodeproj; sourceTree = "<group>"; };
+		AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NorthLib.xcodeproj; path = NorthLib/NorthLib.xcodeproj; sourceTree = "<group>"; };
 		AEAABADD24641BFA001BE414 /* Const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Const.swift; sourceTree = "<group>"; };
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
@@ -173,7 +173,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */,
+				D84C92C32537331F00B9CE79 /* NorthLib.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,15 +294,6 @@
 			path = TestController;
 			sourceTree = "<group>";
 		};
-		AE9851282320F83800EAC9D8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				AE98512D2320F83900EAC9D8 /* NorthLib.framework */,
-				AE98512F2320F83900EAC9D8 /* Test.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		AEBAF55B219ACD1900566205 = {
 			isa = PBXGroup;
 			children = (
@@ -380,6 +371,15 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
+		D84C92B7253732C900B9CE79 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D84C92BC253732C900B9CE79 /* NorthLib.framework */,
+				D84C92BE253732C900B9CE79 /* Test.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -431,7 +431,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = AE9851282320F83800EAC9D8 /* Products */;
+					ProductGroup = D84C92B7253732C900B9CE79 /* Products */;
 					ProjectRef = AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */;
 				},
 			);
@@ -443,18 +443,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		AE98512D2320F83900EAC9D8 /* NorthLib.framework */ = {
+		D84C92BC253732C900B9CE79 /* NorthLib.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = NorthLib.framework;
-			remoteRef = AE98512C2320F83900EAC9D8 /* PBXContainerItemProxy */;
+			remoteRef = D84C92BB253732C900B9CE79 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		AE98512F2320F83900EAC9D8 /* Test.xctest */ = {
+		D84C92BE253732C900B9CE79 /* Test.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = Test.xctest;
-			remoteRef = AE98512E2320F83900EAC9D8 /* PBXContainerItemProxy */;
+			remoteRef = D84C92BD253732C900B9CE79 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
