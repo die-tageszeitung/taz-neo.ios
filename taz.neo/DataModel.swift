@@ -145,6 +145,43 @@ public extension ImageEntry {
 }
 
 /**
+ A list of files to transfer from the download server
+ */
+public protocol Payload: ToString {
+  /// Number of bytes loaded from server
+  var bytesLoaded: Int { get }
+  /// Total number of bytes to load (of all files)
+  var bytesTotal: Int { get }
+  /// Date/Time of download start
+  var downloadStarted: Date? { get }
+  /// Date/Time when download finished
+  var downloadStopped: Date? { get }
+  /// Where to put downloaded files
+  var localDir: String { get }
+  /// URL of remote base directory
+  var remoteBaseUrl: String { get }
+  /// Name of zip-file containing the comple payload
+  var remoteZipName: String? { get }
+  /// Files to download
+  var files: [FileEntry] { get }
+  /// Issue containing this payload (if any)
+  var issue: Issue? { get }
+  /// Resources containing this payload (if any)
+  var resources: Resources? { get }
+}
+
+public extension Payload {
+  var bytesLoaded: Int { return 0 }
+  var bytesTotal: Int { return 0 }
+  var downloadStarted: Date? { return nil }
+  var downloadStopped: Date? { return nil }
+  var isComplete: Bool { bytesTotal <= bytesLoaded }
+  func toString() -> String {
+    "Payload \(files.count) files, bytes loaded: \(bytesLoaded)/\(bytesTotal)"
+  }
+}
+
+/**
  A list of resource files
  */
 public protocol Resources: ToString, AnyObject {
@@ -160,6 +197,8 @@ public protocol Resources: ToString, AnyObject {
   var resourceZipName: String { get }
   /// List of files
   var resourceFiles: [FileEntry] { get }
+  /// Payload of files
+  var payload: Payload { get }
 } // ResourceList
 
 public extension Resources {
@@ -522,6 +561,12 @@ public protocol Issue: ToString, AnyObject {
   var sections: [Section]? { get }
   /// List of PDF pages (if any)
   var pages: [Page]? { get }
+  /// Last Section read (if any)
+  var lastSection: Int? { get set }
+  /// Last Article read (if nil, then only use lastSection)
+  var lastArticle: Int? { get set }
+  /// Payload of files
+  var payload: Payload { get }
 }
 
 public extension Issue {
@@ -618,6 +663,10 @@ public extension Issue {
   
   /// isReduced returns true if the Issue references "shortened" Articles
   var isReduced: Bool { return status == .reduced }
+  
+  /// isOverview returns true if the Issue only contains overview data 
+  /// (no sections or articles)
+  var isOverview: Bool { return (sections == nil) || sections!.count == 0 }
 
 } // extension Issue
 
@@ -645,6 +694,8 @@ public enum FeedType: String, CodableEnum {
 public protocol Feed: ToString {
   /// Name of Feed
   var name: String { get }
+  /// Feeder offering this Feed
+  var feeder: Feeder { get }
   /// Publication cycle
   var cycle: PublicationCycle { get }
   /// Feed type
