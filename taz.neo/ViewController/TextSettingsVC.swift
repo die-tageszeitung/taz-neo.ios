@@ -17,36 +17,30 @@ class TextSettingsVC: UIViewController {
   /// View responsible for text settings representation
   private var textSettings = TextSettingsView()
   
+  @DefaultInt(key: "articleTextSize")
+  private var articleTextSize: Int
+  
+  @Default(key: "colorMode")
+  private var colorMode: String?
+  
   private func setupButtons() {
-    let dfl = Defaults.singleton
-    var textSize = Int(dfl["articleTextSize"]!)!
+    func setSize(_ s: Int) { textSettings.textSize = s; articleTextSize = s }
+    var textSize = articleTextSize
     textSettings.textSize = textSize
     textSettings.smallA.onPress {_ in
-      if textSize > 30 {
-        textSize -= 10
-        dfl["articleTextSize"] = "\(textSize)"
-        self.textSettings.textSize = textSize
-      }
+      if textSize > 30 { textSize -= 10; setSize(textSize) }
     }
     textSettings.largeA.onPress {_ in
-      if textSize < 200 {
-        textSize += 10
-        dfl["articleTextSize"] = "\(textSize)"
-        self.textSettings.textSize = textSize
-      }
+      if textSize < 200 { textSize += 10; setSize(textSize) }
     }
     textSettings.percent.onPress {_ in
-      if textSize != 100 {
-        textSize = 100
-        dfl["articleTextSize"] = "\(textSize)"
-        self.textSettings.textSize = textSize
-      }
+      if textSize != 100 { textSize = 100; setSize(textSize) }
     }
     textSettings.day.onPress {_ in
-      dfl["colorMode"] = "light"
+      self.colorMode = "light"
     }
     textSettings.night.onPress {_ in
-      dfl["colorMode"] = "dark"
+      self.colorMode = "dark"
     }
   }
   
