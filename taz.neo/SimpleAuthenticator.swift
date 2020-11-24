@@ -75,16 +75,16 @@ public class SimpleAuthenticator: Authenticator {
   }
   
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  public func authenticate(isFullScreen: Bool = true, closure: @escaping (Error?)->()) {
+  public func authenticate() {
     withLoginData { [weak self] (id, password) in
-      guard let this = self else { return }
+      guard let self = self else { return }
       if let id = id, let password = password {
-        this.feeder.authenticate(account: id, password: password) { res in
+        self.feeder.authenticate(account: id, password: password) { res in
           switch res {
             case .success(let token): 
               SimpleAuthenticator.storeUserData(id: id, password: password, 
                                                 token: token)
-              closure(nil)
+              Notification.send("authenticationSucceeded")
             case .failure(let err):
               if let err = err as? FeederError {
                 var text = ""
@@ -95,19 +95,15 @@ public class SimpleAuthenticator: Authenticator {
                   case .unexpectedResponse:                
                     text = "Es gab ein Problem bei der Kommunikation mit dem Server."
                 }
-                Alert.message(title: "Fehler", message: text) { closure(err) }
+                Alert.message(title: "Fehler", message: text)
               }
               else { 
-                Alert.message(title: "Fehler", message: "Anmeldung gescheitert.") {
-                  closure(err)
-                }
-            }
+                Alert.message(title: "Fehler", message: "Anmeldung gescheitert.")
+              }
           }
         }
       }
-      else {
-        closure(this.error("User refused to log in"))
-      }
+      else { self.error("User refused to log in") }
     }
   }
 }
