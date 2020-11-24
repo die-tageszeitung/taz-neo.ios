@@ -35,17 +35,17 @@ open class Downloader: DoesLog {
     var atEnd: (Error?)->()
     
     public func download(dl: Downloader) {
-      var files = payload.files
+      var files = payload.files as! [StoredFileEntry]
       if files.count > 0 {
         dl.downloadStoredGlobalFiles(files: files) { err in
           guard err == nil else { self.atEnd(err); return }
           let hloader = HttpLoader(session: dl.dlSession, 
-                                   baseUrl: self.payload.remoteBaseUrl!,
+                                   baseUrl: self.payload.remoteBaseUrl,
                                    toDir: self.payload.localDir)
           var isComplete = false
           self.payload.downloadStarted = Date()
           files = files.filter { $0.storageType != .global }
-          hloader.download(self.payload.files,
+          hloader.download(files,
             onProgress: { (hl, bytesLoaded, totalBytes) in
               if !isComplete {
                 self.onProgress?(bytesLoaded, totalBytes)
@@ -80,13 +80,13 @@ open class Downloader: DoesLog {
     createDirs()
   }
   
-  private func createDirs() {
+  public func createDirs() {
     feeder.globalDir.create()
     feeder.resourcesDir.create()
     if !feeder.resVersionFile.exists { feeder.storedResVersion = 0 }
   }
   
-  private func createIssueDir(feed: String, issue: String) {
+  public func createIssueDir(feed: String, issue: String) {
     createDirs()
     let idir = feeder.issueDir(feed: feed, issue: issue)
     idir.create()
@@ -94,6 +94,11 @@ open class Downloader: DoesLog {
     let glink = File(dir: idir.path, fname: "global")
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
+  }
+  
+  public func createIssueDir(issue: Issue) {
+    let name = self.feeder.date2a(issue.date)
+    createIssueDir(feed: issue.feed.name, issue: name)
   }
   
   /// Update StoredFileEntries
@@ -130,70 +135,6 @@ open class Downloader: DoesLog {
     }
   }
   
-  /// Download files with storage type .issue
-  private func downloadIssueFiles(url: String, feed: String, issue: String, 
-    files: [FileEntry], closure: @escaping (Error?)->()) {
-    let ifiles = files.filter { $0.storageType == .issue }
-    if ifiles.count == 0 { closure(nil); return }
-    createIssueDir(feed: feed, issue: issue)
-    let idir = feeder.issueDir(feed: feed, issue: issue)
-    let hloader = HttpLoader(session: dlSession, baseUrl: url, toDir: idir.path)
-    hloader.download(ifiles) { [weak self] hl in
-      self?.debug("Issue files:\n\(hloader)")
-      if hloader.errors > 0 { closure(hloader.lastError) }
-      else { closure(nil) }
-    }    
-  }
-  
-  /// Download files with storage type .issue to store in the DB
-  private func downloadStoredIssueFiles(url: String, feed: String, issue: String,
-                                        files: [StoredFileEntry],  
-                                        closure: @escaping (Error?)->()) {
-    downloadIssueFiles(url: url, feed: feed, issue: issue, files: files) { 
-      [weak self] err in
-      guard let self = self, err == nil else { closure(err); return }
-      let idir = self.feeder.issueDir(feed: feed, issue: issue)
-      self.updateStoredFiles(files: files, toDir: idir.path)
-      closure(nil)
-    }
-  }
-  
-  /// Returns true when Resources out of date or not already downloaded
-  public func needDownloadResources() -> Bool {
-    let vCurrent = feeder.resourceVersion
-    let vStored = feeder.storedResVersion
-    let dlNeeded = vStored < vCurrent
-    debug("resources at version \(vStored) \(dlNeeded ? "<" : ">=") current version \(vCurrent)")
-    return dlNeeded
-  }
-  
-  /// Download most current Resources 
-  public func downloadResources(closure: @escaping (Error?)->()) {
-    guard needDownloadResources() else { closure(nil); return }
-    feeder.resources { [weak self] result in
-      guard let res = result.value() else { return }
-      guard let self = self else { return }
-      if res.isDownloading || res.isComplete { closure(nil); return }
-      /////////////
-      let _ = StoredResources.persist(res: res, localDir: self.feeder.resourcesDir.path)
-      /////////////
-      res.isDownloading = true
-      let hloader = HttpLoader(session: self.dlSession, baseUrl: res.resourceBaseUrl,
-                               toDir: self.feeder.resourcesDir.path)
-      hloader.download(res.resourceFiles) { [weak self] hl in
-        guard let self = self else { return }
-        res.isDownloading = false
-        self.debug("Resource files:\n\(hloader)")
-        if hloader.errors > 0 { closure(hloader.lastError) }
-        else { 
-          self.feeder.storedResVersion = self.feeder.resourceVersion
-          res.isComplete = true
-          closure(nil) 
-        }
-      }
-    }
-  }
-  
   /// Download a payload of files
   public func downloadPayload(payload: StoredPayload, 
                               onProgress: ((Int64, Int64)->())? = nil, 
@@ -208,6 +149,21 @@ open class Downloader: DoesLog {
     payloadQueue += pe
     if payloadQueue.count == 1 { pe.download(dl: self) }
   }
+  
+  /// Download files with storage type .issue
+  private func downloadIssueFiles(url: String, feed: String, issue: String, 
+    files: [FileEntry], closure: @escaping (Error?)->()) {
+    let ifiles = files.filter { $0.storageType == .issue }
+    if ifiles.count == 0 { closure(nil); return }
+    createIssueDir(feed: feed, issue: issue)
+    let idir = feeder.issueDir(feed: feed, issue: issue)
+    let hloader = HttpLoader(session: dlSession, baseUrl: url, toDir: idir.path)
+    hloader.download(ifiles) { [weak self] hl in
+      self?.debug("Issue files:\n\(hloader)")
+      if hloader.errors > 0 { closure(hloader.lastError) }
+      else { closure(nil) }
+    }    
+  }
 
   /// Download Issue files
   public func downloadIssueFiles(issue: Issue, files: [FileEntry], 
@@ -221,58 +177,10 @@ open class Downloader: DoesLog {
   public func downloadIssueData(issue: Issue, files: [FileEntry], 
                                 closure: @escaping (Error?)->()) {
     if issue.isComplete { closure(nil); return }
-    downloadResources { [weak self] err in
+    downloadGlobalFiles(files: files) { [weak self] err in
       guard err == nil else { closure(err); return }
       guard let self = self else { return }
-      self.downloadGlobalFiles(files: files) { [weak self] err in
-        guard err == nil else { closure(err); return }
-        guard let self = self else { return }
-        self.downloadIssueFiles(issue: issue, files: files, closure: closure)
-      }
-    }
-  }
-  
-  /// Download "Moment" files"
-  public func downloadMoment(issue: Issue, closure: @escaping (Error?)->()) {
-    if issue.isComplete { closure(nil) }
-    else {
-      let name = self.feeder.date2a(issue.date)
-      downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, issue: name,
-                         files: issue.moment.carouselFiles, closure: closure)
-    }
-  }
-  
-  /// Download "Moment" files" to store in the DB
-  public func downloadStoredMoment(issue: StoredIssue, closure: @escaping (Error?)->()) {
-    if issue.isOvwComplete { closure(nil) }
-    else {
-      let name = self.feeder.date2a(issue.date)
-      var files: [StoredFileEntry] = []
-      for f in issue.moment.carouselFiles {
-        switch f {
-          case let f as StoredFileEntry: files += f
-          case let img as StoredImageEntry: files += StoredFileEntry(persistent: img.pf)
-          default: break 
-        }
-      }
-      downloadStoredIssueFiles(url: issue.baseUrl, feed: issue.feed.name, issue: name,
-                               files: files, closure: closure)
-    }
-  }
-
-  /// Download complete Issue
-  public func downloadIssue(issue: Issue, closure: @escaping (Error?)->()) {
-    if issue.isDownloading || issue.isComplete { closure(nil) }
-    else {
-      downloadIssueData(issue: issue, files: issue.files) { err in
-        issue.isDownloading = false
-        if err == nil { 
-          let mark = self.feeder.issueDir(issue: issue).path + "/.downloaded"
-          File.open(path: mark) { file in file.writeline("done") }
-          issue.isComplete = true 
-        }
-        closure(err)
-      }
+      self.downloadIssueFiles(issue: issue, files: files, closure: closure)
     }
   }
   
@@ -281,13 +189,6 @@ open class Downloader: DoesLog {
                               closure: @escaping (Error?)->()) {
     if issue.isComplete { closure(nil) }
     else { downloadIssueData(issue: issue, files: section.files, closure: closure) }
-  }
-
-  /// Download Article
-  public func downloadArticle(issue: Issue, article: Article, 
-                              closure: @escaping (Error?)->()) {
-    if issue.isComplete { closure(nil) }
-    else { downloadIssueData(issue: issue, files: article.files, closure: closure) }
   }
 
 } // Downloader
