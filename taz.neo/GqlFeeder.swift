@@ -122,6 +122,35 @@ class GqlImage: ImageEntry, GQLObject {
   static var fields = "resolution type alpha oSharable:sharable \(GqlFile.fields)"  
 } // GqlImage
 
+/// The Payload of files from the download server
+class GqlPayload: Payload {
+  var localDir: String
+  var remoteBaseUrl: String
+  var remoteZipName: String?
+  var files: [FileEntry]
+  var issue: Issue? 
+  var resources: Resources?
+  
+  /// Initialize Payload from Ressources
+  init(feeder: GqlFeeder, resources: GqlResources) {
+    localDir = feeder.resourcesDir.path
+    remoteBaseUrl = resources.resourceBaseUrl
+    remoteZipName = resources.resourceZipName
+    files = resources.files
+    self.resources = resources
+  }
+  
+  /// Initialize Payload from Issue
+  init(feeder: GqlFeeder, issue: GqlIssue) {
+    localDir = feeder.issueDir(issue: issue).path
+    remoteBaseUrl = issue.baseUrl
+    remoteZipName = issue.zipName
+    files = issue.files
+    self.issue = issue
+  }
+  
+} // GqlPayload
+
 /// A list of resource files
 class GqlResources: Resources, GQLObject {  
   /// Current resource version
@@ -143,13 +172,35 @@ class GqlResources: Resources, GQLObject {
     get { if _isComplete != nil { return _isComplete! } else { return false } }
     set { _isComplete = newValue }
   }
+  var gqlPayload: GqlPayload?
+  var payload: Payload { return gqlPayload! }
   
   static var fields = """
   resourceVersion 
   resourceBaseUrl 
   resourceZipName: resourceZip
   files: resourceList { \(GqlFile.fields) }
-  """    
+  """   
+    
+  enum CodingKeys: String, CodingKey {
+    case resourceVersion
+    case resourceBaseUrl
+    case resourceZipName
+    case files
+  }
+
+  required init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    resourceVersion = try container.decode(Int.self, forKey: .resourceVersion)
+    resourceBaseUrl = try container.decode(String.self, forKey: .resourceBaseUrl)
+    resourceZipName = try container.decode(String.self, forKey: .resourceZipName)
+    files = try container.decode([GqlFile].self, forKey: .files)
+  }
+  
+  func setPayload(feeder: GqlFeeder) {
+    self.gqlPayload = GqlPayload(feeder: feeder, resources: self)
+  }
+  
 } //  GqlResources
 
 /// The author of an article
@@ -289,13 +340,9 @@ class GqlMoment: Moment, GQLObject {
 
 /// One Issue of a Feed
 class GqlIssue: Issue, GQLObject {
-  /// Reference to Feed providing this Issue
-  var feedRef: GqlFeed?
-  /// Return a non nil Feed
-  var feed: Feed { 
-    get { return feedRef! as Feed }
-    set { feedRef = newValue as? GqlFeed }
-  }
+  var realFeed: Feed?
+  /// The Feed containing this Issue
+  var feed: Feed { get { realFeed! } set { realFeed = newValue } }
   /// Issue date
   var sDate: String 
   var date: Date { return UsTime(iso: sDate, tz: GqlFeeder.tz).date }
@@ -343,6 +390,50 @@ class GqlIssue: Issue, GQLObject {
     get { if _isComplete != nil { return _isComplete! } else { return false } }
     set { _isComplete = newValue }
   }
+  /// Not used in GqlIssue
+  var lastSection: Int? { get { return nil } set {} }
+  /// Not used in GqlIssue
+  var lastArticle: Int? { get { return nil } set {} }
+  var gqlPayload: GqlPayload? = nil
+  var payload: Payload { return gqlPayload! }
+  
+  enum CodingKeys: String, CodingKey {
+    case sDate
+    case sMoTime
+    case sIsWeekend
+    case gqlMoment
+    case key
+    case baseUrl
+    case status
+    case minResourceVersion
+    case zipName
+    case zipNamePdf
+    case gqlImprint
+    case sectionList
+    case pageList
+  }
+
+  required init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    sDate = try container.decode(String.self, forKey: .sDate)
+    sMoTime = try container.decodeIfPresent(String.self, forKey: .sMoTime)
+    sIsWeekend = try container.decodeIfPresent(Bool.self, forKey: .sIsWeekend)
+    gqlMoment = try container.decode(GqlMoment.self, forKey: .gqlMoment)
+    key = try container.decodeIfPresent(String.self, forKey: .key)
+    baseUrl = try container.decode(String.self, forKey: .baseUrl)
+    status = try container.decode(IssueStatus.self, forKey: .status)
+    minResourceVersion = try container.decode(Int.self, forKey: .minResourceVersion)
+    zipName = try container.decodeIfPresent(String.self, forKey: .zipName)
+    zipNamePdf = try container.decodeIfPresent(String.self, forKey: .zipNamePdf)
+    gqlImprint = try container.decodeIfPresent(GqlArticle.self, forKey: .gqlImprint)
+    sectionList = try container.decodeIfPresent([GqlSection].self, 
+                                                forKey: .sectionList)
+    pageList = try container.decodeIfPresent([GqlPage].self, forKey: .pageList)
+  }
+  
+  func setPayload(feeder: GqlFeeder) {
+    self.gqlPayload = GqlPayload(feeder: feeder, issue: self)
+  }
 
   static var ovwFields = """
   sDate: date 
@@ -367,6 +458,9 @@ class GqlIssue: Issue, GQLObject {
 
 /// A Feed of publication issues and articles
 class GqlFeed: Feed, GQLObject {  
+  var gqlFeeder: GqlFeeder!
+  /// The Feeder offering this Feed
+  var feeder: Feeder { gqlFeeder }
   /// Name of Feed
   var name: String
   /// Publication cycle
@@ -384,6 +478,22 @@ class GqlFeed: Feed, GQLObject {
   /// The Issues requested of this Feed
   var gqlIssues: [GqlIssue]?
   var issues: [Issue]? { return gqlIssues }
+  
+  enum CodingKeys: String, CodingKey {
+    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue,
+         gqlIssues
+  }
+
+  required init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    name = try container.decode(String.self, forKey: .name)
+    cycle = try container.decode(PublicationCycle.self, forKey: .cycle)
+    momentRatio = try container.decode(Float.self, forKey: .momentRatio)
+    issueCnt = try container.decode(Int.self, forKey: .issueCnt)
+    sLastIssue = try container.decode(String.self, forKey: .sLastIssue)
+    sFirstIssue = try container.decode(String.self, forKey: .sFirstIssue)
+    gqlIssues = try container.decodeIfPresent([GqlIssue].self, forKey: .gqlIssues)
+  }
   
   static var fields = """
       name cycle momentRatio issueCnt
@@ -636,7 +746,10 @@ open class GqlFeeder: Feeder, DoesLog {
     gqlSession.query(graphql: request, type: [String:GqlResources].self) { (res) in
       var ret: Result<Resources,Error>
       switch res {
-      case .success(let str):   ret = .success(str["resources"]!)
+      case .success(let str): 
+        let resources = str["resources"]!
+        resources.setPayload(feeder: self)
+        ret = .success(resources)
       case .failure(let err):   ret = .failure(err)
       }
       closure(ret)
@@ -658,6 +771,7 @@ open class GqlFeeder: Feeder, DoesLog {
       switch res {
       case .success(let fs):   
         let fst = fs["feederStatus"]!
+        for feed in fst.feeds { feed.gqlFeeder = self }
         ret = .success(fst)
       case .failure(let err):  ret = .failure(err)
       }
@@ -715,11 +829,8 @@ open class GqlFeeder: Feeder, DoesLog {
         if ret == nil { 
           if let issues = req.feeds[0].issues, issues.count > 0 {
             for issue in issues { 
-              if let _ = feed as? GqlFeed {
-                issue.feed = feed 
-                let mark = self.issueDir(issue: issue).path + "/.downloaded"
-                if File(mark).exists { issue.isComplete = true }
-              }
+              issue.feed = feed 
+              (issue as? GqlIssue)?.setPayload(feeder: self) 
             }
             ret = .success(issues) 
           }
