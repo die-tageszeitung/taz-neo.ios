@@ -29,6 +29,10 @@ class SliderTest: UIViewController {
     viewLogger.logView.onTap {_ in
       self.slider.open()
     }
+    Defaults.receive() { dnot in
+      self.debug("Defaults Notification: key \(dnot.key), " +
+        "value \(dnot.val ?? "none"), scope \(dnot.scope ?? "none")")
+    }
     debug("test")
     slider.open()
   }

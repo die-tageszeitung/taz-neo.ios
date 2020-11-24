@@ -8,8 +8,7 @@
 import UIKit
 import NorthLib
 
-class TestView: SimpleLogView {
-  
+class TestView: SimpleLogView {  
   var index = 0 {
     didSet {
       let v = max(1 - (0.1 * CGFloat(index)), 0)
@@ -18,24 +17,118 @@ class TestView: SimpleLogView {
       self.backgroundColor = UIColor(red: v, green: v, blue: v, alpha: 1.0)
       self.font = TestView.font
     }
-  }
-  
+  }  
   init() {
     super.init(frame: CGRect())
     self.isEditable = true    
-  }
-  
+  }  
   required init?(coder: NSCoder) {
     super.init(coder: coder)
-  }
-  
+  }  
 }
 
 class TestController: PageCollectionVC {
+  var feederContext: FeederContext!
+  var feed: StoredFeed!
+  var testDate = UsTime(iso: "2020-09-14", tz: "Europe/Berlin").date
+
   var logView = TestView()
-  var feederContext: FeederContext?
   lazy var consoleLogger = Log.Logger()
   lazy var viewLogger = Log.ViewLogger(logView: logView)
+  
+  // checkIssueCount verifies that the given nb. of issues are available
+  func checkIssueCount(_ n: Int) -> Bool {
+    let issues =  feed.issues as? [StoredIssue]
+    guard check(issues != nil, "issues == nil") else { return false }
+    guard check(issues!.count == n, "issues.count != \(n)") else { return false }
+    return true
+  }
+  
+  // checkFileCount verifies that the given nb. of files are available in one Issue
+  func checkFileCount(_ n: Int, inIssue issue: StoredIssue) -> Bool {
+    let nfiles = issue.payload.files.count
+    guard check(nfiles == n, 
+                "Wrong nb. of files in Issue - expected: \(n), got: \(nfiles)") 
+      else { return false }
+    return true
+  }
+  
+  // check whether Issues have same files
+  func checkFiles(from: Issue, to: Issue) -> Bool {
+    let fromFiles = from.files
+    let toFiles = to.files
+    var e = 0
+    for f in fromFiles {
+      if let idx = toFiles.firstIndex(where: { f.name == $0.name }) {
+        let t = toFiles[idx]
+        if f.sha256 != t.sha256 { e += 1; error("'from' file \(f) has different SHA256") }
+        if f.moTime != t.moTime { e += 1; error("'from' file \(f) has different moTime") }
+        if f.size != t.size { e += 1; error("'from' file \(f) has different size") }
+      }
+      else { e += 1; error("'from' file \(f) not found in 'to'") }
+    }
+    for t in toFiles {
+      if fromFiles.firstIndex(where: { t.name == $0.name }) == nil {
+        e += 1; error("'to' file \(t) not found in 'from'") 
+      }
+    }
+    return e == 0
+  }
+  
+  // Load single overview issue of data 2020-09-14 and delete it 
+  func testSingleOverview(result: @escaping (Bool)->()) {
+    Notification.receiveOnce("issueOverview") { notification in
+      if let issue = notification.content as? StoredIssue {
+        self.debug("OVW \(issue)")
+        guard self.checkIssueCount(1) else { result(false); return }
+        guard self.checkFileCount(1, inIssue: issue) else { result(false); return }
+        (self.feed.issues![0] as! StoredIssue).delete()
+        ArticleDB.save()
+        guard self.checkIssueCount(0) else { result(false); return }
+        result(true)
+      }
+      else { self.error("Invalid Notification") }
+    }
+    self.feederContext.getOvwIssues(feed: self.feed, count: 1, 
+                                    fromDate: self.testDate)
+  }
+  
+  // Load single overview issue of data 2020-09-14 and overwrite it with demo issue 
+  func testOverwriteOverview(result: @escaping (Bool)->()) {
+    var issue: StoredIssue!
+    Notification.receiveOnce("issueOverview") { notification in
+      issue = notification.content as? StoredIssue
+      guard self.check(issue != nil, "Invalid Notification") 
+        else { result(false); return }
+      self.debug("OVW \(issue!)")
+      guard self.checkIssueCount(1) else { result(false); return }
+      self.feederContext.getCompleteIssue(issue: issue)
+    }
+    Notification.receiveOnce("issue") { notification in
+      issue = notification.content as? StoredIssue
+      guard self.check(issue != nil, "Invalid Notification") 
+        else { result(false); return }
+      self.debug("Complete \(issue!)")
+      guard self.checkIssueCount(1) else { result(false); return }      
+      guard self.checkFileCount(145, inIssue: issue) else { result(false); return }
+      Notification.receiveOnce("authenticationSucceeded") {_ in 
+        var gqlIssue: GqlIssue? = nil 
+        Notification.receiveOnce("gqlIssue", from: issue) { notification in
+          gqlIssue = notification.content as? GqlIssue
+        }
+        Notification.receiveOnce("issue", from: issue) { notification in
+          guard self.checkIssueCount(1) else { result(false); return }      
+          guard self.checkFileCount(178, inIssue: issue) else { result(false); return }
+          if let gis = gqlIssue { result(self.checkFiles(from: gis, to: issue)) }
+          else { self.error("no GqlIssue"); result(false) }
+        }
+        self.feederContext.getCompleteIssue(issue: issue)
+      }
+      self.feederContext.authenticate()
+    }
+    self.feederContext.getOvwIssues(feed: self.feed, count: 1, 
+                                    fromDate: self.testDate)
+  }
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -68,53 +161,42 @@ class TestController: PageCollectionVC {
     viewProvider { (index, oview) in
       return views[index]
     }
-    ArticleDB(name: "taz") { [weak self] err in 
-      var nIssues = 0
-      guard let self = self else { return }
-      guard err == nil else { exit(1) }
-      self.debug("DB opened: \(ArticleDB.singleton!)")
-      self.feederContext = FeederContext(name: "taz", 
-                                         url: "https://dl.taz.de/appGraphQl")
-      var completedIssue: StoredIssue? = nil
-      Notification.receive("issueOverview") { notification in
-        if let issue = notification.content as? StoredIssue {
-          self.debug("OVW \(issue)")
-          nIssues += 1
-          if nIssues == 10 {
-            completedIssue = issue
-            self.feederContext?.getCompleteIssue(issue: issue)
+    debug("Base directory: \(Dir.appSupportPath)")
+    ArticleDB.dbRemove(name: "taz")
+    self.feederContext = FeederContext(name: "taz", url: "https://dl.taz.de/appGraphQl",
+                                       feed: "taz")
+    Notification.receive("issueProgress") { notif in
+      if let (loaded,total) = notif.content as? (Int64,Int64) {
+        print("issue progress: \(loaded)/\(total)")
+      }        
+    }
+    Notification.receive("resourcesProgress") { notification in
+      guard let (loaded, total) = notification.content as? (Int64,Int64) else {return }
+      print("resource progress: \(loaded)/\(total)")
+    }
+    Notification.receive("feederReady") { notification in 
+      guard let fctx = notification.sender as? FeederContext else { return }
+      self.feederContext = fctx
+      self.debug(fctx.storedFeeder.toString())
+      self.feed = StoredFeed.get(name: "taz", inFeeder: fctx.storedFeeder)[0]
+      self.testSingleOverview { ok in
+        if ok { 
+          self.debug("testSingleOverview OK") 
+          self.testOverwriteOverview { ok in
+            if ok {
+              self.debug("testOverwriteOverview OK")
+            }
+            else { self.error("testOverwriteOverview failed") }
           }
         }
-      }
-      Notification.receiveOnce("issue", from: completedIssue) { notif in  
-        guard let issue = notif.content as? StoredIssue else { return }
-        if issue.isReduced {
-          self.feederContext?.authenticator?.authenticate(isFullScreen: true) { err in
-            if err == nil { self.feederContext?.getCompleteIssue(issue: issue) }
-          }
-        }
-      }
-      Notification.receive("issueProgress") { notif in
-        if let (loaded,total) = notif.content as? (Int64,Int64) {
-          print("issue progress: \(loaded)/\(total)")
-        }        
-      }
-      Notification.receive("resourcesProgress") { notification in
-        guard let (loaded, total) = notification.content as? (Int64,Int64) else {return }
-        print("dl: \(loaded)/\(total)")
-      }
-      Notification.receive("feederReady") { notification in 
-        guard let fctx = notification.sender as? FeederContext else { return }
-        self.debug(fctx.storedFeeder.toString())
-        let feed = StoredFeed.get(name: "taz", inFeeder: fctx.storedFeeder)[0]
-        fctx.getOvwIssues(feed: feed, count: 20) 
-      }
-      Notification.receive("feederReachable") {_ in 
-        self.debug("feeder is reachable")
-      }
-      Notification.receive("feederNotReachable") {_ in 
-        self.debug("feeder is not reachable")
-      }
+        else { self.error("testSingleOverview failed") }
+      } 
+    }
+    Notification.receive("feederReachable") {_ in 
+      self.debug("feeder is reachable")
+    }
+    Notification.receive("feederNotReachable") {_ in 
+      self.debug("feeder is not reachable")
     }
   }
   
