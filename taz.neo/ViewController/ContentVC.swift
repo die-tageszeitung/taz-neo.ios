@@ -11,7 +11,7 @@ import NorthLib
 
 // A ContentUrl provides a WebView URL for Articles and Sections
 public class ContentUrl: WebViewUrl, DoesLog {
-  
+
   public var content: Content
   public var path: String
   public lazy var url: URL = URL(fileURLWithPath: path + "/" + content.html.fileName)
@@ -123,6 +123,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
   public static let TopMargin: CGFloat = 65
   public static let BottomMargin: CGFloat = 34
 
+  public var feederContext: FeederContext  
   public var delegate: IssueInfo!
   public var contentTable: ContentTableVC?
   public var contents: [Content] = []
@@ -323,11 +324,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
     slider.close()
     if let overlay = imageOverlay { overlay.close(animated: false) }
   }
-
-  public override init() {
-    self.contentTable = ContentTableVC.loadFromNib()
-    super.init()
-  }  
   
   public func setup(contents: [Content], isLargeHeader: Bool) {
     self.contents = contents
@@ -346,14 +342,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo {
       self?.navigationController?.popToRootViewController(animated: true)
     }
   }
-  
-  public convenience init(contents: [Content], isLargeHeader: Bool) {
-    self.init()
-    setup(contents: contents, isLargeHeader: isLargeHeader)
-  }
-  
+ 
+  public init(feederContext: FeederContext) {
+    self.feederContext = feederContext
+    self.contentTable = ContentTableVC.loadFromNib()
+    super.init()
+  }  
+   
   required public init?(coder: NSCoder) {
-    super.init(coder: coder)
+    fatalError("init(coder:) has not been implemented")
   }
   
 }
