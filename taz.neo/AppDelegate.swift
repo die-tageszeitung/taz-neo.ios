@@ -21,7 +21,6 @@ class AppDelegate: NotifiedDelegate {
 //    self.window?.rootViewController = NavController()
 //    self.window?.rootViewController = ContentVC()
 //    self.window?.rootViewController = UITests()
-//    self.window?.rootViewController = DLController()
 //    self.window?.rootViewController = CarouselVC()
 //    self.window?.rootViewController = WebViewTests()
 //    self.window?.rootViewController = SliderTest()
