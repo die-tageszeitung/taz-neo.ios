@@ -10,35 +10,26 @@ import MessageUI
 import NorthLib
 
 
-class MainNC: NavigationController, IssueVCdelegate,
+class MainNC: NavigationController,
               MFMailComposeViewControllerDelegate {
-  
-  /// Number of seconds to wait until we stop polling for email confirmation
-  let PollTimeout: Int64 = 25*3600
   
   var showAnimations = false
   lazy var consoleLogger = Log.Logger()
   lazy var viewLogger = Log.ViewLogger()
   lazy var fileLogger = Log.FileLogger()
+  var feederContext: FeederContext!
   let net = NetAvailability()
-  var _gqlFeeder: GqlFeeder!  
-  var gqlFeeder: GqlFeeder { return _gqlFeeder }
-  var feeder: Feeder { return gqlFeeder }
-  lazy var authenticator = SimpleAuthenticator(feeder: self.gqlFeeder)
-  var _feed: Feed?
-  var feed: Feed { return _feed! }
-  var storedFeeder: StoredFeeder!
-  var storedFeed: StoredFeed!
-  lazy var dloader = Downloader(feeder: feeder)
+  
+  var authenticator: Authenticator? { return feederContext.authenticator }
+
+  @KeyBool(key: "dataPolicyAccepted")
+  public var dataPolicyAccepted: Bool
+  
   static var singleton: MainNC!
   private var isErrorReporting = false
   private var isForeground = false
-  private var pollingTimer: Timer?
-  private var pollEnd: Int64?
-  public var pushToken: String?
-  private var inIntro = false
-  public var ovwIssues: [Issue]?
 
+  /// Enable logging to file and otional to view
   func setupLogging() {
     let logView = viewLogger.logView
     logView.isHidden = true
@@ -69,34 +60,6 @@ class MainNC: NavigationController, IssueVCdelegate,
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
         "Path: \(Dir.appSupportPath)")
   } 
-  
-  func setupRemoteNotifications() {
-    let nd = UIApplication.shared.delegate as! AppDelegate
-    let dfl = Defaults.singleton
-    let oldToken = dfl["pushToken"]
-    self.pushToken = oldToken
-    nd.onReceivePush { (pn, payload) in
-      self.debug(payload.toString())
-    }
-    nd.permitPush { pn in
-      if pn.isPermitted { 
-        self.debug("Push permission granted") 
-        self.pushToken = pn.deviceId
-      }
-      else { 
-        self.debug("No push permission") 
-        self.pushToken = nil
-      }
-      dfl["pushToken"] = self.pushToken 
-      if oldToken != self.pushToken {
-        let isTextNotification = dfl["isTextNotification"]!.bool
-        self.gqlFeeder.notification(pushToken: self.pushToken, oldToken: oldToken,
-                                    isTextNotification: isTextNotification) { res in
-          if let err = res.error() { self.error(err) }
-        }
-      }
-    }
-  }
   
   func produceErrorReport(recipient: String) {
     let mail =  MFMailComposeViewController()
@@ -178,154 +141,34 @@ class MainNC: NavigationController, IssueVCdelegate,
     self.view.addGestureRecognizer(reportLPress2)
     self.view.addGestureRecognizer(reportLPress3)
   }
-    
-  func handleFeederError(_ err: FeederError) {
-    var text = ""
-    switch err {
-    case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
-    case .expiredAccount: text = "Ihr Abo ist abgelaufen."
-    case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
-    case .unexpectedResponse: 
-      Alert.message(title: "Fehler", 
-                    message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
-        exit(0)               
-      }
-    }
-    deleteUserData()
-    Alert.message(title: "Fehler", message: text) {
-      Notification.send("userLogin")
-    }
-  }
-  
-  func getOverview() {
-    gqlFeeder.issues(feed: feed, count: 20) { res in
-      if let issues = res.value() {
-        Notification.send("overviewReceived", content: issues)
-      }
-      else if let err = res.error() as? FeederError {
-        self.handleFeederError(err)
-      }
-    }
-  }
-  
-  func overviewReceived(issues: [Issue]) {
-    ovwIssues = issues
-//    for issue in issues {
-//      let sissues = StoredIssue.get(date: issue.date, inFeed: storedFeed) 
-//    }
-    if !inIntro { showIssueVC() }
-  }
-  
-  func setupPolling() {
-    self.authenticator.whenPollingRequired { self.startPolling() }
-    if let peStr = Defaults.singleton["pollEnd"] {
-      let pe = Int64(peStr)
-      if pe! <= UsTime.now().sec { endPolling() }
-      else {
-        pollEnd = pe
-        self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
-          repeats: true) { _ in self.doPolling() }        
-      }
-    }
-  }
-  
-  func startPolling() {
-    self.pollEnd = UsTime.now().sec + PollTimeout
-    Defaults.singleton["pollEnd"] = "\(pollEnd!)"
-    self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
-      repeats: true) { _ in self.doPolling() }
-  }
-  
-  func doPolling() {
-    self.authenticator.pollSubscription { [weak self] doContinue in
-      guard let self = self else { return }
-      guard let pollEnd = self.pollEnd else { self.endPolling(); return }
-      if doContinue { if UsTime.now().sec > pollEnd { self.endPolling() } }
-      else {
-        self.endPolling() 
-        if self.gqlFeeder.isAuthenticated { /*reloadIssue()*/ }
-      }
-    }
-  }
-  
-  func endPolling() {
-    self.pollingTimer?.invalidate()
-    self.pollEnd = nil
-    Defaults.singleton["pollEnd"] = nil
-  }
-  
-  func userLogin(closure: @escaping (Error?)->()) {
-    let (_,_,token) = SimpleAuthenticator.getUserData()
-    if let token = token { 
-      self.gqlFeeder.authToken = token
-      closure(nil)
-    }
-    else {
-      self.setupPolling()
-      self.authenticator.authenticate(isFullScreen: true) { err in closure(err) }
-    }
-  }
-    
-  func setupFeeder(closure: @escaping (Result<Feeder,Error>)->()) {
-    self._gqlFeeder = GqlFeeder(title: "taz", url: "https://dl.taz.de/appGraphQl") { [weak self] (res) in
-      guard let self = self else { return }
-      guard res.value() != nil else { return }
-      self.debug(self.gqlFeeder.toString())
-      self._feed = self.gqlFeeder.feeds[0]
-      self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
-      Notification.receive("overviewReceived") { [weak self] notification in
-        if let issues = notification.content as? [Issue] {
-          self?.overviewReceived(issues: issues) 
-        }
-      }
-      Notification.receive("userLogin") { [weak self] _ in
-        self?.userLogin() { [weak self] err in
-          guard let self = self else { return }
-          if err != nil { exit(0) }
-          self.dloader.downloadResources {_ in 
-            self.showIntro() 
-            self.getOverview()
-          }
-        }
-      }
-      Notification.send("userLogin")
-      closure(.success(self.feeder))
-    }
-  }
-    
+                
   func showIssueVC() {
-    self.setupRemoteNotifications()
-    let ivc = IssueVC()
-    ivc.delegate = self
+    feederContext.setupRemoteNotifications()
+    let ivc = IssueVC(feederContext: feederContext)
     replaceTopViewController(with: ivc, animated: false)
   }
   
-  func showIntro() {
-    let hasAccepted = Keychain.singleton["dataPolicyAccepted"]
-    if hasAccepted == nil || !hasAccepted!.bool {
-      debug("Showing Intro")
-      inIntro = true
+  func showIntro(closure: @escaping ()->()) {
+    Notification.receiveOnce("resourcesReady") { [weak self] _ in
+      guard let self = self else { return }
+      self.debug("Showing Intro")
       let introVC = IntroVC()
+      let feeder = self.feederContext.storedFeeder!
       introVC.htmlDataPolicy = feeder.dataPolicy
       introVC.htmlIntro = feeder.welcomeSlides
-      Notification.receive("dataPolicyAccepted") { [weak self] obj in
-        self?.introHasFinished()
+      Notification.receiveOnce("dataPolicyAccepted") { [weak self] notif in
+        self?.popViewController(animated: false)
+        let kc = Keychain.singleton
+        kc["dataPolicyAccepted"] = "true"
+        closure()
       }
-      pushViewController(introVC, animated: false)
+      self.pushViewController(introVC, animated: false)
     }
-    else if ovwIssues != nil { showIssueVC() }
+    feederContext.updateResources()
   }
-  
-  func introHasFinished() {
-    popViewController(animated: false)
-    let kc = Keychain.singleton
-    kc["dataPolicyAccepted"] = "true"
-    if ovwIssues != nil { showIssueVC() }
-  }
-  
+    
   func startup() {
     let dfl = Defaults.singleton
-    dfl.setDefaults(values: ConfigDefaults)
     let oneWeek = 7*24*3600
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
@@ -337,76 +180,45 @@ class MainNC: NavigationController, IssueVCdelegate,
     ContentTableVC.showAnimations = self.showAnimations
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
-    Database.dbRename(old: "ArticleDB", new: "taz")
-    ArticleDB(name: "taz") { [weak self] err in 
-      guard let self = self else { return }
-      guard err == nil else { exit(1) }
-      self.debug("DB opened: \(ArticleDB.singleton!)")
-      self.setupFeeder { [weak self] _ in
-        guard let self = self else { return }
-        self.debug("Feeder ready.")
-      }
+    if !dataPolicyAccepted {
+      showIntro() { self.showIssueVC() }
     }
+    else { showIssueVC() }
   } 
   
-  @objc func goingBackground() {
+ func goingBackground() {
     isForeground = false
     debug("Going background")
   }
   
-  @objc func goingForeground() {
+  func goingForeground() {
     isForeground = true
     debug("Entering foreground")
   }
  
   func deleteAll() {
     popToRootViewController(animated: false)
-    for f in Dir.appSupport.scan() {
-      debug("remove: \(f)")
-      try! FileManager.default.removeItem(atPath: f)
-    }
-    exit(0)
+    feederContext.deleteAll()
   }
   
   func unlinkSubscriptionId() {
-    self.authenticator.unlinkSubscriptionId()
+    authenticator?.unlinkSubscriptionId()
   }
-  
-  func getUserData() -> (token: String?, id: String?, password: String?) {
-    let dfl = Defaults.singleton
-    let kc = Keychain.singleton
-    var token = kc["token"]
-    var id = kc["id"]
-    let password = kc["password"]
-    if token == nil { 
-      token = dfl["token"] 
-      if token != nil { kc["token"] = token }
-    }
-    else { dfl["token"] = token }
-    if id == nil { 
-      id = dfl["id"] 
-      if id != nil { kc["id"] = id }
-    }
-    return(token, id, password)
-  }
-  
+    
   func deleteUserData() {
+    SimpleAuthenticator.deleteUserData()
     let dfl = Defaults.singleton
     let kc = Keychain.singleton
-    kc["token"] = nil
-    kc["id"] = nil
-    kc["password"] = nil
     kc["dataPolicyAccepted"] = nil
-    dfl["token"] = nil
-    dfl["id"] = nil
-    dfl["pushToken"] = nil
     dfl["isTextNotification"] = "true"
     dfl["nStarted"] = "0"
     dfl["lastStarted"] = "0"
   }
   
   func testNotification(type: NotificationType) {
-    self.gqlFeeder.testNotification(pushToken: self.pushToken, request: type) {_ in}
+    if let pushToken = Defaults.singleton["pushToken"] {
+      feederContext.gqlFeeder.testNotification(pushToken: pushToken, request: type) {_ in}
+    }
   }
   
   override func viewDidLoad() {
@@ -415,21 +227,38 @@ class MainNC: NavigationController, IssueVCdelegate,
     MainNC.singleton = self
     isNavigationBarHidden = true
     isForeground = true
+    // Disallow leaving view controllers IssueVC and IntroVC by edge swipe
     onPopViewController { vc in
       if vc is IssueVC || vc is IntroVC {
         return false
       }
       return true
     }
-    // isEdgeDetection = true
     setupTopMenus()
-    let nc = NotificationCenter.default
-    nc.addObserver(self, selector: #selector(goingBackground), 
-      name: UIApplication.willResignActiveNotification, object: nil)
-    nc.addObserver(self, selector: #selector(goingForeground), 
-                   name: UIApplication.willEnterForegroundNotification, object: nil)
     setupLogging()
-    startup()
-  }
+    Notification.receive(UIApplication.willResignActiveNotification) { _ in
+      self.goingBackground()
+    }
+    Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
+      self.goingForeground()
+    }
+    Notification.receiveOnce("feederReady") { notification in
+      guard let fctx = notification.sender as? FeederContext else { return }
+      self.debug(fctx.storedFeeder.toString())
+      self.startup()
+    }
+    // Open database and connect to server
+    Database.dbRename(old: "ArticleDB", new: "taz") // to move old name scheme
+    ArticleDB(name: "taz") { err in 
+      guard err == nil else { exit(1) }
+      self.debug("DB opened: \(ArticleDB.singleton!)")
+      // Define configuration defaults
+      let dfl = Defaults.singleton
+      dfl.setDefaults(values: ConfigDefaults)
+      // connect to feeder
+      self.feederContext = 
+        FeederContext(name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
+    }
+  } // viewDidLoad
 
 } // MainNC
