@@ -11,17 +11,19 @@ import Foundation
 /// The protocol used to communicate with calling VCs which can provide
 /// infos regarding Feeder, Issue and Downloader
 public protocol IssueInfo {
-  /// The feeder delivering Feeds of Issues
-  var feeder: Feeder { get }
+  /// The feeder context
+  var feederContext: FeederContext { get }
   /// One Issue of a Feed
   var issue: Issue { get }
-  /// The Downloader to get data from the Feeder
-  var dloader: Downloader { get }
   /// Reset the list of Issues to the most current issue
   func resetIssueList()
 }
 
 public extension IssueInfo {
+  /// The feeder delivering Feeds of Issues
+  var feeder: Feeder { feederContext.storedFeeder }
+  /// The Downloader to get data from the Feeder
+  var dloader: Downloader { feederContext.dloader }
   /// The Feed containing Issues
   var feed: Feed { issue.feed }
 }
