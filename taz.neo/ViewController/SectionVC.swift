@@ -31,6 +31,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     }
   }
   
+  private var initialSection: Int?
+  private var initialArticle: Int?
+  
   public override var delegate: IssueInfo! {
     didSet { if oldValue == nil { self.setup() } }
   }
@@ -38,6 +41,13 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   /// Perform slider animations?
   static var showAnimations = true
 
+  /// Is top VC
+  public var isVisibleVC: Bool {
+    if let nvc = navigationController {
+      return self == nvc.visibleViewController
+    }
+    else { return false }
+  }
   public func displaySection(index: Int) {
     if index != self.index {
       debug("Section change to Section #\(index), previous: " +
@@ -45,6 +55,18 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       if let curr = currentWebView { curr.scrollToTop() }
       self.index = index
     }    
+  }
+  
+  private func showArticle(url: URL? = nil, index: Int? = nil) {
+    if let avc = articleVC {
+      if let url = url { avc.gotoUrl(url: url) }
+      else if let index = index { avc.index = index }
+      if let nvc = navigationController {
+        if avc != nvc.topViewController {
+          nvc.pushViewController(avc, animated: true)
+        }
+      }
+    }
   }
   
   public func linkPressed(from: URL?, to: URL?) {
@@ -55,10 +77,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     if to.isFileURL {
       if article2sectionHtml[fn] != nil {
         lastIndex = nil
-        articleVC?.gotoUrl(url: to)
-        if top != articleVC {
-          navigationController?.pushViewController(articleVC!, animated: true)
-        }
+        showArticle(url: to)
       }    
       else {
         for s in self.sections {
@@ -110,12 +129,17 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       self?.closeIssue()
     }
     onDisplay { [weak self] (secIndex, oview) in
-      self?.debug("onDisplay: \(secIndex)")
-      self?.setHeader(secIndex: secIndex)
+      guard let self = self else { return }
+      self.debug("onDisplay: \(secIndex)")
+      self.setHeader(secIndex: secIndex)
+      if self.isVisibleVC { 
+        self.issue.lastSection = self.index
+        self.issue.lastArticle = nil 
+      }
     }
-    articleVC = ArticleVC()
-    articleVC?.delegate = self
     super.showImageGallery = false
+    articleVC = ArticleVC(feederContext: feederContext)
+    articleVC?.delegate = self
     whenLinkPressed { [weak self] (from, to) in
       self?.linkPressed(from: from, to: to)
     }
@@ -152,11 +176,19 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   
   override public func viewDidLoad() {
     super.viewDidLoad()
-    self.index = 0
+    self.index = initialSection ?? 0
   }
   
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    if let iart = initialArticle {
+      delay(seconds: 1.0) { [weak self] in
+        self?.showArticle(index: iart)
+      }
+      initialArticle = nil
+      SectionVC.showAnimations = false
+    }
+    if initialArticle != nil { SectionVC.showAnimations = false }
     if SectionVC.showAnimations {
       SectionVC.showAnimations = false
       delay(seconds: 1.5) {
@@ -170,7 +202,19 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       }
     }
   }
-    
+   
+  /// Initialize with FeederContext
+  public init(feederContext: FeederContext, atSection: Int? = nil, 
+              atArticle: Int? = nil) {
+    initialSection = atSection
+    initialArticle = atArticle
+    super.init(feederContext: feederContext)
+  }
+  
+  required public init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
 } // SectionVC
 
 

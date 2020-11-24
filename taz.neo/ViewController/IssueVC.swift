@@ -8,29 +8,17 @@
 import UIKit
 import NorthLib
 
-
-/// The protocol used to communicate with calling VCs
-public protocol IssueVCdelegate {
-  var gqlFeeder: GqlFeeder { get }
-  var feed: Feed { get }
-  var dloader: Downloader { get }
-  var ovwIssues: [Issue]? { get }
-  var pushToken: String? { get }
-}
-
 public class IssueVC: UIViewController, IssueInfo {
   
   /// The Feeder providing data (from delegate)
-  public var gqlFeeder: GqlFeeder { return delegate.gqlFeeder }  
-  public var feeder: Feeder { return delegate.gqlFeeder }  
+  public var gqlFeeder: GqlFeeder { return feederContext.gqlFeeder }  
   /// The Feed to display
-  public var feed: Feed { return delegate.feed }
+  public var feed: Feed { return feederContext.defaultFeed }
   /// Selected Issue to display
   public var issue: Issue { issues[index] }
-  /// Downloader from delegate
-  public var dloader: Downloader { return delegate.dloader }  
-  /// The delegate providing the Feeder and default Feed
-  public var delegate: IssueVCdelegate!
+
+  /// The FeederContext providing the Feeder and default Feed
+  public var feederContext: FeederContext
   
   /// The IssueCarousel showing the available Issues
   public var issueCarousel = IssueCarousel()
@@ -45,28 +33,29 @@ public class IssueVC: UIViewController, IssueInfo {
   /// Issue Moments to download
   public var issueMoments: [Issue]? 
   
-  // The last Alert shown
-  private var lastAlert: UIAlertController?
-  
-  // Is initial appearance
-  private var isInitial = true
-  
+  /// Scroll direction (from config defaults)
+  @DefaultBool(key: "carouselScrollFromLeft")
+  public var carouselScrollFromLeft: Bool
+
   /// Perform carousel animations?
   static var showAnimations = true
   
   /// Light status bar because of black background
   override public var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
-
-  private var serverDownloadId: String?
-  private var serverDownloadStart: UsTime?
   
   /// Reset list of Issues to the first (most current) one
   public func resetIssueList() {
     issueCarousel.index = 0
   }
   
-  /// Add moment image to carousel
-  func addMoment(issue: Issue) {
+  /// Reset list of Issues and carousel
+  private func reset() {
+    issues = [] 
+    issueCarousel.reset()
+  }
+  
+  /// Add Issue to carousel
+  private func addIssue(issue: Issue) {
     if let img = feeder.momentImage(issue: issue) {
       var idx = 0
       for iss in issues {
@@ -83,195 +72,121 @@ public class IssueVC: UIViewController, IssueInfo {
   
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
-    
+    // TODO: Handle Download Error
   }
   
-  /// Download Moment images from server if necessary
-  func getMoments(_ newIssues: [Issue]) {
-    guard issueMoments == nil else { return }
-    issueMoments = newIssues    
-    for issue in newIssues {
-      dloader.downloadMoment(issue: issue) { [weak self] err in
-        guard let self = self else { return }
-        if err == nil { self.addMoment(issue: issue) }
-        else { self.handleDownloadError(error: err) }
-        if let idx = self.issueMoments?.firstIndex(where: 
-          { $0.date == issue.date } ) {
-          self.issueMoments?.remove(at: idx)
+  /// Requests sufficient overview Issues from DB/server
+  private func provideOverview() {
+    let n = issues.count
+    if n > 0 {
+      if (n - index) < 11 { 
+        var last = issues.last!.date
+        last.addDays(-1)
+        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last)
+      }
+      if index < 9 {
+        var date = issues.first!.date
+        let first = UsTime(date)
+        let now = UsTime.now()
+        let secPerDay: Int64 = 3600*24
+        let ndays = (now.sec - first.sec) / secPerDay
+        if ndays > 10 { 
+          date.addDays(10)
+          feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date)
         }
-        if self.issueMoments?.count == 0 { 
-          self.issueMoments = nil 
-          self.debug("\(newIssues.count) Moments downloaded")
-        }
-        
-      }
-    }
-  }
-  
-  /// Issues received from server
-  func issuesReceived(issues iss: [Issue]) {
-    guard issueMoments == nil else { return }
-    debug()
-    // TODO: Check for stored Issues
-    // TODO: store new issues in DB
-    var newIssues = iss
-    if issues.count > 0 {
-      if issues.last!.date == newIssues.first!.date {
-        newIssues.removeFirst()
-      }
-    }
-    else { 
-      issues = [] 
-      issueCarousel.reset()
-    }
-    getMoments(newIssues)
-  }
-  
-  func issuesReceived(result: Result<[Issue], Error>) {
-    if let newIssues = result.value() { issuesReceived(issues: newIssues) }
-    else {
-      // TODO: handle Issue request error
-    }
-  }
-  
-  /// Request more Issues from server
-  func getCurrentIssues() {
-    if issues.count == 0 {
-      gqlFeeder.issues(feed: feed, count: 20) { [weak self] res in
-        self?.issuesReceived(result: res)
-      }
-    }
-    else {
-      if let lastDate = issues.last?.date {
-        gqlFeeder.issues(feed: feed, date: lastDate, count: 20) 
-        { [weak self] res in
-          self?.issuesReceived(result: res)
+        else if ndays > 1 {
+          date.addDays(-Int(ndays+1))
+          feederContext.getOvwIssues(feed: feed, count: Int(ndays + 1), fromDate: date)
         }
       }
     }
+    else { feederContext.getOvwIssues(feed: feed, count: 20) }
   }
   
   /// Look for newer issues on the server
-  func checkForNewIssues() {
-    guard issues.count > 0 else { return }
-    let now = UsTime.now()
-    let latestLoaded = UsTime(issues[0].date)
-    let nHours = (now.sec - latestLoaded.sec) / 3600
-    if nHours > 6 {
-      let ndays = (now.sec - latestLoaded.sec) / (3600*24) + 1
-      gqlFeeder.issues(feed: feed, count: Int(ndays)) { [weak self] res in
-        if let newIssues = res.value() { self?.getMoments(newIssues) }
-      }      
+  private func checkForNewIssues() {
+    if issues.count > 0 {
+      let now = UsTime.now()
+      let latestLoaded = UsTime(issues[0].date)
+      let nHours = (now.sec - latestLoaded.sec) / 3600
+      if nHours > 6 {
+        let ndays = (now.sec - latestLoaded.sec) / (3600*24) + 1
+        feederContext.getOvwIssues(feed: feed, count: Int(ndays))
+      }
     }
-  }
+    else { feederContext.getOvwIssues(feed: feed, count: 20) }
+  }  
   
   /// Download one section
-  func downloadSection(section: Section, closure: @escaping (Error?)->()) {
+  private func downloadSection(section: Section, closure: @escaping (Error?)->()) {
     dloader.downloadSection(issue: self.issue, section: section) { [weak self] err in
       if err != nil { self?.debug("Section DL Errors: last = \(err!)") }
-      else { 
-        self?.debug("Section DL complete") 
-        self?.lastAlert?.dismiss(animated: false)
-        self?.lastAlert = nil
-      }
+      else { self?.debug("Section DL complete") }
       closure(err)
     }   
   }
   
   /// Setup SectionVC and push it onto the VC stack
-  func pushSectionVC() {
-    sectionVC = SectionVC()
+  private func pushSectionVC(feederContext: FeederContext, atSection: Int? = nil,
+                             atArticle: Int? = nil) {
+    sectionVC = SectionVC(feederContext: feederContext, atSection: atSection,
+                          atArticle: atArticle)
     if let svc = sectionVC {
       svc.delegate = self
       self.navigationController?.pushViewController(svc, animated: false)
-      if IssueVC.showAnimations {
-        delay(seconds: 1.5) {
-          svc.slider.open() { _ in
-            delay(seconds: 1.5) {
-              svc.slider.close() { _ in
-                svc.slider.blinkButton()
-              }
-            }
-          }
-        }
-      }
     }
   }
   
-  /// Tell server we are starting to download
-  func markStartDownload(feed: Feed, issue: Issue) {
-    let isPush = delegate.pushToken != nil
-    debug("Sending start of download to server")
-    self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush) { [weak self] res in
-      guard let self = self else { return }
-      if let dlId = res.value() {
-        self.serverDownloadId = dlId
-        self.serverDownloadStart = UsTime.now()
-      }
+  /// Show Issue at a given index, download if necessary
+  private func showIssue(index givenIndex: Int? = nil, atSection: Int? = nil, 
+                         atArticle: Int? = nil) {
+    let index = givenIndex ?? self.index
+    func pushSection() {
+      self.pushSectionVC(feederContext: feederContext, atSection: atSection, 
+                         atArticle: atArticle)
     }
-  }
-  
-  /// Tell server we stopped downloading
-  func markStopDownload() {
-    if let dlId = self.serverDownloadId {
-      let nsec = UsTime.now().timeInterval - self.serverDownloadStart!.timeInterval
-      debug("Sending stop of download to server")
-      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) {_ in}
-      self.serverDownloadId = nil
-      self.serverDownloadStart = nil
-    }
-  }
-  
-  /// Download Issue at index
-  func downloadIssue(index: Int) {
     guard index >= 0 && index < issues.count else { return }
     let issue = issues[index]
     debug("*** Action: Entering \(issue.feed.name)-" +
-          "\(issue.date.isoDate(tz: feeder.timeZone))")
-    if issue.isComplete { self.pushSectionVC(); return }
-    if index < issues.count && !isDownloading {
+      "\(issue.date.isoDate(tz: feeder.timeZone))")
+    if let sissue = issue as? StoredIssue, !isDownloading {
+      guard feederContext.needsUpdate(issue: sissue) else { pushSection(); return }
       isDownloading = true
       issueCarousel.index = index
       issueCarousel.setActivity(idx: index, isActivity: true)
-      markStartDownload(feed: feed, issue: issue)
-      downloadSection(section: issue.sections![0]) { [weak self] err in
+      Notification.receiveOnce("issueStructure", from: sissue) { [weak self] notif in
         guard let self = self else { return }
-        self.isDownloading = false
-        if err != nil { 
-          self.handleDownloadError(error: err)
-          return
+        guard notif.error == nil else { 
+          self.handleDownloadError(error: notif.error!)
+          return 
         }
-        self.pushSectionVC()
-        if !issue.isComplete { 
-          delay(seconds: 2) { 
-            self.dloader.downloadIssue(issue: issue) { [weak self] err in
-              guard let self = self else { return }
-              if err != nil { 
-                self.error("Issue \(issue.date.isoDate()) DL Errors: last = \(err!)")
-                self.handleDownloadError(error: err); 
-                return 
-              }
-              else { 
-                self.debug("Issue \(issue.date.isoDate()) DL complete")
-                self.issueCarousel.setActivity(idx: index, isActivity: false)
-                self.setLabel(idx: index)
-                self.markStopDownload()
-              }
+        self.downloadSection(section: sissue.sections![0]) { [weak self] err in
+          guard let self = self else { return }
+          guard err == nil else { self.handleDownloadError(error: err); return }
+          self.isDownloading = false
+          pushSection()
+          Notification.receiveOnce("issue", from: sissue) { [weak self] notif in
+            guard let self = self else { return }
+            if let err = notif.error { 
+              self.handleDownloadError(error: err)
+              self.error("Issue \(sissue.date.isoDate()) DL Errors: last = \(err)")
             }
+            else {
+              self.debug("Issue \(sissue.date.isoDate()) DL complete")
+              self.setLabel(idx: index)
+            }
+            self.issueCarousel.setActivity(idx: index, isActivity: false)
           }
         }
-        else {
-          self.issueCarousel.setActivity(idx: index, isActivity: false)
-          self.setLabel(idx: index)
-        }
       }
+      self.feederContext.getCompleteIssue(issue: sissue)        
     }
   }
   
   // last index displayed
   fileprivate var lastIndex: Int?
  
-  func setLabel(idx: Int, isRotate: Bool = false) {
+  private func setLabel(idx: Int, isRotate: Bool = false) {
     guard idx >= 0 && idx < self.issues.count else { return }
     let issue = self.issues[idx]
     var sdate = issue.date.gLowerDate(tz: self.feeder.timeZone)
@@ -286,7 +201,7 @@ public class IssueVC: UIViewController, IssueInfo {
     else { self.issueCarousel.pureText = sdate }
   } 
   
-  func exportMoment(issue: Issue) {
+  private func exportMoment(issue: Issue) {
     if let fn = feeder.momentImageName(issue: issue, isCredited: true) {
       let file = File(fn)
       let ext = file.extname
@@ -296,34 +211,37 @@ public class IssueVC: UIViewController, IssueInfo {
     }
   }
   
-  func deleteIssue() {
-    let name = feeder.date2a(issue.date)
-    let idir = feeder.issueDir(feed: feed.name, issue: name)
-    let momentFiles = issue.moment.files.map { $0.name }
-    let files = idir.contents()
-    for f in files {
-      if !momentFiles.contains(f) {
-        print("rm \(f)")
-        File("\(idir.path)/\(f)").remove()
+  private func deleteIssue() {
+    if let issue = issue as? StoredIssue {
+      issue.reduceToOverview()
+      setLabel(idx: index)
+    }
+  }
+  
+  /// Check whether it's necessary to reload the current Issue
+  public func checkReload() {
+    if let visible = navigationController?.visibleViewController,
+       let sissue = issue as? StoredIssue {
+      if (visible != self) && feederContext.needsUpdate(issue: sissue) {
+        navigationController!.popToRootViewController(animated: true)
+        showIssue(index: index, atSection: sissue.lastSection, 
+                  atArticle: sissue.lastArticle)
       }
     }
-    issue.isComplete = false
-    setLabel(idx: index)
   }
   
   public override func viewDidLoad() {
     super.viewDidLoad()
-    let dfl = Defaults.singleton
     view.backgroundColor = .black
     view.addSubview(issueCarousel)
     pin(issueCarousel.top, to: view.top)
     pin(issueCarousel.left, to: view.left)
     pin(issueCarousel.right, to: view.right)
     pin(issueCarousel.bottom, to: view.bottom, dist: -(80+UIWindow.bottomInset))
-    issueCarousel.carousel.scrollFromLeftToRight = 
-      dfl["carouselScrollFromLeft"]!.bool    
+    issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
-      self?.downloadIssue(index: idx)
+      self?.showIssue(index: idx, atSection: self?.issue.lastSection, 
+                      atArticle: self?.issue.lastArticle)
     }
     issueCarousel.onLabelTap { idx in
       Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
@@ -335,9 +253,12 @@ public class IssueVC: UIViewController, IssueInfo {
       self.deleteIssue()
     }
     issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in
-      self.issueCarousel.carousel.scrollFromLeftToRight = !self.issueCarousel.carousel.scrollFromLeftToRight
-      dfl["carouselScrollFromLeft"] =
-        self.issueCarousel.carousel.scrollFromLeftToRight ? "true" : "false"
+      self.carouselScrollFromLeft = !self.issueCarousel.carousel.scrollFromLeftToRight
+    }
+    Defaults.receive() { dnot in
+      if dnot.key == "carouselScrollFromLeft" {
+        self.issueCarousel.carousel.scrollFromLeftToRight = self.carouselScrollFromLeft
+      }
     }
     issueCarousel.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
@@ -347,22 +268,23 @@ public class IssueVC: UIViewController, IssueInfo {
         IssueVC.showAnimations = false
         //self.issueCarousel.showAnimations()
       }
-      if idx == (self.issueCarousel.carousel.count - 10) { self.getCurrentIssues() }
+      self.provideOverview()
     }
-    let nc = NotificationCenter.default
-    nc.addObserver(self, selector: #selector(goingBackground), 
-      name: UIApplication.willResignActiveNotification, object: nil)
-    nc.addObserver(self, selector: #selector(goingForeground), 
-      name: UIApplication.willEnterForegroundNotification, object: nil)
-    if let issues = delegate.ovwIssues, issues.count > 0 {
-      issuesReceived(issues: issues)
+    Notification.receive("authenticationSucceeded") { notif in
+      self.checkReload()
     }
+    Notification.receive(UIApplication.willResignActiveNotification) { _ in
+      self.goingBackground()
+    }
+    Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
+      self.goingForeground()
+    }
+    checkForNewIssues() 
   }
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    if self.isInitial { isInitial = false }
-    else { checkForNewIssues() }
+    checkForNewIssues()
   }
   
   @objc private func goingBackground() {}
@@ -371,4 +293,18 @@ public class IssueVC: UIViewController, IssueInfo {
     checkForNewIssues()
   }
   
+  /// Initialize with FeederContext
+  public init(feederContext: FeederContext) {
+    self.feederContext = feederContext
+    super.init(nibName: nil, bundle: nil)
+    Notification.receive("issueOverview") { [weak self] notif in 
+      if let err = notif.error { self?.handleDownloadError(error: err) }
+      else { self?.addIssue(issue: notif.content as! Issue) }
+    }
+  }
+  
+  required public init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+    
 } // IssueVC

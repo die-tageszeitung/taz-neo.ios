@@ -45,6 +45,11 @@ open class ArticleVC: ContentVC {
   func setup() {
     guard let delegate = self.adelegate else { return }
     self.articles = delegate.issue.allArticles
+    if issue.isReduced { 
+      atEndOfContent() { [weak self] isAtEnd in
+        if isAtEnd { self?.feederContext.authenticate() }
+      } 
+    }
     super.setup(contents: articles, isLargeHeader: false)
     contentTable?.onSectionPress { [weak self] sectionIndex in
       guard let this = self else { return }
@@ -69,6 +74,7 @@ open class ArticleVC: ContentVC {
       if let this = self {
         this.adelegate?.article = this.articles[idx]
         this.setHeader(artIndex: idx)
+        this.issue.lastArticle = idx
       }
     }
     whenLinkPressed { [weak self] (from, to) in
@@ -138,7 +144,7 @@ open class ArticleVC: ContentVC {
       self.exportArticle(article: self.article, from: self.shareButton)
     }
   }
-    
+  
 } // ArticleVC
 
 
