@@ -8,12 +8,19 @@
 import Foundation
 import NorthLib
 
+/// The Notification name an Issue is sending when download is completed
+extension Issue {
+  var dlMessage: String { isOverview ? "issueOverview" : "issue" }
+}
+
 /**
  A FeederContext manages one Feeder, its GraphQL interface to the backing
  server and its persistent data.
  
  Depending on the state of Feeder access the following Notifications are 
  sent:
+   - DBReady
+     when database has been initialized
    - feederReachable(FeederContext)
      network connectivity changed, feeder is reachable
    - feederUneachable(FeederContext)
@@ -22,6 +29,8 @@ import NorthLib
      Feeder data is available (if not reachable then data is from DB)
    - issueOverview(Result<Issue,Error>)
      Issue Overview has been received (and stored in DB) 
+   - gqlIssue(Result<GqlIssue,Error>)
+     GraphQL Issue has been received (prior to "issue")
    - issue(Result<Issue,Error>), sender: Issue
      Issue with complete structural data and downloaded files is available
    - resourcesReady(FeederContext)
@@ -30,18 +39,30 @@ import NorthLib
      Resource loading progress indicator
  */
 open class FeederContext: DoesLog {
+  
+  /// Number of seconds to wait until we stop polling for email confirmation
+  let PollTimeout: Int64 = 25*3600
+
   /// Name (title) of Feeder
   public var name: String
+  /// Name of default Feed to show
+  public var feedName: String
   /// URL of Feeder (as String)
   public var url: String
   /// Authenticator object
-  public var authenticator: Authenticator?
+  public var authenticator: Authenticator! {
+    didSet { setupPolling() }
+  }
+  /// The token for remote notifications
+  public var pushToken: String?
   /// The GraphQL Feeder (from server)
-  public var gqlFeeder: GqlFeeder?
+  public var gqlFeeder: GqlFeeder!
   /// The stored Feeder (from DB)
   public var storedFeeder: StoredFeeder!
+  /// The default Feed to show
+  public var defaultFeed: StoredFeed!
   /// The Downloader to use 
-  public var dloader: Downloader?
+  public var dloader: Downloader!
   /// netAvailability is used to check for network access to the Feeder
   public var netAvailability: NetAvailability
   @DefaultBool(key: "useMobile")
@@ -62,8 +83,8 @@ open class FeederContext: DoesLog {
   public var isReady = false
   
   /// Are we authenticated with the server?
-  public var isAuthenticated: Bool { gqlFeeder != nil && gqlFeeder!.isAuthenticated }
-  
+  public var isAuthenticated: Bool { gqlFeeder.isAuthenticated }
+
   /// notify sends a Notification to all objects listening to the passed
   /// String 'name'. The receiver closure gets the sending FeederContext
   /// as 'sender' argument.
@@ -79,7 +100,6 @@ open class FeederContext: DoesLog {
   /// Present an alert indicating there is no connection to the Feeder
   public func noConnection(to: String? = nil, isExit: Bool = false,
                            closure: (()->())? = nil) {
-    self.gqlFeeder = nil
     var sname: String? = nil
     if storedFeeder != nil { sname = storedFeeder.title }
     if let name = to ?? sname {
@@ -115,8 +135,6 @@ open class FeederContext: DoesLog {
   /// Feeder is not reachable
   private func feederUnreachable() {
     self.debug("Feeder now unreachable")
-    self.dloader = nil
-    self.gqlFeeder = nil
     notify("feederUneachable")
   }
   
@@ -134,16 +152,17 @@ open class FeederContext: DoesLog {
   
   /// Feeder is initialized, set up other objects
   private func feederReady() {
-    if isConnected { self.dloader = Downloader(feeder: gqlFeeder!) }
-    self.netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
-    self.isReady = true
+    self.dloader = Downloader(feeder: gqlFeeder)
+    netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
+    defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder)[0]
+    isReady = true
     notify("feederReady")            
   }
   
   /// React to the feeder being online or not
   private func feederStatus(isOnline: Bool) {
     if isOnline {
-      self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder!)
+      self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
       feederReady()
     }
     else {
@@ -160,20 +179,130 @@ open class FeederContext: DoesLog {
     }
   }
   
+  private var pollingTimer: Timer?
+  private var pollEnd: Int64?
+  
+  /// Start Polling if necessary
+  public func setupPolling() {
+    authenticator.whenPollingRequired { self.startPolling() }
+    if let peStr = Defaults.singleton["pollEnd"] {
+      let pe = Int64(peStr)
+      if pe! <= UsTime.now().sec { endPolling() }
+      else {
+        pollEnd = pe
+        self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
+          repeats: true) { _ in self.doPolling() }        
+      }
+    }
+  }
+  
+  /// Method called by Authenticator to start polling timer
+  private func startPolling() {
+    self.pollEnd = UsTime.now().sec + PollTimeout
+    Defaults.singleton["pollEnd"] = "\(pollEnd!)"
+    self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
+      repeats: true) { _ in self.doPolling() }
+  }
+  
+  /// Ask Authenticator to poll server for authentication,
+  /// send 
+  private func doPolling() {
+    authenticator.pollSubscription { [weak self] doContinue in
+      guard let self = self else { return }
+      guard let pollEnd = self.pollEnd else { self.endPolling(); return }
+      if doContinue { if UsTime.now().sec > pollEnd { self.endPolling() } }
+      else { self.endPolling() }
+    }
+  }
+  
+  /// Terminate polling
+  private func endPolling() {
+    self.pollingTimer?.invalidate()
+    self.pollEnd = nil
+    Defaults.singleton["pollEnd"] = nil
+  }
+
+  /// Ask for push token and report it to server
+  public func setupRemoteNotifications() {
+    let nd = UIApplication.shared.delegate as! AppDelegate
+    let dfl = Defaults.singleton
+    let oldToken = dfl["pushToken"]
+    pushToken = oldToken
+    nd.onReceivePush { (pn, payload) in
+      self.debug(payload.toString())
+    }
+    nd.permitPush { pn in
+      if pn.isPermitted { 
+        self.debug("Push permission granted") 
+        self.pushToken = pn.deviceId
+      }
+      else { 
+        self.debug("No push permission") 
+        self.pushToken = nil
+      }
+      dfl["pushToken"] = self.pushToken 
+      if oldToken != self.pushToken {
+        let isTextNotification = dfl["isTextNotification"]!.bool
+        self.gqlFeeder.notification(pushToken: self.pushToken, oldToken: oldToken,
+                                     isTextNotification: isTextNotification) { res in
+          if let err = res.error() { self.error(err) }
+        }
+      }
+    }
+  }
+  
+  /// Request authentication from Authenticator
+  /// Authenticator will send "authenticationSucceeded" Notification if successful
+  public func authenticate() {
+    authenticator.authenticate()
+  }
+  
+  /// Connect to Feeder and send "feederReady" Notification
+  private func connect() {
+    gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
+      let feeder = res.value()
+      self?.feederStatus(isOnline: feeder != nil)
+    }
+    authenticator = SimpleAuthenticator(feeder: gqlFeeder)
+  }
+
+  /// openDB opens the Article database and sends a "DBReady" notification  
+  private func openDB(name: String) {
+    guard ArticleDB.singleton == nil else { return }
+    ArticleDB(name: name) { [weak self] _ in self?.notify("DBReady") }  
+  }
+  
+  /// resetDB removes the Article database and uses openDB to reopen a new version
+  private func resetDB() {
+    guard ArticleDB.singleton != nil else { return }
+    let name = ArticleDB.singleton.name
+    ArticleDB.dbRemove(name: name)
+    ArticleDB.singleton = nil
+    openDB(name: name)
+  }
+  
   /// init sends a "feederReady" Notification when the feeder context has
   /// been set up
-  public init?(name: String, url: String) {
+  public init?(name: String, url: String, feed feedName: String) {
     guard let host = URL(string: url)?.host else { return nil }
     self.name = name
     self.url = url
+    self.feedName = feedName
     self.netAvailability = NetAvailability(host: host)
-    if isConnected {
-      self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
-        self?.authenticator = SimpleAuthenticator(feeder: (self?.gqlFeeder)!)
-        self?.feederStatus(isOnline: res.value() != nil)
-      }
+    Notification.receive("DBReady") { [weak self] _ in
+      self?.debug("DB Ready")
+      self?.connect()
     }
-    else { feederStatus(isOnline: false) }
+    openDB(name: name)
+  }
+  
+  /// Remove all content
+  public func deleteAll() {
+    for f in Dir.appSupport.scan() {
+      debug("remove: \(f)")
+      try! FileManager.default.removeItem(atPath: f)
+    }
+    resetDB()
   }
   
   /// Downloads resources if necessary
@@ -187,17 +316,17 @@ open class FeederContext: DoesLog {
       }
     }
     // update from server needed
-    guard let dloader = self.dloader, isConnected else { 
+    guard isConnected else { 
       noConnection()
       return
     }
-    gqlFeeder!.resources { [weak self] result in
+    gqlFeeder.resources { [weak self] result in
       guard let self = self, let res = result.value() else { return }
       let previous = latestResources
-      let resources = StoredResources.persist(res: res, 
-                        localDir: self.storedFeeder.resourcesDir.path)
+      let resources = StoredResources.persist(object: res)
+      self.dloader.createDirs()
       resources.isDownloading = true
-      dloader.downloadPayload(payload: resources.payload, 
+      self.dloader.downloadPayload(payload: resources.payload as! StoredPayload, 
         onProgress: { (bytesLoaded,totalBytes) in
           self.notify("resourcesProgress", content: (bytesLoaded,totalBytes))
         }) { err in
@@ -225,29 +354,9 @@ open class FeederContext: DoesLog {
       }
     }
     SimpleAuthenticator.deleteUserData()
-    Alert.message(title: "Fehler", message: text) {
-      self.authenticator?.authenticate(isFullScreen: true) { err in closure() }
-    }
+    Alert.message(title: "Fehler", message: text) { self.authenticate() }
   }
   
-  /// Download overview moment images and store references in DB
-  private func getOvwMoments(issues: [StoredIssue]) {
-    var iss = issues
-    if let issue = iss.pop() {
-      var res: Result<Issue,Error> = .success(issue)
-      if !issue.isOvwComplete {
-        dloader!.downloadStoredMoment(issue: issue) { err in
-          if err == nil { issue.isOvwComplete = true }
-          else { res = .failure(err!) }
-          self.notify("issueOverview", result: res)
-        }
-      }
-      else { self.notify("issueOverview", result: res) }
-      self.getOvwMoments(issues: iss)
-    }
-    else { ArticleDB.save() }
-  }
-
   /**
    Get Overview Issues from Feed
    
@@ -262,19 +371,17 @@ open class FeederContext: DoesLog {
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       if self.isConnected {
-        self.gqlFeeder!.issues(feed: sfeed, date: fromDate, count: count, 
+        self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: count, 
                                isOverview: true) { res in
           if let issues = res.value() {
             for issue in issues {
               let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
-              if si.count < 1 {
-                StoredIssue.persist(object: issue, inFeed: sfeed)
-              }
+              if si.count < 1 { StoredIssue.persist(object: issue) }
             }
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                    fromDate: fromDate)
-            self.getOvwMoments(issues: sissues)
+            for issue in sissues { self.downloadIssue(issue: issue) }
           }
           else {
             if let err = res.error() as? FeederError {
@@ -293,39 +400,43 @@ open class FeederContext: DoesLog {
       else {
         let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                fromDate: fromDate)
-        self.getOvwMoments(issues: sissues)
+        for issue in sissues { self.downloadIssue(issue: issue) }
       }
     }
     updateResources()
   }
 
+  /// Returns true if the Issue needs to be updated
+  public func needsUpdate(issue: StoredIssue) -> Bool {
+    guard !issue.isDownloading else { return false }
+    if issue.isComplete { return issue.isReduced }
+    else { return true }
+  }
+  
   /**
-   Get a complete Issue
+   Get an Issue from Server or local DB
    
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
   public func getCompleteIssue(issue: StoredIssue) {
     if issue.isDownloading {
-      Notification.receiveOnce("issue", from: issue) { notif in
+      Notification.receiveOnce(issue.dlMessage, from: issue) { notif in
         self.getCompleteIssue(issue: issue)
       }
     }
-    if issue.isComplete {
-      if issue.isReduced && isAuthenticated {
-        issue.isComplete = false
-      }
-      else {
-        Notification.send("issue", result: .success(issue), sender: issue)
-        return
-      }
+    guard needsUpdate(issue: issue) else {
+      Notification.send(issue.dlMessage, result: .success(issue), sender: issue)
+      return      
     }
     if self.isConnected {
-      gqlFeeder!.issues(feed: issue.feed, date: issue.date, count: 1) { res in
+      gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1) { res in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
-          issue.update(object: dissue, inFeed: issue.feed as! StoredFeed)
+          Notification.send("gqlIssue", result: .success(dissue), sender: issue)
+          issue.update(from: dissue)
           ArticleDB.save()
+          Notification.send("issueStructure", result: .success(issue), sender: issue)
           self.downloadIssue(issue: issue)
         }
       }
@@ -333,31 +444,54 @@ open class FeederContext: DoesLog {
     else { noConnection() }
   }
   
+  /// Tell server we are starting to download
+  func markStartDownload(feed: Feed, issue: Issue, closure: @escaping (String?, UsTime)->()) {
+    let isPush = pushToken != nil
+    debug("Sending start of download to server")
+    self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush) { res in
+      closure(res.value(), UsTime.now())
+    }
+  }
+  
+  /// Tell server we stopped downloading
+  func markStopDownload(dlId: String?, tstart: UsTime) {
+    if let dlId = dlId {
+      let nsec = UsTime.now().timeInterval - tstart.timeInterval
+      debug("Sending stop of download to server")
+      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) {_ in}
+    }
+  }
+  
+  /// Download Payload of Issue
+  private func downloadPayload(issue: StoredIssue) {
+    markStartDownload(feed: issue.feed, issue: issue) { (dlId, tstart) in
+      issue.isDownloading = true
+      self.dloader.downloadPayload(payload: issue.payload as! StoredPayload, 
+        onProgress: { (bytesLoaded,totalBytes) in
+          Notification.send("issueProgress", content: (bytesLoaded,totalBytes),
+                            sender: issue)
+        }) { err in
+        issue.isDownloading = false
+        var res: Result<StoredIssue,Error>
+        if err == nil { 
+          res = .success(issue) 
+          issue.isComplete = true
+          ArticleDB.save()
+        }
+        else { res = .failure(err!) }
+        self.markStopDownload(dlId: dlId, tstart: tstart)
+          Notification.send(issue.dlMessage, result: res, sender: issue)
+      }
+    }
+  }
+  
   /// Download Issue files and resources if necessary
   private func downloadIssue(issue: StoredIssue) {
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
-      if self.isConnected {
-        issue.isDownloading = true
-        self.dloader!.downloadPayload(payload: issue.payload!, 
-          onProgress: { (bytesLoaded,totalBytes) in
-            Notification.send("issueProgress", content: (bytesLoaded,totalBytes),
-                              sender: issue)
-          }) { err in
-          issue.isDownloading = false
-          var res: Result<StoredIssue,Error>
-          if err == nil { 
-            res = .success(issue) 
-            issue.isComplete = true
-            ArticleDB.save()
-          }
-          else { res = .failure(err!) }
-          Notification.send("issue", result: res, sender: issue)
-        }
-      }
-      else {
-        self.noConnection() 
-      }
+      self.dloader.createIssueDir(issue: issue)
+      if self.isConnected { self.downloadPayload(issue: issue) }
+      else { self.noConnection() }
     }
     updateResources(toVersion: issue.minResourceVersion)
   }
