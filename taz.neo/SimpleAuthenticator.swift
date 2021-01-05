@@ -30,6 +30,8 @@ public class SimpleAuthenticator: Authenticator {
   
   required public init(feeder: GqlFeeder) {
     self.feeder = feeder
+    let (_,_,token) = SimpleAuthenticator.getUserData()
+    if token != nil { feeder.authToken = token! }
   }
   
   public func pollSubscription(closure: (_ continue: Bool)->()) {
@@ -39,8 +41,8 @@ public class SimpleAuthenticator: Authenticator {
   /// Produce action sheet to ask for id/password
   private func withLoginData(closure: @escaping (_ id: String?, _ password: String?)->()) {
     let alert = UIAlertController(title: "Anmeldung", 
-                                  message: "Bitte melden Sie sich mit Ihren Kundendaten an",
-                                  preferredStyle: .alert)
+        message: "Bitte melden Sie sich mit Ihren Kundendaten an",
+        preferredStyle: .alert)
     alert.addTextField { (textField) in
       textField.placeholder = "ID"
       textField.keyboardType = .emailAddress

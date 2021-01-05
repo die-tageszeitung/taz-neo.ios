@@ -96,7 +96,8 @@ public class IssueVC: UIViewController, IssueInfo {
         }
         else if ndays > 1 {
           date.addDays(-Int(ndays+1))
-          feederContext.getOvwIssues(feed: feed, count: Int(ndays + 1), fromDate: date)
+          feederContext.getOvwIssues(feed: feed, count: Int(ndays + 1), 
+                                     fromDate: date)
         }
       }
     }
@@ -120,8 +121,8 @@ public class IssueVC: UIViewController, IssueInfo {
   /// Download one section
   private func downloadSection(section: Section, closure: @escaping (Error?)->()) {
     dloader.downloadSection(issue: self.issue, section: section) { [weak self] err in
-      if err != nil { self?.debug("Section DL Errors: last = \(err!)") }
-      else { self?.debug("Section DL complete") }
+      if err != nil { self?.debug("Section \(section.html.name) DL Errors: last = \(err!)") }
+      else { self?.debug("Section \(section.html.name) DL complete") }
       closure(err)
     }   
   }

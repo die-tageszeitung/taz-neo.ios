@@ -1097,6 +1097,7 @@ public final class StoredIssue: Issue, StoredObject {
       }
     }
     imprint = nil
+    storedPayload?.delete()
     if isComplete {
       isComplete = false
       isOvwComplete = true

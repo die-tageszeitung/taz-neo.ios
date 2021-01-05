@@ -37,6 +37,7 @@ class MainNC: NavigationController,
     logView.pinToView(view)
     Log.append(logger: consoleLogger, /*viewLogger,*/ fileLogger)
     Log.minLogLevel = .Debug
+    HttpSession.isDebug = false
     Log.onFatal { msg in self.log("fatal closure called, error id: \(msg.id)") }
     net.onChange { (flags) in self.log("net changed: \(flags)") }
     net.whenUp { self.log("Network up") }
@@ -169,6 +170,7 @@ class MainNC: NavigationController,
     
   func startup() {
     let dfl = Defaults.singleton
+    dfl.setDefaults(values: ConfigDefaults)
     let oneWeek = 7*24*3600
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
@@ -198,7 +200,13 @@ class MainNC: NavigationController,
  
   func deleteAll() {
     popToRootViewController(animated: false)
-    feederContext.deleteAll()
+    /// Remove all content
+    for f in Dir.appSupport.scan() {
+      debug("remove: \(f)")
+      try! FileManager.default.removeItem(atPath: f)
+    }
+    //setupFeeder()
+    exit(0)
   }
   
   func unlinkSubscriptionId() {
@@ -219,6 +227,16 @@ class MainNC: NavigationController,
     if let pushToken = Defaults.singleton["pushToken"] {
       feederContext.gqlFeeder.testNotification(pushToken: pushToken, request: type) {_ in}
     }
+  }
+  
+  func setupFeeder() {
+    Notification.receiveOnce("feederReady") { notification in
+      guard let fctx = notification.sender as? FeederContext else { return }
+      self.debug(fctx.storedFeeder.toString())
+      self.startup()
+    }
+    self.feederContext = 
+      FeederContext(name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
   }
   
   override func viewDidLoad() {
@@ -242,23 +260,9 @@ class MainNC: NavigationController,
     Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
       self.goingForeground()
     }
-    Notification.receiveOnce("feederReady") { notification in
-      guard let fctx = notification.sender as? FeederContext else { return }
-      self.debug(fctx.storedFeeder.toString())
-      self.startup()
-    }
-    // Open database and connect to server
-    Database.dbRename(old: "ArticleDB", new: "taz") // to move old name scheme
-    ArticleDB(name: "taz") { err in 
-      guard err == nil else { exit(1) }
-      self.debug("DB opened: \(ArticleDB.singleton!)")
-      // Define configuration defaults
-      let dfl = Defaults.singleton
-      dfl.setDefaults(values: ConfigDefaults)
-      // connect to feeder
-      self.feederContext = 
-        FeederContext(name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
-    }
+    ArticleDB.dbRemove(name: "taz")
+//    Database.dbRename(old: "ArticleDB", new: "taz") // to move old name scheme
+    setupFeeder()
   } // viewDidLoad
 
 } // MainNC

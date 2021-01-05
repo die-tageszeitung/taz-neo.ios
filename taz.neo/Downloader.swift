@@ -57,7 +57,7 @@ open class Downloader: DoesLog {
               self.payload.downloadStopped = Date()
               for f in files { f.storedSize = f.size }
               ArticleDB.save()
-              dl.debug("Payload:\n\(hloader)")
+              if hloader.downloaded > 0 { dl.debug("Payload:\n\(hloader)") }
               if hloader.errors > 0 { self.atEnd(hloader.lastError) }
               else { self.atEnd(nil) }
             }

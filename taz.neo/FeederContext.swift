@@ -296,15 +296,6 @@ open class FeederContext: DoesLog {
     openDB(name: name)
   }
   
-  /// Remove all content
-  public func deleteAll() {
-    for f in Dir.appSupport.scan() {
-      debug("remove: \(f)")
-      try! FileManager.default.removeItem(atPath: f)
-    }
-    resetDB()
-  }
-  
   /// Downloads resources if necessary
   public func updateResources(toVersion: Int = -1) {
     let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
@@ -367,12 +358,12 @@ open class FeederContext: DoesLog {
   public func getOvwIssues(feed: Feed, count: Int, fromDate: Date? = nil) {
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
-    let sfeed = sfs[0]  
+    let sfeed = sfs[0]
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       if self.isConnected {
-        self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: count, 
-                               isOverview: true) { res in
+        self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: max(count, 20), 
+                              isOverview: true) { res in
           if let issues = res.value() {
             for issue in issues {
               let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
@@ -409,7 +400,10 @@ open class FeederContext: DoesLog {
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: StoredIssue) -> Bool {
     guard !issue.isDownloading else { return false }
-    if issue.isComplete { return issue.isReduced }
+    if issue.isComplete { 
+      if issue.isReduced && isAuthenticated { issue.isComplete = false }
+      return issue.isReduced
+    }
     else { return true }
   }
   
@@ -437,7 +431,7 @@ open class FeederContext: DoesLog {
           issue.update(from: dissue)
           ArticleDB.save()
           Notification.send("issueStructure", result: .success(issue), sender: issue)
-          self.downloadIssue(issue: issue)
+          self.downloadIssue(issue: issue, isComplete: true)
         }
       }
     }
@@ -462,8 +456,21 @@ open class FeederContext: DoesLog {
     }
   }
   
-  /// Download Payload of Issue
-  private func downloadPayload(issue: StoredIssue) {
+  /// Download partial Payload of Issue
+  private func downloadPartialIssue(issue: StoredIssue) {
+    self.dloader.downloadPayload(payload: issue.payload as! StoredPayload) { err in
+      var res: Result<StoredIssue,Error>
+      if err == nil { 
+        res = .success(issue) 
+        ArticleDB.save()
+      }
+      else { res = .failure(err!) }
+      Notification.send(issue.dlMessage, result: res, sender: issue)
+    }
+  }
+
+  /// Download complete Payload of Issue
+  private func downloadCompleteIssue(issue: StoredIssue) {
     markStartDownload(feed: issue.feed, issue: issue) { (dlId, tstart) in
       issue.isDownloading = true
       self.dloader.downloadPayload(payload: issue.payload as! StoredPayload, 
@@ -486,11 +493,14 @@ open class FeederContext: DoesLog {
   }
   
   /// Download Issue files and resources if necessary
-  private func downloadIssue(issue: StoredIssue) {
+  private func downloadIssue(issue: StoredIssue, isComplete: Bool = false) {
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       self.dloader.createIssueDir(issue: issue)
-      if self.isConnected { self.downloadPayload(issue: issue) }
+      if self.isConnected { 
+        if isComplete { self.downloadCompleteIssue(issue: issue) }
+        else { self.downloadPartialIssue(issue: issue) }
+      }
       else { self.noConnection() }
     }
     updateResources(toVersion: issue.minResourceVersion)

@@ -70,12 +70,13 @@ open class ArticleVC: ContentVC {
       self?.adelegate?.closeIssue()
     }
     onDisplay { [weak self] (idx, oview) in
-      self?.debug("on display: \(idx)")
       if let this = self {
-        this.adelegate?.article = this.articles[idx]
+        let art = this.articles[idx]
+        this.adelegate?.article = art
         this.setHeader(artIndex: idx)
         this.issue.lastArticle = idx
-      }
+        self?.debug("on display: \(idx), article \(art.html.name)")
+     }
     }
     whenLinkPressed { [weak self] (from, to) in
       self?.adelegate?.linkPressed(from: from, to: to)

@@ -188,7 +188,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       initialArticle = nil
       SectionVC.showAnimations = false
     }
-    if initialArticle != nil { SectionVC.showAnimations = false }
     if SectionVC.showAnimations {
       SectionVC.showAnimations = false
       delay(seconds: 1.5) {
@@ -209,6 +208,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     initialSection = atSection
     initialArticle = atArticle
     super.init(feederContext: feederContext)
+    let sec: String = (atSection == nil) ? "nil" : "\(atSection!)"
+    let art: String = (atArticle == nil) ? "nil" : "\(atArticle!)"
+    debug("new SectionVC: section=\(sec), article=\(art)")
   }
   
   required public init?(coder: NSCoder) {
