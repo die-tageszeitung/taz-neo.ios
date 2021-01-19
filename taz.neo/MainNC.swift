@@ -10,7 +10,7 @@ import MessageUI
 import NorthLib
 
 
-class MainNC: NavigationController,
+class MainNC: NavigationController, UIStyleChangeDelegate,
               MFMailComposeViewControllerDelegate {
   
   var showAnimations = false
@@ -38,16 +38,19 @@ class MainNC: NavigationController,
     Log.append(logger: consoleLogger, /*viewLogger,*/ fileLogger)
     Log.minLogLevel = .Debug
     HttpSession.isDebug = false
-    Log.onFatal { msg in self.log("fatal closure called, error id: \(msg.id)") }
+    Log.onFatal { msg in 
+      self.log("fatal closure called, error id: \(msg.id)") 
+      self.reportFatalError(err: msg)
+    }
     net.onChange { (flags) in self.log("net changed: \(flags)") }
     net.whenUp { self.log("Network up") }
     net.whenDown { self.log("Network down") }
     if !net.isAvailable { error("Network not available") }
     let nd = UIApplication.shared.delegate as! AppDelegate
-    nd.onSbTap { tview in 
+    nd.onSbTap { tview in
       if nd.wantLogging {
         if logView.isHidden {
-          self.view.bringSubviewToFront(logView) 
+          self.view.bringSubviewToFront(logView)
           logView.scrollToBottom()
           logView.isHidden = false
         }
@@ -60,54 +63,88 @@ class MainNC: NavigationController,
     log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
         "Path: \(Dir.appSupportPath)")
-  } 
-  
-  func produceErrorReport(recipient: String) {
-    let mail =  MFMailComposeViewController()
-    let screenshot = UIWindow.screenshot?.jpeg
-    let logData = fileLogger.data
-    mail.mailComposeDelegate = self
-    mail.setToRecipients([recipient])
-    mail.setSubject("Rückmeldung zu taz.neo (iOS)")
-    mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-      "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
-      isHTML: false)
-    if let screenshot = screenshot { 
-      mail.addAttachmentData(screenshot, mimeType: "image/jpeg", 
-                             fileName: "taz.neo-screenshot.jpg")
-    }
-    if let logData = logData { 
-      mail.addAttachmentData(logData, mimeType: "text/plain", 
-                             fileName: "taz.neo-logfile.txt")
-    }
-    present(mail, animated: true)
   }
   
-  func mailComposeController(_ controller: MFMailComposeViewController, 
+  func produceErrorReport(recipient: String, subject: String = "Feedback", 
+                          completion: (()->())? = nil) {
+    if MFMailComposeViewController.canSendMail() {
+      let mail =  MFMailComposeViewController()
+      let screenshot = UIWindow.screenshot?.jpeg
+      let logData = fileLogger.data
+      mail.mailComposeDelegate = self
+      mail.setToRecipients([recipient])
+      
+      var tazIdText = ""
+      let data = DefaultAuthenticator.getUserData()
+      if let tazID = data.id, tazID.isEmpty == false {
+        tazIdText = " taz-ID: \(tazID)"
+      }
+      
+      mail.setSubject("\(subject) \"\(App.name)\" (iOS)\(tazIdText)")
+      mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
+        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
+        isHTML: false)
+      if let screenshot = screenshot {
+        mail.addAttachmentData(screenshot, mimeType: "image/jpeg",
+                               fileName: "taz.neo-screenshot.jpg")
+      }
+      if let logData = logData {
+        mail.addAttachmentData(logData, mimeType: "text/plain",
+                               fileName: "taz.neo-logfile.txt")
+      }
+      self.topmostModalVc.present(mail, animated: true, completion: completion)
+    }
+  }
+  
+  func mailComposeController(_ controller: MFMailComposeViewController,
     didFinishWith result: MFMailComposeResult, error: Error?) {
     controller.dismiss(animated: true)
     isErrorReporting = false
   }
   
   @objc func errorReportActivated(_ sender: UIGestureRecognizer) {
-    guard let recog = sender as? UILongPressGestureRecognizer,
-          !isErrorReporting && MFMailComposeViewController.canSendMail()
-      else { return }
+    if isErrorReporting == true { return }//Prevent multiple Calls
     isErrorReporting = true
-    Alert.confirm(title: "Rückmeldung", 
+    
+    guard let recog = sender as? UILongPressGestureRecognizer,
+      MFMailComposeViewController.canSendMail()
+      else {
+        Alert.message(title: Localized("no_mail_title"), message: Localized("no_mail_text"), closure: {
+          self.isErrorReporting = false
+        })
+        return
+    }
+    Alert.confirm(title: "Rückmeldung",
       message: "Wollen Sie uns eine Fehlermeldung senden oder haben Sie einen " +
                "Kommentar zu unserer App?") { yes in
-                if yes { 
-                  var recipient = "app@taz.de"
-                  if recog.numberOfTouchesRequired == 3 { recipient = "norbert@taz.de" }
-                  self.produceErrorReport(recipient: recipient) 
-                }
+      if yes {
+        var recipient = "app@taz.de"
+        if recog.numberOfTouchesRequired == 3 { recipient = "ios-entwickler@taz.de" }
+        self.produceErrorReport(recipient: recipient)
+      }
+      else { self.isErrorReporting = false }
+    }
+  }
+  
+  func reportFatalError(err: Log.Message) {
+    guard !isErrorReporting else { return }
+    isErrorReporting = true
+    if self.presentedViewController != nil {
+      dismiss(animated: false)
+    }
+    Alert.confirm(title: "Interner Fehler",
+                  message: "Es liegt ein schwerwiegender interner Fehler vor, möchten Sie uns " +
+                           "darüber mit einer Nachricht informieren?\n" +
+                           "Interne Fehlermeldung:\n\(err)") { yes in
+      if yes {
+        self.produceErrorReport(recipient: "app@taz.de", subject: "Interner Fehler") 
+      }
       else { self.isErrorReporting = false }
     }
   }
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
-    let logView = viewLogger.logView
+//    let logView = viewLogger.logView
     let actions: [UIAlertAction] = [
       Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
       Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
@@ -115,34 +152,41 @@ class MainNC: NavigationController,
       Alert.action("Abo-Verknüpfung löschen") {_ in self.unlinkSubscriptionId() },
       Alert.action("Abo-Push anfordern") {_ in self.testNotification(type: NotificationType.subscription) },
       Alert.action("Download-Push anfordern") {_ in self.testNotification(type: NotificationType.newIssue) },
-      Alert.action("Protokoll an/aus") {_ in 
-        if logView.isHidden {
-          self.view.bringSubviewToFront(logView) 
-          logView.scrollToBottom()
-          logView.isHidden = false
-        }
-        else {
-          self.view.sendSubviewToBack(logView)
-          logView.isHidden = true
-        }
-      }
+//      Alert.action("Protokoll an/aus") {_ in
+//        if logView.isHidden {
+//          self.view.bringSubviewToFront(logView)
+//          logView.scrollToBottom()
+//          logView.isHidden = false
+//        }
+//        else {
+//          self.view.sendSubviewToBack(logView)
+//          logView.isHidden = true
+//        }
+//      }
     ]
-    Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)", 
+    Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)",
       actions: actions)
   }
   
   func setupTopMenus() {
-    let reportLPress2 = UILongPressGestureRecognizer(target: self, 
+    let reportLPress2 = UILongPressGestureRecognizer(target: self,
         action: #selector(errorReportActivated))
-    let reportLPress3 = UILongPressGestureRecognizer(target: self, 
+    let reportLPress3 = UILongPressGestureRecognizer(target: self,
         action: #selector(threeFingerTouch))
     reportLPress2.numberOfTouchesRequired = 2
     reportLPress3.numberOfTouchesRequired = 3
-    self.view.isUserInteractionEnabled = true
-    self.view.addGestureRecognizer(reportLPress2)
-    self.view.addGestureRecognizer(reportLPress3)
+    
+    if let targetView = UIApplication.shared.keyWindow {
+      targetView.isUserInteractionEnabled = true
+      targetView.addGestureRecognizer(reportLPress2)
+      targetView.addGestureRecognizer(reportLPress3)
+    } else {
+      self.view.isUserInteractionEnabled = true
+      self.view.addGestureRecognizer(reportLPress2)
+      self.view.addGestureRecognizer(reportLPress3)
+    }
   }
-                
+
   func showIssueVC() {
     feederContext.setupRemoteNotifications()
     let ivc = IssueVC(feederContext: feederContext)
@@ -188,7 +232,7 @@ class MainNC: NavigationController,
     else { showIssueVC() }
   } 
   
- func goingBackground() {
+  func goingBackground() {
     isForeground = false
     debug("Going background")
   }
@@ -205,14 +249,13 @@ class MainNC: NavigationController,
       debug("remove: \(f)")
       try! FileManager.default.removeItem(atPath: f)
     }
-    //setupFeeder()
     exit(0)
   }
   
   func unlinkSubscriptionId() {
     authenticator?.unlinkSubscriptionId()
   }
-    
+  
   func deleteUserData() {
     SimpleAuthenticator.deleteUserData()
     let dfl = Defaults.singleton
@@ -221,6 +264,8 @@ class MainNC: NavigationController,
     dfl["isTextNotification"] = "true"
     dfl["nStarted"] = "0"
     dfl["lastStarted"] = "0"
+    dfl["installationId"] = nil
+    feederContext.endPolling()
   }
   
   func testNotification(type: NotificationType) {
@@ -260,9 +305,19 @@ class MainNC: NavigationController,
     Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
       self.goingForeground()
     }
-    ArticleDB.dbRemove(name: "taz")
-//    Database.dbRename(old: "ArticleDB", new: "taz") // to move old name scheme
+    //ArticleDB.dbRemove(name: "taz")
     setupFeeder()
+    registerForStyleUpdates()
   } // viewDidLoad
+  
+  func applyStyles() {
+    self.view.backgroundColor = Const.SetColor.HBackground.color
+    setNeedsStatusBarAppearanceUpdate()
+
+  }
+  
+  override var preferredStatusBarStyle: UIStatusBarStyle {
+    return Defaults.darkMode ?  .lightContent : .default
+  }
 
 } // MainNC

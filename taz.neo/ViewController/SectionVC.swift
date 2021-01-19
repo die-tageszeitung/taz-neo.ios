@@ -179,6 +179,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     self.index = initialSection ?? 0
   }
   
+//  public override func applyStyles() {
+//    super.applyStyles()
+//  }
+  
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     if let iart = initialArticle {

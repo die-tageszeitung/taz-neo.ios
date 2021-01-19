@@ -19,7 +19,7 @@ public class IssueCarousel: UIView {
   // The Carousel
   public var carousel = CarouselView()
   // Label for the center image
-  private var label = CubeLabel()
+  private(set) var label = CrossfadeLabel()
   
   /// Current central image
   public var index: Int? {
@@ -122,6 +122,7 @@ public class IssueCarousel: UIView {
     label.onTap {_ in
       self.labelTapClosure?(self.index!)
     }
+    carousel.showsHorizontalScrollIndicator = false
     carousel.viewProvider { [weak self] (idx, view) in
       self?.debug("tap index: \(idx)")
       guard let self = self else { return MomentView() }

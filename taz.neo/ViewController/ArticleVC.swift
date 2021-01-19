@@ -134,10 +134,6 @@ open class ArticleVC: ContentVC {
     } 
   }
   
-  public override func viewDidLoad() {
-    super.viewDidLoad()
-  }
-  
   public override func viewDidAppear(_ animated: Bool) {
     onShare { [weak self] _ in
       guard let self = self else { return }
@@ -145,7 +141,7 @@ open class ArticleVC: ContentVC {
       self.exportArticle(article: self.article, from: self.shareButton)
     }
   }
-  
+
 } // ArticleVC
 
 

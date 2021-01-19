@@ -216,7 +216,7 @@ open class FeederContext: DoesLog {
   }
   
   /// Terminate polling
-  private func endPolling() {
+  public func endPolling() {
     self.pollingTimer?.invalidate()
     self.pollEnd = nil
     Defaults.singleton["pollEnd"] = nil
@@ -263,7 +263,7 @@ open class FeederContext: DoesLog {
       let feeder = res.value()
       self?.feederStatus(isOnline: feeder != nil)
     }
-    authenticator = SimpleAuthenticator(feeder: gqlFeeder)
+    authenticator = DefaultAuthenticator(feeder: gqlFeeder)
   }
 
   /// openDB opens the Article database and sends a "DBReady" notification  
@@ -344,7 +344,7 @@ open class FeederContext: DoesLog {
         exit(0)               
       }
     }
-    SimpleAuthenticator.deleteUserData()
+    DefaultAuthenticator.deleteUserData()
     Alert.message(title: "Fehler", message: text) { self.authenticate() }
   }
   

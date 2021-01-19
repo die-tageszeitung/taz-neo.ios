@@ -245,6 +245,10 @@ public class IssueVC: UIViewController, IssueInfo {
                       atArticle: self?.issue.lastArticle)
     }
     issueCarousel.onLabelTap { idx in
+      if true /* SET TRUE TO USE DATEPICKER */ {
+        self.showDatePicker()
+        return;
+      }
       Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
     }
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
@@ -261,7 +265,8 @@ public class IssueVC: UIViewController, IssueInfo {
         self.issueCarousel.carousel.scrollFromLeftToRight = self.carouselScrollFromLeft
       }
     }
-    issueCarousel.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
+    
+    issueCarousel.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
       self.setLabel(idx: idx, isRotate: true)
@@ -281,6 +286,37 @@ public class IssueVC: UIViewController, IssueInfo {
       self.goingForeground()
     }
     checkForNewIssues() 
+  }
+  
+  var pickerCtrl : MonthPickerController?
+  var overlay : Overlay?
+  func showDatePicker(){
+    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, 
+                                  month: 6, day: 1, hour: 12).date ?? Date()
+    
+    let toDate = Date()
+    
+    if pickerCtrl == nil {
+      pickerCtrl = MonthPickerController(minimumDate: fromDate,
+                                         maximumDate: toDate,
+                                         selectedDate: toDate)
+    }
+    guard let pickerCtrl = pickerCtrl else { return }
+    
+    if overlay == nil {
+      overlay = Overlay(overlay:pickerCtrl , into: self)
+      overlay?.enablePinchAndPan = false
+      overlay?.maxAlpha = 0.0
+    }
+        
+    pickerCtrl.doneHandler = {
+      self.overlay?.close(animated: true)
+      let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
+      Alert.message(title: "Baustelle", 
+        message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.")
+    }
+//    overlay?.open(animated: true, fromBottom: true)
+    overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
   
   public override func viewDidAppear(_ animated: Bool) {

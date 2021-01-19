@@ -129,6 +129,8 @@ class TestController: PageCollectionVC {
     self.feederContext.getOvwIssues(feed: self.feed, count: 1, 
                                     fromDate: self.testDate)
   }
+
+  override public var preferredStatusBarStyle: UIStatusBarStyle { .default }
   
   override func viewDidLoad() {
     super.viewDidLoad()

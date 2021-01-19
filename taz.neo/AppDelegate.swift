@@ -15,6 +15,7 @@ class AppDelegate: NotifiedDelegate {
   var wantLogging = false
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    updateDefaultsIfNeeded()
     self.window = UIWindow(frame: UIScreen.main.bounds)
     self.window?.rootViewController = MainNC()
 //    self.window?.rootViewController = TestController()
@@ -29,8 +30,16 @@ class AppDelegate: NotifiedDelegate {
     self.window?.makeKeyAndVisible()
     if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
       if shortcutItem.type == "Logging" { wantLogging = true }
-    }
+    }    
+    if #available(iOS 13.0, *) {
+      UIApplication.shared.keyWindow?.overrideUserInterfaceStyle
+        = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
+    } 
     return true
+  }
+  
+  func updateDefaultsIfNeeded(){
+    Defaults.singleton["offerTrialSubscription"]=nil
   }
   
   /// Enable Logging button on home screen

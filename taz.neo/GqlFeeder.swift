@@ -545,7 +545,7 @@ class GqlFeederStatus: GQLObject {
  This class provides the necessary functionality to handle all data transfer 
  operations with the taz/lmd GraphQL server.
  */
-open class GqlFeeder: Feeder, DoesLog {  
+open class GqlFeeder: Feeder, DoesLog {
 
   /// Time zone Feeder lives in ;-(
   public static var tz = "Europe/Berlin"
@@ -581,6 +581,28 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   /// The GraphQL server delivering the Feeds
   public var gqlSession: GraphQlSession?
+  
+  let deviceType = "apple"
+  lazy var deviceInfoString : String = {
+    var deviceFormat = ""
+    switch Device.singleton {
+      case .iPad :  deviceFormat = "tablet"
+      case .iPhone: deviceFormat = "mobile"
+      default:deviceFormat = "desktop"
+    }
+    
+    //Taz App (de.taz.taz.2) Version 0.4.9 (#2020090951)
+    let appVersion = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
+    return ""
+      + "deviceType: \(deviceType), "   //apple Default
+      + "deviceName: \"\(UIDevice().model)\", " // e.g.: iPhone iPad iPod touch (Ringos iPhone)
+      //e.g. iPhone12,3 (modelName) for iPhone 11 Pro (modelNameReadable)
+      + "deviceVersion: \"\(Utsname.machineModel)\", "//e.g. iPhone 11 Pro
+      + "deviceFormat: \(deviceFormat), " //e.g.: mobile, tablet
+      + "appVersion: \"\(appVersion)\", " //e.g.: Taz App (de.taz.taz.2) Version 0.4.9 (#2020090951)
+      + "deviceOS: \"iOS \(UIDevice.current.systemVersion)\""
+  }()
+  
   
   // The FeederStatus
   var status: GqlFeederStatus?
@@ -622,58 +644,47 @@ open class GqlFeeder: Feeder, DoesLog {
    If the authentication was successful, the provided authentication token
    is written to self.authToken and passed to 'closure' as Result.success.
    If an error was encountered, the closure is called with Result.failure and
-   an Error is passed along. If this Error is of type FeederError, then 
-   a GqlAuthInfo object is written to self.status.authInfo and may be interpreted 
+   an Error is passed along. If this Error is of type FeederError, then
+   a GqlAuthInfo object is written to self.status.authInfo and may be interpreted
    for further information.
    
    - parameters:
      - account:  tazId or AboId
-     - password: account password 
+     - password: account password
      - closure:  is called when the communication with the server has been
                  finished
      - result:   Either auth token or Error
   */
-  public func authenticate(account: String, password: String, 
+  public func authenticate(account: String, password: String,
     closure: @escaping(_ result: Result<String,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
+    guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
-      authToken: authentificationToken(user:"\(account)", password: "\(password)") {
+      authToken: authentificationToken(\(self.deviceInfoString), 
+    user: \(account.quote()), password: \(password.quote())) {
         \(GqlAuthToken.fields)
       }
     """
     gqlSession.query(graphql: request, type: [String:GqlAuthToken].self) { [weak self] (res) in
       var ret: Result<String,Error>
       switch res {
-      case .success(let auth): 
-        let atoken = auth["authToken"]!
-        self?.status?.authInfo = atoken.authInfo
-        switch atoken.authInfo.status {
-        case .expired: 
-          ret = .failure(FeederError.expiredAccount(atoken.authInfo.message))
-        case .invalid, .unlinked, .alreadyLinked, .notValidMail, .unknown:
-          ret = .failure(FeederError.invalidAccount(atoken.authInfo.message)) 
-        case .valid:
-          self?.authToken = atoken.token!
-          ret = .success(atoken.token!)
+        case .success(let auth):
+          let atoken = auth["authToken"]!
+          self?.status?.authInfo = atoken.authInfo
+          switch atoken.authInfo.status {
+            case .expired, .unlinked, .invalid, .alreadyLinked, .notValidMail, .unknown:
+              ret = .failure(AuthStatusError(status: atoken.authInfo.status, message: atoken.authInfo.message))
+            case .valid:
+              self?.authToken = atoken.token!
+              ret = .success(atoken.token!)
         }
-      case .failure(let err):  ret = .failure(err)
+        case .failure(let err):  ret = .failure(err)
       }
       closure(ret)
     }
   }
   
-  /// Return device info as specifi server
-  public func deviceInfo() -> (type: String, format: String) {
-    var deviceFormat: String
-    switch Device.singleton {
-    case .iPad :  deviceFormat = "tablet"
-    case .iPhone: deviceFormat = "mobile"
-    default: deviceFormat = "desktop"
-    }
-    return ("apple", deviceFormat)
-  }
   
   /// Send server notification/device/user infos after successful authentication
   public func notification(pushToken: String?, oldToken: String?, 
@@ -681,15 +692,13 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
-    let (deviceType, deviceFormat) = deviceInfo()
     let pToken = (pushToken == nil) ? "" : "pushToken: \"\(pushToken!)\","
     let oToken = (oldToken == nil) ? "" : "oldToken: \"\(oldToken!)\","
     let request = """
       notification(\(pToken), \(oToken) 
                    textNotification: \(isTextNotification ? "true" : "false"),
-                   deviceType: \(deviceType), 
-                   deviceFormat: \(deviceFormat), 
-                   appVersion: "\(App.bundleVersion)-\(App.buildNumber)")
+                   \(deviceInfoString)
+                  )
     """
     gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
       var ret: Result<Bool,Error>
@@ -712,12 +721,11 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let pushToken = pushToken else { 
       closure(.failure(error("Notification not allowed"))); return
     }
-    let (deviceType, _) = deviceInfo()
     let request = """
       testNotification(
         pushToken: "\(pushToken)",
         sendRequest: \(request.external),
-        deviceType: \(deviceType),
+        \(deviceInfoString),
         isSilent: true
       )
     """
@@ -874,18 +882,13 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
-    let (deviceType, deviceFormat) = deviceInfo()
     let request = """
     downloadStart(
       feedName: "\(feed.name)", 
       issueDate: "\(self.date2a(issue.date))",
-      deviceName: "\(Utsname.machine) (\(UIDevice.current.name))",
-      deviceVersion: "\(UIDevice.current.systemName) \(UIDevice.current.systemVersion)",
-      appVersion: "\(App.bundleVersion)-\(App.buildNumber)",
       isPush: \(isPush ? "true" : "false"),
       installationId: "\(App.installationId)",
-      deviceFormat: \(deviceFormat), 
-      deviceType: \(deviceType)
+       \(deviceInfoString)
     )
     """
     gqlSession.mutation(graphql: request, type: [String:String].self) { (res) in
@@ -907,7 +910,7 @@ open class GqlFeeder: Feeder, DoesLog {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
-      downloadStop(downloadId: "\(dlId)", downloadTime: \(seconds))
+      downloadStop(\(deviceInfoString), downloadId: "\(dlId)", downloadTime: \(seconds))
     """
     gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
       var ret: Result<Bool,Error>
