@@ -27,70 +27,6 @@
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
 		AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */; };
 		AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DE246310E500E4AEA8 /* SliderTest.swift */; };
-		AE10894425768EE1000E7BF1 /* (null) in Sources */ = {isa = PBXBuildFile; };
-		AE10894525768EE1000E7BF1 /* Const.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAABADD24641BFA001BE414 /* Const.swift */; };
-		AE10894625768EE1000E7BF1 /* WebViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9F6245421AC0043F497 /* WebViewTests.swift */; };
-		AE10894725768EE1000E7BF1 /* ArticleDB.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4F51DA2438C8E800BC9548 /* ArticleDB.swift */; };
-		AE10894825768EE1000E7BF1 /* ContentTableVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE5D9EC123E1BB2D0002C3B8 /* ContentTableVC.swift */; };
-		AE10894925768EE1000E7BF1 /* GqlAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */; };
-		AE10894A25768EE1000E7BF1 /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0015B73524DD86B30037A8D6 /* Authenticator.swift */; };
-		AE10894B25768EE1000E7BF1 /* IntroVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE76F9FA245497F80043F497 /* IntroVC.swift */; };
-		AE10894C25768EE1000E7BF1 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
-		AE10894D25768EE1000E7BF1 /* PdfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE86486F248E274F007096B4 /* PdfTest.swift */; };
-		AE10894E25768EE1000E7BF1 /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
-		AE10894F25768EE1000E7BF1 /* SimpleAuthenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0015B73624DD86B30037A8D6 /* SimpleAuthenticator.swift */; };
-		AE10895025768EE1000E7BF1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58E219ACFAC00566205 /* AppDelegate.swift */; };
-		AE10895125768EE1000E7BF1 /* TrialSubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */; };
-		AE10895225768EE1000E7BF1 /* ContentImageVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8E324815AF4009DA152 /* ContentImageVC.swift */; };
-		AE10895325768EE1000E7BF1 /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
-		AE10895425768EE1000E7BF1 /* (null) in Sources */ = {isa = PBXBuildFile; };
-		AE10895525768EE1000E7BF1 /* FormComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006E17E824D418090092DC0D /* FormComponents.swift */; };
-		AE10895625768EE1000E7BF1 /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */; };
-		AE10895725768EE1000E7BF1 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B723F6BEC400EAFE78 /* LoadingView.swift */; };
-		AE10895825768EE1000E7BF1 /* Downloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */; };
-		AE10895925768EE1000E7BF1 /* DefaultAuthenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0015B73924DD87DA0037A8D6 /* DefaultAuthenticator.swift */; };
-		AE10895A25768EE1000E7BF1 /* FormsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0032A4D824C89E4800284723 /* FormsController.swift */; };
-		AE10895B25768EE1000E7BF1 /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C794F23424FED184007168AC /* Helper.swift */; };
-		AE10895C25768EE1000E7BF1 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
-		AE10895D25768EE1000E7BF1 /* PwForgottView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A824E68F5500AE075A /* PwForgottView.swift */; };
-		AE10895E25768EE1000E7BF1 /* TrialSubscriptionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006007E124D1D333001680B6 /* TrialSubscriptionController.swift */; };
-		AE10895F25768EE1000E7BF1 /* UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE21C46B23E710A600F8B811 /* UITests.swift */; };
-		AE10896025768EE1000E7BF1 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A624E68F4600AE075A /* LoginView.swift */; };
-		AE10896125768EE1000E7BF1 /* SliderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DE246310E500E4AEA8 /* SliderTest.swift */; };
-		AE10896225768EE1000E7BF1 /* ArticleVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B323F6B01A00EAFE78 /* ArticleVC.swift */; };
-		AE10896325768EE1000E7BF1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* FormView.swift */; };
-		AE10896425768EE1000E7BF1 /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
-		AE10896525768EE1000E7BF1 /* GraphQlSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE82262C232A70E000FFBE67 /* GraphQlSession.swift */; };
-		AE10896625768EE1000E7BF1 /* IssueVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE80A3942449C3250012DFFA /* IssueVC.swift */; };
-		AE10896725768EE1000E7BF1 /* MainNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainNC.swift */; };
-		AE10896825768EE1000E7BF1 /* FeederContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEC7D46C249A598B008630FB /* FeederContext.swift */; };
-		AE10896925768EE1000E7BF1 /* DataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE822631232A717E00FFBE67 /* DataModel.swift */; };
-		AE10896A25768EE1000E7BF1 /* ContentVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AB219ACFD900566205 /* ContentVC.swift */; };
-		AE10896B25768EE1000E7BF1 /* ColorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8EA248949B0009DA152 /* ColorTests.swift */; };
-		AE10896C25768EE1000E7BF1 /* PwForgotController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0032A4DA24C89F1100284723 /* PwForgotController.swift */; };
-		AE10896D25768EE1000E7BF1 /* SectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */; };
-		AE10896E25768EE1000E7BF1 /* GermanDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */; };
-		AE10896F25768EE1000E7BF1 /* GqlFeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE696F2D23918F9400265FC8 /* GqlFeeder.swift */; };
-		AE10897025768EE1000E7BF1 /* TextSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */; };
-		AE10897125768EE1000E7BF1 /* IssueInfoProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */; };
-		AE10897225768EE1000E7BF1 /* TestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58D219ACFAC00566205 /* TestController.swift */; };
-		AE10897325768EE1000E7BF1 /* ArticleDB.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = AED70C8E2243E0EB00487918 /* ArticleDB.xcdatamodel */; };
-		AE10897425768EE1000E7BF1 /* StartupVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAEE0002456D9EC00F627FE /* StartupVC.swift */; };
-		AE10897525768EE1000E7BF1 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
-		AE10897625768EE1000E7BF1 /* ConnectTazIdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */; };
-		AE10897725768EE1000E7BF1 /* ConnectTazIdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */; };
-		AE10897925768EE1000E7BF1 /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
-		AE10897B25768EE1000E7BF1 /* ContentTableVC.xib in Resources */ = {isa = PBXBuildFile; fileRef = AE5D9EC223E1BB2D0002C3B8 /* ContentTableVC.xib */; };
-		AE10897C25768EE1000E7BF1 /* Alpha@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE12526295A009F230D /* Alpha@3x.png */; };
-		AE10897D25768EE1000E7BF1 /* FallbackAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */; };
-		AE10897E25768EE1000E7BF1 /* Alpha@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE32526295A009F230D /* Alpha@2x.png */; };
-		AE10897F25768EE1000E7BF1 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
-		AE10898025768EE1000E7BF1 /* Release@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE825262CC1009F230D /* Release@3x.png */; };
-		AE10898125768EE1000E7BF1 /* Beta@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE22526295A009F230D /* Beta@2x.png */; };
-		AE10898225768EE1000E7BF1 /* Beta@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE02526295A009F230D /* Beta@3x.png */; };
-		AE10898325768EE1000E7BF1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF570219ACD1A00566205 /* LaunchScreen.storyboard */; };
-		AE10898425768EE1000E7BF1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF56E219ACD1A00566205 /* Assets.xcassets */; };
-		AE10898525768EE1000E7BF1 /* Release@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE925262CC1009F230D /* Release@2x.png */; };
 		AE10BEE42526295A009F230D /* Beta@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE02526295A009F230D /* Beta@3x.png */; };
 		AE10BEE52526295A009F230D /* Alpha@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE12526295A009F230D /* Alpha@3x.png */; };
 		AE10BEE62526295A009F230D /* Beta@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE22526295A009F230D /* Beta@2x.png */; };
@@ -173,7 +109,6 @@
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextSettingsVC.swift; sourceTree = "<group>"; };
 		AE0C32DE246310E500E4AEA8 /* SliderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SliderTest.swift; sourceTree = "<group>"; };
-		AE10898A25768EE1000E7BF1 /* taz.beta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.beta.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE10BEE02526295A009F230D /* Beta@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@3x.png"; sourceTree = "<group>"; };
 		AE10BEE12526295A009F230D /* Alpha@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Alpha@3x.png"; sourceTree = "<group>"; };
 		AE10BEE22526295A009F230D /* Beta@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@2x.png"; sourceTree = "<group>"; };
@@ -230,14 +165,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		AE10897825768EE1000E7BF1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AE10897925768EE1000E7BF1 /* NorthLib.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AEBAF561219ACD1900566205 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -386,7 +313,6 @@
 			isa = PBXGroup;
 			children = (
 				AEBAF564219ACD1900566205 /* die tageszeitung.app */,
-				AE10898A25768EE1000E7BF1 /* taz.beta.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -451,24 +377,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AE10894225768EE1000E7BF1 /* taz.beta */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = AE10898725768EE1000E7BF1 /* Build configuration list for PBXNativeTarget "taz.beta" */;
-			buildPhases = (
-				AE10894325768EE1000E7BF1 /* Sources */,
-				AE10897825768EE1000E7BF1 /* Frameworks */,
-				AE10897A25768EE1000E7BF1 /* Resources */,
-				AE10898625768EE1000E7BF1 /* ShellScript */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = taz.beta;
-			productName = taz.neo;
-			productReference = AE10898A25768EE1000E7BF1 /* taz.beta.app */;
-			productType = "com.apple.product-type.application";
-		};
 		AEBAF563219ACD1900566205 /* taz.neo */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AEBAF581219ACD1A00566205 /* Build configuration list for PBXNativeTarget "taz.neo" */;
@@ -524,7 +432,6 @@
 			projectRoot = "";
 			targets = (
 				AEBAF563219ACD1900566205 /* taz.neo */,
-				AE10894225768EE1000E7BF1 /* taz.beta */,
 			);
 		};
 /* End PBXProject section */
@@ -547,24 +454,6 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
-		AE10897A25768EE1000E7BF1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AE10897B25768EE1000E7BF1 /* ContentTableVC.xib in Resources */,
-				AE10897C25768EE1000E7BF1 /* Alpha@3x.png in Resources */,
-				AE10897D25768EE1000E7BF1 /* FallbackAssets.xcassets in Resources */,
-				AE10897E25768EE1000E7BF1 /* Alpha@2x.png in Resources */,
-				AE10897F25768EE1000E7BF1 /* Localizable.strings in Resources */,
-				AE10898025768EE1000E7BF1 /* Release@3x.png in Resources */,
-				AE10898125768EE1000E7BF1 /* Beta@2x.png in Resources */,
-				AE10898225768EE1000E7BF1 /* Beta@3x.png in Resources */,
-				AE10898325768EE1000E7BF1 /* LaunchScreen.storyboard in Resources */,
-				AE10898425768EE1000E7BF1 /* Assets.xcassets in Resources */,
-				AE10898525768EE1000E7BF1 /* Release@2x.png in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AEBAF562219ACD1900566205 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -586,27 +475,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		AE10898625768EE1000E7BF1 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk Bold.ttf",
-				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk.ttf",
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Aktiv Grotesk Bold.ttf",
-				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Aktiv Grotesk.ttf",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = ". $SRCROOT/$PROJECT_NAME/\"Supporting Files\"/Scripts/addResources.sh\n";
-		};
 		AEC7D4C324A5DE07008630FB /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -631,65 +499,6 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		AE10894325768EE1000E7BF1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AE10894425768EE1000E7BF1 /* (null) in Sources */,
-				AE10894525768EE1000E7BF1 /* Const.swift in Sources */,
-				AE10894625768EE1000E7BF1 /* WebViewTests.swift in Sources */,
-				AE10894725768EE1000E7BF1 /* ArticleDB.swift in Sources */,
-				AE10894825768EE1000E7BF1 /* ContentTableVC.swift in Sources */,
-				AE10894925768EE1000E7BF1 /* GqlAuth.swift in Sources */,
-				AE10894A25768EE1000E7BF1 /* Authenticator.swift in Sources */,
-				AE10894B25768EE1000E7BF1 /* IntroVC.swift in Sources */,
-				AE10894C25768EE1000E7BF1 /* ConfigDefaults.swift in Sources */,
-				AE10894D25768EE1000E7BF1 /* PdfTest.swift in Sources */,
-				AE10894E25768EE1000E7BF1 /* IssueCarousel.swift in Sources */,
-				AE10894F25768EE1000E7BF1 /* SimpleAuthenticator.swift in Sources */,
-				AE10895025768EE1000E7BF1 /* AppDelegate.swift in Sources */,
-				AE10895125768EE1000E7BF1 /* TrialSubscriptionView.swift in Sources */,
-				AE10895225768EE1000E7BF1 /* ContentImageVC.swift in Sources */,
-				AE10895325768EE1000E7BF1 /* CarouselController.swift in Sources */,
-				AE10895425768EE1000E7BF1 /* (null) in Sources */,
-				AE10895525768EE1000E7BF1 /* FormComponents.swift in Sources */,
-				AE10895625768EE1000E7BF1 /* LoginController.swift in Sources */,
-				AE10895725768EE1000E7BF1 /* LoadingView.swift in Sources */,
-				AE10895825768EE1000E7BF1 /* Downloader.swift in Sources */,
-				AE10895925768EE1000E7BF1 /* DefaultAuthenticator.swift in Sources */,
-				AE10895A25768EE1000E7BF1 /* FormsController.swift in Sources */,
-				AE10895B25768EE1000E7BF1 /* Helper.swift in Sources */,
-				AE10895C25768EE1000E7BF1 /* StartupView.swift in Sources */,
-				AE10895D25768EE1000E7BF1 /* PwForgottView.swift in Sources */,
-				AE10895E25768EE1000E7BF1 /* TrialSubscriptionController.swift in Sources */,
-				AE10895F25768EE1000E7BF1 /* UITests.swift in Sources */,
-				AE10896025768EE1000E7BF1 /* LoginView.swift in Sources */,
-				AE10896125768EE1000E7BF1 /* SliderTest.swift in Sources */,
-				AE10896225768EE1000E7BF1 /* ArticleVC.swift in Sources */,
-				AE10896325768EE1000E7BF1 /* FormView.swift in Sources */,
-				AE10896425768EE1000E7BF1 /* MomentView.swift in Sources */,
-				AE10896525768EE1000E7BF1 /* GraphQlSession.swift in Sources */,
-				AE10896625768EE1000E7BF1 /* IssueVC.swift in Sources */,
-				AE10896725768EE1000E7BF1 /* MainNC.swift in Sources */,
-				AE10896825768EE1000E7BF1 /* FeederContext.swift in Sources */,
-				AE10896925768EE1000E7BF1 /* DataModel.swift in Sources */,
-				AE10896A25768EE1000E7BF1 /* ContentVC.swift in Sources */,
-				AE10896B25768EE1000E7BF1 /* ColorTests.swift in Sources */,
-				AE10896C25768EE1000E7BF1 /* PwForgotController.swift in Sources */,
-				AE10896D25768EE1000E7BF1 /* SectionVC.swift in Sources */,
-				AE10896E25768EE1000E7BF1 /* GermanDate.swift in Sources */,
-				AE10896F25768EE1000E7BF1 /* GqlFeeder.swift in Sources */,
-				AE10897025768EE1000E7BF1 /* TextSettingsVC.swift in Sources */,
-				AE10897125768EE1000E7BF1 /* IssueInfoProtocol.swift in Sources */,
-				AE10897225768EE1000E7BF1 /* TestController.swift in Sources */,
-				AE10897325768EE1000E7BF1 /* ArticleDB.xcdatamodel in Sources */,
-				AE10897425768EE1000E7BF1 /* StartupVC.swift in Sources */,
-				AE10897525768EE1000E7BF1 /* HeaderView.swift in Sources */,
-				AE10897625768EE1000E7BF1 /* ConnectTazIdView.swift in Sources */,
-				AE10897725768EE1000E7BF1 /* ConnectTazIdController.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AEBAF560219ACD1900566205 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -779,57 +588,6 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		AE10898825768EE1000E7BF1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020101201;
-				DEVELOPMENT_TEAM = 3R3GBCY6FA;
-				INFOPLIST_FILE = "taz.neo copy-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 0.4.16;
-				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.beta;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		AE10898925768EE1000E7BF1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020101201;
-				DEVELOPMENT_TEAM = 3R3GBCY6FA;
-				INFOPLIST_FILE = "taz.neo copy-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 0.4.16;
-				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.beta;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 		AEBAF57F219ACD1A00566205 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1004,15 +762,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AE10898725768EE1000E7BF1 /* Build configuration list for PBXNativeTarget "taz.beta" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AE10898825768EE1000E7BF1 /* Debug */,
-				AE10898925768EE1000E7BF1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		AEBAF55F219ACD1900566205 /* Build configuration list for PBXProject "taz.neo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
