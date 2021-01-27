@@ -8,11 +8,6 @@
 import Foundation
 import NorthLib
 
-/// The Notification name an Issue is sending when download is completed
-extension Issue {
-  var dlMessage: String { isOverview ? "issueOverview" : "issue" }
-}
-
 /**
  A FeederContext manages one Feeder, its GraphQL interface to the backing
  server and its persistent data.
@@ -415,12 +410,12 @@ open class FeederContext: DoesLog {
    */
   public func getCompleteIssue(issue: StoredIssue) {
     if issue.isDownloading {
-      Notification.receiveOnce(issue.dlMessage, from: issue) { notif in
+      Notification.receiveOnce("issue", from: issue) { notif in
         self.getCompleteIssue(issue: issue)
       }
     }
     guard needsUpdate(issue: issue) else {
-      Notification.send(issue.dlMessage, result: .success(issue), sender: issue)
+      Notification.send("issue", result: .success(issue), sender: issue)
       return      
     }
     if self.isConnected {
@@ -465,7 +460,7 @@ open class FeederContext: DoesLog {
         ArticleDB.save()
       }
       else { res = .failure(err!) }
-      Notification.send(issue.dlMessage, result: res, sender: issue)
+      Notification.send("issueOverview", result: res, sender: issue)
     }
   }
 
@@ -487,7 +482,7 @@ open class FeederContext: DoesLog {
         }
         else { res = .failure(err!) }
         self.markStopDownload(dlId: dlId, tstart: tstart)
-          Notification.send(issue.dlMessage, result: res, sender: issue)
+        Notification.send("issue", result: res, sender: issue)
       }
     }
   }
