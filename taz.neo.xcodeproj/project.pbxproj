@@ -16,7 +16,6 @@
 		004D4F0024ACDC1F008C4EE7 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* FormView.swift */; };
 		006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006007E124D1D333001680B6 /* TrialSubscriptionController.swift */; };
 		006E17E924D418090092DC0D /* FormComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006E17E824D418090092DC0D /* FormComponents.swift */; };
-		00C4A0D125655F52002CDFDB /* TazPdfViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */; };
 		00E3D2A124E68F1B00AE075A /* ConnectTazIdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */; };
 		00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */; };
 		00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A624E68F4600AE075A /* LoginView.swift */; };
@@ -24,6 +23,7 @@
 		080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
 		08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */; };
 		08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */; };
+		77BDF65025C85BCA008D9D13 /* TazPdfViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
 		AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */; };
@@ -350,7 +350,6 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				006A1016255F2A97001CBB0B /* DemoPdf */,
 				AE10BEDF2526292F009F230D /* Alternate Icons */,
 				080271BE24ADDD36002CD2F7 /* Base.lproj */,
 				AEC7D4C624A5E1D3008630FB /* Scripts */,
@@ -555,6 +554,7 @@
 				AED748A62383F1D600C09D2D /* ArticleDB.xcdatamodel in Sources */,
 				AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */,
 				AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */,
+				77BDF65025C85BCA008D9D13 /* TazPdfViewController.swift in Sources */,
 				00E3D2A124E68F1B00AE075A /* ConnectTazIdView.swift in Sources */,
 				08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */,
 			);
