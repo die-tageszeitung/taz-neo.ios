@@ -923,5 +923,74 @@ open class GqlFeeder: Feeder, DoesLog {
       closure(ret)
     }
   }
+  
+  /// send error report to server
+  public func errorReport(
+    message:String?,
+    lastAction:String?,
+    conditions:String?,
+    deviceData:DeviceData?,
+    errorProtocol:String?,
+    eMail:String?,//comes from Server
+    screenshotName:String?,
+    screenshot:String?,
+    finished: @escaping(Result<Bool,Error>)->()) {
+    
+    guard let gqlSession = self.gqlSession else {
+      finished(.failure(fatal("Not connected"))); return
+    }
+    
+    var fields:[String:Any] = [:]
 
+
+    fields["deviceOS"] = "iOS \(UIDevice.current.systemVersion)"
+    fields["deviceName"] = UIDevice().model
+    fields["eMail"] = eMail
+    //    fields["deviceVersion"] = deviceVersion
+    fields["appVersion"] = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
+    fields["installationId"] = App.installationId
+    fields["storageAvailable"] = deviceData?.storageAvailable
+    fields["storageUsed"] = deviceData?.storageUsed
+    fields["ramAvailable"] = deviceData?.ramAvailable
+    fields["ramUsed"] = deviceData?.ramUsed
+    fields["pushToken"] = Defaults.singleton["pushToken"]
+    fields["architecture"] = Utsname.machine
+    fields["screenshotName"] = screenshotName
+    fields["screenshot"] = screenshot
+    
+    // Data as Array = Dict     remove nil values     map key: value
+    var arrayData = fields.compactMapValues{$0}.map{"\($0.key): \"\($0.value)\""}
+    
+    arrayData += "deviceType: \(Device.deviceType)"
+    arrayData += "deviceFormat: \(Device.deviceFormat)"
+    if let errorProt = errorProtocol {
+      arrayData += "errorProtocol: \(errorProt.quote())"
+    }
+    
+    if let msg = message {
+        arrayData += "message: \(msg.quote())"
+    }
+    
+    if let la = lastAction {
+         arrayData += "lastAction: \(la.quote())"
+    }
+    
+    if let cond = conditions {
+        arrayData += "conditions: \(cond.quote())"
+    } 
+    
+    let request = "errorReport(\(arrayData.joined(separator: ", ")))"
+    
+    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
+      var ret: Result<Bool,Error>
+      switch res {
+        case .success(let dict):
+          //        let status = dict["whatever"]!
+          print("success_ \(dict)")
+          ret = .success(true)
+        case .failure(let err):  ret = .failure(err)
+      }
+      finished(ret)
+    }
+  }
 } // GqlFeeder

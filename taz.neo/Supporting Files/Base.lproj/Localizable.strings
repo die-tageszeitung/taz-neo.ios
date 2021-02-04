@@ -242,3 +242,7 @@
 
 /* abo-id-validation error digit */
 "abo_id_validation_error_digit" = "Abo-ID muss eine max. 9-stellige Zahl sein.";
+
+
+/* feedback cancel */
+"feedback_cancel_title" = "Feedback nicht senden?";
