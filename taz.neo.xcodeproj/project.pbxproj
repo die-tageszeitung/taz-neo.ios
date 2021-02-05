@@ -23,6 +23,7 @@
 		080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
 		08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */; };
 		08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */; };
+		774B164725CDAC6000648516 /* DemoPdf in Resources */ = {isa = PBXBuildFile; fileRef = 774B164425CDAC6000648516 /* DemoPdf */; };
 		77BDF65025C85BCA008D9D13 /* TazPdfViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
@@ -107,6 +108,7 @@
 		080271C624ADDD68002CD2F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Localizable.strings; sourceTree = "<group>"; };
 		08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = FallbackAssets.xcassets; sourceTree = "<group>"; };
 		08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdController.swift; sourceTree = "<group>"; };
+		774B164425CDAC6000648516 /* DemoPdf */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DemoPdf; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextSettingsVC.swift; sourceTree = "<group>"; };
@@ -350,6 +352,7 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				774B164425CDAC6000648516 /* DemoPdf */,
 				AE10BEDF2526292F009F230D /* Alternate Icons */,
 				080271BE24ADDD36002CD2F7 /* Base.lproj */,
 				AEC7D4C624A5E1D3008630FB /* Scripts */,
@@ -467,6 +470,7 @@
 				AE10BEE72526295A009F230D /* Alpha@2x.png in Resources */,
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
 				AE10BEEA25262CC1009F230D /* Release@3x.png in Resources */,
+				774B164725CDAC6000648516 /* DemoPdf in Resources */,
 				AE10BEE62526295A009F230D /* Beta@2x.png in Resources */,
 				AE10BEE42526295A009F230D /* Beta@3x.png in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,

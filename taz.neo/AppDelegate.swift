@@ -17,7 +17,7 @@ class AppDelegate: NotifiedDelegate {
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     updateDefaultsIfNeeded()
     self.window = UIWindow(frame: UIScreen.main.bounds)
-    self.window?.rootViewController = MainNC()
+//    self.window?.rootViewController = MainNC()
 //    self.window?.rootViewController = TestController()
 //    self.window?.rootViewController = NavController()
 //    self.window?.rootViewController = ContentVC()
@@ -27,7 +27,7 @@ class AppDelegate: NotifiedDelegate {
 //    self.window?.rootViewController = SliderTest()
 //    self.window?.rootViewController = ColorTests()
 //    self.window?.rootViewController = PdfTest()
-//    self.window?.rootViewController = TazPdfViewController()
+    self.window?.rootViewController = TazPdfViewController()
     self.window?.makeKeyAndVisible()
     if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
       if shortcutItem.type == "Logging" { wantLogging = true }
