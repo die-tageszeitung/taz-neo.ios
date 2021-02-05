@@ -367,7 +367,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
     settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
     settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
-    self.collectionView?.backgroundColor = Const.SetColor.CTBackground.color
+    self.collectionView.backgroundColor = Const.SetColor.CTBackground.color
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     writeTazApiCss{
@@ -381,7 +381,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    self.collectionView?.backgroundColor = Const.SetColor.CTBackground.color
+    self.collectionView.backgroundColor = Const.SetColor.CTBackground.color
     self.view.backgroundColor = Const.SetColor.CTBackground.color
   }
   

@@ -150,7 +150,7 @@ class TestController: PageCollectionVC {
       self.debug(payload.toString())
     }
     self.view.backgroundColor = UIColor.red
-    self.collectionView?.backgroundColor = UIColor.blue
+    self.collectionView.backgroundColor = UIColor.blue
     self.count = 10
     self.index = 0
     self.logView.isEditable = false
