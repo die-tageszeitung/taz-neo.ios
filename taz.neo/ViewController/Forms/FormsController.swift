@@ -90,6 +90,9 @@ enum dismissType {case allReal, all, current, leftFirst, two}
 class FormsResultController: UIViewController {
   //Acces to related View, overwritten in subclasses with concrete view
   private var contentView = FormView()
+  private var wConstraint:NSLayoutConstraint?
+  
+  
   var dismissAllFinishedClosure: (()->())?
   
   @DefaultBool(key: "offerTrialSubscription")
@@ -114,6 +117,26 @@ class FormsResultController: UIViewController {
       self.messageLabel.setTextAnimated("")
     }
   }
+  
+  /// Setup the xButton
+  func setupXButton() {
+    let xButton = Button<CircledXView>()
+    xButton.pinHeight(35)
+    xButton.pinWidth(35)
+    xButton.color = .black
+    xButton.buttonView.isCircle = true
+    xButton.buttonView.circleColor = UIColor.rgb(0xdddddd)
+    xButton.buttonView.color = UIColor.rgb(0x707070)
+    xButton.buttonView.innerCircleFactor = 0.5
+    self.view.addSubview(xButton)
+    pin(xButton.right, to: self.view.rightGuide(), dist: -15)
+    pin(xButton.top, to: self.view.topGuide(), dist: 15)
+    xButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      self.dismissType = .all
+      self.handleBack(nil)
+    }
+  }
     
   var ui : FormView { get { return contentView }}
   
@@ -125,17 +148,24 @@ class FormsResultController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    let wConstraint = ui.container.pinWidth(to: self.view.width)
-    wConstraint.constant = UIScreen.main.bounds.width
-    wConstraint.priority = .required
+    wConstraint = ui.container.pinWidth(to: self.view.width)
+    wConstraint?.priority = .required
     
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(ui)
-    if #available(iOS 13.0, *) {
-      pin(ui, to: self.view)
-    } else{
-      pin(ui, toSafe: self.view)
-    }
+    pin(ui, toSafe: self.view).top.constant = 30
+    setupXButton()
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    wConstraint?.constant = self.view.frame.size.width
+  }
+  
+  override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    wConstraint?.constant = size.width
+    /// Unfortulatly the presented VC's did not recice the msg. no matter which presentation style
+    self.presentedViewController?.viewWillTransition(to: size, with: coordinator)
   }
   
   convenience init(message:String,
@@ -183,7 +213,7 @@ class FormsResultController: UIViewController {
   }
   
   // MARK: handleBack Action
-  @IBAction func handleBack(_ sender: UIButton) {
+  @IBAction func handleBack(_ sender: UIButton?) {
     var stack = self.modalStack
     switch dismissType {
       case .allReal:
@@ -211,6 +241,22 @@ class FormsResultController: UIViewController {
   }
 }
 
+extension UIViewController {
+  var topmostModalVc : UIViewController {
+    get {
+      var topmostModalVc : UIViewController = self
+      while true {
+        if let modal = topmostModalVc.presentedViewController {
+          topmostModalVc = modal
+        }
+        else{
+          return topmostModalVc
+        }
+      }
+    }
+  }
+}
+
 // MARK: - Modal Present extension for FormsResultController
 extension FormsResultController{
   /// Present given VC on topmost Viewcontroller with flip transition
@@ -218,16 +264,8 @@ extension FormsResultController{
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .flipHorizontal
     
-    var topmostModalVc : UIViewController = self
-    while true {
-      if let modal = topmostModalVc.presentedViewController {
-        topmostModalVc = modal
-      }
-      else{
-        topmostModalVc.present(controller, animated: true, completion:nil)
-        break
-      }
-    }
+//    MainNC.singleton.setupTopMenus(view: controller.view)
+    self.topmostModalVc.present(controller, animated: true, completion:nil)
   }
   
   func modalFromBottom(_ controller:UIViewController){
