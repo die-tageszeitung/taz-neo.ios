@@ -51,7 +51,11 @@ public class IssueVcWithBottomTiles : UICollectionViewController{
   
   /// used to hold IssueVC's content (carousel)
   ///obsolate after refactoring & full integration
-  let headerView = UIView()
+  let headerView: UIView = {
+    let v = UIView()
+    v.backgroundColor = .black
+    return v
+  }()
   
   /// Adds the Scroll Down Arrow/Button
   /// used to reduce the impact/code changes in issue carousel and issueVC for merge
@@ -149,7 +153,8 @@ public class IssueVcWithBottomTiles : UICollectionViewController{
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: reuseHeaderIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
     Notification.receiveOnce("issueOverview") { (_) in
-      if IssueVC.showAnimations { self.showScrollDownAnimations2() }
+      #warning("TODO may add auto scroll animations")
+//      if IssueVC.showAnimations { self.showScrollDownAnimations2() }
     }
   }
   
@@ -169,7 +174,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController{
 //    }))
 //    AppOverlay.show(steps: steps, initialDelay: 1.0)
 //  }
-  
+  /*
   func showScrollDownAnimations2(){
     typealias Step = AppOverlayStep
     var steps:[AppOverlayStep] = []
@@ -200,6 +205,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController{
       }
     }
   }
+ */
 }
 
 // MARK: - UICollectionViewDataSource
