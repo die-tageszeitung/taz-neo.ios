@@ -148,6 +148,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
   public var backButton = Button<LeftArrowView>()  
+  public var playButton = Button<ImageView>()
+  private var playClosure: ((ContentVC)->())?
 //  public var backButton = Button<ImageView>()
   private var backClosure: ((ContentVC)->())?
   public var homeButton = Button<ImageView>()
@@ -261,6 +263,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func onShare(closure: @escaping (ContentVC)->()) 
   { shareClosure = closure; toolBar.setArticleBar() }
   
+  public func onPlay(closure: @escaping (ContentVC)->())
+  { playClosure = closure }
   
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
@@ -284,12 +288,61 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       
       self.textSettingsVC.updateButtonValuesOnOpen()
     }
+    
+    onPlay{ [weak self] _ in
+      /**
+          Issues: on external Control no update
+          on currentWebView change not respect current state
+       => ToDO's
+          -  callback is single and here
+          - enqueue speak content
+       
+        HowTo Play, Stop, Pause???
+       - play if nothing or paused
+       - stop if index != currentIndex AND Playing => No enqueue is not possible
+       ???
+       Solutions: Long Tap, Extra Menu with prev & next??
+       
+       */
+      guard let self = self else { return }
+      
+      if SpeechSynthesizer.sharedInstance.isPaused {
+        self.playButton.buttonView.symbol = "pause"
+        SpeechSynthesizer.sharedInstance.continueSpeaking()
+      }
+      else if SpeechSynthesizer.sharedInstance.isSpeaking {
+        self.playButton.buttonView.symbol = "play"
+        SpeechSynthesizer.sharedInstance.pauseSpeaking(at: .word)
+      } else {
+        self.playButton.buttonView.symbol = "pause"
+        
+        let trackTitle:String = "taz \(self.issue.date.short) \(self.header.miniTitle ?? "")"
+        var albumTitle = "Artikel"
+        if let content = self.contents.valueAt(self.index ?? 0),
+           let contentTitle = content.title{
+          albumTitle = contentTitle
+        }
+        self.currentWebView?.speakHtmlContent(albumTitle: albumTitle, trackTitle: trackTitle){ [weak self] in
+          self?.playButton.buttonView.symbol = "play"
+        }
+      }
+    }
+  }
+  
+  
+  open override func onPageChange(){
+    SpeechSynthesizer.sharedInstance.stopSpeaking(at: .word)
+    self.playButton.buttonView.symbol = "play"
   }
   
   func setupToolbar() {
     backButton.onPress { [weak self] _ in 
       guard let self = self else { return }
       self.backClosure?(self)
+    }
+    playButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      self.playClosure?(self)
     }
     homeButton.onPress { [weak self] _ in 
       guard let self = self else { return }
@@ -322,14 +375,32 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     shareButton.pinWidth(55)
     shareButton.pinHeight(40)
     shareButton.inset = 0.24
+    
+    playButton.buttonView.symbol = "play"
+    playButton.pinWidth(55)
+    playButton.pinHeight(40)
+    playButton.inset = 0.24
+    
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(homeButton, direction: .right)
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     toolBar.addButton(settingsButton, direction: .center)
+    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
+    toolBar.addArticleButton(playButton, direction: .center)
     toolBar.setButtonColor(Const.Colors.darkTintColor)
     toolBar.backgroundColor = Const.Colors.darkToolbar
     toolBar.pinTo(self.view)
+    
+    backButton.isAccessibilityElement = true
+    settingsButton.isAccessibilityElement = false //make no sense just for seeing people
+    homeButton.isAccessibilityElement = true
+    playButton.isAccessibilityElement = true
+    shareButton.isAccessibilityElement = true
+    backButton.accessibilityLabel = "zurück"
+    homeButton.accessibilityLabel = "Ausgabenübersicht"
+    shareButton.accessibilityLabel = "Teilen"
+    playButton.accessibilityLabel = "Vorlesen"
   }
   
   override public func viewDidLoad() {
@@ -345,6 +416,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     let img = UIImage.init(named: "logo")
     slider.image = img
+    slider.image?.accessibilityLabel = "Inhalt"
     slider.buttonAlpha = 1.0
     slider.button.layer.shadowOpacity = 0.25
     slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
