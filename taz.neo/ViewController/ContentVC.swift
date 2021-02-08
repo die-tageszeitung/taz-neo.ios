@@ -269,12 +269,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
     
-    if UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0 > 0 {
-      settingsBottomSheet.coverage = 235
-    }
-    else {
-      settingsBottomSheet.coverage = 200
-    }
+    settingsBottomSheet.coverage =  200 + UIWindow.verticalInsets
     
     onSettings{ [weak self] _ in
       guard let self = self else { return }
