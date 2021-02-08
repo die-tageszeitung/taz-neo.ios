@@ -52,4 +52,20 @@ public extension Date {
     return gMonthYear(tz: tz).lowercased()
   }
   
+  var short:String{
+    get{
+      let dateFormatterGet = DateFormatter()
+      dateFormatterGet.dateFormat = "dd.MM.yy"
+      return dateFormatterGet.string(from: self)
+    }
+  }
+  
+  var shorter:String{
+    get{
+      let dateFormatterGet = DateFormatter()
+      dateFormatterGet.dateFormat = "d.M.yyyy"
+      return dateFormatterGet.string(from: self)
+    }
+  }
+  
 }
