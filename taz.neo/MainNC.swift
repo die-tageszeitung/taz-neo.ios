@@ -103,28 +103,14 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   }
   
   @objc func errorReportActivated(_ sender: UIGestureRecognizer) {
-    if isErrorReporting == true { return }//Prevent multiple Calls
-    isErrorReporting = true
-    
-    guard let recog = sender as? UILongPressGestureRecognizer,
-      MFMailComposeViewController.canSendMail()
-      else {
-        Alert.message(title: Localized("no_mail_title"), message: Localized("no_mail_text"), closure: {
-          self.isErrorReporting = false
-        })
-        return
+      if isErrorReporting == true { return }//Prevent multiple Calls
+      isErrorReporting = true
+      
+    FeedbackComposer.requestFeedback( logData: fileLogger.data, gqlFeeder: self.feederContext.gqlFeeder) { didSend in
+           print("Feedback send? \(didSend)")
+        self.isErrorReporting = false
+         }
     }
-    Alert.confirm(title: "Rückmeldung",
-      message: "Wollen Sie uns eine Fehlermeldung senden oder haben Sie einen " +
-               "Kommentar zu unserer App?") { yes in
-      if yes {
-        var recipient = "app@taz.de"
-        if recog.numberOfTouchesRequired == 3 { recipient = "ios-entwickler@taz.de" }
-        self.produceErrorReport(recipient: recipient)
-      }
-      else { self.isErrorReporting = false }
-    }
-  }
   
   func reportFatalError(err: Log.Message) {
     guard !isErrorReporting else { return }
