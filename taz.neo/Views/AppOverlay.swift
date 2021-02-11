@@ -17,7 +17,7 @@ public class WaitingAppOverlay {
   ///   - alpha: alpha of black gackground layer
   ///   - showSpinner: show spinner or not
   /// - Returns: true|false, true if added false if not
-  public static func show(alpha:CGFloat = 0.8, showSpinner:Bool = true, titleMessage:String? = nil, bottomMessage:String?=nil, dismissNotification:String) {
+  public static func show(alpha:CGFloat = 0.8, backbround:UIView?=nil, showSpinner:Bool = true, titleMessage:String? = nil, bottomMessage:String?=nil, dismissNotification:String) {
     let appDelegate = UIApplication.shared.delegate
     let window = appDelegate?.window
     if window == nil { return }
@@ -25,6 +25,16 @@ public class WaitingAppOverlay {
     ///show layer
     onMain {
       let layer = UIView(frame: UIScreen.main.bounds)
+      
+      if let bg = backbround {
+        layer.addSubview(bg)
+        pin(bg, to: layer)
+        
+        let curtain = UIView()
+        curtain.backgroundColor = UIColor(white: 0, alpha: 0.7)
+        layer.addSubview(curtain)
+        pin(curtain, to: layer)
+      }
       
       if showSpinner {
         let spinner = UIActivityIndicatorView(style: .white)

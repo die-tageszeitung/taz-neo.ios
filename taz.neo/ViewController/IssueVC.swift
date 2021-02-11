@@ -224,7 +224,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if let visible = navigationController?.visibleViewController,
        let sissue = issue as? StoredIssue {
       if (visible != self) && feederContext.needsUpdate(issue: sissue) {
-        WaitingAppOverlay.show(alpha: 0.4,
+        let snapX = UIScreen.main.snapshotView(afterScreenUpdates: false)
+        let snap = NavigationController.top()?.presentingViewController?.view.snapshotView(afterScreenUpdates: false)
+        print("snap: \(snap)")
+        WaitingAppOverlay.show(alpha: 1.0,
+                               backbround: snap,
                                showSpinner: true,
                                titleMessage: "Aktualisiere Daten",
                                bottomMessage: "Bitte haben Sie einen Moment Geduld!",
