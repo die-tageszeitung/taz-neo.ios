@@ -20,6 +20,16 @@ public struct Const {
     static let terms = "welcomeTerms.html"
   } // Filename
   
+  
+  /// Names for NSNotifications
+  /// @ToDo discuss and may change: NorthLib.Notification.swift => recive, send(message:String...
+  /// to: send(notification:NSNotification.Name
+  /// and here: static let articleLoaded = NSNotification.Name("NotificationName.articleLoaded")
+  struct NotificationNames {
+    /// Some resource filenames
+    static let articleLoaded = "NotificationName.articleLoaded"
+  } // Filename
+  
   /// Various color values
   struct Colors {
     static let darkPrimaryBG = UIColor.rgb(0x0)
