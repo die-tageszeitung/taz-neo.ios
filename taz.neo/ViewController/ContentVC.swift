@@ -55,7 +55,7 @@ open class ContentToolbar: UIView {
   
   static let ToolbarHeight: CGFloat = 44
   private var toolbar = Toolbar()
-  private var heightConstraint: NSLayoutConstraint?
+  private(set) var heightConstraint: NSLayoutConstraint?
 
   public var totalHeight: CGFloat {
     return ContentToolbar.ToolbarHeight + UIWindow.bottomInset

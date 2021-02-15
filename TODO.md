@@ -3,6 +3,13 @@
 Things that should be done soon
 
 ## Important before next release
+- IssueVcWithBottomTiles:
+    - Test: scrolling or stocking if new items added (insertItems)
+    - may Refactor & Integrate both Controller after merge
+    - iPad Layout
+    - Cloud Icon disapear on Download finish
+    - PDF Moments/Page 1
+
 
 
 ## Less-Important keep in mind for future releases

@@ -130,6 +130,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Setup SectionVC and push it onto the VC stack
   private func pushSectionVC(feederContext: FeederContext, atSection: Int? = nil,
                              atArticle: Int? = nil) {
+    if isPdf {
+      self.showPdf()
+      return
+    }
+    
     sectionVC = SectionVC(feederContext: feederContext, atSection: atSection,
                           atArticle: atArticle)
     if let svc = sectionVC {
