@@ -532,7 +532,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = ". $SRCROOT/$PROJECT_NAME/\"Supporting Files\"/Scripts/addResources.sh\n";
+			shellScript = ". $SRCROOT/$PROJECT_NAME/\"Supporting Files\"/Scripts/addLocalResources.sh\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
