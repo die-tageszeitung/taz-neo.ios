@@ -129,6 +129,7 @@
 		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
+		77C00CFB25DA9A4A00964861 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextSettingsVC.swift; sourceTree = "<group>"; };
@@ -341,6 +342,7 @@
 		AEBAF55B219ACD1900566205 = {
 			isa = PBXGroup;
 			children = (
+				77C00CFB25DA9A4A00964861 /* TODO.md */,
 				AEE3D4E9247D31FA00BEDEA3 /* LICENSE */,
 				AEE3D4E6247D316D00BEDEA3 /* README.md */,
 				AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */,

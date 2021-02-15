@@ -152,60 +152,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController{
     collectionView?.register(PdfOverviewCvcCell.self, forCellWithReuseIdentifier: reuseIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: reuseHeaderIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
-    Notification.receiveOnce("issueOverview") { (_) in
-      #warning("TODO may add auto scroll animations")
-//      if IssueVC.showAnimations { self.showScrollDownAnimations2() }
-    }
   }
-  
-  ///no good.... blank imageview in Step!
-//  func showScrollDownAnimations3(){
-//    typealias Step = AppOverlayStep
-//    var steps:[AppOverlayStep] = []
-//    steps.append(AppOverlayStep(UIImage(named: "scrollDown")))
-//    steps.append(AppOverlayStep(nil,totalDuration:1.0, action: {
-//      self.isButtonActionScrolling = true
-//      self.collectionView.decelerationRate = UIScrollView.DecelerationRate(rawValue: 0.3)
-//      self.collectionView.setContentOffset(CGPoint(x:0, y:UIScreen.main.bounds.size.height*0.6),
-//                                           animated: true)
-//    }))
-//    steps.append(AppOverlayStep(UIImage(named: "scrollUp"), action: {
-//      self.scrollUp()
-//    }))
-//    AppOverlay.show(steps: steps, initialDelay: 1.0)
-//  }
-  /*
-  func showScrollDownAnimations2(){
-    typealias Step = AppOverlayStep
-    var steps:[AppOverlayStep] = []
-    steps.append(AppOverlayStep(UIImage(named: "scrollDown"), action: {
-      self.isButtonActionScrolling = true
-      self.collectionView.decelerationRate = UIScrollView.DecelerationRate(rawValue: 0.3)
-      self.collectionView.setContentOffset(CGPoint(x:0, y:UIScreen.main.bounds.size.height*0.6),
-                                           animated: true)
-    }))
-    steps.append(AppOverlayStep(UIImage(named: "scrollUp"), action: {
-      self.scrollUp()
-    }))
-    AppOverlay.show(steps: steps, initialDelay: 1.0) {[weak self] in
-      self?.collectionView.decelerationRate = .normal
-    }
-  }
-  
-  func showScrollDownAnimations1(){
-    AppOverlay.show(UIImage(named: "scrollDown"), 2.0,2.0) {
-        self.isButtonActionScrolling = true
-        self.collectionView.decelerationRate = UIScrollView.DecelerationRate(rawValue: 0.3)
-        self.collectionView.setContentOffset(CGPoint(x:0, y:UIScreen.main.bounds.size.height*0.6),
-                                             animated: true)
-      onMainAfter(1.0) {
-        AppOverlay.show(UIImage(named: "scrollUp"), 2.0) {
-          self.scrollUp()
-        }
-      }
-    }
-  }
- */
 }
 
 // MARK: - UICollectionViewDataSource
@@ -242,8 +189,6 @@ extension IssueVcWithBottomTiles {
       cell.cloudHidden = issue.isComplete
       cell.label?.textAlignment = .center
       if let img = issueVC.feeder.momentImage(issue: issue) {
-        //        print("Moment Image Size: \(img.mbSize) for: \(img) with scale: \(img.scale)")
-        #warning("2.4 MB is quire big for 8 cells and more on Screen; could cause performance issues")
         cell.imageView?.image = img
       }
     }
