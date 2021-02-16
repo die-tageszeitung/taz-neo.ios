@@ -16,7 +16,6 @@
 		004D4F0024ACDC1F008C4EE7 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* FormView.swift */; };
 		006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006007E124D1D333001680B6 /* TrialSubscriptionController.swift */; };
 		006E17E924D418090092DC0D /* FormComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006E17E824D418090092DC0D /* FormComponents.swift */; };
-		00C4A0D125655F52002CDFDB /* TazPdfViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */; };
 		00E3D2A124E68F1B00AE075A /* ConnectTazIdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */; };
 		00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */; };
 		00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A624E68F4600AE075A /* LoginView.swift */; };
@@ -29,8 +28,13 @@
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
 		7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
+		7745050D25DA801F0052E502 /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = 7745050C25DA801F0052E502 /* resources.json */; };
+		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
+		7754452025D150AA00ABE3F8 /* TazPdfViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */; };
+		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
 		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
+		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
 		AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */; };
@@ -77,6 +81,7 @@
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
 		C794F23524FED184007168AC /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C794F23424FED184007168AC /* Helper.swift */; };
+		C7A5154025DB16A00093A797 /* DemoPdf in Resources */ = {isa = PBXBuildFile; fileRef = C7A5153D25DB16A00093A797 /* DemoPdf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,8 +124,13 @@
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
+		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
+		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
+		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
+		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
+		77C00CFB25DA9A4A00964861 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextSettingsVC.swift; sourceTree = "<group>"; };
@@ -165,7 +175,6 @@
 		AEBAF58E219ACFAC00566205 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AEBAF5AB219ACFD900566205 /* ContentVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentVC.swift; sourceTree = "<group>"; };
 		AEC7D46C249A598B008630FB /* FeederContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeederContext.swift; sourceTree = "<group>"; };
-		AEC7D4CE24A5E797008630FB /* addResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addResources.sh; sourceTree = "<group>"; };
 		AECAC8FC2440AF1F00D32175 /* CarouselController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselController.swift; sourceTree = "<group>"; };
 		AECCE11B23FBF3FE007C2276 /* MainNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNC.swift; sourceTree = "<group>"; };
 		AECCE11D23FBF449007C2276 /* StartupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupView.swift; sourceTree = "<group>"; };
@@ -178,6 +187,7 @@
 		AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCarousel.swift; sourceTree = "<group>"; };
 		AEF2DF34244766E400D1482D /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
 		C794F23424FED184007168AC /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
+		C7A5153D25DB16A00093A797 /* DemoPdf */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DemoPdf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -250,6 +260,7 @@
 				AECCE11D23FBF449007C2276 /* StartupView.swift */,
 				AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */,
 				AEF2DF34244766E400D1482D /* MomentView.swift */,
+				77A214C325D2B68F00A7C41B /* AppOverlay.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -288,6 +299,7 @@
 		AE4AA2AE23F6AD5700EAFE78 /* ViewController */ = {
 			isa = PBXGroup;
 			children = (
+				7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */,
 				0032A4D624C89E1600284723 /* Forms */,
 				AEBAF5AB219ACFD900566205 /* ContentVC.swift */,
 				AE5D9EC123E1BB2D0002C3B8 /* ContentTableVC.swift */,
@@ -331,6 +343,7 @@
 		AEBAF55B219ACD1900566205 = {
 			isa = PBXGroup;
 			children = (
+				77C00CFB25DA9A4A00964861 /* TODO.md */,
 				AEE3D4E9247D31FA00BEDEA3 /* LICENSE */,
 				AEE3D4E6247D316D00BEDEA3 /* README.md */,
 				AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */,
@@ -379,7 +392,9 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				006A1016255F2A97001CBB0B /* DemoPdf */,
+				C7A5153D25DB16A00093A797 /* DemoPdf */,
+				7745050F25DA80450052E502 /* files */,
+				7745050C25DA801F0052E502 /* resources.json */,
 				AE10BEDF2526292F009F230D /* Alternate Icons */,
 				080271BE24ADDD36002CD2F7 /* Base.lproj */,
 				AEC7D4C624A5E1D3008630FB /* Scripts */,
@@ -395,7 +410,6 @@
 		AEC7D4C624A5E1D3008630FB /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
-				AEC7D4CE24A5E797008630FB /* addResources.sh */,
 			);
 			path = Scripts;
 			sourceTree = "<group>";
@@ -414,6 +428,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AEBAF581219ACD1A00566205 /* Build configuration list for PBXNativeTarget "taz.neo" */;
 			buildPhases = (
+				771E2F7125D68A8C00CFA830 /* ShellScript */,
 				AEBAF560219ACD1900566205 /* Sources */,
 				AEBAF561219ACD1900566205 /* Frameworks */,
 				AEBAF562219ACD1900566205 /* Resources */,
@@ -491,6 +506,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7A5154025DB16A00093A797 /* DemoPdf in Resources */,
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
 				AE10BEE52526295A009F230D /* Alpha@3x.png in Resources */,
 				08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */,
@@ -500,7 +516,9 @@
 				AE10BEE62526295A009F230D /* Beta@2x.png in Resources */,
 				AE10BEE42526295A009F230D /* Beta@3x.png in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
+				7745050D25DA801F0052E502 /* resources.json in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
+				7745051025DA80450052E502 /* files in Resources */,
 				AE10BEEB25262CC1009F230D /* Release@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -508,6 +526,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		771E2F7125D68A8C00CFA830 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "source ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/downloadBundledRessources.sh\n";
+		};
 		AEC7D4C324A5DE07008630FB /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -527,7 +562,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = ". $SRCROOT/$PROJECT_NAME/\"Supporting Files\"/Scripts/addResources.sh\n";
+			shellScript = ". $SRCROOT/$PROJECT_NAME/\"Supporting Files\"/Scripts/addLocalResources.sh\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -549,7 +584,9 @@
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
+				7754452025D150AA00ABE3F8 /* TazPdfViewController.swift in Sources */,
 				00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */,
+				7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
 				006E17E924D418090092DC0D /* FormComponents.swift in Sources */,
@@ -572,6 +609,7 @@
 				AEF2DF35244766E400D1482D /* MomentView.swift in Sources */,
 				AE5D9EBD23E1B8160002C3B8 /* GraphQlSession.swift in Sources */,
 				AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */,
+				77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */,
 				778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */,
 				AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */,
 				AEC7D46D249A598B008630FB /* FeederContext.swift in Sources */,
