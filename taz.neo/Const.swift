@@ -20,6 +20,16 @@ public struct Const {
     static let terms = "welcomeTerms.html"
   } // Filename
   
+  
+  /// Names for NSNotifications
+  /// @ToDo discuss and may change: NorthLib.Notification.swift => recive, send(message:String...
+  /// to: send(notification:NSNotification.Name
+  /// and here: static let articleLoaded = NSNotification.Name("NotificationName.articleLoaded")
+  struct NotificationNames {
+    /// Some resource filenames
+    static let articleLoaded = "NotificationName.articleLoaded"
+  } // Filename
+  
   /// Various color values
   struct Colors {
     static let darkPrimaryBG = UIColor.rgb(0x0)
@@ -274,5 +284,43 @@ public struct Const {
     static let DefaultPadding = CGFloat(15.0)
     static let TextFieldPadding = CGFloat(10.0)
   }
-  
 } // Const
+
+
+public extension UILabel {
+  /// set content font with default font size and return self (for chaining)
+  ///  @todo may respect dark/light mode with param ignore dark/lightMode
+  /// - Returns: self
+  func contentFont() -> UILabel {
+    self.font = Const.Fonts.contentFont(size: Const.Fonts.defaultFontSize)
+    return self
+  }
+  
+  /// set content title font with default font size and return self (for chaining)
+  /// - Returns: self
+  func titleFont() -> UILabel {
+    self.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+    return self
+  }
+  
+  func black() -> UILabel {
+    self.textColor = UIColor.black
+    return self
+  }
+  
+  func white() -> UILabel {
+    self.textColor = UIColor.white
+    return self
+  }
+  
+  func center() -> UILabel {
+    self.textAlignment = .center
+    return self
+  }
+  
+  convenience init(_ _text : String, _numberOfLines : Int = 0) {
+    self.init()
+    text = _text
+    numberOfLines = _numberOfLines
+  }
+}

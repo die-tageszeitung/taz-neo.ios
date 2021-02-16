@@ -11,17 +11,7 @@ import NorthLib
 
 /// This Class  extends IssueVC for a bottom Area with a UICollectionVC
 /// written to have a minimal Impact on IssueVC on Integration
-/// Refer Commit af99bd5 for Integration
-/// #ToDo: refactor IssueVC later:
-/// #1 to get rid of stocking scroll animations if new issues added
-/// by implementing: insertItems
-/// https://developer.apple.com/documentation/uikit/uicollectionview/1618097-insertitems
-/// #2 for cleaner code
-/// delegating download, reuse images can be organized much better ...if integrated
-/// #3 after iPad & landscape issues are fixed
-/// may use just 1 scroll down/to arrow within an animation
-/// ... requires landscape layout fixed
-public class IssueVcWithBottomTiles : UICollectionViewController{
+public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   
   // MARK: - Properties
   ///moved issues here to prevent some performance and other issues
@@ -38,6 +28,8 @@ public class IssueVcWithBottomTiles : UICollectionViewController{
     }
   }
   
+  public var toolBar = OverviewContentToolbar()
+  
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
   private let reuseFooterIdentifier = "issueVcCollectionViewFooter"
@@ -51,34 +43,15 @@ public class IssueVcWithBottomTiles : UICollectionViewController{
   
   /// used to hold IssueVC's content (carousel)
   ///obsolate after refactoring & full integration
-  let headerView = UIView()
+  let headerView: UIView = {
+    let v = UIView()
+    v.backgroundColor = .black
+    return v
+  }()
   
-  /// Adds the Scroll Down Arrow/Button
-  /// used to reduce the impact/code changes in issue carousel and issueVC for merge
-  /// toDo: only use 1 Button for Scroll Up/Down with an change Animation
-  ///  requires: Issue Carousel/IssueVC to work in Landscape Mode with various device screen sizes
-  ///obsolate after refactoring & full integration
+  ///Array of Section Header Views
   lazy var headerViews : [UIView] = {
-    /* Arrows are hidden by Tabbar!, temporary remove them from UI
-    let scrollDownButton = UIButton()
-    headerView.addSubview(scrollDownButton)
-    pin(scrollDownButton.centerX, to: headerView.centerX)
-    pin(scrollDownButton.top, to: headerView.bottom, dist: -bottomOffset)
-    scrollDownButton.pinSize(scrollButtonSize)
-    scrollDownButton.setImage(UIImage(name: "chevron.down"), for: .normal)
-    scrollDownButton.imageView?.tintColor = .white
-    scrollDownButton.touch(self, action: #selector(handleScrollDownButtonTouch))
-    */
     let section2Header = UIView()
-    /*
-    let scrollUpButton = UIButton()
-    scrollUpButton.pinSize(scrollButtonSize)
-    scrollUpButton.setImage(UIImage(name: "chevron.up"), for: .normal)
-    scrollUpButton.imageView?.tintColor = .white
-    scrollUpButton.touch(self, action: #selector(handleScrollUpButtonTouch))
-    section2Header.addSubview(scrollUpButton)
-    scrollUpButton.center()
-     */
     return [headerView,section2Header]
   }()
   
@@ -106,6 +79,8 @@ public class IssueVcWithBottomTiles : UICollectionViewController{
   
   /// Indicate if current state is top on IssueCaroussel or Bottom on Tiele View
   var isUp:Bool = true
+  
+
   
   /// Indicate scrollAnimation started by Arrow Button touch, to prevent disruption of animation
   var isButtonActionScrolling:Bool = false {
@@ -148,56 +123,54 @@ public class IssueVcWithBottomTiles : UICollectionViewController{
     collectionView?.register(PdfOverviewCvcCell.self, forCellWithReuseIdentifier: reuseIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: reuseHeaderIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
-    Notification.receiveOnce("issueOverview") { (_) in
-      if IssueVC.showAnimations { self.showScrollDownAnimations2() }
-    }
+    setupToolbar()
   }
+
+  var isPdf = false
   
-  ///no good.... blank imageview in Step!
-//  func showScrollDownAnimations3(){
-//    typealias Step = AppOverlayStep
-//    var steps:[AppOverlayStep] = []
-//    steps.append(AppOverlayStep(UIImage(named: "scrollDown")))
-//    steps.append(AppOverlayStep(nil,totalDuration:1.0, action: {
-//      self.isButtonActionScrolling = true
-//      self.collectionView.decelerationRate = UIScrollView.DecelerationRate(rawValue: 0.3)
-//      self.collectionView.setContentOffset(CGPoint(x:0, y:UIScreen.main.bounds.size.height*0.6),
-//                                           animated: true)
-//    }))
-//    steps.append(AppOverlayStep(UIImage(named: "scrollUp"), action: {
-//      self.scrollUp()
-//    }))
-//    AppOverlay.show(steps: steps, initialDelay: 1.0)
-//  }
-  
-  func showScrollDownAnimations2(){
-    typealias Step = AppOverlayStep
-    var steps:[AppOverlayStep] = []
-    steps.append(AppOverlayStep(UIImage(named: "scrollDown"), action: {
-      self.isButtonActionScrolling = true
-      self.collectionView.decelerationRate = UIScrollView.DecelerationRate(rawValue: 0.3)
-      self.collectionView.setContentOffset(CGPoint(x:0, y:UIScreen.main.bounds.size.height*0.6),
-                                           animated: true)
-    }))
-    steps.append(AppOverlayStep(UIImage(named: "scrollUp"), action: {
-      self.scrollUp()
-    }))
-    AppOverlay.show(steps: steps, initialDelay: 1.0) {[weak self] in
-      self?.collectionView.decelerationRate = .normal
+  func setupToolbar() {
+    //the button tap closures
+    let onHome:((ButtonControl)->()) = {_ in
+      print("Home Pressed")
     }
-  }
-  
-  func showScrollDownAnimations1(){
-    AppOverlay.show(UIImage(named: "scrollDown"), 2.0,2.0) {
-        self.isButtonActionScrolling = true
-        self.collectionView.decelerationRate = UIScrollView.DecelerationRate(rawValue: 0.3)
-        self.collectionView.setContentOffset(CGPoint(x:0, y:UIScreen.main.bounds.size.height*0.6),
-                                             animated: true)
-      onMainAfter(1.0) {
-        AppOverlay.show(UIImage(named: "scrollUp"), 2.0) {
-          self.scrollUp()
-        }
+    
+    let onPDF:((ButtonControl)->()) = {   [weak self] control in
+      guard let self = self else { return }
+       
+      self.isPdf = !self.isPdf
+      
+      if let imageButton = control as? Button<ImageView> {
+        imageButton.buttonView.symbol = self.isPdf ? "iphone" : "newspaper"
+        imageButton.hinset = self.isPdf ? 0.15 : 0.0
       }
+      
+      print("PDF Pressed")
+    }
+    
+    //the buttons and alignments
+    _ = toolBar.addImageButton(name: "Home",
+                           onPress: onHome,
+                           direction: .left,
+                           symbol: "house", //the prettier symbol ;-)
+                           accessibilityLabel: "Übersicht"
+//                           vInset: 0.2,hInset: 0.2 //needed if old symbol used
+                           )
+    toolBar.addSpacer(.left)
+    _ = toolBar.addImageButton(name: "PDF",
+                           onPress: onPDF,
+                           direction: .right,
+                           symbol: self.isPdf ? "iphone.homebutton" : "newspaper",
+                           accessibilityLabel: "Zeitungsansicht",
+                           hInset: self.isPdf ? 0.15 : 0.0
+    )
+    
+    //the toolbar setup itself
+    toolBar.setButtonColor(Const.Colors.darkTintColor)
+    toolBar.backgroundColor = Const.Colors.darkToolbar
+    toolBar.pinTo(self.view)
+    whenScrolled(minRatio: 0.01) {  [weak self] ratio in
+      if ratio < 0, self?.isUp == false { self?.toolBar.hide()}
+      else { self?.toolBar.hide(false)}
     }
   }
 }
@@ -221,7 +194,7 @@ extension IssueVcWithBottomTiles {
     
     let _cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier,
                                                    for: indexPath)
-    
+
     guard let cell = _cell as? PdfOverviewCvcCell else { return _cell }
     
     cell.label?.text = nil
@@ -231,13 +204,11 @@ extension IssueVcWithBottomTiles {
        let issue = issues.valueAt(indexPath.row) {
       cell.text = issue.date.shorter
       cell.button?.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
-      /// ToDo for not Downloaded Items, click, load finished, the cloud did not disappear
-      /// should be done in Refactoring
+      /// ToDo: for not Downloaded Items, click, load finished, the cloud did not disappear
+      /// should be done in Refactoring with PDF Image for Cells
       cell.cloudHidden = issue.isComplete
       cell.label?.textAlignment = .center
       if let img = issueVC.feeder.momentImage(issue: issue) {
-        //        print("Moment Image Size: \(img.mbSize) for: \(img) with scale: \(img.scale)")
-        #warning("2.4 MB is quire big for 8 cells and more on Screen; could cause performance issues")
         cell.imageView?.image = img
       }
     }
@@ -251,9 +222,6 @@ extension IssueVcWithBottomTiles {
     if indexPath.section == 1,
        indexPath.row > issues.count - 2 {
       showMoreIssues()
-      //load more
-//      (self as? IssueVC)?.issueCarousel.index = issues.count
-//      (self as? IssueVC)?.provideOverview()
       footerActivityIndicator.startAnimating()
     }
   }
@@ -270,7 +238,7 @@ extension IssueVcWithBottomTiles {
   public override func collectionView(_ collectionView: UICollectionView,
                                       didSelectItemAt indexPath: IndexPath) {
     guard let issueVC = self as? IssueVC else { return }
-    /// Warning if using "animated: true" => Bug: opened Issue stays white!
+    /// Note: if using "animated: true" => Bug: opened Issue stays white!
     issueVC.issueCarousel.carousel.scrollto(indexPath.row)
     issueVC.showIssue(index: indexPath.row)
   }
@@ -353,28 +321,27 @@ extension IssueVcWithBottomTiles {
 // MARK: - UIScrollViewDelegate
 /// Add some ScrollView Snapping Magic
 extension IssueVcWithBottomTiles {
-  public override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+  open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    super.scrollViewDidEndDragging(scrollView, willDecelerate: decelerate)
     if decelerate { return }
     snapScrollViewIfNeeded(scrollView)
   }
   
-  public override func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+  open override func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
     snapScrollViewIfNeeded(scrollView, targetContentOffset: targetContentOffset.pointee)
   }
   
-  public override func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
+  open override func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
     snapScrollViewIfNeeded(scrollView)
   }
   
-  public override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+  open override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     snapScrollViewIfNeeded(scrollView)
   }
   
-  public override func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+  open override func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
     isUp = collectionView.indexPathsForVisibleItems.count == 0
   }
-  
-
 }
 
 // MARK: - Scroll Extensions
@@ -418,24 +385,111 @@ extension IssueVcWithBottomTiles {
   }
 }
 
-//// MARK: - Interaction Extensions
-//extension IssueVcWithBottomTiles {
-//  ///Actions for
-//  @IBAction func handleScrollDownButtonTouch(_ sender: UIButton) {
-//    isButtonActionScrolling = true
-//    scrollDown()
-//  }
-//  @IBAction func handleScrollUpButtonTouch(_ sender: UIButton) {
-//    isButtonActionScrolling = true
-//    scrollUp()
-//  }
-//}
-
 // MARK: - UICollectionViewDelegateFlowLayout
 extension IssueVcWithBottomTiles: UICollectionViewDelegateFlowLayout {
   public func collectionView(_ collectionView: UICollectionView,
                              layout collectionViewLayout: UICollectionViewLayout,
                              sizeForItemAt indexPath: IndexPath) -> CGSize {
     return bottomCellSize
+  }
+}
+
+// MARK: - ShowPDF
+extension IssueVcWithBottomTiles {
+  func showPdf() {
+    let pdfVc = TazPdfViewController()
+    pdfVc.modalPresentationStyle = .fullScreen
+    self.navigationController?.present(pdfVc, animated: true)
+  }
+}
+
+// MARK: - Helper for ContentToolbar
+extension ContentToolbar {
+  func addSpacer(_ direction:Toolbar.Direction) {
+    let button = Toolbar.Spacer()
+    self.addButton(button, direction: direction)
+  }
+  
+  func addImageButton(name:String,
+                      onPress:@escaping ((ButtonControl)->()),
+                      direction: Toolbar.Direction,
+                      symbol:String? = nil,
+                      accessibilityLabel:String? = nil,
+                      isBistable: Bool = true,
+                      width:CGFloat = 40,
+                      height:CGFloat = 40,
+                      vInset:CGFloat = 0.0,
+                      hInset:CGFloat = 0.0
+                      ) -> Button<ImageView> {
+    let button = Button<ImageView>()
+    button.pinWidth(width, priority: .defaultHigh)
+    button.pinHeight(height, priority: .defaultHigh)
+    button.vinset = vInset
+    button.hinset = hInset
+    button.isBistable = isBistable
+    button.isBistable = isBistable
+    button.buttonView.name = name
+    button.buttonView.symbol = symbol
+    
+    if let al = accessibilityLabel {
+      button.isAccessibilityElement = true
+      button.accessibilityLabel = al
+    }
+    
+    self.addButton(button, direction: direction)
+    button.onPress(closure: onPress)
+    return button
+  }
+}
+
+// MARK: - UICollectionViewControllerWithTabbar
+/// UICollectionViewController with whenScrolled with min ratio handler
+open class UICollectionViewControllerWithTabbar : UICollectionViewController {
+  
+  // The closure to call when content scrolled more than scrollRatio
+  private var whenScrolledClosure: ((CGFloat)->())?
+  private var scrollRatio: CGFloat = 0
+  
+  /// Define closure to call when web content has been scrolled
+  public func whenScrolled( minRatio: CGFloat, _ closure: @escaping (CGFloat)->() ) {
+    scrollRatio = minRatio
+    whenScrolledClosure = closure
+  }
+  
+  // content y offset at start of dragging
+  private var startDragging: CGFloat?
+    
+  open override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    startDragging = scrollView.contentOffset.y
+  }
+  
+  open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    if let sd = startDragging {
+      let scrolled = sd-scrollView.contentOffset.y
+      let ratio = scrolled / scrollView.bounds.size.height
+      if let closure = whenScrolledClosure, abs(ratio) >= scrollRatio {
+        closure(ratio)
+      }
+    }
+    startDragging = nil
+  }
+}
+
+// MARK: - OverviewContentToolbar
+/// ContentToolbar with easier constraint animation and changed animation target
+public class OverviewContentToolbar : ContentToolbar {
+  public override func hide(_ isHide: Bool = true) {
+    if isHide {
+      UIView.animate(withDuration: 0.5) { [weak self] in
+        self?.heightConstraint?.constant = 0
+        self?.superview?.layoutIfNeeded()
+      }
+    }
+    else if self.heightConstraint?.constant != self.totalHeight {
+      UIView.animate(withDuration: 0.5) { [weak self] in
+        self?.heightConstraint?.constant = self!.totalHeight
+        self?.superview?.layoutIfNeeded()
+      }
+    }
   }
 }
