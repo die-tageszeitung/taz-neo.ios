@@ -18,12 +18,14 @@ public class WaitingAppOverlay {
   ///   - showSpinner: show spinner or not
   /// - Returns: true|false, true if added false if not
   public static func show(alpha:CGFloat = 0.8, backbround:UIView?=nil, showSpinner:Bool = true, titleMessage:String? = nil, bottomMessage:String?=nil, dismissNotification:String) {
+    print(">>>> WaitingAppOverlay.show")
     let appDelegate = UIApplication.shared.delegate
     let window = appDelegate?.window
     if window == nil { return }
     
     ///show layer
     onMain {
+      print(">>>> WaitingAppOverlay.show on Main")
       let layer = UIView(frame: UIScreen.main.bounds)
       
       if let bg = backbround {
@@ -62,25 +64,32 @@ public class WaitingAppOverlay {
       layer.backgroundColor = UIColor(white: 0, alpha: alpha)
       layer.alpha = 0.0
       window!?.addSubview(layer)
+      print(">>>> WaitingAppOverlay.show on Main ...animate")
       UIView.animate(withDuration: 0.7,
                      delay: 0,
                      options: UIView.AnimationOptions.curveEaseInOut,
                      animations: {
                       layer.alpha = 1.0
+                      print(">>>> WaitingAppOverlay.show on Main ...animate ...animations")
                      }, completion: { (_) in
                       if layer.isTopmost == false {
+                        print(">>>> WaitingAppOverlay.show on Main ...animate ...done")
                         window!?.bringSubviewToFront(layer)
                       }
                      })
       
       Notification.receiveOnce(dismissNotification) { _ in
+        print(">>>> WaitingAppOverlay.receiveOnce")
         onMain {
+          print(">>>> WaitingAppOverlay.receiveOnce on Main")
           UIView.animate(withDuration: 0.7,
                          delay: 0,
                          options: UIView.AnimationOptions.curveEaseInOut,
                          animations: {
                           layer.alpha = 0.0
+                          print(">>>> WaitingAppOverlay.receiveOnce on Main ...animate")
                          }, completion: { (_) in
+                          print(">>>> WaitingAppOverlay.receiveOnce on Main ...animate ...done")
                           layer.removeFromSuperview()
                          })
         }
