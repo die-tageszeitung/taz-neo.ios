@@ -43,6 +43,9 @@ public class IssueVC: UIViewController, IssueInfo {
   /// Light status bar because of black background
   override public var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
   
+  /// Date of next Issue to center on
+  private var selectedIssueDate: Date? = nil
+  
   /// Reset list of Issues to the first (most current) one
   public func resetIssueList() {
     issueCarousel.index = 0
@@ -67,7 +70,21 @@ public class IssueVC: UIViewController, IssueInfo {
       issues.insert(issue, at: idx)
       issueCarousel.insertIssue(img, at: idx)
       if let idx = issueCarousel.index { setLabel(idx: idx) }
+      if let date = selectedIssueDate {
+        if issue.date <= date { selectedIssueDate = nil }
+//        else { issueCarousel.index = idx }
+      }
     }
+  }
+  
+  /// Move Carousel to certain Issue date (or next smaller)
+  func moveTo(date: Date) {
+    var idx = 0
+    for iss in issues {
+      if iss.date == date { return }
+      if iss.date < issue.date { break }
+      idx += 1
+    }    
   }
   
   /// Inspect download Error and show it to user
@@ -75,16 +92,26 @@ public class IssueVC: UIViewController, IssueInfo {
     // TODO: Handle Download Error
   }
   
+  /// Requests sufficient overview Issues from DB/server at
+  /// a given date
+  private func provideOverview(at date: Date) {
+    var from = date
+    from.addDays(10)
+    selectedIssueDate = date
+    reset()
+    feederContext.getOvwIssues(feed: feed, count: 21, fromDate: from)
+  }
+
   /// Requests sufficient overview Issues from DB/server
   private func provideOverview() {
     let n = issues.count
     if n > 0 {
-      if (n - index) < 11 { 
+      if (n - index) < 6 { 
         var last = issues.last!.date
         last.addDays(-1)
         feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last)
       }
-      if index < 9 {
+      if index < 6 {
         var date = issues.first!.date
         let first = UsTime(date)
         let now = UsTime.now()
@@ -245,11 +272,7 @@ public class IssueVC: UIViewController, IssueInfo {
                       atArticle: self?.issue.lastArticle)
     }
     issueCarousel.onLabelTap { idx in
-      if true /* SET TRUE TO USE DATEPICKER */ {
-        self.showDatePicker()
-        return;
-      }
-      Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
+      self.showDatePicker()
     }
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
       self.exportMoment(issue: self.issue)
@@ -257,11 +280,16 @@ public class IssueVC: UIViewController, IssueInfo {
     issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {_ in
       self.deleteIssue()
     }
+    var scrollChange = false
     issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in
-      self.carouselScrollFromLeft = !self.issueCarousel.carousel.scrollFromLeftToRight
+      self.issueCarousel.carousel.scrollFromLeftToRight =
+        !self.issueCarousel.carousel.scrollFromLeftToRight
+      scrollChange = true
+      self.carouselScrollFromLeft = self.issueCarousel.carousel.scrollFromLeftToRight
+      scrollChange = false
     }
     Defaults.receive() { dnot in
-      if dnot.key == "carouselScrollFromLeft" {
+      if !scrollChange && dnot.key == "carouselScrollFromLeft" {
         self.issueCarousel.carousel.scrollFromLeftToRight = self.carouselScrollFromLeft
       }
     }
@@ -291,10 +319,8 @@ public class IssueVC: UIViewController, IssueInfo {
   var pickerCtrl : MonthPickerController?
   var overlay : Overlay?
   func showDatePicker(){
-    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, 
-                                  month: 6, day: 1, hour: 12).date ?? Date()
-    
-    let toDate = Date()
+    let fromDate = feed.firstIssue
+    let toDate = feed.lastIssue
     
     if pickerCtrl == nil {
       pickerCtrl = MonthPickerController(minimumDate: fromDate,
@@ -311,11 +337,11 @@ public class IssueVC: UIViewController, IssueInfo {
         
     pickerCtrl.doneHandler = {
       self.overlay?.close(animated: true)
+//      self.provideOverview(at: pickerCtrl.selectedDate)
       let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
-      Alert.message(title: "Baustelle", 
+      Alert.message(title: "Baustelle",
         message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.")
     }
-//    overlay?.open(animated: true, fromBottom: true)
     overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
   
