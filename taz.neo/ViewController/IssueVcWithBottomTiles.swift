@@ -412,9 +412,15 @@ extension IssueVcWithBottomTiles: UICollectionViewDelegateFlowLayout {
 // MARK: - ShowPDF
 extension IssueVcWithBottomTiles {
   func showPdf() {
-    let pdfVc = TazPdfViewController()
-    pdfVc.modalPresentationStyle = .fullScreen
-    self.navigationController?.present(pdfVc, animated: true)
+    WaitingAppOverlay.show(alpha: 1.0, showSpinner: true, titleMessage: "Lade PDF", bottomMessage: "Lade Faksimiles", dismissNotification: "LoadFaksimilesDone")
+    onMainAfter(3.5) {
+      Notification.send("LoadFaksimilesDone")
+    }
+    onMainAfter(2.0) {
+      let pdfVc = TazPdfViewController()
+      pdfVc.modalPresentationStyle = .fullScreen
+      self.navigationController?.present(pdfVc, animated: false)
+    }
   }
 }
 
