@@ -9,7 +9,8 @@ Things that should be done soon
     - iPad Layout
     - Cloud Icon disapear on Download finish
     - PDF Moments/Page 1
-
+- PDF ViewController
+  - Problem: Toolbar not in front
 
 
 ## Less-Important keep in mind for future releases
