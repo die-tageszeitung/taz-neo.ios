@@ -7,6 +7,7 @@
 
 import UIKit
 import NorthLib
+import WebKit
 
 /// The protocol used to communicate with calling VCs
 public protocol ArticleVCdelegate: IssueInfo {
@@ -142,6 +143,13 @@ open class ArticleVC: ContentVC {
     }
   }
 
+  // MARK: WKUIDelegate
+  /// inform AppOverlay reload/navigation finished, remove blocking layer
+  public override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    super.webView(webView, didFinish: navigation)
+    Notification.send(Const.NotificationNames.articleLoaded)
+  }
+ 
 } // ArticleVC
 
 

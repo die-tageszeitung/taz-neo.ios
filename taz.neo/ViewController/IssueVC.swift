@@ -8,7 +8,7 @@
 import UIKit
 import NorthLib
 
-public class IssueVC: UIViewController, IssueInfo {
+public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// The Feeder providing data (from delegate)
   public var gqlFeeder: GqlFeeder { return feederContext.gqlFeeder }  
@@ -23,7 +23,7 @@ public class IssueVC: UIViewController, IssueInfo {
   /// The IssueCarousel showing the available Issues
   public var issueCarousel = IssueCarousel()
   /// The currently available Issues to show
-  public var issues: [Issue] = []
+  ///public var issues: [Issue] = [] ///moved to parent
   /// The center Issue (index into self.issues)
   public var index: Int { issueCarousel.index! }
   /// The Section view controller
@@ -130,6 +130,11 @@ public class IssueVC: UIViewController, IssueInfo {
   /// Setup SectionVC and push it onto the VC stack
   private func pushSectionVC(feederContext: FeederContext, atSection: Int? = nil,
                              atArticle: Int? = nil) {
+    if isPdf {
+      self.showPdf()
+      return
+    }
+    
     sectionVC = SectionVC(feederContext: feederContext, atSection: atSection,
                           atArticle: atArticle)
     if let svc = sectionVC {
@@ -139,7 +144,7 @@ public class IssueVC: UIViewController, IssueInfo {
   }
   
   /// Show Issue at a given index, download if necessary
-  private func showIssue(index givenIndex: Int? = nil, atSection: Int? = nil, 
+  func showIssue(index givenIndex: Int? = nil, atSection: Int? = nil, 
                          atArticle: Int? = nil) {
     let index = givenIndex ?? self.index
     func pushSection() {
@@ -224,6 +229,13 @@ public class IssueVC: UIViewController, IssueInfo {
     if let visible = navigationController?.visibleViewController,
        let sissue = issue as? StoredIssue {
       if (visible != self) && feederContext.needsUpdate(issue: sissue) {
+        let snap = NavigationController.top()?.presentingViewController?.view.snapshotView(afterScreenUpdates: false)
+        WaitingAppOverlay.show(alpha: 1.0,
+                               backbround: snap,
+                               showSpinner: true,
+                               titleMessage: "Aktualisiere Daten",
+                               bottomMessage: "Bitte haben Sie einen Moment Geduld!",
+                               dismissNotification: Const.NotificationNames.articleLoaded)
         navigationController!.popToRootViewController(animated: true)
         showIssue(index: index, atSection: sissue.lastSection, 
                   atArticle: sissue.lastArticle)
@@ -233,23 +245,18 @@ public class IssueVC: UIViewController, IssueInfo {
   
   public override func viewDidLoad() {
     super.viewDidLoad()
-    view.backgroundColor = .black
-    view.addSubview(issueCarousel)
-    pin(issueCarousel.top, to: view.top)
-    pin(issueCarousel.left, to: view.left)
-    pin(issueCarousel.right, to: view.right)
-    pin(issueCarousel.bottom, to: view.bottom, dist: -(80+UIWindow.bottomInset))
+    self.headerView.addSubview(issueCarousel)
+    pin(issueCarousel.top, to: self.headerView.top)
+    pin(issueCarousel.left, to: self.headerView.left)
+    pin(issueCarousel.right, to: self.headerView.right)
+    pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(bottomOffset+UIWindow.bottomInset))
     issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
       self?.showIssue(index: idx, atSection: self?.issue.lastSection, 
                       atArticle: self?.issue.lastArticle)
     }
     issueCarousel.onLabelTap { idx in
-      if true /* SET TRUE TO USE DATEPICKER */ {
-        self.showDatePicker()
-        return;
-      }
-      Alert.message(title: "Baustelle", message: "Durch diesen Knopf wird später die Archivauswahl angezeigt")
+      self.showDatePicker()
     }
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
       self.exportMoment(issue: self.issue)
@@ -333,7 +340,7 @@ public class IssueVC: UIViewController, IssueInfo {
   /// Initialize with FeederContext
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
-    super.init(nibName: nil, bundle: nil)
+    super.init()
     Notification.receive("issueOverview") { [weak self] notif in 
       if let err = notif.error { self?.handleDownloadError(error: err) }
       else { self?.addIssue(issue: notif.content as! Issue) }

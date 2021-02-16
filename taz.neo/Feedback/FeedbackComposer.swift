@@ -84,7 +84,7 @@ open class FeedbackComposer : DoesLog{
       Alert.confirm(message: Localized("feedback_cancel_title"),
                     isDestructive: true) { (close) in
                       if close {
-                        feedbackBottomSheet.slide(toOpen: false, animated: true, forceClose: true)
+                        feedbackBottomSheet.slide(toOpen: false, animated: true)
                       }
       }
     })
