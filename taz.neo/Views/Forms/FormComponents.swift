@@ -193,7 +193,7 @@ class Checkbox : UIButton {
 }
 
 // MARK: - TazTextField
-class TazTextField : Padded.TextField, UITextFieldDelegate{
+public class TazTextField : Padded.TextField, UITextFieldDelegate{
   static let recomendedHeight:CGFloat = 56.0
   private let border = BorderView()
   let topLabel = UILabel()
@@ -435,7 +435,7 @@ extension TazTextField{
     }
   }
   
-  @objc func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+  @objc public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
     nextOrEndEdit()
     return true
   }

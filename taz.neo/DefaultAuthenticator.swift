@@ -223,16 +223,18 @@ public class DefaultAuthenticator: Authenticator {
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
   public func authenticate() {
     guard let rootVC = rootVC else { return }
-    rootVC.modalPresentationStyle = .formSheet
+    rootVC.modalPresentationStyle = .overCurrentContext
     let registerController = LoginController(self)
     if #available(iOS 13.0, *) {
       //Prevent dismis by pan down in various modalPresentationStyles
       //the default < iOS 13 Behaviour
-      registerController.isModalInPresentation = true
+      registerController.isModalInPresentation = false
     }
 
     firstPresentedAuthController = registerController
-    rootVC.present(registerController, animated: true, completion: nil)
+    rootVC.present(registerController, animated: true, completion: {
+      rootVC.presentationController?.presentedView?.gestureRecognizers?[0].isEnabled = true
+    })
   }
   
   public func unlinkSubscriptionId() { 
