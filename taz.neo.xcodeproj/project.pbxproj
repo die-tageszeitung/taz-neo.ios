@@ -175,7 +175,6 @@
 		AEBAF58E219ACFAC00566205 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AEBAF5AB219ACFD900566205 /* ContentVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentVC.swift; sourceTree = "<group>"; };
 		AEC7D46C249A598B008630FB /* FeederContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeederContext.swift; sourceTree = "<group>"; };
-		AEC7D4CE24A5E797008630FB /* addResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addResources.sh; sourceTree = "<group>"; };
 		AECAC8FC2440AF1F00D32175 /* CarouselController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselController.swift; sourceTree = "<group>"; };
 		AECCE11B23FBF3FE007C2276 /* MainNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNC.swift; sourceTree = "<group>"; };
 		AECCE11D23FBF449007C2276 /* StartupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupView.swift; sourceTree = "<group>"; };
@@ -411,7 +410,6 @@
 		AEC7D4C624A5E1D3008630FB /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
-				AEC7D4CE24A5E797008630FB /* addResources.sh */,
 			);
 			path = Scripts;
 			sourceTree = "<group>";
