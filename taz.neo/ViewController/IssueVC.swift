@@ -226,13 +226,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Check whether it's necessary to reload the current Issue
   public func checkReload() {
-    print(">>>> IssueVC.checkReload")
     if let visible = navigationController?.visibleViewController,
        let sissue = issue as? StoredIssue {
-      print(">>>> IssueVC.checkReload ...2")
       if (visible != self) && feederContext.needsUpdate(issue: sissue) {
         let snap = NavigationController.top()?.presentingViewController?.view.snapshotView(afterScreenUpdates: false)
-        print(">>>> IssueVC.checkReload ...3 show overlay")
         WaitingAppOverlay.show(alpha: 1.0,
                                backbround: snap,
                                showSpinner: true,
