@@ -82,12 +82,12 @@ class TazPdfViewController : PdfViewController{
     toolBar.backgroundColor = Const.Colors.darkToolbar
     toolBar.pinTo(self.view)
     
-    if let thumbCtrl = self.thumbnailController {
-      thumbCtrl.whenScrolled(minRatio: 0.01){ [weak self] ratio in
-        if ratio < 0 { self?.toolBar.hide()}
-        else { self?.toolBar.hide(false)}
-      }
-    }
+//    if let thumbCtrl = self.thumbnailController {
+//      thumbCtrl.whenScrolled(minRatio: 0.01){ [weak self] ratio in
+//        if ratio < 0 { self?.toolBar.hide()}
+//        else { self?.toolBar.hide(false)}
+//      }
+//    }
     
 //    if let pageController = self.pageController {
 //      pageController.collectionView?.delegate = self

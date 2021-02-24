@@ -46,9 +46,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Date of next Issue to center on
   private var selectedIssueDate: Date? = nil
   
-  /// Are we in facsimile mode
-  private var isFacsimile: Bool = false
-  
   /// Reset list of Issues to the first (most current) one
   public func resetIssueList() {
     issueCarousel.index = 0
@@ -166,11 +163,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Setup SectionVC and push it onto the VC stack
   private func pushSectionVC(feederContext: FeederContext, atSection: Int? = nil,
                              atArticle: Int? = nil) {
-    if isPdf {
-      self.showPdf()
-      return
-    }
-    
     sectionVC = SectionVC(feederContext: feederContext, atSection: atSection,
                           atArticle: atArticle)
     if let svc = sectionVC {
@@ -183,16 +175,21 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   func showIssue(index givenIndex: Int? = nil, atSection: Int? = nil, 
                          atArticle: Int? = nil) {
     let index = givenIndex ?? self.index
-    func pushSection() {
-      self.pushSectionVC(feederContext: feederContext, atSection: atSection, 
-                         atArticle: atArticle)
+    func openIssue() {
+      if isFacsimile {
+        #warning("@Ringo: push PDF page controller here")
+      }
+      else {
+        self.pushSectionVC(feederContext: feederContext, atSection: atSection, 
+                           atArticle: atArticle)
+      }
     }
     guard index >= 0 && index < issues.count else { return }
     let issue = issues[index]
     debug("*** Action: Entering \(issue.feed.name)-" +
       "\(issue.date.isoDate(tz: feeder.timeZone))")
     if let sissue = issue as? StoredIssue, !isDownloading {
-      guard feederContext.needsUpdate(issue: sissue) else { pushSection(); return }
+      guard feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
       isDownloading = true
       issueCarousel.index = index
       issueCarousel.setActivity(idx: index, isActivity: true)
@@ -206,7 +203,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           guard let self = self else { return }
           self.isDownloading = false
           guard err == nil else { self.handleDownloadError(error: err); return }
-          pushSection()
+          openIssue()
           Notification.receiveOnce("issue", from: sissue) { [weak self] notif in
             guard let self = self else { return }
             if let err = notif.error { 
@@ -284,8 +281,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   public override func viewDidLoad() {
     super.viewDidLoad()
-    ///// TEST
-    self.isFacsimile = true
     self.headerView.addSubview(issueCarousel)
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
