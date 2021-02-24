@@ -212,19 +212,19 @@ extension IssueVcWithBottomTiles {
 
     guard let cell = _cell as? PdfOverviewCvcCell else { return _cell }
     
-    cell.label?.text = nil
-    cell.imageView?.image = nil
+    cell.label.text = nil
+    cell.imageView.image = nil
     
     if let issueVC = self as? IssueVC,
        let issue = issues.valueAt(indexPath.row) {
       cell.text = issue.date.shorter
-      cell.button?.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+      cell.button.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
       /// ToDo: for not Downloaded Items, click, load finished, the cloud did not disappear
       /// should be done in Refactoring with PDF Image for Cells
       cell.cloudHidden = issue.isComplete
-      cell.label?.textAlignment = .center
+      cell.label.textAlignment = .center
       if let img = issueVC.feeder.momentImage(issue: issue) {
-        cell.imageView?.image = img
+        cell.imageView.image = img
       }
     }
     return cell
