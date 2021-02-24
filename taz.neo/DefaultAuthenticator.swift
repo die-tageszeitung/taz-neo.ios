@@ -141,8 +141,8 @@ public class DefaultAuthenticator: Authenticator {
     
   required public init(feeder: GqlFeeder) {
     self.feeder = feeder
-    //An oda aus?
-//    self.pollSubscription { (_) in }
+    let (_,_,token) = SimpleAuthenticator.getUserData()
+    if token != nil { feeder.authToken = token! }
   }
   
   //Called if incomming PushNotification comes or Timer fires

@@ -11,12 +11,16 @@ import NorthLib
 
 class TazPdfViewController : PdfViewController{
   
+  public var toolBar = OverviewContentToolbar()
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     self.addMenuItem(title: "PDF Ansicht beenden", icon: "eye.slash") { [weak self] title in
       self?.dismiss(animated: true)
     }
     self.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "multiply.circle") { (_) in }
+    
+    setupToolbar()
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -44,7 +48,55 @@ class TazPdfViewController : PdfViewController{
   public func addMenuItem(title: String, icon: String, closure: @escaping (String)->()) {
     menuItems += (title: title, icon: icon, closure: closure)
   }
+  
+  
+  func setupToolbar() {
+    //the button tap closures
+    let onHome:((ButtonControl)->()) = {   [weak self] _ in
+      self?.dismiss(animated: true)
+    }
+    
+    let onPDF:((ButtonControl)->()) = {   [weak self] control in
+      self?.dismiss(animated: true)
+    }
+    
+    //the buttons and alignments
+    _ = toolBar.addImageButton(name: "Home",
+                           onPress: onHome,
+                           direction: .left,
+                           symbol: "house", //the prettier symbol ;-)
+                           accessibilityLabel: "Übersicht"
+//                           vInset: 0.2,hInset: 0.2 //needed if old symbol used
+                           )
+    toolBar.addSpacer(.left)
+    _ = toolBar.addImageButton(name: "PDF",
+                           onPress: onPDF,
+                           direction: .right,
+                           symbol: "iphone.homebutton",
+                           accessibilityLabel: "Zeitungsansicht",
+                           hInset: 0.15
+    )
+    
+    //the toolbar setup itself
+    toolBar.setButtonColor(Const.Colors.darkTintColor)
+    toolBar.backgroundColor = Const.Colors.darkToolbar
+    toolBar.pinTo(self.view)
+    
+    if let thumbCtrl = self.thumbnailController {
+      thumbCtrl.whenScrolled(minRatio: 0.01){ [weak self] ratio in
+        if ratio < 0 { self?.toolBar.hide()}
+        else { self?.toolBar.hide(false)}
+      }
+    }
+    
+//    if let pageController = self.pageController {
+//      pageController.collectionView?.delegate = self
+//    }
+  }
 }
 
+//extension TazPdfViewController : UICollectionViewDelegate {
+//  
+//}
 
 
