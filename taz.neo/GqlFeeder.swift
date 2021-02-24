@@ -141,11 +141,11 @@ class GqlPayload: Payload {
   }
   
   /// Initialize Payload from Issue
-  init(feeder: GqlFeeder, issue: GqlIssue) {
+  init(feeder: GqlFeeder, issue: GqlIssue, isPages: Bool = false) {
     localDir = feeder.issueDir(issue: issue).path
     remoteBaseUrl = issue.baseUrl
     remoteZipName = issue.zipName
-    files = issue.files
+    files = issue.files(isPages: isPages)
     self.issue = issue
   }
   
@@ -431,8 +431,8 @@ class GqlIssue: Issue, GQLObject {
     pageList = try container.decodeIfPresent([GqlPage].self, forKey: .pageList)
   }
   
-  func setPayload(feeder: GqlFeeder) {
-    self.gqlPayload = GqlPayload(feeder: feeder, issue: self)
+  func setPayload(feeder: GqlFeeder, isPages: Bool = false) {
+    self.gqlPayload = GqlPayload(feeder: feeder, issue: self, isPages: isPages)
   }
 
   static var ovwFields = """
@@ -443,6 +443,7 @@ class GqlIssue: Issue, GQLObject {
   baseUrl 
   status
   minResourceVersion
+  pageList { \(GqlPage.fields) }
   """
   
   static var fields = """
@@ -452,8 +453,7 @@ class GqlIssue: Issue, GQLObject {
   zipNamePdf: zipPdfName
   gqlImprint: imprint { \(GqlArticle.fields) }
   sectionList { \(GqlSection.fields) }
-  pageList { \(GqlPage.fields) }
-  """  
+  """
 } // GqlIssue
 
 /// A Feed of publication issues and articles
@@ -789,7 +789,7 @@ open class GqlFeeder: Feeder, DoesLog {
  
   // Get Issues
   public func issues(feed: Feed, date: Date? = nil, key: String? = nil,
-    count: Int = 20, isOverview: Bool = false,
+    count: Int = 20, isOverview: Bool = false, isPages: Bool = false,
     closure: @escaping(Result<[Issue],Error>)->()) { 
     struct FeedRequest: Decodable {
       var authInfo: GqlAuthInfo
@@ -838,7 +838,7 @@ open class GqlFeeder: Feeder, DoesLog {
           if let issues = req.feeds[0].issues, issues.count > 0 {
             for issue in issues { 
               issue.feed = feed 
-              (issue as? GqlIssue)?.setPayload(feeder: self) 
+              (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages)
             }
             ret = .success(issues) 
           }
@@ -863,8 +863,10 @@ open class GqlFeeder: Feeder, DoesLog {
   
   // Get Issue
   public func issue(feed: Feed, date: Date? = nil, key: String? = nil,
+                    isPages: Bool = false,
                     closure: @escaping(Result<Issue,Error>)->()) { 
-    issues(feed: feed, date: date, key: key, count: 1, isOverview: false) { res in
+    issues(feed: feed, date: date, key: key, count: 1, isOverview: false,
+           isPages: isPages) { res in
       if let issues = res.value() {
         if issues.count > 0 { closure(.success(issues[0])) }
         else { 

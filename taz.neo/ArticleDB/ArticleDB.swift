@@ -789,6 +789,147 @@ public final class StoredArticle: Article, StoredObject {
 
 } // StoredArticle
 
+extension PersistentFrame: PersistentObject {}
+
+/// A stored Page
+public final class StoredFrame: Frame, StoredObject {
+  
+  public static var entity = "Frame"
+  public var pr: PersistentFrame // persistent record
+  public var link: String? {
+    get { return pr.link }
+    set { pr.link = newValue }
+  }
+  public var x1: Float {
+    get { return pr.x1 }
+    set { pr.x1 = newValue }
+  }
+  public var x2: Float {
+    get { return pr.x2 }
+    set { pr.x2 = newValue }
+  }
+  public var y1: Float {
+    get { return pr.y1 }
+    set { pr.y1 = newValue }
+  }
+  public var y2: Float {
+    get { return pr.y2 }
+    set { pr.y2 = newValue }
+  }
+  
+  public required init(persistent: PersistentFrame) { self.pr = persistent }
+
+  public static func get(object: Frame) -> Self? {
+    let epsilon: Float = 0.0001
+    let request = fetchRequest
+    let p1 = NSPredicate(format: "abs(x1 - %f) < %f", object.x1, epsilon)
+    let p2 = NSPredicate(format: "abs(x2 - %f) < %f", object.x2, epsilon)
+    let p3 = NSPredicate(format: "abs(y1 - %f) < %f", object.y1, epsilon)
+    let p4 = NSPredicate(format: "abs(y2 - %f) < %f", object.y2, epsilon)
+    request.predicate = NSCompoundPredicate(type: .and,
+                                            subpredicates: [p1, p2, p3, p4])
+    let res = get(request: request)
+    if res.count > 0 { return res[0] }
+    return nil
+  }
+  
+  /// Overwrite the persistent values
+  public func update(from object: Frame) {
+    self.link = object.link
+    self.x1 = object.x1
+    self.x2 = object.x2
+    self.y1 = object.y1
+    self.y2 = object.y2
+  }
+    
+  /// Return all Frames in a Page
+  public static func framesInPage(page: StoredPage) -> [StoredFrame] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "page = %@", page.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
+    return get(request: request)
+  }
+
+} // StoredPage
+
+extension PersistentPage: PersistentObject {}
+
+/// A stored Page
+public final class StoredPage: Page, StoredObject {
+  
+  public static var entity = "Page"
+  public var pr: PersistentPage // persistent record
+  public var title: String? {
+    get { return pr.title }
+    set { pr.title = newValue }
+  }
+  public var pagina: String? {
+    get { return pr.pagina }
+    set { pr.pagina = newValue }
+  }
+  public var pdf: FileEntry {
+    get { return StoredFileEntry(persistent: pr.pdf!) }
+    set {
+      pr.pdf = StoredFileEntry.persist(object: newValue).pr
+      pr.pdf!.page = pr
+    }
+  }
+  public var type: PageType {
+    get { return PageType(pr.type!)! }
+    set { pr.type = newValue.representation }
+  }
+  public var frames: [Frame]? { StoredFrame.framesInPage(page: self) }
+  
+  public required init(persistent: PersistentPage) { self.pr = persistent }
+
+  /// Overwrite the persistent values
+  public func update(from object: Page) {
+    self.title = object.title
+    self.pdf = object.pdf
+    self.type = object.type
+    self.pagina = object.pagina
+    self.pr.frames = nil
+    if let frames = object.frames {
+      for frame in frames {
+        let sf = StoredFrame.persist(object: frame)
+        sf.pr.page = self.pr
+        self.pr.addToFrames(sf.pr)
+        sf.pr.article = nil
+        if let link = sf.link {
+          let arts = StoredArticle.get(file: link)
+          if arts.count > 0 {
+            let art = arts[0]
+            sf.pr.article = art.pr
+            art.pr.addToFrames(sf.pr)
+          }
+        }
+      }
+    }
+  }
+  
+  /// Return stored record with given name
+  public static func get(file: String) -> [StoredPage] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "pdf.name = %@", file)
+    return get(request: request)
+  }
+    
+  public static func get(object: Page) -> StoredPage? {
+    let tmp = get(file: object.pdf.name)
+    if tmp.count > 0 { return tmp[0] }
+    else { return nil }
+  }
+  
+  /// Return all Pages in an Issue
+  public static func pagesInIssue(issue: StoredIssue) -> [StoredPage] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "issue = %@", issue.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
+    return get(request: request)
+  }
+
+} // StoredPage
+
 extension PersistentSection: PersistentObject {}
 
 /// A stored Section
@@ -1012,7 +1153,7 @@ public final class StoredIssue: Issue, StoredObject {
   public var payload: Payload { storedPayload! }
 
   public var sections: [Section]? { StoredSection.sectionsInIssue(issue: self) }
-  public var pages: [Page]? { nil }
+  public var pages: [Page]? { StoredPage.pagesInIssue(issue: self) }
   public var isDownloading: Bool = false
 
   public required init(persistent: PersistentIssue) { self.pr = persistent }
@@ -1044,6 +1185,24 @@ public final class StoredIssue: Issue, StoredObject {
       for section in sections as! [StoredSection] {
         if !secs.contains(where: { $0.html.name == section.html.name }) {
           pr.removeFromSections(section.pr)
+        }
+      }
+    }
+    if let pages = object.pages {
+      var order: Int32 = 0
+      for page in pages {
+        let spage = StoredPage.persist(object: page)
+        spage.pr.issue = self.pr
+        spage.pr.order = order
+        pr.addToPages(spage.pr)
+        order += 1
+      }
+      // Remove pages no longer needed
+      if let pgs = pages as? [StoredPage] {
+        for page in pgs {
+          if !pages.contains(where: { $0.pdf.name == page.pdf.name }) {
+            pr.removeFromPages(page.pr)
+          }
         }
       }
     }
@@ -1086,6 +1245,13 @@ public final class StoredIssue: Issue, StoredObject {
     request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
     if count > 0 { request.fetchLimit = count }
     return get(request: request)
+  }
+  
+  /// Returns the latest (ie. most current) issue stored
+  public static func latest(feed: StoredFeed) -> StoredIssue? {
+    let issues = issuesInFeed(feed: feed)
+    if issues.count == 1 { return issues[0] }
+    return nil
   }
   
   /// Deletes data that is not needed for overview

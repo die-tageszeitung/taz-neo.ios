@@ -46,6 +46,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Date of next Issue to center on
   private var selectedIssueDate: Date? = nil
   
+  /// Are we in facsimile mode
+  private var isFacsimile: Bool = false
+  
   /// Reset list of Issues to the first (most current) one
   public func resetIssueList() {
     issueCarousel.index = 0
@@ -59,7 +62,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Add Issue to carousel
   private func addIssue(issue: Issue) {
-    if let img = feeder.momentImage(issue: issue) {
+    if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile) {
       var idx = 0
       for iss in issues {
         if iss.date == issue.date { return }
@@ -131,6 +134,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     else { feederContext.getOvwIssues(feed: feed, count: 20) }
   }
   
+  /// Empty overview array and request new overview
+  private func resetOverview() {
+    self.issues = []
+    provideOverview()
+  }
+  
   /// Look for newer issues on the server
   private func checkForNewIssues() {
     if issues.count > 0 {
@@ -195,8 +204,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
           guard let self = self else { return }
-          guard err == nil else { self.handleDownloadError(error: err); return }
           self.isDownloading = false
+          guard err == nil else { self.handleDownloadError(error: err); return }
           pushSection()
           Notification.receiveOnce("issue", from: sissue) { [weak self] notif in
             guard let self = self else { return }
@@ -212,7 +221,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           }
         }
       }
-      self.feederContext.getCompleteIssue(issue: sissue)        
+      self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile)        
     }
   }
   
@@ -272,6 +281,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   public override func viewDidLoad() {
     super.viewDidLoad()
+    ///// TEST
+    self.isFacsimile = true
     self.headerView.addSubview(issueCarousel)
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
@@ -324,7 +335,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
       self.goingForeground()
     }
-    checkForNewIssues() 
+    //checkForNewIssues()
   }
   
   var pickerCtrl : MonthPickerController?

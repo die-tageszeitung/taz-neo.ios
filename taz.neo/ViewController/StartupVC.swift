@@ -76,8 +76,8 @@ open class StartupVC: UIViewController {
     super.viewDidLoad()
     self.view.addSubview(startupView)
     pin(startupView, to: self.view)
-    self.view.addSubview(rcView)
-    pin(rcView, to: self.view)
+//    self.view.addSubview(rcView)
+//    pin(rcView, to: self.view)
   }
   
   private func checkReleaseStatus() {
