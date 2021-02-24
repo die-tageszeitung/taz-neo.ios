@@ -43,6 +43,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Light status bar because of black background
   override public var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
   
+  /// Date of next Issue to center on
+  private var selectedIssueDate: Date? = nil
+  
   /// Reset list of Issues to the first (most current) one
   public func resetIssueList() {
     issueCarousel.index = 0
@@ -56,7 +59,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Add Issue to carousel
   private func addIssue(issue: Issue) {
-    if let img = feeder.momentImage(issue: issue) {
+    if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile) {
       var idx = 0
       for iss in issues {
         if iss.date == issue.date { return }
@@ -67,7 +70,21 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       issues.insert(issue, at: idx)
       issueCarousel.insertIssue(img, at: idx)
       if let idx = issueCarousel.index { setLabel(idx: idx) }
+      if let date = selectedIssueDate {
+        if issue.date <= date { selectedIssueDate = nil }
+//        else { issueCarousel.index = idx }
+      }
     }
+  }
+  
+  /// Move Carousel to certain Issue date (or next smaller)
+  func moveTo(date: Date) {
+    var idx = 0
+    for iss in issues {
+      if iss.date == date { return }
+      if iss.date < issue.date { break }
+      idx += 1
+    }    
   }
   
   /// Inspect download Error and show it to user
@@ -75,16 +92,26 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     // TODO: Handle Download Error
   }
   
+  /// Requests sufficient overview Issues from DB/server at
+  /// a given date
+  private func provideOverview(at date: Date) {
+    var from = date
+    from.addDays(10)
+    selectedIssueDate = date
+    reset()
+    feederContext.getOvwIssues(feed: feed, count: 21, fromDate: from)
+  }
+
   /// Requests sufficient overview Issues from DB/server
   private func provideOverview() {
     let n = issues.count
     if n > 0 {
-      if (n - index) < 11 { 
+      if (n - index) < 6 { 
         var last = issues.last!.date
         last.addDays(-1)
         feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last)
       }
-      if index < 9 {
+      if index < 6 {
         var date = issues.first!.date
         let first = UsTime(date)
         let now = UsTime.now()
@@ -102,6 +129,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
     }
     else { feederContext.getOvwIssues(feed: feed, count: 20) }
+  }
+  
+  /// Empty overview array and request new overview
+  private func resetOverview() {
+    self.issues = []
+    provideOverview()
   }
   
   /// Look for newer issues on the server
@@ -130,11 +163,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Setup SectionVC and push it onto the VC stack
   private func pushSectionVC(feederContext: FeederContext, atSection: Int? = nil,
                              atArticle: Int? = nil) {
-    if isPdf {
-      self.showPdf()
-      return
-    }
-    
     sectionVC = SectionVC(feederContext: feederContext, atSection: atSection,
                           atArticle: atArticle)
     if let svc = sectionVC {
@@ -147,16 +175,21 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   func showIssue(index givenIndex: Int? = nil, atSection: Int? = nil, 
                          atArticle: Int? = nil) {
     let index = givenIndex ?? self.index
-    func pushSection() {
-      self.pushSectionVC(feederContext: feederContext, atSection: atSection, 
-                         atArticle: atArticle)
+    func openIssue() {
+      if isFacsimile {
+        #warning("@Ringo: push PDF page controller here")
+      }
+      else {
+        self.pushSectionVC(feederContext: feederContext, atSection: atSection, 
+                           atArticle: atArticle)
+      }
     }
     guard index >= 0 && index < issues.count else { return }
     let issue = issues[index]
     debug("*** Action: Entering \(issue.feed.name)-" +
       "\(issue.date.isoDate(tz: feeder.timeZone))")
     if let sissue = issue as? StoredIssue, !isDownloading {
-      guard feederContext.needsUpdate(issue: sissue) else { pushSection(); return }
+      guard feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
       isDownloading = true
       issueCarousel.index = index
       issueCarousel.setActivity(idx: index, isActivity: true)
@@ -168,9 +201,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
           guard let self = self else { return }
-          guard err == nil else { self.handleDownloadError(error: err); return }
           self.isDownloading = false
-          pushSection()
+          guard err == nil else { self.handleDownloadError(error: err); return }
+          openIssue()
           Notification.receiveOnce("issue", from: sissue) { [weak self] notif in
             guard let self = self else { return }
             if let err = notif.error { 
@@ -185,7 +218,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           }
         }
       }
-      self.feederContext.getCompleteIssue(issue: sissue)        
+      self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile)        
     }
   }
   
@@ -267,11 +300,16 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {_ in
       self.deleteIssue()
     }
+    var scrollChange = false
     issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in
-      self.carouselScrollFromLeft = !self.issueCarousel.carousel.scrollFromLeftToRight
+      self.issueCarousel.carousel.scrollFromLeftToRight =
+        !self.issueCarousel.carousel.scrollFromLeftToRight
+      scrollChange = true
+      self.carouselScrollFromLeft = self.issueCarousel.carousel.scrollFromLeftToRight
+      scrollChange = false
     }
     Defaults.receive() { dnot in
-      if dnot.key == "carouselScrollFromLeft" {
+      if !scrollChange && dnot.key == "carouselScrollFromLeft" {
         self.issueCarousel.carousel.scrollFromLeftToRight = self.carouselScrollFromLeft
       }
     }
@@ -295,16 +333,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
       self.goingForeground()
     }
-    checkForNewIssues() 
+    //checkForNewIssues()
   }
   
   var pickerCtrl : MonthPickerController?
   var overlay : Overlay?
   func showDatePicker(){
-    let fromDate = DateComponents(calendar: Calendar.current, year: 2010, 
-                                  month: 6, day: 1, hour: 12).date ?? Date()
-    
-    let toDate = Date()
+    let fromDate = feed.firstIssue
+    let toDate = feed.lastIssue
     
     if pickerCtrl == nil {
       pickerCtrl = MonthPickerController(minimumDate: fromDate,
@@ -321,11 +357,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         
     pickerCtrl.doneHandler = {
       self.overlay?.close(animated: true)
+//      self.provideOverview(at: pickerCtrl.selectedDate)
       let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
-      Alert.message(title: "Baustelle", 
+      Alert.message(title: "Baustelle",
         message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.")
     }
-//    overlay?.open(animated: true, fromBottom: true)
     overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
   

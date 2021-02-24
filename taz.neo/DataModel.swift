@@ -410,11 +410,17 @@ public protocol Frame: ToString {
 } // Frame
 
 public extension Frame {
+  
   func toString() -> String {
     var ret = "(\(x1),\(y1)), (\(x2),\(y2))"
     if let l = link { ret += "-> \(l)" }
     return ret
-  }  
+  }
+  
+  /// Returns whether a given coordinate is inside this frame
+  func isInside(x: Float, y: Float) -> Bool {
+    return (x >= x1) && (x <= x2) && (y >= y1) && (y <= y2)
+  }
 }
 
 /**
@@ -443,7 +449,8 @@ public protocol Page: ToString {
   var frames: [Frame]? { get }
 } // Page  
 
-public extension Page {  
+public extension Page {
+  
   func toString() -> String {
     var ret = title ?? "unknown"
     if let pg = pagina { ret += " (#\(pg))" }
@@ -451,6 +458,26 @@ public extension Page {
     if let fs = frames { ret += " \(fs.count) frames"}
     return ret
   }
+  
+  /**
+   Returns a String to interprete as follows:
+     - name of HTML-file (eg. art001.html) is link to local article
+     - name of PDF-file (eg. s001.pdf) is link to local PDF file
+     - external URL (eg. https://www.taz.de/...) should bve opened
+       with system application (Safari, Mail, ...)
+     - nil if the tap is outside linked frames
+   All local files may or may be not currently available (eg. in download
+   queue)
+   */
+  func tap2link(x: Float, y: Float) -> String? {
+    if let frames = frames, frames.count > 0 {
+      for frame in frames {
+        if frame.isInside(x: x, y: y) { return frame.link }
+      }
+    }
+    return nil
+  }
+  
 }
 
 /**
@@ -601,17 +628,45 @@ public extension Issue {
     if let imp = imprint { ret += imp }
     return ret
   }
+    
+  /// The first facsimile page (if available)
+  var pageOneFacsimile: FileEntry? {
+    if let pgs = pages, pgs.count > 0 {
+      return pgs[0].pdf
+    }
+    return nil
+  }
   
-  /// All files with article photos in normal resolution
+  /// All facsimiles
+  var facsimiles: [FileEntry]? {
+    if let pgs = pages, pgs.count > 0 {
+      var ret: [FileEntry] = []
+      for pg in pgs { ret += pg.pdf }
+      return ret
+    }
+    return nil
+  }
+  
+  /// All files with article photos in normal resolution and pg1 facsimile
   var files: [FileEntry] {
     var ret: [FileEntry] = moment.files
     if let sects = sections, sects.count > 0 {
       for sect in sects { ret.append(contentsOf: sect.allFiles) }
     }
     if let imp = imprint { ret.append(contentsOf: imp.files) }
+    if let fac1 = pageOneFacsimile { ret += fac1 }
     return ret
   }
   
+  /// Returns files and facsimiles if isPages == true
+  func files(isPages: Bool = false) -> [FileEntry] {
+    var ret = files
+    if isPages {
+      if let facs = facsimiles { ret.append(contentsOf: facs) }
+    }
+    return ret
+  }
+
   /// sectionHtml returns an array of filenames with section content plus imprint
   var sectionHtml: [String] {
     var ret: [String] = []
@@ -835,10 +890,25 @@ extension Feeder {
     }
     return nil
   }
+  
+  /// Returns the name of the first PDF page file name (if available)
+  public func momentPdfName(issue: Issue) -> String? {
+    if let fac1 = issue.pageOneFacsimile {
+      return "\(issueDir(issue: issue).path)/\(fac1.fileName)"
+    }
+    return nil
+  }
 
   /// Returns the "Moment" Image as Gif-Animation or in highest resolution
-  public func momentImage(issue: Issue, isCredited: Bool = false) 
-    -> UIImage? {
+  public func momentImage(issue: Issue, isCredited: Bool = false,
+                          isPdf: Bool = false) -> UIImage? {
+    if isPdf {
+      if let fn = momentPdfName(issue: issue) {
+        if File.extname(fn) == "pdf" {
+          return UIImage.pdf(File(fn).data)
+        }
+      }
+    }
     if let fn = momentImageName(issue: issue, isCredited: isCredited) {
       if File.extname(fn) == "gif" {
         return UIImage.animatedGif(File(fn).data)

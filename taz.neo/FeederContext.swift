@@ -28,6 +28,8 @@ import NorthLib
      GraphQL Issue has been received (prior to "issue")
    - issue(Result<Issue,Error>), sender: Issue
      Issue with complete structural data and downloaded files is available
+   - issueProgress((bytesLoaded, totalBytes))
+     Issue loading progress indicator
    - resourcesReady(FeederContext)
      Resources are loaded and ready
    - resourcesProgress((bytesLoaded, totalBytes))
@@ -391,6 +393,17 @@ open class FeederContext: DoesLog {
     }
     updateResources()
   }
+  
+  /// checkForNewIssues requests new overview issues from the server if
+  /// more than 12 hours have passed since the latest stored issue
+  public func checkForNewIssues(feed: Feed) {
+    let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
+    guard sfs.count > 0 else { return }
+    let sfeed = sfs[0]
+    if let latest = StoredIssue.latest(feed: sfeed), self.isConnected {
+      
+    }
+  }
 
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: StoredIssue) -> Bool {
@@ -408,7 +421,7 @@ open class FeederContext: DoesLog {
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
-  public func getCompleteIssue(issue: StoredIssue) {
+  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { notif in
         self.getCompleteIssue(issue: issue)
@@ -419,7 +432,8 @@ open class FeederContext: DoesLog {
       return      
     }
     if self.isConnected {
-      gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1) { res in
+      gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
+                       isPages: isPages) { res in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)

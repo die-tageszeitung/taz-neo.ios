@@ -36,4 +36,6 @@ public let ConfigDefaults = Defaults.Values([
   "autoMobileDownloads" : "false",
   // Allow trial subscriptions
   "offerTrialSubscription" : "true",
+  // Use facsimile mode if available
+  "isFacsimile" : "false"
 ])

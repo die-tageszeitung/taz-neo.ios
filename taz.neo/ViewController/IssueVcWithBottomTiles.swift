@@ -28,6 +28,10 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     }
   }
   
+  /// Are we in facsimile mode
+  @DefaultBool(key: "isFacsimile")
+  public var isFacsimile: Bool
+
   public var toolBar = OverviewContentToolbar()
   
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
@@ -126,8 +130,6 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     setupToolbar()
   }
 
-  var isPdf = false
-  
   func setupToolbar() {
     //the button tap closures
     let onHome:((ButtonControl)->()) = {_ in
@@ -137,20 +139,20 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     let onPDF:((ButtonControl)->()) = {   [weak self] control in
       guard let self = self else { return }
        
-      self.isPdf = !self.isPdf
+      self.isFacsimile = !self.isFacsimile
       
       if let imageButton = control as? Button<ImageView> {
         
         if #available(iOS 13.0, *) {
           imageButton.buttonView.imageView.image
-            = UIImage(systemName: self.isPdf ? "iphone" : "newspaper",
+            = UIImage(systemName: self.isFacsimile ? "iphone" : "newspaper",
                       withConfiguration: UIImage.SymbolConfiguration(pointSize: 16,
                                                                      weight: .light))
         }
         else {
-          imageButton.buttonView.symbol = self.isPdf ? "iphone" : "newspaper"
+          imageButton.buttonView.symbol = self.isFacsimile ? "iphone" : "newspaper"
         }
-        imageButton.hinset = self.isPdf ? 0.15 : 0.0
+        imageButton.hinset = self.isFacsimile ? 0.15 : 0.0
       }
       
       print("PDF Pressed")
@@ -168,13 +170,13 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     let pdfIcon = toolBar.addImageButton(name: "PDF",
                            onPress: onPDF,
                            direction: .left,
-                           symbol: self.isPdf ? "iphone.homebutton" : "newspaper",
+                           symbol: self.isFacsimile ? "iphone.homebutton" : "newspaper",
                            accessibilityLabel: "Zeitungsansicht",
-                           hInset: self.isPdf ? 0.15 : 0.0)
+                           hInset: self.isFacsimile ? 0.15 : 0.0)
     
     if #available(iOS 13.0, *) {
       pdfIcon.buttonView.imageView.image
-        = UIImage(systemName: self.isPdf ? "iphone.homebutton" : "newspaper",
+        = UIImage(systemName: self.isFacsimile ? "iphone.homebutton" : "newspaper",
                   withConfiguration: UIImage.SymbolConfiguration(pointSize: 16,
                                                                  weight: .light))
     }

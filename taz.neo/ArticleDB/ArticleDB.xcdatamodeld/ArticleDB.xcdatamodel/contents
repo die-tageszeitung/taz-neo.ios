@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20D74" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" syncable="YES" codeGenerationType="class">
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="onlineLink" optional="YES" attributeType="String"/>
@@ -139,10 +139,10 @@
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="moment" inverseEntity="Issue"/>
     </entity>
     <entity name="Page" representedClassName="PersistentPage" syncable="YES" codeGenerationType="class">
-        <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="order" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pagina" attributeType="String"/>
         <attribute name="title" attributeType="String"/>
-        <attribute name="type" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="type" attributeType="String"/>
         <relationship name="frames" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Frame" inverseName="page" inverseEntity="Frame"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="pages" inverseEntity="Issue"/>
         <relationship name="pdf" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="page" inverseEntity="FileEntry"/>
@@ -194,7 +194,7 @@
         <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="28"/>
         <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="28"/>
         <element name="Moment" positionX="-52992" positionY="-35010" width="128" height="118"/>
-        <element name="Page" positionX="-52203.38671875" positionY="-34559.82421875" width="128" height="148"/>
+        <element name="Page" positionX="-52203.38671875" positionY="-34559.82421875" width="128" height="134"/>
         <element name="Payload" positionX="-53189.828125" positionY="-34824.89453125" width="128" height="28"/>
         <element name="Remark" positionX="-52138.01171875" positionY="-35159.59375" width="128" height="118"/>
         <element name="Resources" positionX="-53009.359375" positionY="-34422.0859375" width="128" height="88"/>
