@@ -240,6 +240,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         showIssue(index: index, atSection: sissue.lastSection, 
                   atArticle: sissue.lastArticle)
       }
+      else {
+        print(">>>> IssueVC.checkReload .. do not show Overlay because: visible != self \(visible != self) OR: feederContext.needsUpdate(issue: sissue): \(feederContext.needsUpdate(issue: sissue)) because is still Downloading? sissue.isDownloading: \(sissue.isDownloading)")
+      }
     }
   }
   
