@@ -177,7 +177,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let index = givenIndex ?? self.index
     func openIssue() {
       if isFacsimile {
-        #warning("@Ringo: push PDF page controller here")
+        let vc = TazPdfViewController(issueInfo: self)
+        self.navigationController?.pushViewController(vc, animated: true)
       }
       else {
         self.pushSectionVC(feederContext: feederContext, atSection: atSection, 

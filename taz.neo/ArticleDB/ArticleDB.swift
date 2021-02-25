@@ -889,6 +889,8 @@ public final class StoredPage: Page, StoredObject {
     self.type = object.type
     self.pagina = object.pagina
     self.pr.frames = nil
+    #warning("Commented out by Ringo to prevent crash")
+    /*
     if let frames = object.frames {
       for frame in frames {
         let sf = StoredFrame.persist(object: frame)
@@ -905,6 +907,7 @@ public final class StoredPage: Page, StoredObject {
         }
       }
     }
+  */
   }
   
   /// Return stored record with given name

@@ -446,7 +446,8 @@ public protocol Page: ToString {
   /// Type of page
   var type: PageType { get }
   /// Frames in page
-  var frames: [Frame]? { get }
+  #warning("Commented out by Ringo to prevent crash")
+//  var frames: [Frame]? { get }
 } // Page  
 
 public extension Page {
@@ -455,7 +456,8 @@ public extension Page {
     var ret = title ?? "unknown"
     if let pg = pagina { ret += " (#\(pg))" }
     ret += " in \(pdf)"
-    if let fs = frames { ret += " \(fs.count) frames"}
+    #warning("Commented out by Ringo to prevent crash")
+//    if let fs = frames { ret += " \(fs.count) frames"}
     return ret
   }
   
@@ -470,11 +472,14 @@ public extension Page {
    queue)
    */
   func tap2link(x: Float, y: Float) -> String? {
+    #warning("Commented out by Ringo to prevent crash")
+    /*
     if let frames = frames, frames.count > 0 {
       for frame in frames {
         if frame.isInside(x: x, y: y) { return frame.link }
       }
     }
+     */
     return nil
   }
   
@@ -889,6 +894,11 @@ extension Feeder {
       return "\(issueDir(issue: issue).path)/\(img.fileName)"
     }
     return nil
+  }
+  
+  /// Returns the name of the first PDF page file name (if available)
+  public func pageUrl(issue: Issue, page: Page) -> URL? {
+    return URL(fileURLWithPath: "\(issueDir(issue: issue).path)/\(page.pdf.fileName)")
   }
   
   /// Returns the name of the first PDF page file name (if available)
