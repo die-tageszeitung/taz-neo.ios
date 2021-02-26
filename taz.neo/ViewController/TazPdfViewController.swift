@@ -11,6 +11,19 @@ import NorthLib
 import PDFKit
 
 public class ZoomedPdfPageImage: ZoomedPdfImage {
+  public override var pageType : PdfPageType {
+    get {
+      switch pageReference?.type {
+      case .double:
+        return . double
+      case .right:
+        return .right
+      default:
+        return .left
+      }
+    }
+    set {}
+  }
   var pageReference : Page?
   var issueDir : Dir?
   open override var pageTitle: String? {
@@ -39,32 +52,38 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
 
 
 class NewPdfModel : PdfModel, DoesLog {
-  func allignment(forItem atIndex: Int) -> ContentAlignment {
-    guard let item = images.valueAt(atIndex) else { return .left }
-    return item.alignment
+  
+  func size(forItem atIndex: Int) -> CGSize {
+    if let item = self.item(atIndex: atIndex),
+       let pdfPageImage = item as? ZoomedPdfPageImage,
+       let page = pdfPageImage.pageReference,
+       page.type == .double {
+      return panoPageSize ?? PdfDisplayOptions.Overview.fallbackPageSize
+    }
+    return singlePageSize ?? PdfDisplayOptions.Overview.fallbackPageSize
   }
-    
+  
+  
   var count: Int { get {return images.count}}
   var index: Int = 0
-  var defaultItemSize: CGSize?
   var issueInfo:IssueInfo?
     
   var defaultRawPageSize: CGSize?
-  var singlePageSize: CGSize?
+  var singlePageSize: CGSize = .zero
   var panoPageSize: CGSize?
   
   func item(atIndex: Int) -> ZoomedPdfImageSpec? {
     return images.valueAt(atIndex)
   }
   
-  var images : [ZoomedPdfImage] = []
+  var images : [ZoomedPdfImageSpec] = []
   
   var pageMeta : [Int:String] = [:]
   
   var imageSizeMb : UInt64 {
     get{
       var totalSize:UInt64 = 0
-      for img in self.images {
+      for case let img as ZoomedPdfImage in self.images {
         log("page: \(img.pdfPageIndex ?? -1) size:\(img.image?.mbSize ?? 0)")
         totalSize += UInt64(img.image?.mbSize ?? 0)
       }
@@ -77,60 +96,12 @@ class NewPdfModel : PdfModel, DoesLog {
           let pages = issueInfo.issue.pages
           else { return }
     let issueDir = issueInfo.feeder.issueDir(issue: issueInfo.issue)
-    var previousItem : ZoomedPdfPageImage?
-    
-    var i = 1
-    for pdfPage in pages {
-      print(">>>> Added Page \(i) type: \(pdfPage.type) pagina: \(pdfPage.pagina) title: \(pdfPage.title)")
-      i += 1
-    }
     
     for pdfPage in pages {
+      print("in Model add Page of type: \(pdfPage.type)")
       let item = ZoomedPdfPageImage(page:pdfPage, issueDir: issueDir)
       self.images.append(item)
-      
       item.sectionTitle = "\(pdfPage.type)"
-      
-      /**
-        Größe der vorigen Zelle korregieren wenn nötig
-        Alignment der vorigen Zelle korregieren wenn nötig
-       
-       Was passiert, wenn ich previousItem.alignment == .left
-       vergleiche?
-       prev hat falsche sachen
-       
-       seite 1 
-       
-       
-       */
-      
-      if let previousItem = previousItem {
-        if previousItem.pageReference?.type == .left, pdfPage.type == .left {
-          previousItem.alignment = .left
-          previousItem.isDoublePage = true
-          item.alignment = .fill
-          item.isDoublePage = false
-        }
-        else if previousItem.pageReference?.type == .right, pdfPage.type == .right {
-          item.alignment = .right
-          item.isDoublePage = true
-        }
-        else {
-          item.alignment = .fill
-          item.isDoublePage = pdfPage.type == .double
-        }
-      }
-      else if pdfPage.type == .double {
-        //Only for Page 1 Double! not exist yet
-        item.alignment = .fill
-        item.isDoublePage = true
-      }
-      else {
-        //Page 1 Alignment is Wrong, fix it!
-        item.alignment = .left
-//        item.pageReference?.type = .left//Get only
-      }
-      previousItem = item
     }
     
     guard let rawPageSize = self.images.first?.page?.frame?.size,
@@ -147,12 +118,6 @@ class NewPdfModel : PdfModel, DoesLog {
                                  height: pageHeight + PdfDisplayOptions.Overview.labelHeight)
     self.panoPageSize = CGSize(width: panoPageWidth,
                                height: pageHeight + PdfDisplayOptions.Overview.labelHeight)
-    
-  }
-  
-  func size(forItem atIndex: Int) -> CGSize? {
-    guard let item = images.valueAt(atIndex) else { return self.singlePageSize }
-    return item.isDoublePage ? self.panoPageSize : self.singlePageSize
   }
   
   func pageTitle(forItem atIndex: Int) -> String? {
@@ -198,6 +163,9 @@ class TazPdfViewController : PdfViewController{
     if let thumbCtrl = self.thumbnailController {
       thumbCtrl.menuItems = self.menuItems
       thumbCtrl.cellLabelFont = Const.Fonts.contentFont(size: 8)
+      var insets = UIWindow.keyWindow?.safeAreaInsets ?? UIEdgeInsets.zero
+      insets.bottom += toolBar.totalHeight
+      thumbCtrl.collectionView.contentInset = insets
     }
   }
   
