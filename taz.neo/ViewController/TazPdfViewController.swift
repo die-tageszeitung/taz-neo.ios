@@ -60,7 +60,7 @@ class NewPdfModel : PdfModel, DoesLog {
        page.type == .double {
       return panoPageSize ?? PdfDisplayOptions.Overview.fallbackPageSize
     }
-    return singlePageSize ?? PdfDisplayOptions.Overview.fallbackPageSize
+    return singlePageSize
   }
   
   
@@ -119,15 +119,6 @@ class NewPdfModel : PdfModel, DoesLog {
     self.panoPageSize = CGSize(width: panoPageWidth,
                                height: pageHeight + PdfDisplayOptions.Overview.labelHeight)
   }
-  
-  func pageTitle(forItem atIndex: Int) -> String? {
-    guard let item = images.valueAt(atIndex),
-          let pdf = item as? ZoomedPdfPageImage,
-          let page = pdf.pageReference else {
-          return nil//"Seite:\(atIndex)"
-    }
-    return page.title
-  }
 }
 
 class TazPdfViewController : PdfViewController{
@@ -135,6 +126,12 @@ class TazPdfViewController : PdfViewController{
   public var toolBar = OverviewContentToolbar()
   
   convenience init(issueInfo:IssueInfo?) {
+    if let issueInfo = issueInfo {
+      issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue, files: issueInfo.issue.facsimiles ?? []) { (err) in
+        print(">>>*** Download Facsmiles Done with Error?: \(err)")
+      }
+    }
+    
     self.init(NewPdfModel(issueInfo: issueInfo))
   }
   
@@ -162,7 +159,8 @@ class TazPdfViewController : PdfViewController{
     
     if let thumbCtrl = self.thumbnailController {
       thumbCtrl.menuItems = self.menuItems
-      thumbCtrl.cellLabelFont = Const.Fonts.contentFont(size: 8)
+      thumbCtrl.cellLabelFont = Const.Fonts.titleFont(size: 7)
+      thumbCtrl.cellLabelLinesCount = 2
       var insets = UIWindow.keyWindow?.safeAreaInsets ?? UIEdgeInsets.zero
       insets.bottom += toolBar.totalHeight
       thumbCtrl.collectionView.contentInset = insets
@@ -223,9 +221,3 @@ class TazPdfViewController : PdfViewController{
 //    }
   }
 }
-
-//extension TazPdfViewController : UICollectionViewDelegate {
-//  
-//}
-
-

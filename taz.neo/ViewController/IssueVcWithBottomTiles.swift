@@ -124,7 +124,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     collectionView?.showsVerticalScrollIndicator = false
     collectionView?.showsHorizontalScrollIndicator = false
     // Register cell classes
-    collectionView?.register(PdfOverviewCvcCell.self, forCellWithReuseIdentifier: reuseIdentifier)
+    collectionView?.register(IssueVCBottomTielesCVCCell.self, forCellWithReuseIdentifier: reuseIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: reuseHeaderIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
     setupToolbar()
@@ -212,9 +212,8 @@ extension IssueVcWithBottomTiles {
     let _cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier,
                                                    for: indexPath)
 
-    guard let cell = _cell as? PdfOverviewCvcCell else { return _cell }
+    guard let cell = _cell as? IssueVCBottomTielesCVCCell else { return _cell }
     
-    cell.label.text = nil
     cell.imageView.image = nil
     
     if let issueVC = self as? IssueVC,
@@ -224,7 +223,6 @@ extension IssueVcWithBottomTiles {
       /// ToDo: for not Downloaded Items, click, load finished, the cloud did not disappear
       /// should be done in Refactoring with PDF Image for Cells
       cell.cloudHidden = issue.isComplete
-      cell.label.textAlignment = .center
       if let img = issueVC.feeder.momentImage(issue: issue) {
         cell.imageView.image = img
       }
