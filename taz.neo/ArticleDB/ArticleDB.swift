@@ -791,7 +791,7 @@ public final class StoredArticle: Article, StoredObject {
 
 extension PersistentFrame: PersistentObject {}
 
-/// A stored Page
+/// A stored Frame
 public final class StoredFrame: Frame, StoredObject {
   
   public static var entity = "Frame"
