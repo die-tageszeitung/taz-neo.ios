@@ -177,7 +177,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let index = givenIndex ?? self.index
     func openIssue() {
       if isFacsimile {
-        let vc = TazPdfViewController(issueInfo: self)
+        let vc = TazPdfPagesViewController(issueInfo: self)
         self.navigationController?.pushViewController(vc, animated: true)
       }
       else {

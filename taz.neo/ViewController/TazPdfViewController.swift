@@ -10,6 +10,7 @@ import Foundation
 import NorthLib
 import PDFKit
 
+// MARK: - ZoomedPdfPageImage
 public class ZoomedPdfPageImage: ZoomedPdfImage {
   public override var pageType : PdfPageType {
     get {
@@ -50,7 +51,7 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
   }
 }
 
-
+// MARK: - NewPdfModel
 class NewPdfModel : PdfModel, DoesLog {
   
   func size(forItem atIndex: Int) -> CGSize {
@@ -121,41 +122,83 @@ class NewPdfModel : PdfModel, DoesLog {
   }
 }
 
-class TazPdfViewController : PdfViewController{
+// MARK: - TazPdfPagesViewController
+/// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
+open class TazPdfPagesViewController : PdfPagesCollectionVC{
+  var thumbnailController : PdfOverviewCollectionVC?
+  var slider:ButtonSlider?
   
   public var toolBar = OverviewContentToolbar()
   
-  convenience init(issueInfo:IssueInfo?) {
+  override public var preferredStatusBarStyle: UIStatusBarStyle {
+    return .lightContent
+  }
+  
+  public init(issueInfo:IssueInfo?) {
     if let issueInfo = issueInfo {
       issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue, files: issueInfo.issue.facsimiles ?? []) { (err) in
         print(">>>*** Download Facsmiles Done with Error?: \(err)")
       }
     }
-    
-    self.init(NewPdfModel(issueInfo: issueInfo))
+    let pdfModel = NewPdfModel(issueInfo: issueInfo)
+    Log.minLogLevel = .Debug
+    super.init(data: pdfModel)
+    thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
+    self.onTap { (oimg, x, y) in
+      guard let zpdfi = oimg as? ZoomedPdfImage else { return }
+      print("On item at Index: \(zpdfi.pdfPageIndex ?? -1) tapped at: \(x)/\(y)")
+    }
   }
   
-  override func viewDidLoad() {
+  public required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  open override func viewDidLoad() {
     super.viewDidLoad()
-    self.addMenuItem(title: "PDF Ansicht beenden", icon: "eye.slash") { [weak self] title in
-      self?.dismiss(animated: true)
+    guard let thumbnailController = thumbnailController else {return }
+    thumbnailController.clickCallback = { [weak self] (sourceFrame, pdfModel) in
+      guard let self = self else { return }
+      var snapshot:UIImageView?
+      var toFrame : CGRect = self.view.frame
+      if let pdfModel = pdfModel,
+        let thumb = pdfModel.thumbnail(atIndex: pdfModel.index,
+                                        finishedClosure: nil) {
+        if thumb.size.width > thumb.size.height {
+          toFrame.size.width = 2 * toFrame.size.width
+        }
+        snapshot = UIImageView(frame: sourceFrame)
+        snapshot?.image = thumb
+      }
     }
-    self.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "multiply.circle") { (_) in }
-    
+    setupSlider(sliderContent: thumbnailController)
     setupToolbar()
   }
   
-  override func viewWillAppear(_ animated: Bool) {
+  /// SideMenu
+  func setupSlider(sliderContent:UIViewController){
+    slider = ButtonSlider(slider: sliderContent, into: self)
+    guard let slider = slider else { return }
+    slider.image = UIImage.init(named: "logo")
+    slider.image?.accessibilityLabel = "Inhalt"
+    slider.buttonAlpha = 1.0
+    slider.button.layer.shadowOpacity = 0.25
+    slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
+    slider.button.layer.shadowRadius = 4
+//    header.leftIndent = 8 + slider.visibleButtonWidth
+    slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
+    slider.close()
+  }
+  
+  open override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    if let pageController = self.pageController {
-      pageController.pageControl?.layer.shadowColor = UIColor.lightGray.cgColor
-      pageController.pageControl?.layer.shadowRadius = 3.0
-      pageController.pageControl?.layer.shadowOffset = CGSize(width: 0, height: 0)
-      pageController.pageControl?.layer.shadowOpacity = 1.0
-      pageController.pageControl?.pageIndicatorTintColor = UIColor.white
-      pageController.pageControl?.currentPageIndicatorTintColor = Const.SetColor.CIColor.color
-      pageController.menuItems = self.menuItems
-    }
+    self.pageControl?.layer.shadowColor = UIColor.lightGray.cgColor
+    self.pageControl?.layer.shadowRadius = 3.0
+    self.pageControl?.layer.shadowOffset = CGSize(width: 0, height: 0)
+    self.pageControl?.layer.shadowOpacity = 1.0
+    self.pageControl?.pageIndicatorTintColor = UIColor.white
+    self.pageControl?.currentPageIndicatorTintColor = Const.SetColor.CIColor.color
+    self.menuItems = self.menuItems
     
     if let thumbCtrl = self.thumbnailController {
       thumbCtrl.menuItems = self.menuItems
@@ -167,13 +210,33 @@ class TazPdfViewController : PdfViewController{
     }
   }
   
-  /// Define the menu to display on long touch of a MomentView
-  public var menuItems: [(title: String, icon: String, closure: (String)->())] = []
+  open override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    print("cleanup   ...TODO?")
 
-  /// Add an additional menu item
-  public func addMenuItem(title: String, icon: String, closure: @escaping (String)->()) {
-    menuItems += (title: title, icon: icon, closure: closure)
+//    if isBeingDismissed {
+//      print("cleanup")
+//      ///Cleanup
+//      for ctrl in self.children {
+//        ctrl.removeFromParent()
+//      }
+//      images = []
+//      collectionView = nil
+//      thumbnailController?.clickCallback = nil
+////      thumbnailController?.pdfModel = nil
+//      thumbnailController?.menuItems = []
+//      thumbnailController?.removeFromParent()
+//      thumbnailController = nil
+//      pdfModel = nil
+//    }
   }
+  
+  override public func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    slider?.close()
+  }
+  
+
   
   
   func setupToolbar() {
