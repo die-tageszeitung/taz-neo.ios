@@ -156,20 +156,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
   
   open override func viewDidLoad() {
     super.viewDidLoad()
+    xButton.isHidden = true
     guard let thumbnailController = thumbnailController else {return }
-    thumbnailController.clickCallback = { [weak self] (sourceFrame, pdfModel) in
+    thumbnailController.clickCallback = { [weak self] (_, pdfModel) in
       guard let self = self else { return }
-      var snapshot:UIImageView?
-      var toFrame : CGRect = self.view.frame
-      if let pdfModel = pdfModel,
-        let thumb = pdfModel.thumbnail(atIndex: pdfModel.index,
-                                        finishedClosure: nil) {
-        if thumb.size.width > thumb.size.height {
-          toFrame.size.width = 2 * toFrame.size.width
-        }
-        snapshot = UIImageView(frame: sourceFrame)
-        snapshot?.image = thumb
-      }
+      guard let newIndex = pdfModel?.index else { return }
+//      self.collectionView?.scrollto(newIndex, animated: false)
+//      self.pdfModel?.index = newIndex
+      self.collectionView?.index = newIndex //prefered!!
+      self.slider?.close()
     }
     setupSlider(sliderContent: thumbnailController)
     setupToolbar()
@@ -236,8 +231,10 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
     slider?.close()
   }
   
-
-  
+  override public func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+//    self.collectionView?.useSelfReuse = true
+  }
   
   func setupToolbar() {
     //the button tap closures
