@@ -452,6 +452,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.view.backgroundColor = Const.SetColor.CTBackground.color
   }
   
+  override public func viewWillDisappear(_ animated: Bool) {
+    slider.hideLeftBackground()
+    super.viewWillDisappear(animated)
+  }
+  
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     slider.close()
