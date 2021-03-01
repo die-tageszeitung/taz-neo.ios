@@ -481,7 +481,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.feederContext = feederContext
     self.contentTable = ContentTableVC.loadFromNib()
     super.init()
-    self.collectionView?.useSelfReuse = true
   }  
    
   required public init?(coder: NSCoder) {
