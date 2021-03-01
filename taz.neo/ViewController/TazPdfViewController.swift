@@ -175,6 +175,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
     slider = ButtonSlider(slider: sliderContent, into: self)
     guard let slider = slider else { return }
     slider.image = UIImage.init(named: "logo")
+    /// WARNING set Image changes the coverage Ratio!!
+    slider.coverageRatio = PdfDisplayOptions.Overview.sliderCoverageRatio
     slider.image?.accessibilityLabel = "Inhalt"
     slider.buttonAlpha = 1.0
     slider.button.layer.shadowOpacity = 0.25
