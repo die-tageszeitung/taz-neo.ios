@@ -177,8 +177,22 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let index = givenIndex ?? self.index
     func openIssue() {
       if isFacsimile {
-        let vc = TazPdfPagesViewController(issueInfo: self)
-        self.navigationController?.pushViewController(vc, animated: true)
+        //ensure page 1 is there otherwise first download than push
+        let pushPdf = { [weak self] in
+          guard let self = self else { return }
+          let vc = TazPdfPagesViewController(issueInfo: self)
+          self.navigationController?.pushViewController(vc, animated: true)
+        }
+        
+        if feeder.momentImage(issue: issue, isPdf: true) == nil,
+          let page1facsimiles:FileEntry = issue.facsimiles?.first {
+          self.dloader.downloadIssueFiles(issue: issue, files: [page1facsimiles]) { (_) in
+              pushPdf()
+          }
+        }
+        else {
+          pushPdf()
+        }
       }
       else {
         self.pushSectionVC(feederContext: feederContext, atSection: atSection, 

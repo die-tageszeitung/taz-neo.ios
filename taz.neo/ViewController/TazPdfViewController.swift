@@ -92,10 +92,48 @@ class NewPdfModel : PdfModel, DoesLog {
     }
   }
   
+  public func thumbnail(atIndex: Int, finishedClosure: ((UIImage?)->())?) -> UIImage? {
+    guard let pdfImg = self.item(atIndex: atIndex) as? ZoomedPdfPageImage else {
+      return nil
+    }
+    if let waitingImage = pdfImg.waitingImage {
+      return waitingImage
+    }
+    
+    let height = singlePageSize.height - PdfDisplayOptions.Overview.labelHeight
+    
+    if pdfImg.page == nil,
+       let issueInfo = issueInfo,
+       let pageRef = pdfImg.pageReference
+    {
+      //PDF Page Download is needed first
+      issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue, files: [pageRef.pdf]) { (_) in
+        PdfRenderService.render(item: pdfImg,
+                                height: height*UIScreen.main.scale,
+                                screenScaled: true,
+                                backgroundRenderer: true){ img in
+          pdfImg.waitingImage = img
+          finishedClosure?(img)
+        }
+      }
+    }
+    else {
+      PdfRenderService.render(item: pdfImg,
+                              height: height*UIScreen.main.scale,
+                              screenScaled: true,
+                              backgroundRenderer: true){ img in
+        pdfImg.waitingImage = img
+        finishedClosure?(img)
+      }
+    }
+    return nil
+  }
+  
   init(issueInfo:IssueInfo?) {
     guard let issueInfo = issueInfo,
           let pages = issueInfo.issue.pages
           else { return }
+    self.issueInfo = issueInfo
     let issueDir = issueInfo.feeder.issueDir(issue: issueInfo.issue)
     
     for pdfPage in pages {
@@ -135,11 +173,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
   }
   
   public init(issueInfo:IssueInfo?) {
-    if let issueInfo = issueInfo {
-      issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue, files: issueInfo.issue.facsimiles ?? []) { (err) in
-        print(">>>*** Download Facsmiles Done with Error?: \(err)")
-      }
-    }
     let pdfModel = NewPdfModel(issueInfo: issueInfo)
     Log.minLogLevel = .Debug
     super.init(data: pdfModel)
