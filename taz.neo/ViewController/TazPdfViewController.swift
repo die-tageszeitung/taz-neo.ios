@@ -212,6 +212,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
     slider.image?.accessibilityLabel = "Inhalt"
     slider.buttonAlpha = 1.0
     slider.hideButtonOnClose = true
+    slider.button.additionalTapOffset = 50
     slider.button.layer.shadowOpacity = 0.25
     slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
     slider.button.layer.shadowRadius = 4
