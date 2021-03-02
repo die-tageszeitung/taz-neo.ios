@@ -246,7 +246,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
   
   open override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
-    slider?.button.isHidden = true
     print("cleanup   ...TODO?")
 
 //    if isBeingDismissed {
