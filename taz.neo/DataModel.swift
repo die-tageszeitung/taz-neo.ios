@@ -914,7 +914,7 @@ extension Feeder {
                           isPdf: Bool = false) -> UIImage? {
     if isPdf {
       if let fn = momentPdfName(issue: issue) {
-        if File.extname(fn) == "pdf" {
+        if File.extname(fn) == "pdf", File(fn).exists {
           return UIImage.pdf(File(fn).data)
         }
       }
