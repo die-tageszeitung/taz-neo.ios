@@ -137,7 +137,6 @@ class NewPdfModel : PdfModel, DoesLog {
     let issueDir = issueInfo.feeder.issueDir(issue: issueInfo.issue)
     
     for pdfPage in pages {
-      print("in Model add Page of type: \(pdfPage.type)")
       let item = ZoomedPdfPageImage(page:pdfPage, issueDir: issueDir)
       self.images.append(item)
       item.sectionTitle = "\(pdfPage.type)"
