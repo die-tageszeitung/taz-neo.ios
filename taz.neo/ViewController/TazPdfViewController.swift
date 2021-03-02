@@ -218,10 +218,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
     slider.button.layer.shadowRadius = 4
     slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
     slider.close()
-    #warning("Demo auto hide taz icon")
-//    onMainAfter(5.0){
-//      slider.buttonMoveOut(TimeInterval(1.2))
-//    }
   }
   
   open override func viewWillAppear(_ animated: Bool) {
