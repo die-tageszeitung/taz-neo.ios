@@ -176,7 +176,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
                          atArticle: Int? = nil) {
     let index = givenIndex ?? self.index
     func openIssue() {
-      if isFacsimile {
+      if isFacsimile && issue.isReduced {
+        self.feederContext.authenticate()
+      }
+      else if isFacsimile {
         //ensure page 1 is there otherwise first download than push
         let pushPdf = { [weak self] in
           guard let self = self else { return }

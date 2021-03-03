@@ -268,7 +268,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
   
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-//    self.collectionView?.useSelfReuse = true
+    Notification.send(Const.NotificationNames.articleLoaded)
   }
   
   func setupToolbar() {
