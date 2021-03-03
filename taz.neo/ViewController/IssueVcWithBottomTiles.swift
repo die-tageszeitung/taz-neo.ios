@@ -132,8 +132,9 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
 
   func setupToolbar() {
     //the button tap closures
-    let onHome:((ButtonControl)->()) = {_ in
-      print("Home Pressed")
+    let onHome:((ButtonControl)->()) = { [weak self] _ in
+      guard let self = self as? IssueVC else { return }
+      self.issueCarousel.carousel.scrollto(0, animated: true)
     }
     
     let onPDF:((ButtonControl)->()) = {   [weak self] control in
