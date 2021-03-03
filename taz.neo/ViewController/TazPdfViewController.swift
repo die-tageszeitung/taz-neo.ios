@@ -142,8 +142,16 @@ class NewPdfModel : PdfModel, DoesLog {
       item.sectionTitle = "\(pdfPage.type)"
     }
     
-    guard let rawPageSize = self.images.first?.page?.frame?.size,
-          rawPageSize.width > 0 else { return }
+    var rawPageSize:CGSize = PdfDisplayOptions.Overview.fallbackPageSize
+    
+    if let size = self.images.first?.page?.frame?.size {
+      rawPageSize = size //example: ▿ (892.913, 1332.28) => 1,4921
+    } else if let pdfMomentImage = issueInfo.feeder.momentImage(issue: issueInfo.issue,
+                                                                isPdf: true){
+      rawPageSize = pdfMomentImage.size //Example: (660.0, 985.0) => 1,492
+    } else {
+      log("Use fallback Page Size")
+    }
     
     self.defaultRawPageSize = rawPageSize
     let panoPageWidth
