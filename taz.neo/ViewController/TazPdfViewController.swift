@@ -11,6 +11,8 @@ import NorthLib
 import PDFKit
 
 // MARK: - ZoomedPdfPageImage
+/// A ZoomedPdfPageImage handles PageReference (Page) PDF Files with their first PDF Page
+/// - usually they have only 1 Page
 public class ZoomedPdfPageImage: ZoomedPdfImage {
   public override var pageType : PdfPageType {
     get {
@@ -35,12 +37,7 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
   }
   open override var page: PDFPage? {
     get {
-      guard let pageRef = pageReference else { return nil }
-      var path = ""
-      if let id = issueDir {
-        path = id.path + "/"
-      }
-      return PDFDocument(url: File(path + pageRef.pdf.fileName).url)?.page(at: 0)
+      return pageReference?.pdfDocument(inIssueDir: issueDir)?.page(at: 0)
     }
   }
   
@@ -62,6 +59,11 @@ class NewPdfModel : PdfModel, DoesLog {
       return panoPageSize ?? PdfDisplayOptions.Overview.fallbackPageSize
     }
     return singlePageSize
+  }
+  
+  private var whenScrolledHandler : WhenScrolledHandler?
+  public func whenScrolled(minRatio: CGFloat, _ closure: @escaping (CGFloat) -> ()) {
+    whenScrolledHandler = (minRatio, closure)
   }
   
   
@@ -138,6 +140,9 @@ class NewPdfModel : PdfModel, DoesLog {
     
     for pdfPage in pages {
       let item = ZoomedPdfPageImage(page:pdfPage, issueDir: issueDir)
+      #warning("TODO: put the handler to image not view like now!")
+      //TODO: hide bar on pdf fullscreen view..
+//      item.wh
       self.images.append(item)
       item.sectionTitle = "\(pdfPage.type)"
     }
@@ -248,27 +253,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
     }
   }
   
-  open override func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(animated)
-    print("cleanup   ...TODO?")
-
-//    if isBeingDismissed {
-//      print("cleanup")
-//      ///Cleanup
-//      for ctrl in self.children {
-//        ctrl.removeFromParent()
-//      }
-//      images = []
-//      collectionView = nil
-//      thumbnailController?.clickCallback = nil
-////      thumbnailController?.pdfModel = nil
-//      thumbnailController?.menuItems = []
-//      thumbnailController?.removeFromParent()
-//      thumbnailController = nil
-//      pdfModel = nil
-//    }
-  }
-  
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     slider?.close()
@@ -281,46 +265,21 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
   
   func setupToolbar() {
     //the button tap closures
-    let onHome:((ButtonControl)->()) = {   [weak self] _ in
-      self?.dismiss(animated: true)
+    let onHome:((ButtonControl)->()) = { [weak self] _ in
       self?.navigationController?.popViewController(animated: true)
-    }
-    
-    let onPDF:((ButtonControl)->()) = {   [weak self] control in
-      self?.dismiss(animated: true)
     }
     
     //the buttons and alignments
     _ = toolBar.addImageButton(name: "Home",
                            onPress: onHome,
-                           direction: .left,
-                           symbol: "house", //the prettier symbol ;-)
-                           accessibilityLabel: "Übersicht"
-//                           vInset: 0.2,hInset: 0.2 //needed if old symbol used
-                           )
-    toolBar.addSpacer(.left)
-    _ = toolBar.addImageButton(name: "PDF",
-                           onPress: onPDF,
                            direction: .right,
-                           symbol: "iphone.homebutton",
-                           accessibilityLabel: "Zeitungsansicht",
-                           hInset: 0.15
-    )
+                           accessibilityLabel: "Übersicht",
+                           vInset: 0.2,
+                           hInset: 0.2)
     
     //the toolbar setup itself
     toolBar.setButtonColor(Const.Colors.darkTintColor)
     toolBar.backgroundColor = Const.Colors.darkToolbar
     toolBar.pinTo(self.view)
-    
-//    if let thumbCtrl = self.thumbnailController {
-//      thumbCtrl.whenScrolled(minRatio: 0.01){ [weak self] ratio in
-//        if ratio < 0 { self?.toolBar.hide()}
-//        else { self?.toolBar.hide(false)}
-//      }
-//    }
-    
-//    if let pageController = self.pageController {
-//      pageController.collectionView?.delegate = self
-//    }
   }
 }

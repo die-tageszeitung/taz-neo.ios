@@ -7,6 +7,7 @@
 
 import Foundation
 import NorthLib
+import PDFKit
 
 /**
  Errors a Feeder may encounter
@@ -483,6 +484,11 @@ public extension Page {
     return nil
   }
   
+  func pdfDocument(inIssueDir:Dir?) -> PDFDocument? {
+    guard let issueDir = inIssueDir else { return nil }
+    let path = issueDir.path + "/"
+    return PDFDocument(url: File(path + self.pdf.fileName).url)
+  }
 }
 
 /**

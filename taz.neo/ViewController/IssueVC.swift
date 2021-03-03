@@ -177,24 +177,39 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let index = givenIndex ?? self.index
     func openIssue() {
       if isFacsimile && issue.isReduced {
-        self.feederContext.authenticate()
+        let loginAction = UIAlertAction(title: Localized("login_button"),
+                                        style: .default) { _ in
+          self.feederContext.authenticate()
+        }
+        let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
+        
+        Alert.message(message: "Um das ePaper zu lesen, müssen Sie sich anmelden.", actions: [loginAction, cancelAction])
       }
       else if isFacsimile {
-        //ensure page 1 is there otherwise first download than push
+        ///the positive use case
         let pushPdf = { [weak self] in
           guard let self = self else { return }
           let vc = TazPdfPagesViewController(issueInfo: self)
           self.navigationController?.pushViewController(vc, animated: true)
         }
-        
-        if feeder.momentImage(issue: issue, isPdf: true) == nil,
-          let page1facsimiles:FileEntry = issue.facsimiles?.first {
-          self.dloader.downloadIssueFiles(issue: issue, files: [page1facsimiles]) { (_) in
-              pushPdf()
-          }
+        ///in case of errors
+        let handleError = {
+          Toast.show(Localized("error"))
+          Notification.send(Const.NotificationNames.articleLoaded)
         }
-        else {
+        ///page 1 is needed multiple times
+        let p1:Page? = issue.pages?.first
+        ///ensure page 1 is there otherwise first download than push
+        if p1?.pdfDocument(inIssueDir: feeder.issueDir(issue: issue)) != nil {
           pushPdf()
+        }
+        else if let page = p1 {
+          self.dloader.downloadIssueData(issue: issue, files: [page.pdf]) { err in
+            if err != nil { handleError() }
+            else { pushPdf() }
+          }
+        } else {
+          handleError()
         }
       }
       else {
