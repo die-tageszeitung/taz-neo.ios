@@ -34,8 +34,15 @@ function bashDebug(){
 #bashDebug # uncomment for xcode build
 
 # Files and folders
-build_jsonFile="${BUILT_PRODUCTS_DIR}/resources.json" #temporary json to download json on each clean+build
-src_jsonFile="${SRCROOT}/taz.neo/Supporting Files/Resources/resources.json" # json for bundled ressources
+curlVersion_temp_jsonFile="${BUILT_PRODUCTS_DIR}/curl_resources_version.json" #ressources version in build folder, will be deleted on clean+Build
+curlOnEachCleanAndBuild=false #or once a day
+if [ $curlOnEachCleanAndBuild ]; then
+	curlVersion_jsonFile=$curlVersion_temp_jsonFile
+else
+	curlVersion_jsonFile="${SRCROOT}/taz.neo/Supporting Files/Resources/curl_resources_version.json" # ressources version cached for 1 day in sources
+fi
+
+zipVersion_jsonFile="${SRCROOT}/taz.neo/Supporting Files/Resources/zip_resources_version.json" #copy of ressources version to remember version of downloaded zip
 src_files="${SRCROOT}/taz.neo/Supporting Files/Resources/files" # unpacked ressources
 temp_folder="${SRCROOT}/taz.neo/Supporting Files/Resources/temp" # temporary files
 
@@ -78,8 +85,10 @@ function show_notification() {
 
 
 echo "\nEnvironment Variables\n"
-echo "build_jsonFile: ${build_jsonFile}"
-echo "src_jsonFile: ${src_jsonFile}"
+echo "curlVersion_temp_jsonFile: ${curlVersion_temp_jsonFile}"
+echo "curlOnEachCleanAndBuild: ${curlOnEachCleanAndBuild}"
+echo "curlVersion_jsonFile: ${curlVersion_jsonFile}"
+echo "zipVersion_jsonFile: ${zipVersion_jsonFile}"
 echo "src_files: ${src_files}"
 echo "temp_folder: ${temp_folder}"
 echo ""
@@ -87,22 +96,21 @@ echo ""
 echo "Create Temp Folder and Folder Structure if needed"
 mkdir -p "${temp_folder}"
 
-
-echo "Download resources.json if needed"
-
 # Download if ressources file did not exist or is older than 1 day
-if [[ $(find "$build_jsonFile" -mtime -1 -print) ]]; then
-	echo "File $build_jsonFile exists and is max 1 day old"
+if [[ $(find "$curlVersion_jsonFile" -mtime -1 -print) ]]; then
+	echo "CURL resources not needed" #exist and max 1 day old
 else
-	echo "$build_jsonFile need to be downloaded"
-  	curl 'https://dl.taz.de/appGraphQl?query=query%7Bproduct%7BresourceVersion,resourceBaseUrl,resourceZip,globalBaseUrl,appType,appName%7D%7D' -o $build_jsonFile; check
-  	cp "${build_jsonFile}" "${src_jsonFile}"
+	echo "CURL resources version needed"
+  	curl 'https://dl.taz.de/appGraphQl?query=query%7Bproduct%7BresourceVersion,resourceBaseUrl,resourceZip,globalBaseUrl,appType,appName%7D%7D' -o $curlVersion_temp_jsonFile; check
+  	if [  ! $curlOnEachCleanAndBuild ]; then
+  	  cp "${curlVersion_temp_jsonFile}" "${curlVersion_jsonFile}"
+  	fi
 fi
 
 function extract_versions_numbers() {
-	jsonVersion=$(grep -o '"resourceVersion":\d.' $build_jsonFile | grep -o '\d.')
-	cssVersion=$(grep 'resourceVersion' "${src_files}/scroll.css" | awk '{print $3}')
-	echo "Current Versions are: jsonVersion: ${jsonVersion}  :: cssVersion: ${cssVersion} "
+	jsonVersion=$(grep -o '"resourceVersion":\d.' "${curlVersion_jsonFile}" | grep -o '\d.')
+    zipVersion=$(grep -o '"resourceVersion":\d.' "${zipVersion_jsonFile}" | grep -o '\d.')
+	echo "Current Versions are: jsonVersion: ${jsonVersion}  :: zipVersion: ${zipVersion} "
 }
 
 function download_and_unpack() {
@@ -110,26 +118,21 @@ function download_and_unpack() {
 	unzip "${temp_folder}/resources.zip" -d "${temp_folder}/unzipped"; check
 	rm -rf "${src_files}"; check
 	mv "${temp_folder}/unzipped" "${src_files}"; check
-	extract_versions_numbers
-	if [[ ! $cssVersion -eq $jsonVersion ]]; then
-		echo "ERROR :: Downloaded Ressources but they but did not get expected Version"
-		show_notification "Downloaded Ressources but they but did not get expected Version"
-		exit 1 #Abort, show Error
-	fi
+	cp "${curlVersion_temp_jsonFile}" "${zipVersion_jsonFile}"
 }
 
 extract_versions_numbers
 
-if [[ ! "$cssVersion" =~ ^[0-9]+$ ]]; then
+if [[ ! "$zipVersion" =~ ^[0-9]+$ ]]; then
 	#there is no older one, download, unpack exchange (if any)
 	echo "\nno css found, download ressources"
 	download_and_unpack
-elif [[ ! $cssVersion -eq $jsonVersion ]]; then
+elif [[ ! $zipVersion -eq $jsonVersion ]]; then
 	#there is no older one, download, unpack exchange (if any)
 	echo "\nversions did not match download ressources"
 	download_and_unpack
 else 
-	echo "\nAlready got latest version, do nothing"
+	echo "\nAlready got latest zip ressources, do nothing"
 fi
 
 rm -rf "${temp_folder}"; check
