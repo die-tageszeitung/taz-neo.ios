@@ -190,7 +190,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
     super.init(data: pdfModel)
     thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
     self.onTap { (oimg, x, y) in
-      guard let zpdfi = oimg as? ZoomedPdfImage else { return }
+      guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
+//      zpdfi.page.frmes
       print("On item at Index: \(zpdfi.pdfPageIndex ?? -1) tapped at: \(x)/\(y)")
     }
   }
