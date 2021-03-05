@@ -65,18 +65,6 @@ open class ContentToolbar: UIView {
     didSet { toolbar.backgroundColor = self.backgroundColor }
   }
   
-  /// alpha for transluent color of the whole Toolbar Area
-  /// needed to ensure Home Indicator has same Background like Toolbar above
-  public var translucentAlpha: CGFloat {
-    get { return toolbar.translucentAlpha }
-    set { toolbar.translucentAlpha = newValue }
-  }
-  
-  public var translucentColor: UIColor {
-    get { return toolbar.translucentColor }
-    set { toolbar.translucentColor = newValue }
-  }
-  
   public override init(frame: CGRect) {
     super.init(frame: frame)
     addSubview(toolbar)
@@ -389,9 +377,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     toolBar.addButton(textSettingsButton, direction: .center)
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     toolBar.addArticleButton(playButton, direction: .center)
-    toolBar.setButtonColor(Const.Colors.iOSDark.secondaryLabel)
-    toolBar.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
-    toolBar.translucentAlpha = 0.0
+    toolBar.setButtonColor(Const.Colors.darkTintColor)
+    toolBar.backgroundColor = Const.Colors.darkToolbar
     toolBar.pinTo(self.view)
     
     backButton.isAccessibilityElement = true
