@@ -270,12 +270,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
     }
     
     //the buttons and alignments
-    _ = toolBar.addImageButton(name: "Home",
+    _ = toolBar.addImageButton(name: "home",
                            onPress: onHome,
                            direction: .right,
-                           accessibilityLabel: "Übersicht",
-                           vInset: 0.2,
-                           hInset: 0.2)
+                           accessibilityLabel: "Übersicht"
+                           )
     
     //the toolbar setup itself
     toolBar.setButtonColor(Const.Colors.darkTintColor)

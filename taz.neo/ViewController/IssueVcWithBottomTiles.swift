@@ -143,45 +143,22 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
       self.isFacsimile = !self.isFacsimile
       
       if let imageButton = control as? Button<ImageView> {
-        
-        if #available(iOS 13.0, *) {
-          imageButton.buttonView.imageView.image
-            = UIImage(systemName: self.isFacsimile ? "iphone" : "newspaper",
-                      withConfiguration: UIImage.SymbolConfiguration(pointSize: 16,
-                                                                     weight: .light))
-        }
-        else {
-          imageButton.buttonView.symbol = self.isFacsimile ? "iphone" : "newspaper"
-        }
-        imageButton.hinset = self.isFacsimile ? 0.15 : 0.0
+        imageButton.buttonView.name = self.isFacsimile ? "mobileDevice" : "newspaper"
       }
-      
       print("PDF Pressed")
     }
     
     //the buttons and alignments
-    _ = toolBar.addImageButton(name: "Home",
+    _ = toolBar.addImageButton(name: "home",
                            onPress: onHome,
                            direction: .right,
-                           accessibilityLabel: "Übersicht",
-                           vInset: 0.2,
-                           hInset: 0.2 //needed if old symbol used
-                           )
+                           accessibilityLabel: "Übersicht")
     
-    let pdfIcon = toolBar.addImageButton(name: "PDF",
+    let pdfIcon = toolBar.addImageButton(name: self.isFacsimile ? "mobileDevice" : "newspaper",
                            onPress: onPDF,
                            direction: .left,
-                           symbol: self.isFacsimile ? "iphone.homebutton" : "newspaper",
-                           accessibilityLabel: "Zeitungsansicht",
-                           hInset: self.isFacsimile ? 0.15 : 0.0)
-    
-    if #available(iOS 13.0, *) {
-      pdfIcon.buttonView.imageView.image
-        = UIImage(systemName: self.isFacsimile ? "iphone.homebutton" : "newspaper",
-                  withConfiguration: UIImage.SymbolConfiguration(pointSize: 16,
-                                                                 weight: .light))
-    }
-    
+                           accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
+        
     //the toolbar setup itself
     toolBar.setButtonColor(Const.Colors.darkTintColor)
     toolBar.backgroundColor = Const.Colors.darkToolbar

@@ -147,15 +147,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
-  public var backButton = Button<LeftArrowView>()  
+  public var backButton = Button<ImageView>()
   public var playButton = Button<ImageView>()
   private var playClosure: ((ContentVC)->())?
-//  public var backButton = Button<ImageView>()
   private var backClosure: ((ContentVC)->())?
   public var homeButton = Button<ImageView>()
   private var homeClosure: ((ContentVC)->())?
-  public var settingsButton = Button<ImageView>()
-  private var settingsClosure: ((ContentVC)->())?
+  public var textSettingsButton = Button<ImageView>()
+  private var textSettingsClosure: ((ContentVC)->())?
   public var shareButton = Button<ImageView>()
   private var shareClosure: ((ContentVC)->())?
   private var imageOverlay: Overlay?
@@ -254,7 +253,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   /// Define the closure to call when the home button is tapped
   public func onSettings(closure: @escaping (ContentVC)->())
-    { settingsClosure = closure }
+    { textSettingsClosure = closure }
   
   /// Define the closure to call when the home button is tapped
   public func onHome(closure: @escaping (ContentVC)->()) 
@@ -302,14 +301,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       
       if SpeechSynthesizer.sharedInstance.isPaused {
-        self.playButton.buttonView.symbol = "pause"
         SpeechSynthesizer.sharedInstance.continueSpeaking()
       }
       else if SpeechSynthesizer.sharedInstance.isSpeaking {
-        self.playButton.buttonView.symbol = "play"
         SpeechSynthesizer.sharedInstance.pauseSpeaking(at: .word)
       } else {
-        self.playButton.buttonView.symbol = "pause"
         
         let trackTitle:String = "taz \(self.issue.date.short) \(self.header.miniTitle ?? "")"
         var albumTitle = "Artikel"
@@ -318,16 +314,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
           albumTitle = contentTitle
         }
         self.currentWebView?.speakHtmlContent(albumTitle: albumTitle, trackTitle: trackTitle){ [weak self] in
-          self?.playButton.buttonView.symbol = "play"
+          self?.playButton.buttonView.name = "audio"
         }
       }
     }
   }
   
-  
   open override func onPageChange(){
     SpeechSynthesizer.sharedInstance.stopSpeaking(at: .word)
-    self.playButton.buttonView.symbol = "play"
+    self.playButton.buttonView.name = "audio"
   }
   
   func setupToolbar() {
@@ -347,40 +342,36 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.shareClosure?(self)
     }
-    settingsButton.onPress { [weak self] _ in
+    textSettingsButton.onPress { [weak self] _ in
       guard let self = self else { return }
-      self.settingsClosure?(self)
+      self.textSettingsClosure?(self)
     }
     
-    backButton.pinWidth(40)
-    backButton.pinHeight(40)
-    backButton.vinset = 0.43
-    backButton.isBistable = false
-    backButton.lineWidth = 0.06
-    settingsButton.pinWidth(55)
-    settingsButton.pinHeight(40)
-    settingsButton.inset = 0.0
-    settingsButton.buttonView.symbol = "textformat.size"
-    settingsButton.buttonView.imageView.iosLower13?.pinWidth(44)
-    homeButton.pinWidth(40)
-    homeButton.pinHeight(40)
-    homeButton.inset = 0.20
-    homeButton.buttonView.name = "Home"
-    shareButton.buttonView.symbol = "square.and.arrow.up"
-    shareButton.pinWidth(55)
-    shareButton.pinHeight(40)
-    shareButton.inset = 0.24
+    backButton.pinSize(CGSize(width: 40, height: 40))
+    shareButton.pinSize(CGSize(width: 40, height: 40))
+    textSettingsButton.pinSize(CGSize(width: 40, height: 40))
+    playButton.pinSize(CGSize(width: 40, height: 40))
+    homeButton.pinSize(CGSize(width: 40, height: 40))
     
-    playButton.buttonView.symbol = "play"
-    playButton.pinWidth(55)
-    playButton.pinHeight(40)
-    playButton.inset = 0.24
+    backButton.buttonView.name = "arrowLeft"
+    shareButton.buttonView.name = "share"
+    textSettingsButton.buttonView.name = "textSettings"
+    playButton.buttonView.name = "audio"
+    homeButton.buttonView.name = "home"
+
+    //.vinset = 0.4 -0.4 do nothing
+    //.hinset = -0.4  ..enlarge enorm!  0.4...scales down enorm
+    //Adjusting the baseline incereases the icon too much
+    
+    // shareButton.buttonView.hinset = -0.07
+    // textSettingsButton.buttonView.hinset = -0.15
+    // textSettingsButton.buttonView.layoutMargins change would be ignored in layout subviews
     
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(homeButton, direction: .right)
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
-    toolBar.addButton(settingsButton, direction: .center)
+    toolBar.addButton(textSettingsButton, direction: .center)
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     toolBar.addArticleButton(playButton, direction: .center)
     toolBar.setButtonColor(Const.Colors.darkTintColor)
@@ -388,7 +379,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     toolBar.pinTo(self.view)
     
     backButton.isAccessibilityElement = true
-    settingsButton.isAccessibilityElement = false //make no sense just for seeing people
+    textSettingsButton.isAccessibilityElement = false //make no sense just for seeing people
     homeButton.isAccessibilityElement = true
     playButton.isAccessibilityElement = true
     shareButton.isAccessibilityElement = true
