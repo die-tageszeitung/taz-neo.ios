@@ -174,7 +174,35 @@ class NewPdfModel : PdfModel, DoesLog {
 
 // MARK: - TazPdfPagesViewController
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
-open class TazPdfPagesViewController : PdfPagesCollectionVC{
+open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
+  public var section: Section?
+  
+  public var sections: [Section]
+  
+  public var article: Article?
+  
+  public var article2section: [String : [Section]]
+  
+  public func displaySection(index: Int) {
+    print("TODO: displaySection")
+  }
+  
+  public func linkPressed(from: URL?, to: URL?) {
+    print("TODO: linkPressed")
+  }
+  
+  public func closeIssue() {
+    print("TODO: closeIssue")
+  }
+  
+  public var feederContext: FeederContext
+  
+  public var issue: Issue
+  
+  public func resetIssueList() {
+    print("TODO: resetIssueList")
+  }
+  
   var thumbnailController : PdfOverviewCollectionVC?
   var slider:ButtonSlider?
   
@@ -187,12 +215,29 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
   public init(issueInfo:IssueInfo?) {
     let pdfModel = NewPdfModel(issueInfo: issueInfo)
     Log.minLogLevel = .Debug
+    self.sections = issueInfo?.issue.sections ?? []
+    article2section = ["":[]]
+    feederContext = issueInfo!.feederContext
+    self.issue = issueInfo!.issue
     super.init(data: pdfModel)
+    
     thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
-    self.onTap { (oimg, x, y) in
+    self.onTap { [weak self] (oimg, x, y) in
+      guard let self = self else { return }
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
-//      zpdfi.page.frmes
-      print("On item at Index: \(zpdfi.pdfPageIndex ?? -1) tapped at: \(x)/\(y)")
+      guard let frames = zpdfi.pageReference?.frames else { return }
+      for frame in frames  {
+        if frame.isInside(x: Float(x), y: Float(y)),
+           let link = frame.link,
+           let path = zpdfi.issueDir?.path,
+           let feederContext = issueInfo?.feederContext
+        {
+          let articleVC = ArticleVC(feederContext: feederContext)
+          articleVC.delegate = self
+          articleVC.gotoUrl(path: path, file: link)
+          self.navigationController?.pushViewController(articleVC, animated: true)
+        }
+      }
     }
   }
   
