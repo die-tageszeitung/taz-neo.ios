@@ -11,6 +11,7 @@ Things that should be done soon
     - PDF Moments/Page 1
 - PDF ViewController
   - Problem: Toolbar not in front
+- Zum Download Stop: wenn es nur die Kachelansicht betrifft, Mail Ralf 
 
 
 ## Less-Important keep in mind for future releases
