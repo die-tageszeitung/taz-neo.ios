@@ -101,7 +101,7 @@ open class StartupVC: UIViewController {
   
   open override func viewDidAppear(_ animated: Bool) {
     startupView.isAnimating = true
-    checkReleaseStatus()
+//    checkReleaseStatus()
   }
   
   open override func viewDidDisappear(_ animated: Bool) {
