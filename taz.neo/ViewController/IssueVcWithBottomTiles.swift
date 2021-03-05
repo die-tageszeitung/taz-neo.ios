@@ -143,7 +143,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
       self.isFacsimile = !self.isFacsimile
       
       if let imageButton = control as? Button<ImageView> {
-        imageButton.buttonView.name = self.isFacsimile ? "mobileDevice" : "newspaper"
+        imageButton.buttonView.name = self.isFacsimile ? "newspaper" : "mobileDevice"
       }
       print("PDF Pressed")
     }
@@ -154,7 +154,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
                                direction: .right,
                                accessibilityLabel: "Übersicht")
     
-    _ = toolBar.addImageButton(name: self.isFacsimile ? "mobileDevice" : "newspaper",
+    _ = toolBar.addImageButton(name: self.isFacsimile ? "newspaper" : "mobileDevice",
                                onPress: onPDF,
                                direction: .left,
                                accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
