@@ -13,6 +13,8 @@ Things that should be done soon
   - Problem: Toolbar not in front
 - Zum Download Stop: wenn es nur die Kachelansicht betrifft, Mail Ralf 
 
+LOGIN Bug: logged out => PDF => Login due not downloaded compleete
+
 
 ## Less-Important keep in mind for future releases
 
