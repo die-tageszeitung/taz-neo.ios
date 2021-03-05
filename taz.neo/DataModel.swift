@@ -447,8 +447,7 @@ public protocol Page: ToString {
   /// Type of page
   var type: PageType { get }
   /// Frames in page
-  #warning("Commented out by Ringo to prevent crash")
-//  var frames: [Frame]? { get }
+  var frames: [Frame]? { get }
 } // Page  
 
 public extension Page {
@@ -457,8 +456,7 @@ public extension Page {
     var ret = title ?? "unknown"
     if let pg = pagina { ret += " (#\(pg))" }
     ret += " in \(pdf)"
-    #warning("Commented out by Ringo to prevent crash")
-//    if let fs = frames { ret += " \(fs.count) frames"}
+    if let fs = frames { ret += " \(fs.count) frames"}
     return ret
   }
   
@@ -473,14 +471,11 @@ public extension Page {
    queue)
    */
   func tap2link(x: Float, y: Float) -> String? {
-    #warning("Commented out by Ringo to prevent crash")
-    /*
     if let frames = frames, frames.count > 0 {
       for frame in frames {
         if frame.isInside(x: x, y: y) { return frame.link }
       }
     }
-     */
     return nil
   }
   
