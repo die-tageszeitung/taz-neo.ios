@@ -301,11 +301,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       
       if SpeechSynthesizer.sharedInstance.isPaused {
+        self.playButton.buttonView.color = .white
         SpeechSynthesizer.sharedInstance.continueSpeaking()
       }
       else if SpeechSynthesizer.sharedInstance.isSpeaking {
+        self.playButton.buttonView.color = Const.Colors.ciColor
         SpeechSynthesizer.sharedInstance.pauseSpeaking(at: .word)
       } else {
+        self.playButton.buttonView.color = Const.Colors.iOSDark.secondaryLabel
         
         let trackTitle:String = "taz \(self.issue.date.short) \(self.header.miniTitle ?? "")"
         var albumTitle = "Artikel"
