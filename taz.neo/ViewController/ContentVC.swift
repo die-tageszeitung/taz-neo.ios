@@ -133,7 +133,17 @@ open class ContentToolbar: UIView {
   func setSectionBar() { toolbar.bar = 0 }
   
   public func setButtonColor(_ color: UIColor) { toolbar.setButtonColor(color) }
-
+  
+  public func setActiveButtonColor(_ color: UIColor) {
+    toolbar.setActiveButtonColor(color)
+  }
+  
+  public func applyDefaultTazSyle() {
+    self.setButtonColor(Const.Colors.iOSDark.secondaryLabel)
+    self.setActiveButtonColor(Const.Colors.ciColor)
+    self.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
+    self.translucentAlpha = 0.0
+  }
 }
 
 /**
@@ -389,9 +399,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     toolBar.addButton(textSettingsButton, direction: .center)
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     toolBar.addArticleButton(playButton, direction: .center)
-    toolBar.setButtonColor(Const.Colors.iOSDark.secondaryLabel)
-    toolBar.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
-    toolBar.translucentAlpha = 0.0
+    toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
     
     backButton.isAccessibilityElement = true

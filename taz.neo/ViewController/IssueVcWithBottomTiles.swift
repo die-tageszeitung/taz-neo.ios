@@ -150,19 +150,17 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     
     //the buttons and alignments
     _ = toolBar.addImageButton(name: "home",
-                           onPress: onHome,
-                           direction: .right,
-                           accessibilityLabel: "Übersicht")
+                               onPress: onHome,
+                               direction: .right,
+                               accessibilityLabel: "Übersicht")
     
-    let pdfIcon = toolBar.addImageButton(name: self.isFacsimile ? "mobileDevice" : "newspaper",
-                           onPress: onPDF,
-                           direction: .left,
-                           accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
+    _ = toolBar.addImageButton(name: self.isFacsimile ? "mobileDevice" : "newspaper",
+                               onPress: onPDF,
+                               direction: .left,
+                               accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
         
     //the toolbar setup itself
-    toolBar.setButtonColor(Const.Colors.iOSDark.secondaryLabel)
-    toolBar.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
-    toolBar.translucentAlpha = 0.0
+    toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
     whenScrolled(minRatio: 0.01) {  [weak self] ratio in
       if ratio < 0, self?.isUp == false { self?.toolBar.hide()}
@@ -411,7 +409,6 @@ extension ContentToolbar {
     button.pinHeight(height, priority: .defaultHigh)
     button.vinset = vInset
     button.hinset = hInset
-    button.isBistable = isBistable
     button.isBistable = isBistable
     button.buttonView.name = name
     button.buttonView.symbol = symbol

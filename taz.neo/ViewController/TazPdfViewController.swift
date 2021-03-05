@@ -277,8 +277,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC{
                            )
     
     //the toolbar setup itself
-    toolBar.setButtonColor(Const.Colors.darkTintColor)
-    toolBar.backgroundColor = Const.Colors.darkToolbar
+    toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
   }
 }
