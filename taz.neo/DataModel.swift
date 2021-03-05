@@ -898,11 +898,6 @@ extension Feeder {
   }
   
   /// Returns the name of the first PDF page file name (if available)
-  public func pageUrl(issue: Issue, page: Page) -> URL? {
-    return URL(fileURLWithPath: "\(issueDir(issue: issue).path)/\(page.pdf.fileName)")
-  }
-  
-  /// Returns the name of the first PDF page file name (if available)
   public func momentPdfName(issue: Issue) -> String? {
     if let fac1 = issue.pageOneFacsimile {
       return "\(issueDir(issue: issue).path)/\(fac1.fileName)"
