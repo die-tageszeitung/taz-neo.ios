@@ -867,10 +867,14 @@ public final class StoredPage: Page, StoredObject {
     get { return pr.pagina }
     set { pr.pagina = newValue }
   }
-  public var pdf: FileEntry {
-    get { return StoredFileEntry(persistent: pr.pdf!) }
+  public var pdf: FileEntry? {
+    get {
+      guard let pdf = pr.pdf else { return nil }
+      return StoredFileEntry(persistent: pdf)
+    }
     set {
-      pr.pdf = StoredFileEntry.persist(object: newValue).pr
+      guard let new = newValue else { return }
+      pr.pdf = StoredFileEntry.persist(object: new).pr
       pr.pdf!.page = pr
     }
   }
@@ -915,7 +919,8 @@ public final class StoredPage: Page, StoredObject {
   }
     
   public static func get(object: Page) -> StoredPage? {
-    let tmp = get(file: object.pdf.name)
+    guard let pdf = object.pdf else { return nil }
+    let tmp = get(file: pdf.name)
     if tmp.count > 0 { return tmp[0] }
     else { return nil }
   }
@@ -1200,7 +1205,8 @@ public final class StoredIssue: Issue, StoredObject {
       // Remove pages no longer needed
       if let pgs = pages as? [StoredPage] {
         for page in pgs {
-          if !pages.contains(where: { $0.pdf.name == page.pdf.name }) {
+          guard let name = page.pdf?.name else { continue }
+          if !pages.contains(where: { $0.pdf?.name == name && $0.pdf?.name != nil}) {
             pr.removeFromPages(page.pr)
           }
         }

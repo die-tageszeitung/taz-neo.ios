@@ -106,10 +106,11 @@ class NewPdfModel : PdfModel, DoesLog {
     
     if pdfImg.page == nil,
        let issueInfo = issueInfo,
-       let pageRef = pdfImg.pageReference
+       let pageRef = pdfImg.pageReference,
+       let pdf = pageRef.pdf
     {
       //PDF Page Download is needed first
-      issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue, files: [pageRef.pdf]) { (_) in
+      issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue, files: [pdf]) { (_) in
         PdfRenderService.render(item: pdfImg,
                                 height: height*UIScreen.main.scale,
                                 screenScaled: true,
