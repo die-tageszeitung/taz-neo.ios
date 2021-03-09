@@ -203,8 +203,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         if p1?.pdfDocument(inIssueDir: feeder.issueDir(issue: issue)) != nil {
           pushPdf()
         }
-        else if let page = p1, let pdf = page.pdf {
-          self.dloader.downloadIssueData(issue: issue, files: [pdf]) { err in
+        else if let page = p1 {
+          self.dloader.downloadIssueData(issue: issue, files: [page.pdf]) { err in
             if err != nil { handleError() }
             else { pushPdf() }
           }

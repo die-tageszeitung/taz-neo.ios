@@ -439,7 +439,7 @@ public enum PageType: String, CodableEnum {
  */
 public protocol Page: ToString {
   /// File storing PDF
-  var pdf: FileEntry? { get }
+  var pdf: FileEntry { get }
   /// Page title (if any)
   var title: String? { get }
   /// Page number (or some String numbering the page in some way)
@@ -481,9 +481,8 @@ public extension Page {
   
   func pdfDocument(inIssueDir:Dir?) -> PDFDocument? {
     guard let issueDir = inIssueDir else { return nil }
-    guard let pdf = self.pdf else { return nil }
     let path = issueDir.path + "/"
-    return PDFDocument(url: File(path + pdf.fileName).url)
+    return PDFDocument(url: File(path + self.pdf.fileName).url)
   }
 }
 
@@ -648,7 +647,7 @@ public extension Issue {
   var facsimiles: [FileEntry]? {
     if let pgs = pages, pgs.count > 0 {
       var ret: [FileEntry] = []
-      for case let pg in pgs where pg.pdf != nil { ret += pg.pdf! }
+      for pg in pgs { ret += pg.pdf }
       return ret
     }
     return nil

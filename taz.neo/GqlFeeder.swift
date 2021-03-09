@@ -301,7 +301,7 @@ class GqlFrame: Frame, GQLObject {
 class GqlPage: Page, GQLObject {
   /// File storing PDF
   var pagePdf: GqlFile
-  var pdf: FileEntry? { return pagePdf }
+  var pdf: FileEntry { return pagePdf }
   /// Page title (if any)
   var title: String?
   /// Page number (or some String numbering the page in some way)
