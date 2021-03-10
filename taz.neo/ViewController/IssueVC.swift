@@ -197,14 +197,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           Toast.show(Localized("error"))
           Notification.send(Const.NotificationNames.articleLoaded)
         }
-        ///page 1 is needed multiple times
-        let p1:Page? = issue.pages?.first
-        ///ensure page 1 is there otherwise first download than push
-        if p1?.pdfDocument(inIssueDir: feeder.issueDir(issue: issue)) != nil {
+        
+        if feeder.momentPdfFile(issue: issue) != nil {
           pushPdf()
         }
-        else if let page = p1 {
-          self.dloader.downloadIssueData(issue: issue, files: [page.pdf]) { err in
+        else if let page1 = issue.pages?.first {
+          self.dloader.downloadIssueData(issue: issue, files: [page1.pdf]) { err in
             if err != nil { handleError() }
             else { pushPdf() }
           }
