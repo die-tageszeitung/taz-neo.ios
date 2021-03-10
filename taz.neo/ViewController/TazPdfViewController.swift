@@ -35,7 +35,7 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
     }
     set {}
   }
-  open override var page: PDFPage? {
+  open override var pdfPage: PDFPage? {
     get {
       return pageReference?.pdfDocument(inIssueDir: issueDir)?.page(at: 0)
     }
@@ -104,7 +104,7 @@ class NewPdfModel : PdfModel, DoesLog {
     
     let height = singlePageSize.height - PdfDisplayOptions.Overview.labelHeight
     
-    if pdfImg.page == nil,
+    if pdfImg.pdfPage == nil,
        let issueInfo = issueInfo,
        let pageRef = pdfImg.pageReference
     {
@@ -149,7 +149,7 @@ class NewPdfModel : PdfModel, DoesLog {
     
     var rawPageSize:CGSize = PdfDisplayOptions.Overview.fallbackPageSize
     
-    if let size = self.images.first?.page?.frame?.size {
+    if let size = self.images.first?.pdfPage?.frame?.size {
       rawPageSize = size //example: ▿ (892.913, 1332.28) => 1,4921
     } else if let pdfMomentImage = issueInfo.feeder.momentImage(issue: issueInfo.issue,
                                                                 isPdf: true){
