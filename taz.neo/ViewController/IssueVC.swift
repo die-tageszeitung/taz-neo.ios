@@ -176,7 +176,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
                          atArticle: Int? = nil) {
     let index = givenIndex ?? self.index
     func openIssue() {
-      if isFacsimile && issue.isReduced {
+      if isFacsimile && !feederContext.isAuthenticated {
         let loginAction = UIAlertAction(title: Localized("login_button"),
                                         style: .default) { _ in
           self.feederContext.authenticate()
