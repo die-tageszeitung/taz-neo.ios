@@ -138,8 +138,8 @@ class NewPdfModel : PdfModel, DoesLog {
     self.issueInfo = issueInfo
     let issueDir = issueInfo.feeder.issueDir(issue: issueInfo.issue)
     
-    for pdfPage in pages {
-      let item = ZoomedPdfPageImage(page:pdfPage, issueDir: issueDir)
+    for page in pages {
+      let item = ZoomedPdfPageImage(page:page, issueDir: issueDir)
       #warning("TODO: put the handler to image not view like now!")
       //TODO: hide bar on pdf fullscreen view..
 //      item.wh
