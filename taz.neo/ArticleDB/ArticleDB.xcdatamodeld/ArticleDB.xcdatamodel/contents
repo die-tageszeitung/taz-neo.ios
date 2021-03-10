@@ -145,7 +145,7 @@
         <attribute name="type" attributeType="String"/>
         <relationship name="frames" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Frame" inverseName="page" inverseEntity="Frame"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="pages" inverseEntity="Issue"/>
-        <relationship name="pdf" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="page" inverseEntity="FileEntry"/>
+        <relationship name="pdf" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="page" inverseEntity="FileEntry"/>
     </entity>
     <entity name="Payload" representedClassName="PersistentPayload" syncable="YES" codeGenerationType="class">
         <attribute name="bytesLoaded" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
