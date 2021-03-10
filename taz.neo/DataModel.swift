@@ -642,6 +642,16 @@ public extension Issue {
     }
     return nil
   }
+    
+  /// The first facsimile page ad PDFPage (if available)
+  var pageOneFacsimilePdfPage: PDFPage? {
+    if let page0 = pages?.valueAt(0),
+       let doc = PDFDocument(url: File(baseUrl + page0.pdf.fileName).url),
+       let pdfPage = doc.page(at: 0) {
+      return pdfPage
+    }
+    return nil
+  }
   
   /// All facsimiles
   var facsimiles: [FileEntry]? {
@@ -904,16 +914,20 @@ extension Feeder {
     }
     return nil
   }
+  
+  /// Returns the first PDF page file (if available)
+  public func momentPdfFile(issue: Issue) -> File? {
+    guard let fn = momentPdfName(issue: issue) else { return nil }
+    guard File.extname(fn) == "pdf" else { return nil }
+    guard File(fn).exists else { return nil }
+    return File(fn)
+  }
 
   /// Returns the "Moment" Image as Gif-Animation or in highest resolution
   public func momentImage(issue: Issue, isCredited: Bool = false,
                           isPdf: Bool = false) -> UIImage? {
-    if isPdf {
-      if let fn = momentPdfName(issue: issue) {
-        if File.extname(fn) == "pdf", File(fn).exists {
-          return UIImage.pdf(File(fn).data)
-        }
-      }
+    if isPdf, let momentPdfFile = momentPdfFile(issue: issue) {
+      return UIImage.pdf(momentPdfFile.data)
     }
     if let fn = momentImageName(issue: issue, isCredited: isCredited) {
       if File.extname(fn) == "gif" {
