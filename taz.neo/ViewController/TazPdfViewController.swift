@@ -45,6 +45,7 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
     self.init()
     self.issueDir = issueDir
     self.pageReference = page
+    self.sectionTitle = "\(page.type)"
   }
 }
 
@@ -135,28 +136,22 @@ class NewPdfModel : PdfModel, DoesLog {
     guard let issueInfo = issueInfo,
           let pages = issueInfo.issue.pages
           else { return }
+    let issue = issueInfo.issue
     self.issueInfo = issueInfo
-    let issueDir = issueInfo.feeder.issueDir(issue: issueInfo.issue)
+    let issueDir = issueInfo.feeder.issueDir(issue: issue)
     
     for page in pages {
       let item = ZoomedPdfPageImage(page:page, issueDir: issueDir)
-      #warning("TODO: put the handler to image not view like now!")
-      //TODO: hide bar on pdf fullscreen view..
-//      item.wh
+      #warning("TODO: put the handler to image not to view like now!")
+      ///TODO: hide bar on pdf fullscreen view..
+      ///item.whenScrolling!?
       self.images.append(item)
-      item.sectionTitle = "\(pdfPage.type)"
     }
     
-    var rawPageSize:CGSize = PdfDisplayOptions.Overview.fallbackPageSize
-    
-    if let size = self.images.first?.pdfPage?.frame?.size {
-      rawPageSize = size //example: ▿ (892.913, 1332.28) => 1,4921
-    } else if let pdfMomentImage = issueInfo.feeder.momentImage(issue: issueInfo.issue,
-                                                                isPdf: true){
-      rawPageSize = pdfMomentImage.size //Example: (660.0, 985.0) => 1,492
-    } else {
-      log("Use fallback Page Size")
-    }
+    /// Use Page 1 Facsimile PDF CropBox  @see: PdfRenderService.swift -> extension PDFPage -> var frame
+    let rawPageSize:CGSize
+      = issue.pageOneFacsimilePdfPage?.frame?.size
+      ?? PdfDisplayOptions.Overview.fallbackPageSize
     
     self.defaultRawPageSize = rawPageSize
     let panoPageWidth
