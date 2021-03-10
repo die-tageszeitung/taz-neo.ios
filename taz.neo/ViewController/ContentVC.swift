@@ -146,6 +146,7 @@ open class ContentToolbar: UIView {
   }
 }
 
+// MARK: - ContentVC
 /**
  A ContentVC is a view controller that displays an array of Articles or Sections 
  in a collection of WebViews
@@ -413,6 +414,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     playButton.accessibilityLabel = "Vorlesen"
   }
   
+  // MARK: - viewDidLoad
   override public func viewDidLoad() {
     super.viewDidLoad()
     writeTazApiCss()
