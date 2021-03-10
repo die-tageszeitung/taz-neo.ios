@@ -294,6 +294,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public func checkReload() {
     if let visible = navigationController?.visibleViewController,
        let sissue = issue as? StoredIssue {
+      /// issue.isDownloading == true => feederContext.needsUpdate(..) => false
+      #warning("Cannot handle Pop Vc and show Overlay, if still downloaded reduced issue!")
       if (visible != self) && feederContext.needsUpdate(issue: sissue) {
         let snap = NavigationController.top()?.presentingViewController?.view.snapshotView(afterScreenUpdates: false)
         WaitingAppOverlay.show(alpha: 1.0,
