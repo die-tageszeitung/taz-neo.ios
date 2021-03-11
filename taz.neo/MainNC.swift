@@ -296,16 +296,6 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     registerForStyleUpdates()
   } // viewDidLoad
   
-  override func popViewController(animated: Bool) -> UIViewController? {
-    let childIdx = self.children.count - 2
-    if childIdx >= 0,
-       let newTopCtrl = self.children.valueAt(childIdx),
-       let opsCtrl = newTopCtrl as? OnPopSuccessor {
-      opsCtrl.handlePopSuccessor()
-    }
-    return super.popViewController(animated: animated)
-  }
-  
   func applyStyles() {
     self.view.backgroundColor = Const.SetColor.HBackground.color
     setNeedsStatusBarAppearanceUpdate()
@@ -317,11 +307,3 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   }
 
 } // MainNC
-
-/**
- A UIViewController implementing this protocol can provide a function that is called by MainNC
- when the direct successor is poped from stack.
- */
-protocol OnPopSuccessor: UIViewController {
-  func handlePopSuccessor()
-}

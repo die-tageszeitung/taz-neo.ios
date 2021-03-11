@@ -169,7 +169,7 @@ class NewPdfModel : PdfModel, DoesLog {
 
 // MARK: - TazPdfPagesViewController
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
-open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, OnPopSuccessor{
+open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   public var section: Section?
   
   public var sections: [Section]
@@ -241,28 +241,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
           articleVC.delegate = self
           articleVC.gotoUrl(path: path, file: link)
           self.navigationController?.pushViewController(articleVC, animated: true)
-      
-          
-          return;
-            //Good Idea, but much more to Do
-          articleVC.slider.button.isHidden = true
-
-          self.pushChildviewController(articleVC)
-          if let sliderButton = self.slider?.button {
-            self.view.bringSubviewToFront(sliderButton)
-          }
-          if let sliderView = self.slider?.sliderView {
-            self.view.bringSubviewToFront(sliderView)
-          }
-          
         }
       }
     }
-  }
-  
-  open override func didMove(toParent parent: UIViewController?) {
-    print("PDF Move to parent... \(parent)")
-    super.didMove(toParent: parent)
   }
   
   public required init?(coder: NSCoder) {
@@ -323,11 +304,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
   }
   
-  func handlePopSuccessor() {
-    guard let thumbnailController = self.thumbnailController else { return }
-    setupSlider(sliderContent: thumbnailController)
-  }
-  
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     slider?.close()
@@ -354,20 +330,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
-  }
-}
-
-
-extension UIViewController {
-  //No good way a lot to do!
-  func pushChildviewController(_ child:UIViewController, animated:Bool = true){
-    self.addChild(child)
-    child.view.pinSize(self.view.frame.size)
-    child.view.frame.origin = CGPoint(x: self.view.frame.size.width, y: 0)
-    self.view.addSubview(child.view)
-    UIView.animate(seconds: 0.6) {
-      child.view.frame.origin = .zero
-    }
   }
 }
 
