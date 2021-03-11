@@ -235,8 +235,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
               self?.collectionView?.index = newIndex //prefered!!
               print("tazpdfIndex: \(self?.pdfModel?.index) artVcIndex: \(newIndex)")
             }
-            articleVC.slider.close()
-            self?.navigationController?.popViewController(animated: true)
+            articleVC.slider.close(animated: true) { [weak self] _ in
+              self?.navigationController?.popViewController(animated: true)
+            }
           }
           articleVC.delegate = self
           articleVC.gotoUrl(path: path, file: link)
