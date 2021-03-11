@@ -177,17 +177,32 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   public var article: Article?
   
   public var article2section: [String : [Section]]
+  public func displaySection(index: Int) { log("displaySection not implemented")}
   
-  public func displaySection(index: Int) {
-    print("TODO: displaySection")
-  }
   
   public func linkPressed(from: URL?, to: URL?) {
-    print("TODO: linkPressed")
+    guard let to = to else { return }
+    let fn = to.lastPathComponent
+    let top = navigationController?.topViewController
+    debug("*** Action: Link pressed from: \(from?.lastPathComponent ?? "[undefined]") to: \(fn)")
+    if let avc = top as? ArticleVC,
+      to.isFileURL,
+      issue.article2sectionHtml[fn] != nil {
+      avc.gotoUrl(url:to)
+    }
+    else {
+      self.debug("Calling application for: \(to.absoluteString)")
+      if UIApplication.shared.canOpenURL(to) {
+        UIApplication.shared.open(to, options: [:], completionHandler: nil)
+      }
+      else {
+        error("No application or no permission for: \(to.absoluteString)")
+      }
+    }
   }
   
   public func closeIssue() {
-    print("TODO: closeIssue")
+    self.navigationController?.popViewController(animated: false)
   }
   
   public var feederContext: FeederContext
@@ -207,13 +222,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     return .lightContent
   }
   
-  public init(issueInfo:IssueInfo?) {
-    let pdfModel = NewPdfModel(issueInfo: issueInfo)
+  public init(issueInfo:IssueInfo) {
     Log.minLogLevel = .Debug
-    self.sections = issueInfo?.issue.sections ?? []
-    article2section = ["":[]]
-    feederContext = issueInfo!.feederContext
-    self.issue = issueInfo!.issue
+    let pdfModel = NewPdfModel(issueInfo: issueInfo)
+    self.sections = issueInfo.issue.sections ?? []
+    self.article2section = issueInfo.issue.article2section
+    self.feederContext = issueInfo.feederContext
+    self.issue = issueInfo.issue
     super.init(data: pdfModel)
     
     thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
@@ -224,16 +239,14 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       for frame in frames  {
         if frame.isInside(x: Float(x), y: Float(y)),
            let link = frame.link,
-           let path = zpdfi.issueDir?.path,
-           let feederContext = issueInfo?.feederContext
+           let path = zpdfi.issueDir?.path
         {
           let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
-          let articleVC = ArticleVcWithPdfInSlider(feederContext: feederContext,
+          let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
                                                    sliderContent: childThumbnailController)
           childThumbnailController.clickCallback = { [weak self] (_, pdfModel) in
             if let newIndex = pdfModel?.index {
-              self?.collectionView?.index = newIndex //prefered!!
-              print("tazpdfIndex: \(self?.pdfModel?.index) artVcIndex: \(newIndex)")
+              self?.collectionView?.index = newIndex
             }
             articleVC.slider.close(animated: true) { [weak self] _ in
               self?.navigationController?.popViewController(animated: true)
@@ -258,9 +271,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     thumbnailController.clickCallback = { [weak self] (_, pdfModel) in
       guard let self = self else { return }
       guard let newIndex = pdfModel?.index else { return }
-//      self.collectionView?.scrollto(newIndex, animated: false)
-//      self.pdfModel?.index = newIndex
-      self.collectionView?.index = newIndex //prefered!!
+      self.collectionView?.index = newIndex
       self.slider?.close()
     }
     setupSlider(sliderContent: thumbnailController)
