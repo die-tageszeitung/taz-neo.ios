@@ -426,14 +426,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if (ratio < 0) { self?.toolBar.hide(); self?.header.hide(true) }
       else { self?.toolBar.hide(false); self?.header.hide(false) }
     }
-    let img = UIImage.init(named: "logo")
-    slider.image = img
-    slider.image?.accessibilityLabel = "Inhalt"
-    slider.buttonAlpha = 1.0
-    slider.button.layer.shadowOpacity = 0.25
-    slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
-    slider.button.layer.shadowRadius = 4
-    header.leftIndent = 8 + slider.visibleButtonWidth
+    setupSlider()
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
       ContentUrl(path: path, issue: issue, content: cnt) { [weak self] curl in
@@ -445,6 +438,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     displayUrls(urls: curls)
     registerForStyleUpdates(alsoForiOS13AndHigher: true)
+  }
+  
+  public func setupSlider() {
+    let img = UIImage.init(named: "logo")
+    slider.image = img
+    slider.image?.accessibilityLabel = "Inhalt"
+    slider.buttonAlpha = 1.0
+    slider.button.layer.shadowOpacity = 0.25
+    slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
+    slider.button.layer.shadowRadius = 4
+    header.leftIndent = 8 + slider.visibleButtonWidth
   }
   
   public func applyStyles() {
