@@ -274,8 +274,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       self.collectionView?.index = newIndex
       self.slider?.close()
     }
-    setupSlider(sliderContent: thumbnailController)
     setupToolbar()
+    setupSlider(sliderContent: thumbnailController)
   }
   
   /// SideMenu
