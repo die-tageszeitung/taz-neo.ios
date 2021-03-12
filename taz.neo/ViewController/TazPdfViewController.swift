@@ -140,18 +140,21 @@ class NewPdfModel : PdfModel, DoesLog {
     self.issueInfo = issueInfo
     let issueDir = issueInfo.feeder.issueDir(issue: issue)
     
+    /// Use Page 1 Facsimile PDF CropBox  @see: PdfRenderService.swift -> extension PDFPage -> var frame
+    let rawPageSize:CGSize
+      = issue.pageOneFacsimilePdfPage?.frame?.size
+      ?? PdfDisplayOptions.Overview.fallbackPageSize
+    
+    let fullscreenPageHeight = UIScreen.main.bounds.width * rawPageSize.height / rawPageSize.width
+    
     for page in pages {
       let item = ZoomedPdfPageImage(page:page, issueDir: issueDir)
+      item.fullScreenPageHeight = fullscreenPageHeight
       #warning("TODO: put the handler to image not to view like now!")
       ///TODO: hide bar on pdf fullscreen view..
       ///item.whenScrolling!?
       self.images.append(item)
     }
-    
-    /// Use Page 1 Facsimile PDF CropBox  @see: PdfRenderService.swift -> extension PDFPage -> var frame
-    let rawPageSize:CGSize
-      = issue.pageOneFacsimilePdfPage?.frame?.size
-      ?? PdfDisplayOptions.Overview.fallbackPageSize
     
     self.defaultRawPageSize = rawPageSize
     let panoPageWidth
