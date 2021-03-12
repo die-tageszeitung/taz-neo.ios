@@ -269,6 +269,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   
   open override func viewDidLoad() {
     super.viewDidLoad()
+    self.cellVerticalScrollIndicatorInsets = UIEdgeInsets(top: 10,
+                                                  left: 0,
+                                                  bottom:10,
+                                                  right: 0)
+    self.cellHorizontalScrollIndicatorInsets = UIEdgeInsets(top: 10,
+                                                  left: 0,
+                                                  bottom:0,
+                                                  right: 0)
+    
     xButton.isHidden = true
     guard let thumbnailController = thumbnailController else {return }
     thumbnailController.clickCallback = { [weak self] (_, pdfModel) in
