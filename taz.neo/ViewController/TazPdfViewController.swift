@@ -328,6 +328,25 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     }
   }
   
+  open override func setupViewProvider(){
+    super.setupViewProvider()
+    onDisplay { [weak self] (idx, optionalView) in
+      guard let ziv = optionalView as? ZoomedImageView,
+            let pdfImg = ziv.optionalImage as? ZoomedPdfImageSpec else { return }
+      ziv.menu.menu = self?.menuItems ?? []
+      if ziv.imageView.image == nil
+      {
+        ziv.optionalImage = pdfImg
+        ziv.imageView.image = pdfImg.image
+        pdfImg.renderFullscreenImageIfNeeded { [weak self] success in
+          self?.handleRenderFinished(success, ziv)
+        }
+      }
+      self?.toolBar.hide(false)//show Toolbar
+    }
+  }
+  
+  
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     slider?.close()
@@ -354,6 +373,21 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
+    
+    if let pc = self.pageControl, let sv = pc.superview {
+      for constraint in sv.constraints {
+        if constraint.firstItem as? UIView == pc,
+           constraint.firstAnchor.isKind(of: NSLayoutYAxisAnchor.self) {
+          constraint.isActive = false
+        }
+      }
+      pin(pc.bottom, to: toolBar.top, dist: -10, priority: .required)
+    }
+    
+    self.whenScrolled(minRatio: 0.01) { [weak self] ratio in
+      if ratio < 0 { self?.toolBar.hide()}
+      else { self?.toolBar.hide(false)}
+    }
   }
 }
 
