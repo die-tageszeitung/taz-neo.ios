@@ -204,6 +204,10 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
 // MARK: - TazPdfPagesViewController
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
 open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
+  
+  private var orientationClosure:OrientationClosure? = OrientationClosure()
+  private var childControllerOrientationClosure:OrientationClosure? = OrientationClosure()
+  
   public var section: Section?
   
   public var sections: [Section]
@@ -278,6 +282,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
           let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
           let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
                                                    sliderContent: childThumbnailController)
+          articleVC.delegate = self
           childThumbnailController.clickCallback = { [weak self] (_, pdfModel) in
             if let newIndex = pdfModel?.index {
               self?.collectionView?.index = newIndex
@@ -286,9 +291,16 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
               self?.navigationController?.popViewController(animated: true)
             }
           }
-          articleVC.delegate = self
           articleVC.gotoUrl(path: path, file: link)
+          self.childControllerOrientationClosure?.onOrientationChange(closure: {
+            onMainAfter {
+              articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth
+            }
+          })
           self.navigationController?.pushViewController(articleVC, animated: true)
+          onMainAfter {
+            articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth
+          }
           break
         }
       }
@@ -328,7 +340,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     guard let slider = slider else { return }
     slider.image = UIImage.init(named: "logo")
     /// WARNING set Image changes the coverage Ratio!!
-    slider.coverageRatio = PdfDisplayOptions.Overview.sliderCoverageRatio
+    slider.coverage = PdfDisplayOptions.Overview.sliderWidth
+    self.orientationClosure?.onOrientationChange(closure: {
+      onMainAfter {
+        slider.coverage = PdfDisplayOptions.Overview.sliderWidth
+      }
+    })
     slider.image?.accessibilityLabel = "Inhalt"
     slider.buttonAlpha = 1.0
     slider.hideButtonOnClose = true
