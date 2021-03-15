@@ -10,6 +10,12 @@ import Foundation
 import NorthLib
 import PDFKit
 
+
+
+protocol PdfDownloadDelegate {
+  func downloadPdf(_ page:Page, finishedCallback: @escaping ((Bool)->()))
+}
+
 // MARK: - ZoomedPdfPageImage
 /// A ZoomedPdfPageImage handles PageReference (Page) PDF Files with their first PDF Page
 /// - usually they have only 1 Page
@@ -41,8 +47,17 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
     }
   }
   
+  fileprivate var pdfDownloadDelegate:PdfDownloadDelegate?
   
   public override func renderFullscreenImageIfNeeded(finishedCallback: ((Bool) -> ())?) {
+    
+    if pdfPage == nil,
+       let downloadDelegate = pdfDownloadDelegate,
+       let page = self.pageReference {
+      downloadDelegate.downloadPdf(page) { success in
+        if success == false { finishedCallback?(false); return }
+        super.renderFullscreenImageIfNeeded(finishedCallback: finishedCallback)
+      }
     }
     super.renderFullscreenImageIfNeeded(finishedCallback: finishedCallback)
   }
@@ -56,8 +71,7 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
 }
 
 // MARK: - NewPdfModel
-class NewPdfModel : PdfModel, DoesLog {
-  
+class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   func size(forItem atIndex: Int) -> CGSize {
     if let item = self.item(atIndex: atIndex),
        let pdfPageImage = item as? ZoomedPdfPageImage,
@@ -86,6 +100,8 @@ class NewPdfModel : PdfModel, DoesLog {
     return images.valueAt(atIndex)
   }
   
+ 
+  
   var images : [ZoomedPdfImageSpec] = []
   
   var pageMeta : [Int:String] = [:]
@@ -98,6 +114,14 @@ class NewPdfModel : PdfModel, DoesLog {
         totalSize += UInt64(img.image?.mbSize ?? 0)
       }
       return totalSize
+    }
+  }
+  
+  func downloadPdf(_ page: Page, finishedCallback: @escaping ((Bool) -> ())) {
+    guard let issueInfo = self.issueInfo else { finishedCallback(false); return }
+    issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue,
+                                         files: [page.pdf]) { error in
+      finishedCallback(error==nil)
     }
   }
   
@@ -156,6 +180,7 @@ class NewPdfModel : PdfModel, DoesLog {
     for page in pages {
       let item = ZoomedPdfPageImage(page:page, issueDir: issueDir)
       item.fullScreenPageHeight = fullscreenPageHeight
+      item.pdfDownloadDelegate = self
       #warning("TODO: put the handler to image not to view like now!")
       ///TODO: hide bar on pdf fullscreen view..
       ///item.whenScrolling!?
