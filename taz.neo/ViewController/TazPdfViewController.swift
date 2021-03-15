@@ -258,6 +258,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
           articleVC.delegate = self
           articleVC.gotoUrl(path: path, file: link)
           self.navigationController?.pushViewController(articleVC, animated: true)
+          break
         }
       }
     }
