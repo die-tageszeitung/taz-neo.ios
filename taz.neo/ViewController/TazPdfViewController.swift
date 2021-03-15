@@ -275,7 +275,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
                                                   right: 0)
     self.cellHorizontalScrollIndicatorInsets = UIEdgeInsets(top: 10,
                                                   left: 0,
-                                                  bottom:0,
+                                                  bottom:-UIWindow.bottomInset,
                                                   right: 0)
     
     xButton.isHidden = true
