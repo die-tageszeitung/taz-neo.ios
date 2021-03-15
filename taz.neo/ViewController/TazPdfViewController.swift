@@ -41,13 +41,8 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
     }
   }
   
-  var renderFullscreenFinishedClosure:((Bool) -> ())?
   
   public override func renderFullscreenImageIfNeeded(finishedCallback: ((Bool) -> ())?) {
-    if pdfPage == nil {
-      //Not downloaded yet, wait for download, let it jandle the  model
-      renderFullscreenFinishedClosure = finishedCallback
-      return
     }
     super.renderFullscreenImageIfNeeded(finishedCallback: finishedCallback)
   }
@@ -88,21 +83,6 @@ class NewPdfModel : PdfModel, DoesLog {
   var panoPageSize: CGSize?
   
   func item(atIndex: Int) -> ZoomedPdfImageSpec? {
-    if let pdfImg = images.valueAt(atIndex) as? ZoomedPdfPageImage,
-      pdfImg.pdfPage == nil,
-      let issueInfo = issueInfo,
-      let pageRef = pdfImg.pageReference
-    {
-      //PDF Page Download is needed!
-      issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue, files: [pageRef.pdf]) { _ in
-        if let finishedHandler = pdfImg.renderFullscreenFinishedClosure {
-          pdfImg.renderFullscreenFinishedClosure = nil
-          pdfImg.renderFullscreenImageIfNeeded { success in
-            finishedHandler(success)
-          }
-        }
-      }
-    }
     return images.valueAt(atIndex)
   }
   
