@@ -273,7 +273,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     self.onTap { [weak self] (oimg, x, y) in
       guard let self = self else { return }
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
-      guard let frames = zpdfi.pageReference?.frames else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)), let path = zpdfi.issueDir?.path else { return }
       let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
       let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
