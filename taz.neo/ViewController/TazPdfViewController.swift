@@ -274,35 +274,28 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       guard let self = self else { return }
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let frames = zpdfi.pageReference?.frames else { return }
-      for frame in frames  {
-        if frame.isInside(x: Float(x), y: Float(y)),
-           let link = frame.link,
-           let path = zpdfi.issueDir?.path
-        {
-          let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
-          let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
-                                                   sliderContent: childThumbnailController)
-          articleVC.delegate = self
-          childThumbnailController.clickCallback = { [weak self] (_, pdfModel) in
-            if let newIndex = pdfModel?.index {
-              self?.collectionView?.index = newIndex
-            }
-            articleVC.slider.close(animated: true) { [weak self] _ in
-              self?.navigationController?.popViewController(animated: true)
-            }
-          }
-          articleVC.gotoUrl(path: path, file: link)
-          self.childControllerOrientationClosure?.onOrientationChange(closure: {
-            onMainAfter {
-              articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth
-            }
-          })
-          self.navigationController?.pushViewController(articleVC, animated: true)
-          onMainAfter {
-            articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth
-          }
-          break
+      guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)), let path = zpdfi.issueDir?.path else { return }
+      let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
+      let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
+                                               sliderContent: childThumbnailController)
+      articleVC.delegate = self
+      childThumbnailController.clickCallback = { [weak self] (_, pdfModel) in
+        if let newIndex = pdfModel?.index {
+          self?.collectionView?.index = newIndex
         }
+        articleVC.slider.close(animated: true) { [weak self] _ in
+          self?.navigationController?.popViewController(animated: true)
+        }
+      }
+      articleVC.gotoUrl(path: path, file: link)
+      self.childControllerOrientationClosure?.onOrientationChange(closure: {
+        onMainAfter {
+          articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth
+        }
+      })
+      self.navigationController?.pushViewController(articleVC, animated: true)
+      onMainAfter {
+        articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth
       }
     }
   }
