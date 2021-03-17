@@ -357,7 +357,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     self.pageControl?.layer.shadowOpacity = 1.0
     self.pageControl?.pageIndicatorTintColor = UIColor.white
     self.pageControl?.currentPageIndicatorTintColor = Const.SetColor.CIColor.color
-    self.menuItems = self.menuItems
+    self.menuItems = []
     
     if let thumbCtrl = self.thumbnailController {
       thumbCtrl.menuItems = self.menuItems
