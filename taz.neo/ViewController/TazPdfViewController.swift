@@ -289,12 +289,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       articleVC.gotoUrl(path: path, file: link)
       self.childControllerOrientationClosure?.onOrientationChange(closure: {
         onMainAfter {
-          articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth
+          articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth + UIWindow.safeInsets.left
         }
       })
       self.navigationController?.pushViewController(articleVC, animated: true)
       onMainAfter {
-        articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth
+        articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth + UIWindow.safeInsets.left
       }
     }
   }
@@ -332,10 +332,10 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     guard let slider = slider else { return }
     slider.image = UIImage.init(named: "logo")
     /// WARNING set Image changes the coverage Ratio!!
-    slider.coverage = PdfDisplayOptions.Overview.sliderWidth
+    slider.coverage = PdfDisplayOptions.Overview.sliderWidth + UIWindow.safeInsets.left
     self.orientationClosure?.onOrientationChange(closure: {
       onMainAfter {
-        slider.coverage = PdfDisplayOptions.Overview.sliderWidth
+        slider.coverage = PdfDisplayOptions.Overview.sliderWidth + UIWindow.safeInsets.left
       }
     })
     slider.image?.accessibilityLabel = "Inhalt"
