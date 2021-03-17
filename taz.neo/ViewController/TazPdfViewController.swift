@@ -410,6 +410,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
                            direction: .right,
                            accessibilityLabel: "Übersicht"
                            )
+    _ = toolBar.addImageButton(name: "arrowLeft",
+                           onPress: onHome,
+                           direction: .left,
+                           accessibilityLabel: "Zurück"
+                           )
     
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
