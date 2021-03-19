@@ -12,14 +12,19 @@ import NorthLib
 public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   
   public let imageView = UIImageView()
-  public let button = UIButton()
+  public let button = DownloadStatusButton()
   let buttonHeight:CGFloat = 30.0
   let buttonOffset:CGFloat = 3.0
   
   var menu:ContextMenu?
+  
+  public var observer : NSObjectProtocol?
  
   public override func prepareForReuse() {
     self.imageView.image = nil
+    self.observer = nil
+    self.button.startHandler = nil
+    self.button.startHandler = nil
     self.button.setTitle("", for: .normal)
   }
   
@@ -48,32 +53,15 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     pin(button, to: contentView, exclude: .top)
     button.pinHeight(buttonHeight)
     pin(button.topGuide(), to: imageView.bottomGuide(), dist: buttonOffset, priority: .fittingSizeLevel)
-    
-    button.imageEdgeInsets = UIEdgeInsets(top: 2, left: 8, bottom: -2, right: -8)
-    button.semanticContentAttribute = UIApplication.shared
-      .userInterfaceLayoutDirection == .rightToLeft ? .forceLeftToRight : .forceRightToLeft
-    button.imageView?.tintColor = .white
-    
-    self.addBorder(.green, 0.5)
-    self.contentView.addBorder(.yellow, 1.0)
-    self.imageView.addBorder(.blue, 1.5)
-    self.button.addBorder(.red, 0.5)
+    button.tintColor = Const.Colors.darkSecondaryText
+    //not use cloud image from assets due huge padding
+    //button.cloudImage = UIImage(named: "download")
+    button.setTitleColor(Const.Colors.darkSecondaryText, for: .normal)
   }
   
   public var text : String? {
     didSet {
       button.setTitle(text, for: .normal)
-    }
-  }
-  
-  public var cloudHidden : Bool = false {
-    didSet {
-      if cloudHidden {
-        button.setImage(nil, for: .normal)
-      }
-      else {
-        button.setImage(UIImage(name: "icloud.and.arrow.down"), for: .normal)
-      }
     }
   }
   
