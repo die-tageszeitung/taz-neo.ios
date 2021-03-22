@@ -155,31 +155,22 @@ class FormsResultController: UIViewController {
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    updateContainerWidth()
+    updateContainerWidth(self.view.bounds.size.width)
   }
   
-  func updateContainerWidth(_ newWidth:CGFloat? = 540){
+  func updateContainerWidth(_ newWidth:CGFloat){
     if let constraint = wConstraint{
       ui.container.removeConstraint(constraint)
     }
-    let width = newWidth ?? view.frame.size.width
-    wConstraint = ui.container.pinWidth(width)
+    wConstraint = ui.container.pinWidth(newWidth)
     wConstraint?.priority = .required
-    self.preferredContentSize = CGSize(width: 540, height: UIScreen.main.bounds.size.height)
-//    self.popoverPresentationController?.sourceRect = CGRect(x: width/2 - 100, y: 0, width: 0, height: 0)
-//    self.preferredContentSize = CGSize(width: 540, height: 0)
-    
-//    print("Forms.willTransition to size: \(size)")
-//    onMainAfter(3.0) {
-      print("UPADTE to width: \(width) current views frame: \(self.view.frame) contentViewFrame:\(self.contentView.frame) sv frame: \(self.contentView.scrollView.frame) sv.cont.frame: \(self.contentView.container.frame) ScreenHeight: \(UIScreen.main.bounds.size.height)")
-//    }
-    
+    self.preferredContentSize = CGSize(width: newWidth, height: UIScreen.main.bounds.size.height)
   }
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     /// Unfortulatly the presented VC's did not recice the msg. no matter which presentation style
     self.presentedViewController?.viewWillTransition(to: size, with: coordinator)
-    updateContainerWidth()
+    updateContainerWidth(size.width)
   }
   
   

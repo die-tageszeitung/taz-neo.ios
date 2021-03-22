@@ -241,8 +241,6 @@ public class DefaultAuthenticator: Authenticator, HandleOrientation {
 //      if let view = (rootVC as? UINavigationController)?.topViewController?.view {
 //        registerController.popoverPresentationController?.sourceView = view
 //      } else {
-//        registerController.popoverPresentationController?.sourceView = rootVC.view
-//      }
       
       
 //      if let popup = registerController.view.superview,
@@ -266,7 +264,22 @@ public class DefaultAuthenticator: Authenticator, HandleOrientation {
     firstPresentedAuthController = registerController
     rootVC.present(registerController, animated: true, completion: {
       rootVC.presentationController?.presentedView?.gestureRecognizers?[0].isEnabled = true
-//      registerController.preferredContentSize = CGSize(width: 600, height: 900)
+      /// Add TapOn Background like in popup presentation
+      if let window = UIApplication.shared.delegate?.window {
+        for view in window?.subviews ?? []{
+          if view.typeName == "UITransitionView" {
+            for v in view.subviews {
+              if v.typeName == "UIDimmingView" {
+                v.onTapping { rec in
+                  v.removeGestureRecognizer(rec)
+                  registerController.dismiss(animated: true)
+                }
+                return
+              }
+            }
+          }
+        }
+      }
     })
   }
   
@@ -310,3 +323,22 @@ extension UIDevice {
   
   
 }
+
+
+protocol NameDescribable {
+    var typeName: String { get }
+    static var typeName: String { get }
+}
+
+extension NameDescribable {
+    var typeName: String {
+        return String(describing: type(of: self))
+    }
+
+    static var typeName: String {
+        return String(describing: self)
+    }
+}
+
+// Extend with class/struct/enum...
+extension NSObject: NameDescribable {}
