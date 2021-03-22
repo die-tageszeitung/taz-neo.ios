@@ -362,8 +362,8 @@ class OverlayViewController : UIViewController{
     xButton.buttonView.color = UIColor.rgb(0x707070)
     xButton.buttonView.innerCircleFactor = 0.5
     self.view.addSubview(xButton)
-    pin(xButton.right, to: self.view.rightGuide(), dist: -15)
-    pin(xButton.top, to: self.view.topGuide(), dist: 15)
+    pin(xButton.right, to: self.view.rightGuide(), dist: Const.Size.DefaultPadding)
+    pin(xButton.top, to: self.view.topGuide(), dist: Const.Size.DefaultPadding)
     xButton.isHidden = true
   }
   

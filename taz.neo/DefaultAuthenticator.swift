@@ -106,10 +106,11 @@ extension DefaultAuthenticator : AuthMediator{
   }
 }
 
-public class DefaultAuthenticator: Authenticator {
+public class DefaultAuthenticator: Authenticator, HandleOrientation {
   
   /// Ref to feeder providing Data
   public var feeder: GqlFeeder
+  public var orientationChangedClosure = OrientationClosure()
   
   private var _resultSuccessText:String?
   fileprivate var resultSuccessText:String {
@@ -231,9 +232,41 @@ public class DefaultAuthenticator: Authenticator {
       registerController.isModalInPresentation = false
     }
 
+    if Device.isIpad {
+      registerController.modalPresentationStyle = .formSheet
+//      registerController.preferredContentSize = CGSize(width: 540, height: 768)
+//      registerController.popoverPresentationController?.sourceRect = CGRect(origin: rootVC.view.center, size: .zero)
+//      let size = CGSize(width: UIScreen.main.bounds.size.width*0.7, height: UIScreen.main.bounds.size.height*0.7)
+//      registerController.preferredContentSize = size
+//      if let view = (rootVC as? UINavigationController)?.topViewController?.view {
+//        registerController.popoverPresentationController?.sourceView = view
+//      } else {
+//        registerController.popoverPresentationController?.sourceView = rootVC.view
+//      }
+      
+      
+//      if let popup = registerController.view.superview,
+//         let backgroundView = rootVC.view {
+//        popup.center = backgroundView.center
+//      }
+//      func updatePopup(ctrl:UIViewController){
+//        print("ScreenBounds: \(UIScreen.main.bounds) NextOrientation: \(UIDevice.currentOrientation) Bounds: \(UIScreen.main.bounds.size)")
+//        ctrl.popoverPresentationController?.sourceRect = CGRect(origin: rootVC.view.center, size: .zero)
+//      }
+//      updatePopup(ctrl: registerController)
+////      orientationChangedClosure.onOrientationChange(closure: <#T##(() -> ())?##(() -> ())?##() -> ()#>)
+//      orientationChangedClosure.onOrientationChange { updatePopup(ctrl: registerController) }
+      
+//      _popoverPresentationController.sourceRect = CGRectMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds),0,0)
+//
+//      registerController.view.pinSize(size)
+//      registerController.view.
+    }
+
     firstPresentedAuthController = registerController
     rootVC.present(registerController, animated: true, completion: {
       rootVC.presentationController?.presentedView?.gestureRecognizers?[0].isEnabled = true
+//      registerController.preferredContentSize = CGSize(width: 600, height: 900)
     })
   }
   
@@ -242,3 +275,38 @@ public class DefaultAuthenticator: Authenticator {
   }
   
 } // DefaultAuthenticator
+
+
+extension UIDevice {
+  func updatePopupFrame(for ctrl:UIViewController,
+                        minWidth:CGFloat = min(650,
+                                               UIScreen.main.bounds.size.width,
+                                               UIScreen.main.bounds.size.height)){
+//    let
+  }
+  
+  static var currentOrientation : String {
+    get{
+      switch self.current.orientation {
+        case .faceDown:
+          return "faceDown"
+        case .faceUp:
+          return "faceUp"
+        case .landscapeLeft:
+          return "landscapeLeft"
+        case .landscapeRight:
+          return "landscapeRight"
+        case .portrait:
+          return "portrait"
+        case .portraitUpsideDown:
+          return "portraitUpsideDown"
+        case .unknown:
+          return "unknown"
+        @unknown default:
+          return "unknown new"
+      }
+    }
+  }
+  
+  
+}
