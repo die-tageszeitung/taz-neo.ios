@@ -224,47 +224,17 @@ public class DefaultAuthenticator: Authenticator, HandleOrientation {
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
   public func authenticate() {
     guard let rootVC = rootVC else { return }
-    rootVC.modalPresentationStyle = .overCurrentContext
-    let registerController = LoginController(self)
-    if #available(iOS 13.0, *) {
-      //Prevent dismis by pan down in various modalPresentationStyles
-      //the default < iOS 13 Behaviour
-      registerController.isModalInPresentation = false
-    }
 
-    if Device.isIpad {
-      registerController.modalPresentationStyle = .formSheet
-//      registerController.preferredContentSize = CGSize(width: 540, height: 768)
-//      registerController.popoverPresentationController?.sourceRect = CGRect(origin: rootVC.view.center, size: .zero)
-//      let size = CGSize(width: UIScreen.main.bounds.size.width*0.7, height: UIScreen.main.bounds.size.height*0.7)
-//      registerController.preferredContentSize = size
-//      if let view = (rootVC as? UINavigationController)?.topViewController?.view {
-//        registerController.popoverPresentationController?.sourceView = view
-//      } else {
-      
-      
-//      if let popup = registerController.view.superview,
-//         let backgroundView = rootVC.view {
-//        popup.center = backgroundView.center
-//      }
-//      func updatePopup(ctrl:UIViewController){
-//        print("ScreenBounds: \(UIScreen.main.bounds) NextOrientation: \(UIDevice.currentOrientation) Bounds: \(UIScreen.main.bounds.size)")
-//        ctrl.popoverPresentationController?.sourceRect = CGRect(origin: rootVC.view.center, size: .zero)
-//      }
-//      updatePopup(ctrl: registerController)
-////      orientationChangedClosure.onOrientationChange(closure: <#T##(() -> ())?##(() -> ())?##() -> ()#>)
-//      orientationChangedClosure.onOrientationChange { updatePopup(ctrl: registerController) }
-      
-//      _popoverPresentationController.sourceRect = CGRectMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds),0,0)
-//
-//      registerController.view.pinSize(size)
-//      registerController.view.
-    }
+    let registerController = LoginController(self)
+    registerController.modalPresentationStyle
+      =  Device.isIpad ? .formSheet : .overCurrentContext
 
     firstPresentedAuthController = registerController
     rootVC.present(registerController, animated: true, completion: {
       rootVC.presentationController?.presentedView?.gestureRecognizers?[0].isEnabled = true
       /// Add TapOn Background like in popup presentation
+      if Device.isIphone { return }
+      //Only iPad
       if let window = UIApplication.shared.delegate?.window {
         for view in window?.subviews ?? []{
           if view.typeName == "UITransitionView" {

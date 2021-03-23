@@ -155,22 +155,48 @@ class FormsResultController: UIViewController {
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    updateContainerWidth(self.view.bounds.size.width)
+    updateViewSize(self.view.bounds.size)
   }
-  
-  func updateContainerWidth(_ newWidth:CGFloat){
+    
+  /// Updates the Controllers View Size for changed traits
+  ///
+  /// In this Case height did not matter
+  /// - Parameter newSize: new Size for hosted view
+  func updateViewSize(_ newSize:CGSize){
     if let constraint = wConstraint{
       ui.container.removeConstraint(constraint)
     }
-    wConstraint = ui.container.pinWidth(newWidth)
-    wConstraint?.priority = .required
-    self.preferredContentSize = CGSize(width: newWidth, height: UIScreen.main.bounds.size.height)
+    
+    let screenSize = UIScreen.main.bounds.size
+    
+    ///Fix Form Sheet Size
+    if self.modalPresentationStyle == .formSheet
+        && newSize.height == screenSize.height || newSize.height == screenSize.width
+        && newSize.width == screenSize.height || newSize.width == screenSize.width {
+      ///Unfortunattly ui.scrollView.contentSize.height is too small for Register View to use it,
+      ///may need 2 Steps to calculate its height, maybe later
+      let height:CGFloat = min(UIScreen.main.bounds.size.width,
+                               UIScreen.main.bounds.size.height)
+        
+      let formSheetSize = CGSize(width: 540,
+                                 height: height)
+      self.preferredContentSize = formSheetSize
+      print("updateViewSize to: \(formSheetSize) not: \(newSize)")
+      wConstraint = ui.container.pinWidth(formSheetSize.width, priority: .required)
+    } else {
+      print("updateViewSize to: \(newSize)")
+      wConstraint = ui.container.pinWidth(newSize.width, priority: .required)
+    }
+    
+    
+    
+    
   }
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     /// Unfortulatly the presented VC's did not recice the msg. no matter which presentation style
     self.presentedViewController?.viewWillTransition(to: size, with: coordinator)
-    updateContainerWidth(size.width)
+    updateViewSize(size)
   }
   
   
