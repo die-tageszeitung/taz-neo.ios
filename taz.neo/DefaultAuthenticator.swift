@@ -226,6 +226,12 @@ public class DefaultAuthenticator: Authenticator, HandleOrientation {
     guard let rootVC = rootVC else { return }
 
     let registerController = LoginController(self)
+    if #available(iOS 13.0, *) {
+      //Prevent dismis by pan down in various modalPresentationStyles
+      //the default < iOS 13 Behaviour
+      registerController.isModalInPresentation = false
+    }
+    
     registerController.modalPresentationStyle
       =  Device.isIpad ? .formSheet : .overCurrentContext
 
