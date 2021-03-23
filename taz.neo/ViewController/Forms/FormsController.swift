@@ -171,8 +171,8 @@ class FormsResultController: UIViewController {
     
     ///Fix Form Sheet Size
     if self.modalPresentationStyle == .formSheet
-        && newSize.height == screenSize.height || newSize.height == screenSize.width
-        && newSize.width == screenSize.height || newSize.width == screenSize.width {
+        && (newSize.height == screenSize.height || newSize.height == screenSize.width)
+        && (newSize.width == screenSize.height || newSize.width == screenSize.width) {
       ///Unfortunattly ui.scrollView.contentSize.height is too small for Register View to use it,
       ///may need 2 Steps to calculate its height, maybe later
       let height:CGFloat = min(UIScreen.main.bounds.size.width,
