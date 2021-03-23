@@ -160,23 +160,26 @@ class FormsResultController: UIViewController {
       ui.container.removeConstraint(constraint)
     }
     
-    let screenSize = UIScreen.main.bounds.size
+    let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
+//    print("ScreenSize: \(screenSize)  (updateViewSize)")
+//    print("WindowSize: \(UIApplication.shared.windows.first?.bounds.size)  (updateViewSize)")
     
     ///Fix Form Sheet Size
-    if self.modalPresentationStyle == .formSheet
-        && (newSize.height == screenSize.height || newSize.height == screenSize.width)
-        && (newSize.width == screenSize.height || newSize.width == screenSize.width) {
+    if self.baseLoginController?.modalPresentationStyle == .formSheet && newSize.width > 540 {
       ///Unfortunattly ui.scrollView.contentSize.height is too small for Register View to use it,
       ///may need 2 Steps to calculate its height, maybe later
-      let height:CGFloat = min(UIScreen.main.bounds.size.width,
-                               UIScreen.main.bounds.size.height)
+      let height:CGFloat = min(windowSize.width,
+                               windowSize.height)
         
       let formSheetSize = CGSize(width: 540,
                                  height: height)
       self.preferredContentSize = formSheetSize
       wConstraint = ui.container.pinWidth(formSheetSize.width, priority: .required)
+//      print("updateViewSize to: \(formSheetSize) not: \(newSize)")
     } else {
       wConstraint = ui.container.pinWidth(newSize.width, priority: .required)
+//      print("updateViewSize to: \(newSize)")
+
     }
   }
   
@@ -280,6 +283,12 @@ extension UIViewController {
 extension FormsResultController{
   /// Present given VC on topmost Viewcontroller with flip transition
   func modalFlip(_ controller:UIViewController){
+    if Device.isIpad, let size = self.baseLoginController?.view.bounds.size {
+      print("Modal Flip copy popup size: \(size) (prepare: updateViewSize)")
+//      controller.view.pinSize(size)//Nightmare!!
+      controller.preferredContentSize = size
+      
+    }
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .flipHorizontal
     
