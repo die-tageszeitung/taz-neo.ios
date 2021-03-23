@@ -175,10 +175,8 @@ class FormsResultController: UIViewController {
                                  height: height)
       self.preferredContentSize = formSheetSize
       wConstraint = ui.container.pinWidth(formSheetSize.width, priority: .required)
-//      print("updateViewSize to: \(formSheetSize) not: \(newSize)")
     } else {
       wConstraint = ui.container.pinWidth(newSize.width, priority: .required)
-//      print("updateViewSize to: \(newSize)")
 
     }
   }
@@ -284,15 +282,12 @@ extension FormsResultController{
   /// Present given VC on topmost Viewcontroller with flip transition
   func modalFlip(_ controller:UIViewController){
     if Device.isIpad, let size = self.baseLoginController?.view.bounds.size {
-      print("Modal Flip copy popup size: \(size) (prepare: updateViewSize)")
-//      controller.view.pinSize(size)//Nightmare!!
       controller.preferredContentSize = size
       
     }
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .flipHorizontal
     
-//    MainNC.singleton.setupTopMenus(view: controller.view)
     self.topmostModalVc.present(controller, animated: true, completion:nil)
   }
   
