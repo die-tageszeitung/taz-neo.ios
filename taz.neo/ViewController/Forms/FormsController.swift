@@ -42,8 +42,6 @@ extension String{
  - **ConnectTazIdController**
  - **TrialSubscriptionController**
  
- 
- 
  #TODO REMOVE AFTER REFACTOR
  We have the following inheritance
  - FormsController: UIViewController
@@ -58,7 +56,6 @@ extension String{
  - CreateTazIDController
  - ConnectExistingTazIdController
  
- 
  #Discussion TextView with Attributed String for format & handle Links/E-Mail Adresses
  or multiple Views with individual button/click Handler
  Pro: AttributedString Con: multiple views
@@ -66,8 +63,6 @@ extension String{
  - hande of link leaves the app => solve by using individual handler
  - ugly html & data handling
  + super simple add & exchange text
- 
- 
  */
 
 class FormsController: FormsResultController {
@@ -99,7 +94,6 @@ class FormsResultController: UIViewController {
   
   private var messageLabel = Padded.Label(paddingTop: 30, paddingBottom: 15)
   private var messageLabel2 = Padded.Label(paddingTop: 15, paddingBottom: 30)
-  
   
   /// Exchange the displayed text with the new one
   /// - Parameters:
@@ -146,7 +140,6 @@ class FormsResultController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    #warning("ipad")
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(ui)
     pin(ui, toSafe: self.view).top.constant = 0
@@ -181,16 +174,10 @@ class FormsResultController: UIViewController {
       let formSheetSize = CGSize(width: 540,
                                  height: height)
       self.preferredContentSize = formSheetSize
-      print("updateViewSize to: \(formSheetSize) not: \(newSize)")
       wConstraint = ui.container.pinWidth(formSheetSize.width, priority: .required)
     } else {
-      print("updateViewSize to: \(newSize)")
       wConstraint = ui.container.pinWidth(newSize.width, priority: .required)
     }
-    
-    
-    
-    
   }
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
