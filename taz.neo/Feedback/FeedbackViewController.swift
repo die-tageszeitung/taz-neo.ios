@@ -268,6 +268,7 @@ public class FeedbackViewController : UIViewController{
   func showScreenshot(){
     let vc = OverlayViewController()
     let imageView = UIImageView(image: screenshot)
+    imageView.contentMode = .scaleAspectFit
     vc.view.addSubview(imageView)
     vc.view.backgroundColor = UIColor(white: 0.0, alpha: 0.8)//hide the transparent Background from App's Screenshot
     pin(imageView, to: vc.view)
