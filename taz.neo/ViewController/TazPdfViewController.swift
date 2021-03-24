@@ -217,7 +217,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   public var article2section: [String : [Section]]
   public func displaySection(index: Int) { log("displaySection not implemented")}
   
-  
+  // MARK: - linkPressed
   public func linkPressed(from: URL?, to: URL?) {
     guard let to = to else { return }
     let fn = to.lastPathComponent
@@ -260,6 +260,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     return .lightContent
   }
   
+  // MARK: - init
   public init(issueInfo:IssueInfo) {
     Log.minLogLevel = .Debug
     let pdfModel = NewPdfModel(issueInfo: issueInfo)
@@ -303,6 +304,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     fatalError("init(coder:) has not been implemented")
   }
   
+  // MARK: - viewDidLoad
   open override func viewDidLoad() {
     super.viewDidLoad()
     self.cellVerticalScrollIndicatorInsets = UIEdgeInsets(top: 10,
@@ -326,7 +328,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     setupSlider(sliderContent: thumbnailController)
   }
   
-  /// SideMenu
+  // MARK: - setupSlider
   func setupSlider(sliderContent:UIViewController){
     slider = ButtonSlider(slider: sliderContent, into: self)
     guard let slider = slider else { return }
@@ -349,6 +351,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     slider.close()
   }
   
+  // MARK: - viewWillAppear
   open override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     self.pageControl?.layer.shadowColor = UIColor.lightGray.cgColor
@@ -369,6 +372,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     }
   }
   
+  // MARK: - setupViewProvider
   open override func setupViewProvider(){
     super.setupViewProvider()
     onDisplay { [weak self] (idx, optionalView) in
@@ -388,16 +392,19 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   }
   
   
+  // MARK: - viewDidDisappear
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     slider?.close()
   }
   
+  // MARK: - viewDidAppear
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     Notification.send(Const.NotificationNames.articleLoaded)
   }
   
+  // MARK: - setupToolbar
   func setupToolbar() {
     //the button tap closures
     let onHome:((ButtonControl)->()) = { [weak self] _ in
@@ -437,6 +444,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   }
 }
 
+// MARK: - Class ArticleVcWithPdfInSlider
 class ArticleVcWithPdfInSlider : ArticleVC {
   
   var sliderContent: UIViewController
