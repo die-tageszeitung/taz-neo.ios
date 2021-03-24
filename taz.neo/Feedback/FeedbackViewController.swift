@@ -58,6 +58,27 @@ public class FeedbackViewController : UIViewController{
     super.init(nibName: nil, bundle: nil)
   }
   
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    updateViewSize(self.view.bounds.size)
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    self.presentedViewController?.viewWillTransition(to: size, with: coordinator)
+    updateViewSize(size)
+  }
+  
+  private var wConstraint:NSLayoutConstraint?
+
+  /// update size for changed traits
+  func updateViewSize(_ newSize:CGSize){
+    guard let feedbackView = feedbackView else { return }
+    if let constraint = wConstraint{
+      feedbackView.stack.removeConstraint(constraint)
+    }
+    wConstraint = feedbackView.stack.pinWidth(newSize.width - 24, priority: .required)
+  }
+  
   public override func viewDidDisappear(_ animated: Bool) {
     self.feedbackView = nil
     self.type = nil

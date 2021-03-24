@@ -28,11 +28,11 @@ import UIKit
  
  */
 
-public class FeedbackView : UIView, HandleOrientation {
+public class FeedbackView : UIView {
   let attachmentButtonHeight : CGFloat = 110
-  var contentWidthConstraint:NSLayoutConstraint?
   var type:FeedbackType
   var isLoggedIn:Bool
+  public let stack = UIStackView()
   public let subjectLabel = UILabel()
   public let messageTextView = ViewWithTextView()
   public let lastInteractionTextView = ViewWithTextView()
@@ -105,8 +105,7 @@ public class FeedbackView : UIView, HandleOrientation {
     screenshotAttachmentButton.contentMode = .scaleAspectFit
     hStack2.addSubview(logAttachmentButton)
     logAttachmentButton.image = UIImage(name: "doc.text")
-    
-    let stack = UIStackView()
+  
     stack.axis = .vertical
     stack.spacing = 4.0//Seperators increase spacing!
     stack.addArrangedSubview(hStack1)
@@ -133,15 +132,6 @@ public class FeedbackView : UIView, HandleOrientation {
     
     scrollView.addSubview(stack)
     pin(stack, to: scrollView, dist: 12)
-    contentWidthConstraint = stack.pinWidth(UIScreen.main.bounds.size.width - 24, priority: .required)
-    onOrientationChange{ [weak self] in
-      guard let self = self else { return }
-      let a = UIScreen.main.bounds.size.width
-      let b = UIScreen.main.bounds.size.height
-      let width = self.isLandscape ? max(a,b) : min(a,b)
-      self.contentWidthConstraint?.constant = width - 24
-    }
-    
     self.addSubview(scrollView)
     pin(scrollView, toSafe: self)
     
