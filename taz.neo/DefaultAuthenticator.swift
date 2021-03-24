@@ -106,11 +106,10 @@ extension DefaultAuthenticator : AuthMediator{
   }
 }
 
-public class DefaultAuthenticator: Authenticator, HandleOrientation {
+public class DefaultAuthenticator: Authenticator {
   
   /// Ref to feeder providing Data
   public var feeder: GqlFeeder
-  public var orientationChangedClosure = OrientationClosure()
   
   private var _resultSuccessText:String?
   fileprivate var resultSuccessText:String {
