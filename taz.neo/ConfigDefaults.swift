@@ -37,5 +37,11 @@ public let ConfigDefaults = Defaults.Values([
   // Allow trial subscriptions
   "offerTrialSubscription" : "true",
   // Use facsimile mode if available
-  "isFacsimile" : "false"
+  "isFacsimile" : "false",
+  // Tap in PDF open ArticleView
+  "articleFromPdf" : "true",
+  // show/hide Toolbar in PDF View at page switch
+  "showToolbarOnPageSwitch" : "true",
+  // display full PDF Page on Page switch in Landscape
+  "fullPdfOnPageSwitch" : "false"
 ])

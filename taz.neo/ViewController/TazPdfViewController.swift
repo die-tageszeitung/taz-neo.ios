@@ -254,6 +254,44 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   var thumbnailController : PdfOverviewCollectionVC?
   var slider:ButtonSlider?
   
+  @DefaultBool(key: "articleFromPdf")
+  public var articleFromPdf: Bool
+  
+  @DefaultBool(key: "showToolbarOnPageSwitch")
+  public var showToolbarOnPageSwitch: Bool
+  
+  @DefaultBool(key: "fullPdfOnPageSwitch")
+  public var fullPdfOnPageSwitch: Bool
+ 
+  // MARK: - updateMenuItems
+  func updateMenuItems(){
+    self.menuItems = [
+      ("Artikelansicht",
+       articleFromPdf ? "checkmark" : "",
+       { [weak self] _ in
+        guard let self = self else { return }
+        self.articleFromPdf = !self.articleFromPdf
+        self.updateMenuItems()
+       }),
+      ("Zeige Toolbar bei Seitenwechsel",
+       showToolbarOnPageSwitch ? "checkmark" : "",
+       { [weak self] _ in
+        guard let self = self else { return }
+        //DO: self.toolBar.hide(true)
+        self.showToolbarOnPageSwitch = !self.showToolbarOnPageSwitch
+        self.updateMenuItems()
+      }),
+      ("Ganze Seite bei Seitenwechsel",
+       fullPdfOnPageSwitch ? "checkmark" : "",
+       { [weak self] _ in
+        guard let self = self else { return }
+        //DO: if let ziv = self.currentView as? ZoomedImageViewSpec { onMainAfter(0.3){ ziv.invalidateLayout()}}
+        self.fullPdfOnPageSwitch = !self.fullPdfOnPageSwitch
+        self.updateMenuItems()
+      })]
+    (self.currentView as? ZoomedImageViewSpec)?.menu.menu = self.menuItems
+  }
+  
   public var toolBar = OverviewContentToolbar()
   
   override public var preferredStatusBarStyle: UIStatusBarStyle {
@@ -273,6 +311,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
     self.onTap { [weak self] (oimg, x, y) in
       guard let self = self else { return }
+      if self.articleFromPdf == false { return }
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)), let path = zpdfi.issueDir?.path else { return }
       let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
@@ -360,10 +399,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     self.pageControl?.layer.shadowOpacity = 1.0
     self.pageControl?.pageIndicatorTintColor = UIColor.white
     self.pageControl?.currentPageIndicatorTintColor = Const.SetColor.CIColor.color
-    self.menuItems = []
+    self.updateMenuItems()
     
     if let thumbCtrl = self.thumbnailController {
-      thumbCtrl.menuItems = self.menuItems
       thumbCtrl.cellLabelFont = Const.Fonts.titleFont(size: 7)
       thumbCtrl.cellLabelLinesCount = 2
       var insets = UIWindow.keyWindow?.safeAreaInsets ?? UIEdgeInsets.zero
@@ -383,14 +421,35 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       {
         ziv.optionalImage = pdfImg
         ziv.imageView.image = pdfImg.image
+        if pdfImg.image != nil { self?.applyPageLayout(ziv)}
         pdfImg.renderFullscreenImageIfNeeded { [weak self] success in
           self?.handleRenderFinished(success, ziv)
         }
       }
-      self?.toolBar.hide(false)//show Toolbar
+      if let self = self {
+        self.toolBar.hide(!self.showToolbarOnPageSwitch)//show Toolbar
+      }
+    }
+  }
+
+  func applyPageLayout(_ ziv:ZoomedImageView){
+    if self.fullPdfOnPageSwitch {
+      //this makes fulpage view
+      ziv.invalidateLayout()
+    }
+    else {
+      //this is parent's class behaviour and shows 1:1 view
+      ziv.scrollView.setZoomScale(1.0, animated: false)
+      ziv.scrollView.scrollRectToVisible(CGRect(x: 0, y: 0, width: 1, height: 1), animated: false)
     }
   }
   
+  public override func handleRenderFinished(_ success:Bool, _ ziv:ZoomedImageView){
+    if success == false { return }
+    onMain { [weak self] in
+      self?.applyPageLayout(ziv)
+    }
+  }
   
   // MARK: - viewDidDisappear
   override public func viewDidDisappear(_ animated: Bool) {
