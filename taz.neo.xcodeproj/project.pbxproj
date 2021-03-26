@@ -30,7 +30,7 @@
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
 		7745050D25DA801F0052E502 /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = 7745050C25DA801F0052E502 /* resources.json */; };
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
-		7754452025D150AA00ABE3F8 /* TazPdfViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */; };
+		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
 		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
@@ -111,7 +111,7 @@
 		004D4EFF24ACDC1F008C4EE7 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		006007E124D1D333001680B6 /* TrialSubscriptionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialSubscriptionController.swift; sourceTree = "<group>"; };
 		006E17E824D418090092DC0D /* FormComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormComponents.swift; sourceTree = "<group>"; };
-		00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazPdfViewController.swift; sourceTree = "<group>"; };
+		00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazPdfPagesViewController.swift; sourceTree = "<group>"; };
 		00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdView.swift; sourceTree = "<group>"; };
 		00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialSubscriptionView.swift; sourceTree = "<group>"; };
 		00E3D2A624E68F4600AE075A /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -321,7 +321,7 @@
 				AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */,
 				AE44F8E324815AF4009DA152 /* ContentImageVC.swift */,
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
-				00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */,
+				00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -591,7 +591,7 @@
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
-				7754452025D150AA00ABE3F8 /* TazPdfViewController.swift in Sources */,
+				7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */,
 				00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */,
 				7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,

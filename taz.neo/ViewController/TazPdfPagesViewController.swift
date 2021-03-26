@@ -1,5 +1,5 @@
 //
-//  TazPdfViewController.swift
+//  TazPdfPagesViewController.swift
 //  taz.neo
 //
 //  Created by Ringo Müller-Gromes on 18.11.20.
