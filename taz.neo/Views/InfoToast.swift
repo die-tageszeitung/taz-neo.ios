@@ -5,49 +5,9 @@
 //  Created by Ringo Müller on 31.03.21.
 //  Copyright © 2021 Norbert Thies. All rights reserved.
 //
-
-import Foundation
-
-//
-//  AppOverlay.swift
-//  NorthLib
-//
-//  Created by Ringo Müller-Gromes on 21.01.21.
-//  Copyright © 2021 Norbert Thies. All rights reserved.
-//
-
 import UIKit
 import NorthLib
-/**
- 
- 2 Options
- - Modal VC Push
-    => Disadvatage(s): multiple Modals
- - App Overlay Style
-    => Disadvatage(s):
-        - Last Wins (is Topmost)
-        - have no , viewWillTransition out of the box
-                            => Class and Register Handler
- 
- class InfoToastController : UIViewController {
-   
-   
-   
-   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-     super.viewWillTransition(to: size, with: coordinator)
-   }
- }
- 
- 
- */
 
-
-
-
-
-
-
-///
 public class InfoToast : UIView {
   /// <#Description#>
   /// - Parameters:
@@ -60,9 +20,7 @@ public class InfoToast : UIView {
   ///   - dismissHandler: <#dismissHandler description#>
   public static func showWith(image : UIImage?, title : String?, text : String?, buttonText:String = "OK", hasCloseX : Bool = true, autoDisappearAfter : Float? = nil, dismissHandler : (()->())? = nil) {
     onMain {
-      let appDelegate = UIApplication.shared.delegate
-      let window = appDelegate?.window
-      if window == nil { return }
+      guard let window = UIApplication.shared.delegate?.window as? UIWindow else {  return }
       let toast = InfoToast(image: image,
                             title: title,
                             text: text,
@@ -70,17 +28,19 @@ public class InfoToast : UIView {
                             hasCloseX: hasCloseX,
                             autoDisappearAfter: autoDisappearAfter,
                             dismissHandler: dismissHandler)
+      toast.frame.origin.y = window.frame.size.height
+      window.addSubview(toast)
       
-      toast.alpha = 0.0
-      window!?.addSubview(toast)
       UIView.animate(withDuration: 0.7,
                      delay: 0,
+                     usingSpringWithDamping: 0.6,
+                     initialSpringVelocity: 0.8,
                      options: UIView.AnimationOptions.curveEaseInOut,
                      animations: {
-                      toast.alpha = 1.0
+                      toast.frame.origin.y = 0
                      }, completion: { (_) in
                       if toast.isTopmost == false {
-                        window!?.bringSubviewToFront(toast)
+                        window.bringSubviewToFront(toast)
                       }
                      })
     }
@@ -104,6 +64,7 @@ public class InfoToast : UIView {
   // MARK: - LayoutConstrains
   private var scrollViewWidthConstraint : NSLayoutConstraint?
   private var scrollViewHeightConstraint : NSLayoutConstraint?
+  private var scrollViewYCenterConstraint : NSLayoutConstraint?
   private var contentWidthConstraint : NSLayoutConstraint?
   private var widthConstraint : NSLayoutConstraint?
   private var heightConstraint : NSLayoutConstraint?
@@ -193,7 +154,7 @@ public class InfoToast : UIView {
     (widthConstraint, heightConstraint) = self.pinSize(UIWindow.size)
     
     self.addSubview(scrollView)
-    scrollView.center()
+    scrollViewYCenterConstraint = scrollView.center().y
     
     Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
       guard let self = self else { return }
@@ -210,10 +171,18 @@ public class InfoToast : UIView {
     }
   }
   
-  func dismiss(){
-    self.removeFromSuperview()
-    self.dismissHandler?()
-    #warning("may remove stuff!!")
+  func dismiss1(){
+    UIView.animate(withDuration: 1.7,
+                   delay: 0,
+                   usingSpringWithDamping: 0.6,
+                   initialSpringVelocity: 0.8,
+                   options: UIView.AnimationOptions.curveEaseInOut,
+                   animations: {
+                    self.scrollView.frame.origin.y = UIWindow.size.height + 30
+                   }, completion: { dismissed in
+                    self.removeFromSuperview()
+                    self.dismissHandler?()
+                   })
   }
   
   
@@ -239,7 +208,7 @@ public class InfoToast : UIView {
     x.buttonView.color = Const.Colors.iOSLight.secondaryLabel
     x.buttonView.activeColor = Const.Colors.ciColor
     x.buttonView.innerCircleFactor = 0.5
-    x.onPress { [weak self] _ in self?.dismiss() }
+    x.onPress { [weak self] _ in self?.dismiss1() }
     return x
   }()
   
@@ -269,7 +238,7 @@ public class InfoToast : UIView {
   lazy var defaultButton: Button<TextView> = {
     var btn = Button<TextView>()
     btn.buttonView.text = buttonText
-    btn.onPress { [weak self] _ in self?.dismiss() }
+    btn.onPress { [weak self] _ in self?.dismiss1() }
     btn.buttonView.label.textAlignment = .right
     btn.buttonView.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
     btn.buttonView.color = Const.Colors.ciColor
