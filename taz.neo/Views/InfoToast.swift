@@ -28,16 +28,18 @@ public class InfoToast : UIView {
                             hasCloseX: hasCloseX,
                             autoDisappearAfter: autoDisappearAfter,
                             dismissHandler: dismissHandler)
-      toast.frame.origin.y = window.frame.size.height
+      toast.shadeView.alpha = 0.0
+      toast.scrollView.frame.origin.y = window.frame.size.height
       window.addSubview(toast)
       
-      UIView.animate(withDuration: 0.7,
+      UIView.animate(withDuration: 0.9,
                      delay: 0,
                      usingSpringWithDamping: 0.6,
                      initialSpringVelocity: 0.8,
                      options: UIView.AnimationOptions.curveEaseInOut,
                      animations: {
-                      toast.frame.origin.y = 0
+                      toast.shadeView.alpha = 1.0
+                      toast.scrollView.frame.origin.y = 0
                      }, completion: { (_) in
                       if toast.isTopmost == false {
                         window.bringSubviewToFront(toast)
@@ -64,7 +66,6 @@ public class InfoToast : UIView {
   // MARK: - LayoutConstrains
   private var scrollViewWidthConstraint : NSLayoutConstraint?
   private var scrollViewHeightConstraint : NSLayoutConstraint?
-  private var scrollViewYCenterConstraint : NSLayoutConstraint?
   private var contentWidthConstraint : NSLayoutConstraint?
   private var widthConstraint : NSLayoutConstraint?
   private var heightConstraint : NSLayoutConstraint?
@@ -93,6 +94,10 @@ public class InfoToast : UIView {
   
   func setupIfNeeded(){
     if container.superview != nil { return }
+    
+    self.addSubview(shadeView)
+    pin(shadeView, to: self)
+    
     ///Layout Components
     var pinTopAnchor:LayoutAnchorY = container.topGuide()
     
@@ -123,8 +128,8 @@ public class InfoToast : UIView {
     
     if hasCloseX {
       container.addSubview(xButton)
-      pin(xButton.right, to: container.rightGuide(), dist: -15)
-      pin(xButton.top, to: container.topGuide(), dist: 15)
+      pin(xButton.right, to: container.rightGuide(), dist: -10)
+      pin(xButton.top, to: container.topGuide(), dist: 10)
     }
     
     container.addSubview(defaultButton)
@@ -148,13 +153,10 @@ public class InfoToast : UIView {
     scrollView.centerY()
     scrollViewHeightConstraint = pin(scrollView.height, to: container.height)
     
-//    (scrollViewWidthConstraint, scrollViewHeightConstraint) = scrollView.pinSize(scrollViewSize, priority: .required)
-    //self is the shadeLayer
-    self.backgroundColor = UIColor.black.withAlphaComponent(0.6)
     (widthConstraint, heightConstraint) = self.pinSize(UIWindow.size)
     
     self.addSubview(scrollView)
-    scrollViewYCenterConstraint = scrollView.center().y
+    scrollView.center()
     
     Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
       guard let self = self else { return }
@@ -171,15 +173,16 @@ public class InfoToast : UIView {
     }
   }
   
-  func dismiss1(){
-    UIView.animate(withDuration: 1.7,
+  func dismiss(){
+    UIView.animate(withDuration: 0.7,
                    delay: 0,
                    usingSpringWithDamping: 0.6,
                    initialSpringVelocity: 0.8,
                    options: UIView.AnimationOptions.curveEaseInOut,
                    animations: {
-                    self.scrollView.frame.origin.y = UIWindow.size.height + 30
-                   }, completion: { dismissed in
+                    self.scrollView.frame.origin.y = UIWindow.size.height + 50
+                    self.shadeView.alpha = 0.0
+                   }, completion: { _ in
                     self.removeFromSuperview()
                     self.dismissHandler?()
                    })
@@ -189,6 +192,11 @@ public class InfoToast : UIView {
   // MARK: - UI Components
   
   lazy var container: UIView  = UIView()
+  lazy var shadeView: UIView  = {
+    var view = UIView()
+    view.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+    return view
+  }()
   
   lazy var scrollView: UIScrollView  = {
     var view = UIScrollView()
@@ -203,12 +211,12 @@ public class InfoToast : UIView {
     x.pinHeight(35)
     x.pinWidth(35)
     x.color = .black
-    x.buttonView.isCircle = true
+    x.buttonView.isCircle = false
     x.buttonView.circleColor = UIColor.clear
     x.buttonView.color = Const.Colors.iOSLight.secondaryLabel
     x.buttonView.activeColor = Const.Colors.ciColor
     x.buttonView.innerCircleFactor = 0.5
-    x.onPress { [weak self] _ in self?.dismiss1() }
+    x.onPress { [weak self] _ in self?.dismiss() }
     return x
   }()
   
@@ -221,7 +229,8 @@ public class InfoToast : UIView {
   
   lazy var titleLabel: UILabel  = {
     var label = UILabel()
-    label.titleFont().textAlignment = .left
+    label.font = Const.Fonts.titleFont(size: Const.Size.SmallTitleFontSize)
+    label.textAlignment = .left
     label.numberOfLines = 0
     label.text = title
     return label
@@ -238,7 +247,7 @@ public class InfoToast : UIView {
   lazy var defaultButton: Button<TextView> = {
     var btn = Button<TextView>()
     btn.buttonView.text = buttonText
-    btn.onPress { [weak self] _ in self?.dismiss1() }
+    btn.onPress { [weak self] _ in self?.dismiss() }
     btn.buttonView.label.textAlignment = .right
     btn.buttonView.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
     btn.buttonView.color = Const.Colors.ciColor
