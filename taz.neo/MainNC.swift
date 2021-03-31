@@ -28,6 +28,14 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   static var singleton: MainNC!
   private var isErrorReporting = false
   private var isForeground = false
+  
+  override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    Notification.send(Const.NotificationNames.viewSizeTransition,
+                      content: size,
+                      error: nil,
+                      sender: nil)
+  }
 
   /// Enable logging to file and otional to view
   func setupLogging() {

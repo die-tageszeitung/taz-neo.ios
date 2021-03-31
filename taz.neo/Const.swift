@@ -28,6 +28,8 @@ public struct Const {
   struct NotificationNames {
     /// Some resource filenames
     static let articleLoaded = "NotificationName.articleLoaded"
+    static let viewSizeTransition = "NotificationName.viewSizeTransition"
+    
   } // Filename
   
   /// Various color values

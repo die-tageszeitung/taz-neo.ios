@@ -9,6 +9,29 @@
 import UIKit
 import NorthLib
 
+// MARK: - ShowPDF
+extension IssueVcWithBottomTiles {
+  func showPdfInfo() {
+    var img : UIImage?
+    
+    if let url = Bundle.main.url(forResource: "PDF-Button_640px",
+                                 withExtension: "gif",
+                                 subdirectory: "BundledRessources") {
+      let file = File(url)
+      if file.exists {
+        img = UIImage.animatedGif(File(url).data)
+      }
+    }
+     
+    InfoToast.showWith(image: img, title: "Entdecken Sie jetzt die Zeitungsansicht", text: "Hier können Sie zwischen der mobilen und der Ansicht der Zeitungsseiten wechseln", buttonText: "OK", hasCloseX: true, autoDisappearAfter: nil) {
+      print("Closed")
+    }
+  }
+}
+
+
+
+
 /// This Class  extends IssueVC for a bottom Area with a UICollectionVC
 /// written to have a minimal Impact on IssueVC on Integration
 public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
@@ -129,6 +152,11 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: reuseHeaderIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
     setupToolbar()
+    
+    
+    onThreadAfter(2.0) { [weak self] in
+      self?.showPdfInfo()
+    }
   }
 
   func setupToolbar() {
@@ -138,9 +166,11 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
       self.issueCarousel.carousel.scrollto(0, animated: true)
     }
     
+    
+    
     let onPDF:((ButtonControl)->()) = {   [weak self] control in
       guard let self = self else { return }
-       
+      self.showPdfInfo()
       self.isFacsimile = !self.isFacsimile
       
       if let imageButton = control as? Button<ImageView> {
