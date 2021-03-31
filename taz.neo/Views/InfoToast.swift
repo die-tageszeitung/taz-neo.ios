@@ -9,15 +9,16 @@ import UIKit
 import NorthLib
 
 public class InfoToast : UIView {
-  /// <#Description#>
+  
+  /// Helper to generate and show Info Toast on Application Window
   /// - Parameters:
-  ///   - image: <#image description#>
-  ///   - title: <#title description#>
-  ///   - text: <#text description#>
-  ///   - buttonText: <#buttonText description#>
-  ///   - hasCloseX: <#hasCloseX description#>
-  ///   - autoDisappearAfter: <#autoDisappearAfter description#>
-  ///   - dismissHandler: <#dismissHandler description#>
+  ///   - image: image for the Toast
+  ///   - title: Title text
+  ///   - text: Content text
+  ///   - buttonText: text for bottom Button
+  ///   - hasCloseX: should top right close x be displayed
+  ///   - autoDisappearAfter: TODO Automatic disappear after Timeout in seconds
+  ///   - dismissHandler: handler to be called after toast dismissed
   public static func showWith(image : UIImage?, title : String?, text : String?, buttonText:String = "OK", hasCloseX : Bool = true, autoDisappearAfter : Float? = nil, dismissHandler : (()->())? = nil) {
     onMain {
       guard let window = UIApplication.shared.delegate?.window as? UIWindow else {  return }
@@ -29,9 +30,12 @@ public class InfoToast : UIView {
                             autoDisappearAfter: autoDisappearAfter,
                             dismissHandler: dismissHandler)
       toast.shadeView.alpha = 0.0
-      toast.scrollView.frame.origin.y = window.frame.size.height
+      toast.isHidden = true
       window.addSubview(toast)
-      
+      toast.scrollViewYConstraint?.constant = window.frame.size.height
+      toast.layoutIfNeeded()
+      toast.isHidden = false
+            
       UIView.animate(withDuration: 0.9,
                      delay: 0,
                      usingSpringWithDamping: 0.6,
@@ -39,7 +43,8 @@ public class InfoToast : UIView {
                      options: UIView.AnimationOptions.curveEaseInOut,
                      animations: {
                       toast.shadeView.alpha = 1.0
-                      toast.scrollView.frame.origin.y = 0
+                      toast.scrollViewYConstraint?.constant = 0
+                      toast.layoutIfNeeded()
                      }, completion: { (_) in
                       if toast.isTopmost == false {
                         window.bringSubviewToFront(toast)
@@ -49,8 +54,8 @@ public class InfoToast : UIView {
   }
 
   // MARK: - Constants / Default Environment
-  private let maxWidth:CGFloat = 400
-  private let maxHeight:CGFloat = 400
+  private let maxWidth:CGFloat = 360
+  private let maxHeight:CGFloat = 420
   private let linePadding:CGFloat = 15
   private let sidePadding:CGFloat = 20
   
@@ -66,6 +71,7 @@ public class InfoToast : UIView {
   // MARK: - LayoutConstrains
   private var scrollViewWidthConstraint : NSLayoutConstraint?
   private var scrollViewHeightConstraint : NSLayoutConstraint?
+  private var scrollViewYConstraint : NSLayoutConstraint?
   private var contentWidthConstraint : NSLayoutConstraint?
   private var widthConstraint : NSLayoutConstraint?
   private var heightConstraint : NSLayoutConstraint?
@@ -156,7 +162,7 @@ public class InfoToast : UIView {
     (widthConstraint, heightConstraint) = self.pinSize(UIWindow.size)
     
     self.addSubview(scrollView)
-    scrollView.center()
+    self.scrollViewYConstraint = scrollView.center().y
     
     Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
       guard let self = self else { return }
@@ -180,14 +186,14 @@ public class InfoToast : UIView {
                    initialSpringVelocity: 0.8,
                    options: UIView.AnimationOptions.curveEaseInOut,
                    animations: {
-                    self.scrollView.frame.origin.y = UIWindow.size.height + 50
+                    self.scrollViewYConstraint?.constant = UIWindow.size.height + 50
                     self.shadeView.alpha = 0.0
+                    self.layoutIfNeeded()
                    }, completion: { _ in
                     self.removeFromSuperview()
                     self.dismissHandler?()
                    })
   }
-  
   
   // MARK: - UI Components
   
