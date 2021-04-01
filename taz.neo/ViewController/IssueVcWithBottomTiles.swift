@@ -14,7 +14,8 @@ extension IssueVcWithBottomTiles {
   func showPdfInfo() {
     var img : UIImage?
     
-    if let url = Bundle.main.url(forResource: "PDF-Button_640px",
+//    if let url = Bundle.main.url(forResource: "PDF-Button_640px",
+    if let url = Bundle.main.url(forResource: "PDF-Button_640px_transparent",
                                  withExtension: "gif",
                                  subdirectory: "BundledRessources") {
       let file = File(url)
@@ -170,7 +171,6 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     
     let onPDF:((ButtonControl)->()) = {   [weak self] control in
       guard let self = self else { return }
-      self.showPdfInfo()
       self.isFacsimile = !self.isFacsimile
       
       if let imageButton = control as? Button<ImageView> {
