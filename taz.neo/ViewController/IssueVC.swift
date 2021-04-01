@@ -405,9 +405,27 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if !isArchiveMode { feederContext.checkForNewIssues(feed: feed) }
   }
   
+  func updateCarouselForParentSize(_ size:CGSize) {
+    let portrait = size.height > 1.2*size.width
+    self.issueCarousel.carousel.relativePageWidth = portrait ? 0.6 : 0.3
+    //ToDo Improve carousel, unfortunately relative spacing is not updateable easyly
+    //@see: start iPad in Landscape with 2/3 compare with started in 1/3 and increased to 2/3
+    //will see missing space between cells
+    // increase the value makes big gaps in some cases
+    // ToDo discuss the cell Appeareance and cell size
+//    self.issueCarousel.carousel.relativeSpacing = portrait ? 0.12 : 0.14
+    self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
+  }
+  
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     checkForNewIssues()
+    updateCarouselForParentSize(self.view.bounds.size)
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    onMainAfter { self.updateCarouselForParentSize(size) }
   }
   
   @objc private func goingBackground() {}
