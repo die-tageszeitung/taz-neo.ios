@@ -134,7 +134,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
                                        left: self.itemSpacing,
                                        bottom: self.itemSpacing,
                                        right: self.itemSpacing)
-    layout.minimumLineSpacing = self.itemSpacing
+    layout.minimumLineSpacing = self.lineSpacing
     layout.minimumInteritemSpacing = self.itemSpacing
     ///layout.itemSize not wor, need to implement: UICollectionViewDelegateFlowLayout -> sizeForItemAt
     ///otherwise top area (issue carousel) woun't be displayed
@@ -229,8 +229,8 @@ extension IssueVcWithBottomTiles {
     
     if let issueVC = self as? IssueVC,
        let issue = issues.valueAt(indexPath.row) {
-      cell.text = issue.date.shorter
-      cell.button.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+      cell.text = UIWindow.size.width < 370 ? issue.date.shortest : issue.date.shorter
+      cell.button.titleLabel?.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
       /// ToDo: for not Downloaded Items, click, load finished, the cloud did not disappear
       /// should be done in Refactoring with PDF Image for Cells
       if issue.isDownloading {
