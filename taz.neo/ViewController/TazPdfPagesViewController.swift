@@ -44,7 +44,7 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
   open override var pdfPage: PDFPage? {
     get {
       return pageReference?.pdfDocument(inIssueDir: issueDir)?.page(at: 0)
-    }
+    } 
   }
   
   fileprivate var pdfDownloadDelegate:PdfDownloadDelegate?

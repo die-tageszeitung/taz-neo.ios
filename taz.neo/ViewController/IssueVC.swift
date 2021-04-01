@@ -25,7 +25,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// The currently available Issues to show
   ///public var issues: [Issue] = [] ///moved to parent
   /// The center Issue (index into self.issues)
-  public var index: Int { issueCarousel.index! }
+  public var index: Int {
+    get { issueCarousel.index! }
+    set { issueCarousel.index = newValue }
+  }
   /// The Section view controller
   public var sectionVC: SectionVC?
   /// Is Issue Download in progress?
@@ -46,6 +49,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Date of next Issue to center on
   private var selectedIssueDate: Date? = nil
   
+  /// Are we in archive mode?
+  private var isArchiveMode: Bool = false
+  
   /// Reset list of Issues to the first (most current) one
   public func resetIssueList() {
     issueCarousel.index = 0
@@ -55,6 +61,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   private func reset() {
     issues = [] 
     issueCarousel.reset()
+  }
+  
+  /// Reset carousel images
+  private func resetCarouselImages(isPdf: Bool) {
+    var i = 0
+    for issue in issues {
+      if let img = feeder.momentImage(issue: issue, isPdf: isPdf) {
+        issueCarousel[i] = img
+        i += 1
+      }
+    }
   }
   
   /// Add Issue to carousel
@@ -72,7 +89,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if let idx = issueCarousel.index { setLabel(idx: idx) }
       if let date = selectedIssueDate {
         if issue.date <= date { selectedIssueDate = nil }
-//        else { issueCarousel.index = idx }
+        else { index = idx }
       }
     }
   }
@@ -84,7 +101,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if iss.date == date { return }
       if iss.date < issue.date { break }
       idx += 1
-    }    
+    }
+    index = idx
   }
   
   /// Inspect download Error and show it to user
@@ -98,6 +116,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     var from = date
     from.addDays(10)
     selectedIssueDate = date
+    isArchiveMode = true
     reset()
     feederContext.getOvwIssues(feed: feed, count: 21, fromDate: from)
   }
@@ -113,19 +132,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
       if index < 6 {
         var date = issues.first!.date
-        let first = UsTime(date)
-        let now = UsTime.now()
-        let secPerDay: Int64 = 3600*24
-        let ndays = (now.sec - first.sec) / secPerDay
-        if ndays > 10 { 
-          date.addDays(10)
-          feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date)
-        }
-        else if ndays > 1 {
-          date.addDays(-Int(ndays+1))
-          feederContext.getOvwIssues(feed: feed, count: Int(ndays + 1), 
-                                     fromDate: date)
-        }
+        date.addDays(10)
+        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date)
       }
     }
     else { feederContext.getOvwIssues(feed: feed, count: 20) }
@@ -136,20 +144,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     self.issues = []
     provideOverview()
   }
-  
-  /// Look for newer issues on the server
-  private func checkForNewIssues() {
-    if issues.count > 0 {
-      let now = UsTime.now()
-      let latestLoaded = UsTime(issues[0].date)
-      let nHours = (now.sec - latestLoaded.sec) / 3600
-      if nHours > 6 {
-        let ndays = (now.sec - latestLoaded.sec) / (3600*24) + 1
-        feederContext.getOvwIssues(feed: feed, count: Int(ndays))
-      }
-    }
-    else { feederContext.getOvwIssues(feed: feed, count: 20) }
-  }  
   
   /// Download one section
   private func downloadSection(section: Section, closure: @escaping (Error?)->()) {
@@ -341,9 +335,16 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.carouselScrollFromLeft = self.issueCarousel.carousel.scrollFromLeftToRight
       scrollChange = false
     }
-    Defaults.receive() { dnot in
-      if !scrollChange && dnot.key == "carouselScrollFromLeft" {
-        self.issueCarousel.carousel.scrollFromLeftToRight = self.carouselScrollFromLeft
+    Defaults.receive() { [weak self] dnot in
+      guard let self = self else { return }
+      switch dnot.key {
+        case "carouselScrollFromLeft":
+          if !scrollChange && dnot.key == "carouselScrollFromLeft" {
+            self.issueCarousel.carousel.scrollFromLeftToRight = self.carouselScrollFromLeft
+          }
+        case "isFacsimile":
+          if let isPdf = dnot.val?.bool { self.resetCarouselImages(isPdf: isPdf) }
+        default: break
       }
     }
     
@@ -355,6 +356,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         IssueVC.showAnimations = false
         //self.issueCarousel.showAnimations()
       }
+      self.debug("on display: \(idx)")
       self.provideOverview()
     }
     Notification.receive("authenticationSucceeded") { notif in
@@ -366,7 +368,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
       self.goingForeground()
     }
-    //checkForNewIssues()
+    feederContext.getOvwIssues(feed: feed, count: 20)
   }
   
   var pickerCtrl : MonthPickerController?
@@ -390,12 +392,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         
     pickerCtrl.doneHandler = {
       self.overlay?.close(animated: true)
-//      self.provideOverview(at: pickerCtrl.selectedDate)
-      let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
-      Alert.message(title: "Baustelle",
-        message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.")
+      self.provideOverview(at: pickerCtrl.selectedDate)
+//      let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
+//      Alert.message(title: "Baustelle",
+//        message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.")
     }
     overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
+  }
+  
+  /// Check for new issues only if not in archive mode
+  public func checkForNewIssues() {
+    if !isArchiveMode { feederContext.checkForNewIssues(feed: feed) }
   }
   
   public override func viewDidAppear(_ animated: Bool) {

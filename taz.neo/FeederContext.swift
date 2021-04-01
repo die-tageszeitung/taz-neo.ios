@@ -360,7 +360,7 @@ open class FeederContext: DoesLog {
       guard let self = self else { return }
       if self.isConnected {
         self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: max(count, 20), 
-                              isOverview: true) { res in
+                              isOverview: true, isPages: true) { res in
           if let issues = res.value() {
             for issue in issues {
               let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
@@ -401,7 +401,13 @@ open class FeederContext: DoesLog {
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
     if let latest = StoredIssue.latest(feed: sfeed), self.isConnected {
-      
+      let now = UsTime.now()
+      let latestLoaded = UsTime(latest.date)
+      let nHours = (now.sec - latestLoaded.sec) / 3600
+      if nHours > 6 {
+        let ndays = (now.sec - latestLoaded.sec) / (3600*24) + 1
+        getOvwIssues(feed: feed, count: Int(ndays))
+      }
     }
   }
 

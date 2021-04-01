@@ -27,6 +27,15 @@ public class IssueCarousel: UIView {
     set { carousel.index = newValue }
   }
   
+  /// Subscript operator giving access to the image
+  public subscript(idx: Int) -> UIImage {
+    get { return issues[idx].issue }
+    set {
+      issues[idx].issue = newValue
+      carousel.reload(index: idx)
+    }
+  }
+  
   /// Text to show in label with rotation
   public var text: String? {
     get { label.text }
@@ -39,7 +48,7 @@ public class IssueCarousel: UIView {
     set { label.pureText = newValue }
   }
   
-  /// Text to show in label and defining the scrolling direction in the CubeLabel
+  /// Text to show in label and defining the scrolling direction in the Label
   public func setText(_ text: String, isUp: Bool) {
     label.setText(text, isUp: isUp)
   }
@@ -124,7 +133,6 @@ public class IssueCarousel: UIView {
     }
     carousel.showsHorizontalScrollIndicator = false
     carousel.viewProvider { [weak self] (idx, view) in
-      self?.debug("tap index: \(idx)")
       guard let self = self else { return MomentView() }
       var moment: MomentView? = view as? MomentView
       if moment == nil { moment = MomentView() }

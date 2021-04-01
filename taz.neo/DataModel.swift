@@ -440,6 +440,8 @@ public enum PageType: String, CodableEnum {
 public protocol Page: ToString {
   /// File storing PDF
   var pdf: FileEntry { get }
+  /// Facsimile of page PDF (eg. Jpeg)
+  var facsimile: ImageEntry? { get }
   /// Page title (if any)
   var title: String? { get }
   /// Page number (or some String numbering the page in some way)
@@ -499,6 +501,8 @@ public protocol Moment: ToString {
   var creditedImages: [ImageEntry] { get }
   /// A number of files comprising an animation e.g. a gif file
   var animation: [FileEntry] { get }
+  /// The first PDF page as JPG image
+  var facsimile: ImageEntry? { get }
 }
 
 public extension Moment {
@@ -510,6 +514,8 @@ public extension Moment {
     for img in animation { ret += "\n  animation: \(img.toString())"}
     return ret
   }
+  
+  var facsimile: ImageEntry? { return nil }
   
   /// Moment images in all resolutions and with credits
   var allImages: [ImageEntry] { images + creditedImages }
@@ -894,11 +900,16 @@ extension Feeder {
   }
   
   /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
-  public func momentImageName(issue: Issue, isCredited: Bool = false) 
+  public func momentImageName(issue: Issue, isCredited: Bool = false,
+                              isPdf: Bool = false)
     -> String? {
-    var file = issue.moment.animatedGif
-    if isCredited, let highres = issue.moment.creditedHighres {       
-      file = highres 
+    var file: FileEntry?
+    if isPdf { file = issue.moment.facsimile }
+    else {
+      file = issue.moment.animatedGif
+      if isCredited, let highres = issue.moment.creditedHighres {
+        file = highres
+      }
     }
     if file == nil { file = issue.moment.highres }
     if let img = file {
@@ -926,10 +937,8 @@ extension Feeder {
   /// Returns the "Moment" Image as Gif-Animation or in highest resolution
   public func momentImage(issue: Issue, isCredited: Bool = false,
                           isPdf: Bool = false) -> UIImage? {
-    if isPdf, let momentPdfFile = momentPdfFile(issue: issue) {
-      return UIImage.pdf(momentPdfFile.data)
-    }
-    if let fn = momentImageName(issue: issue, isCredited: isCredited) {
+    if let fn = momentImageName(issue: issue, isCredited: isCredited,
+                                isPdf: isPdf) {
       if File.extname(fn) == "gif" {
         return UIImage.animatedGif(File(fn).data)
       }

@@ -75,12 +75,15 @@ public extension StoredObject {
   /// Delete the object from the persistent store
   func delete() { ArticleDB.context.delete(pr) }
   
-  /// Create a new stored and persistent record 
-  static func new() -> Self {
-    let pr = NSEntityDescription.insertNewObject(forEntityName: entity,
+  /// Create a new persistent record
+  static func newPersistent() -> PO {
+    NSEntityDescription.insertNewObject(forEntityName: entity,
                into: ArticleDB.context) as! PO
-    let sr = Self(persistent: pr)
-    return sr
+  }
+  
+  /// Create a new stored and persistent record
+  static func new() -> Self {
+    Self(persistent: newPersistent())
   }
  
   /// Create new StoredObject and initialize from Object
@@ -143,7 +146,10 @@ public final class StoredFileEntry: FileEntry, StoredObject {
   
   public static var entity = "FileEntry"
   public var pr: PersistentFileEntry // persistent record
-  public var name: String { pr.name! }
+  public var name: String {
+    get { pr.name! }
+    set { pr.name = newValue }
+  }
   /// Sub directory relative to Database.appDir where the file is stored
   public var subdir: String? { 
     get { pr.subdir }
@@ -161,13 +167,30 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     }
   }
   /// Pathname of file (absolute path)
-  public var path: String? { 
-    guard let d = dir else { return nil }
-    return d + "/" + name 
+  public var path: String? {
+    get {
+      guard let d = dir else { return nil }
+      return d + "/" + name
+    }
+    set {
+      guard let fn = newValue else { return }
+      let file = File(fn)
+      dir = file.dirname
+      name = file.basename
+    }
   }
-  public var storageType: FileStorageType { FileStorageType(pr.storageType!)! }
-  public var moTime: Date { pr.moTime! }
-  public var size: Int64 { pr.size }
+  public var storageType: FileStorageType {
+    get { FileStorageType(pr.storageType!)! }
+    set { pr.storageType = newValue.rawValue }
+  }
+  public var moTime: Date {
+    get { pr.moTime! }
+    set { pr.moTime = newValue }
+  }
+  public var size: Int64 {
+    get { pr.size }
+    set { pr.size = newValue }
+  }
   public var storedSize: Int64 { 
     get { 
       if let p = path, pr.storedSize <= 0 { 
@@ -178,7 +201,10 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     }
     set { pr.storedSize = newValue }
   }
-  public var sha256: String { pr.sha256! }
+  public var sha256: String {
+    get { pr.sha256! }
+    set { pr.sha256 = newValue }
+  }
   public var payloads: [StoredPayload] { 
     var pls: [StoredPayload] = []
     for plpr in pr.payloads! { 
@@ -192,6 +218,23 @@ public final class StoredFileEntry: FileEntry, StoredObject {
   }
   
   public required init(persistent: PersistentFileEntry) { self.pr = persistent }
+  
+  /// Initialize from existing file
+  public static func new(path: String, storageType: FileStorageType = .issue) -> Self? {
+    var ret: Self? = nil
+    let file = File(path)
+    if file.exists {
+      let fe = Self.new()
+      fe.path = path
+      fe.moTime = file.mTime
+      fe.storageType = storageType
+      fe.size = file.size
+      fe.storedSize = fe.size
+      fe.sha256 = file.sha256
+      ret = fe
+    }
+    return ret
+  }
 
   /// Overwrite the persistent values
   public func update(from: FileEntry) {
@@ -242,13 +285,14 @@ public final class StoredFileEntry: FileEntry, StoredObject {
 
 extension PersistentImageEntry: PersistentObject {}
 
-/// A stored FileEntry
+/// A stored ImageEntry
 public final class StoredImageEntry: ImageEntry, StoredObject {
   
   public static var entity = "ImageEntry"
   public var pr: PersistentImageEntry // persistent record
   public var pf: PersistentFileEntry!
   public var name: String { pf.name! }
+  public var path: String? { StoredFileEntry(persistent: pf).path }
   public var storageType: FileStorageType { FileStorageType(pf.storageType!)! }
   public var moTime: Date { pf.moTime! }
   public var size: Int64 { pf.size }
@@ -268,6 +312,23 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
   public required init(persistent: PersistentImageEntry) { 
     self.pr = persistent 
     if let pf = persistent.file { self.pf = pf }
+  }
+  
+  /// Initialize with image in existing file
+  public static func new(path: String, resolution: ImageResolution = .normal,
+              type: ImageType = .facsimile,
+              storageType: FileStorageType = .issue) -> StoredImageEntry? {
+    if let fe = StoredFileEntry.new(path: path, storageType: storageType) {
+      let ie = StoredImageEntry.new()
+      ie.pf = fe.pr
+      ie.pr.file = ie.pf
+      ie.pr.resolution = resolution.rawValue
+      ie.pr.type = "facsimile"
+      ie.pr.alpha = 1.0
+      ie.pr.sharable = true
+      return ie
+    }
+    return nil
   }
 
   /// Overwrite the persistent values
@@ -369,7 +430,19 @@ public final class StoredMoment: Moment, StoredObject {
   public var creditedImages: [ImageEntry] 
     { StoredImageEntry.creditedImagesInMoment(moment: self) }
   public var animation: [FileEntry] { StoredFileEntry.animationInMoment(moment: self) }
-  
+  public var firstPage: StoredPage? {
+    get {
+      guard let pg = pr.firstPage else { return nil }
+      return StoredPage(persistent: pg)
+    }
+    set {
+      guard let spg = newValue else { return }
+      pr.firstPage = StoredPage.persist(object: spg).pr
+      pr.firstPage?.moment = pr
+    }
+  }
+  public var facsimile: ImageEntry? { firstPage?.facsimile }
+
   public required init(persistent: PersistentMoment) { 
     self.pr = persistent 
   }
@@ -874,6 +947,20 @@ public final class StoredPage: Page, StoredObject {
       pr.pdf!.page = pr
     }
   }
+  public var facsimile: ImageEntry? {
+    get {
+      createFacsimile()
+      guard let pf = pr.facsimile else { return nil }
+      return StoredImageEntry(persistent: pf)
+    }
+    set {
+      if let img = newValue {
+        pr.facsimile = StoredImageEntry.persist(object: img).pr
+        pr.facsimile!.page = pr
+      }
+      else { pr.facsimile = nil }
+    }
+  }
   public var type: PageType {
     get { return PageType(pr.type!)! }
     set { pr.type = newValue.representation }
@@ -881,18 +968,51 @@ public final class StoredPage: Page, StoredObject {
   public var frames: [Frame]? { StoredFrame.framesInPage(page: self) }
   
   public required init(persistent: PersistentPage) { self.pr = persistent }
+  
+  /// Create facsimile image (if not available)
+  private func createFacsimileImage() -> Bool {
+    if let pdfPath = StoredFileEntry(persistent: pr.pdf!).path {
+      let jpgPath = File.prefname(pdfPath) + ".jpg"
+      if File(pdfPath).exists {
+        if !File(jpgPath).exists {
+          let img = UIImage.pdf(File(pdfPath).data)
+          img?.save(to: jpgPath)
+          return true
+        }
+        else { return true }
+      }
+    }
+    return false
+  }
+  
+  /// Create facsimile image from pdf, if not already available
+  private func createFacsimile() {
+    if pr.facsimile == nil,
+       createFacsimileImage(),
+       let pdfPath = StoredFileEntry(persistent: pr.pdf!).path {
+      let jpgPath = File.prefname(pdfPath) + ".jpg"
+      if let sie = StoredImageEntry.new(path: jpgPath) {
+        pr.facsimile = sie.pr
+        pr.facsimile!.page = pr
+      }
+    }
+  }
 
   /// Overwrite the persistent values
   public func update(from object: Page) {
     self.title = object.title
     self.pdf = object.pdf
+    self.facsimile = object.facsimile
     self.type = object.type
     self.pagina = object.pagina
     self.pr.frames = nil
+    var order: Int32 = 0
     if let frames = object.frames {
       for frame in frames {
         let sf = StoredFrame.persist(object: frame)
         sf.pr.page = self.pr
+        sf.pr.order = order
+        order += 1
         self.pr.addToFrames(sf.pr)
         sf.pr.article = nil
         if let link = sf.link {
@@ -926,6 +1046,17 @@ public final class StoredPage: Page, StoredObject {
     request.predicate = NSPredicate(format: "issue = %@", issue.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
+  }
+  
+  /// Return first of an Issue
+  public static func pageOne(issue: StoredIssue) -> StoredPage? {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "issue = %@", issue.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
+    request.fetchLimit = 1
+    let res = get(request: request)
+    if res.count > 0 { return res[0] }
+    else { return nil }
   }
 
 } // StoredPage
@@ -1208,6 +1339,10 @@ public final class StoredIssue: Issue, StoredObject {
     }
     pr.payload = StoredPayload.persist(object: object.payload).pr
     pr.payload?.issue = pr
+    if let p1 = StoredPage.pageOne(issue: self) {
+      let mom = StoredMoment(persistent: pr.moment!)
+      mom.firstPage = p1
+    }
   }
     
   /// Return stored record with given name  
