@@ -11,23 +11,27 @@ import NorthLib
 
 // MARK: - ShowPDF
 extension IssueVcWithBottomTiles {
-  func showPdfInfo() {
-    #warning("@Ringo PDF Info Disabled currently for working...")
-    return
-    var img : UIImage?
+  func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
+    if IssueVC.showAnimations == false { return }
     
-//    if let url = Bundle.main.url(forResource: "PDF-Button_640px",
-    if let url = Bundle.main.url(forResource: "PDF-Button_640px_transparent",
-                                 withExtension: "gif",
-                                 subdirectory: "BundledRessources") {
-      let file = File(url)
-      if file.exists {
-        img = UIImage.animatedGif(File(url).data)
+    onThreadAfter(delay) {
+      var img : UIImage?
+      if let url = Bundle.main.url(forResource: "PDF-Button_640px_transparent",
+                                   withExtension: "gif",
+                                   subdirectory: "BundledRessources") {
+        let file = File(url)
+        if file.exists {
+          img = UIImage.animatedGif(File(url).data)
+        }
       }
-    }
-     
-    InfoToast.showWith(image: img, title: "Entdecken Sie jetzt die Zeitungsansicht", text: "Hier können Sie zwischen der mobilen und der Ansicht der Zeitungsseiten wechseln", buttonText: "OK", hasCloseX: true, autoDisappearAfter: nil) {
-      print("Closed")
+      
+      InfoToast.showWith(image: img, title: "Entdecken Sie jetzt die Zeitungsansicht",
+                         text: "Hier können Sie zwischen der mobilen und der Ansicht der Zeitungsseiten wechseln",
+                         buttonText: "OK",
+                         hasCloseX: true,
+                         autoDisappearAfter: nil) {
+        print("Closed")
+      }
     }
   }
 }
@@ -151,11 +155,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: reuseHeaderIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
     setupToolbar()
-    
-    
-    onThreadAfter(2.0) { [weak self] in
-      self?.showPdfInfo()
-    }
+    showPdfInfoIfNeeded()
   }
   
   public override func viewWillAppear(_ animated: Bool) {
