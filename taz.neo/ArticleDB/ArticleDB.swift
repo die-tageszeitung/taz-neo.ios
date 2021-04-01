@@ -919,7 +919,7 @@ public final class StoredFrame: Frame, StoredObject {
   public static func framesInPage(page: StoredPage) -> [StoredFrame] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "page = %@", page.pr)
-//    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
+    request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
 
