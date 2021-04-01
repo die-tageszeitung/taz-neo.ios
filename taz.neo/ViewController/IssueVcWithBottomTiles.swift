@@ -65,6 +65,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
   private let reuseFooterIdentifier = "issueVcCollectionViewFooter"
   private let itemSpacing:CGFloat = 30.0
+  private let lineSpacing:CGFloat = 20.0
   
   /// header (top section) bottom offset for: app switcher, tabbar, scroll down button
   let bottomOffset:CGFloat=120
