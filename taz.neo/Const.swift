@@ -287,6 +287,18 @@ public struct Const {
     static let DefaultPadding = CGFloat(15.0)
     static let TextFieldPadding = CGFloat(10.0)
   }
+  
+  /// Adjusted Sizes for tiny Displays (iPhone 5s/SE1, iPod 7G)
+  struct ASize {
+    static let TextViewPadding = UIWindow.size.width < 370 ? CGFloat(8) : CGFloat(10.0)
+    static let MiniPageNumberFontSize = UIWindow.size.width < 370 ? CGFloat(11) : CGFloat(12)
+    static let DefaultFontSize = UIWindow.size.width < 370 ? CGFloat(14) : CGFloat(16)
+    static let LargeTitleFontSize = UIWindow.size.width < 370 ? CGFloat(30) : CGFloat(34)
+    static let SmallTitleFontSize = UIWindow.size.width < 370 ? CGFloat(18) : CGFloat(20)
+    static let DottedLineHeight = CGFloat(2.4)
+    static let DefaultPadding = UIWindow.size.width < 370 ? CGFloat(13.0) : CGFloat(15.0)
+    static let TextFieldPadding = UIWindow.size.width < 370 ? CGFloat(9.0) : CGFloat(10.0)
+  }
 } // Const
 
 
