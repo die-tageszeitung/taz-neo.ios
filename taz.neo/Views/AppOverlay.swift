@@ -24,7 +24,12 @@ public class WaitingAppOverlay {
     
     ///show layer
     onMain {
-      let layer = UIView(frame: UIScreen.main.bounds)
+      let layer = UIView(frame: CGRect(origin: .zero, size: UIWindow.size))
+      
+      Notification.receive(Const.NotificationNames.viewSizeTransition) { notification in
+        guard let newSize = notification.content as? CGSize else { return }
+        layer.frame = CGRect(origin: .zero, size: newSize)
+      }
       
       if let bg = backbround {
         layer.addSubview(bg)
