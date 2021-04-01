@@ -12,6 +12,8 @@ import NorthLib
 // MARK: - ShowPDF
 extension IssueVcWithBottomTiles {
   func showPdfInfo() {
+    #warning("@Ringo PDF Info Disabled currently for working...")
+    return
     var img : UIImage?
     
 //    if let url = Bundle.main.url(forResource: "PDF-Button_640px",
