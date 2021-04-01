@@ -64,7 +64,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
   private let reuseFooterIdentifier = "issueVcCollectionViewFooter"
-  private let itemSpacing:CGFloat = 30.0
+  private let itemSpacing:CGFloat = UIWindow.shortSide > 320 ? 30.0 : 20.0
   private let lineSpacing:CGFloat = 20.0
   
   /// header (top section) bottom offset for: app switcher, tabbar, scroll down button
@@ -88,12 +88,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   }()
   
   /// size of the issue items in bottom section;
-  lazy var bottomCellSize : CGSize = {
-    /// expect moment image in 2:3 aspect ratio; add 30 ps for label below
-    let cellWidth : CGFloat = (UIScreen.main.bounds.size.width - 3*itemSpacing)/2
-    return CGSize(width: cellWidth, height: cellWidth*3/2 + 30)//expect 3:2 Format
-  }()
-  
+  lazy var cellSize : CGSize = CGSize(width: 20, height: 20)
   
   /// top top Scroll Target Position, to scroll to if scroll top
   let topPos : CGFloat = -UIWindow.topInset
@@ -161,6 +156,26 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     onThreadAfter(2.0) { [weak self] in
       self?.showPdfInfo()
     }
+  }
+  
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    updateCollectionViewLayout(self.view.frame.size)
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    updateCollectionViewLayout(size)
+  }
+  
+  func updateCollectionViewLayout(_ forParentSize: CGSize){
+    //Calculate Cell Sizes...display 2...6 columns depending on device and Orientation
+    //On Phone onle Portrait is enables, so it displays on every phone only 2 columns
+    let minCellWidth: CGFloat = forParentSize.width > 800 ? 200 : 160
+    let itemsPerRow : CGFloat = CGFloat(Int(forParentSize.width / minCellWidth))
+    let cellWidth = (forParentSize.width - (itemsPerRow+1.0)*itemSpacing)/itemsPerRow
+    cellSize = CGSize(width: cellWidth, height: cellWidth*3/2 + 30)//expect 3:2 Format
+    collectionView.collectionViewLayout.invalidateLayout()
   }
 
   func setupToolbar() {
@@ -452,7 +467,7 @@ extension IssueVcWithBottomTiles: UICollectionViewDelegateFlowLayout {
   public func collectionView(_ collectionView: UICollectionView,
                              layout collectionViewLayout: UICollectionViewLayout,
                              sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return bottomCellSize
+    return cellSize
   }
 }
 
