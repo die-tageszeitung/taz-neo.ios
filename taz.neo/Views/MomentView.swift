@@ -37,6 +37,7 @@ public class MomentView: UIView, Touchable {
       imageView.image = img
       if let img = img {
         let s = img.size
+        if let constraint = aspectRatioConstraint { constraint.isActive = false }
         aspectRatioConstraint = imageView.pinAspect(ratio: s.width/s.height)
       }
     }

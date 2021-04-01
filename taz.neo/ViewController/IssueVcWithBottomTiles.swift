@@ -18,7 +18,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   ///obsolate after refactoring & full integration
   public var issues: [Issue] = [] {
     didSet{
-      print("Issues set!!")
+//      print("Issues set!!")
       if oldValue.count != issues.count {
         footerActivityIndicator.stopAnimating()
         //may issues (moments) changed

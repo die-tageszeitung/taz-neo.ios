@@ -302,6 +302,9 @@ class GqlPage: Page, GQLObject {
   /// File storing PDF
   var pagePdf: GqlFile
   var pdf: FileEntry { return pagePdf }
+  /// Facsimile if first page
+  var gqlFacsimile: GqlImage?
+  var facsimile: ImageEntry? { return gqlFacsimile }
   /// Page title (if any)
   var title: String?
   /// Page number (or some String numbering the page in some way)
@@ -314,6 +317,7 @@ class GqlPage: Page, GQLObject {
   
   static var fields = """
   pagePdf { \(GqlFile.fields) }
+  gqlFacsimile: facsimile { \(GqlImage.fields) }
   title
   pagina
   type
@@ -852,13 +856,6 @@ open class GqlFeeder: Feeder, DoesLog {
       }
       closure(ret!)
     }
-  }
- 
-  // Get Issue overview
-  public func overview(feed: Feed, count: Int = 20, from: Date? = nil,
-                       closure: @escaping(Result<[Issue],Error>)->()) { 
-    issues(feed: feed, date: from, key: nil, count: count, isOverview: true,
-           closure: closure)
   }
   
   // Get Issue
