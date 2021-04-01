@@ -408,7 +408,39 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       insets.bottom += toolBar.totalHeight
       thumbCtrl.collectionView.contentInset = insets
     }
+    updateSlidersWidth(self.view.frame.size.width)
   }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    updateSlidersWidth(size.width)
+  }
+
+  func updateSlidersWidth(_ newParentWidth : CGFloat){
+    let ratio:CGFloat = PdfDisplayOptions.Overview.sliderCoverageRatio
+    let sliderWidth = min(UIScreen.main.bounds.size.width * ratio,
+                          UIScreen.main.bounds.size.height * ratio,
+                          newParentWidth)
+    let lInset = UIWindow.safeInsets.left
+
+    if let slider = self.slider,
+       let newSliderWidth = (sliderWidth - slider.button.frame.size.width + lInset) as CGFloat?,
+       ///Cast newWidth to optional toassign var in place
+       abs(newSliderWidth - slider.coverage) > 1 {
+      slider.coverageRatio = newSliderWidth/newParentWidth
+      slider.updateSliderWidthIfNeeded(newSliderWidth)
+    }
+    
+//    if let slider = self.articleVC?.slider,
+//       let newSliderWidth = (sliderWidth - slider.button.frame.size.width + lInset) as CGFloat?,
+//       ///Cast newWidth to optional toassign var in place
+//       abs(newSliderWidth - slider.coverage) > 1 {
+//      slider.coverageRatio = newSliderWidth/newParentWidth
+//      slider.slide(toOpen: slider.isOpen)
+//    }
+  }
+  
+  
   
   // MARK: - setupViewProvider
   open override func setupViewProvider(){
