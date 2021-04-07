@@ -165,7 +165,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var issue: Issue { delegate.issue }
   public var feed: Feed { issue.feed }
   public var dloader: Downloader { delegate.dloader }
-  lazy var slider = ButtonSlider(slider: contentTable!, into: self)
+  lazy var slider:ButtonSlider? = ButtonSlider(slider: contentTable!, into: self)
   /// Whether to show all content images in a gallery
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
@@ -182,7 +182,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var shareClosure: ((ContentVC)->())?
   private var imageOverlay: Overlay?
   
-  private var settingsBottomSheet: BottomSheet!
+  var settingsBottomSheet: BottomSheet?
   private var textSettingsVC = TextSettingsVC()
   
   public var header = HeaderView()
@@ -233,7 +233,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   /// Setup JS bridge
   private func setupBridge() {
     self.bridge = JSBridgeObject(name: "tazApi")
-    self.bridge?.addfunc("openImage") { jscall in
+    self.bridge?.addfunc("openImage") {   [weak self] jscall in
+      guard let self = self else { return NSNull() }
       if let args = jscall.args, args.count > 0,
          let img = args[0] as? String {
         let current = self.contents[self.index!]
@@ -291,16 +292,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
     
-    settingsBottomSheet.coverage =  200 + UIWindow.verticalInsets
+    settingsBottomSheet?.coverage =  200 + UIWindow.verticalInsets
     
     onSettings{ [weak self] _ in
       guard let self = self else { return }
       self.debug("*** Action: <Settings> pressed")
-      if self.settingsBottomSheet.isOpen {
-          self.settingsBottomSheet.close()
+      if self.settingsBottomSheet?.isOpen ?? false {
+          self.settingsBottomSheet?.close()
       }
       else {
-        self.settingsBottomSheet.open()
+        self.settingsBottomSheet?.open()
       }
       
       self.textSettingsVC.updateButtonValuesOnOpen()
@@ -442,19 +443,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   public func setupSlider() {
     let img = UIImage.init(named: "logo")
-    slider.image = img
-    slider.image?.accessibilityLabel = "Inhalt"
-    slider.buttonAlpha = 1.0
-    slider.button.layer.shadowOpacity = 0.25
-    slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
-    slider.button.layer.shadowRadius = 4
-    header.leftIndent = 8 + slider.visibleButtonWidth
+    slider?.image = img
+    slider?.image?.accessibilityLabel = "Inhalt"
+    slider?.buttonAlpha = 1.0
+    slider?.button.layer.shadowOpacity = 0.25
+    slider?.button.layer.shadowOffset = CGSize(width: 2, height: 2)
+    slider?.button.layer.shadowRadius = 4
+    header.leftIndent = 8 + (slider?.visibleButtonWidth ?? 0.0)
   }
   
   public func applyStyles() {
-    slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
-    settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
-    settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
+    slider?.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
+    settingsBottomSheet?.color = Const.SetColor.ios(.secondarySystemBackground).color
+    settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
     self.collectionView?.backgroundColor = Const.SetColor.CTBackground.color
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
@@ -474,14 +475,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   override public func viewWillDisappear(_ animated: Bool) {
-    slider.hideLeftBackground()
+    slider?.hideLeftBackground()
     super.viewWillDisappear(animated)
   }
   
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
-    slider.close()
-    self.settingsBottomSheet.close()
+    slider?.close()
+    self.settingsBottomSheet?.close()
     if let overlay = imageOverlay { overlay.close(animated: false) }
   }
   

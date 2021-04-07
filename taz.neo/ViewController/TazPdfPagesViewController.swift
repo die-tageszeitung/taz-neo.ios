@@ -317,7 +317,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       guard let self = self else { return }
       if self.articleFromPdf == false { return }
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
-      guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)), let path = zpdfi.issueDir?.path else { return }
+      guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
+            let path = zpdfi.issueDir?.path else { return }
       let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
       childThumbnailController.cellLabelFont = Const.Fonts.titleFont(size: 12)
       childThumbnailController.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
@@ -329,7 +330,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
         if let newIndex = pdfModel?.index {
           self?.collectionView?.index = newIndex
         }
-        articleVC.slider.close(animated: true) { [weak self] _ in
+        articleVC.slider?.close(animated: true) { [weak self] _ in
           self?.navigationController?.popViewController(animated: true)
         }
       }
@@ -477,10 +478,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     }
   }
   
-  // MARK: - viewDidDisappear
-  override public func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    if isMovingFromParent {
+  open override func didMove(toParent parent: UIViewController?) {
+    super.didMove(toParent: parent)
+    if parent == nil {
       if let nModel = self.pdfModel as? NewPdfModel {
         nModel.images = []
       }
@@ -488,7 +488,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       thumbnailController?.clickCallback = nil
       thumbnailController = nil
       slider = nil
+      self.childArticleVC = nil
     }
+  }
+  
+  // MARK: - viewDidDisappear
+  override public func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
     slider?.close()
   }
   
@@ -541,7 +547,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
 // MARK: - Class ArticleVcWithPdfInSlider
 class ArticleVcWithPdfInSlider : ArticleVC {
   
-  var sliderContent: UIViewController
+  var sliderContent: UIViewController?
   
   public init(feederContext: FeederContext, sliderContent:UIViewController) {
     self.sliderContent = sliderContent
@@ -553,14 +559,31 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   }
   
   override func setupSlider() {
-    self.slider = ButtonSlider(slider: sliderContent, into: self)
+    if let sContent = self.sliderContent {
+      self.slider = ButtonSlider(slider: sContent, into: self)
+    }
     super.setupSlider()
   }
   
   override func willMove(toParent parent: UIViewController?) {
     if parent == nil {
-      self.slider.close()
+      self.slider?.close()
     }
     super.willMove(toParent: parent)
+  }
+  
+  override func didMove(toParent parent: UIViewController?) {
+    super.didMove(toParent: parent)
+    if parent == nil {
+      if let thumbCtrl = self.sliderContent as? PdfOverviewCollectionVC {
+        thumbCtrl.clickCallback = nil
+      }
+      NotificationCenter.default.removeObserver(self)
+      contentTable = nil
+      sliderContent = nil
+      delegate = nil
+      self.slider = nil
+      self.settingsBottomSheet = nil
+    }
   }
 }

@@ -120,12 +120,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       else { 
         self?.debug("*** Action: \"Impressum\" in Slider pressed")
       }
-      self?.slider.close()
+      self?.slider?.close()
       self?.displaySection(index: sectionIndex)
     }
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")
-      self?.slider.close()
+      self?.slider?.close()
       self?.closeIssue()
     }
     onDisplay { [weak self] (secIndex, oview) in
@@ -195,10 +195,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
     if SectionVC.showAnimations {
       SectionVC.showAnimations = false
       delay(seconds: 1.5) {
-        self.slider.open() { _ in
+        self.slider?.open() { _ in
           delay(seconds: 1.5) {
-            self.slider.close() { _ in
-              self.slider.blinkButton()
+            self.slider?.close() { _ in
+              self.slider?.blinkButton()
             }
           }
         }
