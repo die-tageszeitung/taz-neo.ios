@@ -133,7 +133,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
       return waitingImage
     }
     
-    let height = singlePageSize.height - PdfDisplayOptions.Overview.labelHeight
+    let height = singlePageSize.height
     
     if pdfImg.pdfPage == nil,
        let issueInfo = issueInfo,
@@ -195,9 +195,9 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
       = (panoPageWidth - PdfDisplayOptions.Overview.interItemSpacing)/2
     let pageHeight = singlePageWidth * rawPageSize.height / rawPageSize.width
     self.singlePageSize = CGSize(width: singlePageWidth,
-                                 height: pageHeight + PdfDisplayOptions.Overview.labelHeight)
+                                 height: pageHeight)
     self.panoPageSize = CGSize(width: panoPageWidth,
-                               height: pageHeight + PdfDisplayOptions.Overview.labelHeight)
+                               height: pageHeight)
   }
 }
 
@@ -309,12 +309,17 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     super.init(data: pdfModel)
     
     thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
+    thumbnailController?.cellLabelFont = Const.Fonts.titleFont(size: 12)
+    thumbnailController?.cellLabelLinesCount = 2
+    
     self.onTap { [weak self] (oimg, x, y) in
       guard let self = self else { return }
       if self.articleFromPdf == false { return }
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)), let path = zpdfi.issueDir?.path else { return }
       let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
+      childThumbnailController.cellLabelFont = Const.Fonts.titleFont(size: 12)
+      childThumbnailController.cellLabelLinesCount = 2
       let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
                                                sliderContent: childThumbnailController)
       articleVC.delegate = self
@@ -402,8 +407,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     self.updateMenuItems()
     
     if let thumbCtrl = self.thumbnailController {
-      thumbCtrl.cellLabelFont = Const.Fonts.titleFont(size: 7)
-      thumbCtrl.cellLabelLinesCount = 2
       var insets = UIWindow.keyWindow?.safeAreaInsets ?? UIEdgeInsets.zero
       insets.bottom += toolBar.totalHeight
       thumbCtrl.collectionView.contentInset = insets
@@ -430,17 +433,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       slider.coverageRatio = newSliderWidth/newParentWidth
       slider.updateSliderWidthIfNeeded(newSliderWidth)
     }
-    
-//    if let slider = self.articleVC?.slider,
-//       let newSliderWidth = (sliderWidth - slider.button.frame.size.width + lInset) as CGFloat?,
-//       ///Cast newWidth to optional toassign var in place
-//       abs(newSliderWidth - slider.coverage) > 1 {
-//      slider.coverageRatio = newSliderWidth/newParentWidth
-//      slider.slide(toOpen: slider.isOpen)
-//    }
   }
-  
-  
   
   // MARK: - setupViewProvider
   open override func setupViewProvider(){
