@@ -213,6 +213,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   public var sections: [Section]
   
   public var article: Article?
+  ///reference to pushed child vc, if any
+  var childArticleVC: ArticleVcWithPdfInSlider?
   
   public var article2section: [String : [Section]]
   public func displaySection(index: Int) { log("displaySection not implemented")}
@@ -335,14 +337,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
         }
       }
       articleVC.gotoUrl(path: path, file: link)
-      self.childControllerOrientationClosure?.onOrientationChange(closure: {
-        onMainAfter {
-          articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth + UIWindow.safeInsets.left
-        }
-      })
       self.navigationController?.pushViewController(articleVC, animated: true)
-      onMainAfter {
-        articleVC.slider.coverage = PdfDisplayOptions.Overview.sliderWidth + UIWindow.safeInsets.left
+      self.childArticleVC = articleVC
+      
+      onMainAfter { [weak self] in
+        self?.updateSlidersWidth()
       }
     }
   }
@@ -380,13 +379,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     slider = ButtonSlider(slider: sliderContent, into: self)
     guard let slider = slider else { return }
     slider.image = UIImage.init(named: "logo")
-    /// WARNING set Image changes the coverage Ratio!!
-    slider.coverage = PdfDisplayOptions.Overview.sliderWidth + UIWindow.safeInsets.left
-    self.orientationClosure?.onOrientationChange(closure: {
-      onMainAfter {
-        slider.coverage = PdfDisplayOptions.Overview.sliderWidth + UIWindow.safeInsets.left
-      }
-    })
     slider.image?.accessibilityLabel = "Inhalt"
     slider.buttonAlpha = 1.0
     slider.hideButtonOnClose = true
@@ -414,7 +406,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       insets.bottom += toolBar.totalHeight
       thumbCtrl.collectionView.contentInset = insets
     }
-    updateSlidersWidth(self.view.frame.size.width)
+    updateSlidersWidth()
   }
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -422,7 +414,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     updateSlidersWidth(size.width)
   }
 
-  func updateSlidersWidth(_ newParentWidth : CGFloat){
+  func updateSlidersWidth(_ _newParentWidth : CGFloat? = nil){
+    let newParentWidth = _newParentWidth ?? self.view.frame.size.width
     let ratio:CGFloat = PdfDisplayOptions.Overview.sliderCoverageRatio
     let sliderWidth = min(UIScreen.main.bounds.size.width * ratio,
                           UIScreen.main.bounds.size.height * ratio,
@@ -430,6 +423,14 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     let lInset = UIWindow.safeInsets.left
 
     if let slider = self.slider,
+       let newSliderWidth = (sliderWidth - slider.button.frame.size.width + lInset) as CGFloat?,
+       ///Cast newWidth to optional toassign var in place
+       abs(newSliderWidth - slider.coverage) > 1 {
+      slider.coverageRatio = newSliderWidth/newParentWidth
+      slider.updateSliderWidthIfNeeded(newSliderWidth)
+    }
+    
+    if let slider = childArticleVC?.slider,
        let newSliderWidth = (sliderWidth - slider.button.frame.size.width + lInset) as CGFloat?,
        ///Cast newWidth to optional toassign var in place
        abs(newSliderWidth - slider.coverage) > 1 {
