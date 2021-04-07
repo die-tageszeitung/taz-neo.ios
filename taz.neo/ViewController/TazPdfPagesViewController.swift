@@ -87,7 +87,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
     whenScrolledHandler = (minRatio, closure)
   }
   
-  
+  var title: String?
   var count: Int { get {return images.count}}
   var index: Int = 0
   var issueInfo:IssueInfo?
@@ -302,6 +302,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   public init(issueInfo:IssueInfo) {
     Log.minLogLevel = .Debug
     let pdfModel = NewPdfModel(issueInfo: issueInfo)
+    pdfModel.title = issueInfo.issue.date.gDate().replacingOccurrences(of: ", ", with: ",\n")
     self.sections = issueInfo.issue.sections ?? []
     self.article2section = issueInfo.issue.article2section
     self.feederContext = issueInfo.feederContext
@@ -310,6 +311,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     
     thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
     thumbnailController?.cellLabelFont = Const.Fonts.titleFont(size: 12)
+    thumbnailController?.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
     thumbnailController?.cellLabelLinesCount = 2
     
     self.onTap { [weak self] (oimg, x, y) in
@@ -319,6 +321,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)), let path = zpdfi.issueDir?.path else { return }
       let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
       childThumbnailController.cellLabelFont = Const.Fonts.titleFont(size: 12)
+      childThumbnailController.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
       childThumbnailController.cellLabelLinesCount = 2
       let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
                                                sliderContent: childThumbnailController)
