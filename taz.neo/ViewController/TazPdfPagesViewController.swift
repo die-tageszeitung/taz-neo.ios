@@ -205,9 +205,6 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
 open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   
-  private var orientationClosure:OrientationClosure? = OrientationClosure()
-  private var childControllerOrientationClosure:OrientationClosure? = OrientationClosure()
-  
   public var section: Section?
   
   public var sections: [Section]
