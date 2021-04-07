@@ -480,6 +480,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   // MARK: - viewDidDisappear
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
+    if isMovingFromParent {
+      if let nModel = self.pdfModel as? NewPdfModel {
+        nModel.images = []
+      }
+      self.pdfModel = nil
+      thumbnailController?.clickCallback = nil
+      thumbnailController = nil
+      slider = nil
+    }
     slider?.close()
   }
   
