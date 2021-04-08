@@ -43,7 +43,10 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
   }
   open override var pdfPage: PDFPage? {
     get {
-      return pageReference?.pdfDocument(inIssueDir: issueDir)?.page(at: 0)
+      if let doc = pageReference?.pdfDocument(inIssueDir: issueDir), doc.pageCount > 0 {
+        return doc.page(at: 0)
+      }
+      return nil
     } 
   }
   
