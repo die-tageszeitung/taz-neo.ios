@@ -941,6 +941,8 @@ public final class StoredPage: Page, StoredObject {
     set { pr.pagina = newValue }
   }
   public var pdf: FileEntry {
+    ///Debug Crash nil while unwrapping optional!
+    ///no solution: return StoredFileEntry.new() ...crash on next place
     get { return StoredFileEntry(persistent: pr.pdf!) }
     set {
       pr.pdf = StoredFileEntry.persist(object: newValue).pr
