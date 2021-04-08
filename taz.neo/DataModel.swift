@@ -83,8 +83,8 @@ public extension FileEntry {
   func fileNameExists(inDir: String) -> Bool {
     let f = File(dir: inDir, fname: fileName)
     let exists = f.exists 
-    if exists && (f.mTime == moTime) && (f.size == size) {
-      log("* Warning: File \(fileName) exists but mtime and/or size are wrong")
+    if exists && ((f.mTime != moTime) || (f.size != size)) {
+      log("* Warning: File \(fileName) exists but mtime and/or size are wrong \(f.mTime) !=? \(moTime) || \(f.size) !=? \(size)")
     }
     return exists
   }  
