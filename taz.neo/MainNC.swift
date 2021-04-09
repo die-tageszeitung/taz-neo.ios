@@ -13,6 +13,7 @@ import NorthLib
 class MainNC: NavigationController, UIStyleChangeDelegate,
               MFMailComposeViewControllerDelegate {
   
+  private var threeFingerAlertOpen: Bool = false
   var showAnimations = false
   lazy var consoleLogger = Log.Logger()
   lazy var viewLogger = Log.ViewLogger()
@@ -138,6 +139,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   }
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
+    if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
 //    let logView = viewLogger.logView
     let actions: [UIAlertAction] = [
       Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
@@ -159,7 +161,9 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
 //      }
     ]
     Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)",
-      actions: actions)
+                      actions: actions) { [weak self] in
+      self?.threeFingerAlertOpen = false
+    }
   }
   
   func setupTopMenus() {
