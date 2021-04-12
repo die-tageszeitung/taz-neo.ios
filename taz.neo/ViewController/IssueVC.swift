@@ -301,7 +301,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     
     func popAndShowReloaded(){
-      navigationController!.popToRootViewController(animated: true)
+      navigationController!.popToRootViewController(animated: false)
       showIssue(index: index, atSection: sissue.lastSection,
                 atArticle: sissue.lastArticle)
       log(">>>> IssueVC.checkReload .. showIssue is: \(index) \(sissue.date) iscompleete?: \(issues[index].isComplete), atSection: \(sissue.lastSection ?? -1), atArticle: \(sissue.lastArticle ?? -1)")
@@ -321,7 +321,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
                            showSpinner: true,
                            titleMessage: "Aktualisiere Daten",
                            bottomMessage: "Bitte haben Sie einen Moment Geduld!",
-                           dismissNotification: Const.NotificationNames.articleLoaded)
+                           dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
+    
+    Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+    }
+    
+    Notification.receiveOnce("feederUneachable") { [weak self] _ in
+      self?.navigationController!.popToRootViewController(animated: false)
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+      Toast.show(Localized("error"))
+    }
     
     if stillDownloading == false {
       popAndShowReloaded()

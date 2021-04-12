@@ -28,6 +28,7 @@ public struct Const {
   struct NotificationNames {
     /// Some resource filenames
     static let articleLoaded = "NotificationName.articleLoaded"
+    static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
     static let viewSizeTransition = "NotificationName.viewSizeTransition"
     
   } // Filename
