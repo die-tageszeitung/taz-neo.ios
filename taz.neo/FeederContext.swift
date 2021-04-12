@@ -429,8 +429,8 @@ open class FeederContext: DoesLog {
    */
   public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
     if issue.isDownloading {
-      Notification.receiveOnce("issue", from: issue) { notif in
-        self.getCompleteIssue(issue: issue)
+      Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+        self?.getCompleteIssue(issue: issue)
       }
     }
     guard needsUpdate(issue: issue) else {
