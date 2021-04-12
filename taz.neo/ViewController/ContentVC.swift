@@ -428,6 +428,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       else { self?.toolBar.hide(false); self?.header.hide(false) }
     }
     setupSlider()
+    
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
       ContentUrl(path: path, issue: issue, content: cnt) { [weak self] curl in
@@ -442,8 +443,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   public func setupSlider() {
-    let img = UIImage.init(named: "logo")
-    slider?.image = img
+    if let ct = contentTable {
+      let twidth = ct.largestTextWidth
+      slider?.maxCoverage = twidth + 3*16.0
+    }
+    
+    slider?.image = UIImage.init(named: "logo")
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
     slider?.button.layer.shadowOpacity = 0.25
