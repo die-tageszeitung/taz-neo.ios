@@ -278,7 +278,7 @@ public struct Const {
     
     /// The font to use in content tables
     static func contentTableFont(size: CGFloat) -> UIFont
-    { return font(name: contentTableFontName, size: size) }
+    { return font(name: titleFontName, size: size) }
 
   } // Fonts
   
