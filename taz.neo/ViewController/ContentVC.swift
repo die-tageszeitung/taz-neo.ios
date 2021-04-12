@@ -410,6 +410,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       else { self?.toolBar.hide(false); self?.header.hide(false) }
     }
     let img = UIImage.init(named: "logo")
+    if let ct = contentTable {
+      let twidth = ct.largestTextWidth
+      slider.maxCoverage = twidth + 3*16.0
+    }
     slider.image = img
     slider.image?.accessibilityLabel = "Inhalt"
     slider.buttonAlpha = 1.0

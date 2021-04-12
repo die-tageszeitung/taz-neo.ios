@@ -18,10 +18,16 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   static var ArticleColor = UIColor.darkGray
   static var DateColor = UIColor.black
   static var IsDarkMode = false
-  static var TextFont = UIFont.boldSystemFont(ofSize: 18)
+  static var TextFont =
+    Const.Fonts.contentTableFont(size: Const.Size.ContentTableFontSize)
+  static var LargestText = "meinung + diskussion"
   static var DateTextFont = UIFont.systemFont(ofSize: 14)
-  static var CellHeight = CGFloat(30)
-  static var ImageWidth = CGFloat(150)
+  static var CellHeight = Const.Size.ContentTableRowHeight
+  
+  /// Returns width of largest text in content table
+  public var largestTextWidth: CGFloat {
+    ContentTableVC.LargestText.size(font: ContentTableVC.TextFont).width
+  }
   
   // Setup colors depending on Defaults["colorMode"]
   private func setupColors() {
@@ -111,7 +117,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   // momentView constraints
   fileprivate var momentWidth: NSLayoutConstraint?
-  fileprivate var momentHeight: NSLayoutConstraint?
+  fileprivate var aspectRatio: NSLayoutConstraint?
 
   /// The Feeder providing the Issues
   public var feeder: Feeder?
@@ -133,12 +139,12 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   fileprivate func resetImage() {
     if let image = image, let momentView = momentView {
       momentView.image = image
+      let iwidth = image.size.width
+      let iheight = image.size.height
       momentWidth?.isActive = false
-      momentHeight?.isActive = false
+      aspectRatio?.isActive = false
+      aspectRatio = momentView.pinAspect(ratio: iwidth/iheight)
       momentWidth = momentView.pinWidth(to: self.view.width, factor: 0.5)
-      let factor = image.size.width / ContentTableVC.ImageWidth
-      let height = image.size.height / factor
-      momentHeight = momentView.pinHeight(height)
       if #available(iOS 13.0, *) {
         let menuInteraction = UIContextMenuInteraction(delegate: self)
         momentView.addInteraction(menuInteraction)
@@ -251,12 +257,6 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
         ContentTableVC.nAnimations += 1
       }
     }
-//    delay(seconds: 3) { 
-//      Defaults.singleton["colorMode"] = "dark" 
-//      delay(seconds: 3) {
-//        Defaults.singleton["colorMode"] = "light"
-//      }
-//    }
   }
   
   override public func viewDidDisappear(_ animated: Bool) {

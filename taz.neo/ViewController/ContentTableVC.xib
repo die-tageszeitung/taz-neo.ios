@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="16097.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ContentTableVC" customModule="taz_neo" customModuleProvider="target">
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ContentTableVC" customModule="die_tageszeitung" customModuleProvider="target">
             <connections>
                 <outlet property="contentTableView" destination="oS2-M7-uby" id="X1w-Dt-NLY"/>
                 <outlet property="issueDateLabel" destination="aMo-11-GZJ" id="A0h-nA-LPG"/>
@@ -28,14 +29,14 @@
                             <rect key="frame" x="16" y="8" width="93.5" height="41"/>
                         </imageView>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="freitag, 24. januar 2020" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aMo-11-GZJ">
-                            <rect key="frame" x="16" y="49" width="160.5" height="18"/>
+                            <rect key="frame" x="16" y="55" width="160.5" height="18"/>
                             <fontDescription key="fontDescription" type="system" pointSize="15"/>
                             <nil key="textColor"/>
                             <nil key="highlightedColor"/>
                         </label>
                         <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="oS2-M7-uby" userLabel="Sections">
-                            <rect key="frame" x="16" y="75" width="351" height="584"/>
-                            <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                            <rect key="frame" x="16" y="81" width="351" height="578"/>
+                            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         </tableView>
                     </subviews>
                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -47,10 +48,11 @@
                         <constraint firstItem="acP-9e-2dZ" firstAttribute="leading" secondItem="fIt-Wd-wBM" secondAttribute="leading" constant="16" id="Xg6-IP-aHX"/>
                         <constraint firstItem="aMo-11-GZJ" firstAttribute="leading" secondItem="acP-9e-2dZ" secondAttribute="leading" id="jDZ-ZQ-tGe"/>
                         <constraint firstItem="oS2-M7-uby" firstAttribute="top" secondItem="aMo-11-GZJ" secondAttribute="bottom" constant="8" id="nyY-uy-o2W"/>
-                        <constraint firstItem="aMo-11-GZJ" firstAttribute="top" secondItem="acP-9e-2dZ" secondAttribute="bottom" id="tsU-Ei-Ui0"/>
+                        <constraint firstItem="aMo-11-GZJ" firstAttribute="top" secondItem="acP-9e-2dZ" secondAttribute="bottom" constant="6" id="tsU-Ei-Ui0"/>
                     </constraints>
                 </view>
             </subviews>
+            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <constraints>
                 <constraint firstItem="fIt-Wd-wBM" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="3Fj-i9-jDZ"/>
@@ -58,11 +60,13 @@
                 <constraint firstItem="fIt-Wd-wBM" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="XnN-ow-qQG"/>
                 <constraint firstItem="fIt-Wd-wBM" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="xI6-RH-VpD"/>
             </constraints>
-            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
             <point key="canvasLocation" x="-2370.4000000000001" y="-487.10644677661173"/>
         </view>
     </objects>
     <resources>
         <image name="logo" width="93.5" height="41"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
     </resources>
 </document>
