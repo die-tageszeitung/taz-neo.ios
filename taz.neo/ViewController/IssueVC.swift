@@ -283,26 +283,48 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
   
   /// Check whether it's necessary to reload the current Issue
-  public func checkReload() {
-    if let visible = navigationController?.visibleViewController,
-       let sissue = issue as? StoredIssue {
-      /// issue.isDownloading == true => feederContext.needsUpdate(..) => false
-      #warning("Cannot handle Pop Vc and show Overlay, if still downloaded reduced issue!")
-      if (visible != self) && feederContext.needsUpdate(issue: sissue) {
-        let snap = NavigationController.top()?.presentingViewController?.view.snapshotView(afterScreenUpdates: false)
-        WaitingAppOverlay.show(alpha: 1.0,
-                               backbround: snap,
-                               showSpinner: true,
-                               titleMessage: "Aktualisiere Daten",
-                               bottomMessage: "Bitte haben Sie einen Moment Geduld!",
-                               dismissNotification: Const.NotificationNames.articleLoaded)
-        navigationController!.popToRootViewController(animated: true)
-        showIssue(index: index, atSection: sissue.lastSection, 
-                  atArticle: sissue.lastArticle)
+  public func authenticationSucceededCheckReload() {
+    guard let visible = navigationController?.visibleViewController,
+          visible != self,
+          let sissue = issue as? StoredIssue  else {
+      log(">>>> IssueVC.checkReload .. do not show Overlay ..not relevant VC")
+      return
+    }
+    
+    log(">>>> IssueVC.checkReload .. current Issue is: \(index) \(sissue.date) iscompleete?: \(issues[index].isComplete), atSection: \(sissue.lastSection ?? -1), atArticle: \(sissue.lastArticle ?? -1)")
+    ///remember status to prevent race conditions
+    let stillDownloading = sissue.isDownloading
+    
+    if (feederContext.needsUpdate(issue: sissue) || stillDownloading) == false {
+      log(">>>> IssueVC.checkReload .. do not show Overlay ... no needed Data OK e.g. Demo?")
+      return
+    }
+    
+    func popAndShowReloaded(){
+      navigationController!.popToRootViewController(animated: true)
+      showIssue(index: index, atSection: sissue.lastSection,
+                atArticle: sissue.lastArticle)
+      log(">>>> IssueVC.checkReload .. showIssue is: \(index) \(sissue.date) iscompleete?: \(issues[index].isComplete), atSection: \(sissue.lastSection ?? -1), atArticle: \(sissue.lastArticle ?? -1)")
+    }
+    
+    if stillDownloading {
+      Notification.receiveOnce("issue", from: sissue) { notif in
+        popAndShowReloaded()
       }
-      else {
-        print(">>>> IssueVC.checkReload .. do not show Overlay because: visible != self \(visible != self) OR: feederContext.needsUpdate(issue: sissue): \(feederContext.needsUpdate(issue: sissue)) because is still Downloading? sissue.isDownloading: \(sissue.isDownloading)")
-      }
+    }
+    
+    let snap = NavigationController.top()?
+      .presentingViewController?.view.snapshotView(afterScreenUpdates: false)
+    
+    WaitingAppOverlay.show(alpha: 1.0,
+                           backbround: snap,
+                           showSpinner: true,
+                           titleMessage: "Aktualisiere Daten",
+                           bottomMessage: "Bitte haben Sie einen Moment Geduld!",
+                           dismissNotification: Const.NotificationNames.articleLoaded)
+    
+    if stillDownloading == false {
+      popAndShowReloaded()
     }
   }
   
@@ -360,7 +382,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.provideOverview()
     }
     Notification.receive("authenticationSucceeded") { notif in
-      self.checkReload()
+      self.authenticationSucceededCheckReload()
     }
     Notification.receive(UIApplication.willResignActiveNotification) { _ in
       self.goingBackground()
