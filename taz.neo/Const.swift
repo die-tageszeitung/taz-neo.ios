@@ -259,7 +259,7 @@ public struct Const {
     static var defaultFontSize = CGFloat(16)
     
     static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
-    static var contentTableFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
+    static var contentTableFontName: String? = titleFontName
     static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
 
     static func font(name: String?, size: CGFloat) -> UIFont {
@@ -279,7 +279,7 @@ public struct Const {
     
     /// The font to use in content tables
     static func contentTableFont(size: CGFloat) -> UIFont
-    { return font(name: titleFontName, size: size) }
+    { return font(name: contentTableFontName, size: size) }
 
   } // Fonts
   
