@@ -42,9 +42,11 @@ else
 	curlVersion_jsonFile="${SRCROOT}/taz.neo/Supporting Files/Resources/curl_resources_version.json" # ressources version cached for 1 day in sources
 fi
 
-zipVersion_jsonFile="${SRCROOT}/taz.neo/Supporting Files/Resources/zip_resources_version.json" #copy of ressources version to remember version of downloaded zip
+currentBundled_jsonFile="${SRCROOT}/taz.neo/Supporting Files/Resources/resources.json" #copy of ressources version to remember version of downloaded zip
 src_files="${SRCROOT}/taz.neo/Supporting Files/Resources/files" # unpacked ressources
 temp_folder="${SRCROOT}/taz.neo/Supporting Files/Resources/temp" # temporary files
+
+ressourcesCurlCommand="https://dl.taz.de/appGraphQl?query=query%7Bproduct%7BresourceVersion,resourceBaseUrl,resourceZipName%3AresourceZip,files%3AresourceList%7Bname,storageType,sMoTime%3AmoTime,sha256,sSize%3Asize%7D%7D%7D"
 
 # show notification if last command failed, param $1 is the line where the error occured
 function check(){
@@ -88,7 +90,7 @@ echo "\nEnvironment Variables\n"
 echo "curlVersion_temp_jsonFile: ${curlVersion_temp_jsonFile}"
 echo "curlOnEachCleanAndBuild: ${curlOnEachCleanAndBuild}"
 echo "curlVersion_jsonFile: ${curlVersion_jsonFile}"
-echo "zipVersion_jsonFile: ${zipVersion_jsonFile}"
+echo "currentBundled_jsonFile: ${currentBundled_jsonFile}"
 echo "src_files: ${src_files}"
 echo "temp_folder: ${temp_folder}"
 echo ""
@@ -101,7 +103,8 @@ if [[ $(find "$curlVersion_jsonFile" -mtime -1 -print) ]]; then
 	echo "CURL resources not needed" #exist and max 1 day old
 else
 	echo "CURL resources version needed"
-  	curl 'https://dl.taz.de/appGraphQl?query=query%7Bproduct%7BresourceVersion,resourceBaseUrl,resourceZip,globalBaseUrl,appType,appName%7D%7D' -o $curlVersion_temp_jsonFile; check
+
+	curl -o $curlVersion_temp_jsonFile ${ressourcesCurlCommand}; check
   	if [  ! $curlOnEachCleanAndBuild ]; then
   	  cp "${curlVersion_temp_jsonFile}" "${curlVersion_jsonFile}"
   	fi
@@ -109,7 +112,7 @@ fi
 
 function extract_versions_numbers() {
 	jsonVersion=$(grep -o '"resourceVersion":\d.' "${curlVersion_jsonFile}" | grep -o '\d.')
-    zipVersion=$(grep -o '"resourceVersion":\d.' "${zipVersion_jsonFile}" | grep -o '\d.')
+    zipVersion=$(grep -o '"resourceVersion":\d.' "${currentBundled_jsonFile}" | grep -o '\d.')
 	echo "Current Versions are: jsonVersion: ${jsonVersion}  :: zipVersion: ${zipVersion} "
 }
 
@@ -118,7 +121,7 @@ function download_and_unpack() {
 	unzip "${temp_folder}/resources.zip" -d "${temp_folder}/unzipped"; check
 	rm -rf "${src_files}"; check
 	mv "${temp_folder}/unzipped" "${src_files}"; check
-	cp "${curlVersion_temp_jsonFile}" "${zipVersion_jsonFile}"
+	cp "${curlVersion_temp_jsonFile}" "${currentBundled_jsonFile}"
 }
 
 extract_versions_numbers
