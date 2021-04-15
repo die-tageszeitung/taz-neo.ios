@@ -108,13 +108,13 @@ open class FeederContext: DoesLog {
         """
       if isExit {
         msg += """
-          Bitte versuchen Sie es zu einem späteren Zeitpunkt
+          \nBitte versuchen Sie es zu einem späteren Zeitpunkt
           noch einmal.
           """
       }
       else {
         msg += """
-          Sie können allerdings bereits heruntergeladene Ausgaben auch
+          \nSie können allerdings bereits heruntergeladene Ausgaben auch
           ohne Internet-Zugriff lesen.
           """        
       }
