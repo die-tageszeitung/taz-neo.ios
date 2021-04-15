@@ -303,6 +303,66 @@ open class FeederContext: DoesLog {
         notify("resourcesReady"); return
       }
     }
+    else if case let bundledResources = BundledResources(),
+            let result = bundledResources.ressourcesPayload.value(),
+            let res = result["product"],
+            res.resourceVersion == version,
+            bundledResources.bundledFiles.count > 0 {
+      //Use Bundled Resources!
+      res.setPayload(feeder: self.gqlFeeder)
+      let resources = StoredResources.persist(object: res)
+      self.dloader.createDirs()
+      resources.isDownloading = true //Why???
+      
+      var success = true
+      
+      if bundledResources.bundledFiles.count != res.files.count {
+        log("WARNING: Something is Wrong maybe need to download additional Files!")
+        success = false
+      }
+      
+      var bundledRessourceFiles : [File] = []
+      
+      for fileUrl in bundledResources.bundledFiles {
+        let file = File(fileUrl)
+        if file.exists {
+          bundledRessourceFiles.append(file)
+        }
+      }
+      
+      let globalFiles = resources.payload.files.filter {
+        $0.storageType != .global
+      }
+      
+      for globalFile in globalFiles {
+        let bundledFiles = bundledRessourceFiles.filter{ $0.basename == globalFile.name }
+        if bundledFiles.count > 1 { log("Warning found multiple matching Files!")}
+        guard let bundledFile = bundledFiles.first else {
+          log("Warning not found matching File!")
+          success = false
+          continue
+        }
+        
+        /// File Creation Dates did not Match! bundledFile.mTime != globalFile.moTime
+        if bundledFile.exists,
+           bundledFile.size == globalFile.size {
+          bundledFile.copy(to: self.gqlFeeder.resourcesDir.path + "/" + globalFile.name)
+          log("File \(bundledFile.basename) moved... exist in resdir? : \(globalFile.existsIgnoringTime(inDir: self.gqlFeeder.resourcesDir.path))")
+        } else {
+          log("* Warning: File \(bundledFile.basename) may not exist (\(bundledFile.exists)), mtime, size is wrong  \(bundledFile.size) !=? \(globalFile.size)")
+          success = false
+        }
+      }
+      if success == true {
+        resources.isDownloading = false
+        ArticleDB.save()
+        log("Bundled Ressources successful Loaded")
+        self.notify("resourcesReady")
+        return
+      }//no need to download additional stuff
+    }
+            
+      
     // update from server needed
     guard isConnected else { 
       noConnection()
