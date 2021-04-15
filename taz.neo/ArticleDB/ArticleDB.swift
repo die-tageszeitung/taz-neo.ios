@@ -527,9 +527,17 @@ public final class StoredPayload: StoredObject, Payload {
     get { return pr.downloadStopped }
     set { pr.downloadStopped = newValue }
   }
-  public var localDir: String {
+  /// Relative path to destination directory
+  public var subdir: String {
     get { return pr.localDir! }
     set { pr.localDir = newValue }
+  }
+  /// Absolute path to destination directory
+  public var localDir: String {
+    get { "\(Database.appDir)/\(subdir)" }
+    set (ldir) {
+      subdir = String(ldir.dropFirst(Database.appDir.count + 1))
+    }
   }
   public var remoteBaseUrl: String {
     get { return pr.remoteBaseUrl! }
