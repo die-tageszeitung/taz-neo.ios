@@ -118,7 +118,7 @@ open class FeederContext: DoesLog {
           ohne Internet-Zugriff lesen.
           """        
       }
-      Alert.message(title: title, message: msg, closure: closure)
+      OfflineAlert.message(title: title, message: msg, closure: closure)
     }
   }
   

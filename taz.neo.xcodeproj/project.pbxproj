@@ -23,6 +23,7 @@
 		080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
 		08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */; };
 		08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */; };
+		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
 		7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968C25CC605D00508DE8 /* FeedbackViewController.swift */; };
 		7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968D25CC605D00508DE8 /* FeedbackComposer.swift */; };
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
@@ -121,6 +122,7 @@
 		080271C624ADDD68002CD2F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Localizable.strings; sourceTree = "<group>"; };
 		08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = FallbackAssets.xcassets; sourceTree = "<group>"; };
 		08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdController.swift; sourceTree = "<group>"; };
+		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
 		7715968D25CC605D00508DE8 /* FeedbackComposer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackComposer.swift; sourceTree = "<group>"; };
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
@@ -275,6 +277,7 @@
 				AEF2DF34244766E400D1482D /* MomentView.swift */,
 				77A214C325D2B68F00A7C41B /* AppOverlay.swift */,
 				773D564126145E8500B42FEF /* InfoToast.swift */,
+				7708DF65262896D10031C702 /* OfflineAlert.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -595,6 +598,7 @@
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				AEC7D467249920DF008630FB /* PdfTest.swift in Sources */,
+				7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */,
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
