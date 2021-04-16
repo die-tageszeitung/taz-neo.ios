@@ -558,7 +558,11 @@ open class GqlFeeder: Feeder, DoesLog {
   /// URL of GraphQL server
   public var baseUrl: String
   /// Authentication token got from server
-  public var authToken: String? { didSet { gqlSession?.authToken = authToken } }
+  public var authToken: String? {
+    didSet {
+      gqlSession?.authToken = authToken
+    }
+  }
   /// title/name of Feeder
   public var title: String
   /// The last time feeds have been requested

@@ -19,7 +19,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   lazy var viewLogger = Log.ViewLogger()
   lazy var fileLogger = Log.FileLogger()
   var feederContext: FeederContext!
-  let net = NetAvailability()
+  let net = NWPathNetAvailability()
   
   var authenticator: Authenticator? { return feederContext.authenticator }
 
@@ -52,8 +52,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       self.reportFatalError(err: msg)
     }
     net.onChange { (flags) in self.log("net changed: \(flags)") }
-    net.whenUp { self.log("Network up") }
-    net.whenDown { self.log("Network down") }
+//    net.whenUp { self.log("Network up") }
+//    net.whenDown { self.log("Network down") }
     if !net.isAvailable { error("Network not available") }
     let nd = UIApplication.shared.delegate as! AppDelegate
     nd.onSbTap { tview in

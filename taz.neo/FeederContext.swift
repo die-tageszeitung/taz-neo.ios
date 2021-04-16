@@ -53,7 +53,11 @@ open class FeederContext: DoesLog {
   /// The token for remote notifications
   public var pushToken: String?
   /// The GraphQL Feeder (from server)
-  public var gqlFeeder: GqlFeeder!
+  public var gqlFeeder: GqlFeeder! {
+    didSet{
+      print("set to: \(gqlFeeder.toString()) token: \(gqlFeeder.authToken)")
+    }
+  }
   /// The stored Feeder (from DB)
   public var storedFeeder: StoredFeeder!
   /// The default Feed to show
@@ -61,7 +65,7 @@ open class FeederContext: DoesLog {
   /// The Downloader to use 
   public var dloader: Downloader!
   /// netAvailability is used to check for network access to the Feeder
-  public var netAvailability: NetAvailability
+  public var netAvailability: NWPathNetAvailability
   @DefaultBool(key: "useMobile")
   public var useMobile: Bool
   /// isConnected returns true if the Feeder is available
@@ -125,6 +129,11 @@ open class FeederContext: DoesLog {
   /// Feeder is now reachable
   private func feederReachable(feeder: Feeder) {
     self.debug("Feeder now reachable")
+    if let gqlFeeder = feeder as? GqlFeeder,
+       gqlFeeder.authToken == nil,
+       let storedAuth = SimpleAuthenticator.getUserData().token {
+      gqlFeeder.authToken = storedAuth
+    }
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
     notify("feederReachable")    
   }
@@ -137,6 +146,16 @@ open class FeederContext: DoesLog {
   
   /// Network status has changed 
   private func checkNetwork() {
+    
+//    if let host = URL(string: self.url)?.host {
+//      ///use a new
+//      self.netAvailability.on {  in
+//        <#code#>
+//      }
+//      self.netAvailability = NetAvailability(host: host)
+//      netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
+//    }
+    
     if isConnected {
       self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
         guard let self = self else { return }
@@ -285,7 +304,7 @@ open class FeederContext: DoesLog {
     self.name = name
     self.url = url
     self.feedName = feedName
-    self.netAvailability = NetAvailability(host: host)
+    self.netAvailability = NWPathNetAvailability()
     Notification.receive("DBReady") { [weak self] _ in
       self?.debug("DB Ready")
       self?.connect()
