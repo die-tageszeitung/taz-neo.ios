@@ -213,6 +213,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let issue = issues[index]
     debug("*** Action: Entering \(issue.feed.name)-" +
       "\(issue.date.isoDate(tz: feeder.timeZone))")
+    /* Dieser Code verhindert, wenn sich der feeder aufgehangen hat, dass eine andere bereits heruntergeladene Ausgabe geöffnet wird
+     ...weil isDownloading == true => das wars!
+     ein open issue in dem Fall wäre praktisch,
+     ...würde dann den >>>Notification.receiveOnce("issueStructure"<<<" raus nehmen
+     */
     if let sissue = issue as? StoredIssue, !isDownloading {
       guard feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
       isDownloading = true
