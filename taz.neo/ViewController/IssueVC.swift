@@ -170,7 +170,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
                          atArticle: Int? = nil) {
     let index = givenIndex ?? self.index
     func openIssue() {
-      if isFacsimile && !feederContext.isAuthenticated {
+      if isFacsimile && !feederContext.isAuthenticated && issues[index].isComplete == false {
         let loginAction = UIAlertAction(title: Localized("login_button"),
                                         style: .default) { _ in
           self.feederContext.authenticate()
