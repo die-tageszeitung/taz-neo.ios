@@ -36,27 +36,6 @@ class AppDelegate: NotifiedDelegate {
       UIApplication.shared.keyWindow?.overrideUserInterfaceStyle
         = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
     } 
-    
-    #warning("@Norbert: here are the ressources for initial startup")
-    if true {
-      if let resourcesJsonFile = Bundle.main.url(forResource: "resources", withExtension: "json") {
-        print("resources.json in App Bundle: \(resourcesJsonFile)")
-      }
-      else {
-        print("ERROR :: no resources.json in App Bundle!")
-      }
-      
-      if let ressourcesUrls = Bundle.main.urls(forResourcesWithExtension: "css",
-                                               subdirectory: "files"),
-        ressourcesUrls.count > 0 {
-        for url in ressourcesUrls {
-          print("resource in App Bundle: \(url)")
-        }
-      }
-      else {
-        print("ERROR :: no resources files in App Bundle in subfolder files!")
-      }
-    }
     return true
   }
   
