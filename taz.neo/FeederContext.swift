@@ -454,7 +454,14 @@ open class FeederContext: DoesLog {
       else {
         let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                fromDate: fromDate)
-        for issue in sissues { self.downloadIssue(issue: issue) }
+        for issue in sissues {
+          if issue.isOvwComplete {
+            self.notify("issueOverview", result: .success(issue))
+          }
+          else {
+            self.downloadIssue(issue: issue)
+          }
+        }
       }
     }
     updateResources()
@@ -541,7 +548,8 @@ open class FeederContext: DoesLog {
   private func downloadPartialIssue(issue: StoredIssue) {
     self.dloader.downloadPayload(payload: issue.payload as! StoredPayload) { err in
       var res: Result<StoredIssue,Error>
-      if err == nil { 
+      if err == nil {
+        issue.isOvwComplete = true
         res = .success(issue) 
         ArticleDB.save()
       }
