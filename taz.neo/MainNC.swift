@@ -276,10 +276,10 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     Notification.receiveOnce("feederReady") { notification in
       guard let fctx = notification.sender as? FeederContext else { return }
       self.debug(fctx.storedFeeder.toString())
+      self.startup()
     }
     self.feederContext = 
       FeederContext(name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
-    self.startup()
   }
   
   override func viewDidLoad() {
