@@ -38,6 +38,10 @@ struct AuthStatusError: Swift.Error {
   var message: String?
 }
 
+struct DefaultError: Swift.Error {
+  var message: String?
+}
+
 /**
  A FileStorageType defines where a file is stored.
  */
