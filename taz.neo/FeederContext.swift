@@ -65,7 +65,7 @@ open class FeederContext: DoesLog {
   /// The Downloader to use 
   public var dloader: Downloader!
   /// netAvailability is used to check for network access to the Feeder
-  public var netAvailability: NWPathNetAvailability
+  public var netAvailability: NetAvailability
   @DefaultBool(key: "useMobile")
   public var useMobile: Bool
   /// isConnected returns true if the Feeder is available
@@ -304,7 +304,7 @@ open class FeederContext: DoesLog {
     self.name = name
     self.url = url
     self.feedName = feedName
-    self.netAvailability = NWPathNetAvailability()
+    self.netAvailability = NetAvailability(host: host)
     Notification.receive("DBReady") { [weak self] _ in
       self?.debug("DB Ready")
       self?.connect()
