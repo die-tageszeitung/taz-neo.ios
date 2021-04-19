@@ -365,7 +365,10 @@ open class FeederContext: DoesLog {
         log("Bundled Ressources successful Loaded")
         self.notify("resourcesReady")
         return
-      }//no need to download additional stuff
+      } else {
+        resources.delete()
+      }
+      //no need to download additional stuff
     }
             
       
