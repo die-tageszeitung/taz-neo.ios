@@ -55,7 +55,7 @@ open class FeederContext: DoesLog {
   /// The GraphQL Feeder (from server)
   public var gqlFeeder: GqlFeeder!
   /// The stored Feeder (from DB)
-  public var storedFeeder: StoredFeeder!
+  public var storedFeeder: StoredFeeder?
   /// The default Feed to show
   public var defaultFeed: StoredFeed!
   /// The Downloader to use 
@@ -98,7 +98,7 @@ open class FeederContext: DoesLog {
   public func noConnection(to: String? = nil, isExit: Bool = false,
                            closure: (()->())? = nil) {
     var sname: String? = nil
-    if storedFeeder != nil { sname = storedFeeder.title }
+    if let storedFeeder = storedFeeder { sname = storedFeeder.title }
     if let name = to ?? sname {
       let title = isExit ? "Fehler" : "Warnung"
       var msg = """
@@ -155,6 +155,7 @@ open class FeederContext: DoesLog {
   
   /// Feeder is initialized, set up other objects
   private func feederReady() {
+    guard let storedFeeder = storedFeeder else { return }
     self.dloader = Downloader(feeder: gqlFeeder)
     netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
     defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder)[0]
@@ -177,7 +178,7 @@ open class FeederContext: DoesLog {
         }
       }
       else {
-        self.noConnection(to: name, isExit: true) { exit(0) }
+        self.noConnection(to: name, isExit: false)
       }
     }
   }
