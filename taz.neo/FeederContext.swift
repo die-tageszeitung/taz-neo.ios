@@ -526,12 +526,7 @@ open class FeederContext: DoesLog {
         }
       }
     }
-    else {
-      noConnection()
-      var result: Result<Issue,Error>
-      result = .failure(DefaultError(message: "Not connected"))
-      Notification.send("issue", result: result, sender: issue)
-    }
+    else { noConnection() }
   }
   
   /// Tell server we are starting to download
