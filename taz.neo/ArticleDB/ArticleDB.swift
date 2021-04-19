@@ -644,7 +644,7 @@ public final class BundledResources : DoesLog {
       do {
         let dec = JSONDecoder()
         
-        self.debug("Try to decode: \"\(String(decoding: bundledRessources.data, as: UTF8.self)[0..<2000])\"")
+//        self.debug("Try to decode: \"\(String(decoding: bundledRessources.data, as: UTF8.self)[0..<2000])\"")
         
         let dict = try dec.decode([String:[String:GqlResources]].self,
                                   from: bundledRessources.data)
