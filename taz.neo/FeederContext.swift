@@ -125,11 +125,6 @@ open class FeederContext: DoesLog {
   /// Feeder is now reachable
   private func feederReachable(feeder: Feeder) {
     self.debug("Feeder now reachable")
-    if let gqlFeeder = feeder as? GqlFeeder,
-       gqlFeeder.authToken == nil,
-       let storedAuth = SimpleAuthenticator.getUserData().token {
-      gqlFeeder.authToken = storedAuth
-    }
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
     notify("feederReachable")    
   }
@@ -145,7 +140,13 @@ open class FeederContext: DoesLog {
     if isConnected {
       self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
         guard let self = self else { return }
-        if let feeder = res.value() { self.feederReachable(feeder: feeder) }
+        if let feeder = res.value() {
+          if let gqlFeeder = feeder as? GqlFeeder,
+             let storedAuth = SimpleAuthenticator.getUserData().token {
+            gqlFeeder.authToken = storedAuth
+          }
+          self.feederReachable(feeder: feeder)
+        }
         else { self.feederUnreachable() }
       }
     }
