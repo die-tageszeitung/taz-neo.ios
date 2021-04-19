@@ -51,10 +51,10 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       self.log("fatal closure called, error id: \(msg.id)") 
       self.reportFatalError(err: msg)
     }
-    net.onChange { (flags) in self.log("@nw: net changed: \(flags)") }
-    net.whenUp { self.log("@nw: Network up") }
-    net.whenDown { self.log("@nw: Network down") }
-    if !net.isAvailable { error("@nw:  Network not available") }
+    net.onChange { (flags) in self.log("net changed: \(flags)") }
+    net.whenUp { self.log("Network up") }
+    net.whenDown { self.log("Network down") }
+    if !net.isAvailable { error("Network not available") }
     let nd = UIApplication.shared.delegate as! AppDelegate
     nd.onSbTap { tview in
       if nd.wantLogging {

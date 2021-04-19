@@ -128,7 +128,7 @@ open class FeederContext: DoesLog {
   
   /// Feeder is now reachable
   private func feederReachable(feeder: Feeder) {
-    self.debug("@nw: Feeder now reachable")
+    self.debug("Feeder now reachable")
     if let gqlFeeder = feeder as? GqlFeeder,
        gqlFeeder.authToken == nil,
        let storedAuth = SimpleAuthenticator.getUserData().token {
@@ -140,7 +140,7 @@ open class FeederContext: DoesLog {
   
   /// Feeder is not reachable
   private func feederUnreachable() {
-    self.debug("@nw: Feeder now unreachable")
+    self.debug("Feeder now unreachable")
     notify("feederUneachable")
   }
   
