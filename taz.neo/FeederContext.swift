@@ -172,8 +172,8 @@ open class FeederContext: DoesLog {
       let feeders = StoredFeeder.get(name: name)
       if feeders.count == 1 {
         self.storedFeeder = feeders[0]
-        self.noConnection(to: name, isExit: false) {
-          self.feederReady()            
+        self.noConnection(to: name, isExit: false) {  [weak self] in
+          self?.feederReady()            
         }
       }
       else {
