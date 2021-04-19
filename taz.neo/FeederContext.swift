@@ -53,11 +53,7 @@ open class FeederContext: DoesLog {
   /// The token for remote notifications
   public var pushToken: String?
   /// The GraphQL Feeder (from server)
-  public var gqlFeeder: GqlFeeder! {
-    didSet{
-      print("set to: \(gqlFeeder.toString()) token: \(gqlFeeder.authToken)")
-    }
-  }
+  public var gqlFeeder: GqlFeeder!
   /// The stored Feeder (from DB)
   public var storedFeeder: StoredFeeder!
   /// The default Feed to show
@@ -146,16 +142,6 @@ open class FeederContext: DoesLog {
   
   /// Network status has changed 
   private func checkNetwork() {
-    
-//    if let host = URL(string: self.url)?.host {
-//      ///use a new
-//      self.netAvailability.on {  in
-//        <#code#>
-//      }
-//      self.netAvailability = NetAvailability(host: host)
-//      netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
-//    }
-    
     if isConnected {
       self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
         guard let self = self else { return }
