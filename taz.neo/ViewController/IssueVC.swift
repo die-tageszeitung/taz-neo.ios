@@ -170,21 +170,28 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
                          atArticle: Int? = nil) {
     let index = givenIndex ?? self.index
     func openIssue() {
-      if isFacsimile && !feederContext.isAuthenticated && issues[index].isComplete == false {
+      
+      let authenticate = { [weak self] in
         let loginAction = UIAlertAction(title: Localized("login_button"),
                                         style: .default) { _ in
-          self.feederContext.authenticate()
+          self?.feederContext.authenticate()
         }
         let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
         
         Alert.message(message: "Um das ePaper zu lesen, müssen Sie sich anmelden.", actions: [loginAction, cancelAction])
       }
-      else if isFacsimile {
+      
+//      if isFacsimile && !feederContext.isAuthenticated && issues[index].isComplete == false {
+//        authenticate()
+//      }
+//      else
+      if isFacsimile {
         ///the positive use case
         let pushPdf = { [weak self] in
           guard let self = self else { return }
           let vc = TazPdfPagesViewController(issueInfo: self)
           self.navigationController?.pushViewController(vc, animated: true)
+          if issue.status == .reduced { authenticate() }
         }
         ///in case of errors
         let handleError = {
