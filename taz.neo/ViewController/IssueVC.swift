@@ -224,7 +224,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           guard let self = self else { return }
           let vc = TazPdfPagesViewController(issueInfo: self)
           self.navigationController?.pushViewController(vc, animated: true)
-          if issue.status == .reduced { authenticate() }
+          if issue.status == .reduced,
+             self.feederContext.isAuthenticated == false {
+            authenticate()
+          }
+          
         }
         ///in case of errors
         let handleError = {
