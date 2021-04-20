@@ -581,6 +581,10 @@ public enum IssueStatus: String, CodableEnum {
   case unknown = "unknown"          /// decoded from unknown string
 } // IssueStatus
 
+public extension IssueStatus {
+  var watchable : Bool { return self != .unknown}
+}
+
 /// One Issue of a Feed
 public protocol Issue: ToString, AnyObject {  
   /// Is this Issue currently being downloaded

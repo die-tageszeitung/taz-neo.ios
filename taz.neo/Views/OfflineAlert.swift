@@ -62,4 +62,18 @@ class OfflineAlert {
     if let c = closure { sharedInstance.closures.append(c)}
     sharedInstance.updateIfNeeded()
   }
+  
+  /// enqueues callback to presented Alert
+  /// - Parameter closure: closure to add to callback handlers
+  /// - Returns: true if presented and closure added, otherwise false
+  static func enqueueCallbackIfPresented(closure: (()->())? = nil) -> Bool {
+    if sharedInstance.alert.presentingViewController != nil,
+       let c = closure {
+      sharedInstance.closures.append(c)
+      return true
+    }
+    return false
+  }
+  
+  
 }

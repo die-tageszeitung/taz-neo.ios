@@ -200,7 +200,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
                          atArticle: Int? = nil) {
     let index = givenIndex ?? self.index
     func openIssue() {
-      
+      //call it later if Offline Alert Presented
+      if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
+      //prevent multiple pushes
+      if self.navigationController?.topViewController != self { return }
       let authenticate = { [weak self] in
         let loginAction = UIAlertAction(title: Localized("login_button"),
                                         style: .default) { _ in
@@ -264,12 +267,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         guard let self = self else { return }
         guard notif.error == nil else { 
           self.handleDownloadError(error: notif.error!)
+          if issue.status.watchable { openIssue() }
           return 
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
           guard let self = self else { return }
           self.isDownloading = false
-          guard err == nil else { self.handleDownloadError(error: err); return }
+          guard err == nil else {
+            self.handleDownloadError(error: err)
+            if issue.status.watchable { openIssue() }
+            return
+          }
           openIssue()
           Notification.receiveOnce("issue", from: sissue) { [weak self] notif in
             guard let self = self else { return }
