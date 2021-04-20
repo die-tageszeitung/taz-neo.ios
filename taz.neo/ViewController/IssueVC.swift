@@ -334,6 +334,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Check whether it's necessary to reload the current Issue
   public func authenticationSucceededCheckReload() {
+    ///May needed after PDF View Login, if no reconnect appeared
+    feederContext.updateAuthIfNeeded()
+    
     guard let visible = navigationController?.visibleViewController,
           visible != self,
           let sissue = issue as? StoredIssue  else {

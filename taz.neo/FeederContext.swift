@@ -260,6 +260,15 @@ open class FeederContext: DoesLog {
     authenticator.authenticate()
   }
   
+  public func updateAuthIfNeeded() {
+    //self.isAuthenticated == false
+    if self.gqlFeeder.authToken == nil,
+       let storedAuth = SimpleAuthenticator.getUserData().token,
+       storedAuth != nil {
+      self.gqlFeeder.authToken = storedAuth
+    }
+  }
+  
   /// Connect to Feeder and send "feederReady" Notification
   private func connect() {
     gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
