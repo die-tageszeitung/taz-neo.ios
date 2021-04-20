@@ -524,9 +524,27 @@ open class FeederContext: DoesLog {
           Notification.send("issueStructure", result: .success(issue), sender: issue)
           self.downloadIssue(issue: issue, isComplete: true)
         }
+        else if let err = res.error() {
+          let errorResult : Result<[Issue], Error>
+            = .failure(DownloadError(handled: false, enclosedError: err))
+          Notification.send("issueStructure",
+                            result: errorResult,
+                            sender: issue)
+        }
+        else {
+          //prevent ui deadlock
+          let unexpectedResult : Result<[Issue], Error>
+            = .failure(DownloadError(message: "Unexpected Behaviour", handled: false))
+          Notification.send("issueStructure", result: unexpectedResult, sender: issue)
+        }
       }
     }
-    else { noConnection() }
+    else {
+      noConnection();
+      let res : Result<Any, Error>
+        = .failure(DownloadError(message: "no connection", handled: true))
+      Notification.send("issueStructure", result: res, sender: issue)
+    }
   }
   
   /// Tell server we are starting to download

@@ -107,7 +107,36 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
-    // TODO: Handle Download Error
+    
+    func showDownloadErrorAlert() {
+      let message = """
+                    Beim Laden der Daten ist ein Fehler aufgetreten.
+                    Bitte versuchen Sie es zu einem späteren Zeitpunkt
+                    noch einmal.
+                    Sie können bereits heruntergeladene Ausgaben auch
+                    ohne Internet-Zugriff lesen.
+                    """
+      OfflineAlert.message(title: "Warnung", message: message)
+    }
+    
+    if let err = error as? DownloadError {
+      if err.handled == false {  showDownloadErrorAlert() }
+      self.log(err.enclosedError?.errorText() ?? err.errorText())
+    }
+    else if let err = error {
+      self.log(err.errorText())
+      showDownloadErrorAlert()
+    }
+    else {
+      self.log("unspecified download error")
+      showDownloadErrorAlert()
+    }
+    self.isDownloading = false
+    if let idx = issueCarousel.index {
+      ///using optional value due access index == issueCarousel.index! results in a crash
+      ///if offline started and no issues loaded - ... not every Time: Race Condition
+      self.issueCarousel.setActivity(idx: idx, isActivity: false)
+    }
   }
   
   /// Requests sufficient overview Issues from DB/server at
