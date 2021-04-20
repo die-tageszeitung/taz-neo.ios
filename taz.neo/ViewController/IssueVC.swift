@@ -271,7 +271,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         guard let self = self else { return }
         guard notif.error == nil else { 
           self.handleDownloadError(error: notif.error!)
-          if issue.status.watchable { openIssue() }
+          if issue.status.watchable && self.isFacsimile { openIssue() }
           return 
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
@@ -279,7 +279,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           self.isDownloading = false
           guard err == nil else {
             self.handleDownloadError(error: err)
-            if issue.status.watchable { openIssue() }
+            if issue.status.watchable && self.isFacsimile { openIssue() }
             return
           }
           openIssue()
