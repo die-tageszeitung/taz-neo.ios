@@ -25,6 +25,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// The currently available Issues to show
   ///public var issues: [Issue] = [] ///moved to parent
   /// The center Issue (index into self.issues)
+  #warning("Access \"issueCarousel.index!\" may fail, not use force unwrap")
   public var index: Int {
     get { issueCarousel.index! }
     set { issueCarousel.index = newValue }
