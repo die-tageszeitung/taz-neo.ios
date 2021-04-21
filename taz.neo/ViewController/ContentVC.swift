@@ -171,8 +171,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
   public var backButton = Button<ImageView>()
-  public var playButton = Button<ImageView>()
-  private var playClosure: ((ContentVC)->())?
+//  public var playButton = Button<ImageView>()
+//  private var playClosure: ((ContentVC)->())?
   private var backClosure: ((ContentVC)->())?
   public var homeButton = Button<ImageView>()
   private var homeClosure: ((ContentVC)->())?
@@ -286,8 +286,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func onShare(closure: @escaping (ContentVC)->()) 
   { shareClosure = closure; toolBar.setArticleBar() }
   
-  public func onPlay(closure: @escaping (ContentVC)->())
-  { playClosure = closure }
+//  public func onPlay(closure: @escaping (ContentVC)->())
+//  { playClosure = closure }
   
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
@@ -306,7 +306,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       
       self.textSettingsVC.updateButtonValuesOnOpen()
     }
-    
+    /*
     onPlay{ [weak self] _ in
       /**
           Issues: on external Control no update
@@ -344,23 +344,23 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
           self?.playButton.buttonView.name = "audio"
         }
       }
-    }
+    }*/
   }
   
-  open override func onPageChange(){
-    SpeechSynthesizer.sharedInstance.stopSpeaking(at: .word)
-    self.playButton.buttonView.name = "audio"
-  }
+//  open override func onPageChange(){
+//    SpeechSynthesizer.sharedInstance.stopSpeaking(at: .word)
+//    self.playButton.buttonView.name = "audio"
+//  }
   
   func setupToolbar() {
     backButton.onPress { [weak self] _ in 
       guard let self = self else { return }
       self.backClosure?(self)
     }
-    playButton.onPress { [weak self] _ in
-      guard let self = self else { return }
-      self.playClosure?(self)
-    }
+//    playButton.onPress { [weak self] _ in
+//      guard let self = self else { return }
+//      self.playClosure?(self)
+//    }
     homeButton.onPress { [weak self] _ in 
       guard let self = self else { return }
       self.homeClosure?(self)
@@ -377,13 +377,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     backButton.pinSize(CGSize(width: 40, height: 40))
     shareButton.pinSize(CGSize(width: 40, height: 40))
     textSettingsButton.pinSize(CGSize(width: 40, height: 40))
-    playButton.pinSize(CGSize(width: 40, height: 40))
+//    playButton.pinSize(CGSize(width: 40, height: 40))
     homeButton.pinSize(CGSize(width: 40, height: 40))
     
     backButton.buttonView.name = "arrowLeft"
     shareButton.buttonView.name = "share"
     textSettingsButton.buttonView.name = "textSettings"
-    playButton.buttonView.name = "audio"
+//    playButton.buttonView.name = "audio"
     homeButton.buttonView.name = "home"
 
     //.vinset = 0.4 -0.4 do nothing
@@ -400,19 +400,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     toolBar.addButton(textSettingsButton, direction: .center)
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
-    toolBar.addArticleButton(playButton, direction: .center)
+//    toolBar.addArticleButton(playButton, direction: .center)
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
     
     backButton.isAccessibilityElement = true
     textSettingsButton.isAccessibilityElement = false //make no sense just for seeing people
     homeButton.isAccessibilityElement = true
-    playButton.isAccessibilityElement = true
+//    playButton.isAccessibilityElement = true
     shareButton.isAccessibilityElement = true
     backButton.accessibilityLabel = "zurück"
     homeButton.accessibilityLabel = "Ausgabenübersicht"
     shareButton.accessibilityLabel = "Teilen"
-    playButton.accessibilityLabel = "Vorlesen"
+//    playButton.accessibilityLabel = "Vorlesen"
   }
   
   // MARK: - viewDidLoad
