@@ -53,7 +53,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
 /// the toolbar with enough distance to the bottom safe area
 open class ContentToolbar: UIView {
   
-  static let ToolbarHeight: CGFloat = 44
+  static let ToolbarHeight: CGFloat = 52
   private var toolbar = Toolbar()
   private(set) var heightConstraint: NSLayoutConstraint?
 
@@ -292,7 +292,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
     
-    settingsBottomSheet?.coverage =  200 + UIWindow.verticalInsets
+    settingsBottomSheet?.coverage =  208 + UIWindow.verticalInsets
     
     onSettings{ [weak self] _ in
       guard let self = self else { return }
@@ -373,12 +373,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.textSettingsClosure?(self)
     }
-    
-    backButton.pinSize(CGSize(width: 40, height: 40))
-    shareButton.pinSize(CGSize(width: 40, height: 40))
-    textSettingsButton.pinSize(CGSize(width: 40, height: 40))
+    backButton.pinSize(CGSize(width: 50, height: 50))
+    shareButton.pinSize(CGSize(width: 50, height: 50))
+    textSettingsButton.pinSize(CGSize(width: 50, height: 50))
 //    playButton.pinSize(CGSize(width: 40, height: 40))
-    homeButton.pinSize(CGSize(width: 40, height: 40))
+    homeButton.pinSize(CGSize(width: 50, height: 50))
     
     backButton.buttonView.name = "arrowLeft"
     shareButton.buttonView.name = "share"
@@ -399,7 +398,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     toolBar.addButton(textSettingsButton, direction: .center)
-    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
+//    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
 //    toolBar.addArticleButton(playButton, direction: .center)
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
