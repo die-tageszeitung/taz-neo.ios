@@ -435,7 +435,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         return
       }
       self.interruptMainTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
-        
+        /*
         onMain { [weak self] in
           self?.log("#> sleep...")
 //          usleep(1000000) //1 second unbenutzbar
@@ -443,6 +443,20 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           usleep(200000) //0.2 second => Ruckelt deutlich, unangenehm
           self?.log("#>  ..wake up")
         }
+        */
+        
+        //0.023 ... ArticleDB Save Duration 5 Times / 1s in a Test
+        //...so test this here:
+        ///=> sorgt auf dem iPhone 12Pro für sichtbare Störungen, Karussel springt beim Scrollen
+        ///scrollen ist nicht mehr geschmeidig!
+        ///wie ist es auf den anderen Devices?
+        ///...mal sehen wie es als Releasebuild, nicht Debug wirkt
+        onMain { usleep(23000) }
+        onMain { usleep(23000) }
+        onMain { usleep(23000) }
+        onMain { usleep(23000) }
+        onMain { usleep(23000) }
+        self.log("...Main Thread Interruprion!")
       }
       
       if let timer = self.interruptMainTimer {
