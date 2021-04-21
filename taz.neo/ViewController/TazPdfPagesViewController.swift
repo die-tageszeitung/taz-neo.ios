@@ -259,9 +259,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   @DefaultBool(key: "articleFromPdf")
   public var articleFromPdf: Bool
   
-  @DefaultBool(key: "showToolbarOnPageSwitch")
-  public var showToolbarOnPageSwitch: Bool
-  
   @DefaultBool(key: "fullPdfOnPageSwitch")
   public var fullPdfOnPageSwitch: Bool
  
@@ -275,14 +272,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
         self.articleFromPdf = !self.articleFromPdf
         self.updateMenuItems()
        }),
-      ("Zeige Toolbar bei Seitenwechsel",
-       showToolbarOnPageSwitch ? "checkmark" : "",
-       { [weak self] _ in
-        guard let self = self else { return }
-        //DO: self.toolBar.hide(true)
-        self.showToolbarOnPageSwitch = !self.showToolbarOnPageSwitch
-        self.updateMenuItems()
-      }),
       ("Ganze Seite bei Seitenwechsel",
        fullPdfOnPageSwitch ? "checkmark" : "",
        { [weak self] _ in
@@ -456,9 +445,10 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
           self?.handleRenderFinished(success, ziv)
         }
       }
-      if let self = self {
-        self.toolBar.hide(!self.showToolbarOnPageSwitch)//show Toolbar
+      ziv.whenZoomed {   [weak self] zoomedIn in
+        self?.toolBar.hide(zoomedIn)
       }
+      self?.toolBar.hide(false)
     }
   }
 
