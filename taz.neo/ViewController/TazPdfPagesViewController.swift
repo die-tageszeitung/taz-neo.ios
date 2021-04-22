@@ -466,6 +466,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
        re-calc yOffset to not ignore toolbar
        may respect scrollViewContentInset @see branch ideasTabbarAndFullPage
        ..changes here by activecell as zoomes...scrollview...
+       
+       in ZIV: updateConstraintsForSize
+       proof of concept to respect toolbar 2 things: heightscale calc & y (top/bottom) offset
        */
       ziv.invalidateLayout()
     }
