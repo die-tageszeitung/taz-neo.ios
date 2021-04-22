@@ -455,6 +455,18 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   func applyPageLayout(_ ziv:ZoomedImageView){
     if self.fullPdfOnPageSwitch {
       //this makes fulpage view
+      /**
+       Idea for full page switch:
+        landscape fit to height
+        portrait fit to width
+       all by invalidate layout
+       remove else...!
+       more adjustments in:
+       zoomedImageView:        updateConstraintsForSize
+       re-calc yOffset to not ignore toolbar
+       may respect scrollViewContentInset @see branch ideasTabbarAndFullPage
+       ..changes here by activecell as zoomes...scrollview...
+       */
       ziv.invalidateLayout()
     }
     else {
