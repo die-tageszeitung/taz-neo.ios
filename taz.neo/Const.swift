@@ -255,9 +255,9 @@ public struct Const {
   struct Fonts {
     static var defaultFontSize = CGFloat(16)
     
-    static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
-    static var contentTableFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
     static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
+    static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
+    static var contentTableFontName = titleFontName
 
     static func font(name: String?, size: CGFloat) -> UIFont {
       var font: UIFont? = nil
@@ -288,7 +288,7 @@ public struct Const {
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
     static let TextFieldPadding = CGFloat(10.0)
-    static let ContentTableFontSize = CGFloat(23.0)
+    static let ContentTableFontSize = CGFloat(22.0)
     static let ContentTableRowHeight = CGFloat(30.0)
   }
 } // Const
