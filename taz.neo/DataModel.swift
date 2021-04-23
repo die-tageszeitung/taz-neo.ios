@@ -250,6 +250,16 @@ public protocol Content {
 
 public extension Content {
   
+  func toString() -> String {
+    var ret = "\(title ?? "[Unknown title]") ("
+    if let au = authors, au.count > 0 {
+      ret += au[0].toString()
+    }
+    else { ret += "author unknown" }
+    ret += ")\n  \(html.name)"
+    return ret
+  }
+  
   /// All files incl. normal res photos
   var files: [FileEntry] {
     var ret: [FileEntry] = [html]
@@ -319,17 +329,7 @@ public protocol Article: Content, ToString {
 } // Article
 
 public extension Article {
-  
-  func toString() -> String {
-    var ret = "\(title ?? "[Unknown title]") ("
-    if let au = authors, au.count > 0 {
-      ret += au[0].toString()
-    }
-    else { ret += "author unknown" }
-    ret += ")"
-    return ret
-  }
-  
+  func toString() -> String { "Article \((self as Content).toString())" }
 }
 
 /**
@@ -362,7 +362,7 @@ public extension Section {
   func toString() -> String {
     var ret = "Section \"\(name)\""
     if let tit = extendedTitle { ret += " (\(tit))" }
-    ret += ", type: \(type.toString())"
+    ret += ", type: \(type.toString())\n  \(html.toString())"
     if let button = navButton { ret += "\n  navButton: \(button.toString())" }
     if let arts = articles {
       ret += ":\n"
@@ -653,17 +653,30 @@ public extension Issue {
     return nil
   }
   
-  /// All files with article photos in normal resolution and pg1 facsimile
-  var files: [FileEntry] {
-    var ret: [FileEntry] = moment.files
+  /// Content files
+  var contentFiles: [FileEntry] {
+    var ret: [FileEntry] = []
     if let sects = sections, sects.count > 0 {
       for sect in sects { ret.append(contentsOf: sect.allFiles) }
     }
     if let imp = imprint { ret.append(contentsOf: imp.files) }
+    return ret
+  }
+  
+  /// Overview files
+  var overviewFiles: [FileEntry] {
+    var ret = moment.files
     if let fac1 = pageOneFacsimile { ret += fac1 }
     return ret
   }
   
+  /// All files with article photos in normal resolution and pg1 facsimile
+  var files: [FileEntry] {
+    var ret = contentFiles
+    ret.append(contentsOf: overviewFiles)
+    return ret
+  }
+    
   /// Returns files and facsimiles if isPages == true
   func files(isPages: Bool = false) -> [FileEntry] {
     var ret = files
