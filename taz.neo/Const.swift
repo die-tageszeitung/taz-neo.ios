@@ -28,9 +28,6 @@ public struct Const {
   struct NotificationNames {
     /// Some resource filenames
     static let articleLoaded = "NotificationName.articleLoaded"
-    static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
-    static let viewSizeTransition = "NotificationName.viewSizeTransition"
-    
   } // Filename
   
   /// Various color values
@@ -258,9 +255,9 @@ public struct Const {
   struct Fonts {
     static var defaultFontSize = CGFloat(16)
     
-    static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
-    static var contentTableFontName: String? = titleFontName
     static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
+    static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
+    static var contentTableFontName = titleFontName
 
     static func font(name: String?, size: CGFloat) -> UIFont {
       var font: UIFont? = nil
@@ -288,24 +285,11 @@ public struct Const {
     static let MiniPageNumberFontSize = CGFloat(12)
     static let DefaultFontSize = CGFloat(16)
     static let LargeTitleFontSize = CGFloat(34)
-    static let SmallTitleFontSize = CGFloat(20)
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
     static let TextFieldPadding = CGFloat(10.0)
-    static let ContentTableFontSize = CGFloat(23.0)
+    static let ContentTableFontSize = CGFloat(22.0)
     static let ContentTableRowHeight = CGFloat(30.0)
-  }
-  
-  /// Adjusted Sizes for tiny Displays (iPhone 5s/SE1, iPod 7G)
-  struct ASize {
-    static let TextViewPadding = UIWindow.size.width < 370 ? CGFloat(8) : CGFloat(10.0)
-    static let MiniPageNumberFontSize = UIWindow.size.width < 370 ? CGFloat(11) : CGFloat(12)
-    static let DefaultFontSize = UIWindow.size.width < 370 ? CGFloat(14) : CGFloat(16)
-    static let LargeTitleFontSize = UIWindow.size.width < 370 ? CGFloat(30) : CGFloat(34)
-    static let SmallTitleFontSize = UIWindow.size.width < 370 ? CGFloat(18) : CGFloat(20)
-    static let DottedLineHeight = CGFloat(2.4)
-    static let DefaultPadding = UIWindow.size.width < 370 ? CGFloat(13.0) : CGFloat(15.0)
-    static let TextFieldPadding = UIWindow.size.width < 370 ? CGFloat(9.0) : CGFloat(10.0)
   }
 } // Const
 

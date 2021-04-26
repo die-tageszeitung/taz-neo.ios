@@ -47,6 +47,8 @@ public extension PersistentObject {
     }
     return nil
   }
+  /// Delete the object from the persistent store
+  func delete() { ArticleDB.context.delete(self) }
 } // PersistentObject
 
 /// A StoredObject is in essence a PersistentObject Wrapper
@@ -73,7 +75,7 @@ public extension StoredObject {
   static var fetchRequest: NSFetchRequest<PO> { NSFetchRequest<PO>(entityName: entity) }
 
   /// Delete the object from the persistent store
-  func delete() { ArticleDB.context.delete(pr) }
+  func delete() { pr.delete() }
   
   /// Create a new persistent record
   static func newPersistent() -> PO {
@@ -570,12 +572,21 @@ public final class StoredPayload: StoredObject, Payload {
   
   public required init(persistent: PersistentPayload) { self.pr = persistent }
   
+  public func reduceToOverview() {
+    guard let issue = self.issue else { return }
+    let toKeep = issue.overviewFiles
+    for f in storedFiles {
+      if !toKeep.contains(where: { k in k.name == f.name }) {
+        f.delete()
+      }
+    }
+  }
+  
   public func update(from: Payload) {
     var bytesTotal: Int64 = 0
     var bytesLoaded: Int64 = 0
     var order: Int64 = 0
     self.localDir = from.localDir
-    let subdir = String(localDir.dropFirst(Database.appDir.count + 1))
     for f in from.files {
       let fe = StoredFileEntry.persist(object: f)
       fe.pr.order = order
@@ -1056,6 +1067,9 @@ public final class StoredPage: Page, StoredObject {
     self.pr.frames = nil
     var order: Int32 = 0
     if let frames = object.frames {
+      if let oldFrames = frames as? [StoredFrame] {
+        for f in oldFrames { f.delete() }
+      }
       for frame in frames {
         let sf = StoredFrame.persist(object: frame)
         sf.pr.page = self.pr
@@ -1134,7 +1148,8 @@ public final class StoredSection: Section, StoredObject {
   }
   public var html: FileEntry {
     get { return StoredFileEntry(persistent: pr.html!) }
-    set { 
+    set {
+      if let old = pr.html, old.name != newValue.name { old.delete() }
       pr.html = StoredFileEntry.persist(object: newValue).pr 
       pr.html!.content = pr
     }
@@ -1145,7 +1160,10 @@ public final class StoredSection: Section, StoredObject {
       else { return nil } 
     }
     set { 
-      if let button = newValue { 
+      if let button = newValue {
+        if let old = navButton as? StoredImageEntry, old.name != button.name {
+          old.delete()
+        }
         pr.navButton = StoredImageEntry.persist(object: button).pr
         pr.navButton?.addToNavSection(pr)
       }
@@ -1198,7 +1216,8 @@ public final class StoredSection: Section, StoredObject {
       // Remove unneeded articles
       for art in articles as! [StoredArticle] {
         if !arts.contains(where: { $0.html.name == art.html.name }) {
-          pr.removeFromArticles(art.pr)
+          debug("deleting \(art)")
+          art.delete()
         }
       }
     }
@@ -1296,6 +1315,9 @@ public final class StoredIssue: Issue, StoredObject {
     }
     set {
       if let sim = newValue {
+        if let old = pr.imprint, old.html?.name != sim.html.name {
+          old.delete()
+        }
         pr.imprint = StoredArticle.persist(object: sim).pr
         pr.imprint?.issueImprint = self.pr
       }
@@ -1351,6 +1373,8 @@ public final class StoredIssue: Issue, StoredObject {
     self.zipNamePdf = object.zipNamePdf
     self.imprint = object.imprint
     self.status = object.status
+    let oldSections = sections
+    let oldPages = pages
     if let secs = object.sections {
       var order: Int32 = 0
       for section in secs {
@@ -1359,12 +1383,6 @@ public final class StoredIssue: Issue, StoredObject {
         ssection.pr.order = order
         pr.addToSections(ssection.pr)
         order += 1
-      }
-      // Remove sections no longer needed
-      for section in sections as! [StoredSection] {
-        if !secs.contains(where: { $0.html.name == section.html.name }) {
-          pr.removeFromSections(section.pr)
-        }
       }
     }
     if let pages = object.pages {
@@ -1376,13 +1394,31 @@ public final class StoredIssue: Issue, StoredObject {
         pr.addToPages(spage.pr)
         order += 1
       }
-      // Remove pages no longer needed
-      if let pgs = pages as? [StoredPage] {
-        for page in pgs {
-          if !pages.contains(where: { $0.pdf.name == page.pdf.name }) {
-            pr.removeFromPages(page.pr)
+    }
+    // Remove sections no longer needed
+    if let osecs = oldSections as? [StoredSection] {
+      if let secs = object.sections {
+        for s in osecs {
+          if !secs.contains(where: { $0.html.name == s.html.name }) {
+            s.delete()
           }
         }
+      }
+      else {
+        for s in osecs { s.delete() }
+      }
+    }
+    // Remove pages no longer needed
+    if let opgs = oldPages as? [StoredPage] {
+      if let pages = object.pages {
+        for p in opgs {
+          if !pages.contains(where: { $0.pdf.name == p.pdf.name }) {
+            p.delete()
+          }
+        }
+      }
+      else {
+        for p in opgs { p.delete() }
       }
     }
     pr.payload = StoredPayload.persist(object: object.payload).pr
@@ -1439,18 +1475,20 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Deletes data that is not needed for overview
   public func reduceToOverview() {
+    // Remove files not needed for overview
+    storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them
     if let secs = sections {
       for section in secs as! [StoredSection] {
-        pr.removeFromSections(section.pr)
+        section.delete()
       }
     }
-    imprint = nil
-    storedPayload?.delete()
+    (imprint as? StoredArticle)?.delete()
     if isComplete {
       isComplete = false
       isOvwComplete = true
     }
+    ArticleDB.save()
   }
   
 } // StoredIssue

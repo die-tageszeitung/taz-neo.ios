@@ -26,7 +26,7 @@
         <attribute name="order" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
-        <relationship name="html" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="content" inverseEntity="FileEntry"/>
+        <relationship name="html" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="content" inverseEntity="FileEntry"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="imageContent" inverseEntity="ImageEntry"/>
     </entity>
     <entity name="Descriptor" representedClassName="PersistentDescriptor" syncable="YES" codeGenerationType="class">
@@ -150,7 +150,7 @@
         <relationship name="frames" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Frame" inverseName="page" inverseEntity="Frame"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="pages" inverseEntity="Issue"/>
         <relationship name="moment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="firstPage" inverseEntity="Moment"/>
-        <relationship name="pdf" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="page" inverseEntity="FileEntry"/>
+        <relationship name="pdf" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="page" inverseEntity="FileEntry"/>
     </entity>
     <entity name="Payload" representedClassName="PersistentPayload" syncable="YES" codeGenerationType="class">
         <attribute name="bytesLoaded" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -183,18 +183,18 @@
         <attribute name="extendedTitle" optional="YES" attributeType="String"/>
         <attribute name="name" attributeType="String"/>
         <attribute name="type" attributeType="String"/>
-        <relationship name="articles" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Article" inverseName="sections" inverseEntity="Article"/>
+        <relationship name="articles" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Article" inverseName="sections" inverseEntity="Article"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="sections" inverseEntity="Issue"/>
         <relationship name="navButton" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="navSection" inverseEntity="ImageEntry"/>
     </entity>
     <elements>
         <element name="Article" positionX="-52304.70703125" positionY="-34778.95703125" width="128" height="208"/>
         <element name="Author" positionX="-52485.62890625" positionY="-35092.16015625" width="128" height="103"/>
-        <element name="Content" positionX="-52600.859375" positionY="-34418.77734375" width="128" height="118"/>
+        <element name="Content" positionX="-52600.859375" positionY="-34418.77734375" width="128" height="104"/>
         <element name="Descriptor" positionX="-51924.47265625" positionY="-35092.5859375" width="128" height="118"/>
         <element name="Feed" positionX="-52533.1796875" positionY="-34944.84375" width="128" height="223"/>
         <element name="Feeder" positionX="-52810.859375" positionY="-34899.69140625" width="128" height="178"/>
-        <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="253"/>
+        <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="239"/>
         <element name="Frame" positionX="-51920.18359375" positionY="-34620.09375" width="128" height="149"/>
         <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="209"/>
         <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="28"/>
@@ -203,6 +203,6 @@
         <element name="Payload" positionX="-53189.828125" positionY="-34824.89453125" width="128" height="28"/>
         <element name="Remark" positionX="-52138.01171875" positionY="-35159.59375" width="128" height="118"/>
         <element name="Resources" positionX="-53009.359375" positionY="-34422.0859375" width="128" height="88"/>
-        <element name="Section" positionX="-52493.79296875" positionY="-34734.5234375" width="128" height="133"/>
+        <element name="Section" positionX="-52493.79296875" positionY="-34734.5234375" width="128" height="119"/>
     </elements>
 </model>
