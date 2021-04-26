@@ -312,80 +312,37 @@ open class FeederContext: DoesLog {
   public func updateResources(toVersion: Int = -1) {
     let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
     let latestResources = StoredResources.latest()
-    if let latest = latestResources {
-      if latest.isDownloading { return } 
-      if (latest.resourceVersion >= version && latest.isComplete) || !isConnected { 
-        notify("resourcesReady"); return
-      }
+    
+    if latestResources?.isDownloading ?? false {
+      return
     }
     else if case let bundledResources = BundledResources(),
             let result = bundledResources.ressourcesPayload.value(),
             let res = result["product"],
             res.resourceVersion == version,
             bundledResources.bundledFiles.count > 0 {
-      //Use Bundled Resources!
-      res.setPayload(feeder: self.gqlFeeder)
-      let resources = StoredResources.persist(object: res)
-      self.dloader.createDirs()
-      resources.isDownloading = true //Why???
-      
-      var success = true
-      
-      if bundledResources.bundledFiles.count != res.files.count {
-        log("WARNING: Something is Wrong maybe need to download additional Files!")
-        success = false
-      }
-      
-      var bundledRessourceFiles : [File] = []
-      
-      for fileUrl in bundledResources.bundledFiles {
-        let file = File(fileUrl)
-        if file.exists {
-          bundledRessourceFiles.append(file)
-        }
-      }
-      
-      let globalFiles = resources.payload.files.filter {
-        $0.storageType != .global
-      }
-      
-      for globalFile in globalFiles {
-        let bundledFiles = bundledRessourceFiles.filter{ $0.basename == globalFile.name }
-        if bundledFiles.count > 1 { log("Warning found multiple matching Files!")}
-        guard let bundledFile = bundledFiles.first else {
-          log("Warning not found matching File!")
-          success = false
-          continue
-        }
-        
-        /// File Creation Dates did not Match! bundledFile.mTime != globalFile.moTime
-        if bundledFile.exists,
-           bundledFile.size == globalFile.size {
-          bundledFile.copy(to: self.gqlFeeder.resourcesDir.path + "/" + globalFile.name)
-          log("File \(bundledFile.basename) moved... exist in resdir? : \(globalFile.existsIgnoringTime(inDir: self.gqlFeeder.resourcesDir.path))")
-        } else {
-          log("* Warning: File \(bundledFile.basename) may not exist (\(bundledFile.exists)), mtime, size is wrong  \(bundledFile.size) !=? \(globalFile.size)")
-          success = false
-        }
-      }
+      let success = persistBundledRessources(bundledResources: bundledResources,
+                                             resData: res)
       if success == true {
-        resources.isDownloading = false
         ArticleDB.save()
         log("Bundled Ressources successful Loaded")
         self.notify("resourcesReady")
+        //no need to download additional stuff
         return
-      } else {
-        resources.delete()
       }
-      //no need to download additional stuff
     }
-            
-      
-    // update from server needed
-    guard isConnected else { 
+    else if let latest = latestResources,
+            (latest.resourceVersion >= version && latest.isComplete) {
+      notify("resourcesReady");
+      return
+    }
+    else if !isConnected {
+      //Skip Offline Start Deathlook //TODO TEST either notify("resourcesReady"); or:
       noConnection()
       return
     }
+    
+    // update from server needed
     gqlFeeder.resources { [weak self] result in
       guard let self = self, let res = result.value() else { return }
       let previous = latestResources
@@ -404,6 +361,62 @@ open class FeederContext: DoesLog {
         }
       }
     }
+  }
+  
+  /// persist helper function for updateResources
+  /// - Parameters:
+  ///   - bundledResources: the resources (with files) to persist
+  ///   - resData: the GqlResources data object to persist
+  /// - Returns: true if succeed
+  private func persistBundledRessources(bundledResources: BundledResources,
+                                        resData : GqlResources) -> Bool {
+    //Use Bundled Resources!
+    resData.setPayload(feeder: self.gqlFeeder)
+    let resources = StoredResources.persist(object: resData)
+    self.dloader.createDirs()
+    resources.isDownloading = true
+    var success = true
+    
+    if bundledResources.bundledFiles.count != resData.files.count {
+      log("WARNING: Something is Wrong maybe need to download additional Files!")
+      success = false
+    }
+    
+    var bundledRessourceFiles : [File] = []
+    
+    for fileUrl in bundledResources.bundledFiles {
+      let file = File(fileUrl)
+      if file.exists {
+        bundledRessourceFiles.append(file)
+      }
+    }
+    
+    let globalFiles = resources.payload.files.filter {
+      $0.storageType != .global
+    }
+    
+    for globalFile in globalFiles {
+      let bundledFiles = bundledRessourceFiles.filter{ $0.basename == globalFile.name }
+      if bundledFiles.count > 1 { log("Warning found multiple matching Files!")}
+      guard let bundledFile = bundledFiles.first else {
+        log("Warning not found matching File!")
+        success = false
+        continue
+      }
+      
+      /// File Creation Dates did not Match! bundledFile.mTime != globalFile.moTime
+      if bundledFile.exists,
+         bundledFile.size == globalFile.size {
+        bundledFile.copy(to: self.gqlFeeder.resourcesDir.path + "/" + globalFile.name)
+        log("File \(bundledFile.basename) moved... exist in resdir? : \(globalFile.existsIgnoringTime(inDir: self.gqlFeeder.resourcesDir.path))")
+      } else {
+        log("* Warning: File \(bundledFile.basename) may not exist (\(bundledFile.exists)), mtime, size is wrong  \(bundledFile.size) !=? \(globalFile.size)")
+        success = false
+      }
+    }
+    resources.isDownloading = false
+    if success == false { resources.delete() }
+    return success
   }
   
   /// Feeder has flagged an error
