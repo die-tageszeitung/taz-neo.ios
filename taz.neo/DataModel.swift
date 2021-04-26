@@ -7,6 +7,7 @@
 
 import Foundation
 import NorthLib
+import PDFKit
 
 /**
  Errors a Feeder may encounter
@@ -35,6 +36,16 @@ public enum FeederError: SimpleError {
 struct AuthStatusError: Swift.Error {
   var status:  GqlAuthStatus
   var message: String?
+}
+
+struct DefaultError: Swift.Error {
+  var message: String?
+}
+
+struct DownloadError: Swift.Error {
+  var message: String?
+  var handled = false
+  var enclosedError : Error?
 }
 
 /**
@@ -82,8 +93,8 @@ public extension FileEntry {
   func fileNameExists(inDir: String) -> Bool {
     let f = File(dir: inDir, fname: fileName)
     let exists = f.exists 
-    if exists && (f.mTime == moTime) && (f.size == size) {
-      log("* Warning: File \(fileName) exists but mtime and/or size are wrong")
+    if exists && ((f.mTime != moTime) || (f.size != size)) {
+      log("* Warning: File \(fileName) exists but mtime and/or size are wrong \(f.mTime) !=? \(moTime) || \(f.size) !=? \(size)")
     }
     return exists
   }  
@@ -480,6 +491,11 @@ public extension Page {
     return nil
   }
   
+  func pdfDocument(inIssueDir:Dir?) -> PDFDocument? {
+    guard let issueDir = inIssueDir else { return nil }
+    let path = issueDir.path + "/"
+    return PDFDocument(url: File(path + self.pdf.fileName).url)
+  }
 }
 
 /**
@@ -565,6 +581,10 @@ public enum IssueStatus: String, CodableEnum {
   case unknown = "unknown"          /// decoded from unknown string
 } // IssueStatus
 
+public extension IssueStatus {
+  var watchable : Bool { return self != .unknown}
+}
+
 /// One Issue of a Feed
 public protocol Issue: ToString, AnyObject {  
   /// Is this Issue currently being downloaded
@@ -639,6 +659,16 @@ public extension Issue {
   var pageOneFacsimile: FileEntry? {
     if let pgs = pages, pgs.count > 0 {
       return pgs[0].pdf
+    }
+    return nil
+  }
+    
+  /// The first facsimile page ad PDFPage (if available)
+  var pageOneFacsimilePdfPage: PDFPage? {
+    if let page0 = pages?.valueAt(0),
+       let doc = PDFDocument(url: File(baseUrl + page0.pdf.fileName).url),
+       let pdfPage = doc.page(at: 0) {
+      return pdfPage
     }
     return nil
   }
@@ -913,6 +943,22 @@ extension Feeder {
       return "\(issueDir(issue: issue).path)/\(img.fileName)"
     }
     return nil
+  }
+  
+  /// Returns the name of the first PDF page file name (if available)
+  public func momentPdfName(issue: Issue) -> String? {
+    if let fac1 = issue.pageOneFacsimile {
+      return "\(issueDir(issue: issue).path)/\(fac1.fileName)"
+    }
+    return nil
+  }
+  
+  /// Returns the first PDF page file (if available)
+  public func momentPdfFile(issue: Issue) -> File? {
+    guard let fn = momentPdfName(issue: issue) else { return nil }
+    guard File.extname(fn) == "pdf" else { return nil }
+    guard File(fn).exists else { return nil }
+    return File(fn)
   }
 
   /// Returns the "Moment" Image as Gif-Animation or in highest resolution

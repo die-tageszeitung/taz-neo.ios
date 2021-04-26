@@ -223,17 +223,33 @@ public class DefaultAuthenticator: Authenticator {
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
   public func authenticate() {
     guard let rootVC = rootVC else { return }
-    rootVC.modalPresentationStyle = .overCurrentContext
+
     let registerController = LoginController(self)
-    if #available(iOS 13.0, *) {
-      //Prevent dismis by pan down in various modalPresentationStyles
-      //the default < iOS 13 Behaviour
-      registerController.isModalInPresentation = false
-    }
+    
+    registerController.modalPresentationStyle
+      =  Device.isIpad ? .formSheet : .popover
 
     firstPresentedAuthController = registerController
     rootVC.present(registerController, animated: true, completion: {
       rootVC.presentationController?.presentedView?.gestureRecognizers?[0].isEnabled = true
+      /// Add TapOn Background like in popup presentation
+      if Device.isIphone { return }
+      //Only iPad
+      if let window = UIApplication.shared.delegate?.window {
+        for view in window?.subviews ?? []{
+          if view.typeName == "UITransitionView" {
+            for v in view.subviews {
+              if v.typeName == "UIDimmingView" {
+                v.onTapping { rec in
+                  v.removeGestureRecognizer(rec)
+                  registerController.dismiss(animated: true)
+                }
+                return
+              }
+            }
+          }
+        }
+      }
     })
   }
   
@@ -242,3 +258,57 @@ public class DefaultAuthenticator: Authenticator {
   }
   
 } // DefaultAuthenticator
+
+
+extension UIDevice {
+  func updatePopupFrame(for ctrl:UIViewController,
+                        minWidth:CGFloat = min(650,
+                                               UIScreen.main.bounds.size.width,
+                                               UIScreen.main.bounds.size.height)){
+//    let
+  }
+  
+  static var currentOrientation : String {
+    get{
+      switch self.current.orientation {
+        case .faceDown:
+          return "faceDown"
+        case .faceUp:
+          return "faceUp"
+        case .landscapeLeft:
+          return "landscapeLeft"
+        case .landscapeRight:
+          return "landscapeRight"
+        case .portrait:
+          return "portrait"
+        case .portraitUpsideDown:
+          return "portraitUpsideDown"
+        case .unknown:
+          return "unknown"
+        @unknown default:
+          return "unknown new"
+      }
+    }
+  }
+  
+  
+}
+
+
+protocol NameDescribable {
+    var typeName: String { get }
+    static var typeName: String { get }
+}
+
+extension NameDescribable {
+    var typeName: String {
+        return String(describing: type(of: self))
+    }
+
+    static var typeName: String {
+        return String(describing: self)
+    }
+}
+
+// Extend with class/struct/enum...
+extension NSObject: NameDescribable {}

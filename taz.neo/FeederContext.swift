@@ -108,17 +108,17 @@ open class FeederContext: DoesLog {
         """
       if isExit {
         msg += """
-          Bitte versuchen Sie es zu einem späteren Zeitpunkt
+          \nBitte versuchen Sie es zu einem späteren Zeitpunkt
           noch einmal.
           """
       }
       else {
         msg += """
-          Sie können allerdings bereits heruntergeladene Ausgaben auch
+          \nSie können allerdings bereits heruntergeladene Ausgaben auch
           ohne Internet-Zugriff lesen.
           """        
       }
-      Alert.message(title: title, message: msg, closure: closure)
+      OfflineAlert.message(title: title, message: msg, closure: closure)
     }
   }
   
@@ -140,7 +140,13 @@ open class FeederContext: DoesLog {
     if isConnected {
       self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
         guard let self = self else { return }
-        if let feeder = res.value() { self.feederReachable(feeder: feeder) }
+        if let feeder = res.value() {
+          if let gqlFeeder = feeder as? GqlFeeder,
+             let storedAuth = SimpleAuthenticator.getUserData().token {
+            gqlFeeder.authToken = storedAuth
+          }
+          self.feederReachable(feeder: feeder)
+        }
         else { self.feederUnreachable() }
       }
     }
@@ -166,8 +172,8 @@ open class FeederContext: DoesLog {
       let feeders = StoredFeeder.get(name: name)
       if feeders.count == 1 {
         self.storedFeeder = feeders[0]
-        self.noConnection(to: name, isExit: false) {
-          self.feederReady()            
+        self.noConnection(to: name, isExit: false) {  [weak self] in
+          self?.feederReady()            
         }
       }
       else {
@@ -254,6 +260,15 @@ open class FeederContext: DoesLog {
     authenticator.authenticate()
   }
   
+  public func updateAuthIfNeeded() {
+    //self.isAuthenticated == false
+    if self.gqlFeeder.authToken == nil,
+       let storedAuth = SimpleAuthenticator.getUserData().token,
+       storedAuth != nil {
+      self.gqlFeeder.authToken = storedAuth
+    }
+  }
+  
   /// Connect to Feeder and send "feederReady" Notification
   private func connect() {
     gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
@@ -297,17 +312,37 @@ open class FeederContext: DoesLog {
   public func updateResources(toVersion: Int = -1) {
     let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
     let latestResources = StoredResources.latest()
-    if let latest = latestResources {
-      if latest.isDownloading { return } 
-      if (latest.resourceVersion >= version && latest.isComplete) || !isConnected { 
-        notify("resourcesReady"); return
+    
+    if latestResources?.isDownloading ?? false {
+      return
+    }
+    else if case let bundledResources = BundledResources(),
+            let result = bundledResources.ressourcesPayload.value(),
+            let res = result["product"],
+            res.resourceVersion == version,
+            bundledResources.bundledFiles.count > 0 {
+      let success = persistBundledRessources(bundledResources: bundledResources,
+                                             resData: res)
+      if success == true {
+        ArticleDB.save()
+        log("Bundled Ressources successful Loaded")
+        self.notify("resourcesReady")
+        //no need to download additional stuff
+        return
       }
     }
-    // update from server needed
-    guard isConnected else { 
+    else if let latest = latestResources,
+            (latest.resourceVersion >= version && latest.isComplete) {
+      notify("resourcesReady");
+      return
+    }
+    else if !isConnected {
+      //Skip Offline Start Deathlook //TODO TEST either notify("resourcesReady"); or:
       noConnection()
       return
     }
+    
+    // update from server needed
     gqlFeeder.resources { [weak self] result in
       guard let self = self, let res = result.value() else { return }
       let previous = latestResources
@@ -326,6 +361,62 @@ open class FeederContext: DoesLog {
         }
       }
     }
+  }
+  
+  /// persist helper function for updateResources
+  /// - Parameters:
+  ///   - bundledResources: the resources (with files) to persist
+  ///   - resData: the GqlResources data object to persist
+  /// - Returns: true if succeed
+  private func persistBundledRessources(bundledResources: BundledResources,
+                                        resData : GqlResources) -> Bool {
+    //Use Bundled Resources!
+    resData.setPayload(feeder: self.gqlFeeder)
+    let resources = StoredResources.persist(object: resData)
+    self.dloader.createDirs()
+    resources.isDownloading = true
+    var success = true
+    
+    if bundledResources.bundledFiles.count != resData.files.count {
+      log("WARNING: Something is Wrong maybe need to download additional Files!")
+      success = false
+    }
+    
+    var bundledRessourceFiles : [File] = []
+    
+    for fileUrl in bundledResources.bundledFiles {
+      let file = File(fileUrl)
+      if file.exists {
+        bundledRessourceFiles.append(file)
+      }
+    }
+    
+    let globalFiles = resources.payload.files.filter {
+      $0.storageType != .global
+    }
+    
+    for globalFile in globalFiles {
+      let bundledFiles = bundledRessourceFiles.filter{ $0.basename == globalFile.name }
+      if bundledFiles.count > 1 { log("Warning found multiple matching Files!")}
+      guard let bundledFile = bundledFiles.first else {
+        log("Warning not found matching File!")
+        success = false
+        continue
+      }
+      
+      /// File Creation Dates did not Match! bundledFile.mTime != globalFile.moTime
+      if bundledFile.exists,
+         bundledFile.size == globalFile.size {
+        bundledFile.copy(to: self.gqlFeeder.resourcesDir.path + "/" + globalFile.name)
+        log("File \(bundledFile.basename) moved... exist in resdir? : \(globalFile.existsIgnoringTime(inDir: self.gqlFeeder.resourcesDir.path))")
+      } else {
+        log("* Warning: File \(bundledFile.basename) may not exist (\(bundledFile.exists)), mtime, size is wrong  \(bundledFile.size) !=? \(globalFile.size)")
+        success = false
+      }
+    }
+    resources.isDownloading = false
+    if success == false { resources.delete() }
+    return success
   }
   
   /// Feeder has flagged an error
@@ -388,7 +479,14 @@ open class FeederContext: DoesLog {
       else {
         let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                fromDate: fromDate)
-        for issue in sissues { self.downloadIssue(issue: issue) }
+        for issue in sissues {
+          if issue.isOvwComplete {
+            self.notify("issueOverview", result: .success(issue))
+          }
+          else {
+            self.downloadIssue(issue: issue)
+          }
+        }
       }
     }
     updateResources()
@@ -429,8 +527,8 @@ open class FeederContext: DoesLog {
    */
   public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
     if issue.isDownloading {
-      Notification.receiveOnce("issue", from: issue) { notif in
-        self.getCompleteIssue(issue: issue)
+      Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+        self?.getCompleteIssue(issue: issue)
       }
     }
     guard needsUpdate(issue: issue) else {
@@ -448,9 +546,27 @@ open class FeederContext: DoesLog {
           Notification.send("issueStructure", result: .success(issue), sender: issue)
           self.downloadIssue(issue: issue, isComplete: true)
         }
+        else if let err = res.error() {
+          let errorResult : Result<[Issue], Error>
+            = .failure(DownloadError(handled: false, enclosedError: err))
+          Notification.send("issueStructure",
+                            result: errorResult,
+                            sender: issue)
+        }
+        else {
+          //prevent ui deadlock
+          let unexpectedResult : Result<[Issue], Error>
+            = .failure(DownloadError(message: "Unexpected Behaviour", handled: false))
+          Notification.send("issueStructure", result: unexpectedResult, sender: issue)
+        }
       }
     }
-    else { noConnection() }
+    else {
+      noConnection();
+      let res : Result<Any, Error>
+        = .failure(DownloadError(message: "no connection", handled: true))
+      Notification.send("issueStructure", result: res, sender: issue)
+    }
   }
   
   /// Tell server we are starting to download
@@ -475,7 +591,8 @@ open class FeederContext: DoesLog {
   private func downloadPartialIssue(issue: StoredIssue) {
     self.dloader.downloadPayload(payload: issue.payload as! StoredPayload) { err in
       var res: Result<StoredIssue,Error>
-      if err == nil { 
+      if err == nil {
+        issue.isOvwComplete = true
         res = .success(issue) 
         ArticleDB.save()
       }

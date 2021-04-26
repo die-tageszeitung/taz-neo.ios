@@ -629,6 +629,44 @@ public final class StoredPayload: StoredObject, Payload {
 
 extension PersistentResources: PersistentObject {}
 
+
+/// A stored list of resource files
+public final class BundledResources : DoesLog {
+  lazy var bundledFiles : [URL] = {
+    return Bundle.main.urls(forResourcesWithExtension: "", subdirectory: "files")
+  }() ?? []
+  
+//  lazy var bundledFilesDir : String? = {
+//    return Bundle.main.resourceURL?.appendingPathComponent("files").absoluteString
+//  }()...finally unused
+  
+  lazy var ressourcesPayload : Result<[String:GqlResources],Error> = {
+      guard let resourcesJsonFileUrl
+              = Bundle.main.url(forResource: "resources",
+                                withExtension: "json") else {
+        return .failure(self.fatal("Bundled resources.json Not found"))
+      }
+      let bundledRessources = File(resourcesJsonFileUrl)
+      
+      if bundledRessources.exists == false {
+        return .failure(self.fatal("Bundled resources.json File Not exist!"))
+      }
+      
+      do {
+        let dec = JSONDecoder()
+        
+//        self.debug("Try to decode: \"\(String(decoding: bundledRessources.data, as: UTF8.self)[0..<2000])\"")
+        
+        let dict = try dec.decode([String:[String:GqlResources]].self,
+                                  from: bundledRessources.data)
+        return .success(dict["data"]!)
+      }
+      catch let error {
+        return .failure(self.fatal("JSON decoding error: \(error)"))
+      }
+  }()
+}
+
 /// A stored list of resource files
 public final class StoredResources: Resources, StoredObject {
   
@@ -960,6 +998,8 @@ public final class StoredPage: Page, StoredObject {
     set { pr.pagina = newValue }
   }
   public var pdf: FileEntry {
+    ///Debug Crash nil while unwrapping optional!
+    ///no solution: return StoredFileEntry.new() ...crash on next place
     get { return StoredFileEntry(persistent: pr.pdf!) }
     set {
       pr.pdf = StoredFileEntry.persist(object: newValue).pr

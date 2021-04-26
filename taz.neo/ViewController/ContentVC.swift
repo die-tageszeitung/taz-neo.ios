@@ -53,7 +53,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
 /// the toolbar with enough distance to the bottom safe area
 open class ContentToolbar: UIView {
   
-  static let ToolbarHeight: CGFloat = 44
+  static let ToolbarHeight: CGFloat = 52
   private var toolbar = Toolbar()
   private(set) var heightConstraint: NSLayoutConstraint?
 
@@ -63,6 +63,18 @@ open class ContentToolbar: UIView {
   
   public override var backgroundColor: UIColor? {
     didSet { toolbar.backgroundColor = self.backgroundColor }
+  }
+  
+  /// alpha for transluent color of the whole Toolbar Area
+  /// needed to ensure Home Indicator has same Background like Toolbar above
+  public var translucentAlpha: CGFloat {
+    get { return toolbar.translucentAlpha }
+    set { toolbar.translucentAlpha = newValue }
+  }
+  
+  public var translucentColor: UIColor {
+    get { return toolbar.translucentColor }
+    set { toolbar.translucentColor = newValue }
   }
   
   public override init(frame: CGRect) {
@@ -121,9 +133,20 @@ open class ContentToolbar: UIView {
   func setSectionBar() { toolbar.bar = 0 }
   
   public func setButtonColor(_ color: UIColor) { toolbar.setButtonColor(color) }
-
+  
+  public func setActiveButtonColor(_ color: UIColor) {
+    toolbar.setActiveButtonColor(color)
+  }
+  
+  public func applyDefaultTazSyle() {
+    self.setButtonColor(Const.Colors.iOSDark.secondaryLabel)
+    self.setActiveButtonColor(Const.Colors.ciColor)
+    self.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
+    self.translucentAlpha = 0.0
+  }
 }
 
+// MARK: - ContentVC
 /**
  A ContentVC is a view controller that displays an array of Articles or Sections 
  in a collection of WebViews
@@ -142,25 +165,24 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var issue: Issue { delegate.issue }
   public var feed: Feed { issue.feed }
   public var dloader: Downloader { delegate.dloader }
-  lazy var slider = ButtonSlider(slider: contentTable!, into: self)
+  lazy var slider:ButtonSlider? = ButtonSlider(slider: contentTable!, into: self)
   /// Whether to show all content images in a gallery
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
-  public var backButton = Button<LeftArrowView>()  
-  public var playButton = Button<ImageView>()
-  private var playClosure: ((ContentVC)->())?
-//  public var backButton = Button<ImageView>()
+  public var backButton = Button<ImageView>()
+//  public var playButton = Button<ImageView>()
+//  private var playClosure: ((ContentVC)->())?
   private var backClosure: ((ContentVC)->())?
   public var homeButton = Button<ImageView>()
   private var homeClosure: ((ContentVC)->())?
-  public var settingsButton = Button<ImageView>()
-  private var settingsClosure: ((ContentVC)->())?
+  public var textSettingsButton = Button<ImageView>()
+  private var textSettingsClosure: ((ContentVC)->())?
   public var shareButton = Button<ImageView>()
   private var shareClosure: ((ContentVC)->())?
   private var imageOverlay: Overlay?
   
-  private var settingsBottomSheet: BottomSheet!
+  var settingsBottomSheet: BottomSheet?
   private var textSettingsVC = TextSettingsVC()
   
   public var header = HeaderView()
@@ -211,7 +233,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   /// Setup JS bridge
   private func setupBridge() {
     self.bridge = JSBridgeObject(name: "tazApi")
-    self.bridge?.addfunc("openImage") { jscall in
+    self.bridge?.addfunc("openImage") {   [weak self] jscall in
+      guard let self = self else { return NSNull() }
       if let args = jscall.args, args.count > 0,
          let img = args[0] as? String {
         let current = self.contents[self.index!]
@@ -254,7 +277,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   /// Define the closure to call when the home button is tapped
   public func onSettings(closure: @escaping (ContentVC)->())
-    { settingsClosure = closure }
+    { textSettingsClosure = closure }
   
   /// Define the closure to call when the home button is tapped
   public func onHome(closure: @escaping (ContentVC)->()) 
@@ -263,27 +286,27 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func onShare(closure: @escaping (ContentVC)->()) 
   { shareClosure = closure; toolBar.setArticleBar() }
   
-  public func onPlay(closure: @escaping (ContentVC)->())
-  { playClosure = closure }
+//  public func onPlay(closure: @escaping (ContentVC)->())
+//  { playClosure = closure }
   
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
     
-    settingsBottomSheet.coverage =  200 + UIWindow.verticalInsets
+    settingsBottomSheet?.coverage =  208 + UIWindow.verticalInsets
     
     onSettings{ [weak self] _ in
       guard let self = self else { return }
       self.debug("*** Action: <Settings> pressed")
-      if self.settingsBottomSheet.isOpen {
-          self.settingsBottomSheet.close()
+      if self.settingsBottomSheet?.isOpen ?? false {
+          self.settingsBottomSheet?.close()
       }
       else {
-        self.settingsBottomSheet.open()
+        self.settingsBottomSheet?.open()
       }
       
       self.textSettingsVC.updateButtonValuesOnOpen()
     }
-    
+    /*
     onPlay{ [weak self] _ in
       /**
           Issues: on external Control no update
@@ -302,14 +325,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       
       if SpeechSynthesizer.sharedInstance.isPaused {
-        self.playButton.buttonView.symbol = "pause"
+        self.playButton.buttonView.color = .white
         SpeechSynthesizer.sharedInstance.continueSpeaking()
       }
       else if SpeechSynthesizer.sharedInstance.isSpeaking {
-        self.playButton.buttonView.symbol = "play"
+        self.playButton.buttonView.color = Const.Colors.ciColor
         SpeechSynthesizer.sharedInstance.pauseSpeaking(at: .word)
       } else {
-        self.playButton.buttonView.symbol = "pause"
+        self.playButton.buttonView.color = Const.Colors.iOSDark.secondaryLabel
         
         let trackTitle:String = "taz \(self.issue.date.short) \(self.header.miniTitle ?? "")"
         var albumTitle = "Artikel"
@@ -318,27 +341,26 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
           albumTitle = contentTitle
         }
         self.currentWebView?.speakHtmlContent(albumTitle: albumTitle, trackTitle: trackTitle){ [weak self] in
-          self?.playButton.buttonView.symbol = "play"
+          self?.playButton.buttonView.name = "audio"
         }
       }
-    }
+    }*/
   }
   
-  
-  open override func onPageChange(){
-    SpeechSynthesizer.sharedInstance.stopSpeaking(at: .word)
-    self.playButton.buttonView.symbol = "play"
-  }
+//  open override func onPageChange(){
+//    SpeechSynthesizer.sharedInstance.stopSpeaking(at: .word)
+//    self.playButton.buttonView.name = "audio"
+//  }
   
   func setupToolbar() {
     backButton.onPress { [weak self] _ in 
       guard let self = self else { return }
       self.backClosure?(self)
     }
-    playButton.onPress { [weak self] _ in
-      guard let self = self else { return }
-      self.playClosure?(self)
-    }
+//    playButton.onPress { [weak self] _ in
+//      guard let self = self else { return }
+//      self.playClosure?(self)
+//    }
     homeButton.onPress { [weak self] _ in 
       guard let self = self else { return }
       self.homeClosure?(self)
@@ -347,57 +369,52 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.shareClosure?(self)
     }
-    settingsButton.onPress { [weak self] _ in
+    textSettingsButton.onPress { [weak self] _ in
       guard let self = self else { return }
-      self.settingsClosure?(self)
+      self.textSettingsClosure?(self)
     }
+    backButton.pinSize(CGSize(width: 50, height: 50))
+    shareButton.pinSize(CGSize(width: 50, height: 50))
+    textSettingsButton.pinSize(CGSize(width: 50, height: 50))
+//    playButton.pinSize(CGSize(width: 40, height: 40))
+    homeButton.pinSize(CGSize(width: 50, height: 50))
     
-    backButton.pinWidth(40)
-    backButton.pinHeight(40)
-    backButton.vinset = 0.43
-    backButton.isBistable = false
-    backButton.lineWidth = 0.06
-    settingsButton.pinWidth(55)
-    settingsButton.pinHeight(40)
-    settingsButton.inset = 0.0
-    settingsButton.buttonView.symbol = "textformat.size"
-    settingsButton.buttonView.imageView.iosLower13?.pinWidth(44)
-    homeButton.pinWidth(40)
-    homeButton.pinHeight(40)
-    homeButton.inset = 0.20
-    homeButton.buttonView.name = "Home"
-    shareButton.buttonView.symbol = "square.and.arrow.up"
-    shareButton.pinWidth(55)
-    shareButton.pinHeight(40)
-    shareButton.inset = 0.24
+    backButton.buttonView.name = "arrowLeft"
+    shareButton.buttonView.name = "share"
+    textSettingsButton.buttonView.name = "textSettings"
+//    playButton.buttonView.name = "audio"
+    homeButton.buttonView.name = "home"
+
+    //.vinset = 0.4 -0.4 do nothing
+    //.hinset = -0.4  ..enlarge enorm!  0.4...scales down enorm
+    //Adjusting the baseline incereases the icon too much
     
-    playButton.buttonView.symbol = "play"
-    playButton.pinWidth(55)
-    playButton.pinHeight(40)
-    playButton.inset = 0.24
+    // shareButton.buttonView.hinset = -0.07
+    // textSettingsButton.buttonView.hinset = -0.15
+    // textSettingsButton.buttonView.layoutMargins change would be ignored in layout subviews
     
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(homeButton, direction: .right)
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
-    toolBar.addButton(settingsButton, direction: .center)
-    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
-    toolBar.addArticleButton(playButton, direction: .center)
-    toolBar.setButtonColor(Const.Colors.darkTintColor)
-    toolBar.backgroundColor = Const.Colors.darkToolbar
+    toolBar.addButton(textSettingsButton, direction: .center)
+//    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
+//    toolBar.addArticleButton(playButton, direction: .center)
+    toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
     
     backButton.isAccessibilityElement = true
-    settingsButton.isAccessibilityElement = false //make no sense just for seeing people
+    textSettingsButton.isAccessibilityElement = false //make no sense just for seeing people
     homeButton.isAccessibilityElement = true
-    playButton.isAccessibilityElement = true
+//    playButton.isAccessibilityElement = true
     shareButton.isAccessibilityElement = true
     backButton.accessibilityLabel = "zurück"
     homeButton.accessibilityLabel = "Ausgabenübersicht"
     shareButton.accessibilityLabel = "Teilen"
-    playButton.accessibilityLabel = "Vorlesen"
+//    playButton.accessibilityLabel = "Vorlesen"
   }
   
+  // MARK: - viewDidLoad
   override public func viewDidLoad() {
     super.viewDidLoad()
     writeTazApiCss()
@@ -409,18 +426,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if (ratio < 0) { self?.toolBar.hide(); self?.header.hide(true) }
       else { self?.toolBar.hide(false); self?.header.hide(false) }
     }
-    let img = UIImage.init(named: "logo")
-    if let ct = contentTable {
-      let twidth = ct.largestTextWidth
-      slider.maxCoverage = twidth + 3*16.0
-    }
-    slider.image = img
-    slider.image?.accessibilityLabel = "Inhalt"
-    slider.buttonAlpha = 1.0
-    slider.button.layer.shadowOpacity = 0.25
-    slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
-    slider.button.layer.shadowRadius = 4
-    header.leftIndent = 8 + slider.visibleButtonWidth
+    setupSlider()
+    
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
       ContentUrl(path: path, issue: issue, content: cnt) { [weak self] curl in
@@ -434,10 +441,25 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
+  public func setupSlider() {
+    if let ct = contentTable {
+      let twidth = ct.largestTextWidth
+      slider?.maxCoverage = twidth + 3*16.0
+    }
+    
+    slider?.image = UIImage.init(named: "logo")
+    slider?.image?.accessibilityLabel = "Inhalt"
+    slider?.buttonAlpha = 1.0
+    slider?.button.layer.shadowOpacity = 0.25
+    slider?.button.layer.shadowOffset = CGSize(width: 2, height: 2)
+    slider?.button.layer.shadowRadius = 4
+    header.leftIndent = 8 + (slider?.visibleButtonWidth ?? 0.0)
+  }
+  
   public func applyStyles() {
-    slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
-    settingsBottomSheet.color = Const.SetColor.ios(.secondarySystemBackground).color
-    settingsBottomSheet.handleColor = Const.SetColor.ios(.opaqueSeparator).color
+    slider?.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
+    settingsBottomSheet?.color = Const.SetColor.ios(.secondarySystemBackground).color
+    settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
     self.collectionView?.backgroundColor = Const.SetColor.CTBackground.color
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
@@ -456,10 +478,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.view.backgroundColor = Const.SetColor.CTBackground.color
   }
   
+  override public func viewWillDisappear(_ animated: Bool) {
+    slider?.hideLeftBackground()
+    super.viewWillDisappear(animated)
+  }
+  
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
-    slider.close()
-    self.settingsBottomSheet.close()
+    slider?.close()
+    self.settingsBottomSheet?.close()
     if let overlay = imageOverlay { overlay.close(animated: false) }
   }
   

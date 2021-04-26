@@ -47,7 +47,7 @@ public class FormView: UIView {
     self.backgroundColor = Const.SetColor.CTBackground.color
     if views.isEmpty { return }
     
-    let margin : CGFloat = 12.0
+    let margin : CGFloat = Const.Size.DefaultPadding
     var previous : UIView?
     
     var tfTags : Int = 100
@@ -63,22 +63,26 @@ public class FormView: UIView {
       container.addSubview(v)
       //pin
       if previous == nil {
-        pin(v, to: container, dist: margin, exclude: .bottom)
+        pin(v.left, to: container.left, dist: margin)
+        pin(v.right, to: container.right, dist: -margin)
+        pin(v.top, to: container.top, dist: margin + 30)//Top Margin
       }
       else {
-        NorthLib.pin(v.left, to: container.left, dist: margin)
-        NorthLib.pin(v.right, to: container.right, dist: -margin)
-        NorthLib.pin(v.top, to: previous!.bottom, dist: padding(previous!, v))
+        pin(v.left, to: container.left, dist: margin)
+        pin(v.right, to: container.right, dist: -margin)
+        pin(v.top, to: previous!.bottom, dist: padding(previous!, v))
       }
       previous = v
     }
-    NorthLib.pin(previous!.bottom, to: container.bottom, dist: -margin)
+    pin(previous!.bottom, to: container.bottom, dist: -margin)
     
     scrollView.addSubview(container)
     NorthLib.pin(container, to: scrollView)
     self.addSubview(scrollView)
     NorthLib.pin(scrollView, to: self)
-    
+//    container.addBorder(.green)
+//    scrollView.addBorder(.red, 2.0)
+//    self.addBorder(.blue, 4.0)
     self.addSubview(blockingView)
     NorthLib.pin(blockingView, to: self)
   }

@@ -23,18 +23,22 @@
 		080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
 		08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */; };
 		08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */; };
+		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
 		7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968C25CC605D00508DE8 /* FeedbackViewController.swift */; };
 		7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968D25CC605D00508DE8 /* FeedbackComposer.swift */; };
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
 		7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
+		773D564226145E8500B42FEF /* InfoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773D564126145E8500B42FEF /* InfoToast.swift */; };
+		773D56472614A4DF00B42FEF /* BundledRessources in Resources */ = {isa = PBXBuildFile; fileRef = 773D56462614A4DF00B42FEF /* BundledRessources */; };
 		7745050D25DA801F0052E502 /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = 7745050C25DA801F0052E502 /* resources.json */; };
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
-		7754452025D150AA00ABE3F8 /* TazPdfViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */; };
+		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
 		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
+		77D0DAEC25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
 		AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */; };
@@ -81,7 +85,6 @@
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
 		C794F23524FED184007168AC /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C794F23424FED184007168AC /* Helper.swift */; };
-		C7A5154025DB16A00093A797 /* DemoPdf in Resources */ = {isa = PBXBuildFile; fileRef = C7A5153D25DB16A00093A797 /* DemoPdf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -111,7 +114,7 @@
 		004D4EFF24ACDC1F008C4EE7 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		006007E124D1D333001680B6 /* TrialSubscriptionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialSubscriptionController.swift; sourceTree = "<group>"; };
 		006E17E824D418090092DC0D /* FormComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormComponents.swift; sourceTree = "<group>"; };
-		00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazPdfViewController.swift; sourceTree = "<group>"; };
+		00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazPdfPagesViewController.swift; sourceTree = "<group>"; };
 		00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdView.swift; sourceTree = "<group>"; };
 		00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialSubscriptionView.swift; sourceTree = "<group>"; };
 		00E3D2A624E68F4600AE075A /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -119,11 +122,14 @@
 		080271C624ADDD68002CD2F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Localizable.strings; sourceTree = "<group>"; };
 		08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = FallbackAssets.xcassets; sourceTree = "<group>"; };
 		08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdController.swift; sourceTree = "<group>"; };
+		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
 		7715968D25CC605D00508DE8 /* FeedbackComposer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackComposer.swift; sourceTree = "<group>"; };
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
+		773D564126145E8500B42FEF /* InfoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToast.swift; sourceTree = "<group>"; };
+		773D56462614A4DF00B42FEF /* BundledRessources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledRessources; sourceTree = "<group>"; };
 		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
 		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
 		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
@@ -131,6 +137,7 @@
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
 		77C00CFB25DA9A4A00964861 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
+		77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueVCBottomTielesCVCCell.swift; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextSettingsVC.swift; sourceTree = "<group>"; };
@@ -187,7 +194,6 @@
 		AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCarousel.swift; sourceTree = "<group>"; };
 		AEF2DF34244766E400D1482D /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
 		C794F23424FED184007168AC /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
-		C7A5153D25DB16A00093A797 /* DemoPdf */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DemoPdf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -249,9 +255,18 @@
 			path = Feedback;
 			sourceTree = "<group>";
 		};
+		77D0DAE825E8FDD100C9CB59 /* Cells */ = {
+			isa = PBXGroup;
+			children = (
+				77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */,
+			);
+			path = Cells;
+			sourceTree = "<group>";
+		};
 		AE0A4D0123F4297500C44625 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				77D0DAE825E8FDD100C9CB59 /* Cells */,
 				778F741A25CC61340017E426 /* ViewWithTextView.swift */,
 				778F741525CC60C80017E426 /* ViewWithTextField.swift */,
 				0032A4D724C89E3100284723 /* Forms */,
@@ -261,6 +276,8 @@
 				AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */,
 				AEF2DF34244766E400D1482D /* MomentView.swift */,
 				77A214C325D2B68F00A7C41B /* AppOverlay.swift */,
+				773D564126145E8500B42FEF /* InfoToast.swift */,
+				7708DF65262896D10031C702 /* OfflineAlert.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -312,7 +329,7 @@
 				AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */,
 				AE44F8E324815AF4009DA152 /* ContentImageVC.swift */,
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
-				00C4A0D025655F52002CDFDB /* TazPdfViewController.swift */,
+				00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -392,7 +409,7 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				C7A5153D25DB16A00093A797 /* DemoPdf */,
+				773D56462614A4DF00B42FEF /* BundledRessources */,
 				7745050F25DA80450052E502 /* files */,
 				7745050C25DA801F0052E502 /* resources.json */,
 				AE10BEDF2526292F009F230D /* Alternate Icons */,
@@ -506,10 +523,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7A5154025DB16A00093A797 /* DemoPdf in Resources */,
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
 				AE10BEE52526295A009F230D /* Alpha@3x.png in Resources */,
 				08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */,
+				773D56472614A4DF00B42FEF /* BundledRessources in Resources */,
 				AE10BEE72526295A009F230D /* Alpha@2x.png in Resources */,
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
 				AE10BEEA25262CC1009F230D /* Release@3x.png in Resources */,
@@ -581,10 +598,11 @@
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				AEC7D467249920DF008630FB /* PdfTest.swift in Sources */,
+				7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */,
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
-				7754452025D150AA00ABE3F8 /* TazPdfViewController.swift in Sources */,
+				7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */,
 				00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */,
 				7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
@@ -596,6 +614,7 @@
 				7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */,
 				0015B73A24DD87DA0037A8D6 /* DefaultAuthenticator.swift in Sources */,
 				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,
+				77D0DAEC25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift in Sources */,
 				C794F23524FED184007168AC /* Helper.swift in Sources */,
 				AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */,
 				00E3D2A924E68F5500AE075A /* PwForgottView.swift in Sources */,
@@ -611,6 +630,7 @@
 				AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */,
 				77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */,
 				778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */,
+				773D564226145E8500B42FEF /* InfoToast.swift in Sources */,
 				AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */,
 				AEC7D46D249A598B008630FB /* FeederContext.swift in Sources */,
 				AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */,
@@ -794,7 +814,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020100101;
+				CURRENT_PROJECT_VERSION = 2021042202;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -820,7 +840,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2020100101;
+				CURRENT_PROJECT_VERSION = 2021042202;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;

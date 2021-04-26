@@ -68,4 +68,12 @@ public extension Date {
     }
   }
   
+  var shortest:String{
+    get{
+      let dateFormatterGet = DateFormatter()
+      dateFormatterGet.dateFormat = "d.M.yy"
+      return dateFormatterGet.string(from: self)
+    }
+  }
+  
 }

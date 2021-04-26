@@ -72,9 +72,9 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
 class TextSettingsView: UIView, UIStyleChangeDelegate {
   
   /// Default font
-  private static let defaultFont = UIFont.boldSystemFont(ofSize: 20)
-  private static let smallFont = UIFont.boldSystemFont(ofSize: 16)
-  private static let largeFont = UIFont.boldSystemFont(ofSize: 38)
+  private static let defaultFont = Const.Fonts.contentFont(size: 20)
+  private static let smallFont = Const.Fonts.contentFont(size: 16)
+  private static let largeFont = Const.Fonts.contentFont(size: 38)
   
   
   /// Buttons used to switch between various modes
@@ -93,11 +93,18 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
   }
   
   private func setup() {
-    smallA.buttonView.text = "aA"
+    
+    largeA.buttonView.label.textInsets = UIEdgeInsets(top: -12.0, left: 0, bottom: 0, right: 0)
+    smallA.buttonView.label.textInsets = UIEdgeInsets(top: 4.0, left: 0, bottom: 0, right: 0)
+    
+    smallA.buttonView.text = "a"
     smallA.buttonView.font = TextSettingsView.smallFont
-    largeA.buttonView.text = "aA"
+    smallA.buttonView.label.baselineAdjustment = .alignCenters
+    largeA.buttonView.text = "a"
+    largeA.buttonView.label.baselineAdjustment = .alignCenters
     largeA.buttonView.font = TextSettingsView.largeFont
     percent.buttonView.text = "\(textSize)%"
+    percent.buttonView.label.baselineAdjustment = .alignCenters
     percent.buttonView.font = TextSettingsView.defaultFont
     day.buttonView.text = "Tag"
     day.buttonView.font = TextSettingsView.defaultFont

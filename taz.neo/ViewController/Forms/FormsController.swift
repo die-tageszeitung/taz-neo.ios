@@ -42,8 +42,6 @@ extension String{
  - **ConnectTazIdController**
  - **TrialSubscriptionController**
  
- 
- 
  #TODO REMOVE AFTER REFACTOR
  We have the following inheritance
  - FormsController: UIViewController
@@ -58,7 +56,6 @@ extension String{
  - CreateTazIDController
  - ConnectExistingTazIdController
  
- 
  #Discussion TextView with Attributed String for format & handle Links/E-Mail Adresses
  or multiple Views with individual button/click Handler
  Pro: AttributedString Con: multiple views
@@ -66,8 +63,6 @@ extension String{
  - hande of link leaves the app => solve by using individual handler
  - ugly html & data handling
  + super simple add & exchange text
- 
- 
  */
 
 class FormsController: FormsResultController {
@@ -92,7 +87,6 @@ class FormsResultController: UIViewController {
   private var contentView = FormView()
   private var wConstraint:NSLayoutConstraint?
   
-  
   var dismissAllFinishedClosure: (()->())?
   
   @DefaultBool(key: "offerTrialSubscription")
@@ -100,7 +94,6 @@ class FormsResultController: UIViewController {
   
   private var messageLabel = Padded.Label(paddingTop: 30, paddingBottom: 15)
   private var messageLabel2 = Padded.Label(paddingTop: 15, paddingBottom: 30)
-  
   
   /// Exchange the displayed text with the new one
   /// - Parameters:
@@ -147,26 +140,53 @@ class FormsResultController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    
-    wConstraint = ui.container.pinWidth(to: self.view.width)
-    wConstraint?.priority = .required
-    
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(ui)
-    pin(ui, toSafe: self.view).top.constant = 30
+    pin(ui, toSafe: self.view).top.constant = 0
     setupXButton()
   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    wConstraint?.constant = self.view.frame.size.width
+    updateViewSize(self.view.bounds.size)
+  }
+    
+  /// Updates the Controllers View Size for changed traits
+  ///
+  /// In this Case height did not matter
+  /// - Parameter newSize: new Size for hosted view
+  func updateViewSize(_ newSize:CGSize){
+    if let constraint = wConstraint{
+      ui.container.removeConstraint(constraint)
+    }
+    
+    let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
+//    print("ScreenSize: \(screenSize)  (updateViewSize)")
+//    print("WindowSize: \(UIApplication.shared.windows.first?.bounds.size)  (updateViewSize)")
+    
+    ///Fix Form Sheet Size
+    if self.baseLoginController?.modalPresentationStyle == .formSheet && newSize.width > 540 {
+      ///Unfortunattly ui.scrollView.contentSize.height is too small for Register View to use it,
+      ///may need 2 Steps to calculate its height, maybe later
+      let height:CGFloat = min(windowSize.width,
+                               windowSize.height)
+        
+      let formSheetSize = CGSize(width: 540,
+                                 height: height)
+      self.preferredContentSize = formSheetSize
+      wConstraint = ui.container.pinWidth(formSheetSize.width, priority: .required)
+    } else {
+      wConstraint = ui.container.pinWidth(newSize.width, priority: .required)
+
+    }
   }
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    wConstraint?.constant = size.width
     /// Unfortulatly the presented VC's did not recice the msg. no matter which presentation style
     self.presentedViewController?.viewWillTransition(to: size, with: coordinator)
+    updateViewSize(size)
   }
+  
   
   convenience init(message:String,
                    backButtonTitle:String,
@@ -261,10 +281,13 @@ extension UIViewController {
 extension FormsResultController{
   /// Present given VC on topmost Viewcontroller with flip transition
   func modalFlip(_ controller:UIViewController){
+    if Device.isIpad, let size = self.baseLoginController?.view.bounds.size {
+      controller.preferredContentSize = size
+      
+    }
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .flipHorizontal
     
-//    MainNC.singleton.setupTopMenus(view: controller.view)
     self.topmostModalVc.present(controller, animated: true, completion:nil)
   }
   

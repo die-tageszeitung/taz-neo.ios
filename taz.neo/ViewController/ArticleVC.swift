@@ -30,7 +30,8 @@ open class ArticleVC: ContentVC {
   }
   
   public override var delegate: IssueInfo! {
-    didSet { 
+    didSet {
+      if delegate == nil { return }
       guard let _ = delegate as? ArticleVCdelegate else {
         fatal("ArticleVC.delegate must be of type ArticleVCdelegate")
         return
@@ -66,7 +67,7 @@ open class ArticleVC: ContentVC {
     }
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")
-      self?.slider.close()
+      self?.slider?.close()
       self?.navigationController?.popViewController(animated: false)
       self?.adelegate?.closeIssue()
     }

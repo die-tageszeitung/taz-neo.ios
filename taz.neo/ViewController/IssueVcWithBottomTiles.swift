@@ -13,6 +13,10 @@ import NorthLib
 /// written to have a minimal Impact on IssueVC on Integration
 public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   
+  /// should show PDF Info Toast on startup (from config defaults)
+  @DefaultBool(key: "showPdfInfoToast")
+  public var showPdfInfoToast: Bool
+  
   // MARK: - Properties
   ///moved issues here to prevent some performance and other issues
   ///obsolate after refactoring & full integration
@@ -23,6 +27,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
         footerActivityIndicator.stopAnimating()
         //may issues (moments) changed
         //generelly no good to reload them all
+        #warning("@Norbert/Ringo DO NOT RELOAD EVERYTHING USE INSERT!... look in Merge in nthies's changes")
         self.collectionView.reloadData()
       }
     }
@@ -37,7 +42,8 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
   private let reuseFooterIdentifier = "issueVcCollectionViewFooter"
-  private let itemSpacing:CGFloat = 30.0
+  private let itemSpacing:CGFloat = UIWindow.shortSide > 320 ? 30.0 : 20.0
+  private let lineSpacing:CGFloat = 20.0
   
   /// header (top section) bottom offset for: app switcher, tabbar, scroll down button
   let bottomOffset:CGFloat=120
@@ -60,12 +66,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   }()
   
   /// size of the issue items in bottom section;
-  lazy var bottomCellSize : CGSize = {
-    /// expect moment image in 2:3 aspect ratio; add 30 ps for label below
-    let cellWidth : CGFloat = (UIScreen.main.bounds.size.width - 3*itemSpacing)/2
-    return CGSize(width: cellWidth, height: cellWidth*3/2 + 30)//expect 3:2 Format
-  }()
-  
+  lazy var cellSize : CGSize = CGSize(width: 20, height: 20)
   
   /// top top Scroll Target Position, to scroll to if scroll top
   let topPos : CGFloat = -UIWindow.topInset
@@ -106,7 +107,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
                                        left: self.itemSpacing,
                                        bottom: self.itemSpacing,
                                        right: self.itemSpacing)
-    layout.minimumLineSpacing = self.itemSpacing
+    layout.minimumLineSpacing = self.lineSpacing
     layout.minimumInteritemSpacing = self.itemSpacing
     ///layout.itemSize not wor, need to implement: UICollectionViewDelegateFlowLayout -> sizeForItemAt
     ///otherwise top area (issue carousel) woun't be displayed
@@ -124,66 +125,66 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     collectionView?.showsVerticalScrollIndicator = false
     collectionView?.showsHorizontalScrollIndicator = false
     // Register cell classes
-    collectionView?.register(PdfOverviewCvcCell.self, forCellWithReuseIdentifier: reuseIdentifier)
+    collectionView?.register(IssueVCBottomTielesCVCCell.self, forCellWithReuseIdentifier: reuseIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: reuseHeaderIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
     setupToolbar()
+    showPdfInfoIfNeeded()
+  }
+  
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    updateCollectionViewLayout(self.view.frame.size)
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    updateCollectionViewLayout(size)
+  }
+  
+  func updateCollectionViewLayout(_ forParentSize: CGSize){
+    //Calculate Cell Sizes...display 2...6 columns depending on device and Orientation
+    //On Phone onle Portrait is enables, so it displays on every phone only 2 columns
+    let minCellWidth: CGFloat = forParentSize.width > 800 ? 200 : 160
+    let itemsPerRow : CGFloat = CGFloat(Int(forParentSize.width / minCellWidth))
+    let cellWidth = (forParentSize.width - (itemsPerRow+1.0)*itemSpacing)/itemsPerRow
+    cellSize = CGSize(width: cellWidth, height: cellWidth*3/2 + 30)//expect 3:2 Format
+    collectionView.collectionViewLayout.invalidateLayout()
   }
 
   func setupToolbar() {
     //the button tap closures
-    let onHome:((ButtonControl)->()) = {_ in
-      print("Home Pressed")
+    let onHome:((ButtonControl)->()) = { [weak self] _ in
+      guard let self = self as? IssueVC else { return }
+      self.issueCarousel.carousel.scrollto(0, animated: true)
     }
+    
+    
     
     let onPDF:((ButtonControl)->()) = {   [weak self] control in
       guard let self = self else { return }
-       
       self.isFacsimile = !self.isFacsimile
       
       if let imageButton = control as? Button<ImageView> {
-        
-        if #available(iOS 13.0, *) {
-          imageButton.buttonView.imageView.image
-            = UIImage(systemName: self.isFacsimile ? "iphone" : "newspaper",
-                      withConfiguration: UIImage.SymbolConfiguration(pointSize: 16,
-                                                                     weight: .light))
-        }
-        else {
-          imageButton.buttonView.symbol = self.isFacsimile ? "iphone" : "newspaper"
-        }
-        imageButton.hinset = self.isFacsimile ? 0.15 : 0.0
+        imageButton.buttonView.name = self.isFacsimile ? "mobileDevice" : "newspaper"
+        imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
       }
-      
       print("PDF Pressed")
     }
     
     //the buttons and alignments
-    _ = toolBar.addImageButton(name: "Home",
-                           onPress: onHome,
-                           direction: .right,
-                           accessibilityLabel: "Übersicht",
-                           vInset: 0.2,
-                           hInset: 0.2 //needed if old symbol used
-                           )
+    _ = toolBar.addImageButton(name: "home",
+                               onPress: onHome,
+                               direction: .right,
+                               accessibilityLabel: "Übersicht")
     
-    let pdfIcon = toolBar.addImageButton(name: "PDF",
-                           onPress: onPDF,
-                           direction: .left,
-                           symbol: self.isFacsimile ? "iphone.homebutton" : "newspaper",
-                           accessibilityLabel: "Zeitungsansicht",
-                           hInset: self.isFacsimile ? 0.15 : 0.0)
-    
-    if #available(iOS 13.0, *) {
-      pdfIcon.buttonView.imageView.image
-        = UIImage(systemName: self.isFacsimile ? "iphone.homebutton" : "newspaper",
-                  withConfiguration: UIImage.SymbolConfiguration(pointSize: 16,
-                                                                 weight: .light))
-    }
-    
+    _ = toolBar.addImageButton(name: self.isFacsimile ? "mobileDevice" : "newspaper",
+                               onPress: onPDF,
+                               direction: .left,
+                               accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
+        
     //the toolbar setup itself
-    toolBar.setButtonColor(Const.Colors.darkTintColor)
-    toolBar.backgroundColor = Const.Colors.darkToolbar
+    toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
     whenScrolled(minRatio: 0.01) {  [weak self] ratio in
       if ratio < 0, self?.isUp == false { self?.toolBar.hide()}
@@ -212,21 +213,55 @@ extension IssueVcWithBottomTiles {
     let _cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier,
                                                    for: indexPath)
 
-    guard let cell = _cell as? PdfOverviewCvcCell else { return _cell }
+    guard let cell = _cell as? IssueVCBottomTielesCVCCell else { return _cell }
     
-    cell.label?.text = nil
-    cell.imageView?.image = nil
+    cell.imageView.image = nil
     
     if let issueVC = self as? IssueVC,
        let issue = issues.valueAt(indexPath.row) {
-      cell.text = issue.date.shorter
-      cell.button?.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+      cell.text = UIWindow.size.width < 370 ? issue.date.shortest : issue.date.shorter
+      cell.button.titleLabel?.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
       /// ToDo: for not Downloaded Items, click, load finished, the cloud did not disappear
       /// should be done in Refactoring with PDF Image for Cells
-      cell.cloudHidden = issue.isComplete
-      cell.label?.textAlignment = .center
+      if issue.isDownloading {
+//        cell.button.downloadState = .process
+//        cell.button.percent = 0.5
+//        cell.button.startHandler = nil
+//        cell.button.stopHandler = nil
+      }
+      else if issue.isComplete {
+        cell.button.downloadState = .done
+        cell.button.startHandler = nil
+        cell.button.stopHandler = nil
+      }
+      else {
+        cell.button.downloadState = .notStarted
+        cell.button.startHandler = {
+          cell.button.startHandler = nil
+          cell.button.downloadState = .process
+          #warning("@Norbert Download Status did not work as expected whole time at 0 ...then 100%")
+          cell.observer = Notification.receive("issueProgress", from: issue) { notif in
+            print("Recive Notification from \((notif.object as? Issue)?.date) handler for: \(issue.date)")
+            if let (loaded,total) = notif.content as? (Int64,Int64) {
+              print("...has status: \(Float(loaded)/Float(total)) ==  \(loaded)/\(total)")
+              cell.button.percent = Float(loaded)/Float(total)
+            }
+          }
+          #warning("@Norbert Downloading Issue with this, not downloading section 0 at first")
+          if let sissue = issue as? StoredIssue {
+//            guard issueVC.feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
+//            isDownloading = true
+//            issueCarousel.index = index
+//            issueCarousel.setActivity(idx: index, isActivity: true)
+//            issueVC.feederContext.str
+            issueVC.feederContext.getCompleteIssue(issue: sissue, isPages: self.isFacsimile)
+          }
+        }
+        cell.button.stopHandler = {}
+      }
+      
       if let img = issueVC.feeder.momentImage(issue: issue) {
-        cell.imageView?.image = img
+        cell.imageView.image = img
       }
     }
     return cell
@@ -407,22 +442,7 @@ extension IssueVcWithBottomTiles: UICollectionViewDelegateFlowLayout {
   public func collectionView(_ collectionView: UICollectionView,
                              layout collectionViewLayout: UICollectionViewLayout,
                              sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return bottomCellSize
-  }
-}
-
-// MARK: - ShowPDF
-extension IssueVcWithBottomTiles {
-  func showPdf() {
-    WaitingAppOverlay.show(alpha: 1.0, showSpinner: true, titleMessage: "Lade PDF", bottomMessage: "Lade Faksimiles", dismissNotification: "LoadFaksimilesDone")
-    onMainAfter(3.5) {
-      Notification.send("LoadFaksimilesDone")
-    }
-    onMainAfter(2.0) {
-      let pdfVc = TazPdfViewController()
-      pdfVc.modalPresentationStyle = .fullScreen
-      self.navigationController?.present(pdfVc, animated: false)
-    }
+    return cellSize
   }
 }
 
@@ -439,8 +459,8 @@ extension ContentToolbar {
                       symbol:String? = nil,
                       accessibilityLabel:String? = nil,
                       isBistable: Bool = true,
-                      width:CGFloat = 40,
-                      height:CGFloat = 40,
+                      width:CGFloat = 52,
+                      height:CGFloat = 48,
                       vInset:CGFloat = 0.0,
                       hInset:CGFloat = 0.0
                       ) -> Button<ImageView> {
@@ -449,7 +469,6 @@ extension ContentToolbar {
     button.pinHeight(height, priority: .defaultHigh)
     button.vinset = vInset
     button.hinset = hInset
-    button.isBistable = isBistable
     button.isBistable = isBistable
     button.buttonView.name = name
     button.buttonView.symbol = symbol
@@ -462,6 +481,34 @@ extension ContentToolbar {
     self.addButton(button, direction: direction)
     button.onPress(closure: onPress)
     return button
+  }
+}
+
+// MARK: - ShowPDF Info Toast
+extension IssueVcWithBottomTiles {
+  func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
+    if showPdfInfoToast == false { return }
+    
+    onThreadAfter(delay) {
+      var img : UIImage?
+      if let url = Bundle.main.url(forResource: "PDF-Button_640px_transparent",
+                                   withExtension: "gif",
+                                   subdirectory: "BundledRessources") {
+        let file = File(url)
+        if file.exists {
+          img = UIImage.animatedGif(File(url).data)
+        }
+      }
+      
+      InfoToast.showWith(image: img, title: "Entdecken Sie jetzt die Zeitungsansicht",
+                         text: "Hier können Sie zwischen der mobilen und der Ansicht der Zeitungsseiten wechseln",
+                         buttonText: "OK",
+                         hasCloseX: true,
+                         autoDisappearAfter: nil) {   [weak self] in
+        self?.log("PdfInfoToast showen and closed")
+        self?.showPdfInfoToast = false
+      }
+    }
   }
 }
 

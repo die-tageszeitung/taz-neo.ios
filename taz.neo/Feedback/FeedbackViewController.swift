@@ -58,6 +58,27 @@ public class FeedbackViewController : UIViewController{
     super.init(nibName: nil, bundle: nil)
   }
   
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    updateViewSize(self.view.bounds.size)
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    self.presentedViewController?.viewWillTransition(to: size, with: coordinator)
+    updateViewSize(size)
+  }
+  
+  private var wConstraint:NSLayoutConstraint?
+
+  /// update size for changed traits
+  func updateViewSize(_ newSize:CGSize){
+    guard let feedbackView = feedbackView else { return }
+    if let constraint = wConstraint{
+      feedbackView.stack.removeConstraint(constraint)
+    }
+    wConstraint = feedbackView.stack.pinWidth(newSize.width - 24, priority: .required)
+  }
+  
   public override func viewDidDisappear(_ animated: Bool) {
     self.feedbackView = nil
     self.type = nil
@@ -247,6 +268,7 @@ public class FeedbackViewController : UIViewController{
   func showScreenshot(){
     let vc = OverlayViewController()
     let imageView = UIImageView(image: screenshot)
+    imageView.contentMode = .scaleAspectFit
     vc.view.addSubview(imageView)
     vc.view.backgroundColor = UIColor(white: 0.0, alpha: 0.8)//hide the transparent Background from App's Screenshot
     pin(imageView, to: vc.view)
@@ -356,14 +378,14 @@ class OverlayViewController : UIViewController{
   func setupXButton() {
     xButton.pinHeight(35)
     xButton.pinWidth(35)
-    xButton.color = .black
     xButton.buttonView.isCircle = true
-    xButton.buttonView.circleColor = UIColor.rgb(0xdddddd)
-    xButton.buttonView.color = UIColor.rgb(0x707070)
+    xButton.buttonView.circleColor = Const.Colors.iOSDark.secondaryLabel
+    xButton.activeColor = Const.Colors.ciColor
+    xButton.color = Const.Colors.iOSDark.secondarySystemBackground
     xButton.buttonView.innerCircleFactor = 0.5
     self.view.addSubview(xButton)
-    pin(xButton.right, to: self.view.rightGuide(), dist: -15)
-    pin(xButton.top, to: self.view.topGuide(), dist: 15)
+    pin(xButton.right, to: self.view.rightGuide(), dist: -Const.Size.DefaultPadding)
+    pin(xButton.top, to: self.view.topGuide(), dist: Const.Size.DefaultPadding)
     xButton.isHidden = true
   }
   

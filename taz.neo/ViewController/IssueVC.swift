@@ -25,6 +25,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// The currently available Issues to show
   ///public var issues: [Issue] = [] ///moved to parent
   /// The center Issue (index into self.issues)
+  #warning("Access \"issueCarousel.index!\" may fail, not use force unwrap")
   public var index: Int {
     get { issueCarousel.index! }
     set { issueCarousel.index = newValue }
@@ -107,7 +108,36 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
-    // TODO: Handle Download Error
+    
+    func showDownloadErrorAlert() {
+      let message = """
+                    Beim Laden der Daten ist ein Fehler aufgetreten.
+                    Bitte versuchen Sie es zu einem späteren Zeitpunkt
+                    noch einmal.
+                    Sie können bereits heruntergeladene Ausgaben auch
+                    ohne Internet-Zugriff lesen.
+                    """
+      OfflineAlert.message(title: "Warnung", message: message)
+    }
+    
+    if let err = error as? DownloadError {
+      if err.handled == false {  showDownloadErrorAlert() }
+      self.log(err.enclosedError?.errorText() ?? err.errorText())
+    }
+    else if let err = error {
+      self.log(err.errorText())
+      showDownloadErrorAlert()
+    }
+    else {
+      self.log("unspecified download error")
+      showDownloadErrorAlert()
+    }
+    self.isDownloading = false
+    if let idx = issueCarousel.index {
+      ///using optional value due access index == issueCarousel.index! results in a crash
+      ///if offline started and no issues loaded - ... not every Time: Race Condition
+      self.issueCarousel.setActivity(idx: idx, isActivity: false)
+    }
   }
   
   /// Requests sufficient overview Issues from DB/server at
@@ -170,8 +200,53 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
                          atArticle: Int? = nil) {
     let index = givenIndex ?? self.index
     func openIssue() {
+      //call it later if Offline Alert Presented
+      if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
+      //prevent multiple pushes
+      if self.navigationController?.topViewController != self { return }
+      let authenticate = { [weak self] in
+        let loginAction = UIAlertAction(title: Localized("login_button"),
+                                        style: .default) { _ in
+          self?.feederContext.authenticate()
+        }
+        let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
+        
+        Alert.message(message: "Um das ePaper zu lesen, müssen Sie sich anmelden.", actions: [loginAction, cancelAction])
+      }
+      
+//      if isFacsimile && !feederContext.isAuthenticated && issues[index].isComplete == false {
+//        authenticate()
+//      }
+//      else
       if isFacsimile {
-        #warning("@Ringo: push PDF page controller here")
+        ///the positive use case
+        let pushPdf = { [weak self] in
+          guard let self = self else { return }
+          let vc = TazPdfPagesViewController(issueInfo: self)
+          self.navigationController?.pushViewController(vc, animated: true)
+          if issue.status == .reduced,
+             self.feederContext.isAuthenticated == false {
+            authenticate()
+          }
+          
+        }
+        ///in case of errors
+        let handleError = {
+          Toast.show(Localized("error"))
+          Notification.send(Const.NotificationNames.articleLoaded)
+        }
+        
+        if feeder.momentPdfFile(issue: issue) != nil {
+          pushPdf()
+        }
+        else if let page1 = issue.pages?.first {
+          self.dloader.downloadIssueData(issue: issue, files: [page1.pdf]) { err in
+            if err != nil { handleError() }
+            else { pushPdf() }
+          }
+        } else {
+          handleError()
+        }
       }
       else {
         self.pushSectionVC(feederContext: feederContext, atSection: atSection, 
@@ -182,6 +257,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let issue = issues[index]
     debug("*** Action: Entering \(issue.feed.name)-" +
       "\(issue.date.isoDate(tz: feeder.timeZone))")
+    /* Dieser Code verhindert, wenn sich der feeder aufgehangen hat, dass eine andere bereits heruntergeladene Ausgabe geöffnet wird
+     ...weil isDownloading == true => das wars!
+     ein open issue in dem Fall wäre praktisch,
+     ...würde dann den >>>Notification.receiveOnce("issueStructure"<<<" raus nehmen
+     */
     if let sissue = issue as? StoredIssue, !isDownloading {
       guard feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
       isDownloading = true
@@ -191,12 +271,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         guard let self = self else { return }
         guard notif.error == nil else { 
           self.handleDownloadError(error: notif.error!)
+          if issue.status.watchable && self.isFacsimile { openIssue() }
           return 
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
           guard let self = self else { return }
           self.isDownloading = false
-          guard err == nil else { self.handleDownloadError(error: err); return }
+          guard err == nil else {
+            self.handleDownloadError(error: err)
+            if issue.status.watchable && self.isFacsimile { openIssue() }
+            return
+          }
           openIssue()
           Notification.receiveOnce("issue", from: sissue) { [weak self] notif in
             guard let self = self else { return }
@@ -252,26 +337,65 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
   
   /// Check whether it's necessary to reload the current Issue
-  public func checkReload() {
-    if let visible = navigationController?.visibleViewController,
-       let sissue = issue as? StoredIssue {
-      if (visible != self) && feederContext.needsUpdate(issue: sissue) {
-        let snap = NavigationController.top()?.presentingViewController?.view.snapshotView(afterScreenUpdates: false)
-        WaitingAppOverlay.show(alpha: 1.0,
-                               backbround: snap,
-                               showSpinner: true,
-                               titleMessage: "Aktualisiere Daten",
-                               bottomMessage: "Bitte haben Sie einen Moment Geduld!",
-                               dismissNotification: Const.NotificationNames.articleLoaded)
-        navigationController!.popToRootViewController(animated: true)
-        showIssue(index: index, atSection: sissue.lastSection, 
-                  atArticle: sissue.lastArticle)
-      }
-      else {
-        print(">>>> IssueVC.checkReload .. do not show Overlay because: visible != self \(visible != self) OR: feederContext.needsUpdate(issue: sissue): \(feederContext.needsUpdate(issue: sissue)) because is still Downloading? sissue.isDownloading: \(sissue.isDownloading)")
+  public func authenticationSucceededCheckReload() {
+    ///May needed after PDF View Login, if no reconnect appeared
+    feederContext.updateAuthIfNeeded()
+    
+    guard let visible = navigationController?.visibleViewController,
+          visible != self,
+          let sissue = issue as? StoredIssue  else {
+      log(">>>> IssueVC.checkReload .. do not show Overlay ..not relevant VC")
+      return
+    }
+    
+    log(">>>> IssueVC.checkReload .. current Issue is: \(index) \(sissue.date) iscompleete?: \(issues[index].isComplete), atSection: \(sissue.lastSection ?? -1), atArticle: \(sissue.lastArticle ?? -1)")
+    ///remember status to prevent race conditions
+    let stillDownloading = sissue.isDownloading
+    
+    if (feederContext.needsUpdate(issue: sissue) || stillDownloading) == false {
+      log(">>>> IssueVC.checkReload .. do not show Overlay ... no needed Data OK e.g. Demo?")
+      return
+    }
+    
+    func popAndShowReloaded(){
+      navigationController!.popToRootViewController(animated: false)
+      showIssue(index: index, atSection: sissue.lastSection,
+                atArticle: sissue.lastArticle)
+      log(">>>> IssueVC.checkReload .. showIssue is: \(index) \(sissue.date) iscompleete?: \(issues[index].isComplete), atSection: \(sissue.lastSection ?? -1), atArticle: \(sissue.lastArticle ?? -1)")
+    }
+    
+    if stillDownloading {
+      Notification.receiveOnce("issue", from: sissue) { notif in
+        popAndShowReloaded()
       }
     }
+    
+    let snap = NavigationController.top()?
+      .presentingViewController?.view.snapshotView(afterScreenUpdates: false)
+    
+    WaitingAppOverlay.show(alpha: 1.0,
+                           backbround: snap,
+                           showSpinner: true,
+                           titleMessage: "Aktualisiere Daten",
+                           bottomMessage: "Bitte haben Sie einen Moment Geduld!",
+                           dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
+    
+    Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+    }
+    
+    Notification.receiveOnce("feederUneachable") { [weak self] _ in
+      self?.navigationController!.popToRootViewController(animated: false)
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+      Toast.show(Localized("error"))
+    }
+    
+    if stillDownloading == false {
+      popAndShowReloaded()
+    }
   }
+  
+  var interruptMainTimer: Timer?
   
   public override func viewDidLoad() {
     super.viewDidLoad()
@@ -302,6 +426,49 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.carouselScrollFromLeft = self.issueCarousel.carousel.scrollFromLeftToRight
       scrollChange = false
     }
+    issueCarousel.addMenuItem(title: "STÖRE MAIN AN/AUS", icon: "arrow.2.circlepath") {   [weak self] _ in
+      guard let self = self else { return }
+      
+      if let timer = self.interruptMainTimer {
+        timer.invalidate()
+        Toast.show("Main Thread Interruprion Stoped")
+        return
+      }
+      self.interruptMainTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
+        /*
+        onMain { [weak self] in
+          self?.log("#> sleep...")
+//          usleep(1000000) //1 second unbenutzbar
+//          usleep(100000) //0.1 second => Ruckelt aber OK
+          usleep(200000) //0.2 second => Ruckelt deutlich, unangenehm
+          self?.log("#>  ..wake up")
+        }
+        */
+        
+        //0.023 ... ArticleDB Save Duration 5 Times / 1s in a Test
+        //...so test this here:
+        ///=> sorgt auf dem iPhone 12Pro für sichtbare Störungen, Karussel springt beim Scrollen
+        ///scrollen ist nicht mehr geschmeidig!
+        ///wie ist es auf den anderen Devices?
+        ///...mal sehen wie es als Releasebuild, nicht Debug wirkt
+        onMain { usleep(23000) }
+        onMain { usleep(23000) }
+        onMain { usleep(23000) }
+        onMain { usleep(23000) }
+        onMain { usleep(23000) }
+        self.log("...Main Thread Interruprion!")
+      }
+      
+      if let timer = self.interruptMainTimer {
+        self.log("#>  Enable timer even while user ui interaction ")
+        RunLoop.current.add(timer, forMode: .common)
+      }
+      
+      
+      
+      Toast.show("Main Thread Interruprion started and fire every 2 seconds", .alert)
+    }
+     
     Defaults.receive() { [weak self] dnot in
       guard let self = self else { return }
       switch dnot.key {
@@ -327,7 +494,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.provideOverview()
     }
     Notification.receive("authenticationSucceeded") { notif in
-      self.checkReload()
+      self.authenticationSucceededCheckReload()
     }
     Notification.receive(UIApplication.willResignActiveNotification) { _ in
       self.goingBackground()
@@ -372,9 +539,27 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if !isArchiveMode { feederContext.checkForNewIssues(feed: feed) }
   }
   
+  func updateCarouselForParentSize(_ size:CGSize) {
+    let portrait = size.height > 1.2*size.width
+    self.issueCarousel.carousel.relativePageWidth = portrait ? 0.6 : 0.3
+    //ToDo Improve carousel, unfortunately relative spacing is not updateable easyly
+    //@see: start iPad in Landscape with 2/3 compare with started in 1/3 and increased to 2/3
+    //will see missing space between cells
+    // increase the value makes big gaps in some cases
+    // ToDo discuss the cell Appeareance and cell size
+//    self.issueCarousel.carousel.relativeSpacing = portrait ? 0.12 : 0.14
+    self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
+  }
+  
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     checkForNewIssues()
+    updateCarouselForParentSize(self.view.bounds.size)
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    onMainAfter { self.updateCarouselForParentSize(size) }
   }
   
   @objc private func goingBackground() {}
