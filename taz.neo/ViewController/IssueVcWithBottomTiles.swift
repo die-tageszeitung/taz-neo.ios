@@ -9,39 +9,13 @@
 import UIKit
 import NorthLib
 
-// MARK: - ShowPDF
-extension IssueVcWithBottomTiles {
-  func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
-    if IssueVC.showAnimations == false { return }
-    
-    onThreadAfter(delay) {
-      var img : UIImage?
-      if let url = Bundle.main.url(forResource: "PDF-Button_640px_transparent",
-                                   withExtension: "gif",
-                                   subdirectory: "BundledRessources") {
-        let file = File(url)
-        if file.exists {
-          img = UIImage.animatedGif(File(url).data)
-        }
-      }
-      
-      InfoToast.showWith(image: img, title: "Entdecken Sie jetzt die Zeitungsansicht",
-                         text: "Hier können Sie zwischen der mobilen und der Ansicht der Zeitungsseiten wechseln",
-                         buttonText: "OK",
-                         hasCloseX: true,
-                         autoDisappearAfter: nil) {
-        print("Closed")
-      }
-    }
-  }
-}
-
-
-
-
 /// This Class  extends IssueVC for a bottom Area with a UICollectionVC
 /// written to have a minimal Impact on IssueVC on Integration
 public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
+  
+  /// should show PDF Info Toast on startup (from config defaults)
+  @DefaultBool(key: "showPdfInfoToast")
+  public var showPdfInfoToast: Bool
   
   // MARK: - Properties
   ///moved issues here to prevent some performance and other issues
@@ -507,6 +481,34 @@ extension ContentToolbar {
     self.addButton(button, direction: direction)
     button.onPress(closure: onPress)
     return button
+  }
+}
+
+// MARK: - ShowPDF Info Toast
+extension IssueVcWithBottomTiles {
+  func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
+    if showPdfInfoToast == false { return }
+    
+    onThreadAfter(delay) {
+      var img : UIImage?
+      if let url = Bundle.main.url(forResource: "PDF-Button_640px_transparent",
+                                   withExtension: "gif",
+                                   subdirectory: "BundledRessources") {
+        let file = File(url)
+        if file.exists {
+          img = UIImage.animatedGif(File(url).data)
+        }
+      }
+      
+      InfoToast.showWith(image: img, title: "Entdecken Sie jetzt die Zeitungsansicht",
+                         text: "Hier können Sie zwischen der mobilen und der Ansicht der Zeitungsseiten wechseln",
+                         buttonText: "OK",
+                         hasCloseX: true,
+                         autoDisappearAfter: nil) {   [weak self] in
+        self?.log("PdfInfoToast showen and closed")
+        self?.showPdfInfoToast = false
+      }
+    }
   }
 }
 

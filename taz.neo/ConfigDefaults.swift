@@ -43,5 +43,7 @@ public let ConfigDefaults = Defaults.Values([
   // show/hide Toolbar in PDF View at page switch
   "showToolbarOnPageSwitch" : "true",
   // display full PDF Page on Page switch in Landscape
-  "fullPdfOnPageSwitch" : "true"
+  "fullPdfOnPageSwitch" : "true",
+  // need to show PDF Info Toast on startup
+  "showPdfInfoToast" : "true"
 ])
