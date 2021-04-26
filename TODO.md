@@ -9,10 +9,7 @@ Things that should be done soon
     - iPad Layout
     - Cloud Icon disapear on Download finish
     - PDF Moments/Page 1
-- PDF ViewController
-  - Problem: Toolbar not in front
 - Zum Download Stop: wenn es nur die Kachelansicht betrifft, Mail Ralf 
-
 LOGIN Bug: logged out => PDF => Login due not downloaded compleete
 
 
@@ -23,6 +20,3 @@ LOGIN Bug: logged out => PDF => Login due not downloaded compleete
     image is 2.4MB currently may use smaller to increase Performance
     especially with BottomTiles (8 and more images at the same time)
     Check with: print("Moment Image Size: \(img.mbSize) for: \(img) with scale: \(img.scale)")
-  - line 146 viewDidLoad may add auto scroll animations (removed within this commit)
-  
- 
