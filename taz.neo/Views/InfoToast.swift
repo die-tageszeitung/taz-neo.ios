@@ -235,7 +235,7 @@ public class InfoToast : UIView {
   
   lazy var titleLabel: UILabel  = {
     var label = UILabel()
-    label.font = Const.Fonts.titleFont(size: Const.Size.SmallTitleFontSize)
+    label.font = Const.Fonts.titleFont(size: Const.Size.ContentTableFontSize)
     label.textAlignment = .left
     label.numberOfLines = 0
     label.text = title
