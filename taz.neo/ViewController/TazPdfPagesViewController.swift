@@ -283,7 +283,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     (self.currentView as? ZoomedImageViewSpec)?.menu.menu = self.menuItems
   }
   
-  public var toolBar = OverviewContentToolbar()
+  public var toolBar = AnimatedContentToolbar()
   
   override public var preferredStatusBarStyle: UIStatusBarStyle {
     return .lightContent

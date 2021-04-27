@@ -37,7 +37,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   @DefaultBool(key: "isFacsimile")
   public var isFacsimile: Bool
 
-  public var toolBar = OverviewContentToolbar()
+  public var toolBar = ContentToolbar()
   
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
@@ -446,43 +446,7 @@ extension IssueVcWithBottomTiles: UICollectionViewDelegateFlowLayout {
   }
 }
 
-// MARK: - Helper for ContentToolbar
-extension ContentToolbar {
-  func addSpacer(_ direction:Toolbar.Direction) {
-    let button = Toolbar.Spacer()
-    self.addButton(button, direction: direction)
-  }
-  
-  func addImageButton(name:String,
-                      onPress:@escaping ((ButtonControl)->()),
-                      direction: Toolbar.Direction,
-                      symbol:String? = nil,
-                      accessibilityLabel:String? = nil,
-                      isBistable: Bool = true,
-                      width:CGFloat = 52,
-                      height:CGFloat = 48,
-                      vInset:CGFloat = 0.0,
-                      hInset:CGFloat = 0.0
-                      ) -> Button<ImageView> {
-    let button = Button<ImageView>()
-    button.pinWidth(width, priority: .defaultHigh)
-    button.pinHeight(height, priority: .defaultHigh)
-    button.vinset = vInset
-    button.hinset = hInset
-    button.isBistable = isBistable
-    button.buttonView.name = name
-    button.buttonView.symbol = symbol
-    
-    if let al = accessibilityLabel {
-      button.isAccessibilityElement = true
-      button.accessibilityLabel = al
-    }
-    
-    self.addButton(button, direction: direction)
-    button.onPress(closure: onPress)
-    return button
-  }
-}
+
 
 // MARK: - ShowPDF Info Toast
 extension IssueVcWithBottomTiles {
@@ -542,24 +506,5 @@ open class UICollectionViewControllerWithTabbar : UICollectionViewController {
       }
     }
     startDragging = nil
-  }
-}
-
-// MARK: - OverviewContentToolbar
-/// ContentToolbar with easier constraint animation and changed animation target
-public class OverviewContentToolbar : ContentToolbar {
-  public override func hide(_ isHide: Bool = true) {
-    if isHide {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.constant = 0
-        self?.superview?.layoutIfNeeded()
-      }
-    }
-    else if self.heightConstraint?.constant != self.totalHeight {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.constant = self!.totalHeight
-        self?.superview?.layoutIfNeeded()
-      }
-    }
   }
 }
