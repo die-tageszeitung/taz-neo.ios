@@ -164,6 +164,9 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       self.issueCarousel.carousel.scrollto(0, animated: true)
       if self.isUp == false {
         self.scrollUp()
+        self.isUp = true //ensure property is set correctly
+        /// sometimes on heavy load its been scrolled up but property did not set correctly due this happen
+        /// in delegate...wich was interrupted
       }
     }
     
@@ -395,7 +398,10 @@ extension IssueVcWithBottomTiles {
   }
   
   open override func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-    isUp = collectionView.indexPathsForVisibleItems.count == 0
+    ///@RingoToDO WARNING NOT WORK RELIABLE
+//    isUp = collectionView.indexPathsForVisibleItems.count == 0
+    isUp = scrollView.contentOffset.y < 200.0
+//    print("isUp: \(isUp) scrollOffset: \(scrollView.contentOffset)")
   }
 }
 
