@@ -294,6 +294,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     Log.minLogLevel = .Debug
     let pdfModel = NewPdfModel(issueInfo: issueInfo)
     pdfModel.title = issueInfo.issue.date.gDate().replacingOccurrences(of: ", ", with: ",\n")
+    pdfModel.index = issueInfo.issue.lastPage ?? 0
     self.sections = issueInfo.issue.sections ?? []
     self.article2section = issueInfo.issue.article2section
     self.feederContext = issueInfo.feederContext
@@ -360,6 +361,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       self.collectionView?.index = newIndex
       self.slider?.close()
     }
+    
+    onDisplay { [weak self]  (idx, oview) in
+      self?.issue.lastPage = idx
+      ArticleDB.save()
+      print("Display page at index: \(idx)")
+    }
+    
     setupToolbar()
     setupSlider(sliderContent: thumbnailController)
   }

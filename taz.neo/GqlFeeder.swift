@@ -398,6 +398,8 @@ class GqlIssue: Issue, GQLObject {
   var lastSection: Int? { get { return nil } set {} }
   /// Not used in GqlIssue
   var lastArticle: Int? { get { return nil } set {} }
+  /// Not used in GqlIssue
+  var lastPage: Int?  { get { return nil } set {} }
   var gqlPayload: GqlPayload? = nil
   var payload: Payload { return gqlPayload! }
   

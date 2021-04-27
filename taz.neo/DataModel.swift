@@ -623,6 +623,8 @@ public protocol Issue: ToString, AnyObject {
   var lastSection: Int? { get set }
   /// Last Article read (if nil, then only use lastSection)
   var lastArticle: Int? { get set }
+  /// Last Article read (if nil, then only use lastSection)
+  var lastPage: Int? { get set }
   /// Payload of files
   var payload: Payload { get }
 }
