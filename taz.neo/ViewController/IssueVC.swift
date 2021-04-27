@@ -28,7 +28,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   #warning("Access \"issueCarousel.index!\" may fail, not use force unwrap")
   public var index: Int {
     get { issueCarousel.index! }
-    set { issueCarousel.index = newValue }
+    set { issueCarousel.index = newValue; updateToolbarHomeIcon() }
   }
   /// The Section view controller
   public var sectionVC: SectionVC?
@@ -62,6 +62,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   private func reset() {
     issues = [] 
     issueCarousel.reset()
+  }
+  
+  func updateToolbarHomeIcon(){
+    toolbarHomeButton?.buttonView.name
+      = self.index == 0 && isUp ? "homeFill" : "home"
   }
   
   /// Reset carousel images
@@ -485,6 +490,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
+      self.updateToolbarHomeIcon()
       self.setLabel(idx: idx, isRotate: true)
       if IssueVC.showAnimations {
         IssueVC.showAnimations = false

@@ -17,6 +17,10 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   @DefaultBool(key: "showPdfInfoToast")
   public var showPdfInfoToast: Bool
   
+  /// Are we in facsimile mode
+  @DefaultBool(key: "isFacsimile")
+  public var isFacsimile: Bool
+  
   // MARK: - Properties
   ///moved issues here to prevent some performance and other issues
   ///obsolate after refactoring & full integration
@@ -32,12 +36,9 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       }
     }
   }
-  
-  /// Are we in facsimile mode
-  @DefaultBool(key: "isFacsimile")
-  public var isFacsimile: Bool
 
   public var toolBar = ContentToolbar()
+  var toolbarHomeButton: Button<ImageView>?
   
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
@@ -83,7 +84,11 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   var initialized=false
   
   /// Indicate if current state is top on IssueCaroussel or Bottom on Tiele View
-  var isUp:Bool = true
+  var isUp:Bool = true {
+    didSet {
+      (self as? IssueVC)?.updateToolbarHomeIcon()
+    }
+  }
   
 
   
@@ -175,7 +180,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     }
     
     //the buttons and alignments
-    _ = toolBar.addImageButton(name: "home",
+    toolbarHomeButton = toolBar.addImageButton(name: "homeFill",
                                onPress: onHome,
                                direction: .right,
                                accessibilityLabel: "Übersicht")
