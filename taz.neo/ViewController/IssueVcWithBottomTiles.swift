@@ -11,7 +11,7 @@ import NorthLib
 
 /// This Class  extends IssueVC for a bottom Area with a UICollectionVC
 /// written to have a minimal Impact on IssueVC on Integration
-public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
+public class IssueVcWithBottomTiles : UICollectionViewController {
   
   /// should show PDF Info Toast on startup (from config defaults)
   @DefaultBool(key: "showPdfInfoToast")
@@ -157,9 +157,10 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     let onHome:((ButtonControl)->()) = { [weak self] _ in
       guard let self = self as? IssueVC else { return }
       self.issueCarousel.carousel.scrollto(0, animated: true)
+      if self.isUp == false {
+        self.scrollUp()
+      }
     }
-    
-    
     
     let onPDF:((ButtonControl)->()) = {   [weak self] control in
       guard let self = self else { return }
@@ -169,6 +170,7 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
         imageButton.buttonView.name = self.isFacsimile ? "mobileDevice" : "newspaper"
         imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
       }
+      self.collectionView.reloadData()
       print("PDF Pressed")
     }
     
@@ -186,10 +188,6 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
-    whenScrolled(minRatio: 0.01) {  [weak self] ratio in
-      if ratio < 0, self?.isUp == false { self?.toolBar.hide()}
-      else { self?.toolBar.hide(false)}
-    }
   }
 }
 
@@ -370,11 +368,11 @@ extension IssueVcWithBottomTiles {
   }
 }
 
-// MARK: - UIScrollViewDelegate
+// MARK: - UIScrollViewDelegate (from UICollectionViewController)
 /// Add some ScrollView Snapping Magic
 extension IssueVcWithBottomTiles {
   open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    super.scrollViewDidEndDragging(scrollView, willDecelerate: decelerate)
+    ///Not call super, it will crash if optional different scrollDelegate not set
     if decelerate { return }
     snapScrollViewIfNeeded(scrollView)
   }
@@ -473,38 +471,5 @@ extension IssueVcWithBottomTiles {
         self?.showPdfInfoToast = false
       }
     }
-  }
-}
-
-// MARK: - UICollectionViewControllerWithTabbar
-/// UICollectionViewController with whenScrolled with min ratio handler
-open class UICollectionViewControllerWithTabbar : UICollectionViewController {
-  
-  // The closure to call when content scrolled more than scrollRatio
-  private var whenScrolledClosure: ((CGFloat)->())?
-  private var scrollRatio: CGFloat = 0
-  
-  /// Define closure to call when web content has been scrolled
-  public func whenScrolled( minRatio: CGFloat, _ closure: @escaping (CGFloat)->() ) {
-    scrollRatio = minRatio
-    whenScrolledClosure = closure
-  }
-  
-  // content y offset at start of dragging
-  private var startDragging: CGFloat?
-    
-  open override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-    startDragging = scrollView.contentOffset.y
-  }
-  
-  open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    if let sd = startDragging {
-      let scrolled = sd-scrollView.contentOffset.y
-      let ratio = scrolled / scrollView.bounds.size.height
-      if let closure = whenScrolledClosure, abs(ratio) >= scrollRatio {
-        closure(ratio)
-      }
-    }
-    startDragging = nil
   }
 }
