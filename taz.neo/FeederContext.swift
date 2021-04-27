@@ -512,7 +512,23 @@ open class FeederContext: DoesLog {
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: StoredIssue) -> Bool {
     guard !issue.isDownloading else { return false }
-    if issue.isComplete { 
+    if issue.isComplete {
+      /// MINOR BUG:
+      /// **Conditions**
+      /// - offline start
+      /// - logged out
+      /// **Results**
+      /// - IssueCarousel 20 Moments are shown...
+      /// - reduced issue have no cloud icon
+      /// **BUG**
+      /// - on click on a reduced issue it shows offline alert with message:
+      /// Ich kann den taz-Server nicht erreichen, möglicherweise
+      /// besteht keine Verbindung zum Internet. Oder Sie haben der App
+      /// die Verwendung mobiler Daten nicht gestattet.
+      /// Sie können allerdings bereits heruntergeladene Ausgaben auch
+      /// ohne Internet-Zugriff lesen.
+      /// **....but its not possible to enter reduced!**
+      /// @see also: Cloud Icon fehlt nach Login Bug
       if issue.isReduced && isAuthenticated { issue.isComplete = false }
       return issue.isReduced
     }
