@@ -308,56 +308,75 @@ open class FeederContext: DoesLog {
     openDB(name: name)
   }
   
-  /// Downloads resources if necessary
-  public func updateResources(toVersion: Int = -1) {
-    let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
-    let latestResources = StoredResources.latest()
+  private var isUpdatingRessources: Bool = false
+  
+  /// Downloads resources if needed
+  /// - Parameters:
+  ///   - toVersion: target Version, nil to get latest from server
+  ///   - checkBundled: check bundled ressources (on startup) to ensure offline (or bad networt) app start
+  ///                   and/or speed up initial app start
+  /// using isUpdatingRessources to prevent multiple updateRessources (from server)
+  public func updateResources(toVersion: Int = -1, checkBundled: Bool = false) {
+    /// requestedVersion either: newest online Version if connected or requested from Issue (probably lower)
+    let requestedVersion = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
+    let storedResources = StoredResources.latest()//DB Stored
     
-    if latestResources?.isDownloading ?? false {
+    if storedResources?.isDownloading ?? false || isUpdatingRessources {
       return
     }
-    else if case let bundledResources = BundledResources(),
-            let result = bundledResources.ressourcesPayload.value(),
-            let res = result["product"],
-            res.resourceVersion == version,
+    
+    isUpdatingRessources = true
+    
+    if checkBundled == true,
+            case let bundledResources = BundledResources(),
+            let bundledResourcesResult = bundledResources.ressourcesPayload.value(),
+            let bundledGqlResourcesObject = bundledResourcesResult["product"],
+            storedResources?.resourceVersion ?? -1 < bundledGqlResourcesObject.resourceVersion,
             bundledResources.bundledFiles.count > 0 {
       let success = persistBundledRessources(bundledResources: bundledResources,
-                                             resData: res)
+                                             resData: bundledGqlResourcesObject)
       if success == true {
         ArticleDB.save()
         log("Bundled Ressources successful Loaded")
-        self.notify("resourcesReady")
-        //no need to download additional stuff
-        return
+        self.notify("resourcesReady"); isUpdatingRessources = false
+        
+        if requestedVersion <= bundledGqlResourcesObject.resourceVersion {
+          //no need to download additional stuff
+          return
+        }
+        /// Bundled Ressources loades && DB saved
+        /// && Ressources ready fired - in case of bad network connection
+        ///..but on server there are newer ressources ..get them!
       }
     }
-    else if let latest = latestResources,
-            (latest.resourceVersion >= version && latest.isComplete) {
-      notify("resourcesReady");
+    else if let _storedResources = storedResources,
+            (requestedVersion <= _storedResources.resourceVersion && _storedResources.isComplete) {
+      notify("resourcesReady"); isUpdatingRessources = false
       return
     }
-    else if !isConnected {
-      //Skip Offline Start Deathlook //TODO TEST either notify("resourcesReady"); or:
-      noConnection()
+    
+    guard isConnected else {
+      noConnection(); isUpdatingRessources = false
       return
     }
     
     // update from server needed
     gqlFeeder.resources { [weak self] result in
       guard let self = self, let res = result.value() else { return }
-      let previous = latestResources
+      let previous = storedResources
       let resources = StoredResources.persist(object: res)
       self.dloader.createDirs()
       resources.isDownloading = true
       self.dloader.downloadPayload(payload: resources.payload as! StoredPayload, 
         onProgress: { (bytesLoaded,totalBytes) in
           self.notify("resourcesProgress", content: (bytesLoaded,totalBytes))
-        }) { err in
+        }) { [weak self]  err in
         resources.isDownloading = false
+        self?.isUpdatingRessources = false
         if err == nil {
-          self.notify("resourcesReady")
+          self?.notify("resourcesReady")
           /// Delete unneeded old resources
-          if let prev = previous, prev.resourceVersion < version { prev.delete() }
+          if let prev = previous, prev.resourceVersion < requestedVersion { prev.delete() }
         }
       }
     }

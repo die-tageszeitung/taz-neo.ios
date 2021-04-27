@@ -207,7 +207,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       }
       self.pushViewController(introVC, animated: false)
     }
-    feederContext.updateResources()
+    feederContext.updateResources(toVersion: -1, checkBundled: true)
   }
     
   func startup() {
@@ -227,7 +227,10 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     if !dataPolicyAccepted {
       showIntro() { self.showIssueVC() }
     }
-    else { showIssueVC() }
+    else {
+      feederContext.updateResources(toVersion: -1, checkBundled: true)
+      showIssueVC()
+    }
   } 
   
   func goingBackground() {
