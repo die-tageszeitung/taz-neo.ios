@@ -66,7 +66,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   func updateToolbarHomeIcon(){
     toolbarHomeButton?.buttonView.name
-      = self.index == 0 && isUp ? "homeFill" : "home"
+      = self.index == 0 && isUp ? "" : "home"
   }
   
   /// Reset carousel images

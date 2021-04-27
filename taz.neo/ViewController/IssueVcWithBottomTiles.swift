@@ -180,7 +180,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     }
     
     //the buttons and alignments
-    toolbarHomeButton = toolBar.addImageButton(name: "homeFill",
+    toolbarHomeButton = toolBar.addImageButton(name: "",
                                onPress: onHome,
                                direction: .right,
                                accessibilityLabel: "Übersicht")
