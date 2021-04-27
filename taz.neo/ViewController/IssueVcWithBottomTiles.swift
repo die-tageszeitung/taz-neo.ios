@@ -260,7 +260,7 @@ extension IssueVcWithBottomTiles {
         cell.button.stopHandler = {}
       }
       
-      if let img = issueVC.feeder.momentImage(issue: issue) {
+      if let img = issueVC.feeder.momentImage(issue: issue, isPdf: isFacsimile) {
         cell.imageView.image = img
       }
     }
