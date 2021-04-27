@@ -626,16 +626,27 @@ open class FeederContext: DoesLog {
   
   /// Download Issue files and resources if necessary
   private func downloadIssue(issue: StoredIssue, isComplete: Bool = false) {
+    if issue.minResourceVersion <= storedFeeder.resourceVersion {
+      downloadIssueWithoutUpdateRessources(_issue: issue, _isComplete: isComplete)
+      return
+    }
     Notification.receiveOnce("resourcesReady") { [weak self] err in
-      guard let self = self else { return }
-      self.dloader.createIssueDir(issue: issue)
-      if self.isConnected { 
-        if isComplete { self.downloadCompleteIssue(issue: issue) }
-        else { self.downloadPartialIssue(issue: issue) }
-      }
-      else { self.noConnection() }
+      self?.downloadIssueWithoutUpdateRessources(_issue: issue,
+                                                 _isComplete: isComplete)
     }
     updateResources(toVersion: issue.minResourceVersion)
+  }
+  
+  /// Download Issue files without update ressources, removes dependecy for Notification system
+  /// No need to update Ressources if already have them
+  private func downloadIssueWithoutUpdateRessources(_issue: StoredIssue,
+                                                    _isComplete: Bool){
+    self.dloader.createIssueDir(issue: _issue)
+    if self.isConnected {
+      if _isComplete { self.downloadCompleteIssue(issue: _issue) }
+      else { self.downloadPartialIssue(issue: _issue) }
+    }
+    else { self.noConnection() }
   }
 
 } // FeederContext
