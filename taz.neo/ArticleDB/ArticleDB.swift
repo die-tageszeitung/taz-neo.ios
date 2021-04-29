@@ -1091,18 +1091,14 @@ public final class StoredPage: Page, StoredObject {
     self.facsimile = object.facsimile
     self.type = object.type
     self.pagina = object.pagina
+    self.pr.frames = nil
     var order: Int32 = 0
-    if let newFrames = object.frames {
+    if let frames = object.frames {
       if let oldFrames = frames as? [StoredFrame] {
-        for f in oldFrames {
-          if !newFrames.contains(where: { ($0 as? StoredFrame)?.id == f.id }) {
-            f.delete()
-          }
-        }
+        for f in oldFrames { f.delete() }
       }
-      for frame in newFrames {
-        ///Bugfix removed frames from page for: Issue 1 has Anzeigen Page with same coords like Anzeigen in Issue 2 ...on persist issue 2 found frame of issue 1 and updates its frame with page of issue 2, so issue 1's page did not have the frame anymore
-        let sf = StoredFrame.persist(object: frame, relatedPage: self)
+      for frame in frames {
+        let sf = StoredFrame.persist(object: frame)
         sf.pr.page = self.pr
         sf.pr.order = order
         order += 1
