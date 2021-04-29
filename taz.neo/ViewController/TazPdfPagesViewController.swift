@@ -318,8 +318,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
             let path = zpdfi.issueDir?.path else { return }
-      
-      if let pageIdx = pdfModel.pageIndexForLink(link) {
+        
+      if let url = URL(string: link), UIApplication.shared.canOpenURL(url) {
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        return
+      }
+      else if let pageIdx = pdfModel.pageIndexForLink(link) {
         self.collectionView?.scrollto(pageIdx,animated: true)
         return
       }
