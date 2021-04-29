@@ -1101,7 +1101,7 @@ public final class StoredPage: Page, StoredObject {
         for f in oldFrames { f.delete() }
       }
       for frame in frames {
-        let sf = StoredFrame.persist(object: frame)
+        let sf = StoredFrame.persist(object: frame, relatedPage: self)
         sf.pr.page = self.pr
         sf.pr.order = order
         order += 1
