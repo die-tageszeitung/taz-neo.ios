@@ -145,7 +145,6 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
       Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
       Alert.action("Kundendaten löschen") {_ in self.deleteUserData() },
-      Alert.action("Abo-Verknüpfung löschen") {_ in self.unlinkSubscriptionId() },
       Alert.action("Abo-Push anfordern") {_ in self.testNotification(type: NotificationType.subscription) },
       Alert.action("Download-Push anfordern") {_ in self.testNotification(type: NotificationType.newIssue) },
 //      Alert.action("Protokoll an/aus") {_ in
@@ -160,6 +159,9 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
 //        }
 //      }
     ]
+    if App.isAlpha {
+      actions.insert(Alert.action("Abo-Verknüpfung löschen (⍺)") {_ in self.unlinkSubscriptionId() }, at: 3)
+    }
     let userInfo = "\(feederContext.isAuthenticated == false ? "NICHT ANGEMELDET" : "angemeldet" ), gespeicherte taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
     Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)\n\(userInfo)",
                       actions: actions) { [weak self] in
