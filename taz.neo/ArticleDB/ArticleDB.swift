@@ -924,6 +924,15 @@ extension PersistentFrame: PersistentObject {}
 /// A stored Frame
 public final class StoredFrame: Frame, StoredObject {
   
+  @discardableResult
+  public static func persist(object: Frame, relatedPage: StoredPage) -> StoredFrame {
+    var storedRecord: StoredFrame
+    if let tmp = get(object: object, relatedPage: relatedPage) { storedRecord = tmp }
+    else { storedRecord = new() }
+    storedRecord.update(from: object)
+    return storedRecord
+  }
+  
   public static var entity = "Frame"
   public var pr: PersistentFrame // persistent record
   public var link: String? {
@@ -960,6 +969,24 @@ public final class StoredFrame: Frame, StoredObject {
                                             subpredicates: [p1, p2, p3, p4])
     let res = get(request: request)
     if res.count > 0 { return res[0] }
+    return nil
+  }
+  
+  public static func get(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
+    let epsilon: Float = 0.0001
+    let request = fetchRequest
+    let p1 = NSPredicate(format: "abs(x1 - %f) < %f", object.x1, epsilon)
+    let p2 = NSPredicate(format: "abs(x2 - %f) < %f", object.x2, epsilon)
+    let p3 = NSPredicate(format: "abs(y1 - %f) < %f", object.y1, epsilon)
+    let p4 = NSPredicate(format: "abs(y2 - %f) < %f", object.y2, epsilon)
+    request.predicate = NSCompoundPredicate(type: .and,
+                                            subpredicates: [p1, p2, p3, p4])
+    let res = get(request: request)
+    
+    for sf in res {
+      if relatedPage.pr == sf.pr.page { return sf}
+    }
+
     return nil
   }
   
@@ -1074,7 +1101,8 @@ public final class StoredPage: Page, StoredObject {
         }
       }
       for frame in newFrames {
-        let sf = StoredFrame.persist(object: frame)
+        ///Bugfix removed frames from page for: Issue 1 has Anzeigen Page with same coords like Anzeigen in Issue 2 ...on persist issue 2 found frame of issue 1 and updates its frame with page of issue 2, so issue 1's page did not have the frame anymore
+        let sf = StoredFrame.persist(object: frame, relatedPage: self)
         sf.pr.page = self.pr
         sf.pr.order = order
         order += 1
