@@ -141,7 +141,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
     if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
 //    let logView = viewLogger.logView
-    let actions: [UIAlertAction] = [
+    var actions: [UIAlertAction] = [
       Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
       Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
       Alert.action("Kundendaten löschen") {_ in self.deleteUserData() },
