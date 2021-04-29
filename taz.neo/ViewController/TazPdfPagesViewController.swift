@@ -85,6 +85,12 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
     return singlePageSize
   }
   
+  
+  public func pageIndexForLink(_ link: String) -> Int? {
+    let p = images as? [ZoomedPdfPageImage]
+    return p?.firstIndex(where: { $0.pageReference?.pdf.fileName == link }) ?? nil
+  }
+  
   private var whenScrolledHandler : WhenScrolledHandler?
   public func whenScrolled(minRatio: CGFloat, _ closure: @escaping (CGFloat) -> ()) {
     whenScrolledHandler = (minRatio, closure)
@@ -312,6 +318,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
             let path = zpdfi.issueDir?.path else { return }
+      
+      if let pageIdx = pdfModel.pageIndexForLink(link) {
+        self.collectionView?.scrollto(pageIdx,animated: true)
+        return
+      }
+      
       let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
       childThumbnailController.cellLabelFont = Const.Fonts.titleFont(size: 12)
       childThumbnailController.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
