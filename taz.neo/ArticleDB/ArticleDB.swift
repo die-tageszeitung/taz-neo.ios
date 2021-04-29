@@ -439,7 +439,7 @@ public final class StoredMoment: Moment, StoredObject {
     }
     set {
       guard let spg = newValue else { return }
-      pr.firstPage = StoredPage.persist(object: spg).pr
+      pr.firstPage = spg.pr
       pr.firstPage?.moment = pr
     }
   }
@@ -1086,6 +1086,9 @@ public final class StoredPage: Page, StoredObject {
 
   /// Overwrite the persistent values
   public func update(from object: Page) {
+    if !(object is GqlPage) {
+      log("Not expecting: \(Swift.type(of:object)) on update Page", logLevel: .Fatal)
+    }
     self.title = object.title
     self.pdf = object.pdf
     self.facsimile = object.facsimile
