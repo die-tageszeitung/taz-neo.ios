@@ -860,23 +860,23 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
   
-  // Get Issue
-  public func issue(feed: Feed, date: Date? = nil, key: String? = nil,
-                    isPages: Bool = false,
-                    closure: @escaping(Result<Issue,Error>)->()) { 
-    issues(feed: feed, date: date, key: key, count: 1, isOverview: false,
-           isPages: isPages) { res in
-      if let issues = res.value() {
-        if issues.count > 0 { closure(.success(issues[0])) }
-        else { 
-          closure(.failure(FeederError.unexpectedResponse(
-            "Server didn't return issues")))
-        }
-      }
-      else { closure(.failure(res.error()!)) }
-    }
-  }
-    
+//  // Get Issue
+//  public func issue(feed: Feed, date: Date? = nil, key: String? = nil,
+//                    isPages: Bool = false,
+//                    closure: @escaping(Result<Issue,Error>)->()) { 
+//    issues(feed: feed, date: date, key: key, count: 1, isOverview: false,
+//           isPages: isPages) { res in
+//      if let issues = res.value() {
+//        if issues.count > 0 { closure(.success(issues[0])) }
+//        else { 
+//          closure(.failure(FeederError.unexpectedResponse(
+//            "Server didn't return issues")))
+//        }
+//      }
+//      else { closure(.failure(res.error()!)) }
+//    }
+//  }
+//    
   /// Signal server that download has been started
   public func startDownload(feed: Feed, issue: Issue, isPush: Bool,
                             closure: @escaping(Result<String,Error>)->()) {
