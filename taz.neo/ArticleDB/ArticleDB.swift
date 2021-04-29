@@ -1064,13 +1064,16 @@ public final class StoredPage: Page, StoredObject {
     self.facsimile = object.facsimile
     self.type = object.type
     self.pagina = object.pagina
-    self.pr.frames = nil
     var order: Int32 = 0
-    if let frames = object.frames {
+    if let newFrames = object.frames {
       if let oldFrames = frames as? [StoredFrame] {
-        for f in oldFrames { f.delete() }
+        for f in oldFrames {
+          if !newFrames.contains(where: { ($0 as? StoredFrame)?.id == f.id }) {
+            f.delete()
+          }
+        }
       }
-      for frame in frames {
+      for frame in newFrames {
         let sf = StoredFrame.persist(object: frame)
         sf.pr.page = self.pr
         sf.pr.order = order
