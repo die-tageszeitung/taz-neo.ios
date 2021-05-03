@@ -140,27 +140,28 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
     if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
-//    let logView = viewLogger.logView
     var actions: [UIAlertAction] = [
       Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
       Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
-      Alert.action("Kundendaten löschen") {_ in self.deleteUserData() },
-      Alert.action("Abo-Push anfordern") {_ in self.testNotification(type: NotificationType.subscription) },
-      Alert.action("Download-Push anfordern") {_ in self.testNotification(type: NotificationType.newIssue) },
-//      Alert.action("Protokoll an/aus") {_ in
-//        if logView.isHidden {
-//          self.view.bringSubviewToFront(logView)
-//          logView.scrollToBottom()
-//          logView.isHidden = false
-//        }
-//        else {
-//          self.view.sendSubviewToBack(logView)
-//          logView.isHidden = true
-//        }
-//      }
-    ]
+      Alert.action("Kundendaten löschen (Abmelden)") {_ in self.deleteUserData() }]
+    
     if App.isAlpha {
-      actions.insert(Alert.action("Abo-Verknüpfung löschen (⍺)") {_ in self.unlinkSubscriptionId() }, at: 3)
+      actions.append(Alert.action("Abo-Verknüpfung löschen (⍺)") {[weak self] _ in self?.unlinkSubscriptionId() })
+      actions.append(Alert.action("Abo-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
+      actions.append(Alert.action("Download-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
+      actions.append(Alert.action("Protokoll an/aus (⍺)") {[weak self] _ in
+        guard let self = self else { return }
+        let logView = self.viewLogger.logView
+        if logView.isHidden {
+          self.view.bringSubviewToFront(logView)
+          logView.scrollToBottom()
+          logView.isHidden = false
+        }
+        else {
+          self.view.sendSubviewToBack(logView)
+          logView.isHidden = true
+        }
+      })
     }
     let userInfo = "\(feederContext.isAuthenticated == false ? "NICHT ANGEMELDET" : "angemeldet" ), gespeicherte taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
     Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)\n\(userInfo)",

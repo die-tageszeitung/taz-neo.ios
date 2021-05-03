@@ -155,28 +155,31 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   @available(iOS 13.0, *)
   fileprivate func createContextMenu() -> UIMenu {
-    let deleteAction = UIAction(title: "Alles löschen", 
+    let deleteAction = UIAction(title: "Alle Ausgaben löschen",
       image: UIImage(systemName: "trash")) { action in
         MainNC.singleton.deleteAll()
     }
-    let deleteUserDataAction = UIAction(title: "Kundendaten löschen", 
+    let deleteUserDataAction = UIAction(title: "Kundendaten löschen (Abmelden)",
       image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
         MainNC.singleton.deleteUserData()
     }
-    let unlinkSubscriptionIdAction = UIAction(title: "Abo-Verknüpfung löschen", 
+    let unlinkSubscriptionIdAction = UIAction(title: "Abo-Verknüpfung löschen (⍺)",
       image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
         MainNC.singleton.unlinkSubscriptionId()
     }
-    let requestSubscriptionNotification = UIAction(title: "Abo-Push anfordern",
+    let requestSubscriptionNotification = UIAction(title: "Abo-Push anfordern (⍺)",
       image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
         MainNC.singleton.testNotification(type: NotificationType.subscription)
     }
-    let requestDownloadNotification = UIAction(title: "Download-Push anfordern",
+    let requestDownloadNotification = UIAction(title: "Download-Push anfordern (⍺)",
       image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
         MainNC.singleton.testNotification(type: NotificationType.subscription)
     }
-    return UIMenu(title: "", children: [deleteAction, deleteUserDataAction,
-      unlinkSubscriptionIdAction, requestSubscriptionNotification, requestDownloadNotification])
+    if App.isAlpha {
+      return UIMenu(title: "", children: [deleteAction, deleteUserDataAction,
+        unlinkSubscriptionIdAction, requestSubscriptionNotification, requestDownloadNotification])
+    }
+    return UIMenu(title: "", children: [deleteAction, deleteUserDataAction])
   }
   
   fileprivate var sectionPressedClosure: ((Int)->())?
