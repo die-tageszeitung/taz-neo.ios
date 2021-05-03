@@ -530,13 +530,19 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       overlay?.maxAlpha = 0.0
     }
         
+//    pickerCtrl.doneHandler = {
+//      self.overlay?.close(animated: true)
+//      self.provideOverview(at: pickerCtrl.selectedDate)
+//    }
+    
     pickerCtrl.doneHandler = {
-      self.overlay?.close(animated: true)
-      self.provideOverview(at: pickerCtrl.selectedDate)
-//      let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
-//      Alert.message(title: "Baustelle",
-//        message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.")
+      let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
+      Alert.message(title: "Baustelle",
+                    message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.") { [weak self] in
+        self?.overlay?.close(animated: true)
+      }
     }
+    
     overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
   
