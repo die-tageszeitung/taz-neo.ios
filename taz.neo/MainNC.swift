@@ -111,15 +111,21 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     isErrorReporting = false
   }
   
-  @objc func errorReportActivated(_ sender: UIGestureRecognizer) {
-      if isErrorReporting == true { return }//Prevent multiple Calls
-      isErrorReporting = true
-      
-    FeedbackComposer.requestFeedback( logData: fileLogger.data, gqlFeeder: self.feederContext.gqlFeeder) { didSend in
-           print("Feedback send? \(didSend)")
-        self.isErrorReporting = false
-         }
+  @objc func twoFingerErrorReportActivated(_ sender: UIGestureRecognizer) {
+    showFeedbackErrorReport()
+  }
+  
+  func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil) {
+    if isErrorReporting == true { return }//Prevent multiple Calls
+    isErrorReporting = true
+    
+    FeedbackComposer.showWith(logData: fileLogger.data,
+                              gqlFeeder: self.feederContext.gqlFeeder,
+                              feedbackType: feedbackType) { didSend in
+      print("Feedback send? \(didSend)")
+      self.isErrorReporting = false
     }
+  }
   
   func reportFatalError(err: Log.Message) {
     guard !isErrorReporting else { return }
@@ -141,7 +147,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
     if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
     var actions: [UIAlertAction] = [
-      Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
+      Alert.action("Feedback senden") {_ in self.showFeedbackErrorReport(.feedback) },
+      Alert.action("Fehlerbericht senden") {_ in self.showFeedbackErrorReport(.error) },
       Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
       Alert.action("Kundendaten löschen (Abmelden)") {_ in self.deleteUserData() }]
     
@@ -172,7 +179,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   
   func setupTopMenus() {
     let reportLPress2 = UILongPressGestureRecognizer(target: self,
-        action: #selector(errorReportActivated))
+        action: #selector(twoFingerErrorReportActivated))
     let reportLPress3 = UILongPressGestureRecognizer(target: self,
         action: #selector(threeFingerTouch))
     reportLPress2.numberOfTouchesRequired = 2

@@ -39,6 +39,7 @@ public class FeedbackView : UIView {
   public let environmentTextView = ViewWithTextView()
   public let senderMail = ViewWithTextField()
   public let sendButton = UIButton()
+  public let cancelButton = UIButton()
   public let senderMailDescriptionLabel = UILabel.descriptionLabel
   let attachmentsLabel = UILabel.descriptionLabel
   
@@ -67,6 +68,16 @@ public class FeedbackView : UIView {
       self?.endEditing(false)
     }
     setupText()
+
+    cancelButton.setTitle("Abbrechen", for: .normal)
+    cancelButton.setTitleColor(.blue, for: .normal)
+    cancelButton.setTitleColor(.lightGray, for: .highlighted)
+    let cancelButtonWrapper = UIStackView()
+    cancelButtonWrapper.alignment = .leading
+    cancelButtonWrapper.axis = .vertical
+    cancelButtonWrapper.distribution = .equalSpacing
+    cancelButtonWrapper.addArrangedSubview(cancelButton)
+    
     
     if type == FeedbackType.feedback {
       sendButton.isEnabled = false
@@ -108,6 +119,7 @@ public class FeedbackView : UIView {
   
     stack.axis = .vertical
     stack.spacing = 4.0//Seperators increase spacing!
+    stack.addArrangedSubview(cancelButtonWrapper)
     stack.addArrangedSubview(hStack1)
     stack.addArrangedSubview(senderMailDescriptionLabel)
     stack.addArrangedSubview(senderMail)
@@ -133,7 +145,10 @@ public class FeedbackView : UIView {
     scrollView.addSubview(stack)
     pin(stack, to: scrollView, dist: 12)
     self.addSubview(scrollView)
-    pin(scrollView, toSafe: self)
+    pin(scrollView.top, to: self.top, dist: -20)
+    pin(scrollView.left, to: self.leftGuide())
+    pin(scrollView.right, to: self.rightGuide())
+    pin(scrollView.bottom, to: self.bottomGuide())
     
     ///Set Constraints after added to Stack View otherwise Contraint Errosrs are displayed
     sendButton.pinSize(CGSize(width: 42, height: 42))

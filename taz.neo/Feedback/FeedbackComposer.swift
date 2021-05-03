@@ -23,19 +23,20 @@ public enum FeedbackType { case error, feedback, fatalError }
 
 open class FeedbackComposer : DoesLog{
   
-  public static func requestFeedback(logData: Data? = nil,
-                                     gqlFeeder: GqlFeeder,
-                                     finishClosure: @escaping ((Bool) -> ())) {
+  public static func showWith(logData: Data? = nil,
+                              gqlFeeder: GqlFeeder,
+                              feedbackType: FeedbackType? = nil,
+                              finishClosure: @escaping ((Bool) -> ())) {
     let screenshot = UIWindow.screenshot
     let deviceData = DeviceData()
     
-    let feedbackAction = UIAlertAction(title: "Feedback geben", style: .default) { _ in
+    let feedbackHandler: (Any?) -> Void = { _ in
       FeedbackComposer.send(type: FeedbackType.feedback,
                             gqlFeeder: gqlFeeder,
                             finishClosure: finishClosure)
     }
     
-    let errorReportAction = UIAlertAction(title: "Fehler melden", style: .destructive) { _ in
+    let errorReportHandler: (Any?) -> Void = { _ in
       FeedbackComposer.send(type: FeedbackType.error,
                             deviceData: deviceData,
                             screenshot: screenshot,
@@ -43,6 +44,22 @@ open class FeedbackComposer : DoesLog{
                             gqlFeeder: gqlFeeder,
                             finishClosure: finishClosure)
     }
+    
+    if feedbackType == .error || feedbackType == .fatalError {
+      errorReportHandler(nil); return
+    }
+    else if feedbackType == .feedback {
+      feedbackHandler(nil); return
+    }
+    
+    let feedbackAction = UIAlertAction(title: "Feedback geben",
+                                       style: .default,
+                                       handler: feedbackHandler)
+    
+    let errorReportAction = UIAlertAction(title: "Fehler melden",
+                                          style: .destructive,
+                                          handler: errorReportHandler)
+    
     let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel) { _ in finishClosure(false) }
     
     Alert.message(title: "Rückmeldung", message: "Möchten Sie einen Fehler melden oder uns Feedback geben?", actions: [feedbackAction, errorReportAction, cancelAction])
@@ -78,16 +95,24 @@ open class FeedbackComposer : DoesLog{
     feedbackBottomSheet?.sliderView.backgroundColor = Const.SetColor.CTBackground.color
     feedbackBottomSheet?.coverageRatio = 1.0
     
-    feedbackBottomSheet?.onUserSlideToClose = ({
-      guard let feedbackBottomSheet = feedbackBottomSheet else { return }
-      feedbackBottomSheet.slide(toOpen: true, animated: true)
-      Alert.confirm(message: Localized("feedback_cancel_title"),
-                    isDestructive: true) { (close) in
-                      if close {
-                        feedbackBottomSheet.slide(toOpen: false, animated: true)
-                      }
-      }
-    })
+    let cancelHandler: ()->() = {
+        guard let feedbackBottomSheet = feedbackBottomSheet else { return }
+        let type
+          = (feedbackBottomSheet.sliderVC as? FeedbackViewController)?.type
+          ?? .feedback
+        
+        feedbackBottomSheet.slide(toOpen: true, animated: true)
+        Alert.confirm(message: type == .feedback ? "Feedback..." : "Fehlerbericht...",
+                      okText: "löschen & beenden",
+                      cancelText: "weiter bearbeiten",
+                      isDestructive: true) { (close) in
+                        if close {
+                          feedbackBottomSheet.slide(toOpen: false, animated: true)
+                        }
+        }
+    }
+    feedbackBottomSheet?.onUserSlideToClose = cancelHandler
+    feedbackViewController.requestCancel = cancelHandler
     
     feedbackBottomSheet?.onClose(closure: { (slider) in
       finishClosure(feedbackViewController.sendSuccess)
