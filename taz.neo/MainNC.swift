@@ -179,61 +179,23 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     
     
     if let targetView = UIApplication.shared.keyWindow {
-      // #4 never executed due keyWindow was nil when logged in
+      /// currently never executed due keyWindow was nil when logged in
       targetView.isUserInteractionEnabled = true
       targetView.addGestureRecognizer(reportLPress2)
       targetView.addGestureRecognizer(reportLPress3)
     }
     else if let delegate = UIApplication.shared.delegate as? AppDelegate,
             let targetWindow = delegate.window {
-      // 2# on appdelegates window
+      /// ...improved version of previous comparrison ...should be standalone!
       targetWindow.isUserInteractionEnabled = true
       targetWindow.addGestureRecognizer(reportLPress2)
       targetWindow.addGestureRecognizer(reportLPress3)
     }
-    else if false, let targetView = UIApplication.shared.windows.valueAt(0) {
-      // #3not working, due carousel did not recive 3finger touch
-      targetView.isUserInteractionEnabled = true
-      targetView.addGestureRecognizer(reportLPress2)
-      targetView.addGestureRecognizer(reportLPress3)
-    }
     else {
-      //#1 on main nc
       self.view.isUserInteractionEnabled = true
       self.view.addGestureRecognizer(reportLPress2)
       self.view.addGestureRecognizer(reportLPress3)
     }
-    /*** COMPARISSON OF THE WORKING
-     #1 was previously  on iPhone 12Pro iOS 14.5
-     #2 new on appdelegates window  iPhone 7 iOS 14.4.?
-     --- X work, - FAIL
-     #1 #2 View/Ctrl
-     X    X     Datenschutzerklärung
-     x  x     Welcome Slider
-     x  x   carousel top
-     x  x   carousel bottom
-     x  x   pdf view
-     x  x   pdf view, slider auf seitenebene
-     x  x   pdf view, slider auf artikelebene
-     x  x   pdf view, toolbar auf seitenebene
-     x  x   pdf view, toolbar auf artikelebene
-     - x  app view section layer
-     - x  app view article layer
-     - x  app view bottom sheet
-     x   x  app view slider
-     x   x  app view image gallery
-     - -  app view share Action Sheet (Teilen, Online Version Abbrechen)
-     - x Login Form #1 called from Article
-     - x Login Form -> Probelesen #2 called from Article
-     - x Login Form -> Passwort vergessen #2 called from Article
-     - x* Login Form -> Probelesen -> Datenschutz #3 called from Article *) nur wenn 2 finger ausserhalb ds erklärung
-     - x Login Form -> Probelesen -> Hinweise zum Probeabo #3 called from Article
-     - x Login aktualisiere Daten overlay
-     - x Popup Rückmeldung: möchten Sie einen fehler melden
-     x*x* Modal Fehlerbericht: *) nur oben in der Titelzeile
-     
-     */
-    
   }
 
   func showIssueVC() {
