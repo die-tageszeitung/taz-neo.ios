@@ -100,8 +100,8 @@ open class ContentToolbar: UIView {
   }
   
   public func applyDefaultTazSyle() {
-    self.setButtonColor(Const.Colors.iOSDark.secondaryLabel)
-    self.setActiveButtonColor(Const.Colors.ciColor)
+    self.setButtonColor(Const.Colors.darkSecondaryText)
+    self.setActiveButtonColor(Const.Colors.darkSecondaryText.withAlphaComponent(0.6))
     self.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
     self.translucentAlpha = 0.0
   }
