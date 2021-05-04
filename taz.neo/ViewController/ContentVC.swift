@@ -357,11 +357,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.button.layer.shadowOpacity = 0.25
     slider?.button.layer.shadowOffset = CGSize(width: 2, height: 2)
     slider?.button.layer.shadowRadius = 4
+    slider?.button.layer.shadowColor = UIColor.black.cgColor
     header.leftIndent = 8 + (slider?.visibleButtonWidth ?? 0.0)
   }
   
   public func applyStyles() {
-    slider?.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
     settingsBottomSheet?.color = Const.SetColor.ios(.secondarySystemBackground).color
     settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
     self.collectionView?.backgroundColor = Const.SetColor.CTBackground.color

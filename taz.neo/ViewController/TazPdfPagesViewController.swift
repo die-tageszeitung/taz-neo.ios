@@ -400,7 +400,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     slider.button.layer.shadowOpacity = 0.25
     slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
     slider.button.layer.shadowRadius = 4
-    slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
+    slider.button.layer.shadowColor = UIColor.black.cgColor
     slider.close()
   }
   
