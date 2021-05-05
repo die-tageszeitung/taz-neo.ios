@@ -437,47 +437,30 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.carouselScrollFromLeft = self.issueCarousel.carousel.scrollFromLeftToRight
       scrollChange = false
     }
-    issueCarousel.addMenuItem(title: "STÖRE MAIN AN/AUS", icon: "arrow.2.circlepath") {   [weak self] _ in
-      guard let self = self else { return }
-      
-      if let timer = self.interruptMainTimer {
-        timer.invalidate()
-        Toast.show("Main Thread Interruprion Stoped")
-        return
-      }
-      self.interruptMainTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
-        /*
-        onMain { [weak self] in
-          self?.log("#> sleep...")
-//          usleep(1000000) //1 second unbenutzbar
-//          usleep(100000) //0.1 second => Ruckelt aber OK
-          usleep(200000) //0.2 second => Ruckelt deutlich, unangenehm
-          self?.log("#>  ..wake up")
-        }
-        */
+    if App.isAlpha {
+      issueCarousel.addMenuItem(title: "STÖRE MAIN AN/AUS", icon: "arrow.2.circlepath") {   [weak self] _ in
+        guard let self = self else { return }
         
-        //0.023 ... ArticleDB Save Duration 5 Times / 1s in a Test
-        //...so test this here:
-        ///=> sorgt auf dem iPhone 12Pro für sichtbare Störungen, Karussel springt beim Scrollen
-        ///scrollen ist nicht mehr geschmeidig!
-        ///wie ist es auf den anderen Devices?
-        ///...mal sehen wie es als Releasebuild, nicht Debug wirkt
-        onMain { usleep(23000) }
-        onMain { usleep(23000) }
-        onMain { usleep(23000) }
-        onMain { usleep(23000) }
-        onMain { usleep(23000) }
-        self.log("...Main Thread Interruprion!")
+        if let timer = self.interruptMainTimer {
+          timer.invalidate()
+          Toast.show("Main Thread Interruprion Stoped")
+          return
+        }
+        self.interruptMainTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
+          onMain { usleep(23000) }
+          onMain { usleep(23000) }
+          onMain { usleep(23000) }
+          onMain { usleep(23000) }
+          onMain { usleep(23000) }
+          self.log("...Main Thread Interruprion!")
+        }
+        
+        if let timer = self.interruptMainTimer {
+          self.log("#>  Enable timer even while user ui interaction ")
+          RunLoop.current.add(timer, forMode: .common)
+        }
+        Toast.show("Main Thread Interruprion started and fire every 2 seconds", .alert)
       }
-      
-      if let timer = self.interruptMainTimer {
-        self.log("#>  Enable timer even while user ui interaction ")
-        RunLoop.current.add(timer, forMode: .common)
-      }
-      
-      
-      
-      Toast.show("Main Thread Interruprion started and fire every 2 seconds", .alert)
     }
      
     Defaults.receive() { [weak self] dnot in
