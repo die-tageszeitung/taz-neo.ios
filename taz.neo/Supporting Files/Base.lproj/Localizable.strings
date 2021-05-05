@@ -173,7 +173,7 @@
 "subscriptionId2tazId_alreadyLinked" = "Ihre E-Mail-Adresse ist bereits mit einem anderen Digiabo verknüpft.";
 
 /* translation from Android */
-"subscription_id_expired" = "Ihr taz-Digiabo ist seit %@ abgelaufen.<br><br>Bitte kontaktieren Sie unseren Service:<br><br><a href='mailto:abo@taz.de'>abo@taz.de</a>";
+"subscription_id_expired" = "Ihr taz-Digiabo ist seit %@ abgelaufen.<br><br>Bitte kontaktieren Sie unseren Service:<br><br><a href='mailto:digiabo@taz.de'>digiabo@taz.de</a>";
 
 /* login back to Login */
 "back_to_login" = "Zurück zur Anmeldung";
