@@ -67,8 +67,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   func updateToolbarHomeIcon(){
     toolbarHomeButton?.buttonView.color
       = self.index == 0 && isUp
-      ? Const.Colors.darkSecondaryText.withAlphaComponent(0.4)
-      : Const.Colors.darkSecondaryText
+      ? Const.Colors.darkSecondaryText.withAlphaComponent(0.2)
+      : Const.Colors.darkSecondaryText.withAlphaComponent(0.9)
   }
   
   /// Reset carousel images
