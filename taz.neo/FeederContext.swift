@@ -446,25 +446,37 @@ open class FeederContext: DoesLog {
     currentFeederErrorReason = err
     var text = ""
     switch err {
-    case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
+      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
       case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
-        //not delete auth token in case of temporary server issue, happen once in 08/20-02/21
-        //self.gqlFeeder.authToken = nil
-    case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
-    case .unexpectedResponse: 
-      Alert.message(title: "Fehler", 
-                    message: "Es gab ein Problem bei der Kommunikation mit dem Server")
-      {
-        [weak self] in
-        self?.currentFeederErrorReason = nil
-        exit(0)               
-      }
+      case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+      case .unexpectedResponse:
+        Alert.message(title: "Fehler",
+                      message: "Es gab ein Problem bei der Kommunikation mit dem Server")
+        {
+          [weak self] in
+          self?.currentFeederErrorReason = nil
+          exit(0)
+        }
     }
-    DefaultAuthenticator.deleteUserData()
-    Alert.message(title: "Fehler", message: text) {   [weak self] in
-      self?.authenticate()
+    
+    switch err {
+      case .expiredAccount:
+        //delete OR NOT auth token in case of temporary server issue, happen once in 08/20-02/21
+        self.gqlFeeder.authToken = nil
+        DefaultAuthenticator.deleteAuthData()
+      default:
+        DefaultAuthenticator.deleteUserData()
+    }
+    
+//    let loginAction = UIAlertAction(title: "Anmelden",
+//                                       style: .default,
+//                                       handler: {   [weak self] _ in
+//                                        self?.authenticate()
+//                                        self?.currentFeederErrorReason = nil
+//                                      })
+    Alert.message(title: "Fehler", message: text, closure: { [weak self] in
       self?.currentFeederErrorReason = nil
-    }
+    })//, additionalActions:[loginAction])
   }
   
   /**

@@ -127,7 +127,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       OfflineAlert.message(title: "Warnung", message: message)
     }
     
-    if let err = error as? DownloadError {
+    if let err = error as? DownloadError, let err2 = err.enclosedError as? FeederError {
+      feederContext.handleFeederError(err2){}
+    }
+    else if let err = error as? DownloadError {
+      err.enclosedError
       if err.handled == false {  showDownloadErrorAlert() }
       self.log(err.enclosedError?.errorText() ?? err.errorText())
     }
@@ -502,6 +506,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.provideOverview()
     }
     Notification.receive("authenticationSucceeded") { notif in
+      #warning("deadlock")
+      /**
+        if once entered IssueVC this is activated, may only activate it on auth start
+       - problem activated while login with wrong credentials => same problem later
+       => Solution send something... or no login option in issue carussell
+       => fast solution!! && SOLVED WITHIN THIS REMINDER COMMIT
+       */
       self.authenticationSucceededCheckReload()
     }
     Notification.receive(UIApplication.willResignActiveNotification) { _ in

@@ -124,5 +124,13 @@ extension Authenticator {
     dfl["token"] = nil
     dfl["id"] = nil
   }
+  
+  
+  public static func deleteAuthData() {
+    let dfl = Defaults.singleton
+    let kc = Keychain.singleton
+    kc["token"] = nil
+    dfl["token"] = nil
+  }
 
 } // Authenticator extension
