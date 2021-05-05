@@ -836,7 +836,10 @@ open class GqlFeeder: Feeder, DoesLog {
       case .success(let frq):  
         let req = frq["feedRequest"]!
         if wasAuthenticated {
-          if req.authInfo.status != .valid {
+          if req.authInfo.status == .expired {
+            ret = .failure(FeederError.expiredAccount(req.authInfo.message))
+          }
+          else if req.authInfo.status != .valid {
             ret = .failure(FeederError.changedAccount(req.authInfo.message))
           }
         }
