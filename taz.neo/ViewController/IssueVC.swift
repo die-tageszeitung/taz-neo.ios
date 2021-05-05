@@ -506,13 +506,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.provideOverview()
     }
     Notification.receive("authenticationSucceeded") { notif in
-      #warning("deadlock")
-      /**
-        if once entered IssueVC this is activated, may only activate it on auth start
-       - problem activated while login with wrong credentials => same problem later
-       => Solution send something... or no login option in issue carussell
-       => fast solution!! && SOLVED WITHIN THIS REMINDER COMMIT
-       */
+      ///WARNING: if auth in settings review previous commit to prevent deadlock with "Aktualisiere Daten" Overlay
       self.authenticationSucceededCheckReload()
     }
     Notification.receive(UIApplication.willResignActiveNotification) { _ in
