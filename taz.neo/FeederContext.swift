@@ -462,6 +462,13 @@ open class FeederContext: DoesLog {
     switch err {
       case .expiredAccount:
         //delete OR NOT auth token in case of temporary server issue, happen once in 08/20-02/21
+        #warning("auth token kann nicht entfernt werden")
+        /** weil:
+         didSet { if let auth = authToken { header["X-tazAppAuthKey"] = auth } }
+              Wann tritt das auf: abo abgelaufen (via backend umschalter)
+         teste abgelaufenes abo funktioniert
+         
+         */
         self.gqlFeeder.authToken = nil
         DefaultAuthenticator.deleteAuthData()
       default:
