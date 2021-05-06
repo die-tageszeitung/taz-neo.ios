@@ -463,11 +463,12 @@ open class FeederContext: DoesLog {
       case .expiredAccount:
         //delete OR NOT auth token in case of temporary server issue, happen once in 08/20-02/21
         #warning("auth token kann nicht entfernt werden")
-        /** weil:
+        /*** weil:
          didSet { if let auth = authToken { header["X-tazAppAuthKey"] = auth } }
               Wann tritt das auf: abo abgelaufen (via backend umschalter)
-         teste abgelaufenes abo funktioniert
-         
+              teste abgelaufenes abo funktioniert   ...wenn ich es jedoch wieder aktiviere, kommt es zum
+                verwirrenden verhalten: 3-finger menü zeigt nicht angemeldet, ich kann jedoch ausgaben herunterladen
+            ...wenn ich nicht zwischendurch offline war (und ein neuer feeder ohne token initialisiert wurde)
          */
         self.gqlFeeder.authToken = nil
         DefaultAuthenticator.deleteAuthData()
