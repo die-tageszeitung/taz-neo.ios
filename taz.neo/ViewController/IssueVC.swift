@@ -559,6 +559,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     // ToDo discuss the cell Appeareance and cell size
 //    self.issueCarousel.carousel.relativeSpacing = portrait ? 0.12 : 0.14
     self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
+    self.issueCarousel.carousel.updateLayout()
   }
   
   public override func viewDidAppear(_ animated: Bool) {
