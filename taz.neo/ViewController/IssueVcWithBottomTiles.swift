@@ -221,7 +221,7 @@ extension IssueVcWithBottomTiles {
 
     guard let cell = _cell as? IssueVCBottomTielesCVCCell else { return _cell }
     
-    cell.imageView.image = nil
+//    cell.imageView.image = nil
     
     if let issueVC = self as? IssueVC,
        let issue = issues.valueAt(indexPath.row) {
@@ -230,6 +230,7 @@ extension IssueVcWithBottomTiles {
       /// ToDo: for not Downloaded Items, click, load finished, the cloud did not disappear
       /// should be done in Refactoring with PDF Image for Cells
       if issue.isDownloading {
+//        cell.momentView.isActivity = true
 //        cell.button.downloadState = .process
 //        cell.button.percent = 0.5
 //        cell.button.startHandler = nil
@@ -267,7 +268,7 @@ extension IssueVcWithBottomTiles {
       }
       
       if let img = issueVC.feeder.momentImage(issue: issue, isPdf: isFacsimile) {
-        cell.imageView.image = img
+        cell.momentView.image = img
       }
     }
     return cell
@@ -299,6 +300,22 @@ extension IssueVcWithBottomTiles {
     /// Note: if using "animated: true" => Bug: opened Issue stays white!
     issueVC.issueCarousel.carousel.scrollto(indexPath.row)
     issueVC.showIssue(index: indexPath.row)
+    #warning("TODO REFACTOR IssueVCBottomTielesCVCCell")
+    ///Work with Issue drop on cell, and notifications for download start/stop
+    if let cell = collectionView.cellForItem(at: indexPath)
+        as? IssueVCBottomTielesCVCCell {
+      cell.momentView.isActivity = true
+      cell.momentView.setNeedsLayout()
+      if issueVC.issue.isDownloading {
+        cell.button.downloadState = .process
+      }
+      else if issueVC.issue.isComplete {
+        cell.button.downloadState = .done
+      }
+      else {
+        cell.button.downloadState = .process
+      }
+    }
   }
   
   // MARK: > Sizes

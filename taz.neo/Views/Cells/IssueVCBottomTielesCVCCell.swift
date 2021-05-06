@@ -11,7 +11,7 @@ import NorthLib
 
 public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   
-  public let imageView = UIImageView()
+  public let momentView = MomentView()
   public let button = DownloadStatusButton()
   let buttonHeight:CGFloat = 30.0
   let buttonOffset:CGFloat = 3.0
@@ -21,7 +21,7 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   public var observer : NSObjectProtocol?
  
   public override func prepareForReuse() {
-    self.imageView.image = nil
+    self.momentView.image = nil
     self.observer = nil
     self.button.startHandler = nil
     self.button.startHandler = nil
@@ -38,13 +38,13 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
      - was also build with same xcode version/ios sdk
      issue did not disappear if deployment target is set back to 11.4
      */
-    imageView.backgroundColor = .black
-    imageView.contentMode = .scaleAspectFit
-    menu = ContextMenu(view: imageView)
+//    momentView.backgroundColor = .black
+//    momentView.contentMode = .scaleAspectFit
+    menu = ContextMenu(view: momentView)
     
-    contentView.addSubview(imageView)
-    pin(imageView, to: contentView, exclude: .bottom)
-    pin(imageView.bottom,
+    contentView.addSubview(momentView)
+    pin(momentView, to: contentView, exclude: .bottom)
+    pin(momentView.bottom,
         to: contentView.bottom,
         dist: -buttonHeight-buttonOffset,
         priority: .defaultHigh)
@@ -52,7 +52,7 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     contentView.addSubview(button)
     pin(button, to: contentView, exclude: .top)
     button.pinHeight(buttonHeight)
-    pin(button.topGuide(), to: imageView.bottomGuide(), dist: buttonOffset, priority: .fittingSizeLevel)
+    pin(button.topGuide(), to: momentView.bottomGuide(), dist: buttonOffset, priority: .fittingSizeLevel)
     button.tintColor = Const.Colors.darkSecondaryText
     //not use cloud image from assets due huge padding
     //button.cloudImage = UIImage(named: "download")
