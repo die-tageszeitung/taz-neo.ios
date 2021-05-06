@@ -70,13 +70,13 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   lazy var cellSize : CGSize = CGSize(width: 20, height: 20)
   
   /// top top Scroll Target Position, to scroll to if scroll top
-  let topPos : CGFloat = -UIWindow.topInset
+  var topPos : CGFloat { get { return -UIWindow.topInset }}
   
   /// activity indicator for Bottom Ares, if load more requested
   let footerActivityIndicator = UIActivityIndicatorView(style: .white)
   
   /// offset for snapping between top area (IssueCarousel) and Bottom Area (tile view)
-  var scrollSnapHeight = UIScreen.main.bounds.size.height
+  var scrollSnapHeight : CGFloat { get { return UIScreen.main.bounds.size.height }}
   
   /// prevent multiple times initialization
   /// for unknown reason viewDidLoad called multiple times within the inheritance: IssueVC->IssueVcWithBottomTiles
