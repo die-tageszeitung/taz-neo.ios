@@ -543,7 +543,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   func updateCarouselForParentSize(_ size:CGSize) {
     let portrait = size.height > 1.2*size.width
-    self.issueCarousel.carousel.relativePageWidth = portrait ? 0.6 : 0.3
+    if Device.isIpad {
+      self.issueCarousel.carousel.relativePageWidth = portrait ? 0.5 : 0.3
+      self.issueCarousel.carousel.maxScale = 1.25
+    }
+    else {
+      self.issueCarousel.carousel.relativePageWidth = portrait ? 0.6 : 0.3
+      self.issueCarousel.carousel.maxScale = 1.3 //default value
+    }
+  
     //ToDo Improve carousel, unfortunately relative spacing is not updateable easyly
     //@see: start iPad in Landscape with 2/3 compare with started in 1/3 and increased to 2/3
     //will see missing space between cells
