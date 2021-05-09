@@ -79,6 +79,9 @@ open class FeederContext: DoesLog {
   /// Has the Feeder been initialized yet
   public var isReady = false
   
+  /// Are we updating resources
+  private var isUpdatingResources = false
+  
   /// Are we authenticated with the server?
   public var isAuthenticated: Bool { gqlFeeder.isAuthenticated }
 
@@ -308,44 +311,43 @@ open class FeederContext: DoesLog {
     openDB(name: name)
   }
   
-  /// Downloads resources if necessary
-  public func updateResources(toVersion: Int = -1) {
-    let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
-    let latestResources = StoredResources.latest()
-    
-    if latestResources?.isDownloading ?? false {
-      return
-    }
-    else if case let bundledResources = BundledResources(),
-            let result = bundledResources.ressourcesPayload.value(),
+  private func loadBundledResources() {
+    if case let bundledResources = BundledResources(),
+            let result = bundledResources.resourcesPayload.value(),
             let res = result["product"],
-            res.resourceVersion == version,
             bundledResources.bundledFiles.count > 0 {
-      let success = persistBundledRessources(bundledResources: bundledResources,
+      let success = persistBundledResources(bundledResources: bundledResources,
                                              resData: res)
       if success == true {
         ArticleDB.save()
-        log("Bundled Ressources successful Loaded")
-        self.notify("resourcesReady")
-        //no need to download additional stuff
+        log("Bundled Resources version \(res.resourceVersion) successfully loaded")
+      }
+    }
+  }
+  
+  /// Downloads resources if necessary
+  public func updateResources(toVersion: Int = -1) {
+    guard !isUpdatingResources else { return }
+    isUpdatingResources = true
+    let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
+    if StoredResources.latest() == nil { loadBundledResources() }
+    if let latest = StoredResources.latest() {
+      if latest.resourceVersion >= version, latest.isComplete {
+        isUpdatingResources = false
+        notify("resourcesReady");
         return
       }
     }
-    else if let latest = latestResources,
-            (latest.resourceVersion >= version && latest.isComplete) {
-      notify("resourcesReady");
-      return
-    }
-    else if !isConnected {
-      //Skip Offline Start Deathlook //TODO TEST either notify("resourcesReady"); or:
+    if !isConnected {
+      //Skip Offline Start Deathlock //TODO TEST either notify("resourcesReady"); or:
+      isUpdatingResources = false
       noConnection()
       return
     }
-    
     // update from server needed
     gqlFeeder.resources { [weak self] result in
       guard let self = self, let res = result.value() else { return }
-      let previous = latestResources
+      let previous = StoredResources.latest()
       let resources = StoredResources.persist(object: res)
       self.dloader.createDirs()
       resources.isDownloading = true
@@ -354,10 +356,15 @@ open class FeederContext: DoesLog {
           self.notify("resourcesProgress", content: (bytesLoaded,totalBytes))
         }) { err in
         resources.isDownloading = false
+        self.isUpdatingResources = false
         if err == nil {
+          self.log("Resources version \(resources.resourceVersion) loaded from server")
           self.notify("resourcesReady")
           /// Delete unneeded old resources
-          if let prev = previous, prev.resourceVersion < version { prev.delete() }
+          if let prev = previous, prev.resourceVersion < version {
+            prev.delete()
+            ArticleDB.save()
+          }
         }
       }
     }
@@ -368,7 +375,7 @@ open class FeederContext: DoesLog {
   ///   - bundledResources: the resources (with files) to persist
   ///   - resData: the GqlResources data object to persist
   /// - Returns: true if succeed
-  private func persistBundledRessources(bundledResources: BundledResources,
+  private func persistBundledResources(bundledResources: BundledResources,
                                         resData : GqlResources) -> Bool {
     //Use Bundled Resources!
     resData.setPayload(feeder: self.gqlFeeder)
@@ -382,12 +389,12 @@ open class FeederContext: DoesLog {
       success = false
     }
     
-    var bundledRessourceFiles : [File] = []
+    var bundledResourceFiles : [File] = []
     
     for fileUrl in bundledResources.bundledFiles {
       let file = File(fileUrl)
       if file.exists {
-        bundledRessourceFiles.append(file)
+        bundledResourceFiles.append(file)
       }
     }
     
@@ -396,7 +403,7 @@ open class FeederContext: DoesLog {
     }
     
     for globalFile in globalFiles {
-      let bundledFiles = bundledRessourceFiles.filter{ $0.basename == globalFile.name }
+      let bundledFiles = bundledResourceFiles.filter{ $0.basename == globalFile.name }
       if bundledFiles.count > 1 { log("Warning found multiple matching Files!")}
       guard let bundledFile = bundledFiles.first else {
         log("Warning not found matching File!")

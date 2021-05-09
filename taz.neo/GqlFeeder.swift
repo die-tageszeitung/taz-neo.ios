@@ -131,7 +131,7 @@ class GqlPayload: Payload {
   var issue: Issue? 
   var resources: Resources?
   
-  /// Initialize Payload from Ressources
+  /// Initialize Payload from Resources
   init(feeder: GqlFeeder, resources: GqlResources) {
     localDir = feeder.resourcesDir.path
     remoteBaseUrl = resources.resourceBaseUrl
