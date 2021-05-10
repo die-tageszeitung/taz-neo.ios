@@ -131,7 +131,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       feederContext.handleFeederError(err2){}
     }
     else if let err = error as? DownloadError {
-      err.enclosedError
       if err.handled == false {  showDownloadErrorAlert() }
       self.log(err.enclosedError?.errorText() ?? err.errorText())
     }
