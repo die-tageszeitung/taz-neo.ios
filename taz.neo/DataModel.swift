@@ -50,7 +50,7 @@ public enum FeederError: SimpleError, Equatable {
     }
   }
   
-  public static func == (lhs: Self, rhs: Self) -> Bool {
+  public static func === (lhs: Self, rhs: Self) -> Bool {
     switch (lhs, rhs) {
       case (let .invalidAccount(lhsString), let .invalidAccount(rhsString)):
         return lhsString == rhsString
@@ -60,6 +60,18 @@ public enum FeederError: SimpleError, Equatable {
         return lhsString == rhsString
       case (let .unexpectedResponse(lhsString), let .unexpectedResponse(rhsString)):
         return lhsString == rhsString
+      default:
+        return false
+    }
+  }
+  
+  public static func == (lhs: Self, rhs: Self) -> Bool {
+    switch (lhs, rhs) {
+      case (.invalidAccount(_), .invalidAccount(_)): fallthrough
+      case (.expiredAccount(_), .expiredAccount(_)): fallthrough
+      case (.changedAccount(_), .changedAccount(_)): fallthrough
+      case (.unexpectedResponse(_), .unexpectedResponse(_)):
+        return true
       default:
         return false
     }
