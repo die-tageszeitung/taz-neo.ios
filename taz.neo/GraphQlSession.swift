@@ -67,7 +67,7 @@ open class GraphQlSession: HttpSession {
   
   /// The authentication token to use
   public var authToken: String? {
-    didSet { if let auth = authToken { header["X-tazAppAuthKey"] = auth } }
+    didSet { header["X-tazAppAuthKey"] = authToken }
   }
   
   public init(_ url: String, authToken: String? = nil) {
