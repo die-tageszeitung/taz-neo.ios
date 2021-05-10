@@ -266,8 +266,7 @@ open class FeederContext: DoesLog {
   public func updateAuthIfNeeded() {
     //self.isAuthenticated == false
     if self.gqlFeeder.authToken == nil,
-       let storedAuth = SimpleAuthenticator.getUserData().token,
-       storedAuth != nil {
+       let storedAuth = SimpleAuthenticator.getUserData().token {
       self.gqlFeeder.authToken = storedAuth
     }
   }
