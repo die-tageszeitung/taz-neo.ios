@@ -46,7 +46,7 @@ currentBundled_jsonFile="${SRCROOT}/taz.neo/Supporting Files/Resources/resources
 src_files="${SRCROOT}/taz.neo/Supporting Files/Resources/files" # unpacked ressources
 temp_folder="${SRCROOT}/taz.neo/Supporting Files/Resources/temp" # temporary files
 
-ressourcesCurlCommand="https://dl.taz.de/appGraphQl?query=query%7Bproduct%7BresourceVersion,resourceBaseUrl,resourceZipName%3AresourceZip,files%3AresourceList%7Bname,storageType,sMoTime%3AmoTime,sha256,sSize%3Asize%7D%7D%7D"
+ressourcesCurlCommand="https://dl.taz.de/appGraphQl?query=query%7Bresources:product%7BresourceVersion,resourceBaseUrl,resourceZipName%3AresourceZip,files%3AresourceList%7Bname,storageType,sMoTime%3AmoTime,sha256,sSize%3Asize%7D%7D%7D"
 
 # show notification if last command failed, param $1 is the line where the error occured
 function check(){
