@@ -579,6 +579,7 @@ open class FeederContext: DoesLog {
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
+  #warning("Ignoring isPages to prevent PDF == nil crash bug on enter app/html issue which was not downloaded yet")
   public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
@@ -591,7 +592,7 @@ open class FeederContext: DoesLog {
     }
     if self.isConnected {
       gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
-                       isPages: isPages) { res in
+                       isPages: true) { res in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)
