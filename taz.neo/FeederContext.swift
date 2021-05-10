@@ -311,11 +311,12 @@ open class FeederContext: DoesLog {
     openDB(name: name)
   }
   
-  private func loadBundledResources() {
+  private func loadBundledResources(setVersion: Int? = nil) {
     if case let bundledResources = BundledResources(),
             let result = bundledResources.resourcesPayload.value(),
-            let res = result["product"],
+            let res = result["resources"],
             bundledResources.bundledFiles.count > 0 {
+      if let v = setVersion { res.resourceVersion = v }
       let success = persistBundledResources(bundledResources: bundledResources,
                                              resData: res)
       if success == true {
@@ -325,12 +326,54 @@ open class FeederContext: DoesLog {
     }
   }
   
+  /// Load bundles resources (from the main bundle)
+  private func loadBundledResources2(setVersion: Int? = nil) {
+    if let json = File(inMain: "resources.json"),
+       let resdir = Dir(inMain: "files") {
+      gqlFeeder.resources(fromData: json.data) { [weak self] result in
+        guard let self = self else { return }
+        if case let .success(resources) = result {
+          self.loadResources(res: resources, fromCacheDir: resdir.path)
+          if let v = setVersion { StoredResources.latest()?.resourceVersion = v }
+        }
+      }
+    }
+  }
+  
+  /// Load resources from server with optional cache directory
+  private func loadResources(res: Resources, fromCacheDir: String? = nil) {
+    let previous = StoredResources.latest()
+    let resources = StoredResources.persist(object: res)
+    self.dloader.createDirs()
+    var onProgress: ((Int64,Int64)->())? = { (bytesLoaded,totalBytes) in
+      self.notify("resourcesProgress", content: (bytesLoaded,totalBytes))
+    }
+    if fromCacheDir != nil { onProgress = nil }
+    resources.isDownloading = true
+    self.dloader.downloadPayload(payload: resources.payload as! StoredPayload,
+                                 fromCacheDir: fromCacheDir,
+                                 onProgress: onProgress) { err in
+      resources.isDownloading = false
+      if err == nil {
+        let source: String = fromCacheDir ?? "server"
+        self.log("Resources version \(resources.resourceVersion) loaded from \(source)")
+        self.notify("resourcesReady")
+        /// Delete unneeded old resources
+        if let prev = previous, prev.resourceVersion < resources.resourceVersion {
+          prev.delete()
+        }
+        ArticleDB.save()
+      }
+      self.isUpdatingResources = false
+    }
+  }
+  
   /// Downloads resources if necessary
   public func updateResources(toVersion: Int = -1) {
     guard !isUpdatingResources else { return }
     isUpdatingResources = true
     let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
-    if StoredResources.latest() == nil { loadBundledResources() }
+    if StoredResources.latest() == nil { loadBundledResources(/*setVersion: 1*/) }
     if let latest = StoredResources.latest() {
       if latest.resourceVersion >= version, latest.isComplete {
         isUpdatingResources = false
@@ -347,26 +390,7 @@ open class FeederContext: DoesLog {
     // update from server needed
     gqlFeeder.resources { [weak self] result in
       guard let self = self, let res = result.value() else { return }
-      let previous = StoredResources.latest()
-      let resources = StoredResources.persist(object: res)
-      self.dloader.createDirs()
-      resources.isDownloading = true
-      self.dloader.downloadPayload(payload: resources.payload as! StoredPayload, 
-        onProgress: { (bytesLoaded,totalBytes) in
-          self.notify("resourcesProgress", content: (bytesLoaded,totalBytes))
-        }) { err in
-        resources.isDownloading = false
-        self.isUpdatingResources = false
-        if err == nil {
-          self.log("Resources version \(resources.resourceVersion) loaded from server")
-          self.notify("resourcesReady")
-          /// Delete unneeded old resources
-          if let prev = previous, prev.resourceVersion < version {
-            prev.delete()
-            ArticleDB.save()
-          }
-        }
-      }
+      self.loadResources(res: res)
     }
   }
   
