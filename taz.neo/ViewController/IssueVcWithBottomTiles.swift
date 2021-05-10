@@ -483,7 +483,7 @@ extension IssueVcWithBottomTiles {
       var img : UIImage?
       if let url = Bundle.main.url(forResource: "PDF-Button_640px_transparent",
                                    withExtension: "gif",
-                                   subdirectory: "BundledRessources") {
+                                   subdirectory: "BundledResources") {
         let file = File(url)
         if file.exists {
           img = UIImage.animatedGif(File(url).data)

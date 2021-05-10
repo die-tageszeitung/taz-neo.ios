@@ -75,8 +75,9 @@ public extension StoredObject {
   static var fetchRequest: NSFetchRequest<PO> { NSFetchRequest<PO>(entityName: entity) }
 
   /// Delete the object from the persistent store
-  func delete() { pr.delete() }
-  
+  func deletePersistent() { pr.delete() }
+  func delete() { deletePersistent() }
+
   /// Create a new persistent record
   static func newPersistent() -> PO {
     NSEntityDescription.insertNewObject(forEntityName: entity,
@@ -577,9 +578,18 @@ public final class StoredPayload: StoredObject, Payload {
     let toKeep = issue.overviewFiles
     for f in storedFiles {
       if !toKeep.contains(where: { k in k.name == f.name }) {
-        f.delete()
+        f.pr.removeFromPayloads(self.pr)
+        if f.payloads.count == 1 { f.delete() }
       }
     }
+  }
+  
+  func delete() {
+    // Delete file entries that don't belong to another payload
+    for f in storedFiles {
+      if f.payloads.count == 1 { f.delete() }
+    }
+    self.deletePersistent()
   }
   
   public func update(from: Payload) {
@@ -640,25 +650,25 @@ public final class BundledResources : DoesLog {
 //    return Bundle.main.resourceURL?.appendingPathComponent("files").absoluteString
 //  }()...finally unused
   
-  lazy var ressourcesPayload : Result<[String:GqlResources],Error> = {
+  lazy var resourcesPayload : Result<[String:GqlResources],Error> = {
       guard let resourcesJsonFileUrl
               = Bundle.main.url(forResource: "resources",
                                 withExtension: "json") else {
         return .failure(self.fatal("Bundled resources.json Not found"))
       }
-      let bundledRessources = File(resourcesJsonFileUrl)
+      let bundledResources = File(resourcesJsonFileUrl)
       
-      if bundledRessources.exists == false {
+      if bundledResources.exists == false {
         return .failure(self.fatal("Bundled resources.json File Not exist!"))
       }
       
       do {
         let dec = JSONDecoder()
         
-//        self.debug("Try to decode: \"\(String(decoding: bundledRessources.data, as: UTF8.self)[0..<2000])\"")
+//        self.debug("Try to decode: \"\(String(decoding: bundledResources.data, as: UTF8.self)[0..<2000])\"")
         
         let dict = try dec.decode([String:[String:GqlResources]].self,
-                                  from: bundledRessources.data)
+                                  from: bundledResources.data)
         return .success(dict["data"]!)
       }
       catch let error {
@@ -718,7 +728,7 @@ public final class StoredResources: Resources, StoredObject {
     resourceVersion = from.resourceVersion
   }
   
-  /// Return Ressources matching the ressource version of the passed object
+  /// Return Resources matching the resource version of the passed object
   public static func get(object: Resources) -> StoredResources? {
     let tmp = get(version: object.resourceVersion)
     if tmp.count > 0 { return tmp[0] }

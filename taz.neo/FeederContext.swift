@@ -79,6 +79,9 @@ open class FeederContext: DoesLog {
   /// Has the Feeder been initialized yet
   public var isReady = false
   
+  /// Are we updating resources
+  private var isUpdatingResources = false
+  
   /// Are we authenticated with the server?
   public var isAuthenticated: Bool { gqlFeeder.isAuthenticated }
 
@@ -308,77 +311,86 @@ open class FeederContext: DoesLog {
     openDB(name: name)
   }
   
-  private var isUpdatingRessources: Bool = false
-  
-  /// Downloads resources if needed
-  /// - Parameters:
-  ///   - toVersion: target Version, nil to get latest from server
-  ///   - checkBundled: check bundled ressources (on startup) to ensure offline (or bad networt) app start
-  ///                   and/or speed up initial app start
-  /// using isUpdatingRessources to prevent multiple updateRessources (from server)
-  public func updateResources(toVersion: Int = -1, checkBundled: Bool = false) {
-    /// requestedVersion either: newest online Version if connected or requested from Issue (probably lower)
-    let requestedVersion = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
-    let storedResources = StoredResources.latest()//DB Stored
-    
-    if storedResources?.isDownloading ?? false || isUpdatingRessources {
-      return
-    }
-    
-    isUpdatingRessources = true
-    
-    if checkBundled == true,
-            case let bundledResources = BundledResources(),
-            let bundledResourcesResult = bundledResources.ressourcesPayload.value(),
-            let bundledGqlResourcesObject = bundledResourcesResult["product"],
-            storedResources?.resourceVersion ?? -1 < bundledGqlResourcesObject.resourceVersion,
+  private func loadBundledResources(setVersion: Int? = nil) {
+    if case let bundledResources = BundledResources(),
+            let result = bundledResources.resourcesPayload.value(),
+            let res = result["resources"],
             bundledResources.bundledFiles.count > 0 {
-      let success = persistBundledRessources(bundledResources: bundledResources,
-                                             resData: bundledGqlResourcesObject)
+      if let v = setVersion { res.resourceVersion = v }
+      let success = persistBundledResources(bundledResources: bundledResources,
+                                             resData: res)
       if success == true {
         ArticleDB.save()
-        log("Bundled Ressources successful Loaded")
-        self.notify("resourcesReady"); isUpdatingRessources = false
-        
-        if requestedVersion <= bundledGqlResourcesObject.resourceVersion {
-          //no need to download additional stuff
-          return
-        }
-        /// Bundled Ressources loades && DB saved
-        /// && Ressources ready fired - in case of bad network connection
-        ///..but on server there are newer ressources ..get them!
+        log("Bundled Resources version \(res.resourceVersion) successfully loaded")
       }
     }
-    else if let _storedResources = storedResources,
-            (requestedVersion <= _storedResources.resourceVersion && _storedResources.isComplete) {
-      notify("resourcesReady"); isUpdatingRessources = false
+  }
+  
+  /// Load bundles resources (from the main bundle)
+  private func loadBundledResources2(setVersion: Int? = nil) {
+    if let json = File(inMain: "resources.json"),
+       let resdir = Dir(inMain: "files") {
+      gqlFeeder.resources(fromData: json.data) { [weak self] result in
+        guard let self = self else { return }
+        if case let .success(resources) = result {
+          self.loadResources(res: resources, fromCacheDir: resdir.path)
+          if let v = setVersion { StoredResources.latest()?.resourceVersion = v }
+        }
+      }
+    }
+  }
+  
+  /// Load resources from server with optional cache directory
+  private func loadResources(res: Resources, fromCacheDir: String? = nil) {
+    let previous = StoredResources.latest()
+    let resources = StoredResources.persist(object: res)
+    self.dloader.createDirs()
+    var onProgress: ((Int64,Int64)->())? = { (bytesLoaded,totalBytes) in
+      self.notify("resourcesProgress", content: (bytesLoaded,totalBytes))
+    }
+    if fromCacheDir != nil { onProgress = nil }
+    resources.isDownloading = true
+    self.dloader.downloadPayload(payload: resources.payload as! StoredPayload,
+                                 fromCacheDir: fromCacheDir,
+                                 onProgress: onProgress) { err in
+      resources.isDownloading = false
+      if err == nil {
+        let source: String = fromCacheDir ?? "server"
+        self.log("Resources version \(resources.resourceVersion) loaded from \(source)")
+        self.notify("resourcesReady")
+        /// Delete unneeded old resources
+        if let prev = previous, prev.resourceVersion < resources.resourceVersion {
+          prev.delete()
+        }
+        ArticleDB.save()
+      }
+      self.isUpdatingResources = false
+    }
+  }
+  
+  /// Downloads resources if necessary
+  public func updateResources(toVersion: Int = -1) {
+    guard !isUpdatingResources else { return }
+    isUpdatingResources = true
+    let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
+    if StoredResources.latest() == nil { loadBundledResources(/*setVersion: 1*/) }
+    if let latest = StoredResources.latest() {
+      if latest.resourceVersion >= version, latest.isComplete {
+        isUpdatingResources = false
+        notify("resourcesReady");
+        return
+      }
+    }
+    if !isConnected {
+      //Skip Offline Start Deathlock //TODO TEST either notify("resourcesReady"); or:
+      isUpdatingResources = false
+      noConnection()
       return
     }
-    
-    guard isConnected else {
-      noConnection(); isUpdatingRessources = false
-      return
-    }
-    
     // update from server needed
     gqlFeeder.resources { [weak self] result in
       guard let self = self, let res = result.value() else { return }
-      let previous = storedResources
-      let resources = StoredResources.persist(object: res)
-      self.dloader.createDirs()
-      resources.isDownloading = true
-      self.dloader.downloadPayload(payload: resources.payload as! StoredPayload, 
-        onProgress: { (bytesLoaded,totalBytes) in
-          self.notify("resourcesProgress", content: (bytesLoaded,totalBytes))
-        }) { [weak self]  err in
-        resources.isDownloading = false
-        self?.isUpdatingRessources = false
-        if err == nil {
-          self?.notify("resourcesReady")
-          /// Delete unneeded old resources
-          if let prev = previous, prev.resourceVersion < requestedVersion { prev.delete() }
-        }
-      }
+      self.loadResources(res: res)
     }
   }
   
@@ -387,7 +399,7 @@ open class FeederContext: DoesLog {
   ///   - bundledResources: the resources (with files) to persist
   ///   - resData: the GqlResources data object to persist
   /// - Returns: true if succeed
-  private func persistBundledRessources(bundledResources: BundledResources,
+  private func persistBundledResources(bundledResources: BundledResources,
                                         resData : GqlResources) -> Bool {
     //Use Bundled Resources!
     resData.setPayload(feeder: self.gqlFeeder)
@@ -401,12 +413,12 @@ open class FeederContext: DoesLog {
       success = false
     }
     
-    var bundledRessourceFiles : [File] = []
+    var bundledResourceFiles : [File] = []
     
     for fileUrl in bundledResources.bundledFiles {
       let file = File(fileUrl)
       if file.exists {
-        bundledRessourceFiles.append(file)
+        bundledResourceFiles.append(file)
       }
     }
     
@@ -415,7 +427,7 @@ open class FeederContext: DoesLog {
     }
     
     for globalFile in globalFiles {
-      let bundledFiles = bundledRessourceFiles.filter{ $0.basename == globalFile.name }
+      let bundledFiles = bundledResourceFiles.filter{ $0.basename == globalFile.name }
       if bundledFiles.count > 1 { log("Warning found multiple matching Files!")}
       guard let bundledFile = bundledFiles.first else {
         log("Warning not found matching File!")
@@ -438,53 +450,21 @@ open class FeederContext: DoesLog {
     return success
   }
   
-  private var currentFeederErrorReason : FeederError?
-  #warning("Closure unused!..may remove a use case: expired auth")
   /// Feeder has flagged an error
   func handleFeederError(_ err: FeederError, closure: @escaping ()->()) {
-    if currentFeederErrorReason == err { return }//prevent multiple appeariance of the same
-    currentFeederErrorReason = err
     var text = ""
     switch err {
-      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
-      case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
-      case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
-      case .unexpectedResponse:
-        Alert.message(title: "Fehler",
-                      message: "Es gab ein Problem bei der Kommunikation mit dem Server")
-        {
-          [weak self] in
-          self?.currentFeederErrorReason = nil
-          exit(0)
-        }
+    case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
+    case .expiredAccount: text = "Ihr Abo ist abgelaufen."
+    case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+    case .unexpectedResponse: 
+      Alert.message(title: "Fehler", 
+                    message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
+        exit(0)               
+      }
     }
-    
-    switch err {
-      case .expiredAccount:
-        //delete OR NOT auth token in case of temporary server issue, happen once in 08/20-02/21
-        #warning("auth token kann nicht entfernt werden")
-        /*** weil:
-         didSet { if let auth = authToken { header["X-tazAppAuthKey"] = auth } }
-              Wann tritt das auf: abo abgelaufen (via backend umschalter)
-              teste abgelaufenes abo funktioniert   ...wenn ich es jedoch wieder aktiviere, kommt es zum
-                verwirrenden verhalten: 3-finger menü zeigt nicht angemeldet, ich kann jedoch ausgaben herunterladen
-            ...wenn ich nicht zwischendurch offline war (und ein neuer feeder ohne token initialisiert wurde)
-         */
-        self.gqlFeeder.authToken = nil
-        DefaultAuthenticator.deleteAuthData()
-      default:
-        DefaultAuthenticator.deleteUserData()
-    }
-    
-//    let loginAction = UIAlertAction(title: "Anmelden",
-//                                       style: .default,
-//                                       handler: {   [weak self] _ in
-//                                        self?.authenticate()
-//                                        self?.currentFeederErrorReason = nil
-//                                      })
-    Alert.message(title: "Fehler", message: text, closure: { [weak self] in
-      self?.currentFeederErrorReason = nil
-    })//, additionalActions:[loginAction])
+    DefaultAuthenticator.deleteUserData()
+    Alert.message(title: "Fehler", message: text) { self.authenticate() }
   }
   
   /**
@@ -563,23 +543,7 @@ open class FeederContext: DoesLog {
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: StoredIssue) -> Bool {
     guard !issue.isDownloading else { return false }
-    if issue.isComplete {
-      /// MINOR BUG:
-      /// **Conditions**
-      /// - offline start
-      /// - logged out
-      /// **Results**
-      /// - IssueCarousel 20 Moments are shown...
-      /// - reduced issue have no cloud icon
-      /// **BUG**
-      /// - on click on a reduced issue it shows offline alert with message:
-      /// Ich kann den taz-Server nicht erreichen, möglicherweise
-      /// besteht keine Verbindung zum Internet. Oder Sie haben der App
-      /// die Verwendung mobiler Daten nicht gestattet.
-      /// Sie können allerdings bereits heruntergeladene Ausgaben auch
-      /// ohne Internet-Zugriff lesen.
-      /// **....but its not possible to enter reduced!**
-      /// @see also: Cloud Icon fehlt nach Login Bug
+    if issue.isComplete { 
       if issue.isReduced && isAuthenticated { issue.isComplete = false }
       return issue.isReduced
     }
@@ -604,7 +568,7 @@ open class FeederContext: DoesLog {
     }
     if self.isConnected {
       gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
-                       isPages: true) { res in
+                       isPages: isPages) { res in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)
@@ -693,27 +657,16 @@ open class FeederContext: DoesLog {
   
   /// Download Issue files and resources if necessary
   private func downloadIssue(issue: StoredIssue, isComplete: Bool = false) {
-    if issue.minResourceVersion <= storedFeeder.resourceVersion {
-      downloadIssueWithoutUpdateRessources(_issue: issue, _isComplete: isComplete)
-      return
-    }
     Notification.receiveOnce("resourcesReady") { [weak self] err in
-      self?.downloadIssueWithoutUpdateRessources(_issue: issue,
-                                                 _isComplete: isComplete)
+      guard let self = self else { return }
+      self.dloader.createIssueDir(issue: issue)
+      if self.isConnected { 
+        if isComplete { self.downloadCompleteIssue(issue: issue) }
+        else { self.downloadPartialIssue(issue: issue) }
+      }
+      else { self.noConnection() }
     }
     updateResources(toVersion: issue.minResourceVersion)
-  }
-  
-  /// Download Issue files without update ressources, removes dependecy for Notification system
-  /// No need to update Ressources if already have them
-  private func downloadIssueWithoutUpdateRessources(_issue: StoredIssue,
-                                                    _isComplete: Bool){
-    self.dloader.createIssueDir(issue: _issue)
-    if self.isConnected {
-      if _isComplete { self.downloadCompleteIssue(issue: _issue) }
-      else { self.downloadPartialIssue(issue: _issue) }
-    }
-    else { self.noConnection() }
   }
 
 } // FeederContext

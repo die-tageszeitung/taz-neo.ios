@@ -312,20 +312,20 @@ extension FormsResultController{
 // MARK: - ext: FormsController:UITextViewDelegate
 extension FormsController: UITextViewDelegate {
   func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
-    var localRessource:File?
+    var localResource:File?
     if URL.absoluteString.contains("taz.de/\(Const.Filename.dataPolicy)"){
-      localRessource = File(auth.feeder.dataPolicy)
+      localResource = File(auth.feeder.dataPolicy)
     }
     else if URL.absoluteString.contains("taz.de/\(Const.Filename.revocation)"){
-      localRessource = File(auth.feeder.revocation)
+      localResource = File(auth.feeder.revocation)
     }
     else if URL.absoluteString.contains("taz.de/\(Const.Filename.terms)"){
-      localRessource = File(auth.feeder.terms)
+      localResource = File(auth.feeder.terms)
     }
     
-    if let localRessource = localRessource, localRessource.exists {
+    if let localResource = localResource, localResource.exists {
       let introVC = IntroVC()
-      introVC.webView.webView.load(url: localRessource.url)
+      introVC.webView.webView.load(url: localResource.url)
       modalFromBottom(introVC)
       introVC.webView.onX {
         introVC.dismiss(animated: true, completion: nil)
@@ -335,7 +335,7 @@ extension FormsController: UITextViewDelegate {
     }
     
     return true//If not yet downloaded open in Safari, so the url is called
-    //and we see how often app users cannot open the AGB etc from local ressources
+    //and we see how often app users cannot open the AGB etc from local resources
   }
 }
 

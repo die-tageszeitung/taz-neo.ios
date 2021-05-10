@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20D91" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20E241" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" syncable="YES" codeGenerationType="class">
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="onlineLink" optional="YES" attributeType="String"/>
@@ -160,7 +160,7 @@
         <attribute name="localDir" attributeType="String"/>
         <attribute name="remoteBaseUrl" optional="YES" attributeType="String"/>
         <attribute name="remoteZipName" optional="YES" attributeType="String"/>
-        <relationship name="files" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="payloads" inverseEntity="FileEntry"/>
+        <relationship name="files" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="payloads" inverseEntity="FileEntry"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="payload" inverseEntity="Issue"/>
         <relationship name="resources" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Resources" inverseName="payload" inverseEntity="Resources"/>
     </entity>
@@ -200,7 +200,7 @@
         <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="28"/>
         <element name="Moment" positionX="-52992" positionY="-35010" width="128" height="119"/>
         <element name="Page" positionX="-52203.38671875" positionY="-34559.82421875" width="128" height="164"/>
-        <element name="Payload" positionX="-53189.828125" positionY="-34824.89453125" width="128" height="28"/>
+        <element name="Payload" positionX="-53189.828125" positionY="-34824.89453125" width="128" height="179"/>
         <element name="Remark" positionX="-52138.01171875" positionY="-35159.59375" width="128" height="118"/>
         <element name="Resources" positionX="-53009.359375" positionY="-34422.0859375" width="128" height="88"/>
         <element name="Section" positionX="-52493.79296875" positionY="-34734.5234375" width="128" height="119"/>

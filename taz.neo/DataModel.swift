@@ -237,7 +237,7 @@ public extension Payload {
 public protocol Resources: ToString, AnyObject {
   /// Are these Resources currently being downloaded
   var isDownloading: Bool { get set }
-  /// Have these Ressources been downloaded
+  /// Have these Resources been downloaded
   var isComplete: Bool { get set }
   /// Resource list version
   var resourceVersion: Int { get }

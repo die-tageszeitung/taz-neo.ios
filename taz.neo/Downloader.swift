@@ -33,6 +33,15 @@ open class Downloader: DoesLog {
     var payload: StoredPayload 
     var onProgress: ((Int64, Int64)->())?
     var atEnd: (Error?)->()
+    var fromCacheDir: String?
+    
+    public init(payload: StoredPayload, onProgress: ((Int64, Int64)->())? = nil,
+                fromCacheDir: String? = nil, atEnd: @escaping (Error?)->()) {
+      self.payload = payload
+      self.onProgress = onProgress
+      self.fromCacheDir = fromCacheDir
+      self.atEnd = atEnd
+    }
     
     public func download(dl: Downloader) {
       var files = payload.files as! [StoredFileEntry]
@@ -41,7 +50,8 @@ open class Downloader: DoesLog {
           guard err == nil else { self.atEnd(err); return }
           let hloader = HttpLoader(session: dl.dlSession, 
                                    baseUrl: self.payload.remoteBaseUrl,
-                                   toDir: self.payload.localDir)
+                                   toDir: self.payload.localDir,
+                                   fromCacheDir: self.fromCacheDir)
           var isComplete = false
           self.payload.downloadStarted = Date()
           files = files.filter { $0.storageType != .global }
@@ -136,10 +146,12 @@ open class Downloader: DoesLog {
   }
   
   /// Download a payload of files
-  public func downloadPayload(payload: StoredPayload, 
+  public func downloadPayload(payload: StoredPayload,
+                              fromCacheDir: String? = nil,
                               onProgress: ((Int64, Int64)->())? = nil, 
                               atEnd: @escaping (Error?)->()) {
-    let pe = PayloadEntry(payload: payload, onProgress: onProgress) { [weak self] err in
+    let pe = PayloadEntry(payload: payload, onProgress: onProgress,
+                          fromCacheDir: fromCacheDir) { [weak self] err in
       if let self = self {
         self.payloadQueue.removeFirst()
         if self.payloadQueue.count > 0 { self.payloadQueue[0].download(dl: self) }
