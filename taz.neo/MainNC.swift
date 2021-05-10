@@ -228,7 +228,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       }
       self.pushViewController(introVC, animated: false)
     }
-    feederContext.updateResources(toVersion: -1, checkBundled: true)
+    feederContext.updateResources(toVersion: -1)
   }
     
   func startup() {
@@ -249,7 +249,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       showIntro() { self.showIssueVC() }
     }
     else {
-      feederContext.updateResources(toVersion: -1, checkBundled: true)
+      feederContext.updateResources(toVersion: -1)
       showIssueVC()
     }
   } 
