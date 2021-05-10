@@ -746,7 +746,7 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   /// Requests a ResourceList object from the server
-  public func resources(closure: @escaping(Result<Resources,Error>)->()) {
+  public func resources(fromData: Data? = nil, closure: @escaping(Result<Resources,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
@@ -755,7 +755,8 @@ open class GqlFeeder: Feeder, DoesLog {
         \(GqlResources.fields)
       }
     """
-    gqlSession.query(graphql: request, type: [String:GqlResources].self) { (res) in
+    gqlSession.query(graphql: request, type: [String:GqlResources].self,
+                     fromData: fromData) { (res) in
       var ret: Result<Resources,Error>
       switch res {
       case .success(let str): 
@@ -768,6 +769,10 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
   
+  public func resources(closure: @escaping (Result<Resources, Error>) -> ()) {
+    resources(fromData: nil, closure: closure)
+  }
+
   // Get GqlFeederStatus
   func feederStatus(closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 

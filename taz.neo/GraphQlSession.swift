@@ -79,45 +79,59 @@ open class GraphQlSession: HttpSession {
     header["Accept-Encoding"] = "gzip"
   }
   
-  public func request<T>(requestType: String, graphql: String, type: T.Type, closure: @escaping(Result<T,Error>)->()) 
+  private func requestResult<T>(data: Data?, graphql: String, type: T.Type)
+    -> Result<T,Error> where T: Decodable {
+    var result: Result<T,Error>
+    if let d = data {
+      //self.debug("Received: \"\(String(decoding: d, as: UTF8.self)[0..<2000])\"")
+      if let gerr = GraphQlError.from(data: d) {
+        self.error("Errorneous data sent to server: \(graphql)")
+        self.fatal("GraphQL-Server encountered error:\n\(gerr)")
+        result = .failure(gerr)
+      }
+      else {
+        do {
+          let dec = JSONDecoder()
+          let dict = try dec.decode([String:T].self, from: d)
+          result = .success(dict["data"]!)
+        }
+        catch {
+          result = .failure(self.fatal("JSON decoding error"))
+        }
+      }
+    }
+    else { result = .failure(self.fatal("No data from GraphQL server")) }
+    return result
+  }
+  
+  public func request<T>(requestType: String, graphql: String, type: T.Type,
+                         fromData: Data? = nil, closure: @escaping(Result<T,Error>)->())
     where T: Decodable {
     guard let url = self.url else { return }
-    let quoted = "\(requestType) {\(graphql)}".quote()
-    let str = "{ \"query\": \(quoted) }"
-    //debug("Sending: \(requestType) {\n\(graphql)\n}")
-    post(url, data: str.data(using: .utf8)!) { res in
-      var result: Result<T,Error>
-      switch res {
-      case .success(let data):
-        if let d = data {
-//          self.debug("Received: \"\(String(decoding: d, as: UTF8.self)[0..<2000])\"")
-          if let gerr = GraphQlError.from(data: d) {
-            self.error("Errorneous data sent to server: \(graphql)")
-            self.fatal("GraphQL-Server encountered error:\n\(gerr)")
-            result = .failure(gerr)
-          }
-          else {
-            do {
-              let dec = JSONDecoder()
-              let dict = try dec.decode([String:T].self, from: d)
-              result = .success(dict["data"]!)
-            }
-            catch {
-              result = .failure(self.fatal("JSON decoding error"))
-            }
-          }
+    if let data = fromData {
+      closure(requestResult(data: data, graphql: graphql, type: type))
+    }
+    else {
+      let quoted = "\(requestType) {\(graphql)}".quote()
+      let str = "{ \"query\": \(quoted) }"
+      //debug("Sending: \(requestType) {\n\(graphql)\n}")
+      post(url, data: str.data(using: .utf8)!) { [weak self] res in
+        guard let self = self else { return }
+        if case let .success(data) = res {
+          closure(self.requestResult(data: data, graphql: graphql, type: type))
         }
-        else { result = .failure(self.fatal("No data from GraphQL server")) }
-      case .failure(let err): 
-        result = .failure(err)
+        else if case let .failure(err) = res {
+          closure(.failure(err))
+        }
       }
-      closure(result)
     }
   }
   
-  public func query<T>(graphql: String, type: T.Type, closure: @escaping(Result<T,Error>)->()) 
+  public func query<T>(graphql: String, type: T.Type,
+                       fromData: Data? = nil, closure: @escaping(Result<T,Error>)->())
     where T: Decodable { 
-      request(requestType: "query", graphql: graphql, type: type, closure: closure)
+      request(requestType: "query", graphql: graphql, type: type, fromData: fromData,
+              closure: closure)
   }
   
   public func mutation<T>(graphql: String, type: T.Type, closure: @escaping(Result<T,Error>)->()) 
