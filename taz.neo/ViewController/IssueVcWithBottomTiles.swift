@@ -24,18 +24,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   // MARK: - Properties
   ///moved issues here to prevent some performance and other issues
   ///obsolate after refactoring & full integration
-  public var issues: [Issue] = [] {
-    didSet{
-//      print("Issues set!!")
-      if oldValue.count != issues.count {
-        footerActivityIndicator.stopAnimating()
-        //may issues (moments) changed
-        //generelly no good to reload them all
-        #warning("@Norbert/Ringo DO NOT RELOAD EVERYTHING USE INSERT!... look in Merge in nthies's changes")
-        self.collectionView.reloadData()
-      }
-    }
-  }
+  public var issues: [Issue] = []
 
   public var toolBar = ContentToolbar()
   var toolbarHomeButton: Button<ImageView>?

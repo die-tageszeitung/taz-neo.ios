@@ -96,6 +96,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       debug("inserting issue \(issue.date.isoDate()) at \(idx)")
       issues.insert(issue, at: idx)
       issueCarousel.insertIssue(img, at: idx)
+      collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
       if let idx = issueCarousel.index { setLabel(idx: idx) }
       if let date = selectedIssueDate {
         if issue.date <= date { selectedIssueDate = nil }
