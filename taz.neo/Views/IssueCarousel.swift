@@ -37,11 +37,8 @@ public class IssueCarousel: UIView {
     set {
       issues[idx].issue = newValue
       if preventReload == true {
-        for cell in carousel.visibleCells {
-          if carousel.indexPath(for: cell)?.row != idx { continue }
-          if let mv = cell.contentView.subviews[0] as? MomentView {
-            mv.image = newValue
-          }
+        UIView.performWithoutAnimation {
+          carousel.reload(index: idx)
         }
         return
       }
