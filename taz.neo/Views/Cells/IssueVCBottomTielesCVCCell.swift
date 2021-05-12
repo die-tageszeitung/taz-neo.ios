@@ -18,7 +18,9 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   
   var menu:ContextMenu?
   
-  public var observer : NSObjectProtocol?
+  public var issue : Issue? {  didSet { update() } }
+  
+  var observer : NSObjectProtocol?
  
   public override func prepareForReuse() {
     self.momentView.image = nil
@@ -57,13 +59,45 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     //not use cloud image from assets due huge padding
     //button.cloudImage = UIImage(named: "download")
     button.setTitleColor(Const.Colors.darkSecondaryText, for: .normal)
+    button.titleLabel?.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
+    
+    self.observer = Notification.receive("issueProgress", closure: {   [weak self] notif in
+      guard let self = self else { return }
+      if (notif.object as? Issue)?.date != self.issue?.date { return }
+      if let (loaded,total) = notif.content as? (Int64,Int64) {
+        let percent = Float(loaded)/Float(total)
+        if percent > 0.05 {
+          self.button.downloadState = .process
+          self.button.percent = percent
+        }
+        if percent == 1.0 {  self.momentView.isActivity = false }
+      }
+    })
   }
   
-  public var text : String? {
-    didSet {
-      button.setTitle(text, for: .normal)
+  private func update(){
+    button.startHandler = nil
+    button.stopHandler = nil
+    
+    guard let issue = issue else { return }
+    
+    let title = UIWindow.size.width < 370 ? issue.date.shortest : issue.date.shorter
+    button.setTitle(title, for: .normal)
+    
+    momentView.isActivity = issue.isDownloading
+    
+    if issue.isDownloading {
+      button.downloadState = .waiting
     }
+    else if issue.isComplete {
+      button.downloadState = .done
+    }
+    else {
+      button.downloadState = .notStarted
+    }
+    
   }
+  
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")

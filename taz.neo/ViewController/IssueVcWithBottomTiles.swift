@@ -207,57 +207,30 @@ extension IssueVcWithBottomTiles {
     
     let _cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier,
                                                    for: indexPath)
-
-    guard let cell = _cell as? IssueVCBottomTielesCVCCell else { return _cell }
     
-//    cell.imageView.image = nil
+    guard let cell = _cell as? IssueVCBottomTielesCVCCell else { return _cell }
     
     if let issueVC = self as? IssueVC,
        let issue = issues.valueAt(indexPath.row) {
-      cell.text = UIWindow.size.width < 370 ? issue.date.shortest : issue.date.shorter
-      cell.button.titleLabel?.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
-      /// ToDo: for not Downloaded Items, click, load finished, the cloud did not disappear
-      /// should be done in Refactoring with PDF Image for Cells
-      if issue.isDownloading {
-//        cell.momentView.isActivity = true
-//        cell.button.downloadState = .process
-//        cell.button.percent = 0.5
-//        cell.button.startHandler = nil
-//        cell.button.stopHandler = nil
-      }
-      else if issue.isComplete {
-        cell.button.downloadState = .done
-        cell.button.startHandler = nil
-        cell.button.stopHandler = nil
-      }
-      else {
-        cell.button.downloadState = .notStarted
-        cell.button.startHandler = {
-          cell.button.startHandler = nil
-          cell.button.downloadState = .process
-          #warning("@Norbert Download Status did not work as expected whole time at 0 ...then 100%")
-          cell.observer = Notification.receive("issueProgress", from: issue) { notif in
-            print("Recive Notification from \((notif.object as? Issue)?.date) handler for: \(issue.date)")
-            if let (loaded,total) = notif.content as? (Int64,Int64) {
-              print("...has status: \(Float(loaded)/Float(total)) ==  \(loaded)/\(total)")
-              cell.button.percent = Float(loaded)/Float(total)
-            }
-          }
-          #warning("@Norbert Downloading Issue with this, not downloading section 0 at first")
-          if let sissue = issue as? StoredIssue {
-//            guard issueVC.feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
-//            isDownloading = true
-//            issueCarousel.index = index
-//            issueCarousel.setActivity(idx: index, isActivity: true)
-//            issueVC.feederContext.str
-            issueVC.feederContext.getCompleteIssue(issue: sissue, isPages: self.isFacsimile)
-          }
-        }
-        cell.button.stopHandler = {}
-      }
+      
+      cell.issue = issue
       
       if let img = issueVC.feeder.momentImage(issue: issue, isPdf: isFacsimile) {
         cell.momentView.image = img
+      }
+      else {
+        cell.momentView.image = nil
+      }
+      
+      if issue.isDownloading == false && issue.isComplete == false {
+        cell.button.startHandler = { [weak self] in
+          guard let self = self, let sissue = issue as? StoredIssue else { return }
+          cell.button.startHandler = nil
+          cell.button.downloadState = .waiting
+          cell.momentView.isActivity = true
+          issueVC.feederContext.getCompleteIssue(issue: sissue,
+                                                 isPages: self.isFacsimile)
+        }
       }
     }
     return cell
