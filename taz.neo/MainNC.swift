@@ -266,11 +266,16 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
  
   func deleteAll() {
     popToRootViewController(animated: false)
+    feederContext.gqlFeeder.status?.feeds = []
+    feederContext.gqlFeeder.gqlSession?.session.invalidateAndCancel()
+    feederContext.dloader.killAll()
+    ArticleDB.singleton.close()
     /// Remove all content
     for f in Dir.appSupport.scan() {
       debug("remove: \(f)")
       try! FileManager.default.removeItem(atPath: f)
     }
+    log("delete all done successfully")
     exit(0)
   }
   

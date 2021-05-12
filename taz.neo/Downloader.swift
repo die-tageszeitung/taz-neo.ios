@@ -25,6 +25,11 @@ open class Downloader: DoesLog {
   /// The Feeder providing data
   public var feeder: Feeder
   
+  public func killAll(){
+    payloadQueue = []
+    dlSession._session?.invalidateAndCancel()
+  }
+  
   // The HttpSession to use for downloading files
   private var dlSession: HttpSession
   
