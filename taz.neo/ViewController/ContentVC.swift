@@ -323,14 +323,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewDidLoad()
     writeTazApiCss()
     writeTazApiJs()
+    header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
+    setupSlider()
     setupSettingsBottomSheet()
     setupToolbar()
-    header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.hide(); self?.header.hide(true) }
       else { self?.toolBar.hide(false); self?.header.hide(false) }
     }
-    setupSlider()
     
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
