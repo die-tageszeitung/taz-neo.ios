@@ -364,8 +364,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func applyStyles() {
     settingsBottomSheet?.color = Const.SetColor.ios(.secondarySystemBackground).color
     settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
-    self.collectionView?.backgroundColor = Const.SetColor.CTBackground.color
-    self.view.backgroundColor = Const.SetColor.CTBackground.color
+    self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
+    self.view.backgroundColor = Const.SetColor.HBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     writeTazApiCss{
       super.reloadAllWebViews()
@@ -378,8 +378,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    self.collectionView?.backgroundColor = Const.SetColor.CTBackground.color
-    self.view.backgroundColor = Const.SetColor.CTBackground.color
+    self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
+    self.view.backgroundColor = Const.SetColor.HBackground.color
   }
   
   override public func viewWillDisappear(_ animated: Bool) {
