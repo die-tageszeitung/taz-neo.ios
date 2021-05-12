@@ -73,6 +73,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Reset carousel images
   private func resetCarouselImages(isPdf: Bool) {
+    issueCarousel.preventReload = true
     var i = 0
     for issue in issues {
       if let img = feeder.momentImage(issue: issue, isPdf: isPdf) {
@@ -80,6 +81,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         i += 1
       }
     }
+    issueCarousel.preventReload = false
   }
   
   /// Add Issue to carousel

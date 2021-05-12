@@ -14,6 +14,10 @@ import NorthLib
  */
 public class IssueCarousel: UIView {
   
+  /// Fix switch app/pdf view zoom in animation
+  /// cames from CarouselFlowLayout...scaleAttribute...transform3D
+  /// due reload of the cell cell appears in original size and then in scale ~1.3 size ...with an animation
+  public var preventReload = false
   // Array of Image/Activity pairs
   private var issues:[(issue: UIImage, isActivity: Bool)] = []
   // The Carousel
@@ -32,6 +36,15 @@ public class IssueCarousel: UIView {
     get { return issues[idx].issue }
     set {
       issues[idx].issue = newValue
+      if preventReload == true {
+        for cell in carousel.visibleCells {
+          if carousel.indexPath(for: cell)?.row != idx { continue }
+          if let mv = cell.contentView.subviews[0] as? MomentView {
+            mv.image = newValue
+          }
+        }
+        return
+      }
       carousel.reload(index: idx)
     }
   }
