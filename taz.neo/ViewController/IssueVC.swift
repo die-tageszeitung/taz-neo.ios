@@ -30,6 +30,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     get { issueCarousel.index! }
     set { issueCarousel.index = newValue; updateToolbarHomeIcon() }
   }
+  
+  public var safeIndex: Int? { get { return issueCarousel.index }}
+  
   /// The Section view controller
   public var sectionVC: SectionVC?
   /// Is Issue Download in progress?
@@ -66,7 +69,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   func updateToolbarHomeIcon(){
     toolbarHomeButton?.buttonView.color
-      = self.index == 0 && isUp
+      = self.safeIndex == 0 && isUp
       ? Const.Colors.darkSecondaryText.withAlphaComponent(0.2)
       : Const.Colors.darkSecondaryText.withAlphaComponent(0.9)
   }
@@ -211,7 +214,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Show Issue at a given index, download if necessary
   func showIssue(index givenIndex: Int? = nil, atSection: Int? = nil, 
                          atArticle: Int? = nil) {
-    let index = givenIndex ?? self.index
+    guard let index = givenIndex ?? self.safeIndex else { return }
     func openIssue() {
       //call it later if Offline Alert Presented
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
