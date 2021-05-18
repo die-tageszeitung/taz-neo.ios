@@ -11,33 +11,23 @@ import NorthLib
 
 /// This Class  extends IssueVC for a bottom Area with a UICollectionVC
 /// written to have a minimal Impact on IssueVC on Integration
-public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
+public class IssueVcWithBottomTiles : UICollectionViewController {
   
   /// should show PDF Info Toast on startup (from config defaults)
   @DefaultBool(key: "showPdfInfoToast")
   public var showPdfInfoToast: Bool
   
-  // MARK: - Properties
-  ///moved issues here to prevent some performance and other issues
-  ///obsolate after refactoring & full integration
-  public var issues: [Issue] = [] {
-    didSet{
-//      print("Issues set!!")
-      if oldValue.count != issues.count {
-        footerActivityIndicator.stopAnimating()
-        //may issues (moments) changed
-        //generelly no good to reload them all
-        #warning("@Norbert/Ringo DO NOT RELOAD EVERYTHING USE INSERT!... look in Merge in nthies's changes")
-        self.collectionView.reloadData()
-      }
-    }
-  }
-  
   /// Are we in facsimile mode
   @DefaultBool(key: "isFacsimile")
   public var isFacsimile: Bool
+  
+  // MARK: - Properties
+  ///moved issues here to prevent some performance and other issues
+  ///obsolate after refactoring & full integration
+  public var issues: [Issue] = []
 
-  public var toolBar = OverviewContentToolbar()
+  public var toolBar = ContentToolbar()
+  var toolbarHomeButton: Button<ImageView>?
   
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
@@ -69,13 +59,13 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   lazy var cellSize : CGSize = CGSize(width: 20, height: 20)
   
   /// top top Scroll Target Position, to scroll to if scroll top
-  let topPos : CGFloat = -UIWindow.topInset
+  var topPos : CGFloat { get { return -UIWindow.topInset }}
   
   /// activity indicator for Bottom Ares, if load more requested
   let footerActivityIndicator = UIActivityIndicatorView(style: .white)
   
   /// offset for snapping between top area (IssueCarousel) and Bottom Area (tile view)
-  var scrollSnapHeight = UIScreen.main.bounds.size.height
+  var scrollSnapHeight : CGFloat { get { return UIScreen.main.bounds.size.height }}
   
   /// prevent multiple times initialization
   /// for unknown reason viewDidLoad called multiple times within the inheritance: IssueVC->IssueVcWithBottomTiles
@@ -83,7 +73,11 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
   var initialized=false
   
   /// Indicate if current state is top on IssueCaroussel or Bottom on Tiele View
-  var isUp:Bool = true
+  var isUp:Bool = true {
+    didSet {
+      (self as? IssueVC)?.updateToolbarHomeIcon()
+    }
+  }
   
 
   
@@ -157,9 +151,13 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     let onHome:((ButtonControl)->()) = { [weak self] _ in
       guard let self = self as? IssueVC else { return }
       self.issueCarousel.carousel.scrollto(0, animated: true)
+      if self.isUp == false {
+        self.scrollUp()
+        self.isUp = true //ensure property is set correctly
+        /// sometimes on heavy load its been scrolled up but property did not set correctly due this happen
+        /// in delegate...wich was interrupted
+      }
     }
-    
-    
     
     let onPDF:((ButtonControl)->()) = {   [weak self] control in
       guard let self = self else { return }
@@ -169,11 +167,12 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
         imageButton.buttonView.name = self.isFacsimile ? "mobileDevice" : "newspaper"
         imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
       }
+      self.collectionView.reloadData()
       print("PDF Pressed")
     }
     
     //the buttons and alignments
-    _ = toolBar.addImageButton(name: "home",
+    toolbarHomeButton = toolBar.addImageButton(name: "home",
                                onPress: onHome,
                                direction: .right,
                                accessibilityLabel: "Übersicht")
@@ -186,10 +185,6 @@ public class IssueVcWithBottomTiles : UICollectionViewControllerWithTabbar{
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
-    whenScrolled(minRatio: 0.01) {  [weak self] ratio in
-      if ratio < 0, self?.isUp == false { self?.toolBar.hide()}
-      else { self?.toolBar.hide(false)}
-    }
   }
 }
 
@@ -212,56 +207,30 @@ extension IssueVcWithBottomTiles {
     
     let _cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier,
                                                    for: indexPath)
-
-    guard let cell = _cell as? IssueVCBottomTielesCVCCell else { return _cell }
     
-    cell.imageView.image = nil
+    guard let cell = _cell as? IssueVCBottomTielesCVCCell else { return _cell }
     
     if let issueVC = self as? IssueVC,
        let issue = issues.valueAt(indexPath.row) {
-      cell.text = UIWindow.size.width < 370 ? issue.date.shortest : issue.date.shorter
-      cell.button.titleLabel?.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
-      /// ToDo: for not Downloaded Items, click, load finished, the cloud did not disappear
-      /// should be done in Refactoring with PDF Image for Cells
-      if issue.isDownloading {
-//        cell.button.downloadState = .process
-//        cell.button.percent = 0.5
-//        cell.button.startHandler = nil
-//        cell.button.stopHandler = nil
-      }
-      else if issue.isComplete {
-        cell.button.downloadState = .done
-        cell.button.startHandler = nil
-        cell.button.stopHandler = nil
+      
+      cell.issue = issue
+      
+      if let img = issueVC.feeder.momentImage(issue: issue, isPdf: isFacsimile) {
+        cell.momentView.image = img
       }
       else {
-        cell.button.downloadState = .notStarted
-        cell.button.startHandler = {
-          cell.button.startHandler = nil
-          cell.button.downloadState = .process
-          #warning("@Norbert Download Status did not work as expected whole time at 0 ...then 100%")
-          cell.observer = Notification.receive("issueProgress", from: issue) { notif in
-            print("Recive Notification from \((notif.object as? Issue)?.date) handler for: \(issue.date)")
-            if let (loaded,total) = notif.content as? (Int64,Int64) {
-              print("...has status: \(Float(loaded)/Float(total)) ==  \(loaded)/\(total)")
-              cell.button.percent = Float(loaded)/Float(total)
-            }
-          }
-          #warning("@Norbert Downloading Issue with this, not downloading section 0 at first")
-          if let sissue = issue as? StoredIssue {
-//            guard issueVC.feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
-//            isDownloading = true
-//            issueCarousel.index = index
-//            issueCarousel.setActivity(idx: index, isActivity: true)
-//            issueVC.feederContext.str
-            issueVC.feederContext.getCompleteIssue(issue: sissue, isPages: self.isFacsimile)
-          }
-        }
-        cell.button.stopHandler = {}
+        cell.momentView.image = nil
       }
       
-      if let img = issueVC.feeder.momentImage(issue: issue) {
-        cell.imageView.image = img
+      if issue.isDownloading == false && issue.isComplete == false {
+        cell.button.startHandler = { [weak self] in
+          guard let self = self, let sissue = issue as? StoredIssue else { return }
+          cell.button.startHandler = nil
+          cell.button.downloadState = .waiting
+          cell.momentView.isActivity = true
+          issueVC.feederContext.getCompleteIssue(issue: sissue,
+                                                 isPages: self.isFacsimile)
+        }
       }
     }
     return cell
@@ -293,6 +262,22 @@ extension IssueVcWithBottomTiles {
     /// Note: if using "animated: true" => Bug: opened Issue stays white!
     issueVC.issueCarousel.carousel.scrollto(indexPath.row)
     issueVC.showIssue(index: indexPath.row)
+    #warning("TODO REFACTOR IssueVCBottomTielesCVCCell")
+    ///Work with Issue drop on cell, and notifications for download start/stop
+    if let cell = collectionView.cellForItem(at: indexPath)
+        as? IssueVCBottomTielesCVCCell {
+      cell.momentView.isActivity = true
+      cell.momentView.setNeedsLayout()
+      if issueVC.issue.isDownloading {
+        cell.button.downloadState = .process
+      }
+      else if issueVC.issue.isComplete {
+        cell.button.downloadState = .done
+      }
+      else {
+        cell.button.downloadState = .process
+      }
+    }
   }
   
   // MARK: > Sizes
@@ -370,11 +355,11 @@ extension IssueVcWithBottomTiles {
   }
 }
 
-// MARK: - UIScrollViewDelegate
+// MARK: - UIScrollViewDelegate (from UICollectionViewController)
 /// Add some ScrollView Snapping Magic
 extension IssueVcWithBottomTiles {
   open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    super.scrollViewDidEndDragging(scrollView, willDecelerate: decelerate)
+    ///Not call super, it will crash if optional different scrollDelegate not set
     if decelerate { return }
     snapScrollViewIfNeeded(scrollView)
   }
@@ -392,7 +377,10 @@ extension IssueVcWithBottomTiles {
   }
   
   open override func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-    isUp = collectionView.indexPathsForVisibleItems.count == 0
+    ///@RingoToDO WARNING NOT WORK RELIABLE
+//    isUp = collectionView.indexPathsForVisibleItems.count == 0
+    isUp = scrollView.contentOffset.y < 200.0
+//    print("isUp: \(isUp) scrollOffset: \(scrollView.contentOffset)")
   }
 }
 
@@ -446,43 +434,7 @@ extension IssueVcWithBottomTiles: UICollectionViewDelegateFlowLayout {
   }
 }
 
-// MARK: - Helper for ContentToolbar
-extension ContentToolbar {
-  func addSpacer(_ direction:Toolbar.Direction) {
-    let button = Toolbar.Spacer()
-    self.addButton(button, direction: direction)
-  }
-  
-  func addImageButton(name:String,
-                      onPress:@escaping ((ButtonControl)->()),
-                      direction: Toolbar.Direction,
-                      symbol:String? = nil,
-                      accessibilityLabel:String? = nil,
-                      isBistable: Bool = true,
-                      width:CGFloat = 52,
-                      height:CGFloat = 48,
-                      vInset:CGFloat = 0.0,
-                      hInset:CGFloat = 0.0
-                      ) -> Button<ImageView> {
-    let button = Button<ImageView>()
-    button.pinWidth(width, priority: .defaultHigh)
-    button.pinHeight(height, priority: .defaultHigh)
-    button.vinset = vInset
-    button.hinset = hInset
-    button.isBistable = isBistable
-    button.buttonView.name = name
-    button.buttonView.symbol = symbol
-    
-    if let al = accessibilityLabel {
-      button.isAccessibilityElement = true
-      button.accessibilityLabel = al
-    }
-    
-    self.addButton(button, direction: direction)
-    button.onPress(closure: onPress)
-    return button
-  }
-}
+
 
 // MARK: - ShowPDF Info Toast
 extension IssueVcWithBottomTiles {
@@ -507,58 +459,6 @@ extension IssueVcWithBottomTiles {
                          autoDisappearAfter: nil) {   [weak self] in
         self?.log("PdfInfoToast showen and closed")
         self?.showPdfInfoToast = false
-      }
-    }
-  }
-}
-
-// MARK: - UICollectionViewControllerWithTabbar
-/// UICollectionViewController with whenScrolled with min ratio handler
-open class UICollectionViewControllerWithTabbar : UICollectionViewController {
-  
-  // The closure to call when content scrolled more than scrollRatio
-  private var whenScrolledClosure: ((CGFloat)->())?
-  private var scrollRatio: CGFloat = 0
-  
-  /// Define closure to call when web content has been scrolled
-  public func whenScrolled( minRatio: CGFloat, _ closure: @escaping (CGFloat)->() ) {
-    scrollRatio = minRatio
-    whenScrolledClosure = closure
-  }
-  
-  // content y offset at start of dragging
-  private var startDragging: CGFloat?
-    
-  open override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-    startDragging = scrollView.contentOffset.y
-  }
-  
-  open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    if let sd = startDragging {
-      let scrolled = sd-scrollView.contentOffset.y
-      let ratio = scrolled / scrollView.bounds.size.height
-      if let closure = whenScrolledClosure, abs(ratio) >= scrollRatio {
-        closure(ratio)
-      }
-    }
-    startDragging = nil
-  }
-}
-
-// MARK: - OverviewContentToolbar
-/// ContentToolbar with easier constraint animation and changed animation target
-public class OverviewContentToolbar : ContentToolbar {
-  public override func hide(_ isHide: Bool = true) {
-    if isHide {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.constant = 0
-        self?.superview?.layoutIfNeeded()
-      }
-    }
-    else if self.heightConstraint?.constant != self.totalHeight {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.constant = self!.totalHeight
-        self?.superview?.layoutIfNeeded()
       }
     }
   }

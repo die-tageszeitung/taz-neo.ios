@@ -85,6 +85,12 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
     return singlePageSize
   }
   
+  
+  public func pageIndexForLink(_ link: String) -> Int? {
+    let p = images as? [ZoomedPdfPageImage]
+    return p?.firstIndex(where: { $0.pageReference?.pdf.fileName == link }) ?? nil
+  }
+  
   private var whenScrolledHandler : WhenScrolledHandler?
   public func whenScrolled(minRatio: CGFloat, _ closure: @escaping (CGFloat) -> ()) {
     whenScrolledHandler = (minRatio, closure)
@@ -283,7 +289,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     (self.currentView as? ZoomedImageViewSpec)?.menu.menu = self.menuItems
   }
   
-  public var toolBar = OverviewContentToolbar()
+  public var toolBar = AnimatedContentToolbar()
   
   override public var preferredStatusBarStyle: UIStatusBarStyle {
     return .lightContent
@@ -294,6 +300,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     Log.minLogLevel = .Debug
     let pdfModel = NewPdfModel(issueInfo: issueInfo)
     pdfModel.title = issueInfo.issue.date.gDate().replacingOccurrences(of: ", ", with: ",\n")
+    pdfModel.index = issueInfo.issue.lastPage ?? 0
     self.sections = issueInfo.issue.sections ?? []
     self.article2section = issueInfo.issue.article2section
     self.feederContext = issueInfo.feederContext
@@ -311,6 +318,16 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
             let path = zpdfi.issueDir?.path else { return }
+        
+      if let url = URL(string: link), UIApplication.shared.canOpenURL(url) {
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        return
+      }
+      else if let pageIdx = pdfModel.pageIndexForLink(link) {
+        self.collectionView?.scrollto(pageIdx,animated: true)
+        return
+      }
+      
       let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
       childThumbnailController.cellLabelFont = Const.Fonts.titleFont(size: 12)
       childThumbnailController.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
@@ -360,6 +377,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
       self.collectionView?.index = newIndex
       self.slider?.close()
     }
+    
+    onDisplay { [weak self]  (idx, oview) in
+      self?.issue.lastPage = idx
+      ArticleDB.save()
+      print("Display page at index: \(idx)")
+    }
+    
     setupToolbar()
     setupSlider(sliderContent: thumbnailController)
   }
@@ -376,7 +400,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     slider.button.layer.shadowOpacity = 0.25
     slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
     slider.button.layer.shadowRadius = 4
-    slider.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
+    slider.button.layer.shadowColor = UIColor.black.cgColor
     slider.close()
   }
   

@@ -111,15 +111,21 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     isErrorReporting = false
   }
   
-  @objc func errorReportActivated(_ sender: UIGestureRecognizer) {
-      if isErrorReporting == true { return }//Prevent multiple Calls
-      isErrorReporting = true
-      
-    FeedbackComposer.requestFeedback( logData: fileLogger.data, gqlFeeder: self.feederContext.gqlFeeder) { didSend in
-           print("Feedback send? \(didSend)")
-        self.isErrorReporting = false
-         }
+  @objc func twoFingerErrorReportActivated(_ sender: UIGestureRecognizer) {
+    showFeedbackErrorReport()
+  }
+  
+  func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil) {
+    if isErrorReporting == true { return }//Prevent multiple Calls
+    isErrorReporting = true
+    
+    FeedbackComposer.showWith(logData: fileLogger.data,
+                              gqlFeeder: self.feederContext.gqlFeeder,
+                              feedbackType: feedbackType) { didSend in
+      print("Feedback send? \(didSend)")
+      self.isErrorReporting = false
     }
+  }
   
   func reportFatalError(err: Log.Message) {
     guard !isErrorReporting else { return }
@@ -140,27 +146,32 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
     if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
-//    let logView = viewLogger.logView
-    let actions: [UIAlertAction] = [
-      Alert.action("Fehlerbericht senden") {_ in self.errorReportActivated(sender) },
+    var actions: [UIAlertAction] = [
+      Alert.action("Feedback senden") {_ in self.showFeedbackErrorReport(.feedback) },
+      Alert.action("Fehlerbericht senden") {_ in self.showFeedbackErrorReport(.error) },
       Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
-      Alert.action("Kundendaten löschen") {_ in self.deleteUserData() },
-      Alert.action("Abo-Verknüpfung löschen") {_ in self.unlinkSubscriptionId() },
-      Alert.action("Abo-Push anfordern") {_ in self.testNotification(type: NotificationType.subscription) },
-      Alert.action("Download-Push anfordern") {_ in self.testNotification(type: NotificationType.newIssue) },
-//      Alert.action("Protokoll an/aus") {_ in
-//        if logView.isHidden {
-//          self.view.bringSubviewToFront(logView)
-//          logView.scrollToBottom()
-//          logView.isHidden = false
-//        }
-//        else {
-//          self.view.sendSubviewToBack(logView)
-//          logView.isHidden = true
-//        }
-//      }
-    ]
-    Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)",
+      Alert.action("Kundendaten löschen (Abmelden)") {_ in self.deleteUserData() }]
+    
+    if App.isAlpha {
+      actions.append(Alert.action("Abo-Verknüpfung löschen (⍺)") {[weak self] _ in self?.unlinkSubscriptionId() })
+      actions.append(Alert.action("Abo-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
+      actions.append(Alert.action("Download-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
+      actions.append(Alert.action("Protokoll an/aus (⍺)") {[weak self] _ in
+        guard let self = self else { return }
+        let logView = self.viewLogger.logView
+        if logView.isHidden {
+          self.view.bringSubviewToFront(logView)
+          logView.scrollToBottom()
+          logView.isHidden = false
+        }
+        else {
+          self.view.sendSubviewToBack(logView)
+          logView.isHidden = true
+        }
+      })
+    }
+    let userInfo = "\(feederContext.isAuthenticated == false ? "NICHT ANGEMELDET" : "angemeldet" ), gespeicherte taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
+    Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)\n\(userInfo)",
                       actions: actions) { [weak self] in
       self?.threeFingerAlertOpen = false
     }
@@ -168,17 +179,27 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   
   func setupTopMenus() {
     let reportLPress2 = UILongPressGestureRecognizer(target: self,
-        action: #selector(errorReportActivated))
+        action: #selector(twoFingerErrorReportActivated))
     let reportLPress3 = UILongPressGestureRecognizer(target: self,
         action: #selector(threeFingerTouch))
     reportLPress2.numberOfTouchesRequired = 2
     reportLPress3.numberOfTouchesRequired = 3
     
+    
     if let targetView = UIApplication.shared.keyWindow {
+      /// currently never executed due keyWindow was nil when logged in
       targetView.isUserInteractionEnabled = true
       targetView.addGestureRecognizer(reportLPress2)
       targetView.addGestureRecognizer(reportLPress3)
-    } else {
+    }
+    else if let delegate = UIApplication.shared.delegate as? AppDelegate,
+            let targetWindow = delegate.window {
+      /// ...improved version of previous comparrison ...should be standalone!
+      targetWindow.isUserInteractionEnabled = true
+      targetWindow.addGestureRecognizer(reportLPress2)
+      targetWindow.addGestureRecognizer(reportLPress3)
+    }
+    else {
       self.view.isUserInteractionEnabled = true
       self.view.addGestureRecognizer(reportLPress2)
       self.view.addGestureRecognizer(reportLPress3)
@@ -207,7 +228,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       }
       self.pushViewController(introVC, animated: false)
     }
-    feederContext.updateResources()
+    feederContext.updateResources(toVersion: -1)
   }
     
   func startup() {
@@ -227,7 +248,10 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     if !dataPolicyAccepted {
       showIntro() { self.showIssueVC() }
     }
-    else { showIssueVC() }
+    else {
+      feederContext.updateResources(toVersion: -1)
+      showIssueVC()
+    }
   } 
   
   func goingBackground() {
@@ -242,11 +266,16 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
  
   func deleteAll() {
     popToRootViewController(animated: false)
+    feederContext.gqlFeeder.status?.feeds = []
+    feederContext.gqlFeeder.gqlSession?.session.invalidateAndCancel()
+    feederContext.dloader.killAll()
+    ArticleDB.singleton.close()
     /// Remove all content
     for f in Dir.appSupport.scan() {
       debug("remove: \(f)")
       try! FileManager.default.removeItem(atPath: f)
     }
+    log("delete all done successfully")
     exit(0)
   }
   

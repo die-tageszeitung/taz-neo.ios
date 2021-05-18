@@ -266,8 +266,7 @@ open class FeederContext: DoesLog {
   public func updateAuthIfNeeded() {
     //self.isAuthenticated == false
     if self.gqlFeeder.authToken == nil,
-       let storedAuth = SimpleAuthenticator.getUserData().token,
-       storedAuth != nil {
+       let storedAuth = SimpleAuthenticator.getUserData().token {
       self.gqlFeeder.authToken = storedAuth
     }
   }
@@ -450,12 +449,21 @@ open class FeederContext: DoesLog {
     return success
   }
   
+  private var currentFeederErrorReason : FeederError?
+  
   /// Feeder has flagged an error
   func handleFeederError(_ err: FeederError, closure: @escaping ()->()) {
+    //prevent multiple appeariance of the same alert
+    if let curr = currentFeederErrorReason, curr === err {
+      ///not refactor and add closures to alert cause in case of later changes/programming errors may
+      ///lot of similar closure calls added and may result in other errors e.g. multiple times of calling getOwvIssue...
+      log("Closure not added"); return
+    }
+    currentFeederErrorReason = err
     var text = ""
     switch err {
     case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
-    case .expiredAccount: text = "Ihr Abo ist abgelaufen."
+    case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
     case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
     case .unexpectedResponse: 
       Alert.message(title: "Fehler", 
@@ -463,8 +471,22 @@ open class FeederContext: DoesLog {
         exit(0)               
       }
     }
-    DefaultAuthenticator.deleteUserData()
-    Alert.message(title: "Fehler", message: text) { self.authenticate() }
+        
+    if err == .expiredAccount(nil) {
+      DefaultAuthenticator.deleteUserData(.token)
+    }
+    else {
+      DefaultAuthenticator.deleteUserData()
+    }
+    self.gqlFeeder.authToken = nil
+    
+    Alert.message(title: "Fehler", message: text, closure: { [weak self] in
+      ///Do not authenticate here because its not needed here e.g.
+      /// expired account due probeabo, user may not want to auth again
+      /// additionally it makes more problems currently e.g. Overlay may appear and not disappear
+      self?.currentFeederErrorReason = nil
+      closure()
+    })
   }
   
   /**
@@ -556,6 +578,7 @@ open class FeederContext: DoesLog {
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
+  #warning("Ignoring isPages to prevent PDF == nil crash bug on enter app/html issue which was not downloaded yet")
   public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
@@ -568,7 +591,7 @@ open class FeederContext: DoesLog {
     }
     if self.isConnected {
       gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
-                       isPages: isPages) { res in
+                       isPages: true) { res in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)

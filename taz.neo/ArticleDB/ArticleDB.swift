@@ -440,7 +440,7 @@ public final class StoredMoment: Moment, StoredObject {
     }
     set {
       guard let spg = newValue else { return }
-      pr.firstPage = StoredPage.persist(object: spg).pr
+      pr.firstPage = spg.pr
       pr.firstPage?.moment = pr
     }
   }
@@ -934,6 +934,15 @@ extension PersistentFrame: PersistentObject {}
 /// A stored Frame
 public final class StoredFrame: Frame, StoredObject {
   
+  @discardableResult
+  public static func persist(object: Frame, relatedPage: StoredPage) -> StoredFrame {
+    var storedRecord: StoredFrame
+    if let tmp = get(object: object, relatedPage: relatedPage) { storedRecord = tmp }
+    else { storedRecord = new() }
+    storedRecord.update(from: object)
+    return storedRecord
+  }
+  
   public static var entity = "Frame"
   public var pr: PersistentFrame // persistent record
   public var link: String? {
@@ -970,6 +979,24 @@ public final class StoredFrame: Frame, StoredObject {
                                             subpredicates: [p1, p2, p3, p4])
     let res = get(request: request)
     if res.count > 0 { return res[0] }
+    return nil
+  }
+  
+  public static func get(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
+    let epsilon: Float = 0.0001
+    let request = fetchRequest
+    let p1 = NSPredicate(format: "abs(x1 - %f) < %f", object.x1, epsilon)
+    let p2 = NSPredicate(format: "abs(x2 - %f) < %f", object.x2, epsilon)
+    let p3 = NSPredicate(format: "abs(y1 - %f) < %f", object.y1, epsilon)
+    let p4 = NSPredicate(format: "abs(y2 - %f) < %f", object.y2, epsilon)
+    request.predicate = NSCompoundPredicate(type: .and,
+                                            subpredicates: [p1, p2, p3, p4])
+    let res = get(request: request)
+    
+    for sf in res {
+      if relatedPage.pr == sf.pr.page { return sf}
+    }
+
     return nil
   }
   
@@ -1069,6 +1096,9 @@ public final class StoredPage: Page, StoredObject {
 
   /// Overwrite the persistent values
   public func update(from object: Page) {
+    if !(object is GqlPage) {
+      log("Not expecting: \(Swift.type(of:object)) on update Page", logLevel: .Fatal)
+    }
     self.title = object.title
     self.pdf = object.pdf
     self.facsimile = object.facsimile
@@ -1081,7 +1111,7 @@ public final class StoredPage: Page, StoredObject {
         for f in oldFrames { f.delete() }
       }
       for frame in frames {
-        let sf = StoredFrame.persist(object: frame)
+        let sf = StoredFrame.persist(object: frame, relatedPage: self)
         sf.pr.page = self.pr
         sf.pr.order = order
         order += 1

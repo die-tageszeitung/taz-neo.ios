@@ -28,8 +28,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   #warning("Access \"issueCarousel.index!\" may fail, not use force unwrap")
   public var index: Int {
     get { issueCarousel.index! }
-    set { issueCarousel.index = newValue }
+    set { issueCarousel.index = newValue; updateToolbarHomeIcon() }
   }
+  
+  public var safeIndex: Int? { get { return issueCarousel.index }}
+  
   /// The Section view controller
   public var sectionVC: SectionVC?
   /// Is Issue Download in progress?
@@ -64,8 +67,16 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.reset()
   }
   
+  func updateToolbarHomeIcon(){
+    toolbarHomeButton?.buttonView.color
+      = self.safeIndex == 0 && isUp
+      ? Const.Colors.darkSecondaryText.withAlphaComponent(0.2)
+      : Const.Colors.darkSecondaryText.withAlphaComponent(0.9)
+  }
+  
   /// Reset carousel images
   private func resetCarouselImages(isPdf: Bool) {
+    issueCarousel.preventReload = true
     var i = 0
     for issue in issues {
       if let img = feeder.momentImage(issue: issue, isPdf: isPdf) {
@@ -73,6 +84,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         i += 1
       }
     }
+    issueCarousel.preventReload = false
   }
   
   /// Add Issue to carousel
@@ -87,6 +99,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       debug("inserting issue \(issue.date.isoDate()) at \(idx)")
       issues.insert(issue, at: idx)
       issueCarousel.insertIssue(img, at: idx)
+      collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
       if let idx = issueCarousel.index { setLabel(idx: idx) }
       if let date = selectedIssueDate {
         if issue.date <= date { selectedIssueDate = nil }
@@ -120,7 +133,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       OfflineAlert.message(title: "Warnung", message: message)
     }
     
-    if let err = error as? DownloadError {
+    if let err = error as? DownloadError, let err2 = err.enclosedError as? FeederError {
+      feederContext.handleFeederError(err2){}
+    }
+    else if let err = error as? DownloadError {
       if err.handled == false {  showDownloadErrorAlert() }
       self.log(err.enclosedError?.errorText() ?? err.errorText())
     }
@@ -198,7 +214,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Show Issue at a given index, download if necessary
   func showIssue(index givenIndex: Int? = nil, atSection: Int? = nil, 
                          atArticle: Int? = nil) {
-    let index = givenIndex ?? self.index
+    guard let index = givenIndex ?? self.safeIndex else { return }
     func openIssue() {
       //call it later if Offline Alert Presented
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
@@ -426,47 +442,30 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.carouselScrollFromLeft = self.issueCarousel.carousel.scrollFromLeftToRight
       scrollChange = false
     }
-    issueCarousel.addMenuItem(title: "STÖRE MAIN AN/AUS", icon: "arrow.2.circlepath") {   [weak self] _ in
-      guard let self = self else { return }
-      
-      if let timer = self.interruptMainTimer {
-        timer.invalidate()
-        Toast.show("Main Thread Interruprion Stoped")
-        return
-      }
-      self.interruptMainTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
-        /*
-        onMain { [weak self] in
-          self?.log("#> sleep...")
-//          usleep(1000000) //1 second unbenutzbar
-//          usleep(100000) //0.1 second => Ruckelt aber OK
-          usleep(200000) //0.2 second => Ruckelt deutlich, unangenehm
-          self?.log("#>  ..wake up")
-        }
-        */
+    if App.isAlpha {
+      issueCarousel.addMenuItem(title: "STÖRE MAIN AN/AUS", icon: "arrow.2.circlepath") {   [weak self] _ in
+        guard let self = self else { return }
         
-        //0.023 ... ArticleDB Save Duration 5 Times / 1s in a Test
-        //...so test this here:
-        ///=> sorgt auf dem iPhone 12Pro für sichtbare Störungen, Karussel springt beim Scrollen
-        ///scrollen ist nicht mehr geschmeidig!
-        ///wie ist es auf den anderen Devices?
-        ///...mal sehen wie es als Releasebuild, nicht Debug wirkt
-        onMain { usleep(23000) }
-        onMain { usleep(23000) }
-        onMain { usleep(23000) }
-        onMain { usleep(23000) }
-        onMain { usleep(23000) }
-        self.log("...Main Thread Interruprion!")
+        if let timer = self.interruptMainTimer {
+          timer.invalidate()
+          Toast.show("Main Thread Interruprion Stoped")
+          return
+        }
+        self.interruptMainTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
+          onMain { usleep(23000) }
+          onMain { usleep(23000) }
+          onMain { usleep(23000) }
+          onMain { usleep(23000) }
+          onMain { usleep(23000) }
+          self.log("...Main Thread Interruprion!")
+        }
+        
+        if let timer = self.interruptMainTimer {
+          self.log("#>  Enable timer even while user ui interaction ")
+          RunLoop.current.add(timer, forMode: .common)
+        }
+        Toast.show("Main Thread Interruprion started and fire every 2 seconds", .alert)
       }
-      
-      if let timer = self.interruptMainTimer {
-        self.log("#>  Enable timer even while user ui interaction ")
-        RunLoop.current.add(timer, forMode: .common)
-      }
-      
-      
-      
-      Toast.show("Main Thread Interruprion started and fire every 2 seconds", .alert)
     }
      
     Defaults.receive() { [weak self] dnot in
@@ -485,6 +484,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
+      self.updateToolbarHomeIcon()
       self.setLabel(idx: idx, isRotate: true)
       if IssueVC.showAnimations {
         IssueVC.showAnimations = false
@@ -494,6 +494,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.provideOverview()
     }
     Notification.receive("authenticationSucceeded") { notif in
+      ///WARNING: if auth in settings review previous commit to prevent deadlock with "Aktualisiere Daten" Overlay
       self.authenticationSucceededCheckReload()
     }
     Notification.receive(UIApplication.willResignActiveNotification) { _ in
@@ -524,13 +525,19 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       overlay?.maxAlpha = 0.0
     }
         
+//    pickerCtrl.doneHandler = {
+//      self.overlay?.close(animated: true)
+//      self.provideOverview(at: pickerCtrl.selectedDate)
+//    }
+    
     pickerCtrl.doneHandler = {
-      self.overlay?.close(animated: true)
-      self.provideOverview(at: pickerCtrl.selectedDate)
-//      let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
-//      Alert.message(title: "Baustelle",
-//        message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.")
+      let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
+      Alert.message(title: "Baustelle",
+                    message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.") { [weak self] in
+        self?.overlay?.close(animated: true)
+      }
     }
+    
     overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
   
@@ -541,7 +548,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   func updateCarouselForParentSize(_ size:CGSize) {
     let portrait = size.height > 1.2*size.width
-    self.issueCarousel.carousel.relativePageWidth = portrait ? 0.6 : 0.3
+    if Device.isIpad {
+      self.issueCarousel.carousel.relativePageWidth = portrait ? 0.5 : 0.3
+      self.issueCarousel.carousel.maxScale = 1.25
+    }
+    else {
+      self.issueCarousel.carousel.relativePageWidth = portrait ? 0.6 : 0.3
+      self.issueCarousel.carousel.maxScale = 1.3 //default value
+    }
+  
     //ToDo Improve carousel, unfortunately relative spacing is not updateable easyly
     //@see: start iPad in Landscape with 2/3 compare with started in 1/3 and increased to 2/3
     //will see missing space between cells
@@ -549,6 +564,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     // ToDo discuss the cell Appeareance and cell size
 //    self.issueCarousel.carousel.relativeSpacing = portrait ? 0.12 : 0.14
     self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
+    self.issueCarousel.carousel.updateLayout()
   }
   
   public override func viewDidAppear(_ animated: Bool) {

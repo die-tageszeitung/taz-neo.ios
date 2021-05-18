@@ -61,7 +61,7 @@ public struct Const {
       static let CTSection = darkSecondaryText
       static let CTArticle = UIColor.rgb(0xacace0)
       static let CTDate = UIColor.white
-      static let HBackground = darkSecondaryBG
+      static let HBackground = UIColor.black
       static let HText = darkSecondaryText
       static let ForegroundLight = UIColor.darkGray
       static let ForegroundHeavy = UIColor.lightGray
@@ -198,7 +198,7 @@ public struct Const {
         case .CTDate:
           return (UIColor.black, UIColor.white,nil,nil)
         case .HBackground:
-          return (UIColor.white, Const.Colors.darkSecondaryBG,nil,nil)
+          return (UIColor.white,UIColor.black,nil,nil)
         case .HText:
           return (UIColor.black, Const.Colors.darkSecondaryText,nil,nil)
         case .Test://Rainbow: use to test Light/Darkmode with lightHigh & darkHigh

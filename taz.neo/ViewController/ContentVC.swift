@@ -49,103 +49,6 @@ public class ContentUrl: WebViewUrl, DoesLog {
   
 } // ContentUrl
 
-/// The ContentToolBar consists of a ToolBar and an encompassing view to position
-/// the toolbar with enough distance to the bottom safe area
-open class ContentToolbar: UIView {
-  
-  static let ToolbarHeight: CGFloat = 52
-  private var toolbar = Toolbar()
-  private(set) var heightConstraint: NSLayoutConstraint?
-
-  public var totalHeight: CGFloat {
-    return ContentToolbar.ToolbarHeight + UIWindow.bottomInset
-  }
-  
-  public override var backgroundColor: UIColor? {
-    didSet { toolbar.backgroundColor = self.backgroundColor }
-  }
-  
-  /// alpha for transluent color of the whole Toolbar Area
-  /// needed to ensure Home Indicator has same Background like Toolbar above
-  public var translucentAlpha: CGFloat {
-    get { return toolbar.translucentAlpha }
-    set { toolbar.translucentAlpha = newValue }
-  }
-  
-  public var translucentColor: UIColor {
-    get { return toolbar.translucentColor }
-    set { toolbar.translucentColor = newValue }
-  }
-  
-  public override init(frame: CGRect) {
-    super.init(frame: frame)
-    addSubview(toolbar)
-    pin(toolbar.top, to: self.top)
-    pin(toolbar.left, to: self.left)
-    pin(toolbar.right, to: self.right)
-    toolbar.pinHeight(ContentToolbar.ToolbarHeight)
-    toolbar.createBars(2)
-    self.clipsToBounds = true
-  }
-  
-  required public init?(coder: NSCoder) {
-    super.init(coder: coder)
-  }
-  
-  public func pinTo(_ view: UIView) {
-    view.addSubview(self)
-    pin(self.left, to: view.left)
-    pin(self.right, to: view.right)
-    pin(self.bottom, to: view.bottom)
-    heightConstraint = self.pinHeight(totalHeight)
-  }
-  
-  public func hide(_ isHide: Bool = true) {
-    if isHide {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.isActive = false
-        self?.heightConstraint = self?.pinHeight(0)
-        self?.layoutIfNeeded()
-      }
-    }
-    else {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.isActive = false
-        self?.heightConstraint = self?.pinHeight(self!.totalHeight)
-        self?.layoutIfNeeded()
-      }   
-    }
-  }
-  
-  public func addButton(_ button: ButtonControl, direction: Toolbar.Direction) {
-    toolbar.addButton(button, direction: direction)
-  }
-  
-  public func addArticleButton(_ button: ButtonControl, direction: Toolbar.Direction) {
-    toolbar.addButton(button, direction: direction, at: 1)
-  }
-  
-  public func addSectionButton(_ button: ButtonControl, direction: Toolbar.Direction) {
-    toolbar.addButton(button, direction: direction, at: 0)
-  }
-  
-  func setArticleBar() { toolbar.bar = 1 }
-  func setSectionBar() { toolbar.bar = 0 }
-  
-  public func setButtonColor(_ color: UIColor) { toolbar.setButtonColor(color) }
-  
-  public func setActiveButtonColor(_ color: UIColor) {
-    toolbar.setActiveButtonColor(color)
-  }
-  
-  public func applyDefaultTazSyle() {
-    self.setButtonColor(Const.Colors.iOSDark.secondaryLabel)
-    self.setActiveButtonColor(Const.Colors.ciColor)
-    self.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
-    self.translucentAlpha = 0.0
-  }
-}
-
 // MARK: - ContentVC
 /**
  A ContentVC is a view controller that displays an array of Articles or Sections 
@@ -373,13 +276,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.textSettingsClosure?(self)
     }
-    backButton.pinSize(CGSize(width: 50, height: 50))
+    backButton.pinSize(CGSize(width: 46, height: 50))
     shareButton.pinSize(CGSize(width: 50, height: 50))
     textSettingsButton.pinSize(CGSize(width: 50, height: 50))
 //    playButton.pinSize(CGSize(width: 40, height: 40))
     homeButton.pinSize(CGSize(width: 50, height: 50))
     
     backButton.buttonView.name = "arrowLeft"
+    backButton.buttonView.imageView.contentMode = .right
     shareButton.buttonView.name = "share"
     textSettingsButton.buttonView.name = "textSettings"
 //    playButton.buttonView.name = "audio"
@@ -419,14 +323,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewDidLoad()
     writeTazApiCss()
     writeTazApiJs()
+    header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
+    setupSlider()
     setupSettingsBottomSheet()
     setupToolbar()
-    header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.hide(); self?.header.hide(true) }
       else { self?.toolBar.hide(false); self?.header.hide(false) }
     }
-    setupSlider()
     
     let path = feeder.issueDir(issue: issue).path
     let curls: [ContentUrl] = contents.map { cnt in
@@ -453,15 +357,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.button.layer.shadowOpacity = 0.25
     slider?.button.layer.shadowOffset = CGSize(width: 2, height: 2)
     slider?.button.layer.shadowRadius = 4
+    slider?.button.layer.shadowColor = UIColor.black.cgColor
     header.leftIndent = 8 + (slider?.visibleButtonWidth ?? 0.0)
   }
   
   public func applyStyles() {
-    slider?.button.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
     settingsBottomSheet?.color = Const.SetColor.ios(.secondarySystemBackground).color
     settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
-    self.collectionView?.backgroundColor = Const.SetColor.CTBackground.color
-    self.view.backgroundColor = Const.SetColor.CTBackground.color
+    self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
+    self.view.backgroundColor = Const.SetColor.HBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     writeTazApiCss{
       super.reloadAllWebViews()
@@ -474,8 +378,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    self.collectionView?.backgroundColor = Const.SetColor.CTBackground.color
-    self.view.backgroundColor = Const.SetColor.CTBackground.color
+    self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
+    self.view.backgroundColor = Const.SetColor.HBackground.color
   }
   
   override public func viewWillDisappear(_ animated: Bool) {

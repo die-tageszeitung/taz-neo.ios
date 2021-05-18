@@ -38,6 +38,7 @@ public class FeedbackViewController : UIViewController{
   var deviceData: DeviceData?
   var gqlFeeder: GqlFeeder?
   var closeClosure: (() -> ())?
+  var requestCancel: (() -> ())?
   
   public var feedbackView : FeedbackView?
   
@@ -86,6 +87,7 @@ public class FeedbackViewController : UIViewController{
     self.logData = nil
     self.gqlFeeder = nil
     self.closeClosure = nil
+    self.requestCancel = nil
   }
   
   required init?(coder: NSCoder) {
@@ -97,6 +99,9 @@ public class FeedbackViewController : UIViewController{
     guard let feedbackView = self.feedbackView else { return; }
     //didSet not called in init, so set the button`s image here
     feedbackView.screenshotAttachmentButton.image = screenshot
+    feedbackView.cancelButton.addTarget(self,
+                                        action: #selector(handleCancel),
+                                        for: .touchUpInside)
     
     if let img = screenshot, img.size.height > 0, img.size.width > 0 {
       feedbackView.logAttachmentButton.pinWidth(feedbackView.attachmentButtonHeight * img.size.width / img.size.height, priority: .required)
@@ -122,6 +127,10 @@ public class FeedbackViewController : UIViewController{
     feedbackView.sendButton.addTarget(self,
                                       action: #selector(handleSend),
                                       for: .touchUpInside)
+  }
+  
+  @objc func handleCancel(){
+    requestCancel?()
   }
   
   //MARK: handleSend()

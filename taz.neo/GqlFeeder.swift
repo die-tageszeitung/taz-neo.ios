@@ -398,6 +398,8 @@ class GqlIssue: Issue, GQLObject {
   var lastSection: Int? { get { return nil } set {} }
   /// Not used in GqlIssue
   var lastArticle: Int? { get { return nil } set {} }
+  /// Not used in GqlIssue
+  var lastPage: Int?  { get { return nil } set {} }
   var gqlPayload: GqlPayload? = nil
   var payload: Payload { return gqlPayload! }
   
@@ -839,7 +841,10 @@ open class GqlFeeder: Feeder, DoesLog {
       case .success(let frq):  
         let req = frq["feedRequest"]!
         if wasAuthenticated {
-          if req.authInfo.status != .valid {
+          if req.authInfo.status == .expired {
+            ret = .failure(FeederError.expiredAccount(req.authInfo.message))
+          }
+          else if req.authInfo.status != .valid {
             ret = .failure(FeederError.changedAccount(req.authInfo.message))
           }
         }
@@ -863,23 +868,23 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
   
-  // Get Issue
-  public func issue(feed: Feed, date: Date? = nil, key: String? = nil,
-                    isPages: Bool = false,
-                    closure: @escaping(Result<Issue,Error>)->()) { 
-    issues(feed: feed, date: date, key: key, count: 1, isOverview: false,
-           isPages: isPages) { res in
-      if let issues = res.value() {
-        if issues.count > 0 { closure(.success(issues[0])) }
-        else { 
-          closure(.failure(FeederError.unexpectedResponse(
-            "Server didn't return issues")))
-        }
-      }
-      else { closure(.failure(res.error()!)) }
-    }
-  }
-    
+//  // Get Issue
+//  public func issue(feed: Feed, date: Date? = nil, key: String? = nil,
+//                    isPages: Bool = false,
+//                    closure: @escaping(Result<Issue,Error>)->()) { 
+//    issues(feed: feed, date: date, key: key, count: 1, isOverview: false,
+//           isPages: isPages) { res in
+//      if let issues = res.value() {
+//        if issues.count > 0 { closure(.success(issues[0])) }
+//        else { 
+//          closure(.failure(FeederError.unexpectedResponse(
+//            "Server didn't return issues")))
+//        }
+//      }
+//      else { closure(.failure(res.error()!)) }
+//    }
+//  }
+//    
   /// Signal server that download has been started
   public func startDownload(feed: Feed, issue: Issue, isPush: Bool,
                             closure: @escaping(Result<String,Error>)->()) {

@@ -82,7 +82,7 @@ public protocol Authenticator: DoesLog {
   /**
    Use this method to delete authentication relevant user data
    */
-  static func deleteUserData()
+  static func deleteUserData(_ properties: StoredProperty...)
 
 } // Authenticator 
 
@@ -113,16 +113,39 @@ extension Authenticator {
     if did == nil { dfl["id"] = kid }
     if dtoken == nil { dfl["token"] = ktoken }
     return (id: did, password: kc["password"], token: dtoken)
-  } 
+  }
   
-  public static func deleteUserData() {
+  /// deletes all stored User Data or selected Userdata
+  
+  /// deletes all stored User Data or selected Userdata
+  /// - Parameter properties: limit to properties which schould be deleted
+  /// e.g. .token, just for current auth Info
+  public static func deleteUserData(_ properties: StoredProperty...){
     let dfl = Defaults.singleton
     let kc = Keychain.singleton
-    kc["token"] = nil
-    kc["id"] = nil
-    kc["password"] = nil
-    dfl["token"] = nil
-    dfl["id"] = nil
-  }
 
+    if properties.count == 0 {
+      kc["token"] = nil
+      kc["id"] = nil
+      kc["password"] = nil
+      dfl["token"] = nil
+      dfl["id"] = nil
+      return
+    }
+    
+    for property in properties {
+      switch property {
+        case .pass:
+          kc["password"] = nil
+        case .token:
+          kc["token"] = nil
+          dfl["token"] = nil
+        case .tazId:
+          kc["id"] = nil
+          dfl["id"] = nil
+      }
+    }
+  }
 } // Authenticator extension
+
+public enum StoredProperty:Int, CaseIterable { case tazId, pass, token}

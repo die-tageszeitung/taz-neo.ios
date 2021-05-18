@@ -12,7 +12,7 @@ import PDFKit
 /**
  Errors a Feeder may encounter
  */
-public enum FeederError: SimpleError {
+public enum FeederError: SimpleError, Equatable {
   case invalidAccount(String?)
   case expiredAccount(String?)
   case changedAccount(String?)
@@ -31,6 +31,52 @@ public enum FeederError: SimpleError {
     }
   }    
   public var errorDescription: String? { return description }
+  
+  public var associatedValue: String? {
+    switch self {
+      case .invalidAccount(let msg): return msg
+      case .expiredAccount(let msg): return msg
+      case .changedAccount(let msg): return msg
+      case .unexpectedResponse(let msg): return msg
+    }
+  }
+  
+  public var expiredAccountDate: Date? {
+    switch self {
+      case .expiredAccount(let msg):
+        guard let msg = msg else { return nil }
+        return UsTime(iso:msg).date
+      default: return nil
+    }
+  }
+  
+  public static func === (lhs: Self, rhs: Self) -> Bool {
+    switch (lhs, rhs) {
+      case (let .invalidAccount(lhsString), let .invalidAccount(rhsString)):
+        return lhsString == rhsString
+      case (let .expiredAccount(lhsString), let .expiredAccount(rhsString)):
+        return lhsString == rhsString
+      case (let .changedAccount(lhsString), let .changedAccount(rhsString)):
+        return lhsString == rhsString
+      case (let .unexpectedResponse(lhsString), let .unexpectedResponse(rhsString)):
+        return lhsString == rhsString
+      default:
+        return false
+    }
+  }
+  
+  public static func == (lhs: Self, rhs: Self) -> Bool {
+    switch (lhs, rhs) {
+      case (.invalidAccount(_), .invalidAccount(_)): fallthrough
+      case (.expiredAccount(_), .expiredAccount(_)): fallthrough
+      case (.changedAccount(_), .changedAccount(_)): fallthrough
+      case (.unexpectedResponse(_), .unexpectedResponse(_)):
+        return true
+      default:
+        return false
+    }
+  }
+  
 } // FeederError
 
 struct AuthStatusError: Swift.Error {
@@ -623,6 +669,8 @@ public protocol Issue: ToString, AnyObject {
   var lastSection: Int? { get set }
   /// Last Article read (if nil, then only use lastSection)
   var lastArticle: Int? { get set }
+  /// Last Article read (if nil, then only use lastSection)
+  var lastPage: Int? { get set }
   /// Payload of files
   var payload: Payload { get }
 }

@@ -11,17 +11,19 @@ import NorthLib
 
 public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   
-  public let imageView = UIImageView()
+  public let momentView = MomentView()
   public let button = DownloadStatusButton()
   let buttonHeight:CGFloat = 30.0
   let buttonOffset:CGFloat = 3.0
   
   var menu:ContextMenu?
   
-  public var observer : NSObjectProtocol?
+  public var issue : Issue? {  didSet { update() } }
+  
+  var observer : NSObjectProtocol?
  
   public override func prepareForReuse() {
-    self.imageView.image = nil
+    self.momentView.image = nil
     self.observer = nil
     self.button.startHandler = nil
     self.button.startHandler = nil
@@ -38,13 +40,13 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
      - was also build with same xcode version/ios sdk
      issue did not disappear if deployment target is set back to 11.4
      */
-    imageView.backgroundColor = .black
-    imageView.contentMode = .scaleAspectFit
-    menu = ContextMenu(view: imageView)
+//    momentView.backgroundColor = .black
+//    momentView.contentMode = .scaleAspectFit
+    menu = ContextMenu(view: momentView)
     
-    contentView.addSubview(imageView)
-    pin(imageView, to: contentView, exclude: .bottom)
-    pin(imageView.bottom,
+    contentView.addSubview(momentView)
+    pin(momentView, to: contentView, exclude: .bottom)
+    pin(momentView.bottom,
         to: contentView.bottom,
         dist: -buttonHeight-buttonOffset,
         priority: .defaultHigh)
@@ -52,18 +54,50 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     contentView.addSubview(button)
     pin(button, to: contentView, exclude: .top)
     button.pinHeight(buttonHeight)
-    pin(button.topGuide(), to: imageView.bottomGuide(), dist: buttonOffset, priority: .fittingSizeLevel)
+    pin(button.topGuide(), to: momentView.bottomGuide(), dist: buttonOffset, priority: .fittingSizeLevel)
     button.tintColor = Const.Colors.darkSecondaryText
     //not use cloud image from assets due huge padding
     //button.cloudImage = UIImage(named: "download")
     button.setTitleColor(Const.Colors.darkSecondaryText, for: .normal)
+    button.titleLabel?.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
+    
+    self.observer = Notification.receive("issueProgress", closure: {   [weak self] notif in
+      guard let self = self else { return }
+      if (notif.object as? Issue)?.date != self.issue?.date { return }
+      if let (loaded,total) = notif.content as? (Int64,Int64) {
+        let percent = Float(loaded)/Float(total)
+        if percent > 0.05 {
+          self.button.downloadState = .process
+          self.button.percent = percent
+        }
+        if percent == 1.0 {  self.momentView.isActivity = false }
+      }
+    })
   }
   
-  public var text : String? {
-    didSet {
-      button.setTitle(text, for: .normal)
+  private func update(){
+    button.startHandler = nil
+    button.stopHandler = nil
+    
+    guard let issue = issue else { return }
+    
+    let title = UIWindow.size.width < 370 ? issue.date.shortest : issue.date.shorter
+    button.setTitle(title, for: .normal)
+    
+    momentView.isActivity = issue.isDownloading
+    
+    if issue.isDownloading {
+      button.downloadState = .waiting
     }
+    else if issue.isComplete {
+      button.downloadState = .done
+    }
+    else {
+      button.downloadState = .notStarted
+    }
+    
   }
+  
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
