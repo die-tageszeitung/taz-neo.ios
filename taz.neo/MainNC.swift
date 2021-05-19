@@ -20,7 +20,6 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   lazy var fileLogger = Log.FileLogger()
   var feederContext: FeederContext!
   let net = NetAvailability()
-  private var preloadIssueVC: IssueVC?
   
   var authenticator: Authenticator? { return feederContext.authenticator }
 
@@ -207,10 +206,9 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     }
   }
 
-  /// show IssueVC
   func showIssueVC() {
     feederContext.setupRemoteNotifications()
-    let ivc = self.preloadIssueVC ?? IssueVC(feederContext: feederContext)
+    let ivc = IssueVC(feederContext: feederContext)
     replaceTopViewController(with: ivc, animated: false)
   }
   
@@ -229,10 +227,6 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
         closure()
       }
       self.pushViewController(introVC, animated: false)
-      onMainAfter(0.3) { [weak self] in
-        guard let self = self else { return }
-        self.feederContext.getOvwIssues(feed: self.feederContext.defaultFeed, count: 20)
-      }
     }
     feederContext.updateResources(toVersion: -1)
   }
