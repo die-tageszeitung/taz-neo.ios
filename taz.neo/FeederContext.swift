@@ -234,8 +234,8 @@ open class FeederContext: DoesLog {
     let dfl = Defaults.singleton
     let oldToken = dfl["pushToken"]
     pushToken = oldToken
-    nd.onReceivePush { (pn, payload) in
-      self.debug(payload.toString())
+    nd.onReceivePush {   [weak self] (pn, payload) in
+      self?.processPushNotification(pn: pn, payload: payload)
     }
     nd.permitPush { pn in
       if pn.isPermitted { 
@@ -254,6 +254,19 @@ open class FeederContext: DoesLog {
           if let err = res.error() { self.error(err) }
         }
       }
+    }
+  }
+  
+  func processPushNotification(pn: PushNotification, payload: PushNotification.Payload){
+    self.debug(payload.toString())
+    if payload.custom["refresh"] as? String == "subscriptionPoll",
+       self.isAuthenticated == false{
+        authenticator.pollSubscription(){_ in}
+    } else {
+      #warning("PUSH NOTIFICATION CONTENT CLEARTEXT WILL BE SHOWN ON SCREEN")
+      #warning("TODO: Remove this for Next Release")
+      #warning("@Ringo Remove this for Next Release")
+      Toast.show("Recived Push Notification with Refresh Info: \(payload.custom["refresh"] ?? "-")")
     }
   }
   
