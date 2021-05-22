@@ -133,10 +133,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
   }
   
+  /// pageReady is called when the WebView is ready rendering its contents
+  private func pageReady(percentSeen: Int, position: Int) {
+    debug("Page Ready: index: \(self.index!), percentSeen: \(percentSeen), position: \(position)")
+  }
+  
   /// Setup JS bridge
   private func setupBridge() {
     self.bridge = JSBridgeObject(name: "tazApi")
-    self.bridge?.addfunc("openImage") {   [weak self] jscall in
+    self.bridge?.addfunc("openImage") { [weak self] jscall in
       guard let self = self else { return NSNull() }
       if let args = jscall.args, args.count > 0,
          let img = args[0] as? String {
@@ -161,6 +166,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
+    self.bridge?.addfunc("pageReady") { [weak self] jscall in
+      guard let self = self else { return NSNull() }
+      if let args = jscall.args, args.count > 1,
+         let sPrecentSeen = args[0] as? String,
+         let percentSeen = Int(sPrecentSeen),
+         let sPosition = args[1] as? String,
+         let position = Int(sPosition) {
+        self.pageReady(percentSeen: percentSeen, position: position)
+      }
+      return NSNull()
+    }
   }
   
   /// Write tazApi.js to resource directory
@@ -169,7 +185,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let apiJs = """
       var tazApi = new NativeBridge("tazApi");
       tazApi.openUrl = function (url) { window.location.href = url };
-      tazApi.openImage = function (url) { tazApi.call("openImage", undefined, url) };
+      tazApi.openImage = function (url) {
+        tazApi.call("openImage", undefined, url)
+      };
+      tazApi.pageReady = function (percentSeen, position, npages) {
+        tazApi.call("pageReady", undefined, percentSeen, position, npages);
+      };
     """
     tazApiJs.string = JSBridgeObject.js + apiJs
   }
