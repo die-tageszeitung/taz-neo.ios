@@ -547,54 +547,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
   
   func updateCarouselForParentSize(_ size:CGSize) {
-    //Fedault values: relativeSpacing = 0.12 // relativePageWidth = 0.6
+    //dault values: relativeSpacing = 0.12 // relativePageWidth = 0.6
+    //using hard coded min Values to fit problematic devices
+    //see git history prev commit for dynamic calculation ideas
     if size.width > size.height {
-      //calculate relativePageWidth depending: cv size, moment ratio, maxScale = 1.3
-      //default h = size.height/1.3
-      //default pw = default h * 0.670219 = 0.670219*size.height/1.3 = 0.51555 *size.height
-      //relPW = default pw/size.width = 0.51555 *size.height / size.width = 0.357
-      self.issueCarousel.carousel.relativePageWidth = 0.279  //0.33/5 = 0,066
-      self.issueCarousel.carousel.relativeSpacing = 0.07  // 0.279+0.07 = ~0.349 ~0.357 ==> unproblematic on iPad Air 4!
+      self.issueCarousel.carousel.relativePageWidth = 0.279
+      self.issueCarousel.carousel.relativeSpacing = 0.07
     }
     else {//use default values
-      self.issueCarousel.carousel.relativePageWidth = 0.6  //0.6/5 = 0.12
+      self.issueCarousel.carousel.relativePageWidth = 0.6
       self.issueCarousel.carousel.relativeSpacing = 0.12
     }
-    self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
-    self.issueCarousel.carousel.updateLayout()
-    
-    return
-    let portrait = size.height > 1.2*size.width
-    print("updateCarouselForParentSize \(size)")
-    /**
-     updateCarouselForParentSize (820.0, 1180.0)
-     updateCarouselForParentSize (1180.0, 820.0)
-     |----------|
-     |[][][]|
-     |----------|
-      relative page width: P 0.6  S: 1.3 => 1 voll 2 angeschnitten  max scale bleibt erhalten!
-     Ratio von Issue ist bekannt:  0.670219
-     relativeSpacing usually 0.12 => muss im querformat ggf neu berechnet werden!
-     relativePageWidth für querformat!
-      h*0.670219 => breite 1 Seite
-      w/ breite 1 Seite => ratio => w/h*1/0.67
-     
-     */
-    if Device.isIpad {
-      self.issueCarousel.carousel.relativeSpacing = portrait ? 0.5 : 0.3//0.22
-      self.issueCarousel.carousel.maxScale = 1.25
-    }
-    else {
-      self.issueCarousel.carousel.relativePageWidth = portrait ? 0.6 : 0.3
-      self.issueCarousel.carousel.maxScale = 1.3 //default value
-    }
-  
-    //ToDo Improve carousel, unfortunately relative spacing is not updateable easyly
-    //@see: start iPad in Landscape with 2/3 compare with started in 1/3 and increased to 2/3
-    //will see missing space between cells
-    // increase the value makes big gaps in some cases
-    // ToDo discuss the cell Appeareance and cell size
-//    self.issueCarousel.carousel.relativeSpacing = portrait ? 0.12 : 0.14
     self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
     self.issueCarousel.carousel.updateLayout()
   }
