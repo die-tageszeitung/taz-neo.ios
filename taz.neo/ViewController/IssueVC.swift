@@ -547,9 +547,41 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
   
   func updateCarouselForParentSize(_ size:CGSize) {
+    //Fedault values: relativeSpacing = 0.12 // relativePageWidth = 0.6
+    if size.width > size.height {
+      //calculate relativePageWidth depending: cv size, moment ratio, maxScale = 1.3
+      //default h = size.height/1.3
+      //default pw = default h * 0.670219 = 0.670219*size.height/1.3 = 0.51555 *size.height
+      //relPW = default pw/size.width = 0.51555 *size.height / size.width = 0.357
+      self.issueCarousel.carousel.relativePageWidth = 0.279  //0.33/5 = 0,066
+      self.issueCarousel.carousel.relativeSpacing = 0.07  // 0.279+0.07 = ~0.349 ~0.357 ==> unproblematic on iPad Air 4!
+    }
+    else {//use default values
+      self.issueCarousel.carousel.relativePageWidth = 0.6  //0.6/5 = 0.12
+      self.issueCarousel.carousel.relativeSpacing = 0.12
+    }
+    self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
+    self.issueCarousel.carousel.updateLayout()
+    
+    return
     let portrait = size.height > 1.2*size.width
+    print("updateCarouselForParentSize \(size)")
+    /**
+     updateCarouselForParentSize (820.0, 1180.0)
+     updateCarouselForParentSize (1180.0, 820.0)
+     |----------|
+     |[][][]|
+     |----------|
+      relative page width: P 0.6  S: 1.3 => 1 voll 2 angeschnitten  max scale bleibt erhalten!
+     Ratio von Issue ist bekannt:  0.670219
+     relativeSpacing usually 0.12 => muss im querformat ggf neu berechnet werden!
+     relativePageWidth für querformat!
+      h*0.670219 => breite 1 Seite
+      w/ breite 1 Seite => ratio => w/h*1/0.67
+     
+     */
     if Device.isIpad {
-      self.issueCarousel.carousel.relativePageWidth = portrait ? 0.5 : 0.3
+      self.issueCarousel.carousel.relativeSpacing = portrait ? 0.5 : 0.3//0.22
       self.issueCarousel.carousel.maxScale = 1.25
     }
     else {
