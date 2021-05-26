@@ -538,7 +538,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
     }
     
-    overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
+    overlay?.open(animated: true, fromBottom: true)
   }
   
   /// Check for new issues only if not in archive mode
