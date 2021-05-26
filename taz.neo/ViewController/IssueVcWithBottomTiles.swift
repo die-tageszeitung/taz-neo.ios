@@ -74,6 +74,9 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   var isUp:Bool = true {
     didSet {
       (self as? IssueVC)?.updateToolbarHomeIcon()
+      if isUp && oldValue == false {
+        (self as? IssueVC)?.updateCarouselForParentSize(self.view.bounds.size)
+      }
     }
   }
   
