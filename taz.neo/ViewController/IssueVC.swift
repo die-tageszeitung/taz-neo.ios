@@ -22,6 +22,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// The IssueCarousel showing the available Issues
   public var issueCarousel = IssueCarousel()
+  /// the spacing between issueCarousel and the Toolbar
+  var issueCarouselLabelHeight: CGFloat = 80
   /// The currently available Issues to show
   ///public var issues: [Issue] = [] ///moved to parent
   /// The center Issue (index into self.issues)
@@ -413,13 +415,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   var interruptMainTimer: Timer?
   
+  
   public override func viewDidLoad() {
     super.viewDidLoad()
     self.headerView.addSubview(issueCarousel)
+    issueCarousel.label.pinHeight(issueCarouselLabelHeight)
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
     pin(issueCarousel.right, to: self.headerView.right)
-    pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(bottomOffset+UIWindow.bottomInset))
+    pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(ContentToolbar.ToolbarHeight+UIWindow.maxAxisInset))
     issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
       self?.showIssue(index: idx, atSection: self?.issue.lastSection, 
@@ -515,7 +519,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if pickerCtrl == nil {
       pickerCtrl = MonthPickerController(minimumDate: fromDate,
                                          maximumDate: toDate,
-                                         selectedDate: toDate)
+                                         selectedDate: toDate,
+                                         tollbarItemColor: Const.Colors.Dark.CTDate)
     }
     guard let pickerCtrl = pickerCtrl else { return }
     
@@ -550,14 +555,20 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     //dault values: relativeSpacing = 0.12 // relativePageWidth = 0.6
     //using hard coded min Values to fit problematic devices
     //see git history prev commit for dynamic calculation ideas
-    if size.width > size.height {
-      self.issueCarousel.carousel.relativePageWidth = 0.279
-      self.issueCarousel.carousel.relativeSpacing = 0.07
-    }
-    else {//use default values
-      self.issueCarousel.carousel.relativePageWidth = 0.6
-      self.issueCarousel.carousel.relativeSpacing = 0.12
-    }
+    // 795x820
+    let aH = size.height
+      - 20 //pin(carousel.top, to: self.top, dist: 20)
+      - UIWindow.verticalInsets
+      - ContentToolbar.ToolbarHeight
+      - issueCarouselLabelHeight
+    let aW = size.width - UIWindow.horizontalInsets
+    let defaultPageRatio:CGFloat = 0.670219
+    let maxZoom:CGFloat = 1.3
+    let maxPageWidth = defaultPageRatio * aH / maxZoom
+    let relPageWidth = maxPageWidth/aW
+    self.issueCarousel.carousel.relativePageWidth = min(0.6, relPageWidth*0.99)
+    self.issueCarousel.carousel.relativeSpacing = min(0.12, 0.15*relPageWidth/0.85)
+
     self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
     self.issueCarousel.carousel.updateLayout()
   }
