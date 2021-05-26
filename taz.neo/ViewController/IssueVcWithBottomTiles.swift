@@ -283,10 +283,10 @@ extension IssueVcWithBottomTiles {
                              layout collectionViewLayout: UICollectionViewLayout,
                              referenceSizeForHeaderInSection section: Int) -> CGSize {
     if section == 0 {
-      return UIScreen.main.bounds.size
+      return UIWindow.size
     }
     else if section == 1 {
-      return CGSize(width: UIScreen.main.bounds.size.width,
+      return CGSize(width: UIWindow.size.width,
                     height: scrollUpButtonAreaHeight)
     }
     return CGSize.zero
@@ -297,7 +297,7 @@ extension IssueVcWithBottomTiles {
                              referenceSizeForFooterInSection section: Int) -> CGSize {
     if section == 1 {
       // for Load More Activvity Indicator View Placeholder
-      return CGSize(width: UIScreen.main.bounds.size.width,
+      return CGSize(width: UIWindow.size.width,
                     height: scrollUpButtonAreaHeight)
     }
     return CGSize.zero
