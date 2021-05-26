@@ -86,12 +86,12 @@ class ConnectTazIdController : FormsController {
               DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
               self.showResultWith(message: Localized("tazid_connect_create_successful_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                  dismissType: .all)
+                                  dismissType: .allReal)
               Notification.send("authenticationSucceeded")
             case .waitForMail:///user need to confirm mail
               self.showResultWith(message: Localized(keyWithFormat: "fragment_login_confirm_email_header", tazId),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                  dismissType: .all)
+                                  dismissType: .allReal)
               self.auth.pollSubscription(tmpId: tazId,
                                          tmpPassword: tazIdPassword,
                                          requestSoon: false,
@@ -115,7 +115,7 @@ class ConnectTazIdController : FormsController {
             case .waitForProc:// AboId not verified, server will confirm later (using push/poll)
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                              dismissType: .all)
+                                              dismissType: .allReal)
               self.auth.pollSubscription(tmpId: tazId,
                                          tmpPassword: tazIdPassword,
                                          requestSoon: true,
