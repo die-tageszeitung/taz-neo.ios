@@ -258,15 +258,15 @@ open class FeederContext: DoesLog {
   }
   
   func processPushNotification(pn: PushNotification, payload: PushNotification.Payload){
-    self.debug(payload.toString())
-    if payload.custom["refresh"] as? String == "subscriptionPoll",
-       self.isAuthenticated == false{
+    switch payload.notificationType {
+      case .subscription:
         authenticator.pollSubscription(){_ in}
-    } else {
-      #warning("PUSH NOTIFICATION CONTENT CLEARTEXT WILL BE SHOWN ON SCREEN")
-      #warning("TODO: Remove this for Next Release")
-      #warning("@Ringo Remove this for Next Release")
-      Toast.show("Recived Push Notification with Refresh Info: \(payload.custom["refresh"] ?? "-")")
+      case .newIssue:
+        //not using checkForNew Issues see its warning!
+        //count 1 not working: 
+        self.getOvwIssues(feed: self.defaultFeed, count: 1)
+      default:
+        self.debug(payload.toString())
     }
   }
   
@@ -706,3 +706,21 @@ open class FeederContext: DoesLog {
   }
 
 } // FeederContext
+
+
+extension PushNotification.Payload {
+  public var notificationType: NotificationType? {
+    get {
+      guard let data = self.custom["data"] as? [AnyHashable:Any] else { return nil }
+      for case let (key, value) as (String, String) in data {
+        if key == "perform" && value == "subscriptionPoll" {
+          return NotificationType.subscription
+        }
+        else if key == "refresh" && value == "aboPoll" {
+          return NotificationType.newIssue
+        }
+      }
+      return nil
+    }
+  }
+}
