@@ -516,6 +516,7 @@ open class FeederContext: DoesLog {
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       if self.isConnected {
+        #warning("@Norbert: Why is this: >>count: max(count, 20), << instead of default value of 20 in signature above? // So its not possible to load just the latest issue with this")
         self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: max(count, 20), 
                               isOverview: true, isPages: true) { res in
           if let issues = res.value() {
@@ -569,6 +570,7 @@ open class FeederContext: DoesLog {
       let latestLoaded = UsTime(latest.date)
       let nHours = (now.sec - latestLoaded.sec) / 3600
       if nHours > 6 {
+        #warning("@Norbert: In case of App Install and Login at 6:00pm user cannot see new issue at 8pm due 6h are not over!")
         let ndays = (now.sec - latestLoaded.sec) / (3600*24) + 1
         getOvwIssues(feed: feed, count: Int(ndays))
       }
