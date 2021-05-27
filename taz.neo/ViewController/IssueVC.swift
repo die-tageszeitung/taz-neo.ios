@@ -447,6 +447,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       scrollChange = false
     }
     if App.isAlpha {
+      issueCarousel.addMenuItem(title: "Simulate PN.aboPoll", icon: "arrow.up") {_ in
+        let pnPl = ["data":["refresh":"aboPoll"], "aps":["content-available":1,"sound":nil ]]
+        NotifiedDelegate.singleton.notifier.handleTestRemoteNotification(pnPl)
+      }
+      issueCarousel.addMenuItem(title: "Simulate PN.subscriptionPoll", icon: "arrow.up") {_ in
+        let pnPl = ["data":["perform":"subscriptionPoll"], "aps":["content-available":1,"sound":nil ]]
+        NotifiedDelegate.singleton.notifier.handleTestRemoteNotification(pnPl)
+      }
       issueCarousel.addMenuItem(title: "STÖRE MAIN AN/AUS", icon: "arrow.2.circlepath") {   [weak self] _ in
         guard let self = self else { return }
         
