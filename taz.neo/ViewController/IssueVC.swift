@@ -22,6 +22,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// The IssueCarousel showing the available Issues
   public var issueCarousel = IssueCarousel()
+  
+  /// Process Indicator for empty Carousel
+  var carouselActivityIndicator:UIActivityIndicatorView? = UIActivityIndicatorView(style: .whiteLarge)
+  
   /// the spacing between issueCarousel and the Toolbar
   var issueCarouselLabelHeight: CGFloat = 80
   /// The currently available Issues to show
@@ -97,6 +101,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         if iss.date == issue.date { return }
         if iss.date < issue.date { break }
         idx += 1
+      }
+      if let spinner = carouselActivityIndicator {
+        carouselActivityIndicator = nil
+        spinner.stopAnimating()
+        spinner.removeFromSuperview()
       }
       debug("inserting issue \(issue.date.isoDate()) at \(idx)")
       issues.insert(issue, at: idx)
@@ -514,6 +523,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
       self.goingForeground()
+    }
+    
+    if let spinner = carouselActivityIndicator {
+      self.view.addSubview(spinner)
+      spinner.center()
+      spinner.startAnimating()
     }
     feederContext.getStoredOvwIssues(feed: feed)
     feederContext.getOvwIssues(feed: feed, count: 20)
