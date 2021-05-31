@@ -376,6 +376,22 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     return Defaults.darkMode ?  .lightContent : .default
   }
   
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    updateLayout()
+  }
+  
+  private func updateLayout(_ withAnimatedHide: Bool = true){
+    let idx = self.index
+    if withAnimatedHide { self.collectionView?.hideAnimated() } //optional
+    self.index = 0
+    onMainAfter { [weak self] in
+      self?.collectionView?.collectionViewLayout.invalidateLayout()
+      self?.index = idx
+      if withAnimatedHide { self?.collectionView?.showAnimated() }//optional
+    }
+  }
+  
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
@@ -385,6 +401,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   override public func viewWillDisappear(_ animated: Bool) {
     slider?.hideLeftBackground()
     super.viewWillDisappear(animated)
+    if let svc = self.navigationController?.viewControllers.last as? SectionVC {
+      #warning("ToDo @Ringo")
+      /// use extra param false due showAnimated is probalby early exit because some
+      /// "pop" mechanism already changed vars
+      /// result: without param sectionvc collection view is hidden
+      /// result with false: ugly animation
+      svc.updateLayout(false)//apply rotation if rotated in article vc!
+    }
   }
   
   override public func viewDidDisappear(_ animated: Bool) {
