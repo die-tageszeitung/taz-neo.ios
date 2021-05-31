@@ -502,6 +502,18 @@ open class FeederContext: DoesLog {
     })
   }
   
+  public func getStoredOvwIssues(feed: Feed, count: Int = 10){
+    let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
+    if let sf0 = sfs.first {
+      let sissues = StoredIssue.issuesInFeed(feed: sf0, count: 10)
+      for issue in sissues {
+        if issue.isOvwComplete {
+          self.notify("issueOverview", result: .success(issue))
+        }
+      }
+    }
+  }
+  
   /**
    Get Overview Issues from Feed
    

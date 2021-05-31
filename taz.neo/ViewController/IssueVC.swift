@@ -515,6 +515,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
       self.goingForeground()
     }
+    feederContext.getStoredOvwIssues(feed: feed)
     feederContext.getOvwIssues(feed: feed, count: 20)
   }
   
