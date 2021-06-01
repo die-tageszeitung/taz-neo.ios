@@ -381,14 +381,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     updateLayout()
   }
   
-  private func updateLayout(_ withAnimatedHide: Bool = true){
+  private func updateLayout(){
     let idx = self.index
-    if withAnimatedHide { self.collectionView?.hideAnimated() } //optional
+    self.collectionView?.hideAnimated()
     self.index = 0
     onMainAfter { [weak self] in
       self?.collectionView?.collectionViewLayout.invalidateLayout()
       self?.index = idx
-      if withAnimatedHide { self?.collectionView?.showAnimated() }//optional
+      self?.collectionView?.showAnimated()
     }
   }
   
@@ -402,12 +402,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.hideLeftBackground()
     super.viewWillDisappear(animated)
     if let svc = self.navigationController?.viewControllers.last as? SectionVC {
-      #warning("ToDo @Ringo")
-      /// use extra param false due showAnimated is probalby early exit because some
-      /// "pop" mechanism already changed vars
-      /// result: without param sectionvc collection view is hidden
-      /// result with false: ugly animation
-      svc.updateLayout(false)//apply rotation if rotated in article vc!
+      //cannot use updateLayout due strange side effects
+      svc.view.isHidden = true
+      let sidx = svc.index
+      svc.index = 0
+      svc.collectionView?.collectionViewLayout.invalidateLayout()
+      onMainAfter(0.25){
+        svc.index = sidx
+        svc.view.showAnimated()
+      }
     }
   }
   
