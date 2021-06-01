@@ -354,11 +354,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.image = UIImage.init(named: "logo")
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
-    slider?.button.layer.shadowOpacity = 0.25
-    slider?.button.layer.shadowOffset = CGSize(width: 2, height: 2)
-    slider?.button.layer.shadowRadius = 4
-    slider?.button.layer.shadowColor = UIColor.black.cgColor
     header.leftIndent = 8 + (slider?.visibleButtonWidth ?? 0.0)
+    ///enable shadow for sliderView
+    slider?.sliderView.clipsToBounds = false
   }
   
   public func applyStyles() {
@@ -367,6 +365,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
+    slider?.sliderView.shadow()
+    slider?.button.shadow()
     writeTazApiCss{
       super.reloadAllWebViews()
     }
