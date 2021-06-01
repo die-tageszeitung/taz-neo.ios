@@ -1509,8 +1509,6 @@ public final class StoredIssue: Issue, StoredObject {
   /// Returns the latest (ie. most current) issue stored
   public static func latest(feed: StoredFeed) -> StoredIssue? {
     let issues = issuesInFeed(feed: feed)
-    #warning("@Norbert changed from: if issues.count == 1 { return issues[0] }")
-    ///...otherwise on latest will return nil if more than one is stored
     if issues.count >= 1 { return issues[0] }
     return nil
   }
