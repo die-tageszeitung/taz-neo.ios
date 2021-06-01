@@ -324,9 +324,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     writeTazApiCss()
     writeTazApiJs()
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
+    setupToolbar()
     setupSlider()
     setupSettingsBottomSheet()
-    setupToolbar()
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.hide(); self?.header.hide(true) }
       else { self?.toolBar.hide(false); self?.header.hide(false) }
