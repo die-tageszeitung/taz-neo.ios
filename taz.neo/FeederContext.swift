@@ -578,11 +578,10 @@ open class FeederContext: DoesLog {
     let sfeed = sfs[0]
     if let latest = StoredIssue.latest(feed: sfeed), self.isConnected {
       let now = UsTime.now()
-      let latestLoaded = UsTime(latest.date)
-      let nHours = (now.sec - latestLoaded.sec) / 3600
+      let latestIssueDate = UsTime(latest.date)
+      let nHours = (now.sec - latestIssueDate.sec) / 3600
       if nHours > 6 {
-        #warning("@Norbert: In case of App Install and Login at 6:00pm user cannot see new issue at 8pm due 6h are not over!")
-        let ndays = (now.sec - latestLoaded.sec) / (3600*24) + 1
+        let ndays = (now.sec - latestIssueDate.sec) / (3600*24) + 1
         getOvwIssues(feed: feed, count: Int(ndays))
       }
     }
