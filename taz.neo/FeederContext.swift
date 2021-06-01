@@ -528,6 +528,7 @@ open class FeederContext: DoesLog {
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       if self.isConnected {
+        #warning("@WiP Discussion with beta App! @see getOvwIssues(feed: feed, count: Int(ndays)) should work fine")
         self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: min(count, 20),
                               isOverview: true, isPages: true) { res in
           if let issues = res.value() {
