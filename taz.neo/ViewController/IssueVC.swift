@@ -98,6 +98,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile) {
       var idx = 0
       for iss in issues {
+        #warning("Update Missing!")
         if iss.date == issue.date { return }
         if iss.date < issue.date { break }
         idx += 1

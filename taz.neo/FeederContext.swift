@@ -535,6 +535,9 @@ open class FeederContext: DoesLog {
             for issue in issues {
               let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
               if si.count < 1 { StoredIssue.persist(object: issue) }
+              #warning("Missing Update")///Old App Timestamp!
+              /// What if Overview new MoTime but compleete Issue is in DB and User is in Issue to read!!
+//              if si.first?.moTime != issue.moTime
             }
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
