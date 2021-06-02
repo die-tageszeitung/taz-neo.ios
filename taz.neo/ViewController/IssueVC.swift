@@ -544,8 +544,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if pickerCtrl == nil {
       pickerCtrl = MonthPickerController(minimumDate: fromDate,
                                          maximumDate: toDate,
-                                         selectedDate: toDate,
-                                         tollbarItemColor: Const.Colors.Dark.CTDate)
+                                         selectedDate: toDate)
     }
     guard let pickerCtrl = pickerCtrl else { return }
     
