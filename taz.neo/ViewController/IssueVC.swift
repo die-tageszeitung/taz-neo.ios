@@ -590,7 +590,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let maxPageWidth = defaultPageRatio * aH / maxZoom
     let relPageWidth = maxPageWidth/aW
     self.issueCarousel.carousel.relativePageWidth = min(0.6, relPageWidth*0.99)
-    self.issueCarousel.carousel.relativeSpacing = min(0.12, 0.15*relPageWidth/0.85)
+    self.issueCarousel.carousel.relativeSpacing = min(0.12, 0.2*relPageWidth/0.85)
 
     self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
     self.issueCarousel.carousel.updateLayout()
