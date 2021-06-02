@@ -594,6 +594,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
 
     self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
     self.issueCarousel.carousel.updateLayout()
+    
+    if let idx = safeIndex {
+      self.issueCarousel.carousel.scrollToItem(at: IndexPath(item: idx,
+                                                             section: 0),
+                                               at: .centeredHorizontally,
+                                               animated: false)
+    }
   }
   
   public override func viewDidAppear(_ animated: Bool) {
