@@ -20,11 +20,8 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   
   public var issue : Issue? {  didSet { update() } }
   
-  var observer : NSObjectProtocol?
- 
   public override func prepareForReuse() {
     self.momentView.image = nil
-    self.observer = nil
     self.button.startHandler = nil
     self.button.startHandler = nil
     self.button.setTitle("", for: .normal)
@@ -61,7 +58,7 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     button.setTitleColor(Const.Colors.darkSecondaryText, for: .normal)
     button.titleLabel?.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
     
-    self.observer = Notification.receive("issueProgress", closure: {   [weak self] notif in
+    Notification.receive("issueProgress", closure: {   [weak self] notif in
       guard let self = self else { return }
       if (notif.object as? Issue)?.date != self.issue?.date { return }
       if let (loaded,total) = notif.content as? (Int64,Int64) {
