@@ -24,6 +24,7 @@ public class IssueCarousel: UIView {
   public var carousel = CarouselView()
   // Label for the center image
   private(set) var label = CrossfadeLabel()
+  private(set) var labelWrapper = UIView()
   
   /// Current central image
   public var index: Int? {
@@ -125,14 +126,17 @@ public class IssueCarousel: UIView {
   private func setup() {
     guard carousel.provider == nil else { return }
     self.addSubview(carousel)
-    self.addSubview(label)
+    labelWrapper.addSubview(label)
+    let tc = pin(label, to: labelWrapper, exclude: .bottom).top
+    tc?.constant = 40
+    self.addSubview(labelWrapper)
     pin(carousel.left, to: self.left)
     pin(carousel.right, to: self.right)
-    pin(carousel.bottom, to: label.top)
+    pin(carousel.bottom, to: labelWrapper.top)
     pin(carousel.top, to: self.top, dist: 20)
-    pin(label.bottom, to: self.bottom)
-    pin(label.left, to: self.left, dist: 20)
-    pin(label.right, to: self.right, dist: -20)
+    pin(labelWrapper.bottom, to: self.bottom)
+    pin(labelWrapper.left, to: self.left, dist: 20)
+    pin(labelWrapper.right, to: self.right, dist: -20)
     label.textAlignment = .center
     label.numberOfLines = 1
     label.font = .boldSystemFont(ofSize: 17)

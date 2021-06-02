@@ -27,7 +27,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   var carouselActivityIndicator:UIActivityIndicatorView? = UIActivityIndicatorView(style: .whiteLarge)
   
   /// the spacing between issueCarousel and the Toolbar
-  var issueCarouselLabelHeight: CGFloat = 80
+  var issueCarouselLabelWrapperHeight: CGFloat = 180
   /// The currently available Issues to show
   ///public var issues: [Issue] = [] ///moved to parent
   /// The center Issue (index into self.issues)
@@ -429,11 +429,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public override func viewDidLoad() {
     super.viewDidLoad()
     self.headerView.addSubview(issueCarousel)
-    issueCarousel.label.pinHeight(issueCarouselLabelHeight)
+    issueCarousel.labelWrapper.pinHeight(issueCarouselLabelWrapperHeight)//self sizing!
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
     pin(issueCarousel.right, to: self.headerView.right)
-    pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(ContentToolbar.ToolbarHeight+UIWindow.maxAxisInset))
+    pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(Toolbar.ContentToolbarHeight+UIWindow.maxAxisInset))
     issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
       self?.showIssue(index: idx, atSection: self?.issue.lastSection, 
@@ -566,8 +566,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         self?.overlay?.close(animated: true)
       }
     }
-    
-    overlay?.open(animated: true, fromBottom: true)
+    overlay?.openAnimated(fromView: issueCarousel.labelWrapper, toView: pickerCtrl.content)
   }
   
   /// Check for new issues only if not in archive mode
@@ -583,8 +582,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let aH = size.height
       - 20 //pin(carousel.top, to: self.top, dist: 20)
       - UIWindow.verticalInsets
-      - ContentToolbar.ToolbarHeight
-      - issueCarouselLabelHeight
+      - Toolbar.ContentToolbarHeight
+      - issueCarouselLabelWrapperHeight
     let aW = size.width - UIWindow.horizontalInsets
     let defaultPageRatio:CGFloat = 0.670219
     let maxZoom:CGFloat = 1.3
