@@ -135,7 +135,7 @@ public class IssueCarousel: UIView {
     pin(carousel.bottom, to: labelWrapper.top)
     pin(carousel.top, to: self.top, dist: 20)
     pin(labelWrapper.bottom, to: self.bottom)
-    pin(labelWrapper.width, to: self.width).priority = .defaultHigh
+    pin(labelWrapper.width, to: self.width, priority: .defaultHigh)
     labelWrapper.pinWidth(500.0, relation: .lessThanOrEqual, priority: .required)
     labelWrapper.centerX()
     label.textAlignment = .center
