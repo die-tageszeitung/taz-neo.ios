@@ -280,6 +280,8 @@ public struct Const {
     /// The font to use in content tables
     static func contentTableFont(size: CGFloat) -> UIFont
     { return font(name: contentTableFontName, size: size) }
+    
+    static var contentFont: UIFont = contentFont(size: defaultFontSize)
 
   } // Fonts
   

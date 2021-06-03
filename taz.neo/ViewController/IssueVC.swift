@@ -27,7 +27,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   var carouselActivityIndicator:UIActivityIndicatorView? = UIActivityIndicatorView(style: .whiteLarge)
   
   /// the spacing between issueCarousel and the Toolbar
-  var issueCarouselLabelWrapperHeight: CGFloat = 180
+  var issueCarouselLabelWrapperHeight: CGFloat = 120
   /// The currently available Issues to show
   ///public var issues: [Issue] = [] ///moved to parent
   /// The center Issue (index into self.issues)
@@ -545,6 +545,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       pickerCtrl = MonthPickerController(minimumDate: fromDate,
                                          maximumDate: toDate,
                                          selectedDate: toDate)
+      pickerCtrl?.pickerFont = Const.Fonts.contentFont
     }
     guard let pickerCtrl = pickerCtrl else { return }
     
@@ -566,7 +567,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         self?.overlay?.close(animated: true)
       }
     }
-    overlay?.openAnimated(fromView: issueCarousel.labelWrapper, toView: pickerCtrl.content)
+    ///This fixes the close animation slide away to top ui bug, should be integrated in overlay soon!
+    overlay?.onRequestUpdatedCloseFrame {   [weak self] in
+      guard let self = self else { return .zero}
+      return self.view.getConvertedFrame(self.issueCarousel.label) ?? .zero
+    }
+    overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
   
   /// Check for new issues only if not in archive mode
