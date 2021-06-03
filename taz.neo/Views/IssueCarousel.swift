@@ -135,8 +135,9 @@ public class IssueCarousel: UIView {
     pin(carousel.bottom, to: labelWrapper.top)
     pin(carousel.top, to: self.top, dist: 20)
     pin(labelWrapper.bottom, to: self.bottom)
-    pin(labelWrapper.left, to: self.left, dist: 20)
-    pin(labelWrapper.right, to: self.right, dist: -20)
+    pin(labelWrapper.width, to: self.width).priority = .defaultHigh
+    labelWrapper.pinWidth(500.0, relation: .lessThanOrEqual, priority: .required)
+    labelWrapper.centerX()
     label.textAlignment = .center
     label.numberOfLines = 1
     label.font = .boldSystemFont(ofSize: 17)
