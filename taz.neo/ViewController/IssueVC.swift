@@ -109,9 +109,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         spinner.removeFromSuperview()
       }
       debug("inserting issue \(issue.date.isoDate()) at \(idx)")
-      issues.insert(issue, at: idx)
-      issueCarousel.insertIssue(img, at: idx)
-      collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
+      ///Fix Crash Bug occoured on iOS 12.4 Simulator  ...not happen on 0.9.0 Release on iPhone 6 iOS 12.5.3
+      ///happen after login after restart!
+      collectionView.performBatchUpdates { [weak self] in
+        self?.issues.insert(issue, at: idx)
+        self?.issueCarousel.insertIssue(img, at: idx)
+        self?.collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
+      }
+
       if let idx = issueCarousel.index { setLabel(idx: idx) }
       if let date = selectedIssueDate {
         if issue.date <= date { selectedIssueDate = nil }
