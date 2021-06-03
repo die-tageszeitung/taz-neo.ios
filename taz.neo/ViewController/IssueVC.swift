@@ -22,6 +22,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// The IssueCarousel showing the available Issues
   public var issueCarousel = IssueCarousel()
+  
+  /// Process Indicator for empty Carousel
+  var carouselActivityIndicator:UIActivityIndicatorView? = UIActivityIndicatorView(style: .whiteLarge)
+  
+  /// the spacing between issueCarousel and the Toolbar
+  var issueCarouselLabelWrapperHeight: CGFloat = 180
   /// The currently available Issues to show
   ///public var issues: [Issue] = [] ///moved to parent
   /// The center Issue (index into self.issues)
@@ -92,9 +98,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile) {
       var idx = 0
       for iss in issues {
+        #warning("Update Missing!")
         if iss.date == issue.date { return }
         if iss.date < issue.date { break }
         idx += 1
+      }
+      if let spinner = carouselActivityIndicator {
+        carouselActivityIndicator = nil
+        spinner.stopAnimating()
+        spinner.removeFromSuperview()
       }
       debug("inserting issue \(issue.date.isoDate()) at \(idx)")
       issues.insert(issue, at: idx)
@@ -413,13 +425,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   var interruptMainTimer: Timer?
   
+  
   public override func viewDidLoad() {
     super.viewDidLoad()
     self.headerView.addSubview(issueCarousel)
+    issueCarousel.labelWrapper.pinHeight(issueCarouselLabelWrapperHeight)//self sizing!
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
     pin(issueCarousel.right, to: self.headerView.right)
-    pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(bottomOffset+UIWindow.bottomInset))
+    pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(Toolbar.ContentToolbarHeight+UIWindow.maxAxisInset))
     issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
       self?.showIssue(index: idx, atSection: self?.issue.lastSection, 
@@ -443,6 +457,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       scrollChange = false
     }
     if App.isAlpha {
+      issueCarousel.addMenuItem(title: "Simulate PN.aboPoll", icon: "arrow.up") {_ in
+        let pnPl = ["data":["refresh":"aboPoll"], "aps":["content-available":1,"sound":nil ]]
+        NotifiedDelegate.singleton.notifier.handleTestRemoteNotification(pnPl)
+      }
+      issueCarousel.addMenuItem(title: "Simulate PN.subscriptionPoll", icon: "arrow.up") {_ in
+        let pnPl = ["data":["perform":"subscriptionPoll"], "aps":["content-available":1,"sound":nil ]]
+        NotifiedDelegate.singleton.notifier.handleTestRemoteNotification(pnPl)
+      }
       issueCarousel.addMenuItem(title: "STÖRE MAIN AN/AUS", icon: "arrow.2.circlepath") {   [weak self] _ in
         guard let self = self else { return }
         
@@ -503,6 +525,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
       self.goingForeground()
     }
+    
+    if let spinner = carouselActivityIndicator {
+      self.view.addSubview(spinner)
+      spinner.center()
+      spinner.startAnimating()
+    }
+    feederContext.getStoredOvwIssues(feed: feed)
     feederContext.getOvwIssues(feed: feed, count: 20)
   }
   
@@ -537,8 +566,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         self?.overlay?.close(animated: true)
       }
     }
-    
-    overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
+    overlay?.openAnimated(fromView: issueCarousel.labelWrapper, toView: pickerCtrl.content)
   }
   
   /// Check for new issues only if not in archive mode
@@ -547,24 +575,32 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
   
   func updateCarouselForParentSize(_ size:CGSize) {
-    let portrait = size.height > 1.2*size.width
-    if Device.isIpad {
-      self.issueCarousel.carousel.relativePageWidth = portrait ? 0.5 : 0.3
-      self.issueCarousel.carousel.maxScale = 1.25
-    }
-    else {
-      self.issueCarousel.carousel.relativePageWidth = portrait ? 0.6 : 0.3
-      self.issueCarousel.carousel.maxScale = 1.3 //default value
-    }
-  
-    //ToDo Improve carousel, unfortunately relative spacing is not updateable easyly
-    //@see: start iPad in Landscape with 2/3 compare with started in 1/3 and increased to 2/3
-    //will see missing space between cells
-    // increase the value makes big gaps in some cases
-    // ToDo discuss the cell Appeareance and cell size
-//    self.issueCarousel.carousel.relativeSpacing = portrait ? 0.12 : 0.14
+    //dault values: relativeSpacing = 0.12 // relativePageWidth = 0.6
+    //using hard coded min Values to fit problematic devices
+    //see git history prev commit for dynamic calculation ideas
+    // 795x820
+    let aH = size.height
+      - 20 //pin(carousel.top, to: self.top, dist: 20)
+      - UIWindow.verticalInsets
+      - Toolbar.ContentToolbarHeight
+      - issueCarouselLabelWrapperHeight
+    let aW = size.width - UIWindow.horizontalInsets
+    let defaultPageRatio:CGFloat = 0.670219
+    let maxZoom:CGFloat = 1.3
+    let maxPageWidth = defaultPageRatio * aH / maxZoom
+    let relPageWidth = maxPageWidth/aW
+    self.issueCarousel.carousel.relativePageWidth = min(0.6, relPageWidth*0.99)
+    self.issueCarousel.carousel.relativeSpacing = min(0.12, 0.2*relPageWidth/0.85)
+
     self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
     self.issueCarousel.carousel.updateLayout()
+    
+    if let idx = safeIndex {
+      self.issueCarousel.carousel.scrollToItem(at: IndexPath(item: idx,
+                                                             section: 0),
+                                               at: .centeredHorizontally,
+                                               animated: false)
+    }
   }
   
   public override func viewDidAppear(_ animated: Bool) {

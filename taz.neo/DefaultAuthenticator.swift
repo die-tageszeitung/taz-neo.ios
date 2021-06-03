@@ -171,6 +171,9 @@ public class DefaultAuthenticator: Authenticator {
                 if loginFormVc.presentingViewController == nil {
                   self.firstPresentedAuthController = nil
                   Notification.send("authenticationSucceeded")
+                  onMainAfter {//delay otherwise "Aktualisiere Daten hides this!"
+                    Toast.show("Erfolgreich angemeldet!")//like Android!
+                  }
                   closure(false)//stop polling
                   return;
                 }

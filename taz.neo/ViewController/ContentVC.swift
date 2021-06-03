@@ -324,9 +324,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     writeTazApiCss()
     writeTazApiJs()
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
-    setupSlider()
     setupSettingsBottomSheet()
     setupToolbar()
+    setupSlider()
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.hide(); self?.header.hide(true) }
       else { self?.toolBar.hide(false); self?.header.hide(false) }
@@ -354,11 +354,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.image = UIImage.init(named: "logo")
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
-    slider?.button.layer.shadowOpacity = 0.25
-    slider?.button.layer.shadowOffset = CGSize(width: 2, height: 2)
-    slider?.button.layer.shadowRadius = 4
-    slider?.button.layer.shadowColor = UIColor.black.cgColor
     header.leftIndent = 8 + (slider?.visibleButtonWidth ?? 0.0)
+    ///enable shadow for sliderView
+    slider?.sliderView.clipsToBounds = false
   }
   
   public func applyStyles() {
@@ -367,6 +365,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
+    slider?.sliderView.shadow()
+    slider?.button.shadow()
     writeTazApiCss{
       super.reloadAllWebViews()
     }
@@ -374,6 +374,22 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   open override var preferredStatusBarStyle: UIStatusBarStyle {
     return Defaults.darkMode ?  .lightContent : .default
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    updateLayout()
+  }
+  
+  private func updateLayout(){
+    let idx = self.index
+    self.collectionView?.hideAnimated()
+    self.index = 0
+    onMainAfter { [weak self] in
+      self?.collectionView?.collectionViewLayout.invalidateLayout()
+      self?.index = idx
+      self?.collectionView?.showAnimated()
+    }
   }
   
   override public func viewWillAppear(_ animated: Bool) {
@@ -385,6 +401,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   override public func viewWillDisappear(_ animated: Bool) {
     slider?.hideLeftBackground()
     super.viewWillDisappear(animated)
+    if let svc = self.navigationController?.viewControllers.last as? SectionVC {
+      //cannot use updateLayout due strange side effects
+      svc.view.isHidden = true
+      let sidx = svc.index
+      svc.index = 0
+      svc.collectionView?.collectionViewLayout.invalidateLayout()
+      onMainAfter(0.25){
+        svc.index = sidx
+        svc.view.showAnimated()
+      }
+    }
   }
   
   override public func viewDidDisappear(_ animated: Bool) {

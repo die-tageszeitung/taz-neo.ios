@@ -212,7 +212,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
 
 // MARK: - TazPdfPagesViewController
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
-open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
+open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, UIStyleChangeDelegate{
   
   public var section: Section?
   
@@ -308,6 +308,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     super.init(data: pdfModel)
     
     thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
+    thumbnailController?.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
     thumbnailController?.cellLabelFont = Const.Fonts.titleFont(size: 12)
     thumbnailController?.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
     thumbnailController?.cellLabelLinesCount = 2
@@ -386,21 +387,19 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
     
     setupToolbar()
     setupSlider(sliderContent: thumbnailController)
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
   // MARK: - setupSlider
   func setupSlider(sliderContent:UIViewController){
     slider = ButtonSlider(slider: sliderContent, into: self)
     guard let slider = slider else { return }
+    slider.sliderView.clipsToBounds = false
     slider.image = UIImage.init(named: "logo")
     slider.image?.accessibilityLabel = "Inhalt"
     slider.buttonAlpha = 1.0
     slider.hideButtonOnClose = true
     slider.button.additionalTapOffset = 50
-    slider.button.layer.shadowOpacity = 0.25
-    slider.button.layer.shadowOffset = CGSize(width: 2, height: 2)
-    slider.button.layer.shadowRadius = 4
-    slider.button.layer.shadowColor = UIColor.black.cgColor
     slider.close()
   }
   
@@ -536,6 +535,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate{
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     Notification.send(Const.NotificationNames.articleLoaded)
+  }
+  
+  // MARK: - UIStyleChangeDelegate
+  public func applyStyles() {
+    slider?.sliderView.shadow()
+    slider?.button.shadow()
   }
   
   // MARK: - setupToolbar

@@ -14,12 +14,11 @@ import NorthLib
 /// the toolbar with enough distance to the bottom safe area
 open class ContentToolbar: UIView {
   
-  static let ToolbarHeight: CGFloat = 52
   private var toolbar = Toolbar()
   private(set) var heightConstraint: NSLayoutConstraint?
 
   public var totalHeight: CGFloat {
-    return ContentToolbar.ToolbarHeight + UIWindow.bottomInset
+    return Toolbar.ContentToolbarHeight + UIWindow.bottomInset
   }
   
   public override var backgroundColor: UIColor? {
@@ -44,7 +43,7 @@ open class ContentToolbar: UIView {
     pin(toolbar.top, to: self.top)
     pin(toolbar.left, to: self.left)
     pin(toolbar.right, to: self.right)
-    toolbar.pinHeight(ContentToolbar.ToolbarHeight)
+    toolbar.pinHeight(Toolbar.ContentToolbarHeight)
     toolbar.createBars(2)
     self.clipsToBounds = true
   }

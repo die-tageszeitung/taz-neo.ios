@@ -1509,7 +1509,7 @@ public final class StoredIssue: Issue, StoredObject {
   /// Returns the latest (ie. most current) issue stored
   public static func latest(feed: StoredFeed) -> StoredIssue? {
     let issues = issuesInFeed(feed: feed)
-    if issues.count == 1 { return issues[0] }
+    if issues.count >= 1 { return issues[0] }
     return nil
   }
   
