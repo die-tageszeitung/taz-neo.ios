@@ -26,7 +26,7 @@ class AppDelegate: NotifiedDelegate {
 //    self.window?.rootViewController = WebViewTests()
 //    self.window?.rootViewController = SliderTest()
 //    self.window?.rootViewController = ColorTests()
-//    self.window?.rootViewController = PdfTest()
+//    self.window?.rootViewController = OverlayTest()
 //    self.window?.rootViewController = TazPdfPagesViewController()
     self.window?.makeKeyAndVisible()
     if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {

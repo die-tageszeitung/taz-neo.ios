@@ -128,14 +128,14 @@ public class IssueCarousel: UIView {
     self.addSubview(carousel)
     labelWrapper.addSubview(label)
     let tc = pin(label, to: labelWrapper, exclude: .bottom).top
-    tc?.constant = 40
+    tc?.constant = 20
     self.addSubview(labelWrapper)
     pin(carousel.left, to: self.left)
     pin(carousel.right, to: self.right)
     pin(carousel.bottom, to: labelWrapper.top)
     pin(carousel.top, to: self.top, dist: 20)
     pin(labelWrapper.bottom, to: self.bottom)
-    pin(labelWrapper.width, to: self.width).priority = .defaultHigh
+    pin(labelWrapper.width, to: self.width, priority: .defaultHigh)
     labelWrapper.pinWidth(500.0, relation: .lessThanOrEqual, priority: .required)
     labelWrapper.centerX()
     label.textAlignment = .center

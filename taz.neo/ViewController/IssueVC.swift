@@ -27,7 +27,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   var carouselActivityIndicator:UIActivityIndicatorView? = UIActivityIndicatorView(style: .whiteLarge)
   
   /// the spacing between issueCarousel and the Toolbar
-  var issueCarouselLabelWrapperHeight: CGFloat = 180
+  var issueCarouselLabelWrapperHeight: CGFloat = 120
   /// The currently available Issues to show
   ///public var issues: [Issue] = [] ///moved to parent
   /// The center Issue (index into self.issues)
@@ -109,9 +109,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         spinner.removeFromSuperview()
       }
       debug("inserting issue \(issue.date.isoDate()) at \(idx)")
-      issues.insert(issue, at: idx)
-      issueCarousel.insertIssue(img, at: idx)
-      collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
+      ///Fix Crash Bug occoured on iOS 12.4 Simulator  ...not happen on 0.9.0 Release on iPhone 6 iOS 12.5.3
+      ///happen after login after restart!
+      collectionView.performBatchUpdates { [weak self] in
+        self?.issues.insert(issue, at: idx)
+        self?.issueCarousel.insertIssue(img, at: idx)
+        self?.collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
+      }
+
       if let idx = issueCarousel.index { setLabel(idx: idx) }
       if let date = selectedIssueDate {
         if issue.date <= date { selectedIssueDate = nil }
@@ -545,6 +550,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       pickerCtrl = MonthPickerController(minimumDate: fromDate,
                                          maximumDate: toDate,
                                          selectedDate: toDate)
+      pickerCtrl?.pickerFont = Const.Fonts.contentFont
     }
     guard let pickerCtrl = pickerCtrl else { return }
     
@@ -566,7 +572,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         self?.overlay?.close(animated: true)
       }
     }
-    overlay?.openAnimated(fromView: issueCarousel.labelWrapper, toView: pickerCtrl.content)
+    ///This fixes the close animation slide away to top ui bug, should be integrated in overlay soon!
+    overlay?.onRequestUpdatedCloseFrame {   [weak self] in
+      guard let self = self else { return .zero}
+      return self.view.getConvertedFrame(self.issueCarousel.label) ?? .zero
+    }
+    overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
   
   /// Check for new issues only if not in archive mode
