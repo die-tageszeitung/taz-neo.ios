@@ -522,7 +522,7 @@ class CustomTextView : Padded.TextView{
     self.attributedText = attributedString
     
     heightConstraint = self.pinHeight(10)
-    heightConstraint?.priority = .defaultLow
+    heightConstraint?.priority = .defaultLow///tested: no Problem on iOS 12.4 due view not loaded!
   }
   
   required init?(coder: NSCoder) {

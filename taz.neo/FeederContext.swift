@@ -234,8 +234,8 @@ open class FeederContext: DoesLog {
     let dfl = Defaults.singleton
     let oldToken = dfl["pushToken"]
     pushToken = oldToken
-    nd.onReceivePush { (pn, payload) in
-      self.debug(payload.toString())
+    nd.onReceivePush {   [weak self] (pn, payload) in
+      self?.processPushNotification(pn: pn, payload: payload)
     }
     nd.permitPush { pn in
       if pn.isPermitted { 
@@ -254,6 +254,19 @@ open class FeederContext: DoesLog {
           if let err = res.error() { self.error(err) }
         }
       }
+    }
+  }
+  
+  func processPushNotification(pn: PushNotification, payload: PushNotification.Payload){
+    switch payload.notificationType {
+      case .subscription:
+        authenticator.pollSubscription(){_ in}
+      case .newIssue:
+        //not using checkForNew Issues see its warning!
+        //count 1 not working: 
+        self.getOvwIssues(feed: self.defaultFeed, count: 1)
+      default:
+        self.debug(payload.toString())
     }
   }
   
@@ -489,6 +502,18 @@ open class FeederContext: DoesLog {
     })
   }
   
+  public func getStoredOvwIssues(feed: Feed, count: Int = 10){
+    let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
+    if let sf0 = sfs.first {
+      let sissues = StoredIssue.issuesInFeed(feed: sf0, count: 10)
+      for issue in sissues {
+        if issue.isOvwComplete {
+          self.notify("issueOverview", result: .success(issue))
+        }
+      }
+    }
+  }
+  
   /**
    Get Overview Issues from Feed
    
@@ -503,12 +528,16 @@ open class FeederContext: DoesLog {
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       if self.isConnected {
-        self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: max(count, 20), 
+        #warning("@WiP Discussion with beta App! @see getOvwIssues(feed: feed, count: Int(ndays)) should work fine")
+        self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: min(count, 20),
                               isOverview: true, isPages: true) { res in
           if let issues = res.value() {
             for issue in issues {
               let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
               if si.count < 1 { StoredIssue.persist(object: issue) }
+              #warning("Missing Update")///Old App Timestamp!
+              /// What if Overview new MoTime but compleete Issue is in DB and User is in Issue to read!!
+//              if si.first?.moTime != issue.moTime
             }
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
@@ -553,10 +582,10 @@ open class FeederContext: DoesLog {
     let sfeed = sfs[0]
     if let latest = StoredIssue.latest(feed: sfeed), self.isConnected {
       let now = UsTime.now()
-      let latestLoaded = UsTime(latest.date)
-      let nHours = (now.sec - latestLoaded.sec) / 3600
+      let latestIssueDate = UsTime(latest.date)
+      let nHours = (now.sec - latestIssueDate.sec) / 3600
       if nHours > 6 {
-        let ndays = (now.sec - latestLoaded.sec) / (3600*24) + 1
+        let ndays = (now.sec - latestIssueDate.sec) / (3600*24) + 1
         getOvwIssues(feed: feed, count: Int(ndays))
       }
     }
@@ -693,3 +722,21 @@ open class FeederContext: DoesLog {
   }
 
 } // FeederContext
+
+
+extension PushNotification.Payload {
+  public var notificationType: NotificationType? {
+    get {
+      guard let data = self.custom["data"] as? [AnyHashable:Any] else { return nil }
+      for case let (key, value) as (String, String) in data {
+        if key == "perform" && value == "subscriptionPoll" {
+          return NotificationType.subscription
+        }
+        else if key == "refresh" && value == "aboPoll" {
+          return NotificationType.newIssue
+        }
+      }
+      return nil
+    }
+  }
+}

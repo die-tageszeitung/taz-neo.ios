@@ -280,6 +280,8 @@ public struct Const {
     /// The font to use in content tables
     static func contentTableFont(size: CGFloat) -> UIFont
     { return font(name: contentTableFontName, size: size) }
+    
+    static var contentFont: UIFont = contentFont(size: defaultFontSize)
 
   } // Fonts
   
@@ -306,8 +308,32 @@ public struct Const {
     static let DefaultPadding = UIWindow.size.width < 370 ? CGFloat(13.0) : CGFloat(15.0)
     static let TextFieldPadding = UIWindow.size.width < 370 ? CGFloat(9.0) : CGFloat(10.0)
   }
+  
+  /// Various Shadow values
+  struct Shadow {
+    static let Color = UIColor.black.cgColor
+    static let Offset = CGSize(width: 2, height: 2)
+    static let Radius:CGFloat = 4
+    struct Dark {
+      static let Opacity:Float = 0.75
+    }
+    struct Light {
+      static let Opacity:Float = 0.25
+    }
+  }
+  
 } // Const
 
+public extension UIView {
+  @discardableResult
+  func shadow() -> UIView {
+    self.layer.shadowOpacity = Defaults.darkMode ? Const.Shadow.Dark.Opacity : Const.Shadow.Light.Opacity
+    self.layer.shadowOffset = Const.Shadow.Offset
+    self.layer.shadowRadius = Const.Shadow.Radius
+    self.layer.shadowColor = Const.Shadow.Color
+    return self
+  }
+}
 
 public extension UILabel {
   /// set content font with default font size and return self (for chaining)

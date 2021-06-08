@@ -70,7 +70,7 @@ class TrialSubscriptionController : FormsController {
               /// we are waiting for eMail confirmation (using push/poll)
               self.showResultWith(message: Localized(keyWithFormat: "fragment_login_confirm_email_header", tazId),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                  dismissType: .all)
+                                  dismissType: .allReal)
               self.auth.pollSubscription(tmpId: tazId,
                                          tmpPassword: tazIdPassword,
                                          requestSoon: false,
@@ -86,7 +86,7 @@ class TrialSubscriptionController : FormsController {
               /// valid authentication
               self.showResultWith(message: Localized("trialsubscription_successful_header"),
                                   backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                  dismissType: .all)
+                                  dismissType: .allReal)
               self.auth.pollSubscription(tmpId: tazId,
                                          tmpPassword: tazIdPassword,
                                          requestSoon: false,
@@ -107,7 +107,7 @@ class TrialSubscriptionController : FormsController {
             case .waitForProc:
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Localized("fragment_login_success_login_back_article"),
-                                              dismissType: .all)
+                                              dismissType: .allReal)
               self.auth.pollSubscription(tmpId: tazId,
                                          tmpPassword: tazIdPassword,
                                          requestSoon: true,

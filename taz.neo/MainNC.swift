@@ -227,6 +227,10 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
         closure()
       }
       self.pushViewController(introVC, animated: false)
+      onMainAfter(0.3) { [weak self] in
+        guard let self = self else { return }
+        self.feederContext.getOvwIssues(feed: self.feederContext.defaultFeed, count: 4)
+      }
     }
     feederContext.updateResources(toVersion: -1)
   }

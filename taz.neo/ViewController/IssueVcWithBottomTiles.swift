@@ -35,8 +35,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   private let itemSpacing:CGFloat = UIWindow.shortSide > 320 ? 30.0 : 20.0
   private let lineSpacing:CGFloat = 20.0
   
-  /// header (top section) bottom offset for: app switcher, tabbar, scroll down button
-  let bottomOffset:CGFloat=120
   /// size if the buttons with up/down arrow
   let scrollButtonSize = CGSize(width: 80, height: 30)
   let scrollUpButtonAreaHeight:CGFloat=30
@@ -76,6 +74,9 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   var isUp:Bool = true {
     didSet {
       (self as? IssueVC)?.updateToolbarHomeIcon()
+      if isUp && oldValue == false {
+        (self as? IssueVC)?.updateCarouselForParentSize(self.view.bounds.size)
+      }
     }
   }
   
@@ -285,10 +286,10 @@ extension IssueVcWithBottomTiles {
                              layout collectionViewLayout: UICollectionViewLayout,
                              referenceSizeForHeaderInSection section: Int) -> CGSize {
     if section == 0 {
-      return UIScreen.main.bounds.size
+      return UIWindow.size
     }
     else if section == 1 {
-      return CGSize(width: UIScreen.main.bounds.size.width,
+      return CGSize(width: UIWindow.size.width,
                     height: scrollUpButtonAreaHeight)
     }
     return CGSize.zero
@@ -299,7 +300,7 @@ extension IssueVcWithBottomTiles {
                              referenceSizeForFooterInSection section: Int) -> CGSize {
     if section == 1 {
       // for Load More Activvity Indicator View Placeholder
-      return CGSize(width: UIScreen.main.bounds.size.width,
+      return CGSize(width: UIWindow.size.width,
                     height: scrollUpButtonAreaHeight)
     }
     return CGSize.zero
