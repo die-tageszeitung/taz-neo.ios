@@ -264,9 +264,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   
   @DefaultBool(key: "articleFromPdf")
   public var articleFromPdf: Bool
-  
-  @DefaultBool(key: "fullPdfOnPageSwitch")
-  public var fullPdfOnPageSwitch: Bool
  
   // MARK: - updateMenuItems
   func updateMenuItems(){
@@ -280,15 +277,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         guard let self = self else { return }
         self.articleFromPdf = !self.articleFromPdf
         self.updateMenuItems()
-       }),
-      ("Ganze Seite bei Seitenwechsel",
-       fullPdfOnPageSwitch ? "checkmark" : "",
-       { [weak self] _ in
-        guard let self = self else { return }
-        //DO: if let ziv = self.currentView as? ZoomedImageViewSpec { onMainAfter(0.3){ ziv.invalidateLayout()}}
-        self.fullPdfOnPageSwitch = !self.fullPdfOnPageSwitch
-        self.updateMenuItems()
-      })]
+       })]
     (self.currentView as? ZoomedImageViewSpec)?.menu.menu = self.menuItems
   }
   
@@ -487,30 +476,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
 
   func applyPageLayout(_ ziv:ZoomedImageView){
-    if self.fullPdfOnPageSwitch {
-      //this makes fulpage view
-      /**
-       Idea for full page switch:
-        landscape fit to height
-        portrait fit to width
-       all by invalidate layout
-       remove else...!
-       more adjustments in:
-       zoomedImageView:        updateConstraintsForSize
-       re-calc yOffset to not ignore toolbar
-       may respect scrollViewContentInset @see branch ideasTabbarAndFullPage
-       ..changes here by activecell as zoomes...scrollview...
-       
-       in ZIV: updateConstraintsForSize
-       proof of concept to respect toolbar 2 things: heightscale calc & y (top/bottom) offset
-       */
-      ziv.invalidateLayout()
-    }
-    else {
-      //this is parent's class behaviour and shows 1:1 view
-      ziv.scrollView.setZoomScale(1.0, animated: false)
-      ziv.scrollView.scrollRectToVisible(CGRect(x: 0, y: 0, width: 1, height: 1), animated: false)
-    }
+    ziv.invalidateLayout()
   }
   
   public override func handleRenderFinished(_ success:Bool, _ ziv:ZoomedImageView){
