@@ -470,6 +470,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
           self?.handleRenderFinished(success, ziv)
         }
       }
+      else {
+        //Zoom out on back
+        ziv.invalidateLayout()
+        ziv.scrollView.scrollRectToVisible(CGRect(x: 0, y: 0, width: 1, height: 1), animated: false)
+      }
+
       ziv.whenZoomed {   [weak self] zoomedIn in
         self?.toolBar.hide(zoomedIn)
       }
