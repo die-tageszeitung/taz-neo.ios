@@ -270,8 +270,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
  
   // MARK: - updateMenuItems
   func updateMenuItems(){
+    let artikelansicht = gt_iOS13 ? "Artikelansicht" : articleFromPdf
+                                                     ? "Artikelansicht ausschalten"
+                                                     : "Artikelansicht einschalten"
     self.menuItems = [
-      ("Artikelansicht",
+      (artikelansicht,
        articleFromPdf ? "checkmark" : "",
        { [weak self] _ in
         guard let self = self else { return }
