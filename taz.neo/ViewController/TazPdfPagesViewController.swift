@@ -451,8 +451,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let ziv = optionalView as? ZoomedImageView,
             let pdfImg = ziv.optionalImage as? ZoomedPdfImageSpec else { return }
       ziv.menu.menu = self?.menuItems ?? []
-      ziv.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0,
-                                                 bottom: 52, right: 0)
+      ziv.scrollView.contentInset = .zero //no more need bottom inset
       if ziv.imageView.image == nil
       {
         ziv.optionalImage = pdfImg
