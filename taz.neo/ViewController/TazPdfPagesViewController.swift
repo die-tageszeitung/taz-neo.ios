@@ -264,6 +264,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   
   @DefaultBool(key: "articleFromPdf")
   public var articleFromPdf: Bool
+  
+  @DefaultBool(key: "fullPdfOnPageSwitch")
+  public var fullPdfOnPageSwitch: Bool
  
   // MARK: - updateMenuItems
   func updateMenuItems(){
@@ -277,7 +280,19 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         guard let self = self else { return }
         self.articleFromPdf = !self.articleFromPdf
         self.updateMenuItems()
-       })]
+       }),
+      ("Querformat Seitenwechsel: \(fullPdfOnPageSwitch ? "ganze Seite" : "Seitenbreite")",
+       fullPdfOnPageSwitch ? "arrow.up.and.down.and.arrow.left.and.right" : "arrow.left.and.right.square",
+       { [weak self] _ in
+        guard let self = self else { return }
+        self.fullPdfOnPageSwitch = !self.fullPdfOnPageSwitch
+        self.updateMenuItems()
+        if let ziv = self.currentView as? ZoomedImageView {
+          onMainAfter {   [weak self] in
+            self?.applyPageLayout(ziv)
+          }
+        }
+      })]
     (self.currentView as? ZoomedImageViewSpec)?.menu.menu = self.menuItems
   }
   
@@ -462,9 +477,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         }
       }
       else {
-        //Zoom out on back
-        ziv.invalidateLayout()
-        ziv.scrollView.scrollRectToVisible(CGRect(x: 0, y: 0, width: 1, height: 1), animated: false)
+        self?.applyPageLayout(ziv)
       }
 
       ziv.whenZoomed {   [weak self] zoomedIn in
@@ -475,7 +488,33 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
 
   func applyPageLayout(_ ziv:ZoomedImageView){
-    ziv.invalidateLayout()
+    guard let pdfImg = ziv.optionalImage as? ZoomedPdfImageSpec else {
+      ziv.invalidateLayout()
+      return
+    }
+    
+    if UIWindow.isPortrait, pdfImg.pageType == .double {
+      //isPortrait && double => fitHeight
+      ziv.zoomToFitHeight()
+      
+    }
+    else if UIWindow.isPortrait {
+      //isPortrait && !double => fitWidth
+      ziv.invalidateLayout()
+    }
+    else if self.fullPdfOnPageSwitch {
+      //Landscape && fullPage Setting => fitHeight
+      ziv.zoomToFitHeight()
+    }
+    else if pdfImg.pageType == .double  {
+      //Landscape && !fullPage Setting && double Page => fitWidth of half Page
+      ziv.zoomToFitHalfWidth()
+    }
+    else {
+      //Landscape && !fullPage Setting && single Page => fitWidth
+      ziv.zoomToFitWidth()
+    }
+    ziv.scrollToTopLeft()
   }
   
   public override func handleRenderFinished(_ success:Bool, _ ziv:ZoomedImageView){
