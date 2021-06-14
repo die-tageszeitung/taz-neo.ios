@@ -389,7 +389,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     onDisplay { [weak self]  (idx, oview) in
       self?.issue.lastPage = idx
       ArticleDB.save()
-      print("Display page at index: \(idx)")
     }
     
     setupToolbar()
