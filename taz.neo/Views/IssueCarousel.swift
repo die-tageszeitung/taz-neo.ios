@@ -122,13 +122,15 @@ public class IssueCarousel: UIView {
     issues.firstIndex { $0.issue == moment.image }
   }
   
+  public var labelTopConstraint: NSLayoutConstraint?
+  
   // Define view provider
   private func setup() {
     guard carousel.provider == nil else { return }
     self.addSubview(carousel)
     labelWrapper.addSubview(label)
-    let tc = pin(label, to: labelWrapper, exclude: .bottom).top
-    tc?.constant = 20
+    labelTopConstraint = pin(label, to: labelWrapper, exclude: .bottom).top
+    labelTopConstraint?.constant = 20
     self.addSubview(labelWrapper)
     pin(carousel.left, to: self.left)
     pin(carousel.right, to: self.right)

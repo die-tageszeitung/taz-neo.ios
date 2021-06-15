@@ -612,6 +612,19 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
                                                at: .centeredHorizontally,
                                                animated: false)
     }
+    
+    onMainAfter {
+      if let idx = self.issueCarousel.carousel.index,
+         let moment = self.issueCarousel.carousel.optionalView(at: idx) as? MomentView,
+         let convertedFrame = self.issueCarousel.carousel.getConvertedFrame(moment.imageView),
+         let labelTopConstraint = self.issueCarousel.labelTopConstraint,
+         abs(labelTopConstraint.constant - 20 - convertedFrame.origin.y) > 3 {
+          self.issueCarousel.label.hideAnimated {   [weak self] in
+            labelTopConstraint.constant = 20 - convertedFrame.origin.y
+            self?.issueCarousel.label.showAnimated()
+          }
+      }
+    }
   }
   
   public override func viewDidAppear(_ animated: Bool) {
