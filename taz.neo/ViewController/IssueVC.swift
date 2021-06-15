@@ -585,7 +585,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if !isArchiveMode { feederContext.checkForNewIssues(feed: feed) }
   }
   
-  func updateCarouselForParentSize(_ size:CGSize) {
+  func updateCarouselForParentSize(_ size:CGSize, initial:Bool = false) {
     //dault values: relativeSpacing = 0.12 // relativePageWidth = 0.6
     //using hard coded min Values to fit problematic devices
     //see git history prev commit for dynamic calculation ideas
@@ -613,24 +613,32 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
                                                animated: false)
     }
     
-    onMainAfter {
+    let updateLabelPos = { [weak self] in
+      guard let self = self else { return }
       if let idx = self.issueCarousel.carousel.index,
          let moment = self.issueCarousel.carousel.optionalView(at: idx) as? MomentView,
          let convertedFrame = self.issueCarousel.carousel.getConvertedFrame(moment.imageView),
          let labelTopConstraint = self.issueCarousel.labelTopConstraint,
          abs(labelTopConstraint.constant - 20 - convertedFrame.origin.y) > 3 {
-          self.issueCarousel.label.hideAnimated {   [weak self] in
-            labelTopConstraint.constant = 20 - convertedFrame.origin.y
-            self?.issueCarousel.label.showAnimated()
-          }
+        labelTopConstraint.constant = 20 - convertedFrame.origin.y
       }
     }
+    
+    if initial {
+      self.issueCarousel.label.isHidden = true
+      onMainAfter(0.7) {   [weak self] in
+        guard let self = self else { return }
+        self.issueCarousel.label.showAnimated()
+        updateLabelPos()
+      }
+    }
+    else { onMainAfter { updateLabelPos() }}
   }
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     checkForNewIssues()
-    updateCarouselForParentSize(self.view.bounds.size)
+    updateCarouselForParentSize(self.view.bounds.size, initial: true)
   }
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
