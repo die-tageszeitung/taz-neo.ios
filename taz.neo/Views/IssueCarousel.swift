@@ -135,7 +135,7 @@ public class IssueCarousel: UIView {
     pin(carousel.left, to: self.left)
     pin(carousel.right, to: self.right)
     pin(carousel.bottom, to: labelWrapper.top)
-    pin(carousel.top, to: self.top, dist: 20)
+    pin(carousel.top, to: self.top, dist: 0)
     pin(labelWrapper.bottom, to: self.bottom)
     pin(labelWrapper.width, to: self.width, priority: .defaultHigh)
     labelWrapper.pinWidth(500.0, relation: .lessThanOrEqual, priority: .required)
