@@ -47,7 +47,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public var issueMoments: [Issue]? 
   
   /// Scroll direction (from config defaults)
-  @DefaultBool(key: "carouselScrollFromLeft")
+  @Default(key: "carouselScrollFromLeft")
   public var carouselScrollFromLeft: Bool
 
   /// Perform carousel animations?

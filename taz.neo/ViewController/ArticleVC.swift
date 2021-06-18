@@ -83,6 +83,9 @@ open class ArticleVC: ContentVC {
     whenLinkPressed { [weak self] (from, to) in
       self?.adelegate?.linkPressed(from: from, to: to)
     }
+    whenLoaded {
+      Notification.send(Const.NotificationNames.articleLoaded)
+    }
     header.onTitle { [weak self] _ in
       self?.debug("*** Action: ToSection pressed")
       self?.navigationController?.popViewController(animated: true)
@@ -144,13 +147,6 @@ open class ArticleVC: ContentVC {
     }
   }
 
-  // MARK: WKUIDelegate
-  /// inform AppOverlay reload/navigation finished, remove blocking layer
-  public override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-    super.webView(webView, didFinish: navigation)
-    Notification.send(Const.NotificationNames.articleLoaded)
-  }
- 
 } // ArticleVC
 
 

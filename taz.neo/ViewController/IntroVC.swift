@@ -42,7 +42,7 @@ class IntroVC: UIViewController {
           self.webView.webView.scrollView.isScrollEnabled = false
           self.webView.buttonLabel.text = nil
           self.webView.webView.load(url: intro.url)
-          self.webView.onX { 
+          self.webView.onX { _ in
             Notification.send("dataPolicyAccepted") 
           }
         }

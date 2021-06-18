@@ -89,7 +89,7 @@ class FormsResultController: UIViewController {
   
   var dismissAllFinishedClosure: (()->())?
   
-  @DefaultBool(key: "offerTrialSubscription")
+  @Default(key: "offerTrialSubscription")
   var offerTrialSubscription: Bool
   
   private var messageLabel = Padded.Label(paddingTop: 30, paddingBottom: 15)
@@ -327,7 +327,7 @@ extension FormsController: UITextViewDelegate {
       let introVC = IntroVC()
       introVC.webView.webView.load(url: localResource.url)
       modalFromBottom(introVC)
-      introVC.webView.onX {
+      introVC.webView.onX {_ in 
         introVC.dismiss(animated: true, completion: nil)
       }
       introVC.webView.webView.atEndOfContent {_ in }

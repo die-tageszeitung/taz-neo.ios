@@ -262,10 +262,10 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   var thumbnailController : PdfOverviewCollectionVC?
   var slider:ButtonSlider?
   
-  @DefaultBool(key: "articleFromPdf")
+  @Default(key: "articleFromPdf")
   public var articleFromPdf: Bool
   
-  @DefaultBool(key: "fullPdfOnPageSwitch")
+  @Default(key: "fullPdfOnPageSwitch")
   public var fullPdfOnPageSwitch: Bool
  
   // MARK: - updateMenuItems
