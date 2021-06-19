@@ -209,7 +209,7 @@ open class HeaderView: UIView,  UIStyleChangeDelegate{
     }
   }
   
-  @Default(key: "articleTextSize")
+  @Default("articleTextSize")
    private var articleTextSize: Int {
      didSet{
        print("articleTextSize changed. in header..")

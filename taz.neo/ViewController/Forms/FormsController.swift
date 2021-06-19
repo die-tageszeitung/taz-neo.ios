@@ -89,7 +89,7 @@ class FormsResultController: UIViewController {
   
   var dismissAllFinishedClosure: (()->())?
   
-  @Default(key: "offerTrialSubscription")
+  @Default("offerTrialSubscription")
   var offerTrialSubscription: Bool
   
   private var messageLabel = Padded.Label(paddingTop: 30, paddingBottom: 15)

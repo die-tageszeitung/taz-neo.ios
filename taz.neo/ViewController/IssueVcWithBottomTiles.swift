@@ -14,11 +14,11 @@ import NorthLib
 public class IssueVcWithBottomTiles : UICollectionViewController {
   
   /// should show PDF Info Toast on startup (from config defaults)
-  @Default(key: "showPdfInfoToast")
+  @Default("showPdfInfoToast")
   public var showPdfInfoToast: Bool
   
   /// Are we in facsimile mode
-  @Default(key: "isFacsimile")
+  @Default("isFacsimile")
   public var isFacsimile: Bool
   
   // MARK: - Properties

@@ -17,14 +17,14 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
   /// View responsible for text settings representation
   private var textSettings = TextSettingsView()
   
-  @Default(key: "articleTextSize")
+  @Default("articleTextSize")
   private var articleTextSize: Int
   
   func updateButtonValuesOnOpen(){
     textSettings.textSize = articleTextSize
   }
   
-  @Default(key: "colorMode")
+  @Default("colorMode")
   private var colorMode: String
   
   private func setupButtons() {

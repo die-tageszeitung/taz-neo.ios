@@ -11,7 +11,7 @@ import NorthLib
 
 public class LoginView : FormView{
   
-  @Default(key: "offerTrialSubscription")
+  @Default("offerTrialSubscription")
   var offerTrialSubscription: Bool
   
   var idInput = TazTextField(placeholder: Localized("login_username_hint"),

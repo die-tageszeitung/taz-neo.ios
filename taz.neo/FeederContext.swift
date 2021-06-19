@@ -62,7 +62,7 @@ open class FeederContext: DoesLog {
   public var dloader: Downloader!
   /// netAvailability is used to check for network access to the Feeder
   public var netAvailability: NetAvailability
-  @Default(key: "useMobile")
+  @Default("useMobile")
   public var useMobile: Bool
   /// isConnected returns true if the Feeder is available
   public var isConnected: Bool { 
