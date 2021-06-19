@@ -23,7 +23,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   
   var authenticator: Authenticator? { return feederContext.authenticator }
 
-  @KeyBool(key: "dataPolicyAccepted")
+  @Key("dataPolicyAccepted")
   public var dataPolicyAccepted: Bool
   
   static var singleton: MainNC!
