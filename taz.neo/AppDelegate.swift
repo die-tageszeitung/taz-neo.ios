@@ -28,6 +28,7 @@ class AppDelegate: NotifiedDelegate {
 //    self.window?.rootViewController = ColorTests()
 //    self.window?.rootViewController = OverlayTest()
 //    self.window?.rootViewController = TazPdfPagesViewController()
+//    self.window?.rootViewController = KeychainTest()
     self.window?.makeKeyAndVisible()
     if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
       if shortcutItem.type == "Logging" { wantLogging = true }
