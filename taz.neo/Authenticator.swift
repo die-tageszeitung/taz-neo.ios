@@ -28,7 +28,7 @@ public protocol Authenticator: DoesLog {
   var installationId: String  { get }
   /// Push token for silent notifications (poll request),
   /// if nil => no push permission
-  var pushToken: String? { get}
+  var pushToken: String? { get }
   
   /// Define closure to call when polling is necessary to set up timer
   func whenPollingRequired(closure: @escaping ()->())
@@ -111,11 +111,11 @@ extension Authenticator {
     let ktoken = kc["token"] 
     let dtoken = dfl["token"]
     if did == nil { dfl["id"] = kid }
+    if kid == nil { kc["id"] = did }
     if dtoken == nil { dfl["token"] = ktoken }
-    return (id: did, password: kc["password"], token: dtoken)
+    if ktoken == nil { kc["token"] = dtoken }
+    return (id: kc["id"], password: kc["password"], token: kc["token"])
   }
-  
-  /// deletes all stored User Data or selected Userdata
   
   /// deletes all stored User Data or selected Userdata
   /// - Parameter properties: limit to properties which schould be deleted
