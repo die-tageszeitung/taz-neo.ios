@@ -434,7 +434,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public override func viewDidLoad() {
     super.viewDidLoad()
     self.headerView.addSubview(issueCarousel)
-    issueCarousel.labelWrapper.pinHeight(0)//self sizing!
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
     pin(issueCarousel.right, to: self.headerView.right)
@@ -558,7 +557,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if overlay == nil {
       overlay = Overlay(overlay:pickerCtrl , into: self)
       overlay?.enablePinchAndPan = false
-      overlay?.maxAlpha = 0.0
+      overlay?.maxAlpha = 0.9
     }
         
 //    pickerCtrl.doneHandler = {
@@ -573,11 +572,16 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         self?.overlay?.close(animated: true)
       }
     }
-    ///This fixes the close animation slide away to top ui bug, should be integrated in overlay soon!
-    overlay?.onRequestUpdatedCloseFrame {   [weak self] in
-      guard let self = self else { return .zero}
-      return self.view.getConvertedFrame(self.issueCarousel.label) ?? .zero
+    overlay?.onClose(closure: {  [weak self] in
+      self?.overlay = nil
+      self?.pickerCtrl = nil
+    })
+    
+    //Update labelButton Offset
+    if let const = issueCarousel.labelTopConstraint?.constant {
+      pickerCtrl.bottomOffset = const + 50
     }
+    
     overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
   
@@ -599,6 +603,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    updateCarouselSize(.zero)
     checkForNewIssues()
   }
   
@@ -651,7 +656,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if let labelTopConstraint = self.issueCarousel.labelTopConstraint {
       let maxHeight = size.width * relativePageWidth * 1.3 / defaultPageRatio
       let padding = (size.height - maxHeight)/2
-      labelTopConstraint.constant = 26 - padding
+      labelTopConstraint.constant = 0 - padding
     }
   }
   
