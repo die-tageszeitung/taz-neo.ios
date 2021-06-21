@@ -260,12 +260,18 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   
   func goingBackground() {
     isForeground = false
+    ArticleDB.save()
     debug("Going background")
   }
   
   func goingForeground() {
     isForeground = true
     debug("Entering foreground")
+  }
+  
+  func appWillTerminate() {
+    ArticleDB.save()
+    debug("App is going to be terminated")
   }
  
   func deleteAll() {
@@ -335,6 +341,9 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     }
     Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
       self.goingForeground()
+    }
+    Notification.receive(UIApplication.willTerminateNotification) { _ in
+      self.appWillTerminate()
     }
     //ArticleDB.dbRemove(name: "taz")
     setupFeeder()
