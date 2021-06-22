@@ -72,15 +72,11 @@ open class FeedbackComposer : DoesLog{
                           gqlFeeder: GqlFeeder,
                           finishClosure: @escaping ((Bool) -> ())) {
     
-    let navVC = UIApplication.shared.keyWindow?.rootViewController as? UINavigationController
-    let targetVC1 = navVC?.topViewController
-    let targetVC2 = UIViewController.top()
-    
-    guard let targetVC = targetVC1 ?? targetVC2 else {
+    guard let currentVc = UIViewController.top() else {
       print("Error, no Controller to Present")
       return;
     }
-        
+    
     var feedbackBottomSheet : FullscreenBottomSheet?
     
     let feedbackViewController
@@ -95,7 +91,7 @@ open class FeedbackComposer : DoesLog{
     }
                                                        
     feedbackBottomSheet = FullscreenBottomSheet(slider: feedbackViewController,
-                                                into: targetVC)
+                                              into: currentVc)
     feedbackBottomSheet?.sliderView.backgroundColor = Const.SetColor.CTBackground.color
     feedbackBottomSheet?.coverageRatio = 1.0
     
