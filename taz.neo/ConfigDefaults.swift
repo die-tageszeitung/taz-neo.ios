@@ -22,6 +22,8 @@ public let ConfigDefaults = Defaults.Values([
   "dataPolicyAccepted" : "false",
   // Article/Section font size in percent (100% => 18px)
   "articleTextSize" : "100",
+  // Article/Section font size in percent (100% => 18px)
+  "articleColumnMaxWidth" : "660",
   // Text alignment in Articles (eg. left/justify)
   "textAlign" : "left",
   // Color mode - currently dark/light

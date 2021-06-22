@@ -110,6 +110,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin, callback: (()->())? = nil) {
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
+    let maxWidth = Int(dfl["articleColumnMaxWidth"]!)!
+    let mediaLimit = max(660, maxWidth)//increase Limit for Users who want iPad Landscape full width
     let colorMode = dfl["colorMode"]
     let textAlign = dfl["textAlign"]
     var colorModeImport: String = ""
@@ -123,9 +125,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       body {
         padding-top: \(topMargin+UIWindow.topInset/2)px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
-      } 
+      }
       p {
         text-align: \(textAlign!);
+      }
+      @media (min-width: \(mediaLimit)px) {
+        body #content {
+          width: \(maxWidth)px;
+          margin-left: \(-maxWidth/2)px;
+        }
       }
     """
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
@@ -194,8 +202,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
-    
-    settingsBottomSheet?.coverage =  208 + UIWindow.verticalInsets
+    ///was 130 >= 208 //Now 195 => 273
+    settingsBottomSheet?.coverage =  273 + UIWindow.verticalInsets
     
     onSettings{ [weak self] _ in
       guard let self = self else { return }

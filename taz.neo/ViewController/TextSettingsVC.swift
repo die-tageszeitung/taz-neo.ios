@@ -20,8 +20,12 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
   @DefaultInt(key: "articleTextSize")
   private var articleTextSize: Int
   
+  @DefaultInt(key: "articleColumnMaxWidth")
+  private var articleColumnMaxWidth: Int
+  
   func updateButtonValuesOnOpen(){
     textSettings.textSize = articleTextSize
+    textSettings.articleColumnMaxWidth = articleColumnMaxWidth
   }
   
   @Default(key: "colorMode")
@@ -33,6 +37,13 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
       articleTextSize = s
       NorthLib.Notification.send(globalStylesChangedNotification)
     }
+    func setWidth(_ w: Int) {
+      textSettings.articleColumnMaxWidth = w
+      articleColumnMaxWidth = w
+      NorthLib.Notification.send(globalStylesChangedNotification)
+    }
+    
+    
     textSettings.textSize = articleTextSize
     textSettings.smallA.onPress {_ in
       if self.articleTextSize > 30 { setSize(self.articleTextSize-10) }
@@ -43,6 +54,18 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
     textSettings.percent.onPress {_ in
       if self.articleTextSize != 100 { setSize(100) }
     }
+    
+    textSettings.articleColumnMaxWidth = articleColumnMaxWidth
+    textSettings.decreaseWith.onPress {_ in
+      if self.articleColumnMaxWidth > 250 { setWidth(self.articleColumnMaxWidth-10) }
+    }
+    textSettings.increaseWith.onPress {_ in
+      if self.articleColumnMaxWidth < Int(UIScreen.longSide) - 20 { setWidth(self.articleColumnMaxWidth+10) }
+    }
+    textSettings.defaultWidth.onPress {_ in
+      if self.articleColumnMaxWidth != 660 { setWidth(660) }
+    }
+   
     textSettings.day.onPress {_ in
       Defaults.darkMode = false
     }
@@ -60,7 +83,7 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
     super.viewDidLoad()
     self.view.addSubview(textSettings)
     setupButtons()
-    textSettings.pinHeight(130)
+    textSettings.pinHeight(195)
     pin(textSettings.top, to: self.view.top)
     pin(textSettings.left, to: self.view.left, dist: 8)
     pin(textSettings.right, to: self.view.right, dist: -8)
@@ -76,20 +99,29 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
   private static let smallFont = Const.Fonts.contentFont(size: 16)
   private static let largeFont = Const.Fonts.contentFont(size: 38)
   
-  
   /// Buttons used to switch between various modes
   public var smallA = Button<TextView>()
   public var largeA = Button<TextView>()
   public var percent = Button<TextView>()
+  
+  public var decreaseWith = Button<TextView>()
+  public var increaseWith = Button<TextView>()
+  public var defaultWidth = Button<TextView>()
+  
   public var day = Button<TextView>()
   public var night = Button<TextView>()
   //public var auto = Button<TextView>()
   private var verticalStack = UIStackView()
   private var sizeStack = UIStackView()
+  private var widthStack = UIStackView()
   private var modeStack = UIStackView()
   
   public var textSize: Int = 100 {
     didSet { percent.buttonView.text = "\(textSize)%" }
+  }
+  
+  public var articleColumnMaxWidth: Int = 660 {
+    didSet { defaultWidth.buttonView.text = "⬌ \(articleColumnMaxWidth)px" }
   }
   
   private func setup() {
@@ -106,11 +138,20 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
     percent.buttonView.text = "\(textSize)%"
     percent.buttonView.label.baselineAdjustment = .alignCenters
     percent.buttonView.font = TextSettingsView.defaultFont
+    
+    decreaseWith.buttonView.text = "-"
+    decreaseWith.buttonView.font = TextSettingsView.defaultFont
+    decreaseWith.buttonView.label.baselineAdjustment = .alignCenters
+    increaseWith.buttonView.text = "+"
+    increaseWith.buttonView.label.baselineAdjustment = .alignCenters
+    increaseWith.buttonView.font = TextSettingsView.defaultFont
+    defaultWidth.buttonView.text = "⬌ \(articleColumnMaxWidth)px"
+    defaultWidth.buttonView.label.baselineAdjustment = .alignCenters
+    defaultWidth.buttonView.font = TextSettingsView.defaultFont
+
     day.buttonView.text = "Tag"
     day.buttonView.font = TextSettingsView.defaultFont
     night.buttonView.text = "Nacht"
-    
-    
     
     night.buttonView.font = TextSettingsView.defaultFont
     sizeStack.axis = .horizontal
@@ -120,6 +161,15 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
     for v in [smallA, percent, largeA] {
       sizeStack.addArrangedSubview(v)
     }
+    
+    widthStack.axis = .horizontal
+    widthStack.alignment = .fill
+    widthStack.distribution = .fillEqually
+    widthStack.spacing = 2
+    for v in [decreaseWith, defaultWidth, increaseWith] {
+      widthStack.addArrangedSubview(v)
+    }
+    
     modeStack.axis = .horizontal
     modeStack.alignment = .fill
     modeStack.distribution = .fillEqually
@@ -132,6 +182,7 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
     verticalStack.distribution = .fillEqually
     verticalStack.spacing = 2
     verticalStack.addArrangedSubview(sizeStack)
+    verticalStack.addArrangedSubview(widthStack)
     verticalStack.addArrangedSubview(modeStack)
     addSubview(verticalStack)
     pin(verticalStack, to: self, dist: 4)
@@ -142,6 +193,9 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
     [smallA.buttonView,
          largeA.buttonView,
           percent.buttonView,
+          decreaseWith.buttonView,
+          defaultWidth.buttonView,
+          increaseWith.buttonView,
           night.buttonView,
           day.buttonView
           ].forEach {
