@@ -182,8 +182,12 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
     verticalStack.distribution = .fillEqually
     verticalStack.spacing = 2
     verticalStack.addArrangedSubview(sizeStack)
-    verticalStack.addArrangedSubview(widthStack)
     verticalStack.addArrangedSubview(modeStack)
+    let separator = UIView()
+    separator.pinHeight(0.1)
+    verticalStack.addArrangedSubview(separator)
+    separator.heightAnchor.constraint(equalTo: stackView.heightAnchor, multiplier: 0.6).isActive = true
+    verticalStack.addArrangedSubview(widthStack)
     addSubview(verticalStack)
     pin(verticalStack, to: self, dist: 4)
     registerForStyleUpdates()
