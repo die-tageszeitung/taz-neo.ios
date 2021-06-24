@@ -201,9 +201,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 //  { playClosure = closure }
   
   func setupSettingsBottomSheet() {
-    settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
-    ///was 130 >= 208 //Now 195 => 273
-    settingsBottomSheet?.coverage =  273 + UIWindow.verticalInsets
+    settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self, maxWidth: 500)
+    ///was 130 >= 208 //Now 195 => 273//with Align 260 => 338
+    settingsBottomSheet?.coverage =  338 + UIWindow.verticalInsets
     
     onSettings{ [weak self] _ in
       guard let self = self else { return }
@@ -213,6 +213,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       else {
         self.settingsBottomSheet?.open()
+        self.settingsBottomSheet?.slideDown(130)
       }
       
       self.textSettingsVC.updateButtonValuesOnOpen()
