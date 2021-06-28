@@ -47,5 +47,7 @@ public let ConfigDefaults = Defaults.Values([
   // display full PDF Page on Page switch in Landscape
   "fullPdfOnPageSwitch" : "true",
   // need to show PDF Info Toast on startup
-  "showPdfInfoToast" : "true"
+  "showPdfInfoToast" : "true",
+  // need to show Bottom Tiles Animation
+  "showBottomTilesAnimation" : "true"
 ])
