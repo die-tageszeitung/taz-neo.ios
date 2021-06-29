@@ -539,7 +539,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     feederContext.getOvwIssues(feed: feed, count: 20)
   }//Eof viewDidLoad()
   
-  var pickerCtrl : MonthPickerController?
+  var pickerCtrl : DatePickerController?
   var overlay : Overlay?
   
   func showDatePicker(){
@@ -566,9 +566,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
 //    }
     
     pickerCtrl.doneHandler = {
-      let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
+      let dstr = pickerCtrl.selectedDate.gDate(tz: self.feeder.timeZone)
       Alert.message(title: "Baustelle",
-                    message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.") { [weak self] in
+                    message: "Hier werden später die Ausgaben um den \"\(dstr)\" angezeigt.") { [weak self] in
         self?.overlay?.close(animated: true)
       }
     }

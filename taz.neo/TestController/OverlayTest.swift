@@ -10,7 +10,7 @@ class OverlayTest: UIViewController, CanRotate {
   let container = UIView()
   let label = UILabel()
   
-  lazy var pickerCtrl = MonthPickerController(minimumDate: Date(),
+  lazy var pickerCtrl = DatePickerController(minimumDate: Date(),
                                               maximumDate: Date().addingTimeInterval(-20000),
                                      selectedDate: Date())
   
