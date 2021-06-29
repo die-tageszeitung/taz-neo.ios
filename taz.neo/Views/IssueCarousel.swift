@@ -138,7 +138,7 @@ public class IssueCarousel: UIView {
     label.centerX()
     label.textAlignment = .center
     label.numberOfLines = 1
-    label.font = .boldSystemFont(ofSize: 17)
+    label.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
     label.adjustsFontSizeToFitWidth = true
     label.textColor = UIColor.rgb(0xeeeeee)
     label.onTap {_ in
