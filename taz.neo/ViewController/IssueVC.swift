@@ -547,7 +547,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let toDate = feed.lastIssue
     
     if pickerCtrl == nil {
-      pickerCtrl = MonthPickerController(minimumDate: fromDate,
+      pickerCtrl = DatePickerController(minimumDate: fromDate,
                                          maximumDate: toDate,
                                          selectedDate: toDate)
       pickerCtrl?.pickerFont = Const.Fonts.contentFont
