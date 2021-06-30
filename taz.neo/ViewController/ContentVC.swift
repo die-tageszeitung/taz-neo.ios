@@ -408,6 +408,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       self?.index = idx
       self?.collectionView?.showAnimated()
     }
+    writeTazApiCss{
+      super.reloadAllWebViews()
+    }
   }
   
   override public func viewWillAppear(_ animated: Bool) {
