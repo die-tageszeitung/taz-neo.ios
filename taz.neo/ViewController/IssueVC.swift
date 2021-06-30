@@ -590,7 +590,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if !isArchiveMode { feederContext.checkForNewIssues(feed: feed) }
   }
   
-  func updateCarouselForParentSize(_ size:CGSize, initial:Bool = false) {
+  func invalidateCarouseLayout() {
     self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
     self.issueCarousel.carousel.updateLayout()
     if let idx = safeIndex {
@@ -603,13 +603,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    updateCarouselSize(.zero)
+    invalidateCarouseLayout()
     checkForNewIssues()
   }
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
-    onMainAfter { self.updateCarouselForParentSize(size) }
+    onMainAfter { self.invalidateCarouseLayout() }
   }
   
   @objc private func goingBackground() {}
