@@ -395,6 +395,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
+    settingsBottomSheet?.setCoverage(338 + UIWindow.bottomInset+UIWindow.topInset, for: size.height)
     updateLayout()
   }
   
