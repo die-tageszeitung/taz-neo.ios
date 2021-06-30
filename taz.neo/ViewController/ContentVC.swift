@@ -110,8 +110,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin, callback: (()->())? = nil) {
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
-    let maxWidth = Int(dfl["articleColumnMaxWidth"]!)!
-    let mediaLimit = max(660, maxWidth)//increase Limit for Users who want iPad Landscape full width
+    let percentageMaxWidth = Int(dfl["articleColumnPercentageWidth"]!)!
+    let maxWidth = percentageMaxWidth * 6
+    let mediaLimit = max(Int(UIWindow.size.width), maxWidth)
     let colorMode = dfl["colorMode"]
     let textAlign = dfl["textAlign"]
     var colorModeImport: String = ""
@@ -131,8 +132,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       @media (min-width: \(mediaLimit)px) {
         body #content {
-          width: \(maxWidth)px;
-          margin-left: \(-maxWidth/2)px;
+            width: \(maxWidth)px;
+            margin-left: \(-maxWidth/2)px;
+            position: absolute;
+            left: 50%;
+          }
+        
+        div.VerzeichnisArtikel{
+          margin-left: 0;
+          margin-right: 0;
         }
       }
     """

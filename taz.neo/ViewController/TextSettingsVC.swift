@@ -20,15 +20,15 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
   @DefaultInt(key: "articleTextSize")
   private var articleTextSize: Int
   
-  @DefaultInt(key: "articleColumnMaxWidth")
-  private var articleColumnMaxWidth: Int
+  @DefaultInt(key: "articleColumnPercentageWidth")
+  private var articleColumnPercentageWidth: Int
   
   @Default(key: "textAlign")
   private var textAlign: String?
   
   func updateButtonValuesOnOpen(){
     textSettings.textSize = articleTextSize
-    textSettings.articleColumnMaxWidth = articleColumnMaxWidth
+    textSettings.articleColumnPercentageWidth = articleColumnPercentageWidth
     updateTextAlignmentButtons()
     updateDayNightButtons()
   }
@@ -46,6 +46,11 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
     }
   }
   
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    textSettings.updateWidthSettingButtons(size.width)
+  }
+  
   private func updateDayNightButtons(){
     self.textSettings.night.buttonView.isActivated = Defaults.darkMode
     self.textSettings.day.buttonView.isActivated = !Defaults.darkMode
@@ -57,9 +62,9 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
       articleTextSize = s
       NorthLib.Notification.send(globalStylesChangedNotification)
     }
-    func setWidth(_ w: Int) {
-      textSettings.articleColumnMaxWidth = w
-      articleColumnMaxWidth = w
+    func setPercentageWidth(_ w: Int) {
+      textSettings.articleColumnPercentageWidth = w
+      articleColumnPercentageWidth = w
       NorthLib.Notification.send(globalStylesChangedNotification)
     }
         
@@ -77,14 +82,16 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
       if self.articleTextSize != 100 { setSize(100) }
     }
     
-    textSettings.articleColumnMaxWidth = articleColumnMaxWidth
+    textSettings.articleColumnPercentageWidth = articleColumnPercentageWidth
     textSettings.decreaseWith.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleColumnMaxWidth > 250 { setWidth(self.articleColumnMaxWidth-10) }
+      if self.articleColumnPercentageWidth > 50 { setPercentageWidth(self.articleColumnPercentageWidth-5) }
     }
     textSettings.increaseWith.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleColumnMaxWidth < Int(UIScreen.longSide) - 20 { setWidth(self.articleColumnMaxWidth+10) }
+      if self.articleColumnPercentageWidth < max(100, Int(UIWindow.size.width/61)*10) {
+        //61 to have a side padding
+        setPercentageWidth(self.articleColumnPercentageWidth+5) }
     }
     
     textSettings.textAlignLeft.onPress { [weak self] _ in
@@ -107,7 +114,7 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
     
     textSettings.defaultWidth.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleColumnMaxWidth != 660 { setWidth(660) }
+      if self.articleColumnPercentageWidth != 100 { setPercentageWidth(100) }
     }
    
     textSettings.day.onPress { [weak self] _ in
@@ -154,8 +161,8 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
   public var largeA = Button<TextView>()
   public var percent = Button<TextView>()
   
-  public var decreaseWith = Button<TextView>()
-  public var increaseWith = Button<TextView>()
+  public var decreaseWith = Button<ImageView>()
+  public var increaseWith = Button<ImageView>()
   public var defaultWidth = Button<TextView>()
 
   public var textAlignLeft = Button<ImageView>()
@@ -174,8 +181,27 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
     didSet { percent.buttonView.text = "\(textSize)%" }
   }
   
-  public var articleColumnMaxWidth: Int = 660 {
-    didSet { defaultWidth.buttonView.text = "⟷ \(articleColumnMaxWidth)px"
+  public var articleColumnPercentageWidth: Int = 100 {
+    didSet {
+      defaultWidth.buttonView.text = "\(articleColumnPercentageWidth)%"
+      updateWidthSettingButtons()
+    }
+  }
+  
+  func updateWidthSettingButtons(_ withWindowWidth:CGFloat = UIWindow.size.width){
+    if articleColumnPercentageWidth >= Int(withWindowWidth/61)*10 {//61 to have a side padding
+      defaultWidth.buttonView.color = Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.5)
+      increaseWith.buttonView.color = Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.5)
+    }
+    else if self.articleColumnPercentageWidth <= 50 {
+      increaseWith.buttonView.color = Const.SetColor.ios(.tintColor).color
+      defaultWidth.buttonView.color = Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.5)
+      decreaseWith.buttonView.color = Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.5)
+    }
+    else {
+      defaultWidth.buttonView.color = Const.SetColor.ios(.tintColor).color
+      increaseWith.buttonView.color = Const.SetColor.ios(.tintColor).color
+      decreaseWith.buttonView.color = Const.SetColor.ios(.tintColor).color
     }
   }
   
@@ -190,19 +216,16 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
     largeA.buttonView.text = "a"
     largeA.buttonView.label.baselineAdjustment = .alignCenters
     largeA.buttonView.font = TextSettingsView.largeFont
-    percent.buttonView.text = "\(textSize)%"
     percent.buttonView.label.baselineAdjustment = .alignCenters
     percent.buttonView.font = TextSettingsView.defaultFont
     
-    decreaseWith.buttonView.text = "-"
-    decreaseWith.buttonView.font = TextSettingsView.defaultFont
-    decreaseWith.buttonView.label.baselineAdjustment = .alignCenters
-    increaseWith.buttonView.text = "+"
-    increaseWith.buttonView.label.baselineAdjustment = .alignCenters
-    increaseWith.buttonView.font = TextSettingsView.defaultFont
-    defaultWidth.buttonView.text = "⬌ \(articleColumnMaxWidth)px"
     defaultWidth.buttonView.label.baselineAdjustment = .alignCenters
     defaultWidth.buttonView.font = TextSettingsView.defaultFont
+    
+    decreaseWith.inset = 0.435
+    increaseWith.inset = 0.435
+    decreaseWith.buttonView.name = "arrow_right_arrow_left_square"
+    increaseWith.buttonView.name = "arrow_right_arrow_left_square_fill"
     
     textAlignLeft.inset = 0.435
     textAlignJustify.inset = 0.435
