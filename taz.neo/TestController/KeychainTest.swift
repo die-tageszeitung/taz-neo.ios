@@ -57,7 +57,7 @@ class KeychainTest: UIViewController {
   func checkPrevious() {
     let kc = Keychain.singleton
     print("Previous values " +
-          "(access group: \(String(describing: Keychain.accessGroup)))")
+          "(access group: \(String(describing: kc.suite)))")
     for key in keys {
       if let val = kc[key] { print("  \(key): \(val)") }
       else { print("  key '\(key)' is undefined") }
@@ -103,9 +103,9 @@ class KeychainTest: UIViewController {
   override func viewDidLoad() {
     //Keychain.accessGroup = "geheim"
     checkPrevious()
-    //testKeychain()
-    //testWrappers()
-    //clear()
+//    testKeychain()
+//    testWrappers()
+      clear()
   }
 
 } // ColorTests
