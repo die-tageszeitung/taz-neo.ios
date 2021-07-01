@@ -603,7 +603,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    invalidateCarouseLayout()
+    updateCarouselSize(.zero)//initially show label (set pos not behind toolbar)
+    invalidateCarouseLayout()//fix sitze if rotated on pushed vc
     checkForNewIssues()
   }
   
