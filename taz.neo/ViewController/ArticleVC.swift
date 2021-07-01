@@ -110,18 +110,43 @@ open class ArticleVC: ContentVC {
     }
   }
   
+  @available(iOS 14.0, *)
+  private func exportPdf(article art: Article, from button: UIView? = nil) {
+    if let webView = currentWebView {
+      webView.pdf { data in
+        guard let data = data else { return }
+        let dialogue = ExportDialogue<Data>()
+        let altText = "\(art.teaser ?? "")\n\(art.onlineLink!)"
+        dialogue.present(item: data, altText: altText, view: button,
+                         subject: art.title)
+      }
+    }
+  }
+
   // Export/Share article
   func exportArticle(article: Article?, from button: UIView? = nil) {
+    var isPdfExport = false
+    #if PDFEXPORT
+      if #available(iOS 14.0, *) {
+        isPdfExport = true
+      }
+    #endif
     if let art = article {
       if let link = art.onlineLink, !link.isEmpty {
         if let url = URL(string: link) {
           let actions = UIAlertController.init( title: nil, message: nil,
             preferredStyle:  .actionSheet )
           actions.addAction( UIAlertAction.init( title: "Teilen", style: .default,
-            handler: { handler in
-            let dialogue = ExportDialogue<Any>()
-            dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)", 
-              view: button, subject: art.title)
+            handler: { [weak self] handler in
+              if isPdfExport {
+                if #available(iOS 14.0, *) {
+                  self?.exportPdf(article: art, from: button)
+                }
+              } else {
+                let dialogue = ExportDialogue<Any>()
+                dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",
+                                 view: button, subject: art.title)
+              }
           } ) )
           actions.addAction( UIAlertAction.init( title: "Online-Version", style: .default,
           handler: {
