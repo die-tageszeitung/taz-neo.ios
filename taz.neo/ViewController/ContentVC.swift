@@ -396,50 +396,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     settingsBottomSheet?.setCoverage(338 + UIWindow.bottomInset+UIWindow.topInset, for: size.height)
-    updateLayout()
-  }
-  
-  private func updateLayout(){
-    let idx = self.index
-    self.collectionView?.hideAnimated()
-    self.index = 0
-    onMainAfter { [weak self] in
-      self?.collectionView?.collectionViewLayout.invalidateLayout()
-      self?.index = idx
-      self?.collectionView?.showAnimated()
-    }
-    writeTazApiCss{
-      super.reloadAllWebViews()
-    }
   }
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
-  }
-  
-  override public func viewWillDisappear(_ animated: Bool) {
-    slider?.hideLeftBackground()
-    super.viewWillDisappear(animated)
-    if let svc = self.navigationController?.viewControllers.last as? SectionVC {
-      //cannot use updateLayout due strange side effects
-      svc.view.isHidden = true
-      let sidx = svc.index
-      svc.index = 0
-      svc.collectionView?.collectionViewLayout.invalidateLayout()
-      onMainAfter(0.25){
-        svc.index = sidx
-        svc.view.showAnimated()
-      }
-    }
-  }
-  
-  override public func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    slider?.close()
-    self.settingsBottomSheet?.close()
-    if let overlay = imageOverlay { overlay.close(animated: false) }
   }
   
   public func setup(contents: [Content], isLargeHeader: Bool) {
