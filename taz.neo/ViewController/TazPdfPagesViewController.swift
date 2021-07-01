@@ -270,21 +270,28 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
  
   // MARK: - updateMenuItems
   func updateMenuItems(){
+    let artikelansicht = gt_iOS13 ? "Artikelansicht" : articleFromPdf
+                                                     ? "Artikelansicht ausschalten"
+                                                     : "Artikelansicht einschalten"
     self.menuItems = [
-      ("Artikelansicht",
+      (artikelansicht,
        articleFromPdf ? "checkmark" : "",
        { [weak self] _ in
         guard let self = self else { return }
         self.articleFromPdf = !self.articleFromPdf
         self.updateMenuItems()
        }),
-      ("Ganze Seite bei Seitenwechsel",
-       fullPdfOnPageSwitch ? "checkmark" : "",
+      ("Querformat Seitenwechsel: \(fullPdfOnPageSwitch ? "ganze Seite" : "Seitenbreite")",
+       fullPdfOnPageSwitch ? "arrow.up.and.down.and.arrow.left.and.right" : "arrow.left.and.right.square",
        { [weak self] _ in
         guard let self = self else { return }
-        //DO: if let ziv = self.currentView as? ZoomedImageViewSpec { onMainAfter(0.3){ ziv.invalidateLayout()}}
         self.fullPdfOnPageSwitch = !self.fullPdfOnPageSwitch
         self.updateMenuItems()
+        if let ziv = self.currentView as? ZoomedImageView {
+          onMainAfter {   [weak self] in
+            self?.applyPageLayout(ziv)
+          }
+        }
       })]
     (self.currentView as? ZoomedImageViewSpec)?.menu.menu = self.menuItems
   }
@@ -382,7 +389,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     onDisplay { [weak self]  (idx, oview) in
       self?.issue.lastPage = idx
       ArticleDB.save()
-      print("Display page at index: \(idx)")
     }
     
     setupToolbar()
@@ -459,8 +465,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let ziv = optionalView as? ZoomedImageView,
             let pdfImg = ziv.optionalImage as? ZoomedPdfImageSpec else { return }
       ziv.menu.menu = self?.menuItems ?? []
-      ziv.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0,
-                                                 bottom: 52, right: 0)
+      ziv.scrollView.contentInset = .zero //no more need bottom inset
       if ziv.imageView.image == nil
       {
         ziv.optionalImage = pdfImg
@@ -470,6 +475,10 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
           self?.handleRenderFinished(success, ziv)
         }
       }
+      else {
+        self?.applyPageLayout(ziv)
+      }
+
       ziv.whenZoomed {   [weak self] zoomedIn in
         self?.toolBar.hide(zoomedIn)
       }
@@ -478,30 +487,33 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
 
   func applyPageLayout(_ ziv:ZoomedImageView){
-    if self.fullPdfOnPageSwitch {
-      //this makes fulpage view
-      /**
-       Idea for full page switch:
-        landscape fit to height
-        portrait fit to width
-       all by invalidate layout
-       remove else...!
-       more adjustments in:
-       zoomedImageView:        updateConstraintsForSize
-       re-calc yOffset to not ignore toolbar
-       may respect scrollViewContentInset @see branch ideasTabbarAndFullPage
-       ..changes here by activecell as zoomes...scrollview...
-       
-       in ZIV: updateConstraintsForSize
-       proof of concept to respect toolbar 2 things: heightscale calc & y (top/bottom) offset
-       */
+    guard let pdfImg = ziv.optionalImage as? ZoomedPdfImageSpec else {
+      ziv.invalidateLayout()
+      return
+    }
+    
+    if UIWindow.isPortrait, pdfImg.pageType == .double {
+      //isPortrait && double => fitHeight
+      ziv.zoomToFitHeight()
+      
+    }
+    else if UIWindow.isPortrait {
+      //isPortrait && !double => fitWidth
       ziv.invalidateLayout()
     }
-    else {
-      //this is parent's class behaviour and shows 1:1 view
-      ziv.scrollView.setZoomScale(1.0, animated: false)
-      ziv.scrollView.scrollRectToVisible(CGRect(x: 0, y: 0, width: 1, height: 1), animated: false)
+    else if self.fullPdfOnPageSwitch {
+      //Landscape && fullPage Setting => fitHeight
+      ziv.zoomToFitHeight()
     }
+    else if pdfImg.pageType == .double  {
+      //Landscape && !fullPage Setting && double Page => fitWidth of half Page
+      ziv.zoomToFitHalfWidth()
+    }
+    else {
+      //Landscape && !fullPage Setting && single Page => fitWidth
+      ziv.zoomToFitWidth()
+    }
+    ziv.scrollToTopLeft()
   }
   
   public override func handleRenderFinished(_ success:Bool, _ ziv:ZoomedImageView){

@@ -110,6 +110,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin, callback: (()->())? = nil) {
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
+    let percentageMaxWidth = Int(dfl["articleColumnPercentageWidth"]!)!
+    let maxWidth = percentageMaxWidth * 6
+    let mediaLimit = max(Int(UIWindow.size.width), maxWidth)
     let colorMode = dfl["colorMode"]
     let textAlign = dfl["textAlign"]
     var colorModeImport: String = ""
@@ -123,9 +126,22 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       body {
         padding-top: \(topMargin+UIWindow.topInset/2)px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
-      } 
+      }
       p {
         text-align: \(textAlign!);
+      }
+      @media (min-width: \(mediaLimit)px) {
+        body #content {
+            width: \(maxWidth)px;
+            margin-left: \(-maxWidth/2)px;
+            position: absolute;
+            left: 50%;
+          }
+        
+        div.VerzeichnisArtikel{
+          margin-left: 0;
+          margin-right: 0;
+        }
       }
     """
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
@@ -193,9 +209,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 //  { playClosure = closure }
   
   func setupSettingsBottomSheet() {
-    settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
-    
-    settingsBottomSheet?.coverage =  208 + UIWindow.verticalInsets
+    settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self, maxWidth: 500)
+    ///was 130 >= 208 //Now 195 => 273//with Align 260 => 338
+    settingsBottomSheet?.coverage =  338 + UIWindow.verticalInsets
     
     onSettings{ [weak self] _ in
       guard let self = self else { return }
@@ -205,6 +221,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       else {
         self.settingsBottomSheet?.open()
+        self.settingsBottomSheet?.slideDown(130)
       }
       
       self.textSettingsVC.updateButtonValuesOnOpen()
@@ -378,18 +395,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
-    updateLayout()
-  }
-  
-  private func updateLayout(){
-    let idx = self.index
-    self.collectionView?.hideAnimated()
-    self.index = 0
-    onMainAfter { [weak self] in
-      self?.collectionView?.collectionViewLayout.invalidateLayout()
-      self?.index = idx
-      self?.collectionView?.showAnimated()
-    }
+    settingsBottomSheet?.setCoverage(338 + UIWindow.bottomInset+UIWindow.topInset, for: size.height)
   }
   
   override public func viewWillAppear(_ animated: Bool) {
@@ -401,24 +407,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   override public func viewWillDisappear(_ animated: Bool) {
     slider?.hideLeftBackground()
     super.viewWillDisappear(animated)
-    if let svc = self.navigationController?.viewControllers.last as? SectionVC {
-      //cannot use updateLayout due strange side effects
-      svc.view.isHidden = true
-      let sidx = svc.index
-      svc.index = 0
-      svc.collectionView?.collectionViewLayout.invalidateLayout()
-      onMainAfter(0.25){
-        svc.index = sidx
-        svc.view.showAnimated()
-      }
-    }
-  }
-  
-  override public func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    slider?.close()
-    self.settingsBottomSheet?.close()
-    if let overlay = imageOverlay { overlay.close(animated: false) }
   }
   
   public func setup(contents: [Content], isLargeHeader: Bool) {

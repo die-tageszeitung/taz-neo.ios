@@ -24,7 +24,6 @@ public class IssueCarousel: UIView {
   public var carousel = CarouselView()
   // Label for the center image
   private(set) var label = CrossfadeLabel()
-  private(set) var labelWrapper = UIView()
   
   /// Current central image
   public var index: Int? {
@@ -122,25 +121,24 @@ public class IssueCarousel: UIView {
     issues.firstIndex { $0.issue == moment.image }
   }
   
+  public var labelTopConstraint: NSLayoutConstraint?
+  
   // Define view provider
   private func setup() {
     guard carousel.provider == nil else { return }
     self.addSubview(carousel)
-    labelWrapper.addSubview(label)
-    let tc = pin(label, to: labelWrapper, exclude: .bottom).top
-    tc?.constant = 20
-    self.addSubview(labelWrapper)
-    pin(carousel.left, to: self.left)
-    pin(carousel.right, to: self.right)
-    pin(carousel.bottom, to: labelWrapper.top)
-    pin(carousel.top, to: self.top, dist: 20)
-    pin(labelWrapper.bottom, to: self.bottom)
-    pin(labelWrapper.width, to: self.width, priority: .defaultHigh)
-    labelWrapper.pinWidth(500.0, relation: .lessThanOrEqual, priority: .required)
-    labelWrapper.centerX()
+    self.addSubview(label)
+
+    labelTopConstraint?.constant = 20
+    pin(carousel, to: self)
+    labelTopConstraint = pin(label.top, to: carousel.bottom, dist: -20)
+    pin(label.width, to: self.width, priority: .defaultHigh)
+    label.pinWidth(500.0, relation: .lessThanOrEqual, priority: .required)
+    label.pinHeight(60.0)
+    label.centerX()
     label.textAlignment = .center
     label.numberOfLines = 1
-    label.font = .boldSystemFont(ofSize: 17)
+    label.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
     label.adjustsFontSizeToFitWidth = true
     label.textColor = UIColor.rgb(0xeeeeee)
     label.onTap {_ in
