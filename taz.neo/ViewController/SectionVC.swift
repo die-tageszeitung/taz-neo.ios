@@ -6,10 +6,11 @@
 //
 
 import UIKit
+import SafariServices
 import NorthLib
 
 /// The Section view controller managing a collection of Section pages
-open class SectionVC: ContentVC, ArticleVCdelegate {
+open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelegate {
   
   private var articleVC: ArticleVC?
   private var lastIndex: Int?
@@ -91,13 +92,29 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
       }
     }
     else {
-      self.debug("Calling application for: \(to.absoluteString)")
-      if UIApplication.shared.canOpenURL(to) {
-        UIApplication.shared.open(to, options: [:], completionHandler: nil)
+      #if INTERNALBROWSER
+        let isInternal = true
+      #else
+        let isInternal = false
+      #endif
+      if let scheme = to.scheme,
+         isInternal && (scheme == "http" || scheme == "https") {
+        let svc = SFSafariViewController(url: to)
+        svc.delegate = self
+        svc.preferredControlTintColor = Const.Colors.darkTintColor
+        svc.preferredBarTintColor = Const.Colors.darkToolbar
+        navigationController?.pushViewController(svc, animated: true)
       }
-      else {         
-        error("No application or no permission for: \(to.absoluteString)")         
+      else {
+        self.debug("Calling application for: \(to.absoluteString)")
+        if UIApplication.shared.canOpenURL(to) {
+          UIApplication.shared.open(to, options: [:], completionHandler: nil)
+        }
+        else {
+          error("No application or no permission for: \(to.absoluteString)")
+        }
       }
+
     }
   }
   
@@ -219,6 +236,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate {
   
   required public init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+  
+  // MARK: - SFSafariViewControllerDelegate protocol
+  
+  public func safariViewControllerDidFinish(_ svc: SFSafariViewController) {
+    navigationController?.popViewController(animated: true)
   }
 
 } // SectionVC
