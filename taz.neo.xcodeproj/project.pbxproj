@@ -831,6 +831,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.9.1;
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-DPDFEXPORT -DINTERNALBROWSER";
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
 				PRODUCT_NAME = "die tageszeitung";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -857,6 +858,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.9.1;
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-DPDFEXPORT -DINTERNALBROWSER";
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
 				PRODUCT_NAME = "die tageszeitung";
 				PROVISIONING_PROFILE_SPECIFIER = "";
