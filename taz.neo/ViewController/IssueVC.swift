@@ -495,7 +495,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
     }
      
-    Defaults.receive() { [weak self] dnot in
+    Defaults.singleton.receive() { [weak self] dnot in
       guard let self = self else { return }
       switch dnot.key {
         case "carouselScrollFromLeft":
