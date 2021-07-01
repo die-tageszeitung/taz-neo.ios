@@ -228,11 +228,9 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   override public func viewDidLoad() {
     super.viewDidLoad()
     resetColors()
-    Defaults.receive { [weak self] nfn in
-      if nfn.key == "colorMode" { 
-        self?.resetColors() 
-        self?.contentTableView.reloadData()
-      }
+    Defaults.singleton.receive(key: "colorMode") { [weak self] nfn in
+      self?.resetColors()
+      self?.contentTableView.reloadData()
     }
     let imageTap = UITapGestureRecognizer(target: self, action: #selector(imageTapped))
     momentView.isUserInteractionEnabled = true
