@@ -404,6 +404,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.view.backgroundColor = Const.SetColor.HBackground.color
   }
   
+  override public func viewWillDisappear(_ animated: Bool) {
+    slider?.hideLeftBackground()
+    super.viewWillDisappear(animated)
+  }
+  
   public func setup(contents: [Content], isLargeHeader: Bool) {
     self.contents = contents
     self.isLargeHeader = isLargeHeader
