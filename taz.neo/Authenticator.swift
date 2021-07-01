@@ -128,6 +128,7 @@ extension Authenticator {
       kc["token"] = nil
       kc["id"] = nil
       kc["password"] = nil
+      kc["dataPolicyAccepted"] = nil
       dfl["token"] = nil
       dfl["id"] = nil
       return
