@@ -234,6 +234,22 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     }
     feederContext.updateResources(toVersion: -1)
   }
+  
+  // Logs Keychain variables if in debug mode
+  func logKeychain(msg: String? = nil) {
+    var str = ""
+    for k in ["id", "password", "token", "dataPolicyAccepted"] {
+      var val = Keychain.singleton[k]
+      if k == "password" && val != nil { val = "defined (but hidden on purpose)\n" }
+      else if k == "token" && val != nil { val = val![0..<30] }
+      str += "  \(k): \(val ?? "undefined")\n"
+    }
+    str = str[0..<str.count-1]
+    var intro = "Keychain variables"
+    if let msg = msg { intro += " (\(msg))" }
+    intro += ":\n"
+    debug("\(intro)\(str)")
+  }
     
   func startup() {
     let dfl = Defaults.singleton
@@ -242,6 +258,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
     debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
+    logKeychain(msg: "initial")
     let now = UsTime.now()
     self.showAnimations = (nStarted < 2) || (now.sec - lastStarted.sec) > oneWeek
     IssueVC.showAnimations = self.showAnimations
@@ -302,7 +319,9 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     dfl["nStarted"] = "0"
     dfl["lastStarted"] = "0"
     dfl["installationId"] = nil
+    feederContext.gqlFeeder.authToken = nil
     feederContext.endPolling()
+    logKeychain(msg: "after delete")
   }
   
   func testNotification(type: NotificationType) {
