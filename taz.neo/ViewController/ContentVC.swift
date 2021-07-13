@@ -15,7 +15,6 @@ public class ContentUrl: WebViewUrl, DoesLog {
   public var path: String
   public lazy var url: URL = URL(fileURLWithPath: path + "/" + content.html.fileName)
 
-  private var availableClosure: (()->())?
   private var loadClosure: (ContentUrl)->()
   private var _isAvailable = false
   public var isAvailable: Bool {
@@ -29,10 +28,12 @@ public class ContentUrl: WebViewUrl, DoesLog {
     }
     set {
       _isAvailable = true
-      if let closure = availableClosure { closure() }
+      $whenAvailable.notify(sender: self)
     }
   }
-  public func whenAvailable(closure: @escaping ()->()) { availableClosure = closure }
+  
+  @Callback
+  public var whenAvailable: Callback<Void>.Store
 
   public func waitingView() -> UIView? {
     let view = LoadingView()
