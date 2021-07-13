@@ -17,6 +17,20 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   @Default("showPdfInfoToast")
   public var showPdfInfoToast: Bool
   
+  @Default("showBottomTilesAnimation")
+  public var showBottomTilesAnimation: Bool
+  
+  @Default("bottomTilesAnimationLastShown")
+  public var bottomTilesAnimationLastShown: Date
+  
+  @Default("bottomTilesLastShown")
+  public var bottomTilesLastShown: Date
+  
+  @Default("bottomTilesShown")
+  public var bottomTilesShown: Int {
+    didSet { if bottomTilesShown > 5 { showBottomTilesAnimation = false }  }
+  }
+
   /// Are we in facsimile mode
   @Default("isFacsimile")
   public var isFacsimile: Bool
@@ -28,6 +42,8 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
 
   public var toolBar = ContentToolbar()
   var toolbarHomeButton: Button<ImageView>?
+  
+  var childPushed = false
   
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
@@ -54,7 +70,10 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   }()
   
   /// size of the issue items in bottom section;
-  lazy var cellSize : CGSize = CGSize(width: 20, height: 20)
+  lazy var cellSize: CGSize = CGSize(width: 20, height: 20)
+  
+  /// Animation for ScrollDown
+  var scrollDownAnimationView: ScrollDownAnimationView?
   
   /// top top Scroll Target Position, to scroll to if scroll top
   var topPos : CGFloat { get { return -UIWindow.topInset }}
@@ -75,7 +94,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     didSet {
       (self as? IssueVC)?.updateToolbarHomeIcon()
       if isUp && oldValue == false {
-        (self as? IssueVC)?.updateCarouselForParentSize(self.view.bounds.size)
+        (self as? IssueVC)?.invalidateCarouselLayout()
       }
     }
   }
@@ -127,8 +146,22 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     showPdfInfoIfNeeded()
   }
   
+  public override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    if self.navigationController?.viewControllers.last != self {
+      childPushed = true
+    }
+  }
+  
   public override func viewWillAppear(_ animated: Bool) {
+    if UIDevice.current.orientation.isLandscape && Device.isIphone {
+      UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+    }
     super.viewWillAppear(animated)
+    if childPushed {
+      childPushed = false
+      showScrollDownAnimationIfNeeded(delay: 2.0)
+    }
     updateCollectionViewLayout(self.view.frame.size)
   }
   
@@ -415,6 +448,9 @@ extension IssueVcWithBottomTiles {
   }
   
   func scrollDown(_ reloadData:Bool = false){
+    self.bottomTilesLastShown = Date()
+    self.scrollDownAnimationView?.removeFromSuperview()
+    self.bottomTilesShown += 1
     self.collectionView.setContentOffset(CGPoint(x:0, y:scrollSnapHeight),
                                          animated: true)
     if reloadData { self.collectionView.reloadData() }
@@ -435,12 +471,13 @@ extension IssueVcWithBottomTiles: UICollectionViewDelegateFlowLayout {
   }
 }
 
-
-
 // MARK: - ShowPDF Info Toast
 extension IssueVcWithBottomTiles {
   func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
-    if showPdfInfoToast == false { return }
+    if showPdfInfoToast == false {
+      showScrollDownAnimationIfNeeded()
+      return
+    }
     
     onThreadAfter(delay) {
       var img : UIImage?
@@ -460,7 +497,48 @@ extension IssueVcWithBottomTiles {
                          autoDisappearAfter: nil) {   [weak self] in
         self?.log("PdfInfoToast showen and closed")
         self?.showPdfInfoToast = false
+        self?.showScrollDownAnimationIfNeeded()
       }
+    }
+  }
+}
+
+// MARK: - showScrollDownAnimationIfNeeded
+extension IssueVcWithBottomTiles {
+  
+  
+  /// shows an animation to generate the user's interest in the lower area
+  ///  **Requirements to show animation:**
+  ///
+  ///  **showBottomTilesAnimation** ConfigDefault is true
+  ///  **bottomTilesLastShown** is at least 24h ago
+  ///  **bottomTilesAnimationLastShown** is at least 30s ago
+  ///  - no active animation
+  ///
+  /// - Parameter delay: delay after animation started if applicable
+  func showScrollDownAnimationIfNeeded(delay:Double = 3.0) {
+    if showBottomTilesAnimation == false { return }
+    guard (Date().timeIntervalSince(bottomTilesLastShown) >= 60*60*24) &&
+          (Date().timeIntervalSince(bottomTilesAnimationLastShown) >= 30)
+    else { return }
+    
+    if scrollDownAnimationView == nil {
+      scrollDownAnimationView = ScrollDownAnimationView()
+    }
+    
+    guard let scrollDownAnimation = scrollDownAnimationView else {
+      return
+    }
+    
+    if scrollDownAnimation.superview == nil {
+      self.view.insertSubview(scrollDownAnimation, belowSubview: toolBar)
+      scrollDownAnimation.centerX()
+      pin(scrollDownAnimation.bottom, to: toolBar.top, dist: 5)
+    }
+    
+    onMainAfter(delay) {   [weak self] in
+      self?.scrollDownAnimationView?.animate()
+      self?.bottomTilesAnimationLastShown = Date()
     }
   }
 }

@@ -434,7 +434,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public override func viewDidLoad() {
     super.viewDidLoad()
     self.headerView.addSubview(issueCarousel)
-    issueCarousel.labelWrapper.pinHeight(issueCarouselLabelWrapperHeight)//self sizing!
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
     pin(issueCarousel.right, to: self.headerView.right)
@@ -538,16 +537,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     feederContext.getStoredOvwIssues(feed: feed)
     feederContext.getOvwIssues(feed: feed, count: 20)
-  }
+  }//Eof viewDidLoad()
   
-  var pickerCtrl : MonthPickerController?
+  var pickerCtrl : DatePickerController?
   var overlay : Overlay?
+  
   func showDatePicker(){
     let fromDate = feed.firstIssue
     let toDate = feed.lastIssue
     
     if pickerCtrl == nil {
-      pickerCtrl = MonthPickerController(minimumDate: fromDate,
+      pickerCtrl = DatePickerController(minimumDate: fromDate,
                                          maximumDate: toDate,
                                          selectedDate: toDate)
       pickerCtrl?.pickerFont = Const.Fonts.contentFont
@@ -557,7 +557,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if overlay == nil {
       overlay = Overlay(overlay:pickerCtrl , into: self)
       overlay?.enablePinchAndPan = false
-      overlay?.maxAlpha = 0.0
+      overlay?.maxAlpha = 0.9
     }
         
 //    pickerCtrl.doneHandler = {
@@ -566,17 +566,22 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
 //    }
     
     pickerCtrl.doneHandler = {
-      let dstr = pickerCtrl.selectedDate.gMonthYear(tz: self.feeder.timeZone)
+      let dstr = pickerCtrl.selectedDate.gDate(tz: self.feeder.timeZone)
       Alert.message(title: "Baustelle",
-                    message: "Hier werden später die Ausgaben ab \"\(dstr)\" angezeigt.") { [weak self] in
+                    message: "Hier werden später die Ausgaben um den \"\(dstr)\" angezeigt.") { [weak self] in
         self?.overlay?.close(animated: true)
       }
     }
-    ///This fixes the close animation slide away to top ui bug, should be integrated in overlay soon!
-    overlay?.onRequestUpdatedCloseFrame {   [weak self] in
-      guard let self = self else { return .zero}
-      return self.view.getConvertedFrame(self.issueCarousel.label) ?? .zero
+    overlay?.onClose(closure: {  [weak self] in
+      self?.overlay = nil
+      self?.pickerCtrl = nil
+    })
+    
+    //Update labelButton Offset
+    if let const = issueCarousel.labelTopConstraint?.constant {
+      pickerCtrl.bottomOffset = const + 50
     }
+    
     overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
   
@@ -585,27 +590,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if !isArchiveMode { feederContext.checkForNewIssues(feed: feed) }
   }
   
-  func updateCarouselForParentSize(_ size:CGSize) {
-    //dault values: relativeSpacing = 0.12 // relativePageWidth = 0.6
-    //using hard coded min Values to fit problematic devices
-    //see git history prev commit for dynamic calculation ideas
-    // 795x820
-    let aH = size.height
-      - 20 //pin(carousel.top, to: self.top, dist: 20)
-      - UIWindow.verticalInsets
-      - Toolbar.ContentToolbarHeight
-      - issueCarouselLabelWrapperHeight
-    let aW = size.width - UIWindow.horizontalInsets
-    let defaultPageRatio:CGFloat = 0.670219
-    let maxZoom:CGFloat = 1.3
-    let maxPageWidth = defaultPageRatio * aH / maxZoom
-    let relPageWidth = maxPageWidth/aW
-    self.issueCarousel.carousel.relativePageWidth = min(0.6, relPageWidth*0.99)
-    self.issueCarousel.carousel.relativeSpacing = min(0.12, 0.2*relPageWidth/0.85)
-
+  func invalidateCarouselLayout() {
     self.issueCarousel.carousel.collectionViewLayout.invalidateLayout()
     self.issueCarousel.carousel.updateLayout()
-    
     if let idx = safeIndex {
       self.issueCarousel.carousel.scrollToItem(at: IndexPath(item: idx,
                                                              section: 0),
@@ -616,13 +603,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    updateCarouselSize(.zero)//initially show label (set pos not behind toolbar)
+    invalidateCarouselLayout()//fix sitze if rotated on pushed vc
     checkForNewIssues()
-    updateCarouselForParentSize(self.view.bounds.size)
   }
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
-    onMainAfter { self.updateCarouselForParentSize(size) }
+    onMainAfter { self.invalidateCarouselLayout() }
   }
   
   @objc private func goingBackground() {}
@@ -635,14 +623,45 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
     super.init()
-    Notification.receive("issueOverview") { [weak self] notif in 
+    updateCarouselSize(.zero)
+    if let cfl = issueCarousel.carousel.collectionViewLayout as? CarouselFlowLayout {
+      cfl.onLayoutChanged{   [weak self]  newSize in
+        self?.updateCarouselSize(newSize)
+      }
+    }
+    Notification.receive("issueOverview") { [weak self] notif in
       if let err = notif.error { self?.handleDownloadError(error: err) }
       else { self?.addIssue(issue: notif.content as! Issue) }
+    }
+  }
+  
+  private func updateCarouselSize(_ newSize:CGSize){
+    let size
+      = newSize != .zero
+      ? newSize
+      : CGSize(width: UIWindow.size.width,
+               height: UIWindow.size.height
+                - UIWindow.verticalInsets
+                - Toolbar.ContentToolbarHeight)
+    let availableH = size.height - 20 - self.issueCarouselLabelWrapperHeight
+    let useableH = min(730, availableH) //Limit Height (usually on High Res & big iPad's)
+    let availableW = size.width
+    let defaultPageRatio:CGFloat = 0.670219
+    let maxZoom:CGFloat = 1.3
+    let maxPageWidth = defaultPageRatio * useableH / maxZoom
+    let relPageWidth = maxPageWidth/availableW
+    let relativePageWidth = min(0.6, relPageWidth*0.99)//limit to prevent touch
+    self.issueCarousel.carousel.relativePageWidth = relativePageWidth
+    self.issueCarousel.carousel.relativeSpacing = min(0.12, 0.2*relPageWidth/0.85)
+//    print("IssueVc set relativePageWidth: \(self.issueCarousel.carousel.relativePageWidth) && relativeSpacing: \( self.issueCarousel.carousel.relativeSpacing ) size: \(size) useH: \(useableH)")
+    if let labelTopConstraint = self.issueCarousel.labelTopConstraint {
+      let maxHeight = size.width * relativePageWidth * 1.3 / defaultPageRatio
+      let padding = (size.height - maxHeight)/2
+      labelTopConstraint.constant = 0 - padding
     }
   }
   
   required public init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-    
 } // IssueVC

@@ -22,6 +22,8 @@ public let ConfigDefaults = Defaults.Values([
   "dataPolicyAccepted" : "false",
   // Article/Section font size in percent (100% => 18px)
   "articleTextSize" : "100",
+  // Article/Section font size in percent (100% => 18px)
+  "articleColumnPercentageWidth" : "100",
   // Text alignment in Articles (eg. left/justify)
   "textAlign" : "left",
   // Color mode - currently dark/light
@@ -45,5 +47,7 @@ public let ConfigDefaults = Defaults.Values([
   // display full PDF Page on Page switch in Landscape
   "fullPdfOnPageSwitch" : "true",
   // need to show PDF Info Toast on startup
-  "showPdfInfoToast" : "true"
+  "showPdfInfoToast" : "true",
+  // need to show Bottom Tiles Animation
+  "showBottomTilesAnimation" : "true"
 ])

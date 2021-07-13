@@ -111,6 +111,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func writeTazApiCss(topMargin: CGFloat = TopMargin, bottomMargin: CGFloat = BottomMargin, callback: (()->())? = nil) {
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
+    let percentageMaxWidth = Int(dfl["articleColumnPercentageWidth"]!)!
+    let maxWidth = percentageMaxWidth * 6
+    let mediaLimit = max(Int(UIWindow.size.width), maxWidth)
     let colorMode = dfl["colorMode"]
     let textAlign = dfl["textAlign"]
     var colorModeImport: String = ""
@@ -124,9 +127,22 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       body {
         padding-top: \(topMargin+UIWindow.topInset/2)px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
-      } 
+      }
       p {
         text-align: \(textAlign!);
+      }
+      @media (min-width: \(mediaLimit)px) {
+        body #content {
+            width: \(maxWidth)px;
+            margin-left: \(-maxWidth/2)px;
+            position: absolute;
+            left: 50%;
+          }
+        
+        div.VerzeichnisArtikel{
+          margin-left: 0;
+          margin-right: 0;
+        }
       }
     """
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
@@ -215,9 +231,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 //  { playClosure = closure }
   
   func setupSettingsBottomSheet() {
-    settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self)
-    
-    settingsBottomSheet?.coverage =  208 + UIWindow.verticalInsets
+    settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self, maxWidth: 500)
+    ///was 130 >= 208 //Now 195 => 273//with Align 260 => 338
+    settingsBottomSheet?.coverage =  338 + UIWindow.verticalInsets
     
     onSettings{ [weak self] _ in
       guard let self = self else { return }
@@ -227,6 +243,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       else {
         self.settingsBottomSheet?.open()
+        self.settingsBottomSheet?.slideDown(130)
       }
       
       self.textSettingsVC.updateButtonValuesOnOpen()

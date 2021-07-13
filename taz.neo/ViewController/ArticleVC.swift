@@ -54,16 +54,17 @@ open class ArticleVC: ContentVC {
     }
     super.setup(contents: articles, isLargeHeader: false)
     contentTable?.onSectionPress { [weak self] sectionIndex in
-      guard let this = self else { return }
+      guard let self = self else { return }
       if sectionIndex >= delegate.sections.count {
-        this.debug("*** Action: Impressum pressed")
+        self.debug("*** Action: Impressum pressed")
       }
       else {
-        this.debug("*** Action: Section \(sectionIndex) " +
+        self.debug("*** Action: Section \(sectionIndex) " +
           "(delegate.sections[sectionIndex])) in Slider pressed")
       }
       delegate.displaySection(index: sectionIndex)
-      this.navigationController?.popViewController(animated: false)
+      self.slider?.close()
+      self.navigationController?.popViewController(animated: false)
     }
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")

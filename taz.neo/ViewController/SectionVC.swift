@@ -64,10 +64,18 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       else if let index = index { avc.index = index }
       if let nvc = navigationController {
         if avc != nvc.topViewController {
+          avc.writeTazApiCss{
+            avc.reloadAllWebViews()
+          }
           nvc.pushViewController(avc, animated: true)
         }
       }
     }
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    articleVC?.viewWillTransition(to: size, with: coordinator)
   }
   
   public func linkPressed(from: URL?, to: URL?) {
