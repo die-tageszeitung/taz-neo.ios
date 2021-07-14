@@ -300,7 +300,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     /// Remove all content
     for f in Dir.appSupport.scan() {
       debug("remove: \(f)")
-      try! FileManager.default.removeItem(atPath: f)
+      File(f).remove()
     }
     log("delete all done successfully")
     exit(0)
