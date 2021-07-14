@@ -336,8 +336,20 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       self.debug(fctx.storedFeeder.toString())
       self.startup()
     }
-    self.feederContext = 
-      FeederContext(name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
+    let nd = UIApplication.shared.delegate as! AppDelegate
+    var feeder: (name: String, url: String, feed: String)
+    let fname = nd.feeder
+    switch fname {
+      case "taz":
+        feeder = (name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
+      case "taz-test":
+        feeder = (name: "taz-test", url: "https://dl.taz.de/appGraphQlTest", feed: "taz")
+      default:
+        fatal("Unknown Feeder name: \(nd.feeder)")
+        return
+    }
+    self.feederContext =
+      FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
   }
   
   override func viewDidLoad() {
@@ -364,7 +376,6 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     Notification.receive(UIApplication.willTerminateNotification) { _ in
       self.appWillTerminate()
     }
-    //ArticleDB.dbRemove(name: "taz")
     setupFeeder()
     registerForStyleUpdates()
   } // viewDidLoad

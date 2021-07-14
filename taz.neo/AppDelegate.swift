@@ -13,10 +13,25 @@ class AppDelegate: NotifiedDelegate {
 
   var window: UIWindow?
   var wantLogging = false
+  var feeder: String = "taz"
+  
+  func handleShortcuts(_ launchOptions: [UIApplication.LaunchOptionsKey: Any]?) {
+    if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
+      switch shortcutItem.type {
+        case "Logging":
+          wantLogging = true
+        case "TestFeeder":
+          feeder = "taz-test"
+        default:
+          break
+      }
+    }
+  }
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     updateDefaultsIfNeeded()
     self.window = UIWindow(frame: UIScreen.main.bounds)
+    handleShortcuts(launchOptions)
     self.window?.rootViewController = MainNC()
 //    self.window?.rootViewController = TestController()
 //    self.window?.rootViewController = NavController()
@@ -30,9 +45,6 @@ class AppDelegate: NotifiedDelegate {
 //    self.window?.rootViewController = TazPdfPagesViewController()
 //    self.window?.rootViewController = KeychainTest()
     self.window?.makeKeyAndVisible()
-    if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
-      if shortcutItem.type == "Logging" { wantLogging = true }
-    }    
     if #available(iOS 13.0, *) {
       UIApplication.shared.keyWindow?.overrideUserInterfaceStyle
         = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
@@ -44,15 +56,24 @@ class AppDelegate: NotifiedDelegate {
     Defaults.singleton["offerTrialSubscription"]=nil
   }
   
-  /// Enable Logging button on home screen
+  /// Define App Icon menue
   public func applicationWillResignActive(_ application: UIApplication) {
-    let proto = UIApplicationShortcutItem(type: "Logging", 
-                localizedTitle: "Protokoll einschalten")
-    application.shortcutItems = [proto]
+//    let proto = UIApplicationShortcutItem(type: "Logging",
+//                localizedTitle: "Protokoll einschalten")
+    let testChannel = UIApplicationShortcutItem(type: "TestFeeder",
+                                                localizedTitle: "Testkanal")
+    application.shortcutItems = [testChannel]
   }
 
   func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
     if shortcutItem.type == "Logging" { wantLogging = true }
+  }
+  
+  // Store background download completion handler
+  func application(_ application: UIApplication,
+                   handleEventsForBackgroundURLSession identifier: String,
+                   completionHandler: @escaping () -> Void) {
+    HttpSession.bgCompletionHandlers[identifier] = completionHandler
   }
 
   func applicationDidEnterBackground(_ application: UIApplication) {
