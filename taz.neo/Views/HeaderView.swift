@@ -26,7 +26,10 @@ fileprivate let RightMargin = CGFloat(16)
 
 
 /// The Header to show on top of sections and articles
-open class HeaderView: UIView,  UIStyleChangeDelegate{
+open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
+
+  public var tapRecognizer = TapRecognizer()
+    
   public func applyStyles() {
     let bgcol: UIColor = Const.SetColor.HBackground.color
     let txtcol: UIColor = Const.SetColor.HText.color
@@ -232,7 +235,7 @@ open class HeaderView: UIView,  UIStyleChangeDelegate{
     miniTitle = nil
     title = ""
     subTitle = ""
-    registerForStyleUpdates()
+    registerForStyleUpdates()    
   }
   
   func installIn(view: UIView, isLarge: Bool, isMini: Bool = false) {
