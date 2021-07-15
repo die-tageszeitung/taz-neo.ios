@@ -386,8 +386,18 @@ public protocol Article: Content, ToString {
 } // Article
 
 public extension Article {
+  
   func toString() -> String { "Article \((self as Content).toString())" }
-}
+  
+  /// Returns true if this Article can be played
+  var canPlayAudio: Bool { ArticlePlayer.singleton.canPlay(art: self) }
+  
+  /// Start/stop audio play if available
+  func toggleAudio(sectionName: String) {
+    ArticlePlayer.singleton.toggle(art: self, sectionName: sectionName)
+  }
+  
+} // Article
 
 /**
  Section type
