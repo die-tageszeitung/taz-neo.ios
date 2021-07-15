@@ -233,6 +233,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
                          atArticle: Int? = nil) {
     guard let index = givenIndex ?? self.safeIndex else { return }
     func openIssue() {
+      ArticlePlayer.singleton.baseUrl = issue.baseUrl
       //call it later if Offline Alert Presented
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
       //prevent multiple pushes
