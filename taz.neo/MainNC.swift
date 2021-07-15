@@ -47,6 +47,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     Log.append(logger: consoleLogger, /*viewLogger,*/ fileLogger)
     Log.minLogLevel = .Debug
     HttpSession.isDebug = false
+    PdfRenderService.isDebug = false
+    ZoomedImageView.isDebug = false
     Log.onFatal { msg in 
       self.log("fatal closure called, error id: \(msg.id)") 
       self.reportFatalError(err: msg)
