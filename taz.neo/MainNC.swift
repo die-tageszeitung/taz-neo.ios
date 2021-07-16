@@ -242,7 +242,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     var str = ""
     for k in ["id", "password", "token", "dataPolicyAccepted"] {
       var val = Keychain.singleton[k]
-      if k == "password" && val != nil { val = "defined (but hidden on purpose)\n" }
+      if k == "password" && val != nil { val = "defined (but hidden on purpose)" }
       else if k == "token" && val != nil { val = val![0..<30] }
       str += "  \(k): \(val ?? "undefined")\n"
     }
