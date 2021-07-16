@@ -381,6 +381,8 @@ public protocol Article: Content, ToString {
   var teaser: String? { get }
   /// Link to online version
   var onlineLink: String? { get }
+  /// Has Article been bookmarked
+  var hasBookmark: Bool { get set }
   /// List of PDF page (-file) names containing this article
   var pageNames: [String]? { get }
 } // Article
@@ -396,6 +398,9 @@ public extension Article {
   func toggleAudio(sectionName: String) {
     ArticlePlayer.singleton.toggle(art: self, sectionName: sectionName)
   }
+  
+  // By default Articles don't have bookmarks
+  var hasBookmark: Bool { get { false } set {} }
   
 } // Article
 
