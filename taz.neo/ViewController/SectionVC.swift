@@ -64,9 +64,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       else if let index = index { avc.index = index }
       if let nvc = navigationController {
         if avc != nvc.topViewController {
-          avc.writeTazApiCss{
-//            avc.reloadAllWebViews()
-          }
+          avc.writeTazApiCss()
+//          avc.reloadAllWebViews()
           nvc.pushViewController(avc, animated: true)
         }
       }
