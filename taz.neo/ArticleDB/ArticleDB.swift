@@ -845,9 +845,26 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.teaser }
     set { pr.teaser = newValue }
   }
+  public var hasBookmark: Bool {
+    get { pr.hasBookmark }
+    set {
+      let old = pr.hasBookmark
+      pr.hasBookmark = newValue
+      if old != newValue {
+        Notification.send("BookmarkChanged", content: sections, sender: self)
+      }
+    }
+  }
   public var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
   public var authors: [Author]? { StoredAuthor.authorsOfArticle(article: self) }
   public var pageNames: [String]? { nil }
+  public var sections: [StoredSection] {
+    var ret: [StoredSection] = []
+    if let sections = pr.sections {
+      for s in sections { ret += StoredSection(persistent: s as! PersistentSection) }
+    }
+    return ret
+  }
   
   public required init(persistent: PersistentArticle) { self.pr = persistent }
 
@@ -856,6 +873,7 @@ public final class StoredArticle: Article, StoredObject {
     if let sobject = object as? StoredArticle {
       self.text = sobject.text
       self.lastArticlePosition = sobject.lastArticlePosition
+      self.hasBookmark = object.hasBookmark
     }
     self.title = object.title
     self.html = object.html
@@ -922,6 +940,16 @@ public final class StoredArticle: Article, StoredObject {
     request.predicate = NSPredicate(format: "%@ IN issues", issue.pr)
     request.sortDescriptors = [
       NSSortDescriptor(key: "Section.order", ascending: true),
+      NSSortDescriptor(key: "order", ascending: true)
+    ]
+    return get(request: request)
+  }
+  
+  /// Return all bookmarked Articles
+  public static func bookmarkedArticles() -> [StoredArticle] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "hasBookmark = true")
+    request.sortDescriptors = [
       NSSortDescriptor(key: "order", ascending: true)
     ]
     return get(request: request)
