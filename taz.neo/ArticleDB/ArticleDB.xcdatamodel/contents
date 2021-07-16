@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20E241" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" syncable="YES" codeGenerationType="class">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20F71" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
+        <attribute name="hasBookmark" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="onlineLink" optional="YES" attributeType="String"/>
         <attribute name="teaser" optional="YES" attributeType="String"/>
@@ -12,6 +13,9 @@
         <relationship name="issues" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Issue" inverseName="articles" inverseEntity="Issue"/>
         <relationship name="remarks" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Remark" inverseName="article" inverseEntity="Remark"/>
         <relationship name="sections" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Section" inverseName="articles" inverseEntity="Section"/>
+        <fetchIndex name="Index">
+            <fetchIndexElement property="hasBookmark" type="Binary" order="ascending"/>
+        </fetchIndex>
     </entity>
     <entity name="Author" representedClassName="PersistentAuthor" syncable="YES" codeGenerationType="class">
         <attribute name="name" attributeType="String"/>
@@ -188,7 +192,7 @@
         <relationship name="navButton" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="navSection" inverseEntity="ImageEntry"/>
     </entity>
     <elements>
-        <element name="Article" positionX="-52304.70703125" positionY="-34778.95703125" width="128" height="208"/>
+        <element name="Article" positionX="-52304.70703125" positionY="-34778.95703125" width="128" height="209"/>
         <element name="Author" positionX="-52485.62890625" positionY="-35092.16015625" width="128" height="103"/>
         <element name="Content" positionX="-52600.859375" positionY="-34418.77734375" width="128" height="104"/>
         <element name="Descriptor" positionX="-51924.47265625" positionY="-35092.5859375" width="128" height="118"/>
