@@ -180,7 +180,11 @@ open class FeederContext: DoesLog {
         }
       }
       else {
-        self.noConnection(to: name, isExit: true) { exit(0) }
+        self.noConnection(to: name, isExit: true) {   [weak self] in
+          guard let self = self else { exit(0) }
+          if self.netAvailability.isAvailable { self.connect() }
+          else { exit(0)}
+        }
       }
     }
   }
