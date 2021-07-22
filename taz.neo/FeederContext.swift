@@ -182,6 +182,8 @@ open class FeederContext: DoesLog {
       else {
         self.noConnection(to: name, isExit: true) {   [weak self] in
           guard let self = self else { exit(0) }
+          /// Try to connect if network is available now e.g. User has seen Popup No Connection
+          /// User activated MobileData/WLAN, press OK => Retry not App Exit
           if self.netAvailability.isAvailable { self.connect() }
           else { exit(0)}
         }
