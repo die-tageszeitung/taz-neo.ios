@@ -25,13 +25,17 @@
 		08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */; };
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
+		771233A926AEB40F00493235 /* GqlFeederSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 771233A826AEB40F00493235 /* GqlFeederSearch.swift */; };
 		7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968C25CC605D00508DE8 /* FeedbackViewController.swift */; };
 		7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968D25CC605D00508DE8 /* FeedbackComposer.swift */; };
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
 		7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
+		771F377426B19B2E00DC95B4 /* SearchSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 771F377326B19B2E00DC95B4 /* SearchSettingsVC.swift */; };
+		772513FA26B3098100A549A5 /* SearchResultsTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772513F926B3098100A549A5 /* SearchResultsTVC.swift */; };
 		773D564226145E8500B42FEF /* InfoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773D564126145E8500B42FEF /* InfoToast.swift */; };
 		773D56472614A4DF00B42FEF /* BundledResources in Resources */ = {isa = PBXBuildFile; fileRef = 773D56462614A4DF00B42FEF /* BundledResources */; };
+		7741602426B0457F004A3328 /* SearchController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7741602326B0457F004A3328 /* SearchController.swift */; };
 		7745050D25DA801F0052E502 /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = 7745050C25DA801F0052E502 /* resources.json */; };
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
@@ -41,6 +45,7 @@
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77D0DAEC25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */; };
+		77EA673B26BA9F1900ECA3BA /* IssueVCSearchExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EA673A26BA9F1900ECA3BA /* IssueVCSearchExtension.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
 		AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */; };
@@ -129,13 +134,17 @@
 		08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdController.swift; sourceTree = "<group>"; };
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
+		771233A826AEB40F00493235 /* GqlFeederSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlFeederSearch.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
 		7715968D25CC605D00508DE8 /* FeedbackComposer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackComposer.swift; sourceTree = "<group>"; };
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
+		771F377326B19B2E00DC95B4 /* SearchSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSettingsVC.swift; sourceTree = "<group>"; };
+		772513F926B3098100A549A5 /* SearchResultsTVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultsTVC.swift; sourceTree = "<group>"; };
 		773D564126145E8500B42FEF /* InfoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToast.swift; sourceTree = "<group>"; };
 		773D56462614A4DF00B42FEF /* BundledResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResources; sourceTree = "<group>"; };
+		7741602326B0457F004A3328 /* SearchController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchController.swift; sourceTree = "<group>"; };
 		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
 		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
 		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
@@ -145,6 +154,7 @@
 		77C00CFB25DA9A4A00964861 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDownAnimationView.swift; sourceTree = "<group>"; };
 		77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueVCBottomTielesCVCCell.swift; sourceTree = "<group>"; };
+		77EA673A26BA9F1900ECA3BA /* IssueVCSearchExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueVCSearchExtension.swift; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextSettingsVC.swift; sourceTree = "<group>"; };
@@ -342,6 +352,10 @@
 				AE44F8E324815AF4009DA152 /* ContentImageVC.swift */,
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
 				00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */,
+				7741602326B0457F004A3328 /* SearchController.swift */,
+				771F377326B19B2E00DC95B4 /* SearchSettingsVC.swift */,
+				772513F926B3098100A549A5 /* SearchResultsTVC.swift */,
+				77EA673A26BA9F1900ECA3BA /* IssueVCSearchExtension.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -408,6 +422,7 @@
 				AE4AA2AE23F6AD5700EAFE78 /* ViewController */,
 				AE82262C232A70E000FFBE67 /* GraphQlSession.swift */,
 				AE696F2D23918F9400265FC8 /* GqlFeeder.swift */,
+				771233A826AEB40F00493235 /* GqlFeederSearch.swift */,
 				AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */,
 				AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */,
 				AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */,
@@ -611,6 +626,7 @@
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
 				0015B73724DD86B30037A8D6 /* Authenticator.swift in Sources */,
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
+				771233A926AEB40F00493235 /* GqlFeederSearch.swift in Sources */,
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				AEC7D467249920DF008630FB /* OverlayTest.swift in Sources */,
 				7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */,
@@ -625,6 +641,7 @@
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
 				006E17E924D418090092DC0D /* FormComponents.swift in Sources */,
 				004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */,
+				77EA673B26BA9F1900ECA3BA /* IssueVCSearchExtension.swift in Sources */,
 				AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */,
 				AE5D9EC023E1B82B0002C3B8 /* Downloader.swift in Sources */,
 				7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */,
@@ -633,6 +650,7 @@
 				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,
 				77D0DAEC25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift in Sources */,
 				C794F23524FED184007168AC /* Helper.swift in Sources */,
+				7741602426B0457F004A3328 /* SearchController.swift in Sources */,
 				AE4C4FF726A1A512006079C8 /* ArticleDB.xcdatamodel in Sources */,
 				AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */,
 				770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */,
@@ -640,6 +658,7 @@
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,
 				AE4C4FF926A1ABD9006079C8 /* BookmarkFeed.swift in Sources */,
 				7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */,
+				771F377426B19B2E00DC95B4 /* SearchSettingsVC.swift in Sources */,
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */,
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,
@@ -662,6 +681,7 @@
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,
 				AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */,
 				AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */,
+				772513FA26B3098100A549A5 /* SearchResultsTVC.swift in Sources */,
 				AE44F8E62481621C009DA152 /* IssueInfoProtocol.swift in Sources */,
 				7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */,
 				7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */,
@@ -844,7 +864,7 @@
 				);
 				MARKETING_VERSION = 0.9.3;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DPDFEXPORT -DINTERNALBROWSER";
-				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
+				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.beta;
 				PRODUCT_NAME = "die tageszeitung";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -871,7 +891,7 @@
 				);
 				MARKETING_VERSION = 0.9.3;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DPDFEXPORT -DINTERNALBROWSER";
-				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
+				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.beta;
 				PRODUCT_NAME = "die tageszeitung";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

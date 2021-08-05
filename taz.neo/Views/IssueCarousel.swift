@@ -77,6 +77,15 @@ public class IssueCarousel: UIView {
     carousel.insert(at: index)
   }
   
+  /// Insert Issue at index
+  public func updateIssue(_ issue: UIImage, at index: Int) {
+    if carousel.provider == nil { reset() }
+    self.issues.remove(at: index)
+    self.issues.insert((issue: issue, isActivity: false), at: index)
+    carousel.reload(index: index)
+  }
+  
+  
   /// Define list of images
   public func setIssues(_ issues: [UIImage]) {
     reset()

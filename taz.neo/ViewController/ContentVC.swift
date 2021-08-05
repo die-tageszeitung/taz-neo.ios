@@ -145,6 +145,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
           margin-right: 0;
         }
       }
+      span.snippet {
+        background-color: yellow;
+      }
     """
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent) }
   }

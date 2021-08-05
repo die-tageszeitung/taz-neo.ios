@@ -272,7 +272,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       showIntro() { self.showIssueVC() }
     }
     else {
-      feederContext.updateResources(toVersion: -1)
+//      feederContext.updateResources(toVersion: -1)
       showIssueVC()
     }
   } 

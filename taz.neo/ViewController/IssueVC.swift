@@ -95,7 +95,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Add Issue to carousel
   private func addIssue(issue: Issue) {
-    if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile) {
+    if let idx = issues.firstIndex(where: { $0.date == issue.date}) {
+      issues[idx] = issue
+      if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("DemoMoment"){
+        self.issueCarousel[idx] = img
+      }
+      self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)])
+      print("reloadItem at: \(idx) for: \(issue.date)")
+      return
+    }
+
+    if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile) ?? UIImage(named: "DemoMoment") {
       var idx = 0
       for iss in issues {
         #warning("Update Missing!")
@@ -123,6 +133,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         else { index = idx }
       }
     }
+    else {
+      print("Not adding empty moment for \(issue.date)")
+    }
   }
   
   /// Move Carousel to certain Issue date (or next smaller)
@@ -138,6 +151,19 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
+    /*
+     
+     Wann soll Fehlermeldung gezeigt werden, wann nicht?
+     
+     check for new Issues, issues sind lokal vorhanden, Internet hatte kurzen Aussetzer => NEIN
+     
+     Issue nur in Vorschau, klick rauf Download
+     1. bricht ab => ja
+     2. raming ganz kurz offline, dann wieder online => kein Popup reload
+     
+     **/
+    
+    
     
     func showDownloadErrorAlert() {
       let message = """
@@ -303,23 +329,36 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       issueCarousel.setActivity(idx: index, isActivity: true)
       Notification.receiveOnce("issueStructure", from: sissue) { [weak self] notif in
         guard let self = self else { return }
-        guard notif.error == nil else { 
-          self.handleDownloadError(error: notif.error!)
-          if issue.status.watchable && self.isFacsimile { openIssue() }
+        guard notif.error == nil else {
+          self.log("Download Error while issueStructure load")
+          if issue.status.watchable && self.isFacsimile {
+            self.log("Download Error occured: \(notif.error?.errorText() ?? "-")")
+            openIssue()
+          }
+          else {
+            self.handleDownloadError(error: notif.error!)
+          }
           return 
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
           guard let self = self else { return }
           self.isDownloading = false
           guard err == nil else {
-            self.handleDownloadError(error: err)
-            if issue.status.watchable && self.isFacsimile { openIssue() }
+            self.log("Download Error while downloadSection load")
+            if issue.status.watchable && self.isFacsimile {
+              openIssue()
+              self.log("Download Error occured: \(notif.error?.errorText() ?? "-")")
+            }
+            else {
+              self.handleDownloadError(error: notif.error!)
+            }
             return
           }
           openIssue()
           Notification.receiveOnce("issue", from: sissue) { [weak self] notif in
             guard let self = self else { return }
-            if let err = notif.error { 
+            if let err = notif.error {
+              self.log("Download Error while issue load")
               self.handleDownloadError(error: err)
               self.error("Issue \(sissue.date.isoDate()) DL Errors: last = \(err)")
             }
@@ -365,6 +404,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   private func deleteIssue() {
     if let issue = issue as? StoredIssue {
+      ///DID NOT WORK TO DELETE EVERYTGHING FROM DB! for given issue!
+//      issue.deletePersistent()
+//      issue.delete()
+//      onMainAfter(5) {
+//        Toast.show("DELETED")
+//        ArticleDB.save()
+//      }
       issue.reduceToOverview()
       setLabel(idx: index)
     }
@@ -431,14 +477,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   var interruptMainTimer: Timer?
   
-  
   public override func viewDidLoad() {
     super.viewDidLoad()
-    self.headerView.addSubview(issueCarousel)
-    pin(issueCarousel.top, to: self.headerView.top)
-    pin(issueCarousel.left, to: self.headerView.left)
-    pin(issueCarousel.right, to: self.headerView.right)
-    pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(Toolbar.ContentToolbarHeight+UIWindow.maxAxisInset))
+    self.topView.addSubview(issueCarousel)
+    pin(issueCarousel.top, to: self.topView.top, dist: SearchHelper.SearchBarWrapperHeight)
+    pin(issueCarousel.left, to: self.topView.left)
+    pin(issueCarousel.right, to: self.topView.right)
+    pin(issueCarousel.bottom, to: self.topView.bottom, dist: -(Toolbar.ContentToolbarHeight+UIWindow.maxAxisInset+SearchHelper.SearchBarWrapperHeight))
     issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
       self?.showIssue(index: idx, atSection: self?.issue.lastSection, 
@@ -537,6 +582,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       spinner.startAnimating()
     }
     feederContext.getStoredOvwIssues(feed: feed)
+//    self.provideOverview()
     feederContext.getOvwIssues(feed: feed, count: 20)
   }//Eof viewDidLoad()
   
@@ -631,8 +677,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
     }
     Notification.receive("issueOverview") { [weak self] notif in
-      if let err = notif.error { self?.handleDownloadError(error: err) }
+      if let err = notif.error {
+        self?.log("Download Error while issueOverview load in vc")
+        self?.handleDownloadError(error: err)
+      }
       else { self?.addIssue(issue: notif.content as! Issue) }
+    }
+    Notification.receive("issuePlaceholder") { [weak self] notif in
+      self?.addIssue(issue: notif.content as! Issue)
     }
   }
   

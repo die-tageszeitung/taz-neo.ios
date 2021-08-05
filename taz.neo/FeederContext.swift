@@ -546,6 +546,13 @@ open class FeederContext: DoesLog {
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                    fromDate: fromDate)
+            for issue1 in sissues {
+              if issue1.isOvwComplete == false {
+                var res: Result<StoredIssue,Error>
+                res = .success(issue1)
+                Notification.send("issuePlaceholder", result: res, sender: issue1)
+              }
+            }
             for issue in sissues { self.downloadIssue(issue: issue) }
           }
           else {
@@ -713,6 +720,16 @@ open class FeederContext: DoesLog {
   
   /// Download Issue files and resources if necessary
   private func downloadIssue(issue: StoredIssue, isComplete: Bool = false) {
+    
+    if self.isConnected && isComplete == false {
+      self.downloadPartialIssue(issue: issue)
+      return
+    }
+    
+    #warning("REFACTOR!")
+    ///this function is called from a Loop from getOvwIssues on 10 to 20 Elements
+    ///recive once may not work for that kind of call e.g. issue 1.3. needs version 98 issue 2.3. needs version 99
+    ///recive once handler is set from same thread, update ressources is called at first to 2.3.
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       self.dloader.createIssueDir(issue: issue)

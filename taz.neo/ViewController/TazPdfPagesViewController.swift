@@ -8,6 +8,7 @@
 
 import Foundation
 import NorthLib
+import SafariServices
 import PDFKit
 
 
@@ -209,7 +210,13 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
                                height: pageHeight)
   }
 }
-
+extension TazPdfPagesViewController : SFSafariViewControllerDelegate {
+  // MARK: - SFSafariViewControllerDelegate protocol
+  
+  public func safariViewControllerDidFinish(_ svc: SFSafariViewController) {
+    navigationController?.popViewController(animated: true)
+  }
+}
 // MARK: - TazPdfPagesViewController
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
 open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, UIStyleChangeDelegate{
@@ -238,7 +245,21 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
     else {
       self.debug("Calling application for: \(to.absoluteString)")
-      if UIApplication.shared.canOpenURL(to) {
+      
+      let isInternal = true
+//      #if INTERNALBROWSER
+//        let isInternal = true
+//      #else
+//        let isInternal = false
+//      #endif
+      if isInternal {
+        let svc = SFSafariViewController(url: to)
+        svc.delegate = self
+        svc.preferredControlTintColor = Const.Colors.darkTintColor
+        svc.preferredBarTintColor = Const.Colors.darkToolbar
+        navigationController?.pushViewController(svc, animated: true)
+      }
+      else if UIApplication.shared.canOpenURL(to) {
         UIApplication.shared.open(to, options: [:], completionHandler: nil)
       }
       else {
@@ -326,8 +347,16 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
             let path = zpdfi.issueDir?.path else { return }
-        
-      if let url = URL(string: link), UIApplication.shared.canOpenURL(url) {
+     
+      if true {
+        let svc = SFSafariViewController(url: URL(string: link)!)
+          svc.delegate = self
+          svc.preferredControlTintColor = Const.Colors.darkTintColor
+          svc.preferredBarTintColor = Const.Colors.darkToolbar
+        self.navigationController?.pushViewController(svc, animated: true)
+        return
+      }
+      else if let url = URL(string: link), UIApplication.shared.canOpenURL(url) {
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
         return
       }

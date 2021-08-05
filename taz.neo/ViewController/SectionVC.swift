@@ -99,11 +99,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       }
     }
     else {
-      #if INTERNALBROWSER
-        let isInternal = true
-      #else
-        let isInternal = false
-      #endif
+      let isInternal = true
+//      #if INTERNALBROWSER
+//        let isInternal = true
+//      #else
+//        let isInternal = false
+//      #endif
       if let scheme = to.scheme,
          isInternal && (scheme == "http" || scheme == "https") {
         let svc = SFSafariViewController(url: to)

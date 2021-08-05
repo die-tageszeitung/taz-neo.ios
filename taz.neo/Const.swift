@@ -35,6 +35,7 @@ public struct Const {
   
   /// Various color values
   struct Colors {
+    static let dimmedBackground = UIColor.black.withAlphaComponent(0.7)
     static let darkPrimaryBG = UIColor.rgb(0x0)
     static let darkSecondaryBG = UIColor.rgb(0x1c1c1e)
     static let darkSeparator = UIColor.rgb(0x545458)
@@ -252,7 +253,6 @@ public struct Const {
       }
     }
   } // SetColors
-
   
   /// Various font values
   struct Fonts {
@@ -339,6 +339,7 @@ public extension UILabel {
   /// set content font with default font size and return self (for chaining)
   ///  @todo may respect dark/light mode with param ignore dark/lightMode
   /// - Returns: self
+  @discardableResult
   func contentFont() -> UILabel {
     self.font = Const.Fonts.contentFont(size: Const.Fonts.defaultFontSize)
     return self
@@ -346,29 +347,90 @@ public extension UILabel {
   
   /// set content title font with default font size and return self (for chaining)
   /// - Returns: self
+  @discardableResult
+  internal func boldFont() -> UILabel {
+    self.font = Const.Fonts.titleFont(size: Const.Fonts.defaultFontSize)
+    return self
+  }
+  
+  /// set content title font with default font size and return self (for chaining)
+  /// - Returns: self
+  @discardableResult
+  func smallFont() -> UILabel {
+    self.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
+    return self
+  }
+  
+  /// set content title font with default font size and return self (for chaining)
+  /// - Returns: self
+  @discardableResult
   func titleFont() -> UILabel {
     self.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
     return self
   }
   
+  @discardableResult
   func black() -> UILabel {
     self.textColor = UIColor.black
     return self
   }
   
-  func white() -> UILabel {
-    self.textColor = UIColor.white
+  @discardableResult
+  internal func color(_ color: Const.SetColor) -> UILabel {
+    self.textColor = color.color
     return self
   }
   
+  @discardableResult
   func center() -> UILabel {
     self.textAlignment = .center
     return self
   }
   
-  convenience init(_ _text : String, _numberOfLines : Int = 0) {
+  internal convenience init(_ _text : String,
+                   _numberOfLines : Int = 0,
+                   type: tazFontType = .content,
+                   color: Const.SetColor = .ios(.label),
+                   align: NSTextAlignment = .natural) {
     self.init()
     text = _text
     numberOfLines = _numberOfLines
+    switch type {
+      case .bold:
+        self.font = Const.Fonts.titleFont(size: Const.Fonts.defaultFontSize)
+      case .content:
+        self.font = Const.Fonts.contentFont(size: Const.Fonts.defaultFontSize)
+      case .small:
+        self.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
+      case .title:
+        self.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+    }
+    self.textColor = color.color
+    self.textAlignment = align
+    
+  }
+}
+
+enum tazFontType { case title, small, bold, content }
+
+public extension UIButton {
+  internal convenience init(_ _text : String,
+                            type: tazFontType = .content) {
+    self.init()
+    self.setTitle(_text, for: .normal)
+    switch type {
+      case .bold:
+        self.titleLabel?.font = Const.Fonts.titleFont(size: Const.Fonts.defaultFontSize)
+      case .content:
+        self.titleLabel?.font = Const.Fonts.contentFont(size: Const.Fonts.defaultFontSize)
+      case .small:
+        self.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
+      case .title:
+        self.titleLabel?.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+    }
+//    .ios(.tintColor):
+    self.setTitleColor(Const.SetColor.ios(.tintColor).color, for: .normal)
+    self.setTitleColor(Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.7), for: .highlighted)
+    
   }
 }

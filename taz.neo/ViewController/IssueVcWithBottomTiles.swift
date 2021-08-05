@@ -55,10 +55,20 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   let scrollButtonSize = CGSize(width: 80, height: 30)
   let scrollUpButtonAreaHeight:CGFloat=30
   
+  var searchHelper: SearchHelper?
+  
   /// used to hold IssueVC's content (carousel)
   ///obsolate after refactoring & full integration
-  let headerView: UIView = {
+  lazy var topView: UIView = {
     let v = UIView()
+    
+    guard let issueVc = self as? IssueVC else {
+      return v
+    }
+    self.definesPresentationContext = true///Hide SerachBar if Child is Pushed!
+    searchHelper = SearchHelper(searchBarWrapper: v,
+                                searchDelegate: self,
+                                feederContext: issueVc.feederContext)
     v.backgroundColor = .black
     return v
   }()
@@ -66,7 +76,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   ///Array of Section Header Views
   lazy var headerViews : [UIView] = {
     let section2Header = UIView()
-    return [headerView,section2Header]
+    return [topView,section2Header]
   }()
   
   /// size of the issue items in bottom section;
@@ -146,6 +156,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     showPdfInfoIfNeeded()
   }
   
+ 
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     if self.navigationController?.viewControllers.last != self {
@@ -163,6 +174,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       showScrollDownAnimationIfNeeded(delay: 2.0)
     }
     updateCollectionViewLayout(self.view.frame.size)
+    searchHelper?.restoreState()
   }
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -195,6 +207,8 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     
     let onPDF:((ButtonControl)->()) = {   [weak self] control in
       guard let self = self else { return }
+      Notification.send("issueDemo")
+      return
       self.isFacsimile = !self.isFacsimile
       
       if let imageButton = control as? Button<ImageView> {
@@ -203,6 +217,10 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       }
       self.collectionView.reloadData()
       print("PDF Pressed")
+    }
+    
+    let onSearch:((ButtonControl)->()) = {   [weak self] control in
+      self?.searchHelper?.toggleSearchBar()
     }
     
     //the buttons and alignments
@@ -215,12 +233,19 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
                                onPress: onPDF,
                                direction: .left,
                                accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
+    
+    _ = toolBar.addImageButton(name: "doc_search",//searchMagnifier
+                               onPress: onSearch,
+                               direction: .center,
+                               accessibilityLabel: "Suche",
+                               hInset: 0.23)
         
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
   }
 }
+
 
 // MARK: - UICollectionViewDataSource
 extension IssueVcWithBottomTiles {
@@ -432,6 +457,7 @@ extension IssueVcWithBottomTiles {
     if isUp {
       if targetOffset < 0.1 * scrollSnapHeight {
         scrollUp()
+        searchHelper?.toggleSearchBar(toHidden: targetOffset > -50 )
       }
       else {
         scrollDown(true)
