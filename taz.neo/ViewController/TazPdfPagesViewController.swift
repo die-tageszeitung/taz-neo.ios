@@ -348,23 +348,24 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
             let path = zpdfi.issueDir?.path else { return }
      
-      if true {
-        let svc = SFSafariViewController(url: URL(string: link)!)
+      ///Open in internal Browser
+      if true, let url = URL(string: link), UIApplication.shared.canOpenURL(url) {
+        let svc = SFSafariViewController(url: url)
           svc.delegate = self
           svc.preferredControlTintColor = Const.Colors.darkTintColor
           svc.preferredBarTintColor = Const.Colors.darkToolbar
         self.navigationController?.pushViewController(svc, animated: true)
         return
-      }
+      } /// Open with Safari
       else if let url = URL(string: link), UIApplication.shared.canOpenURL(url) {
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
         return
-      }
+      }///goto pdf page
       else if let pageIdx = pdfModel.pageIndexForLink(link) {
         self.collectionView?.scrollto(pageIdx,animated: true)
         return
       }
-      
+      ///Open with ArticleVC
       let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
       childThumbnailController.cellLabelFont = Const.Fonts.titleFont(size: 12)
       childThumbnailController.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
