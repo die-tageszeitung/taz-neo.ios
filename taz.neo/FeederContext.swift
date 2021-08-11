@@ -476,6 +476,7 @@ open class FeederContext: DoesLog {
       ///lot of similar closure calls added and may result in other errors e.g. multiple times of calling getOwvIssue...
       log("Closure not added"); return
     }
+    log("handleFeederError for: \(err)")
     currentFeederErrorReason = err
     var text = ""
     switch err {
@@ -493,6 +494,7 @@ open class FeederContext: DoesLog {
       DefaultAuthenticator.deleteUserData(.token)
     }
     else {
+      log("Delete Userdata!")
       DefaultAuthenticator.deleteUserData()
     }
     self.gqlFeeder.authToken = nil
