@@ -22,6 +22,8 @@ class AppDelegate: NotifiedDelegate {
           wantLogging = true
         case "TestFeeder":
           feeder = "taz-test"
+        case "Test Server":
+          feeder = "taz-test-server"
         default:
           break
       }

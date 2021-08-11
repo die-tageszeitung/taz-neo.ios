@@ -346,6 +346,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
         feeder = (name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
       case "taz-test":
         feeder = (name: "taz-test", url: "https://dl.taz.de/appGraphQlTest", feed: "taz")
+      case "taz-test-server":
+        feeder = (name: "taz", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
       default:
         fatal("Unknown Feeder name: \(nd.feeder)")
         return
