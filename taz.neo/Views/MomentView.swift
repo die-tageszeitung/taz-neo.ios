@@ -50,11 +50,9 @@ public class MomentView: UIView, Touchable {
     pin(imageView.left, to: self.left)
     pin(imageView.right, to: self.right)
     pin(imageView.centerY, to: self.centerY)
-    if #available(iOS 13, *) { 
-      spinner.style = .large 
-      spinner.color = .black
-    }
-    else { spinner.style = .whiteLarge }
+    spinner.style = .white
+    spinner.backgroundColor = .darkGray.withAlphaComponent(0.3)
+    spinner.layer.cornerRadius = 3
     spinner.hidesWhenStopped = true
     addSubview(spinner)
     pin(spinner.centerX, to: self.centerX)
