@@ -550,7 +550,24 @@ open class FeederContext: DoesLog {
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                    fromDate: fromDate)
-            for issue in sissues { self.downloadIssue(issue: issue) }
+            var addedOneDummyIssue = false
+            for issue in sissues {
+              ///speedup download Issue Overview without download ressources for all 20 Items
+              if self.isConnected && issue.isComplete == false {
+                self.downloadPartialIssue(issue: issue)
+              }
+              else {
+                ///if not connected fallback use old way
+                self.downloadIssue(issue: issue)
+              }
+              ///send one (the newest, due issuesInFeed deliveres a sorted array) to IssueCarousell for Placeholder
+              if addedOneDummyIssue == false && issue.isOvwComplete == false {
+                addedOneDummyIssue = true
+                var res: Result<StoredIssue,Error>
+                res = .success(issue)
+                Notification.send("issuePlaceholder", result: res, sender: issue)
+              }
+            }
           }
           else {
             if let err = res.error() as? FeederError {
