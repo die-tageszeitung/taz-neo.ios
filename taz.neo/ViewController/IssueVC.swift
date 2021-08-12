@@ -645,6 +645,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if let err = notif.error { self?.handleDownloadError(error: err) }
       else { self?.addIssue(issue: notif.content as! Issue) }
     }
+    Notification.receive("issuePlaceholder") { [weak self] notif in
+      self?.addIssue(issue: notif.content as! Issue, isPlaceholder: true)
+    }
   }
   
   private func updateCarouselSize(_ newSize:CGSize){
