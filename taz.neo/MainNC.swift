@@ -255,7 +255,6 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     
   func startup() {
     let dfl = Defaults.singleton
-    dfl.setDefaults(values: ConfigDefaults)
     let oneWeek = 7*24*3600
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
@@ -338,9 +337,10 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       self.debug(fctx.storedFeeder.toString())
       self.startup()
     }
-    let nd = UIApplication.shared.delegate as! AppDelegate
     var feeder: (name: String, url: String, feed: String)
-    let fname = nd.feeder
+    
+    let fname = Defaults.singleton["defaultFeeder"] ?? "taz"
+    
     switch fname {
       case "taz":
         feeder = (name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
@@ -349,7 +349,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       case "taz-test-server":
         feeder = (name: "taz", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
       default:
-        fatal("Unknown Feeder name: \(nd.feeder)")
+        fatal("Unknown Feeder name: \(fname)")
         return
     }
     self.feederContext =

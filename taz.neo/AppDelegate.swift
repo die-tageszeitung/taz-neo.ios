@@ -13,19 +13,30 @@ class AppDelegate: NotifiedDelegate {
 
   var window: UIWindow?
   var wantLogging = false
-  var feeder: String = "taz"
+  
+  @Default("defaultFeeder")
+  var defaultFeeder: String
   
   func handleShortcuts(_ launchOptions: [UIApplication.LaunchOptionsKey: Any]?) {
     if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
+      var needDelete = false
       switch shortcutItem.type {
         case "Logging":
           wantLogging = true
+        case "taz":
+          if defaultFeeder != "taz" { needDelete = true}
+          defaultFeeder = "taz"
         case "TestFeeder":
-          feeder = "taz-test"
-        case "Test Server":
-          feeder = "taz-test-server"
+          if defaultFeeder != "taz-test" { needDelete = true}
+          defaultFeeder = "taz-test"
+        case "TestServer":
+          if defaultFeeder != "taz-test-server" { needDelete = true}
+          defaultFeeder = "taz-test-server"
         default:
           break
+      }
+      if needDelete {
+        MainNC.singleton.deleteAll()
       }
     }
   }
@@ -55,16 +66,24 @@ class AppDelegate: NotifiedDelegate {
   }
   
   func updateDefaultsIfNeeded(){
-    Defaults.singleton["offerTrialSubscription"]=nil
+    let dfl = Defaults.singleton
+    dfl["offerTrialSubscription"]=nil
+    dfl.setDefaults(values: ConfigDefaults)
   }
   
   /// Define App Icon menue
   public func applicationWillResignActive(_ application: UIApplication) {
 //    let proto = UIApplicationShortcutItem(type: "Logging",
 //                localizedTitle: "Protokoll einschalten")
+    ///Shortcut Items only for Alpha Versions
+    if App.isAlpha == false { return }
     let testChannel = UIApplicationShortcutItem(type: "TestFeeder",
                                                 localizedTitle: "Testkanal")
-    application.shortcutItems = [testChannel]
+    let liveServer = UIApplicationShortcutItem(type: "taz",
+                                                localizedTitle: "Taz Live Server")
+    let testServer = UIApplicationShortcutItem(type: "TestServer",
+                                                localizedTitle: "Test Server")
+    application.shortcutItems = [liveServer, testChannel, testServer]
   }
 
   func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
