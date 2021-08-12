@@ -1534,11 +1534,35 @@ public final class StoredIssue: Issue, StoredObject {
     return get(request: request)
   }
   
+  /// Return an array of Issues ordered by load date, ie. the oldest (by
+  /// load date) comes first
+  public static func firstLoaded(feed: StoredFeed, count: Int = -1) -> [StoredIssue] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "payload.downloadStarted",
+                                                ascending: true)]
+    if count > 0 { request.fetchLimit = count }
+    return get(request: request)
+  }
+  
   /// Returns the latest (ie. most current) issue stored
   public static func latest(feed: StoredFeed) -> StoredIssue? {
-    let issues = issuesInFeed(feed: feed)
+    let issues = issuesInFeed(feed: feed, count: 1)
     if issues.count >= 1 { return issues[0] }
     return nil
+  }
+  
+  /// Remove oldest Issues and keep the newest ones
+  public static func reduceOldest(feed: StoredFeed, keep: Int) {
+    let issues = firstLoaded(feed: feed)
+    if issues.count > keep {
+      var n = issues.count
+      for issue in issues {
+        if n <= keep { break }
+        issue.reduceToOverview()
+        n -= 1
+      }
+    }
   }
   
   /// Deletes data that is not needed for overview
