@@ -99,8 +99,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     }
   }
   
-
-  
   /// Indicate scrollAnimation started by Arrow Button touch, to prevent disruption of animation
   var isButtonActionScrolling:Bool = false {
     didSet {
@@ -114,7 +112,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   }
   
   // MARK: - Lifecycle
-  
   init() {
     let layout = UICollectionViewFlowLayout()
     layout.sectionInset = UIEdgeInsets(top: self.itemSpacing,
