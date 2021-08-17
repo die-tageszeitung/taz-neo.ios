@@ -99,7 +99,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if let idx = issues.firstIndex(where: { $0.date == issue.date}) {
       issues[idx] = issue
       if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("DemoMoment"){
-        self.issueCarousel.updateIssue(img, at: idx, isActivity: isPlaceholder)
+        self.issueCarousel.updateIssue(img, at: idx, isActivity: isPlaceholder, preventZoomInAnimation: true)
       }
       self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)])
       print("reloadItem at: \(idx) for: \(issue.date)")
