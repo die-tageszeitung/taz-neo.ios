@@ -14,37 +14,13 @@ class AppDelegate: NotifiedDelegate {
   var window: UIWindow?
   var wantLogging = false
   
-  @Default("defaultFeeder")
-  var defaultFeeder: String
-  
-  func handleShortcuts(_ launchOptions: [UIApplication.LaunchOptionsKey: Any]?) {
-    if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
-      var needDelete = false
-      switch shortcutItem.type {
-        case "Logging":
-          wantLogging = true
-        case "taz":
-          if defaultFeeder != "taz" { needDelete = true}
-          defaultFeeder = "taz"
-        case "TestFeeder":
-          if defaultFeeder != "taz-test" { needDelete = true}
-          defaultFeeder = "taz-test"
-        case "TestServer":
-          if defaultFeeder != "taz-test-server" { needDelete = true}
-          defaultFeeder = "taz-test-server"
-        default:
-          break
-      }
-      if needDelete {
-        MainNC.singleton.deleteAll()
-      }
-    }
-  }
-  
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     updateDefaultsIfNeeded()
     self.window = UIWindow(frame: UIScreen.main.bounds)
-    handleShortcuts(launchOptions)
+  ///Not needed: performActionFor shortcutItem is also called!
+//    if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
+//      handleShortcutItem(shortcutItem, applicationLaunching: true)
+//    }
     self.window?.rootViewController = MainNC()
 //    self.window?.rootViewController = TestController()
 //    self.window?.rootViewController = NavController()
@@ -71,23 +47,13 @@ class AppDelegate: NotifiedDelegate {
     dfl.setDefaults(values: ConfigDefaults)
   }
   
-  /// Define App Icon menue
+  /// Update App Icon Menu
   public func applicationWillResignActive(_ application: UIApplication) {
-//    let proto = UIApplicationShortcutItem(type: "Logging",
-//                localizedTitle: "Protokoll einschalten")
-    ///Shortcut Items only for Alpha Versions
-    if App.isAlpha == false { return }
-    let testChannel = UIApplicationShortcutItem(type: "TestFeeder",
-                                                localizedTitle: "Testkanal")
-    let liveServer = UIApplicationShortcutItem(type: "taz",
-                                                localizedTitle: "Taz Live Server")
-    let testServer = UIApplicationShortcutItem(type: "TestServer",
-                                                localizedTitle: "Test Server")
-    application.shortcutItems = [liveServer, testChannel, testServer]
+    application.shortcutItems = Shortcuts.currentItems(wantsLogging: wantLogging)
   }
 
   func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
-    if shortcutItem.type == "Logging" { wantLogging = true }
+    self.handleShortcutItem(shortcutItem, applicationLaunching: false)
   }
   
   // Store background download completion handler
@@ -109,11 +75,159 @@ class AppDelegate: NotifiedDelegate {
   func applicationDidBecomeActive(_ application: UIApplication) {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
   }
-
+  
   func applicationWillTerminate(_ application: UIApplication) {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    // application.shortcutItems = [] //not working!
+    ///NOT CALLED @see:https://developer.apple.com/documentation/uikit/uiapplicationdelegate/1623111-applicationwillterminate
+    // log("applicationWillTerminate ")
   }
-
 
 }
 
+
+fileprivate extension AppDelegate {
+  func handleShortcutItem(_ shortcutItem: UIApplicationShortcutItem, applicationLaunching:Bool) {
+    if Shortcuts.logging.type == shortcutItem.type {
+      wantLogging = !wantLogging
+      return
+    }
+    
+    if applicationLaunching {
+      onMainAfter(5.0) {
+        Toast.show("Option nicht bei App Start verfügbar!", .alert)
+        Toast.show("App wurde normal gestartet.")
+      }
+      return;
+      return;
+    } else {
+      onMainAfter(5.0) {
+      Toast.show("App wurde fortgesetzt")
+      }
+    }
+
+    if Defaults.isServerSwitch(for: shortcutItem) == false {
+      return
+    }
+    
+    /// DANGER Server Switch!
+    let killHandler: (Any?) -> Void = {_ in
+      switch shortcutItem.type {
+        case Shortcuts.liveServer.type:
+            Defaults.currentServer = .liveServer
+            MainNC.singleton.deleteAll()
+        case Shortcuts.testServer.type:
+            Defaults.currentServer = .testServer
+            MainNC.singleton.deleteAll()
+        default:
+          break;
+      }
+    }
+    
+    let killAction = UIAlertAction(title: "Ja Server wechseln",
+                                       style: .destructive,
+                                       handler: killHandler )
+    let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
+
+    Alert.message(title: "Achtung Serverwechsel!", message: "Möchten Sie den Server vom \(Defaults.serverSwitchText) wechseln?\nAchtung!\nDie App muss neu gestartet werden.\n\n Alle Daten werden gelöscht!", actions: [killAction,  cancelAction])
+  }
+}
+
+
+/// Helper to add App Shortcuts to App-Icon
+/// Warning View Logger did not work untill MainNC -> setupLogging ...   viewLogger is disabled!
+/// @see: Log.append(logger: consoleLogger, /*viewLogger,*/ fileLogger)
+fileprivate enum Shortcuts{
+  
+  static func currentItems(wantsLogging:Bool) -> [UIApplicationShortcutItem]{
+      if App.isAlpha == false && Defaults.currentServer == .liveServer {
+        return []
+//        return [Shortcuts.logging.shortcutItem()]
+      }
+      var itms:[UIApplicationShortcutItem] = [
+//        Shortcuts.feedback.shortcutItem(.mail),
+//        Shortcuts.logging.shortcutItem(wantsLogging ? .confirmation : nil)
+      ]
+      if Defaults.currentServer == .liveServer {
+        itms.append(Shortcuts.liveServer.shortcutItem(.confirmation, subtitle: "aktiv"))
+        itms.append(Shortcuts.testServer.shortcutItem())
+      }
+      else {
+        itms.append(Shortcuts.liveServer.shortcutItem())
+        itms.append(Shortcuts.testServer.shortcutItem(.confirmation, subtitle: "aktiv"))
+      }
+      return itms
+  }
+  
+  case liveServer, testServer, feedback, logging
+  
+  var type:String{
+    switch self {
+      case .liveServer: return "shortcutItemLiveServer"
+      case .testServer: return "shortcutItemTestServer"
+      case .feedback: return "shortcutItemFeedback"
+      case .logging: return "shortcutItemLogging"
+    }
+  }
+  
+  var title:String{
+    switch self {
+      case .liveServer: return "Live Server"
+      case .testServer: return "Test Server"
+      case .feedback: return "Feedback"
+      case .logging: return "Protokoll einschalten"
+    }
+  }
+    
+
+  func shortcutItem(_ iconType:UIApplicationShortcutIcon.IconType? = nil, subtitle: String? = nil) -> UIApplicationShortcutItem {
+    return UIApplicationShortcutItem(type: self.type,
+                                     localizedTitle: self.title,
+                                     localizedSubtitle: subtitle,
+                                     icon: iconType == nil ? nil : UIApplicationShortcutIcon(type: iconType!) )
+  }
+}
+
+
+
+extension Defaults{
+  fileprivate static func isServerSwitch(for shortcutItem: UIApplicationShortcutItem) -> Bool{
+    if shortcutItem.type == Shortcuts.liveServer.type && currentServer != .liveServer { return true }
+    if shortcutItem.type == Shortcuts.testServer.type && currentServer != .testServer { return true }
+    return false
+  }
+  
+  fileprivate static var currentServer : Shortcuts {
+    get {
+      if let curr = Defaults.singleton["currentServer"], curr == Shortcuts.testServer.type {
+        return .testServer
+      }
+      return .liveServer
+    }
+    set {
+      ///only update if changed
+      if Defaults.singleton["currentServer"] != newValue.type {
+        Defaults.singleton["currentServer"] = newValue.type
+      }
+    }
+  }
+  
+  static var currentFeeder : (name: String, url: String, feed: String) {
+    get {
+      if let curr = Defaults.singleton["currentServer"], curr == Shortcuts.testServer.type {
+        return (name: "taz-testserver", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
+      }
+      return (name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
+    }
+  }
+  
+  
+  fileprivate static var serverSwitchText : String {
+    get {
+      if currentServer == .testServer {
+        return "Test Server zum Live Server"
+      }
+      return "Live Server zum Test Server"
+    }
+  }
+}
