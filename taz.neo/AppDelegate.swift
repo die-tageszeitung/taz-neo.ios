@@ -17,10 +17,6 @@ class AppDelegate: NotifiedDelegate {
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     updateDefaultsIfNeeded()
     self.window = UIWindow(frame: UIScreen.main.bounds)
-  ///Not needed: performActionFor shortcutItem is also called!
-//    if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
-//      handleShortcutItem(shortcutItem, applicationLaunching: true)
-//    }
     self.window?.rootViewController = MainNC()
 //    self.window?.rootViewController = TestController()
 //    self.window?.rootViewController = NavController()
@@ -53,7 +49,7 @@ class AppDelegate: NotifiedDelegate {
   }
 
   func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
-    self.handleShortcutItem(shortcutItem, applicationLaunching: false)
+    self.handleShortcutItem(shortcutItem)
   }
   
   // Store background download completion handler
@@ -82,54 +78,46 @@ class AppDelegate: NotifiedDelegate {
     ///NOT CALLED @see:https://developer.apple.com/documentation/uikit/uiapplicationdelegate/1623111-applicationwillterminate
     // log("applicationWillTerminate ")
   }
-
 }
 
-
 fileprivate extension AppDelegate {
-  func handleShortcutItem(_ shortcutItem: UIApplicationShortcutItem, applicationLaunching:Bool) {
-    if Shortcuts.logging.type == shortcutItem.type {
-      wantLogging = !wantLogging
-      return
-    }
+  
+  func handleServerSwitch(to shortcutServer: Shortcuts) {
+    if Defaults.currentServer == shortcutServer { return }//already selected!
     
-    if applicationLaunching {
-      onMainAfter(5.0) {
-        Toast.show("Option nicht bei App Start verfügbar!", .alert)
-        Toast.show("App wurde normal gestartet.")
-      }
-      return;
-      return;
-    } else {
-      onMainAfter(5.0) {
-      Toast.show("App wurde fortgesetzt")
-      }
-    }
-
-    if Defaults.isServerSwitch(for: shortcutItem) == false {
-      return
-    }
-    
-    /// DANGER Server Switch!
     let killHandler: (Any?) -> Void = {_ in
-      switch shortcutItem.type {
-        case Shortcuts.liveServer.type:
-            Defaults.currentServer = .liveServer
-            MainNC.singleton.deleteAll()
-        case Shortcuts.testServer.type:
-            Defaults.currentServer = .testServer
-            MainNC.singleton.deleteAll()
+      switch shortcutServer {
+        case Shortcuts.liveServer:
+          Defaults.currentServer = .liveServer
+          MainNC.singleton.deleteAll()
+        case Shortcuts.testServer:
+          Defaults.currentServer = .testServer
+          MainNC.singleton.deleteAll()
         default:
           break;
       }
     }
     
     let killAction = UIAlertAction(title: "Ja Server wechseln",
-                                       style: .destructive,
-                                       handler: killHandler )
+                                   style: .destructive,
+                                   handler: killHandler )
     let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
-
+    
     Alert.message(title: "Achtung Serverwechsel!", message: "Möchten Sie den Server vom \(Defaults.serverSwitchText) wechseln?\nAchtung!\nDie App muss neu gestartet werden.\n\n Alle Daten werden gelöscht!", actions: [killAction,  cancelAction])
+  }
+  
+  func handleShortcutItem(_ shortcutItem: UIApplicationShortcutItem) {
+    switch shortcutItem.type {
+      case Shortcuts.logging.type:
+        wantLogging = !wantLogging
+      case Shortcuts.liveServer.type:
+        handleServerSwitch(to: Shortcuts.liveServer)
+      case Shortcuts.testServer.type:
+        handleServerSwitch(to: Shortcuts.testServer)
+      default:
+        Toast.show("Aktion nicht verfügbar!")
+        break;
+    }
   }
 }
 

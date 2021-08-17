@@ -288,7 +288,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   }
   
   func appWillTerminate() {
-    ArticleDB.save()
+    ArticleDB.save()//You have 5 Seconds!!
     debug("App is going to be terminated")
   }
  
@@ -337,21 +337,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       self.debug(fctx.storedFeeder.toString())
       self.startup()
     }
-    var feeder: (name: String, url: String, feed: String)
-    
-    let fname = Defaults.singleton["defaultFeeder"] ?? "taz"
-    
-    switch fname {
-      case "taz":
-        feeder = (name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
-      case "taz-test":
-        feeder = (name: "taz-test", url: "https://dl.taz.de/appGraphQlTest", feed: "taz")
-      case "taz-test-server":
-        feeder = (name: "taz", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
-      default:
-        fatal("Unknown Feeder name: \(fname)")
-        return
-    }
+    let feeder = Defaults.currentFeeder
     self.feederContext =
       FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
   }
