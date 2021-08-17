@@ -255,7 +255,6 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     
   func startup() {
     let dfl = Defaults.singleton
-    dfl.setDefaults(values: ConfigDefaults)
     let oneWeek = 7*24*3600
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
@@ -289,7 +288,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   }
   
   func appWillTerminate() {
-    ArticleDB.save()
+    ArticleDB.save()//You have 5 Seconds!!
     debug("App is going to be terminated")
   }
  
@@ -338,20 +337,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       self.debug(fctx.storedFeeder.toString())
       self.startup()
     }
-    let nd = UIApplication.shared.delegate as! AppDelegate
-    var feeder: (name: String, url: String, feed: String)
-    let fname = nd.feeder
-    switch fname {
-      case "taz":
-        feeder = (name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
-      case "taz-test":
-        feeder = (name: "taz-test", url: "https://dl.taz.de/appGraphQlTest", feed: "taz")
-      case "taz-test-server":
-        feeder = (name: "taz", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
-      default:
-        fatal("Unknown Feeder name: \(nd.feeder)")
-        return
-    }
+    let feeder = Defaults.currentFeeder
     self.feederContext =
       FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
   }
