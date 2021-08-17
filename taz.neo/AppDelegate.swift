@@ -40,6 +40,7 @@ class AppDelegate: NotifiedDelegate {
   func updateDefaultsIfNeeded(){
     let dfl = Defaults.singleton
     dfl["offerTrialSubscription"]=nil
+    dfl["showBottomTilesAnimation"]=nil
     dfl.setDefaults(values: ConfigDefaults)
   }
   

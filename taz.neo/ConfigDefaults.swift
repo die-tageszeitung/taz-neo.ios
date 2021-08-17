@@ -51,5 +51,5 @@ public let ConfigDefaults = Defaults.Values([
   // need to show PDF Info Toast on startup
   "showPdfInfoToast" : "true",
   // need to show Bottom Tiles Animation
-  "showBottomTilesAnimation" : "true"
+  "showBottomTilesAnimation" : "false"
 ])
