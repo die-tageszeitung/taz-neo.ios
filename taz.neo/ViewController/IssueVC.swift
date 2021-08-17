@@ -101,15 +101,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("DemoMoment"){
         self.issueCarousel.updateIssue(img, at: idx, isActivity: isPlaceholder, preventZoomInAnimation: true)
       }
-      self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)])
-      print("reloadItem at: \(idx) for: \(issue.date)")
+      else {
+        ///Refresh Items may not implemented on Data/Model Side
+        self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)])
+        print("reloadItem at: \(idx) for: \(issue.date)")
+      }
       return
     }
 
     if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile) {
       var idx = 0
       for iss in issues {
-        #warning("Update Missing!")
         if iss.date == issue.date { return }
         if iss.date < issue.date { break }
         idx += 1
