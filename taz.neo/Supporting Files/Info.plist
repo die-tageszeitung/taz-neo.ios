@@ -22,6 +22,8 @@
 				<key>CFBundleIconFiles</key>
 				<array>
 					<string>Alpha</string>
+					<string>Beta152</string>
+					<string>Beta167</string>
 				</array>
 				<key>UIPrerenderedIcon</key>
 				<false/>
@@ -31,6 +33,8 @@
 				<key>CFBundleIconFiles</key>
 				<array>
 					<string>Beta</string>
+					<string>Beta152</string>
+					<string>Beta167</string>
 				</array>
 				<key>UIPrerenderedIcon</key>
 				<false/>
