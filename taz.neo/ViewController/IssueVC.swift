@@ -592,9 +592,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     })
     
     //Update labelButton Offset
-    if let const = issueCarousel.labelTopConstraint?.constant {
-      pickerCtrl.bottomOffset = const + 50
-    }
+    pickerCtrl.bottomOffset = issueCarousel.labelTopConstraintConstant + 50
     
     overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
@@ -670,12 +668,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let relativePageWidth = min(0.6, relPageWidth*0.99)//limit to prevent touch
     self.issueCarousel.carousel.relativePageWidth = relativePageWidth
     self.issueCarousel.carousel.relativeSpacing = min(0.12, 0.2*relPageWidth/0.85)
-//    print("IssueVc set relativePageWidth: \(self.issueCarousel.carousel.relativePageWidth) && relativeSpacing: \( self.issueCarousel.carousel.relativeSpacing ) size: \(size) useH: \(useableH)")
-    if let labelTopConstraint = self.issueCarousel.labelTopConstraint {
-      let maxHeight = size.width * relativePageWidth * 1.3 / defaultPageRatio
-      let padding = (size.height - maxHeight)/2
-      labelTopConstraint.constant = 0 - padding
-    }
+    let maxHeight = size.width * relativePageWidth * 1.3 / defaultPageRatio
+    let padding = (size.height - maxHeight)/2
+    self.issueCarousel.labelTopConstraintConstant = 0 - padding
   }
   
   required public init?(coder: NSCoder) {
