@@ -36,6 +36,12 @@
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
+		778E1E4E26CCE1DF00D11781 /* Release@3x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4826CCE1DF00D11781 /* Release@3x~ipad.png */; };
+		778E1E4F26CCE1DF00D11781 /* Beta@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4926CCE1DF00D11781 /* Beta@2x~ipad.png */; };
+		778E1E5026CCE1DF00D11781 /* Release@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4A26CCE1DF00D11781 /* Release@2x~ipad.png */; };
+		778E1E5126CCE1DF00D11781 /* Alpha@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4B26CCE1DF00D11781 /* Alpha@2x~ipad.png */; };
+		778E1E5226CCE1DF00D11781 /* Alpha@3x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4C26CCE1DF00D11781 /* Alpha@3x~ipad.png */; };
+		778E1E5326CCE1DF00D11781 /* Beta@3x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4D26CCE1DF00D11781 /* Beta@3x~ipad.png */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
 		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
@@ -141,6 +147,12 @@
 		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
 		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
 		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
+		778E1E4826CCE1DF00D11781 /* Release@3x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Release@3x~ipad.png"; sourceTree = "<group>"; };
+		778E1E4926CCE1DF00D11781 /* Beta@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@2x~ipad.png"; sourceTree = "<group>"; };
+		778E1E4A26CCE1DF00D11781 /* Release@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Release@2x~ipad.png"; sourceTree = "<group>"; };
+		778E1E4B26CCE1DF00D11781 /* Alpha@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Alpha@2x~ipad.png"; sourceTree = "<group>"; };
+		778E1E4C26CCE1DF00D11781 /* Alpha@3x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Alpha@3x~ipad.png"; sourceTree = "<group>"; };
+		778E1E4D26CCE1DF00D11781 /* Beta@3x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@3x~ipad.png"; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
@@ -301,12 +313,18 @@
 		AE10BEDF2526292F009F230D /* Alternate Icons */ = {
 			isa = PBXGroup;
 			children = (
-				AE10BEE925262CC1009F230D /* Release@2x.png */,
-				AE10BEE825262CC1009F230D /* Release@3x.png */,
 				AE10BEE32526295A009F230D /* Alpha@2x.png */,
+				778E1E4B26CCE1DF00D11781 /* Alpha@2x~ipad.png */,
 				AE10BEE12526295A009F230D /* Alpha@3x.png */,
+				778E1E4C26CCE1DF00D11781 /* Alpha@3x~ipad.png */,
 				AE10BEE22526295A009F230D /* Beta@2x.png */,
+				778E1E4926CCE1DF00D11781 /* Beta@2x~ipad.png */,
 				AE10BEE02526295A009F230D /* Beta@3x.png */,
+				778E1E4D26CCE1DF00D11781 /* Beta@3x~ipad.png */,
+				AE10BEE925262CC1009F230D /* Release@2x.png */,
+				778E1E4A26CCE1DF00D11781 /* Release@2x~ipad.png */,
+				AE10BEE825262CC1009F230D /* Release@3x.png */,
+				778E1E4826CCE1DF00D11781 /* Release@3x~ipad.png */,
 			);
 			path = "Alternate Icons";
 			sourceTree = "<group>";
@@ -546,15 +564,21 @@
 				AE10BEE52526295A009F230D /* Alpha@3x.png in Resources */,
 				08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */,
 				773D56472614A4DF00B42FEF /* BundledResources in Resources */,
+				778E1E5126CCE1DF00D11781 /* Alpha@2x~ipad.png in Resources */,
 				AE10BEE72526295A009F230D /* Alpha@2x.png in Resources */,
+				778E1E4F26CCE1DF00D11781 /* Beta@2x~ipad.png in Resources */,
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
 				AE10BEEA25262CC1009F230D /* Release@3x.png in Resources */,
 				AE10BEE62526295A009F230D /* Beta@2x.png in Resources */,
+				778E1E5326CCE1DF00D11781 /* Beta@3x~ipad.png in Resources */,
 				AE10BEE42526295A009F230D /* Beta@3x.png in Resources */,
+				778E1E4E26CCE1DF00D11781 /* Release@3x~ipad.png in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
 				7745050D25DA801F0052E502 /* resources.json in Resources */,
+				778E1E5226CCE1DF00D11781 /* Alpha@3x~ipad.png in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
 				7745051025DA80450052E502 /* files in Resources */,
+				778E1E5026CCE1DF00D11781 /* Release@2x~ipad.png in Resources */,
 				AE10BEEB25262CC1009F230D /* Release@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
