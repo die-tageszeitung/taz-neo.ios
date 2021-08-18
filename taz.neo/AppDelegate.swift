@@ -84,7 +84,10 @@ class AppDelegate: NotifiedDelegate {
 fileprivate extension AppDelegate {
   
   func handleServerSwitch(to shortcutServer: Shortcuts) {
-    if Defaults.currentServer == shortcutServer { return }//already selected!
+    if Defaults.currentServer == shortcutServer {//already selected!
+      Toast.show("\(shortcutServer.title) wird bereits verwendet!")
+      return
+    }
     
     let killHandler: (Any?) -> Void = {_ in
       switch shortcutServer {
@@ -115,6 +118,8 @@ fileprivate extension AppDelegate {
         handleServerSwitch(to: Shortcuts.liveServer)
       case Shortcuts.testServer.type:
         handleServerSwitch(to: Shortcuts.testServer)
+      case "AppInformation":
+        break;
       default:
         Toast.show("Aktion nicht verfügbar!")
         break;
