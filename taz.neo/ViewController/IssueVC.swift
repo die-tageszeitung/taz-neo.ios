@@ -256,10 +256,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         Alert.message(message: "Um das ePaper zu lesen, müssen Sie sich anmelden.", actions: [loginAction, cancelAction])
       }
       
-//      if isFacsimile && !feederContext.isAuthenticated && issues[index].isComplete == false {
-//        authenticate()
-//      }
-//      else
       if isFacsimile {
         ///the positive use case
         let pushPdf = { [weak self] in
