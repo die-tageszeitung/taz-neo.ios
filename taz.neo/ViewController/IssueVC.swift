@@ -104,7 +104,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       else {
         ///Refresh Items may not implemented on Data/Model Side
         self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)])
-        print("reloadItem at: \(idx) for: \(issue.date)")
+        debug("reloadItem at: \(idx) for: \(issue.date)")
       }
       return
     }
