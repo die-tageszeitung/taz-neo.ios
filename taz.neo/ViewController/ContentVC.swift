@@ -413,21 +413,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     return Defaults.darkMode ?  .lightContent : .default
   }
   
-  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    super.viewWillTransition(to: size, with: coordinator)
-    updateLayout()
-  }
-  
-  private func updateLayout(){
-    let idx = self.index
-    self.collectionView?.hideAnimated()
-    self.index = 0
-    onMainAfter { [weak self] in
-      self?.collectionView?.collectionViewLayout.invalidateLayout()
-      self?.index = idx
-      self?.collectionView?.showAnimated()
-    }
-  }
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)

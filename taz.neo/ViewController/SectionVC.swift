@@ -72,11 +72,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
   }
   
-  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    super.viewWillTransition(to: size, with: coordinator)
-    articleVC?.viewWillTransition(to: size, with: coordinator)
-  }
-  
   public func linkPressed(from: URL?, to: URL?) {
     guard let to = to else { return }
     let fn = to.lastPathComponent
