@@ -109,7 +109,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat = TopMargin,
-                             bottomMargin: CGFloat = BottomMargin) {
+                             bottomMargin: CGFloat = BottomMargin, callback: (()->())? = nil) {
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
     let percentageMaxWidth = Int(dfl["articleColumnPercentageWidth"]!)!
@@ -146,7 +146,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         }
       }
     """
-    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent) }
+    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
+      callback?()
+    }
   }
   
   /// pageReady is called when the WebView is ready rendering its contents
@@ -405,8 +407,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
     slider?.button.shadow()
-    writeTazApiCss()
-    super.reloadAllWebViews()
+    //fix wrong (strange) article vc content size if article shown, back to section, rotate (or splitView), click on article // fix also probably wrong css while on article and window width changed
+    writeTazApiCss{
+      super.reloadAllWebViews()
+    }
   }
   
   open override var preferredStatusBarStyle: UIStatusBarStyle {
