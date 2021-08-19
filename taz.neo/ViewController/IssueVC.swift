@@ -179,11 +179,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       showDownloadErrorAlert()
     }
     self.isDownloading = false
-    if let idx = issueCarousel.index {
-      ///using optional value due access index == issueCarousel.index! results in a crash
-      ///if offline started and no issues loaded - ... not every Time: Race Condition
-      self.issueCarousel.setActivity(idx: idx, isActivity: false)
-    }
   }
   
   /// Requests sufficient overview Issues from DB/server at
