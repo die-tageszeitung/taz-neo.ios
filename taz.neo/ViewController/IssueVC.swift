@@ -249,7 +249,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ArticlePlayer.singleton.baseUrl = issue.baseUrl
       //call it later if Offline Alert Presented
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
-      //prevent multiple pushes
+      //prevent multiple pushes!
       if self.navigationController?.topViewController != self { return }
       let authenticate = { [weak self] in
         let loginAction = UIAlertAction(title: Localized("login_button"),
@@ -309,8 +309,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
      ein open issue in dem Fall wäre praktisch,
      ...würde dann den >>>Notification.receiveOnce("issueStructure"<<<" raus nehmen
      */
-    if let sissue = issue as? StoredIssue, !isDownloading {
+    if let sissue = issue as? StoredIssue {
       guard feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
+      if isDownloading {
+        Toast.show("Bitte versuchen Sie es erneut, nachdem die anderen Downloads abgeschlossen wurden!")
+        return
+      }
       isDownloading = true
       issueCarousel.index = index
       issueCarousel.setActivity(idx: index, isActivity: true)
