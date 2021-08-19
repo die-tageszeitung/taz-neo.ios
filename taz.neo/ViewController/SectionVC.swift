@@ -94,11 +94,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       }
     }
     else {
-      #if INTERNALBROWSER
-        let isInternal = true
-      #else
-        let isInternal = false
-      #endif
+      /// Previously INTERNALBROWSER Compiler Flags
+      /// May should be Config Default Feature Toggle, or removed
+      let isInternal = App.isAvailable(.INTERNALBROWSER)
       if let scheme = to.scheme,
          isInternal && (scheme == "http" || scheme == "https") {
         let svc = SFSafariViewController(url: to)

@@ -135,12 +135,6 @@ open class ArticleVC: ContentVC {
 //  
   // Export/Share article
   func exportArticle(article: Article?, from button: UIView? = nil) {
-    var isPdfExport = false
-    #if PDFEXPORT
-      if #available(iOS 14.0, *) {
-        isPdfExport = true
-      }
-    #endif
     if let art = article {
       if let link = art.onlineLink, !link.isEmpty {
         if let url = URL(string: link) {
@@ -148,10 +142,9 @@ open class ArticleVC: ContentVC {
             preferredStyle:  .actionSheet )
           actions.addAction( UIAlertAction.init( title: "Teilen", style: .default,
             handler: { [weak self] handler in
-              if isPdfExport {
-                if #available(iOS 14.0, *) {
-                  self?.exportPdf(article: art, from: button)
-                }
+              //previously used PDFEXPORT Compiler Flags
+              if App.isAvailable(.PDFEXPORT), #available(iOS 14, *) {
+                self?.exportPdf(article: art, from: button)
               } else {
                 let dialogue = ExportDialogue<Any>()
                 dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",
