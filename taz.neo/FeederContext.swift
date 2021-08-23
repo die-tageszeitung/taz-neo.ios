@@ -152,6 +152,10 @@ open class FeederContext: DoesLog {
         }
         else { self.feederUnreachable() }
       }
+      ///Fix timing Bug, Demo Issue Downloaded, and probably login form shown
+      if let storedAuth = SimpleAuthenticator.getUserData().token, self.gqlFeeder.authToken == nil {
+        self.gqlFeeder.authToken = storedAuth
+      }
     }
     else { self.feederUnreachable() }
   }
