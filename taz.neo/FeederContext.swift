@@ -497,6 +497,7 @@ open class FeederContext: DoesLog {
     }
         
     if err == .expiredAccount(nil) {
+      log("Delete Auth Token!")
       DefaultAuthenticator.deleteUserData(.token)
     }
     else {
