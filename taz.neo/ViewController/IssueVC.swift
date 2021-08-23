@@ -168,14 +168,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     else if let err = error as? DownloadError {
       if err.handled == false {  showDownloadErrorAlert() }
-      self.log(err.enclosedError?.errorText() ?? err.errorText())
+      self.debug(err.enclosedError?.errorText() ?? err.errorText())
     }
     else if let err = error {
-      self.log(err.errorText())
+      self.debug(err.errorText())
       showDownloadErrorAlert()
     }
     else {
-      self.log("unspecified download error")
+      self.debug("unspecified download error")
       showDownloadErrorAlert()
     }
     self.isDownloading = false

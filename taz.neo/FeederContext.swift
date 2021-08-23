@@ -374,7 +374,7 @@ open class FeederContext: DoesLog {
       resources.isDownloading = false
       if err == nil {
         let source: String = fromCacheDir ?? "server"
-        self.log("Resources version \(resources.resourceVersion) loaded from \(source)")
+        self.debug("Resources version \(resources.resourceVersion) loaded from \(source)")
         self.notify("resourcesReady")
         /// Delete unneeded old resources
         if let prev = previous, prev.resourceVersion < resources.resourceVersion {
@@ -478,7 +478,7 @@ open class FeederContext: DoesLog {
       ///lot of similar closure calls added and may result in other errors e.g. multiple times of calling getOwvIssue...
       log("Closure not added"); return
     }
-    log("handleFeederError for: \(err)")
+    debug("handleFeederError for: \(err)")
     currentFeederErrorReason = err
     var text = ""
     switch err {
