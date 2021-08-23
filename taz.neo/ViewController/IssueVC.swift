@@ -314,6 +314,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         guard notif.error == nil else { 
           self.handleDownloadError(error: notif.error!)
           if issue.status.watchable && self.isFacsimile { openIssue() }
+          self.issueCarousel.setActivity(idx: index, isActivity: false)
           return 
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
