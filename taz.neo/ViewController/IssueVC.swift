@@ -94,21 +94,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
   
   /// Add Issue to carousel
-  private func addIssue(issue: Issue, isPlaceholder: Bool = false) {
-    ///Update an Issue if Placeholder was there!
-    if let idx = issues.firstIndex(where: { $0.date == issue.date}) {
-      issues[idx] = issue
-      if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("DemoMoment"){
-        self.issueCarousel.updateIssue(img, at: idx, isActivity: isPlaceholder, preventZoomInAnimation: true)
-      }
-      else {
-        ///Refresh Items may not implemented on Data/Model Side
-        self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)])
-        debug("reloadItem at: \(idx) for: \(issue.date)")
-      }
-      return
-    }
-
+  private func addIssue(issue: Issue) {
     if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile) {
       var idx = 0
       for iss in issues {
@@ -126,7 +112,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ///happen after login after restart!
       collectionView.performBatchUpdates { [weak self] in
         self?.issues.insert(issue, at: idx)
-        self?.issueCarousel.insertIssue(img, at: idx, isActivity: isPlaceholder)
+        self?.issueCarousel.insertIssue(img, at: idx)
         self?.collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
       }
 
@@ -640,9 +626,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     Notification.receive("issueOverview") { [weak self] notif in
       if let err = notif.error { self?.handleDownloadError(error: err) }
       else { self?.addIssue(issue: notif.content as! Issue) }
-    }
-    Notification.receive("issuePlaceholder") { [weak self] notif in
-      self?.addIssue(issue: notif.content as! Issue, isPlaceholder: true)
     }
   }
   

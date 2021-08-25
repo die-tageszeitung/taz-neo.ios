@@ -71,28 +71,11 @@ public class IssueCarousel: UIView {
   }
   
   /// Insert Issue at index
-  public func insertIssue(_ issue: UIImage, at index: Int, isActivity: Bool = false) {
+  public func insertIssue(_ issue: UIImage, at index: Int) {
     if carousel.provider == nil { reset() }
-    self.issues.insert((issue: issue, isActivity: isActivity), at: index)
+    self.issues.insert((issue: issue, isActivity: false), at: index)
     carousel.insert(at: index)
   }
-  
-  /// Insert Issue at index
-  public func updateIssue(_ issue: UIImage, at index: Int, isActivity: Bool = false, preventZoomInAnimation: Bool = false) {
-    if carousel.provider == nil { reset() }
-    self.issues.remove(at: index)
-    self.issues.insert((issue: issue, isActivity: isActivity), at: index)
-    
-    if preventZoomInAnimation == true {
-      UIView.performWithoutAnimation {
-        carousel.reload(index: index)
-      }
-    }
-    else {
-      carousel.reload(index: index)
-    }
-  }
-  
   
   /// Define list of images
   public func setIssues(_ issues: [UIImage]) {
