@@ -322,6 +322,11 @@ public struct Const {
     }
   }
   
+  /// Various Shadow values
+  struct Dist {
+    static let margin: CGFloat = 12.0
+  }
+  
 } // Const
 
 public extension UIView {
@@ -339,28 +344,42 @@ public extension UILabel {
   /// set content font with default font size and return self (for chaining)
   ///  @todo may respect dark/light mode with param ignore dark/lightMode
   /// - Returns: self
+  @discardableResult
   func contentFont() -> UILabel {
     self.font = Const.Fonts.contentFont(size: Const.Fonts.defaultFontSize)
     return self
   }
   
+  /// set bold content font with default font size and return self (for chaining)
+  ///  @todo may respect dark/light mode with param ignore dark/lightMode
+  /// - Returns: self
+  @discardableResult
+  func boldContentFont() -> UILabel {
+    self.font = Const.Fonts.titleFont(size: Const.Fonts.defaultFontSize)
+    return self
+  }
+  
   /// set content title font with default font size and return self (for chaining)
   /// - Returns: self
+  @discardableResult
   func titleFont() -> UILabel {
     self.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
     return self
   }
   
+  @discardableResult
   func black() -> UILabel {
     self.textColor = UIColor.black
     return self
   }
   
+  @discardableResult
   func white() -> UILabel {
     self.textColor = UIColor.white
     return self
   }
   
+  @discardableResult
   func center() -> UILabel {
     self.textAlignment = .center
     return self
