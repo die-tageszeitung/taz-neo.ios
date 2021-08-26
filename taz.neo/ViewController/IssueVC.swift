@@ -656,6 +656,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let maxHeight = size.width * relativePageWidth * 1.3 / defaultPageRatio
     let padding = (size.height - maxHeight)/2
     self.issueCarousel.labelTopConstraintConstant = 0 - padding
+    self.statusBottomConstraint?.constant = padding - 12
   }
   
   required public init?(coder: NSCoder) {

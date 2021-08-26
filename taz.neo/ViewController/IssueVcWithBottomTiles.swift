@@ -69,6 +69,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     return [headerView,section2Header]
   }()
   
+  var statusBottomConstraint:NSLayoutConstraint?
   lazy var statusHeader = StatusHeader()
   
   /// size of the issue items in bottom section;
@@ -183,8 +184,9 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   func setupPullToRefresh() {
     //add status Header
     self.view.addSubview(statusHeader)
-    pin(statusHeader, toSafe: self.view, dist: 0, exclude: .bottom)
-    
+    pin(statusHeader.left, to: self.view.left)
+    pin(statusHeader.right, to: self.view.right)
+    statusBottomConstraint = pin(statusHeader.bottom, to: self.view.top, dist: 0)
     guard let issueVc = self as? IssueVC else { return }
     issueVc.issueCarousel.carousel.pullToLoadMoreHandler = {   [weak self] in
       guard let self = self as? IssueVC else { return }
