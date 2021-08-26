@@ -609,7 +609,15 @@ open class FeederContext: DoesLog {
       if nHours > 6 {
         let ndays = (now.sec - latestIssueDate.sec) / (3600*24) + 1
         getOvwIssues(feed: feed, count: Int(ndays))
+      } else {
+        Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
       }
+    }
+    else if self.isConnected == false {
+      Notification.send("checkForNewIssues", content: StatusHeader.status.offline, error: nil, sender: self)
+    }
+    else {
+      Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
     }
   }
 

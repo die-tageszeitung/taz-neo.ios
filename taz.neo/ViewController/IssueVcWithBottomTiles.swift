@@ -69,6 +69,8 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     return [headerView,section2Header]
   }()
   
+  lazy var statusHeader = StatusHeader()
+  
   /// size of the issue items in bottom section;
   lazy var cellSize: CGSize = CGSize(width: 20, height: 20)
   
@@ -141,6 +143,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
     setupToolbar()
     showPdfInfoIfNeeded()
+    setupPullToRefresh()
   }
   
   public override func viewDidDisappear(_ animated: Bool) {
@@ -177,6 +180,24 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     collectionView.collectionViewLayout.invalidateLayout()
   }
 
+  func setupPullToRefresh() {
+    //add status Header
+    self.view.addSubview(statusHeader)
+    pin(statusHeader, toSafe: self.view, dist: 0, exclude: .bottom)
+    
+    guard let issueVc = self as? IssueVC else { return }
+    issueVc.issueCarousel.carousel.pullToLoadMoreHandler = {   [weak self] in
+      guard let self = self as? IssueVC else { return }
+      self.statusHeader.currentStatus = .fetchNewIssues
+      Notification.receiveOnce("checkForNewIssues", from: self.feederContext) { notification in
+        if let status = notification.content as? StatusHeader.status {
+          self.statusHeader.currentStatus = status
+        }
+      }
+      self.checkForNewIssues()
+    }
+  }
+  
   func setupToolbar() {
     //the button tap closures
     let onHome:((ButtonControl)->()) = { [weak self] _ in
@@ -451,11 +472,13 @@ extension IssueVcWithBottomTiles {
     self.collectionView.setContentOffset(CGPoint(x:0, y:scrollSnapHeight),
                                          animated: true)
     if reloadData { self.collectionView.reloadData() }
+    statusHeader.hideAnimated()
   }
   
   func scrollUp(){
     self.collectionView.setContentOffset(CGPoint(x:0, y:topPos),
                                          animated: true)
+    statusHeader.showAnimated()
   }
 }
 
@@ -537,5 +560,137 @@ extension IssueVcWithBottomTiles {
       self?.scrollDownAnimationView?.animate()
       self?.bottomTilesAnimationLastShown = Date()
     }
+  }
+}
+
+/// A View for show Update/Download Activity with a Label and a ActivityIndicatorView
+class StatusHeader: UIView {
+  
+  ///Possible States
+  enum status:String {
+    case offline, online, fetchNewIssues, fetchMoreIssues, loadPreview, loadIssue, downloadError, none
+    ///Message for the user
+    var infoMessage:String? {
+      get {
+        switch self {
+          case .fetchNewIssues:
+            return "Suche nach neuen Ausgaben"
+          case .fetchMoreIssues:
+            return "Suche nach weiteren Ausgaben"
+          case .loadPreview:
+            return "Lade Vorschau"
+          case .offline:
+            return "Nicht verbunden"
+          case .downloadError:
+            return "Fehler beim Laden der Daten"
+          case .online: fallthrough;
+          default:
+            return nil
+        }
+      }
+    }
+    ///text color for the Label
+    var textColor:UIColor {
+      get {
+        switch self {
+          case .downloadError:
+            return UIColor.red.withAlphaComponent(0.7)
+          case .offline:
+            return Const.Colors.iOSDark.tertiaryLabel
+          case .online: fallthrough;
+          default:
+            return Const.Colors.iOSDark.secondaryLabel
+        }
+      }
+    }
+    
+    ///should show activity indicator e.g. for fetch and downloads
+    var showActivity:Bool {
+      get {
+        switch self {
+          case .fetchNewIssues, .fetchMoreIssues, .loadPreview:
+            return true
+          default:
+            return false
+        }
+      }
+    }
+  }/// eof: status
+  
+  ///indicates if status change animations are running, to wait for previous change done
+  ///e.g. fast change from .fetchNewIssues to .none label may been hidden before it was shown
+  private var animating = false {
+    didSet {
+      while !animating {
+        guard let next = nextStatus.pop() else { return }
+        if next == currentStatus { continue }
+        currentStatus = next
+        return
+      }
+    }
+  }
+  ///array to enque next status e.g. if an animation blocks the current change
+  private var nextStatus:[status] = []
+  /// private property to store currentStatus, on set it animates ui components
+  private var _currentStatus:status = .none {
+    didSet {
+      label.hideAnimated() { [weak self] in
+        guard let self = self else { return }
+        self.label.text = self.currentStatus.infoMessage
+        self.label.textColor = self.currentStatus.textColor
+        
+        self.currentStatus.showActivity
+          ? self.activityIndicator.startAnimating()
+          : self.activityIndicator.stopAnimating()
+        
+        if self.label.text != nil {
+          self.label.showAnimated(){ self.animating = false }
+        } else{
+          self.animating = false
+        }
+      }
+    }
+  }
+  
+  var currentStatus:status {
+    get { return _currentStatus }
+    set {
+      if animating { nextStatus.append(newValue); return }
+      animating = true
+      _currentStatus = newValue
+    }
+  }
+  
+  private lazy var activityIndicator : UIActivityIndicatorView = {
+    let view = UIActivityIndicatorView()
+    view.style = .white
+    return view
+  }()
+  
+  private lazy var label : UILabel = UILabel().contentFont().white().center()
+  
+  
+  func setup(){
+    addSubview(activityIndicator)
+    addSubview(label)
+    
+    activityIndicator.centerX()
+    pin(activityIndicator.top, to: self.top, dist: Const.Dist.margin)
+    
+    pin(label.left, to: self.left, dist: Const.Dist.margin)
+    pin(label.right, to: self.right, dist: Const.Dist.margin)
+    pin(label.top, to: activityIndicator.bottom, dist: Const.Dist.margin)
+    pin(label.bottom, to: self.bottom, dist: Const.Dist.margin)
+  }
+
+  
+  override public init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+  
+  required public init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
   }
 }

@@ -624,8 +624,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
     }
     Notification.receive("issueOverview") { [weak self] notif in
-      if let err = notif.error { self?.handleDownloadError(error: err) }
-      else { self?.addIssue(issue: notif.content as! Issue) }
+      if let err = notif.error {
+        self?.debug("receive issueOverview Error: \(err)")
+        self?.statusHeader.currentStatus = .downloadError
+      }
+      else {
+        self?.statusHeader.currentStatus = .none
+        self?.addIssue(issue: notif.content as! Issue)
+      }
     }
   }
   
