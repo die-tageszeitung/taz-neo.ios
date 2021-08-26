@@ -137,10 +137,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
-    
+    self.debug("Err: \(error)")
     func showDownloadErrorAlert() {
       let message = """
-                    Beim Laden der Daten ist ein Fehler aufgetreten.
+                    Beim Laden der Ausgabe ist ein Fehler aufgetreten.
                     Bitte versuchen Sie es zu einem späteren Zeitpunkt
                     noch einmal.
                     Sie können bereits heruntergeladene Ausgaben auch
