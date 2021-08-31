@@ -211,6 +211,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
         /// sometimes on heavy load its been scrolled up but property did not set correctly due this happen
         /// in delegate...wich was interrupted
       }
+      self.statusHeader.currentStatus = .fetchMoreIssues
     }
     
     let onPDF:((ButtonControl)->()) = {   [weak self] control in
@@ -623,14 +624,30 @@ class StatusHeader: UIView {
   ///e.g. fast change from .fetchNewIssues to .none label may been hidden before it was shown
   private var animating = false {
     didSet {
-      while !animating {
-        guard let next = nextStatus.pop() else { return }
-        if next == currentStatus { continue }
-        currentStatus = next
-        return
-      }
+      checkStatus()
     }
   }
+  
+  private var lastErrorShown:Date?
+  
+  private func checkStatus(){
+    //let last error at least 5s
+    if let sec = lastErrorShown?.timeIntervalSince(Date()), sec < 5 {
+      onMain(after: sec + 1) {   [weak self] in
+        self?.checkStatus()
+      }
+      return
+    }
+        
+    while !animating {
+      guard let next = nextStatus.pop() else { return }
+      if next == currentStatus { continue }
+      currentStatus = next
+      return
+    }
+  }
+  
+  
   ///array to enque next status e.g. if an animation blocks the current change
   private var nextStatus:[status] = []
   /// private property to store currentStatus, on set it animates ui components
@@ -654,10 +671,19 @@ class StatusHeader: UIView {
     }
   }
   
+  /***
+   .downloadError => .none Hide after 5s Activity Indicator Stop
+   .downloadError => .loadPreview == loadPreview after 5s Activity Indicator enqueue
+   .downloadError => .loadPreview => .downloadError => .loadPreview
+   
+   */
+  
+  
   var currentStatus:status {
     get { return _currentStatus }
     set {
       if animating { nextStatus.append(newValue); return }
+      if newValue == .downloadError { lastErrorShown = Date() }
       animating = true
       _currentStatus = newValue
     }
@@ -675,7 +701,7 @@ class StatusHeader: UIView {
   func setup(){
     addSubview(activityIndicator)
     addSubview(label)
-    
+    label.font = Const.Fonts.contentFont(size: 14)
     activityIndicator.centerX()
     pin(activityIndicator.top, to: self.top, dist: Const.Dist.margin)
     
