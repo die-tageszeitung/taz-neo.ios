@@ -122,7 +122,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     isErrorReporting = true
     
     FeedbackComposer.showWith(logData: fileLogger.data,
-                              gqlFeeder: self.feederContext.gqlFeeder,
+                              feederContext: self.feederContext,
                               feedbackType: feedbackType) { didSend in
       print("Feedback send? \(didSend)")
       self.isErrorReporting = false
