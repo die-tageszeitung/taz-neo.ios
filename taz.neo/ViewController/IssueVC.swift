@@ -95,6 +95,19 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Add Issue to carousel
   private func addIssue(issue: Issue) {
+    ///Update an Issue if Placeholder was there!
+    if let idx = issues.firstIndex(where: { $0.date == issue.date}) {
+      issues[idx] = issue
+      if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("DemoMoment"){
+        self.issueCarousel.updateIssue(img, at: idx, preventZoomInAnimation: true)
+      }
+      else {
+        ///Refresh Items may not implemented on Data/Model Side
+        self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)])
+      }
+      return
+    }
+    
     if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile) {
       var idx = 0
       for iss in issues {
@@ -627,6 +640,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if let err = notif.error {
         self?.debug("receive issueOverview Error: \(err)")
         self?.statusHeader.currentStatus = .downloadError
+        if let errIssue = notif.sender as? Issue {
+          self?.addIssue(issue: errIssue)
+        }
       }
       else {
         self?.statusHeader.currentStatus = .none
