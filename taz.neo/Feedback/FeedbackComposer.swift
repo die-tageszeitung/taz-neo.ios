@@ -89,6 +89,12 @@ open class FeedbackComposer : DoesLog{
           feedbackBottomSheet?.slide(toOpen: false, animated: true)
           
     }
+    
+    if currentVc.isKind(of: AlertController.self),
+       let presenting = currentVc.presentingViewController {
+      currentVc = presenting
+      feedbackViewController.updateViewSize(UIWindow.size)
+    }
                                                        
     feedbackBottomSheet = FullscreenBottomSheet(slider: feedbackViewController,
                                               into: currentVc)
