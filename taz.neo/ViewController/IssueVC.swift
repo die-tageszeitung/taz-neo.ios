@@ -198,6 +198,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if (n - index) < 6 { 
         var last = issues.last!.date
         last.addDays(-1)
+        Notification.send("checkForNewIssues", content: StatusHeader.status.fetchMoreIssues, error: nil, sender: feederContext)
         feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last)
       }
       if index < 6 {

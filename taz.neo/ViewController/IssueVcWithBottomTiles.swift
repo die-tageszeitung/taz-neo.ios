@@ -187,15 +187,20 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     pin(statusHeader.left, to: self.view.left)
     pin(statusHeader.right, to: self.view.right)
     statusBottomConstraint = pin(statusHeader.bottom, to: self.view.top, dist: 0)
+    
+    if let issueVC = self as? IssueVC {
+      Notification.receive("checkForNewIssues", from: issueVC.feederContext) { notification in
+        if let status = notification.content as? StatusHeader.status {
+          print("recive status: \(status)")
+          self.statusHeader.currentStatus = status
+        }
+      }
+    }
+  
     guard let issueVc = self as? IssueVC else { return }
     issueVc.issueCarousel.carousel.pullToLoadMoreHandler = {   [weak self] in
       guard let self = self as? IssueVC else { return }
       self.statusHeader.currentStatus = .fetchNewIssues
-      Notification.receiveOnce("checkForNewIssues", from: self.feederContext) { notification in
-        if let status = notification.content as? StatusHeader.status {
-          self.statusHeader.currentStatus = status
-        }
-      }
       self.checkForNewIssues()
     }
   }
@@ -682,7 +687,9 @@ class StatusHeader: UIView {
   var currentStatus:status {
     get { return _currentStatus }
     set {
-      if animating { nextStatus.append(newValue); return }
+      if _currentStatus == newValue || nextStatus.last == newValue { return; }
+      print("_currentStatus \(_currentStatus) != newValue \(newValue)")
+      if animating { nextStatus.append(newValue); return; }
       if newValue == .downloadError { lastErrorShown = Date() }
       animating = true
       _currentStatus = newValue
