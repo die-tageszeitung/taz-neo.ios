@@ -216,7 +216,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
         /// sometimes on heavy load its been scrolled up but property did not set correctly due this happen
         /// in delegate...wich was interrupted
       }
-      self.statusHeader.currentStatus = .fetchMoreIssues
     }
     
     let onPDF:((ButtonControl)->()) = {   [weak self] control in
