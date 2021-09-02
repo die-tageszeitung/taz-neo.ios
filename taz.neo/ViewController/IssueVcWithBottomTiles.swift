@@ -186,7 +186,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     self.view.addSubview(statusHeader)
     pin(statusHeader.left, to: self.view.left)
     pin(statusHeader.right, to: self.view.right)
-    statusBottomConstraint = pin(statusHeader.bottom, to: self.view.top, dist: 0)
+    statusBottomConstraint = pin(statusHeader.bottom, to: self.view.topGuide(), dist: 0)
     
     if let issueVC = self as? IssueVC {
       Notification.receive("checkForNewIssues", from: issueVC.feederContext) { notification in
