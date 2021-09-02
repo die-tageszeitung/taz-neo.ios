@@ -543,7 +543,7 @@ open class FeederContext: DoesLog {
       if self.isConnected {
         #warning("@WiP Discussion with beta App! @see getOvwIssues(feed: feed, count: Int(ndays)) should work fine")
         self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: min(count, 20),
-                              isOverview: true, isPages: true) { res in
+                              isOverview: true) { res in
           if let issues = res.value() {
             for issue in issues {
               let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
@@ -637,7 +637,6 @@ open class FeederContext: DoesLog {
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
-  #warning("Ignoring isPages to prevent PDF == nil crash bug on enter app/html issue which was not downloaded yet")
   public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
@@ -650,7 +649,7 @@ open class FeederContext: DoesLog {
     }
     if self.isConnected {
       gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
-                       isPages: true) { res in
+                       isPages: isPages) { res in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)
