@@ -1027,17 +1027,24 @@ extension Feeder {
   /// Returns the "Moment" Image as Gif-Animation or in highest resolution
   public func momentImage(issue: Issue, isCredited: Bool = false,
                           isPdf: Bool = false) -> UIImage? {
+    var img:UIImage?
+        
+    if let fn = momentImageName(issue: issue, isCredited: isCredited,
+                                isPdf: isPdf) {
+      if File.extname(fn) == "gif" {
+        img = UIImage.animatedGif(File(fn).data)
+      }
+      else {
+        img = UIImage(contentsOfFile: fn)
+      }
+    }
+    
+    if img != nil { return img }
+    
     if let sissue = issue as? StoredIssue, sissue.isOvwComplete == false {
       return UIImage(named: "DemoMoment")
     }
     
-    if let fn = momentImageName(issue: issue, isCredited: isCredited,
-                                isPdf: isPdf) {
-      if File.extname(fn) == "gif" {
-        return UIImage.animatedGif(File(fn).data)
-      }
-      else { return UIImage(contentsOfFile: fn) }
-    }
     return nil
   }
 
