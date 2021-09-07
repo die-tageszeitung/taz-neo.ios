@@ -323,20 +323,21 @@ extension IssueVcWithBottomTiles {
     issueVC.showIssue(index: indexPath.row)
     #warning("TODO REFACTOR IssueVCBottomTielesCVCCell")
     ///Work with Issue drop on cell, and notifications for download start/stop
-    if let cell = collectionView.cellForItem(at: indexPath)
-        as? IssueVCBottomTielesCVCCell {
+    guard let cell = collectionView.cellForItem(at: indexPath)
+                     as? IssueVCBottomTielesCVCCell else { return }
+    if issueVC.issue.isDownloading {
+      cell.button.downloadState = .process
       cell.momentView.isActivity = true
-      cell.momentView.setNeedsLayout()
-      if issueVC.issue.isDownloading {
-        cell.button.downloadState = .process
-      }
-      else if issueVC.issue.isComplete {
-        cell.button.downloadState = .done
-      }
-      else {
-        cell.button.downloadState = .process
-      }
     }
+    else if issueVC.issue.isComplete {
+      cell.button.downloadState = .done
+      cell.momentView.isActivity = false
+    }
+    else {
+      cell.button.downloadState = .process
+      cell.momentView.isActivity = true
+    }
+    cell.momentView.setNeedsLayout()
   }
   
   // MARK: > Sizes
