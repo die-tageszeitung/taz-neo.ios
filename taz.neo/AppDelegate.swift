@@ -89,7 +89,7 @@ fileprivate extension AppDelegate {
       return
     }
     
-    let killHandler: (Any?) -> Void = {_ in
+    let switchServerHandler: (Any?) -> Void = {_ in
       switch shortcutServer {
         case Shortcuts.liveServer:
           Defaults.currentServer = .liveServer
@@ -104,7 +104,7 @@ fileprivate extension AppDelegate {
     
     let killAction = UIAlertAction(title: "Ja Server wechseln",
                                    style: .destructive,
-                                   handler: killHandler )
+                                   handler: switchServerHandler )
     let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
     
     Alert.message(title: "Achtung Serverwechsel!", message: "Möchten Sie den Server vom \(Defaults.serverSwitchText) wechseln?\nAchtung!\nDie App muss neu gestartet werden.\n\n Alle Daten werden gelöscht!", actions: [killAction,  cancelAction])
