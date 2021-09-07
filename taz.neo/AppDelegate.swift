@@ -102,12 +102,12 @@ fileprivate extension AppDelegate {
       }
     }
     
-    let killAction = UIAlertAction(title: "Ja Server wechseln",
+    let serverSwitchAction = UIAlertAction(title: "Ja Server wechseln",
                                    style: .destructive,
                                    handler: switchServerHandler )
     let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
     
-    Alert.message(title: "Achtung Serverwechsel!", message: "Möchten Sie den Server vom \(Defaults.serverSwitchText) wechseln?\nAchtung!\nDie App muss neu gestartet werden.\n\n Alle Daten werden gelöscht!", actions: [killAction,  cancelAction])
+    Alert.message(title: "Achtung Serverwechsel!", message: "Möchten Sie den Server vom \(Defaults.serverSwitchText) wechseln?\nAchtung!\nDie App muss neu gestartet werden.\n\n Alle Daten werden gelöscht!", actions: [serverSwitchAction,  cancelAction])
   }
   
   func handleShortcutItem(_ shortcutItem: UIApplicationShortcutItem) {
