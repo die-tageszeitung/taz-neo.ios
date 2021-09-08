@@ -91,9 +91,11 @@ open class ArticleVC: ContentVC {
       self?.debug("*** Action: ToSection pressed")
       self?.navigationController?.popViewController(animated: true)
     }
-    header.onTaps(nTaps: 2) { [weak self] _ in
-      guard let self = self, let art = self.article else { return }
-      art.toggleAudio(sectionName: self.header.title)
+    if App.isRelease == false {
+      header.onTaps(nTaps: 2) { [weak self] _ in
+        guard let self = self, let art = self.article else { return }
+        art.toggleAudio(sectionName: self.header.title)
+      }
     }
   }
     
