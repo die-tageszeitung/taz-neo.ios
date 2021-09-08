@@ -77,6 +77,23 @@ public class IssueCarousel: UIView {
     carousel.insert(at: index)
   }
   
+  /// Insert Issue at index
+  public func updateIssue(_ issue: UIImage, at index: Int, isActivity: Bool = false, preventZoomInAnimation: Bool = false) {
+    if carousel.provider == nil { reset() }
+    self.issues.remove(at: index)
+    self.issues.insert((issue: issue, isActivity: isActivity), at: index)
+    
+    if preventZoomInAnimation == true {
+      UIView.performWithoutAnimation {
+        carousel.reload(index: index)
+      }
+    }
+    else {
+      carousel.reload(index: index)
+    }
+  }
+  
+  
   /// Define list of images
   public func setIssues(_ issues: [UIImage]) {
     reset()
@@ -121,7 +138,12 @@ public class IssueCarousel: UIView {
     issues.firstIndex { $0.issue == moment.image }
   }
   
-  public var labelTopConstraint: NSLayoutConstraint?
+  public var labelTopConstraintConstant: CGFloat = -20 {
+    didSet {
+      labelTopConstraint?.constant = labelTopConstraintConstant
+    }
+  }
+  private var labelTopConstraint: NSLayoutConstraint?
   
   // Define view provider
   private func setup() {
@@ -129,9 +151,8 @@ public class IssueCarousel: UIView {
     self.addSubview(carousel)
     self.addSubview(label)
 
-    labelTopConstraint?.constant = 20
     pin(carousel, to: self)
-    labelTopConstraint = pin(label.top, to: carousel.bottom, dist: -20)
+    labelTopConstraint = pin(label.top, to: carousel.bottom, dist: labelTopConstraintConstant)
     pin(label.width, to: self.width, priority: .defaultHigh)
     label.pinWidth(500.0, relation: .lessThanOrEqual, priority: .required)
     label.pinHeight(60.0)

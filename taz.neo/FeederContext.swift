@@ -152,6 +152,10 @@ open class FeederContext: DoesLog {
         }
         else { self.feederUnreachable() }
       }
+      ///Fix timing Bug, Demo Issue Downloaded, and probably login form shown
+      if let storedAuth = SimpleAuthenticator.getUserData().token, self.gqlFeeder.authToken == nil {
+        self.gqlFeeder.authToken = storedAuth
+      }
     }
     else { self.feederUnreachable() }
   }
@@ -180,7 +184,13 @@ open class FeederContext: DoesLog {
         }
       }
       else {
-        self.noConnection(to: name, isExit: true) { exit(0) }
+        self.noConnection(to: name, isExit: true) {   [weak self] in
+          guard let self = self else { exit(0) }
+          /// Try to connect if network is available now e.g. User has seen Popup No Connection
+          /// User activated MobileData/WLAN, press OK => Retry not App Exit
+          if self.netAvailability.isAvailable { self.connect() }
+          else { exit(0)}
+        }
       }
     }
   }
@@ -368,7 +378,7 @@ open class FeederContext: DoesLog {
       resources.isDownloading = false
       if err == nil {
         let source: String = fromCacheDir ?? "server"
-        self.log("Resources version \(resources.resourceVersion) loaded from \(source)")
+        self.debug("Resources version \(resources.resourceVersion) loaded from \(source)")
         self.notify("resourcesReady")
         /// Delete unneeded old resources
         if let prev = previous, prev.resourceVersion < resources.resourceVersion {
@@ -450,7 +460,10 @@ open class FeederContext: DoesLog {
       /// File Creation Dates did not Match! bundledFile.mTime != globalFile.moTime
       if bundledFile.exists,
          bundledFile.size == globalFile.size {
-        bundledFile.copy(to: self.gqlFeeder.resourcesDir.path + "/" + globalFile.name)
+        let targetPath = self.gqlFeeder.resourcesDir.path + "/" + globalFile.name
+        bundledFile.copy(to: targetPath)
+        let destFile = File(targetPath)
+        if destFile.exists { destFile.mTime = globalFile.moTime }
         log("File \(bundledFile.basename) moved... exist in resdir? : \(globalFile.existsIgnoringTime(inDir: self.gqlFeeder.resourcesDir.path))")
       } else {
         log("* Warning: File \(bundledFile.basename) may not exist (\(bundledFile.exists)), mtime, size is wrong  \(bundledFile.size) !=? \(globalFile.size)")
@@ -472,6 +485,7 @@ open class FeederContext: DoesLog {
       ///lot of similar closure calls added and may result in other errors e.g. multiple times of calling getOwvIssue...
       log("Closure not added"); return
     }
+    debug("handleFeederError for: \(err)")
     currentFeederErrorReason = err
     var text = ""
     switch err {
@@ -486,9 +500,11 @@ open class FeederContext: DoesLog {
     }
         
     if err == .expiredAccount(nil) {
+      log("Delete Auth Token!")
       DefaultAuthenticator.deleteUserData(.token)
     }
     else {
+      log("Delete Userdata!")
       DefaultAuthenticator.deleteUserData()
     }
     self.gqlFeeder.authToken = nil
@@ -530,7 +546,7 @@ open class FeederContext: DoesLog {
       if self.isConnected {
         #warning("@WiP Discussion with beta App! @see getOvwIssues(feed: feed, count: Int(ndays)) should work fine")
         self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: min(count, 20),
-                              isOverview: true, isPages: true) { res in
+                              isOverview: true) { res in
           if let issues = res.value() {
             for issue in issues {
               let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
@@ -542,7 +558,16 @@ open class FeederContext: DoesLog {
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                    fromDate: fromDate)
-            for issue in sissues { self.downloadIssue(issue: issue) }
+            for issue in sissues {
+              ///speedup download Issue Overview without download ressources for all 20 Items
+              if self.isConnected && issue.isComplete == false {
+                self.downloadPartialIssue(issue: issue)
+              }
+              else {
+                ///if not connected fallback use old way
+                self.downloadIssue(issue: issue)
+              }
+            }
           }
           else {
             if let err = res.error() as? FeederError {
@@ -587,7 +612,15 @@ open class FeederContext: DoesLog {
       if nHours > 6 {
         let ndays = (now.sec - latestIssueDate.sec) / (3600*24) + 1
         getOvwIssues(feed: feed, count: Int(ndays))
+      } else {
+        Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
       }
+    }
+    else if self.isConnected == false {
+      Notification.send("checkForNewIssues", content: StatusHeader.status.offline, error: nil, sender: self)
+    }
+    else {
+      Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
     }
   }
 
@@ -607,7 +640,6 @@ open class FeederContext: DoesLog {
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
-  #warning("Ignoring isPages to prevent PDF == nil crash bug on enter app/html issue which was not downloaded yet")
   public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
@@ -620,7 +652,7 @@ open class FeederContext: DoesLog {
     }
     if self.isConnected {
       gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
-                       isPages: true) { res in
+                       isPages: isPages) { res in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)

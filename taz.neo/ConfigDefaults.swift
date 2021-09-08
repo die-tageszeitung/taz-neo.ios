@@ -12,6 +12,8 @@ import NorthLib
  Configuration variables and default values to store in Apple's UserDefaults
  */
 public let ConfigDefaults = Defaults.Values([
+  // Default Feeder & Server
+  "defaultFeeder" : "taz",
   // shall text notifications be displayed on notification screen
   "isTextNotification" : "true", 
   // number of starts since installation
@@ -49,5 +51,5 @@ public let ConfigDefaults = Defaults.Values([
   // need to show PDF Info Toast on startup
   "showPdfInfoToast" : "true",
   // need to show Bottom Tiles Animation
-  "showBottomTilesAnimation" : "true"
+  "showBottomTilesAnimation" : "false"
 ])

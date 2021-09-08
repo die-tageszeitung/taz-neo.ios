@@ -109,7 +109,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat = TopMargin,
-                             bottomMargin: CGFloat = BottomMargin) {
+                             bottomMargin: CGFloat = BottomMargin, callback: (()->())? = nil) {
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
     let percentageMaxWidth = Int(dfl["articleColumnPercentageWidth"]!)!
@@ -146,7 +146,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         }
       }
     """
-    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent) }
+    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
+      callback?()
+    }
   }
   
   /// pageReady is called when the WebView is ready rendering its contents
@@ -405,29 +407,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
     slider?.button.shadow()
-    writeTazApiCss()
-    super.reloadAllWebViews()
+    //fix wrong (strange) article vc content size if article shown, back to section, rotate (or splitView), click on article // fix also probably wrong css while on article and window width changed
+    writeTazApiCss{
+      super.reloadAllWebViews()
+    }
   }
   
   open override var preferredStatusBarStyle: UIStatusBarStyle {
     return Defaults.darkMode ?  .lightContent : .default
   }
   
-  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    super.viewWillTransition(to: size, with: coordinator)
-    updateLayout()
-  }
-  
-  private func updateLayout(){
-    let idx = self.index
-    self.collectionView?.hideAnimated()
-    self.index = 0
-    onMainAfter { [weak self] in
-      self?.collectionView?.collectionViewLayout.invalidateLayout()
-      self?.index = idx
-      self?.collectionView?.showAnimated()
-    }
-  }
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)

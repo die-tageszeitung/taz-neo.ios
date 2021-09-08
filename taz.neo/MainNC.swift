@@ -122,7 +122,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     isErrorReporting = true
     
     FeedbackComposer.showWith(logData: fileLogger.data,
-                              gqlFeeder: self.feederContext.gqlFeeder,
+                              feederContext: self.feederContext,
                               feedbackType: feedbackType) { didSend in
       print("Feedback send? \(didSend)")
       self.isErrorReporting = false
@@ -173,7 +173,11 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       })
     }
     let userInfo = "\(feederContext.isAuthenticated == false ? "NICHT ANGEMELDET" : "angemeldet" ), gespeicherte taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
-    Alert.actionSheet(title: "Beta (v) \(App.version)-\(App.buildNumber)\n\(userInfo)",
+    
+    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : "taz"
+    
+    
+    Alert.actionSheet(title: "\(appTitle) (v) \(App.version)-\(App.buildNumber)\n\(userInfo)",
                       actions: actions) { [weak self] in
       self?.threeFingerAlertOpen = false
     }
@@ -255,7 +259,6 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     
   func startup() {
     let dfl = Defaults.singleton
-    dfl.setDefaults(values: ConfigDefaults)
     let oneWeek = 7*24*3600
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
@@ -289,7 +292,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   }
   
   func appWillTerminate() {
-    ArticleDB.save()
+    ArticleDB.save()//You have 5 Seconds!!
     debug("App is going to be terminated")
   }
  
@@ -338,18 +341,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       self.debug(fctx.storedFeeder.toString())
       self.startup()
     }
-    let nd = UIApplication.shared.delegate as! AppDelegate
-    var feeder: (name: String, url: String, feed: String)
-    let fname = nd.feeder
-    switch fname {
-      case "taz":
-        feeder = (name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
-      case "taz-test":
-        feeder = (name: "taz-test", url: "https://dl.taz.de/appGraphQlTest", feed: "taz")
-      default:
-        fatal("Unknown Feeder name: \(nd.feeder)")
-        return
-    }
+    let feeder = Defaults.currentFeeder
     self.feederContext =
       FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
   }

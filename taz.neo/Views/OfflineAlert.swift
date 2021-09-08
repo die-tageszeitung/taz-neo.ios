@@ -25,11 +25,11 @@ class OfflineAlert {
   
   var closures : [(()->())] = []
   
-  lazy var alert:UIAlertController = {
+  lazy var alert:AlertController = {
     let okButton = UIAlertAction(title: "OK", style: .cancel) {   [weak self] _ in
       self?.okPressed()
     }
-    let a = UIAlertController(title: nil, message: nil, preferredStyle: .alert)
+    let a = AlertController(title: nil, message: nil, preferredStyle: .alert)
     a.addAction(okButton)
     return a
   }()

@@ -24,7 +24,7 @@ public enum FeedbackType { case error, feedback, fatalError }
 open class FeedbackComposer : DoesLog{
   
   public static func showWith(logData: Data? = nil,
-                              gqlFeeder: GqlFeeder,
+                              feederContext: FeederContext,
                               feedbackType: FeedbackType? = nil,
                               finishClosure: @escaping ((Bool) -> ())) {
     let screenshot = UIWindow.screenshot
@@ -32,7 +32,7 @@ open class FeedbackComposer : DoesLog{
     
     let feedbackHandler: (Any?) -> Void = { _ in
       FeedbackComposer.send(type: FeedbackType.feedback,
-                            gqlFeeder: gqlFeeder,
+                            feederContext: feederContext,
                             finishClosure: finishClosure)
     }
     
@@ -41,7 +41,7 @@ open class FeedbackComposer : DoesLog{
                             deviceData: deviceData,
                             screenshot: screenshot,
                             logData: logData,
-                            gqlFeeder: gqlFeeder,
+                            feederContext: feederContext,
                             finishClosure: finishClosure)
     }
     
@@ -69,10 +69,10 @@ open class FeedbackComposer : DoesLog{
                           deviceData: DeviceData? = nil,
                           screenshot: UIImage? = nil,
                           logData: Data? = nil,
-                          gqlFeeder: GqlFeeder,
+                          feederContext: FeederContext,
                           finishClosure: @escaping ((Bool) -> ())) {
     
-    guard let currentVc = UIViewController.top() else {
+    guard var currentVc = UIViewController.top() else {
       print("Error, no Controller to Present")
       return;
     }
@@ -85,9 +85,15 @@ open class FeedbackComposer : DoesLog{
         screenshot: screenshot,
         deviceData: deviceData,
         logData: logData,
-        gqlFeeder: gqlFeeder){
+        feederContext: feederContext){
           feedbackBottomSheet?.slide(toOpen: false, animated: true)
           
+    }
+    
+    if currentVc.isKind(of: UIAlertController.self),
+       let presenting = currentVc.presentingViewController {
+      currentVc = presenting
+      feedbackViewController.updateViewSize(UIWindow.size)
     }
                                                        
     feedbackBottomSheet = FullscreenBottomSheet(slider: feedbackViewController,

@@ -66,7 +66,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
         if err == nil { 
           image.image = UIImage(contentsOfFile: "\(path)/\(high.fileName)")
         } else { image.image = image.waitingImage }
-        self.debug("image \(high.fileName): \(image.image!.size)")
+        self.debug("image \(high.fileName): \(image.image?.size ?? CGSize.zero)")
         image.isAvailable = true 
       }
     }

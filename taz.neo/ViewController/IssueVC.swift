@@ -95,10 +95,22 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Add Issue to carousel
   private func addIssue(issue: Issue) {
+    ///Update an Issue if Placeholder was there!
+    if let idx = issues.firstIndex(where: { $0.date == issue.date}) {
+      issues[idx] = issue
+      if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("DemoMoment"){
+        self.issueCarousel.updateIssue(img, at: idx, preventZoomInAnimation: true)
+      }
+      else {
+        ///Refresh Items may not implemented on Data/Model Side
+        self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)])
+      }
+      return
+    }
+    
     if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile) {
       var idx = 0
       for iss in issues {
-        #warning("Update Missing!")
         if iss.date == issue.date { return }
         if iss.date < issue.date { break }
         idx += 1
@@ -138,10 +150,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
-    
+    self.debug("Err: \(error)")
     func showDownloadErrorAlert() {
       let message = """
-                    Beim Laden der Daten ist ein Fehler aufgetreten.
+                    Beim Laden der Ausgabe ist ein Fehler aufgetreten.
                     Bitte versuchen Sie es zu einem späteren Zeitpunkt
                     noch einmal.
                     Sie können bereits heruntergeladene Ausgaben auch
@@ -155,22 +167,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     else if let err = error as? DownloadError {
       if err.handled == false {  showDownloadErrorAlert() }
-      self.log(err.enclosedError?.errorText() ?? err.errorText())
+      self.debug(err.enclosedError?.errorText() ?? err.errorText())
     }
     else if let err = error {
-      self.log(err.errorText())
+      self.debug(err.errorText())
       showDownloadErrorAlert()
     }
     else {
-      self.log("unspecified download error")
+      self.debug("unspecified download error")
       showDownloadErrorAlert()
     }
     self.isDownloading = false
-    if let idx = issueCarousel.index {
-      ///using optional value due access index == issueCarousel.index! results in a crash
-      ///if offline started and no issues loaded - ... not every Time: Race Condition
-      self.issueCarousel.setActivity(idx: idx, isActivity: false)
-    }
   }
   
   /// Requests sufficient overview Issues from DB/server at
@@ -183,6 +190,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     reset()
     feederContext.getOvwIssues(feed: feed, count: 21, fromDate: from)
   }
+  
+  /// Quick Solution to reduce requests while scrolling in carousel from round 8 to 2
+  var lastGetOvwIssuesDate:Date?
 
   /// Requests sufficient overview Issues from DB/server
   private func provideOverview() {
@@ -191,11 +201,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if (n - index) < 6 { 
         var last = issues.last!.date
         last.addDays(-1)
+        Notification.send("checkForNewIssues", content: StatusHeader.status.fetchMoreIssues, error: nil, sender: feederContext)
+        
+        if last == lastGetOvwIssuesDate { return }
+        self.lastGetOvwIssuesDate = last
         feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last)
       }
       if index < 6 {
         var date = issues.first!.date
         date.addDays(10)
+        if date == lastGetOvwIssuesDate { return }
+        self.lastGetOvwIssuesDate = date
         feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date)
       }
     }
@@ -236,7 +252,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ArticlePlayer.singleton.baseUrl = issue.baseUrl
       //call it later if Offline Alert Presented
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
-      //prevent multiple pushes
+      //prevent multiple pushes!
       if self.navigationController?.topViewController != self { return }
       let authenticate = { [weak self] in
         let loginAction = UIAlertAction(title: Localized("login_button"),
@@ -248,10 +264,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         Alert.message(message: "Um das ePaper zu lesen, müssen Sie sich anmelden.", actions: [loginAction, cancelAction])
       }
       
-//      if isFacsimile && !feederContext.isAuthenticated && issues[index].isComplete == false {
-//        authenticate()
-//      }
-//      else
       if isFacsimile {
         ///the positive use case
         let pushPdf = { [weak self] in
@@ -296,8 +308,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
      ein open issue in dem Fall wäre praktisch,
      ...würde dann den >>>Notification.receiveOnce("issueStructure"<<<" raus nehmen
      */
-    if let sissue = issue as? StoredIssue, !isDownloading {
+    if let sissue = issue as? StoredIssue {
       guard feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
+      if isDownloading {
+        Toast.show("Bitte versuchen Sie es erneut, nachdem die anderen Downloads abgeschlossen wurden!")
+        return
+      }
       isDownloading = true
       issueCarousel.index = index
       issueCarousel.setActivity(idx: index, isActivity: true)
@@ -306,6 +322,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         guard notif.error == nil else { 
           self.handleDownloadError(error: notif.error!)
           if issue.status.watchable && self.isFacsimile { openIssue() }
+          self.issueCarousel.setActivity(idx: index, isActivity: false)
           return 
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
@@ -579,9 +596,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     })
     
     //Update labelButton Offset
-    if let const = issueCarousel.labelTopConstraint?.constant {
-      pickerCtrl.bottomOffset = const + 50
-    }
+    pickerCtrl.bottomOffset = issueCarousel.labelTopConstraintConstant + 50
     
     overlay?.openAnimated(fromView: issueCarousel.label, toView: pickerCtrl.content)
   }
@@ -631,8 +646,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
     }
     Notification.receive("issueOverview") { [weak self] notif in
-      if let err = notif.error { self?.handleDownloadError(error: err) }
-      else { self?.addIssue(issue: notif.content as! Issue) }
+      if let err = notif.error {
+        self?.debug("receive issueOverview Error: \(err)")
+        self?.statusHeader.currentStatus = .downloadError
+        if let errIssue = notif.sender as? Issue {
+          self?.addIssue(issue: errIssue)
+        }
+      }
+      else {
+        self?.statusHeader.currentStatus = .none
+        self?.addIssue(issue: notif.content as! Issue)
+      }
     }
   }
   
@@ -654,12 +678,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     let relativePageWidth = min(0.6, relPageWidth*0.99)//limit to prevent touch
     self.issueCarousel.carousel.relativePageWidth = relativePageWidth
     self.issueCarousel.carousel.relativeSpacing = min(0.12, 0.2*relPageWidth/0.85)
-//    print("IssueVc set relativePageWidth: \(self.issueCarousel.carousel.relativePageWidth) && relativeSpacing: \( self.issueCarousel.carousel.relativeSpacing ) size: \(size) useH: \(useableH)")
-    if let labelTopConstraint = self.issueCarousel.labelTopConstraint {
-      let maxHeight = size.width * relativePageWidth * 1.3 / defaultPageRatio
-      let padding = (size.height - maxHeight)/2
-      labelTopConstraint.constant = 0 - padding
-    }
+    let maxHeight = size.width * relativePageWidth * 1.3 / defaultPageRatio
+    let padding = (size.height - maxHeight)/2
+    self.issueCarousel.labelTopConstraintConstant = 0 - padding
+    self.statusBottomConstraint?.constant = padding - 36
   }
   
   required public init?(coder: NSCoder) {

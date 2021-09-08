@@ -72,11 +72,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
   }
   
-  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    super.viewWillTransition(to: size, with: coordinator)
-    articleVC?.viewWillTransition(to: size, with: coordinator)
-  }
-  
   public func linkPressed(from: URL?, to: URL?) {
     guard let to = to else { return }
     let fn = to.lastPathComponent
@@ -99,11 +94,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       }
     }
     else {
-      #if INTERNALBROWSER
-        let isInternal = true
-      #else
-        let isInternal = false
-      #endif
+      /// Previously INTERNALBROWSER Compiler Flags
+      /// May should be Config Default Feature Toggle, or removed
+      let isInternal = App.isAvailable(.INTERNALBROWSER)
       if let scheme = to.scheme,
          isInternal && (scheme == "http" || scheme == "https") {
         let svc = SFSafariViewController(url: to)

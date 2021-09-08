@@ -25,7 +25,13 @@ public class MomentView: UIView, Touchable {
   public var isActivity: Bool {
     get { return spinner.isAnimating }
     set {
-      if newValue { spinner.startAnimating() } 
+      if newValue {
+        spinner.style
+          = self.image?.description.contains("DemoMoment") ?? false
+          ? .white
+          : .gray
+        spinner.startAnimating()
+      }
       else { spinner.stopAnimating() }
     }
   }
@@ -50,11 +56,7 @@ public class MomentView: UIView, Touchable {
     pin(imageView.left, to: self.left)
     pin(imageView.right, to: self.right)
     pin(imageView.centerY, to: self.centerY)
-    if #available(iOS 13, *) { 
-      spinner.style = .large 
-      spinner.color = .black
-    }
-    else { spinner.style = .whiteLarge }
+    spinner.style = .white
     spinner.hidesWhenStopped = true
     addSubview(spinner)
     pin(spinner.centerX, to: self.centerX)

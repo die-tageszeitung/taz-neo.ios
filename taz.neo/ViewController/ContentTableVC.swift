@@ -303,6 +303,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
     return cell
   }
   
+  
   // MARK: - UITableViewDelegate protocol
   
   public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

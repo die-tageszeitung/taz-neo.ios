@@ -835,7 +835,8 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
                                       count: count, isOverview: isOverview)
     gqlSession.query(graphql: request,
-      type: [String:FeedRequest].self) { (res) in
+      type: [String:FeedRequest].self) {[weak self]  (res) in
+      guard let self = self else { return }
       var ret: Result<[Issue],Error>? = nil
       switch res {
       case .success(let frq):  
@@ -845,6 +846,7 @@ open class GqlFeeder: Feeder, DoesLog {
             ret = .failure(FeederError.expiredAccount(req.authInfo.message))
           }
           else if req.authInfo.status != .valid {
+            self.log("Invalid Auth Status: \(req.authInfo.status) for FeedRequest. WasAuth:\(wasAuthenticated) SessionAuth: \(gqlSession.authToken?.length ?? 0 > 10)")
             ret = .failure(FeederError.changedAccount(req.authInfo.message))
           }
         }

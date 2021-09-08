@@ -36,8 +36,8 @@ public class FeedbackViewController : UIViewController{
   
   var logData: Data? = nil
   var deviceData: DeviceData?
-  var gqlFeeder: GqlFeeder?
-  var closeClosure: (() -> ())?
+  var feederContext: FeederContext
+  var doCloseClosure: (() -> ())?
   var requestCancel: (() -> ())?
   
   public var feedbackView : FeedbackView?
@@ -46,16 +46,16 @@ public class FeedbackViewController : UIViewController{
        screenshot: UIImage? = nil,
        deviceData: DeviceData? = nil,
        logData: Data? = nil,
-       gqlFeeder: GqlFeeder,
+       feederContext: FeederContext,
        finishClosure: (() -> ())?) {
     self.feedbackView = FeedbackView(type: type,
-                                     isLoggedIn: gqlFeeder.authToken != nil )
+                                     isLoggedIn: feederContext.gqlFeeder?.authToken != nil )
     self.screenshot = screenshot
     self.type = type
     self.deviceData = deviceData
     self.logData = logData
-    self.gqlFeeder = gqlFeeder
-    self.closeClosure = finishClosure
+    self.feederContext = feederContext
+    self.doCloseClosure = finishClosure
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -80,15 +80,10 @@ public class FeedbackViewController : UIViewController{
     wConstraint = feedbackView.stack.pinWidth(newSize.width - 24, priority: .required)
   }
   
-  public override func viewDidDisappear(_ animated: Bool) {
-    self.feedbackView = nil
-    self.type = nil
-    self.screenshot = nil
-    self.logData = nil
-    self.gqlFeeder = nil
-    self.closeClosure = nil
-    self.requestCancel = nil
-  }
+//  public override func viewDidDisappear(_ animated: Bool) {
+//    ///Warning Not Working when Presented wirh Overlay!
+//    super.viewDidDisappear(animated)
+//  }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -129,6 +124,20 @@ public class FeedbackViewController : UIViewController{
                                       for: .touchUpInside)
   }
   
+  func handleClose(){
+    if let closure = doCloseClosure {
+      closure()
+    }
+    self.feedbackView = nil
+    self.type = nil
+    self.screenshot = nil
+    self.logData = nil
+    self.doCloseClosure = nil
+    self.requestCancel = nil
+    self.log("FeedbackViewController closed")
+  }
+  
+  
   @objc func handleCancel(){
     requestCancel?()
   }
@@ -136,6 +145,11 @@ public class FeedbackViewController : UIViewController{
   //MARK: handleSend()
   @objc public func handleSend(_ force : Bool = false){
     //Wollen Sie den Report ohne weitere Angaben senden?
+    
+    if feedbackView == nil, let fv = self.view.subviews.first as? FeedbackView {
+      feedbackView = fv
+    }
+        
     guard let feedbackView = feedbackView else {
       log("No Form, send not possible")
       return;
@@ -196,7 +210,12 @@ public class FeedbackViewController : UIViewController{
       ? "Feedback\n=============\n\(feedbackView.messageTextView.text ?? "-")"
       : feedbackView.messageTextView.text
     
-    gqlFeeder?.errorReport(message: message,
+    guard let feeder = feederContext.gqlFeeder else {
+      requestSendByMail()
+      return
+    }
+     
+    feeder.errorReport(message: message,
                            lastAction: feedbackView.lastInteractionTextView.text,
                            conditions: feedbackView.environmentTextView.text,
                            deviceData: deviceData,
@@ -209,12 +228,18 @@ public class FeedbackViewController : UIViewController{
                               case .success(let msg):
                                 self.log("Error Report send success: \(msg)")
                                 self.sendSuccess = msg
-                                self.closeClosure?()
+                                self.handleClose()
                               case .failure(let err):
                                 self.log("Error Report send failure: \(err)")
                                 self.handleSendFail()
                             }
     }
+  }
+  
+  func requestSendByMail(){
+    #warning("ToDo implement send by mail if offline, in prev versions nothing happen, now alert will be shown")
+    log("ToDo: implement alternative send by mail")
+    self.handleSendFail()
   }
   
   func handleSendFail(){
@@ -224,7 +249,7 @@ public class FeedbackViewController : UIViewController{
                          if try_again {
                            self.handleSend(true)
                          } else {
-                           self.closeClosure?()
+                           self.handleClose()
                         }
          }
   }

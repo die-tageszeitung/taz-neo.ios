@@ -111,8 +111,8 @@ else
 fi
 
 function extract_versions_numbers() {
-	jsonVersion=$(grep -o '"resourceVersion":\d.' "${curlVersion_jsonFile}" | grep -o '\d.')
-    zipVersion=$(grep -o '"resourceVersion":\d.' "${currentBundled_jsonFile}" | grep -o '\d.')
+	jsonVersion=$(grep -o '"resourceVersion":\d*' "${curlVersion_jsonFile}" | grep -o '\d.*')
+    zipVersion=$(grep -o '"resourceVersion":\d*' "${currentBundled_jsonFile}" | grep -o '\d.*')
 	echo "Current Versions are: jsonVersion: ${jsonVersion}  :: zipVersion: ${zipVersion} "
 }
 
