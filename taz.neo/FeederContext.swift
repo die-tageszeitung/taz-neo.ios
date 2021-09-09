@@ -550,6 +550,9 @@ open class FeederContext: DoesLog {
           if let issues = res.value() {
             for issue in issues {
               let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
+              if let gi = issue as? GqlIssue {
+                gi.useOnlyPage1 = true
+              }
               if si.count < 1 { StoredIssue.persist(object: issue) }
               #warning("Missing Update")///Old App Timestamp!
               /// What if Overview new MoTime but compleete Issue is in DB and User is in Issue to read!!
@@ -625,8 +628,9 @@ open class FeederContext: DoesLog {
   }
 
   /// Returns true if the Issue needs to be updated
-  public func needsUpdate(issue: StoredIssue) -> Bool {
+  public func needsUpdate(issue: StoredIssue, isPages: Bool = false) -> Bool {
     guard !issue.isDownloading else { return false }
+    if isPages, issue.pages?.count == 1 { return true }
     if issue.isComplete { 
       if issue.isReduced && isAuthenticated { issue.isComplete = false }
       return issue.isReduced
@@ -646,7 +650,7 @@ open class FeederContext: DoesLog {
         self?.getCompleteIssue(issue: issue)
       }
     }
-    guard needsUpdate(issue: issue) else {
+    guard needsUpdate(issue: issue, isPages: isPages) else {
       Notification.send("issue", result: .success(issue), sender: issue)
       return      
     }
@@ -656,6 +660,9 @@ open class FeederContext: DoesLog {
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)
+          if isPages == false, let gi = dissue as? GqlIssue {
+            gi.useOnlyPage1 = true
+          }
           issue.update(from: dissue)
           ArticleDB.save()
           Notification.send("issueStructure", result: .success(issue), sender: issue)

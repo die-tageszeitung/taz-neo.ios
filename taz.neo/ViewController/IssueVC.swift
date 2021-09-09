@@ -309,7 +309,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
      ...würde dann den >>>Notification.receiveOnce("issueStructure"<<<" raus nehmen
      */
     if let sissue = issue as? StoredIssue {
-      guard feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
+      guard feederContext.needsUpdate(issue: sissue, isPages: isFacsimile) else { openIssue(); return }
       if isDownloading {
         Toast.show("Bitte versuchen Sie es erneut, nachdem die anderen Downloads abgeschlossen wurden!")
         return
