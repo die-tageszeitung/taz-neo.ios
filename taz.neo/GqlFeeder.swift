@@ -382,12 +382,8 @@ class GqlIssue: Issue, GQLObject {
   var sectionList: [GqlSection]?
   var sections: [Section]? { return sectionList }
   /// List of PDF pages (if any)
-  var useOnlyPage1:Bool = false
   var pageList : [GqlPage]?
-  var pages: [Page]? {
-    if useOnlyPage1, let p1 = pageList?.first { return [p1]}
-    return pageList
-  }
+  var pages: [Page]? { return pageList }
   var _isDownloading: Bool? = nil
   var isDownloading: Bool {
     get { if _isDownloading != nil { return _isDownloading! } else { return false } }
