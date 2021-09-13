@@ -285,8 +285,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         if feeder.momentPdfFile(issue: issue) != nil {
           pushPdf()
         }
-        else if let page1 = issue.pages?.first {
-          self.dloader.downloadIssueData(issue: issue, files: [page1.pdf]) { err in
+        else if let page1pdf = issue.pages?.first?.pdf {
+          self.dloader.downloadIssueData(issue: issue, files: [page1pdf]) { err in
             if err != nil { handleError() }
             else { pushPdf() }
           }

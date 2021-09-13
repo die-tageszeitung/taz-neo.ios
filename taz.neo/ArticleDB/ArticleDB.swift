@@ -1045,7 +1045,7 @@ public final class StoredFrame: Frame, StoredObject {
     return get(request: request)
   }
 
-} // StoredPage
+} // StoredFrame
 
 extension PersistentPage: PersistentObject {}
 
@@ -1062,13 +1062,18 @@ public final class StoredPage: Page, StoredObject {
     get { return pr.pagina }
     set { pr.pagina = newValue }
   }
-  public var pdf: FileEntry {
+  public var pdf: FileEntry? {
     ///Debug Crash nil while unwrapping optional!
     ///no solution: return StoredFileEntry.new() ...crash on next place
-    get { return StoredFileEntry(persistent: pr.pdf!) }
+    get {
+      guard let pdf = pr.pdf else { return nil }
+      return StoredFileEntry(persistent: pdf) }
     set {
-      pr.pdf = StoredFileEntry.persist(object: newValue).pr
-      pr.pdf!.page = pr
+      if let old = pr.pdf, old.name != newValue?.name { old.delete() }
+      guard let newValue = newValue else { return }
+      let persistedRecord = StoredFileEntry.persist(object: newValue).pr
+      pr.pdf = persistedRecord
+      persistedRecord.page = pr
     }
   }
   public var facsimile: ImageEntry? {
@@ -1165,7 +1170,8 @@ public final class StoredPage: Page, StoredObject {
   }
     
   public static func get(object: Page) -> StoredPage? {
-    let tmp = get(file: object.pdf.name)
+    guard let pdfName = object.pdf?.name else { return nil }
+    let tmp = get(file: pdfName)
     if tmp.count > 0 { return tmp[0] }
     else { return nil }
   }
@@ -1480,7 +1486,7 @@ public final class StoredIssue: Issue, StoredObject {
     if let opgs = oldPages as? [StoredPage] {
       if let pages = object.pages {
         for p in opgs {
-          if !pages.contains(where: { $0.pdf.name == p.pdf.name }) {
+          if !pages.contains(where: { $0.pdf?.name == p.pdf?.name && $0.pdf != nil }) {
             p.delete()
           }
         }

@@ -88,7 +88,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   
   public func pageIndexForLink(_ link: String) -> Int? {
     let p = images as? [ZoomedPdfPageImage]
-    return p?.firstIndex(where: { $0.pageReference?.pdf.fileName == link }) ?? nil
+    return p?.firstIndex(where: { $0.pageReference?.pdf?.fileName == link }) ?? nil
   }
   
   private var whenScrolledHandler : WhenScrolledHandler?
@@ -127,9 +127,9 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   }
   
   func downloadPdf(_ page: Page, finishedCallback: @escaping ((Bool) -> ())) {
-    guard let issueInfo = self.issueInfo else { finishedCallback(false); return }
+    guard let issueInfo = self.issueInfo, let pdf = page.pdf else { finishedCallback(false); return }
     issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue,
-                                         files: [page.pdf]) { error in
+                                         files: [pdf]) { error in
       finishedCallback(error==nil)
     }
   }
@@ -146,10 +146,10 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
     
     if pdfImg.pdfPage == nil,
        let issueInfo = issueInfo,
-       let pageRef = pdfImg.pageReference
+       let pageRefPdf = pdfImg.pageReference?.pdf
     {
       //PDF Page Download is needed first
-      issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue, files: [pageRef.pdf]) { (_) in
+      issueInfo.dloader.downloadIssueFiles(issue: issueInfo.issue, files: [pageRefPdf]) { (_) in
         PdfRenderService.render(item: pdfImg,
                                 height: height*UIScreen.main.scale,
                                 screenScaled: true,

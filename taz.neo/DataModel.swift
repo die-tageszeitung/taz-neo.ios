@@ -510,7 +510,7 @@ public enum PageType: String, CodableEnum {
  */
 public protocol Page: ToString {
   /// File storing PDF
-  var pdf: FileEntry { get }
+  var pdf: FileEntry? { get }
   /// Facsimile of page PDF (eg. Jpeg)
   var facsimile: ImageEntry? { get }
   /// Page title (if any)
@@ -553,9 +553,10 @@ public extension Page {
   }
   
   func pdfDocument(inIssueDir:Dir?) -> PDFDocument? {
-    guard let issueDir = inIssueDir else { return nil }
+    guard let issueDir = inIssueDir,
+          let pdfName = self.pdf?.fileName else { return nil }
     let path = issueDir.path + "/"
-    return PDFDocument(url: File(path + self.pdf.fileName).url)
+    return PDFDocument(url: File(path + pdfName).url)
   }
 }
 
@@ -729,7 +730,8 @@ public extension Issue {
   /// The first facsimile page ad PDFPage (if available)
   var pageOneFacsimilePdfPage: PDFPage? {
     if let page0 = pages?.valueAt(0),
-       let doc = PDFDocument(url: File(baseUrl + page0.pdf.fileName).url),
+       let pdfName = page0.pdf?.fileName,
+       let doc = PDFDocument(url: File(baseUrl + pdfName).url),
        let pdfPage = doc.page(at: 0) {
       return pdfPage
     }
@@ -740,7 +742,7 @@ public extension Issue {
   var facsimiles: [FileEntry]? {
     if let pgs = pages, pgs.count > 0 {
       var ret: [FileEntry] = []
-      for pg in pgs { ret += pg.pdf }
+      for pg in pgs { if let pdf = pg.pdf { ret += pdf} }
       return ret
     }
     return nil
