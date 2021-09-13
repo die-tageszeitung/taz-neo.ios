@@ -561,16 +561,7 @@ open class FeederContext: DoesLog {
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                    fromDate: fromDate)
-            for issue in sissues {
-              ///speedup download Issue Overview without download ressources for all 20 Items
-              if self.isConnected && issue.isComplete == false {
-                self.downloadPartialIssue(issue: issue)
-              }
-              else {
-                ///if not connected fallback use old way
-                self.downloadIssue(issue: issue)
-              }
-            }
+            for issue in sissues { self.downloadIssue(issue: issue) }
           }
           else {
             if let err = res.error() as? FeederError {
