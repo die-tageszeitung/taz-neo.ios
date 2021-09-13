@@ -587,6 +587,8 @@ class StatusHeader: UIView {
             return "Suche nach weiteren Ausgaben"
           case .loadPreview:
             return "Lade Vorschau"
+          case .loadIssue:
+            return "Lade Ausgabe"
           case .offline:
             return "Nicht verbunden"
           case .downloadError:
@@ -616,7 +618,7 @@ class StatusHeader: UIView {
     var showActivity:Bool {
       get {
         switch self {
-          case .fetchNewIssues, .fetchMoreIssues, .loadPreview:
+          case .fetchNewIssues, .fetchMoreIssues, .loadPreview, .loadIssue:
             return true
           default:
             return false

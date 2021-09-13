@@ -309,9 +309,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
      ...würde dann den >>>Notification.receiveOnce("issueStructure"<<<" raus nehmen
      */
     if let sissue = issue as? StoredIssue {
-      guard feederContext.needsUpdate(issue: sissue, isPages: isFacsimile) else { openIssue(); return }
+      guard feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
       if isDownloading {
-        Toast.show("Bitte versuchen Sie es erneut, nachdem die anderen Downloads abgeschlossen wurden!")
+        statusHeader.currentStatus = .loadIssue
         return
       }
       isDownloading = true
@@ -327,6 +327,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
           guard let self = self else { return }
+          self.statusHeader.currentStatus = .none
           self.isDownloading = false
           guard err == nil else {
             self.handleDownloadError(error: err)
