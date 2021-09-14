@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20F71" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20G95" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="hasBookmark" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -154,7 +154,7 @@
         <relationship name="frames" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Frame" inverseName="page" inverseEntity="Frame"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="pages" inverseEntity="Issue"/>
         <relationship name="moment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="firstPage" inverseEntity="Moment"/>
-        <relationship name="pdf" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="page" inverseEntity="FileEntry"/>
+        <relationship name="pdf" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="page" inverseEntity="FileEntry"/>
     </entity>
     <entity name="Payload" representedClassName="PersistentPayload" syncable="YES" codeGenerationType="class">
         <attribute name="bytesLoaded" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>

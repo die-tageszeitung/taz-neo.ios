@@ -99,6 +99,13 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       if isUp && oldValue == false {
         (self as? IssueVC)?.invalidateCarouselLayout()
       }
+      
+      if isUp {
+        statusHeader.showAnimated()
+      }
+      else {
+        statusHeader.hideAnimated()
+      }
     }
   }
   
@@ -281,7 +288,7 @@ extension IssueVcWithBottomTiles {
         cell.momentView.image = nil
       }
       
-      if issue.isDownloading == false && issue.isComplete == false {
+      if issue.isComplete == false {
         cell.button.startHandler = { [weak self] in
           guard let self = self, let sissue = issue as? StoredIssue else { return }
           cell.button.startHandler = nil
@@ -480,13 +487,11 @@ extension IssueVcWithBottomTiles {
     self.collectionView.setContentOffset(CGPoint(x:0, y:scrollSnapHeight),
                                          animated: true)
     if reloadData { self.collectionView.reloadData() }
-    statusHeader.hideAnimated()
   }
   
   func scrollUp(){
     self.collectionView.setContentOffset(CGPoint(x:0, y:topPos),
                                          animated: true)
-    statusHeader.showAnimated()
   }
 }
 
@@ -587,6 +592,8 @@ class StatusHeader: UIView {
             return "Suche nach weiteren Ausgaben"
           case .loadPreview:
             return "Lade Vorschau"
+          case .loadIssue:
+            return "Lade Ausgabe"
           case .offline:
             return "Nicht verbunden"
           case .downloadError:
@@ -616,7 +623,7 @@ class StatusHeader: UIView {
     var showActivity:Bool {
       get {
         switch self {
-          case .fetchNewIssues, .fetchMoreIssues, .loadPreview:
+          case .fetchNewIssues, .fetchMoreIssues, .loadPreview, .loadIssue:
             return true
           default:
             return false

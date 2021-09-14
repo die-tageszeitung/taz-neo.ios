@@ -301,7 +301,7 @@ class GqlFrame: Frame, GQLObject {
 class GqlPage: Page, GQLObject {
   /// File storing PDF
   var pagePdf: GqlFile
-  var pdf: FileEntry { return pagePdf }
+  var pdf: FileEntry? { return pagePdf }
   /// Facsimile if first page
   var gqlFacsimile: GqlImage?
   var facsimile: ImageEntry? { return gqlFacsimile }

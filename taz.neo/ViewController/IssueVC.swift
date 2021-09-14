@@ -191,9 +191,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     feederContext.getOvwIssues(feed: feed, count: 21, fromDate: from)
   }
   
-  /// Quick Solution to reduce requests while scrolling in carousel from round 8 to 2
-  var lastGetOvwIssuesDate:Date?
-
   /// Requests sufficient overview Issues from DB/server
   private func provideOverview() {
     let n = issues.count
@@ -201,17 +198,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if (n - index) < 6 { 
         var last = issues.last!.date
         last.addDays(-1)
-        Notification.send("checkForNewIssues", content: StatusHeader.status.fetchMoreIssues, error: nil, sender: feederContext)
-        
-        if last == lastGetOvwIssuesDate { return }
-        self.lastGetOvwIssuesDate = last
         feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last)
       }
       if index < 6 {
         var date = issues.first!.date
         date.addDays(10)
-        if date == lastGetOvwIssuesDate { return }
-        self.lastGetOvwIssuesDate = date
         feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date)
       }
     }
@@ -285,8 +276,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         if feeder.momentPdfFile(issue: issue) != nil {
           pushPdf()
         }
-        else if let page1 = issue.pages?.first {
-          self.dloader.downloadIssueData(issue: issue, files: [page1.pdf]) { err in
+        else if let page1pdf = issue.pages?.first?.pdf {
+          self.dloader.downloadIssueData(issue: issue, files: [page1pdf]) { err in
             if err != nil { handleError() }
             else { pushPdf() }
           }
@@ -311,7 +302,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if let sissue = issue as? StoredIssue {
       guard feederContext.needsUpdate(issue: sissue) else { openIssue(); return }
       if isDownloading {
-        Toast.show("Bitte versuchen Sie es erneut, nachdem die anderen Downloads abgeschlossen wurden!")
+        statusHeader.currentStatus = .loadIssue
         return
       }
       isDownloading = true
@@ -327,6 +318,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
           guard let self = self else { return }
+          self.statusHeader.currentStatus = .none
           self.isDownloading = false
           guard err == nil else {
             self.handleDownloadError(error: err)
@@ -534,7 +526,20 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         IssueVC.showAnimations = false
         //self.issueCarousel.showAnimations()
       }
-      self.debug("on display: \(idx)")
+      self.debug("on display: \(idx) / \(self.issues.count)")
+      if self.issues.count - idx <= 1 {
+        if self.feederContext.isConnected == false {
+          Notification.send("checkForNewIssues",
+                            content: StatusHeader.status.offline,
+                            error: nil,
+                            sender: self.feederContext)
+        } else {
+          Notification.send("checkForNewIssues",
+                            content: StatusHeader.status.fetchMoreIssues,
+                            error: nil,
+                            sender: self.feederContext)
+        }
+      }
       self.provideOverview()
     }
     Notification.receive("authenticationSucceeded") { notif in

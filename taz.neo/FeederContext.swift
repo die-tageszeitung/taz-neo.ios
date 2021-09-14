@@ -129,7 +129,8 @@ open class FeederContext: DoesLog {
   private func feederReachable(feeder: Feeder) {
     self.debug("Feeder now reachable")
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
-    notify("feederReachable")    
+    notify("feederReachable")
+    Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
   }
   
   /// Feeder is not reachable
@@ -558,16 +559,7 @@ open class FeederContext: DoesLog {
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                    fromDate: fromDate)
-            for issue in sissues {
-              ///speedup download Issue Overview without download ressources for all 20 Items
-              if self.isConnected && issue.isComplete == false {
-                self.downloadPartialIssue(issue: issue)
-              }
-              else {
-                ///if not connected fallback use old way
-                self.downloadIssue(issue: issue)
-              }
-            }
+            for issue in sissues { self.downloadIssue(issue: issue) }
           }
           else {
             if let err = res.error() as? FeederError {
@@ -643,8 +635,9 @@ open class FeederContext: DoesLog {
   public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
-        self?.getCompleteIssue(issue: issue)
+        self?.getCompleteIssue(issue: issue, isPages: isPages)
       }
+      return
     }
     guard needsUpdate(issue: issue) else {
       Notification.send("issue", result: .success(issue), sender: issue)
