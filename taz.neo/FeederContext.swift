@@ -129,7 +129,8 @@ open class FeederContext: DoesLog {
   private func feederReachable(feeder: Feeder) {
     self.debug("Feeder now reachable")
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
-    notify("feederReachable")    
+    notify("feederReachable")
+    Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
   }
   
   /// Feeder is not reachable

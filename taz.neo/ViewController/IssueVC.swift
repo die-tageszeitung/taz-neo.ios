@@ -535,7 +535,20 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         IssueVC.showAnimations = false
         //self.issueCarousel.showAnimations()
       }
-      self.debug("on display: \(idx)")
+      self.debug("on display: \(idx) / \(self.issues.count)")
+      if self.issues.count - idx <= 1 {
+        if self.feederContext.isConnected == false {
+          Notification.send("checkForNewIssues",
+                            content: StatusHeader.status.offline,
+                            error: nil,
+                            sender: self.feederContext)
+        } else {
+          Notification.send("checkForNewIssues",
+                            content: StatusHeader.status.fetchMoreIssues,
+                            error: nil,
+                            sender: self.feederContext)
+        }
+      }
       self.provideOverview()
     }
     Notification.receive("authenticationSucceeded") { notif in
