@@ -99,6 +99,13 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       if isUp && oldValue == false {
         (self as? IssueVC)?.invalidateCarouselLayout()
       }
+      
+      if isUp {
+        statusHeader.showAnimated()
+      }
+      else {
+        statusHeader.hideAnimated()
+      }
     }
   }
   
@@ -480,13 +487,11 @@ extension IssueVcWithBottomTiles {
     self.collectionView.setContentOffset(CGPoint(x:0, y:scrollSnapHeight),
                                          animated: true)
     if reloadData { self.collectionView.reloadData() }
-    statusHeader.hideAnimated()
   }
   
   func scrollUp(){
     self.collectionView.setContentOffset(CGPoint(x:0, y:topPos),
                                          animated: true)
-    statusHeader.showAnimated()
   }
 }
 
