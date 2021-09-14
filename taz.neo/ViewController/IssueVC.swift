@@ -191,9 +191,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     feederContext.getOvwIssues(feed: feed, count: 21, fromDate: from)
   }
   
-  /// Quick Solution to reduce requests while scrolling in carousel from round 8 to 2
-  var lastGetOvwIssuesDate:Date?
-
   /// Requests sufficient overview Issues from DB/server
   private func provideOverview() {
     let n = issues.count
@@ -201,17 +198,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if (n - index) < 6 { 
         var last = issues.last!.date
         last.addDays(-1)
-        Notification.send("checkForNewIssues", content: StatusHeader.status.fetchMoreIssues, error: nil, sender: feederContext)
-        
-        if last == lastGetOvwIssuesDate { return }
-        self.lastGetOvwIssuesDate = last
         feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last)
       }
       if index < 6 {
         var date = issues.first!.date
         date.addDays(10)
-        if date == lastGetOvwIssuesDate { return }
-        self.lastGetOvwIssuesDate = date
         feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date)
       }
     }
