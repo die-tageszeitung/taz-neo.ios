@@ -636,6 +636,7 @@ open class FeederContext: DoesLog {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
         self?.getCompleteIssue(issue: issue)
       }
+      return
     }
     guard needsUpdate(issue: issue) else {
       Notification.send("issue", result: .success(issue), sender: issue)
