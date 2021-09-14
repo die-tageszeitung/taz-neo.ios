@@ -281,7 +281,7 @@ extension IssueVcWithBottomTiles {
         cell.momentView.image = nil
       }
       
-      if issue.isDownloading == false && issue.isComplete == false {
+      if issue.isComplete == false {
         cell.button.startHandler = { [weak self] in
           guard let self = self, let sissue = issue as? StoredIssue else { return }
           cell.button.startHandler = nil
