@@ -65,7 +65,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if let nvc = navigationController {
         if avc != nvc.topViewController {
           avc.writeTazApiCss()
-//          avc.reloadAllWebViews()
           nvc.pushViewController(avc, animated: true)
         }
       }
@@ -158,6 +157,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     articleVC = ArticleVC(feederContext: feederContext)
     articleVC?.delegate = self
     whenLinkPressed { [weak self] (from, to) in
+      /** FIX wrong Article shown (most errors on iPad, some also on Phone)
+          after re-enter app due wired Scroll Pos change
+          @see:  https://developer.apple.com/forums/thread/47100
+          unfortunately is our behaviour quite complex, a simple return in viewWillTransition...
+          destroys the layout or raise other errors
+          so this is currently the most effective solution
+       **/
+      if UIApplication.shared.applicationState != .active { return }
       self?.linkPressed(from: from, to: to)
     }
   }
@@ -191,14 +198,16 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.reload()
   }
   
+  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    articleVC?.invalidateLayoutNeededOnViewWillAppear = true
+  }
+  
+  
   override public func viewDidLoad() {
     super.viewDidLoad()
     self.index = initialSection ?? 0
   }
-  
-//  public override func applyStyles() {
-//    super.applyStyles()
-//  }
   
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)

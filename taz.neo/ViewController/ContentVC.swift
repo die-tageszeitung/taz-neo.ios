@@ -407,7 +407,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
     slider?.button.shadow()
-    //fix wrong (strange) article vc content size if article shown, back to section, rotate (or splitView), click on article // fix also probably wrong css while on article and window width changed
     writeTazApiCss{
       super.reloadAllWebViews()
     }
@@ -429,13 +428,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillDisappear(animated)
     if let svc = self.navigationController?.viewControllers.last as? SectionVC {
       //cannot use updateLayout due strange side effects
-      svc.view.isHidden = true
-      let sidx = svc.index
-      svc.index = 0
-      svc.collectionView?.collectionViewLayout.invalidateLayout()
-      onMainAfter(0.25){
-        svc.index = sidx
-        svc.view.showAnimated()
+      if let sidx = svc.index {
+        svc.collectionView?.isHidden = true
+        svc.collectionView?.collectionViewLayout.invalidateLayout()
+        onMainAfter {
+          svc.collectionView?.fixScrollPosition(toIndex: sidx)
+          svc.collectionView?.showAnimated(duration: 0.1)
+        }
       }
     }
   }
