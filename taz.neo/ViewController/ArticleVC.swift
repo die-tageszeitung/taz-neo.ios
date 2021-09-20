@@ -82,6 +82,14 @@ open class ArticleVC: ContentVC {
      }
     }
     whenLinkPressed { [weak self] (from, to) in
+      /** FIX wrong Article shown (most errors on iPad, some also on Phone)
+          after re-enter app due wired Scroll Pos change
+          @see:  https://developer.apple.com/forums/thread/47100
+          unfortunately is our behaviour quite complex, a simple return in viewWillTransition...
+          destroys the layout or raise other errors
+          so this is currently the most effective solution
+       **/
+      if UIApplication.shared.applicationState != .active { return }
       self?.adelegate?.linkPressed(from: from, to: to)
     }
     whenLoaded {
@@ -168,8 +176,22 @@ open class ArticleVC: ContentVC {
       }
     } 
   }
+  public override func viewWillAppear(_ animated: Bool) {
+    if self.invalidateLayoutNeededOnViewWillAppear {
+      self.collectionView?.isHidden = true
+    }
+    super.viewWillAppear(animated)
+  }
+  
   
   public override func viewDidAppear(_ animated: Bool) {
+    if self.invalidateLayoutNeededOnViewWillAppear {
+      self.invalidateLayoutNeededOnViewWillAppear = false
+      self.collectionView?.collectionViewLayout.invalidateLayout()
+      self.collectionView?.fixScrollPosition()
+      self.collectionView?.showAnimated()
+    }
+    super.viewDidAppear(animated)
     onShare { [weak self] _ in
       guard let self = self else { return }
       self.debug("*** Action: Share Article")
