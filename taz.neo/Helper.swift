@@ -11,6 +11,10 @@ import NorthLib
 
 
 extension Defaults{
+  
+  static var autoloadInWLAN : Bool = false
+  static var autoloadNewIssues : Bool = true
+  
   static var darkMode : Bool {
     get { return Defaults.singleton["colorMode"] == "dark" }
     set {

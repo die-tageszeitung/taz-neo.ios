@@ -44,6 +44,7 @@
 		778E1E5326CCE1DF00D11781 /* Beta@3x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4D26CCE1DF00D11781 /* Beta@3x~ipad.png */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
 		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
+		779DE96126FA3D790056187B /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779DE96026FA3D790056187B /* SettingsVC.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77D0DAEC25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */; };
@@ -155,6 +156,7 @@
 		778E1E4D26CCE1DF00D11781 /* Beta@3x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@3x~ipad.png"; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
+		779DE96026FA3D790056187B /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
 		77C00CFB25DA9A4A00964861 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDownAnimationView.swift; sourceTree = "<group>"; };
@@ -364,6 +366,7 @@
 				AE44F8E324815AF4009DA152 /* ContentImageVC.swift */,
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
 				00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */,
+				779DE96026FA3D790056187B /* SettingsVC.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -651,6 +654,7 @@
 				7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
+				779DE96126FA3D790056187B /* SettingsVC.swift in Sources */,
 				006E17E924D418090092DC0D /* FormComponents.swift in Sources */,
 				004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */,
 				AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */,

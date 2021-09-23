@@ -172,12 +172,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
         }
       })
     }
-    let userInfo = "\(feederContext.isAuthenticated == false ? "NICHT ANGEMELDET" : "angemeldet" ), gespeicherte taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
-    
-    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : "taz"
-    
-    
-    Alert.actionSheet(title: "\(appTitle) (v) \(App.version)-\(App.buildNumber)\n\(userInfo)",
+    let title = App.appInfo + "\n" + App.authInfo(with: feederContext)
+    Alert.actionSheet(title: title,
                       actions: actions) { [weak self] in
       self?.threeFingerAlertOpen = false
     }

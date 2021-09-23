@@ -42,6 +42,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
 
   public var toolBar = ContentToolbar()
   var toolbarHomeButton: Button<ImageView>?
+  var toolbarSettingsButton: Button<ImageView>?
   
   var childPushed = false
   
@@ -237,6 +238,17 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       print("PDF Pressed")
     }
     
+    let onSettings:((ButtonControl)->()) = {   [weak self] control in
+      guard let self = self else { return }
+      let navCtrl = UINavigationController(rootViewController: SettingsVC())
+//      navCtrl.modalPresentationStyle = .overCurrentContext
+      navCtrl.isNavigationBarHidden = true
+      self.navigationController?.present(navCtrl, animated: true, completion: {
+        print("Settings Presented")
+      })
+      print("Settings Pressed")
+    }
+    
     //the buttons and alignments
     toolbarHomeButton = toolBar.addImageButton(name: "home",
                                onPress: onHome,
@@ -247,6 +259,11 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
                                onPress: onPDF,
                                direction: .left,
                                accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
+    
+    _ = toolBar.addImageButton(name: "settings",
+                               onPress: onSettings,
+                               direction: .center,
+                               accessibilityLabel: "Einstellungen")
         
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
@@ -577,6 +594,7 @@ extension IssueVcWithBottomTiles {
 }
 
 /// A View for show Update/Download Activity with a Label and a ActivityIndicatorView
+// MARK: - StatusHeader
 class StatusHeader: UIView {
   
   ///Possible States

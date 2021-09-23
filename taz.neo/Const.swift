@@ -256,8 +256,6 @@ public struct Const {
   
   /// Various font values
   struct Fonts {
-    static var defaultFontSize = CGFloat(16)
-    
     static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
     static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
     static var contentTableFontName = titleFontName
@@ -281,7 +279,7 @@ public struct Const {
     static func contentTableFont(size: CGFloat) -> UIFont
     { return font(name: contentTableFontName, size: size) }
     
-    static var contentFont: UIFont = contentFont(size: defaultFontSize)
+    static var contentFont: UIFont = contentFont(size: Size.DefaultFontSize)
 
   } // Fonts
   
@@ -289,12 +287,22 @@ public struct Const {
     static let TextViewPadding = CGFloat(10.0)
     static let MiniPageNumberFontSize = CGFloat(12)
     static let DefaultFontSize = CGFloat(16)
+    static let SmallerFontSize = CGFloat(14)
     static let LargeTitleFontSize = CGFloat(34)
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
-    static let TextFieldPadding = CGFloat(10.0)
+    static let TextFieldPadding = SmallPadding
+    static let SmallPadding = CGFloat(10.0)
+    static let TinyPadding = CGFloat(5.0)
     static let ContentTableFontSize = CGFloat(22.0)
     static let ContentTableRowHeight = CGFloat(30.0)
+  }
+  
+  struct Insets {
+    static let Small = UIEdgeInsets(top: 0,
+                                    left: Const.Size.SmallPadding,
+                                    bottom: 0,
+                                    right: -Const.Size.SmallPadding)
   }
   
   /// Adjusted Sizes for tiny Displays (iPhone 5s/SE1, iPod 7G)
@@ -340,13 +348,13 @@ public extension UIView {
   }
 }
 
-public extension UILabel {
+extension UILabel {
   /// set content font with default font size and return self (for chaining)
   ///  @todo may respect dark/light mode with param ignore dark/lightMode
   /// - Returns: self
   @discardableResult
-  func contentFont() -> UILabel {
-    self.font = Const.Fonts.contentFont(size: Const.Fonts.defaultFontSize)
+  func contentFont(size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
+    self.font = Const.Fonts.contentFont(size: size)
     return self
   }
   
@@ -354,8 +362,8 @@ public extension UILabel {
   ///  @todo may respect dark/light mode with param ignore dark/lightMode
   /// - Returns: self
   @discardableResult
-  func boldContentFont() -> UILabel {
-    self.font = Const.Fonts.titleFont(size: Const.Fonts.defaultFontSize)
+  func boldContentFont(size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
+    self.font = Const.Fonts.titleFont(size: size)
     return self
   }
   
@@ -374,14 +382,35 @@ public extension UILabel {
   }
   
   @discardableResult
+  func ciColor() -> UILabel {
+    self.textColor = Const.Colors.ciColor
+    return self
+  }
+  
+  @discardableResult
   func white() -> UILabel {
     self.textColor = UIColor.white
+    return self
+  }
+  
+  /// sets the TextColor for the Label and return self for chaining
+  /// - Parameter textColor to set
+  /// - Returns: self
+  @discardableResult
+  func set(textColor: UIColor) -> UILabel {
+    self.textColor = textColor
     return self
   }
   
   @discardableResult
   func center() -> UILabel {
     self.textAlignment = .center
+    return self
+  }
+  
+  @discardableResult
+  func align(_ side: NSTextAlignment) -> UILabel {
+    self.textAlignment = side
     return self
   }
   
