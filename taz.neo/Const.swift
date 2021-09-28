@@ -388,6 +388,18 @@ extension UILabel {
   }
   
   @discardableResult
+  func linkColor() -> UILabel {
+    self.textColor =  Const.SetColor.ios(.link).color
+    return self
+  }
+  
+  @discardableResult
+  func labelColor() -> UILabel {
+    self.textColor =  Const.SetColor.ios(.label).color
+    return self
+  }
+  
+  @discardableResult
   func white() -> UILabel {
     self.textColor = UIColor.white
     return self

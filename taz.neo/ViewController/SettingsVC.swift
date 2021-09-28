@@ -23,10 +23,21 @@ extension Settings.LinkType {
     switch self {
       case .onboarding: return "Erste Schritte";
       case .errorReport: return "Fehler melden";
-      case .manageAccount: return "Konto Verwalten";
+      case .manageAccount: return userInfo;
       case .terms: return "Allgemeine Geschäftsbedingungen (AGB)";
       case .privacy: return "Datenschutzerklärung";
       case .revocation: return "Widerruf";
+    }
+  }
+  
+  private var userInfo: String {
+    let isAuth = MainNC.singleton.feederContext.isAuthenticated
+    let (id,_,token) = SimpleAuthenticator.getUserData()
+    if isAuth, (id != nil), (token != nil) {
+      return "Konto Verwalten (\(id ?? ""))"
+    }
+    else {
+      return "Anmelden"
     }
   }
 }
@@ -80,7 +91,8 @@ struct Settings {
     [
       ("allgemein",
        [
-        Cell(with: SaveLastCountIssues()),
+        Cell(toggleWithText: "Letzten Ausgaben laden TBD", initialValue: false, changeHandler: {_ in }),
+//        Cell(with: SaveLastCountIssues()),
         Cell(toggleWithText: "Neue Ausgaben automatisch laden",
              initialValue: Defaults.autoloadNewIssues,
              changeHandler: { newValue in Defaults.autoloadNewIssues = newValue}),
@@ -91,7 +103,8 @@ struct Settings {
       ),
       ("darstellung",
        [
-        Cell(with: TextSizeSetting()),
+        Cell(toggleWithText: "Texteinstellungen TBD", initialValue: false, changeHandler: {_ in }),
+//        Cell(with: TextSizeSetting()),
         Cell(toggleWithText: "Nachtmodus",
              initialValue: Defaults.darkMode,
              changeHandler: { newValue in Defaults.darkMode = newValue})
@@ -171,21 +184,25 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     tableView.register(ToggleSettingsCell.self, forCellReuseIdentifier: ToggleSettingsCell.identifier)
     tableView.register(LinkSettingsCell.self, forCellReuseIdentifier: LinkSettingsCell.identifier)
     tableView.register(CustomSettingsCell.self, forCellReuseIdentifier: CustomSettingsCell.identifier)
+    tableView.register(CustomSettingsCell.self, forCellReuseIdentifier: CustomSettingsCell.identifier)
     tableView.tableHeaderView = header
-//    tableView.contentInset = Const.Insets.Small
-//    tableView.separatorColor = Const.SetColor.ios(.secondaryLabel).color
-//    tableView.separatorInset = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
     tableView.separatorStyle = .none
     header.layoutIfNeeded()
     header.xButton.onPress { [weak self] _ in
       guard let self = self else { return }
       self.navigationController?.dismiss(animated: true)
     }
+    registerForStyleUpdates()
     
   }
   
   public func applyStyles() {
+    self.tableView.backgroundColor = Const.SetColor.CTBackground.color
     footer.backgroundColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
+    onMainAfter {   [weak self] in
+      self?.tableView.reloadData()
+    }
+
   }
   
   open override func viewDidLoad() {
@@ -204,43 +221,36 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   open override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cellContent = Settings.content[indexPath.section].cells[indexPath.row]
-    var cell = tableView.dequeueReusableCell(withIdentifier: cellContent.type.identifier,
+    let cell = tableView.dequeueReusableCell(withIdentifier: cellContent.type.identifier,
                                              for: indexPath) as? TSettingsCell
     
     cell?.content = cellContent
-    return cell as? UITableViewCell ?? UITableViewCell()
+    return cell ?? UITableViewCell()
   }
   
-  open override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    Settings.content[section].title
-  }
-  
-//  open override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-//    return super.tableView(tableView, heightForHeaderInSection: section) + 80
+//  open override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+//    Settings.content[section].title
 //  }
   
-  open override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
-    guard let header = view as? UITableViewHeaderFooterView else { return }
-    header.textLabel?.boldContentFont(size: Const.Size.ContentTableFontSize)
-//    header.tintColor = .yellow//
-    header.tintColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
-//    header.textLabel?.alignmentRectInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-//    header.textLabel?.textC
-//    header.textLabel?.backgroundColor = .red
-//    header.textLabel.con
-//    tableView.separatorInset = UIEdgeInsets(top: 0,
-//                                          left: Const.ASize.DefaultPadding,
-//                                          bottom: 0,
-//                                          right: -Const.ASize.DefaultPadding)
-
+  open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    let v = UIView()
+    let l = UILabel()
+    l.text = Settings.content[section].title
+    l.boldContentFont(size: Const.Size.ContentTableFontSize).set(textColor: Const.SetColor.ios(.label).color)
+    v.addSubview(l)
+            pin(l.top, to: v.top, dist: 30, priority: .defaultHigh)
+           pin(l.bottom, to: v.bottom, dist: -10, priority: .defaultHigh)
+            pin(l.left, to: v.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
+            pin(l.right, to: v.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
+    return v
   }
-
+  
   open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     return section == Settings.content.count - 1 ? footer : UIView()
   }
   
   open override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    return section == Settings.content.count - 1 ? 40.0 : 15
+    return section == Settings.content.count - 1 ? 40.0 : 0
   }
   
   open override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
@@ -294,30 +304,47 @@ extension SettingsVC {
   }
   
   func manageAccount(){
+    let isAuth = MainNC.singleton.feederContext.isAuthenticated
+    
     let actions = UIAlertController.init( title: nil, message: nil,
       preferredStyle:  .actionSheet )
-    actions.addAction( UIAlertAction.init( title: "Abmelden", style: .default,
-      handler: { [weak self] handler in
-//        //previously used PDFEXPORT Compiler Flags
-//        if App.isAvailable(.PDFEXPORT), #available(iOS 14, *) {
-//          self?.exportPdf(article: art, from: button)
-//        } else {
-//          let dialogue = ExportDialogue<Any>()
-//          dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",
-//                           view: button, subject: art.title)
-//        }
-    } ) )
+    
+    if isAuth {
+      actions.addAction( UIAlertAction.init( title: "Abmelden", style: .default,
+        handler: { [weak self] handler in
+          MainNC.singleton.deleteUserData()
+          self?.tableView.reloadData()
+      } ) )
+    }
+    else {
+      actions.addAction( UIAlertAction.init( title: "Anmelden", style: .default,
+                                             handler: {   [weak self] _ in
+                                              guard let self = self else { return }
+          guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
+          let authenticator = DefaultAuthenticator(feeder: feeder)
+          authenticator.authenticate(with: self)
+          Notification.receiveOnce("authenticationSucceeded") { [weak self]_ in
+            self?.tableView.reloadData()
+            Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+          } } ) )
+    }
+
     actions.addAction( UIAlertAction.init( title: "Konto online verwalten", style: .default,
-    handler: {
-      (handler: UIAlertAction) in
-//      self.debug("Going to online version: \(link)")
-//      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    handler: {_ in
+      guard let url = URL(string: "https://portal.taz.de/") else { return }
+      UIApplication.shared.open(url, options: [:], completionHandler: nil)
     } ) )
+    
+    
     actions.addAction( UIAlertAction.init( title: "Passwort zurücksetzen", style: .default,
     handler: {
-      (handler: UIAlertAction) in
-//      self.debug("Going to online version: \(link)")
-//      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+      [weak self] _ in
+      self?.modalPresentationStyle = .fullScreen
+      let id = SimpleAuthenticator.getUserData().id
+      guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
+      let childVc = PwForgottController(id: id, auth: DefaultAuthenticator.init(feeder: feeder))
+      childVc.modalPresentationStyle = .fullScreen
+      self?.present(childVc, animated: true) 
     } ) )
     actions.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel,
     handler: {
@@ -327,7 +354,7 @@ extension SettingsVC {
   }
   
   func handleErrorReport(){
-    
+    MainNC.singleton.showFeedbackErrorReport(.error)
   }
   
   func showOnboarding(){
@@ -342,14 +369,19 @@ extension SettingsVC {
     introVC.webView.webView.load(url: intro.url)
     introVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
     introVC.webView.webView.scrollView.isScrollEnabled = scrollEnabled
-    introVC.webView.buttonLabel.text = nil
+    
+    introVC.webView.xButton.tazX()
+    
     introVC.webView.onX { _ in
       introVC.dismiss(animated: true, completion: nil)
     }
     self.modalPresentationStyle = .fullScreen
     introVC.modalPresentationStyle = .fullScreen
     introVC.webView.webView.atEndOfContent {_ in }
-    self.present(introVC, animated: true)
+    self.present(introVC, animated: true) {
+      //Overwrite Default in: IntroVC viewDidLoad
+      introVC.webView.buttonLabel.text = nil
+    }
   }
 }
 
@@ -364,6 +396,7 @@ class ToggleSettingsCell: UITableViewCell, TSettingsCell {
 
   lazy var toggle: UISwitch = {
     let toggle = UISwitch()
+    toggle.onTintColor = Const.SetColor.ios(.link).color
     toggle.addTarget(self, action: #selector(handleToggle(sender:)), for: .valueChanged)
     return toggle
   }()
@@ -373,9 +406,17 @@ class ToggleSettingsCell: UITableViewCell, TSettingsCell {
   }
   
   func setup(){
+    self.backgroundColor = .clear
+    if let tl =  self.textLabel, let sv = tl.superview {
+      pin(tl.left, to: sv.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
+      pin(tl.right, to: sv.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
+      pin(tl.top, to: sv.top, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
+      pin(tl.bottom, to: sv.bottom, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
+    }
+    
     self.accessoryView = toggle
     self.textLabel?.numberOfLines = 0
-    self.textLabel?.contentFont()
+    self.textLabel?.contentFont().labelColor()
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -401,7 +442,14 @@ class LinkSettingsCell: UITableViewCell, TSettingsCell {
   static let identifier = "linkSettingsCell"
   
   func setup(){
-    self.textLabel?.contentFont().ciColor()
+    self.backgroundColor = .clear
+    if let tl =  self.textLabel, let sv = tl.superview {
+      pin(tl.left, to: sv.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
+      pin(tl.right, to: sv.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
+      pin(tl.top, to: sv.top, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
+      pin(tl.bottom, to: sv.bottom, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
+    }
+    self.textLabel?.contentFont().linkColor()
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -423,8 +471,20 @@ class CustomSettingsCell: UITableViewCell, TSettingsCell {
   static let identifier = "customSettingsCell"
   
   func setup(){
+    self.backgroundColor = .clear
+    self.backgroundView?.backgroundColor = .clear
+    self.contentView.backgroundColor = .clear
+    if let tl =  self.textLabel, let sv = tl.superview {
+      pin(tl.left, to: sv.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
+      pin(tl.right, to: sv.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
+      pin(tl.top, to: sv.top, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
+      pin(tl.bottom, to: sv.bottom, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
+    }
+    
     print("setup for CustomSettingsCell")
-    self.textLabel?.contentFont().ciColor()
+    self.textLabel?.contentFont().linkColor()
+//    self.textLabel?.backgroundColor = .red
+//    self.tintColor = .yellow
   }
   
 }
@@ -460,22 +520,9 @@ extension TSettingsCell where Self: UITableViewCell {
     setup()
   }
   
-//  init(style: UITableViewCell.CellStyle, reuseIdentifier: String?){
-//    self = UITableViewCell(style: style, reuseIdentifier: reuseIdentifier) as! Self
-//    setup()
-//  }
-
-//  init?(coder: NSCoder){
-//
-//  }
-  
   func prepareForReuse() {
     setup()
   }
-  
-//  override static func prepareForInterfaceBuilder() {
-//    <#code#>
-//  }
 }
 
 /**
@@ -517,9 +564,9 @@ extension App {
 // MARK: - SimpleHeaderView
 class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   
-  public lazy var xButton = Button.xTazButton
+  public lazy var xButton = Button<CircledXView>().tazX()
   
-  private let titleLabel = Label().boldContentFont(size: Const.Size.ContentTableFontSize).align(.right)
+  private let titleLabel = Label().titleFont()
   private let line = DottedLineView()
   
   private func setup() {
@@ -544,6 +591,7 @@ class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   }
   
   public func applyStyles() {
+    self.backgroundColor = .clear
     titleLabel.textColor = Const.SetColor.HText.color
     line.fillColor = Const.SetColor.HText.color
     line.strokeColor = Const.SetColor.HText.color
@@ -598,16 +646,78 @@ extension UIView {
 //  }
 }
 
-extension Button{
-  static var xTazButton: Button<CircledXView> {
-    get{
-      let xButton = Button<CircledXView>()
-      xButton.pinHeight(35)
-      xButton.pinWidth(35)
-      xButton.buttonView.isCircle = false
-      xButton.buttonView.activeColor = Const.Colors.ciColor.withAlphaComponent(0.5)
-      xButton.buttonView.color = Const.Colors.ciColor
-      return xButton
-    }
+
+extension ButtonControl {
+  
+  @discardableResult
+  func tazX() -> Self {
+    guard let bv = self as? Button<CircledXView> else { return self }
+    self.pinHeight(35)
+    self.pinWidth(35)
+    self.color = .black
+    bv.buttonView.isCircle = true
+    bv.buttonView.circleColor = Const.SetColor.ios(.secondarySystemFill).color
+    bv.buttonView.color = Const.SetColor.ios(.link).color
+    bv.buttonView.activeColor = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
+    bv.buttonView.innerCircleFactor = 0.5
+    return self
   }
 }
+
+extension UIView {
+  
+  func inset(insets: UIEdgeInsets) {
+    guard let superview = self.superview else { return }
+    
+    self.leftAnchor.constraint(equalTo: superview.leftAnchor,
+                               constant: insets.left,
+                               priority: .defaultHigh,
+                               activate: true)
+    self.rightAnchor.constraint(equalTo: superview.rightAnchor, constant: -insets.right,
+                                priority: .defaultHigh,
+                                activate: true)
+    self.topAnchor.constraint(equalTo: superview.topAnchor, constant: insets.top,
+                              priority: .defaultHigh,
+                              activate: true)
+    self.bottomAnchor.constraint(equalTo: superview.bottomAnchor, constant: -insets.bottom,
+                                 priority: .defaultHigh,
+                                 activate: true)
+  }
+}
+
+extension NSLayoutAnchor {
+  @discardableResult
+  @objc open func constraint(equalTo anchor: NSLayoutAnchor<AnchorType>, constant c: CGFloat, priority: UILayoutPriority, activate: Bool = false) -> NSLayoutConstraint {
+    let constraint = self.constraint(equalTo: anchor, constant: c)
+    constraint.priority = priority
+    if activate { constraint.isActive = true}
+    return constraint
+  }
+}
+
+
+//extension UIView {
+//  public func removeAllSuperviewConstraints() {
+//    guard let sv = self.superview else {return}
+//
+//    for constraint in sv.constraints {
+//      print("fount sv constrauint: \(constraint)")
+//    }
+//
+//    for constraint in sv.constraints {
+//      if let first = constraint.firstItem as? UIView, first == self {
+//        sv.removeConstraint(constraint)
+//      }
+//      if let second = constraint.secondItem as? UIView, second == self {
+//        sv.removeConstraint(constraint)
+//      }
+//    }
+//
+//    for constraint in self.constraints {
+//      print("fount different constrauint: \(constraint)")
+//    }
+//  }
+//}
+
+
+class XUITableViewHeaderFooterView: UITableViewHeaderFooterView{}
