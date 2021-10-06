@@ -371,7 +371,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   } // viewDidLoad
   
   func applyStyles() {
-    self.view.backgroundColor = Const.SetColor.HBackground.color
+    self.view.backgroundColor = .clear
     setNeedsStatusBarAppearanceUpdate()
 
   }

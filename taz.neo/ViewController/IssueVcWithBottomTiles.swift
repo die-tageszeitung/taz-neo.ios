@@ -144,6 +144,9 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     super.viewDidLoad()
     if initialized { return }
     initialized = true
+    
+    self.collectionView.backgroundColor = .clear
+    
     collectionView?.showsVerticalScrollIndicator = false
     collectionView?.showsHorizontalScrollIndicator = false
     // Register cell classes
