@@ -282,7 +282,6 @@ public struct Const {
     { return font(name: contentTableFontName, size: size) }
     
     static var contentFont: UIFont = contentFont(size: Size.DefaultFontSize)
-
   } // Fonts
   
   struct Size {

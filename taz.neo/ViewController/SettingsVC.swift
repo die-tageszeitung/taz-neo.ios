@@ -60,15 +60,13 @@ struct Settings {
   struct Cell {
     var linkType:LinkType?
     let type:CellType
-//    var view:UIView
+    var accessoryView:UIView?
     var text:String?
     var userSetting: Bool?
     var toggleiInitialValue:Bool?
     var toggleChangeHandler:((Bool)->())?
     var tapHandler:(()->())?
     init(toggleWithText text: String, initialValue: Bool, changeHandler: @escaping ((Bool)->())) {
-//      view = UIView()
-//      view.backgroundColor = .red
       self.toggleChangeHandler = changeHandler
       self.toggleiInitialValue = initialValue
       self.type = .toggle
@@ -79,11 +77,11 @@ struct Settings {
       self.type = .link
       self.linkType = linkType
     }
-    
-    init(with customView: UIView) {
-//      view = customView
+
+    init(withText text: String, accessoryView: UIView) {
+      self.accessoryView = accessoryView
       self.type = .custom
-      self.text = nil
+      self.text = text
     }
   }
   typealias sectionContent = (title:String?, cells:[Cell])
@@ -91,8 +89,7 @@ struct Settings {
     [
       ("allgemein",
        [
-        Cell(toggleWithText: "Letzten Ausgaben laden TBD", initialValue: false, changeHandler: {_ in }),
-//        Cell(with: SaveLastCountIssues()),
+        Cell(withText: "Maximale Anzahl der zu speichernden Ausgaben", accessoryView: SaveLastCountIssues()),
         Cell(toggleWithText: "Neue Ausgaben automatisch laden",
              initialValue: Defaults.autoloadNewIssues,
              changeHandler: { newValue in Defaults.autoloadNewIssues = newValue}),
@@ -103,8 +100,7 @@ struct Settings {
       ),
       ("darstellung",
        [
-        Cell(toggleWithText: "Texteinstellungen TBD", initialValue: false, changeHandler: {_ in }),
-//        Cell(with: TextSizeSetting()),
+        Cell(withText: "Textgröße (Inhalte)", accessoryView: TextSizeSetting()),
         Cell(toggleWithText: "Nachtmodus",
              initialValue: Defaults.darkMode,
              changeHandler: { newValue in Defaults.darkMode = newValue})
@@ -184,7 +180,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     
     let wrapper = label.wrapper(Const.Insets.Default)
     wrapper.insertSubview(background, at: 0)
-//    wrapper.backgroundColor = .clear//not enought need "willDisplayFooterView"...bgcolor=.clear
     pin(background, toSafe: wrapper, dist: 0, exclude: .bottom)
     pin(background.bottom, to: wrapper.bottom, dist: UIWindow.maxInset)
     return wrapper
@@ -200,7 +195,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     tableView.tableHeaderView = header
     tableView.separatorStyle = .none
     header.layoutIfNeeded()
-    /*header.xButton.onPress ...*/
     registerForStyleUpdates()
   }
   
@@ -246,36 +240,39 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   open override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cellContent = Settings.content[indexPath.section].cells[indexPath.row]
     let cell = tableView.dequeueReusableCell(withIdentifier: cellContent.type.identifier,
-                                             for: indexPath) as? TSettingsCell
+                                             for: indexPath) as? SettingsCell
     
     cell?.content = cellContent
     return cell ?? UITableViewCell()
   }
   
   open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    let v = UIView()
-    let l = UILabel()
-    v.backgroundColor = Const.Colors.opacityBackground
-    l.text = Settings.content[section].title
-    l.boldContentFont(size: Const.Size.ContentTableFontSize).set(textColor: Const.SetColor.ios(.label).color)
-    v.addSubview(l)
-            pin(l.top, to: v.top, dist: 30, priority: .defaultHigh)
-           pin(l.bottom, to: v.bottom, dist: -10, priority: .defaultHigh)
-            pin(l.left, to: v.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
-            pin(l.right, to: v.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
-    return v
+    let sHead = UIView()
+    let label = UILabel()
+    label.text = Settings.content[section].title
+    label.boldContentFont(size: Const.Size.ContentTableFontSize).set(textColor: Const.SetColor.ios(.label).color)
+    sHead.addSubview(label)
+    pin(label.top, to: sHead.top, dist: 10, priority: .defaultHigh)
+    pin(label.bottom, to: sHead.bottom, dist: -10, priority: .defaultHigh)
+    pin(label.left, to: sHead.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
+    pin(label.right, to: sHead.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
+    sHead.set(backgroundColor: Const.Colors.opacityBackground)
+    return sHead
   }
   
   open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     return section == Settings.content.count - 1 ? footer : UIView()
   }
   
+  open override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+  }
+
   open override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
     view.backgroundColor = .clear
   }
   
   open override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    return section == Settings.content.count - 1 ? 40.0 : 0
+    return section == Settings.content.count - 1 ? 40.0 : 10
   }
   
   open override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
@@ -411,14 +408,9 @@ extension SettingsVC {
 }
 
 // MARK: - ToggleSettingsCell
-class ToggleSettingsCell: UITableViewCell, TSettingsCell {
-  var content: Settings.Cell? {
-    didSet {
-      self.textLabel?.text = content?.text
-      self.toggle.isOn = content?.toggleiInitialValue ?? false
-    }
-  }
-
+class ToggleSettingsCell: SettingsCell {
+  static let identifier = "toggleSettingsCell"
+  
   lazy var toggle: UISwitch = {
     let toggle = UISwitch()
     toggle.onTintColor = Const.SetColor.ios(.link).color
@@ -430,51 +422,58 @@ class ToggleSettingsCell: UITableViewCell, TSettingsCell {
     content?.toggleChangeHandler?(sender.isOn)
   }
   
-  func setup(){
-    self.backgroundColor = .clear
-    if let tl =  self.textLabel, let sv = tl.superview {
-      pin(tl.left, to: sv.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
-      pin(tl.right, to: sv.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
-      pin(tl.top, to: sv.top, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
-      pin(tl.bottom, to: sv.bottom, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
-    }
-    
+  override func setup(){
     self.accessoryView = toggle
     self.textLabel?.numberOfLines = 0
     self.textLabel?.contentFont().labelColor()
+    self.textLabel?.text = content?.text
+    self.toggle.isOn = content?.toggleiInitialValue ?? false
   }
-  
-  override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-    super.init(style: style, reuseIdentifier: reuseIdentifier)
-    setup()
-  }
-  
-  required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-  
-  static let identifier = "toggleSettingsCell"
 }
 
 
 // MARK: - LinkSettingsCell
-class LinkSettingsCell: UITableViewCell, TSettingsCell {
-  var content: Settings.Cell? {
-    didSet {
-      self.textLabel?.text = content?.linkType?.cellDescription
-      setup()
-    }
-  }
-  
+class LinkSettingsCell: SettingsCell {
   static let identifier = "linkSettingsCell"
   
-  func setup(){
-    self.backgroundColor = .clear
-    if let tl =  self.textLabel, let sv = tl.superview {
-      pin(tl.left, to: sv.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
-      pin(tl.right, to: sv.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
-      pin(tl.top, to: sv.top, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
-      pin(tl.bottom, to: sv.bottom, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
-    }
+  override func setup(){
+    super.setup()
+    self.textLabel?.text = content?.linkType?.cellDescription
     self.textLabel?.contentFont().linkColor()
+  }
+}
+
+// MARK: - CustomSettingsCell
+class CustomSettingsCell: SettingsCell {
+  static let identifier = "customSettingsCell"
+  
+  override func setup(){
+    super.setup()
+    self.accessoryView = content?.accessoryView
+    self.textLabel?.text = content?.text ?? nil
+  }
+}
+
+
+
+class SettingsCell:UITableViewCell {
+  var content:Settings.Cell? { didSet { setup() } }
+  
+  func setup() {
+    applyDefaultStyles()
+  }
+  
+  func applyDefaultStyles(){
+    self.textLabel?.numberOfLines = 0
+    self.backgroundColor = .clear
+    self.backgroundView?.backgroundColor = .clear
+    self.contentView.backgroundColor = .clear
+  }
+  
+  
+  override func prepareForReuse() {
+    accessoryView = nil
+    textLabel?.text = nil
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -482,95 +481,70 @@ class LinkSettingsCell: UITableViewCell, TSettingsCell {
     setup()
   }
   
-  required init?(coder: NSCoder) {fatalError("init(coder:) has not been implemented")  }
-}
-
-// MARK: - CustomSettingsCell
-class CustomSettingsCell: UITableViewCell, TSettingsCell {
-  var content: Settings.Cell? {
-    didSet {
-      self.textLabel?.text = content?.text
-    }
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
   
-  static let identifier = "customSettingsCell"
-  
-  func setup(){
-    self.backgroundColor = .clear
-    self.backgroundView?.backgroundColor = .clear
-    self.contentView.backgroundColor = .clear
-    if let tl =  self.textLabel, let sv = tl.superview {
-      pin(tl.left, to: sv.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
-      pin(tl.right, to: sv.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
-      pin(tl.top, to: sv.top, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
-      pin(tl.bottom, to: sv.bottom, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    if var frame = self.textLabel?.frame {
+      frame.origin.x = Const.ASize.DefaultPadding
+      textLabel?.frame = frame
     }
-    
-    print("setup for CustomSettingsCell")
-    self.textLabel?.contentFont().linkColor()
-//    self.textLabel?.backgroundColor = .red
-//    self.tintColor = .yellow
   }
-  
 }
 
-//// MARK: - CustomSettingsCell
-//class SettingsCell: UITableViewCell, TSettingsCell {
-//  static let identifier = "SettingsCell"
-//
-//  var content: Settings.Cell? {
-//    didSet {
-//      self.textLabel?.text = content?.text
-//    }
-//  }
-//
-//  override func prepareForReuse() {
-//    self.textLabel?.contentFont().ciColor()
-//  }
-//
-//}
-
-
-// MARK: - Prot. TSettingsCell
-protocol TSettingsCell where Self: UITableViewCell {
-  static var identifier:String {get}
-  var content:Settings.Cell? {set get}
-  func setup()
+class SaveLastCountIssues: CustomHStack {
+  let leftButton = Button<TextView>()
+  let rightButton = Button<TextView>()
+  let label = UILabel("100%")
   
+  override func setup(){
+    leftButton.buttonView.text = "a"
+    rightButton.buttonView.text = "a"
+    leftButton.pinWidth(22)
+    rightButton.pinWidth(22)
+    leftButton.buttonView.label.baselineAdjustment = .alignCenters
+    rightButton.buttonView.label.baselineAdjustment = .alignCenters
+    leftButton.buttonView.font
+    = Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)//14
+    rightButton.buttonView.font
+    = Const.Fonts.contentFont(size: Const.Size.ContentTableFontSize)//22
+//    self.addArrangedSubview(UIView().set(backgroundColor: .lightGray))
+    label.textAlignment = .center
+    self.addArrangedSubview(leftButton)
+    self.addArrangedSubview(label)
+    self.addArrangedSubview(rightButton)
+  }
 }
 
-extension TSettingsCell where Self: UITableViewCell {
-  init() {
-    self.init(frame: .zero)
+class TextSizeSetting: SaveLastCountIssues {
+  
+  override func setup(){
+    super.setup()
+    leftButton.buttonView.text = "-"
+    rightButton.buttonView.text = "+"
+    leftButton.buttonView.font
+    = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+    leftButton.buttonView.font
+    = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+  }
+}
+
+class CustomHStack: UIStackView {
+  init(){
+    super.init(frame: CGRect(x: 0, y: 0, width: 100, height: 30))
+    self.axis = .horizontal
+    self.distribution = .fill
+    self.spacing = 2
     setup()
   }
   
-  func prepareForReuse() {
-    setup()
+  required init(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
-}
-
-/**
- Problem:
- 3 Cells => setup should be called
- 
- after init
- 
- 
- */
-
-class SaveLastCountIssues: UIView {
   
-  func setup(){
-    
-  }
-}
-
-class TextSizeSetting: UIView {
-  
-  func setup(){
-    
-  }
+  func setup(){}
 }
 
 // MARK: - ext. App
@@ -589,8 +563,6 @@ extension App {
 // MARK: - SimpleHeaderView
 class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   
-//  public lazy var xButton = Button<CircledXView>().tazX()
-  
   private let titleLabel = Label().titleFont()
   private let line = DottedLineView()
   
@@ -600,14 +572,8 @@ class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
     
     self.addSubview(titleLabel)
     self.addSubview(line)
-//    self.addSubview(xButton)
-//
-//    pin(xButton.right, to: self.right, dist: -Const.ASize.DefaultPadding)
-//    pin(xButton.top, to: self.topGuide(), dist: 5)
-//    pin(titleLabel.top, to: xButton.bottom)
-    ///ALTERNATIVE
     
-    pin(titleLabel.top, to: self.topGuide(), dist: 5)
+    pin(titleLabel.top, to: self.topGuide(), dist: 15)
     
     pin(titleLabel.left, to: self.left, dist: Const.ASize.DefaultPadding)
     pin(titleLabel.right, to: self.right, dist: -Const.ASize.DefaultPadding)
