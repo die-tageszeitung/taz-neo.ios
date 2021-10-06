@@ -174,10 +174,22 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   var feederContext: FeederContext?
   
-
+  public lazy var xButton = Button<CircledXView>().tazX()
   
-  lazy var footerLabel = UILabel(App.appInfo).contentFont(size: 12).set(textColor: Const.SetColor.ios(.secondaryLabel).color)
-  lazy var footer = footerLabel.wrapper(UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20))
+  lazy var footer:UIView = {
+    let background = UIView().set(backgroundColor: Const.Colors.opacityBackground)
+    let label = UILabel(App.appInfo)
+      .contentFont(size: 12)
+      .set(textColor: Const.SetColor.ios(.secondaryLabel).color)
+    
+    let wrapper = label.wrapper(Const.Insets.Default)
+    wrapper.insertSubview(background, at: 0)
+//    wrapper.backgroundColor = .clear//not enought need "willDisplayFooterView"...bgcolor=.clear
+    pin(background, toSafe: wrapper, dist: 0, exclude: .bottom)
+    pin(background.bottom, to: wrapper.bottom, dist: UIWindow.maxInset)
+    return wrapper
+  }()
+  
   lazy var header = SimpleHeaderView("einstellungen")
   
   func setup(){
@@ -188,21 +200,33 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     tableView.tableHeaderView = header
     tableView.separatorStyle = .none
     header.layoutIfNeeded()
-    header.xButton.onPress { [weak self] _ in
+    /*header.xButton.onPress ...*/
+    registerForStyleUpdates()
+  }
+  
+  func setupXButtonIfNeeded(){
+    if xButton.superview != nil { return }
+    guard let wrapper =  self.tableView.superview else { return }
+    wrapper.addSubview(xButton)
+    pin(xButton.right, to: wrapper.right, dist: -Const.ASize.DefaultPadding)
+    pin(xButton.top, to: wrapper.top, dist: Const.ASize.DefaultPadding)
+    xButton.onPress { [weak self] _ in
       guard let self = self else { return }
       self.navigationController?.dismiss(animated: true)
     }
-    registerForStyleUpdates()
-    
   }
   
   public func applyStyles() {
     self.tableView.backgroundColor = Const.SetColor.CTBackground.color
-    footer.backgroundColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
+    footer.backgroundColor = Const.Colors.opacityBackground
     onMainAfter {   [weak self] in
       self?.tableView.reloadData()
     }
-
+  }
+  
+  open override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    setupXButtonIfNeeded()
   }
   
   open override func viewDidLoad() {
@@ -228,13 +252,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     return cell ?? UITableViewCell()
   }
   
-//  open override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-//    Settings.content[section].title
-//  }
-  
   open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
     let v = UIView()
     let l = UILabel()
+    v.backgroundColor = Const.Colors.opacityBackground
     l.text = Settings.content[section].title
     l.boldContentFont(size: Const.Size.ContentTableFontSize).set(textColor: Const.SetColor.ios(.label).color)
     v.addSubview(l)
@@ -247,6 +268,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     return section == Settings.content.count - 1 ? footer : UIView()
+  }
+  
+  open override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
+    view.backgroundColor = .clear
   }
   
   open override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
@@ -564,7 +589,7 @@ extension App {
 // MARK: - SimpleHeaderView
 class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   
-  public lazy var xButton = Button<CircledXView>().tazX()
+//  public lazy var xButton = Button<CircledXView>().tazX()
   
   private let titleLabel = Label().titleFont()
   private let line = DottedLineView()
@@ -575,11 +600,14 @@ class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
     
     self.addSubview(titleLabel)
     self.addSubview(line)
-    self.addSubview(xButton)
+//    self.addSubview(xButton)
+//
+//    pin(xButton.right, to: self.right, dist: -Const.ASize.DefaultPadding)
+//    pin(xButton.top, to: self.topGuide(), dist: 5)
+//    pin(titleLabel.top, to: xButton.bottom)
+    ///ALTERNATIVE
     
-    pin(xButton.right, to: self.right, dist: -Const.ASize.DefaultPadding)
-    pin(xButton.top, to: self.topGuide(), dist: 5)
-    pin(titleLabel.top, to: xButton.bottom)
+    pin(titleLabel.top, to: self.topGuide(), dist: 5)
     
     pin(titleLabel.left, to: self.left, dist: Const.ASize.DefaultPadding)
     pin(titleLabel.right, to: self.right, dist: -Const.ASize.DefaultPadding)

@@ -35,6 +35,8 @@ public struct Const {
   
   /// Various color values
   struct Colors {
+    static let opacityBackground = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
+    
     static let darkPrimaryBG = UIColor.rgb(0x0)
     static let darkSecondaryBG = UIColor.rgb(0x1c1c1e)
     static let darkSeparator = UIColor.rgb(0x545458)
@@ -303,6 +305,10 @@ public struct Const {
                                     left: Const.Size.SmallPadding,
                                     bottom: 0,
                                     right: -Const.Size.SmallPadding)
+    static let Default = UIEdgeInsets(top: 0,
+                                    left: Const.Size.DefaultPadding,
+                                    bottom: 0,
+                                    right: -Const.Size.DefaultPadding)
   }
   
   /// Adjusted Sizes for tiny Displays (iPhone 5s/SE1, iPod 7G)
