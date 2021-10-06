@@ -497,20 +497,22 @@ class SettingsCell:UITableViewCell {
 class SaveLastCountIssues: CustomHStack {
   let leftButton = Button<TextView>()
   let rightButton = Button<TextView>()
-  let label = UILabel("100%")
+  let label = UILabel("20")
   
   override func setup(){
-    leftButton.buttonView.text = "a"
-    rightButton.buttonView.text = "a"
+    leftButton.buttonView.text = "-"
+    rightButton.buttonView.text = "+"
     leftButton.pinWidth(22)
     rightButton.pinWidth(22)
     leftButton.buttonView.label.baselineAdjustment = .alignCenters
     rightButton.buttonView.label.baselineAdjustment = .alignCenters
+    
     leftButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)//14
+    = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)//14
+    
     rightButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.ContentTableFontSize)//22
-//    self.addArrangedSubview(UIView().set(backgroundColor: .lightGray))
+    = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)//14
+
     label.textAlignment = .center
     self.addArrangedSubview(leftButton)
     self.addArrangedSubview(label)
@@ -522,8 +524,13 @@ class TextSizeSetting: SaveLastCountIssues {
   
   override func setup(){
     super.setup()
-    leftButton.buttonView.text = "-"
-    rightButton.buttonView.text = "+"
+    label.text = "100%"
+    leftButton.buttonView.text = "a"
+    rightButton.buttonView.text = "a"
+    leftButton.buttonView.font
+    = Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)//14
+    rightButton.buttonView.font
+    = Const.Fonts.contentFont(size: Const.Size.ContentTableFontSize)//22
     leftButton.buttonView.font
     = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
     leftButton.buttonView.font
