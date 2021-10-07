@@ -12,10 +12,8 @@ import NorthLib
 
 extension Defaults{
   
-  static var autoloadInWLAN : Bool = false
-  static var autoloadNewIssues : Bool = true
-  
   private static var tDarkMode:Bool?
+  
   static var darkMode : Bool {
     get {
       if let tmp = tDarkMode {
@@ -35,6 +33,27 @@ extension Defaults{
       }
       /// Some (Article/HTML/CSS) iOS 13+ need also this Info
       NorthLib.Notification.send(globalStylesChangedNotification)
+    }
+  }
+  
+  struct articleTextSize {
+    @Default("articleTextSize")
+    static var articleTextSize: Int
+    
+    @discardableResult
+    static func increase() -> Int { if articleTextSize < 200 { articleTextSize += 10 }
+      return articleTextSize
+    }
+    
+    @discardableResult
+    static func decrease() -> Int { if articleTextSize > 30 { articleTextSize -= 10 }
+      return articleTextSize
+    }
+    
+    @discardableResult
+    static func set(_ newValue: Int? = 100) -> Int {
+      if let val = newValue, 30 < val, val < 200 { articleTextSize = val }
+      return articleTextSize
     }
   }
 }

@@ -5,16 +5,6 @@
 //  Created by Ringo Müller on 21.09.21.
 //  Copyright © 2021 Norbert Thies. All rights reserved.
 //
-
-import Foundation
-
-//
-//  ContentVC.swift
-//
-//  Created by Norbert Thies on 25.09.18.
-//  Copyright © 2018 Norbert Thies. All rights reserved.
-//
-
 import UIKit
 import NorthLib
 
@@ -54,6 +44,17 @@ extension Settings.CellType {
 }
 
 struct Settings {
+  
+  @Default("autoloadInWLAN")
+  static var autoloadInWLAN: Bool
+
+  @Default("autoloadNewIssues")
+  static var autoloadNewIssues: Bool
+  
+  @Default("persistedIssuesCount")
+  static var persistedIssuesCount: Int
+  
+  
   enum CellType { case link, toggle, custom }
   enum LinkType { case onboarding, errorReport, manageAccount, terms, privacy, revocation }
   
@@ -85,17 +86,25 @@ struct Settings {
     }
   }
   typealias sectionContent = (title:String?, cells:[Cell])
-  static let content : [sectionContent] =
-    [
+  
+  //Prototype Cells
+  static func content() -> [sectionContent] {
+    return [
       ("allgemein",
        [
         Cell(withText: "Maximale Anzahl der zu speichernden Ausgaben", accessoryView: SaveLastCountIssues()),
         Cell(toggleWithText: "Neue Ausgaben automatisch laden",
-             initialValue: Defaults.autoloadNewIssues,
-             changeHandler: { newValue in Defaults.autoloadNewIssues = newValue}),
-        Cell(toggleWithText: "Nur im W-Lan herunterladen",
-             initialValue: Defaults.autoloadInWLAN,
-             changeHandler: { newValue in Defaults.autoloadInWLAN = newValue})
+             initialValue: Settings.autoloadNewIssues,
+             changeHandler: { newValue in Settings.autoloadNewIssues = newValue}),
+        Cell(toggleWithText: "Automatischer Download auch im Mobilfunknetz",
+             initialValue: Settings.autoloadInWLAN,
+             changeHandler: { newValue in Settings.autoloadInWLAN = newValue}),
+        Cell(toggleWithText: "Rechtshändermodus",
+             initialValue: true,
+             changeHandler: { _ in }),
+        Cell(toggleWithText: "Teilen in Ressortübersicht ausblenden",
+             initialValue: true,
+             changeHandler: { _ in })
        ]
       ),
       ("darstellung",
@@ -121,56 +130,21 @@ struct Settings {
        ]
       )
     ]
+  }
     
 }
 
 /**
- 
- 2 Typen:
- - allgemein: Custom, Toggle, Link
- - konkret: remember, autoloadm ....
- 
- Link Text:Handler/TargetView
- Toggle: Text/Setting (Bool)
- 
- Data:
- Int:String?:
-
- Allgemein
- Die letzten XY Ausgaben speichern ? (Custom)
- Neue Ausgaben automatisch lagen (Toggle)
- Nur im W-Lan herunterladen (Toggle)
-
- Darstellung
- Textgröße (Custom)
- Nachtmodus (Toggle)
-
- Support
- Erste Schritte (Link)
- Fehler melden (Link)
-
- Abo
- Konto Verwalten / Anmelden (Link) => 1. Popup: Abmelden, Passwort zurücksetzen, Account Online verwalten, Abbrechen 2. Anmelden UI
- AGB (Link)
- Widerruf (Link)
- Datenschutzerklärung (Link)
-
- <None>
- Version (Info)
- 
- */
-
-
-/**
  A SettingsVC is a view controller to edit app's user Settings
  */
-
 // MARK: - SettingsVC
 open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   var feederContext: FeederContext?
   
   public lazy var xButton = Button<CircledXView>().tazX()
+  
+  lazy var content = Settings.content()
   
   lazy var footer:UIView = {
     let background = UIView().set(backgroundColor: Const.Colors.opacityBackground)
@@ -230,15 +204,15 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   }
   
   open override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return Settings.content[section].cells.count
+    return content[section].cells.count
   }
   
   open override func numberOfSections(in tableView: UITableView) -> Int {
-    return Settings.content.count
+    return content.count
   }
   
   open override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cellContent = Settings.content[indexPath.section].cells[indexPath.row]
+    let cellContent = content[indexPath.section].cells[indexPath.row]
     let cell = tableView.dequeueReusableCell(withIdentifier: cellContent.type.identifier,
                                              for: indexPath) as? SettingsCell
     
@@ -249,7 +223,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
     let sHead = UIView()
     let label = UILabel()
-    label.text = Settings.content[section].title
+    label.text = content[section].title
     label.boldContentFont(size: Const.Size.ContentTableFontSize).set(textColor: Const.SetColor.ios(.label).color)
     sHead.addSubview(label)
     pin(label.top, to: sHead.top, dist: 10, priority: .defaultHigh)
@@ -261,7 +235,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   }
   
   open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    return section == Settings.content.count - 1 ? footer : UIView()
+    return section == content.count - 1 ? footer : UIView()
   }
   
   open override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
@@ -272,18 +246,18 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   }
   
   open override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    return section == Settings.content.count - 1 ? 40.0 : 10
+    return section == content.count - 1 ? 40.0 : 10
   }
   
   open override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
-    let cellContent = Settings.content[indexPath.section].cells[indexPath.row]
+    let cellContent = content[indexPath.section].cells[indexPath.row]
     if cellContent.tapHandler == nil,
        cellContent.type != .link { return nil }
     return indexPath
   }
   
   open override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    let cellContent = Settings.content[indexPath.section].cells[indexPath.row]
+    let cellContent = content[indexPath.section].cells[indexPath.row]
     guard let linkType = cellContent.linkType,
           cellContent.type == .link else { return }
     tableView.deselectRow(at: indexPath, animated: true)
@@ -495,46 +469,82 @@ class SettingsCell:UITableViewCell {
 }
 
 class SaveLastCountIssues: CustomHStack {
+  
+  @Default("persistedIssuesCount")
+  private var persistedIssuesCount: Int {
+    didSet {     label.text = "\(persistedIssuesCount)"  }
+  }
+  
   let leftButton = Button<TextView>()
   let rightButton = Button<TextView>()
-  let label = UILabel("20")
+  let label = UILabel()
   
   override func setup(){
+    super.setup()
+    label.text = "\(persistedIssuesCount)"
     leftButton.buttonView.text = "-"
     rightButton.buttonView.text = "+"
+    
+    leftButton.buttonView.activeColor = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
+    rightButton.buttonView.activeColor = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
+    
     leftButton.pinWidth(22)
     rightButton.pinWidth(22)
     leftButton.buttonView.label.baselineAdjustment = .alignCenters
     rightButton.buttonView.label.baselineAdjustment = .alignCenters
     
     leftButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)//14
+    = Const.Fonts.contentFont(size: Const.Size.ContentTableFontSize)//14
     
     rightButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)//14
+    = Const.Fonts.contentFont(size: Const.Size.ContentTableFontSize)//14
 
     label.textAlignment = .center
     self.addArrangedSubview(leftButton)
     self.addArrangedSubview(label)
     self.addArrangedSubview(rightButton)
+    
+    leftButton.onPress { [weak self] _ in
+      guard let self = self, self.persistedIssuesCount > 0 else { return }
+      self.persistedIssuesCount -= 1
+    }
+    
+    rightButton.onPress { [weak self] _ in
+      self?.persistedIssuesCount += 1
+    }
+    
+    label.onTapping { [weak self] _ in
+      self?.persistedIssuesCount = 20
+    }
   }
 }
 
 class TextSizeSetting: SaveLastCountIssues {
   
+  @Default("articleTextSize")
+  private var articleTextSize: Int
+  
   override func setup(){
     super.setup()
-    label.text = "100%"
+    label.text = "\(articleTextSize)%"
     leftButton.buttonView.text = "a"
     rightButton.buttonView.text = "a"
     leftButton.buttonView.font
     = Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)//14
     rightButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.ContentTableFontSize)//22
-    leftButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
-    leftButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+    = Const.Fonts.contentFont(size: Const.Size.ContentTableRowHeight)//30
+    
+    leftButton.onPress { [weak self] _ in
+      self?.label.text = "\(Defaults.articleTextSize.decrease())%"
+    }
+    
+    rightButton.onPress { [weak self] _ in
+      self?.label.text = "\(Defaults.articleTextSize.increase())%"
+    }
+    
+    label.onTapping { [weak self] _ in
+      self?.label.text = "\(Defaults.articleTextSize.set())%"
+    }
   }
 }
 
@@ -695,30 +705,5 @@ extension NSLayoutAnchor {
     return constraint
   }
 }
-
-
-//extension UIView {
-//  public func removeAllSuperviewConstraints() {
-//    guard let sv = self.superview else {return}
-//
-//    for constraint in sv.constraints {
-//      print("fount sv constrauint: \(constraint)")
-//    }
-//
-//    for constraint in sv.constraints {
-//      if let first = constraint.firstItem as? UIView, first == self {
-//        sv.removeConstraint(constraint)
-//      }
-//      if let second = constraint.secondItem as? UIView, second == self {
-//        sv.removeConstraint(constraint)
-//      }
-//    }
-//
-//    for constraint in self.constraints {
-//      print("fount different constrauint: \(constraint)")
-//    }
-//  }
-//}
-
 
 class XUITableViewHeaderFooterView: UITableViewHeaderFooterView{}
