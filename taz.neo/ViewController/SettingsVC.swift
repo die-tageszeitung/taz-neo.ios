@@ -63,6 +63,7 @@ struct Settings {
     let type:CellType
     var accessoryView:UIView?
     var text:String?
+    var subText:String?
     var userSetting: Bool?
     var toggleiInitialValue:Bool?
     var toggleChangeHandler:((Bool)->())?
@@ -79,10 +80,11 @@ struct Settings {
       self.linkType = linkType
     }
 
-    init(withText text: String, accessoryView: UIView) {
+    init(withText text: String, subText: String? = nil, accessoryView: UIView) {
       self.accessoryView = accessoryView
       self.type = .custom
       self.text = text
+      self.subText = subText
     }
   }
   typealias sectionContent = (title:String?, cells:[Cell])
@@ -92,7 +94,7 @@ struct Settings {
     return [
       ("allgemein",
        [
-        Cell(withText: "Maximale Anzahl der zu speichernden Ausgaben", accessoryView: SaveLastCountIssues()),
+        Cell(withText: "Maximale Anzahl der zu speichernden Ausgaben", subText: "0 bedeutet alle speichern TBD!!! aktueller Speicherverbrauch: 100MB TBD", accessoryView: SaveLastCountIssues()),
         Cell(toggleWithText: "Neue Ausgaben automatisch laden",
              initialValue: Settings.autoloadNewIssues,
              changeHandler: { newValue in Settings.autoloadNewIssues = newValue}),
@@ -424,10 +426,23 @@ class CustomSettingsCell: SettingsCell {
   override func setup(){
     super.setup()
     self.accessoryView = content?.accessoryView
-    self.textLabel?.text = content?.text ?? nil
+    
+    if let t = content?.text, let s = content?.subText {
+      self.textLabel?.attributedText = attributedString(first: t, second: s)
+    }
+    else {
+      self.textLabel?.text = content?.text ?? nil
+    }
   }
 }
 
+
+func attributedString(first:String, second:String) -> NSAttributedString {
+  let aFirst = NSMutableAttributedString(string: first)
+  let aSecond = NSMutableAttributedString(string: "\n\(second)", attributes: [.foregroundColor: UIColor.red])
+  aFirst.append(aSecond)
+  return aFirst
+}
 
 
 class SettingsCell:UITableViewCell {
