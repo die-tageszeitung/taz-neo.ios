@@ -1542,9 +1542,16 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Return an array of Issues ordered by load date, ie. the oldest (by
   /// load date) comes first
-  public static func firstLoaded(feed: StoredFeed, count: Int = -1) -> [StoredIssue] {
+  public static func firstLoaded(feed: StoredFeed, count: Int = -1, onlyCompleete: Bool = true) -> [StoredIssue] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
+    
+    if onlyCompleete {
+      request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
+    }
+    else {
+      request.predicate = NSPredicate(format: "feed = %@", feed.pr)
+    }
+
     request.sortDescriptors = [NSSortDescriptor(key: "payload.downloadStarted",
                                                 ascending: true)]
     if count > 0 { request.fetchLimit = count }
@@ -1560,19 +1567,19 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Remove oldest Issues and keep the newest ones
   public static func reduceOldest(feed: StoredFeed, keep: Int) {
-    let issues = firstLoaded(feed: feed)
+    let issues = firstLoaded(feed: feed, onlyCompleete: false)
     if issues.count > keep {
       var n = issues.count
       for issue in issues {
         if n <= keep { break }
-        issue.reduceToOverview()
+        issue.reduceToOverview(deleteAllFiles: true)
         n -= 1
       }
     }
   }
   
   /// Deletes data that is not needed for overview
-  public func reduceToOverview() {
+  public func reduceToOverview(deleteAllFiles:Bool = false) {
     // Remove files not needed for overview
     storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them
@@ -1581,11 +1588,39 @@ public final class StoredIssue: Issue, StoredObject {
         section.delete()
       }
     }
-    (imprint as? StoredArticle)?.delete()
+    
+    let issueDir = feed.feeder.issueDir(issue: self)
+    
     if isComplete {
       isComplete = false
       isOvwComplete = true
     }
+    
+    if deleteAllFiles{
+      for f in moment.files {
+        let fp = File("\(issueDir.path)/\(f.fileName)")
+        debug("remove: \(fp)")
+        fp.remove()
+      }
+      
+//      if let fn = pageOneFacsimile?.fileName {
+//        let fp = File("\(issueDir.path)/\(fn)")
+//        debug("remove: \(fp)")
+//        fp.remove()
+//      }
+//
+//      if let fn = moment.facsimile?.fileName {
+//        let fp = File("\(issueDir.path)/\(fn)")
+//        debug("remove: \(fp)")
+//        fp.remove()
+//      }
+      self.pr.moment?.firstPage?.delete()
+      
+      isOvwComplete = false
+    }
+
+    (imprint as? StoredArticle)?.delete()
+    
     ArticleDB.save()
   }
   

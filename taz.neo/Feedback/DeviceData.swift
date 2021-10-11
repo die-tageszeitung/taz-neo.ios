@@ -11,6 +11,7 @@ import NorthLib
 
 public struct DeviceData : DoesLog {
   typealias ram = (ramUsed:String?, ramAvailable:String?)
+  typealias storage = (app:UInt64, data: UInt64)
   
   /// Ram used by current App (quite exactly like xCode displayed)
   var ramUsed : String?
@@ -24,6 +25,13 @@ public struct DeviceData : DoesLog {
   /// Used Storage by current App (little bit less than Settings->PhoneStorage-> App used->Doc&Data)
   /// Did not contain the App-Size itself
   var storageUsed : String?
+  
+  /// Used Storage by current App (little bit less than Settings->PhoneStorage-> App used->Doc&Data)
+  /// Did not contain the App-Size itself
+  var storageMbUsed : String = "-"
+  
+  var detailStorage : storage = (0,0)
+  
   
   init() {
     var _dc:DeviceDataCollect? = DeviceDataCollect()
@@ -39,7 +47,9 @@ public struct DeviceData : DoesLog {
         storageAvailable = "\(free)"
       }
       
-      storageUsed = "\(dc.storageUsedByApp())"
+      detailStorage = dc.storageUsedByApp()
+      
+      storageUsed = "\(detailStorage.data + detailStorage.app)"
     }
     _dc = nil
   }
@@ -95,7 +105,7 @@ public struct DeviceData : DoesLog {
       return info.phys_footprint
     }
     
-    // MARK:  freeStorage
+    // MARK:  freeStorage in Bytes
     func freeStorage() -> Int64?{
       let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
       let fileURL = URL(fileURLWithPath: paths[0] as String)
@@ -112,12 +122,13 @@ public struct DeviceData : DoesLog {
     }
     
     // MARK:  storageUsedByApp
-    func storageUsedByApp() -> UInt64 {
-      var totalSize: UInt64 = 0
+    func storageUsedByApp() -> storage {
+      var dataSize: UInt64 = 0
+      var appSize: UInt64 = 0
       // create list of directories
       
       // 1. main bundle
-      var paths = [Bundle.main.bundlePath]
+      var paths:[String] = []
       
       // 2. temp Dir
       paths.append(NSTemporaryDirectory() as String)
@@ -137,14 +148,21 @@ public struct DeviceData : DoesLog {
       for dir in libDirs {
         paths.append(dir)
       }
+            
       
       // combine sizes
       for path in paths {
+        print("calc size of: \(path)")
         if let size = bytesIn(directory: path) {
-          totalSize += size
+          dataSize += size
         }
       }
-      return totalSize
+      
+      if let size = bytesIn(directory: Bundle.main.bundlePath) {
+        appSize = size
+      }
+      
+      return (appSize, dataSize)
     }
     
     //calculate all sizes of given dir

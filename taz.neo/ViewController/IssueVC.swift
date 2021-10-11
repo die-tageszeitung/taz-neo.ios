@@ -374,8 +374,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   private func deleteIssue() {
     if let issue = issue as? StoredIssue {
-      issue.reduceToOverview()
-      setLabel(idx: index)
+      issue.reduceToOverview(deleteAllFiles: true)
+      issueCarousel.carousel.reloadData()
+//
+//      setLabel(idx: index)
     }
   }
   
@@ -546,6 +548,19 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ///WARNING: if auth in settings review previous commit to prevent deadlock with "Aktualisiere Daten" Overlay
       self.authenticationSucceededCheckReload()
     }
+    
+    Notification.receive("reloadIssues") {   [weak self] notif in
+      self?.scrollUp(animated: false)
+//      self?.isArchiveMode = true
+//      self?.issueCarousel.reset()
+//      self?.provideOverview()
+      self?.resetOverview()
+      onMainAfter(1.0) {  [weak self] in
+        self?.isArchiveMode = false
+        self?.index = 0
+      }
+    }
+    
     Notification.receive(UIApplication.willResignActiveNotification) { _ in
       self.goingBackground()
     }

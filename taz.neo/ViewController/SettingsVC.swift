@@ -17,6 +17,7 @@ extension Settings.LinkType {
       case .terms: return "Allgemeine Geschäftsbedingungen (AGB)";
       case .privacy: return "Datenschutzerklärung";
       case .revocation: return "Widerruf";
+      case .cleanMemory: return "Speicher jetzt freigeben";
     }
   }
   
@@ -56,7 +57,7 @@ struct Settings {
   
   
   enum CellType { case link, toggle, custom }
-  enum LinkType { case onboarding, errorReport, manageAccount, terms, privacy, revocation }
+  enum LinkType { case onboarding, errorReport, manageAccount, terms, privacy, revocation, cleanMemory }
   
   struct Cell {
     var linkType:LinkType?
@@ -91,10 +92,18 @@ struct Settings {
   
   //Prototype Cells
   static func content() -> [sectionContent] {
+    
+    let storage = DeviceData().detailStorage
+    let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
+    let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
+    
     return [
       ("allgemein",
        [
-        Cell(withText: "Maximale Anzahl der zu speichernden Ausgaben", subText: "0 bedeutet alle speichern TBD!!! aktueller Speicherverbrauch: 100MB TBD", accessoryView: SaveLastCountIssues()),
+        Cell(withText: "Maximale Anzahl der zu speichernden Ausgaben",
+             subText: "Speichernutzung\nApp: \(app)MB, Daten: \(data)MB",
+             accessoryView: SaveLastCountIssues()),
+        Cell(linkType: .cleanMemory),
         Cell(toggleWithText: "Neue Ausgaben automatisch laden",
              initialValue: Settings.autoloadNewIssues,
              changeHandler: { newValue in Settings.autoloadNewIssues = newValue}),
@@ -141,6 +150,9 @@ struct Settings {
  */
 // MARK: - SettingsVC
 open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
+  
+  @Default("persistedIssuesCount")
+  private var persistedIssuesCount: Int
   
   var feederContext: FeederContext?
   
@@ -283,6 +295,25 @@ extension SettingsVC {
         showTerms()
       case .revocation:
         showRevocation()
+      case .cleanMemory:
+        cleanMemory()
+    }
+  }
+
+  func cleanMemory(){
+    guard let storedFeeder = MainNC.singleton.feederContext.storedFeeder,
+          let storedFeed = storedFeeder.storedFeeds.first,
+          persistedIssuesCount > 0 else { return }
+    
+//    MainNC.singleton.feederContext.isConnected = false
+//    MainNC.singleton.feederContext.dloader.killAll()
+    
+    StoredIssue.reduceOldest(feed: storedFeed, keep: persistedIssuesCount)
+    onMainAfter {   [weak self]  in
+      self?.content[0] = Settings.content()[0]
+      let ip0 = IndexPath(row: 0, section: 0)
+      self?.tableView.reloadRows(at: [ip0], with: .fade)
+      Notification.send("reloadIssues")
     }
   }
   
@@ -438,8 +469,8 @@ class CustomSettingsCell: SettingsCell {
 
 
 func attributedString(first:String, second:String) -> NSAttributedString {
-  let aFirst = NSMutableAttributedString(string: first)
-  let aSecond = NSMutableAttributedString(string: "\n\(second)", attributes: [.foregroundColor: UIColor.red])
+  let aFirst = NSMutableAttributedString(string: first, attributes: [.foregroundColor: Const.SetColor.ios(.label).color])
+  let aSecond = NSMutableAttributedString(string: "\n\(second)", attributes: [.foregroundColor: Const.SetColor.ios(.secondaryLabel).color, .font: Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)])
   aFirst.append(aSecond)
   return aFirst
 }
@@ -487,7 +518,12 @@ class SaveLastCountIssues: CustomHStack {
   
   @Default("persistedIssuesCount")
   private var persistedIssuesCount: Int {
-    didSet {     label.text = "\(persistedIssuesCount)"  }
+    didSet {
+      label.text
+      = persistedIssuesCount > 0
+      ? "\(persistedIssuesCount)"
+      : "alle"
+    }
   }
   
   let leftButton = Button<TextView>()

@@ -509,9 +509,9 @@ extension IssueVcWithBottomTiles {
     if reloadData { self.collectionView.reloadData() }
   }
   
-  func scrollUp(){
+  func scrollUp(animated:Bool=true){
     self.collectionView.setContentOffset(CGPoint(x:0, y:topPos),
-                                         animated: true)
+                                         animated: animated)
   }
 }
 
