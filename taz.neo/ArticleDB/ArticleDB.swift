@@ -1603,18 +1603,10 @@ public final class StoredIssue: Issue, StoredObject {
         fp.remove()
       }
       
-//      if let fn = pageOneFacsimile?.fileName {
-//        let fp = File("\(issueDir.path)/\(fn)")
-//        debug("remove: \(fp)")
-//        fp.remove()
-//      }
-//
-//      if let fn = moment.facsimile?.fileName {
-//        let fp = File("\(issueDir.path)/\(fn)")
-//        debug("remove: \(fp)")
-//        fp.remove()
-//      }
-      self.pr.moment?.firstPage?.delete()
+      for pdf in Dir(issueDir.path).scanExtensions("pdf") {
+        debug("remove: \(pdf)")
+        File(pdf).remove()
+      }
       
       isOvwComplete = false
     }
