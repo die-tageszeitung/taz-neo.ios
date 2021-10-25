@@ -121,6 +121,9 @@ fileprivate extension AppDelegate {
         handleServerSwitch(to: Shortcuts.testServer)
       case "AppInformation":
         break;
+      case Shortcuts.simulatorRecheckNetwork.type:
+        MainNC.singleton.feederContext.resetNetAvailability()
+        break;
       default:
         Toast.show("Aktion nicht verfügbar!")
         break;
@@ -135,26 +138,31 @@ fileprivate extension AppDelegate {
 fileprivate enum Shortcuts{
   
   static func currentItems(wantsLogging:Bool) -> [UIApplicationShortcutItem]{
-      if App.isAlpha == false && Defaults.currentServer == .liveServer {
-        return []
-//        return [Shortcuts.logging.shortcutItem()]
-      }
-      var itms:[UIApplicationShortcutItem] = [
-//        Shortcuts.feedback.shortcutItem(.mail),
-//        Shortcuts.logging.shortcutItem(wantsLogging ? .confirmation : nil)
-      ]
-      if Defaults.currentServer == .liveServer {
-        itms.append(Shortcuts.liveServer.shortcutItem(.confirmation, subtitle: "aktiv"))
-        itms.append(Shortcuts.testServer.shortcutItem())
-      }
-      else {
-        itms.append(Shortcuts.liveServer.shortcutItem())
-        itms.append(Shortcuts.testServer.shortcutItem(.confirmation, subtitle: "aktiv"))
-      }
-      return itms
+    if App.isAlpha == false && Defaults.currentServer == .liveServer {
+      return []
+      //        return [Shortcuts.logging.shortcutItem()]
+    }
+    var itms:[UIApplicationShortcutItem] = [
+      //        Shortcuts.feedback.shortcutItem(.mail),
+      //        Shortcuts.logging.shortcutItem(wantsLogging ? .confirmation : nil)
+    ]
+    
+    if Device.isSimulator {
+      itms.append(Shortcuts.simulatorRecheckNetwork.shortcutItem())
+    }
+    
+    if Defaults.currentServer == .liveServer {
+      itms.append(Shortcuts.liveServer.shortcutItem(.confirmation, subtitle: "aktiv"))
+      itms.append(Shortcuts.testServer.shortcutItem())
+    }
+    else {
+      itms.append(Shortcuts.liveServer.shortcutItem())
+      itms.append(Shortcuts.testServer.shortcutItem(.confirmation, subtitle: "aktiv"))
+    }
+    return itms
   }
   
-  case liveServer, testServer, feedback, logging
+  case liveServer, testServer, feedback, logging, simulatorRecheckNetwork
   
   var type:String{
     switch self {
@@ -162,6 +170,7 @@ fileprivate enum Shortcuts{
       case .testServer: return "shortcutItemTestServer"
       case .feedback: return "shortcutItemFeedback"
       case .logging: return "shortcutItemLogging"
+      case .simulatorRecheckNetwork: return "simulatorRecheckNetwork"
     }
   }
   
@@ -171,6 +180,7 @@ fileprivate enum Shortcuts{
       case .testServer: return "Test Server"
       case .feedback: return "Feedback"
       case .logging: return "Protokoll einschalten"
+      case .simulatorRecheckNetwork: return "SIM: Re-Check Network"
     }
   }
     
