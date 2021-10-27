@@ -199,6 +199,16 @@ open class FeederContext: DoesLog {
   private var pollingTimer: Timer?
   private var pollEnd: Int64?
   
+  
+  public func cancelAll() {
+    self.gqlFeeder.status?.feeds = []
+    self.gqlFeeder.gqlSession?.session.invalidateAndCancel()
+    self.dloader.killAll()
+  }
+  public func resume() {
+    self.checkNetwork()
+  }
+  
   /// Start Polling if necessary
   public func setupPolling() {
     authenticator.whenPollingRequired { self.startPolling() }
