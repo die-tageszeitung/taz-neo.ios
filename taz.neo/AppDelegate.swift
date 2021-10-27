@@ -16,6 +16,7 @@ class AppDelegate: NotifiedDelegate {
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     updateDefaultsIfNeeded()
+    saveLastLog()
     self.window = UIWindow(frame: UIScreen.main.bounds)
 //    self.window?.rootViewController = SettingsVC()
     self.window?.rootViewController = MainNC()
@@ -36,6 +37,22 @@ class AppDelegate: NotifiedDelegate {
         = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
     } 
     return true
+  }
+
+  func saveLastLog(){
+    /** copy last logfile before overwrite
+     not solving:
+     - multiple starts before send feedback
+     - app did not start, overwrite "interesting" logfile
+     Ideas:
+     - do not overwrite with mini file
+     - use kind of log rotataion next: which logfile to add?
+     - use app context menu to acces last logfile?
+    @see also FeedbackViewController adds this in feedback request
+     Question: is this called for incomming push notification?
+     */
+    File(Log.FileLogger.defaultLogfile)
+      .copy(to: Log.FileLogger.lastLogfile, isOverwrite: true)
   }
   
   func updateDefaultsIfNeeded(){
@@ -78,7 +95,7 @@ class AppDelegate: NotifiedDelegate {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     // application.shortcutItems = [] //not working!
     ///NOT CALLED @see:https://developer.apple.com/documentation/uikit/uiapplicationdelegate/1623111-applicationwillterminate
-    // log("applicationWillTerminate ")
+     log("applicationWillTerminate ")
   }
 }
 
