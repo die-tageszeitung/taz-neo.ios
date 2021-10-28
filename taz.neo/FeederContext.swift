@@ -304,6 +304,7 @@ open class FeederContext: DoesLog {
       case .newIssue:
         //not using checkForNew Issues see its warning!
         //count 1 not working: 
+        log("load new Issue")
         self.getOvwIssues(feed: self.defaultFeed, count: 1)
       default:
         self.debug(payload.toString())
