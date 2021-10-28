@@ -537,8 +537,8 @@ open class FeederContext: DoesLog {
     }
         
     if err == .expiredAccount(nil) {
-      log("Delete Auth Token!")
-      DefaultAuthenticator.deleteUserData(.token)
+      ///key must be deleted on login to see message again  ...or restart, keep in mind if changing
+      if "expiredAccountAlertPopup".existsAndNotExpired(intervall: .hour*6 ) { return }
     }
     else {
       log("Delete Userdata!")
