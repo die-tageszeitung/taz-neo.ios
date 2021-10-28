@@ -1323,6 +1323,13 @@ public final class StoredSection: Section, StoredObject {
 
 extension PersistentIssue: PersistentObject {}
 
+
+extension StoredIssue: Equatable {
+  static public func ==(lhs: StoredIssue, rhs: StoredIssue) -> Bool {
+    return lhs.date == rhs.date
+  }
+}
+
 /// A stored Issue
 public final class StoredIssue: Issue, StoredObject {
   
@@ -1542,7 +1549,45 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Return an array of Issues ordered by load date, ie. the oldest (by
   /// load date) comes first
-  public static func firstLoaded(feed: StoredFeed, count: Int = -1, onlyCompleete: Bool = true) -> [StoredIssue] {
+  public static func firstLoaded(feed: StoredFeed, count: Int = -1) -> [StoredIssue] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "payload.downloadStarted",
+                                                ascending: true)]
+    if count > 0 { request.fetchLimit = count }
+    return get(request: request)
+  }
+  
+  public enum IssueSorting {
+    case issueDate, payloadDownloadStarted
+    var key: String {
+      get {
+        switch self {
+          case .issueDate:
+            return "payload.downloadStarted"
+          case .payloadDownloadStarted:
+            return "payload.downloadStarted"
+        }
+      }
+    }
+    func sortDescriptor(ascending:Bool) -> NSSortDescriptor {
+      return NSSortDescriptor(key: self.key, ascending: ascending)
+    }
+  }
+  
+  /// Fetch and return array of Issues, by given params
+  /// - Parameters:
+  ///   - feed: feed to use
+  ///   - count: max count
+  ///   - onlyCompleete: only fetch compleetly downloaded issues
+  ///   - sortedBy: used sorting
+  ///   - ascending: descending if false
+  /// - Returns: array of Issues
+  public static func issues(feed: StoredFeed,
+                            count: Int = -1,
+                            onlyCompleete: Bool,
+                            sortedBy: IssueSorting = .issueDate,
+                            ascending:Bool = true) -> [StoredIssue] {
     let request = fetchRequest
     
     if onlyCompleete {
@@ -1551,9 +1596,7 @@ public final class StoredIssue: Issue, StoredObject {
     else {
       request.predicate = NSPredicate(format: "feed = %@", feed.pr)
     }
-
-    request.sortDescriptors = [NSSortDescriptor(key: "payload.downloadStarted",
-                                                ascending: true)]
+    request.sortDescriptors = [sortedBy.sortDescriptor(ascending:ascending)]
     if count > 0 { request.fetchLimit = count }
     return get(request: request)
   }
@@ -1567,19 +1610,78 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Remove oldest Issues and keep the newest ones
   public static func reduceOldest(feed: StoredFeed, keep: Int) {
-    let issues = firstLoaded(feed: feed, onlyCompleete: false)
+    let issues = firstLoaded(feed: feed)
     if issues.count > keep {
       var n = issues.count
       for issue in issues {
         if n <= keep { break }
-        issue.reduceToOverview(deleteAllFiles: true)
+        issue.reduceToOverview()
         n -= 1
       }
     }
   }
   
+  /// Remove old Issues and keep newest
+  /// - Parameters:
+  ///   - feed: feed for Issues
+  ///   - keepDownloaded: count of keep full downloaded
+  ///   - keepPreviews: count of keep previews
+  public static func removeOldest(feed: StoredFeed,
+                                  keepDownloaded: Int,
+                                  keepPreviews: Int = 30,
+                                  deleteOrphanFolders:Bool = false) {
+    let lastCompleeteIssues
+    = issues(feed: feed, count: keepDownloaded, onlyCompleete: true, sortedBy: .payloadDownloadStarted, ascending: false)
+    
+    let allIssues
+    = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
+    
+    let keepPreviewCount = max(keepPreviews, keepDownloaded)
+    let reduceableIssues = allIssues[..<keepPreviewCount]
+    let deleteableIssues = allIssues[keepPreviewCount...]
+    
+    for issue in reduceableIssues {
+      if lastCompleeteIssues.contains(issue) { continue }
+      Log.log("reduceToOverview for issue: \(issue.date.short)")
+      issue.reduceToOverview()
+    }
+    
+    for issue in deleteableIssues {
+      if lastCompleeteIssues.contains(issue) { continue }
+      Log.log("Delete issue content and preview data for: \(issue.date.short)")
+      issue.reduceToOverview()
+    }
+     
+    guard deleteOrphanFolders else { return }
+    Log.log("delete orphan folders")
+    
+    var knownDirs: [String] = []
+    
+    for issue in lastCompleeteIssues {
+      let dir = feed.feeder.issueDir(issue: issue)
+      if dir.exists { knownDirs.append(dir.path)}
+    }
+    
+    for issue in reduceableIssues {
+      let dir = feed.feeder.issueDir(issue: issue)
+      if dir.exists { knownDirs.append(dir.path)}
+    }
+    
+    let allSubdirs = feed.feeder.feedDir(feed.name).scan()
+    
+    for path in allSubdirs {
+      if knownDirs.contains(path) {
+        Log.log("DO NOT delete folder at: \(path)")
+        continue
+      }
+      Log.log("delete folder at: \(path)")
+      Dir(path).remove()
+    }
+  }
+  
+  
   /// Deletes data that is not needed for overview
-  public func reduceToOverview(deleteAllFiles:Bool = false) {
+  public func reduceToOverview() {
     // Remove files not needed for overview
     storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them
@@ -1588,31 +1690,11 @@ public final class StoredIssue: Issue, StoredObject {
         section.delete()
       }
     }
-    
-    let issueDir = feed.feeder.issueDir(issue: self)
-    
+    (imprint as? StoredArticle)?.delete()
     if isComplete {
       isComplete = false
       isOvwComplete = true
     }
-    
-    if deleteAllFiles{
-      for f in moment.files {
-        let fp = File("\(issueDir.path)/\(f.fileName)")
-        debug("remove: \(fp)")
-        fp.remove()
-      }
-      
-      for pdf in Dir(issueDir.path).scanExtensions("pdf") {
-        debug("remove: \(pdf)")
-        File(pdf).remove()
-      }
-      
-      isOvwComplete = false
-    }
-
-    (imprint as? StoredArticle)?.delete()
-    
     ArticleDB.save()
   }
   
