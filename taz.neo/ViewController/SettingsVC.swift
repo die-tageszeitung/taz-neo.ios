@@ -17,8 +17,15 @@ extension Settings.LinkType {
       case .terms: return "Allgemeine Geschäftsbedingungen (AGB)";
       case .privacy: return "Datenschutzerklärung";
       case .revocation: return "Widerruf";
-      case .cleanMemory: return "Speicher jetzt freigeben";
+      case .cleanMemory: return "Alte Ausgaben löschen";
     }
+  }
+  
+  var attributedDescription:NSAttributedString? {
+    guard self == .cleanMemory else { return nil}
+    return attributedString(first: "Alte Ausgaben löschen",
+                            firstColor: Const.SetColor.ios(.link).color,
+                            second: "Gedrückt halten für weitere Optionen")
   }
   
   private var userInfo: String {
@@ -109,13 +116,14 @@ struct Settings {
              changeHandler: { newValue in Settings.autoloadNewIssues = newValue}),
         Cell(toggleWithText: "Automatischer Download auch im Mobilfunknetz",
              initialValue: Settings.autoloadInWLAN,
-             changeHandler: { newValue in Settings.autoloadInWLAN = newValue}),
-        Cell(toggleWithText: "Rechtshändermodus",
-             initialValue: true,
-             changeHandler: { _ in }),
-        Cell(toggleWithText: "Teilen in Ressortübersicht ausblenden",
-             initialValue: true,
-             changeHandler: { _ in })
+             changeHandler: { newValue in Settings.autoloadInWLAN = newValue})
+        ,
+//        Cell(toggleWithText: "Rechtshändermodus",
+//             initialValue: true,
+//             changeHandler: { _ in }),
+//        Cell(toggleWithText: "Teilen in Ressortübersicht ausblenden",
+//             initialValue: true,
+//             changeHandler: { _ in })
        ]
       ),
       ("darstellung",
@@ -215,6 +223,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     super.viewDidLoad()
     setup()
     applyStyles()
+    
+    let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
+    tableView.addGestureRecognizer(longTap)
   }
   
   open override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -229,7 +240,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     let cellContent = content[indexPath.section].cells[indexPath.row]
     let cell = tableView.dequeueReusableCell(withIdentifier: cellContent.type.identifier,
                                              for: indexPath) as? SettingsCell
-    
     cell?.content = cellContent
     return cell ?? UITableViewCell()
   }
@@ -264,6 +274,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   }
   
   open override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+    print("willSelectRowAt \(indexPath)\(Date().dateAndTime)")
     let cellContent = content[indexPath.section].cells[indexPath.row]
     if cellContent.tapHandler == nil,
        cellContent.type != .link { return nil }
@@ -271,17 +282,38 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   }
   
   open override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    print("didSelectRowAt \(indexPath)\(Date().dateAndTime)")
     let cellContent = content[indexPath.section].cells[indexPath.row]
     guard let linkType = cellContent.linkType,
           cellContent.type == .link else { return }
     tableView.deselectRow(at: indexPath, animated: true)
     handleLink(linkType: linkType)
   }
+  
+  @objc private func handleLongTap(sender: UILongPressGestureRecognizer) {
+    if sender.state == .began {
+      let touchPoint = sender.location(in: tableView)
+      guard let indexPath = tableView.indexPathForRow(at: touchPoint) else { return }
+      let cellContent = content[indexPath.section].cells[indexPath.row]
+      guard let linkType = cellContent.linkType, cellContent.type == .link else { return }
+      handleLongTapLink(linkType: linkType)
+    }
+  }
 }
 
 // MARK: - Handler
 extension SettingsVC {
+  func handleLongTapLink(linkType:Settings.LinkType){
+    switch linkType {
+      case .cleanMemory:
+        cleanMemoryMenu()
+      default:
+        break;
+    }
+  }
+  
   func handleLink(linkType:Settings.LinkType){
+    print("handleLink for: \(linkType)")
     switch linkType {
       case .errorReport:
         handleErrorReport()
@@ -299,21 +331,63 @@ extension SettingsVC {
         cleanMemory()
     }
   }
+  
+  func openFaqAction() -> UIAlertAction {
+    return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
+      guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
+      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    }
+  }
+  
+  func cleanMemoryMenu(){
+    let alert = UIAlertController.init( title: "Daten Löschen", message: "erweiterte Optionen",
+      preferredStyle:  .actionSheet )
+    
+    alert.addAction( UIAlertAction.init( title: "Hilfe", style: .default,
+      handler: { [weak self] handler in
+      guard let self = self else { return }
+      
+      let cntTxt
+      = self.persistedIssuesCount > 0
+      ? "\(self.persistedIssuesCount)"
+      : "alle"
+      
+      Alert.message(title: Localized("help"), message: Localized(keyWithFormat: "clean_memory_help", cntTxt), additionalActions:[self.openFaqAction()])
+    }))
+      
+    alert.addAction( UIAlertAction.init( title: "Alle Vorschaudaten löschen", style: .default,
+      handler: { [weak self] handler in
+      self?.cleanMemory(keepPreviewsCount:0)
+    } ) )
+    
+    alert.addAction( UIAlertAction.init( title: "Heruntergeladene Ausgaben löschen", style: .default,
+      handler: { [weak self] handler in
+      self?.cleanMemory()
+    } ) )
+    
+    
 
-  func cleanMemory(){
+    alert.addAction( UIAlertAction.init( title: "Alles löschen", style: .destructive,
+      handler: { _ in
+        MainNC.singleton.deleteAll()
+    } ) )
+    
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    alert.presentAt(self.view)
+  }
+  
+  
+  func cleanMemory(keepPreviewsCount:Int = 30){
     guard let storedFeeder = MainNC.singleton.feederContext.storedFeeder,
           let storedFeed = storedFeeder.storedFeeds.first,
           persistedIssuesCount > 0 else { return }
-    
-//    MainNC.singleton.feederContext.isConnected = false
-//    MainNC.singleton.feederContext.dloader.killAll()
-    
-    StoredIssue.reduceOldest(feed: storedFeed, keep: persistedIssuesCount)
+    MainNC.singleton.feederContext.cancelAll()
+    StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: persistedIssuesCount, keepPreviews: keepPreviewsCount, deleteOrphanFolders: true)
     onMainAfter {   [weak self]  in
       self?.content[0] = Settings.content()[0]
       let ip0 = IndexPath(row: 0, section: 0)
       self?.tableView.reloadRows(at: [ip0], with: .fade)
-      Notification.send("reloadIssues")
+      MainNC.singleton.feederContext.resume()
     }
   }
   
@@ -447,6 +521,10 @@ class LinkSettingsCell: SettingsCell {
     super.setup()
     self.textLabel?.text = content?.linkType?.cellDescription
     self.textLabel?.contentFont().linkColor()
+    
+    if let attributedText = content?.linkType?.attributedDescription {
+     self.textLabel?.attributedText = attributedText
+   }
   }
 }
 
@@ -468,8 +546,10 @@ class CustomSettingsCell: SettingsCell {
 }
 
 
-func attributedString(first:String, second:String) -> NSAttributedString {
-  let aFirst = NSMutableAttributedString(string: first, attributes: [.foregroundColor: Const.SetColor.ios(.label).color])
+func attributedString(first:String,
+                      firstColor: UIColor = Const.SetColor.ios(.label).color,
+                      second:String) -> NSAttributedString {
+  let aFirst = NSMutableAttributedString(string: first, attributes: [.foregroundColor: firstColor])
   let aSecond = NSMutableAttributedString(string: "\n\(second)", attributes: [.foregroundColor: Const.SetColor.ios(.secondaryLabel).color, .font: Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)])
   aFirst.append(aSecond)
   return aFirst
@@ -624,7 +704,7 @@ extension App {
   
   static func authInfo(with feederContext: FeederContext) -> String {
     let authInfo = feederContext.isAuthenticated ? "angemeldet" : "NICHT ANGEMELDET"
-    return "\(authInfo), gespeicherte taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
+    return "\(authInfo), taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
   }
 }
 

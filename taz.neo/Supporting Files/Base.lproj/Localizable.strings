@@ -31,6 +31,10 @@
 "help" = "Hilfe";
 "info" = "Hinweis";
 
+/* Settings */
+"clean_memory_help" = "Heruntergeladene Ausgaben löschen\n(Standardaktion)\nLöscht alte Ausgaben. Es werden nur von Ihnen eingestellte %@ Ausgaben behalten. Löscht auch Vorschaudaten, die älter als 30 Tage sind. Diese Aktion wird auch automatisch nach dem erfolgreichen Download einer Ausgabe ausgeführt.\n\nAlle Vorschaudaten löschen\nLöscht zusätzlich Vorschaudaten, auch der letzten 30 Tage.\n\nAlles löschen\nACHTUNG!\nLöscht alle Daten der App (Ausgaben, Vorschaudaten, Lesezeichen, lokale Datenbank).\n Die App wird beendet und muss danach neu geatartet werden.";
+
+
 /* translation from Android */
 "trial_subscription_title" = "Sie möchten die digitale Ausgabe der taz 6 Wochen kostenlos und unverbindlich testen?";
 

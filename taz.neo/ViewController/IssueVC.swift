@@ -71,6 +71,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   private func reset() {
     issues = [] 
     issueCarousel.reset()
+    self.collectionView.reloadData()
   }
   
   func updateToolbarHomeIcon(){
@@ -374,7 +375,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   private func deleteIssue() {
     if let issue = issue as? StoredIssue {
-      issue.reduceToOverview(deleteAllFiles: true)
+      issue.reduceToOverview()
       issueCarousel.carousel.reloadData()
 //
 //      setLabel(idx: index)
@@ -552,7 +553,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     Notification.receive("reloadIssues") {   [weak self] notif in
       self?.scrollUp(animated: false)
 //      self?.isArchiveMode = true
-//      self?.issueCarousel.reset()
+      self?.issueCarousel.reset()//required!
 //      self?.provideOverview()
       self?.resetOverview()
       onMainAfter(1.0) {  [weak self] in
