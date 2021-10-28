@@ -377,10 +377,16 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if let issue = issue as? StoredIssue {
       issue.reduceToOverview()
       issueCarousel.carousel.reloadData()
-//
-//      setLabel(idx: index)
+      setLabel(idx: index)
     }
   }
+  
+//  private func deleteCompleeteIssue() {
+//    if let issue = issue as? StoredIssue {
+//      issue.deletePersistent()
+//      issueCarousel.carousel.reloadData()
+//    }
+//  }
   
   /// Check whether it's necessary to reload the current Issue
   public func authenticationSucceededCheckReload() {
@@ -474,6 +480,23 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       scrollChange = false
     }
     if App.isAlpha {
+//      
+//      issueCarousel.addMenuItem(title: "Ausgabe komplett löschen", icon: "trash") {_ in
+//        self.deleteCompleeteIssue()
+//      }
+//
+//      issueCarousel.addMenuItem(title: "Reset Overview", icon: "trash") {_ in
+//        self.resetOverview()
+//      }
+//      
+//      issueCarousel.addMenuItem(title: "Clear Cache", icon: "trash") {_ in
+//        URLCache.shared.removeAllCachedResponses()
+//      }
+//      
+//      issueCarousel.addMenuItem(title: "Kill App", icon: "trash") {_ in
+//        exit(0)
+//      }
+      
       issueCarousel.addMenuItem(title: "Simulate PN.aboPoll", icon: "arrow.up") {_ in
         let pnPl = ["data":["refresh":"aboPoll"], "aps":["content-available":1,"sound":nil ]]
         NotifiedDelegate.singleton.notifier.handleTestRemoteNotification(pnPl)
