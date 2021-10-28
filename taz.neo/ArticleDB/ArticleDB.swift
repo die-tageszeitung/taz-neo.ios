@@ -1328,9 +1328,9 @@ public final class StoredIssue: Issue, StoredObject {
   
   public static var entity = "Issue"
   public var pr: PersistentIssue // persistent record
-  public var feed: Feed { 
+  public var feed: Feed {
     get { StoredFeed(persistent: pr.feed!) }
-    set { 
+    set {
       if let sfeed = StoredFeed.get(object: newValue) {
         pr.feed = sfeed.pr
         pr.feed?.addToIssues(self.pr)
@@ -1349,9 +1349,9 @@ public final class StoredIssue: Issue, StoredObject {
     get { return pr.isWeekend }
     set { pr.isWeekend = newValue }
   }
-  public var moment: Moment { 
+  public var moment: Moment {
     get { StoredMoment(persistent: pr.moment!) }
-    set { 
+    set {
       pr.moment = StoredMoment.persist(object: newValue).pr
       pr.moment?.issue = self.pr
     }
@@ -1397,7 +1397,7 @@ public final class StoredIssue: Issue, StoredObject {
       }
       else { pr.imprint = nil }
     }
-  } 
+  }
   public var lastArticle: Int? {
     get { return (pr.lastArticle < 0) ? nil : Int(pr.lastArticle) }
     set(val) { pr.lastArticle = Int32((val==nil) ? -1 : val!) }
@@ -1412,14 +1412,14 @@ public final class StoredIssue: Issue, StoredObject {
   }
   public var isComplete: Bool {
     get { return pr.isComplete }
-    set { 
-      pr.isComplete = newValue 
+    set {
+      pr.isComplete = newValue
       if newValue { pr.isOvwComplete = newValue }
-    }    
+    }
   }
   public var isOvwComplete: Bool {
     get { return pr.isOvwComplete }
-    set { pr.isOvwComplete = newValue }    
+    set { pr.isOvwComplete = newValue }
   }
   public var storedPayload: StoredPayload? {
     if let ppl = pr.payload { return StoredPayload(persistent: ppl) }
@@ -1503,12 +1503,12 @@ public final class StoredIssue: Issue, StoredObject {
     }
   }
     
-  /// Return stored record with given name  
+  /// Return stored record with given name
   public static func get(date: Date, inFeed feed: StoredFeed) -> [StoredIssue] {
     let nsdate = NSDate(timeIntervalSinceReferenceDate:
                         date.timeIntervalSinceReferenceDate)
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)", 
+    request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)",
                                     nsdate, feed.pr)
     return get(request: request)
   }
@@ -1527,14 +1527,14 @@ public final class StoredIssue: Issue, StoredObject {
   }
   
   /// Return an array of Issues in a Feed
-  public static func issuesInFeed(feed: StoredFeed, count: Int = -1, fromDate: Date? = nil) 
+  public static func issuesInFeed(feed: StoredFeed, count: Int = -1, fromDate: Date? = nil)
     -> [StoredIssue] {
     let request = fetchRequest
     if let fromDate = fromDate {
       let nsdate = NSDate(timeIntervalSinceReferenceDate: fromDate.timeIntervalSinceReferenceDate)
       request.predicate = NSPredicate(format: "feed = %@ AND date <= %@", feed.pr, nsdate)
     }
-    else { request.predicate = NSPredicate(format: "feed = %@", feed.pr) }      
+    else { request.predicate = NSPredicate(format: "feed = %@", feed.pr) }
     request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
     if count > 0 { request.fetchLimit = count }
     return get(request: request)
