@@ -268,7 +268,8 @@ open class FeederContext: DoesLog {
     nd.onReceivePush {   [weak self] (pn, payload) in
       self?.processPushNotification(pn: pn, payload: payload)
     }
-    nd.permitPush { pn in
+    nd.permitPush {[weak self] pn in
+      guard let self = self else { return }
       if pn.isPermitted { 
         self.debug("Push permission granted") 
         self.pushToken = pn.deviceId
