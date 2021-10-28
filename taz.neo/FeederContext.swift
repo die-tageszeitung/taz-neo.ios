@@ -141,6 +141,7 @@ open class FeederContext: DoesLog {
   
   /// Network status has changed 
   private func checkNetwork() {
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     if isConnected {
 //      if let oldFeeder = self.gqlFeeder {
 //        oldFeeder.gqlSession?.session.reset {   [weak self] in
@@ -562,6 +563,7 @@ open class FeederContext: DoesLog {
    StoredIssues.
    */
   public func getOvwIssues(feed: Feed, count: Int, fromDate: Date? = nil) {
+    log("feed: \(feed.name) count: \(count) fromDate: \(fromDate?.short ?? "-")")
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
@@ -656,6 +658,7 @@ open class FeederContext: DoesLog {
    data) from the database. If necessary all files are downloaded from the server.
    */
   public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
         self?.getCompleteIssue(issue: issue, isPages: isPages)
@@ -720,6 +723,7 @@ open class FeederContext: DoesLog {
   
   /// Download partial Payload of Issue
   private func downloadPartialIssue(issue: StoredIssue) {
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     self.dloader.downloadPayload(payload: issue.payload as! StoredPayload) { err in
       var res: Result<StoredIssue,Error>
       if err == nil {
@@ -734,6 +738,7 @@ open class FeederContext: DoesLog {
 
   /// Download complete Payload of Issue
   private func downloadCompleteIssue(issue: StoredIssue) {
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     markStartDownload(feed: issue.feed, issue: issue) { (dlId, tstart) in
       issue.isDownloading = true
       self.dloader.downloadPayload(payload: issue.payload as! StoredPayload, 
@@ -757,6 +762,7 @@ open class FeederContext: DoesLog {
   
   /// Download Issue files and resources if necessary
   private func downloadIssue(issue: StoredIssue, isComplete: Bool = false) {
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) isComplete: \(isComplete) issueDate: \(issue.date.short)")
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       self.dloader.createIssueDir(issue: issue)
