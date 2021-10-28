@@ -1636,7 +1636,7 @@ public final class StoredIssue: Issue, StoredObject {
     let allIssues
     = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
     
-    let keepPreviewCount = max(keepPreviews, keepDownloaded)
+    let keepPreviewCount = min(allIssues.count, max(keepPreviews, keepDownloaded))
     let reduceableIssues = allIssues[..<keepPreviewCount]
     let deleteableIssues = allIssues[keepPreviewCount...]
     
