@@ -142,6 +142,12 @@ open class FeederContext: DoesLog {
   /// Network status has changed 
   private func checkNetwork() {
     if isConnected {
+//      if let oldFeeder = self.gqlFeeder {
+//        oldFeeder.gqlSession?.session.reset {   [weak self] in
+//          self?.log("Old Session Resetted!!")
+//        }
+//      }
+      
       self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
         guard let self = self else { return }
         if let feeder = res.value() {
