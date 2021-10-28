@@ -716,7 +716,6 @@ class StatusHeader: UIView {
     get { return _currentStatus }
     set {
       if _currentStatus == newValue || nextStatus.last == newValue { return; }
-      print("_currentStatus \(_currentStatus) != newValue \(newValue)")
       if animating { nextStatus.append(newValue); return; }
       if newValue == .downloadError { lastErrorShown = Date() }
       animating = true
