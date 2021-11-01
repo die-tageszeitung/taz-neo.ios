@@ -365,6 +365,23 @@ extension SettingsVC {
       self?.cleanMemory()
     } ) )
     
+    alert.addAction( UIAlertAction.init( title: "Datenbank löschen", style: .default,
+      handler: { _ in
+      MainNC.singleton.popToRootViewController(animated: false)
+      MainNC.singleton.feederContext.cancelAll()
+      ArticleDB.singleton.reset { [weak self] err in
+        self?.log("delete database done")
+        exit(0)//Restart, resume currently not possible
+        ///TODO enable resume
+        onMainAfter {   [weak self]  in
+          self?.content[0] = Settings.content()[0]
+          let ip0 = IndexPath(row: 0, section: 0)
+          self?.tableView.reloadRows(at: [ip0], with: .fade)
+          MainNC.singleton.feederContext.resume()
+          MainNC.singleton.showIssueVC()
+        }
+      }
+    } ) )
     
 
     alert.addAction( UIAlertAction.init( title: "Alles löschen", style: .destructive,
