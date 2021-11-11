@@ -372,7 +372,7 @@ extension SettingsVC {
       ArticleDB.singleton.reset { [weak self] err in
         self?.log("delete database done")
         exit(0)//Restart, resume currently not possible
-        ///TODO enable resume
+        ///TODO enable resume FEEDER CONTEXT RE-INIT
         onMainAfter {   [weak self]  in
           self?.content[0] = Settings.content()[0]
           let ip0 = IndexPath(row: 0, section: 0)

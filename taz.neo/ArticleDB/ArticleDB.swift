@@ -1649,7 +1649,7 @@ public final class StoredIssue: Issue, StoredObject {
     for issue in deleteableIssues {
       if lastCompleeteIssues.contains(issue) { continue }
       Log.log("Delete issue content and preview data for: \(issue.date.short)")
-      issue.reduceToOverview()
+      issue.reduceToOverview()//Fehler?
     }
      
     guard deleteOrphanFolders else { return }
