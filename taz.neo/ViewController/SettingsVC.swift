@@ -355,17 +355,17 @@ extension SettingsVC {
       Alert.message(title: Localized("help"), message: Localized(keyWithFormat: "clean_memory_help", cntTxt), additionalActions:[self.openFaqAction()])
     }))
       
-    alert.addAction( UIAlertAction.init( title: "Alle Vorschaudaten löschen", style: .default,
+    alert.addAction( UIAlertAction.init( title: "Alle Vorschaudaten löschen", style: .destructive,
       handler: { [weak self] handler in
       self?.cleanMemory(keepPreviewsCount:0)
     } ) )
     
-    alert.addAction( UIAlertAction.init( title: "Heruntergeladene Ausgaben löschen", style: .default,
+    alert.addAction( UIAlertAction.init( title: "Heruntergeladene Ausgaben löschen", style: .destructive,
       handler: { [weak self] handler in
       self?.cleanMemory()
     } ) )
     
-    alert.addAction( UIAlertAction.init( title: "Datenbank löschen", style: .default,
+    alert.addAction( UIAlertAction.init( title: "Datenbank löschen", style: .destructive,
       handler: { _ in
       MainNC.singleton.popToRootViewController(animated: false)
       MainNC.singleton.feederContext.cancelAll()
