@@ -36,6 +36,7 @@
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
+		7772B1ED2743BEC300991347 /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
 		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
 		779DE96126FA3D790056187B /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779DE96026FA3D790056187B /* SettingsVC.swift */; };
@@ -82,7 +83,6 @@
 		AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */; };
 		AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainNC.swift */; };
 		AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
-		AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
@@ -212,7 +212,7 @@
 			files = (
 				AE0EC3FD26C1399300EDDF04 /* libc++.tbd in Frameworks */,
 				AE0EC40026C139A200EDDF04 /* libz.tbd in Frameworks */,
-				AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */,
+				7772B1ED2743BEC300991347 /* NorthLib.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
