@@ -83,5 +83,23 @@
    <ArchiveAction
       buildConfiguration = "Debug"
       revealArchiveInOrganizer = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Script"
+               scriptText = "ruby ${SRCROOT}/taz.neo/Supporting\ Files/Scripts/genBuildConst.rb -n  &#10;${SRCROOT}/taz.neo/Supporting\ Files/Scripts/applyLastBuildNumber.sh all &#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "AEBAF563219ACD1900566205"
+                     BuildableName = "die tageszeitung.app"
+                     BlueprintName = "taz.neo"
+                     ReferencedContainer = "container:taz.neo.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
    </ArchiveAction>
 </Scheme>
