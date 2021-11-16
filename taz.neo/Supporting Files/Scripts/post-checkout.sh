@@ -19,7 +19,7 @@ set -e
 prevHEAD=$1
 newHEAD=$2
 checkoutType=$3
-branchNewHead=`git name-rev --name-only $newHEAD`
+branchNewHead=`git branch --show-current $newHEAD`
 
 echo '\n ==============================================='
 echo '\n  Post-checkout set scheme environment for Xcode'
@@ -35,7 +35,7 @@ then
 fi
 
 # Evaluate current environment
-TAZ_APP_CONFIG="Debug-Alpha"
+TAZ_APP_CONFIG="Alpha"
 
 if [[ $checkoutType == 1 ]] && [[ $branchNewHead == 'beta'  ]] 
 then
@@ -45,7 +45,5 @@ then
   TAZ_APP_CONFIG="Release"
 fi
 
-echo "Set Scheme Environment for branch: $branchNewHead to $TAZ_APP_CONFIG"
-
-# change default scheme to environment
-sed -i '' -e 's#buildConfiguration = ".*\"#buildConfiguration = \"'"$TAZ_APP_CONFIG"'\"#g' taz.neo.xcodeproj/xcshareddata/xcschemes/taz.neo.xcscheme
+echo "Use changeConfiguration Script to set $TAZ_APP_CONFIG to selected Scheme config for all Actions and App Icon"
+./taz-neo.ios/taz.neo/Supporting\ Files/Scripts/changeConfiguration.sh $TAZ_APP_CONFIG
