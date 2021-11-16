@@ -136,6 +136,7 @@
 		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
 		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
 		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
+		776158192743E8440044516C /* AppIcons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcons; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
 		779DE96026FA3D790056187B /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
@@ -413,6 +414,7 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				776158192743E8440044516C /* AppIcons */,
 				773D56462614A4DF00B42FEF /* BundledResources */,
 				7745050F25DA80450052E502 /* files */,
 				7745050C25DA801F0052E502 /* resources.json */,
