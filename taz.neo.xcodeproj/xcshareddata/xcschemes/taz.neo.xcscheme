@@ -88,7 +88,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "ruby ${SRCROOT}/taz.neo/Supporting\ Files/Scripts/genBuildConst.rb -n  &#10;${SRCROOT}/taz.neo/Supporting\ Files/Scripts/applyLastBuildNumber.sh all &#10;">
+               scriptText = "exec &gt; ${PROJECT_DIR}/prearchive.log 2&gt;&amp;1&#10;ruby ${SRCROOT}/taz.neo/Supporting\ Files/Scripts/genBuildConst.rb -n  &#10;cd ${SRCROOT}/taz.neo/Supporting\ Files/Scripts&#10;./applyLastBuildNumber.sh all &#10;">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
