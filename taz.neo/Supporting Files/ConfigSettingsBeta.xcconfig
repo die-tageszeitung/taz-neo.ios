@@ -8,5 +8,6 @@
 
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
-TAZ_APP_NAME = taz.beta
-TAZ_APP_BUNDLE_ID = de.taz.taz.beta
+PRODUCT_NAME = taz.beta
+PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.beta
+CURRENT_PROJECT_VERSION = 500030005

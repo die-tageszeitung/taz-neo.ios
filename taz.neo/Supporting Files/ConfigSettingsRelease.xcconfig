@@ -8,5 +8,6 @@
 
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
-TAZ_APP_NAME = die tageszeitung
-TAZ_APP_BUNDLE_ID = de.taz.taz.2
+PRODUCT_NAME = die tageszeitung
+PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2
+CURRENT_PROJECT_VERSION = 500030010
