@@ -21,16 +21,12 @@ newHEAD=$2
 checkoutType=$3
 branchNewHead=`git branch --show-current $newHEAD`
 
-echo '\n ==============================================='
-echo '\n  Post-checkout set scheme environment for Xcode'
-echo '\n  you may want to change this in Xcode by changing:'
-echo '\n  Target => Edit Scheme => (Debug|Run|Archive) Build Configuration'
-echo '\n ===============================================\n\n'
+echo 'PC :: THIS IS A POST CHECKOUT SCRIPT'
 
 # Print Info
 if [[ $checkoutType != 1 ]]
 then
- 	echo 'No branch checkout do nothing!'
+ 	echo 'PC :: No branch checkout do nothing!'
  	exit 0
 fi
 
@@ -45,5 +41,6 @@ then
   TAZ_APP_CONFIG="Release"
 fi
 
-echo "Use changeConfiguration Script to set $TAZ_APP_CONFIG to selected Scheme config for all Actions and App Icon"
-./taz-neo.ios/taz.neo/Supporting\ Files/Scripts/changeConfiguration.sh $TAZ_APP_CONFIG
+cd taz.neo/Supporting\ Files/Scripts/
+echo "PC :: Use changeConfiguration Script to set $TAZ_APP_CONFIG to selected Scheme config for all Actions and App Icon"
+./changeConfiguration.sh $TAZ_APP_CONFIG
