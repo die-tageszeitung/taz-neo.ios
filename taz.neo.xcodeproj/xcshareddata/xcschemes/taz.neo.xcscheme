@@ -10,7 +10,16 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "cd ${PROJECT_DIR}&#10;. taz.neo/Supporting\ Files/Scripts/LastBuildNumber.rb&#10;">
+               scriptText = "exec &gt; ${PROJECT_DIR}/build.log 2&gt;&amp;1&#10;echo &quot;BUILD_STYLE: ${BUILD_STYLE}&quot;&#10;echo &quot;ARCHIVE_PRODUCTS_PATH: ${ARCHIVE_PRODUCTS_PATH}&quot;&#10;echo &quot;ARCHIVE_PATH: ${ARCHIVE_PATH}&quot;&#10;echo &quot;ACTION: ${ACTION}&quot;&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "AEBAF563219ACD1900566205"
+                     BuildableName = "taz.beta.app"
+                     BlueprintName = "taz.neo"
+                     ReferencedContainer = "container:taz.neo.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
             </ActionContent>
          </ExecutionAction>
       </PreActions>
@@ -24,7 +33,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AEBAF563219ACD1900566205"
-               BuildableName = "die tageszeitung.app"
+               BuildableName = "taz.beta.app"
                BlueprintName = "taz.neo"
                ReferencedContainer = "container:taz.neo.xcodeproj">
             </BuildableReference>
@@ -54,7 +63,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEBAF563219ACD1900566205"
-            BuildableName = "die tageszeitung.app"
+            BuildableName = "taz.beta.app"
             BlueprintName = "taz.neo"
             ReferencedContainer = "container:taz.neo.xcodeproj">
          </BuildableReference>
@@ -71,7 +80,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEBAF563219ACD1900566205"
-            BuildableName = "die tageszeitung.app"
+            BuildableName = "taz.beta.app"
             BlueprintName = "taz.neo"
             ReferencedContainer = "container:taz.neo.xcodeproj">
          </BuildableReference>
@@ -88,12 +97,12 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "exec &gt; ${PROJECT_DIR}/prearchive.log 2&gt;&amp;1&#10;ruby ${SRCROOT}/taz.neo/Supporting\ Files/Scripts/genBuildConst.rb -n  &#10;cd ${SRCROOT}/taz.neo/Supporting\ Files/Scripts&#10;./applyLastBuildNumber.sh all &#10;">
+               scriptText = "exec &gt; ${PROJECT_DIR}/prearchive.log 2&gt;&amp;1&#10;echo &quot;BUILD_STYLE: ${BUILD_STYLE}&quot;&#10;echo &quot;ARCHIVE_PRODUCTS_PATH: ${ARCHIVE_PRODUCTS_PATH}&quot;&#10;echo &quot;ARCHIVE_PATH: ${ARCHIVE_PATH}&quot;&#10;&#10;cd ${SRCROOT}&#10;ruby ${SRCROOT}/taz.neo/Supporting\ Files/Scripts/genBuildConst.rb -n  &#10;cd ${SRCROOT}/taz.neo/Supporting\ Files/Scripts&#10;./applyLastBuildNumber.sh all &#10;">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
                      BlueprintIdentifier = "AEBAF563219ACD1900566205"
-                     BuildableName = "die tageszeitung.app"
+                     BuildableName = "taz.beta.app"
                      BlueprintName = "taz.neo"
                      ReferencedContainer = "container:taz.neo.xcodeproj">
                   </BuildableReference>
