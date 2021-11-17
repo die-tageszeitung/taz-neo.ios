@@ -368,9 +368,9 @@ class GenBuildConst
       f.write("LastBuildNumber=\"#{@buildNumber}\"")
     end
     if !@options[:noCommit]
-      @git.git(@dir, 'add LastBuildNumber.rb')
-      @git.git(@dir, 'commit -m "New build number #{@buildNumber}"')
-      @git.git(@dir, 'push "#{@git.remote}"')
+      @git.cmd(@dir, 'add LastBuildNumber.rb')
+      @git.cmd(@dir, 'commit -m "New build number #{@buildNumber}"')
+      @git.cmd(@dir, 'push "#{@git.remote}"')
       @git.readStatus
       @hash = @git.localHash
     end
