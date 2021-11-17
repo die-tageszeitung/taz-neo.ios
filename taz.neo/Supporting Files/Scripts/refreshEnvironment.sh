@@ -56,7 +56,7 @@ function branch () {
 	  TAZ_APP_CONFIG="Release"
 	fi
 
-	echo "set Icon and Scheme Config to: $1"
+	echo "set Icon and Scheme Config to: $TAZ_APP_CONFIG"
 	setConfig $TAZ_APP_CONFIG
 	echo "update Build Number"
 	ruby genBuildConst.rb -D
@@ -99,8 +99,8 @@ case $1 in
     beta) setConfig Beta; exit;;
     Release) setConfig Release; exit;;
 	release) setConfig Release; exit;;
-	branch) branch Release; exit;;
-	-b) branch Release; exit;;
+	branch) branch; exit;;
+	-b) branch; exit;;
 esac
 
 help
