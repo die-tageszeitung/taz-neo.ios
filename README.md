@@ -11,9 +11,10 @@ Ringo Müller, https://github.com/bochos-bln
 
 taz.neo is available under the AGPL. See the LICENSE file for more info.
 
+
 ## Setup & Requirements
 - Place the "North Lib" Project Library directory next to the taz.neo directory
-- may add post-checkout hook by:
+- **may add post-checkout hook by:**
   - mkdir .git/hooks
   - cp taz.neo/Supporting\ Files/Scripts/post-checkout.sh .git/hooks/post-checkout
   - chmod u+x .git/hooks/post-checkout
