@@ -39,7 +39,47 @@ function setConfig () {
 	echo "set Icon and Scheme Config to: $1"
 	setSelectedSchemeConfiguration $1
 	setAppIcon $1
+  echo "warning remove this will be done by ruby soon!"
+  changeBuildConst $1
+  cleanXcodeCache
 	echo "done"
+}
+
+#Shortcut for Tests
+function changeBuildConst () {
+  XCCONFIG=../ConfigSettings.xcconfig
+  BUILDCONST=BuildConst.swift
+  echo "changeBuildConst $1 to: $XCCONFIG AND $BUILDCONST"
+  
+  if [[ $1 == 'Alpha'  ]]
+  then
+    sed -i '' -e 's#PRODUCT_NAME.*#PRODUCT_NAME = taz.alpha#g' $XCCONFIG
+    sed -i '' -e 's#PRODUCT_BUNDLE_IDENTIFIER.*#PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.neo#g' $XCCONFIG
+    sed -i '' -e 's#static var name.*#  static var name: String { \"'"taz.alpha"'\" }#g' $BUILDCONST
+    sed -i '' -e 's#static var id.*#  static var id: String { \"'"de.taz.taz.neo"'\" }#g' $BUILDCONST
+    sed -i '' -e 's#static var state.*#  static var state: String { \"'"alpha"'\" }#g' $BUILDCONST
+  elif [[ $1 == 'Beta'  ]]
+  then
+    sed -i '' -e 's#PRODUCT_NAME.*#PRODUCT_NAME = taz.beta#g' $XCCONFIG
+    sed -i '' -e 's#PRODUCT_BUNDLE_IDENTIFIER.*#PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.beta#g' $XCCONFIG
+    sed -i '' -e 's#static var name.*#  static var name: String { \"'"taz.beta"'\" }#g' $BUILDCONST
+    sed -i '' -e 's#static var id.*#  static var id: String { \"'"de.taz.taz.beta"'\" }#g' $BUILDCONST
+    sed -i '' -e 's#static var state.*#  static var state: String { \"'"beta"'\" }#g' $BUILDCONST
+  else
+    sed -i '' -e 's#PRODUCT_NAME.*#PRODUCT_NAME = die tageszeitung#g' $XCCONFIG
+    sed -i '' -e 's#PRODUCT_BUNDLE_IDENTIFIER.*#PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2#g' $XCCONFIG
+    sed -i '' -e 's#static var name.*#  static var name: String { \"'"die tageszeitung"'\" }#g' $BUILDCONST
+    sed -i '' -e 's#static var id.*#  static var id: String { \"'"de.taz.taz.2"'\" }#g' $BUILDCONST
+    sed -i '' -e 's#static var state.*#  static var state: String { \"'"release"'\" }#g' $BUILDCONST
+  fi
+  echo "done"
+}
+
+function cleanXcodeCache () {
+  echo "cleanXcodeCache"
+  rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+  rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*
+  echo "done"
 }
 
 function branch () {
