@@ -10,7 +10,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "cd ${PROJECT_DIR}&#10;. taz.neo/Supporting\ Files/Scripts/LastBuildNumber.rb&#10;echo &quot;Set CURRENT_PROJECT_VERSION to: $LastBuildNumber&quot;&#10;xcrun agvtool new-version $LastBuildNumber&#10;">
+               scriptText = "cd ${PROJECT_DIR}&#10;. taz.neo/Supporting\ Files/Scripts/LastBuildNumber.rb&#10;">
             </ActionContent>
          </ExecutionAction>
       </PreActions>
