@@ -349,14 +349,7 @@ open class FeederContext: DoesLog {
     ArticleDB.singleton = nil
     openDB(name: name)
   }
-  
-  func resetNetAvailability(){
-    guard let host = URL(string: self.url)?.host else { return }
-    self.netAvailability = NetAvailability(host: host)
-    self.netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
-    self.checkNetwork()
-  }
-  
+    
   /// init sends a "feederReady" Notification when the feeder context has
   /// been set up
   public init?(name: String, url: String, feed feedName: String) {
