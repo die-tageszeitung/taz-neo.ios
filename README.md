@@ -16,7 +16,7 @@ taz.neo is available under the AGPL. See the LICENSE file for more info.
 - Place the "North Lib" Project Library directory next to the taz.neo directory
 - **may add post-checkout hook by:**
   - mkdir .git/hooks
-  - cp taz.neo/Supporting\ Files/Scripts/post-checkout.sh .git/hooks/post-checkout
+  - cp taz.neo/Supporting\ Files/Scripts/post-checkout-prototype.sh .git/hooks/post-checkout
   - chmod u+x .git/hooks/post-checkout
 - **may generate (gitignored) BuildConst.swift by:**
   - ruby taz.neo/Supporting\ Files/Scripts/genBuildConst.rb -D

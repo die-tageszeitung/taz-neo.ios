@@ -149,13 +149,10 @@
 		77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueVCBottomTielesCVCCell.swift; sourceTree = "<group>"; };
 		77F0D1342742B4E900D3A432 /* addLocalResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addLocalResources.sh; sourceTree = "<group>"; };
 		77F0D1372742B4E900D3A432 /* downloadBundledResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = downloadBundledResources.sh; sourceTree = "<group>"; };
-		77F0D1382742B4E900D3A432 /* post-checkout.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "post-checkout.sh"; sourceTree = "<group>"; };
 		77F0D1392742B58400D3A432 /* LastBuildNumber.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = LastBuildNumber.rb; sourceTree = "<group>"; };
-		946CC65D2745290D00D9DE71 /* applyLastBuildNumber.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = applyLastBuildNumber.sh; sourceTree = "<group>"; };
-		946CC6602745290D00D9DE71 /* changeConfiguration.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = changeConfiguration.sh; sourceTree = "<group>"; };
-		94D7CD21273D6FDB001E41D2 /* ConfigSettingsBeta.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ConfigSettingsBeta.xcconfig; sourceTree = "<group>"; };
-		94D7CD22273D6FF1001E41D2 /* ConfigSettingsDebugAlpha.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ConfigSettingsDebugAlpha.xcconfig; sourceTree = "<group>"; };
-		94D7CD23273D700A001E41D2 /* ConfigSettingsRelease.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ConfigSettingsRelease.xcconfig; sourceTree = "<group>"; };
+		948E40CD2745447500D32CFE /* post-checkout-prototype.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "post-checkout-prototype.sh"; sourceTree = "<group>"; };
+		948E40CE274544BE00D32CFE /* refreshEnvironment.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = refreshEnvironment.sh; sourceTree = "<group>"; };
+		948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ConfigSettings.xcconfig; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextSettingsVC.swift; sourceTree = "<group>"; };
@@ -430,9 +427,7 @@
 				AEBAF573219ACD1A00566205 /* Info.plist */,
 				AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */,
 				08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */,
-				94D7CD21273D6FDB001E41D2 /* ConfigSettingsBeta.xcconfig */,
-				94D7CD22273D6FF1001E41D2 /* ConfigSettingsDebugAlpha.xcconfig */,
-				94D7CD23273D700A001E41D2 /* ConfigSettingsRelease.xcconfig */,
+				948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */,
 			);
 			path = "Supporting Files";
 			sourceTree = "<group>";
@@ -440,14 +435,13 @@
 		AEC7D4C624A5E1D3008630FB /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
-				946CC65D2745290D00D9DE71 /* applyLastBuildNumber.sh */,
-				946CC6602745290D00D9DE71 /* changeConfiguration.sh */,
+				948E40CE274544BE00D32CFE /* refreshEnvironment.sh */,
+				948E40CD2745447500D32CFE /* post-checkout-prototype.sh */,
 				7738E50C2744596200453CD8 /* genBuildConst.rb */,
 				77828D1327444FF500DCD3BE /* BuildConst.swift */,
 				77F0D1392742B58400D3A432 /* LastBuildNumber.rb */,
 				77F0D1342742B4E900D3A432 /* addLocalResources.sh */,
 				77F0D1372742B4E900D3A432 /* downloadBundledResources.sh */,
-				77F0D1382742B4E900D3A432 /* post-checkout.sh */,
 			);
 			path = Scripts;
 			sourceTree = "<group>";
@@ -710,7 +704,7 @@
 /* Begin XCBuildConfiguration section */
 		94D7CD19273D6E49001E41D2 /* Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 94D7CD21273D6FDB001E41D2 /* ConfigSettingsBeta.xcconfig */;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
@@ -768,7 +762,7 @@
 		};
 		94D7CD1A273D6E49001E41D2 /* Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 94D7CD21273D6FDB001E41D2 /* ConfigSettingsBeta.xcconfig */;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -793,7 +787,7 @@
 		};
 		AEBAF57F219ACD1A00566205 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 94D7CD22273D6FF1001E41D2 /* ConfigSettingsDebugAlpha.xcconfig */;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
@@ -857,7 +851,7 @@
 		};
 		AEBAF580219ACD1A00566205 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 94D7CD23273D700A001E41D2 /* ConfigSettingsRelease.xcconfig */;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
@@ -915,7 +909,7 @@
 		};
 		AEBAF582219ACD1A00566205 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 94D7CD22273D6FF1001E41D2 /* ConfigSettingsDebugAlpha.xcconfig */;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -940,7 +934,7 @@
 		};
 		AEBAF583219ACD1A00566205 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 94D7CD23273D700A001E41D2 /* ConfigSettingsRelease.xcconfig */;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
