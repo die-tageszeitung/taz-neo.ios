@@ -376,21 +376,27 @@ class GenBuildConst
     end
   end
   
-  # write build constants to BuildConst.swift
+  # write build constants to BuildConst.swift, ../ConfigSettings.xcconfig
   #
   def write
     swiftConst = <<~EOF
       // Generated on branch #{@git.branch} at #{Time.now.to_s}
       //
       public struct BuildConst {
-        static let name: String { "#{@param.name}" }
-        static let id: String { "#{@param.id}" }
-        static let state: String { "#{@param.state}" }
-        static let buildNumber: String { "#{@buildNumber}" }
-        static let hash: String { "#{@hash}" }
+        static var name: String { "#{@param.name}" }
+        static var id: String { "#{@param.id}" }
+        static var state: String { "#{@param.state}" }
+        static var buildNumber: String { "#{@buildNumber}" }
+        static var hash: String { "#{@hash}" }
       }
       EOF
     File.open("#{dir}/BuildConst.swift", "w") { |f| f.write(swiftConst) }
+    schemeConst = <<~EOF
+      PRODUCT_NAME = #{@param.name}
+      PRODUCT_BUNDLE_IDENTIFIER = #{@param.id}
+      CURRENT_PROJECT_VERSION = #{@buildNumber}
+      EOF
+    File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
   end
   
 end # class GenBuildConst
