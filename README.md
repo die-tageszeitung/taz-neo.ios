@@ -18,7 +18,7 @@ taz.neo is available under the AGPL. See the LICENSE file for more info.
   - mkdir .git/hooks
   - cp taz.neo/Supporting\ Files/Scripts/post-checkout-prototype.sh .git/hooks/post-checkout
   - chmod u+x .git/hooks/post-checkout
-- **may generate (gitignored) BuildConst.swift by:**
+- **may generate (gitignored) BuildConst.swift && ConfigSettings.xcconfig by:**
   - ruby taz.neo/Supporting\ Files/Scripts/genBuildConst.rb -D
 - may add fonts and other optional files
 Build input file cannot be found: '/Users/tazringo/src/TAZ/taz-neo.ios/taz.neo/Supporting Files/Scripts/BuildConst.swift'- run (with latest released Xcode) and enjoy
