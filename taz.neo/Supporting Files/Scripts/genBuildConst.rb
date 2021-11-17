@@ -272,11 +272,17 @@ class GenBuildConst
     SYNOPSIS
       genBuildConst [options]
       options:
-        -D           : developer build, don't increment build number, implies -in
         -d directory : where to write BuildConst.swift, LastBuildNumber.rb to
-        -r remote    : URL of remote repository
+        -r remote    : URL of the remote repository
         -i           : ignore merge/commit and branch errors
         -n           : don't commit LastBuildNumber.rb
+        -A           : archive mode, implied by environment variable
+                         ACTION=install
+      By default (in non archive mode) the options -in are applied to ignore
+      merge/commit and branch errors and to not increase and commit
+      LastBuildNumber.rb. In archive mode for errors is checked and the build
+      number is incremented as well as LastBuildNumber.rb is committed and pushed
+      to the remote repository.
   EOF
   
   def usage
@@ -309,6 +315,11 @@ class GenBuildConst
     @dir = File.dirname($PROGRAM_NAME)
     @remote = "https://github.com/die-tageszeitung/taz-neo.ios.git"
     @options = {}
+    if ENV["ACTION"] != "install"
+      @options[:devel] = true
+      @options[:ignore] = true
+      @options[:noCommit] = true
+    end
     av = ARGV
     while av.length > 0
       case av[0]
@@ -336,10 +347,10 @@ class GenBuildConst
               @options[:ignore] = true
             when "n"[0]
               @options[:noCommit] = true
-            when "D"[0]
-              @options[:devel] = true
-              @options[:ignore] = true
-              @options[:noCommit] = true
+            when "A"[0]
+              @options[:devel] = false
+              @options[:ignore] = false
+              @options[:noCommit] = false
             else
               usage
           end
