@@ -33,10 +33,10 @@ fi
 # Evaluate current environment
 TAZ_APP_CONFIG="Alpha"
 
-if [[ $checkoutType == 1 ]] && [[ $branchNewHead == 'beta'  ]] 
+if [[ $branchNewHead == 'beta'  ]]
 then
   TAZ_APP_CONFIG="Beta"
-elif [[ $checkoutType == 1 ]] && [[ $branchNewHead == 'release'  ]] 
+elif [[ $branchNewHead == 'release'  ]]
 then
   TAZ_APP_CONFIG="Release"
 fi
