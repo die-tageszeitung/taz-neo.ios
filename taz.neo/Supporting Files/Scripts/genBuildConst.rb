@@ -383,11 +383,11 @@ class GenBuildConst
       // Generated on branch #{@git.branch} at #{Time.now.to_s}
       //
       public struct BuildConst {
-        static let name: String = "#{@param.name}"
-        static let id: String = "#{@param.id}"
-        static let state: String = "#{@param.state}"
-        static let buildNumber: String = "#{@buildNumber}"
-        static let hash: String = "#{@hash}"
+        static let name: String { "#{@param.name}" }
+        static let id: String { "#{@param.id}" }
+        static let state: String { "#{@param.state}" }
+        static let buildNumber: String { "#{@buildNumber}" }
+        static let hash: String { "#{@hash}" }
       }
       EOF
     File.open("#{dir}/BuildConst.swift", "w") { |f| f.write(swiftConst) }
