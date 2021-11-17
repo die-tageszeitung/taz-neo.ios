@@ -151,6 +151,8 @@
 		77F0D1372742B4E900D3A432 /* downloadBundledResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = downloadBundledResources.sh; sourceTree = "<group>"; };
 		77F0D1382742B4E900D3A432 /* post-checkout.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "post-checkout.sh"; sourceTree = "<group>"; };
 		77F0D1392742B58400D3A432 /* LastBuildNumber.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = LastBuildNumber.rb; sourceTree = "<group>"; };
+		946CC65D2745290D00D9DE71 /* applyLastBuildNumber.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = applyLastBuildNumber.sh; sourceTree = "<group>"; };
+		946CC6602745290D00D9DE71 /* changeConfiguration.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = changeConfiguration.sh; sourceTree = "<group>"; };
 		94D7CD21273D6FDB001E41D2 /* ConfigSettingsBeta.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ConfigSettingsBeta.xcconfig; sourceTree = "<group>"; };
 		94D7CD22273D6FF1001E41D2 /* ConfigSettingsDebugAlpha.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ConfigSettingsDebugAlpha.xcconfig; sourceTree = "<group>"; };
 		94D7CD23273D700A001E41D2 /* ConfigSettingsRelease.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ConfigSettingsRelease.xcconfig; sourceTree = "<group>"; };
@@ -438,6 +440,8 @@
 		AEC7D4C624A5E1D3008630FB /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
+				946CC65D2745290D00D9DE71 /* applyLastBuildNumber.sh */,
+				946CC6602745290D00D9DE71 /* changeConfiguration.sh */,
 				7738E50C2744596200453CD8 /* genBuildConst.rb */,
 				77828D1327444FF500DCD3BE /* BuildConst.swift */,
 				77F0D1392742B58400D3A432 /* LastBuildNumber.rb */,
