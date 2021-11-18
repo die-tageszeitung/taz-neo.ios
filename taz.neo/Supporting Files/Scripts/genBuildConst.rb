@@ -3,6 +3,8 @@
 # genBuildConst is used generate some build time constants and to manage the
 # build number
 
+require 'fileutils'
+
 # class BuildParameter specifies some branch specific parameters like app name.
 #
 class BuildParameter
@@ -397,6 +399,8 @@ class GenBuildConst
       CURRENT_PROJECT_VERSION = #{@buildNumber}
       EOF
     File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
+    system("rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex")
+    system("rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*")
   end
   
 end # class GenBuildConst
