@@ -43,7 +43,6 @@ public class SimpleAuthenticator: Authenticator {
     let alert = UIAlertController(title: "Anmeldung", 
         message: "Bitte melden Sie sich mit Ihren Kundendaten an",
         preferredStyle: .alert)
-//    alert.defaultStyle()//currently using default, no need to set
     alert.addTextField { (textField) in
       textField.placeholder = "ID"
       textField.keyboardType = .emailAddress

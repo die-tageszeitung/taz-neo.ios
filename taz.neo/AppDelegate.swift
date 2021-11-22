@@ -15,7 +15,6 @@ class AppDelegate: NotifiedDelegate {
   var wantLogging = false
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-//    Alert.sharedAlertTintColor = Const.SetColor.ios(.link).color //default no need to set!
     updateDefaultsIfNeeded()
     saveLastLog()
     self.window = UIWindow(frame: UIScreen.main.bounds)
