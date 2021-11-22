@@ -564,36 +564,26 @@ class CustomSettingsCell: SettingsCell {
   override func setup(){
     super.setup()
     
-    for v in contentView.subviews {
-      v.removeFromSuperview()
+    if let t = content?.text, let s = content?.subText {
+      self.textLabel?.attributedText = attributedString(first: t, second: s)
     }
-    
-    let accessoryView = content?.accessoryView ?? UIView()
-    let label = UILabel(); label.text = content?.text
-    let sublabel = UILabel(); sublabel.text = content?.subText
-    
-    label.contentFont()
-    sublabel.contentFont(size: 14).textColor = Const.SetColor.ios(.secondaryLabel).color
-    
-    label.numberOfLines = 0
-    sublabel.numberOfLines = 0
-    
-    let hStack = UIStackView()
-    hStack.axis = .horizontal
-    hStack.distribution = .fill
-    hStack.spacing = 2
-    hStack.addArrangedSubview(label)
-    hStack.addArrangedSubview(accessoryView)
-    
-    let wrapperVStack = UIStackView()
-    wrapperVStack.axis = .vertical
-    wrapperVStack.distribution = .fill
-    wrapperVStack.spacing = 2
-    wrapperVStack.addArrangedSubview(hStack)
-    wrapperVStack.addArrangedSubview(sublabel)
-    
-    self.contentView.addSubview(wrapperVStack)
-    pin(wrapperVStack, to: contentView, dist: 12, priority: .defaultLow)
+    else {
+      self.textLabel?.text = content?.text ?? nil
+    }
+    if let accessoryView = content?.accessoryView {
+      self.contentView.addSubview(accessoryView)
+      let spacer = UIView()
+      self.contentView.addSubview(spacer)
+      pin(accessoryView.top, to: self.contentView.top, dist: Const.Size.SmallPadding, priority: .defaultHigh)
+      pin(spacer.top, to: accessoryView.bottom)
+      pin(spacer.bottom, to: self.contentView.bottom)
+      pin(accessoryView.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
+      
+      if let lbl = self.detailTextLabel, let sv = lbl.superview {
+        pin(lbl.top, to: sv.top, dist: Const.Size.SmallPadding, priority: .defaultHigh)
+      }
+      
+    }
   }
 }
 
@@ -858,8 +848,7 @@ extension ButtonControl {
   @discardableResult
   func tazButton() -> Self {
     guard let bv = self as? Button<TextView> else { return self }
-    self.pinHeight(28)
-    self.pinWidth(28)
+    self.pinSize(CGSize(width: 28, height: 28), priority: .defaultHigh)
     bv.buttonView.isCircle = true
     bv.buttonView.circleColor = Const.SetColor.ios(.secondarySystemFill).color
     bv.buttonView.label.textColor = Const.SetColor.ios(.secondaryLabel).color
