@@ -70,7 +70,7 @@ public class FeedbackView : UIView {
     setupText()
 
     cancelButton.setTitle("Abbrechen", for: .normal)
-    cancelButton.setTitleColor(Const.Colors.ciColor, for: .normal)
+    cancelButton.setTitleColor(Const.SetColor.ios(.link).color, for: .normal)
     cancelButton.setTitleColor(.lightGray, for: .highlighted)
     let cancelButtonWrapper = UIStackView()
     cancelButtonWrapper.alignment = .leading
@@ -100,7 +100,7 @@ public class FeedbackView : UIView {
     subjectLabel.textColor = Const.SetColor.CTDate.color
     subjectLabel.font = UIFont.boldSystemFont(ofSize: Const.Size.LargeTitleFontSize)
     /// Content: sendButton Style
-    sendButton.setBackgroundColor(color: Const.Colors.ciColor, forState: .normal)
+    sendButton.setBackgroundColor(color: Const.SetColor.ios(.link).color, forState: .normal)
     sendButton.setBackgroundColor(color: .lightGray, forState: .disabled)
     sendButton.layer.cornerRadius = 21
     sendButton.setImage(UIImage(name: "arrow.up"), for: .normal)
@@ -116,7 +116,7 @@ public class FeedbackView : UIView {
     screenshotAttachmentButton.contentMode = .scaleAspectFit
     hStack2.addSubview(logAttachmentButton)
     logAttachmentButton.image = UIImage(name: "doc.text")
-    logAttachmentButton.tintColor = Const.Colors.ciColor
+    logAttachmentButton.tintColor = Const.SetColor.ios(.link).color
     
     stack.axis = .vertical
     stack.spacing = 4.0//Seperators increase spacing!

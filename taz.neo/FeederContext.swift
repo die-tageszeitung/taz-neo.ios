@@ -303,10 +303,11 @@ open class FeederContext: DoesLog {
       case .subscription:
         authenticator.pollSubscription(){_ in}
       case .newIssue:
+//        if App.Ba
         //not using checkForNew Issues see its warning!
-        //count 1 not working: 
-        log("load new Issue")
-        self.getOvwIssues(feed: self.defaultFeed, count: 1)
+        //count 1 not working:
+        log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
+        //self.getOvwIssues(feed: self.defaultFeed, count: 1)
       default:
         self.debug(payload.toString())
     }
@@ -798,6 +799,22 @@ extension PushNotification.Payload {
         }
       }
       return nil
+    }
+  }
+}
+
+
+extension UIApplication {
+  var stateDescription : String {
+    switch self.applicationState {
+      case .active:
+        return "active"
+      case .background:
+        return "active"
+      case .inactive:
+        return "inactive"
+      default:
+        return "unknown with raw: \(self.applicationState.rawValue)"
     }
   }
 }

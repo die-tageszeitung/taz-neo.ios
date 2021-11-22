@@ -152,7 +152,8 @@ fileprivate extension AppDelegate {
 fileprivate enum Shortcuts{
   
   static func currentItems(wantsLogging:Bool) -> [UIApplicationShortcutItem]{
-    if App.isAlpha == false && Defaults.currentServer == .liveServer {
+    // No Server Switch for Release App
+    if App.isRelease {
       return []
       //        return [Shortcuts.logging.shortcutItem()]
     }

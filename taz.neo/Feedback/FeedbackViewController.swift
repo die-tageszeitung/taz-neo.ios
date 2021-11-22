@@ -420,7 +420,7 @@ class OverlayViewController : UIViewController{
     }
   }
   
-  var xButton = Button<CircledXView>()
+  var xButton = Button<CircledXView>().tazX()
   
   func onX(closure: @escaping ()->()) {
     xButton.isHidden = false
@@ -429,13 +429,6 @@ class OverlayViewController : UIViewController{
   
   /// Setup the xButton
   func setupXButton() {
-    xButton.pinHeight(35)
-    xButton.pinWidth(35)
-    xButton.buttonView.isCircle = true
-    xButton.buttonView.circleColor = Const.Colors.iOSDark.secondaryLabel
-    xButton.activeColor = Const.Colors.ciColor
-    xButton.color = Const.Colors.iOSDark.secondarySystemBackground
-    xButton.buttonView.innerCircleFactor = 0.5
     self.view.addSubview(xButton)
     pin(xButton.right, to: self.view.rightGuide(), dist: -Const.Size.DefaultPadding)
     pin(xButton.top, to: self.view.topGuide(), dist: Const.Size.DefaultPadding)

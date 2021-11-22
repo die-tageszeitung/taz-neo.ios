@@ -136,6 +136,11 @@ public struct Const {
     case HText
     case Test
     case CIColor
+    case ios_opaque(iOS_Opaque)
+    enum iOS_Opaque {
+      case closeXcircleBackground
+      case closeX
+    }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
       case label
@@ -207,6 +212,10 @@ public struct Const {
           return (UIColor.red, UIColor.green, UIColor.blue,UIColor.magenta)
         case .CIColor:
           return (Const.Colors.ciColor,nil,nil,nil)
+        case .ios_opaque(.closeX):
+          return (UIColor.rgb(0x5D5E63), UIColor.rgb(0xB8B8C1), nil, nil)
+        case .ios_opaque(.closeXcircleBackground):
+          return (UIColor.rgb(0xDCDCDE), UIColor.rgb(0x424147), nil, nil)
         case .ios(.label):
           return (Const.Colors.iOSLight.label, Const.Colors.iOSDark.label, nil, nil)
         case .ios(.secondaryLabel):

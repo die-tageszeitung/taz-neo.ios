@@ -11,7 +11,7 @@ import NorthLib
 extension Settings.LinkType {
   var cellDescription:String {
     switch self {
-      case .onboarding: return "Erste Schritte";
+      case .onboarding: return App.isBeta ? "Erste Schritte beta" : "Erste Schritte nicht beta";
       case .errorReport: return "Fehler melden";
       case .manageAccount: return userInfo;
       case .terms: return "Allgemeine Geschäftsbedingungen (AGB)";
@@ -105,10 +105,10 @@ struct Settings {
     let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
     
     return [
-      ("allgemein",
+      ("speicher",
        [
         Cell(withText: "Maximale Anzahl der zu speichernden Ausgaben",
-             subText: "Speichernutzung\nApp: \(app)MB, Daten: \(data)MB",
+             subText: "SpeichernutzungApp: \(app)MB, Daten: \(data)MB",
              accessoryView: SaveLastCountIssues()),
         Cell(linkType: .cleanMemory),
 //        Cell(toggleWithText: "Neue Ausgaben automatisch laden",
@@ -511,7 +511,6 @@ class ToggleSettingsCell: SettingsCell {
   
   lazy var toggle: UISwitch = {
     let toggle = UISwitch()
-    toggle.onTintColor = Const.SetColor.ios(.link).color
     toggle.addTarget(self, action: #selector(handleToggle(sender:)), for: .valueChanged)
     return toggle
   }()
@@ -531,6 +530,19 @@ class ToggleSettingsCell: SettingsCell {
 
 
 // MARK: - LinkSettingsCell
+class DetailDescriptionCell: SettingsCell {
+  static let identifier = "linkSettingsCell"
+  
+  override func setup(){
+    super.setup()
+    self.textLabel?.text = content?.text
+    self.textLabel?.contentFont()
+    
+    
+  }
+}
+
+
 class LinkSettingsCell: SettingsCell {
   static let identifier = "linkSettingsCell"
   
@@ -551,14 +563,37 @@ class CustomSettingsCell: SettingsCell {
   
   override func setup(){
     super.setup()
-    self.accessoryView = content?.accessoryView
     
-    if let t = content?.text, let s = content?.subText {
-      self.textLabel?.attributedText = attributedString(first: t, second: s)
+    for v in contentView.subviews {
+      v.removeFromSuperview()
     }
-    else {
-      self.textLabel?.text = content?.text ?? nil
-    }
+    
+    let accessoryView = content?.accessoryView ?? UIView()
+    let label = UILabel(); label.text = content?.text
+    let sublabel = UILabel(); sublabel.text = content?.subText
+    
+    label.contentFont()
+    sublabel.contentFont(size: 14).textColor = Const.SetColor.ios(.secondaryLabel).color
+    
+    label.numberOfLines = 0
+    sublabel.numberOfLines = 0
+    
+    let hStack = UIStackView()
+    hStack.axis = .horizontal
+    hStack.distribution = .fill
+    hStack.spacing = 2
+    hStack.addArrangedSubview(label)
+    hStack.addArrangedSubview(accessoryView)
+    
+    let wrapperVStack = UIStackView()
+    wrapperVStack.axis = .vertical
+    wrapperVStack.distribution = .fill
+    wrapperVStack.spacing = 2
+    wrapperVStack.addArrangedSubview(hStack)
+    wrapperVStack.addArrangedSubview(sublabel)
+    
+    self.contentView.addSubview(wrapperVStack)
+    pin(wrapperVStack, to: contentView, dist: 12, priority: .defaultLow)
   }
 }
 
@@ -594,7 +629,7 @@ class SettingsCell:UITableViewCell {
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-    super.init(style: style, reuseIdentifier: reuseIdentifier)
+    super.init(style: UITableViewCell.CellStyle.subtitle, reuseIdentifier: reuseIdentifier)
     setup()
   }
   
@@ -633,20 +668,15 @@ class SaveLastCountIssues: CustomHStack {
     leftButton.buttonView.text = "-"
     rightButton.buttonView.text = "+"
     
-    leftButton.buttonView.activeColor = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
-    rightButton.buttonView.activeColor = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
+    leftButton.tazButton()
+    rightButton.tazButton()
     
-    leftButton.pinWidth(22)
-    rightButton.pinWidth(22)
     leftButton.buttonView.label.baselineAdjustment = .alignCenters
     rightButton.buttonView.label.baselineAdjustment = .alignCenters
-    
-    leftButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.ContentTableFontSize)//14
-    
-    rightButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.ContentTableFontSize)//14
 
+    leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
+    rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.2, left:0.2 , bottom: 1.2, right: -0.2)
+    
     label.textAlignment = .center
     self.addArrangedSubview(leftButton)
     self.addArrangedSubview(label)
@@ -677,10 +707,13 @@ class TextSizeSetting: SaveLastCountIssues {
     label.text = "\(articleTextSize)%"
     leftButton.buttonView.text = "a"
     rightButton.buttonView.text = "a"
+    leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
+    rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -2.5, left:0.2 , bottom: 2.5, right: -0.2)
+    // Overwrite Default 16
     leftButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)//14
+    = Const.Fonts.contentFont(size: 12)//-4
     rightButton.buttonView.font
-    = Const.Fonts.contentFont(size: Const.Size.ContentTableRowHeight)//30
+    = Const.Fonts.contentFont(size: 20)//+4
     
     leftButton.onPress { [weak self] _ in
       self?.label.text = "\(Defaults.articleTextSize.decrease())%"
@@ -698,7 +731,7 @@ class TextSizeSetting: SaveLastCountIssues {
 
 class CustomHStack: UIStackView {
   init(){
-    super.init(frame: CGRect(x: 0, y: 0, width: 100, height: 30))
+    super.init(frame: CGRect(x: 0, y: 0, width: 110, height: 30))
     self.axis = .horizontal
     self.distribution = .fill
     self.spacing = 2
@@ -816,9 +849,24 @@ extension ButtonControl {
     self.color = .black
     bv.buttonView.isCircle = true
     bv.buttonView.circleColor = Const.SetColor.ios(.secondarySystemFill).color
-    bv.buttonView.color = Const.SetColor.ios(.link).color
-    bv.buttonView.activeColor = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
+    bv.buttonView.color = Const.SetColor.ios(.secondaryLabel).color
+    bv.buttonView.activeColor = Const.SetColor.ios(.secondaryLabel).color.withAlphaComponent(0.1)
     bv.buttonView.innerCircleFactor = 0.5
+    return self
+  }
+  
+  @discardableResult
+  func tazButton() -> Self {
+    guard let bv = self as? Button<TextView> else { return self }
+    self.pinHeight(28)
+    self.pinWidth(28)
+    bv.buttonView.isCircle = true
+    bv.buttonView.circleColor = Const.SetColor.ios(.secondarySystemFill).color
+    bv.buttonView.label.textColor = Const.SetColor.ios(.secondaryLabel).color
+    bv.buttonView.color = Const.SetColor.ios(.secondaryLabel).color
+    bv.buttonView.activeColor = Const.SetColor.ios(.secondaryLabel).color.withAlphaComponent(0.1)
+    bv.buttonView.font
+    = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)//16
     return self
   }
 }
