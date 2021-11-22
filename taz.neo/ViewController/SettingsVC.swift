@@ -342,7 +342,7 @@ extension SettingsVC {
   func cleanMemoryMenu(){
     let alert = UIAlertController.init( title: "Daten Löschen", message: "erweiterte Optionen",
       preferredStyle:  .actionSheet )
-    
+    //    alert.defaultStyle()//currently using default, no need to set
     alert.addAction( UIAlertAction.init( title: "Hilfe", style: .default,
       handler: { [weak self] handler in
       guard let self = self else { return }
@@ -390,6 +390,7 @@ extension SettingsVC {
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    //       alert.view.tintColor = Const.SetColor.ios(.link).color//currently using default, no need to set
     alert.presentAt(self.view)
   }
   
@@ -428,7 +429,7 @@ extension SettingsVC {
     
     let actions = UIAlertController.init( title: nil, message: nil,
       preferredStyle:  .actionSheet )
-    
+    //    actions.defaultStyle()//currently using default, no need to set
     if isAuth {
       actions.addAction( UIAlertAction.init( title: "Abmelden", style: .default,
         handler: { [weak self] handler in
@@ -511,7 +512,6 @@ class ToggleSettingsCell: SettingsCell {
   
   lazy var toggle: UISwitch = {
     let toggle = UISwitch()
-    toggle.onTintColor = Const.SetColor.ios(.link).color
     toggle.addTarget(self, action: #selector(handleToggle(sender:)), for: .valueChanged)
     return toggle
   }()

@@ -298,7 +298,8 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
             //Active Background Color deactivated for the Moment due missing unclear Color Values
           $0.activeBackgroundColor = Const.SetColor.ios(._tertiarySystemBackgroundDown).color
           $0.backgroundColor = Const.SetColor.ios(.tertiarySystemBackground).color
-          $0.activeColor = Const.SetColor.ios(.tintColor).color
+          $0.activeColor = Const.SetColor.ios(.link).color.withAlphaComponent(0.7)
+//          $0.color = Const.SetColor.ios(.link).color
         }
   }
   

@@ -150,6 +150,7 @@ open class ArticleVC: ContentVC {
         if let url = URL(string: link) {
           let actions = UIAlertController.init( title: nil, message: nil,
             preferredStyle:  .actionSheet )
+          //    actions.defaultStyle()//currently using default, no need to set
           actions.addAction( UIAlertAction.init( title: "Teilen", style: .default,
             handler: { [weak self] handler in
               //previously used PDFEXPORT Compiler Flags
