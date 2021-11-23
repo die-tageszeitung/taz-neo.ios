@@ -29,10 +29,10 @@ extension Settings.LinkType {
     let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
     let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
     
-    var txt = "Speichernutzung: App: \(app)MB, Daten: \(data)MB\nGedrückt halten für weitere Optionen"
+    let txt = "App: \(app)MB, Daten: \(data)MB\nGedrückt halten für weitere Optionen"
 
-    return attributedString(first: "Alte Ausgaben & Temporäre Daten jetzt löschen",
-                            firstColor: Const.SetColor.ios(.link).color,
+    return attributedString(firstLeft: "Speichernutzung",
+                            firstRight: "jetzt bereinigen",
                             second: txt)
   }
   
@@ -78,6 +78,7 @@ struct Settings {
     var linkType:LinkType?
     let type:CellType
     var accessoryView:UIView?
+    var customView:UIView?
     var text:String?
     var subText:String?
     var userSetting: Bool?
@@ -102,6 +103,11 @@ struct Settings {
       self.text = text
       self.subText = subText
     }
+    
+    init(customView: UIView) {
+      self.customView = customView
+      self.type = .custom
+    }
   }
   typealias sectionContent = (title:String?, cells:[Cell])
   
@@ -110,9 +116,7 @@ struct Settings {
     return [
       ("speicher",
        [
-        Cell(withText: "Maximale Anzahl der zu speichernden Ausgaben",
-             subText: "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht.",
-             accessoryView: SaveLastCountIssues()),
+        Cell(customView: SaveLastCountIssues()),
         Cell(linkType: .cleanMemory),
 //        Cell(toggleWithText: "Neue Ausgaben automatisch laden",
 //             initialValue: Settings.autoloadNewIssues,
@@ -134,7 +138,9 @@ struct Settings {
         Cell(withText: "Textgröße (Inhalte)", accessoryView: TextSizeSetting()),
         Cell(toggleWithText: "Nachtmodus",
              initialValue: Defaults.darkMode,
-             changeHandler: { newValue in Defaults.darkMode = newValue})
+             changeHandler: { newValue in
+               Defaults.darkMode = newValue
+             })
        ]
       ),
       ("support",
@@ -171,18 +177,43 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   lazy var content = Settings.content()
   
-  lazy var footer:UIView = {
-    let background = UIView().set(backgroundColor: Const.Colors.opacityBackground)
-    let label = UILabel(App.appInfo)
-      .contentFont(size: 12)
-      .set(textColor: Const.SetColor.ios(.secondaryLabel).color)
+  class Footer:UIView, UIStyleChangeDelegate{
     
-    let wrapper = label.wrapper(Const.Insets.Default)
-    wrapper.insertSubview(background, at: 0)
-    pin(background, toSafe: wrapper, dist: 0, exclude: .bottom)
-    pin(background.bottom, to: wrapper.bottom, dist: UIWindow.maxInset)
-    return wrapper
-  }()
+    let label = UILabel()
+    let background = UIView()
+
+    
+    func applyStyles() {
+      background.backgroundColor = Const.Colors.opacityBackground
+      label.textColor = Const.SetColor.ios(.secondaryLabel).color
+    }
+    
+    func setup(){
+      self.addSubview(background)
+      self.addSubview(label)
+      label.text = App.appInfo
+      label.contentFont(size: 12)
+      applyStyles()
+      pin(label.left, to: self.left, dist: Const.Size.DefaultPadding)
+      pin(label.right, to: self.right, dist: Const.Size.DefaultPadding)
+      pin(label.top, to: self.top)
+      pin(label.bottom, to: self.bottom)
+      pin(background, toSafe: self, dist: 0, exclude: .bottom)
+      pin(background.bottom, to: self.bottom, dist: UIWindow.maxInset)
+      registerForStyleUpdates()
+    }
+    
+    init() {
+      super.init(frame: .zero)
+      setup()
+    }
+    
+    required init?(coder: NSCoder) {
+      fatalError("init(coder:) has not been implemented")
+    }
+  }
+  
+  lazy var footer:Footer = Footer()
   
   lazy var header = SimpleHeaderView("einstellungen")
   
@@ -212,9 +243,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   public func applyStyles() {
     self.tableView.backgroundColor = Const.SetColor.CTBackground.color
     footer.backgroundColor = Const.Colors.opacityBackground
-    onMainAfter {   [weak self] in
-      self?.tableView.reloadData()
-    }
+//    tableView.reloadData()
   }
   
   open override func viewWillAppear(_ animated: Bool) {
@@ -226,7 +255,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     super.viewDidLoad()
     setup()
     applyStyles()
-    
+    registerForStyleUpdates()
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
   }
@@ -248,24 +277,11 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   }
   
   open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    let sHead = UIView()
-    let label = UILabel()
-    label.text = content[section].title
-    label.boldContentFont(size: Const.Size.ContentTableFontSize).set(textColor: Const.SetColor.ios(.label).color)
-    sHead.addSubview(label)
-    pin(label.top, to: sHead.top, dist: 10, priority: .defaultHigh)
-    pin(label.bottom, to: sHead.bottom, dist: -10, priority: .defaultHigh)
-    pin(label.left, to: sHead.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
-    pin(label.right, to: sHead.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
-    sHead.set(backgroundColor: Const.Colors.opacityBackground)
-    return sHead
+    return SectionHeader(text:content[section].title ?? "")
   }
   
   open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     return section == content.count - 1 ? footer : UIView()
-  }
-  
-  open override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
   }
 
   open override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
@@ -350,6 +366,9 @@ extension SettingsVC {
       handler: { [weak self] handler in
       guard let self = self else { return }
       
+      self.showHelp()
+      return;
+      
       let cntTxt
       = self.persistedIssuesCount > 0
       ? "\(self.persistedIssuesCount)"
@@ -376,7 +395,7 @@ extension SettingsVC {
         self?.log("delete database done")
         exit(0)//Restart, resume currently not possible
         ///TODO enable resume FEEDER CONTEXT RE-INIT
-        onMainAfter {   [weak self]  in
+        onMainAfter { [weak self]  in
           self?.content[0] = Settings.content()[0]
           let ip0 = IndexPath(row: 1, section: 0)
           self?.tableView.reloadRows(at: [ip0], with: .fade)
@@ -485,11 +504,26 @@ extension SettingsVC {
     showLocalHtml(from: feeder.welcomeSlides, scrollEnabled: false)
   }
   
+  func showHelp(){
+    guard let url = Bundle.main.url(forResource: "SettingsHelp",
+                                 withExtension: "html",
+                                 subdirectory: "BundledResources")
+    else { return }
+    
+    showLocalHtml(from: url.absoluteString, scrollEnabled: true)
+  }
+  
   func showLocalHtml(from urlString:String, scrollEnabled: Bool){
     let introVC = IntroVC()
     introVC.htmlIntro = urlString
-    let intro = File(urlString)
-    introVC.webView.webView.load(url: intro.url)
+    let intro = File(dir: "BundledResources", fname: "SettingsHelp.html")
+    guard let url = Bundle.main.url(forResource: "SettingsHelp",
+                                 withExtension: "html",
+                                    subdirectory: "BundledResources") else { return }
+    print("file location: \(urlString)")
+    print("file exists: \(intro.exists)")
+    print(intro.string)
+    introVC.webView.webView.load(url: url)
     introVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
     introVC.webView.webView.scrollView.isScrollEnabled = scrollEnabled
     
@@ -508,6 +542,37 @@ extension SettingsVC {
   }
 }
 
+class SectionHeader: UIView, UIStyleChangeDelegate {
+  
+  let label = UILabel()
+  
+  func applyStyles() {
+    label.textColor =  Const.SetColor.ios(.label).color
+    self.backgroundColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
+  }
+  
+  func setup(){
+    self.addSubview(label)
+    pin(label.top, to: self.top, dist: 10, priority: .defaultHigh)
+    pin(label.bottom, to: self.bottom, dist: -10, priority: .defaultHigh)
+    pin(label.left, to: self.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
+    pin(label.right, to: self.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
+    label.boldContentFont(size: Const.Size.ContentTableFontSize)
+    registerForStyleUpdates()
+    applyStyles()
+  }
+  
+  init(text:String){
+    super.init(frame: .zero)
+    label.text = text
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+}
+
 // MARK: - ToggleSettingsCell
 class ToggleSettingsCell: SettingsCell {
   static let identifier = "toggleSettingsCell"
@@ -523,27 +588,35 @@ class ToggleSettingsCell: SettingsCell {
   }
   
   override func setup(){
+    super.setup()
     self.accessoryView = toggle
     self.textLabel?.numberOfLines = 0
     self.textLabel?.contentFont().labelColor()
     self.textLabel?.text = content?.text
     self.toggle.isOn = content?.toggleiInitialValue ?? false
+    self.backgroundColor = .clear
   }
-}
-
-
-// MARK: - LinkSettingsCell
-class DetailDescriptionCell: SettingsCell {
-  static let identifier = "linkSettingsCell"
   
-  override func setup(){
-    super.setup()
-    self.textLabel?.text = content?.text
-    self.textLabel?.contentFont()
-    
-    
+  override func applyStyles() {
+    self.textLabel?.labelColor()
   }
 }
+
+
+//// MARK: - LinkSettingsCell
+//class DetailDescriptionCell: SettingsCell {
+//  static let identifier = "detailDescriptionCell"
+//
+//  override func setup(){
+//    super.setup()
+//    self.textLabel?.text = content?.text
+//    self.textLabel?.contentFont()
+//  }
+//
+//  override func applyStyles() {
+//    self.textLabel?.labelColor()
+//  }
+//}
 
 
 class LinkSettingsCell: SettingsCell {
@@ -558,6 +631,10 @@ class LinkSettingsCell: SettingsCell {
      self.textLabel?.attributedText = attributedText
    }
   }
+
+  override func applyStyles() {
+    print("Link SettingsCell")
+  }
 }
 
 // MARK: - CustomSettingsCell
@@ -566,42 +643,28 @@ class CustomSettingsCell: SettingsCell {
   
   override func setup(){
     super.setup()
+    ///either custom view or labels with optional accessory view
+    if let customView = content?.customView {
+      self.contentView.addSubview(customView)
+      pin(customView, to: contentView, dist: Const.Size.DefaultPadding)
+      return
+    }
+    self.accessoryView = content?.accessoryView
     
-    self.textLabel?.text = content?.text
-    self.detailTextLabel?.text = content?.subText
+
     
-    if let accessoryView = content?.accessoryView,
-       let label = self.textLabel,
-       let detailLabel = self.detailTextLabel,
-       label.superview == detailLabel.superview,
-       let labelSV = detailLabel.superview {
-      ///label styles
-      label.contentFont()
-      detailLabel.contentFont(size: Const.Size.SmallerFontSize)
-        .set(textColor: Const.SetColor.ios(.secondaryLabel).color)
-      label.numberOfLines = 0
-      detailLabel.numberOfLines = 0
-      ///accessoryView for controlls
-      self.contentView.addSubview(accessoryView)
-      ///a spacer to prevent zero height warnings
-      let spacer = UIView()
-      self.contentView.addSubview(spacer)
-      pin(accessoryView.top, to: self.contentView.top, dist: Const.Size.SmallPadding, priority: .defaultHigh)
-      pin(spacer.top, to: accessoryView.bottom)
-      pin(spacer.bottom, to: self.contentView.bottom)
-      
-      pin(accessoryView.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
-      
-      pin(label.top, to: labelSV.top, dist: Const.Size.SmallPadding, priority: .defaultHigh)
-      pin(label.left, to: labelSV.left, dist: Const.Size.DefaultPadding, priority: .defaultHigh)
-      pin(label.right, to: accessoryView.left, dist: -Const.Size.SmallPadding, priority: .defaultHigh)
-      
-      pin(detailLabel.left, to: labelSV.left, dist: Const.Size.DefaultPadding, priority: .defaultHigh)
-      pin(detailLabel.right, to: labelSV.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
-      pin(detailLabel.top, to: label.bottom)
-      pin(detailLabel.bottom, to: labelSV.bottom)
-      self.setNeedsLayout()
-      self.layoutIfNeeded()
+  }
+  
+  override func applyStyles() {
+    if content?.customView != nil { return }
+    self.accessoryView = content?.accessoryView
+    
+    if let t = content?.text, let s = content?.subText {
+      self.textLabel?.attributedText = attributedString(first: t, second: s)
+    }
+    else {
+      self.textLabel?.text = content?.text ?? nil
+      self.textLabel?.labelColor()
     }
   }
 }
@@ -616,13 +679,36 @@ func attributedString(first:String,
   return aFirst
 }
 
+func attributedString(firstLeft:String,
+                      firstRight:String,
+                      second:String) -> NSAttributedString {
+  let pStyle = NSMutableParagraphStyle()
+  pStyle.tabStops = [NSTextTab(textAlignment: .left, location: 0.0, options: [:]),
+                     NSTextTab(textAlignment: .right, location: UIScreen.main.bounds.size.width - 2*Const.Size.DefaultPadding - 10, options: [:])]
 
-class SettingsCell:UITableViewCell {
+  let aFirst = NSMutableAttributedString(string: firstLeft, attributes: [.foregroundColor: Const.SetColor.ios(.label).color])
+  aFirst.append(NSAttributedString(string: "\t"))
+  let right = NSAttributedString(string: firstRight, attributes: [.foregroundColor: Const.SetColor.ios(.link).color])
+  aFirst.append(right)
+  
+  aFirst.addAttribute(.paragraphStyle, value: pStyle, range: NSRange(location: 0, length: aFirst.length-1))
+  
+  let aSecond = NSAttributedString(string: "\n\(second)", attributes: [.foregroundColor: Const.SetColor.ios(.secondaryLabel).color, .font: Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)])
+  aFirst.append(aSecond)
+  return aFirst
+}
+
+
+class SettingsCell:UITableViewCell, UIStyleChangeDelegate {
   var content:Settings.Cell? { didSet { setup() } }
   
   func setup() {
     applyDefaultStyles()
+    registerForStyleUpdates()
+    applyStyles()
   }
+  
+  func applyStyles() { }///Overwrite in inherited classes
   
   func applyDefaultStyles(){
     self.textLabel?.numberOfLines = 0
@@ -655,69 +741,121 @@ class SettingsCell:UITableViewCell {
   }
 }
 
-class SaveLastCountIssues: CustomHStack {
+class SaveLastCountIssues: UIView {
   
   @Default("persistedIssuesCount")
   private var persistedIssuesCount: Int {
-    didSet {
-      label.text
-      = persistedIssuesCount > 0
-      ? "\(persistedIssuesCount)"
-      : "alle"
-    }
+    didSet { updatePersistedIssuesCount() }
   }
+  
+  let mainLabel = UILabel()
+  let detailLabel = UILabel()
+  
+  let accessoryView = TextSizeSetting() //Stepper/Controlls
+  
+  func updatePersistedIssuesCount(){
+    accessoryView.label.text
+    = persistedIssuesCount > 0
+    ? "\(persistedIssuesCount)"
+    : "alle"
+  }
+    
+  func setup(){
+    ///Labels
+    mainLabel.text = "Maximale Anzahl der zu speichernden Ausgaben"
+    detailLabel.text = "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht."
+    mainLabel.contentFont().set(textColor: Const.SetColor.ios(.label).color)
+    detailLabel.contentFont(size: Const.Size.SmallerFontSize)
+      .set(textColor: Const.SetColor.ios(.secondaryLabel).color)
+    mainLabel.numberOfLines = 0
+    detailLabel.numberOfLines = 0
+    
+    ///Stepper left
+    accessoryView.label.text = "\(persistedIssuesCount)"
+    accessoryView.leftButton.buttonView.text = "-"
+    accessoryView.rightButton.buttonView.text = "+"
+    
+    accessoryView.leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
+    accessoryView.rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.2, left:0.2 , bottom: 1.2, right: -0.2)
+    
+    accessoryView.leftButton.onPress { [weak self] _ in
+      guard let self = self, self.persistedIssuesCount > 0 else { return }
+      /// 3 is minumum
+      if self.persistedIssuesCount == 3 { self.persistedIssuesCount = 0}
+      else { self.persistedIssuesCount -= 1 }
+    }
+    
+    accessoryView.rightButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      if self.persistedIssuesCount < 3 { self.persistedIssuesCount = 3}
+      else {self.persistedIssuesCount += 1}
+    }
+    
+    accessoryView.label.onTapping { [weak self] _ in
+      self?.persistedIssuesCount = 20
+    }
+    
+    accessoryView.pinWidth(110)
+    updatePersistedIssuesCount()
+    
+    ///Layout
+    self.addSubview(accessoryView)
+    self.addSubview(mainLabel)
+    self.addSubview(detailLabel)
+    
+    pin(accessoryView.top, to: self.top)
+    pin(accessoryView.right, to: self.right)
+    
+    pin(mainLabel.top, to: self.top)
+    pin(mainLabel.left, to: self.left)
+    pin(mainLabel.right, to: accessoryView.left, dist: -Const.Size.SmallPadding)
+    
+    pin(detailLabel.left, to: self.left)
+    pin(detailLabel.right, to: self.right)
+    pin(detailLabel.top, to: mainLabel.bottom)
+    pin(detailLabel.bottom, to: self.bottom)
+  }
+  
+  init(){
+    super.init(frame: .zero)
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+}
+
+class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
   let leftButton = Button<TextView>()
   let rightButton = Button<TextView>()
   let label = UILabel()
   
-  override func setup(){
-    super.setup()
-    label.text = "\(persistedIssuesCount)"
-    leftButton.buttonView.text = "-"
-    rightButton.buttonView.text = "+"
-    
-    leftButton.tazButton()
-    rightButton.tazButton()
-    
-    leftButton.buttonView.label.baselineAdjustment = .alignCenters
-    rightButton.buttonView.label.baselineAdjustment = .alignCenters
-
-    leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
-    rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.2, left:0.2 , bottom: 1.2, right: -0.2)
-    
-    label.textAlignment = .center
-    self.addArrangedSubview(leftButton)
-    self.addArrangedSubview(label)
-    self.addArrangedSubview(rightButton)
-    
-    leftButton.onPress { [weak self] _ in
-      guard let self = self, self.persistedIssuesCount > 0 else { return }
-      self.persistedIssuesCount -= 1
-    }
-    
-    rightButton.onPress { [weak self] _ in
-      self?.persistedIssuesCount += 1
-    }
-    
-    label.onTapping { [weak self] _ in
-      self?.persistedIssuesCount = 20
-    }
-    
-    self.pinWidth(110)//for Tableview's Cell Content
-  }
-}
-
-class TextSizeSetting: SaveLastCountIssues {
-  
   @Default("articleTextSize")
   private var articleTextSize: Int
   
+  func applyStyles() {
+    label.labelColor()
+    leftButton.tazButton(true)
+    rightButton.tazButton(true)
+  }
+  
   override func setup(){
     super.setup()
+    
+    registerForStyleUpdates()
     label.text = "\(articleTextSize)%"
+
+    leftButton.tazButton()
+    rightButton.tazButton()
+
     leftButton.buttonView.text = "a"
     rightButton.buttonView.text = "a"
+    
+    leftButton.buttonView.label.baselineAdjustment = .alignCenters
+    rightButton.buttonView.label.baselineAdjustment = .alignCenters
+    
     leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
     rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -2.5, left:0.2 , bottom: 2.5, right: -0.2)
     // Overwrite Default 16
@@ -737,6 +875,11 @@ class TextSizeSetting: SaveLastCountIssues {
     label.onTapping { [weak self] _ in
       self?.label.text = "\(Defaults.articleTextSize.set())%"
     }
+    
+    label.textAlignment = .center
+    self.addArrangedSubview(leftButton)
+    self.addArrangedSubview(label)
+    self.addArrangedSubview(rightButton)
   }
 }
 
@@ -867,14 +1010,15 @@ extension ButtonControl {
   }
   
   @discardableResult
-  func tazButton() -> Self {
+  func tazButton(_ isUpdate:Bool = false) -> Self {
     guard let bv = self as? Button<TextView> else { return self }
-    self.pinSize(CGSize(width: 28, height: 28), priority: .defaultHigh)
-    bv.buttonView.isCircle = true
     bv.buttonView.circleColor = Const.SetColor.ios(.secondarySystemFill).color
     bv.buttonView.label.textColor = Const.SetColor.ios(.secondaryLabel).color
     bv.buttonView.color = Const.SetColor.ios(.secondaryLabel).color
     bv.buttonView.activeColor = Const.SetColor.ios(.secondaryLabel).color.withAlphaComponent(0.1)
+    if isUpdate ==  true { return self }
+    self.pinSize(CGSize(width: 28, height: 28), priority: .defaultHigh)
+    bv.buttonView.isCircle = true
     bv.buttonView.font
     = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)//16
     return self
@@ -912,4 +1056,4 @@ extension NSLayoutAnchor {
   }
 }
 
-class XUITableViewHeaderFooterView: UITableViewHeaderFooterView{}
+class FooterView: UITableViewHeaderFooterView{}

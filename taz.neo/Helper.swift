@@ -17,13 +17,11 @@ extension Defaults{
   static var darkMode : Bool {
     get {
       if let tmp = tDarkMode {
-        print("return tmddarkmodevalue: \(tmp)")
         return tmp }
       return Defaults.singleton["colorMode"] == "dark" }
     set {
       ///only update if changed
       if darkMode == newValue || tDarkMode == newValue { return }
-      print("set tmddarkmodevalue: \(newValue)")
       tDarkMode = newValue
       Defaults.singleton["colorMode"] = newValue ? "dark" : nil
 //      Defaults.singleton.
