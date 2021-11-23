@@ -23,9 +23,17 @@ extension Settings.LinkType {
   
   var attributedDescription:NSAttributedString? {
     guard self == .cleanMemory else { return nil}
-    return attributedString(first: "Alte Ausgaben löschen",
+    
+    
+    let storage = DeviceData().detailStorage
+    let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
+    let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
+    
+    var txt = "Speichernutzung: App: \(app)MB, Daten: \(data)MB\nGedrückt halten für weitere Optionen"
+
+    return attributedString(first: "Alte Ausgaben & Temporäre Daten jetzt löschen",
                             firstColor: Const.SetColor.ios(.link).color,
-                            second: "Gedrückt halten für weitere Optionen")
+                            second: txt)
   }
   
   private var userInfo: String {
@@ -99,16 +107,11 @@ struct Settings {
   
   //Prototype Cells
   static func content() -> [sectionContent] {
-    
-    let storage = DeviceData().detailStorage
-    let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
-    let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
-    
     return [
       ("speicher",
        [
         Cell(withText: "Maximale Anzahl der zu speichernden Ausgaben",
-             subText: "SpeichernutzungApp: \(app)MB, Daten: \(data)MB",
+             subText: "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht.",
              accessoryView: SaveLastCountIssues()),
         Cell(linkType: .cleanMemory),
 //        Cell(toggleWithText: "Neue Ausgaben automatisch laden",
@@ -375,7 +378,7 @@ extension SettingsVC {
         ///TODO enable resume FEEDER CONTEXT RE-INIT
         onMainAfter {   [weak self]  in
           self?.content[0] = Settings.content()[0]
-          let ip0 = IndexPath(row: 0, section: 0)
+          let ip0 = IndexPath(row: 1, section: 0)
           self?.tableView.reloadRows(at: [ip0], with: .fade)
           MainNC.singleton.feederContext.resume()
           MainNC.singleton.showIssueVC()
@@ -402,7 +405,7 @@ extension SettingsVC {
     StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: persistedIssuesCount, keepPreviews: keepPreviewsCount, deleteOrphanFolders: true)
     onMainAfter {   [weak self]  in
       self?.content[0] = Settings.content()[0]
-      let ip0 = IndexPath(row: 0, section: 0)
+      let ip0 = IndexPath(row: 1, section: 0)
       self?.tableView.reloadRows(at: [ip0], with: .fade)
       MainNC.singleton.feederContext.resume()
     }
@@ -564,25 +567,41 @@ class CustomSettingsCell: SettingsCell {
   override func setup(){
     super.setup()
     
-    if let t = content?.text, let s = content?.subText {
-      self.textLabel?.attributedText = attributedString(first: t, second: s)
-    }
-    else {
-      self.textLabel?.text = content?.text ?? nil
-    }
-    if let accessoryView = content?.accessoryView {
+    self.textLabel?.text = content?.text
+    self.detailTextLabel?.text = content?.subText
+    
+    if let accessoryView = content?.accessoryView,
+       let label = self.textLabel,
+       let detailLabel = self.detailTextLabel,
+       label.superview == detailLabel.superview,
+       let labelSV = detailLabel.superview {
+      ///label styles
+      label.contentFont()
+      detailLabel.contentFont(size: Const.Size.SmallerFontSize)
+        .set(textColor: Const.SetColor.ios(.secondaryLabel).color)
+      label.numberOfLines = 0
+      detailLabel.numberOfLines = 0
+      ///accessoryView for controlls
       self.contentView.addSubview(accessoryView)
+      ///a spacer to prevent zero height warnings
       let spacer = UIView()
       self.contentView.addSubview(spacer)
       pin(accessoryView.top, to: self.contentView.top, dist: Const.Size.SmallPadding, priority: .defaultHigh)
       pin(spacer.top, to: accessoryView.bottom)
       pin(spacer.bottom, to: self.contentView.bottom)
+      
       pin(accessoryView.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
       
-      if let lbl = self.detailTextLabel, let sv = lbl.superview {
-        pin(lbl.top, to: sv.top, dist: Const.Size.SmallPadding, priority: .defaultHigh)
-      }
+      pin(label.top, to: labelSV.top, dist: Const.Size.SmallPadding, priority: .defaultHigh)
+      pin(label.left, to: labelSV.left, dist: Const.Size.DefaultPadding, priority: .defaultHigh)
+      pin(label.right, to: accessoryView.left, dist: -Const.Size.SmallPadding, priority: .defaultHigh)
       
+      pin(detailLabel.left, to: labelSV.left, dist: Const.Size.DefaultPadding, priority: .defaultHigh)
+      pin(detailLabel.right, to: labelSV.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
+      pin(detailLabel.top, to: label.bottom)
+      pin(detailLabel.bottom, to: labelSV.bottom)
+      self.setNeedsLayout()
+      self.layoutIfNeeded()
     }
   }
 }
@@ -684,6 +703,8 @@ class SaveLastCountIssues: CustomHStack {
     label.onTapping { [weak self] _ in
       self?.persistedIssuesCount = 20
     }
+    
+    self.pinWidth(110)//for Tableview's Cell Content
   }
 }
 
