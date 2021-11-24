@@ -8,10 +8,12 @@
 import UIKit
 import NorthLib
 
+typealias AttributedRawData = (String, String, String)
+
 extension Settings.LinkType {
   var cellDescription:String {
     switch self {
-      case .onboarding: return App.isBeta ? "Erste Schritte beta" : "Erste Schritte nicht beta";
+      case .onboarding: return "Erste Schritte";
       case .errorReport: return "Fehler melden";
       case .manageAccount: return userInfo;
       case .terms: return "Allgemeine Geschäftsbedingungen (AGB)";
@@ -21,21 +23,17 @@ extension Settings.LinkType {
     }
   }
   
-  var attributedDescription:NSAttributedString? {
+  var attributedRawData:AttributedRawData? {
     guard self == .cleanMemory else { return nil}
-    
     
     let storage = DeviceData().detailStorage
     let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
     let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
     
     let txt = "App: \(app)MB, Daten: \(data)MB\nGedrückt halten für weitere Optionen"
-
-    return attributedString(firstLeft: "Speichernutzung",
-                            firstRight: "jetzt bereinigen",
-                            second: txt)
+    return ("Speichernutzung", "jetzt bereinigen", txt)
   }
-  
+
   private var userInfo: String {
     let isAuth = MainNC.singleton.feederContext.isAuthenticated
     let (id,_,token) = SimpleAuthenticator.getUserData()
@@ -69,8 +67,7 @@ struct Settings {
   
   @Default("persistedIssuesCount")
   static var persistedIssuesCount: Int
-  
-  
+    
   enum CellType { case link, toggle, custom }
   enum LinkType { case onboarding, errorReport, manageAccount, terms, privacy, revocation, cleanMemory }
   
@@ -242,8 +239,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   public func applyStyles() {
     self.tableView.backgroundColor = Const.SetColor.CTBackground.color
-    footer.backgroundColor = Const.Colors.opacityBackground
-//    tableView.reloadData()
+    xButton.tazX(true)
   }
   
   open override func viewWillAppear(_ animated: Bool) {
@@ -361,6 +357,7 @@ extension SettingsVC {
   func cleanMemoryMenu(){
     let alert = UIAlertController.init( title: "Daten Löschen", message: "erweiterte Optionen",
       preferredStyle:  .actionSheet )
+  
     
     alert.addAction( UIAlertAction.init( title: "Hilfe", style: .default,
       handler: { [weak self] handler in
@@ -410,8 +407,17 @@ extension SettingsVC {
       handler: { _ in
         MainNC.singleton.deleteAll()
     } ) )
-    
-    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+  
+    #warning("Alpha only demonstartor")
+    if App.isBeta || App.isRelease || gt_iOS13 {
+      alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    }
+    else {
+      alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .default) { _ in } )
+      alert.view.subviews.first?.subviews.first?.subviews.first?.backgroundColor
+      = Const.SetColor.ios(.secondarySystemBackground).color
+      log("Changed Alert Action for iOS 12 as demonstrator")
+    }
     alert.presentAt(self.view)
   }
   
@@ -505,25 +511,60 @@ extension SettingsVC {
   }
   
   func showHelp(){
+    ///Help html content is bundled due it may depends on current app version
     guard let url = Bundle.main.url(forResource: "SettingsHelp",
                                  withExtension: "html",
                                  subdirectory: "BundledResources")
     else { return }
     
-    showLocalHtml(from: url.absoluteString, scrollEnabled: true)
+    ///Apply dark/bright mode
+    let f = File(url)
+    var content = f.string
+    
+    if Defaults.darkMode {
+      content = content.replacingOccurrences(
+        of: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNormal.css\">",
+        with: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNight.css\">")
+    }
+    else {
+      content = content.replacingOccurrences(
+        of: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNight.css\">",
+        with: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNormal.css\">")
+    }
+    
+    f.string = content
+
+    let webviewVC = IntroVC()
+   
+    webviewVC.webView.webView.load(url: url)
+    webviewVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
+    webviewVC.webView.webView.scrollView.isScrollEnabled = true
+    
+    webviewVC.webView.xButton.tazX()
+    
+    webviewVC.webView.onX { _ in
+      webviewVC.dismiss(animated: true, completion: nil)
+    }
+    self.modalPresentationStyle = .fullScreen
+    webviewVC.modalPresentationStyle = .fullScreen
+    webviewVC.webView.webView.atEndOfContent {_ in }
+    self.present(webviewVC, animated: true) {
+      //Overwrite Default in: IntroVC viewDidLoad
+      webviewVC.webView.buttonLabel.text = nil
+    }
+    webviewVC.webView.webView.whenLinkPressed { arg in
+      guard let to = arg.to else { return }
+      if UIApplication.shared.canOpenURL(to) {
+        UIApplication.shared.open(to, options: [:], completionHandler: nil)
+      }
+    }
   }
   
   func showLocalHtml(from urlString:String, scrollEnabled: Bool){
     let introVC = IntroVC()
     introVC.htmlIntro = urlString
-    let intro = File(dir: "BundledResources", fname: "SettingsHelp.html")
-    guard let url = Bundle.main.url(forResource: "SettingsHelp",
-                                 withExtension: "html",
-                                    subdirectory: "BundledResources") else { return }
-    print("file location: \(urlString)")
-    print("file exists: \(intro.exists)")
-    print(intro.string)
-    introVC.webView.webView.load(url: url)
+    let intro = File(urlString)
+    introVC.webView.webView.load(url: intro.url)
     introVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
     introVC.webView.webView.scrollView.isScrollEnabled = scrollEnabled
     
@@ -602,38 +643,28 @@ class ToggleSettingsCell: SettingsCell {
   }
 }
 
-
-//// MARK: - LinkSettingsCell
-//class DetailDescriptionCell: SettingsCell {
-//  static let identifier = "detailDescriptionCell"
-//
-//  override func setup(){
-//    super.setup()
-//    self.textLabel?.text = content?.text
-//    self.textLabel?.contentFont()
-//  }
-//
-//  override func applyStyles() {
-//    self.textLabel?.labelColor()
-//  }
-//}
-
-
 class LinkSettingsCell: SettingsCell {
   static let identifier = "linkSettingsCell"
+  var attributedRawData:AttributedRawData?
   
   override func setup(){
     super.setup()
     self.textLabel?.text = content?.linkType?.cellDescription
-    self.textLabel?.contentFont().linkColor()
-    
-    if let attributedText = content?.linkType?.attributedDescription {
-     self.textLabel?.attributedText = attributedText
-   }
+    self.textLabel?.contentFont()
+    attributedRawData = content?.linkType?.attributedRawData
+    applyStyles()
   }
 
   override func applyStyles() {
-    print("Link SettingsCell")
+
+    if let data = attributedRawData {
+      self.textLabel?.attributedText =  attributedString(firstLeft: data.0,
+                                                         firstRight: data.1,
+                                                         second: data.2)
+    }
+    else {
+      self.textLabel?.linkColor()
+    }
   }
 }
 
@@ -741,7 +772,7 @@ class SettingsCell:UITableViewCell, UIStyleChangeDelegate {
   }
 }
 
-class SaveLastCountIssues: UIView {
+class SaveLastCountIssues: UIView, UIStyleChangeDelegate {
   
   @Default("persistedIssuesCount")
   private var persistedIssuesCount: Int {
@@ -759,10 +790,16 @@ class SaveLastCountIssues: UIView {
     ? "\(persistedIssuesCount)"
     : "alle"
   }
+  
+  func applyStyles() {
+    mainLabel.set(textColor: Const.SetColor.ios(.label).color)
+    detailLabel.set(textColor: Const.SetColor.ios(.secondaryLabel).color)
+  }
     
   func setup(){
+    registerForStyleUpdates()
     ///Labels
-    mainLabel.text = "Maximale Anzahl der zu speichernden Ausgaben"
+    mainLabel.text = "Maximale Anzahl 20 zu speichernden Ausgaben"
     detailLabel.text = "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht."
     mainLabel.contentFont().set(textColor: Const.SetColor.ios(.label).color)
     detailLabel.contentFont(size: Const.Size.SmallerFontSize)
@@ -803,7 +840,7 @@ class SaveLastCountIssues: UIView {
     self.addSubview(mainLabel)
     self.addSubview(detailLabel)
     
-    pin(accessoryView.top, to: self.top)
+    pin(accessoryView.top, to: self.top, dist: -2.5)
     pin(accessoryView.right, to: self.right)
     
     pin(mainLabel.top, to: self.top)
@@ -843,7 +880,7 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
   override func setup(){
     super.setup()
-    
+    label.contentFont()
     registerForStyleUpdates()
     label.text = "\(articleTextSize)%"
 
@@ -875,10 +912,9 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     label.onTapping { [weak self] _ in
       self?.label.text = "\(Defaults.articleTextSize.set())%"
     }
-    
     label.textAlignment = .center
     self.addArrangedSubview(leftButton)
-    self.addArrangedSubview(label)
+    self.addArrangedSubview(label.wrapper(UIEdgeInsets(top: -0.5, left: 0, bottom: -0.5, right: 0)))
     self.addArrangedSubview(rightButton)
   }
 }
@@ -941,6 +977,7 @@ class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
     titleLabel.textColor = Const.SetColor.HText.color
     line.fillColor = Const.SetColor.HText.color
     line.strokeColor = Const.SetColor.HText.color
+    line.layoutSubviews()
   }
   
   init(_ title: String) {
@@ -996,15 +1033,15 @@ extension UIView {
 extension ButtonControl {
   
   @discardableResult
-  func tazX() -> Self {
+  func tazX(_ isUpdate:Bool = false) -> Self {
     guard let bv = self as? Button<CircledXView> else { return self }
-    self.pinHeight(35)
-    self.pinWidth(35)
-    self.color = .black
-    bv.buttonView.isCircle = true
     bv.buttonView.circleColor = Const.SetColor.ios(.secondarySystemFill).color
     bv.buttonView.color = Const.SetColor.ios(.secondaryLabel).color
     bv.buttonView.activeColor = Const.SetColor.ios(.secondaryLabel).color.withAlphaComponent(0.1)
+    if isUpdate ==  true { return self }
+    self.pinHeight(35)
+    self.pinWidth(35)
+    bv.buttonView.isCircle = true
     bv.buttonView.innerCircleFactor = 0.5
     return self
   }
@@ -1057,3 +1094,21 @@ extension NSLayoutAnchor {
 }
 
 class FooterView: UITableViewHeaderFooterView{}
+
+extension Array {
+  /// The  second element of the collection.
+  ///
+  /// If count is less then 2, the value of this property is `nil`.
+  ///
+  ///     let numbers = [10, 20, 30, 40, 50]
+  ///     if let firstNumber = numbers.first {
+  ///         print(firstNumber)
+  ///     }
+  ///     // Prints "20"
+  @inlinable public var  second: Element? {
+    get {
+      if self.count > 1 { return self[1] }
+      return nil
+    }
+  }
+}
