@@ -189,7 +189,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     selectedIssueDate = date
     isArchiveMode = true
     reset()
-    feederContext.getOvwIssues(feed: feed, count: 21, fromDate: from)
+    feederContext.getOvwIssues(feed: feed, count: 21, fromDate: from, isAutomatically: false)
   }
   
   /// Requests sufficient overview Issues from DB/server
@@ -199,15 +199,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if (n - index) < 6 { 
         var last = issues.last!.date
         last.addDays(-1)
-        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last)
+        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last, isAutomatically: false)
       }
       if index < 6 {
         var date = issues.first!.date
         date.addDays(10)
-        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date)
+        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date, isAutomatically: false)
       }
     }
-    else { feederContext.getOvwIssues(feed: feed, count: 20) }
+    else { feederContext.getOvwIssues(feed: feed, count: 20, isAutomatically: false) }
   }
   
   /// Empty overview array and request new overview
@@ -341,7 +341,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           }
         }
       }
-      self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile)        
+      self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile, isAutomatically: false)        
     }
   }
   
@@ -598,7 +598,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       spinner.startAnimating()
     }
     feederContext.getStoredOvwIssues(feed: feed)
-    feederContext.getOvwIssues(feed: feed, count: 20)
+    feederContext.getOvwIssues(feed: feed, count: 20, isAutomatically: false)
   }//Eof viewDidLoad()
   
   var pickerCtrl : DatePickerController?
@@ -647,7 +647,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Check for new issues only if not in archive mode
   public func checkForNewIssues() {
-    if !isArchiveMode { feederContext.checkForNewIssues(feed: feed) }
+    if !isArchiveMode { feederContext.checkForNewIssues(feed: feed, isAutomatically: false) }
   }
   
   func invalidateCarouselLayout() {

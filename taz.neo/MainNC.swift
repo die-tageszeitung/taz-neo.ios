@@ -232,7 +232,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       self.pushViewController(introVC, animated: false)
       onMainAfter(0.3) { [weak self] in
         guard let self = self else { return }
-        self.feederContext.getOvwIssues(feed: self.feederContext.defaultFeed, count: 4)
+        self.feederContext.getOvwIssues(feed: self.feederContext.defaultFeed, count: 4, isAutomatically: false)
       }
     }
     feederContext.updateResources(toVersion: -1)

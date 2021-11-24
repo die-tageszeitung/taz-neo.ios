@@ -570,7 +570,7 @@ open class FeederContext: DoesLog {
    Otherwise 'count' Issues from the DB are returned. The returned Issues are always 
    StoredIssues.
    */
-  public func getOvwIssues(feed: Feed, count: Int, fromDate: Date? = nil) {
+  public func getOvwIssues(feed: Feed, count: Int, fromDate: Date? = nil, isAutomatically: Bool) {
     log("feed: \(feed.name) count: \(count) fromDate: \(fromDate?.short ?? "-")")
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
@@ -592,12 +592,12 @@ open class FeederContext: DoesLog {
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                    fromDate: fromDate)
-            for issue in sissues { self.downloadIssue(issue: issue) }
+            for issue in sissues { self.downloadIssue(issue: issue, isAutomatically: isAutomatically) }
           }
           else {
             if let err = res.error() as? FeederError {
               self.handleFeederError(err) { 
-                self.getOvwIssues(feed: feed, count: count, fromDate: fromDate)
+                self.getOvwIssues(feed: feed, count: count, fromDate: fromDate, isAutomatically: isAutomatically)
               }
             }
             else { 
@@ -616,7 +616,7 @@ open class FeederContext: DoesLog {
             self.notify("issueOverview", result: .success(issue))
           }
           else {
-            self.downloadIssue(issue: issue)
+            self.downloadIssue(issue: issue, isAutomatically: isAutomatically)
           }
         }
       }
@@ -626,7 +626,7 @@ open class FeederContext: DoesLog {
   
   /// checkForNewIssues requests new overview issues from the server if
   /// more than 12 hours have passed since the latest stored issue
-  public func checkForNewIssues(feed: Feed) {
+  public func checkForNewIssues(feed: Feed, isAutomatically: Bool) {
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
@@ -636,7 +636,7 @@ open class FeederContext: DoesLog {
       let nHours = (now.sec - latestIssueDate.sec) / 3600
       if nHours > 6 {
         let ndays = (now.sec - latestIssueDate.sec) / (3600*24) + 1
-        getOvwIssues(feed: feed, count: Int(ndays))
+        getOvwIssues(feed: feed, count: Int(ndays), isAutomatically: isAutomatically)
       } else {
         Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
       }
@@ -665,11 +665,11 @@ open class FeederContext: DoesLog {
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
-  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
+  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false, isAutomatically: Bool) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
-        self?.getCompleteIssue(issue: issue, isPages: isPages)
+        self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically)
       }
       return
     }
@@ -686,7 +686,7 @@ open class FeederContext: DoesLog {
           issue.update(from: dissue)
           ArticleDB.save()
           Notification.send("issueStructure", result: .success(issue), sender: issue)
-          self.downloadIssue(issue: issue, isComplete: true)
+          self.downloadIssue(issue: issue, isComplete: true, isAutomatically: isAutomatically)
         }
         else if let err = res.error() {
           let errorResult : Result<[Issue], Error>
@@ -712,10 +712,10 @@ open class FeederContext: DoesLog {
   }
   
   /// Tell server we are starting to download
-  func markStartDownload(feed: Feed, issue: Issue, closure: @escaping (String?, UsTime)->()) {
+  func markStartDownload(feed: Feed, issue: Issue, isAutomatically: Bool, closure: @escaping (String?, UsTime)->()) {
     let isPush = pushToken != nil
     debug("Sending start of download to server")
-    self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush) { res in
+    self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush, pushToken: self.pushToken, isAutomatically: isAutomatically) { res in
       closure(res.value(), UsTime.now())
     }
   }
@@ -745,9 +745,9 @@ open class FeederContext: DoesLog {
   }
 
   /// Download complete Payload of Issue
-  private func downloadCompleteIssue(issue: StoredIssue) {
+  private func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
-    markStartDownload(feed: issue.feed, issue: issue) { (dlId, tstart) in
+    markStartDownload(feed: issue.feed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
       issue.isDownloading = true
       self.dloader.downloadPayload(payload: issue.payload as! StoredPayload, 
         onProgress: { (bytesLoaded,totalBytes) in
@@ -769,13 +769,13 @@ open class FeederContext: DoesLog {
   }
   
   /// Download Issue files and resources if necessary
-  private func downloadIssue(issue: StoredIssue, isComplete: Bool = false) {
+  private func downloadIssue(issue: StoredIssue, isComplete: Bool = false, isAutomatically: Bool) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) isComplete: \(isComplete) issueDate: \(issue.date.short)")
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       self.dloader.createIssueDir(issue: issue)
       if self.isConnected { 
-        if isComplete { self.downloadCompleteIssue(issue: issue) }
+        if isComplete { self.downloadCompleteIssue(issue: issue, isAutomatically: isAutomatically) }
         else { self.downloadPartialIssue(issue: issue) }
       }
       else { self.noConnection() }

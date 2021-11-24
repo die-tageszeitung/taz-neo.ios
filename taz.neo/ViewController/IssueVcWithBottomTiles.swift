@@ -315,7 +315,7 @@ extension IssueVcWithBottomTiles {
           cell.button.downloadState = .waiting
           cell.momentView.isActivity = true
           issueVC.feederContext.getCompleteIssue(issue: sissue,
-                                                 isPages: self.isFacsimile)
+                                                 isPages: self.isFacsimile, isAutomatically: false)
         }
       }
     }
@@ -338,7 +338,7 @@ extension IssueVcWithBottomTiles {
     guard let issueVC = self as? IssueVC else { return }
     var last = issueVC.issues.last!.date
     last.addDays(-1)
-    issueVC.feederContext.getOvwIssues(feed: issueVC.feed, count: 10, fromDate: last)
+    issueVC.feederContext.getOvwIssues(feed: issueVC.feed, count: 10, fromDate: last, isAutomatically: false)
   }
   
   // MARK: > Cell Click/Select
