@@ -35,16 +35,18 @@ public struct Const {
   
   /// Various color values
   struct Colors {
+    ///Variable Colors, depending light/darkmode
     static var opacityBackground: UIColor { Const.SetColor.CTBackground.color.withAlphaComponent(0.9) }
-    static var darkPrimaryBG: UIColor { UIColor.rgb(0x0) }
-    static var darkSecondaryBG: UIColor { UIColor.rgb(0x1c1c1e)}
-    static var darkSeparator: UIColor { UIColor.rgb(0x545458)}
-    static var darkPrimaryText: UIColor {  UIColor.rgb(0xffffff)}
-    static var darkSecondaryText: UIColor { UIColor.rgb(0xebebf5)}
-    static var ciColor: UIColor {  UIColor.rgb(0xd50d2e)}
+    ///Static/Constant Colors
+    static let darkPrimaryBG: UIColor = UIColor.rgb(0x0)
+    static let darkSecondaryBG: UIColor = UIColor.rgb(0x1c1c1e)
+    static let darkSeparator: UIColor = UIColor.rgb(0x545458)
+    static let darkPrimaryText: UIColor =  UIColor.rgb(0xffffff)
+    static let darkSecondaryText: UIColor = UIColor.rgb(0xebebf5)
+    static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)
     
-    static var darkToolbar = darkSecondaryBG
-    static var darkTintColor = darkSecondaryText
+    static let darkToolbar = darkSecondaryBG
+    static let darkTintColor = darkSecondaryText
     
     struct Light {
       static let CTBackground = UIColor.white
@@ -67,8 +69,6 @@ public struct Const {
       static let ForegroundLight = UIColor.darkGray
       static let ForegroundHeavy = UIColor.lightGray
     }
-    
-    
     
     struct iOSLight {
       static let label = UIColor.rgb(0x000000) // The color for text labels that contain primary content

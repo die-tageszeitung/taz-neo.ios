@@ -402,7 +402,6 @@ extension SettingsVC {
       }
     } ) )
     
-
     alert.addAction( UIAlertAction.init( title: "Alles löschen", style: .destructive,
       handler: { _ in
         MainNC.singleton.deleteAll()

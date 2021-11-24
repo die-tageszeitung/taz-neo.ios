@@ -1558,6 +1558,8 @@ public final class StoredIssue: Issue, StoredObject {
     return get(request: request)
   }
   
+  
+  /// fetch helper for issue sorting
   public enum IssueSorting {
     case issueDate, payloadDownloadStarted
     var key: String {
@@ -1570,6 +1572,8 @@ public final class StoredIssue: Issue, StoredObject {
         }
       }
     }
+    
+    /// Helper usage e.g.: .issueDate..sortDescriptor(ascending:true)
     func sortDescriptor(ascending:Bool) -> NSSortDescriptor {
       return NSSortDescriptor(key: self.key, ascending: ascending)
     }

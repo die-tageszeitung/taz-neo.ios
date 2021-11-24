@@ -152,7 +152,7 @@ public struct DeviceData : DoesLog {
       
       // combine sizes
       for path in paths {
-        print("calc size of: \(path)")
+        debug("calc size of: \(path)")
         if let size = bytesIn(directory: path) {
           dataSize += size
         }
