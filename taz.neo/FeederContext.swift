@@ -210,7 +210,7 @@ open class FeederContext: DoesLog {
   private var pollingTimer: Timer?
   private var pollEnd: Int64?
   
-  
+  #warning("App will crash if active download is in background ToDo: fix for 0.9.4")
   public func cancelAll() {
     self.gqlFeeder.status?.feeds = []
     self.gqlFeeder.gqlSession?.session.invalidateAndCancel()
