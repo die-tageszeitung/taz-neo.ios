@@ -55,5 +55,16 @@ public let ConfigDefaults = Defaults.Values([
   // Experimental
   "autoloadInWLAN" : "true",
   "autoloadNewIssues" : "true",
-  "persistedIssuesCount": "20",
+  "persistedIssuesCount": "20"
 ])
+
+
+extension Defaults {
+  ///Provide getter only
+  public static var isTextNotification:Bool { Defaults.singleton["isTextNotification"]!.bool }
+  
+  /*getter/setter
+  @Default("isTextNotification")
+  static var isTextNotification: Bool
+  */
+}

@@ -897,6 +897,9 @@ open class GqlFeeder: Feeder, DoesLog {
     
     var pToken = ""
     if let t = pushToken { pToken = "pushToken: \"\(t)\"," }
+    
+    let isTextNotification = Defaults.isTextNotification
+    
     let request = """
     downloadStart(
       feedName: "\(feed.name)", 
@@ -904,6 +907,7 @@ open class GqlFeeder: Feeder, DoesLog {
       isPush: \(isPush ? "true" : "false"),
       \(pToken)
       isAutomatically: \(isAutomatically ? "true" : "false"),
+      textNotification: \(isTextNotification ? "true" : "false"),
       installationId: "\(App.installationId)",
        \(deviceInfoString)
     )
