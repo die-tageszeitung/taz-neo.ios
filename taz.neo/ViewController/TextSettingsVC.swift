@@ -63,7 +63,7 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
       NorthLib.Notification.send(globalStylesChangedNotification)
     }
     func setPercentageWidth(_ w: Int) {
-    #warning("TODO: use Helper.swift Defaults.articleTextSize functions @see Settings")
+      //#warning("ToDo 0.9.4: use Helper.swift Defaults.articleTextSize functions @see Settings")
       textSettings.articleColumnPercentageWidth = w
       articleColumnPercentageWidth = w
       NorthLib.Notification.send(globalStylesChangedNotification)

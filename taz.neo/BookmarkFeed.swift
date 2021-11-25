@@ -51,7 +51,7 @@ public class BookmarkFeed: Feed {
     bm.issues = [bmIssue]
     bmIssue.sections = [bmSection]
     bmSection.articles = StoredArticle.bookmarkedArticles()
-    #warning("@Ringo: Build Section-HTML here")
+    //#warning("ToDo: 0.9.4+ @Ringo: Build Section-HTML here")
     /// compute HTML and store it in html
     let html = "..."
     let tmpFile = bmSection.html as! TmpFileEntry

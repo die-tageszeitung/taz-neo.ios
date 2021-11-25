@@ -361,17 +361,7 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Hilfe", style: .default,
       handler: { [weak self] handler in
-      guard let self = self else { return }
-      
-      self.showHelp()
-      return;
-      
-      let cntTxt
-      = self.persistedIssuesCount > 0
-      ? "\(self.persistedIssuesCount)"
-      : "alle"
-      
-      Alert.message(title: Localized("help"), message: Localized(keyWithFormat: "clean_memory_help", cntTxt), additionalActions:[self.openFaqAction()])
+      self?.showHelp()
     }))
       
     alert.addAction( UIAlertAction.init( title: "Alle Vorschaudaten löschen", style: .destructive,
@@ -391,14 +381,14 @@ extension SettingsVC {
       ArticleDB.singleton.reset { [weak self] err in
         self?.log("delete database done")
         exit(0)//Restart, resume currently not possible
-        ///TODO enable resume FEEDER CONTEXT RE-INIT
-        onMainAfter { [weak self]  in
-          self?.content[0] = Settings.content()[0]
-          let ip0 = IndexPath(row: 1, section: 0)
-          self?.tableView.reloadRows(at: [ip0], with: .fade)
-          MainNC.singleton.feederContext.resume()
-          MainNC.singleton.showIssueVC()
-        }
+        //#warning("ToDo: 0.9.4 enable resume of feederCOntext / Re-Init here")
+        //onMainAfter { [weak self]  in
+        //  self?.content[0] = Settings.content()[0]
+        //  let ip0 = IndexPath(row: 1, section: 0)
+        //  self?.tableView.reloadRows(at: [ip0], with: .fade)
+        //  MainNC.singleton.feederContext.resume()
+        //  MainNC.singleton.showIssueVC()
+        //}
       }
     } ) )
     
@@ -407,16 +397,7 @@ extension SettingsVC {
         MainNC.singleton.deleteAll()
     } ) )
   
-    #warning("Alpha only demonstartor")
-    if App.isBeta || App.isRelease || gt_iOS13 {
-      alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
-    }
-    else {
-      alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .default) { _ in } )
-      alert.view.subviews.first?.subviews.first?.subviews.first?.backgroundColor
-      = Const.SetColor.ios(.secondarySystemBackground).color
-      log("Changed Alert Action for iOS 12 as demonstrator")
-    }
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.view)
   }
   

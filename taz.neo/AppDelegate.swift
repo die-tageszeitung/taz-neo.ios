@@ -101,7 +101,7 @@ class AppDelegate: NotifiedDelegate {
 //App Context Menu helper
 fileprivate extension AppDelegate {
   
-  #warning("TODO: 0.9.4 Server Switch without App Restart")
+  //#warning("ToDo: 0.9.4 Server Switch without App Restart")
   /// server switch helper
   /// initiate server switch request switch with confirm alert
   /// - Parameter shortcutServer: new server to use identified by shortcut item

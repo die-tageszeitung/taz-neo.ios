@@ -151,7 +151,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
-    self.debug("Err: \(error)")
+    self.debug("Err: \(error?.description ?? "-")")
     func showDownloadErrorAlert() {
       let message = """
                     Beim Laden der Ausgabe ist ein Fehler aufgetreten.

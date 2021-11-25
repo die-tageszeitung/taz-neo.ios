@@ -348,7 +348,6 @@ extension IssueVcWithBottomTiles {
     /// Note: if using "animated: true" => Bug: opened Issue stays white!
     issueVC.issueCarousel.carousel.scrollto(indexPath.row)
     issueVC.showIssue(index: indexPath.row)
-    #warning("TODO REFACTOR IssueVCBottomTielesCVCCell")
     ///Work with Issue drop on cell, and notifications for download start/stop
     guard let cell = collectionView.cellForItem(at: indexPath)
                      as? IssueVCBottomTielesCVCCell else { return }
