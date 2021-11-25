@@ -210,7 +210,10 @@ open class FeederContext: DoesLog {
   private var pollingTimer: Timer?
   private var pollEnd: Int64?
   
-  #warning("App will crash if active download is in background ToDo: fix for 0.9.4")
+  #warning("ToDo: 0.9.4 fix App crash if called when active downloads")
+  /// Crash reasons:
+  /// 1. task from session created but session invalidated
+  /// 2. force unwrap optional : StoredFileEntry.pr.name
   public func cancelAll() {
     self.gqlFeeder.status?.feeds = []
     self.gqlFeeder.gqlSession?.session.invalidateAndCancel()
