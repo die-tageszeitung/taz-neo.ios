@@ -130,6 +130,7 @@ open class FeederContext: DoesLog {
     self.debug("Feeder now reachable")
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
     notify("feederReachable")
+    //disables offline status label
     Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
   }
   
@@ -141,7 +142,17 @@ open class FeederContext: DoesLog {
   
   /// Network status has changed 
   private func checkNetwork() {
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     if isConnected {
+      //#warning("ToDo: 0.9.4 loock for logs&errors after 0.9.3 release")
+      /// To discuss: idea to reset previous feeder's gqlSession's URLSession to get rid of download errors
+      /// e.g. if the session exists over 3h...
+      //      if let oldFeeder = self.gqlFeeder {
+      //        oldFeeder.gqlSession?.session.reset {   [weak self] in
+      //          self?.log("Old Session Resetted!!")
+      //        }
+      //      }
+      
       self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
         guard let self = self else { return }
         if let feeder = res.value() {
@@ -199,6 +210,20 @@ open class FeederContext: DoesLog {
   private var pollingTimer: Timer?
   private var pollEnd: Int64?
   
+  //#warning("ToDo: 0.9.4 fix App crash if called when active downloads")
+  /// Crash reasons:
+  /// 1. task from session created but session invalidated
+  /// 2. force unwrap optional : StoredFileEntry.pr.name
+  /// this was also called on 3-finger-deleteApp with App restart
+  public func cancelAll() {
+    self.gqlFeeder.status?.feeds = []
+    self.gqlFeeder.gqlSession?.session.invalidateAndCancel()
+    self.dloader.killAll()
+  }
+  public func resume() {
+    self.checkNetwork()
+  }
+  
   /// Start Polling if necessary
   public func setupPolling() {
     authenticator.whenPollingRequired { self.startPolling() }
@@ -248,7 +273,8 @@ open class FeederContext: DoesLog {
     nd.onReceivePush {   [weak self] (pn, payload) in
       self?.processPushNotification(pn: pn, payload: payload)
     }
-    nd.permitPush { pn in
+    nd.permitPush {[weak self] pn in
+      guard let self = self else { return }
       if pn.isPermitted { 
         self.debug("Push permission granted") 
         self.pushToken = pn.deviceId
@@ -257,12 +283,16 @@ open class FeederContext: DoesLog {
         self.debug("No push permission") 
         self.pushToken = nil
       }
-      dfl["pushToken"] = self.pushToken 
+      dfl["pushToken"] = self.pushToken
+            
       if oldToken != self.pushToken {
         let isTextNotification = dfl["isTextNotification"]!.bool
         self.gqlFeeder.notification(pushToken: self.pushToken, oldToken: oldToken,
-                                     isTextNotification: isTextNotification) { res in
-          if let err = res.error() { self.error(err) }
+                                     isTextNotification: isTextNotification) { [weak self] res in
+          if let err = res.error() { self?.error(err) }
+          else {
+            self?.debug("Updated PushToken")
+          }
         }
       }
     }
@@ -274,8 +304,9 @@ open class FeederContext: DoesLog {
         authenticator.pollSubscription(){_ in}
       case .newIssue:
         //not using checkForNew Issues see its warning!
-        //count 1 not working: 
-        self.getOvwIssues(feed: self.defaultFeed, count: 1)
+        //count 1 not working:
+        log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
+        //self.getOvwIssues(feed: self.defaultFeed, count: 1)
       default:
         self.debug(payload.toString())
     }
@@ -318,7 +349,7 @@ open class FeederContext: DoesLog {
     ArticleDB.singleton = nil
     openDB(name: name)
   }
-  
+    
   /// init sends a "feederReady" Notification when the feeder context has
   /// been set up
   public init?(name: String, url: String, feed feedName: String) {
@@ -501,8 +532,8 @@ open class FeederContext: DoesLog {
     }
         
     if err == .expiredAccount(nil) {
-      log("Delete Auth Token!")
-      DefaultAuthenticator.deleteUserData(.token)
+      ///"expiredAccountAlertPopup" key must be deleted on login to see message again  ...or restart, keep in mind if changing
+      if "expiredAccountAlertPopup".existsAndNotExpired(intervall: .hour*6 ) { return }
     }
     else {
       log("Delete Userdata!")
@@ -538,33 +569,35 @@ open class FeederContext: DoesLog {
    Otherwise 'count' Issues from the DB are returned. The returned Issues are always 
    StoredIssues.
    */
-  public func getOvwIssues(feed: Feed, count: Int, fromDate: Date? = nil) {
+  public func getOvwIssues(feed: Feed, count: Int, fromDate: Date? = nil, isAutomatically: Bool) {
+    log("feed: \(feed.name) count: \(count) fromDate: \(fromDate?.short ?? "-")")
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       if self.isConnected {
-        #warning("@WiP Discussion with beta App! @see getOvwIssues(feed: feed, count: Int(ndays)) should work fine")
         self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: min(count, 20),
                               isOverview: true) { res in
           if let issues = res.value() {
             for issue in issues {
               let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
               if si.count < 1 { StoredIssue.persist(object: issue) }
-              #warning("Missing Update")///Old App Timestamp!
-              /// What if Overview new MoTime but compleete Issue is in DB and User is in Issue to read!!
-//              if si.first?.moTime != issue.moTime
+              //#warning("ToDo 0.9.4+: Missing Update of an stored Issue")
+              ///in old app timestamps are compared!
+              ///What if Overview new MoTime but compleete Issue is in DB and User is in Issue to read!!
+              /// if si.first?.moTime != issue.moTime ...
+              /// an update may result in a crash
             }
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
                                                    fromDate: fromDate)
-            for issue in sissues { self.downloadIssue(issue: issue) }
+            for issue in sissues { self.downloadIssue(issue: issue, isAutomatically: isAutomatically) }
           }
           else {
             if let err = res.error() as? FeederError {
               self.handleFeederError(err) { 
-                self.getOvwIssues(feed: feed, count: count, fromDate: fromDate)
+                self.getOvwIssues(feed: feed, count: count, fromDate: fromDate, isAutomatically: isAutomatically)
               }
             }
             else { 
@@ -583,7 +616,7 @@ open class FeederContext: DoesLog {
             self.notify("issueOverview", result: .success(issue))
           }
           else {
-            self.downloadIssue(issue: issue)
+            self.downloadIssue(issue: issue, isAutomatically: isAutomatically)
           }
         }
       }
@@ -593,7 +626,7 @@ open class FeederContext: DoesLog {
   
   /// checkForNewIssues requests new overview issues from the server if
   /// more than 12 hours have passed since the latest stored issue
-  public func checkForNewIssues(feed: Feed) {
+  public func checkForNewIssues(feed: Feed, isAutomatically: Bool) {
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
@@ -603,7 +636,7 @@ open class FeederContext: DoesLog {
       let nHours = (now.sec - latestIssueDate.sec) / 3600
       if nHours > 6 {
         let ndays = (now.sec - latestIssueDate.sec) / (3600*24) + 1
-        getOvwIssues(feed: feed, count: Int(ndays))
+        getOvwIssues(feed: feed, count: Int(ndays), isAutomatically: isAutomatically)
       } else {
         Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
       }
@@ -632,10 +665,11 @@ open class FeederContext: DoesLog {
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
-  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false) {
+  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false, isAutomatically: Bool) {
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
-        self?.getCompleteIssue(issue: issue, isPages: isPages)
+        self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically)
       }
       return
     }
@@ -652,7 +686,7 @@ open class FeederContext: DoesLog {
           issue.update(from: dissue)
           ArticleDB.save()
           Notification.send("issueStructure", result: .success(issue), sender: issue)
-          self.downloadIssue(issue: issue, isComplete: true)
+          self.downloadIssue(issue: issue, isComplete: true, isAutomatically: isAutomatically)
         }
         else if let err = res.error() {
           let errorResult : Result<[Issue], Error>
@@ -678,10 +712,10 @@ open class FeederContext: DoesLog {
   }
   
   /// Tell server we are starting to download
-  func markStartDownload(feed: Feed, issue: Issue, closure: @escaping (String?, UsTime)->()) {
+  func markStartDownload(feed: Feed, issue: Issue, isAutomatically: Bool, closure: @escaping (String?, UsTime)->()) {
     let isPush = pushToken != nil
     debug("Sending start of download to server")
-    self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush) { res in
+    self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush, pushToken: self.pushToken, isAutomatically: isAutomatically) { res in
       closure(res.value(), UsTime.now())
     }
   }
@@ -697,6 +731,7 @@ open class FeederContext: DoesLog {
   
   /// Download partial Payload of Issue
   private func downloadPartialIssue(issue: StoredIssue) {
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     self.dloader.downloadPayload(payload: issue.payload as! StoredPayload) { err in
       var res: Result<StoredIssue,Error>
       if err == nil {
@@ -710,8 +745,9 @@ open class FeederContext: DoesLog {
   }
 
   /// Download complete Payload of Issue
-  private func downloadCompleteIssue(issue: StoredIssue) {
-    markStartDownload(feed: issue.feed, issue: issue) { (dlId, tstart) in
+  private func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
+    markStartDownload(feed: issue.feed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
       issue.isDownloading = true
       self.dloader.downloadPayload(payload: issue.payload as! StoredPayload, 
         onProgress: { (bytesLoaded,totalBytes) in
@@ -733,12 +769,13 @@ open class FeederContext: DoesLog {
   }
   
   /// Download Issue files and resources if necessary
-  private func downloadIssue(issue: StoredIssue, isComplete: Bool = false) {
+  private func downloadIssue(issue: StoredIssue, isComplete: Bool = false, isAutomatically: Bool) {
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) isComplete: \(isComplete) issueDate: \(issue.date.short)")
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       self.dloader.createIssueDir(issue: issue)
       if self.isConnected { 
-        if isComplete { self.downloadCompleteIssue(issue: issue) }
+        if isComplete { self.downloadCompleteIssue(issue: issue, isAutomatically: isAutomatically) }
         else { self.downloadPartialIssue(issue: issue) }
       }
       else { self.noConnection() }
@@ -765,3 +802,5 @@ extension PushNotification.Payload {
     }
   }
 }
+
+

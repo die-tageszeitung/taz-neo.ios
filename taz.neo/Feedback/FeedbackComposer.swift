@@ -90,9 +90,19 @@ open class FeedbackComposer : DoesLog{
           
     }
     
+    var restoreModalityController:UIViewController?
+    
     if currentVc.isKind(of: UIAlertController.self),
        let presenting = currentVc.presentingViewController {
       currentVc = presenting
+      feedbackViewController.updateViewSize(UIWindow.size)
+    }
+    else if let nc = currentVc.navigationController {
+      if #available(iOS 13.0, *) {
+        currentVc.isModalInPresentation = true
+        restoreModalityController = currentVc
+      }
+      currentVc = nc
       feedbackViewController.updateViewSize(UIWindow.size)
     }
                                                        
@@ -121,6 +131,9 @@ open class FeedbackComposer : DoesLog{
     feedbackViewController.requestCancel = cancelHandler
     
     feedbackBottomSheet?.onClose(closure: { (slider) in
+      if #available(iOS 13.0, *) {
+        restoreModalityController?.isModalInPresentation = false
+      }
       finishClosure(feedbackViewController.sendSuccess)
       feedbackBottomSheet = nil//Important the memory leak!
     })

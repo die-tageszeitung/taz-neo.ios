@@ -16,6 +16,7 @@ class AppDelegate: NotifiedDelegate {
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     updateDefaultsIfNeeded()
+    saveLastLog()
     self.window = UIWindow(frame: UIScreen.main.bounds)
     self.window?.rootViewController = MainNC()
 //    self.window?.rootViewController = TestController()
@@ -35,6 +36,22 @@ class AppDelegate: NotifiedDelegate {
         = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
     } 
     return true
+  }
+
+  func saveLastLog(){
+    /** copy last logfile before overwrite
+     not solving:
+     - multiple starts before send feedback
+     - app did not start, overwrite "interesting" logfile
+     Ideas:
+     - do not overwrite with mini file
+     - use kind of log rotataion next: which logfile to add?
+     - use app context menu to acces last logfile?
+    @see also FeedbackViewController adds this in feedback request
+     Question: is this called for incomming push notification?
+     */
+    File(Log.FileLogger.defaultLogfile)
+      .copy(to: Log.FileLogger.lastLogfile, isOverwrite: true)
   }
   
   func updateDefaultsIfNeeded(){
@@ -77,12 +94,17 @@ class AppDelegate: NotifiedDelegate {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     // application.shortcutItems = [] //not working!
     ///NOT CALLED @see:https://developer.apple.com/documentation/uikit/uiapplicationdelegate/1623111-applicationwillterminate
-    // log("applicationWillTerminate ")
+     //log("applicationWillTerminate ")
   }
 }
 
+//App Context Menu helper
 fileprivate extension AppDelegate {
   
+  //#warning("ToDo: 0.9.4 Server Switch without App Restart")
+  /// server switch helper
+  /// initiate server switch request switch with confirm alert
+  /// - Parameter shortcutServer: new server to use identified by shortcut item
   func handleServerSwitch(to shortcutServer: Shortcuts) {
     if Defaults.currentServer == shortcutServer {//already selected!
       Toast.show("\(shortcutServer.title) wird bereits verwendet!")
@@ -110,6 +132,9 @@ fileprivate extension AppDelegate {
     Alert.message(title: "Achtung Serverwechsel!", message: "Möchten Sie den Server vom \(Defaults.serverSwitchText) wechseln?\nAchtung!\nDie App muss neu gestartet werden.\n\n Alle Daten werden gelöscht!", actions: [serverSwitchAction,  cancelAction])
   }
   
+  
+  /// app icon shortcut action handler
+  /// - Parameter shortcutItem: selected shortcut item
   func handleShortcutItem(_ shortcutItem: UIApplicationShortcutItem) {
     switch shortcutItem.type {
       case Shortcuts.logging.type:
@@ -134,27 +159,31 @@ fileprivate extension AppDelegate {
 fileprivate enum Shortcuts{
   
   static func currentItems(wantsLogging:Bool) -> [UIApplicationShortcutItem]{
-      if App.isAlpha == false && Defaults.currentServer == .liveServer {
-        return []
-//        return [Shortcuts.logging.shortcutItem()]
-      }
-      var itms:[UIApplicationShortcutItem] = [
-//        Shortcuts.feedback.shortcutItem(.mail),
-//        Shortcuts.logging.shortcutItem(wantsLogging ? .confirmation : nil)
-      ]
-      if Defaults.currentServer == .liveServer {
-        itms.append(Shortcuts.liveServer.shortcutItem(.confirmation, subtitle: "aktiv"))
-        itms.append(Shortcuts.testServer.shortcutItem())
-      }
-      else {
-        itms.append(Shortcuts.liveServer.shortcutItem())
-        itms.append(Shortcuts.testServer.shortcutItem(.confirmation, subtitle: "aktiv"))
-      }
-      return itms
+    // No Server Switch for Release App
+    if App.isRelease {
+      return []
+      // return [Shortcuts.logging.shortcutItem()] //deactivated logging ui for release
+    }
+    var itms:[UIApplicationShortcutItem] = [
+      // Shortcuts.feedback.shortcutItem(.mail),
+      // Shortcuts.logging.shortcutItem(wantsLogging ? .confirmation : nil)
+    ]
+    
+    if Defaults.currentServer == .liveServer {
+      itms.append(Shortcuts.liveServer.shortcutItem(.confirmation, subtitle: "aktiv"))
+      itms.append(Shortcuts.testServer.shortcutItem())
+    }
+    else {
+      itms.append(Shortcuts.liveServer.shortcutItem())
+      itms.append(Shortcuts.testServer.shortcutItem(.confirmation, subtitle: "aktiv"))
+    }
+    return itms
   }
   
   case liveServer, testServer, feedback, logging
   
+  
+  /// Identifier for shortcut item
   var type:String{
     switch self {
       case .liveServer: return "shortcutItemLiveServer"
@@ -164,6 +193,8 @@ fileprivate enum Shortcuts{
     }
   }
   
+  
+  /// human readable title
   var title:String{
     switch self {
       case .liveServer: return "Live Server"
@@ -173,7 +204,12 @@ fileprivate enum Shortcuts{
     }
   }
     
-
+  
+  /// ShortcutItem generation Helper
+  /// - Parameters:
+  ///   - iconType: identifier for shortcut item
+  ///   - subtitle: optional subtitle
+  /// - Returns: ShortcutItem for app icon context menu
   func shortcutItem(_ iconType:UIApplicationShortcutIcon.IconType? = nil, subtitle: String? = nil) -> UIApplicationShortcutItem {
     return UIApplicationShortcutItem(type: self.type,
                                      localizedTitle: self.title,
@@ -182,15 +218,20 @@ fileprivate enum Shortcuts{
   }
 }
 
-
-
+// Helper
 extension Defaults{
+  
+  /// Server switch Helper,
+  /// check if server switch shortcut item selected and current server is not selected server
+  /// - Parameter shortcutItem: app icon shortcut item
+  /// - Returns: true if server switch should be performed
   fileprivate static func isServerSwitch(for shortcutItem: UIApplicationShortcutItem) -> Bool{
     if shortcutItem.type == Shortcuts.liveServer.type && currentServer != .liveServer { return true }
     if shortcutItem.type == Shortcuts.testServer.type && currentServer != .testServer { return true }
     return false
   }
   
+  ///Helper to get current server from user defaults
   fileprivate static var currentServer : Shortcuts {
     get {
       if let curr = Defaults.singleton["currentServer"], curr == Shortcuts.testServer.type {

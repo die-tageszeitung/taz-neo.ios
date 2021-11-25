@@ -889,15 +889,25 @@ open class GqlFeeder: Feeder, DoesLog {
 //    
   /// Signal server that download has been started
   public func startDownload(feed: Feed, issue: Issue, isPush: Bool,
+                            pushToken: String?, isAutomatically: Bool,
                             closure: @escaping(Result<String,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
+    
+    var pToken = ""
+    if let t = pushToken { pToken = "pushToken: \"\(t)\"," }
+    
+    let isTextNotification = Defaults.isTextNotification
+    
     let request = """
     downloadStart(
       feedName: "\(feed.name)", 
       issueDate: "\(self.date2a(issue.date))",
       isPush: \(isPush ? "true" : "false"),
+      \(pToken)
+      isAutomatically: \(isAutomatically ? "true" : "false"),
+      textNotification: \(isTextNotification ? "true" : "false"),
       installationId: "\(App.installationId)",
        \(deviceInfoString)
     )

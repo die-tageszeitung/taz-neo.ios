@@ -197,8 +197,29 @@ open class ArticleVC: ContentVC {
       self.debug("*** Action: Share Article")
       self.exportArticle(article: self.article, from: self.shareButton)
     }
+    
+    if App.isAvailable(.SEARCH_CONTEXTMENU) {
+      let suche = UIMenuItem(title: "Suche", action: #selector(search))
+      UIMenuController.shared.menuItems = [suche]
+    }
   }
-
+  
+  public override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    if App.isAvailable(.SEARCH_CONTEXTMENU) {
+      UIMenuController.shared.menuItems = nil
+    }
+  }
 } // ArticleVC
 
-
+//MARK: - Context Menu Actions
+extension ArticleVC {
+  @objc func search() {
+    self.currentWebView?.evaluateJavaScript("window.getSelection().toString()", completionHandler: { selectedText, err in
+      if let e = err { self.log(e.errorText())}
+      //#warning("ToDo: 0.9.4+ Implement Search")
+      if let txt = selectedText { print("You selected: \(txt)")}
+      else { print("no text selection detected")}
+    })
+  }
+}

@@ -77,7 +77,7 @@ public protocol Authenticator: DoesLog {
    
    - returns: A tuple consisting of (id, password, token)
    */
-  static func getUserData() -> (id: String?, password: String?, token: String?)
+  static func getUserData(requestKeychainPassword: Bool) -> (id: String?, password: String?, token: String?)
    
   /**
    Use this method to delete authentication relevant user data
@@ -103,13 +103,20 @@ extension Authenticator {
     kc["password"] = password
   }
   
-  public static func getUserData() -> (id: String?, password: String?, token: String?) {
+  public static func getUserData(requestKeychainPassword: Bool = false) -> (id: String?, password: String?, token: String?) {
     let dfl = Defaults.singleton
-    let kc = Keychain.singleton
-    let kid = kc["id"] 
     let did = dfl["id"]
-    let ktoken = kc["token"] 
     let dtoken = dfl["token"]
+    
+    if requestKeychainPassword == false,
+       let id = did, id.length > 0,
+       let token = dtoken, token.length > 0 {
+      return (id: id, password: nil, token: token)
+    }
+
+    let kc = Keychain.singleton
+    let kid = kc["id"]
+    let ktoken = kc["token"]
     if did == nil { dfl["id"] = kid }
     if kid == nil { kc["id"] = did }
     if dtoken == nil { dfl["token"] = ktoken }

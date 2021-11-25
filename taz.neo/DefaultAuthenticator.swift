@@ -223,9 +223,13 @@ public class DefaultAuthenticator: Authenticator {
     }
   }
   
-  /// Ask user for id/password, check with GraphQL-Server and store in user defaults
   public func authenticate() {
-    guard let rootVC = rootVC else { return }
+    self.authenticate(with: nil)
+  }
+  
+  /// Ask user for id/password, check with GraphQL-Server and store in user defaults
+  func authenticate(with targetVC:UIViewController?) {
+    guard let rootVC = targetVC ?? rootVC else { return }
 
     let registerController = LoginController(self)
     
