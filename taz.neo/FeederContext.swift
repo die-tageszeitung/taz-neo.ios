@@ -130,6 +130,7 @@ open class FeederContext: DoesLog {
     self.debug("Feeder now reachable")
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
     notify("feederReachable")
+    //disables offline status label
     Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
   }
   
@@ -143,11 +144,14 @@ open class FeederContext: DoesLog {
   private func checkNetwork() {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     if isConnected {
-//      if let oldFeeder = self.gqlFeeder {
-//        oldFeeder.gqlSession?.session.reset {   [weak self] in
-//          self?.log("Old Session Resetted!!")
-//        }
-//      }
+      #warning("watch logs&errors after 0.9.3 release")
+      /// To discuss: idea to reset previous feeder's gqlSession's URLSession to get rid of download errors
+      /// e.g. if the session exists over 3h...
+      //      if let oldFeeder = self.gqlFeeder {
+      //        oldFeeder.gqlSession?.session.reset {   [weak self] in
+      //          self?.log("Old Session Resetted!!")
+      //        }
+      //      }
       
       self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
         guard let self = self else { return }
