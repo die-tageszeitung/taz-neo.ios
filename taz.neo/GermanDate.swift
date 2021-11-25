@@ -60,6 +60,14 @@ public extension Date {
     }
   }
   
+  var dateAndTime:String{
+    get{
+      let dateFormatterGet = DateFormatter()
+      dateFormatterGet.dateFormat = "dd.MM.yy HH:mm:ss"
+      return dateFormatterGet.string(from: self)
+    }
+  }
+  
   var shorter:String{
     get{
       let dateFormatterGet = DateFormatter()

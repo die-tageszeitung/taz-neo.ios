@@ -158,7 +158,7 @@ open class Downloader: DoesLog {
     let pe = PayloadEntry(payload: payload, onProgress: onProgress,
                           fromCacheDir: fromCacheDir) { [weak self] err in
       if let self = self {
-        self.payloadQueue.removeFirst()
+        if self.payloadQueue.count > 0 { self.payloadQueue.removeFirst() }
         if self.payloadQueue.count > 0 { self.payloadQueue[0].download(dl: self) }
         atEnd(err)
       }

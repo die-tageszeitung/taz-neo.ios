@@ -63,6 +63,7 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
       NorthLib.Notification.send(globalStylesChangedNotification)
     }
     func setPercentageWidth(_ w: Int) {
+    #warning("TODO: use Helper.swift Defaults.articleTextSize functions @see Settings")
       textSettings.articleColumnPercentageWidth = w
       articleColumnPercentageWidth = w
       NorthLib.Notification.send(globalStylesChangedNotification)
@@ -190,18 +191,18 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
   
   func updateWidthSettingButtons(_ withWindowWidth:CGFloat = UIWindow.size.width){
     if articleColumnPercentageWidth >= Int(withWindowWidth/61)*10 {//61 to have a side padding
-      defaultWidth.buttonView.color = Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.5)
-      increaseWith.buttonView.color = Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.5)
+      defaultWidth.buttonView.color = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
+      increaseWith.buttonView.color = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
     }
     else if self.articleColumnPercentageWidth <= 50 {
-      increaseWith.buttonView.color = Const.SetColor.ios(.tintColor).color
-      defaultWidth.buttonView.color = Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.5)
-      decreaseWith.buttonView.color = Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.5)
+      increaseWith.buttonView.color = Const.SetColor.ios(.link).color
+      defaultWidth.buttonView.color = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
+      decreaseWith.buttonView.color = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
     }
     else {
-      defaultWidth.buttonView.color = Const.SetColor.ios(.tintColor).color
-      increaseWith.buttonView.color = Const.SetColor.ios(.tintColor).color
-      decreaseWith.buttonView.color = Const.SetColor.ios(.tintColor).color
+      defaultWidth.buttonView.color = Const.SetColor.ios(.link).color
+      increaseWith.buttonView.color = Const.SetColor.ios(.link).color
+      decreaseWith.buttonView.color = Const.SetColor.ios(.link).color
     }
   }
   

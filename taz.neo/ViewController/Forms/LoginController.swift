@@ -44,7 +44,10 @@ class LoginController: FormsController {
       }
     }
     else {
-      self.queryAuthToken(tazId: (ui.idInput.text ?? ""),tazIdPass: ui.passInput.text ?? "")
+      onThread { [weak self] in
+        guard let self = self else { return }
+        self.queryAuthToken(tazId: (self.ui.idInput.text ?? ""),tazIdPass: self.ui.passInput.text ?? "")
+      }
     }
   }
   

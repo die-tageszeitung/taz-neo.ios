@@ -30,35 +30,28 @@
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
 		7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
+		7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77328429274F9F5B00B08535 /* TazCustomized.swift */; };
 		773D564226145E8500B42FEF /* InfoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773D564126145E8500B42FEF /* InfoToast.swift */; };
 		773D56472614A4DF00B42FEF /* BundledResources in Resources */ = {isa = PBXBuildFile; fileRef = 773D56462614A4DF00B42FEF /* BundledResources */; };
 		7745050D25DA801F0052E502 /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = 7745050C25DA801F0052E502 /* resources.json */; };
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
-		778E1E4E26CCE1DF00D11781 /* Release@3x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4826CCE1DF00D11781 /* Release@3x~ipad.png */; };
-		778E1E4F26CCE1DF00D11781 /* Beta@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4926CCE1DF00D11781 /* Beta@2x~ipad.png */; };
-		778E1E5026CCE1DF00D11781 /* Release@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4A26CCE1DF00D11781 /* Release@2x~ipad.png */; };
-		778E1E5126CCE1DF00D11781 /* Alpha@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4B26CCE1DF00D11781 /* Alpha@2x~ipad.png */; };
-		778E1E5226CCE1DF00D11781 /* Alpha@3x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4C26CCE1DF00D11781 /* Alpha@3x~ipad.png */; };
-		778E1E5326CCE1DF00D11781 /* Beta@3x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 778E1E4D26CCE1DF00D11781 /* Beta@3x~ipad.png */; };
+		7772B1ED2743BEC300991347 /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
+		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
 		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
+		779DE96126FA3D790056187B /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779DE96026FA3D790056187B /* SettingsVC.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77D0DAEC25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */; };
+		94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94487DAB274BCCE10066BCD0 /* AppHelper.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
 		AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */; };
 		AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0C32DE246310E500E4AEA8 /* SliderTest.swift */; };
 		AE0EC3FD26C1399300EDDF04 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = AED748A9238413D800C09D2D /* libc++.tbd */; };
 		AE0EC40026C139A200EDDF04 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = AED748AA238413EB00C09D2D /* libz.tbd */; };
-		AE10BEE42526295A009F230D /* Beta@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE02526295A009F230D /* Beta@3x.png */; };
-		AE10BEE52526295A009F230D /* Alpha@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE12526295A009F230D /* Alpha@3x.png */; };
-		AE10BEE62526295A009F230D /* Beta@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE22526295A009F230D /* Beta@2x.png */; };
-		AE10BEE72526295A009F230D /* Alpha@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE32526295A009F230D /* Alpha@2x.png */; };
-		AE10BEEA25262CC1009F230D /* Release@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE825262CC1009F230D /* Release@3x.png */; };
-		AE10BEEB25262CC1009F230D /* Release@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE10BEE925262CC1009F230D /* Release@2x.png */; };
 		AE21C46C23E710A600F8B811 /* UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE21C46B23E710A600F8B811 /* UITests.swift */; };
 		AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8E324815AF4009DA152 /* ContentImageVC.swift */; };
 		AE44F8E62481621C009DA152 /* IssueInfoProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */; };
@@ -93,7 +86,6 @@
 		AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */; };
 		AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainNC.swift */; };
 		AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
-		AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
@@ -142,33 +134,33 @@
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
+		77328429274F9F5B00B08535 /* TazCustomized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazCustomized.swift; sourceTree = "<group>"; };
+		7738E50C2744596200453CD8 /* genBuildConst.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = genBuildConst.rb; sourceTree = "<group>"; };
 		773D564126145E8500B42FEF /* InfoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToast.swift; sourceTree = "<group>"; };
 		773D56462614A4DF00B42FEF /* BundledResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResources; sourceTree = "<group>"; };
 		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
 		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
 		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
-		778E1E4826CCE1DF00D11781 /* Release@3x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Release@3x~ipad.png"; sourceTree = "<group>"; };
-		778E1E4926CCE1DF00D11781 /* Beta@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@2x~ipad.png"; sourceTree = "<group>"; };
-		778E1E4A26CCE1DF00D11781 /* Release@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Release@2x~ipad.png"; sourceTree = "<group>"; };
-		778E1E4B26CCE1DF00D11781 /* Alpha@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Alpha@2x~ipad.png"; sourceTree = "<group>"; };
-		778E1E4C26CCE1DF00D11781 /* Alpha@3x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Alpha@3x~ipad.png"; sourceTree = "<group>"; };
-		778E1E4D26CCE1DF00D11781 /* Beta@3x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@3x~ipad.png"; sourceTree = "<group>"; };
+		776158192743E8440044516C /* AppIcons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcons; sourceTree = "<group>"; };
+		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
+		779DE96026FA3D790056187B /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
 		77C00CFB25DA9A4A00964861 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDownAnimationView.swift; sourceTree = "<group>"; };
 		77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueVCBottomTielesCVCCell.swift; sourceTree = "<group>"; };
+		77F0D1342742B4E900D3A432 /* addLocalResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addLocalResources.sh; sourceTree = "<group>"; };
+		77F0D1372742B4E900D3A432 /* downloadBundledResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = downloadBundledResources.sh; sourceTree = "<group>"; };
+		77F0D1392742B58400D3A432 /* LastBuildNumber.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = LastBuildNumber.rb; sourceTree = "<group>"; };
+		94487DAB274BCCE10066BCD0 /* AppHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelper.swift; sourceTree = "<group>"; };
+		948E40CD2745447500D32CFE /* post-checkout-prototype.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "post-checkout-prototype.sh"; sourceTree = "<group>"; };
+		948E40CE274544BE00D32CFE /* refreshEnvironment.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = refreshEnvironment.sh; sourceTree = "<group>"; };
+		948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ConfigSettings.xcconfig; sourceTree = "<group>"; };
 		AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigDefaults.swift; sourceTree = "<group>"; };
 		AE0A4D0223F429D800C44625 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextSettingsVC.swift; sourceTree = "<group>"; };
 		AE0C32DE246310E500E4AEA8 /* SliderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SliderTest.swift; sourceTree = "<group>"; };
-		AE10BEE02526295A009F230D /* Beta@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@3x.png"; sourceTree = "<group>"; };
-		AE10BEE12526295A009F230D /* Alpha@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Alpha@3x.png"; sourceTree = "<group>"; };
-		AE10BEE22526295A009F230D /* Beta@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Beta@2x.png"; sourceTree = "<group>"; };
-		AE10BEE32526295A009F230D /* Alpha@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Alpha@2x.png"; sourceTree = "<group>"; };
-		AE10BEE825262CC1009F230D /* Release@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Release@3x.png"; sourceTree = "<group>"; };
-		AE10BEE925262CC1009F230D /* Release@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Release@2x.png"; sourceTree = "<group>"; };
 		AE11F79724B894710080CF51 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		AE11F79824B894710080CF51 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LogoLaunchScreen.strings; sourceTree = "<group>"; };
 		AE21C46B23E710A600F8B811 /* UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITests.swift; sourceTree = "<group>"; };
@@ -199,7 +191,7 @@
 		AEAABADD24641BFA001BE414 /* Const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Const.swift; sourceTree = "<group>"; };
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
-		AEBAF564219ACD1900566205 /* die tageszeitung.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "die tageszeitung.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEBAF564219ACD1900566205 /* taz.alpha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.alpha.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AEBAF573219ACD1A00566205 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -227,7 +219,7 @@
 			files = (
 				AE0EC3FD26C1399300EDDF04 /* libc++.tbd in Frameworks */,
 				AE0EC40026C139A200EDDF04 /* libz.tbd in Frameworks */,
-				AED748AB238415B200C09D2D /* NorthLib.framework in Frameworks */,
+				7772B1ED2743BEC300991347 /* NorthLib.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -306,27 +298,9 @@
 				7708DF65262896D10031C702 /* OfflineAlert.swift */,
 				770544702637FE3D0051F12C /* ContentToolbar.swift */,
 				77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */,
+				77328429274F9F5B00B08535 /* TazCustomized.swift */,
 			);
 			path = Views;
-			sourceTree = "<group>";
-		};
-		AE10BEDF2526292F009F230D /* Alternate Icons */ = {
-			isa = PBXGroup;
-			children = (
-				AE10BEE32526295A009F230D /* Alpha@2x.png */,
-				778E1E4B26CCE1DF00D11781 /* Alpha@2x~ipad.png */,
-				AE10BEE12526295A009F230D /* Alpha@3x.png */,
-				778E1E4C26CCE1DF00D11781 /* Alpha@3x~ipad.png */,
-				AE10BEE22526295A009F230D /* Beta@2x.png */,
-				778E1E4926CCE1DF00D11781 /* Beta@2x~ipad.png */,
-				AE10BEE02526295A009F230D /* Beta@3x.png */,
-				778E1E4D26CCE1DF00D11781 /* Beta@3x~ipad.png */,
-				AE10BEE925262CC1009F230D /* Release@2x.png */,
-				778E1E4A26CCE1DF00D11781 /* Release@2x~ipad.png */,
-				AE10BEE825262CC1009F230D /* Release@3x.png */,
-				778E1E4826CCE1DF00D11781 /* Release@3x~ipad.png */,
-			);
-			path = "Alternate Icons";
 			sourceTree = "<group>";
 		};
 		AE16422D222FFEF200DF07DE /* ArticleDB */ = {
@@ -364,6 +338,7 @@
 				AE44F8E324815AF4009DA152 /* ContentImageVC.swift */,
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
 				00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */,
+				779DE96026FA3D790056187B /* SettingsVC.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -408,7 +383,7 @@
 		AEBAF565219ACD1900566205 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AEBAF564219ACD1900566205 /* die tageszeitung.app */,
+				AEBAF564219ACD1900566205 /* taz.alpha.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -439,6 +414,7 @@
 				AEBAF587219ACEC700566205 /* Supporting Files */,
 				C794F23424FED184007168AC /* Helper.swift */,
 				AE4C4FF826A1ABD9006079C8 /* BookmarkFeed.swift */,
+				94487DAB274BCCE10066BCD0 /* AppHelper.swift */,
 			);
 			path = taz.neo;
 			sourceTree = "<group>";
@@ -446,10 +422,10 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				776158192743E8440044516C /* AppIcons */,
 				773D56462614A4DF00B42FEF /* BundledResources */,
 				7745050F25DA80450052E502 /* files */,
 				7745050C25DA801F0052E502 /* resources.json */,
-				AE10BEDF2526292F009F230D /* Alternate Icons */,
 				080271BE24ADDD36002CD2F7 /* Base.lproj */,
 				AEC7D4C624A5E1D3008630FB /* Scripts */,
 				AED52FCA2492764500CC082E /* Fonts */,
@@ -457,6 +433,7 @@
 				AEBAF573219ACD1A00566205 /* Info.plist */,
 				AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */,
 				08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */,
+				948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */,
 			);
 			path = "Supporting Files";
 			sourceTree = "<group>";
@@ -464,6 +441,13 @@
 		AEC7D4C624A5E1D3008630FB /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
+				948E40CE274544BE00D32CFE /* refreshEnvironment.sh */,
+				948E40CD2745447500D32CFE /* post-checkout-prototype.sh */,
+				7738E50C2744596200453CD8 /* genBuildConst.rb */,
+				77828D1327444FF500DCD3BE /* BuildConst.swift */,
+				77F0D1392742B58400D3A432 /* LastBuildNumber.rb */,
+				77F0D1342742B4E900D3A432 /* addLocalResources.sh */,
+				77F0D1372742B4E900D3A432 /* downloadBundledResources.sh */,
 			);
 			path = Scripts;
 			sourceTree = "<group>";
@@ -494,7 +478,7 @@
 			);
 			name = taz.neo;
 			productName = taz.neo;
-			productReference = AEBAF564219ACD1900566205 /* die tageszeitung.app */;
+			productReference = AEBAF564219ACD1900566205 /* taz.alpha.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -561,25 +545,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
-				AE10BEE52526295A009F230D /* Alpha@3x.png in Resources */,
 				08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */,
 				773D56472614A4DF00B42FEF /* BundledResources in Resources */,
-				778E1E5126CCE1DF00D11781 /* Alpha@2x~ipad.png in Resources */,
-				AE10BEE72526295A009F230D /* Alpha@2x.png in Resources */,
-				778E1E4F26CCE1DF00D11781 /* Beta@2x~ipad.png in Resources */,
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
-				AE10BEEA25262CC1009F230D /* Release@3x.png in Resources */,
-				AE10BEE62526295A009F230D /* Beta@2x.png in Resources */,
-				778E1E5326CCE1DF00D11781 /* Beta@3x~ipad.png in Resources */,
-				AE10BEE42526295A009F230D /* Beta@3x.png in Resources */,
-				778E1E4E26CCE1DF00D11781 /* Release@3x~ipad.png in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
 				7745050D25DA801F0052E502 /* resources.json in Resources */,
-				778E1E5226CCE1DF00D11781 /* Alpha@3x~ipad.png in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
 				7745051025DA80450052E502 /* files in Resources */,
-				778E1E5026CCE1DF00D11781 /* Release@2x~ipad.png in Resources */,
-				AE10BEEB25262CC1009F230D /* Release@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -645,15 +617,18 @@
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
+				94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */,
 				7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */,
 				AE5DFACF267E10540035162C /* KeychainTest.swift in Sources */,
 				00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */,
 				7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
+				779DE96126FA3D790056187B /* SettingsVC.swift in Sources */,
 				006E17E924D418090092DC0D /* FormComponents.swift in Sources */,
 				004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */,
 				AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */,
+				77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */,
 				AE5D9EC023E1B82B0002C3B8 /* Downloader.swift in Sources */,
 				7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */,
 				AE4C4FEF26A04EBD006079C8 /* ArticlePlayer.swift in Sources */,
@@ -664,6 +639,7 @@
 				AE4C4FF726A1A512006079C8 /* ArticleDB.xcdatamodel in Sources */,
 				AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */,
 				770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */,
+				7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */,
 				00E3D2A924E68F5500AE075A /* PwForgottView.swift in Sources */,
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,
 				AE4C4FF926A1ABD9006079C8 /* BookmarkFeed.swift in Sources */,
@@ -734,8 +710,92 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		94D7CD19273D6E49001E41D2 /* Beta */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Beta;
+		};
+		94D7CD1A273D6E49001E41D2 /* Beta */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3R3GBCY6FA;
+				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
+				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.9.3;
+				"OTHER_SWIFT_FLAGS[arch=*]" = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Beta;
+		};
 		AEBAF57F219ACD1A00566205 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
@@ -799,6 +859,7 @@
 		};
 		AEBAF580219ACD1A00566205 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
@@ -856,13 +917,13 @@
 		};
 		AEBAF582219ACD1A00566205 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2021091662;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -870,10 +931,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.2;
+				MARKETING_VERSION = 0.9.3;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
-				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
-				PRODUCT_NAME = "die tageszeitung";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -883,13 +942,13 @@
 		};
 		AEBAF583219ACD1A00566205 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2021091662;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -897,10 +956,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.2;
+				MARKETING_VERSION = 0.9.3;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
-				PRODUCT_BUNDLE_IDENTIFIER = de.taz.taz.2;
-				PRODUCT_NAME = "die tageszeitung";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -914,6 +971,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AEBAF57F219ACD1A00566205 /* Debug */,
+				94D7CD19273D6E49001E41D2 /* Beta */,
 				AEBAF580219ACD1A00566205 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -923,6 +981,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AEBAF582219ACD1A00566205 /* Debug */,
+				94D7CD1A273D6E49001E41D2 /* Beta */,
 				AEBAF583219ACD1A00566205 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;

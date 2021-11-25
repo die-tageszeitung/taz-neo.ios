@@ -42,6 +42,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
 
   public var toolBar = ContentToolbar()
   var toolbarHomeButton: Button<ImageView>?
+  var toolbarSettingsButton: Button<ImageView>?
   
   var childPushed = false
   
@@ -143,6 +144,9 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     super.viewDidLoad()
     if initialized { return }
     initialized = true
+    
+    self.collectionView.backgroundColor = .clear
+    
     collectionView?.showsVerticalScrollIndicator = false
     collectionView?.showsHorizontalScrollIndicator = false
     // Register cell classes
@@ -237,6 +241,17 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       print("PDF Pressed")
     }
     
+    let onSettings:((ButtonControl)->()) = {   [weak self] control in
+      guard let self = self else { return }
+      let navCtrl = UINavigationController(rootViewController: SettingsVC())
+//      navCtrl.modalPresentationStyle = .overCurrentContext
+      navCtrl.isNavigationBarHidden = true
+      self.navigationController?.present(navCtrl, animated: true, completion: {
+        print("Settings Presented")
+      })
+      print("Settings Pressed")
+    }
+    
     //the buttons and alignments
     toolbarHomeButton = toolBar.addImageButton(name: "home",
                                onPress: onHome,
@@ -247,6 +262,11 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
                                onPress: onPDF,
                                direction: .left,
                                accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
+    
+    _ = toolBar.addImageButton(name: "settings",
+                               onPress: onSettings,
+                               direction: .center,
+                               accessibilityLabel: "Einstellungen")
         
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
@@ -295,7 +315,7 @@ extension IssueVcWithBottomTiles {
           cell.button.downloadState = .waiting
           cell.momentView.isActivity = true
           issueVC.feederContext.getCompleteIssue(issue: sissue,
-                                                 isPages: self.isFacsimile)
+                                                 isPages: self.isFacsimile, isAutomatically: false)
         }
       }
     }
@@ -318,7 +338,7 @@ extension IssueVcWithBottomTiles {
     guard let issueVC = self as? IssueVC else { return }
     var last = issueVC.issues.last!.date
     last.addDays(-1)
-    issueVC.feederContext.getOvwIssues(feed: issueVC.feed, count: 10, fromDate: last)
+    issueVC.feederContext.getOvwIssues(feed: issueVC.feed, count: 10, fromDate: last, isAutomatically: false)
   }
   
   // MARK: > Cell Click/Select
@@ -489,9 +509,9 @@ extension IssueVcWithBottomTiles {
     if reloadData { self.collectionView.reloadData() }
   }
   
-  func scrollUp(){
+  func scrollUp(animated:Bool=true){
     self.collectionView.setContentOffset(CGPoint(x:0, y:topPos),
-                                         animated: true)
+                                         animated: animated)
   }
 }
 
@@ -577,6 +597,7 @@ extension IssueVcWithBottomTiles {
 }
 
 /// A View for show Update/Download Activity with a Label and a ActivityIndicatorView
+// MARK: - StatusHeader
 class StatusHeader: UIView {
   
   ///Possible States
@@ -695,7 +716,6 @@ class StatusHeader: UIView {
     get { return _currentStatus }
     set {
       if _currentStatus == newValue || nextStatus.last == newValue { return; }
-      print("_currentStatus \(_currentStatus) != newValue \(newValue)")
       if animating { nextStatus.append(newValue); return; }
       if newValue == .downloadError { lastErrorShown = Date() }
       animating = true
