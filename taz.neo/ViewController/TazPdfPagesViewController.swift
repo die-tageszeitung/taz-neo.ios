@@ -190,9 +190,6 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
       let item = ZoomedPdfPageImage(page:page, issueDir: issueDir)
       item.fullScreenPageHeight = fullscreenPageHeight
       item.pdfDownloadDelegate = self
-      #warning("TODO: put the handler to image not to view like now!")
-      ///TODO: hide bar on pdf fullscreen view..
-      ///item.whenScrolling!?
       self.images.append(item)
     }
     

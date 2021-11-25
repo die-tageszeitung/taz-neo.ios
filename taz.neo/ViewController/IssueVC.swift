@@ -151,7 +151,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
-    self.debug("Err: \(error)")
+    self.debug("Err: \(error?.description ?? "-")")
     func showDownloadErrorAlert() {
       let message = """
                     Beim Laden der Ausgabe ist ein Fehler aufgetreten.
@@ -421,6 +421,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         popAndShowReloaded()
       }
     }
+    
+    //Prevent blocking Overlay if no ArticleVC presented
+    if !UIViewController.keyWindowViewControllerContain(type: ArticleVC.self) { return }
     
     let snap = NavigationController.top()?
       .presentingViewController?.view.snapshotView(afterScreenUpdates: false)

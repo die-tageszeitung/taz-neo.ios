@@ -67,6 +67,9 @@ struct Settings {
   
   @Default("persistedIssuesCount")
   static var persistedIssuesCount: Int
+  
+  @Default("isTextNotification")
+  static var isTextNotification: Bool
     
   enum CellType { case link, toggle, custom }
   enum LinkType { case onboarding, errorReport, manageAccount, terms, privacy, revocation, cleanMemory }
@@ -106,31 +109,28 @@ struct Settings {
       self.type = .custom
     }
   }
-  typealias sectionContent = (title:String?, cells:[Cell])
+  typealias sectionContent = (title:String?, collapseable:Bool, collapsed:Bool,  cells:[Cell])
   
   //Prototype Cells
   static func content() -> [sectionContent] {
     return [
-      ("speicher",
+      ("speicher", false, false,
        [
         Cell(customView: SaveLastCountIssues()),
         Cell(linkType: .cleanMemory),
-//        Cell(toggleWithText: "Neue Ausgaben automatisch laden",
-//             initialValue: Settings.autoloadNewIssues,
-//             changeHandler: { newValue in Settings.autoloadNewIssues = newValue}),
-//        Cell(toggleWithText: "Automatischer Download auch im Mobilfunknetz",
-//             initialValue: Settings.autoloadInWLAN,
-//             changeHandler: { newValue in Settings.autoloadInWLAN = newValue})
-//        ,
-//        Cell(toggleWithText: "Rechtshändermodus",
-//             initialValue: true,
-//             changeHandler: { _ in }),
-//        Cell(toggleWithText: "Teilen in Ressortübersicht ausblenden",
-//             initialValue: true,
-//             changeHandler: { _ in })
-       ]
-      ),
-      ("darstellung",
+       ]),/*
+       ("ausgaben laden", false, false,
+        [
+         Cell(toggleWithText: "Neue Ausgaben automatisch laden",
+              initialValue: Settings.autoloadNewIssues,
+              changeHandler: { newValue in Settings.autoloadNewIssues = newValue}),
+         Cell(toggleWithText: "Automatischer Download auch im Mobilfunknetz",
+              initialValue: Settings.autoloadInWLAN,
+              changeHandler: { newValue in Settings.autoloadInWLAN = newValue})
+         ,
+        ]
+      ),*/
+      ("darstellung", false,false,
        [
         Cell(withText: "Textgröße (Inhalte)", accessoryView: TextSizeSetting()),
         Cell(toggleWithText: "Nachtmodus",
@@ -140,23 +140,52 @@ struct Settings {
              })
        ]
       ),
-      ("support",
+      ("support", false,false,
        [
         Cell(linkType: .onboarding),
         Cell(linkType: .errorReport)
        ]
       ),
-      ("abo",
+      ("abo", false,false,
        [
         Cell(linkType: .manageAccount),
         Cell(linkType: .terms),
         Cell(linkType: .privacy),
         Cell(linkType: .revocation)
        ]
+      ),
+      ("erweitert", true,true,
+       [
+        Cell(toggleWithText: "Mitteilungen außerhalb der App",
+             initialValue: Settings.isTextNotification,
+             changeHandler: Settings.textNotificationsChanged(newValue:)),
+        //        Cell(toggleWithText: "Rechtshändermodus",
+        //             initialValue: true,
+        //             changeHandler: { _ in }),
+        //        Cell(toggleWithText: "Teilen in Ressortübersicht ausblenden",
+        //             initialValue: true,
+        //             changeHandler: { _ in })
+       ]
       )
     ]
   }
-    
+  
+  static func textNotificationsChanged(newValue:Bool){
+    isTextNotification = newValue
+    if newValue == false { return }
+    let center = UNUserNotificationCenter.current()
+    center.getNotificationSettings { (settings) in
+      if settings.soundSetting == .disabled
+      && settings.alertSetting == .disabled
+      && settings.badgeSetting == .disabled {
+        Alert.confirm(message: "Bitte erlauben Sie Benachrichtigungen!") { _ in
+          if let url = URL.init(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+          }
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -169,7 +198,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   private var persistedIssuesCount: Int
   
   var feederContext: FeederContext?
-  
+    
   public lazy var xButton = Button<CircledXView>().tazX()
   
   lazy var content = Settings.content()
@@ -257,7 +286,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   }
   
   open override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return content[section].cells.count
+    let content = content[section]
+    if content.collapseable && content.collapsed { return 0 }
+    return content.cells.count
   }
   
   open override func numberOfSections(in tableView: UITableView) -> Int {
@@ -273,7 +304,15 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   }
   
   open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    return SectionHeader(text:content[section].title ?? "")
+    let header = SectionHeader(text:content[section].title ?? "")
+    header.onTapping { [weak self] _ in
+      guard let self = self else { return }
+      let content = self.content[section]
+      guard content.collapseable else { return }
+      self.content[section].collapsed = !content.collapsed
+      self.tableView.reloadSections(IndexSet(integer: section), with: .fade)
+    }
+    return header
   }
   
   open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
@@ -361,17 +400,7 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Hilfe", style: .default,
       handler: { [weak self] handler in
-      guard let self = self else { return }
-      
-      self.showHelp()
-      return;
-      
-      let cntTxt
-      = self.persistedIssuesCount > 0
-      ? "\(self.persistedIssuesCount)"
-      : "alle"
-      
-      Alert.message(title: Localized("help"), message: Localized(keyWithFormat: "clean_memory_help", cntTxt), additionalActions:[self.openFaqAction()])
+      self?.showHelp()
     }))
       
     alert.addAction( UIAlertAction.init( title: "Alle Vorschaudaten löschen", style: .destructive,
@@ -391,14 +420,14 @@ extension SettingsVC {
       ArticleDB.singleton.reset { [weak self] err in
         self?.log("delete database done")
         exit(0)//Restart, resume currently not possible
-        ///TODO enable resume FEEDER CONTEXT RE-INIT
-        onMainAfter { [weak self]  in
-          self?.content[0] = Settings.content()[0]
-          let ip0 = IndexPath(row: 1, section: 0)
-          self?.tableView.reloadRows(at: [ip0], with: .fade)
-          MainNC.singleton.feederContext.resume()
-          MainNC.singleton.showIssueVC()
-        }
+        //#warning("ToDo: 0.9.4 enable resume of feederCOntext / Re-Init here")
+        //onMainAfter { [weak self]  in
+        //  self?.content[0] = Settings.content()[0]
+        //  let ip0 = IndexPath(row: 1, section: 0)
+        //  self?.tableView.reloadRows(at: [ip0], with: .fade)
+        //  MainNC.singleton.feederContext.resume()
+        //  MainNC.singleton.showIssueVC()
+        //}
       }
     } ) )
     
@@ -407,16 +436,7 @@ extension SettingsVC {
         MainNC.singleton.deleteAll()
     } ) )
   
-    #warning("Alpha only demonstartor")
-    if App.isBeta || App.isRelease || gt_iOS13 {
-      alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
-    }
-    else {
-      alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .default) { _ in } )
-      alert.view.subviews.first?.subviews.first?.subviews.first?.backgroundColor
-      = Const.SetColor.ios(.secondarySystemBackground).color
-      log("Changed Alert Action for iOS 12 as demonstrator")
-    }
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.view)
   }
   

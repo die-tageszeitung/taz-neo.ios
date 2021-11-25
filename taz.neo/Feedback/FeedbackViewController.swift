@@ -232,7 +232,7 @@ public class FeedbackViewController : UIViewController{
   }
   
   func requestSendByMail(){
-    #warning("ToDo implement send by mail if offline, in prev versions nothing happen, now alert will be shown")
+    //#warning("ToDo: 0.9.4 ToDo implement send by mail if offline, in prev versions nothing happen, now alert will be shown")
     log("ToDo: implement alternative send by mail")
     self.handleSendFail()
   }

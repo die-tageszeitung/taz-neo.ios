@@ -217,7 +217,7 @@ extension ArticleVC {
   @objc func search() {
     self.currentWebView?.evaluateJavaScript("window.getSelection().toString()", completionHandler: { selectedText, err in
       if let e = err { self.log(e.errorText())}
-      #warning("TODO Implement Search")
+      //#warning("ToDo: 0.9.4+ Implement Search")
       if let txt = selectedText { print("You selected: \(txt)")}
       else { print("no text selection detected")}
     })

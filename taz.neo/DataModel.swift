@@ -528,7 +528,7 @@ public extension Page {
   func toString() -> String {
     var ret = title ?? "unknown"
     if let pg = pagina { ret += " (#\(pg))" }
-    ret += " in \(pdf)"
+    ret += " in \(String(describing: pdf))"
     if let fs = frames { ret += " \(fs.count) frames"}
     return ret
   }

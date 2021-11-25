@@ -144,7 +144,7 @@ open class FeederContext: DoesLog {
   private func checkNetwork() {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     if isConnected {
-      #warning("watch logs&errors after 0.9.3 release")
+      //#warning("ToDo: 0.9.4 loock for logs&errors after 0.9.3 release")
       /// To discuss: idea to reset previous feeder's gqlSession's URLSession to get rid of download errors
       /// e.g. if the session exists over 3h...
       //      if let oldFeeder = self.gqlFeeder {
@@ -210,7 +210,7 @@ open class FeederContext: DoesLog {
   private var pollingTimer: Timer?
   private var pollEnd: Int64?
   
-  #warning("ToDo: 0.9.4 fix App crash if called when active downloads")
+  //#warning("ToDo: 0.9.4 fix App crash if called when active downloads")
   /// Crash reasons:
   /// 1. task from session created but session invalidated
   /// 2. force unwrap optional : StoredFileEntry.pr.name
@@ -577,16 +577,17 @@ open class FeederContext: DoesLog {
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       if self.isConnected {
-        #warning("@WiP Discussion with beta App! @see getOvwIssues(feed: feed, count: Int(ndays)) should work fine")
         self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: min(count, 20),
                               isOverview: true) { res in
           if let issues = res.value() {
             for issue in issues {
               let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
               if si.count < 1 { StoredIssue.persist(object: issue) }
-              #warning("Missing Update")///Old App Timestamp!
-              /// What if Overview new MoTime but compleete Issue is in DB and User is in Issue to read!!
-//              if si.first?.moTime != issue.moTime
+              //#warning("ToDo 0.9.4+: Missing Update of an stored Issue")
+              ///in old app timestamps are compared!
+              ///What if Overview new MoTime but compleete Issue is in DB and User is in Issue to read!!
+              /// if si.first?.moTime != issue.moTime ...
+              /// an update may result in a crash
             }
             ArticleDB.save()
             let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
