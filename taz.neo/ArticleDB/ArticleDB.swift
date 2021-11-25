@@ -1642,20 +1642,13 @@ public final class StoredIssue: Issue, StoredObject {
     
     let keepPreviewCount = min(allIssues.count, max(keepPreviews, keepDownloaded))
     let reduceableIssues = allIssues[..<keepPreviewCount]
-    let deleteableIssues = allIssues[keepPreviewCount...]
     
-    for issue in reduceableIssues {
+    for issue in allIssues {
       if lastCompleeteIssues.contains(issue) { continue }
       Log.log("reduceToOverview for issue: \(issue.date.short)")
       issue.reduceToOverview()
     }
-    
-    for issue in deleteableIssues {
-      if lastCompleeteIssues.contains(issue) { continue }
-      Log.log("Delete issue content and preview data for: \(issue.date.short)")
-      issue.reduceToOverview()//Fehler?
-    }
-     
+         
     guard deleteOrphanFolders else { return }
     Log.log("delete orphan folders")
     
