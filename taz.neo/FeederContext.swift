@@ -37,9 +37,6 @@ import NorthLib
  */
 open class FeederContext: DoesLog {
   
-  @Key("pushTokenSendToServer")
-  var pushTokenSendToServer: Date
-  
   /// Number of seconds to wait until we stop polling for email confirmation
   let PollTimeout: Int64 = 25*3600
 
@@ -279,18 +276,13 @@ open class FeederContext: DoesLog {
         self.pushToken = nil
       }
       dfl["pushToken"] = self.pushToken
-      
-      if self.pushToken == nil { return } ///prevent send an empty token to Server e.g. from Simulator
-      
-      #warning("ToDo@Ringo Change Intervall after successfull test to .week")
-      if oldToken != self.pushToken
-          || Date.existsAndNotExpired(self.pushTokenSendToServer, intervall: .day) {
+            
+      if oldToken != self.pushToken {
         let isTextNotification = dfl["isTextNotification"]!.bool
         self.gqlFeeder.notification(pushToken: self.pushToken, oldToken: oldToken,
                                      isTextNotification: isTextNotification) { [weak self] res in
           if let err = res.error() { self?.error(err) }
           else {
-            self?.pushTokenSendToServer = Date()
             self?.debug("Updated PushToken")
           }
         }
