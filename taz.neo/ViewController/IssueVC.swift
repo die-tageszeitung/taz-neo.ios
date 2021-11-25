@@ -422,6 +422,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
     }
     
+    //Prevent blocking Overlay if no ArticleVC presented
+    if !UIViewController.keyWindowViewControllerContain(type: ArticleVC.self) { return }
+    
     let snap = NavigationController.top()?
       .presentingViewController?.view.snapshotView(afterScreenUpdates: false)
     
