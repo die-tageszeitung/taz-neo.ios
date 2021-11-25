@@ -4,7 +4,7 @@ iOS-App for reading the "taz" digital newspaper
 
 ## Author
 
-Norbert Thies, norbert@taz.de
+Norbert Thies, norbert@taz.de   
 Ringo Müller, https://github.com/bochos-bln
 
 ## License
@@ -75,20 +75,20 @@ taz.neo is available under the AGPL. See the LICENSE file for more info.
 
 ### Branch & Environment Switch while Xcode is running
 - Attention: Xcode ignores changes in current xcschemes (and project) file(s) so:
-  - Option 1: restart xcode
-    close xcode by: 
-    >> kill $(ps aux | grep 'Xcode' | awk '{print $2}')
-    >> cd ~/src/TAZ/taz-neo.ios/taz.neo/Supporting\ Files/Scripts
-    >> ./changeConfiguration.sh Alpha|Beta|Release
-    open xcode with: 
-    >> xed
-  - Option 2: delete content of:
-    ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
-    and
-    ~/Library/Developer/Xcode/DerivedData/taz.neo
-    to tell xcode to re-read theese files
-- **Change environment** (alpha|betarelease) from commandline, in taz.neo project dir:
+  - Option 1: restart xcode   
+    close xcode by:    
+    >> kill $(ps aux | grep 'Xcode' | awk '{print $2}')   
+    >> cd ~/src/TAZ/taz-neo.ios/taz.neo/Supporting\ Files/Scripts   
+    >> ./changeConfiguration.sh Alpha|Beta|Release   
+    open xcode with:    
+    >> xed   
+  - Option 2: delete content of:   
+    ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex   
+    and   
+    ~/Library/Developer/Xcode/DerivedData/taz.neo   
+    to tell xcode to re-read theese files   
+- **Change environment** (alpha|betarelease) from commandline, in taz.neo project dir:   
     >> ./taz.neo/Supporting\ Files/Scripts/refreshEnvironment.sh alpha
-- **generate current build number** (without commit and remote check)
+- **generate current build number** (without commit and remote check)   
     >> ruby taz.neo/Supporting\ Files/Scripts/genBuildConst.rb -in
 
