@@ -198,7 +198,7 @@ open class ArticleVC: ContentVC {
       self.exportArticle(article: self.article, from: self.shareButton)
     }
     
-    if App.isAlpha || App.isBeta {
+    if App.isAvailable(.SEARCH_CONTEXTMENU) {
       let suche = UIMenuItem(title: "Suche", action: #selector(search))
       UIMenuController.shared.menuItems = [suche]
     }
@@ -206,7 +206,7 @@ open class ArticleVC: ContentVC {
   
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
-    if App.isAlpha || App.isBeta {
+    if App.isAvailable(.SEARCH_CONTEXTMENU) {
       UIMenuController.shared.menuItems = nil
     }
   }

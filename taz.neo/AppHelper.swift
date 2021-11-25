@@ -67,6 +67,8 @@ extension App {
         return isAlpha //Only in Alpha Versions
       case .PDFEXPORT:
         return isAlpha //Only in Alpha Versions
+      case .SEARCH_CONTEXTMENU:
+        return isAlpha //Only in Alpha Versions
     }
   }
 }

@@ -214,6 +214,7 @@ open class FeederContext: DoesLog {
   /// Crash reasons:
   /// 1. task from session created but session invalidated
   /// 2. force unwrap optional : StoredFileEntry.pr.name
+  /// this was also called on 3-finger-deleteApp with App restart
   public func cancelAll() {
     self.gqlFeeder.status?.feeds = []
     self.gqlFeeder.gqlSession?.session.invalidateAndCancel()
@@ -302,7 +303,6 @@ open class FeederContext: DoesLog {
       case .subscription:
         authenticator.pollSubscription(){_ in}
       case .newIssue:
-//        if App.Ba
         //not using checkForNew Issues see its warning!
         //count 1 not working:
         log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
@@ -532,7 +532,7 @@ open class FeederContext: DoesLog {
     }
         
     if err == .expiredAccount(nil) {
-      ///key must be deleted on login to see message again  ...or restart, keep in mind if changing
+      ///"expiredAccountAlertPopup" key must be deleted on login to see message again  ...or restart, keep in mind if changing
       if "expiredAccountAlertPopup".existsAndNotExpired(intervall: .hour*6 ) { return }
     }
     else {
