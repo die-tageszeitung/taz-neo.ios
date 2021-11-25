@@ -798,7 +798,7 @@ class SaveLastCountIssues: UIView, UIStyleChangeDelegate {
   func setup(){
     registerForStyleUpdates()
     ///Labels
-    mainLabel.text = "Maximale Anzahl 20 zu speichernden Ausgaben"
+    mainLabel.text = "Maximale Anzahl der zu speichernden Ausgaben"
     detailLabel.text = "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht."
     mainLabel.contentFont().set(textColor: Const.SetColor.ios(.label).color)
     detailLabel.contentFont(size: Const.Size.SmallerFontSize)
