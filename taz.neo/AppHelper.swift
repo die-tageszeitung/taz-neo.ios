@@ -8,6 +8,23 @@
 
 import NorthLib
 
+extension UIApplication {
+  
+  /// helper to get human readable application state
+  public var stateDescription : String {
+    switch self.applicationState {
+      case .active:
+        return "active"
+      case .background:
+        return "active"
+      case .inactive:
+        return "inactive"
+      default:
+        return "unknown with raw: \(self.applicationState.rawValue)"
+    }
+  }
+}
+
 extension App {
   /// Is the alpha App
   public static var isAlpha: Bool = {
@@ -23,6 +40,21 @@ extension App {
   public static var isRelease: Bool = {
     return bundleIdentifier == BuildConst.tazBundleIdentifierStore
   }()
+  
+  
+  /// get app info ()
+  static var appInfo:String {
+    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : "taz"
+    return "\(appTitle) (v) \(App.version)-\(App.buildNumber)"
+  }
+  
+  /// get current auth info (tazID & logged In status)
+  /// - Parameter feederContext: source for info
+  /// - Returns: formated string with requested info
+  static func authInfo(with feederContext: FeederContext) -> String {
+    let authInfo = feederContext.isAuthenticated ? "angemeldet" : "NICHT ANGEMELDET"
+    return "\(authInfo), taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
+  }
   
   /// Get info is new Features are available
   /// Previously used Compiler Flags, unfortunatly they are harder to find within Source Code Search

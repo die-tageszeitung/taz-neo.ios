@@ -800,17 +800,3 @@ extension PushNotification.Payload {
 }
 
 
-extension UIApplication {
-  var stateDescription : String {
-    switch self.applicationState {
-      case .active:
-        return "active"
-      case .background:
-        return "active"
-      case .inactive:
-        return "inactive"
-      default:
-        return "unknown with raw: \(self.applicationState.rawValue)"
-    }
-  }
-}

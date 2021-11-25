@@ -934,19 +934,6 @@ class CustomHStack: UIStackView {
   func setup(){}
 }
 
-// MARK: - ext. App
-extension App {
-  static var appInfo:String {
-    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : "taz"
-    return "\(appTitle) (v) \(App.version)-\(App.buildNumber)"
-  }
-  
-  static func authInfo(with feederContext: FeederContext) -> String {
-    let authInfo = feederContext.isAuthenticated ? "angemeldet" : "NICHT ANGEMELDET"
-    return "\(authInfo), taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
-  }
-}
-
 // MARK: - SimpleHeaderView
 class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   
