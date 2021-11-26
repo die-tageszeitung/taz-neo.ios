@@ -535,23 +535,23 @@ extension SettingsVC {
                                  withExtension: "html",
                                  subdirectory: "BundledResources")
     else { return }
-    
-    ///Apply dark/bright mode
-    let f = File(url)
-    var content = f.string
-    
-    if Defaults.darkMode {
-      content = content.replacingOccurrences(
-        of: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNormal.css\">",
-        with: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNight.css\">")
-    }
-    else {
-      content = content.replacingOccurrences(
-        of: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNight.css\">",
-        with: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNormal.css\">")
-    }
-    
-    f.string = content
+    ///Do not write file to App Bundle - its read only result in "unexpectedError &  Crash"
+//    ///Apply dark/bright mode
+//    let f = File(url)
+//    var content = f.string
+//
+//    if Defaults.darkMode {
+//      content = content.replacingOccurrences(
+//        of: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNormal.css\">",
+//        with: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNight.css\">")
+//    }
+//    else {
+//      content = content.replacingOccurrences(
+//        of: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNight.css\">",
+//        with: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNormal.css\">")
+//    }
+//
+//    f.string = content
 
     let webviewVC = IntroVC()
    
