@@ -832,6 +832,9 @@ class SaveLastCountIssues: UIView, UIStyleChangeDelegate {
     accessoryView.leftButton.buttonView.text = "-"
     accessoryView.rightButton.buttonView.text = "+"
     
+    accessoryView.leftButton.buttonView.font = Const.Fonts.contentFont(size: 16)
+    accessoryView.rightButton.buttonView.font = Const.Fonts.contentFont(size: 16)
+    
     accessoryView.leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
     accessoryView.rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.2, left:0.2 , bottom: 1.2, right: -0.2)
     
@@ -915,7 +918,7 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     
     leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
     rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -2.5, left:0.2 , bottom: 2.5, right: -0.2)
-    // Overwrite Default 16
+    // Default is: 16
     leftButton.buttonView.font
     = Const.Fonts.contentFont(size: 12)//-4
     rightButton.buttonView.font
