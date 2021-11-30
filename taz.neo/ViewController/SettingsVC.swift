@@ -156,7 +156,7 @@ struct Settings {
       ),
       ("erweitert", true,true,
        [
-        Cell(toggleWithText: "Mitteilungen außerhalb der App",
+        Cell(toggleWithText: "Mitteilungen erlauben",
              initialValue: Settings.isTextNotification,
              changeHandler: Settings.textNotificationsChanged(newValue:)),
         //        Cell(toggleWithText: "Rechtshändermodus",
@@ -277,6 +277,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   }
   
   open override func viewDidLoad() {
+    self.tableView = UITableView(frame: .zero, style: .grouped)
     super.viewDidLoad()
     setup()
     applyStyles()
