@@ -425,7 +425,7 @@ class GenBuildConst
       CURRENT_PROJECT_VERSION = #{@buildNumber}
       EOF
     File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
-    ENV["CURRENT_PROJECT_VERSION"] = @buildNumber
+    ENV["CURRENT_PROJECT_VERSION"] = "\"#{@buildNumber}\""
     system("rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex")
     #system("rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*")
   end
