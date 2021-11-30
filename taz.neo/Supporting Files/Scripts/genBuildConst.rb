@@ -244,13 +244,15 @@ class BuildNumber
   end
   
   def inc
+    p "inc buildnumber serial was: " + @serial
     t = Time.now
     if t.year != @time.year || t.month != @time.month || t.day != @time.day
       @time = Time.now
-      @serial = 1
+      @serial += 1
+      p "inc buildnumber serial is now: " + @serial
     else
       raise "BuildNumber getting too large: #{to_s}" if @serial > 98
-      @serial += 1
+      @serial = 1
     end
     self
   end
@@ -386,7 +388,9 @@ class GenBuildConst
     if File.exist?("#{@dir}/LastBuildNumber.rb")
       load("#{@dir}/LastBuildNumber.rb")
       @buildNumber = BuildNumber.new(LastBuildNumber)
+      p "update Buildnumber#1: " + @buildNumber
       @buildNumber.inc if !@options[:devel]
+      p "update Buildnumber#2: " + @buildNumber
     else
       @buildNumber = BuildNumber.new
     end
