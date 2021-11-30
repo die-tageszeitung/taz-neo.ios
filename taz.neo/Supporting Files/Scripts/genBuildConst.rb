@@ -175,7 +175,6 @@ class Git
   # subdirectory
   #
   def git(cmd)
-    p "execute git: " + cmd
     Git.cmd(@local, cmd)
   end
   
@@ -244,12 +243,10 @@ class BuildNumber
   end
   
   def inc
-    p "inc buildnumber serial was: \"#{@serial}\""
     t = Time.now
     if t.year != @time.year || t.month != @time.month || t.day != @time.day
       @time = Time.now
       @serial = 1
-      p "inc buildnumber serial is now: \"#{@serial}\""
     else
       raise "BuildNumber getting too large: #{to_s}" if @serial > 98
       @serial += 1
@@ -395,6 +392,7 @@ class GenBuildConst
     File.open("#{dir}/LastBuildNumber.rb", "w") do |f|
       f.write("LastBuildNumber=\"#{@buildNumber}\"")
     end
+    system("/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion #{@buildNumber}\" '#{@dir}/../Info.plist'")
     if !@options[:noCommit]
       Git.cmd(@dir, "add LastBuildNumber.rb")
       Git.cmd(@dir, "commit -m \"New build number #{@buildNumber}\"")
@@ -414,7 +412,6 @@ class GenBuildConst
         static var name: String { "#{@param.name}" }
         static var id: String { "#{@param.id}" }
         static var state: String { "#{@param.state}" }
-        static var buildNumber: String { "#{@buildNumber}" }
         static var hash: String { "#{@hash}" }
       }
       EOF
@@ -422,13 +419,8 @@ class GenBuildConst
     schemeConst = <<~EOF
       PRODUCT_NAME = #{@param.name}
       PRODUCT_BUNDLE_IDENTIFIER = #{@param.id}
-      CURRENT_PROJECT_VERSION = #{@buildNumber}
       EOF
     File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
-    ENV["CURRENT_PROJECT_VERSION"] = "\"#{@buildNumber}\""
-    system("rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex")
-    system("/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion #{@buildNumber}\" '#{@dir}/../Info.plist'")
-    #system("rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*")
   end
   
 end # class GenBuildConst
