@@ -388,9 +388,7 @@ class GenBuildConst
     if File.exist?("#{@dir}/LastBuildNumber.rb")
       load("#{@dir}/LastBuildNumber.rb")
       @buildNumber = BuildNumber.new(LastBuildNumber)
-      p "update Buildnumber#1: \"#{@buildNumber}\""
       @buildNumber.inc if !@options[:devel]
-      p "update Buildnumber#2: \"#{@buildNumber}\""
     else
       @buildNumber = BuildNumber.new
     end
@@ -421,12 +419,12 @@ class GenBuildConst
       }
       EOF
     File.open("#{dir}/BuildConst.swift", "w") { |f| f.write(swiftConst) }
-    #schemeConst = <<~EOF
-    #  PRODUCT_NAME = #{@param.name}
-    #  PRODUCT_BUNDLE_IDENTIFIER = #{@param.id}
-    #  CURRENT_PROJECT_VERSION = #{@buildNumber}
-    #  EOF
-    #File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
+    schemeConst = <<~EOF
+      PRODUCT_NAME = #{@param.name}
+      PRODUCT_BUNDLE_IDENTIFIER = #{@param.id}
+      CURRENT_PROJECT_VERSION = #{@buildNumber}
+      EOF
+    File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
     #system("rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex")
     #system("rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*")
   end
