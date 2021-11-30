@@ -153,7 +153,8 @@ class Git
                :fToMerge=>[], :fChanged=>[] }
     Git.cmd( "status --porcelain" ).
       each_line do |l|
-      fn = l.sub( /^...(.*)\s*/, '\1' )
+      fn = l.sub( /^..."(.*)"\s*/, '\1' )
+      fn = l.sub( /^...(.*)\s*/, '\1' ) if fn == l
       st = l.sub( /^(..).*\s*/, '\1' )
       status[fn] = st
       if (st == "DD") || st.index("U")
@@ -181,6 +182,16 @@ class Git
   #
   def needsMerge?
     @status[:nMerge] != 0
+  end
+  
+  # filesChanged returns a string of files in need to commit
+  #
+  def filesChanged
+    fl = @status[:fChanged]
+    return nil if !fl || fl.empty?
+    str = ""
+    fl.each { |f| str << "  " + f + "\n" }
+    return str
   end
   
   # needsCommit? returns true if there are files to commit
@@ -298,7 +309,7 @@ class GenBuildConst
   def checkState
     if !@options[:ignore]
       raise "Merge needed" if @git.needsMerge?
-      raise "Commit needed" if @git.needsCommit?
+      raise "Commit needed:\n#{@git.filesChanged}" if @git.needsCommit?
     end
     @param = BuildParameters[@git.branch]
     if !@param
@@ -417,5 +428,6 @@ class GenBuildConst
 end # class GenBuildConst
 
 gbc = GenBuildConst.new
+print(gbc.git.filesChanged)
 gbc.updateBuildNumber
 gbc.write
