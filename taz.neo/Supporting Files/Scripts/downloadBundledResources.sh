@@ -22,7 +22,8 @@
 # TARGET => RUN Script, move it to topmost position
 # source .${SRCROOT}/taz.neo/Supporting\ Files/Scripts/addResources.sh
 #
-
+echo "skip for test"
+exit 0;
 function bashDebug(){
 	clear
 	BUILT_PRODUCTS_DIR="/Users/taz/Library/Developer/Xcode/DerivedData/taz.neo-evhhpiwabilulthhegmldjnwettz/Build/Products/Debug-iphonesimulator"
