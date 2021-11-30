@@ -205,10 +205,9 @@ class Git
   #
   def remoteHash
     output = git("ls-remote '#{@remote}' '#{@branch}'")
-    p "1: " + output
-    output.sub(/([^\s]*).*/, '\1')
-    p "2: " + output
-    return nil if output.length == 0
+    hash = output.sub(/([^\s\t]*).*/, '\1')
+    return nil if output == hash
+    return hash
   end
   
   # localHash returns the most recent commit hash from the local repository in
@@ -319,8 +318,6 @@ class GenBuildConst
       raise "Invalid/Unknown branch: #{@git.branch}" if !@param
     end
     @hash = @git.localHash
-    p "Hash: " + @hash
-    p "remote hash: " + @git.remoteHash
     if !@options[:ignore] && @param.state != "alpha" && @hash != @git.remoteHash
       raise "Remote branch differs, perform merge first"
     end
@@ -432,6 +429,5 @@ class GenBuildConst
 end # class GenBuildConst
 
 gbc = GenBuildConst.new
-print(gbc.git.filesChanged)
 gbc.updateBuildNumber
 gbc.write
