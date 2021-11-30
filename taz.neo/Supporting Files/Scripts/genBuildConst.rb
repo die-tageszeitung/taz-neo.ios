@@ -153,7 +153,8 @@ class Git
                :fToMerge=>[], :fChanged=>[] }
     Git.cmd( "status --porcelain" ).
       each_line do |l|
-      fn = l.sub( /^...(.*)\s*/, '\1' )
+      fn = l.sub( /^..."(.*)"\s*/, '\1' )
+      fn = l.sub( /^...(.*)\s*/, '\1' ) if fn == l
       st = l.sub( /^(..).*\s*/, '\1' )
       status[fn] = st
       if (st == "DD") || st.index("U")
@@ -181,6 +182,16 @@ class Git
   #
   def needsMerge?
     @status[:nMerge] != 0
+  end
+  
+  # filesChanged returns a string of files in need to commit
+  #
+  def filesChanged
+    fl = @status[:fChanged]
+    return nil if !fl || fl.empty?
+    str = ""
+    fl.each { |f| str << "  " + f + "\n" }
+    return str
   end
   
   # needsCommit? returns true if there are files to commit
@@ -274,11 +285,17 @@ class GenBuildConst
     SYNOPSIS
       genBuildConst [options]
       options:
-        -D           : developer build, don't increment build number, implies -in
         -d directory : where to write BuildConst.swift, LastBuildNumber.rb to
-        -r remote    : URL of remote repository
+        -r remote    : URL of the remote repository
         -i           : ignore merge/commit and branch errors
         -n           : don't commit LastBuildNumber.rb
+        -A           : archive mode, implied by environment variable
+                         ACTION=install
+      By default (in non archive mode) the options -in are applied to ignore
+      merge/commit and branch errors and to not increase and commit
+      LastBuildNumber.rb. In archive mode for errors is checked and the build
+      number is incremented as well as LastBuildNumber.rb is committed and pushed
+      to the remote repository.
   EOF
   
   def usage
@@ -292,7 +309,7 @@ class GenBuildConst
   def checkState
     if !@options[:ignore]
       raise "Merge needed" if @git.needsMerge?
-      raise "Commit needed" if @git.needsCommit?
+      raise "Commit needed:\n#{@git.filesChanged}" if @git.needsCommit?
     end
     @param = BuildParameters[@git.branch]
     if !@param
@@ -311,6 +328,11 @@ class GenBuildConst
     @dir = File.dirname($PROGRAM_NAME)
     @remote = "https://github.com/die-tageszeitung/taz-neo.ios.git"
     @options = {}
+    if ENV["ACTION"] != "install"
+      @options[:devel] = true
+      @options[:ignore] = true
+      @options[:noCommit] = true
+    end
     av = ARGV
     while av.length > 0
       case av[0]
@@ -338,10 +360,10 @@ class GenBuildConst
               @options[:ignore] = true
             when "n"[0]
               @options[:noCommit] = true
-            when "D"[0]
-              @options[:devel] = true
-              @options[:ignore] = true
-              @options[:noCommit] = true
+            when "A"[0]
+              @options[:devel] = false
+              @options[:ignore] = false
+              @options[:noCommit] = false
             else
               usage
           end
@@ -406,5 +428,6 @@ class GenBuildConst
 end # class GenBuildConst
 
 gbc = GenBuildConst.new
+print(gbc.git.filesChanged)
 gbc.updateBuildNumber
 gbc.write
