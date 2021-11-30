@@ -388,9 +388,9 @@ class GenBuildConst
     if File.exist?("#{@dir}/LastBuildNumber.rb")
       load("#{@dir}/LastBuildNumber.rb")
       @buildNumber = BuildNumber.new(LastBuildNumber)
-      p "update Buildnumber#1: " + @buildNumber
+      p "update Buildnumber#1: \"#{@buildNumber}\""
       @buildNumber.inc if !@options[:devel]
-      p "update Buildnumber#2: " + @buildNumber
+      p "update Buildnumber#2: \"#{@buildNumber}\""
     else
       @buildNumber = BuildNumber.new
     end
