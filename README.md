@@ -29,7 +29,7 @@ taz.neo is available under the AGPL. See the LICENSE file for more info.
   - **release** branch
      - contains production code, anything here is: deployable, code-reviewed, tested
        - review code on merge (Pair Code Review)
-       - use merge requests!
+       - use pull requests!
        - test after merge
      - usually only merge from beta or hotfix-??? branches to release branch
      - use the beta branch fo merge and test different features and fixes 
