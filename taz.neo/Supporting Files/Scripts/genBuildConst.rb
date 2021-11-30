@@ -175,6 +175,7 @@ class Git
   # subdirectory
   #
   def git(cmd)
+    p "execute git: " + cmd
     Git.cmd(@local, cmd)
   end
   
