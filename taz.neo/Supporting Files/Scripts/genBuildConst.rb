@@ -427,6 +427,7 @@ class GenBuildConst
     File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
     ENV["CURRENT_PROJECT_VERSION"] = "\"#{@buildNumber}\""
     system("rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex")
+    sytem("/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $buildNumber\" #{dir}/../Info.plist ")
     #system("rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*")
   end
   
