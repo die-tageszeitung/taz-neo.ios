@@ -136,7 +136,7 @@ class Git
   # Git.cmd performs the git command in the given directory
   #
   def Git.cmd(dir = ".", cmd)
-    `cd "#{dir}"; git #{cmd}`.chop
+    `cd "#{dir}"; git #{cmd}`.strip
   end
   
   # Git.status performs the git status command and returns a hash reflecting
@@ -393,9 +393,9 @@ class GenBuildConst
       f.write("LastBuildNumber=\"#{@buildNumber}\"")
     end
     if !@options[:noCommit]
-      @git.cmd(@dir, 'add LastBuildNumber.rb')
-      @git.cmd(@dir, 'commit -m "New build number #{@buildNumber}"')
-      @git.cmd(@dir, 'push "#{@git.remote}"')
+      Git.cmd(@dir, 'add LastBuildNumber.rb')
+      Git.cmd(@dir, 'commit -m "New build number #{@buildNumber}"')
+      Git.cmd(@dir, 'push "#{@git.remote}"')
       @git.readStatus
       @hash = @git.localHash
     end
