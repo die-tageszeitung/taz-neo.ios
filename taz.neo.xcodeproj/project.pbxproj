@@ -591,6 +591,7 @@
 			);
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/taz.neo/Supporting\\ Files/Scripts/BuildConst.swift",
+				"$(DERIVED_FILE_DIR)/taz.neo/Supporting\\ Files/ConfigSettings.xcconfig",
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
