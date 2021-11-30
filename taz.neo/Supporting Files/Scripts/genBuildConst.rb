@@ -395,9 +395,9 @@ class GenBuildConst
     if !@options[:noCommit]
       Git.cmd(@dir, "add LastBuildNumber.rb")
       Git.cmd(@dir, "commit -m \"New build number #{@buildNumber}\"")
-      Git.cmd(@dir, "push \"#{@git.remote}\"")
-      @git.readStatus
-      @hash = @git.localHash
+      #Git.cmd(@dir, "push \"#{@git.remote}\"")
+      #@git.readStatus
+      #@hash = @git.localHash
     end
   end
   
@@ -416,14 +416,14 @@ class GenBuildConst
       }
       EOF
     File.open("#{dir}/BuildConst.swift", "w") { |f| f.write(swiftConst) }
-    schemeConst = <<~EOF
-      PRODUCT_NAME = #{@param.name}
-      PRODUCT_BUNDLE_IDENTIFIER = #{@param.id}
-      CURRENT_PROJECT_VERSION = #{@buildNumber}
-      EOF
-    File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
-    system("rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex")
-    system("rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*")
+    #schemeConst = <<~EOF
+    #  PRODUCT_NAME = #{@param.name}
+    #  PRODUCT_BUNDLE_IDENTIFIER = #{@param.id}
+    #  CURRENT_PROJECT_VERSION = #{@buildNumber}
+    #  EOF
+    #File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
+    #system("rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex")
+    #system("rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*")
   end
   
 end # class GenBuildConst
