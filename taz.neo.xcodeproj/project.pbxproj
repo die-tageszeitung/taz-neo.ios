@@ -593,7 +593,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "echo \"For 'install' ACTION (current: ${ACTION}), the following script checks git status to be in sync with the official repository and updates/increment the build Number.\"\nexit 0;\ncd ${SRCROOT}\nruby ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/genBuildConst.rb\n";
+			shellScript = "echo \"For 'install' ACTION (current: ${ACTION}), the following script checks git status to be in sync with the official repository and updates/increment the build Number.\"\ncd ${SRCROOT}\nruby ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/genBuildConst.rb\n";
 			showEnvVarsInLog = 0;
 		};
 		AEC7D4C324A5DE07008630FB /* ShellScript */ = {
