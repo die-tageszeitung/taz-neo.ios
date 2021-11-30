@@ -426,7 +426,7 @@ class GenBuildConst
       EOF
     File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
     system("rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex")
-    system("rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*")
+    #system("rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*")
   end
   
 end # class GenBuildConst
