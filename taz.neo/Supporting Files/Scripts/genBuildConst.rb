@@ -205,7 +205,9 @@ class Git
   #
   def remoteHash
     output = git("ls-remote '#{@remote}' '#{@branch}'")
+    p "1: " + output
     output.sub(/([^\s]*).*/, '\1')
+    p "2: " + output
     return nil if output.length == 0
   end
   
