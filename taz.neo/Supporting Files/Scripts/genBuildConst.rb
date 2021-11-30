@@ -136,7 +136,7 @@ class Git
   # Git.cmd performs the git command in the given directory
   #
   def Git.cmd(dir = ".", cmd)
-    `cd "#{dir}"; git #{cmd}`.chop
+    `cd "#{dir}"; git #{cmd}`.strip
   end
   
   # Git.status performs the git status command and returns a hash reflecting
@@ -153,7 +153,8 @@ class Git
                :fToMerge=>[], :fChanged=>[] }
     Git.cmd( "status --porcelain" ).
       each_line do |l|
-      fn = l.sub( /^...(.*)\s*/, '\1' )
+      fn = l.sub( /^..."(.*)"\s*/, '\1' )
+      fn = l.sub( /^...(.*)\s*/, '\1' ) if fn == l
       st = l.sub( /^(..).*\s*/, '\1' )
       status[fn] = st
       if (st == "DD") || st.index("U")
@@ -183,6 +184,16 @@ class Git
     @status[:nMerge] != 0
   end
   
+  # filesChanged returns a string of files in need to commit
+  #
+  def filesChanged
+    fl = @status[:fChanged]
+    return nil if !fl || fl.empty?
+    str = ""
+    fl.each { |f| str << "  " + f + "\n" }
+    return str
+  end
+  
   # needsCommit? returns true if there are files to commit
   #
   def needsCommit?
@@ -194,8 +205,9 @@ class Git
   #
   def remoteHash
     output = git("ls-remote '#{@remote}' '#{@branch}'")
-    output.sub(/([^\s]*).*/, '\1')
-    return nil if output.length == 0
+    hash = output.sub(/([^\s\t]*).*/, '\1')
+    return nil if output == hash
+    return hash
   end
   
   # localHash returns the most recent commit hash from the local repository in
@@ -274,11 +286,17 @@ class GenBuildConst
     SYNOPSIS
       genBuildConst [options]
       options:
-        -D           : developer build, don't increment build number, implies -in
         -d directory : where to write BuildConst.swift, LastBuildNumber.rb to
-        -r remote    : URL of remote repository
+        -r remote    : URL of the remote repository
         -i           : ignore merge/commit and branch errors
         -n           : don't commit LastBuildNumber.rb
+        -A           : archive mode, implied by environment variable
+                         ACTION=install
+      By default (in non archive mode) the options -in are applied to ignore
+      merge/commit and branch errors and to not increase and commit
+      LastBuildNumber.rb. In archive mode for errors is checked and the build
+      number is incremented as well as LastBuildNumber.rb is committed and pushed
+      to the remote repository.
   EOF
   
   def usage
@@ -292,7 +310,7 @@ class GenBuildConst
   def checkState
     if !@options[:ignore]
       raise "Merge needed" if @git.needsMerge?
-      raise "Commit needed" if @git.needsCommit?
+      raise "Commit needed:\n#{@git.filesChanged}" if @git.needsCommit?
     end
     @param = BuildParameters[@git.branch]
     if !@param
@@ -309,8 +327,13 @@ class GenBuildConst
   #
   def initialize
     @dir = File.dirname($PROGRAM_NAME)
-    @remote = "https://github.com/die-tageszeitung/taz-neo.ios.git"
+    @remote = "git@github.com:die-tageszeitung/taz-neo.ios.git"
     @options = {}
+    if ENV["ACTION"] != "install"
+      @options[:devel] = true
+      @options[:ignore] = true
+      @options[:noCommit] = true
+    end
     av = ARGV
     while av.length > 0
       case av[0]
@@ -338,10 +361,10 @@ class GenBuildConst
               @options[:ignore] = true
             when "n"[0]
               @options[:noCommit] = true
-            when "D"[0]
-              @options[:devel] = true
-              @options[:ignore] = true
-              @options[:noCommit] = true
+            when "A"[0]
+              @options[:devel] = false
+              @options[:ignore] = false
+              @options[:noCommit] = false
             else
               usage
           end
@@ -369,10 +392,12 @@ class GenBuildConst
     File.open("#{dir}/LastBuildNumber.rb", "w") do |f|
       f.write("LastBuildNumber=\"#{@buildNumber}\"")
     end
+    system("/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion #{@buildNumber}\" '#{@dir}/../Info.plist'")
     if !@options[:noCommit]
-      @git.cmd(@dir, 'add LastBuildNumber.rb')
-      @git.cmd(@dir, 'commit -m "New build number #{@buildNumber}"')
-      @git.cmd(@dir, 'push "#{@git.remote}"')
+      Git.cmd(@dir, "add LastBuildNumber.rb")
+      Git.cmd(@dir, "add ../Info.plist")
+      Git.cmd(@dir, "commit -m \"New build number #{@buildNumber}\"")
+      Git.cmd(@dir, "push \"#{@git.remote}\"")
       @git.readStatus
       @hash = @git.localHash
     end
@@ -388,7 +413,6 @@ class GenBuildConst
         static var name: String { "#{@param.name}" }
         static var id: String { "#{@param.id}" }
         static var state: String { "#{@param.state}" }
-        static var buildNumber: String { "#{@buildNumber}" }
         static var hash: String { "#{@hash}" }
       }
       EOF
@@ -396,11 +420,8 @@ class GenBuildConst
     schemeConst = <<~EOF
       PRODUCT_NAME = #{@param.name}
       PRODUCT_BUNDLE_IDENTIFIER = #{@param.id}
-      CURRENT_PROJECT_VERSION = #{@buildNumber}
       EOF
     File.open("#{dir}/../ConfigSettings.xcconfig", "w") { |f| f.write(schemeConst) }
-    system("rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex")
-    system("rm -rf ~/Library/Developer/Xcode/DerivedData/taz.neo*")
   end
   
 end # class GenBuildConst
