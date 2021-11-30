@@ -319,8 +319,8 @@ class GenBuildConst
       raise "Invalid/Unknown branch: #{@git.branch}" if !@param
     end
     @hash = @git.localHash
-    p @hash
-    p @git.remoteHash
+    p "Hash: " + @hash
+    p "remote hash: " + @git.remoteHash
     if !@options[:ignore] && @param.state != "alpha" && @hash != @git.remoteHash
       raise "Remote branch differs, perform merge first"
     end
