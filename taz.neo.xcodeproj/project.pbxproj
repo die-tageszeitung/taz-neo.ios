@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -575,10 +575,12 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "source ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/downloadBundledResources.sh\n";
+			showEnvVarsInLog = 0;
 		};
 		77B987CC2756716100BEF628 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
+			alwaysOutOfDate = 1;
+			buildActionMask = 8;
 			files = (
 			);
 			inputFileListPaths = (
@@ -589,9 +591,10 @@
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "echo \"For 'install' ACTION (current: ${ACTION}), the following script checks git status to be in sync with the official repository and updates/increment the build Number.\"\n\ncd ${SRCROOT}\nruby ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/genBuildConst.rb\n";
+			shellScript = "echo \"For 'install' ACTION (current: ${ACTION}), the following script checks git status to be in sync with the official repository and updates/increment the build Number.\"\nexit 0;\ncd ${SRCROOT}\nruby ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/genBuildConst.rb\n";
+			showEnvVarsInLog = 0;
 		};
 		AEC7D4C324A5DE07008630FB /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
