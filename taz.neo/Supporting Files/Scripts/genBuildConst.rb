@@ -395,7 +395,7 @@ class GenBuildConst
     system("/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion #{@buildNumber}\" '#{@dir}/../Info.plist'")
     if !@options[:noCommit]
       Git.cmd(@dir, "add LastBuildNumber.rb")
-      Git.cmd(@dir, "add Info.plist")
+      Git.cmd(@dir, "add ../Info.plist")
       Git.cmd(@dir, "commit -m \"New build number #{@buildNumber}\"")
       Git.cmd(@dir, "push \"#{@git.remote}\"")
       @git.readStatus
