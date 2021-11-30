@@ -205,8 +205,9 @@ class Git
   #
   def remoteHash
     output = git("ls-remote '#{@remote}' '#{@branch}'")
-    output.sub(/([^\s]*).*/, '\1')
-    return nil if output.length == 0
+    hash = output.sub(/([^\s\t]*).*/, '\1')
+    return nil if output == hash
+    return hash
   end
   
   # localHash returns the most recent commit hash from the local repository in
@@ -428,6 +429,5 @@ class GenBuildConst
 end # class GenBuildConst
 
 gbc = GenBuildConst.new
-print(gbc.git.filesChanged)
 gbc.updateBuildNumber
 gbc.write
