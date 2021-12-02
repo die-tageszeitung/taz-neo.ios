@@ -25,19 +25,26 @@ extension UIApplication {
   }
 }
 
-extension App {
+/// List of upcomming Features
+/// showBottomTilesAnimation is a ConfigVariable
+
+
+public extension App {
   /// Is the alpha App
-  public static var isAlpha: Bool = {
+  static var isAlpha: Bool = {
     return bundleIdentifier == BuildConst.tazBundleIdentifierAlpha
   }()
   
+  enum Feature { case  PDFEXPORT, INTERNALBROWSER, SEARCH_CONTEXTMENU}
+  
+  
   /// Is the beta App
-  public static var isBeta: Bool = {
+  static var isBeta: Bool = {
     return bundleIdentifier == BuildConst.tazBundleIdentifierBeta
   }()
   
   /// Is this  the App Store App
-  public static var isRelease: Bool = {
+  static var isRelease: Bool = {
     return bundleIdentifier == BuildConst.tazBundleIdentifierStore
   }()
   
@@ -61,7 +68,7 @@ extension App {
   /// and dependecy to Alpha App Versions must be set for each Build
   /// - Parameter feature: Feature to check
   /// - Returns: true if Feature is Available
-  public static func isAvailable(_ feature: Feature) -> Bool {
+  static func isAvailable(_ feature: App.Feature) -> Bool {
     switch feature {
       case .INTERNALBROWSER:
         return isAlpha //Only in Alpha Versions
