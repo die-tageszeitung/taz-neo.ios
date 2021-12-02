@@ -138,11 +138,6 @@ open class ArticleVC: ContentVC {
     }
   }
 
-//  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-//    super.viewWillTransition(to: size, with: coordinator)
-//    print("ARTICLE VC viewWillTransition for idx: \(index) cv:\(currentView)")
-//  }
-//  
   // Export/Share article
   func exportArticle(article: Article?, from button: UIView? = nil) {
     if let art = article {

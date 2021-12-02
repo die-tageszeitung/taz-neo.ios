@@ -616,8 +616,8 @@ public final class StoredPayload: StoredObject, Payload {
         toDelete += file
       }
     }
-    for f in toDelete { 
-      f.delete() 
+    for f in toDelete {
+      if f.payloads.count == 1 { f.delete() }
     }
     self.bytesTotal = bytesTotal
     self.bytesLoaded = 0

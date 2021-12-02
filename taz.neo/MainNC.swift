@@ -74,6 +74,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
         "\(App.bundleIdentifier)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
+        "git-hash: \(BuildConst.hash)\n" +
         "Path: \(Dir.appSupportPath)")
   }
   
