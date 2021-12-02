@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19461" systemVersion="21A559" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20G95" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="hasBookmark" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="onlineLink" optional="YES" attributeType="String"/>
         <attribute name="teaser" optional="YES" attributeType="String"/>
-        <relationship name="audio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="articleAudio" inverseEntity="FileEntry"/>
+        <relationship name="audio" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="articleAudio" inverseEntity="FileEntry"/>
         <relationship name="authors" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Author" inverseName="articles" inverseEntity="Author"/>
         <relationship name="descriptors" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Descriptor" inverseName="articles" inverseEntity="Descriptor"/>
         <relationship name="frames" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Frame" inverseName="article" inverseEntity="Frame"/>
@@ -30,7 +30,7 @@
         <attribute name="order" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
-        <relationship name="html" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="content" inverseEntity="FileEntry"/>
+        <relationship name="html" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="content" inverseEntity="FileEntry"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="imageContent" inverseEntity="ImageEntry"/>
     </entity>
     <entity name="Descriptor" representedClassName="PersistentDescriptor" syncable="YES" codeGenerationType="class">
@@ -78,11 +78,11 @@
         <attribute name="storageType" attributeType="String"/>
         <attribute name="storedSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="subdir" optional="YES" attributeType="String"/>
-        <relationship name="articleAudio" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Article" inverseName="audio" inverseEntity="Article"/>
-        <relationship name="content" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Content" inverseName="html" inverseEntity="Content"/>
+        <relationship name="articleAudio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Article" inverseName="audio" inverseEntity="Article"/>
+        <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="html" inverseEntity="Content"/>
         <relationship name="image" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="file" inverseEntity="ImageEntry"/>
         <relationship name="momentAnimated" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Moment" inverseName="animation" inverseEntity="Moment"/>
-        <relationship name="page" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Page" inverseName="pdf" inverseEntity="Page"/>
+        <relationship name="page" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Page" inverseName="pdf" inverseEntity="Page"/>
         <relationship name="payloads" toMany="YES" deletionRule="Nullify" destinationEntity="Payload" inverseName="files" inverseEntity="Payload"/>
         <fetchIndex name="Index">
             <fetchIndexElement property="name" type="Binary" order="ascending"/>
@@ -106,7 +106,7 @@
         <attribute name="sharable" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="type" attributeType="String"/>
         <relationship name="author" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Author" inverseName="photo" inverseEntity="Author"/>
-        <relationship name="file" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="image" inverseEntity="FileEntry"/>
+        <relationship name="file" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="image" inverseEntity="FileEntry"/>
         <relationship name="imageContent" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Content" inverseName="images" inverseEntity="Content"/>
         <relationship name="moment" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Moment" inverseName="images" inverseEntity="Moment"/>
         <relationship name="momentCredit" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Moment" inverseName="creditedImages" inverseEntity="Moment"/>
@@ -139,7 +139,7 @@
     </entity>
     <entity name="Moment" representedClassName="PersistentMoment" syncable="YES" codeGenerationType="class">
         <attribute name="data" optional="YES" attributeType="Binary"/>
-        <relationship name="animation" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="momentAnimated" inverseEntity="FileEntry"/>
+        <relationship name="animation" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="momentAnimated" inverseEntity="FileEntry"/>
         <relationship name="creditedImages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="momentCredit" inverseEntity="ImageEntry"/>
         <relationship name="firstPage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Page" inverseName="moment" inverseEntity="Page"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="moment" inverseEntity="ImageEntry"/>
@@ -154,7 +154,7 @@
         <relationship name="frames" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Frame" inverseName="page" inverseEntity="Frame"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="pages" inverseEntity="Issue"/>
         <relationship name="moment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="firstPage" inverseEntity="Moment"/>
-        <relationship name="pdf" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="page" inverseEntity="FileEntry"/>
+        <relationship name="pdf" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="page" inverseEntity="FileEntry"/>
     </entity>
     <entity name="Payload" representedClassName="PersistentPayload" syncable="YES" codeGenerationType="class">
         <attribute name="bytesLoaded" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
