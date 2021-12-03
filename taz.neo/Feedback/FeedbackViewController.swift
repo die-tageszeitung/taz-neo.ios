@@ -200,12 +200,7 @@ public class FeedbackViewController : UIViewController{
       screenshotData = img.pngData()?.base64EncodedString()
       screenshotName = "Screenshot_\(Date())"
     }
-    
-    var logString:String?
-    if let data = logData {
-      logString = String(data:data , encoding: .utf8)
-    }
-    
+        
     let message = type == FeedbackType.feedback
       ? "Feedback\n=============\n\(feedbackView.messageTextView.text ?? "-")"
       : feedbackView.messageTextView.text
@@ -237,7 +232,7 @@ public class FeedbackViewController : UIViewController{
   }
   
   func requestSendByMail(){
-    #warning("ToDo implement send by mail if offline, in prev versions nothing happen, now alert will be shown")
+    //#warning("ToDo: 0.9.4 ToDo implement send by mail if offline, in prev versions nothing happen, now alert will be shown")
     log("ToDo: implement alternative send by mail")
     self.handleSendFail()
   }
@@ -332,15 +327,33 @@ public class FeedbackViewController : UIViewController{
     }
   }
   
+  lazy var logString: String? = {
+    var log = ""
+    if let data = logData,
+        let lString = String(data:data , encoding: .utf8) {
+      log = lString
+    }
+    else {
+      //Feedback need no Log!
+      return nil
+    }
+    
+    let lastLog = File(Log.FileLogger.lastLogfile)
+    if lastLog.exists,
+       let lString = String(data:lastLog.data, encoding: .utf8) {
+      let created = lastLog.cTime.dateAndTime
+      log += "\n###################################"
+      log += "\n     L A S T - E X E C U T I O N"
+      log += "\n     \(created)"
+      log += "\n###################################\n\n"
+      log += lString
+    }
+    return log
+  }()
+  
   func showLog(){
     let logVc = OverlayViewController()
     let logView = SimpleLogView()
-    
-    var logString:String?
-    if let data = logData {
-      logString = String(data:data , encoding: .utf8)
-    }
-    
     logView.append(txt: logString ?? "")
     logVc.view.addSubview(logView)
     pin(logView, to: logVc.view)
@@ -353,8 +366,14 @@ public class FeedbackViewController : UIViewController{
   lazy var logAttatchmentMenu : ContextMenu? = {
     guard let target = self.feedbackView?.logAttachmentButton else { return nil }
     let menu = ContextMenu(view: target)
+    guard logData != nil else { return menu } //Called even in Feedback!
     menu.addMenuItem(title: "Ansehen", icon: "eye") {[weak self]  (_) in
       self?.showLog()
+    }
+    menu.addMenuItem(title: "Kopieren", icon: "doc.on.doc") {[weak self]  (_) in
+      guard let log = self?.logString else { return }
+      UIPasteboard.general.string = log
+      Toast.show("In Zwischenablage kopiert!")
     }
     menu.addMenuItem(title: "Löschen", icon: "trash.circle") { (_) in
       self.feedbackView?.logAttachmentButton.removeFromSuperview()
@@ -401,7 +420,7 @@ class OverlayViewController : UIViewController{
     }
   }
   
-  var xButton = Button<CircledXView>()
+  var xButton = Button<CircledXView>().tazX()
   
   func onX(closure: @escaping ()->()) {
     xButton.isHidden = false
@@ -410,13 +429,6 @@ class OverlayViewController : UIViewController{
   
   /// Setup the xButton
   func setupXButton() {
-    xButton.pinHeight(35)
-    xButton.pinWidth(35)
-    xButton.buttonView.isCircle = true
-    xButton.buttonView.circleColor = Const.Colors.iOSDark.secondaryLabel
-    xButton.activeColor = Const.Colors.ciColor
-    xButton.color = Const.Colors.iOSDark.secondarySystemBackground
-    xButton.buttonView.innerCircleFactor = 0.5
     self.view.addSubview(xButton)
     pin(xButton.right, to: self.view.rightGuide(), dist: -Const.Size.DefaultPadding)
     pin(xButton.top, to: self.view.topGuide(), dist: Const.Size.DefaultPadding)

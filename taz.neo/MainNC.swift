@@ -72,7 +72,9 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       }
     }
     log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
+        "\(App.bundleIdentifier)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
+        "git-hash: \(BuildConst.hash)\n" +
         "Path: \(Dir.appSupportPath)")
   }
   
@@ -172,12 +174,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
         }
       })
     }
-    let userInfo = "\(feederContext.isAuthenticated == false ? "NICHT ANGEMELDET" : "angemeldet" ), gespeicherte taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
-    
-    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : "taz"
-    
-    
-    Alert.actionSheet(title: "\(appTitle) (v) \(App.version)-\(App.buildNumber)\n\(userInfo)",
+    let title = App.appInfo + "\n" + App.authInfo(with: feederContext)
+    Alert.actionSheet(title: title,
                       actions: actions) { [weak self] in
       self?.threeFingerAlertOpen = false
     }
@@ -235,7 +233,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       self.pushViewController(introVC, animated: false)
       onMainAfter(0.3) { [weak self] in
         guard let self = self else { return }
-        self.feederContext.getOvwIssues(feed: self.feederContext.defaultFeed, count: 4)
+        self.feederContext.getOvwIssues(feed: self.feederContext.defaultFeed, count: 4, isAutomatically: false)
       }
     }
     feederContext.updateResources(toVersion: -1)
@@ -298,9 +296,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
  
   func deleteAll() {
     popToRootViewController(animated: false)
-    feederContext.gqlFeeder.status?.feeds = []
-    feederContext.gqlFeeder.gqlSession?.session.invalidateAndCancel()
-    feederContext.dloader.killAll()
+    feederContext.cancelAll()
     ArticleDB.singleton.close()
     /// Remove all content
     for f in Dir.appSupport.scan() {
@@ -375,7 +371,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   } // viewDidLoad
   
   func applyStyles() {
-    self.view.backgroundColor = Const.SetColor.HBackground.color
+    self.view.backgroundColor = .clear
     setNeedsStatusBarAppearanceUpdate()
 
   }

@@ -118,7 +118,10 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
       if let zimg = zoomedImage(fname: name) { ret += zimg }
       idx = ret.count - 1
     }
-    return (idx, ret)
+    #warning("ToDo 0.9.4+ @Norbert: crash on open 2nd Image")
+    ///Corrupt data not reproduceable but documented and zipped
+    ///the fix did not change behaviour, but prevents the crash!
+    return (min(idx, ret.count-1), ret)
   }
     
   private func exportImage() {

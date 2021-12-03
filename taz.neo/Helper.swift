@@ -11,18 +11,47 @@ import NorthLib
 
 
 extension Defaults{
+  
+  private static var tDarkMode:Bool?
+  
   static var darkMode : Bool {
-    get { return Defaults.singleton["colorMode"] == "dark" }
+    get {
+      if let tmp = tDarkMode {
+        return tmp }
+      return Defaults.singleton["colorMode"] == "dark" }
     set {
       ///only update if changed
-      if (Defaults.singleton["colorMode"] == "dark") == newValue { return }
+      if darkMode == newValue || tDarkMode == newValue { return }
+      tDarkMode = newValue
       Defaults.singleton["colorMode"] = newValue ? "dark" : nil
+//      Defaults.singleton.
       if #available(iOS 13.0, *) {
         //Use Trait Collection for Change
         UIApplication.shared.keyWindow?.overrideUserInterfaceStyle = newValue ? .dark : .light
       }
       /// Some (Article/HTML/CSS) iOS 13+ need also this Info
       NorthLib.Notification.send(globalStylesChangedNotification)
+    }
+  }
+  
+  struct articleTextSize {
+    @Default("articleTextSize")
+    static var articleTextSize: Int
+    
+    @discardableResult
+    static func increase() -> Int { if articleTextSize < 200 { articleTextSize += 10 }
+      return articleTextSize
+    }
+    
+    @discardableResult
+    static func decrease() -> Int { if articleTextSize > 30 { articleTextSize -= 10 }
+      return articleTextSize
+    }
+    
+    @discardableResult
+    static func set(_ newValue: Int? = 100) -> Int {
+      if let val = newValue, 30 < val, val < 200 { articleTextSize = val }
+      return articleTextSize
     }
   }
 }

@@ -616,8 +616,8 @@ public final class StoredPayload: StoredObject, Payload {
         toDelete += file
       }
     }
-    for f in toDelete { 
-      f.delete() 
+    for f in toDelete {
+      if f.payloads.count == 1 { f.delete() }
     }
     self.bytesTotal = bytesTotal
     self.bytesLoaded = 0
@@ -1323,14 +1323,21 @@ public final class StoredSection: Section, StoredObject {
 
 extension PersistentIssue: PersistentObject {}
 
+
+extension StoredIssue: Equatable {
+  static public func ==(lhs: StoredIssue, rhs: StoredIssue) -> Bool {
+    return lhs.date == rhs.date
+  }
+}
+
 /// A stored Issue
 public final class StoredIssue: Issue, StoredObject {
   
   public static var entity = "Issue"
   public var pr: PersistentIssue // persistent record
-  public var feed: Feed { 
+  public var feed: Feed {
     get { StoredFeed(persistent: pr.feed!) }
-    set { 
+    set {
       if let sfeed = StoredFeed.get(object: newValue) {
         pr.feed = sfeed.pr
         pr.feed?.addToIssues(self.pr)
@@ -1349,9 +1356,9 @@ public final class StoredIssue: Issue, StoredObject {
     get { return pr.isWeekend }
     set { pr.isWeekend = newValue }
   }
-  public var moment: Moment { 
+  public var moment: Moment {
     get { StoredMoment(persistent: pr.moment!) }
-    set { 
+    set {
       pr.moment = StoredMoment.persist(object: newValue).pr
       pr.moment?.issue = self.pr
     }
@@ -1397,7 +1404,7 @@ public final class StoredIssue: Issue, StoredObject {
       }
       else { pr.imprint = nil }
     }
-  } 
+  }
   public var lastArticle: Int? {
     get { return (pr.lastArticle < 0) ? nil : Int(pr.lastArticle) }
     set(val) { pr.lastArticle = Int32((val==nil) ? -1 : val!) }
@@ -1412,14 +1419,14 @@ public final class StoredIssue: Issue, StoredObject {
   }
   public var isComplete: Bool {
     get { return pr.isComplete }
-    set { 
-      pr.isComplete = newValue 
+    set {
+      pr.isComplete = newValue
       if newValue { pr.isOvwComplete = newValue }
-    }    
+    }
   }
   public var isOvwComplete: Bool {
     get { return pr.isOvwComplete }
-    set { pr.isOvwComplete = newValue }    
+    set { pr.isOvwComplete = newValue }
   }
   public var storedPayload: StoredPayload? {
     if let ppl = pr.payload { return StoredPayload(persistent: ppl) }
@@ -1503,12 +1510,12 @@ public final class StoredIssue: Issue, StoredObject {
     }
   }
     
-  /// Return stored record with given name  
+  /// Return stored record with given name
   public static func get(date: Date, inFeed feed: StoredFeed) -> [StoredIssue] {
     let nsdate = NSDate(timeIntervalSinceReferenceDate:
                         date.timeIntervalSinceReferenceDate)
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)", 
+    request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)",
                                     nsdate, feed.pr)
     return get(request: request)
   }
@@ -1527,14 +1534,14 @@ public final class StoredIssue: Issue, StoredObject {
   }
   
   /// Return an array of Issues in a Feed
-  public static func issuesInFeed(feed: StoredFeed, count: Int = -1, fromDate: Date? = nil) 
+  public static func issuesInFeed(feed: StoredFeed, count: Int = -1, fromDate: Date? = nil)
     -> [StoredIssue] {
     let request = fetchRequest
     if let fromDate = fromDate {
       let nsdate = NSDate(timeIntervalSinceReferenceDate: fromDate.timeIntervalSinceReferenceDate)
       request.predicate = NSPredicate(format: "feed = %@ AND date <= %@", feed.pr, nsdate)
     }
-    else { request.predicate = NSPredicate(format: "feed = %@", feed.pr) }      
+    else { request.predicate = NSPredicate(format: "feed = %@", feed.pr) }
     request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
     if count > 0 { request.fetchLimit = count }
     return get(request: request)
@@ -1547,6 +1554,53 @@ public final class StoredIssue: Issue, StoredObject {
     request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "payload.downloadStarted",
                                                 ascending: true)]
+    if count > 0 { request.fetchLimit = count }
+    return get(request: request)
+  }
+  
+  
+  /// fetch helper for issue sorting
+  public enum IssueSorting {
+    case issueDate, payloadDownloadStarted
+    var key: String {
+      get {
+        switch self {
+          case .issueDate:
+            return "payload.downloadStarted"
+          case .payloadDownloadStarted:
+            return "payload.downloadStarted"
+        }
+      }
+    }
+    
+    /// Helper usage e.g.: .issueDate..sortDescriptor(ascending:true)
+    func sortDescriptor(ascending:Bool) -> NSSortDescriptor {
+      return NSSortDescriptor(key: self.key, ascending: ascending)
+    }
+  }
+  
+  /// Fetch and return array of Issues, by given params
+  /// - Parameters:
+  ///   - feed: feed to use
+  ///   - count: max count
+  ///   - onlyCompleete: only fetch compleetly downloaded issues
+  ///   - sortedBy: used sorting
+  ///   - ascending: descending if false
+  /// - Returns: array of Issues
+  public static func issues(feed: StoredFeed,
+                            count: Int = -1,
+                            onlyCompleete: Bool,
+                            sortedBy: IssueSorting = .issueDate,
+                            ascending:Bool = true) -> [StoredIssue] {
+    let request = fetchRequest
+    
+    if onlyCompleete {
+      request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
+    }
+    else {
+      request.predicate = NSPredicate(format: "feed = %@", feed.pr)
+    }
+    request.sortDescriptors = [sortedBy.sortDescriptor(ascending:ascending)]
     if count > 0 { request.fetchLimit = count }
     return get(request: request)
   }
@@ -1570,6 +1624,58 @@ public final class StoredIssue: Issue, StoredObject {
       }
     }
   }
+  
+  /// Remove old Issues and keep newest
+  /// - Parameters:
+  ///   - feed: feed for Issues
+  ///   - keepDownloaded: count of keep full downloaded
+  ///   - keepPreviews: count of keep previews
+  public static func removeOldest(feed: StoredFeed,
+                                  keepDownloaded: Int,
+                                  keepPreviews: Int = 30,
+                                  deleteOrphanFolders:Bool = false) {
+    let lastCompleeteIssues
+    = issues(feed: feed, count: keepDownloaded, onlyCompleete: true, sortedBy: .payloadDownloadStarted, ascending: false)
+    
+    let allIssues
+    = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
+    
+    let keepPreviewCount = min(allIssues.count, max(keepPreviews, keepDownloaded))
+    let reduceableIssues = allIssues[..<keepPreviewCount]
+    
+    for issue in allIssues {
+      if lastCompleeteIssues.contains(issue) { continue }
+      Log.log("reduceToOverview for issue: \(issue.date.short)")
+      issue.reduceToOverview()
+    }
+         
+    guard deleteOrphanFolders else { return }
+    Log.log("delete orphan folders")
+    
+    var knownDirs: [String] = []
+    
+    for issue in lastCompleeteIssues {
+      let dir = feed.feeder.issueDir(issue: issue)
+      if dir.exists { knownDirs.append(dir.path)}
+    }
+    
+    for issue in reduceableIssues {
+      let dir = feed.feeder.issueDir(issue: issue)
+      if dir.exists { knownDirs.append(dir.path)}
+    }
+    
+    let allSubdirs = feed.feeder.feedDir(feed.name).scan()
+    
+    for path in allSubdirs {
+      if knownDirs.contains(path) {
+        Log.log("DO NOT delete folder at: \(path)")
+        continue
+      }
+      Log.log("delete folder at: \(path)")
+      Dir(path).remove()
+    }
+  }
+  
   
   /// Deletes data that is not needed for overview
   public func reduceToOverview() {

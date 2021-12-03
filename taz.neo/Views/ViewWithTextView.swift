@@ -18,11 +18,10 @@ public class ViewWithTextView : UIStackView{
   
   var textViewheightConstraint:NSLayoutConstraint?
   
-  var isFilled:Bool{ get {return self.textView.text != placeholder}}
   
   let topLabel = UILabel()
   let bottomLabel = UILabel()
-  let textView = UITextView()
+  let textView = PlaceholderUITextView()
   
   weak open var delegate: UITextViewDelegate?
   
@@ -37,16 +36,16 @@ public class ViewWithTextView : UIStackView{
   }
   
   var text: String?{
-    get {
-      return isFilled ? self.textView.text : nil}
-    set {
-      self.textView.text = newValue
-      verifyPlaceholder()
-    }
+    get { self.textView.text }
+    set { self.textView.text = newValue }
   }
   
-  var placeholder : String? {
-    didSet { verifyPlaceholder() }
+  var isFilled:Bool{ get {return !self.textView.text.isEmpty}}
+
+  
+  var placeholder: String? {
+    get { return textView.placeholder }
+    set { textView.placeholder = newValue }
   }
   
   var topMessage: String?{
@@ -64,9 +63,10 @@ public class ViewWithTextView : UIStackView{
     
     self.axis = .vertical
     
-    textView.delegate = self
     textView.font = font
     textView.textColor = Const.SetColor.CTDate.color
+    textView.placeholderLabel.font = font
+    textView.placeholderLabel.textColor = Const.SetColor.ForegroundLight.color
     
     topLabel.numberOfLines = 1
     topLabel.alpha = 0.0
@@ -87,8 +87,6 @@ public class ViewWithTextView : UIStackView{
     textView.isScrollEnabled = false
     textView.text = text
     textView.backgroundColor = .clear
-    
-//    self.textViewDidBeginEditing(textView)
   }
   
   required init(coder: NSCoder) {
@@ -100,6 +98,7 @@ public class ViewWithTextView : UIStackView{
 //  lazy var inputToolbar: UIToolbar = createToolbar()
 }
 
+/********************
 // MARK: - TazTextField : Toolbar
 extension ViewWithTextView{
   
@@ -201,53 +200,48 @@ extension ViewWithTextView{
     self.textView.becomeFirstResponder()
   }
 }
+ **/
 
-// MARK: - TazTextField : UITextViewDelegate
-extension ViewWithTextView : UITextViewDelegate{
+class PlaceholderUITextView: UITextView, UITextViewDelegate {
+  
+  public var placeholder:String?{  didSet{ setup()}  }
+  weak open var tvDelegate: UITextViewDelegate?
+  
+  public let placeholderLabel = UILabel()
+  
+  
+  func setup(){
+    if self.placeholderLabel.superview != nil { return }
+    if self.placeholder == nil { return }
+    super.delegate = self
+    self.insertSubview(placeholderLabel, at: 0)
+    pin(placeholderLabel.top, to: self.top)
+    pin(placeholderLabel.left, to: self.left)
+    placeholderLabel.numberOfLines = 0
+    placeholderLabel.text = placeholder
+  }
+  
+  var heightConstraint: NSLayoutConstraint?
+  var labelWidthConstraint: NSLayoutConstraint?
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    if self.frame.size.width == 0 { return }
+    heightConstraint?.isActive = false
+    labelWidthConstraint?.isActive = false
+    let nh = placeholderLabel.sizeThatFits(CGSize(width: self.frame.size.width, height: 2000)).height
+    self.heightConstraint = self.pinHeight(nh, priority: .defaultHigh)
+    self.labelWidthConstraint = placeholderLabel.pinWidth(self.frame.size.width)
+  }
+  
+  func textViewDidEndEditing(_ textView: UITextView) {
+    if textView.text.isEmpty {
+      placeholderLabel.isHidden = false
+    }
+  }
+  
   public func textViewDidBeginEditing(_ textView: UITextView)
   {
-//    textView.inputAccessoryView = inputToolbar
-    if (textView.text == placeholder)
-    {
-      if let constraint = textViewheightConstraint {
-        constraint.constant = textView.frame.size.height      }
-      else {
-        textViewheightConstraint = textView.pinHeight(textView.frame.size.height, priority: .defaultHigh)
-      }
-      textView.text = ""
-      textView.textColor = Const.SetColor.CTDate.color
-    }
+    placeholderLabel.isHidden = true
   }
-  
-  public func textViewDidEndEditing(_ textView: UITextView)
-  {
-    verifyPlaceholder()
-    textView.resignFirstResponder()
-    delegate?.textViewDidEndEditing?(textView)
-  }
-  
-  func verifyPlaceholder(){
-    
-//    print("""
-//      verify placeholder for tazTextView with
-//      \ntopMessage: \(self.topMessage)
-//      \nplaceholder: \(self.placeholder)
-//      \ntext: \(self.text)
-//      \nbottomMessage: \(self.bottomMessage)
-//    """)
-    
-    if (self.textView.text == "")
-    {
-      self.textView.text = placeholder
-      self.textView.textColor = Const.SetColor.ForegroundLight.color
-    }
-    else {
-      textView.textColor = Const.SetColor.CTDate.color
-    }
-  }
-  
-//  public func textViewShouldEndEditing(_ textView: UITextView) -> Bool {
-//    nextOrEndEdit()
-//    return true
-//  }
 }

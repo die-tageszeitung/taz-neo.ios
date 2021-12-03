@@ -71,6 +71,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   private func reset() {
     issues = [] 
     issueCarousel.reset()
+    self.collectionView.reloadData()
   }
   
   func updateToolbarHomeIcon(){
@@ -150,7 +151,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
-    self.debug("Err: \(error)")
+    self.debug("Err: \(error?.description ?? "-")")
     func showDownloadErrorAlert() {
       let message = """
                     Beim Laden der Ausgabe ist ein Fehler aufgetreten.
@@ -188,7 +189,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     selectedIssueDate = date
     isArchiveMode = true
     reset()
-    feederContext.getOvwIssues(feed: feed, count: 21, fromDate: from)
+    feederContext.getOvwIssues(feed: feed, count: 21, fromDate: from, isAutomatically: false)
   }
   
   /// Requests sufficient overview Issues from DB/server
@@ -198,15 +199,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if (n - index) < 6 { 
         var last = issues.last!.date
         last.addDays(-1)
-        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last)
+        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last, isAutomatically: false)
       }
       if index < 6 {
         var date = issues.first!.date
         date.addDays(10)
-        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date)
+        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date, isAutomatically: false)
       }
     }
-    else { feederContext.getOvwIssues(feed: feed, count: 20) }
+    else { feederContext.getOvwIssues(feed: feed, count: 20, isAutomatically: false) }
   }
   
   /// Empty overview array and request new overview
@@ -340,7 +341,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           }
         }
       }
-      self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile)        
+      self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile, isAutomatically: false)        
     }
   }
   
@@ -375,9 +376,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   private func deleteIssue() {
     if let issue = issue as? StoredIssue {
       issue.reduceToOverview()
+      issueCarousel.carousel.reloadData()
       setLabel(idx: index)
     }
   }
+  
+//  private func deleteCompleeteIssue() {
+//    if let issue = issue as? StoredIssue {
+//      issue.deletePersistent()
+//      issueCarousel.carousel.reloadData()
+//    }
+//  }
   
   /// Check whether it's necessary to reload the current Issue
   public func authenticationSucceededCheckReload() {
@@ -411,6 +420,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       Notification.receiveOnce("issue", from: sissue) { notif in
         popAndShowReloaded()
       }
+    }
+    
+    //Prevent blocking Overlay if no ArticleVC presented
+    //@ToDO may refactor this to a delegate!!!
+    if !UIViewController.keyWindowViewControllerContain(ArticleVC.self,
+                                                        TazPdfPagesViewController.self){
+      return
     }
     
     let snap = NavigationController.top()?
@@ -471,6 +487,23 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       scrollChange = false
     }
     if App.isAlpha {
+//      
+//      issueCarousel.addMenuItem(title: "Ausgabe komplett löschen", icon: "trash") {_ in
+//        self.deleteCompleeteIssue()
+//      }
+//
+//      issueCarousel.addMenuItem(title: "Reset Overview", icon: "trash") {_ in
+//        self.resetOverview()
+//      }
+//      
+//      issueCarousel.addMenuItem(title: "Clear Cache", icon: "trash") {_ in
+//        URLCache.shared.removeAllCachedResponses()
+//      }
+//      
+//      issueCarousel.addMenuItem(title: "Kill App", icon: "trash") {_ in
+//        exit(0)
+//      }
+      
       issueCarousel.addMenuItem(title: "Simulate PN.aboPoll", icon: "arrow.up") {_ in
         let pnPl = ["data":["refresh":"aboPoll"], "aps":["content-available":1,"sound":nil ]]
         NotifiedDelegate.singleton.notifier.handleTestRemoteNotification(pnPl)
@@ -546,6 +579,19 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ///WARNING: if auth in settings review previous commit to prevent deadlock with "Aktualisiere Daten" Overlay
       self.authenticationSucceededCheckReload()
     }
+    
+    Notification.receive("reloadIssues") {   [weak self] notif in
+      self?.scrollUp(animated: false)
+//      self?.isArchiveMode = true
+      self?.issueCarousel.reset()//required!
+//      self?.provideOverview()
+      self?.resetOverview()
+      onMainAfter(1.0) {  [weak self] in
+        self?.isArchiveMode = false
+        self?.index = 0
+      }
+    }
+    
     Notification.receive(UIApplication.willResignActiveNotification) { _ in
       self.goingBackground()
     }
@@ -559,7 +605,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       spinner.startAnimating()
     }
     feederContext.getStoredOvwIssues(feed: feed)
-    feederContext.getOvwIssues(feed: feed, count: 20)
+    feederContext.getOvwIssues(feed: feed, count: 20, isAutomatically: false)
   }//Eof viewDidLoad()
   
   var pickerCtrl : DatePickerController?
@@ -608,7 +654,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Check for new issues only if not in archive mode
   public func checkForNewIssues() {
-    if !isArchiveMode { feederContext.checkForNewIssues(feed: feed) }
+    if !isArchiveMode { feederContext.checkForNewIssues(feed: feed, isAutomatically: false) }
   }
   
   func invalidateCarouselLayout() {

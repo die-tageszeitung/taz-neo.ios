@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20G95" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20G165" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="hasBookmark" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -189,7 +189,7 @@
         <attribute name="type" attributeType="String"/>
         <relationship name="articles" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Article" inverseName="sections" inverseEntity="Article"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="sections" inverseEntity="Issue"/>
-        <relationship name="navButton" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="navSection" inverseEntity="ImageEntry"/>
+        <relationship name="navButton" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="navSection" inverseEntity="ImageEntry"/>
     </entity>
     <elements>
         <element name="Article" positionX="-52304.70703125" positionY="-34778.95703125" width="128" height="209"/>
@@ -201,7 +201,7 @@
         <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="239"/>
         <element name="Frame" positionX="-51920.18359375" positionY="-34620.09375" width="128" height="149"/>
         <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="209"/>
-        <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="28"/>
+        <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="359"/>
         <element name="Moment" positionX="-52992" positionY="-35010" width="128" height="119"/>
         <element name="Page" positionX="-52203.38671875" positionY="-34559.82421875" width="128" height="164"/>
         <element name="Payload" positionX="-53189.828125" positionY="-34824.89453125" width="128" height="179"/>

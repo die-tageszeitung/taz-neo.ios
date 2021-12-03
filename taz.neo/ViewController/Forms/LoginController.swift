@@ -44,7 +44,7 @@ class LoginController: FormsController {
       }
     }
     else {
-      self.queryAuthToken(tazId: (ui.idInput.text ?? ""),tazIdPass: ui.passInput.text ?? "")
+      self.queryAuthToken(tazId: (self.ui.idInput.text ?? ""),tazIdPass: self.ui.passInput.text ?? "")
     }
   }
   

@@ -114,13 +114,7 @@ class FormsResultController: UIViewController {
   /// Setup the xButton
   func setupXButton() {
     let xButton = Button<CircledXView>()
-    xButton.pinHeight(35)
-    xButton.pinWidth(35)
-    xButton.color = .black
-    xButton.buttonView.isCircle = true
-    xButton.buttonView.circleColor = UIColor.rgb(0xdddddd)
-    xButton.buttonView.color = UIColor.rgb(0x707070)
-    xButton.buttonView.innerCircleFactor = 0.5
+    xButton.tazX()
     self.view.addSubview(xButton)
     pin(xButton.right, to: self.view.rightGuide(), dist: -15)
     pin(xButton.top, to: self.view.topGuide(), dist: 15)

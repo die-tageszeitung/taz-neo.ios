@@ -48,6 +48,11 @@ class IntroVC: UIViewController {
         }
       }
     }
-  } 
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    webView.xButton.tazX(true)
+  }
 
 } // WebViewTests

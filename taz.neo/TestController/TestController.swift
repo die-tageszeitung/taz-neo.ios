@@ -90,7 +90,7 @@ class TestController: PageCollectionVC {
       else { self.error("Invalid Notification") }
     }
     self.feederContext.getOvwIssues(feed: self.feed, count: 1, 
-                                    fromDate: self.testDate)
+                                    fromDate: self.testDate, isAutomatically: false)
   }
   
   // Load single overview issue of data 2020-09-14 and overwrite it with demo issue 
@@ -102,7 +102,7 @@ class TestController: PageCollectionVC {
         else { result(false); return }
       self.debug("OVW \(issue!)")
       guard self.checkIssueCount(1) else { result(false); return }
-      self.feederContext.getCompleteIssue(issue: issue)
+      self.feederContext.getCompleteIssue(issue: issue, isAutomatically: false)
     }
     Notification.receiveOnce("issue") { notification in
       issue = notification.content as? StoredIssue
@@ -122,12 +122,12 @@ class TestController: PageCollectionVC {
           if let gis = gqlIssue { result(self.checkFiles(from: gis, to: issue)) }
           else { self.error("no GqlIssue"); result(false) }
         }
-        self.feederContext.getCompleteIssue(issue: issue)
+        self.feederContext.getCompleteIssue(issue: issue, isAutomatically: false)
       }
       self.feederContext.authenticate()
     }
     self.feederContext.getOvwIssues(feed: self.feed, count: 1, 
-                                    fromDate: self.testDate)
+                                    fromDate: self.testDate, isAutomatically: false)
   }
 
   override public var preferredStatusBarStyle: UIStatusBarStyle { .default }
