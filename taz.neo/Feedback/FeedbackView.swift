@@ -252,6 +252,10 @@ extension FeedbackView : UITextFieldDelegate{
     ? nil
     : "Muss E-Mail oder leer sein"
   }
+  
+  public func textViewDidChange(_ textView: UITextView) {
+    checkSendButton()
+  }
 }
 
 extension UILabel{

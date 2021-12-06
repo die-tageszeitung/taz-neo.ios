@@ -23,7 +23,11 @@ public class ViewWithTextView : UIStackView{
   let bottomLabel = UILabel()
   let textView = PlaceholderUITextView()
   
-  weak open var delegate: UITextViewDelegate?
+  weak open var delegate: UITextViewDelegate? {
+    didSet {
+      textView.tvDelegate = delegate
+    }
+  }
   
   // MARK: > bottomMessage
   var bottomMessage: String?{
@@ -98,7 +102,7 @@ public class ViewWithTextView : UIStackView{
   }
 }
 
-class PlaceholderUITextView: UITextView, UITextViewDelegate {
+class PlaceholderUITextView: UITextView {
   
   public var placeholder:String?{  didSet{ setup()}  }
   weak open var tvDelegate: UITextViewDelegate?
@@ -129,15 +133,23 @@ class PlaceholderUITextView: UITextView, UITextViewDelegate {
     self.heightConstraint = self.pinHeight(nh, priority: .defaultHigh)
     self.labelWidthConstraint = placeholderLabel.pinWidth(self.frame.size.width)
   }
-  
+}
+
+extension PlaceholderUITextView: UITextViewDelegate {
   func textViewDidEndEditing(_ textView: UITextView) {
     if textView.text.isEmpty {
       placeholderLabel.isHidden = false
     }
+    tvDelegate?.textViewDidEndEditing?(textView)
   }
   
   public func textViewDidBeginEditing(_ textView: UITextView)
   {
     placeholderLabel.isHidden = true
+    tvDelegate?.textViewDidBeginEditing?(textView)
+  }
+  
+  func textViewDidChange(_ textView: UITextView) {
+    tvDelegate?.textViewDidChange?(textView)
   }
 }
