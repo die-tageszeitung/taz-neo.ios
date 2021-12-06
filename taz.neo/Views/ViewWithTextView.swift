@@ -73,6 +73,10 @@ public class ViewWithTextView : UIStackView{
     topLabel.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
     self.topLabel.textColor = Const.SetColor.ForegroundLight.color
     
+    topLabel.onTapping { [weak self] _ in
+      self?.textView.becomeFirstResponder()
+    }
+    
     bottomLabel.alpha = 0.0
     bottomLabel.numberOfLines = 1
     bottomLabel.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)

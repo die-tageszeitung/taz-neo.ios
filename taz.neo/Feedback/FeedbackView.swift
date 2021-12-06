@@ -122,6 +122,9 @@ public class FeedbackView : UIView {
     stack.spacing = 4.0//Seperators increase spacing!
     stack.addArrangedSubview(cancelButtonWrapper)
     stack.addArrangedSubview(hStack1)
+    senderMailDescriptionLabel.onTapping { [weak self] _ in
+      self?.senderMail.textfield.becomeFirstResponder()
+    }
     stack.addArrangedSubview(senderMailDescriptionLabel)
     stack.addArrangedSubview(senderMail)
     senderMail.tag = 0
