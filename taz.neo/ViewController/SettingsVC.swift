@@ -19,6 +19,7 @@ extension Settings.LinkType {
       case .terms: return "Allgemeine Geschäftsbedingungen (AGB)";
       case .privacy: return "Datenschutzerklärung";
       case .revocation: return "Widerruf";
+      case .faq: return "FAQ (in Safari öffnen)";
       case .cleanMemory: return "Alte Ausgaben löschen";
     }
   }
@@ -72,7 +73,7 @@ struct Settings {
   static var isTextNotification: Bool
     
   enum CellType { case link, toggle, custom }
-  enum LinkType { case onboarding, errorReport, manageAccount, terms, privacy, revocation, cleanMemory }
+  enum LinkType { case onboarding, faq, errorReport, manageAccount, terms, privacy, revocation, cleanMemory }
   
   struct Cell {
     var linkType:LinkType?
@@ -143,6 +144,7 @@ struct Settings {
       ("support", false,false,
        [
         Cell(linkType: .onboarding),
+        Cell(linkType: .faq),
         Cell(linkType: .errorReport)
        ]
       ),
@@ -374,6 +376,8 @@ extension SettingsVC {
         handleErrorReport()
       case .onboarding:
         showOnboarding()
+      case .faq:
+        openFaq()
       case .manageAccount:
         manageAccount()
       case .privacy:
@@ -388,10 +392,14 @@ extension SettingsVC {
   }
   
   func openFaqAction() -> UIAlertAction {
-    return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
-      guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
-      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { [weak self] _ in
+      self?.openFaq()
     }
+  }
+  
+  func openFaq(){
+    guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
+    UIApplication.shared.open(url, options: [:], completionHandler: nil)
   }
   
   func cleanMemoryMenu(){
