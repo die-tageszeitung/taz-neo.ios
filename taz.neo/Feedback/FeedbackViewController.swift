@@ -69,6 +69,29 @@ public class FeedbackViewController : UIViewController{
     updateViewSize(size)
   }
   
+  private var initialParent: UINavigationController?
+  private var initialParentInteractivePopGestureRecognizerEnabled: Bool = false
+  
+  
+  /// Disable swipe back to close function and restore it on close
+  public override func willMove(toParent parent: UIViewController?) {
+    super.willMove(toParent: parent)
+    if let parent = parent as? UINavigationController, parent != initialParent {
+      initialParent = parent
+      initialParentInteractivePopGestureRecognizerEnabled
+      = parent.interactivePopGestureRecognizer?.isEnabled ?? false
+      parent.interactivePopGestureRecognizer?.isEnabled = false
+    }
+    else if parent == nil, initialParent != nil {
+      initialParent?.interactivePopGestureRecognizer?.isEnabled
+      = initialParentInteractivePopGestureRecognizerEnabled
+      initialParent = nil
+    }
+    /// the simplier way: handleClose()  here has 2 issues:
+    /// 1. user is not requested if he wants to close feedback
+    /// 2. on close presenting vc is maybe in wrong size
+  }
+  
   private var wConstraint:NSLayoutConstraint?
 
   /// update size for changed traits
