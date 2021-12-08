@@ -19,7 +19,7 @@ extension Settings.LinkType {
       case .terms: return "Allgemeine Geschäftsbedingungen (AGB)";
       case .privacy: return "Datenschutzerklärung";
       case .revocation: return "Widerruf";
-      case .faq: return "FAQ (in Safari öffnen)";
+      case .faq: return "FAQ (im Browser öffnen)";
       case .cleanMemory: return "Alte Ausgaben löschen";
     }
   }
@@ -31,8 +31,8 @@ extension Settings.LinkType {
     let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
     let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
     
-    let txt = "App: \(app)MB, Daten: \(data)MB\nGedrückt halten für weitere Optionen"
-    return ("Speichernutzung", "jetzt bereinigen", txt)
+    let txt = "App: \(app)MB\nAusgaben: \(data)MB"
+    return ("Speichernutzung", "alte Ausgaben löschen", txt)
   }
 
   private var userInfo: String {
@@ -403,27 +403,47 @@ extension SettingsVC {
   }
   
   func cleanMemoryMenu(){
-    let alert = UIAlertController.init( title: "Daten Löschen", message: "erweiterte Optionen",
+    let alert = UIAlertController.init( title: "Löschen - Erweiterte Optionen", message: nil,
       preferredStyle:  .actionSheet )
+    
+    alert.addAction( UIAlertAction.init( title: "Datenbank zurücksetzen", style: .destructive,
+      handler: { [weak self] _ in
+      self?.resetDatabase()
+    } ) )
+    
+    alert.addAction( UIAlertAction.init( title: "App zurücksetzen", style: .destructive,
+                                         handler: {   [weak self] _ in
+      self?.resetApp()
+    } ) )
   
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    alert.presentAt(self.view)
+  }
+  
+  func resetApp(force: Bool = false){
+    if force {
+      Defaults.singleton.setDefaults(values: ConfigDefaults, forceWrite: true)
+      Keychain.singleton["dataPolicyAccepted"] = nil
+      MainNC.singleton.deleteAll()
+      return
+    }
     
-    alert.addAction( UIAlertAction.init( title: "Hilfe", style: .default,
-      handler: { [weak self] handler in
-      self?.showHelp()
-    }))
-      
-    alert.addAction( UIAlertAction.init( title: "Alle Vorschaudaten löschen", style: .destructive,
-      handler: { [weak self] handler in
-      self?.cleanMemory(keepPreviewsCount:0)
+    let alert = UIAlertController.init( title: "App zurücksetzen?", message: "Wollen Sie alle Daten und Einstellungen zurücksetzen? Die App muss neu gestartet werden.\nIhre Anmeldung bleibt erhalten.",
+                                        preferredStyle:  .alert )
+    
+    alert.addAction( UIAlertAction.init( title: "Ja, App zurücksetzen", style: .destructive,
+                                         handler: { [weak self] _ in
+      self?.resetApp(force: true)
     } ) )
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     
-    alert.addAction( UIAlertAction.init( title: "Heruntergeladene Ausgaben löschen", style: .destructive,
-      handler: { [weak self] handler in
-      self?.cleanMemory()
-    } ) )
-    
-    alert.addAction( UIAlertAction.init( title: "Datenbank löschen", style: .destructive,
-      handler: { _ in
+    alert.presentAt(self.view)
+  }
+  
+  
+  
+  func resetDatabase(force: Bool = false){
+    if force {
       MainNC.singleton.popToRootViewController(animated: false)
       MainNC.singleton.feederContext.cancelAll()
       ArticleDB.singleton.reset { [weak self] err in
@@ -437,15 +457,19 @@ extension SettingsVC {
         //  MainNC.singleton.feederContext.resume()
         //  MainNC.singleton.showIssueVC()
         //}
+        return
       }
-    } ) )
+    }
     
-    alert.addAction( UIAlertAction.init( title: "Alles löschen", style: .destructive,
-      handler: { _ in
-        MainNC.singleton.deleteAll()
+    let alert = UIAlertController.init( title: "Datenbank zurücksetzen?", message: "Wollen Sie die App interne Datenbank zurücksetzen?\nDies kann notwendig sein, wenn die App beim Download einer Ausgabe  beendet wird. Nach dem Zurücksetzen der Datenbank muss die taz App neu gestartet werden.\nHeruntergeladene Bilder und Zeitungsseiten bleiben erhalten und müssen beim Neustart nicht erneut heruntergeladen werden.",
+                                        preferredStyle:  .alert )
+    
+    alert.addAction( UIAlertAction.init( title: "Ja, Datenbank zurücksetzen", style: .destructive,
+                                         handler: { [weak self] _ in
+      self?.resetDatabase(force: true)
     } ) )
-  
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    
     alert.presentAt(self.view)
   }
   
@@ -536,56 +560,6 @@ extension SettingsVC {
   func showOnboarding(){
     guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
     showLocalHtml(from: feeder.welcomeSlides, scrollEnabled: false)
-  }
-  
-  func showHelp(){
-    ///Help html content is bundled due it may depends on current app version
-    guard let url = Bundle.main.url(forResource: "SettingsHelp",
-                                 withExtension: "html",
-                                 subdirectory: "BundledResources")
-    else { return }
-    ///Do not write file to App Bundle - its read only result in "unexpectedError &  Crash"
-//    ///Apply dark/bright mode
-//    let f = File(url)
-//    var content = f.string
-//
-//    if Defaults.darkMode {
-//      content = content.replacingOccurrences(
-//        of: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNormal.css\">",
-//        with: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNight.css\">")
-//    }
-//    else {
-//      content = content.replacingOccurrences(
-//        of: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNight.css\">",
-//        with: "<link rel=\"stylesheet\" type=\"text/css\" href=\"../files/themeNormal.css\">")
-//    }
-//
-//    f.string = content
-
-    let webviewVC = IntroVC()
-   
-    webviewVC.webView.webView.load(url: url)
-    webviewVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
-    webviewVC.webView.webView.scrollView.isScrollEnabled = true
-    
-    webviewVC.webView.xButton.tazX()
-    
-    webviewVC.webView.onX { _ in
-      webviewVC.dismiss(animated: true, completion: nil)
-    }
-    self.modalPresentationStyle = .fullScreen
-    webviewVC.modalPresentationStyle = .fullScreen
-    webviewVC.webView.webView.atEndOfContent {_ in }
-    self.present(webviewVC, animated: true) {
-      //Overwrite Default in: IntroVC viewDidLoad
-      webviewVC.webView.buttonLabel.text = nil
-    }
-    webviewVC.webView.webView.whenLinkPressed { arg in
-      guard let to = arg.to else { return }
-      if UIApplication.shared.canOpenURL(to) {
-        UIApplication.shared.open(to, options: [:], completionHandler: nil)
-      }
-    }
   }
   
   func showLocalHtml(from urlString:String, scrollEnabled: Bool){
@@ -828,7 +802,7 @@ class SaveLastCountIssues: UIView, UIStyleChangeDelegate {
     registerForStyleUpdates()
     ///Labels
     mainLabel.text = "Maximale Anzahl der zu speichernden Ausgaben"
-    detailLabel.text = "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht."
+//    detailLabel.text = "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht."
     mainLabel.contentFont().set(textColor: Const.SetColor.ios(.label).color)
     detailLabel.contentFont(size: Const.Size.SmallerFontSize)
       .set(textColor: Const.SetColor.ios(.secondaryLabel).color)
