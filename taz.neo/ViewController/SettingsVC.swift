@@ -831,14 +831,14 @@ class SaveLastCountIssues: UIView, UIStyleChangeDelegate {
     
     accessoryView.leftButton.onPress { [weak self] _ in
       guard let self = self, self.persistedIssuesCount > 0 else { return }
-      /// 3 is minumum
-      if self.persistedIssuesCount == 3 { self.persistedIssuesCount = 0}
+      /// 4 is minumum
+      if self.persistedIssuesCount == 4 { self.persistedIssuesCount = 0}
       else { self.persistedIssuesCount -= 1 }
     }
     
     accessoryView.rightButton.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.persistedIssuesCount < 3 { self.persistedIssuesCount = 3}
+      if self.persistedIssuesCount < 4 { self.persistedIssuesCount = 4}
       else {self.persistedIssuesCount += 1}
     }
     
