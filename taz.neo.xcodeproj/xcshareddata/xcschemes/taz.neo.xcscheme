@@ -10,7 +10,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;touch &quot;${SRCROOT}/${INFOPLIST_FILE}&quot;&#10;">
+               scriptText = "# For &apos;install&apos; ACTION (current: ${ACTION}), the following script checks git status to be in sync with the official repository and updates/increment the build Number.&quot;&#10;cd ${SRCROOT}&#10;ruby ${SRCROOT}/taz.neo/Supporting\ Files/Scripts/genBuildConst.rb&#10;">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
