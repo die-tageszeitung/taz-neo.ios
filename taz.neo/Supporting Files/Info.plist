@@ -24,7 +24,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>2021120805</string>
+	<string>2021120806</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationCategoryType</key>
@@ -48,7 +48,7 @@
 			<key>UIApplicationShortcutItemIconSymbolName</key>
 			<string>info.circle</string>
 			<key>UIApplicationShortcutItemSubtitle</key>
-			<string>$(MARKETING_VERSION) (${BundleVersion})5</string>
+			<string>$(MARKETING_VERSION) (${CURRENT_PROJECT_VERSION})1</string>
 			<key>UIApplicationShortcutItemTitle</key>
 			<string>$(PRODUCT_NAME)</string>
 			<key>UIApplicationShortcutItemType</key>
