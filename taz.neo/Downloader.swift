@@ -25,6 +25,13 @@ open class Downloader: DoesLog {
   /// The Feeder providing data
   public var feeder: Feeder
   
+  public var isDownloading: Bool {
+    get {
+      if payloadQueue.isEmpty == false { return true }
+      return dlSession.isDownloading
+    }
+  }
+  
   public func killAll(){
     payloadQueue = []
     dlSession._session?.invalidateAndCancel()

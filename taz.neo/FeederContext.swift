@@ -725,8 +725,19 @@ open class FeederContext: DoesLog {
     if let dlId = dlId {
       let nsec = UsTime.now().timeInterval - tstart.timeInterval
       debug("Sending stop of download to server")
-      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) {_ in}
+      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) { [weak self] _ in
+        self?.cleanupOldIssues()
+      }
     }
+  }
+  
+  func cleanupOldIssues(){
+    if self.dloader.isDownloading { return }
+    guard let feed = self.storedFeeder.feeds[0] as? StoredFeed else { return }
+    let persistedIssuesCount:Int = Defaults.singleton["persistedIssuesCount"]?.int ?? 20
+    StoredIssue.removeOldest(feed: feed,
+                             keepDownloaded: persistedIssuesCount,
+                             deleteOrphanFolders: true)
   }
   
   /// Download partial Payload of Issue

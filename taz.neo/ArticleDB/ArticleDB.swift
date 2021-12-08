@@ -1566,7 +1566,7 @@ public final class StoredIssue: Issue, StoredObject {
       get {
         switch self {
           case .issueDate:
-            return "payload.downloadStarted"
+            return "date"
           case .payloadDownloadStarted:
             return "payload.downloadStarted"
         }
@@ -1634,6 +1634,11 @@ public final class StoredIssue: Issue, StoredObject {
                                   keepDownloaded: Int,
                                   keepPreviews: Int = 30,
                                   deleteOrphanFolders:Bool = false) {
+    if keepDownloaded == 0 {
+      Log.log("Prevent to delete all issues")
+      return
+    }
+    
     let lastCompleeteIssues
     = issues(feed: feed, count: keepDownloaded, onlyCompleete: true, sortedBy: .payloadDownloadStarted, ascending: false)
     
@@ -1643,7 +1648,7 @@ public final class StoredIssue: Issue, StoredObject {
     let keepPreviewCount = min(allIssues.count, max(keepPreviews, keepDownloaded))
     let reduceableIssues = allIssues[..<keepPreviewCount]
     
-    for issue in allIssues {
+    for issue in allIssues[2...] {//Do not reduce the newest 2 Issues
       if lastCompleeteIssues.contains(issue) { continue }
       Log.log("reduceToOverview for issue: \(issue.date.short)")
       issue.reduceToOverview()

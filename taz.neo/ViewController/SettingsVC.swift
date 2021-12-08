@@ -31,7 +31,7 @@ extension Settings.LinkType {
     let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
     let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
     
-    let txt = "App: \(app)MB\nAusgaben: \(data)MB"
+    let txt = "App: \(app) MB\nAusgaben: \(data) MB"
     return ("Speichernutzung", "alte Ausgaben löschen", txt)
   }
 
@@ -444,6 +444,11 @@ extension SettingsVC {
   
   func resetDatabase(force: Bool = false){
     if force {
+      if MainNC.singleton.feederContext.dloader.isDownloading {
+        Toast.show("Abgebrochen!\nBitte warten Sie bis alle aktuellen Downloads abgeschlossen sind!", .alert)
+        return
+      }
+      
       MainNC.singleton.popToRootViewController(animated: false)
       MainNC.singleton.feederContext.cancelAll()
       ArticleDB.singleton.reset { [weak self] err in
@@ -473,8 +478,12 @@ extension SettingsVC {
     alert.presentAt(self.view)
   }
   
-  
   func cleanMemory(keepPreviewsCount:Int = 30){
+    if MainNC.singleton.feederContext.dloader.isDownloading {
+      Toast.show("Abgebrochen!\nBitte warten Sie bis alle aktuellen Downloads abgeschlossen sind!", .alert)
+      return
+    }
+    
     guard let storedFeeder = MainNC.singleton.feederContext.storedFeeder,
           let storedFeed = storedFeeder.storedFeeds.first,
           persistedIssuesCount > 0 else { return }
