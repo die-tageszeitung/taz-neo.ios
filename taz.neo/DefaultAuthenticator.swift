@@ -193,7 +193,7 @@ public class DefaultAuthenticator: Authenticator {
                 else {
                   /// if there is no FormsResultController yet, present a new  FormsResultController
                   loginFormVc.showResultWith(message: self.resultSuccessText,
-                                             backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                             backButtonTitle: FormsController.backButtonTitle,
                                              dismissType: .allReal,
                                              dismissAllFinishedClosure: dismissFinishedClosure)
                 }

@@ -78,6 +78,27 @@ class FormsController: FormsResultController {
   }
 }
 
+extension FormsController {
+  static var backButtonTitle:String {
+    guard let nc = UIViewController.currentRootController as? UINavigationController,
+          let vc = nc.viewControllers.last else {
+            return "Zurück"
+          }
+    switch vc {
+      case _ as ArticleVC:
+        return "Zurück zum Artikel"
+      case _ as TazPdfPagesViewController:
+        return "Zurück zur Ausgabe"
+      case _ as SettingsVC:
+        return "Zurück zu den Einstellungen"
+      case _ as IssueVC://Currently due Settings are presented modal
+        return "Zurück zu den Einstellungen"
+      default:
+        return "Zurück"
+    }
+  }
+}
+
 // MARK: - Modal dismissType
 enum dismissType {case allReal, all, current, leftFirst, two}
 //enum dismissUntilType {case left, dismiss, all} @Idea
