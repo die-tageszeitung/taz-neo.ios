@@ -220,6 +220,7 @@ class AskForTrial_Controller: FormsController {
   }
   
   @IBAction func handleTrialSubscroption(_ sender: UIButton) {
+    self.ui.blocked = true
     let ctrl = TrialSubscriptionRequestNameCtrl(tazId: tazId, tazIdPassword: tazIdPass, auth: auth)
     ///Test if TrialSubscription work without first/lastname!
     ctrl.onMissingNameRequested = {

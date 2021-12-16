@@ -81,6 +81,7 @@ class TrialSubscriptionController : FormsController {
                                       password: tazIdPassword,
                                       token: token)
                 Notification.send("authenticationSucceeded")
+                self.ui.blocked = false
                 return;
               }
               /// valid authentication
