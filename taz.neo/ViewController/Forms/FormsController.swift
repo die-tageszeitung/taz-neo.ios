@@ -282,7 +282,9 @@ extension FormsResultController{
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .flipHorizontal
     
-    self.topmostModalVc.present(controller, animated: true, completion:nil)
+    ensureMain {
+      self.topmostModalVc.present(controller, animated: true, completion:nil)
+    }
   }
   
   func modalFromBottom(_ controller:UIViewController){
@@ -295,7 +297,9 @@ extension FormsResultController{
         topmostModalVc = modal
       }
       else{
-        topmostModalVc.present(controller, animated: true, completion:nil)
+        ensureMain {
+          topmostModalVc.present(controller, animated: true, completion:nil)
+        }
         break
       }
     }
