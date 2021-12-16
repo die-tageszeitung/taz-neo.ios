@@ -150,11 +150,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
     if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
-    var actions: [UIAlertAction] = [
-      Alert.action("Feedback senden") {_ in self.showFeedbackErrorReport(.feedback) },
-      Alert.action("Fehlerbericht senden") {_ in self.showFeedbackErrorReport(.error) },
-      Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
-      Alert.action("Kundendaten löschen (Abmelden)") {_ in self.deleteUserData() }]
+    var actions: [UIAlertAction] = []
     
     if App.isAlpha {
       actions.append(Alert.action("Abo-Verknüpfung löschen (⍺)") {[weak self] _ in self?.unlinkSubscriptionId() })
@@ -194,19 +190,19 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       /// currently never executed due keyWindow was nil when logged in
       targetView.isUserInteractionEnabled = true
       targetView.addGestureRecognizer(reportLPress2)
-      targetView.addGestureRecognizer(reportLPress3)
+      targetView.ifAlphaApp?.addGestureRecognizer(reportLPress3)
     }
     else if let delegate = UIApplication.shared.delegate as? AppDelegate,
             let targetWindow = delegate.window {
       /// ...improved version of previous comparrison ...should be standalone!
       targetWindow.isUserInteractionEnabled = true
       targetWindow.addGestureRecognizer(reportLPress2)
-      targetWindow.addGestureRecognizer(reportLPress3)
+      targetWindow.ifAlphaApp?.addGestureRecognizer(reportLPress3)
     }
     else {
       self.view.isUserInteractionEnabled = true
       self.view.addGestureRecognizer(reportLPress2)
-      self.view.addGestureRecognizer(reportLPress3)
+      self.view.ifAlphaApp?.addGestureRecognizer(reportLPress3)
     }
   }
 

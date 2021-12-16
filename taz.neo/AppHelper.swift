@@ -29,6 +29,30 @@ extension UIApplication {
 /// showBottomTilesAnimation is a ConfigVariable
 
 
+/// Helpers to chain functionallity depending on current App Alpha|Beta|Release
+/// usage.eg:   self.view.ifAlphaApp?.addGestureRecognizer(reportLPress3)
+public extension NSObject{
+  var ifAlphaApp : Self?{
+    get{
+      if App.isAlpha { return self }
+      return nil
+    }
+  }
+  var ifBetaApp : Self?{
+    get{
+      if App.isBeta { return self }
+      return nil
+    }
+  }
+  var ifReleaseApp : Self?{
+    get{
+      if App.isRelease { return self }
+      return nil
+    }
+  }
+}
+
+
 public extension App {
   /// Is the alpha App
   static var isAlpha: Bool = {
