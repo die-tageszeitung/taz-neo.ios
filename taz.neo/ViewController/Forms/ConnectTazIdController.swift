@@ -268,9 +268,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
   
   override init(aboId:String, aboIdPassword:String, auth:AuthMediator) {
     super.init(aboId: aboId, aboIdPassword: aboIdPassword, auth: auth)
-    ui.mailInput.keyboardType = .emailAddress
     ui.mailInput.placeholder = Localized("login_tazid_hint")
-
     ui.registerButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     
     ui.views = [
