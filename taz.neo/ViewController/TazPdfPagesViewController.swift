@@ -314,7 +314,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     Log.minLogLevel = .Debug
     let pdfModel = NewPdfModel(issueInfo: issueInfo)
     pdfModel.title = issueInfo.issue.date.gDate().replacingOccurrences(of: ", ", with: ",\n")
-    pdfModel.index = issueInfo.issue.lastPage ?? 0
+    
+    if let count = issueInfo.issue.pages?.count,
+       let lastIndex = issueInfo.issue.lastPage,
+       lastIndex < count {
+      pdfModel.index = lastIndex
+    }
+    
     self.sections = issueInfo.issue.sections ?? []
     self.article2section = issueInfo.issue.article2section
     self.feederContext = issueInfo.feederContext
