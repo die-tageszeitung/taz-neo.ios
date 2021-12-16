@@ -487,53 +487,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       scrollChange = false
     }
     if App.isAlpha {
-//      
-//      issueCarousel.addMenuItem(title: "Ausgabe komplett löschen", icon: "trash") {_ in
-//        self.deleteCompleeteIssue()
-//      }
-//
-//      issueCarousel.addMenuItem(title: "Reset Overview", icon: "trash") {_ in
-//        self.resetOverview()
-//      }
-//      
-//      issueCarousel.addMenuItem(title: "Clear Cache", icon: "trash") {_ in
-//        URLCache.shared.removeAllCachedResponses()
-//      }
-//      
-//      issueCarousel.addMenuItem(title: "Kill App", icon: "trash") {_ in
-//        exit(0)
-//      }
-      
-      issueCarousel.addMenuItem(title: "Simulate PN.aboPoll", icon: "arrow.up") {_ in
+      issueCarousel.addMenuItem(title: "Simulate PN.aboPoll (⍺)", icon: "arrow.up") {_ in
         let pnPl = ["data":["refresh":"aboPoll"], "aps":["content-available":1,"sound":nil ]]
         NotifiedDelegate.singleton.notifier.handleTestRemoteNotification(pnPl)
-      }
-      issueCarousel.addMenuItem(title: "Simulate PN.subscriptionPoll", icon: "arrow.up") {_ in
-        let pnPl = ["data":["perform":"subscriptionPoll"], "aps":["content-available":1,"sound":nil ]]
-        NotifiedDelegate.singleton.notifier.handleTestRemoteNotification(pnPl)
-      }
-      issueCarousel.addMenuItem(title: "STÖRE MAIN AN/AUS", icon: "arrow.2.circlepath") {   [weak self] _ in
-        guard let self = self else { return }
-        
-        if let timer = self.interruptMainTimer {
-          timer.invalidate()
-          Toast.show("Main Thread Interruprion Stoped")
-          return
-        }
-        self.interruptMainTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
-          onMain { usleep(23000) }
-          onMain { usleep(23000) }
-          onMain { usleep(23000) }
-          onMain { usleep(23000) }
-          onMain { usleep(23000) }
-          self.log("...Main Thread Interruprion!")
-        }
-        
-        if let timer = self.interruptMainTimer {
-          self.log("#>  Enable timer even while user ui interaction ")
-          RunLoop.current.add(timer, forMode: .common)
-        }
-        Toast.show("Main Thread Interruprion started and fire every 2 seconds", .alert)
       }
     }
      
