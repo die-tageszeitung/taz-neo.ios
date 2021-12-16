@@ -333,6 +333,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     let ctrl = PwForgottController(id: ui.mailInput.text?.trim, auth: auth)
     //Change to SubscriptionReset
     ctrl.ui.idInput.keyboardType = .emailAddress
+    ctrl.ui.idInput.autocapitalizationType = .none
     ctrl.ui.idInput.placeholder = Localized("login_tazid_hint")
     ctrl.ui.introLabel.text = Localized("login_forgot_tazid_password_header")
     

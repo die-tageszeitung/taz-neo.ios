@@ -88,6 +88,7 @@ public class FeedbackView : UIView {
     
     senderMail.delegate = self
     senderMail.textfield.keyboardType = .emailAddress
+    senderMail.textfield.autocapitalizationType = .none
     senderMail.textfield.textContentType = .emailAddress
     
     //Subject & Send Button

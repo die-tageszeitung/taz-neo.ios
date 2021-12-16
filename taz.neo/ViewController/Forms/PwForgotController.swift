@@ -27,6 +27,7 @@ class PwForgottController: FormsController {
   convenience init(id:String?, auth: AuthMediator) {
     self.init(auth)
     ui.idInput.text = id
+    ui.idInput.autocapitalizationType = .none
     ui.submitButton.touch(self, action: #selector(handleSubmit))
     ui.cancelButton.touch(self, action: #selector(handleBack))
   }
