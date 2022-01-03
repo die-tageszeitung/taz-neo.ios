@@ -53,7 +53,8 @@ public let ConfigDefaults = Defaults.Values([
   // need to show Bottom Tiles Animation
   "showBottomTilesAnimation" : "false",
   // Experimental
-  "autoloadInWLAN" : "true",
+  "autoloadOnlyInWLAN" : "false",
+  "autoloadPdf" : "false",
   "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20"
 ])
