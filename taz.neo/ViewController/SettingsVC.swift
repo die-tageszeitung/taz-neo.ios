@@ -31,7 +31,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   var isTextNotification: Bool
   
   var feederContext: FeederContext?
-
+  
   lazy var data = prototypeTableData
   
   /// UI Components
@@ -120,7 +120,7 @@ extension SettingsVC {
   open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     return data.footer(for: section)
   }
-
+  
   open override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
     view.backgroundColor = .clear
   }
@@ -200,7 +200,7 @@ extension SettingsVC {
 }
 
 extension SettingsVC.TableData{
-
+  
   var sectionsCount: Int { return self.sections.count }
   
   func rowsIn(section: Int) -> Int{
@@ -225,7 +225,7 @@ extension SettingsVC.TableData{
     guard var sectionContent = sectionData(for: section) else { return }
     sectionContent.collapsed = !sectionContent.collapsed
     self.sections[section] = sectionContent
-      
+    
   }
   
   func footer(for section: Int) -> UIView?{
@@ -248,7 +248,7 @@ extension SettingsVC {
 extension SettingsVC {
   typealias tSectionContent = (title:String?, collapseable:Bool, collapsed:Bool,  cells:[XSettingsCell])
 }
-  
+
 extension SettingsVC {
   //Prototype Cells
   func prototypeCells() -> [tSectionContent] {
@@ -262,7 +262,8 @@ extension SettingsVC {
       ),
       ("ausgabenverwaltung", false, false,
        [
-        XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting()),
+        XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
+                      accessoryView: TextSizeSetting()),
         XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
                       initialValue: autoloadNewIssues,
                       onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue }),
@@ -304,10 +305,20 @@ extension SettingsVC {
        [
         XSettingsCell(toggleWithText: "Mitteilungen erlauben",
                       initialValue: isTextNotification,
-                      onChange: textNotificationsChanged(newValue:))
+                      onChange: textNotificationsChanged(newValue:)),
+        XSettingsCell(text: "Speichernutzung", detailText: storageDetails),
+        XSettingsCell(text: "Datenbank löschen", color: .red, tapHandler: requestDatabaseDelete),
+        XSettingsCell(text: "App zurücksetzen", color: .red, tapHandler: requestResetApp)
        ]
       )
     ]
+  }
+  
+  var storageDetails: String {
+    let storage = DeviceData().detailStorage
+    let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
+    let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
+    return "App: \(app) MB, Daten: \(data) MB"
   }
 }
 
@@ -351,13 +362,13 @@ extension SettingsVC {
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.view)
   }
-
+  
   func cleanMemoryMenu(){
     let alert = UIAlertController.init( title: "Daten Löschen", message: "erweiterte Optionen",
-      preferredStyle:  .actionSheet )
-
+                                        preferredStyle:  .actionSheet )
+    
     alert.addAction( UIAlertAction.init( title: "Datenbank löschen", style: .destructive,
-      handler: { _ in
+                                         handler: { _ in
       MainNC.singleton.popToRootViewController(animated: false)
       MainNC.singleton.feederContext.cancelAll()
       ArticleDB.singleton.reset { [weak self] err in
@@ -375,10 +386,51 @@ extension SettingsVC {
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "App zurücksetzen", style: .destructive,
-      handler: { _ in
-        MainNC.singleton.deleteAll()
+                                         handler: { _ in
+      MainNC.singleton.deleteAll()
     } ) )
+    
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    alert.presentAt(self.view)
+  }
   
+  func requestDatabaseDelete(){
+    let alert = UIAlertController.init( title: "Datenbank zurücksetzen", message: "Benutzen Sie diese Funktion, falls die App wiederholt bei einer bestimmten Aktion (z.B. Ausgabe öffnen) beendet wird.\nDie App wird nach dem Zurücksetzen der Datenbank beendet und kann von Ihnen neu gestartet werden.\nBitte nutzen Sie im Fehlerfall bitte auch unsere \"Fehler melden\" Funktion!",
+                                        preferredStyle:  .actionSheet )
+    
+    alert.addAction( UIAlertAction.init( title: "Datenbank zurücksetzen", style: .destructive,
+                                         handler: { _ in
+      MainNC.singleton.popToRootViewController(animated: false)
+      MainNC.singleton.feederContext.cancelAll()
+      ArticleDB.singleton.reset { [weak self] err in
+        self?.log("delete database done")
+        exit(0)//Restart, resume currently not possible
+        //#warning("ToDo: 0.9.4 enable resume of feederCOntext / Re-Init here")
+        //onMainAfter { [weak self]  in
+        //  self?.content[0] = Settings.content()[0]
+        //  let ip0 = IndexPath(row: 1, section: 0)
+        //  self?.tableView.reloadRows(at: [ip0], with: .fade)
+        //  MainNC.singleton.feederContext.resume()
+        //  MainNC.singleton.showIssueVC()
+        //}
+      }
+    } ) )
+    
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    alert.presentAt(self.view)
+  }
+  
+  func requestResetApp(){
+    let alert = UIAlertController.init( title: "App zurücksetzen", message: "Löscht alle Daten und Einstellungen der App.\nDie App wird nach dem Zurücksetzen beendet und kann von Ihnen neu gestartet werden. Sie müssen sich im Anschluss neu anmelden.",
+                                        preferredStyle:  .actionSheet )
+    
+    
+    alert.addAction( UIAlertAction.init( title: "App zurücksetzen", style: .destructive,
+                                         handler: { _ in
+      MainNC.singleton.deleteUserData()
+      MainNC.singleton.deleteAll()
+    } ) )
+    
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.view)
   }
@@ -392,7 +444,7 @@ extension SettingsVC {
     StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: persistedIssuesCount, keepPreviews: keepPreviewsCount, deleteOrphanFolders: true)
     onMainAfter { [weak self] in
       guard let self = self else { return }
-//      self.cellData[0] = self.createCellData()[1]
+      //      self.cellData[0] = self.createCellData()[1]
       let ip0 = IndexPath(row: 1, section: 0)
       self.tableView.reloadRows(at: [ip0], with: .fade)
       MainNC.singleton.feederContext.resume()
@@ -422,12 +474,12 @@ extension SettingsVC {
     childVc.modalPresentationStyle = .fullScreen
     self.present(childVc, animated: true)
   }
-    
+  
   func manageAccountOnline(){
     guard let url = URL(string: "https://portal.taz.de/") else { return }
     UIApplication.shared.open(url, options: [:], completionHandler: nil)
   }
-    
+  
   func showOnboarding(){
     guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
     showLocalHtml(from: feeder.welcomeSlides, scrollEnabled: false)
@@ -461,21 +513,21 @@ extension SettingsVC {
   }
   
   func textNotificationsChanged(newValue:Bool){
-      isTextNotification = newValue
-      if newValue == false { return }
-      let center = UNUserNotificationCenter.current()
-      center.getNotificationSettings { (settings) in
-        if settings.soundSetting == .disabled
-        && settings.alertSetting == .disabled
-        && settings.badgeSetting == .disabled {
-          Alert.confirm(message: "Bitte erlauben Sie Benachrichtigungen!") { _ in
-            if let url = URL.init(string: UIApplication.openSettingsURLString) {
-              UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            }
+    isTextNotification = newValue
+    if newValue == false { return }
+    let center = UNUserNotificationCenter.current()
+    center.getNotificationSettings { (settings) in
+      if settings.soundSetting == .disabled
+          && settings.alertSetting == .disabled
+          && settings.badgeSetting == .disabled {
+        Alert.confirm(message: "Bitte erlauben Sie Benachrichtigungen!") { _ in
+          if let url = URL.init(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
           }
         }
       }
     }
+  }
 }
 
 class SectionHeader: UIView, UIStyleChangeDelegate {
@@ -529,6 +581,9 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.backgroundColor = .clear
     self.backgroundView?.backgroundColor = .clear
     self.contentView.backgroundColor = .clear
+    self.detailTextLabel?.contentFont(size: Const.Size.SmallerFontSize)
+    self.detailTextLabel?.numberOfLines = 0
+    self.detailTextLabel?.textColor = Const.SetColor.ios(.secondaryLabel).color
   }
   
   init(text: String,
@@ -558,10 +613,13 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   }
   
   init(text: String,
-       accessoryView: UIView){
-    super.init(style: .default, reuseIdentifier: nil)
+       detailText: String? = nil,
+       accessoryView: UIView? = nil){
+    super.init(style: detailText == nil ? .default : .subtitle,
+               reuseIdentifier: nil)
     self.textLabel?.text = text
     self.accessoryView = accessoryView
+    self.detailTextLabel?.text = detailText
     applyStyles()
   }
   
@@ -598,12 +656,12 @@ class SaveLastCountIssues: UIView, UIStyleChangeDelegate {
     mainLabel.set(textColor: Const.SetColor.ios(.label).color)
     detailLabel.set(textColor: Const.SetColor.ios(.secondaryLabel).color)
   }
-    
+  
   func setup(){
     registerForStyleUpdates()
     ///Labels
     mainLabel.text = "Maximale Anzahl der zu speichernden Ausgaben"
-//    detailLabel.text = "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht."
+    //    detailLabel.text = "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht."
     mainLabel.contentFont().set(textColor: Const.SetColor.ios(.label).color)
     detailLabel.contentFont(size: Const.Size.SmallerFontSize)
       .set(textColor: Const.SetColor.ios(.secondaryLabel).color)
@@ -689,10 +747,10 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     label.contentFont()
     registerForStyleUpdates()
     label.text = "\(articleTextSize)%"
-
+    
     leftButton.tazButton()
     rightButton.tazButton()
-
+    
     leftButton.buttonView.text = "a"
     rightButton.buttonView.text = "a"
     
