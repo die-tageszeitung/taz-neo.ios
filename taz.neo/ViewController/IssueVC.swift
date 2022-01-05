@@ -536,7 +536,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.authenticationSucceededCheckReload()
     }
     
-    Notification.receive("reloadIssues") {   [weak self] notif in
+    Notification.receive("reloadIssues") {   [weak self] _ in
       self?.scrollUp(animated: false)
 //      self?.isArchiveMode = true
       self?.issueCarousel.reset()//required!

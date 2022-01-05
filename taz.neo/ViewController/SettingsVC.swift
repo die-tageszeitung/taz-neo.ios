@@ -30,8 +30,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   @Default("isTextNotification")
   var isTextNotification: Bool
   
-  var feederContext: FeederContext?
-  
   lazy var data = prototypeTableData
   
   /// UI Components
@@ -40,6 +38,19 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   lazy var header = SimpleHeaderView("einstellungen")
   ///Close X Button
   public lazy var xButton = Button<CircledXView>().tazX()
+  
+  let blockingView = BlockingProcessView()
+  
+  var uiBlocked:Bool = false {
+    didSet{
+      if uiBlocked {
+        self.view.addSubview(blockingView)
+        pin(blockingView, to:self.view)
+      }
+      blockingView.isHidden = !uiBlocked
+      blockingView.enabled = uiBlocked
+    }
+  }
   
   // MARK: - Lifecycle
   open override func viewWillAppear(_ animated: Bool) {
@@ -251,19 +262,26 @@ extension SettingsVC {
 
 extension SettingsVC {
   //Prototype Cells
+  var accountCells:[XSettingsCell] {
+    var cells =
+    [
+      authCell(),
+      XSettingsCell(text: "Passwort zurücksetzen", tapHandler: resetPassword),
+      XSettingsCell(text: "Konto online verwalten", tapHandler: manageAccountOnline)
+    ]
+    if isAuthenticated {
+      cells.append(XSettingsCell(text: "Konto löschen", color: .red, tapHandler: requestAccountDeletion))
+    }
+    return cells
+  }
+    
   func prototypeCells() -> [tSectionContent] {
     return [
-      ("konto", false,false,
-       [
-        authCell(),
-        XSettingsCell(text: "Passwort zurücksetzen", tapHandler: resetPassword),
-        XSettingsCell(text: "Konto online verwalten", tapHandler: manageAccountOnline),
-       ]
-      ),
+      ("konto", false,false, accountCells ),
       ("ausgabenverwaltung", false, false,
        [
         XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
-                      accessoryView: TextSizeSetting()),
+                      accessoryView: SaveLastCountIssuesSettings()),
         XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
                       initialValue: autoloadNewIssues,
                       onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue }),
@@ -273,7 +291,7 @@ extension SettingsVC {
         XSettingsCell(toggleWithText: "E-Paper automatisch herunterladen",
                       initialValue: autoloadPdf,
                       onChange: {[weak self] newValue in self?.autoloadPdf = newValue }),
-        XSettingsCell(text: "Downloads löschen", color: .red, tapHandler: showOnboarding),
+        XSettingsCell(text: "Alle Ausgaben löschen", color: .red, tapHandler: requestDeleteAllIssues),
        ]
       ),
       ("darstellung", false,false,
@@ -363,33 +381,58 @@ extension SettingsVC {
     alert.presentAt(self.view)
   }
   
-  func cleanMemoryMenu(){
-    let alert = UIAlertController.init( title: "Daten Löschen", message: "erweiterte Optionen",
-                                        preferredStyle:  .actionSheet )
+  func requestAccountDeletion(){
+    let alert = UIAlertController.init( title: "Konto löschen", message: "Hiermit können Sie die Löschung Ihres Kontos und die Beendigung Ihres Abonements anfordern.\nWir senden Ihnen eine E-Mail mit einem Bestätigungslink. Falls ein laufendes Abonement mit Ihrem Konto verknüpft ist, wird ihr Konto zur Löschung nach Ablauf des Abo's vorgemerkt. Details entnehmen Sie bitte der E-Mail.",
+                                        preferredStyle:  .alert )
     
-    alert.addAction( UIAlertAction.init( title: "Datenbank löschen", style: .destructive,
-                                         handler: { _ in
-      MainNC.singleton.popToRootViewController(animated: false)
-      MainNC.singleton.feederContext.cancelAll()
-      ArticleDB.singleton.reset { [weak self] err in
-        self?.log("delete database done")
-        exit(0)//Restart, resume currently not possible
-        //#warning("ToDo: 0.9.4 enable resume of feederCOntext / Re-Init here")
-        //onMainAfter { [weak self]  in
-        //  self?.content[0] = Settings.content()[0]
-        //  let ip0 = IndexPath(row: 1, section: 0)
-        //  self?.tableView.reloadRows(at: [ip0], with: .fade)
-        //  MainNC.singleton.feederContext.resume()
-        //  MainNC.singleton.showIssueVC()
-        //}
+    alert.addAction( UIAlertAction.init( title: "Löschen anfordern", style: .destructive,
+                                         handler: { [weak self] _ in
+      guard let feeder = MainNC.singleton.feederContext.gqlFeeder else {
+        Toast.show(Localized("something_went_wrong_try_later"), .alert)
+        return
+      }
+      self?.uiBlocked = true
+      feeder.requestAccountDeletion { [weak self] (result) in
+        self?.uiBlocked = false
+        switch result{
+          case .success(let msg):
+            self?.log("Request account deletion success: \(msg)")
+            self?.showRequestAccountDeletionSuccessAlert()
+          case .failure(let err):
+            self?.log("Request account deletion failure: \(err)")
+            Toast.show(Localized("something_went_wrong_try_later"), .alert)
+        }
       }
     } ) )
     
-    alert.addAction( UIAlertAction.init( title: "App zurücksetzen", style: .destructive,
-                                         handler: { _ in
-      MainNC.singleton.deleteAll()
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    alert.presentAt(self.view)
+  }
+  
+  func showRequestAccountDeletionSuccessAlert(){
+    let alert = UIAlertController.init( title: "Hinweis", message: "Ihre Anfrage wird bearbeitet. Sie erhalten in den nächsten Minuten eine E-Mail mit Hinweisen zum weiteren Vorgehen und dem Bestätigungslink.\nBeachten Sie bitte, dass ihr Konto erst gelöscht werden kann, wenn Sie den Bestätigungslink in der E-Mail klicken. Der Bestätigungslink ist 24h gültig.\nFalls Sie Ihr Konto nicht löschen möchten, ignorieren Sie einfach die E-Mail.",
+                                        preferredStyle:  .alert )
+    alert.addAction( UIAlertAction.init( title: "OK", style: .default) { _ in } )
+    alert.presentAt(self.view)
+  }
+
+  func requestDeleteAllIssues(){
+    let alert = UIAlertController.init( title: "Alle Ausgaben löschen", message: nil,
+                                        preferredStyle:  .alert )
+    alert.addAction( UIAlertAction.init( title: "Löschen", style: .destructive,
+                                         handler:  { [weak self] _ in
+      guard let storedFeeder = MainNC.singleton.feederContext.storedFeeder,
+            let storedFeed = storedFeeder.storedFeeds.first else {
+              return
+      }
+      MainNC.singleton.feederContext.cancelAll()
+      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, deleteOrphanFolders: true)
+      onMainAfter { [weak self] in
+        self?.refreshAndReload()
+        MainNC.singleton.feederContext.resume()
+        Notification.send("reloadIssues")
+      }
     } ) )
-    
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.view)
   }
@@ -433,22 +476,6 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.view)
-  }
-  
-  
-  func cleanMemory(keepPreviewsCount:Int = 30){
-    guard let storedFeeder = MainNC.singleton.feederContext.storedFeeder,
-          let storedFeed = storedFeeder.storedFeeds.first,
-          persistedIssuesCount > 0 else { return }
-    MainNC.singleton.feederContext.cancelAll()
-    StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: persistedIssuesCount, keepPreviews: keepPreviewsCount, deleteOrphanFolders: true)
-    onMainAfter { [weak self] in
-      guard let self = self else { return }
-      //      self.cellData[0] = self.createCellData()[1]
-      let ip0 = IndexPath(row: 1, section: 0)
-      self.tableView.reloadRows(at: [ip0], with: .fade)
-      MainNC.singleton.feederContext.resume()
-    }
   }
   
   func showPrivacy(){
@@ -584,6 +611,18 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.detailTextLabel?.contentFont(size: Const.Size.SmallerFontSize)
     self.detailTextLabel?.numberOfLines = 0
     self.detailTextLabel?.textColor = Const.SetColor.ios(.secondaryLabel).color
+  }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    if var frame = self.textLabel?.frame {
+      frame.origin.x = Const.ASize.DefaultPadding
+      textLabel?.frame = frame
+    }
+    if var frame = self.detailTextLabel?.frame {
+      frame.origin.x = Const.ASize.DefaultPadding
+      detailTextLabel?.frame = frame
+    }
   }
   
   init(text: String,
@@ -724,6 +763,52 @@ class SaveLastCountIssues: UIView, UIStyleChangeDelegate {
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+class SaveLastCountIssuesSettings: TextSizeSetting {
+  
+  @Default("persistedIssuesCount")
+  private var persistedIssuesCount: Int {
+    didSet { updatePersistedIssuesCount() }
+  }
+  
+  func updatePersistedIssuesCount(){
+    label.text
+    = persistedIssuesCount > 0
+    ? "\(persistedIssuesCount)"
+    : "alle"
+  }
+  
+  override func setup(){
+    super.setup()
+    label.text = "\(persistedIssuesCount)"
+    leftButton.buttonView.text = "-"
+    rightButton.buttonView.text = "+"
+    
+    leftButton.buttonView.font = Const.Fonts.contentFont(size: 16)
+    rightButton.buttonView.font = Const.Fonts.contentFont(size: 16)
+    
+    leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
+    rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.2, left:0.2 , bottom: 1.2, right: -0.2)
+    
+    leftButton.onPress { [weak self] _ in
+      guard let self = self, self.persistedIssuesCount > 0 else { return }
+      /// 3 is minumum
+      if self.persistedIssuesCount == 3 { self.persistedIssuesCount = 0}
+      else { self.persistedIssuesCount -= 1 }
+    }
+    
+    rightButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      if self.persistedIssuesCount < 3 { self.persistedIssuesCount = 3}
+      else {self.persistedIssuesCount += 1}
+    }
+    
+    label.onTapping { [weak self] _ in
+      self?.persistedIssuesCount = 20
+    }
+    updatePersistedIssuesCount()
   }
 }
 
