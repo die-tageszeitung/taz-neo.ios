@@ -96,8 +96,25 @@ extension SettingsVC {
   }
     
   func refreshAndReload() {
+    let oldData = data
     data = prototypeTableData
-    self.tableView.reloadData()
+    
+    let oldCount = oldData.sectionData(for: 1)?.cells.count ?? 0
+    let newCount = data.sectionData(for: 1)?.cells.count ?? 0
+    
+    let ip2 = IndexPath(row: 2, section: 1)
+    let ip3 = IndexPath(row: 3, section: 1)
+    
+    if oldCount != 0, oldCount > newCount {
+      self.tableView.deleteRows(at: [ip2, ip3], with: .fade)
+    }
+    else if oldCount != 0, oldCount < newCount{
+      self.tableView.insertRows(at: [ip2, ip3], with: .fade)
+    }
+    else {
+     
+      self.tableView.reloadSections([1], with: .middle)
+    }
   }
   
   @objc private func handleLongTap(sender: UILongPressGestureRecognizer) {
@@ -298,32 +315,33 @@ extension SettingsVC {
   var issueSettingsCells:[XSettingsCell] {
     let wlanCell
     = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
-                    detailText: "(Automatischer Downlod)",
                     initialValue: autoloadOnlyInWLAN,
                     onChange: {[weak self] newValue in
                           self?.autoloadOnlyInWLAN = newValue })
-    wlanCell.isUserInteractionEnabled = autoloadNewIssues
     
     let epaperLoadCell
     = XSettingsCell(toggleWithText: "E-Paper automatisch herunterladen",
                     initialValue: autoloadPdf,
                     onChange: {[weak self] newValue in
                           self?.autoloadPdf = newValue })
-    epaperLoadCell.isUserInteractionEnabled = autoloadNewIssues
     
-    return [
+    var cells = [
       XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
                     detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
                     accessoryView: SaveLastCountIssuesSettings()),
       XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
                     initialValue: autoloadNewIssues,
                     onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue }),
-      wlanCell,
-      epaperLoadCell,
       XSettingsCell(text: "Alle Ausgaben löschen",
                     color: .red,
                     tapHandler: requestDeleteAllIssues)
     ]
+    
+    if autoloadNewIssues {
+      cells.insert(wlanCell, at: 2)
+      cells.insert(epaperLoadCell, at: 3)
+    }
+    return cells
   }
   
   //Prototype Cells
@@ -573,7 +591,6 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   
   private var customAccessoryView:UIView?
   
-  override var isUserInteractionEnabled: Bool { didSet { applyStyles() }}
   override var accessoryView: UIView? {
     set { self.customAccessoryView = newValue }
     get { return nil }//ensure custom layout
@@ -596,14 +613,10 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.detailTextLabel?.contentFont(size: Const.Size.SmallerFontSize)
     self.detailTextLabel?.numberOfLines = 0
 
-    //no visual difference, use color instead
-    //self.textLabel?.isEnabled = self.isUserInteractionEnabled
-    let alpha = self.isUserInteractionEnabled ? 1.0 : 0.7
     self.textLabel?.textColor
     = (overwrittenLabelColor ?? Const.SetColor.ios(.label).color)
-      .withAlphaComponent(alpha)
     self.detailTextLabel?.textColor
-    = Const.SetColor.ios(.secondaryLabel).color.withAlphaComponent(alpha)
+    = Const.SetColor.ios(.secondaryLabel).color
     
     //not implemented for stepper, not needed yet
     //self.accessoryView?.isUserInteractionEnabled = self.isUserInteractionEnabled
