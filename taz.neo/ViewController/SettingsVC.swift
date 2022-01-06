@@ -613,11 +613,14 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   }
   
   init(text: String,
+       detailText: String? = nil,
        color:UIColor = Const.SetColor.ios(.link).color,
        tapHandler: (()->())?,
        longTapHandler: (()->())? = nil) {
-    super.init(style: .default, reuseIdentifier: nil)
+    super.init(style: detailText == nil ? .default : .subtitle,
+               reuseIdentifier: nil)
     self.textLabel?.text = text
+    self.detailTextLabel?.text = detailText
     self.overwrittenLabelColor = color
     self.tapHandler = tapHandler
     self.longTapHandler = longTapHandler
@@ -675,19 +678,20 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
         pin(av.top, to: self.contentView.top, dist: 10)
       }
       pin(label.right, to: av.left, dist: -dist)
+            label.heightAnchor.constraint(greaterThanOrEqualToConstant: av.frame.size.height).isActive = true
     }
     else {
       pin(label.right, to: contentView.right, dist: -dist)
     }
    
     pin(label.left, to: contentView.left, dist: dist)
-    pin(label.top, to: contentView.top, dist: 10)
+    pin(label.top, to: contentView.top, dist: 10, priority: .defaultHigh)
     
     if let dtl = self.detailTextLabel{
       pin(label.bottom, to: dtl.top)
     }
     else {
-      pin(label.bottom, to: contentView.bottom, dist: -10)
+      pin(label.bottom, to: contentView.bottom, dist: -10, priority: .defaultHigh)
     }
     
     if let subLabel = self.detailTextLabel {
@@ -775,6 +779,7 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
   override func setup(){
     super.setup()
+    
     label.contentFont()
     registerForStyleUpdates()
     label.text = "\(articleTextSize)%"
@@ -811,13 +816,14 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     self.addArrangedSubview(leftButton)
     self.addArrangedSubview(label.wrapper(UIEdgeInsets(top: -0.5, left: 0, bottom: -0.5, right: 0)))
     self.addArrangedSubview(rightButton)
+    self.pinSize(CGSize(width: 110, height: 40), priority: .defaultHigh)
   }
 }
 
 // MARK: -
 class CustomHStack: UIStackView {
   init(){
-    super.init(frame: CGRect(x: 0, y: 0, width: 110, height: 30))
+    super.init(frame: .zero)
     self.axis = .horizontal
     self.distribution = .fill
     self.spacing = 2
