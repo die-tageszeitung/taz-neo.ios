@@ -24,7 +24,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   var autoloadPdf: Bool
   
   @Default("autoloadNewIssues")
-  var autoloadNewIssues: Bool
+  var autoloadNewIssues: Bool {
+    didSet { if oldValue != autoloadNewIssues { refreshAndReload() }}
+  }
   
   @Default("isTextNotification")
   var isTextNotification: Bool
@@ -293,26 +295,42 @@ extension SettingsVC {
     return cells
   }
   
+  var issueSettingsCells:[XSettingsCell] {
+    let wlanCell
+    = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
+                    detailText: "(Automatischer Downlod)",
+                    initialValue: autoloadOnlyInWLAN,
+                    onChange: {[weak self] newValue in
+                          self?.autoloadOnlyInWLAN = newValue })
+    wlanCell.isUserInteractionEnabled = autoloadNewIssues
+    
+    let epaperLoadCell
+    = XSettingsCell(toggleWithText: "E-Paper automatisch herunterladen",
+                    initialValue: autoloadPdf,
+                    onChange: {[weak self] newValue in
+                          self?.autoloadPdf = newValue })
+    epaperLoadCell.isUserInteractionEnabled = autoloadNewIssues
+    
+    return [
+      XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
+                    detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
+                    accessoryView: SaveLastCountIssuesSettings()),
+      XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
+                    initialValue: autoloadNewIssues,
+                    onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue }),
+      wlanCell,
+      epaperLoadCell,
+      XSettingsCell(text: "Alle Ausgaben löschen",
+                    color: .red,
+                    tapHandler: requestDeleteAllIssues)
+    ]
+  }
+  
   //Prototype Cells
   func prototypeCells() -> [tSectionContent] {
     return [
       ("konto", false,false, accountCells ),
-      ("ausgabenverwaltung", false, false,
-       [
-        XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
-                      accessoryView: SaveLastCountIssuesSettings()),
-        XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
-                      initialValue: autoloadNewIssues,
-                      onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue }),
-        XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
-                      initialValue: autoloadOnlyInWLAN,
-                      onChange: {[weak self] newValue in self?.autoloadOnlyInWLAN = newValue }),
-        XSettingsCell(toggleWithText: "E-Paper automatisch herunterladen",
-                      initialValue: autoloadPdf,
-                      onChange: {[weak self] newValue in self?.autoloadPdf = newValue }),
-        XSettingsCell(text: "Alle Ausgaben löschen", color: .red, tapHandler: requestDeleteAllIssues),
-       ]
-      ),
+      ("ausgabenverwaltung", false, false, issueSettingsCells),
       ("darstellung", false,false,
        [
         XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting()),
@@ -369,7 +387,7 @@ extension SettingsVC {
   }
   
   func requestAccountDeletion(){
-    let alert = UIAlertController.init( title: "Konto löschen", message: "Hiermit können Sie die Löschung Ihres Kontos und die Beendigung Ihres Abonements anfordern.\nWir senden Ihnen eine E-Mail mit einem Bestätigungslink. Falls ein laufendes Abonement mit Ihrem Konto verknüpft ist, wird ihr Konto zur Löschung nach Ablauf des Abo's vorgemerkt. Details entnehmen Sie bitte der E-Mail.",
+    let alert = UIAlertController.init( title: "Konto löschen", message: "Hiermit können Sie die Löschung Ihres Kontos und die Beendigung Ihres Abonnements anfordern.\nWir senden Ihnen eine E-Mail mit einem Bestätigungslink. Falls ein laufendes Abonnement mit Ihrem Konto verknüpft ist, wird ihr Konto zur Löschung nach Ablauf des Abo's vorgemerkt. Details entnehmen Sie bitte der E-Mail.",
                                         preferredStyle:  .alert )
     
     alert.addAction( UIAlertAction.init( title: "Löschen anfordern", style: .destructive,
@@ -548,9 +566,18 @@ extension SettingsVC {
 
 // MARK: -
 class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
+  var overwrittenLabelColor:UIColor?
   var tapHandler:(()->())?
   var longTapHandler:(()->())?
   private var toggleHandler: ((Bool)->())?
+  
+  private var customAccessoryView:UIView?
+  
+  override var isUserInteractionEnabled: Bool { didSet { applyStyles() }}
+  override var accessoryView: UIView? {
+    set { self.customAccessoryView = newValue }
+    get { return nil }//ensure custom layout
+  }
   
   deinit {
     print("XSettingsCell deinit")
@@ -568,19 +595,21 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.contentView.backgroundColor = .clear
     self.detailTextLabel?.contentFont(size: Const.Size.SmallerFontSize)
     self.detailTextLabel?.numberOfLines = 0
-    self.detailTextLabel?.textColor = Const.SetColor.ios(.secondaryLabel).color
-  }
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    if var frame = self.textLabel?.frame {
-      frame.origin.x = Const.ASize.DefaultPadding
-      textLabel?.frame = frame
-    }
-    if var frame = self.detailTextLabel?.frame {
-      frame.origin.x = Const.ASize.DefaultPadding
-      detailTextLabel?.frame = frame
-    }
+
+    //no visual difference, use color instead
+    //self.textLabel?.isEnabled = self.isUserInteractionEnabled
+    let alpha = self.isUserInteractionEnabled ? 1.0 : 0.7
+    self.textLabel?.textColor
+    = (overwrittenLabelColor ?? Const.SetColor.ios(.label).color)
+      .withAlphaComponent(alpha)
+    self.detailTextLabel?.textColor
+    = Const.SetColor.ios(.secondaryLabel).color.withAlphaComponent(alpha)
+    
+    //not implemented for stepper, not needed yet
+    //self.accessoryView?.isUserInteractionEnabled = self.isUserInteractionEnabled
+
+    (self.accessoryView as? UISwitch)?.isEnabled
+    = self.isUserInteractionEnabled
   }
   
   init(text: String,
@@ -589,24 +618,29 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
        longTapHandler: (()->())? = nil) {
     super.init(style: .default, reuseIdentifier: nil)
     self.textLabel?.text = text
-    self.textLabel?.textColor = color
+    self.overwrittenLabelColor = color
     self.tapHandler = tapHandler
     self.longTapHandler = longTapHandler
     applyStyles()
+    setupLayout()
   }
   
   init(toggleWithText text: String,
+       detailText: String? = nil,
        initialValue value:Bool,
        onChange: @escaping ((Bool)->())){
-    super.init(style: .default, reuseIdentifier: nil)
+    super.init(style: detailText == nil ? .default : .subtitle,
+               reuseIdentifier: nil)
     self.textLabel?.text = text
+    self.detailTextLabel?.text = detailText
     self.toggleHandler = onChange
     let toggle: UISwitch = UISwitch()
     toggle.isOn = value
     toggle.addTarget(self, action: #selector(handleToggle(sender:)),
                      for: .valueChanged)
-    self.accessoryView = toggle
+    self.customAccessoryView = toggle
     applyStyles()
+    setupLayout()
   }
   
   init(text: String,
@@ -615,9 +649,56 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     super.init(style: detailText == nil ? .default : .subtitle,
                reuseIdentifier: nil)
     self.textLabel?.text = text
-    self.accessoryView = accessoryView
+    self.customAccessoryView = accessoryView
     self.detailTextLabel?.text = detailText
     applyStyles()
+    setupLayout()
+  }
+  
+  func setupLayout(){
+    guard let label = self.textLabel else { return }
+    
+    let dist = Const.ASize.DefaultPadding
+    
+    if let av = self.customAccessoryView {
+      av.setNeedsUpdateConstraints()
+      av.setNeedsLayout()
+      av.updateConstraintsIfNeeded()
+      av.layoutIfNeeded()
+      self.contentView.addSubview(av)
+      av.pinWidth(av.bounds.size.width)
+      pin(av.right, to: contentView.right, dist: -dist)
+      if self.detailTextLabel == nil{
+        av.centerY()
+      }
+      else {
+        pin(av.top, to: self.contentView.top, dist: 10)
+      }
+      pin(label.right, to: av.left, dist: -dist)
+    }
+    else {
+      pin(label.right, to: contentView.right, dist: -dist)
+    }
+   
+    pin(label.left, to: contentView.left, dist: dist)
+    pin(label.top, to: contentView.top, dist: 10)
+    
+    if let dtl = self.detailTextLabel{
+      pin(label.bottom, to: dtl.top)
+    }
+    else {
+      pin(label.bottom, to: contentView.bottom, dist: -10)
+    }
+    
+    if let subLabel = self.detailTextLabel {
+      pin(subLabel.left, to: contentView.left, dist: dist)
+      pin(subLabel.right, to: contentView.right, dist: -dist)
+      pin(subLabel.bottom, to: contentView.bottom, dist: -10)
+    }
+    self.setNeedsUpdateConstraints()
+    self.setNeedsLayout()
+    self.updateConstraintsIfNeeded()
+    self.layoutIfNeeded()
   }
   
   @objc public func handleToggle(sender: UISwitch) {
