@@ -9,8 +9,7 @@ import UIKit
 import NorthLib
 
 /**
- A SettingsVC is a view controller to edit app's user Settings
- Cells are not re-used!
+ A SettingsVC is a view controller to edit app's user Settings; Cells are not re-used!
  */
 // MARK: - SettingsVC
 open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalCloseable {
@@ -52,7 +51,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     }
   }
   
-  // MARK: - Lifecycle
+  // MARK: Lifecycle
   open override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     guard let wrapper =  self.tableView.superview else { return }
@@ -81,16 +80,22 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
 
 // MARK: - Helper
 extension SettingsVC {
+  
+  public func applyStyles() {
+    self.tableView.backgroundColor = Const.SetColor.CTBackground.color
+    xButton.tazX(true)
+  }
+  
   func setup(){
     tableView.tableHeaderView = header
     tableView.separatorStyle = .none
     header.layoutIfNeeded()
     registerForStyleUpdates()
   }
-  
-  public func applyStyles() {
-    self.tableView.backgroundColor = Const.SetColor.CTBackground.color
-    xButton.tazX(true)
+    
+  func refreshAndReload() {
+    data = prototypeTableData
+    self.tableView.reloadData()
   }
   
   @objc private func handleLongTap(sender: UILongPressGestureRecognizer) {
@@ -150,7 +155,7 @@ extension SettingsVC {
   }
 }
 
-// MARK: - Nested Classes: Footer
+// MARK: - Nested Class: Footer
 extension SettingsVC {
   class Footer:UIView, UIStyleChangeDelegate{
     let label = UILabel()
@@ -187,19 +192,8 @@ extension SettingsVC {
   }
 }
 
-
-// MARK: - Nested Classes: LinkType
+// MARK: - cell data model
 extension SettingsVC {
-  enum CellLinkTarget { case onboarding, faq, errorReport, manageAccount, terms, privacy, revocation, cleanMemory }
-}
-
-extension SettingsVC {
-  
-  func refreshAndReload() {
-    data = prototypeTableData
-    self.tableView.reloadData()
-  }
-  
   var prototypeTableData: TableData { get {TableData(sections: self.prototypeCells())} }
   
   struct TableData{
@@ -210,8 +204,8 @@ extension SettingsVC {
   }
 }
 
+// MARK: - cell data model access helper
 extension SettingsVC.TableData{
-  
   var sectionsCount: Int { return self.sections.count }
   
   func rowsIn(section: Int) -> Int{
@@ -248,20 +242,44 @@ extension SettingsVC.TableData{
   }
 }
 
-// MARK: - Arraydata
+
+// MARK: - cell data/creation/helper
 extension SettingsVC {
   
-}
-
-
-
-// MARK: - Nested Classes: CellData
-extension SettingsVC {
-  typealias tSectionContent = (title:String?, collapseable:Bool, collapsed:Bool,  cells:[XSettingsCell])
-}
-
-extension SettingsVC {
-  //Prototype Cells
+  typealias tSectionContent = (title:String?,
+                               collapseable:Bool,
+                               collapsed:Bool,
+                               cells:[XSettingsCell])
+  
+  var isAuthenticated: Bool { return MainNC.singleton.feederContext.isAuthenticated }
+  
+  var storageDetails: String {
+    let storage = DeviceData().detailStorage
+    let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
+    let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
+    return "App: \(app) MB, Daten: \(data) MB"
+  }
+  
+  func authCell() -> XSettingsCell {
+    if isAuthenticated {
+      let id = SimpleAuthenticator.getUserData().id
+      return XSettingsCell(text: "Abmelden (\(id ?? "???"))") { [weak self] in
+        self?.requestLogout()
+      }
+    }
+    else {
+      guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return XSettingsCell(text: "..."){} }
+      let authenticator = DefaultAuthenticator(feeder: feeder)
+      Notification.receiveOnce("authenticationSucceeded") { [weak self]_ in
+        self?.refreshAndReload()
+        Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+      }
+      return XSettingsCell(text: "Anmelden") { [weak self] in
+        authenticator.authenticate(with: self)
+      }
+    }
+  }
+  
   var accountCells:[XSettingsCell] {
     var cells =
     [
@@ -274,7 +292,8 @@ extension SettingsVC {
     }
     return cells
   }
-    
+  
+  //Prototype Cells
   func prototypeCells() -> [tSectionContent] {
     return [
       ("konto", false,false, accountCells ),
@@ -331,42 +350,10 @@ extension SettingsVC {
       )
     ]
   }
-  
-  var storageDetails: String {
-    let storage = DeviceData().detailStorage
-    let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
-    let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
-    return "App: \(app) MB, Daten: \(data) MB"
-  }
 }
 
-// MARK: - Cell Creation Factory
+// MARK: - Handler/Actions
 extension SettingsVC {
-  
-  var isAuthenticated: Bool { return MainNC.singleton.feederContext.isAuthenticated }
-  
-  //Factory not needed here!
-  func authCell() -> XSettingsCell {
-    
-    if isAuthenticated {
-      let id = SimpleAuthenticator.getUserData().id
-      return XSettingsCell(text: "Abmelden (\(id ?? "???"))") { [weak self] in
-        self?.requestLogout()
-      }
-    }
-    else {
-      guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return XSettingsCell(text: "..."){} }
-      let authenticator = DefaultAuthenticator(feeder: feeder)
-      Notification.receiveOnce("authenticationSucceeded") { [weak self]_ in
-        self?.refreshAndReload()
-        Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
-      }
-      return XSettingsCell(text: "Anmelden") { [weak self] in
-        authenticator.authenticate(with: self)
-      }
-    }
-  }
-  
   func requestLogout(){
     let alert = UIAlertController.init( title: "Abmelden?",
                                         message: "Heruntergeladene Ausgaben können weiterhin gelesen werden.",
@@ -557,38 +544,9 @@ extension SettingsVC {
   }
 }
 
-class SectionHeader: UIView, UIStyleChangeDelegate {
-  
-  let label = UILabel()
-  
-  func applyStyles() {
-    label.textColor =  Const.SetColor.ios(.label).color
-    self.backgroundColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
-  }
-  
-  func setup(){
-    self.addSubview(label)
-    pin(label.top, to: self.top, dist: 10, priority: .defaultHigh)
-    pin(label.bottom, to: self.bottom, dist: -10, priority: .defaultHigh)
-    pin(label.left, to: self.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
-    pin(label.right, to: self.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
-    label.boldContentFont(size: Const.Size.ContentTableFontSize)
-    registerForStyleUpdates()
-    applyStyles()
-  }
-  
-  init(text:String){
-    super.init(frame: .zero)
-    label.text = text
-    setup()
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-}
+// MARK: - Nested Classes / UI Components
 
-
+// MARK: -
 class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   var tapHandler:(()->())?
   var longTapHandler:(()->())?
@@ -671,101 +629,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   }
 }
 
-
-class SaveLastCountIssues: UIView, UIStyleChangeDelegate {
-  
-  @Default("persistedIssuesCount")
-  private var persistedIssuesCount: Int {
-    didSet { updatePersistedIssuesCount() }
-  }
-  
-  let mainLabel = UILabel()
-  let detailLabel = UILabel()
-  
-  let accessoryView = TextSizeSetting() //Stepper/Controlls
-  
-  func updatePersistedIssuesCount(){
-    accessoryView.label.text
-    = persistedIssuesCount > 0
-    ? "\(persistedIssuesCount)"
-    : "alle"
-  }
-  
-  func applyStyles() {
-    mainLabel.set(textColor: Const.SetColor.ios(.label).color)
-    detailLabel.set(textColor: Const.SetColor.ios(.secondaryLabel).color)
-  }
-  
-  func setup(){
-    registerForStyleUpdates()
-    ///Labels
-    mainLabel.text = "Maximale Anzahl der zu speichernden Ausgaben"
-    //    detailLabel.text = "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht."
-    mainLabel.contentFont().set(textColor: Const.SetColor.ios(.label).color)
-    detailLabel.contentFont(size: Const.Size.SmallerFontSize)
-      .set(textColor: Const.SetColor.ios(.secondaryLabel).color)
-    mainLabel.numberOfLines = 0
-    detailLabel.numberOfLines = 0
-    
-    ///Stepper left
-    accessoryView.label.text = "\(persistedIssuesCount)"
-    accessoryView.leftButton.buttonView.text = "-"
-    accessoryView.rightButton.buttonView.text = "+"
-    
-    accessoryView.leftButton.buttonView.font = Const.Fonts.contentFont(size: 16)
-    accessoryView.rightButton.buttonView.font = Const.Fonts.contentFont(size: 16)
-    
-    accessoryView.leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
-    accessoryView.rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.2, left:0.2 , bottom: 1.2, right: -0.2)
-    
-    accessoryView.leftButton.onPress { [weak self] _ in
-      guard let self = self, self.persistedIssuesCount > 0 else { return }
-      /// 3 is minumum
-      if self.persistedIssuesCount == 3 { self.persistedIssuesCount = 0}
-      else { self.persistedIssuesCount -= 1 }
-    }
-    
-    accessoryView.rightButton.onPress { [weak self] _ in
-      guard let self = self else { return }
-      if self.persistedIssuesCount < 3 { self.persistedIssuesCount = 3}
-      else {self.persistedIssuesCount += 1}
-    }
-    
-    accessoryView.label.onTapping { [weak self] _ in
-      self?.persistedIssuesCount = 20
-    }
-    
-    accessoryView.pinWidth(110)
-    updatePersistedIssuesCount()
-    
-    ///Layout
-    self.addSubview(accessoryView)
-    self.addSubview(mainLabel)
-    self.addSubview(detailLabel)
-    
-    pin(accessoryView.top, to: self.top, dist: -2.5)
-    pin(accessoryView.right, to: self.right)
-    
-    pin(mainLabel.top, to: self.top)
-    pin(mainLabel.left, to: self.left)
-    pin(mainLabel.right, to: accessoryView.left, dist: -Const.Size.SmallPadding)
-    
-    pin(detailLabel.left, to: self.left)
-    pin(detailLabel.right, to: self.right)
-    pin(detailLabel.top, to: mainLabel.bottom)
-    pin(detailLabel.bottom, to: self.bottom)
-  }
-  
-  init(){
-    super.init(frame: .zero)
-    setup()
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-}
-
+// MARK: -
 class SaveLastCountIssuesSettings: TextSizeSetting {
   
   @Default("persistedIssuesCount")
@@ -812,6 +676,7 @@ class SaveLastCountIssuesSettings: TextSizeSetting {
   }
 }
 
+// MARK: -
 class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
   let leftButton = Button<TextView>()
@@ -868,6 +733,7 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   }
 }
 
+// MARK: -
 class CustomHStack: UIStackView {
   init(){
     super.init(frame: CGRect(x: 0, y: 0, width: 110, height: 30))
@@ -884,7 +750,7 @@ class CustomHStack: UIStackView {
   func setup(){}
 }
 
-// MARK: - SimpleHeaderView
+// MARK: -
 class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   
   private let titleLabel = Label().titleFont()
@@ -927,4 +793,34 @@ class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   }
 }
 
-class FooterView: UITableViewHeaderFooterView{}
+// MARK: -
+class SectionHeader: UIView, UIStyleChangeDelegate {
+  
+  let label = UILabel()
+  
+  func applyStyles() {
+    label.textColor =  Const.SetColor.ios(.label).color
+    self.backgroundColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
+  }
+  
+  func setup(){
+    self.addSubview(label)
+    pin(label.top, to: self.top, dist: 10, priority: .defaultHigh)
+    pin(label.bottom, to: self.bottom, dist: -10, priority: .defaultHigh)
+    pin(label.left, to: self.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
+    pin(label.right, to: self.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
+    label.boldContentFont(size: Const.Size.ContentTableFontSize)
+    registerForStyleUpdates()
+    applyStyles()
+  }
+  
+  init(text:String){
+    super.init(frame: .zero)
+    label.text = text
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+}
