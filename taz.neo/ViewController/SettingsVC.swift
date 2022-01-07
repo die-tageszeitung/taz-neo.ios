@@ -84,7 +84,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
 extension SettingsVC {
   
   public func applyStyles() {
-    self.tableView.backgroundColor = Const.SetColor.CTBackground.color
+    tableView.backgroundColor = Const.SetColor.CTBackground.color
     xButton.tazX(true)
   }
   
@@ -97,23 +97,22 @@ extension SettingsVC {
     
   func refreshAndReload() {
     let oldData = data
+    tableView.beginUpdates()
     data = prototypeTableData
-    
-    let oldCount = oldData.sectionData(for: 1)?.cells.count ?? 0
-    let newCount = data.sectionData(for: 1)?.cells.count ?? 0
-    
-    let ip2 = IndexPath(row: 2, section: 1)
-    let ip3 = IndexPath(row: 3, section: 1)
-    
-    if oldCount != 0, oldCount > newCount {
-      self.tableView.deleteRows(at: [ip2, ip3], with: .fade)
+    let diff = data.changedIndexPaths(oldData: oldData)
+
+    if diff.added.count > 0 {
+      tableView.insertRows(at: diff.added, with: .fade)
     }
-    else if oldCount != 0, oldCount < newCount{
-      self.tableView.insertRows(at: [ip2, ip3], with: .fade)
+    if diff.deleted.count > 0 {
+      tableView.deleteRows(at: diff.deleted, with: .fade)
     }
-    else {
-     
-      self.tableView.reloadSections([1], with: .middle)
+    if diff.updated.count > 0 {
+      tableView.reloadRows(at: diff.updated, with: .fade)
+    }
+    tableView.endUpdates()
+    if (diff.added.count + diff.deleted.count + diff.updated.count) == 0 {
+      tableView.reloadData()
     }
   }
   
@@ -213,6 +212,15 @@ extension SettingsVC {
 
 // MARK: - cell data model
 extension SettingsVC {
+  typealias tSectionContent = (title:String?,
+                               collapseable:Bool,
+                               collapsed:Bool,
+                               cells:[XSettingsCell])
+  ///added, deleted, updated
+  typealias tChangedIndexPaths = (added: [IndexPath],
+                                  deleted: [IndexPath],
+                                  updated: [IndexPath])
+      
   var prototypeTableData: TableData { get {TableData(sections: self.prototypeCells())} }
   
   struct TableData{
@@ -241,6 +249,41 @@ extension SettingsVC.TableData{
     return self.sections.valueAt(indexPath.section)?.cells.valueAt(indexPath.row)
   }
   
+  /// get updated IndexPath...
+  func changedIndexPaths(oldData: SettingsVC.TableData) -> SettingsVC.tChangedIndexPaths {
+    var added:[IndexPath] = []
+    var deleted:[IndexPath] = []
+    var updated:[IndexPath] = []
+    
+    for (sindex, section) in self.sections.enumerated() {
+      /// Not check section headers/titles
+      for (cindex, newCell) in section.cells.enumerated() {
+        let ip = IndexPath(row: cindex, section: sindex)
+        if let oldCell = oldData.cell(at: ip) {
+          if oldCell.textLabel?.text == newCell.textLabel?.text {
+            continue
+          }
+          else {
+            updated.append(ip)
+          }
+        } else {
+          added.append(ip)
+        }
+      }
+      let oldRowCount = oldData.rowsIn(section: sindex)
+      let newRowCount = self.rowsIn(section: sindex)
+      if oldRowCount > newRowCount {
+        for deletedIndex in newRowCount - 1 ... oldRowCount - 1 {
+          let ip = IndexPath(row: deletedIndex, section: sindex)
+          if updated.contains(ip){ continue }
+          deleted.append(IndexPath(row: deletedIndex, section: sindex))
+        }
+      }
+    }
+    
+    return (added: added, deleted: deleted, updated:updated)
+  }
+  
   func sectionData(for section: Int) -> SettingsVC.tSectionContent?{
     return self.sections.valueAt(section)
   }
@@ -264,12 +307,6 @@ extension SettingsVC.TableData{
 
 // MARK: - cell data/creation/helper
 extension SettingsVC {
-  
-  typealias tSectionContent = (title:String?,
-                               collapseable:Bool,
-                               collapsed:Bool,
-                               cells:[XSettingsCell])
-  
   var isAuthenticated: Bool { return MainNC.singleton.feederContext.isAuthenticated }
   
   var storageDetails: String {
