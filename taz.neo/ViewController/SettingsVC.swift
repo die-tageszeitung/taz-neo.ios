@@ -102,7 +102,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     // dismiss, willMove, didMove not called if presented modally
     #warning("change back")
     //    data = TableData(sections:[])
-    self.tableView.reloadSections([0,1,2,3], with: .fade)
+    self.tableView.reloadData()
   }
 }
 
