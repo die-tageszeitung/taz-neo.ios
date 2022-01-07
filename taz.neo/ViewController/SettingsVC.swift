@@ -14,6 +14,8 @@ import NorthLib
 // MARK: - SettingsVC
 open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalCloseable {
   
+  
+  
   @Default("persistedIssuesCount")
   var persistedIssuesCount: Int
   
@@ -25,13 +27,22 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   
   @Default("autoloadNewIssues")
   var autoloadNewIssues: Bool {
-    didSet { if oldValue != autoloadNewIssues { refreshAndReload() }}
+    didSet { if oldValue != autoloadNewIssues { updateData(); self.tableView.reloadData() }}
   }
   
   @Default("isTextNotification")
   var isTextNotification: Bool
   
-  lazy var data = prototypeTableData
+  func updateData(){
+    data = autoloadNewIssues ? dataWith : dataWithout
+  }
+  
+//  lazy var data = prototypeTableData
+  var data: TableData = TableData(sections:[])
+  
+  var dataWith: TableData = TableData(sections:[])
+  var dataWithout: TableData = TableData(sections:[])
+  
   
   /// UI Components
   lazy var footer:Footer = Footer()
@@ -58,9 +69,23 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     super.viewWillAppear(animated)
     guard let wrapper =  self.tableView.superview else { return }
     setupXButtonIfNeeded(targetView:wrapper)
+    xButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      self.tableView.reloadData()
+    }
   }
   
   open override func viewDidLoad() {
+    var pData = prototypeTableData
+    dataWith = pData
+
+    if var s1Cells = pData.sectionData(for: 1)?.cells {
+      s1Cells.remove(at: 3)
+      s1Cells.remove(at: 2)
+      pData.sections[1].cells=s1Cells
+      dataWithout = pData
+    }
+    updateData()
     self.tableView = UITableView(frame: .zero, style: .grouped)
     super.viewDidLoad()
     setup()
@@ -75,7 +100,8 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     guard self.presentedViewController == nil else { return }
     // free cells / prevent memory leaks
     // dismiss, willMove, didMove not called if presented modally
-    data = TableData(sections:[])
+    #warning("change back")
+    //    data = TableData(sections:[])
     self.tableView.reloadData()
   }
 }
@@ -97,8 +123,10 @@ extension SettingsVC {
     
   func refreshAndReload() {
     let oldData = data
+    tableView.reloadData()
+    return
     tableView.beginUpdates()
-    data = prototypeTableData
+//    data = prototypeTableData
     let diff = data.changedIndexPaths(oldData: oldData)
 
     if diff.added.count > 0 {
@@ -143,11 +171,11 @@ extension SettingsVC {
     guard let sectionData = data.sectionData(for: section),
           let title = sectionData.title else { return nil }
     let header = SectionHeader(text:title)
-    header.onTapping { _ in
-      guard sectionData.collapseable else { return }
-      self.data.toggleSectionCollapse(for: section)
-      self.tableView.reloadSections(IndexSet(integer: section), with: .fade)
-    }
+//    header.onTapping { _ in
+//      guard sectionData.collapseable else { return }
+//      self.data.toggleSectionCollapse(for: section)
+//      self.tableView.reloadSections(IndexSet(integer: section), with: .fade)
+//    }
     return header
   }
   
@@ -221,10 +249,16 @@ extension SettingsVC {
                                   deleted: [IndexPath],
                                   updated: [IndexPath])
       
-  var prototypeTableData: TableData { get {TableData(sections: self.prototypeCells())} }
+  var prototypeTableData: TableData { get {
+    TableData(sections: self.prototypeCells())
+    
+  } }
+  
+  
   
   struct TableData{
-    private var sections:[tSectionContent]
+    #warning("usually private!!")
+    var sections:[tSectionContent]
     init(sections: [tSectionContent]) {
       self.sections = sections
     }
@@ -374,7 +408,7 @@ extension SettingsVC {
                     tapHandler: requestDeleteAllIssues)
     ]
     
-    if autoloadNewIssues {
+    if true {
       cells.insert(wlanCell, at: 2)
       cells.insert(epaperLoadCell, at: 3)
     }
