@@ -28,10 +28,107 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     didSet { if oldValue != autoloadNewIssues { refreshAndReload() }}
   }
   
+  var extendedSettingsCollapsed: Bool = true
+  
   @Default("isTextNotification")
   var isTextNotification: Bool
   
-  lazy var data = prototypeTableData
+  var data:TableData = TableData(sectionContent: [])
+  
+  // MARK: Cell creation
+  ///konto
+  lazy var loginCell: XSettingsCell = {
+    guard let feeder = MainNC.singleton.feederContext.gqlFeeder else {
+      return XSettingsCell(text: "..."){} }
+    let authenticator = DefaultAuthenticator(feeder: feeder)
+    Notification.receive("authenticationSucceeded") { [weak self]_ in
+      self?.refreshAndReload()
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+    }
+    return XSettingsCell(text: "Anmelden") { [weak self] in
+      authenticator.authenticate(with: self)
+    }
+  }()
+  lazy var logoutCell: XSettingsCell
+  = XSettingsCell(text: "Abmelden (\(SimpleAuthenticator.getUserData().id ?? "???"))",
+                  tapHandler: {[weak self] in self?.requestLogout()} )
+  lazy var resetPasswordCell: XSettingsCell
+  = XSettingsCell(text: "Passwort zurücksetzen",
+                  tapHandler: {[weak self] in self?.resetPassword()} )
+  lazy var manageAccountCell: XSettingsCell
+  = XSettingsCell(text: "Konto online verwalten",
+                  tapHandler: {[weak self] in self?.manageAccountOnline()} )
+  lazy var deleteAccountCell: XSettingsCell
+  = XSettingsCell(text: "Konto löschen",
+                  color: .red,
+                  tapHandler: {[weak self] in self?.requestAccountDeletion()} )
+  ///ausgabenverwaltung
+  lazy var maxIssuesCell: XSettingsCell
+  = XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
+                detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
+                accessoryView: SaveLastCountIssuesSettings())
+  lazy var autoloadNewIssuesCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
+                initialValue: autoloadNewIssues,
+                onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue })
+  lazy var wlanCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
+                  initialValue: autoloadOnlyInWLAN,
+                  onChange: {[weak self] newValue in
+                        self?.autoloadOnlyInWLAN = newValue })
+  lazy var epaperLoadCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "E-Paper automatisch herunterladen",
+                  initialValue: autoloadPdf,
+                  onChange: {[weak self] newValue in
+                        self?.autoloadPdf = newValue })
+  lazy var deleteIssuesCell: XSettingsCell
+  = XSettingsCell(text: "Alle Ausgaben löschen",
+                  color: .red,
+                  tapHandler: {[weak self] in self?.requestDeleteAllIssues()} )
+  ///darstellung
+  lazy var textSizeSettingsCell: XSettingsCell
+  = XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting())
+  lazy var darkmodeSettingsCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Nachtmodus",
+                initialValue: Defaults.darkMode,
+                onChange: { newValue in Defaults.darkMode = newValue })
+  ///hilfe
+  lazy var onboardingCell: XSettingsCell
+  = XSettingsCell(text: "Erste Schritte",
+                  tapHandler: {[weak self] in self?.showOnboarding()} )
+  lazy var faqCell: XSettingsCell
+  = XSettingsCell(text: "FAQ (im Browser öffnen)",
+                  tapHandler: {[weak self] in self?.openFaq()} )
+  lazy var reportErrorCell: XSettingsCell
+  = XSettingsCell(text: "Fehler melden",
+                  tapHandler: {MainNC.singleton.showFeedbackErrorReport(.error)} )
+  lazy var feedbackCell: XSettingsCell
+  = XSettingsCell(text: "Feedback geben",
+                  tapHandler: {MainNC.singleton.showFeedbackErrorReport(.feedback)} )
+  ///rechtliches
+  lazy var termsCell: XSettingsCell
+  = XSettingsCell(text: "Allgemeine Geschäftsbedingungen (AGB)",
+                  tapHandler: {[weak self] in self?.showTerms()} )
+  lazy var privacyCell: XSettingsCell
+  = XSettingsCell(text: "Datenschutzerklärung",
+                  tapHandler: {[weak self] in self?.showPrivacy()} )
+  lazy var revokeCell: XSettingsCell
+  = XSettingsCell(text: "Widerruf",
+                  tapHandler: {[weak self] in self?.showRevocation()} )
+  ///erweitert
+  lazy var notificationsCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Mitteilungen erlauben",
+                initialValue: isTextNotification,
+                  onChange: {[weak self] val in self?.textNotificationsChanged(newValue:val)} )
+  lazy var memoryUsageCell: XSettingsCell
+  = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
+  lazy var deleteDatabaseCell: XSettingsCell
+  = XSettingsCell(text: "Datenbank löschen", color: .red,
+                  tapHandler: {[weak self] in self?.requestDatabaseDelete()} )
+  lazy var resetAppCell: XSettingsCell
+  = XSettingsCell(text: "App zurücksetzen",
+                  color: .red,
+                  tapHandler: {[weak self] in self?.requestResetApp()} )
   
   /// UI Components
   lazy var footer:Footer = Footer()
@@ -63,6 +160,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   open override func viewDidLoad() {
     self.tableView = UITableView(frame: .zero, style: .grouped)
     super.viewDidLoad()
+  data = TableData(sectionContent: currentSectionContent())
     setup()
     applyStyles()
     registerForStyleUpdates()
@@ -75,8 +173,12 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     guard self.presentedViewController == nil else { return }
     // free cells / prevent memory leaks
     // dismiss, willMove, didMove not called if presented modally
-    data = TableData(sections:[])
+    data = TableData(sectionContent:[])
     self.tableView.reloadData()
+  }
+  
+  deinit {
+    print("SettingsVC deinit")
   }
 }
 
@@ -94,25 +196,33 @@ extension SettingsVC {
     header.layoutIfNeeded()
     registerForStyleUpdates()
   }
-    
+  
+  /**
+   Kinds of changes:
+   - "erweitert" section 0 or 4/? items ...one click
+    - account 3/4 items ...on 1 click
+   issues => 3/5 items on 1 click
+   
+   */
   func refreshAndReload() {
     let oldData = data
-    tableView.beginUpdates()
-    data = prototypeTableData
+    data = TableData(sectionContent: currentSectionContent())
     let diff = data.changedIndexPaths(oldData: oldData)
-
-    if diff.added.count > 0 {
-      tableView.insertRows(at: diff.added, with: .fade)
-    }
-    if diff.deleted.count > 0 {
-      tableView.deleteRows(at: diff.deleted, with: .fade)
-    }
-    if diff.updated.count > 0 {
-      tableView.reloadRows(at: diff.updated, with: .fade)
-    }
-    tableView.endUpdates()
-    if (diff.added.count + diff.deleted.count + diff.updated.count) == 0 {
+    
+    if (diff.added.count + diff.deleted.count) == 0 {
       tableView.reloadData()
+      return
+    }
+    
+    self.tableView.performBatchUpdates {   [weak self] in
+      guard let self = self else { return }
+      if diff.deleted.count > 0 {
+        self.tableView.deleteRows(at: diff.deleted, with: .fade)
+      }
+
+      if diff.added.count > 0 {
+        self.tableView.insertRows(at: diff.added, with: .fade)
+      }
     }
   }
   
@@ -143,10 +253,13 @@ extension SettingsVC {
     guard let sectionData = data.sectionData(for: section),
           let title = sectionData.title else { return nil }
     let header = SectionHeader(text:title)
-    header.onTapping { _ in
+    header.onTapping { [weak self] _ in
       guard sectionData.collapseable else { return }
-      self.data.toggleSectionCollapse(for: section)
-      self.tableView.reloadSections(IndexSet(integer: section), with: .fade)
+      guard let self = self else { return }
+      guard section == 5 else { return }
+      ///todo another idea if more cells are collapseable!
+      self.extendedSettingsCollapsed = !self.extendedSettingsCollapsed
+      self.refreshAndReload()
     }
     return header
   }
@@ -214,30 +327,29 @@ extension SettingsVC {
 extension SettingsVC {
   typealias tSectionContent = (title:String?,
                                collapseable:Bool,
-                               collapsed:Bool,
                                cells:[XSettingsCell])
   ///added, deleted, updated
   typealias tChangedIndexPaths = (added: [IndexPath],
-                                  deleted: [IndexPath],
-                                  updated: [IndexPath])
-      
-  var prototypeTableData: TableData { get {TableData(sections: self.prototypeCells())} }
+                                  deleted: [IndexPath])
   
   struct TableData{
-    private var sections:[tSectionContent]
-    init(sections: [tSectionContent]) {
-      self.sections = sections
+    @Default("autoloadNewIssues")
+    var autoloadNewIssues: Bool
+    private var sectionContent:[tSectionContent]
+    init(sectionContent: [tSectionContent]) {
+      self.sectionContent = sectionContent
     }
   }
 }
 
 // MARK: - cell data model access helper
 extension SettingsVC.TableData{
-  var sectionsCount: Int { return self.sections.count }
+
+  
+  var sectionsCount: Int { return self.sectionContent.count }
   
   func rowsIn(section: Int) -> Int{
-    guard let sectionContent = sectionData(for: section),
-          !sectionContent.collapsed else { return 0 }
+    guard let sectionContent = sectionData(for: section) else { return 0 }
     return sectionContent.cells.count
   }
   
@@ -246,53 +358,42 @@ extension SettingsVC.TableData{
   }
   
   func cell(at indexPath: IndexPath) -> XSettingsCell? {
-    return self.sections.valueAt(indexPath.section)?.cells.valueAt(indexPath.row)
+    return self.sectionContent.valueAt(indexPath.section)?.cells.valueAt(indexPath.row)
   }
   
   /// get updated IndexPath...
   func changedIndexPaths(oldData: SettingsVC.TableData) -> SettingsVC.tChangedIndexPaths {
     var added:[IndexPath] = []
     var deleted:[IndexPath] = []
-    var updated:[IndexPath] = []
     
-    for (sindex, section) in self.sections.enumerated() {
-      /// Not check section headers/titles
-      for (cindex, newCell) in section.cells.enumerated() {
-        let ip = IndexPath(row: cindex, section: sindex)
-        if let oldCell = oldData.cell(at: ip) {
-          if oldCell.textLabel?.text == newCell.textLabel?.text {
-            continue
-          }
-          else {
-            updated.append(ip)
-          }
-        } else {
+    for idSect in 0 ... max(self.sectionsCount, oldData.sectionsCount) - 1{
+      let newCells = self.sectionData(for: idSect)?.cells ?? []
+      let oldCells = oldData.sectionData(for: idSect)?.cells ?? []
+      
+      let addedCells = Set(newCells).subtracting(oldCells)
+      let deletedCells = Set(oldCells).subtracting(newCells)
+      
+      let newRows = self.rowsIn(section: idSect)
+      let oldRows = oldData.rowsIn(section: idSect)
+      for idRow in 0 ... (max(newRows, oldRows, 1) - 1){
+        let ip = IndexPath(row: idRow , section: idSect)
+        let newCell = self.cell(at: ip)
+        let oldCell = oldData.cell(at: ip)
+        
+        if let newCell = newCell, addedCells.contains(newCell){
           added.append(ip)
         }
-      }
-      let oldRowCount = oldData.rowsIn(section: sindex)
-      let newRowCount = self.rowsIn(section: sindex)
-      if oldRowCount > newRowCount {
-        for deletedIndex in newRowCount - 1 ... oldRowCount - 1 {
-          let ip = IndexPath(row: deletedIndex, section: sindex)
-          if updated.contains(ip){ continue }
-          deleted.append(IndexPath(row: deletedIndex, section: sindex))
+        
+        if let oldCell = oldCell, deletedCells.contains(oldCell){
+          deleted.append(ip)
         }
       }
     }
-    
-    return (added: added, deleted: deleted, updated:updated)
+    return (added: added, deleted: deleted)
   }
-  
+    
   func sectionData(for section: Int) -> SettingsVC.tSectionContent?{
-    return self.sections.valueAt(section)
-  }
-  
-  mutating func toggleSectionCollapse(for section: Int){
-    guard var sectionContent = sectionData(for: section) else { return }
-    sectionContent.collapsed = !sectionContent.collapsed
-    self.sections[section] = sectionContent
-    
+    return self.sectionContent.valueAt(section)
   }
   
   func footer(for section: Int) -> UIView?{
@@ -315,110 +416,67 @@ extension SettingsVC {
     let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
     return "App: \(app) MB, Daten: \(data) MB"
   }
-  
-  func authCell() -> XSettingsCell {
-    if isAuthenticated {
-      let id = SimpleAuthenticator.getUserData().id
-      return XSettingsCell(text: "Abmelden (\(id ?? "???"))") { [weak self] in
-        self?.requestLogout()
-      }
-    }
-    else {
-      guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return XSettingsCell(text: "..."){} }
-      let authenticator = DefaultAuthenticator(feeder: feeder)
-      Notification.receiveOnce("authenticationSucceeded") { [weak self]_ in
-        self?.refreshAndReload()
-        Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
-      }
-      return XSettingsCell(text: "Anmelden") { [weak self] in
-        authenticator.authenticate(with: self)
-      }
-    }
-  }
-  
-  var accountCells:[XSettingsCell] {
+
+  var accountSettingsCells:[XSettingsCell] {
     var cells =
     [
-      authCell(),
-      XSettingsCell(text: "Passwort zurücksetzen", tapHandler: resetPassword),
-      XSettingsCell(text: "Konto online verwalten", tapHandler: manageAccountOnline)
+      isAuthenticated ? logoutCell : loginCell,
+      resetPasswordCell,
+      manageAccountCell
     ]
     if isAuthenticated {
-      cells.append(XSettingsCell(text: "Konto löschen", color: .red, tapHandler: requestAccountDeletion))
+      cells.append(deleteAccountCell)
     }
     return cells
   }
-  
+    
   var issueSettingsCells:[XSettingsCell] {
-    let wlanCell
-    = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
-                    initialValue: autoloadOnlyInWLAN,
-                    onChange: {[weak self] newValue in
-                          self?.autoloadOnlyInWLAN = newValue })
-    
-    let epaperLoadCell
-    = XSettingsCell(toggleWithText: "E-Paper automatisch herunterladen",
-                    initialValue: autoloadPdf,
-                    onChange: {[weak self] newValue in
-                          self?.autoloadPdf = newValue })
-    
     var cells = [
-      XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
-                    detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
-                    accessoryView: SaveLastCountIssuesSettings()),
-      XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
-                    initialValue: autoloadNewIssues,
-                    onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue }),
-      XSettingsCell(text: "Alle Ausgaben löschen",
-                    color: .red,
-                    tapHandler: requestDeleteAllIssues)
+      maxIssuesCell,
+      autoloadNewIssuesCell
     ]
     
     if autoloadNewIssues {
-      cells.insert(wlanCell, at: 2)
-      cells.insert(epaperLoadCell, at: 3)
+      cells.append(wlanCell)
+      cells.append(epaperLoadCell)
     }
+    cells.append(deleteIssuesCell)
     return cells
   }
   
   //Prototype Cells
-  func prototypeCells() -> [tSectionContent] {
+  func currentSectionContent() -> [tSectionContent] {
     return [
-      ("konto", false,false, accountCells ),
-      ("ausgabenverwaltung", false, false, issueSettingsCells),
-      ("darstellung", false,false,
+      ("konto", false, accountSettingsCells),
+      ("ausgabenverwaltung", false, issueSettingsCells),
+      ("darstellung", false,
        [
-        XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting()),
-        XSettingsCell(toggleWithText: "Nachtmodus",
-                      initialValue: Defaults.darkMode,
-                      onChange: { newValue in Defaults.darkMode = newValue })
+        textSizeSettingsCell,
+        darkmodeSettingsCell
        ]
       ),
-      ("hilfe", false,false,
+      ("hilfe", false,
        [
-        XSettingsCell(text: "Erste Schritte", tapHandler: showOnboarding),
-        XSettingsCell(text: "FAQ (im Browser öffnen)", tapHandler: openFaq),
-        XSettingsCell(text: "Fehler melden")
-        {MainNC.singleton.showFeedbackErrorReport(.error)},
-        XSettingsCell(text: "Feedback geben")
-        {MainNC.singleton.showFeedbackErrorReport(.feedback)},
+        onboardingCell,
+        faqCell,
+        reportErrorCell,
+        feedbackCell
        ]
       ),
-      ("rechtliches", false,false,
+      ("rechtliches", false,
        [
-        XSettingsCell(text: "Allgemeine Geschäftsbedingungen (AGB)", tapHandler: showOnboarding),
-        XSettingsCell(text: "Datenschutzerklärung", tapHandler: showPrivacy),
-        XSettingsCell(text: "Widerruf", tapHandler: showRevocation),
+        termsCell,
+        privacyCell,
+        revokeCell
        ]
       ),
-      ("erweitert", true,true,
+      ("erweitert", true,
+       extendedSettingsCollapsed ? [] :
        [
-        XSettingsCell(toggleWithText: "Mitteilungen erlauben",
-                      initialValue: isTextNotification,
-                      onChange: textNotificationsChanged(newValue:)),
-        XSettingsCell(text: "Speichernutzung", detailText: storageDetails),
-        XSettingsCell(text: "Datenbank löschen", color: .red, tapHandler: requestDatabaseDelete),
-        XSettingsCell(text: "App zurücksetzen", color: .red, tapHandler: requestResetApp)
+        notificationsCell,
+        memoryUsageCell,
+        deleteDatabaseCell,
+        resetAppCell
        ]
       )
     ]
@@ -634,7 +692,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   }
   
   deinit {
-    print("XSettingsCell deinit")
+    print("XSettingsCell deinit \(self.textLabel?.text)")
   }
   
   override func prepareForReuse() {
