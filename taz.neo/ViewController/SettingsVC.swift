@@ -252,13 +252,14 @@ extension SettingsVC {
   open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
     guard let sectionData = data.sectionData(for: section),
           let title = sectionData.title else { return nil }
-    let header = SectionHeader(text:title)
+    let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
     header.onTapping { [weak self] _ in
       guard sectionData.collapseable else { return }
       guard let self = self else { return }
       guard section == 5 else { return }
       ///todo another idea if more cells are collapseable!
       self.extendedSettingsCollapsed = !self.extendedSettingsCollapsed
+      header.collapsed = self.extendedSettingsCollapsed
       self.refreshAndReload()
     }
     return header
@@ -345,7 +346,6 @@ extension SettingsVC {
 // MARK: - cell data model access helper
 extension SettingsVC.TableData{
 
-  
   var sectionsCount: Int { return self.sectionContent.count }
   
   func rowsIn(section: Int) -> Int{
@@ -992,6 +992,17 @@ class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
 class SectionHeader: UIView, UIStyleChangeDelegate {
   
   let label = UILabel()
+  var chevron: UIImageView?
+  
+  var collapsed: Bool = true {
+    didSet {
+      UIView.animate(withDuration: 0.5) {   [weak self] in
+        guard let c = self?.chevron else { return }
+          let angle = CGFloat.pi * 2
+        c.transform = CGAffineTransform(rotationAngle: angle)
+      }
+    }
+  }
   
   func applyStyles() {
     label.textColor =  Const.SetColor.ios(.label).color
@@ -1004,14 +1015,24 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
     pin(label.bottom, to: self.bottom, dist: -10, priority: .defaultHigh)
     pin(label.left, to: self.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
     pin(label.right, to: self.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
+    if let c = chevron {
+      self.addSubview(c)
+      c.pinSize(CGSize(width: 20, height: 20))
+      c.addBorder(.red)
+      pin(c.right, to: self.right, dist: -Const.ASize.DefaultPadding)
+      c.centerY()
+    }
     label.boldContentFont(size: Const.Size.ContentTableFontSize)
     registerForStyleUpdates()
     applyStyles()
   }
   
-  init(text:String){
+  init(text:String, collapseable: Bool){
     super.init(frame: .zero)
     label.text = text
+    if collapseable {
+      chevron = UIImageView(image: UIImage(name: "chevron_down"))
+    }
     setup()
   }
   
