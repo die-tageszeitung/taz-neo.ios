@@ -360,6 +360,18 @@ extension SettingsVC.TableData{
   func cell(at indexPath: IndexPath) -> XSettingsCell? {
     return self.sectionContent.valueAt(indexPath.section)?.cells.valueAt(indexPath.row)
   }
+    
+  func sectionData(for section: Int) -> SettingsVC.tSectionContent?{
+    return self.sectionContent.valueAt(section)
+  }
+  
+  func footer(for section: Int) -> UIView?{
+    return nil
+  }
+  
+  func footerHeight(for section: Int) -> CGFloat{
+    return 0
+  }
   
   /// get updated IndexPath...
   func changedIndexPaths(oldData: SettingsVC.TableData) -> SettingsVC.tChangedIndexPaths {
@@ -390,18 +402,6 @@ extension SettingsVC.TableData{
       }
     }
     return (added: added, deleted: deleted)
-  }
-    
-  func sectionData(for section: Int) -> SettingsVC.tSectionContent?{
-    return self.sectionContent.valueAt(section)
-  }
-  
-  func footer(for section: Int) -> UIView?{
-    return nil
-  }
-  
-  func footerHeight(for section: Int) -> CGFloat{
-    return 0
   }
 }
 
