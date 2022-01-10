@@ -253,6 +253,7 @@ extension SettingsVC {
     guard let sectionData = data.sectionData(for: section),
           let title = sectionData.title else { return nil }
     let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
+    header.collapsed = self.extendedSettingsCollapsed
     header.onTapping { [weak self] _ in
       guard sectionData.collapseable else { return }
       guard let self = self else { return }
@@ -996,12 +997,22 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
   
   var collapsed: Bool = true {
     didSet {
-      UIView.animate(withDuration: 0.5) {   [weak self] in
-        guard let c = self?.chevron else { return }
-          let angle = CGFloat.pi * 2
-        c.transform = CGAffineTransform(rotationAngle: angle)
-      }
+      if oldValue == collapsed { return }
+      UIView.animateKeyframes(withDuration: 0.5, delay: 0.0, animations: {
+        UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.5) { [weak self] in
+          guard let self = self, let c = self.chevron else { return }
+          c.transform = CGAffineTransform(rotationAngle: 0)
+        }
+        
+        UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5) { [weak self] in
+          self?.rotateChevron()
+        }
+      })
     }
+  }
+  
+  func rotateChevron(){
+    chevron?.transform = CGAffineTransform(rotationAngle: self.collapsed ? CGFloat.pi*2 : CGFloat.pi)
   }
   
   func applyStyles() {
@@ -1018,9 +1029,9 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
     if let c = chevron {
       self.addSubview(c)
       c.pinSize(CGSize(width: 20, height: 20))
-      c.addBorder(.red)
       pin(c.right, to: self.right, dist: -Const.ASize.DefaultPadding)
       c.centerY()
+      self.rotateChevron()
     }
     label.boldContentFont(size: Const.Size.ContentTableFontSize)
     registerForStyleUpdates()
@@ -1031,7 +1042,7 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
     super.init(frame: .zero)
     label.text = text
     if collapseable {
-      chevron = UIImageView(image: UIImage(name: "chevron_down"))
+      chevron = UIImageView(image: UIImage(name: "chevron.up"))
     }
     setup()
   }
