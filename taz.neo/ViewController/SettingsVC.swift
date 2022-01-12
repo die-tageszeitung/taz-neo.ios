@@ -123,10 +123,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   lazy var memoryUsageCell: XSettingsCell
   = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
   lazy var deleteDatabaseCell: XSettingsCell
-  = XSettingsCell(text: "Datenbank löschen", color: .red,
+  = XSettingsCell(text: "Daten zurücksetzen", color: .red,
                   tapHandler: {[weak self] in self?.requestDatabaseDelete()} )
   lazy var resetAppCell: XSettingsCell
-  = XSettingsCell(text: "App zurücksetzen",
+  = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
                   color: .red,
                   tapHandler: {[weak self] in self?.requestResetApp()} )
   
@@ -371,7 +371,7 @@ extension SettingsVC.TableData{
   }
   
   func footerHeight(for section: Int) -> CGFloat{
-    return 0
+    return 20
   }
   
   /// get updated IndexPath...
@@ -557,10 +557,10 @@ extension SettingsVC {
   }
   
   func requestDatabaseDelete(){
-    let alert = UIAlertController.init( title: "Datenbank zurücksetzen", message: "Benutzen Sie diese Funktion, falls die App wiederholt bei einer bestimmten Aktion (z.B. Ausgabe öffnen) beendet wird.\nDie App wird nach dem Zurücksetzen der Datenbank beendet und kann von Ihnen neu gestartet werden.\nBitte nutzen Sie im Fehlerfall bitte auch unsere \"Fehler melden\" Funktion!",
+    let alert = UIAlertController.init( title: "Daten zurücksetzen", message: "Benutzen Sie diese Funktion, falls die App wiederholt bei einer bestimmten Aktion (z.B. Ausgabe öffnen) beendet wird.\nMit dieser Aktion werden Daten der internen Datenbank gelöscht, welche später neu geladen werden. Der Großteil der Daten bleibt jedoch auf dem Gerät erhalten und muss nicht erneut heruntergeladen werden.\n Die App wird im Anschluss beendet und kann von Ihnen neu gestartet werden.\nBitte nutzen Sie im Fehlerfall bitte auch unsere \"Fehler melden\" Funktion!",
                                         preferredStyle:  .actionSheet )
     
-    alert.addAction( UIAlertAction.init( title: "Datenbank zurücksetzen", style: .destructive,
+    alert.addAction( UIAlertAction.init( title: "Daten zurücksetzen", style: .destructive,
                                          handler: { _ in
       MainNC.singleton.popToRootViewController(animated: false)
       MainNC.singleton.feederContext.cancelAll()
@@ -583,11 +583,11 @@ extension SettingsVC {
   }
   
   func requestResetApp(){
-    let alert = UIAlertController.init( title: "App zurücksetzen", message: "Löscht alle Daten und Einstellungen der App.\nDie App wird nach dem Zurücksetzen beendet und kann von Ihnen neu gestartet werden. Sie müssen sich im Anschluss neu anmelden.",
+    let alert = UIAlertController.init( title: "App in Auslieferungszustand zurück versetzen", message: "Löscht alle Daten und Einstellungen der App.\nDie App wird nach dem Zurücksetzen beendet und kann von Ihnen neu gestartet werden. Sie müssen sich im Anschluss neu anmelden.",
                                         preferredStyle:  .actionSheet )
     
     
-    alert.addAction( UIAlertAction.init( title: "App zurücksetzen", style: .destructive,
+    alert.addAction( UIAlertAction.init( title: "Zurücksetzen", style: .destructive,
                                          handler: { _ in
       MainNC.singleton.deleteUserData()
       MainNC.singleton.deleteAll()
