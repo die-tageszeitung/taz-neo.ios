@@ -557,7 +557,7 @@ extension SettingsVC {
   }
   
   func requestDatabaseDelete(){
-    let alert = UIAlertController.init( title: "Daten zurücksetzen", message: "Benutzen Sie diese Funktion, falls die App wiederholt bei einer bestimmten Aktion (z.B. Ausgabe öffnen) beendet wird.\nMit dieser Aktion werden Daten der internen Datenbank gelöscht, welche später neu geladen werden. Der Großteil der Daten bleibt jedoch auf dem Gerät erhalten und muss nicht erneut heruntergeladen werden.\n Die App wird im Anschluss beendet und kann von Ihnen neu gestartet werden.\nBitte nutzen Sie im Fehlerfall bitte auch unsere \"Fehler melden\" Funktion!",
+    let alert = UIAlertController.init( title: "Daten zurücksetzen", message: "Falls Ihre App wiederholt ungewollt beendet wird, benutzen Sie diese Aktion.Die App wird nach Ausführung der Aktion automatisch beendet und kann dann von Ihnen erneut gestartet werden.\nFalls es danach weiterhin Probleme gibt, melden Sie bitte den Fehler beim Support unter dem Link \"Fehler melden\".",
                                         preferredStyle:  .actionSheet )
     
     alert.addAction( UIAlertAction.init( title: "Daten zurücksetzen", style: .destructive,
