@@ -65,22 +65,22 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   ///ausgabenverwaltung
   lazy var maxIssuesCell: XSettingsCell
   = XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
-                detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
-                accessoryView: SaveLastCountIssuesSettings())
+                  detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
+                  accessoryView: SaveLastCountIssuesSettings())
   lazy var autoloadNewIssuesCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
-                initialValue: autoloadNewIssues,
-                onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue })
+                  initialValue: autoloadNewIssues,
+                  onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue })
   lazy var wlanCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
                   initialValue: autoloadOnlyInWLAN,
                   onChange: {[weak self] newValue in
-                        self?.autoloadOnlyInWLAN = newValue })
+    self?.autoloadOnlyInWLAN = newValue })
   lazy var epaperLoadCell: XSettingsCell
   = XSettingsCell(toggleWithText: "E-Paper automatisch herunterladen",
                   initialValue: autoloadPdf,
                   onChange: {[weak self] newValue in
-                        self?.autoloadPdf = newValue })
+    self?.autoloadPdf = newValue })
   lazy var deleteIssuesCell: XSettingsCell
   = XSettingsCell(text: "Alle Ausgaben löschen",
                   color: .red,
@@ -90,8 +90,8 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   = XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting())
   lazy var darkmodeSettingsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nachtmodus",
-                initialValue: Defaults.darkMode,
-                onChange: { newValue in Defaults.darkMode = newValue })
+                  initialValue: Defaults.darkMode,
+                  onChange: { newValue in Defaults.darkMode = newValue })
   ///hilfe
   lazy var onboardingCell: XSettingsCell
   = XSettingsCell(text: "Erste Schritte",
@@ -118,7 +118,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   ///erweitert
   lazy var notificationsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Mitteilungen erlauben",
-                initialValue: isTextNotification,
+                  initialValue: isTextNotification,
                   onChange: {[weak self] val in self?.textNotificationsChanged(newValue:val)} )
   lazy var memoryUsageCell: XSettingsCell
   = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
@@ -160,7 +160,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   open override func viewDidLoad() {
     self.tableView = UITableView(frame: .zero, style: .grouped)
     super.viewDidLoad()
-  data = TableData(sectionContent: currentSectionContent())
+    data = TableData(sectionContent: currentSectionContent())
     setup()
     applyStyles()
     registerForStyleUpdates()
@@ -200,7 +200,7 @@ extension SettingsVC {
   /**
    Kinds of changes:
    - "erweitert" section 0 or 4/? items ...one click
-    - account 3/4 items ...on 1 click
+   - account 3/4 items ...on 1 click
    issues => 3/5 items on 1 click
    
    */
@@ -219,7 +219,7 @@ extension SettingsVC {
       if diff.deleted.count > 0 {
         self.tableView.deleteRows(at: diff.deleted, with: .fade)
       }
-
+      
       if diff.added.count > 0 {
         self.tableView.insertRows(at: diff.added, with: .fade)
       }
@@ -346,7 +346,7 @@ extension SettingsVC {
 
 // MARK: - cell data model access helper
 extension SettingsVC.TableData{
-
+  
   var sectionsCount: Int { return self.sectionContent.count }
   
   func rowsIn(section: Int) -> Int{
@@ -361,7 +361,7 @@ extension SettingsVC.TableData{
   func cell(at indexPath: IndexPath) -> XSettingsCell? {
     return self.sectionContent.valueAt(indexPath.section)?.cells.valueAt(indexPath.row)
   }
-    
+  
   func sectionData(for section: Int) -> SettingsVC.tSectionContent?{
     return self.sectionContent.valueAt(section)
   }
@@ -417,7 +417,7 @@ extension SettingsVC {
     let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
     return "App: \(app) MB, Daten: \(data) MB"
   }
-
+  
   var accountSettingsCells:[XSettingsCell] {
     var cells =
     [
@@ -430,7 +430,7 @@ extension SettingsVC {
     }
     return cells
   }
-    
+  
   var issueSettingsCells:[XSettingsCell] {
     var cells = [
       maxIssuesCell,
@@ -473,12 +473,12 @@ extension SettingsVC {
       ),
       ("erweitert", true,
        extendedSettingsCollapsed ? [] :
-       [
-        notificationsCell,
-        memoryUsageCell,
-        deleteDatabaseCell,
-        resetAppCell
-       ]
+        [
+          notificationsCell,
+          memoryUsageCell,
+          deleteDatabaseCell,
+          resetAppCell
+        ]
       )
     ]
   }
@@ -534,7 +534,7 @@ extension SettingsVC {
     alert.addAction( UIAlertAction.init( title: "OK", style: .default) { _ in } )
     alert.presentAt(self.view)
   }
-
+  
   func requestDeleteAllIssues(){
     let alert = UIAlertController.init( title: "Alle Ausgaben löschen", message: nil,
                                         preferredStyle:  .alert )
@@ -543,7 +543,7 @@ extension SettingsVC {
       guard let storedFeeder = MainNC.singleton.feederContext.storedFeeder,
             let storedFeed = storedFeeder.storedFeeds.first else {
               return
-      }
+            }
       MainNC.singleton.feederContext.cancelAll()
       StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, deleteOrphanFolders: true)
       onMainAfter { [weak self] in
@@ -708,7 +708,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.contentView.backgroundColor = .clear
     self.detailTextLabel?.contentFont(size: Const.Size.SmallerFontSize)
     self.detailTextLabel?.numberOfLines = 0
-
+    
     self.textLabel?.textColor
     = (overwrittenLabelColor ?? Const.SetColor.ios(.label).color)
     self.detailTextLabel?.textColor
@@ -716,7 +716,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     
     //not implemented for stepper, not needed yet
     //self.accessoryView?.isUserInteractionEnabled = self.isUserInteractionEnabled
-
+    
     (self.accessoryView as? UISwitch)?.isEnabled
     = self.isUserInteractionEnabled
   }
@@ -787,12 +787,12 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
         pin(av.top, to: self.contentView.top, dist: 10)
       }
       pin(label.right, to: av.left, dist: -dist)
-            label.heightAnchor.constraint(greaterThanOrEqualToConstant: av.frame.size.height).isActive = true
+      label.heightAnchor.constraint(greaterThanOrEqualToConstant: av.frame.size.height).isActive = true
     }
     else {
       pin(label.right, to: contentView.right, dist: -dist)
     }
-   
+    
     pin(label.left, to: contentView.left, dist: dist)
     pin(label.top, to: contentView.top, dist: 10, priority: .defaultHigh)
     
