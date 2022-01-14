@@ -267,7 +267,7 @@ extension SettingsVC {
   }
   
   open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    return data.footer(for: section)
+    return section == data.sectionsCount - 1 ? footer : nil
   }
   
   open override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
@@ -364,10 +364,6 @@ extension SettingsVC.TableData{
   
   func sectionData(for section: Int) -> SettingsVC.tSectionContent?{
     return self.sectionContent.valueAt(section)
-  }
-  
-  func footer(for section: Int) -> UIView?{
-    return nil
   }
   
   func footerHeight(for section: Int) -> CGFloat{
