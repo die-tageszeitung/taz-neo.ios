@@ -51,6 +51,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   }()
   lazy var logoutCell: XSettingsCell
   = XSettingsCell(text: "Abmelden (\(SimpleAuthenticator.getUserData().id ?? "???"))",
+                  detailText: MainNC.singleton.feederContext.expiredAccountText,
                   tapHandler: {[weak self] in self?.requestLogout()} )
   lazy var resetPasswordCell: XSettingsCell
   = XSettingsCell(text: "Passwort zurücksetzen",

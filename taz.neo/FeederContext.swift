@@ -84,6 +84,8 @@ open class FeederContext: DoesLog {
   
   /// Are we authenticated with the server?
   public var isAuthenticated: Bool { gqlFeeder.isAuthenticated }
+  
+  public var expiredAccountText: String?
 
   /// notify sends a Notification to all objects listening to the passed
   /// String 'name'. The receiver closure gets the sending FeederContext
@@ -320,9 +322,11 @@ open class FeederContext: DoesLog {
   
   public func updateAuthIfNeeded() {
     //self.isAuthenticated == false
-    if self.gqlFeeder.authToken == nil,
-       let storedAuth = SimpleAuthenticator.getUserData().token {
+    if let storedAuth = SimpleAuthenticator.getUserData().token,
+       ( self.gqlFeeder.authToken == nil || self.gqlFeeder.authToken != storedAuth )
+    {
       self.gqlFeeder.authToken = storedAuth
+      expiredAccountText = nil
     }
   }
   
@@ -523,6 +527,7 @@ open class FeederContext: DoesLog {
     switch err {
     case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
     case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        expiredAccountText = "Abo abgelaufen am: \(err.expiredAccountDate?.gDate() ?? "-")"
     case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
     case .unexpectedResponse: 
       Alert.message(title: "Fehler", 
@@ -539,7 +544,7 @@ open class FeederContext: DoesLog {
       log("Delete Userdata!")
       DefaultAuthenticator.deleteUserData()
     }
-    self.gqlFeeder.authToken = nil
+//    self.gqlFeeder.authToken = nil //Do not unset feeders Auth Token
     
     Alert.message(title: "Fehler", message: text, closure: { [weak self] in
       ///Do not authenticate here because its not needed here e.g.
