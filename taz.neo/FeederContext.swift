@@ -308,7 +308,17 @@ open class FeederContext: DoesLog {
         //not using checkForNew Issues see its warning!
         //count 1 not working:
         log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
-        //self.getOvwIssues(feed: self.defaultFeed, count: 1)
+        switch UIApplication.shared.applicationState {
+          case .active, .background:
+            self.getOvwIssues(feed: self.defaultFeed, count: 1, isAutomatically: true)
+          case .inactive:
+            log("ToDo: Do inactive Download")
+            self.getOvwIssues(feed: self.defaultFeed, count: 1, isAutomatically: true)
+          default:
+            log("Do Nothing")
+        }
+        
+        //
       default:
         self.debug(payload.toString())
     }
