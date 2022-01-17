@@ -430,11 +430,14 @@ extension SettingsVC {
   
   var issueSettingsCells:[XSettingsCell] {
     var cells = [
-      maxIssuesCell,
-      autoloadNewIssuesCell
+      maxIssuesCell
     ]
     
-    if autoloadNewIssues {
+    if App.isAvailable(.AUTODOWNLOAD) {
+      cells.append(autoloadNewIssuesCell)
+    }
+    
+    if autoloadNewIssues && App.isAvailable(.AUTODOWNLOAD) {
       cells.append(wlanCell)
       cells.append(epaperLoadCell)
     }

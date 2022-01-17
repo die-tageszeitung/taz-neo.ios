@@ -307,7 +307,11 @@ open class FeederContext: DoesLog {
       case .newIssue:
         //not using checkForNew Issues see its warning!
         //count 1 not working:
-        log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
+        if App.isAvailable(.AUTODOWNLOAD) == false {
+          log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
+          return
+        }
+        log("Handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
         switch UIApplication.shared.applicationState {
           case .active, .background:
             self.getOvwIssues(feed: self.defaultFeed, count: 1, isAutomatically: true)
