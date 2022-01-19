@@ -692,11 +692,11 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   }
   
   deinit {
-    print("XSettingsCell deinit \(self.textLabel?.text)")
+    debug("XSettingsCell deinit \(self.textLabel?.text ?? "-")")
   }
   
   override func prepareForReuse() {
-    print("XSettingsCell prepareForReuse ...should not be called due not reuse cells!")
+    debug("XSettingsCell prepareForReuse ...should not be called due not reuse cells!")
   }
   
   func applyStyles() {
