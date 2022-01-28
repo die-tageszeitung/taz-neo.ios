@@ -257,8 +257,7 @@ public class FeedbackViewController : UIViewController{
   
   func requestSendByMail(){
     if MFMailComposeViewController.canSendMail() {
-//      let recipient = "app@taz.de"
-      let recipient = "ringo.mueller@taz.de"
+      let recipient = "app@taz.de"
       let mail =  MFMailComposeViewController()
       mail.mailComposeDelegate = self
       mail.setToRecipients([recipient])
