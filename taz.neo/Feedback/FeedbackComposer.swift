@@ -21,6 +21,17 @@ import NorthLib
 
 public enum FeedbackType { case error, feedback, fatalError }
 
+public extension FeedbackType {
+  var description: String { return self.toString() }
+  func toString() -> String {
+    switch self {
+      case .feedback: return "Feedback"
+      case .error: return "Fehler"
+      case .fatalError: return "Fatal Error!"
+    }
+  }
+}
+
 open class FeedbackComposer : DoesLog{
   
   public static func showWith(logData: Data? = nil,
