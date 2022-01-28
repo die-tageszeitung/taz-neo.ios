@@ -558,7 +558,8 @@ open class FeederContext: DoesLog {
       log("Delete Userdata!")
       DefaultAuthenticator.deleteUserData()
     }
-//    self.gqlFeeder.authToken = nil //Do not unset feeders Auth Token
+    #warning("Delete AuthToken on expired Account Issue")
+    self.gqlFeeder.authToken = nil //ToDo: currently still unset feeders Auth Token, untill implications are solved
     
     Alert.message(title: "Fehler", message: text, closure: { [weak self] in
       ///Do not authenticate here because its not needed here e.g.
