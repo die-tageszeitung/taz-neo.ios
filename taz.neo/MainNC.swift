@@ -27,7 +27,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   public var dataPolicyAccepted: Bool
   
   static var singleton: MainNC!
-  private var isErrorReporting = false
+  public private(set) var isErrorReporting = false
   private var isForeground = false
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

@@ -105,6 +105,10 @@ open class FeedbackComposer : DoesLog{
       currentVc = nc
       feedbackViewController.updateViewSize(UIWindow.size)
     }
+    else if #available(iOS 13.0, *), currentVc.presentingViewController != nil {
+      currentVc.isModalInPresentation = true
+      restoreModalityController = currentVc
+    }
                                                        
     feedbackBottomSheet = FullscreenBottomSheet(slider: feedbackViewController,
                                               into: currentVc)
