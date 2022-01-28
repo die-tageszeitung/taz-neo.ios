@@ -125,9 +125,9 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     
     FeedbackComposer.showWith(logData: fileLogger.data,
                               feederContext: self.feederContext,
-                              feedbackType: feedbackType) { didSend in
+                              feedbackType: feedbackType) {[weak self] didSend in
       print("Feedback send? \(didSend)")
-      self.isErrorReporting = false
+      self?.isErrorReporting = false
     }
   }
   

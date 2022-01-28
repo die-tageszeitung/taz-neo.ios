@@ -37,11 +37,11 @@ public class FeedbackViewController : UIViewController{
   
   var logData: Data? = nil
   var deviceData: DeviceData?
-  var feederContext: FeederContext
+  var feederContext: FeederContext?
   var doCloseClosure: (() -> ())?
   var requestCancel: (() -> ())?
   
-  public var feedbackView : FeedbackView?
+  var feedbackView : FeedbackView?
   
   init(type: FeedbackType,
        screenshot: UIImage? = nil,
@@ -229,7 +229,7 @@ public class FeedbackViewController : UIViewController{
       ? "Feedback\n=============\n\(feedbackView.messageTextView.text ?? "-")"
       : feedbackView.messageTextView.text
     
-    guard let feeder = feederContext.gqlFeeder else {
+    guard let feeder = feederContext?.gqlFeeder else {
       requestSendByMail()
       return
     }
@@ -473,9 +473,9 @@ public class FeedbackViewController : UIViewController{
       UIPasteboard.general.string = log
       Toast.show("In Zwischenablage kopiert!")
     }
-    menu.addMenuItem(title: "Löschen", icon: "trash.circle") { (_) in
-      self.feedbackView?.logAttachmentButton.removeFromSuperview()
-      self.logData = nil
+    menu.addMenuItem(title: "Löschen", icon: "trash.circle") {[weak self] (_) in
+      self?.feedbackView?.logAttachmentButton.removeFromSuperview()
+      self?.logData = nil
     }
     menu.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "multiply.circle") { (_) in }
     return menu
@@ -487,9 +487,9 @@ public class FeedbackViewController : UIViewController{
     menu.addMenuItem(title: "Ansehen", icon: "eye") { [weak self]  (_) in
       self?.showScreenshot()
     }
-    menu.addMenuItem(title: "Löschen", icon: "trash.circle") { (_) in
-      self.feedbackView?.screenshotAttachmentButton.removeFromSuperview()
-      self.screenshot = nil
+    menu.addMenuItem(title: "Löschen", icon: "trash.circle") {[weak self] (_) in
+      self?.feedbackView?.screenshotAttachmentButton.removeFromSuperview()
+      self?.screenshot = nil
       //self.screenshot = nil
     }
     menu.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "multiply.circle") { (_) in }
