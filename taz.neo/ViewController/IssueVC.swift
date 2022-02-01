@@ -363,7 +363,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     else { self.issueCarousel.pureText = sdate }
   } 
   
-  private func exportMoment(issue: Issue) {
+  func exportMoment(issue: Issue) {
     if let fn = feeder.momentImageName(issue: issue, isCredited: true) {
       let file = File(fn)
       let ext = file.extname
@@ -373,7 +373,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
   }
   
-  private func deleteIssue() {
+  func deleteIssue(issue: Issue) {
     if let issue = issue as? StoredIssue {
       issue.reduceToOverview()
       issueCarousel.carousel.reloadData()
@@ -472,11 +472,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.onLabelTap { idx in
       self.showDatePicker()
     }
-    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
+    issueCarousel.addMenuItem(title: "Bild Teilen",
+                              icon: "square.and.arrow.up") {[weak self] _ in
+      guard let self = self else { return }
       self.exportMoment(issue: self.issue)
     }
-    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {_ in
-      self.deleteIssue()
+    issueCarousel.addMenuItem(title: "Ausgabe löschen",
+                              icon: "trash") {[weak self] _ in
+      guard let self = self else { return }
+      self.deleteIssue(issue: self.issue)
     }
     var scrollChange = false
     issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in
