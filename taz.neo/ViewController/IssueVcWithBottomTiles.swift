@@ -322,12 +322,14 @@ extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
     if let issue = issue {
       items.append((title: "Bild Teilen",
                     icon: "square.and.arrow.up",
-                    closure: {_ in
+                    closure: {[weak self] _ in
+        guard let self = self else { return }
         (self as? IssueVC)?.exportMoment(issue: issue)
       }))
       items.append((title: "Ausgabe löschen",
                     icon: "trash",
-                    closure: {_ in
+                    closure: { [weak self] _ in
+        guard let self = self else { return }
         (self as? IssueVC)?.deleteIssue(issue: issue)
         if let ip = indexPath {
           self.collectionView.reloadItems(at: [ip])
