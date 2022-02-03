@@ -376,19 +376,16 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
   
   func deleteIssue(issue: Issue) {
+    if issue.isDownloading {
+      Alert.message(message: "Bitte warten Sie bis der Download abgeschlossen ist!")
+      return
+    }
     if let issue = issue as? StoredIssue {
       issue.reduceToOverview()
       issueCarousel.carousel.reloadData()
       setLabel(idx: index)
     }
   }
-  
-//  private func deleteCompleeteIssue() {
-//    if let issue = issue as? StoredIssue {
-//      issue.deletePersistent()
-//      issueCarousel.carousel.reloadData()
-//    }
-//  }
   
   /// Check whether it's necessary to reload the current Issue
   public func authenticationSucceededCheckReload() {

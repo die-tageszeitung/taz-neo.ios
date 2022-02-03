@@ -575,6 +575,9 @@ public final class StoredPayload: StoredObject, Payload {
   
   public func reduceToOverview() {
     guard let issue = self.issue else { return }
+    if issue.isDownloading {
+      return
+    }
     let toKeep = issue.overviewFiles
     for f in storedFiles {
       if !toKeep.contains(where: { k in k.name == f.name }) {
