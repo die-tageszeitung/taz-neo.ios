@@ -590,6 +590,9 @@ extension SettingsVC {
     alert.addAction( UIAlertAction.init( title: "Zurücksetzen", style: .destructive,
                                          handler: { _ in
       MainNC.singleton.deleteUserData()
+      Defaults.singleton.setDefaults(values: ConfigDefaults,
+                                     isNotify: false,
+                                     forceWrite: true)
       MainNC.singleton.deleteAll()
     } ) )
     
