@@ -1691,6 +1691,12 @@ public final class StoredIssue: Issue, StoredObject {
         section.delete()
       }
     }
+    let p1 = pageOneFacsimile
+    for case let p as StoredPage in pages ?? [] {
+      if p.pdf?.fileName == p1?.fileName { continue }
+      p.delete()
+    }
+    
     (imprint as? StoredArticle)?.delete()
     if isComplete {
       isComplete = false
