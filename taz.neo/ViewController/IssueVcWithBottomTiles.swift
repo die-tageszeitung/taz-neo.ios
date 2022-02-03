@@ -166,6 +166,13 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       longTouch.numberOfTouchesRequired = 1
       collectionView.addGestureRecognizer(longTouch)
     }
+    //update download Status Button in issueCarousel
+    Notification.receive("issue"){ [weak self] notif in
+      guard let i = notif.object as? Issue else { return }
+      guard let ivc = self as? IssueVC else { return }
+      guard i.date == ivc.issue.date else { return }
+      ivc.setLabel(idx: ivc.index)
+    }
   }
   
   public override func viewDidDisappear(_ animated: Bool) {
@@ -248,6 +255,9 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
         imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
       }
       self.collectionView.reloadData()
+      if let ivc = self as? IssueVC {
+        ivc.setLabel(idx: ivc.index)
+      }
       print("PDF Pressed")
     }
     
@@ -414,8 +424,7 @@ extension IssueVcWithBottomTiles {
       else {
         cell.momentView.image = nil
       }
-      
-      if issue.isComplete == false {
+      if hasDownloadableContent(issue: issue) {
         cell.button.startHandler = { [weak self] in
           guard let self = self, let sissue = issue as? StoredIssue else { return }
           cell.button.startHandler = nil
@@ -424,6 +433,7 @@ extension IssueVcWithBottomTiles {
           issueVC.feederContext.getCompleteIssue(issue: sissue,
                                                  isPages: self.isFacsimile, isAutomatically: false)
         }
+        cell.button.downloadState = .notStarted
       }
     }
     
@@ -513,6 +523,14 @@ extension IssueVcWithBottomTiles {
       return headerFor(at: indexPath)
     }
     return footerFor(at: indexPath)
+  }
+}
+
+extension IssueVcWithBottomTiles {
+  func hasDownloadableContent(issue: Issue) -> Bool {
+    guard let issueInfo = self as? IssueInfo,
+          let sIssue = issue as? StoredIssue else { return true }
+    return issueInfo.feederContext.needsUpdate(issue: sIssue,toShowPdf: isFacsimile)
   }
 }
 

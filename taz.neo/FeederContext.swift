@@ -679,6 +679,14 @@ open class FeederContext: DoesLog {
     else { return true }
   }
   
+  public func needsUpdate(issue: StoredIssue, toShowPdf: Bool = false) -> Bool {
+    var needsUpdate = needsUpdate(issue: issue)
+    if needsUpdate == false && toShowPdf == true {
+      needsUpdate = !issue.isCompleetePDF(in: gqlFeeder.issueDir(issue: issue))
+    }
+    return needsUpdate
+  }
+  
   /**
    Get an Issue from Server or local DB
    
@@ -693,7 +701,7 @@ open class FeederContext: DoesLog {
       }
       return
     }
-    guard needsUpdate(issue: issue) else {
+    guard needsUpdate(issue: issue, toShowPdf: isPages) else {
       Notification.send("issue", result: .success(issue), sender: issue)
       return      
     }

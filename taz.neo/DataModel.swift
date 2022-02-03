@@ -738,6 +738,23 @@ public extension Issue {
     return nil
   }
   
+  #warning("expensive call todo: may remember status")
+  //Pro fast //Con: what if other process killed a File?
+  //May remember temporary? / In Memory ...until: isOvwComplete, isComplete, status changed ...in St
+  func isCompleetePDF(in localDir:Dir) -> Bool {
+    guard let pgs = pages else { return false }
+    if pgs.count == 0 { return false }
+//    print("call isCompleetePDF for \(self.date.short) pagecount: \(pgs.count)")
+    //=> Up/downscrolling re-calls function, if PDF view!
+    for p in pgs {
+      if let pdf = p.pdf,
+         pdf.exists(inDir: localDir.path) == false {
+        return false
+      }
+    }
+    return true
+  }
+  
   /// All facsimiles
   var facsimiles: [FileEntry]? {
     if let pgs = pages, pgs.count > 0 {

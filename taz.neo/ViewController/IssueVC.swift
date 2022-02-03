@@ -348,11 +348,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   // last index displayed
   fileprivate var lastIndex: Int?
  
-  private func setLabel(idx: Int, isRotate: Bool = false) {
+  func setLabel(idx: Int, isRotate: Bool = false) {
     guard idx >= 0 && idx < self.issues.count else { return }
     let issue = self.issues[idx]
     var sdate = issue.date.gLowerDate(tz: self.feeder.timeZone)
-    if !issue.isComplete { sdate += " \u{2601}" }
+    if hasDownloadableContent(issue: issue) {
+      sdate += " \u{2601}"
+    }
     if isRotate {
       if let last = self.lastIndex, last != idx {
         self.issueCarousel.setText(sdate, isUp: idx > last)
