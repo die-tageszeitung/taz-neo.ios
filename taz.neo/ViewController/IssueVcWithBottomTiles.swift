@@ -287,15 +287,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
                                onPress: onSettings,
                                direction: .center,
                                accessibilityLabel: "Einstellungen")
-    ///Example how to use vertical Alignment Option
-//    _ = toolBar.addImageButton(name: "gearshape",
-//                               onPress: onSettings,
-//                               direction: .center,
-//                               symbol: "gearshape",
-//                               accessibilityLabel: "Einstellungen",
-//                               vInset: -1.5,
-//                               hInset: 10,
-//                               useAbsoluteImageLayout: true)
         
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()

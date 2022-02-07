@@ -122,8 +122,7 @@ extension ContentToolbar {
                       width:CGFloat = 52,
                       height:CGFloat = 48,
                       vInset:CGFloat = 0.0,
-                      hInset:CGFloat = 0.0,
-                      useAbsoluteImageLayout: Bool = false
+                      hInset:CGFloat = 0.0
                       ) -> Button<ImageView> {
     let button = Button<ImageView>()
     button.pinWidth(width, priority: .defaultHigh)
@@ -131,7 +130,6 @@ extension ContentToolbar {
     button.vinset = vInset
     button.hinset = hInset
     button.isBistable = isBistable
-    button.buttonView.useAbsoluteImageLayout = useAbsoluteImageLayout
     button.buttonView.name = name
     button.buttonView.symbol = symbol
     
