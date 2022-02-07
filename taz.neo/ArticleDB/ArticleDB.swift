@@ -1705,6 +1705,9 @@ public final class StoredIssue: Issue, StoredObject {
       isComplete = false
       isOvwComplete = true
     }
+    self.lastPage = nil
+    self.lastArticle = nil
+    self.lastSection = nil
     //lastPage = nil //May delete also last Page?
     //Cannot be restored in current UI Flow and DataModel settup
     ArticleDB.save()
