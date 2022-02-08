@@ -348,11 +348,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   // last index displayed
   fileprivate var lastIndex: Int?
  
-  private func setLabel(idx: Int, isRotate: Bool = false) {
+  func setLabel(idx: Int, isRotate: Bool = false) {
     guard idx >= 0 && idx < self.issues.count else { return }
     let issue = self.issues[idx]
     var sdate = issue.date.gLowerDate(tz: self.feeder.timeZone)
-    if !issue.isComplete { sdate += " \u{2601}" }
+    if hasDownloadableContent(issue: issue) {
+      sdate += " \u{2601}"
+    }
     if isRotate {
       if let last = self.lastIndex, last != idx {
         self.issueCarousel.setText(sdate, isUp: idx > last)
@@ -363,7 +365,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     else { self.issueCarousel.pureText = sdate }
   } 
   
-  private func exportMoment(issue: Issue) {
+  func exportMoment(issue: Issue) {
     if let fn = feeder.momentImageName(issue: issue, isCredited: true) {
       let file = File(fn)
       let ext = file.extname
@@ -373,20 +375,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
   }
   
-  private func deleteIssue() {
+  func deleteIssue(issue: Issue) {
+    if issue.isDownloading {
+      Alert.message(message: "Bitte warten Sie bis der Download abgeschlossen ist!")
+      return
+    }
     if let issue = issue as? StoredIssue {
       issue.reduceToOverview()
       issueCarousel.carousel.reloadData()
       setLabel(idx: index)
     }
   }
-  
-//  private func deleteCompleeteIssue() {
-//    if let issue = issue as? StoredIssue {
-//      issue.deletePersistent()
-//      issueCarousel.carousel.reloadData()
-//    }
-//  }
   
   /// Check whether it's necessary to reload the current Issue
   public func authenticationSucceededCheckReload() {
@@ -472,11 +471,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.onLabelTap { idx in
       self.showDatePicker()
     }
-    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
+    issueCarousel.addMenuItem(title: "Bild Teilen",
+                              icon: "square.and.arrow.up") {[weak self] _ in
+      guard let self = self else { return }
       self.exportMoment(issue: self.issue)
     }
-    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {_ in
-      self.deleteIssue()
+    issueCarousel.addMenuItem(title: "Ausgabe löschen",
+                              icon: "trash") {[weak self] _ in
+      guard let self = self else { return }
+      self.deleteIssue(issue: self.issue)
     }
     var scrollChange = false
     issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in

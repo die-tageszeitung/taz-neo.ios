@@ -35,6 +35,17 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   
   var data:TableData = TableData(sectionContent: [])
   
+  
+  /// factory to create images for cells accessory view; attend every cell needs its own image!
+  var webviewImage: UIImageView {
+    get {
+      let iv = UIImageView(image: UIImage(name: "safari"))
+      iv.tintColor = Const.SetColor.ios(.secondaryLabel).color
+      return iv
+    }
+  }
+  
+  
   // MARK: Cell creation
   ///konto
   lazy var loginCell: XSettingsCell = {
@@ -51,54 +62,58 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   }()
   lazy var logoutCell: XSettingsCell
   = XSettingsCell(text: "Abmelden (\(SimpleAuthenticator.getUserData().id ?? "???"))",
+                  detailText: MainNC.singleton.feederContext.expiredAccountText,
                   tapHandler: {[weak self] in self?.requestLogout()} )
   lazy var resetPasswordCell: XSettingsCell
   = XSettingsCell(text: "Passwort zurücksetzen",
                   tapHandler: {[weak self] in self?.resetPassword()} )
-  lazy var manageAccountCell: XSettingsCell
-  = XSettingsCell(text: "Konto online verwalten",
-                  tapHandler: {[weak self] in self?.manageAccountOnline()} )
+  lazy var manageAccountCell: XSettingsCell =
+  XSettingsCell(text: "Konto online verwalten",
+                    tapHandler: {[weak self] in self?.manageAccountOnline()},
+                    accessoryView: webviewImage )
+  
   lazy var deleteAccountCell: XSettingsCell
   = XSettingsCell(text: "Konto löschen",
-                  color: .red,
+                  isDestructive: true,
                   tapHandler: {[weak self] in self?.requestAccountDeletion()} )
   ///ausgabenverwaltung
   lazy var maxIssuesCell: XSettingsCell
   = XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
-                detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
-                accessoryView: SaveLastCountIssuesSettings())
+                  detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
+                  accessoryView: SaveLastCountIssuesSettings())
   lazy var autoloadNewIssuesCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
-                initialValue: autoloadNewIssues,
-                onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue })
+                  initialValue: autoloadNewIssues,
+                  onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue })
   lazy var wlanCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
                   initialValue: autoloadOnlyInWLAN,
                   onChange: {[weak self] newValue in
-                        self?.autoloadOnlyInWLAN = newValue })
+    self?.autoloadOnlyInWLAN = newValue })
   lazy var epaperLoadCell: XSettingsCell
   = XSettingsCell(toggleWithText: "E-Paper automatisch herunterladen",
                   initialValue: autoloadPdf,
                   onChange: {[weak self] newValue in
-                        self?.autoloadPdf = newValue })
+    self?.autoloadPdf = newValue })
   lazy var deleteIssuesCell: XSettingsCell
   = XSettingsCell(text: "Alle Ausgaben löschen",
-                  color: .red,
+                  isDestructive: true,
                   tapHandler: {[weak self] in self?.requestDeleteAllIssues()} )
   ///darstellung
   lazy var textSizeSettingsCell: XSettingsCell
   = XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting())
   lazy var darkmodeSettingsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nachtmodus",
-                initialValue: Defaults.darkMode,
-                onChange: { newValue in Defaults.darkMode = newValue })
+                  initialValue: Defaults.darkMode,
+                  onChange: { newValue in Defaults.darkMode = newValue })
   ///hilfe
   lazy var onboardingCell: XSettingsCell
   = XSettingsCell(text: "Erste Schritte",
                   tapHandler: {[weak self] in self?.showOnboarding()} )
   lazy var faqCell: XSettingsCell
   = XSettingsCell(text: "FAQ (im Browser öffnen)",
-                  tapHandler: {[weak self] in self?.openFaq()} )
+                  tapHandler: {[weak self] in self?.openFaq()},
+                  accessoryView: webviewImage)
   lazy var reportErrorCell: XSettingsCell
   = XSettingsCell(text: "Fehler melden",
                   tapHandler: {MainNC.singleton.showFeedbackErrorReport(.error)} )
@@ -118,16 +133,17 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   ///erweitert
   lazy var notificationsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Mitteilungen erlauben",
-                initialValue: isTextNotification,
+                  initialValue: isTextNotification,
                   onChange: {[weak self] val in self?.textNotificationsChanged(newValue:val)} )
   lazy var memoryUsageCell: XSettingsCell
   = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
   lazy var deleteDatabaseCell: XSettingsCell
-  = XSettingsCell(text: "Daten zurücksetzen", color: .red,
+  = XSettingsCell(text: "Daten zurücksetzen",
+                  isDestructive: true,
                   tapHandler: {[weak self] in self?.requestDatabaseDelete()} )
   lazy var resetAppCell: XSettingsCell
   = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
-                  color: .red,
+                  isDestructive: true,
                   tapHandler: {[weak self] in self?.requestResetApp()} )
   
   /// UI Components
@@ -135,7 +151,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   
   lazy var header = SimpleHeaderView("einstellungen")
   ///Close X Button
-  public lazy var xButton = Button<CircledXView>().tazX()
+  public lazy var xButton = Button<ImageView>().tazX()
   
   let blockingView = BlockingProcessView()
   
@@ -160,7 +176,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   open override func viewDidLoad() {
     self.tableView = UITableView(frame: .zero, style: .grouped)
     super.viewDidLoad()
-  data = TableData(sectionContent: currentSectionContent())
+    data = TableData(sectionContent: currentSectionContent())
     setup()
     applyStyles()
     registerForStyleUpdates()
@@ -192,7 +208,7 @@ extension SettingsVC {
   
   func setup(){
     tableView.tableHeaderView = header
-    tableView.separatorStyle = .none
+    tableView.separatorInset = .zero
     header.layoutIfNeeded()
     registerForStyleUpdates()
   }
@@ -200,7 +216,7 @@ extension SettingsVC {
   /**
    Kinds of changes:
    - "erweitert" section 0 or 4/? items ...one click
-    - account 3/4 items ...on 1 click
+   - account 3/4 items ...on 1 click
    issues => 3/5 items on 1 click
    
    */
@@ -219,7 +235,7 @@ extension SettingsVC {
       if diff.deleted.count > 0 {
         self.tableView.deleteRows(at: diff.deleted, with: .fade)
       }
-
+      
       if diff.added.count > 0 {
         self.tableView.insertRows(at: diff.added, with: .fade)
       }
@@ -267,7 +283,7 @@ extension SettingsVC {
   }
   
   open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    return data.footer(for: section)
+    return section == data.sectionsCount - 1 ? footer : nil
   }
   
   open override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
@@ -346,7 +362,7 @@ extension SettingsVC {
 
 // MARK: - cell data model access helper
 extension SettingsVC.TableData{
-
+  
   var sectionsCount: Int { return self.sectionContent.count }
   
   func rowsIn(section: Int) -> Int{
@@ -361,13 +377,9 @@ extension SettingsVC.TableData{
   func cell(at indexPath: IndexPath) -> XSettingsCell? {
     return self.sectionContent.valueAt(indexPath.section)?.cells.valueAt(indexPath.row)
   }
-    
+  
   func sectionData(for section: Int) -> SettingsVC.tSectionContent?{
     return self.sectionContent.valueAt(section)
-  }
-  
-  func footer(for section: Int) -> UIView?{
-    return nil
   }
   
   func footerHeight(for section: Int) -> CGFloat{
@@ -417,7 +429,7 @@ extension SettingsVC {
     let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
     return "App: \(app) MB, Daten: \(data) MB"
   }
-
+  
   var accountSettingsCells:[XSettingsCell] {
     var cells =
     [
@@ -430,14 +442,17 @@ extension SettingsVC {
     }
     return cells
   }
-    
+  
   var issueSettingsCells:[XSettingsCell] {
     var cells = [
-      maxIssuesCell,
-      autoloadNewIssuesCell
+      maxIssuesCell
     ]
     
-    if autoloadNewIssues {
+    if App.isAvailable(.AUTODOWNLOAD) {
+      cells.append(autoloadNewIssuesCell)
+    }
+    
+    if autoloadNewIssues && App.isAvailable(.AUTODOWNLOAD) {
       cells.append(wlanCell)
       cells.append(epaperLoadCell)
     }
@@ -473,12 +488,12 @@ extension SettingsVC {
       ),
       ("erweitert", true,
        extendedSettingsCollapsed ? [] :
-       [
-        notificationsCell,
-        memoryUsageCell,
-        deleteDatabaseCell,
-        resetAppCell
-       ]
+        [
+          notificationsCell,
+          memoryUsageCell,
+          deleteDatabaseCell,
+          resetAppCell
+        ]
       )
     ]
   }
@@ -534,7 +549,7 @@ extension SettingsVC {
     alert.addAction( UIAlertAction.init( title: "OK", style: .default) { _ in } )
     alert.presentAt(self.view)
   }
-
+  
   func requestDeleteAllIssues(){
     let alert = UIAlertController.init( title: "Alle Ausgaben löschen", message: nil,
                                         preferredStyle:  .alert )
@@ -543,7 +558,7 @@ extension SettingsVC {
       guard let storedFeeder = MainNC.singleton.feederContext.storedFeeder,
             let storedFeed = storedFeeder.storedFeeds.first else {
               return
-      }
+            }
       MainNC.singleton.feederContext.cancelAll()
       StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, deleteOrphanFolders: true)
       onMainAfter { [weak self] in
@@ -557,8 +572,8 @@ extension SettingsVC {
   }
   
   func requestDatabaseDelete(){
-    let alert = UIAlertController.init( title: "Daten zurücksetzen", message: "Benutzen Sie diese Funktion, falls die App wiederholt bei einer bestimmten Aktion (z.B. Ausgabe öffnen) beendet wird.\nMit dieser Aktion werden Daten der internen Datenbank gelöscht, welche später neu geladen werden. Der Großteil der Daten bleibt jedoch auf dem Gerät erhalten und muss nicht erneut heruntergeladen werden.\n Die App wird im Anschluss beendet und kann von Ihnen neu gestartet werden.\nBitte nutzen Sie im Fehlerfall bitte auch unsere \"Fehler melden\" Funktion!",
-                                        preferredStyle:  .actionSheet )
+    let alert = UIAlertController.init( title: "Daten zurücksetzen", message: "Falls Ihre App wiederholt ungewollt beendet wird, benutzen Sie diese Aktion. Die App wird nach Ausführung der Aktion automatisch beendet und kann von Ihnen erneut gestartet werden.\nBei dieser Aktion bleiben viele Daten erhalten, es wird nur eine geringe Menge Daten zum Abgleich der Ausgaben erneut heruntergeladen.\nBitte nutzen Sie auch auch unsere \"Fehler melden\" Funktion um uns Fehler in der App mitzuteilen!",
+                                        preferredStyle:  .actionSheet)
     
     alert.addAction( UIAlertAction.init( title: "Daten zurücksetzen", style: .destructive,
                                          handler: { _ in
@@ -590,6 +605,9 @@ extension SettingsVC {
     alert.addAction( UIAlertAction.init( title: "Zurücksetzen", style: .destructive,
                                          handler: { _ in
       MainNC.singleton.deleteUserData()
+      Defaults.singleton.setDefaults(values: ConfigDefaults,
+                                     isNotify: false,
+                                     forceWrite: true)
       MainNC.singleton.deleteAll()
     } ) )
     
@@ -639,6 +657,7 @@ extension SettingsVC {
   func showLocalHtml(from urlString:String, scrollEnabled: Bool){
     let introVC = IntroVC()
     introVC.htmlIntro = urlString
+    introVC.topOffset = 40
     let intro = File(urlString)
     introVC.webView.webView.load(url: intro.url)
     introVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -680,8 +699,8 @@ extension SettingsVC {
 
 // MARK: -
 class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
-  var overwrittenLabelColor:UIColor?
   var tapHandler:(()->())?
+  var isDestructive: Bool = false
   var longTapHandler:(()->())?
   private var toggleHandler: ((Bool)->())?
   
@@ -693,11 +712,11 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   }
   
   deinit {
-    print("XSettingsCell deinit \(self.textLabel?.text)")
+    debug("XSettingsCell deinit \(self.textLabel?.text ?? "-")")
   }
   
   override func prepareForReuse() {
-    print("XSettingsCell prepareForReuse ...should not be called due not reuse cells!")
+    debug("XSettingsCell prepareForReuse ...should not be called due not reuse cells!")
   }
   
   func applyStyles() {
@@ -708,33 +727,38 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.contentView.backgroundColor = .clear
     self.detailTextLabel?.contentFont(size: Const.Size.SmallerFontSize)
     self.detailTextLabel?.numberOfLines = 0
-
+    
     self.textLabel?.textColor
-    = (overwrittenLabelColor ?? Const.SetColor.ios(.label).color)
+    = isDestructive
+    ? .red
+    : Const.SetColor.ios(.label).color
     self.detailTextLabel?.textColor
     = Const.SetColor.ios(.secondaryLabel).color
     
     //not implemented for stepper, not needed yet
     //self.accessoryView?.isUserInteractionEnabled = self.isUserInteractionEnabled
-
+    
     (self.accessoryView as? UISwitch)?.isEnabled
     = self.isUserInteractionEnabled
   }
   
   init(text: String,
        detailText: String? = nil,
-       color:UIColor = Const.SetColor.ios(.link).color,
+       isDestructive: Bool = false,
        tapHandler: (()->())?,
+       accessoryView: UIView? = nil,
        longTapHandler: (()->())? = nil) {
     super.init(style: detailText == nil ? .default : .subtitle,
                reuseIdentifier: nil)
     self.textLabel?.text = text
     self.detailTextLabel?.text = detailText
-    self.overwrittenLabelColor = color
+    self.customAccessoryView = accessoryView
+    self.isDestructive = isDestructive
     self.tapHandler = tapHandler
     self.longTapHandler = longTapHandler
     applyStyles()
     setupLayout()
+    registerForStyleUpdates()
   }
   
   init(toggleWithText text: String,
@@ -753,6 +777,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.customAccessoryView = toggle
     applyStyles()
     setupLayout()
+    registerForStyleUpdates()
   }
   
   init(text: String,
@@ -765,6 +790,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.detailTextLabel?.text = detailText
     applyStyles()
     setupLayout()
+    registerForStyleUpdates()
   }
   
   func setupLayout(){
@@ -787,12 +813,12 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
         pin(av.top, to: self.contentView.top, dist: 10)
       }
       pin(label.right, to: av.left, dist: -dist)
-            label.heightAnchor.constraint(greaterThanOrEqualToConstant: av.frame.size.height).isActive = true
+      label.heightAnchor.constraint(greaterThanOrEqualToConstant: av.frame.size.height).isActive = true
     }
     else {
       pin(label.right, to: contentView.right, dist: -dist)
     }
-   
+    
     pin(label.left, to: contentView.left, dist: dist)
     pin(label.top, to: contentView.top, dist: 10, priority: .defaultHigh)
     
@@ -841,14 +867,6 @@ class SaveLastCountIssuesSettings: TextSizeSetting {
   override func setup(){
     super.setup()
     label.text = "\(persistedIssuesCount)"
-    leftButton.buttonView.text = "-"
-    rightButton.buttonView.text = "+"
-    
-    leftButton.buttonView.font = Const.Fonts.contentFont(size: 16)
-    rightButton.buttonView.font = Const.Fonts.contentFont(size: 16)
-    
-    leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
-    rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.2, left:0.2 , bottom: 1.2, right: -0.2)
     
     leftButton.onPress { [weak self] _ in
       guard let self = self, self.persistedIssuesCount > 0 else { return }
@@ -873,8 +891,8 @@ class SaveLastCountIssuesSettings: TextSizeSetting {
 // MARK: -
 class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
-  let leftButton = Button<TextView>()
-  let rightButton = Button<TextView>()
+  let leftButton = Button<ImageView>()
+  let rightButton = Button<ImageView>()
   let label = UILabel()
   
   @Default("articleTextSize")
@@ -882,8 +900,8 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
   func applyStyles() {
     label.labelColor()
-    leftButton.tazButton(true)
-    rightButton.tazButton(true)
+    leftButton.circleIconButton(true)
+    rightButton.circleIconButton(true)
   }
   
   override func setup(){
@@ -893,22 +911,8 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     registerForStyleUpdates()
     label.text = "\(articleTextSize)%"
     
-    leftButton.tazButton()
-    rightButton.tazButton()
-    
-    leftButton.buttonView.text = "a"
-    rightButton.buttonView.text = "a"
-    
-    leftButton.buttonView.label.baselineAdjustment = .alignCenters
-    rightButton.buttonView.label.baselineAdjustment = .alignCenters
-    
-    leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
-    rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -2.5, left:0.2 , bottom: 2.5, right: -0.2)
-    // Default is: 16
-    leftButton.buttonView.font
-    = Const.Fonts.contentFont(size: 12)//-4
-    rightButton.buttonView.font
-    = Const.Fonts.contentFont(size: 20)//+4
+    leftButton.circleIconButton(symbol: "minus")
+    rightButton.circleIconButton(symbol: "plus")
     
     leftButton.onPress { [weak self] _ in
       self?.label.text = "\(Defaults.articleTextSize.decrease())%"
@@ -925,7 +929,7 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     self.addArrangedSubview(leftButton)
     self.addArrangedSubview(label.wrapper(UIEdgeInsets(top: -0.5, left: 0, bottom: -0.5, right: 0)))
     self.addArrangedSubview(rightButton)
-    self.pinSize(CGSize(width: 110, height: 40), priority: .defaultHigh)
+    self.pinSize(CGSize(width: 122, height: 40), priority: .defaultHigh)
   }
 }
 
@@ -949,7 +953,7 @@ class CustomHStack: UIStackView {
 // MARK: -
 class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   
-  private let titleLabel = Label().titleFont()
+  private let titleLabel = Label().titleFont(size: Const.Size.TitleFontSize)
   private let line = DottedLineView()
   
   private func setup() {
@@ -1033,7 +1037,7 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
       c.centerY()
       self.rotateChevron()
     }
-    label.boldContentFont(size: Const.Size.ContentTableFontSize)
+    label.titleFont(size: Const.Size.SubtitleFontSize)
     registerForStyleUpdates()
     applyStyles()
   }
@@ -1043,6 +1047,8 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
     label.text = text
     if collapseable {
       chevron = UIImageView(image: UIImage(name: "chevron.up"))
+      chevron?.iosLower13?.contentMode = .scaleAspectFit
+      chevron?.tintColor = Const.SetColor.ios(.secondaryLabel).color
     }
     setup()
   }

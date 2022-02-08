@@ -575,6 +575,9 @@ public final class StoredPayload: StoredObject, Payload {
   
   public func reduceToOverview() {
     guard let issue = self.issue else { return }
+    if issue.isDownloading {
+      return
+    }
     let toKeep = issue.overviewFiles
     for f in storedFiles {
       if !toKeep.contains(where: { k in k.name == f.name }) {
@@ -1691,11 +1694,20 @@ public final class StoredIssue: Issue, StoredObject {
         section.delete()
       }
     }
+    let p1 = pageOneFacsimile
+    for case let p as StoredPage in pages ?? [] {
+      if p.pdf?.fileName == p1?.fileName { continue }
+      p.delete()
+    }
+    
     (imprint as? StoredArticle)?.delete()
     if isComplete {
       isComplete = false
       isOvwComplete = true
     }
+    self.lastPage = nil
+    self.lastArticle = nil
+    self.lastSection = nil
     //lastPage = nil //May delete also last Page?
     //Cannot be restored in current UI Flow and DataModel settup
     ArticleDB.save()

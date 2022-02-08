@@ -59,7 +59,7 @@ public extension App {
     return bundleIdentifier == BuildConst.tazBundleIdentifierAlpha
   }()
   
-  enum Feature { case  PDFEXPORT, INTERNALBROWSER, SEARCH_CONTEXTMENU}
+  enum Feature { case  PDFEXPORT, INTERNALBROWSER, SEARCH_CONTEXTMENU, AUTODOWNLOAD}
   
   
   /// Is the beta App
@@ -99,6 +99,8 @@ public extension App {
       case .PDFEXPORT:
         return isAlpha //Only in Alpha Versions
       case .SEARCH_CONTEXTMENU:
+        return isAlpha //Only in Alpha Versions
+      case .AUTODOWNLOAD:
         return isAlpha //Only in Alpha Versions
     }
   }

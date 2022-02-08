@@ -27,7 +27,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   public var dataPolicyAccepted: Bool
   
   static var singleton: MainNC!
-  private var isErrorReporting = false
+  public private(set) var isErrorReporting = false
   private var isForeground = false
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -125,9 +125,9 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     
     FeedbackComposer.showWith(logData: fileLogger.data,
                               feederContext: self.feederContext,
-                              feedbackType: feedbackType) { didSend in
+                              feedbackType: feedbackType) {[weak self] didSend in
       print("Feedback send? \(didSend)")
-      self.isErrorReporting = false
+      self?.isErrorReporting = false
     }
   }
   

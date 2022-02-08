@@ -35,6 +35,10 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  /// prevent multiple appeariance of menu in iOS 12
+  /// disabling the long Tap Gesture Recognizer did not worked
+  private var open: Bool = false
+  
   // MARK: - Properties
   ///moved issues here to prevent some performance and other issues
   ///obsolate after refactoring & full integration
@@ -156,6 +160,19 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     setupToolbar()
     showPdfInfoIfNeeded()
     setupPullToRefresh()
+    if gt_iOS13 == false {
+      let longTouch = UILongPressGestureRecognizer(target: self,
+                        action: #selector(actionMenuTapped))
+      longTouch.numberOfTouchesRequired = 1
+      collectionView.addGestureRecognizer(longTouch)
+    }
+    //update download Status Button in issueCarousel
+    Notification.receive("issue"){ [weak self] notif in
+      guard let i = notif.object as? Issue else { return }
+      guard let ivc = self as? IssueVC else { return }
+      guard i.date == ivc.issue.date else { return }
+      ivc.setLabel(idx: ivc.index)
+    }
   }
   
   public override func viewDidDisappear(_ animated: Bool) {
@@ -238,6 +255,9 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
         imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
       }
       self.collectionView.reloadData()
+      if let ivc = self as? IssueVC {
+        ivc.setLabel(idx: ivc.index)
+      }
       print("PDF Pressed")
     }
     
@@ -267,10 +287,116 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
                                onPress: onSettings,
                                direction: .center,
                                accessibilityLabel: "Einstellungen")
+    ///Example how to use vertical Alignment Option
+//    _ = toolBar.addImageButton(name: "gearshape",
+//                               onPress: onSettings,
+//                               direction: .center,
+//                               symbol: "gearshape",
+//                               accessibilityLabel: "Einstellungen",
+//                               vInset: -1.5,
+//                               hInset: 10,
+//                               useAbsoluteImageLayout: true)
         
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
+  }
+}
+
+// MARK: - Cell Long Tap
+extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
+  
+  
+  /// iOS 12 for item long tap
+  /// - Parameter sender: UILongPressGestureRecognizer added to collectionView in viewDidLoad
+  @objc func actionMenuTapped(_ sender: UILongPressGestureRecognizer) {
+    if open { return } else { open = true }
+    if sender.state != .began { return }
+    
+    let p = sender.location(in: self.collectionView)
+    guard let indexPath = self.collectionView.indexPathForItem(at: p) else { return }
+    let issue = issues.valueAt(indexPath.row)
+
+    let menu = createMenuItems(issue, indexPath: indexPath)
+    
+    var actionMenu: [UIAlertAction] = []
+    for m in menu {
+      actionMenu += Alert.action(m.title, closure: m.closure)
+    }
+    Alert.actionSheet(actions: actionMenu) { [weak self] in
+      self?.open = false
+    }
+  }
+
+  // Helper alias for iOS 12 vs. > iOS 12
+  typealias MenuItem = (title: String, icon: String, closure: (String)->())
+  
+  /// Helper create menu items for current selection for iOS 12 vs. > iOS 12
+  /// - Parameters:
+  ///   - issue: target issue for actions
+  ///   - indexPath: to refresh items after change
+  /// - Returns: array if menu items with actions
+  fileprivate func createMenuItems(_ issue: Issue?, indexPath: IndexPath?) -> [MenuItem] {
+    var items: [MenuItem] = []
+    if let issue = issue {
+      items.append((title: "Bild Teilen",
+                    icon: "square.and.arrow.up",
+                    closure: {[weak self] _ in
+        guard let self = self else { return }
+        (self as? IssueVC)?.exportMoment(issue: issue)
+      }))
+      items.append((title: "Ausgabe löschen",
+                    icon: "trash",
+                    closure: { [weak self] _ in
+        guard let self = self else { return }
+        (self as? IssueVC)?.deleteIssue(issue: issue)
+        if let ip = indexPath {
+          self.collectionView.reloadItems(at: [ip])
+        }
+        else {
+          self.collectionView.reloadData()
+        }
+      }))
+    }
+    if gt_iOS13 {
+      items.append((title: "Abbrechen",
+                    icon: "xmark.circle",
+                    closure: {_ in }))
+    }
+    return items
+  }
+  
+  @available(iOS 13.0, *)
+  /// Create context Menu for given item and indexPath
+  /// - Parameters:
+  ///   - issue: target issue for actions
+  ///   - indexPath: to refresh items after change
+  /// - Returns: menu with items
+  fileprivate func createContextMenu(_ issue: Issue?, indexPath: IndexPath?) -> UIMenu {
+    let menuItems = createMenuItems(issue, indexPath: indexPath).map { m in
+      UIAction(title: m.title,
+               image: UIImage(systemName: m.icon)) {_ in
+        m.closure(m.title)
+      }
+    }
+    return UIMenu(title: "", children: menuItems)
+  }
+  
+  // MARK: - UIContextMenuInteractionDelegate protocol
+  @available(iOS 13.0, *)
+  public func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
+    configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+    let loc = interaction.location(in: collectionView)
+    var issue:Issue?
+    var iP:IndexPath?
+    if let indexPath = self.collectionView.indexPathForItem(at: loc){
+      issue = issues.valueAt(indexPath.row)
+      iP = indexPath
+    }
+    return UIContextMenuConfiguration(identifier: nil,
+                                      previewProvider: nil){ _ -> UIMenu? in
+      return self.createContextMenu(issue, indexPath: iP)
+    }
   }
 }
 
@@ -307,8 +433,7 @@ extension IssueVcWithBottomTiles {
       else {
         cell.momentView.image = nil
       }
-      
-      if issue.isComplete == false {
+      if hasDownloadableContent(issue: issue) {
         cell.button.startHandler = { [weak self] in
           guard let self = self, let sissue = issue as? StoredIssue else { return }
           cell.button.startHandler = nil
@@ -317,7 +442,14 @@ extension IssueVcWithBottomTiles {
           issueVC.feederContext.getCompleteIssue(issue: sissue,
                                                  isPages: self.isFacsimile, isAutomatically: false)
         }
+        cell.button.downloadState = .notStarted
       }
+    }
+    
+    if #available(iOS 13.0, *), cell.interactions.isEmpty {
+      let menuInteraction = UIContextMenuInteraction(delegate: self)
+      cell.addInteraction(menuInteraction)
+      cell.backgroundColor = .black
     }
     return cell
   }
@@ -400,6 +532,14 @@ extension IssueVcWithBottomTiles {
       return headerFor(at: indexPath)
     }
     return footerFor(at: indexPath)
+  }
+}
+
+extension IssueVcWithBottomTiles {
+  func hasDownloadableContent(issue: Issue) -> Bool {
+    guard let issueInfo = self as? IssueInfo,
+          let sIssue = issue as? StoredIssue else { return true }
+    return issueInfo.feederContext.needsUpdate(issue: sIssue,toShowPdf: isFacsimile)
   }
 }
 

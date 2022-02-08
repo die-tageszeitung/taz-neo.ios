@@ -8,6 +8,7 @@
 
 import Foundation
 import NorthLib
+import MessageUI
 
 public class FeedbackViewController : UIViewController{
   
@@ -36,11 +37,11 @@ public class FeedbackViewController : UIViewController{
   
   var logData: Data? = nil
   var deviceData: DeviceData?
-  var feederContext: FeederContext
+  var feederContext: FeederContext?
   var doCloseClosure: (() -> ())?
   var requestCancel: (() -> ())?
   
-  public var feedbackView : FeedbackView?
+  var feedbackView : FeedbackView?
   
   init(type: FeedbackType,
        screenshot: UIImage? = nil,
@@ -228,7 +229,7 @@ public class FeedbackViewController : UIViewController{
       ? "Feedback\n=============\n\(feedbackView.messageTextView.text ?? "-")"
       : feedbackView.messageTextView.text
     
-    guard let feeder = feederContext.gqlFeeder else {
+    guard let feeder = feederContext?.gqlFeeder else {
       requestSendByMail()
       return
     }
@@ -255,21 +256,94 @@ public class FeedbackViewController : UIViewController{
   }
   
   func requestSendByMail(){
-    //#warning("ToDo: 0.9.4 ToDo implement send by mail if offline, in prev versions nothing happen, now alert will be shown")
-    log("ToDo: implement alternative send by mail")
-    self.handleSendFail()
+    if MFMailComposeViewController.canSendMail() {
+      let recipient = "app@taz.de"
+      let mail =  MFMailComposeViewController()
+      mail.mailComposeDelegate = self
+      mail.setToRecipients([recipient])
+      
+      var tazIdText = ""
+      let data = DefaultAuthenticator.getUserData()
+      if let tazID = data.id, tazID.isEmpty == false {
+        tazIdText = " taz-ID: \(tazID)"
+      }
+      
+      mail.setSubject("\(type?.description ?? "UNERWARTETES VERHALTEN!") \"\(App.name)\" (iOS)\(tazIdText)")
+      
+      
+      var body = "Per E-Mail gesendeter Fehlerbericht!"
+      
+      body.append("\nIhre Nachricht:\n\(feedbackView?.messageTextView.text ?? "-")\n")
+      body.append("\nLetzte Interaktion:\n\(feedbackView?.lastInteractionTextView.text ?? "-")\n")
+      body.append("\nZustand:\n\(feedbackView?.environmentTextView.text ?? "-")\n")
+      body.append("\nGeräteinformationen:\n---------------------\n")
+      body.append("App: \(App.name) \(App.bundleVersion)-\(App.buildNumber)\n")
+      body.append("OS: \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n")
+      body.append("Gerät: \(Device.singleton), \(Utsname.machine)\n")
+      body.append("installationId: \(App.installationId)\n")
+      body.append("pushToken: \(Defaults.singleton["pushToken"] ?? "-")\n")
+      var storageAvailable = "-"
+      if let mem = deviceData?.storageAvailable, let iMem = Int(mem) {
+        storageAvailable = "\(iMem/(1024*1024))MB"
+      }
+      body.append("storageAvailable: \(storageAvailable)\n")
+      var ramAvailable = "-"
+      if let mem = deviceData?.ramAvailable, let iMem = Int(mem) {
+        ramAvailable = "\(iMem/(1024*1024))MB"
+      }
+      body.append("ramAvailable: \(ramAvailable)\n")
+      var ramUsed = "-"
+      if let mem = deviceData?.ramUsed, let iMem = Int(mem) {
+        ramUsed = "\(iMem/(1024*1024))MB"
+      }
+      body.append("ramUsed: \(ramUsed)\n")
+
+      mail.setMessageBody("\(body) \n\n\n\n",isHTML: false)
+      
+      let dateId = Date().ddMMyy_HHmmss
+      
+      if let screenshotData = screenshot?.jpeg {
+        mail.addAttachmentData(screenshotData, mimeType: "image/jpeg",
+                               fileName: "Screenshot_\(dateId).jpg")
+      }
+      
+      if let logData = logString?.data(using: .utf8) {
+        mail.addAttachmentData(logData, mimeType: "text/plain",
+                               fileName: "Protokoll_\(dateId).txt")
+      }
+      self.present(mail, animated: true)
+    }
+    else {
+      self.handleSendFail()
+    }
   }
   
   func handleSendFail(){
-     Alert.confirm(title: "Erneut versuchen?",
-      message: "Report konnte nicht gesendet werden!\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.\nSollte das Problem weiter bestehen, senden Sie uns bitte eine E-Mail an:\n \(Localized("digiabo_email"))",
-                       isDestructive: false) { (try_again) in
-                         if try_again {
-                           self.handleSend(true)
-                         } else {
-                           self.handleClose()
-                        }
-         }
+    let retryAction =  UIAlertAction.init( title: "Erneut versuchen",
+                                           style: .default) { [weak self] _ in
+      self?.handleSend(true)
+    }
+    let mailAction =  UIAlertAction.init( title: "Per E-Mail senden",
+                                          style: .default) {  [weak self] _ in
+      self?.requestSendByMail()
+    }
+    let revertAction =  UIAlertAction.init( title: "Report Verwerfen",
+                                            style: .destructive) {  [weak self] _ in
+      self?.requestCancel?()
+    }
+    
+    let cancelAction =  UIAlertAction.init( title: "Abbrechen",
+                                            style: .cancel)
+    
+    var actions = [retryAction, revertAction, cancelAction]
+    
+    if MFMailComposeViewController.canSendMail() {
+      actions.insert(mailAction, at: 1)
+    }
+    
+    Alert.message(title: "Erneut versuchen?",
+                      message: "Der Report konnte nicht gesendet werden!\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.\nSollte das Problem weiter bestehen, senden Sie uns bitte eine E-Mail an:\n \(Localized("digiabo_email"))",
+                      actions: actions, presentationController: self)
   }
   
   
@@ -398,11 +472,11 @@ public class FeedbackViewController : UIViewController{
       UIPasteboard.general.string = log
       Toast.show("In Zwischenablage kopiert!")
     }
-    menu.addMenuItem(title: "Löschen", icon: "trash.circle") { (_) in
-      self.feedbackView?.logAttachmentButton.removeFromSuperview()
-      self.logData = nil
+    menu.addMenuItem(title: "Löschen", icon: "trash.circle") {[weak self] (_) in
+      self?.feedbackView?.logAttachmentButton.removeFromSuperview()
+      self?.logData = nil
     }
-    menu.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "multiply.circle") { (_) in }
+    menu.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") { (_) in }
     return menu
   }()
   
@@ -412,12 +486,12 @@ public class FeedbackViewController : UIViewController{
     menu.addMenuItem(title: "Ansehen", icon: "eye") { [weak self]  (_) in
       self?.showScreenshot()
     }
-    menu.addMenuItem(title: "Löschen", icon: "trash.circle") { (_) in
-      self.feedbackView?.screenshotAttachmentButton.removeFromSuperview()
-      self.screenshot = nil
+    menu.addMenuItem(title: "Löschen", icon: "trash.circle") {[weak self] (_) in
+      self?.feedbackView?.screenshotAttachmentButton.removeFromSuperview()
+      self?.screenshot = nil
       //self.screenshot = nil
     }
-    menu.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "multiply.circle") { (_) in }
+    menu.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") { (_) in }
     return menu
   }()
   
@@ -433,6 +507,39 @@ public class FeedbackViewController : UIViewController{
   public var mainmenu2 : ContextMenu?
   
 }
+
+extension FeedbackViewController : MFMailComposeViewControllerDelegate {
+  public func mailComposeController(_ controller: MFMailComposeViewController,
+    didFinishWith result: MFMailComposeResult, error: Error?) {
+    controller.dismiss(animated: true)
+    if error != nil {
+      self.log("Mail send failed with error: \(error?.description ?? "-")")
+    }
+    switch result {
+      case .sent:
+        Alert.message(title: "E-Mail gesendet.",
+                      message: "Falls Sie offline sind, befindet sich die E-Mail noch im Postausgang.",
+                      presentationController: self) { [weak self] in
+          self?.handleClose()
+        }
+      case .saved:
+        Alert.message(title: "E-Mail nicht gesendet!",
+                      message: "Die E-Mail befindet sich im E-Mail Programm im Ordner \"Entwürfe\"\nBitte senden Sie uns die E-Mail zeitnah, damit wir Ihr Anliegen bearbeiten können.",
+                      presentationController: self) { [weak self]  in
+          self?.handleClose()
+        }
+      case .cancelled:
+          self.handleSendFail()
+      default:
+        Alert.message(title: "Fehler!",
+                      message: "Es gab einen Fehler, bitte versuchen Sie es apäter noch einmal.",
+                      presentationController: self) { [weak self]  in
+          self?.handleSendFail()
+        }
+    }
+  }
+}
+
 
 class OverlayViewController : UIViewController{
   //REFACTOR!

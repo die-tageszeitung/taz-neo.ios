@@ -75,6 +75,7 @@ open class ArticleVC: ContentVC {
     onDisplay { [weak self] (idx, oview) in
       if let this = self {
         let art = this.articles[idx]
+        this.shareButton.alpha = (art.onlineLink?.isEmpty ?? true) ? 0.0 : 1.0
         this.adelegate?.article = art
         this.setHeader(artIndex: idx)
         this.issue.lastArticle = idx

@@ -84,6 +84,8 @@ open class FeederContext: DoesLog {
   
   /// Are we authenticated with the server?
   public var isAuthenticated: Bool { gqlFeeder.isAuthenticated }
+  
+  public var expiredAccountText: String?
 
   /// notify sends a Notification to all objects listening to the passed
   /// String 'name'. The receiver closure gets the sending FeederContext
@@ -305,8 +307,22 @@ open class FeederContext: DoesLog {
       case .newIssue:
         //not using checkForNew Issues see its warning!
         //count 1 not working:
-        log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
-        //self.getOvwIssues(feed: self.defaultFeed, count: 1)
+        if App.isAvailable(.AUTODOWNLOAD) == false {
+          log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
+          return
+        }
+        log("Handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
+        switch UIApplication.shared.applicationState {
+          case .active, .background:
+            self.getOvwIssues(feed: self.defaultFeed, count: 1, isAutomatically: true)
+          case .inactive:
+            log("ToDo: Do inactive Download")
+            self.getOvwIssues(feed: self.defaultFeed, count: 1, isAutomatically: true)
+          default:
+            log("Do Nothing")
+        }
+        
+        //
       default:
         self.debug(payload.toString())
     }
@@ -320,9 +336,11 @@ open class FeederContext: DoesLog {
   
   public func updateAuthIfNeeded() {
     //self.isAuthenticated == false
-    if self.gqlFeeder.authToken == nil,
-       let storedAuth = SimpleAuthenticator.getUserData().token {
+    if let storedAuth = SimpleAuthenticator.getUserData().token,
+       ( self.gqlFeeder.authToken == nil || self.gqlFeeder.authToken != storedAuth )
+    {
       self.gqlFeeder.authToken = storedAuth
+      expiredAccountText = nil
     }
   }
   
@@ -523,6 +541,7 @@ open class FeederContext: DoesLog {
     switch err {
     case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
     case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        expiredAccountText = "Abo abgelaufen am: \(err.expiredAccountDate?.gDate() ?? "-")"
     case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
     case .unexpectedResponse: 
       Alert.message(title: "Fehler", 
@@ -539,7 +558,8 @@ open class FeederContext: DoesLog {
       log("Delete Userdata!")
       DefaultAuthenticator.deleteUserData()
     }
-    self.gqlFeeder.authToken = nil
+    #warning("Delete AuthToken on expired Account Issue")
+    self.gqlFeeder.authToken = nil //ToDo: currently still unset feeders Auth Token, untill implications are solved
     
     Alert.message(title: "Fehler", message: text, closure: { [weak self] in
       ///Do not authenticate here because its not needed here e.g.
@@ -659,6 +679,14 @@ open class FeederContext: DoesLog {
     else { return true }
   }
   
+  public func needsUpdate(issue: StoredIssue, toShowPdf: Bool = false) -> Bool {
+    var needsUpdate = needsUpdate(issue: issue)
+    if needsUpdate == false && toShowPdf == true {
+      needsUpdate = !issue.isCompleetePDF(in: gqlFeeder.issueDir(issue: issue))
+    }
+    return needsUpdate
+  }
+  
   /**
    Get an Issue from Server or local DB
    
@@ -673,7 +701,7 @@ open class FeederContext: DoesLog {
       }
       return
     }
-    guard needsUpdate(issue: issue) else {
+    guard needsUpdate(issue: issue, toShowPdf: isPages) else {
       Notification.send("issue", result: .success(issue), sender: issue)
       return      
     }
