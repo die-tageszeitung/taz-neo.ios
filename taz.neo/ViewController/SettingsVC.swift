@@ -35,6 +35,17 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   
   var data:TableData = TableData(sectionContent: [])
   
+  
+  /// factory to create images for cells accessory view; attend every cell needs its own image!
+  var webviewImage: UIImageView {
+    get {
+      let iv = UIImageView(image: UIImage(name: "safari"))
+      iv.tintColor = Const.SetColor.ios(.secondaryLabel).color
+      return iv
+    }
+  }
+  
+  
   // MARK: Cell creation
   ///konto
   lazy var loginCell: XSettingsCell = {
@@ -56,12 +67,14 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   lazy var resetPasswordCell: XSettingsCell
   = XSettingsCell(text: "Passwort zurücksetzen",
                   tapHandler: {[weak self] in self?.resetPassword()} )
-  lazy var manageAccountCell: XSettingsCell
-  = XSettingsCell(text: "Konto online verwalten",
-                  tapHandler: {[weak self] in self?.manageAccountOnline()} )
+  lazy var manageAccountCell: XSettingsCell =
+  XSettingsCell(text: "Konto online verwalten",
+                    tapHandler: {[weak self] in self?.manageAccountOnline()},
+                    accessoryView: webviewImage )
+  
   lazy var deleteAccountCell: XSettingsCell
   = XSettingsCell(text: "Konto löschen",
-                  color: .red,
+                  isDestructive: true,
                   tapHandler: {[weak self] in self?.requestAccountDeletion()} )
   ///ausgabenverwaltung
   lazy var maxIssuesCell: XSettingsCell
@@ -84,7 +97,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     self?.autoloadPdf = newValue })
   lazy var deleteIssuesCell: XSettingsCell
   = XSettingsCell(text: "Alle Ausgaben löschen",
-                  color: .red,
+                  isDestructive: true,
                   tapHandler: {[weak self] in self?.requestDeleteAllIssues()} )
   ///darstellung
   lazy var textSizeSettingsCell: XSettingsCell
@@ -99,7 +112,8 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
                   tapHandler: {[weak self] in self?.showOnboarding()} )
   lazy var faqCell: XSettingsCell
   = XSettingsCell(text: "FAQ (im Browser öffnen)",
-                  tapHandler: {[weak self] in self?.openFaq()} )
+                  tapHandler: {[weak self] in self?.openFaq()},
+                  accessoryView: webviewImage)
   lazy var reportErrorCell: XSettingsCell
   = XSettingsCell(text: "Fehler melden",
                   tapHandler: {MainNC.singleton.showFeedbackErrorReport(.error)} )
@@ -124,11 +138,12 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   lazy var memoryUsageCell: XSettingsCell
   = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
   lazy var deleteDatabaseCell: XSettingsCell
-  = XSettingsCell(text: "Daten zurücksetzen", color: .red,
+  = XSettingsCell(text: "Daten zurücksetzen",
+                  isDestructive: true,
                   tapHandler: {[weak self] in self?.requestDatabaseDelete()} )
   lazy var resetAppCell: XSettingsCell
   = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
-                  color: .red,
+                  isDestructive: true,
                   tapHandler: {[weak self] in self?.requestResetApp()} )
   
   /// UI Components
@@ -136,7 +151,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   
   lazy var header = SimpleHeaderView("einstellungen")
   ///Close X Button
-  public lazy var xButton = Button<CircledXView>().tazX()
+  public lazy var xButton = Button<ImageView>().tazX()
   
   let blockingView = BlockingProcessView()
   
@@ -193,7 +208,7 @@ extension SettingsVC {
   
   func setup(){
     tableView.tableHeaderView = header
-    tableView.separatorStyle = .none
+    tableView.separatorInset = .zero
     header.layoutIfNeeded()
     registerForStyleUpdates()
   }
@@ -642,6 +657,7 @@ extension SettingsVC {
   func showLocalHtml(from urlString:String, scrollEnabled: Bool){
     let introVC = IntroVC()
     introVC.htmlIntro = urlString
+    introVC.topOffset = 40
     let intro = File(urlString)
     introVC.webView.webView.load(url: intro.url)
     introVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -683,8 +699,8 @@ extension SettingsVC {
 
 // MARK: -
 class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
-  var overwrittenLabelColor:UIColor?
   var tapHandler:(()->())?
+  var isDestructive: Bool = false
   var longTapHandler:(()->())?
   private var toggleHandler: ((Bool)->())?
   
@@ -713,7 +729,9 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.detailTextLabel?.numberOfLines = 0
     
     self.textLabel?.textColor
-    = (overwrittenLabelColor ?? Const.SetColor.ios(.label).color)
+    = isDestructive
+    ? .red
+    : Const.SetColor.ios(.label).color
     self.detailTextLabel?.textColor
     = Const.SetColor.ios(.secondaryLabel).color
     
@@ -726,18 +744,21 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   
   init(text: String,
        detailText: String? = nil,
-       color:UIColor = Const.SetColor.ios(.link).color,
+       isDestructive: Bool = false,
        tapHandler: (()->())?,
+       accessoryView: UIView? = nil,
        longTapHandler: (()->())? = nil) {
     super.init(style: detailText == nil ? .default : .subtitle,
                reuseIdentifier: nil)
     self.textLabel?.text = text
     self.detailTextLabel?.text = detailText
-    self.overwrittenLabelColor = color
+    self.customAccessoryView = accessoryView
+    self.isDestructive = isDestructive
     self.tapHandler = tapHandler
     self.longTapHandler = longTapHandler
     applyStyles()
     setupLayout()
+    registerForStyleUpdates()
   }
   
   init(toggleWithText text: String,
@@ -756,6 +777,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.customAccessoryView = toggle
     applyStyles()
     setupLayout()
+    registerForStyleUpdates()
   }
   
   init(text: String,
@@ -768,6 +790,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.detailTextLabel?.text = detailText
     applyStyles()
     setupLayout()
+    registerForStyleUpdates()
   }
   
   func setupLayout(){
@@ -844,14 +867,6 @@ class SaveLastCountIssuesSettings: TextSizeSetting {
   override func setup(){
     super.setup()
     label.text = "\(persistedIssuesCount)"
-    leftButton.buttonView.text = "-"
-    rightButton.buttonView.text = "+"
-    
-    leftButton.buttonView.font = Const.Fonts.contentFont(size: 16)
-    rightButton.buttonView.font = Const.Fonts.contentFont(size: 16)
-    
-    leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
-    rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.2, left:0.2 , bottom: 1.2, right: -0.2)
     
     leftButton.onPress { [weak self] _ in
       guard let self = self, self.persistedIssuesCount > 0 else { return }
@@ -876,8 +891,8 @@ class SaveLastCountIssuesSettings: TextSizeSetting {
 // MARK: -
 class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
-  let leftButton = Button<TextView>()
-  let rightButton = Button<TextView>()
+  let leftButton = Button<ImageView>()
+  let rightButton = Button<ImageView>()
   let label = UILabel()
   
   @Default("articleTextSize")
@@ -885,8 +900,8 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
   func applyStyles() {
     label.labelColor()
-    leftButton.tazButton(true)
-    rightButton.tazButton(true)
+    leftButton.circleIconButton(true)
+    rightButton.circleIconButton(true)
   }
   
   override func setup(){
@@ -896,22 +911,8 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     registerForStyleUpdates()
     label.text = "\(articleTextSize)%"
     
-    leftButton.tazButton()
-    rightButton.tazButton()
-    
-    leftButton.buttonView.text = "a"
-    rightButton.buttonView.text = "a"
-    
-    leftButton.buttonView.label.baselineAdjustment = .alignCenters
-    rightButton.buttonView.label.baselineAdjustment = .alignCenters
-    
-    leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
-    rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -2.5, left:0.2 , bottom: 2.5, right: -0.2)
-    // Default is: 16
-    leftButton.buttonView.font
-    = Const.Fonts.contentFont(size: 12)//-4
-    rightButton.buttonView.font
-    = Const.Fonts.contentFont(size: 20)//+4
+    leftButton.circleIconButton(symbol: "minus")
+    rightButton.circleIconButton(symbol: "plus")
     
     leftButton.onPress { [weak self] _ in
       self?.label.text = "\(Defaults.articleTextSize.decrease())%"
@@ -928,7 +929,7 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     self.addArrangedSubview(leftButton)
     self.addArrangedSubview(label.wrapper(UIEdgeInsets(top: -0.5, left: 0, bottom: -0.5, right: 0)))
     self.addArrangedSubview(rightButton)
-    self.pinSize(CGSize(width: 110, height: 40), priority: .defaultHigh)
+    self.pinSize(CGSize(width: 122, height: 40), priority: .defaultHigh)
   }
 }
 
@@ -952,7 +953,7 @@ class CustomHStack: UIStackView {
 // MARK: -
 class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   
-  private let titleLabel = Label().titleFont()
+  private let titleLabel = Label().titleFont(size: Const.Size.TitleFontSize)
   private let line = DottedLineView()
   
   private func setup() {
@@ -1036,7 +1037,7 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
       c.centerY()
       self.rotateChevron()
     }
-    label.boldContentFont(size: Const.Size.ContentTableFontSize)
+    label.titleFont(size: Const.Size.SubtitleFontSize)
     registerForStyleUpdates()
     applyStyles()
   }
@@ -1046,6 +1047,8 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
     label.text = text
     if collapseable {
       chevron = UIImageView(image: UIImage(name: "chevron.up"))
+      chevron?.iosLower13?.contentMode = .scaleAspectFit
+      chevron?.tintColor = Const.SetColor.ios(.secondaryLabel).color
     }
     setup()
   }
