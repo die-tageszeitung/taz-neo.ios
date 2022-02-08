@@ -573,7 +573,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "source ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/downloadBundledResources.sh\n";
+			shellScript = "exit 0;\nsource ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/downloadBundledResources.sh\n";
 			showEnvVarsInLog = 0;
 		};
 		AEC7D4C324A5DE07008630FB /* ShellScript */ = {
