@@ -17,12 +17,21 @@ class IntroVC: UIViewController {
   var htmlDataPolicy: String?
   /// The file containing the introduction
   var htmlIntro: String?
+  
+  var topOffset: CGFloat = 0.0 {
+    didSet {
+      webViewTopOffsetConstraint?.constant = topOffset
+    }
+  }
+  
+  var webViewTopOffsetConstraint: NSLayoutConstraint?
 
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .white
     self.view.addSubview(webView)
-    pin(webView, to: self.view)
+    pin(webView, to: self.view, exclude: .top)
+    webViewTopOffsetConstraint = pin(webView.top, to: self.view.top, dist: topOffset)
     webView.buttonMargin = 26
     webView.buttonLabel.backgroundColor = Const.Colors.ciColor
     webView.buttonLabel.textColor = .white
