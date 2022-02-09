@@ -25,6 +25,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   
   @Default("autoloadNewIssues")
   var autoloadNewIssues: Bool {
+    ///show/hide autoloadOnlyInWLAN
     didSet { if oldValue != autoloadNewIssues { refreshAndReload() }}
   }
   
@@ -84,7 +85,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   lazy var autoloadNewIssuesCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
                   initialValue: autoloadNewIssues,
-                  onChange: {[weak self] newValue in self?.autoloadNewIssues = newValue })
+                  onChange: {[weak self] newValue in
+    self?.autoloadNewIssues = newValue
+    if newValue == true { self?.checkNotifications() }
+  })
   lazy var wlanCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
                   initialValue: autoloadOnlyInWLAN,
@@ -92,6 +96,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     self?.autoloadOnlyInWLAN = newValue })
   lazy var epaperLoadCell: XSettingsCell
   = XSettingsCell(toggleWithText: "E-Paper automatisch herunterladen",
+                  detailText: "Wenn diese Einstellung aktiviert ist, wird beim Download einer Ausgabe auch immer die E-Paper Version heruntergeladen.",
                   initialValue: autoloadPdf,
                   onChange: {[weak self] newValue in
     self?.autoloadPdf = newValue })
@@ -133,8 +138,12 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   ///erweitert
   lazy var notificationsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Mitteilungen erlauben",
+                  detailText: "Zeige Mitteilungen außerhalb der App an (Banner, Sperrbildschirm)",
                   initialValue: isTextNotification,
-                  onChange: {[weak self] val in self?.textNotificationsChanged(newValue:val)} )
+                  onChange: {[weak self] newValue in
+                    self?.isTextNotification = newValue
+                    if newValue == true { self?.checkNotifications() }
+                  })
   lazy var memoryUsageCell: XSettingsCell
   = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
   lazy var deleteDatabaseCell: XSettingsCell
@@ -201,6 +210,24 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
 // MARK: - Helper
 extension SettingsVC {
   
+  @objc func applicationDidBecomeActive(notification: NSNotification) {
+    checkNotifications()
+  }
+  
+  func checkNotifications(){
+    NotificationBusiness.sharedInstance.checkNotificationStatusIfNeeded {
+      //disable notifications toggle / Do not disable autoload toggle!
+      onMain {   [weak self] in
+        guard let self = self else { return }
+        if let toggle = self.notificationsCell.customAccessoryView as? UISwitch{
+          toggle.isOn
+          = self.isTextNotification
+          && NotificationBusiness.sharedInstance.systemNotificationsEnabled
+        }
+      }
+    }
+  }
+  
   public func applyStyles() {
     tableView.backgroundColor = Const.SetColor.CTBackground.color
     xButton.tazX(true)
@@ -211,15 +238,14 @@ extension SettingsVC {
     tableView.separatorInset = .zero
     header.layoutIfNeeded()
     registerForStyleUpdates()
+    NotificationCenter.default
+      .addObserver(self,
+                   selector: #selector(applicationDidBecomeActive),
+                   name: UIApplication.didBecomeActiveNotification,
+                   object: nil)
+    checkNotifications()
   }
   
-  /**
-   Kinds of changes:
-   - "erweitert" section 0 or 4/? items ...one click
-   - account 3/4 items ...on 1 click
-   issues => 3/5 items on 1 click
-   
-   */
   func refreshAndReload() {
     let oldData = data
     data = TableData(sectionContent: currentSectionContent())
@@ -454,8 +480,8 @@ extension SettingsVC {
     
     if autoloadNewIssues && App.isAvailable(.AUTODOWNLOAD) {
       cells.append(wlanCell)
-      cells.append(epaperLoadCell)
     }
+    cells.append(epaperLoadCell)
     cells.append(deleteIssuesCell)
     return cells
   }
@@ -676,23 +702,6 @@ extension SettingsVC {
       introVC.webView.buttonLabel.text = nil
     }
   }
-  
-  func textNotificationsChanged(newValue:Bool){
-    isTextNotification = newValue
-    if newValue == false { return }
-    let center = UNUserNotificationCenter.current()
-    center.getNotificationSettings { (settings) in
-      if settings.soundSetting == .disabled
-          && settings.alertSetting == .disabled
-          && settings.badgeSetting == .disabled {
-        Alert.confirm(message: "Bitte erlauben Sie Benachrichtigungen!") { _ in
-          if let url = URL.init(string: UIApplication.openSettingsURLString) {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-          }
-        }
-      }
-    }
-  }
 }
 
 // MARK: - Nested Classes / UI Components
@@ -704,7 +713,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   var longTapHandler:(()->())?
   private var toggleHandler: ((Bool)->())?
   
-  private var customAccessoryView:UIView?
+  private(set) var customAccessoryView:UIView?
   
   override var accessoryView: UIView? {
     set { self.customAccessoryView = newValue }
