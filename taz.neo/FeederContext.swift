@@ -64,6 +64,10 @@ open class FeederContext: DoesLog {
   public var netAvailability: NetAvailability
   @Default("useMobile")
   public var useMobile: Bool
+  
+  @Default("autoloadPdf")
+  var autoloadPdf: Bool
+  
   /// isConnected returns true if the Feeder is available
   public var isConnected: Bool { 
     var isCon: Bool
@@ -682,7 +686,8 @@ open class FeederContext: DoesLog {
   
   public func needsUpdate(issue: StoredIssue, toShowPdf: Bool = false) -> Bool {
     var needsUpdate = needsUpdate(issue: issue)
-    if needsUpdate == false && toShowPdf == true {
+    var needPdf = toShowPdf || autoloadPdf
+    if needsUpdate == false && needPdf == true {
       needsUpdate = !issue.isCompleetePDF(in: gqlFeeder.issueDir(issue: issue))
     }
     return needsUpdate
