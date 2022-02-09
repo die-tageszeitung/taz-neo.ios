@@ -34,6 +34,8 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   @Default("isTextNotification")
   var isTextNotification: Bool
   
+  var initialTextNotificationSetting: Bool?
+  
   var data:TableData = TableData(sectionContent: [])
   
   
@@ -191,6 +193,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     registerForStyleUpdates()
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
+    initialTextNotificationSetting = isTextNotification
   }
   
   open override func viewDidDisappear(_ animated: Bool) {
@@ -200,6 +203,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     // dismiss, willMove, didMove not called if presented modally
     data = TableData(sectionContent:[])
     self.tableView.reloadData()
+    
+    if initialTextNotificationSetting != isTextNotification {
+      NotificationBusiness.sharedInstance.updateTextNotificationSettings()
+    }
   }
   
   deinit {
