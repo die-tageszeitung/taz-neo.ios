@@ -674,8 +674,11 @@ open class FeederContext: DoesLog {
   public func needsUpdate(issue: StoredIssue) -> Bool {
     guard !issue.isDownloading else { return false }
     if issue.isComplete { 
-      if issue.isReduced && isAuthenticated { issue.isComplete = false }
-      return issue.isReduced
+      if issue.isReduced && isAuthenticated {
+        issue.isComplete = false
+        return true
+      }
+      return !issue.isReduced
     }
     else { return true }
   }
