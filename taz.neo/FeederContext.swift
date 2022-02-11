@@ -39,6 +39,8 @@ open class FeederContext: DoesLog {
   
   /// Number of seconds to wait until we stop polling for email confirmation
   let PollTimeout: Int64 = 25*3600
+  
+  public var openedIssue: Issue?
 
   /// Name (title) of Feeder
   public var name: String

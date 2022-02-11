@@ -293,6 +293,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     guard index >= 0 && index < issues.count else { return }
     let issue = issues[index]
+    feederContext.openedIssue = issue //remember opened issue to not delete if
     debug("*** Action: Entering \(issue.feed.name)-" +
       "\(issue.date.isoDate(tz: feeder.timeZone))")
     /* Dieser Code verhindert, wenn sich der feeder aufgehangen hat, dass eine andere bereits heruntergeladene Ausgabe geöffnet wird
