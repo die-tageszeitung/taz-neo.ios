@@ -86,8 +86,6 @@ open class FeederContext: DoesLog {
   
   /// Are we authenticated with the server?
   public var isAuthenticated: Bool { gqlFeeder.isAuthenticated }
-  
-  public var expiredAccountText: String?
 
   /// notify sends a Notification to all objects listening to the passed
   /// String 'name'. The receiver closure gets the sending FeederContext
@@ -343,7 +341,6 @@ open class FeederContext: DoesLog {
        ( self.gqlFeeder.authToken == nil || self.gqlFeeder.authToken != storedAuth )
     {
       self.gqlFeeder.authToken = storedAuth
-      expiredAccountText = nil
     }
   }
   
@@ -542,15 +539,18 @@ open class FeederContext: DoesLog {
     currentFeederErrorReason = err
     var text = ""
     switch err {
-    case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
-    case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
-        expiredAccountText = "Abo abgelaufen am: \(err.expiredAccountDate?.gDate() ?? "-")"
-    case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
-    case .unexpectedResponse: 
-      Alert.message(title: "Fehler", 
-                    message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
-        exit(0)               
-      }
+      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
+      case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        if let d = err.expiredAccountDate {//persist expired account date for all requests!
+          Defaults.expiredAccountDate = d
+        }
+        MainNC.singleton.expiredAccountInfoShown = true
+      case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+      case .unexpectedResponse:
+        Alert.message(title: "Fehler",
+                      message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
+          exit(0)
+        }
     }
         
     if err == .expiredAccount(nil) {
@@ -561,8 +561,6 @@ open class FeederContext: DoesLog {
       log("Delete Userdata!")
       DefaultAuthenticator.deleteUserData()
     }
-    #warning("Delete AuthToken on expired Account Issue")
-    self.gqlFeeder.authToken = nil //ToDo: currently still unset feeders Auth Token, untill implications are solved
     
     Alert.message(title: "Fehler", message: text, closure: { [weak self] in
       ///Do not authenticate here because its not needed here e.g.
@@ -815,7 +813,7 @@ open class FeederContext: DoesLog {
   
   /// Download Issue files and resources if necessary
   private func downloadIssue(issue: StoredIssue, isComplete: Bool = false, isAutomatically: Bool) {
-    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) isComplete: \(isComplete) issueDate: \(issue.date.short)")
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)\(Defaults.expiredAccount ? " Expired!" : "") isComplete: \(isComplete) issueDate: \(issue.date.short)")
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       self.dloader.createIssueDir(issue: issue)

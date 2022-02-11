@@ -68,4 +68,29 @@ extension Defaults {
   @Default("isTextNotification")
   static var isTextNotification: Bool
   */
+  
+  
+  ///Helper to get current server from user defaults
+  static var expiredAccountDate : Date? {
+    get {
+      if let curr = Defaults.singleton["expiredAccountDate"] {
+        return Date.fromString(curr)
+      }
+      return nil
+    }
+    set {
+      if let date = newValue {
+        Defaults.singleton["expiredAccountDate"] = Date.toString(date)
+      }
+      else {
+        Defaults.singleton["expiredAccountDate"] = nil
+      }
+    }
+  }
+  
+  static var expiredAccount : Bool { return expiredAccountDate != nil }
+  static var expiredAccountText : String? {
+    guard let d = expiredAccountDate else { return nil }
+    return "Abo abgelaufen am: \(d.gDate())"
+  }
 }

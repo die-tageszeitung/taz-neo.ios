@@ -842,7 +842,14 @@ open class GqlFeeder: Feeder, DoesLog {
       case .success(let frq):  
         let req = frq["feedRequest"]!
         if wasAuthenticated {
-          if req.authInfo.status == .expired {
+          if MainNC.singleton.expiredAccountInfoShown {//Expired account already shown
+            if req.authInfo.status == .valid {//account not expired anymore
+              MainNC.singleton.expiredAccountInfoShown = false
+              Alert.message(message: "Ihr Abo ist wieder aktiv!")
+              Defaults.expiredAccountDate = nil
+            }
+          }
+          else if req.authInfo.status == .expired {
             ret = .failure(FeederError.expiredAccount(req.authInfo.message))
           }
           else if req.authInfo.status != .valid {

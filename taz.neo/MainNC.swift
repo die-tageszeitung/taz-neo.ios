@@ -22,6 +22,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   let net = NetAvailability()
   
   var authenticator: Authenticator? { return feederContext.authenticator }
+  
+  public var expiredAccountInfoShown = false
 
   @Key("dataPolicyAccepted")
   public var dataPolicyAccepted: Bool

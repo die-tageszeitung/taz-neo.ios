@@ -65,7 +65,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   }()
   lazy var logoutCell: XSettingsCell
   = XSettingsCell(text: "Abmelden (\(SimpleAuthenticator.getUserData().id ?? "???"))",
-                  detailText: MainNC.singleton.feederContext.expiredAccountText,
+                  detailText: Defaults.expiredAccountText,
                   tapHandler: {[weak self] in self?.requestLogout()} )
   lazy var resetPasswordCell: XSettingsCell
   = XSettingsCell(text: "Passwort zurücksetzen",
@@ -78,7 +78,8 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   lazy var deleteAccountCell: XSettingsCell
   = XSettingsCell(text: "Konto löschen",
                   isDestructive: true,
-                  tapHandler: {[weak self] in self?.requestAccountDeletion()} )
+                  tapHandler: {[weak self] in self?.requestAccountDeletion()},
+                  accessoryView: webviewImage)
   ///ausgabenverwaltung
   lazy var maxIssuesCell: XSettingsCell
   = XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
