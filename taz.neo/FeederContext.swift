@@ -66,6 +66,10 @@ open class FeederContext: DoesLog {
   public var netAvailability: NetAvailability
   @Default("useMobile")
   public var useMobile: Bool
+  
+  @Default("autoloadPdf")
+  var autoloadPdf: Bool
+  
   /// isConnected returns true if the Feeder is available
   public var isConnected: Bool { 
     var isCon: Bool
@@ -671,19 +675,17 @@ open class FeederContext: DoesLog {
   }
 
   /// Returns true if the Issue needs to be updated
-  public func needsUpdate(issue: StoredIssue) -> Bool {
+  public func needsUpdate(issue: Issue) -> Bool {
     guard !issue.isDownloading else { return false }
-    if issue.isComplete { 
-      if issue.isReduced && isAuthenticated {
-        issue.isComplete = false
-        return true
-      }
-      return !issue.isReduced
+    
+    if issue.isComplete == true && issue.isReduced == true && isAuthenticated && Defaults.expiredAccount {
+      issue.isComplete = false
     }
-    else { return true }
+    return !issue.isComplete
   }
   
-  public func needsUpdate(issue: StoredIssue, toShowPdf: Bool = false) -> Bool {
+  
+  public func needsUpdate(issue: Issue, toShowPdf: Bool = false) -> Bool {
     var needsUpdate = needsUpdate(issue: issue)
     if needsUpdate == false && toShowPdf == true {
       needsUpdate = !issue.isCompleetePDF(in: gqlFeeder.issueDir(issue: issue))
@@ -705,7 +707,8 @@ open class FeederContext: DoesLog {
       }
       return
     }
-    guard needsUpdate(issue: issue, toShowPdf: isPages) else {
+    let loadPages = isPages || autoloadPdf
+    guard needsUpdate(issue: issue, toShowPdf: loadPages) else {
       Notification.send("issue", result: .success(issue), sender: issue)
       return      
     }
