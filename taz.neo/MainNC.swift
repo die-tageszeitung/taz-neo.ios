@@ -311,6 +311,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   
   func deleteUserData() {
     SimpleAuthenticator.deleteUserData()
+    Defaults.expiredAccountDate = nil
     let dfl = Defaults.singleton
     let kc = Keychain.singleton
     kc["dataPolicyAccepted"] = nil
