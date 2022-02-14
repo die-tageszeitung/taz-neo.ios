@@ -175,6 +175,9 @@
 /* translation from Android */
 "subscription_id_expired" = "Ihr taz-Digiabo ist seit %@ abgelaufen.<br><br>Bitte kontaktieren Sie unseren Service:<br><br><a href='mailto:digiabo@taz.de'>digiabo@taz.de</a>";
 
+/* translation from Android */
+"subscription_id_expired_withoutDate" = "Ihr taz-Digiabo ist abgelaufen.<br><br>Bitte kontaktieren Sie unseren Service:<br><br><a href='mailto:digiabo@taz.de'>digiabo@taz.de</a>";
+
 /* login back to Login */
 "back_to_login" = "Zurück zur Anmeldung";
 

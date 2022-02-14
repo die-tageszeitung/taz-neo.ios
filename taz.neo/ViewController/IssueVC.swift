@@ -246,14 +246,28 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
       //prevent multiple pushes!
       if self.navigationController?.topViewController != self { return }
-      let authenticate = { [weak self] in
+      let authenticatePDF = { [weak self] in
+        guard let self = self else { return }
         let loginAction = UIAlertAction(title: Localized("login_button"),
                                         style: .default) { _ in
-          self?.feederContext.authenticate()
+          self.feederContext.authenticate()
         }
         let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
+        var expiredText = Localized("subscription_id_expired_withoutDate")
+        if let d = Defaults.expiredAccountDate {
+          expiredText = Localized(keyWithFormat: "subscription_id_expired", d.gDate())
+        }
         
-        Alert.message(message: "Um das ePaper zu lesen, müssen Sie sich anmelden.", actions: [loginAction, cancelAction])
+        expiredText
+        = expiredText.htmlAttributed?.string.replacingOccurrences(of: "\n\n", with: "\n")
+        ?? "Ihr taz-Digiabo ist seit abgelaufen!"
+        
+        let msg = self.feederContext.isAuthenticated
+        ? expiredText
+        : "Um das ePaper zu lesen, müssen Sie sich anmelden."
+        
+        
+        Alert.message(title: "Fehler", message: msg, actions: [loginAction, cancelAction])
       }
       
       if isFacsimile {
@@ -262,9 +276,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           guard let self = self else { return }
           let vc = TazPdfPagesViewController(issueInfo: self)
           self.navigationController?.pushViewController(vc, animated: true)
-          if issue.status == .reduced,
-             self.feederContext.isAuthenticated == false {
-            authenticate()
+          if issue.status == .reduced {  authenticatePDF()
           }
           
         }
