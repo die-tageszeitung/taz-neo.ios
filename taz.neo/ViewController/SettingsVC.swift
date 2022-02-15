@@ -98,8 +98,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
                   onChange: {[weak self] newValue in
     self?.autoloadOnlyInWLAN = newValue })
   lazy var epaperLoadCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "E-Paper automatisch herunterladen",
-                  detailText: "Wenn diese Einstellung aktiviert ist, wird beim Download einer Ausgabe auch immer die E-Paper Version heruntergeladen.",
+  = XSettingsCell(toggleWithText: "Zeitungsansicht immer mit laden",
                   initialValue: autoloadPdf,
                   onChange: {[weak self] newValue in
     self?.autoloadPdf = newValue })
@@ -119,7 +118,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   = XSettingsCell(text: "Erste Schritte",
                   tapHandler: {[weak self] in self?.showOnboarding()} )
   lazy var faqCell: XSettingsCell
-  = XSettingsCell(text: "FAQ (im Browser öffnen)",
+  = XSettingsCell(text: "FAQ",
                   tapHandler: {[weak self] in self?.openFaq()},
                   accessoryView: webviewImage)
   lazy var reportErrorCell: XSettingsCell
@@ -1034,7 +1033,7 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
   }
   
   func rotateChevron(){
-    chevron?.transform = CGAffineTransform(rotationAngle: self.collapsed ? CGFloat.pi*2 : CGFloat.pi)
+    chevron?.transform = CGAffineTransform(rotationAngle: self.collapsed ? CGFloat.pi : CGFloat.pi*2)
   }
   
   func applyStyles() {
