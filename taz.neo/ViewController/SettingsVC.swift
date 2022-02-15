@@ -203,6 +203,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     // free cells / prevent memory leaks
     // dismiss, willMove, didMove not called if presented modally
     data = TableData(sectionContent:[])
+    Notification.remove(observer: self)
     self.tableView.reloadData()
     
     if initialTextNotificationSetting != isTextNotification {
