@@ -801,7 +801,20 @@ public final class StoredAuthor: Author, StoredObject {
   
 } // StoredAuthor
 
-extension PersistentArticle: PersistentObject {}
+/// also: PersistentSection, PersistentArticle
+extension PersistentContent: PersistentObject {
+  public override func prepareForDeletion() {
+    for case let img as PersistentImageEntry in self.images ?? []{
+      if img.imageContent?.count == 1,
+         (img.imageContent ?? []).allObjects.first as? PersistentContent == self,
+         img.moment == nil,
+         img.page == nil
+      {
+        img.delete()
+      }
+    }
+  }
+}
 
 /// A stored Article
 public final class StoredArticle: Article, StoredObject {
@@ -1199,8 +1212,6 @@ public final class StoredPage: Page, StoredObject {
   }
 
 } // StoredPage
-
-extension PersistentSection: PersistentObject {}
 
 /// A stored Section
 public final class StoredSection: Section, StoredObject {
