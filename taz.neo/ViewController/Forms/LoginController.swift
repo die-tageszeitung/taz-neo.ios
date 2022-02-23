@@ -116,7 +116,7 @@ class LoginController: FormsController {
             case .valid:
               let ctrl = ConnectTazIdController(aboId: aboId,
                                                 aboIdPassword: aboIdPass, auth: self.auth)
-              ctrl.ui.registerButton.setTitle("taz-ID erstellen", for: .normal)
+              ctrl.ui.registerButton.setTitle("Konto erstellen", for: .normal)
               self.modalFlip(ctrl)
             case .expired:
               self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: info.message,

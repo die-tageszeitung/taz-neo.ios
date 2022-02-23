@@ -265,7 +265,7 @@ public class FeedbackViewController : UIViewController{
       var tazIdText = ""
       let data = DefaultAuthenticator.getUserData()
       if let tazID = data.id, tazID.isEmpty == false {
-        tazIdText = " taz-ID: \(tazID)"
+        tazIdText = " Konto: \(tazID)"
       }
       
       mail.setSubject("\(type?.description ?? "UNERWARTETES VERHALTEN!") \"\(App.name)\" (iOS)\(tazIdText)")
