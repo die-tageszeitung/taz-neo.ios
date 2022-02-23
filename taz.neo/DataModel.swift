@@ -395,8 +395,8 @@ public extension Article {
   var canPlayAudio: Bool { ArticlePlayer.singleton.canPlay(art: self) }
   
   /// Start/stop audio play if available
-  func toggleAudio(sectionName: String) {
-    ArticlePlayer.singleton.toggle(art: self, sectionName: sectionName)
+  func toggleAudio(issue: Issue, sectionName: String) {
+    ArticlePlayer.singleton.toggle(issue: issue, art: self, sectionName: sectionName)
   }
   
   // By default Articles don't have bookmarks
