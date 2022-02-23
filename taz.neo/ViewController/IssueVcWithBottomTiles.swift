@@ -251,7 +251,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       self.isFacsimile = !self.isFacsimile
       
       if let imageButton = control as? Button<ImageView> {
-        imageButton.buttonView.name = self.isFacsimile ? "mobileDevice" : "newspaper"
+        imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
         imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
       }
       self.collectionView.reloadData()
@@ -271,14 +271,13 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       })
       print("Settings Pressed")
     }
-    
     //the buttons and alignments
     toolbarHomeButton = toolBar.addImageButton(name: "home",
                                onPress: onHome,
                                direction: .right,
                                accessibilityLabel: "Übersicht")
     
-    _ = toolBar.addImageButton(name: self.isFacsimile ? "mobileDevice" : "newspaper",
+    _ = toolBar.addImageButton(name: self.isFacsimile ? "mobile-device" : "newspaper",
                                onPress: onPDF,
                                direction: .left,
                                accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
@@ -287,15 +286,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
                                onPress: onSettings,
                                direction: .center,
                                accessibilityLabel: "Einstellungen")
-    ///Example how to use vertical Alignment Option
-//    _ = toolBar.addImageButton(name: "gearshape",
-//                               onPress: onSettings,
-//                               direction: .center,
-//                               symbol: "gearshape",
-//                               accessibilityLabel: "Einstellungen",
-//                               vInset: -1.5,
-//                               hInset: 10,
-//                               useAbsoluteImageLayout: true)
         
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
@@ -340,7 +330,7 @@ extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
     var items: [MenuItem] = []
     if let issue = issue {
       items.append((title: "Bild Teilen",
-                    icon: "square.and.arrow.up",
+                    icon: "share",
                     closure: {[weak self] _ in
         guard let self = self else { return }
         (self as? IssueVC)?.exportMoment(issue: issue)

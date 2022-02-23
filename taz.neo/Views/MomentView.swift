@@ -27,7 +27,7 @@ public class MomentView: UIView, Touchable {
     set {
       if newValue {
         spinner.style
-          = self.image?.description.contains("DemoMoment") ?? false
+          = self.image?.description.contains("demo-moment-frame") ?? false
           ? .white
           : .gray
         spinner.startAnimating()

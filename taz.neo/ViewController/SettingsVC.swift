@@ -1063,7 +1063,7 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
     super.init(frame: .zero)
     label.text = text
     if collapseable {
-      chevron = UIImageView(image: UIImage(name: "chevron.up"))
+      chevron = UIImageView(image: UIImage(named: "chevron-up"))
       chevron?.iosLower13?.contentMode = .scaleAspectFit
       chevron?.tintColor = Const.SetColor.ios(.secondaryLabel).color
     }

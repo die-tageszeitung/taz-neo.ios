@@ -99,7 +99,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     ///Update an Issue if Placeholder was there!
     if let idx = issues.firstIndex(where: { $0.date == issue.date}) {
       issues[idx] = issue
-      if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("DemoMoment"){
+      if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("demo-moment-frame"){
         self.issueCarousel.updateIssue(img, at: idx, preventZoomInAnimation: true)
       }
       else {
@@ -485,7 +485,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.showDatePicker()
     }
     issueCarousel.addMenuItem(title: "Bild Teilen",
-                              icon: "square.and.arrow.up") {[weak self] _ in
+                              icon: "share") {[weak self] _ in
       guard let self = self else { return }
       self.exportMoment(issue: self.issue)
     }

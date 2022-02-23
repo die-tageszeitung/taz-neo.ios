@@ -1061,9 +1061,10 @@ extension Feeder {
     if img != nil { return img }
     
     if let sissue = issue as? StoredIssue, sissue.isOvwComplete == false {
-      return UIImage(named: "DemoMoment")
+      return UIImage(named: "demo-moment-frame")
     }
-    
+    //Currently: do not return demo frame for issue.isOverview items, otherwise home, bottom area did not work
+    //issue would be: frame stays, no refresh with real moment
     return nil
   }
 

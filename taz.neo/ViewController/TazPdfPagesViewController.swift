@@ -581,7 +581,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                            direction: .right,
                            accessibilityLabel: "Übersicht"
                            )
-    _ = toolBar.addImageButton(name: "arrowLeft",
+    _ = toolBar.addImageButton(name: "chevron-left",
                            onPress: onHome,
                            direction: .left,
                            accessibilityLabel: "Zurück"
