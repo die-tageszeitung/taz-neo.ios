@@ -594,7 +594,7 @@ extension SettingsVC {
               return
             }
       MainNC.singleton.feederContext.cancelAll()
-      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, deleteOrphanFolders: true)
+      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, deleteOrphanFolders: true)
       onMainAfter { [weak self] in
         self?.refreshAndReload()
         MainNC.singleton.feederContext.resume()
