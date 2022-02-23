@@ -78,6 +78,14 @@ open class ArticleVC: ContentVC {
         this.adelegate?.article = art
         this.setHeader(artIndex: idx)
         this.issue.lastArticle = idx
+        let player = ArticlePlayer.singleton
+        if player.isPlaying() { async { player.stop() } }
+        if art.canPlayAudio {
+          this.onPlay { _ in 
+            art.toggleAudio(issue: this.issue, sectionName: this.header.title) 
+          }
+        }
+        else { this.onPlay(closure: nil) }
         self?.debug("on display: \(idx), article \(art.html.name)")
      }
     }
@@ -98,12 +106,6 @@ open class ArticleVC: ContentVC {
     header.onTitle { [weak self] _ in
       self?.debug("*** Action: ToSection pressed")
       self?.navigationController?.popViewController(animated: true)
-    }
-    if App.isRelease == false {
-      header.onTaps(nTaps: 2) { [weak self] _ in
-        guard let self = self, let art = self.article else { return }
-        art.toggleAudio(sectionName: self.header.title)
-      }
     }
   }
     
