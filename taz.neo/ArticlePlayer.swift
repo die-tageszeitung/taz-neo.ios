@@ -30,6 +30,9 @@ class ArticlePlayer {
     return _singleton!
   }
   
+  /// Define closure to call when playing has been finished
+  public func onEnd(closure: ((Error?)->())?) { aplayer.onEnd(closure: closure) }
+  
   /// Returns true if the passed Article can be played
   /// currently only Articles referencing audio files can be played
   public func canPlay(art: Article) -> Bool { art.audio != nil }
@@ -40,18 +43,35 @@ class ArticlePlayer {
   }
   
   /// Plays the passed Article
-  public func play(art: Article, sectionName: String) {
+  public func play(issue: Issue, art: Article, sectionName: String) {
     guard let url = url(art) else { return }
     aplayer.file = url
     if let title = art.title { aplayer.title = title }
     aplayer.album = sectionName
+    if let authors = art.authors, !authors.isEmpty {
+      var names: [String] = []
+      for a in authors { if let n = a.name { names += n } }
+      aplayer.artist = names.joined(separator: ", ")
+    }
+    if let images = art.images, !images.isEmpty, 
+       let fn = images.first?.fileName {
+      let dir = issue.feed.feeder.issueDir(issue: issue).path
+      let path = "\(dir)/\(fn)"
+      let img = UIImage(contentsOfFile: path)
+      aplayer.image = img
+    }
+    else { aplayer.image = nil }
     aplayer.play()
   }
   
   /// Checks whether the passed Article is currently being played
-  public func isPlaying(art: Article) -> Bool {
-    guard let url = url(art) else { return false }
-    return url == aplayer.file
+  public func isPlaying(art: Article? = nil) -> Bool {
+    guard aplayer.isPlaying else { return false }
+    if let art = art {
+      guard let url = url(art) else { return false }
+      return url == aplayer.file
+    }
+    else { return true }
   }
   
   /// Pauses the current Article play
@@ -65,9 +85,12 @@ class ArticlePlayer {
   
   /// This toggle starts playing of the passed Article if this Article is not
   /// currently being played. If it is playing, it uses the simple toggle().
-  public func toggle(art: Article, sectionName: String) {
+  public func toggle(issue: Issue, art: Article, sectionName: String) {
     if isPlaying(art: art) { toggle() }
-    else { play(art: art, sectionName: sectionName) }
+    else { play(issue: issue, art: art, sectionName: sectionName) }
   }
+  
+  /// Stop the currently being played article
+  public func stop() { aplayer.close() }
   
 } // ArticlePlayer
