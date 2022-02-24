@@ -117,11 +117,16 @@ extension ContentToolbar {
                       symbol:String? = nil,
                       accessibilityLabel:String? = nil,
                       buttonSize:CGSize = CGSize(width: 50, height: 50),
-                      imageWidth:CGFloat = 32,
+                      imageWidth:CGFloat? = 32,
                       toolbar:ContentToolbarType? = nil) -> Button<ImageView> {
     let button = Button<ImageView>()
     button.pinSize(buttonSize)
-    button.buttonView.imageView.pinWidth(imageWidth)
+    
+    if let imageWidth = imageWidth {
+      button.buttonView.useExternalImageSetup = true
+      button.buttonView.imageView.pinWidth(imageWidth)
+    }
+    
     button.buttonView.name = name
     button.buttonView.symbol = symbol
     
