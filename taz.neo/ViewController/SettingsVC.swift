@@ -305,10 +305,10 @@ extension SettingsVC {
     let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
     header.collapsed = self.extendedSettingsCollapsed
     header.onTapping { [weak self] _ in
-      guard sectionData.collapseable else { return }
       guard let self = self else { return }
       guard section == 5 else { return }
-      ///todo another idea if more cells are collapseable!
+      guard let sectionData = self.data.sectionData(for: section) else { return }
+      guard sectionData.collapseable else { return }
       self.extendedSettingsCollapsed = !self.extendedSettingsCollapsed
       header.collapsed = self.extendedSettingsCollapsed
       self.refreshAndReload()
