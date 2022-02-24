@@ -257,8 +257,14 @@ extension SettingsVC {
   func refreshAndReload() {
     let oldData = data
     data = TableData(sectionContent: currentSectionContent())
-    let diff = data.changedIndexPaths(oldData: oldData)
     
+    if oldData.sectionsCount != data.sectionsCount {
+      tableView.reloadData()
+      return
+    }
+    
+    let diff = data.changedIndexPaths(oldData: oldData)
+        
     if (diff.added.count + diff.deleted.count) == 0 {
       tableView.reloadData()
       return
