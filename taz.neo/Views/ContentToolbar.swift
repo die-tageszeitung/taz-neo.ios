@@ -121,17 +121,9 @@ extension ContentToolbar {
                       toolbar:ContentToolbarType? = nil) -> Button<ImageView> {
     let button = Button<ImageView>()
     button.pinSize(buttonSize)
-    
-    if let imageWidth = imageWidth {
-      button.buttonView.useExternalImageSetup = true
-      button.buttonView.imageView.pinWidth(imageWidth)
-    }
-    
+    button.buttonView.hinset = 0.18
     button.buttonView.name = name
     button.buttonView.symbol = symbol
-    
-//    button.addBorder(.red)
-//    button.buttonView.imageView.addBorder(.green)
     
     if let al = accessibilityLabel {
       button.isAccessibilityElement = true

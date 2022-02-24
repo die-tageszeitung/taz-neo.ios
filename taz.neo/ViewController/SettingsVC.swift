@@ -703,8 +703,6 @@ extension SettingsVC {
     introVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
     introVC.webView.webView.scrollView.isScrollEnabled = scrollEnabled
     
-    introVC.webView.xButton.tazX()
-    
     introVC.webView.onX { _ in
       introVC.dismiss(animated: true, completion: nil)
     }
@@ -936,6 +934,9 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     
     leftButton.circleIconButton(symbol: "minus")
     rightButton.circleIconButton(symbol: "plus")
+    
+    leftButton.buttonView.hinset = 0.23
+    rightButton.buttonView.hinset = 0.23
     
     leftButton.onPress { [weak self] _ in
       self?.label.text = "\(Defaults.articleTextSize.decrease())%"

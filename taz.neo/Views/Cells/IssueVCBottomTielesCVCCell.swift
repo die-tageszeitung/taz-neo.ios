@@ -52,10 +52,10 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     pin(button, to: contentView, exclude: .top)
     button.pinHeight(buttonHeight)
     pin(button.topGuide(), to: momentView.bottomGuide(), dist: buttonOffset, priority: .fittingSizeLevel)
-    button.tintColor = Const.Colors.darkSecondaryText
+    button.tintColor = Const.Colors.appIconGrey
     //not use cloud image from assets due huge padding
     //button.cloudImage = UIImage(named: "download")
-    button.setTitleColor(Const.Colors.darkSecondaryText, for: .normal)
+    button.setTitleColor(Const.Colors.appIconGrey, for: .normal)
     button.titleLabel?.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
     
     Notification.receive("issueProgress", closure: {   [weak self] notif in

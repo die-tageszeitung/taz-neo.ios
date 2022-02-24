@@ -12,7 +12,7 @@ import NorthLib
 class IntroVC: UIViewController {
   
   /// The WebView to show the HTML-files
-  var webView = ButtonedWebView()
+  var webView = ButtonedWebView(customXButton: Button<ImageView>())
   /// The file containing the data policy
   var htmlDataPolicy: String?
   /// The file containing the introduction
@@ -39,6 +39,7 @@ class IntroVC: UIViewController {
     webView.buttonLabel.text = "Akzeptieren"
     webView.buttonLabel.clipsToBounds = true
     webView.buttonLabel.layer.cornerRadius = 5
+    webView.xButton.tazX()
     if let htmlDataPolicy = htmlDataPolicy,
        let htmlIntro = htmlIntro {
       let dataPolicy = File(htmlDataPolicy)
@@ -58,10 +59,4 @@ class IntroVC: UIViewController {
       }
     }
   }
-  
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    webView.xButton.tazX(true)
-  }
-
 } // WebViewTests
