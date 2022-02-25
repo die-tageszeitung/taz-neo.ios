@@ -189,7 +189,7 @@ public class FeedbackView : UIView {
     
     if isLoggedIn {
       senderMailDescriptionLabel.text
-        = "Für Rückfragen und Antwort nutzen wir die E-Mail-Adresse ihres taz Kontos oder nachfolgende E-Mail-Adresse.";
+        = "Für Rückfragen und Antwort nutzen wir Ihre taz-ID E-Mail-Adresse oder nachfolgende E-Mail-Adresse.";
       senderMail.placeholder
         = "Alternative E-Mail (optional)"
     }

@@ -92,7 +92,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       var tazIdText = ""
       let data = DefaultAuthenticator.getUserData()
       if let tazID = data.id, tazID.isEmpty == false {
-        tazIdText = " Konto: \(tazID)"
+        tazIdText = " taz-ID: \(tazID)"
       }
       
       mail.setSubject("\(subject) \"\(App.name)\" (iOS)\(tazIdText)")
