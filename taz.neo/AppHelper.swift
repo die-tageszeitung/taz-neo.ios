@@ -84,7 +84,7 @@ public extension App {
   /// - Returns: formated string with requested info
   static func authInfo(with feederContext: FeederContext) -> String {
     let authInfo = feederContext.isAuthenticated ? "angemeldet" : "NICHT ANGEMELDET"
-    return "\(authInfo), taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
+    return "\(authInfo), taz-Konto: \(DefaultAuthenticator.getUserData().id ?? "-")"
   }
   
   /// Get info is new Features are available

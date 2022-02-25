@@ -1,10 +1,10 @@
 /* taz Id Account Create */
-"taz_id_account_create_intro" = "Sie haben noch keine taz-ID? Hier können Sie sich selbst eine neue taz-ID mit einer E-Mail-Adresse und Ihrem persönlichen Passwort aussuchen.";
+"taz_id_account_create_intro" = "Sie haben noch kein taz-Konto? Hier können Sie sich selbst ein neues taz-Konto mit einer E-Mail-Adresse und Ihrem persönlichen Passwort aussuchen.";
 
 "taz_id_account_create_intro2" = "Um die neue taz App zu nutzen, müssen Sie sich zukünftig mit Ihrer E-Mail-Adresse und selbst gewähltem Passwort einloggen.";
 
 /* taz Id Account Create */
-"login_missing_credentials_switch_to_login" = "Ich habe schon eine taz-ID";
+"login_missing_credentials_switch_to_login" = "Ich habe schon ein taz-Konto";
 
 /* translation from Android */
 "login_missing_credentials_header_login" = "Sollten Sie bereits bei taz.de mit E-Mail-Adresse und Passwort registriert sein, geben Sie hier bitte diese Daten an.";
@@ -43,7 +43,7 @@
 
 
 "no_mail_title" = "Achtung";
-"no_mail_text" = "Zum Senden des Feedbacks verwendet diese App die iOS Mail Funktionalität.\nLeider kann derzeit von Ihrem Gerät keine E-Mail versendet werden. Bitte überprüfen Sie die Einstellungen zum Senden von E-Mails oder senden Sie Ihr Feedback direkt an: app@taz.de.\nBei Problemen oder Rückfragen geben Sie bitte auch Ihre taz-ID oder Abo-ID an.";
+"no_mail_text" = "Zum Senden des Feedbacks verwendet diese App die iOS Mail Funktionalität.\nLeider kann derzeit von Ihrem Gerät keine E-Mail versendet werden. Bitte überprüfen Sie die Einstellungen zum Senden von E-Mails oder senden Sie Ihr Feedback direkt an: app@taz.de.\nBei Problemen oder Rückfragen geben Sie bitte auch Ihre taz-Konto E-Mail-Adresse oder Abo-ID an.";
 
 /* translation from Android */
 "register_button" = "Kostenlos Probelesen";
@@ -75,7 +75,7 @@
 "back_button" = "Zurück";
 
 /* translation from Android */
-"login_forgot_password_email_sent_header" = "Die E-Mail wurde abgeschickt. Bitte schauen Sie in Ihr Mail-Postfach.\nSollten Sie sie nicht finden, schauen Sie bitte auch in Ihrem Spam-Ordner nach.";
+"login_forgot_password_email_sent_header" = "Falls Sie ein bestehendes taz-Konto unter der E-Mail-Adresse haben, wurde Ihnen eine E-Mail zugesandt. Bitte schauen Sie in Ihr Mail-Postfach.\nSollten Sie die E-Mail nicht finden, schauen Sie bitte auch in Ihrem Spam-Ordner nach.\nFür weitere Fragen wenden Sie sich bitte an app@taz.de.";
 
 /* translation from Android */
 "login_forgot_password_email_sent_back" = "Zurück zur Anmeldung";
@@ -111,10 +111,10 @@
 "toast_login_failed_retry" = "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.";
 
 /* translation from Android */
-"fragment_login_missing_credentials_switch_to_login" = "Ich habe schon eine taz-ID";
+"fragment_login_missing_credentials_switch_to_login" = "Ich habe schon eine taz-Konto";
 
 /* translation from Android */
-"fragment_login_missing_credentials_switch_to_registration" = "Ich habe noch keine taz-ID";
+"fragment_login_missing_credentials_switch_to_registration" = "Ich habe noch kein taz-Konto";
 
 
 /* translation from Android */
@@ -182,7 +182,7 @@
 "back_to_login" = "Zurück zur Anmeldung";
 
 /* translation from Android */
-"toast_login_with_email" = "Bitte melden Sie sich mit Ihrer taz-ID an!";
+"toast_login_with_email" = "Bitte melden Sie sich mit Ihrer E-Mail-Adresse an!";
 
 /* from website */
 "password_too_short" = "Ihr Passwort ist zu kurz (min. 8 Zeichen)!";
@@ -191,7 +191,7 @@
 "trial_subscroption" = "Probeabo abschließen";
 
 /* Header tazID ohne Abo ID */
-"unconnected_taz_id_header" = "Bisher ist kein Abo mit Ihrer taz-ID verknüpft.\n\nMöchten Sie ein bestehendes Abo mit Ihrer taz-ID verknüpfen?";
+"unconnected_taz_id_header" = "Bisher ist kein Abo mit Ihrer E-Mail-Adresse verknüpft.\n\nMöchten Sie ein bestehendes Abo mit Ihrer E-Mail-Adresse verknüpfen?";
 
 /* tazID ohne Abo ID bestehendes abo verknüpfen*/
 "connect_abo_id" = "Bestehendes Abo verknüpfen";
@@ -203,10 +203,10 @@
 "login_subscription_hint" = "Abo-ID";
 
 /* translation from Android */
-"login_tazid_hint" = "taz-ID";
+"login_tazid_hint" = "E-Mail-Adresse";
 
 /* aboId mit taz Id Verknüfpen */
-"connect_this_abo_id_with_taz_id" = "Mit taz-ID verknüpfen";
+"connect_this_abo_id_with_taz_id" = "Abo mit taz-Konto verknüpfen";
 
 /* aboId mit taz Id Verknüfpen */
 "send_button" = "Abschicken";
@@ -218,7 +218,7 @@
 "login_subscription_error_empty" = "Bitte Abo-ID angeben.";
 
 /* translation from Android */
-"fragment_login_missing__names_header" = "Zu Ihrer taz-ID ist noch kein Vor- und Nachname registriert. Dies ist zur Erstellung eines Probeabos notwendig.";
+"fragment_login_missing__names_header" = "Zu Ihrem taz-Konto ist noch kein Vor- und Nachname registriert. Dies ist zur Erstellung eines Probeabos notwendig.";
 
 /* translation from Android */
 "send_button" = "Abschicken";
