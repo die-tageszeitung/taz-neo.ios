@@ -807,8 +807,7 @@ extension PersistentContent: PersistentObject {
     for case let img as PersistentImageEntry in self.images ?? []{
       if img.imageContent?.count == 1,
          (img.imageContent ?? []).allObjects.first as? PersistentContent == self,
-         img.moment == nil,
-         img.page == nil
+         img.moment == nil
       {
         img.delete()
       }
