@@ -43,6 +43,8 @@ public struct Const {
     static let darkSeparator: UIColor = UIColor.rgb(0x545458)
     static let darkPrimaryText: UIColor =  UIColor.rgb(0xffffff)
     static let darkSecondaryText: UIColor = UIColor.rgb(0xebebf5)
+    static let appIconGrey: UIColor = darkSecondaryText //UIColor.rgb(0x9c9c9c)
+    
     static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)
     
     static let darkToolbar = darkSecondaryBG
@@ -298,6 +300,8 @@ public struct Const {
     static let DefaultFontSize = CGFloat(16)
     static let SmallerFontSize = CGFloat(14)
     static let LargeTitleFontSize = CGFloat(34)
+    static let TitleFontSize = CGFloat(25)
+    static let SubtitleFontSize = CGFloat(21)
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
     static let TextFieldPadding = SmallPadding
@@ -383,8 +387,8 @@ extension UILabel {
   /// set content title font with default font size and return self (for chaining)
   /// - Returns: self
   @discardableResult
-  func titleFont() -> UILabel {
-    self.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+  func titleFont(size: CGFloat = Const.Size.LargeTitleFontSize) -> UILabel {
+    self.font = Const.Fonts.titleFont(size: size)
     return self
   }
   

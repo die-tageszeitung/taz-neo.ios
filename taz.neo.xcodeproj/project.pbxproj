@@ -37,6 +37,7 @@
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
+		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
 		7772B1ED2743BEC300991347 /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
@@ -142,6 +143,7 @@
 		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
 		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
 		776158192743E8440044516C /* AppIcons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcons; sourceTree = "<group>"; };
+		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
 		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
@@ -273,6 +275,14 @@
 			path = Feedback;
 			sourceTree = "<group>";
 		};
+		777048A727B3B057007164A0 /* Business */ = {
+			isa = PBXGroup;
+			children = (
+				777048AA27B3B077007164A0 /* NotificationBusiness.swift */,
+			);
+			path = Business;
+			sourceTree = "<group>";
+		};
 		77D0DAE825E8FDD100C9CB59 /* Cells */ = {
 			isa = PBXGroup;
 			children = (
@@ -391,6 +401,7 @@
 		AEBAF566219ACD1900566205 /* taz.neo */ = {
 			isa = PBXGroup;
 			children = (
+				777048A727B3B057007164A0 /* Business */,
 				7715968B25CC605D00508DE8 /* Feedback */,
 				0015B73524DD86B30037A8D6 /* Authenticator.swift */,
 				0015B73924DD87DA0037A8D6 /* DefaultAuthenticator.swift */,
@@ -664,6 +675,7 @@
 				AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */,
 				0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
+				777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */,
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,
 				AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */,
 				AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */,
@@ -786,7 +798,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.4;
+				MARKETING_VERSION = 0.9.5;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -932,7 +944,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.4;
+				MARKETING_VERSION = 0.9.5;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -957,7 +969,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.4;
+				MARKETING_VERSION = 0.9.5;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

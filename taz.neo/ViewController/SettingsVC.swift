@@ -8,208 +8,347 @@
 import UIKit
 import NorthLib
 
-typealias AttributedRawData = (String, String, String)
-
-extension Settings.LinkType {
-  var cellDescription:String {
-    switch self {
-      case .onboarding: return "Erste Schritte";
-      case .errorReport: return "Fehler melden";
-      case .manageAccount: return userInfo;
-      case .terms: return "Allgemeine Geschäftsbedingungen (AGB)";
-      case .privacy: return "Datenschutzerklärung";
-      case .revocation: return "Widerruf";
-      case .faq: return "FAQ (im Browser öffnen)";
-      case .cleanMemory: return "Alte Ausgaben löschen";
-    }
-  }
-  
-  var attributedRawData:AttributedRawData? {
-    guard self == .cleanMemory else { return nil}
-    
-    let storage = DeviceData().detailStorage
-    let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
-    let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
-    
-    let txt = "App: \(app) MB\nAusgaben: \(data) MB"
-    return ("Speichernutzung", "alte Ausgaben löschen", txt)
-  }
-
-  private var userInfo: String {
-    let isAuth = MainNC.singleton.feederContext.isAuthenticated
-    let (id,_,token) = SimpleAuthenticator.getUserData()
-    if isAuth, (id != nil), (token != nil) {
-      return "Konto Verwalten (\(id ?? ""))"
-    }
-    else {
-      return "Anmelden"
-    }
-  }
-}
-
-
-extension Settings.CellType {
-  var identifier:String {
-    switch self {
-      case .custom: return CustomSettingsCell.identifier;
-      case .link: return LinkSettingsCell.identifier;
-      case .toggle: return ToggleSettingsCell.identifier;
-    }
-  }
-}
-
-struct Settings {
-  
-  @Default("autoloadInWLAN")
-  static var autoloadInWLAN: Bool
-
-  @Default("autoloadNewIssues")
-  static var autoloadNewIssues: Bool
+/**
+ A SettingsVC is a view controller to edit app's user Settings; Cells are not re-used!
+ */
+// MARK: - SettingsVC
+open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalCloseable {
   
   @Default("persistedIssuesCount")
-  static var persistedIssuesCount: Int
+  var persistedIssuesCount: Int
+  
+  @Default("autoloadOnlyInWLAN")
+  var autoloadOnlyInWLAN: Bool
+  
+  @Default("autoloadPdf")
+  var autoloadPdf: Bool
+  
+  @Default("autoloadNewIssues")
+  var autoloadNewIssues: Bool {
+    ///show/hide autoloadOnlyInWLAN
+    didSet { if oldValue != autoloadNewIssues { refreshAndReload() }}
+  }
+  
+  var extendedSettingsCollapsed: Bool = true
   
   @Default("isTextNotification")
-  static var isTextNotification: Bool
-    
-  enum CellType { case link, toggle, custom }
-  enum LinkType { case onboarding, faq, errorReport, manageAccount, terms, privacy, revocation, cleanMemory }
+  var isTextNotification: Bool
   
-  struct Cell {
-    var linkType:LinkType?
-    let type:CellType
-    var accessoryView:UIView?
-    var customView:UIView?
-    var text:String?
-    var subText:String?
-    var userSetting: Bool?
-    var toggleiInitialValue:Bool?
-    var toggleChangeHandler:((Bool)->())?
-    var tapHandler:(()->())?
-    init(toggleWithText text: String, initialValue: Bool, changeHandler: @escaping ((Bool)->())) {
-      self.toggleChangeHandler = changeHandler
-      self.toggleiInitialValue = initialValue
-      self.type = .toggle
-      self.text = text
+  var initialTextNotificationSetting: Bool?
+  
+  var data:TableData = TableData(sectionContent: [])
+  
+  
+  /// factory to create images for cells accessory view; attend every cell needs its own image!
+  var webviewImage: UIImageView {
+    get {
+      let iv = UIImageView(image: UIImage(name: "safari"))
+      iv.tintColor = Const.SetColor.ios(.secondaryLabel).color
+      return iv
     }
+  }
+  
+  
+  // MARK: Cell creation
+  ///konto
+  lazy var loginCell: XSettingsCell = {
+    guard let feeder = MainNC.singleton.feederContext.gqlFeeder else {
+      return XSettingsCell(text: "..."){} }
+    let authenticator = DefaultAuthenticator(feeder: feeder)
+    Notification.receive("authenticationSucceeded") { [weak self]_ in
+      self?.refreshAndReload()
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+    }
+    return XSettingsCell(text: "Anmelden") { [weak self] in
+      authenticator.authenticate(with: self)
+    }
+  }()
+  lazy var logoutCell: XSettingsCell
+  = XSettingsCell(text: "Abmelden (\(SimpleAuthenticator.getUserData().id ?? "???"))",
+                  detailText: Defaults.expiredAccountText,
+                  tapHandler: {[weak self] in self?.requestLogout()} )
+  lazy var resetPasswordCell: XSettingsCell
+  = XSettingsCell(text: "Passwort zurücksetzen",
+                  tapHandler: {[weak self] in self?.resetPassword()} )
+  lazy var manageAccountCell: XSettingsCell =
+  XSettingsCell(text: "Konto online verwalten",
+                    tapHandler: {[weak self] in self?.manageAccountOnline()},
+                    accessoryView: webviewImage )
+  
+  lazy var deleteAccountCell: XSettingsCell
+  = XSettingsCell(text: "Konto löschen",
+                  isDestructive: true,
+                  tapHandler: {[weak self] in self?.requestAccountDeletion()},
+                  accessoryView: webviewImage)
+  ///ausgabenverwaltung
+  lazy var maxIssuesCell: XSettingsCell
+  = XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
+                  detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
+                  accessoryView: SaveLastCountIssuesSettings())
+  lazy var autoloadNewIssuesCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
+                  initialValue: autoloadNewIssues,
+                  onChange: {[weak self] newValue in
+    self?.autoloadNewIssues = newValue
+    if newValue == true { self?.checkNotifications() }
+  })
+  lazy var wlanCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
+                  initialValue: autoloadOnlyInWLAN,
+                  onChange: {[weak self] newValue in
+    self?.autoloadOnlyInWLAN = newValue })
+  lazy var epaperLoadCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Zeitungsansicht immer mit laden",
+                  initialValue: autoloadPdf,
+                  onChange: {[weak self] newValue in
+    self?.autoloadPdf = newValue })
+  lazy var deleteIssuesCell: XSettingsCell
+  = XSettingsCell(text: "Alle Ausgaben löschen",
+                  isDestructive: true,
+                  tapHandler: {[weak self] in self?.requestDeleteAllIssues()} )
+  ///darstellung
+  lazy var textSizeSettingsCell: XSettingsCell
+  = XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting())
+  lazy var darkmodeSettingsCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Nachtmodus",
+                  initialValue: Defaults.darkMode,
+                  onChange: { newValue in Defaults.darkMode = newValue })
+  ///hilfe
+  lazy var onboardingCell: XSettingsCell
+  = XSettingsCell(text: "Erste Schritte",
+                  tapHandler: {[weak self] in self?.showOnboarding()} )
+  lazy var faqCell: XSettingsCell
+  = XSettingsCell(text: "FAQ",
+                  tapHandler: {[weak self] in self?.openFaq()},
+                  accessoryView: webviewImage)
+  lazy var reportErrorCell: XSettingsCell
+  = XSettingsCell(text: "Fehler melden",
+                  tapHandler: {MainNC.singleton.showFeedbackErrorReport(.error)} )
+  lazy var feedbackCell: XSettingsCell
+  = XSettingsCell(text: "Feedback geben",
+                  tapHandler: {MainNC.singleton.showFeedbackErrorReport(.feedback)} )
+  ///rechtliches
+  lazy var termsCell: XSettingsCell
+  = XSettingsCell(text: "Allgemeine Geschäftsbedingungen (AGB)",
+                  tapHandler: {[weak self] in self?.showTerms()} )
+  lazy var privacyCell: XSettingsCell
+  = XSettingsCell(text: "Datenschutzerklärung",
+                  tapHandler: {[weak self] in self?.showPrivacy()} )
+  lazy var revokeCell: XSettingsCell
+  = XSettingsCell(text: "Widerruf",
+                  tapHandler: {[weak self] in self?.showRevocation()} )
+  ///erweitert
+  lazy var notificationsCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Mitteilungen erlauben",
+                  detailText: "Zeige Mitteilungen außerhalb der App an (Banner, Sperrbildschirm)",
+                  initialValue: isTextNotification,
+                  onChange: {[weak self] newValue in
+                    self?.isTextNotification = newValue
+                    if newValue == true { self?.checkNotifications() }
+                  })
+  lazy var memoryUsageCell: XSettingsCell
+  = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
+  lazy var deleteDatabaseCell: XSettingsCell
+  = XSettingsCell(text: "Daten zurücksetzen",
+                  isDestructive: true,
+                  tapHandler: {[weak self] in self?.requestDatabaseDelete()} )
+  lazy var resetAppCell: XSettingsCell
+  = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
+                  isDestructive: true,
+                  tapHandler: {[weak self] in self?.requestResetApp()} )
+  
+  /// UI Components
+  lazy var footer:Footer = Footer()
+  
+  lazy var header = SimpleHeaderView("einstellungen")
+  ///Close X Button
+  public lazy var xButton = Button<ImageView>().tazX()
+  
+  let blockingView = BlockingProcessView()
+  
+  var uiBlocked:Bool = false {
+    didSet{
+      if uiBlocked {
+        self.view.addSubview(blockingView)
+        pin(blockingView, to:self.view)
+      }
+      blockingView.isHidden = !uiBlocked
+      blockingView.enabled = uiBlocked
+    }
+  }
+  
+  // MARK: Lifecycle
+  open override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    guard let wrapper =  self.tableView.superview else { return }
+    setupXButtonIfNeeded(targetView:wrapper)
+  }
+  
+  open override func viewDidLoad() {
+    self.tableView = UITableView(frame: .zero, style: .grouped)
+    super.viewDidLoad()
+    data = TableData(sectionContent: currentSectionContent())
+    setup()
+    applyStyles()
+    registerForStyleUpdates()
+    let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
+    tableView.addGestureRecognizer(longTap)
+    initialTextNotificationSetting = isTextNotification
+  }
+  
+  open override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    guard self.presentedViewController == nil else { return }
+    // free cells / prevent memory leaks
+    // dismiss, willMove, didMove not called if presented modally
+    data = TableData(sectionContent:[])
+    Notification.remove(observer: self)
+    self.tableView.reloadData()
     
-    init(linkType: LinkType) {
-      self.type = .link
-      self.linkType = linkType
+    if initialTextNotificationSetting != isTextNotification {
+      NotificationBusiness.sharedInstance.updateTextNotificationSettings()
     }
+  }
+  
+  deinit {
+    print("SettingsVC deinit")
+  }
+}
 
-    init(withText text: String, subText: String? = nil, accessoryView: UIView) {
-      self.accessoryView = accessoryView
-      self.type = .custom
-      self.text = text
-      self.subText = subText
-    }
-    
-    init(customView: UIView) {
-      self.customView = customView
-      self.type = .custom
-    }
-  }
-  typealias sectionContent = (title:String?, collapseable:Bool, collapsed:Bool,  cells:[Cell])
+// MARK: - Helper
+extension SettingsVC {
   
-  //Prototype Cells
-  static func content() -> [sectionContent] {
-    return [
-      ("speicher", false, false,
-       [
-        Cell(customView: SaveLastCountIssues()),
-        Cell(linkType: .cleanMemory),
-       ]),/*
-       ("ausgaben laden", false, false,
-        [
-         Cell(toggleWithText: "Neue Ausgaben automatisch laden",
-              initialValue: Settings.autoloadNewIssues,
-              changeHandler: { newValue in Settings.autoloadNewIssues = newValue}),
-         Cell(toggleWithText: "Automatischer Download auch im Mobilfunknetz",
-              initialValue: Settings.autoloadInWLAN,
-              changeHandler: { newValue in Settings.autoloadInWLAN = newValue})
-         ,
-        ]
-      ),*/
-      ("darstellung", false,false,
-       [
-        Cell(withText: "Textgröße (Inhalte)", accessoryView: TextSizeSetting()),
-        Cell(toggleWithText: "Nachtmodus",
-             initialValue: Defaults.darkMode,
-             changeHandler: { newValue in
-               Defaults.darkMode = newValue
-             })
-       ]
-      ),
-      ("support", false,false,
-       [
-        Cell(linkType: .onboarding),
-        Cell(linkType: .faq),
-        Cell(linkType: .errorReport)
-       ]
-      ),
-      ("abo", false,false,
-       [
-        Cell(linkType: .manageAccount),
-        Cell(linkType: .terms),
-        Cell(linkType: .privacy),
-        Cell(linkType: .revocation)
-       ]
-      ),
-      ("erweitert", true,true,
-       [
-        Cell(toggleWithText: "Mitteilungen erlauben",
-             initialValue: Settings.isTextNotification,
-             changeHandler: Settings.textNotificationsChanged(newValue:)),
-        //        Cell(toggleWithText: "Rechtshändermodus",
-        //             initialValue: true,
-        //             changeHandler: { _ in }),
-        //        Cell(toggleWithText: "Teilen in Ressortübersicht ausblenden",
-        //             initialValue: true,
-        //             changeHandler: { _ in })
-       ]
-      )
-    ]
+  @objc func applicationDidBecomeActive(notification: NSNotification) {
+    checkNotifications()
   }
   
-  static func textNotificationsChanged(newValue:Bool){
-    isTextNotification = newValue
-    if newValue == false { return }
-    let center = UNUserNotificationCenter.current()
-    center.getNotificationSettings { (settings) in
-      if settings.soundSetting == .disabled
-      && settings.alertSetting == .disabled
-      && settings.badgeSetting == .disabled {
-        Alert.confirm(message: "Bitte erlauben Sie Benachrichtigungen!") { _ in
-          if let url = URL.init(string: UIApplication.openSettingsURLString) {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-          }
+  func checkNotifications(){
+    NotificationBusiness.sharedInstance.checkNotificationStatusIfNeeded {
+      //disable notifications toggle / Do not disable autoload toggle!
+      onMain {   [weak self] in
+        guard let self = self else { return }
+        if let toggle = self.notificationsCell.customAccessoryView as? UISwitch{
+          toggle.isOn
+          = self.isTextNotification
+          && NotificationBusiness.sharedInstance.systemNotificationsEnabled
         }
       }
     }
   }
+  
+  public func applyStyles() {
+    tableView.backgroundColor = Const.SetColor.CTBackground.color
+    xButton.tazX(true)
+  }
+  
+  func setup(){
+    tableView.tableHeaderView = header
+    tableView.separatorInset = .zero
+    header.layoutIfNeeded()
+    registerForStyleUpdates()
+    NotificationCenter.default
+      .addObserver(self,
+                   selector: #selector(applicationDidBecomeActive),
+                   name: UIApplication.didBecomeActiveNotification,
+                   object: nil)
+    checkNotifications()
+  }
+  
+  func refreshAndReload() {
+    let oldData = data
+    data = TableData(sectionContent: currentSectionContent())
+    
+    if oldData.sectionsCount != data.sectionsCount {
+      tableView.reloadData()
+      return
+    }
+    
+    let diff = data.changedIndexPaths(oldData: oldData)
+        
+    if (diff.added.count + diff.deleted.count) == 0 {
+      tableView.reloadData()
+      return
+    }
+    
+    self.tableView.performBatchUpdates {   [weak self] in
+      guard let self = self else { return }
+      if diff.deleted.count > 0 {
+        self.tableView.deleteRows(at: diff.deleted, with: .fade)
+      }
+      
+      if diff.added.count > 0 {
+        self.tableView.insertRows(at: diff.added, with: .fade)
+      }
+    }
+  }
+  
+  @objc private func handleLongTap(sender: UILongPressGestureRecognizer) {
+    if sender.state == .began {
+      let touchPoint = sender.location(in: tableView)
+      guard let indexPath = tableView.indexPathForRow(at: touchPoint) else { return }
+      data.cell(at: indexPath)?.longTapHandler?()
+    }
+  }
 }
 
-/**
- A SettingsVC is a view controller to edit app's user Settings
- */
-// MARK: - SettingsVC
-open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
+// MARK: - UITableViewDataSource
+extension SettingsVC {
+  open override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return data.rowsIn(section: section)
+  }
   
-  @Default("persistedIssuesCount")
-  private var persistedIssuesCount: Int
+  open override func numberOfSections(in tableView: UITableView) -> Int {
+    return data.sectionsCount
+  }
   
-  var feederContext: FeederContext?
-    
-  public lazy var xButton = Button<CircledXView>().tazX()
+  open override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    return data.cell(at: indexPath) ?? UITableViewCell()
+  }
   
-  lazy var content = Settings.content()
+  open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    guard let sectionData = data.sectionData(for: section),
+          let title = sectionData.title else { return nil }
+    let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
+    header.collapsed = self.extendedSettingsCollapsed
+    header.onTapping { [weak self] _ in
+      guard let self = self else { return }
+      guard section == 5 else { return }
+      guard let sectionData = self.data.sectionData(for: section) else { return }
+      guard sectionData.collapseable else { return }
+      self.extendedSettingsCollapsed = !self.extendedSettingsCollapsed
+      header.collapsed = self.extendedSettingsCollapsed
+      self.refreshAndReload()
+    }
+    return header
+  }
   
+  open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+    return section == data.sectionsCount - 1 ? footer : nil
+  }
+  
+  open override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
+    view.backgroundColor = .clear
+  }
+  
+  open override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+    return data.footerHeight(for: section)
+  }
+  
+  open override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+    return data.canTap(at: indexPath) ? indexPath : nil
+  }
+  
+  open override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    tableView.deselectRow(at: indexPath, animated: true)
+    data.cell(at: indexPath)?.tapHandler?()
+  }
+}
+
+// MARK: - Nested Class: Footer
+extension SettingsVC {
   class Footer:UIView, UIStyleChangeDelegate{
-    
     let label = UILabel()
     let background = UIView()
-
     
     func applyStyles() {
       background.backgroundColor = Const.Colors.opacityBackground
@@ -240,215 +379,244 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
       fatalError("init(coder:) has not been implemented")
     }
   }
-  
-  lazy var footer:Footer = Footer()
-  
-  lazy var header = SimpleHeaderView("einstellungen")
-  
-  func setup(){
-    tableView.register(ToggleSettingsCell.self, forCellReuseIdentifier: ToggleSettingsCell.identifier)
-    tableView.register(LinkSettingsCell.self, forCellReuseIdentifier: LinkSettingsCell.identifier)
-    tableView.register(CustomSettingsCell.self, forCellReuseIdentifier: CustomSettingsCell.identifier)
-    tableView.register(CustomSettingsCell.self, forCellReuseIdentifier: CustomSettingsCell.identifier)
-    tableView.tableHeaderView = header
-    tableView.separatorStyle = .none
-    header.layoutIfNeeded()
-    registerForStyleUpdates()
-  }
-  
-  func setupXButtonIfNeeded(){
-    if xButton.superview != nil { return }
-    guard let wrapper =  self.tableView.superview else { return }
-    wrapper.addSubview(xButton)
-    pin(xButton.right, to: wrapper.right, dist: -Const.ASize.DefaultPadding)
-    pin(xButton.top, to: wrapper.top, dist: Const.ASize.DefaultPadding)
-    xButton.onPress { [weak self] _ in
-      guard let self = self else { return }
-      self.navigationController?.dismiss(animated: true)
-    }
-  }
-  
-  public func applyStyles() {
-    self.tableView.backgroundColor = Const.SetColor.CTBackground.color
-    xButton.tazX(true)
-  }
-  
-  open override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    setupXButtonIfNeeded()
-  }
-  
-  open override func viewDidLoad() {
-    self.tableView = UITableView(frame: .zero, style: .grouped)
-    super.viewDidLoad()
-    setup()
-    applyStyles()
-    registerForStyleUpdates()
-    let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
-    tableView.addGestureRecognizer(longTap)
-  }
-  
-  open override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    let content = content[section]
-    if content.collapseable && content.collapsed { return 0 }
-    return content.cells.count
-  }
-  
-  open override func numberOfSections(in tableView: UITableView) -> Int {
-    return content.count
-  }
-  
-  open override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cellContent = content[indexPath.section].cells[indexPath.row]
-    let cell = tableView.dequeueReusableCell(withIdentifier: cellContent.type.identifier,
-                                             for: indexPath) as? SettingsCell
-    cell?.content = cellContent
-    return cell ?? UITableViewCell()
-  }
-  
-  open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    let header = SectionHeader(text:content[section].title ?? "")
-    header.onTapping { [weak self] _ in
-      guard let self = self else { return }
-      let content = self.content[section]
-      guard content.collapseable else { return }
-      self.content[section].collapsed = !content.collapsed
-      self.tableView.reloadSections(IndexSet(integer: section), with: .fade)
-    }
-    return header
-  }
-  
-  open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    return section == content.count - 1 ? footer : UIView()
-  }
+}
 
-  open override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
-    view.backgroundColor = .clear
-  }
+// MARK: - cell data model
+extension SettingsVC {
+  typealias tSectionContent = (title:String?,
+                               collapseable:Bool,
+                               cells:[XSettingsCell])
+  ///added, deleted, updated
+  typealias tChangedIndexPaths = (added: [IndexPath],
+                                  deleted: [IndexPath])
   
-  open override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    return section == content.count - 1 ? 40.0 : 10
-  }
-  
-  open override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
-    print("willSelectRowAt \(indexPath)\(Date().dateAndTime)")
-    let cellContent = content[indexPath.section].cells[indexPath.row]
-    if cellContent.tapHandler == nil,
-       cellContent.type != .link { return nil }
-    return indexPath
-  }
-  
-  open override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    print("didSelectRowAt \(indexPath)\(Date().dateAndTime)")
-    let cellContent = content[indexPath.section].cells[indexPath.row]
-    guard let linkType = cellContent.linkType,
-          cellContent.type == .link else { return }
-    tableView.deselectRow(at: indexPath, animated: true)
-    handleLink(linkType: linkType)
-  }
-  
-  @objc private func handleLongTap(sender: UILongPressGestureRecognizer) {
-    if sender.state == .began {
-      let touchPoint = sender.location(in: tableView)
-      guard let indexPath = tableView.indexPathForRow(at: touchPoint) else { return }
-      let cellContent = content[indexPath.section].cells[indexPath.row]
-      guard let linkType = cellContent.linkType, cellContent.type == .link else { return }
-      handleLongTapLink(linkType: linkType)
+  struct TableData{
+    @Default("autoloadNewIssues")
+    var autoloadNewIssues: Bool
+    private var sectionContent:[tSectionContent]
+    init(sectionContent: [tSectionContent]) {
+      self.sectionContent = sectionContent
     }
   }
 }
 
-// MARK: - Handler
+// MARK: - cell data model access helper
+extension SettingsVC.TableData{
+  
+  var sectionsCount: Int { return self.sectionContent.count }
+  
+  func rowsIn(section: Int) -> Int{
+    guard let sectionContent = sectionData(for: section) else { return 0 }
+    return sectionContent.cells.count
+  }
+  
+  func canTap(at indexPath: IndexPath) -> Bool{
+    return cell(at: indexPath)?.tapHandler != nil
+  }
+  
+  func cell(at indexPath: IndexPath) -> XSettingsCell? {
+    return self.sectionContent.valueAt(indexPath.section)?.cells.valueAt(indexPath.row)
+  }
+  
+  func sectionData(for section: Int) -> SettingsVC.tSectionContent?{
+    return self.sectionContent.valueAt(section)
+  }
+  
+  func footerHeight(for section: Int) -> CGFloat{
+    return 20
+  }
+  
+  /// get updated IndexPath...
+  func changedIndexPaths(oldData: SettingsVC.TableData) -> SettingsVC.tChangedIndexPaths {
+    var added:[IndexPath] = []
+    var deleted:[IndexPath] = []
+    
+    for idSect in 0 ... max(self.sectionsCount, oldData.sectionsCount) - 1{
+      let newCells = self.sectionData(for: idSect)?.cells ?? []
+      let oldCells = oldData.sectionData(for: idSect)?.cells ?? []
+      
+      let addedCells = Set(newCells).subtracting(oldCells)
+      let deletedCells = Set(oldCells).subtracting(newCells)
+      
+      let newRows = self.rowsIn(section: idSect)
+      let oldRows = oldData.rowsIn(section: idSect)
+      for idRow in 0 ... (max(newRows, oldRows, 1) - 1){
+        let ip = IndexPath(row: idRow , section: idSect)
+        let newCell = self.cell(at: ip)
+        let oldCell = oldData.cell(at: ip)
+        
+        if let newCell = newCell, addedCells.contains(newCell){
+          added.append(ip)
+        }
+        
+        if let oldCell = oldCell, deletedCells.contains(oldCell){
+          deleted.append(ip)
+        }
+      }
+    }
+    return (added: added, deleted: deleted)
+  }
+}
+
+
+// MARK: - cell data/creation/helper
 extension SettingsVC {
-  func handleLongTapLink(linkType:Settings.LinkType){
-    switch linkType {
-      case .cleanMemory:
-        cleanMemoryMenu()
-      default:
-        break;
+  var isAuthenticated: Bool { return MainNC.singleton.feederContext.isAuthenticated }
+  
+  var storageDetails: String {
+    let storage = DeviceData().detailStorage
+    let data = String(format: "%.1f",  10*Float(storage.data)/(1000*1000*10))
+    let app =  String(format: "%.1f",  10*Float(storage.app)/(1000*1000*10))
+    return "App: \(app) MB, Daten: \(data) MB"
+  }
+  
+  var accountSettingsCells:[XSettingsCell] {
+    var cells =
+    [
+      isAuthenticated ? logoutCell : loginCell,
+      resetPasswordCell,
+      manageAccountCell
+    ]
+    if isAuthenticated {
+      cells.append(deleteAccountCell)
     }
+    return cells
   }
   
-  func handleLink(linkType:Settings.LinkType){
-    print("handleLink for: \(linkType)")
-    switch linkType {
-      case .errorReport:
-        handleErrorReport()
-      case .onboarding:
-        showOnboarding()
-      case .faq:
-        openFaq()
-      case .manageAccount:
-        manageAccount()
-      case .privacy:
-        showPrivacy()
-      case .terms:
-        showTerms()
-      case .revocation:
-        showRevocation()
-      case .cleanMemory:
-        cleanMemory()
-    }
-  }
-  
-  func openFaqAction() -> UIAlertAction {
-    return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { [weak self] _ in
-      self?.openFaq()
-    }
-  }
-  
-  func openFaq(){
-    guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
-    UIApplication.shared.open(url, options: [:], completionHandler: nil)
-  }
-  
-  func cleanMemoryMenu(){
-    let alert = UIAlertController.init( title: "Löschen - Erweiterte Optionen", message: nil,
-      preferredStyle:  .actionSheet )
+  var issueSettingsCells:[XSettingsCell] {
+    var cells = [
+      maxIssuesCell
+    ]
     
-    alert.addAction( UIAlertAction.init( title: "Datenbank zurücksetzen", style: .destructive,
-      handler: { [weak self] _ in
-      self?.resetDatabase()
+    if App.isAvailable(.AUTODOWNLOAD) {
+      cells.append(autoloadNewIssuesCell)
+    }
+    
+    if autoloadNewIssues && App.isAvailable(.AUTODOWNLOAD) {
+      cells.append(wlanCell)
+    }
+    cells.append(epaperLoadCell)
+    cells.append(deleteIssuesCell)
+    return cells
+  }
+  
+  //Prototype Cells
+  func currentSectionContent() -> [tSectionContent] {
+    return [
+      ("konto", false, accountSettingsCells),
+      ("ausgabenverwaltung", false, issueSettingsCells),
+      ("darstellung", false,
+       [
+        textSizeSettingsCell,
+        darkmodeSettingsCell
+       ]
+      ),
+      ("hilfe", false,
+       [
+        onboardingCell,
+        faqCell,
+        reportErrorCell,
+        feedbackCell
+       ]
+      ),
+      ("rechtliches", false,
+       [
+        termsCell,
+        privacyCell,
+        revokeCell
+       ]
+      ),
+      ("erweitert", true,
+       extendedSettingsCollapsed ? [] :
+        [
+          notificationsCell,
+          memoryUsageCell,
+          deleteDatabaseCell,
+          resetAppCell
+        ]
+      )
+    ]
+  }
+}
+
+// MARK: - Handler/Actions
+extension SettingsVC {
+  func requestLogout(){
+    let alert = UIAlertController.init( title: "Abmelden?",
+                                        message: "Heruntergeladene Ausgaben können weiterhin gelesen werden.",
+                                        preferredStyle:  .alert )
+    alert.addAction( UIAlertAction.init( title: "Ja, abmelden", style: .destructive,
+                                         handler: { [weak self] _ in
+      MainNC.singleton.deleteUserData()
+      self?.refreshAndReload()
     } ) )
     
-    alert.addAction( UIAlertAction.init( title: "App zurücksetzen", style: .destructive,
-                                         handler: {   [weak self] _ in
-      self?.resetApp()
-    } ) )
-  
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.view)
   }
   
-  func resetApp(force: Bool = false){
-    if force {
-      Defaults.singleton.setDefaults(values: ConfigDefaults, forceWrite: true)
-      Keychain.singleton["dataPolicyAccepted"] = nil
-      MainNC.singleton.deleteAll()
-      return
-    }
-    
-    let alert = UIAlertController.init( title: "App zurücksetzen?", message: "Wollen Sie alle Daten und Einstellungen zurücksetzen? Die App muss neu gestartet werden.\nIhre Anmeldung bleibt erhalten.",
+  func requestAccountDeletion(){
+    let alert = UIAlertController.init( title: "Konto löschen", message: "Hiermit können Sie die Löschung Ihres Kontos und die Beendigung Ihres Abonnements anfordern.\nWir senden Ihnen eine E-Mail mit einem Bestätigungslink. Falls ein laufendes Abonnement mit Ihrem Konto verknüpft ist, wird ihr Konto zur Löschung nach Ablauf des Abo's vorgemerkt. Details entnehmen Sie bitte der E-Mail.",
                                         preferredStyle:  .alert )
     
-    alert.addAction( UIAlertAction.init( title: "Ja, App zurücksetzen", style: .destructive,
+    alert.addAction( UIAlertAction.init( title: "Löschen anfordern", style: .destructive,
                                          handler: { [weak self] _ in
-      self?.resetApp(force: true)
+      guard let feeder = MainNC.singleton.feederContext.gqlFeeder else {
+        Toast.show(Localized("something_went_wrong_try_later"), .alert)
+        return
+      }
+      self?.uiBlocked = true
+      feeder.requestAccountDeletion { [weak self] (result) in
+        self?.uiBlocked = false
+        switch result{
+          case .success(let msg):
+            self?.log("Request account deletion success: \(msg)")
+            self?.showRequestAccountDeletionSuccessAlert()
+          case .failure(let err):
+            self?.log("Request account deletion failure: \(err)")
+            Toast.show(Localized("something_went_wrong_try_later"), .alert)
+        }
+      }
     } ) )
-    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.view)
   }
   
+  func showRequestAccountDeletionSuccessAlert(){
+    let alert = UIAlertController.init( title: "Hinweis", message: "Ihre Anfrage wird bearbeitet. Sie erhalten in den nächsten Minuten eine E-Mail mit Hinweisen zum weiteren Vorgehen und dem Bestätigungslink.\nBeachten Sie bitte, dass ihr Konto erst gelöscht werden kann, wenn Sie den Bestätigungslink in der E-Mail klicken. Der Bestätigungslink ist 24h gültig.\nFalls Sie Ihr Konto nicht löschen möchten, ignorieren Sie einfach die E-Mail.",
+                                        preferredStyle:  .alert )
+    alert.addAction( UIAlertAction.init( title: "OK", style: .default) { _ in } )
+    alert.presentAt(self.view)
+  }
   
-  
-  func resetDatabase(force: Bool = false){
-    if force {
-      if MainNC.singleton.feederContext.dloader.isDownloading {
-        Toast.show("Abgebrochen!\nBitte warten Sie bis alle aktuellen Downloads abgeschlossen sind!", .alert)
-        return
+  func requestDeleteAllIssues(){
+    let alert = UIAlertController.init( title: "Alle Ausgaben löschen", message: nil,
+                                        preferredStyle:  .alert )
+    alert.addAction( UIAlertAction.init( title: "Löschen", style: .destructive,
+                                         handler:  { [weak self] _ in
+      guard let storedFeeder = MainNC.singleton.feederContext.storedFeeder,
+            let storedFeed = storedFeeder.storedFeeds.first else {
+              return
+            }
+      MainNC.singleton.feederContext.cancelAll()
+      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, deleteOrphanFolders: true)
+      onMainAfter { [weak self] in
+        self?.refreshAndReload()
+        MainNC.singleton.feederContext.resume()
+        Notification.send("reloadIssues")
       }
-      
+    } ) )
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    alert.presentAt(self.view)
+  }
+  
+  func requestDatabaseDelete(){
+    let alert = UIAlertController.init( title: "Daten zurücksetzen", message: "Falls Ihre App wiederholt ungewollt beendet wird, benutzen Sie diese Aktion. Die App wird nach Ausführung der Aktion automatisch beendet und kann von Ihnen erneut gestartet werden.\nBei dieser Aktion bleiben viele Daten erhalten, es wird nur eine geringe Menge Daten zum Abgleich der Ausgaben erneut heruntergeladen.\nBitte nutzen Sie auch auch unsere \"Fehler melden\" Funktion um uns Fehler in der App mitzuteilen!",
+                                        preferredStyle:  .actionSheet)
+    
+    alert.addAction( UIAlertAction.init( title: "Daten zurücksetzen", style: .destructive,
+                                         handler: { _ in
       MainNC.singleton.popToRootViewController(animated: false)
       MainNC.singleton.feederContext.cancelAll()
       ArticleDB.singleton.reset { [weak self] err in
@@ -462,39 +630,29 @@ extension SettingsVC {
         //  MainNC.singleton.feederContext.resume()
         //  MainNC.singleton.showIssueVC()
         //}
-        return
       }
-    }
-    
-    let alert = UIAlertController.init( title: "Datenbank zurücksetzen?", message: "Wollen Sie die App interne Datenbank zurücksetzen?\nDies kann notwendig sein, wenn die App beim Download einer Ausgabe  beendet wird. Nach dem Zurücksetzen der Datenbank muss die taz App neu gestartet werden.\nHeruntergeladene Bilder und Zeitungsseiten bleiben erhalten und müssen beim Neustart nicht erneut heruntergeladen werden.",
-                                        preferredStyle:  .alert )
-    
-    alert.addAction( UIAlertAction.init( title: "Ja, Datenbank zurücksetzen", style: .destructive,
-                                         handler: { [weak self] _ in
-      self?.resetDatabase(force: true)
     } ) )
-    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.view)
   }
   
-  func cleanMemory(keepPreviewsCount:Int = 30){
-    if MainNC.singleton.feederContext.dloader.isDownloading {
-      Toast.show("Abgebrochen!\nBitte warten Sie bis alle aktuellen Downloads abgeschlossen sind!", .alert)
-      return
-    }
+  func requestResetApp(){
+    let alert = UIAlertController.init( title: "App in Auslieferungszustand zurück versetzen", message: "Löscht alle Daten und Einstellungen der App.\nDie App wird nach dem Zurücksetzen beendet und kann von Ihnen neu gestartet werden. Sie müssen sich im Anschluss neu anmelden.",
+                                        preferredStyle:  .actionSheet )
     
-    guard let storedFeeder = MainNC.singleton.feederContext.storedFeeder,
-          let storedFeed = storedFeeder.storedFeeds.first,
-          persistedIssuesCount > 0 else { return }
-    MainNC.singleton.feederContext.cancelAll()
-    StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: persistedIssuesCount, keepPreviews: keepPreviewsCount, deleteOrphanFolders: true)
-    onMainAfter {   [weak self]  in
-      self?.content[0] = Settings.content()[0]
-      let ip0 = IndexPath(row: 1, section: 0)
-      self?.tableView.reloadRows(at: [ip0], with: .fade)
-      MainNC.singleton.feederContext.resume()
-    }
+    
+    alert.addAction( UIAlertAction.init( title: "Zurücksetzen", style: .destructive,
+                                         handler: { _ in
+      MainNC.singleton.deleteUserData()
+      Defaults.singleton.setDefaults(values: ConfigDefaults,
+                                     isNotify: false,
+                                     forceWrite: true)
+      MainNC.singleton.deleteAll()
+    } ) )
+    
+    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    alert.presentAt(self.view)
   }
   
   func showPrivacy(){
@@ -512,58 +670,18 @@ extension SettingsVC {
     showLocalHtml(from: feeder.revocation, scrollEnabled: true)
   }
   
-  func manageAccount(){
-    let isAuth = MainNC.singleton.feederContext.isAuthenticated
-    
-    let actions = UIAlertController.init( title: nil, message: nil,
-      preferredStyle:  .actionSheet )
-    
-    if isAuth {
-      actions.addAction( UIAlertAction.init( title: "Abmelden", style: .default,
-        handler: { [weak self] handler in
-          MainNC.singleton.deleteUserData()
-          self?.tableView.reloadData()
-      } ) )
-    }
-    else {
-      actions.addAction( UIAlertAction.init( title: "Anmelden", style: .default,
-                                             handler: {   [weak self] _ in
-                                              guard let self = self else { return }
-          guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
-          let authenticator = DefaultAuthenticator(feeder: feeder)
-          authenticator.authenticate(with: self)
-          Notification.receiveOnce("authenticationSucceeded") { [weak self]_ in
-            self?.tableView.reloadData()
-            Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
-          } } ) )
-    }
-
-    actions.addAction( UIAlertAction.init( title: "Konto online verwalten", style: .default,
-    handler: {_ in
-      guard let url = URL(string: "https://portal.taz.de/") else { return }
-      UIApplication.shared.open(url, options: [:], completionHandler: nil)
-    } ) )
-    
-    
-    actions.addAction( UIAlertAction.init( title: "Passwort zurücksetzen", style: .default,
-    handler: {
-      [weak self] _ in
-      self?.modalPresentationStyle = .fullScreen
-      let id = SimpleAuthenticator.getUserData().id
-      guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
-      let childVc = PwForgottController(id: id, auth: DefaultAuthenticator.init(feeder: feeder))
-      childVc.modalPresentationStyle = .fullScreen
-      self?.present(childVc, animated: true) 
-    } ) )
-    actions.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel,
-    handler: {
-      (handler: UIAlertAction) in
-    } ) )
-    actions.presentAt(self.view)
+  func resetPassword(){
+    self.modalPresentationStyle = .fullScreen
+    let id = SimpleAuthenticator.getUserData().id
+    guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
+    let childVc = PwForgottController(id: id, auth: DefaultAuthenticator.init(feeder: feeder))
+    childVc.modalPresentationStyle = .fullScreen
+    self.present(childVc, animated: true)
   }
   
-  func handleErrorReport(){
-    MainNC.singleton.showFeedbackErrorReport(.error)
+  func manageAccountOnline(){
+    guard let url = URL(string: "https://portal.taz.de/") else { return }
+    UIApplication.shared.open(url, options: [:], completionHandler: nil)
   }
   
   func showOnboarding(){
@@ -571,15 +689,19 @@ extension SettingsVC {
     showLocalHtml(from: feeder.welcomeSlides, scrollEnabled: false)
   }
   
+  func openFaq(){
+    guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
+    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+  }
+  
   func showLocalHtml(from urlString:String, scrollEnabled: Bool){
     let introVC = IntroVC()
     introVC.htmlIntro = urlString
+    introVC.topOffset = 40
     let intro = File(urlString)
     introVC.webView.webView.load(url: intro.url)
     introVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
     introVC.webView.webView.scrollView.isScrollEnabled = scrollEnabled
-    
-    introVC.webView.xButton.tazX()
     
     introVC.webView.onX { _ in
       introVC.dismiss(animated: true, completion: nil)
@@ -590,297 +712,212 @@ extension SettingsVC {
     self.present(introVC, animated: true) {
       //Overwrite Default in: IntroVC viewDidLoad
       introVC.webView.buttonLabel.text = nil
+      //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
+      guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
+      bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
+      bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
     }
   }
 }
 
-class SectionHeader: UIView, UIStyleChangeDelegate {
+// MARK: - Nested Classes / UI Components
+
+// MARK: -
+class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
+  var tapHandler:(()->())?
+  var isDestructive: Bool = false
+  var longTapHandler:(()->())?
+  private var toggleHandler: ((Bool)->())?
   
-  let label = UILabel()
+  private(set) var customAccessoryView:UIView?
+  
+  override var accessoryView: UIView? {
+    set { self.customAccessoryView = newValue }
+    get { return nil }//ensure custom layout
+  }
+  
+  deinit {
+    debug("XSettingsCell deinit \(self.textLabel?.text ?? "-")")
+  }
+  
+  override func prepareForReuse() {
+    debug("XSettingsCell prepareForReuse ...should not be called due not reuse cells!")
+  }
   
   func applyStyles() {
-    label.textColor =  Const.SetColor.ios(.label).color
-    self.backgroundColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
-  }
-  
-  func setup(){
-    self.addSubview(label)
-    pin(label.top, to: self.top, dist: 10, priority: .defaultHigh)
-    pin(label.bottom, to: self.bottom, dist: -10, priority: .defaultHigh)
-    pin(label.left, to: self.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
-    pin(label.right, to: self.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
-    label.boldContentFont(size: Const.Size.ContentTableFontSize)
-    registerForStyleUpdates()
-    applyStyles()
-  }
-  
-  init(text:String){
-    super.init(frame: .zero)
-    label.text = text
-    setup()
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-}
-
-// MARK: - ToggleSettingsCell
-class ToggleSettingsCell: SettingsCell {
-  static let identifier = "toggleSettingsCell"
-  
-  lazy var toggle: UISwitch = {
-    let toggle = UISwitch()
-    toggle.addTarget(self, action: #selector(handleToggle(sender:)), for: .valueChanged)
-    return toggle
-  }()
-  
-  @objc public func handleToggle(sender: UISwitch) {
-    content?.toggleChangeHandler?(sender.isOn)
-  }
-  
-  override func setup(){
-    super.setup()
-    self.accessoryView = toggle
-    self.textLabel?.numberOfLines = 0
-    self.textLabel?.contentFont().labelColor()
-    self.textLabel?.text = content?.text
-    self.toggle.isOn = content?.toggleiInitialValue ?? false
-    self.backgroundColor = .clear
-  }
-  
-  override func applyStyles() {
-    self.textLabel?.labelColor()
-  }
-}
-
-class LinkSettingsCell: SettingsCell {
-  static let identifier = "linkSettingsCell"
-  var attributedRawData:AttributedRawData?
-  
-  override func setup(){
-    super.setup()
-    self.textLabel?.text = content?.linkType?.cellDescription
     self.textLabel?.contentFont()
-    attributedRawData = content?.linkType?.attributedRawData
-    applyStyles()
-  }
-
-  override func applyStyles() {
-
-    if let data = attributedRawData {
-      self.textLabel?.attributedText =  attributedString(firstLeft: data.0,
-                                                         firstRight: data.1,
-                                                         second: data.2)
-    }
-    else {
-      self.textLabel?.linkColor()
-    }
-  }
-}
-
-// MARK: - CustomSettingsCell
-class CustomSettingsCell: SettingsCell {
-  static let identifier = "customSettingsCell"
-  
-  override func setup(){
-    super.setup()
-    ///either custom view or labels with optional accessory view
-    if let customView = content?.customView {
-      self.contentView.addSubview(customView)
-      pin(customView, to: contentView, dist: Const.Size.DefaultPadding)
-      return
-    }
-    self.accessoryView = content?.accessoryView
-    
-
-    
-  }
-  
-  override func applyStyles() {
-    if content?.customView != nil { return }
-    self.accessoryView = content?.accessoryView
-    
-    if let t = content?.text, let s = content?.subText {
-      self.textLabel?.attributedText = attributedString(first: t, second: s)
-    }
-    else {
-      self.textLabel?.text = content?.text ?? nil
-      self.textLabel?.labelColor()
-    }
-  }
-}
-
-
-func attributedString(first:String,
-                      firstColor: UIColor = Const.SetColor.ios(.label).color,
-                      second:String) -> NSAttributedString {
-  let aFirst = NSMutableAttributedString(string: first, attributes: [.foregroundColor: firstColor])
-  let aSecond = NSMutableAttributedString(string: "\n\(second)", attributes: [.foregroundColor: Const.SetColor.ios(.secondaryLabel).color, .font: Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)])
-  aFirst.append(aSecond)
-  return aFirst
-}
-
-func attributedString(firstLeft:String,
-                      firstRight:String,
-                      second:String) -> NSAttributedString {
-  let pStyle = NSMutableParagraphStyle()
-  pStyle.tabStops = [NSTextTab(textAlignment: .left, location: 0.0, options: [:]),
-                     NSTextTab(textAlignment: .right, location: UIScreen.main.bounds.size.width - 2*Const.Size.DefaultPadding - 10, options: [:])]
-
-  let aFirst = NSMutableAttributedString(string: firstLeft, attributes: [.foregroundColor: Const.SetColor.ios(.label).color])
-  aFirst.append(NSAttributedString(string: "\t"))
-  let right = NSAttributedString(string: firstRight, attributes: [.foregroundColor: Const.SetColor.ios(.link).color])
-  aFirst.append(right)
-  
-  aFirst.addAttribute(.paragraphStyle, value: pStyle, range: NSRange(location: 0, length: aFirst.length-1))
-  
-  let aSecond = NSAttributedString(string: "\n\(second)", attributes: [.foregroundColor: Const.SetColor.ios(.secondaryLabel).color, .font: Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)])
-  aFirst.append(aSecond)
-  return aFirst
-}
-
-
-class SettingsCell:UITableViewCell, UIStyleChangeDelegate {
-  var content:Settings.Cell? { didSet { setup() } }
-  
-  func setup() {
-    applyDefaultStyles()
-    registerForStyleUpdates()
-    applyStyles()
-  }
-  
-  func applyStyles() { }///Overwrite in inherited classes
-  
-  func applyDefaultStyles(){
     self.textLabel?.numberOfLines = 0
     self.backgroundColor = .clear
     self.backgroundView?.backgroundColor = .clear
     self.contentView.backgroundColor = .clear
+    self.detailTextLabel?.contentFont(size: Const.Size.SmallerFontSize)
+    self.detailTextLabel?.numberOfLines = 0
+    
+    self.textLabel?.textColor
+    = isDestructive
+    ? .red
+    : Const.SetColor.ios(.label).color
+    self.detailTextLabel?.textColor
+    = Const.SetColor.ios(.secondaryLabel).color
+    
+    //not implemented for stepper, not needed yet
+    //self.accessoryView?.isUserInteractionEnabled = self.isUserInteractionEnabled
+    
+    (self.accessoryView as? UISwitch)?.isEnabled
+    = self.isUserInteractionEnabled
   }
   
-  
-  override func prepareForReuse() {
-    accessoryView = nil
-    textLabel?.text = nil
+  init(text: String,
+       detailText: String? = nil,
+       isDestructive: Bool = false,
+       tapHandler: (()->())?,
+       accessoryView: UIView? = nil,
+       longTapHandler: (()->())? = nil) {
+    super.init(style: detailText == nil ? .default : .subtitle,
+               reuseIdentifier: nil)
+    self.textLabel?.text = text
+    self.detailTextLabel?.text = detailText
+    self.customAccessoryView = accessoryView
+    self.isDestructive = isDestructive
+    self.tapHandler = tapHandler
+    self.longTapHandler = longTapHandler
+    applyStyles()
+    setupLayout()
+    registerForStyleUpdates()
   }
   
-  override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-    super.init(style: UITableViewCell.CellStyle.subtitle, reuseIdentifier: reuseIdentifier)
-    setup()
+  init(toggleWithText text: String,
+       detailText: String? = nil,
+       initialValue value:Bool,
+       onChange: @escaping ((Bool)->())){
+    super.init(style: detailText == nil ? .default : .subtitle,
+               reuseIdentifier: nil)
+    self.textLabel?.text = text
+    self.detailTextLabel?.text = detailText
+    self.toggleHandler = onChange
+    let toggle: UISwitch = UISwitch()
+    toggle.isOn = value
+    toggle.addTarget(self, action: #selector(handleToggle(sender:)),
+                     for: .valueChanged)
+    self.customAccessoryView = toggle
+    applyStyles()
+    setupLayout()
+    registerForStyleUpdates()
+  }
+  
+  init(text: String,
+       detailText: String? = nil,
+       accessoryView: UIView? = nil){
+    super.init(style: detailText == nil ? .default : .subtitle,
+               reuseIdentifier: nil)
+    self.textLabel?.text = text
+    self.customAccessoryView = accessoryView
+    self.detailTextLabel?.text = detailText
+    applyStyles()
+    setupLayout()
+    registerForStyleUpdates()
+  }
+  
+  func setupLayout(){
+    guard let label = self.textLabel else { return }
+    
+    let dist = Const.ASize.DefaultPadding
+    
+    if let av = self.customAccessoryView {
+      av.setNeedsUpdateConstraints()
+      av.setNeedsLayout()
+      av.updateConstraintsIfNeeded()
+      av.layoutIfNeeded()
+      self.contentView.addSubview(av)
+      av.pinWidth(av.bounds.size.width)
+      pin(av.right, to: contentView.right, dist: -dist)
+      if self.detailTextLabel == nil{
+        av.centerY()
+      }
+      else {
+        pin(av.top, to: self.contentView.top, dist: 10)
+      }
+      pin(label.right, to: av.left, dist: -dist)
+      label.heightAnchor.constraint(greaterThanOrEqualToConstant: av.frame.size.height).isActive = true
+    }
+    else {
+      pin(label.right, to: contentView.right, dist: -dist)
+    }
+    
+    pin(label.left, to: contentView.left, dist: dist)
+    pin(label.top, to: contentView.top, dist: 10, priority: .defaultHigh)
+    
+    if let dtl = self.detailTextLabel{
+      pin(label.bottom, to: dtl.top)
+    }
+    else {
+      pin(label.bottom, to: contentView.bottom, dist: -10, priority: .defaultHigh)
+    }
+    
+    if let subLabel = self.detailTextLabel {
+      pin(subLabel.left, to: contentView.left, dist: dist)
+      pin(subLabel.right, to: contentView.right, dist: -dist)
+      pin(subLabel.bottom, to: contentView.bottom, dist: -10)
+    }
+    self.setNeedsUpdateConstraints()
+    self.setNeedsLayout()
+    self.updateConstraintsIfNeeded()
+    self.layoutIfNeeded()
+  }
+  
+  @objc public func handleToggle(sender: UISwitch) {
+    toggleHandler?(sender.isOn)
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    if var frame = self.textLabel?.frame {
-      frame.origin.x = Const.ASize.DefaultPadding
-      textLabel?.frame = frame
-    }
-  }
 }
 
-class SaveLastCountIssues: UIView, UIStyleChangeDelegate {
+// MARK: -
+class SaveLastCountIssuesSettings: TextSizeSetting {
   
   @Default("persistedIssuesCount")
   private var persistedIssuesCount: Int {
     didSet { updatePersistedIssuesCount() }
   }
   
-  let mainLabel = UILabel()
-  let detailLabel = UILabel()
-  
-  let accessoryView = TextSizeSetting() //Stepper/Controlls
-  
   func updatePersistedIssuesCount(){
-    accessoryView.label.text
+    label.text
     = persistedIssuesCount > 0
     ? "\(persistedIssuesCount)"
     : "alle"
   }
   
-  func applyStyles() {
-    mainLabel.set(textColor: Const.SetColor.ios(.label).color)
-    detailLabel.set(textColor: Const.SetColor.ios(.secondaryLabel).color)
-  }
+  override func setup(){
+    super.setup()
+    label.text = "\(persistedIssuesCount)"
     
-  func setup(){
-    registerForStyleUpdates()
-    ///Labels
-    mainLabel.text = "Maximale Anzahl der zu speichernden Ausgaben"
-//    detailLabel.text = "Alte Ausgaben und Vorschaudaten werden automatisch gelöscht."
-    mainLabel.contentFont().set(textColor: Const.SetColor.ios(.label).color)
-    detailLabel.contentFont(size: Const.Size.SmallerFontSize)
-      .set(textColor: Const.SetColor.ios(.secondaryLabel).color)
-    mainLabel.numberOfLines = 0
-    detailLabel.numberOfLines = 0
-    
-    ///Stepper left
-    accessoryView.label.text = "\(persistedIssuesCount)"
-    accessoryView.leftButton.buttonView.text = "-"
-    accessoryView.rightButton.buttonView.text = "+"
-    
-    accessoryView.leftButton.buttonView.font = Const.Fonts.contentFont(size: 16)
-    accessoryView.rightButton.buttonView.font = Const.Fonts.contentFont(size: 16)
-    
-    accessoryView.leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
-    accessoryView.rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.2, left:0.2 , bottom: 1.2, right: -0.2)
-    
-    accessoryView.leftButton.onPress { [weak self] _ in
+    leftButton.onPress { [weak self] _ in
       guard let self = self, self.persistedIssuesCount > 0 else { return }
-      /// 4 is minumum
-      if self.persistedIssuesCount == 4 { self.persistedIssuesCount = 0}
+      /// 3 is minumum
+      if self.persistedIssuesCount == 3 { self.persistedIssuesCount = 0}
       else { self.persistedIssuesCount -= 1 }
     }
     
-    accessoryView.rightButton.onPress { [weak self] _ in
+    rightButton.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.persistedIssuesCount < 4 { self.persistedIssuesCount = 4}
+      if self.persistedIssuesCount < 3 { self.persistedIssuesCount = 3}
       else {self.persistedIssuesCount += 1}
     }
     
-    accessoryView.label.onTapping { [weak self] _ in
+    label.onTapping { [weak self] _ in
       self?.persistedIssuesCount = 20
     }
-    
-    accessoryView.pinWidth(110)
     updatePersistedIssuesCount()
-    
-    ///Layout
-    self.addSubview(accessoryView)
-    self.addSubview(mainLabel)
-    self.addSubview(detailLabel)
-    
-    pin(accessoryView.top, to: self.top, dist: -2.5)
-    pin(accessoryView.right, to: self.right)
-    
-    pin(mainLabel.top, to: self.top)
-    pin(mainLabel.left, to: self.left)
-    pin(mainLabel.right, to: accessoryView.left, dist: -Const.Size.SmallPadding)
-    
-    pin(detailLabel.left, to: self.left)
-    pin(detailLabel.right, to: self.right)
-    pin(detailLabel.top, to: mainLabel.bottom)
-    pin(detailLabel.bottom, to: self.bottom)
-  }
-  
-  init(){
-    super.init(frame: .zero)
-    setup()
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
   }
 }
 
+// MARK: -
 class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
-  let leftButton = Button<TextView>()
-  let rightButton = Button<TextView>()
+  let leftButton = Button<ImageView>()
+  let rightButton = Button<ImageView>()
   let label = UILabel()
   
   @Default("articleTextSize")
@@ -888,32 +925,22 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
   func applyStyles() {
     label.labelColor()
-    leftButton.tazButton(true)
-    rightButton.tazButton(true)
+    leftButton.circleIconButton(true)
+    rightButton.circleIconButton(true)
   }
   
   override func setup(){
     super.setup()
+    
     label.contentFont()
     registerForStyleUpdates()
     label.text = "\(articleTextSize)%"
-
-    leftButton.tazButton()
-    rightButton.tazButton()
-
-    leftButton.buttonView.text = "a"
-    rightButton.buttonView.text = "a"
     
-    leftButton.buttonView.label.baselineAdjustment = .alignCenters
-    rightButton.buttonView.label.baselineAdjustment = .alignCenters
+    leftButton.circleIconButton(symbol: "minus")
+    rightButton.circleIconButton(symbol: "plus")
     
-    leftButton.buttonView.label.textInsets = UIEdgeInsets(top: -1.65, left:0.2 , bottom: 1.65, right: -0.2)
-    rightButton.buttonView.label.textInsets = UIEdgeInsets(top: -2.5, left:0.2 , bottom: 2.5, right: -0.2)
-    // Default is: 16
-    leftButton.buttonView.font
-    = Const.Fonts.contentFont(size: 12)//-4
-    rightButton.buttonView.font
-    = Const.Fonts.contentFont(size: 20)//+4
+    leftButton.buttonView.hinset = 0.23
+    rightButton.buttonView.hinset = 0.23
     
     leftButton.onPress { [weak self] _ in
       self?.label.text = "\(Defaults.articleTextSize.decrease())%"
@@ -930,12 +957,14 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     self.addArrangedSubview(leftButton)
     self.addArrangedSubview(label.wrapper(UIEdgeInsets(top: -0.5, left: 0, bottom: -0.5, right: 0)))
     self.addArrangedSubview(rightButton)
+    self.pinSize(CGSize(width: 122, height: 40), priority: .defaultHigh)
   }
 }
 
+// MARK: -
 class CustomHStack: UIStackView {
   init(){
-    super.init(frame: CGRect(x: 0, y: 0, width: 110, height: 30))
+    super.init(frame: .zero)
     self.axis = .horizontal
     self.distribution = .fill
     self.spacing = 2
@@ -949,10 +978,10 @@ class CustomHStack: UIStackView {
   func setup(){}
 }
 
-// MARK: - SimpleHeaderView
+// MARK: -
 class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   
-  private let titleLabel = Label().titleFont()
+  private let titleLabel = Label().titleFont(size: Const.Size.TitleFontSize)
   private let line = DottedLineView()
   
   private func setup() {
@@ -992,4 +1021,67 @@ class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   }
 }
 
-class FooterView: UITableViewHeaderFooterView{}
+// MARK: -
+class SectionHeader: UIView, UIStyleChangeDelegate {
+  
+  let label = UILabel()
+  var chevron: UIImageView?
+  
+  var collapsed: Bool = true {
+    didSet {
+      if oldValue == collapsed { return }
+      UIView.animateKeyframes(withDuration: 0.5, delay: 0.0, animations: {
+        UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.5) { [weak self] in
+          guard let self = self, let c = self.chevron else { return }
+          c.transform = CGAffineTransform(rotationAngle: 0)
+        }
+        
+        UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5) { [weak self] in
+          self?.rotateChevron()
+        }
+      })
+    }
+  }
+  
+  func rotateChevron(){
+    chevron?.transform = CGAffineTransform(rotationAngle: self.collapsed ? CGFloat.pi : CGFloat.pi*2)
+  }
+  
+  func applyStyles() {
+    label.textColor =  Const.SetColor.ios(.label).color
+    self.backgroundColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
+  }
+  
+  func setup(){
+    self.addSubview(label)
+    pin(label.top, to: self.top, dist: 10, priority: .defaultHigh)
+    pin(label.bottom, to: self.bottom, dist: -10, priority: .defaultHigh)
+    pin(label.left, to: self.left, dist: Const.ASize.DefaultPadding, priority: .defaultHigh)
+    pin(label.right, to: self.right, dist: -Const.ASize.DefaultPadding, priority: .defaultHigh)
+    if let c = chevron {
+      self.addSubview(c)
+      c.pinSize(CGSize(width: 20, height: 20))
+      pin(c.right, to: self.right, dist: -Const.ASize.DefaultPadding)
+      c.centerY()
+      self.rotateChevron()
+    }
+    label.titleFont(size: Const.Size.SubtitleFontSize)
+    registerForStyleUpdates()
+    applyStyles()
+  }
+  
+  init(text:String, collapseable: Bool){
+    super.init(frame: .zero)
+    label.text = text
+    if collapseable {
+      chevron = UIImageView(image: UIImage(named: "chevron-up"))
+      chevron?.iosLower13?.contentMode = .scaleAspectFit
+      chevron?.tintColor = Const.SetColor.ios(.secondaryLabel).color
+    }
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+}

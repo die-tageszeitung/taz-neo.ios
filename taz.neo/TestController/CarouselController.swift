@@ -36,7 +36,7 @@ class CarouselVC: UIViewController {
       self.issueCarousel.setActivity(idx: idx, isActivity: !isActive)
     }
     images = [1,2,3,4,5,6].map { UIImage(named:"Moment 0\($0)")! }
-    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
+    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "share") { title in
       self.debug(title)
     }
     issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") { title in

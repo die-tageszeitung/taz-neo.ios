@@ -29,13 +29,37 @@ extension UIApplication {
 /// showBottomTilesAnimation is a ConfigVariable
 
 
+/// Helpers to chain functionallity depending on current App Alpha|Beta|Release
+/// usage.eg:   self.view.ifAlphaApp?.addGestureRecognizer(reportLPress3)
+public extension NSObject{
+  var ifAlphaApp : Self?{
+    get{
+      if App.isAlpha { return self }
+      return nil
+    }
+  }
+  var ifBetaApp : Self?{
+    get{
+      if App.isBeta { return self }
+      return nil
+    }
+  }
+  var ifReleaseApp : Self?{
+    get{
+      if App.isRelease { return self }
+      return nil
+    }
+  }
+}
+
+
 public extension App {
   /// Is the alpha App
   static var isAlpha: Bool = {
     return bundleIdentifier == BuildConst.tazBundleIdentifierAlpha
   }()
   
-  enum Feature { case  PDFEXPORT, INTERNALBROWSER, SEARCH_CONTEXTMENU}
+  enum Feature { case  PDFEXPORT, INTERNALBROWSER, SEARCH_CONTEXTMENU, AUTODOWNLOAD}
   
   
   /// Is the beta App
@@ -60,7 +84,7 @@ public extension App {
   /// - Returns: formated string with requested info
   static func authInfo(with feederContext: FeederContext) -> String {
     let authInfo = feederContext.isAuthenticated ? "angemeldet" : "NICHT ANGEMELDET"
-    return "\(authInfo), taz-ID: \(DefaultAuthenticator.getUserData().id ?? "-")"
+    return "\(authInfo), taz-Konto: \(DefaultAuthenticator.getUserData().id ?? "-")"
   }
   
   /// Get info is new Features are available
@@ -75,6 +99,8 @@ public extension App {
       case .PDFEXPORT:
         return isAlpha //Only in Alpha Versions
       case .SEARCH_CONTEXTMENU:
+        return isAlpha //Only in Alpha Versions
+      case .AUTODOWNLOAD:
         return isAlpha //Only in Alpha Versions
     }
   }

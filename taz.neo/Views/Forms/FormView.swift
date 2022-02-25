@@ -22,7 +22,10 @@ public class FormView: UIView {
   
   public var blocked : Bool = false {
     didSet{
-      blockingView.isHidden = !blocked
+      ensureMain { [weak self] in
+        guard let self = self else { return }
+        self.blockingView.enabled = self.blocked
+      }
     }
   }
   

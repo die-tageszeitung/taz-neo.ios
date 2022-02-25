@@ -575,6 +575,9 @@ public final class StoredPayload: StoredObject, Payload {
   
   public func reduceToOverview() {
     guard let issue = self.issue else { return }
+    if issue.isDownloading {
+      return
+    }
     let toKeep = issue.overviewFiles
     for f in storedFiles {
       if !toKeep.contains(where: { k in k.name == f.name }) {
@@ -798,7 +801,19 @@ public final class StoredAuthor: Author, StoredObject {
   
 } // StoredAuthor
 
-extension PersistentArticle: PersistentObject {}
+/// also: PersistentSection, PersistentArticle
+extension PersistentContent: PersistentObject {
+  public override func prepareForDeletion() {
+    for case let img as PersistentImageEntry in self.images ?? []{
+      if img.imageContent?.count == 1,
+         (img.imageContent ?? []).allObjects.first as? PersistentContent == self,
+         img.moment == nil
+      {
+        img.delete()
+      }
+    }
+  }
+}
 
 /// A stored Article
 public final class StoredArticle: Article, StoredObject {
@@ -1196,8 +1211,6 @@ public final class StoredPage: Page, StoredObject {
   }
 
 } // StoredPage
-
-extension PersistentSection: PersistentObject {}
 
 /// A stored Section
 public final class StoredSection: Section, StoredObject {
@@ -1634,13 +1647,11 @@ public final class StoredIssue: Issue, StoredObject {
                                   keepDownloaded: Int,
                                   keepPreviews: Int = 30,
                                   deleteOrphanFolders:Bool = false) {
-    if keepDownloaded == 0 {
-      Log.log("Prevent to delete all issues")
-      return
-    }
     
-    let lastCompleeteIssues
-    = issues(feed: feed, count: keepDownloaded, onlyCompleete: true, sortedBy: .payloadDownloadStarted, ascending: false)
+    let lastCompleeteIssues:[StoredIssue]
+    = keepDownloaded == 0
+    ? []
+    : issues(feed: feed, count: keepDownloaded, onlyCompleete: true, sortedBy: .payloadDownloadStarted, ascending: false)
     
     let allIssues
     = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
@@ -1648,8 +1659,10 @@ public final class StoredIssue: Issue, StoredObject {
     let keepPreviewCount = min(allIssues.count, max(keepPreviews, keepDownloaded))
     let reduceableIssues = allIssues[..<keepPreviewCount]
     
-    for issue in allIssues[2...] {//Do not reduce the newest 2 Issues
+    let keep:Int = keepDownloaded == 0 ? 0 : 2 //Do not reduce the newest 2 Issues
+    for issue in allIssues[keep...] {
       if lastCompleeteIssues.contains(issue) { continue }
+      if MainNC.singleton.feederContext.openedIssue?.date == issue.date { continue }
       Log.log("reduceToOverview for issue: \(issue.date.short)")
       issue.reduceToOverview()
     }
@@ -1692,11 +1705,22 @@ public final class StoredIssue: Issue, StoredObject {
         section.delete()
       }
     }
+    let p1 = pageOneFacsimile
+    for case let p as StoredPage in pages ?? [] {
+      if p.pdf?.fileName == p1?.fileName { continue }
+      p.delete()
+    }
+    
     (imprint as? StoredArticle)?.delete()
     if isComplete {
       isComplete = false
       isOvwComplete = true
     }
+    self.lastPage = nil
+    self.lastArticle = nil
+    self.lastSection = nil
+    //lastPage = nil //May delete also last Page?
+    //Cannot be restored in current UI Flow and DataModel settup
     ArticleDB.save()
   }
   

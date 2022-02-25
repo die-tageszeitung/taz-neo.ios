@@ -140,7 +140,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
       if let zi = self.images[idx] as? ZoomedImage {
         if let ziv = self.currentView as? ZoomedImageView, ziv.menu.menu.count == 0 {
           if zi.imageEntry?.sharable ?? true {
-            ziv.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
+            ziv.addMenuItem(title: "Bild Teilen", icon: "share") { title in
               self.exportImage()
             }
           }

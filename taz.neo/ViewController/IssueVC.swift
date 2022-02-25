@@ -99,7 +99,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     ///Update an Issue if Placeholder was there!
     if let idx = issues.firstIndex(where: { $0.date == issue.date}) {
       issues[idx] = issue
-      if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("DemoMoment"){
+      if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("demo-moment-frame"){
         self.issueCarousel.updateIssue(img, at: idx, preventZoomInAnimation: true)
       }
       else {
@@ -246,14 +246,28 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
       //prevent multiple pushes!
       if self.navigationController?.topViewController != self { return }
-      let authenticate = { [weak self] in
+      let authenticatePDF = { [weak self] in
+        guard let self = self else { return }
         let loginAction = UIAlertAction(title: Localized("login_button"),
                                         style: .default) { _ in
-          self?.feederContext.authenticate()
+          self.feederContext.authenticate()
         }
         let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
+        var expiredText = Localized("subscription_id_expired_withoutDate")
+        if let d = Defaults.expiredAccountDate {
+          expiredText = Localized(keyWithFormat: "subscription_id_expired", d.gDate())
+        }
         
-        Alert.message(message: "Um das ePaper zu lesen, müssen Sie sich anmelden.", actions: [loginAction, cancelAction])
+        expiredText
+        = expiredText.htmlAttributed?.string.replacingOccurrences(of: "\n\n", with: "\n")
+        ?? "Ihr taz-Digiabo ist seit abgelaufen!"
+        
+        let msg = self.feederContext.isAuthenticated
+        ? expiredText
+        : "Um das ePaper zu lesen, müssen Sie sich anmelden."
+        
+        
+        Alert.message(title: "Fehler", message: msg, actions: [loginAction, cancelAction])
       }
       
       if isFacsimile {
@@ -262,9 +276,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           guard let self = self else { return }
           let vc = TazPdfPagesViewController(issueInfo: self)
           self.navigationController?.pushViewController(vc, animated: true)
-          if issue.status == .reduced,
-             self.feederContext.isAuthenticated == false {
-            authenticate()
+          if issue.status == .reduced {  authenticatePDF()
           }
           
         }
@@ -293,6 +305,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     guard index >= 0 && index < issues.count else { return }
     let issue = issues[index]
+    feederContext.openedIssue = issue //remember opened issue to not delete if
     debug("*** Action: Entering \(issue.feed.name)-" +
       "\(issue.date.isoDate(tz: feeder.timeZone))")
     /* Dieser Code verhindert, wenn sich der feeder aufgehangen hat, dass eine andere bereits heruntergeladene Ausgabe geöffnet wird
@@ -348,11 +361,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   // last index displayed
   fileprivate var lastIndex: Int?
  
-  private func setLabel(idx: Int, isRotate: Bool = false) {
+  func setLabel(idx: Int, isRotate: Bool = false) {
     guard idx >= 0 && idx < self.issues.count else { return }
     let issue = self.issues[idx]
     var sdate = issue.date.gLowerDate(tz: self.feeder.timeZone)
-    if !issue.isComplete { sdate += " \u{2601}" }
+    if hasDownloadableContent(issue: issue) {
+      sdate += " \u{2601}"
+    }
     if isRotate {
       if let last = self.lastIndex, last != idx {
         self.issueCarousel.setText(sdate, isUp: idx > last)
@@ -363,7 +378,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     else { self.issueCarousel.pureText = sdate }
   } 
   
-  private func exportMoment(issue: Issue) {
+  func exportMoment(issue: Issue) {
     if let fn = feeder.momentImageName(issue: issue, isCredited: true) {
       let file = File(fn)
       let ext = file.extname
@@ -373,20 +388,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
   }
   
-  private func deleteIssue() {
+  func deleteIssue(issue: Issue) {
+    if issue.isDownloading {
+      Alert.message(message: "Bitte warten Sie bis der Download abgeschlossen ist!")
+      return
+    }
     if let issue = issue as? StoredIssue {
       issue.reduceToOverview()
       issueCarousel.carousel.reloadData()
       setLabel(idx: index)
     }
   }
-  
-//  private func deleteCompleeteIssue() {
-//    if let issue = issue as? StoredIssue {
-//      issue.deletePersistent()
-//      issueCarousel.carousel.reloadData()
-//    }
-//  }
   
   /// Check whether it's necessary to reload the current Issue
   public func authenticationSucceededCheckReload() {
@@ -472,11 +484,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.onLabelTap { idx in
       self.showDatePicker()
     }
-    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
+    issueCarousel.addMenuItem(title: "Bild Teilen",
+                              icon: "share") {[weak self] _ in
+      guard let self = self else { return }
       self.exportMoment(issue: self.issue)
     }
-    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {_ in
-      self.deleteIssue()
+    issueCarousel.addMenuItem(title: "Ausgabe löschen",
+                              icon: "trash") {[weak self] _ in
+      guard let self = self else { return }
+      self.deleteIssue(issue: self.issue)
     }
     var scrollChange = false
     issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in
@@ -487,53 +503,9 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       scrollChange = false
     }
     if App.isAlpha {
-//      
-//      issueCarousel.addMenuItem(title: "Ausgabe komplett löschen", icon: "trash") {_ in
-//        self.deleteCompleeteIssue()
-//      }
-//
-//      issueCarousel.addMenuItem(title: "Reset Overview", icon: "trash") {_ in
-//        self.resetOverview()
-//      }
-//      
-//      issueCarousel.addMenuItem(title: "Clear Cache", icon: "trash") {_ in
-//        URLCache.shared.removeAllCachedResponses()
-//      }
-//      
-//      issueCarousel.addMenuItem(title: "Kill App", icon: "trash") {_ in
-//        exit(0)
-//      }
-      
-      issueCarousel.addMenuItem(title: "Simulate PN.aboPoll", icon: "arrow.up") {_ in
+      issueCarousel.addMenuItem(title: "Simulate PN.aboPoll (⍺)", icon: "arrow.up") {_ in
         let pnPl = ["data":["refresh":"aboPoll"], "aps":["content-available":1,"sound":nil ]]
         NotifiedDelegate.singleton.notifier.handleTestRemoteNotification(pnPl)
-      }
-      issueCarousel.addMenuItem(title: "Simulate PN.subscriptionPoll", icon: "arrow.up") {_ in
-        let pnPl = ["data":["perform":"subscriptionPoll"], "aps":["content-available":1,"sound":nil ]]
-        NotifiedDelegate.singleton.notifier.handleTestRemoteNotification(pnPl)
-      }
-      issueCarousel.addMenuItem(title: "STÖRE MAIN AN/AUS", icon: "arrow.2.circlepath") {   [weak self] _ in
-        guard let self = self else { return }
-        
-        if let timer = self.interruptMainTimer {
-          timer.invalidate()
-          Toast.show("Main Thread Interruprion Stoped")
-          return
-        }
-        self.interruptMainTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
-          onMain { usleep(23000) }
-          onMain { usleep(23000) }
-          onMain { usleep(23000) }
-          onMain { usleep(23000) }
-          onMain { usleep(23000) }
-          self.log("...Main Thread Interruprion!")
-        }
-        
-        if let timer = self.interruptMainTimer {
-          self.log("#>  Enable timer even while user ui interaction ")
-          RunLoop.current.add(timer, forMode: .common)
-        }
-        Toast.show("Main Thread Interruprion started and fire every 2 seconds", .alert)
       }
     }
      
@@ -580,7 +552,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.authenticationSucceededCheckReload()
     }
     
-    Notification.receive("reloadIssues") {   [weak self] notif in
+    Notification.receive("reloadIssues") {   [weak self] _ in
       self?.scrollUp(animated: false)
 //      self?.isArchiveMode = true
       self?.issueCarousel.reset()//required!

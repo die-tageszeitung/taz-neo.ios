@@ -22,12 +22,14 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   let net = NetAvailability()
   
   var authenticator: Authenticator? { return feederContext.authenticator }
+  
+  public var expiredAccountInfoShown = false
 
   @Key("dataPolicyAccepted")
   public var dataPolicyAccepted: Bool
   
   static var singleton: MainNC!
-  private var isErrorReporting = false
+  public private(set) var isErrorReporting = false
   private var isForeground = false
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -90,7 +92,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       var tazIdText = ""
       let data = DefaultAuthenticator.getUserData()
       if let tazID = data.id, tazID.isEmpty == false {
-        tazIdText = " taz-ID: \(tazID)"
+        tazIdText = " taz-Konto: \(tazID)"
       }
       
       mail.setSubject("\(subject) \"\(App.name)\" (iOS)\(tazIdText)")
@@ -125,9 +127,9 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     
     FeedbackComposer.showWith(logData: fileLogger.data,
                               feederContext: self.feederContext,
-                              feedbackType: feedbackType) { didSend in
+                              feedbackType: feedbackType) {[weak self] didSend in
       print("Feedback send? \(didSend)")
-      self.isErrorReporting = false
+      self?.isErrorReporting = false
     }
   }
   
@@ -150,11 +152,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
     if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
-    var actions: [UIAlertAction] = [
-      Alert.action("Feedback senden") {_ in self.showFeedbackErrorReport(.feedback) },
-      Alert.action("Fehlerbericht senden") {_ in self.showFeedbackErrorReport(.error) },
-      Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
-      Alert.action("Kundendaten löschen (Abmelden)") {_ in self.deleteUserData() }]
+    var actions: [UIAlertAction] = []
     
     if App.isAlpha {
       actions.append(Alert.action("Abo-Verknüpfung löschen (⍺)") {[weak self] _ in self?.unlinkSubscriptionId() })
@@ -194,19 +192,19 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       /// currently never executed due keyWindow was nil when logged in
       targetView.isUserInteractionEnabled = true
       targetView.addGestureRecognizer(reportLPress2)
-      targetView.addGestureRecognizer(reportLPress3)
+      targetView.ifAlphaApp?.addGestureRecognizer(reportLPress3)
     }
     else if let delegate = UIApplication.shared.delegate as? AppDelegate,
             let targetWindow = delegate.window {
       /// ...improved version of previous comparrison ...should be standalone!
       targetWindow.isUserInteractionEnabled = true
       targetWindow.addGestureRecognizer(reportLPress2)
-      targetWindow.addGestureRecognizer(reportLPress3)
+      targetWindow.ifAlphaApp?.addGestureRecognizer(reportLPress3)
     }
     else {
       self.view.isUserInteractionEnabled = true
       self.view.addGestureRecognizer(reportLPress2)
-      self.view.addGestureRecognizer(reportLPress3)
+      self.view.ifAlphaApp?.addGestureRecognizer(reportLPress3)
     }
   }
 
@@ -313,6 +311,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   
   func deleteUserData() {
     SimpleAuthenticator.deleteUserData()
+    Defaults.expiredAccountDate = nil
     let dfl = Defaults.singleton
     let kc = Keychain.singleton
     kc["dataPolicyAccepted"] = nil

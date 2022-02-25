@@ -85,12 +85,12 @@ class ConnectTazIdController : FormsController {
             case .valid:/// valid authentication
               DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPassword, token: info.token ?? "")
               self.showResultWith(message: Localized("tazid_connect_create_successful_header"),
-                                  backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                  backButtonTitle: Self.backButtonTitle,
                                   dismissType: .allReal)
               Notification.send("authenticationSucceeded")
             case .waitForMail:///user need to confirm mail
               self.showResultWith(message: Localized(keyWithFormat: "fragment_login_confirm_email_header", tazId),
-                                  backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                  backButtonTitle: Self.backButtonTitle,
                                   dismissType: .allReal)
               self.auth.pollSubscription(tmpId: tazId,
                                          tmpPassword: tazIdPassword,
@@ -114,7 +114,7 @@ class ConnectTazIdController : FormsController {
               Alert.message(title: Localized("info"), message: Localized("name_too_long_issue"))
             case .waitForProc:// AboId not verified, server will confirm later (using push/poll)
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
-                                              backButtonTitle: Localized("fragment_login_success_login_back_article"),
+                                              backButtonTitle: Self.backButtonTitle,
                                               dismissType: .allReal)
               self.auth.pollSubscription(tmpId: tazId,
                                          tmpPassword: tazIdPassword,
@@ -268,9 +268,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
   
   override init(aboId:String, aboIdPassword:String, auth:AuthMediator) {
     super.init(aboId: aboId, aboIdPassword: aboIdPassword, auth: auth)
-    ui.mailInput.keyboardType = .emailAddress
     ui.mailInput.placeholder = Localized("login_tazid_hint")
-
     ui.registerButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     
     ui.views = [
@@ -335,6 +333,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     let ctrl = PwForgottController(id: ui.mailInput.text?.trim, auth: auth)
     //Change to SubscriptionReset
     ctrl.ui.idInput.keyboardType = .emailAddress
+    ctrl.ui.idInput.autocapitalizationType = .none
     ctrl.ui.idInput.placeholder = Localized("login_tazid_hint")
     ctrl.ui.introLabel.text = Localized("login_forgot_tazid_password_header")
     

@@ -12,17 +12,26 @@ import NorthLib
 class IntroVC: UIViewController {
   
   /// The WebView to show the HTML-files
-  var webView = ButtonedWebView()
+  var webView = ButtonedWebView(customXButton: Button<ImageView>())
   /// The file containing the data policy
   var htmlDataPolicy: String?
   /// The file containing the introduction
   var htmlIntro: String?
+  
+  var topOffset: CGFloat = 0.0 {
+    didSet {
+      webViewTopOffsetConstraint?.constant = topOffset
+    }
+  }
+  
+  var webViewTopOffsetConstraint: NSLayoutConstraint?
 
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .white
     self.view.addSubview(webView)
-    pin(webView, to: self.view)
+    pin(webView, to: self.view, exclude: .top)
+    webViewTopOffsetConstraint = pin(webView.top, to: self.view.top, dist: topOffset)
     webView.buttonMargin = 26
     webView.buttonLabel.backgroundColor = Const.Colors.ciColor
     webView.buttonLabel.textColor = .white
@@ -30,6 +39,7 @@ class IntroVC: UIViewController {
     webView.buttonLabel.text = "Akzeptieren"
     webView.buttonLabel.clipsToBounds = true
     webView.buttonLabel.layer.cornerRadius = 5
+    webView.xButton.tazX()
     if let htmlDataPolicy = htmlDataPolicy,
        let htmlIntro = htmlIntro {
       let dataPolicy = File(htmlDataPolicy)
@@ -49,10 +59,4 @@ class IntroVC: UIViewController {
       }
     }
   }
-  
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    webView.xButton.tazX(true)
-  }
-
 } // WebViewTests

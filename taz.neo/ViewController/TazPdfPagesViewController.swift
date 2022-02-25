@@ -290,6 +290,16 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
           }
         }
       })]
+    
+    if App.isAlpha {
+      self.menuItems.insert((title: "Zoom 1:1 (⍺)",
+                             icon: "1.magnifyingglass",
+                             closure: { [weak self] _ in
+        if let ziv = self?.currentView as? ZoomedImageView  {
+          ziv.scrollView.setZoomScale(1.0, animated: true)
+        }
+      }), at: 0)
+    }
     (self.currentView as? ZoomedImageViewSpec)?.menu.menu = self.menuItems
   }
   
@@ -304,7 +314,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     Log.minLogLevel = .Debug
     let pdfModel = NewPdfModel(issueInfo: issueInfo)
     pdfModel.title = issueInfo.issue.date.gDate().replacingOccurrences(of: ", ", with: ",\n")
-    pdfModel.index = issueInfo.issue.lastPage ?? 0
+    
+    if let count = issueInfo.issue.pages?.count,
+       let lastIndex = issueInfo.issue.lastPage,
+       lastIndex < count {
+      pdfModel.index = lastIndex
+    }
+    
     self.sections = issueInfo.issue.sections ?? []
     self.article2section = issueInfo.issue.article2section
     self.feederContext = issueInfo.feederContext
@@ -565,7 +581,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                            direction: .right,
                            accessibilityLabel: "Übersicht"
                            )
-    _ = toolBar.addImageButton(name: "arrowLeft",
+    _ = toolBar.addImageButton(name: "chevron-left",
                            onPress: onHome,
                            direction: .left,
                            accessibilityLabel: "Zurück"

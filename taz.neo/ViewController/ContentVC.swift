@@ -74,16 +74,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
-  public var backButton = Button<ImageView>()
-//  public var playButton = Button<ImageView>()
-//  private var playClosure: ((ContentVC)->())?
+
   private var backClosure: ((ContentVC)->())?
-  public var homeButton = Button<ImageView>()
   private var homeClosure: ((ContentVC)->())?
-  public var textSettingsButton = Button<ImageView>()
   private var textSettingsClosure: ((ContentVC)->())?
-  public var shareButton = Button<ImageView>()
   private var shareClosure: ((ContentVC)->())?
+  
+  public var shareButton:Button<ImageView>?
+
+  
   private var imageOverlay: Overlay?
   
   var settingsBottomSheet: BottomSheet?
@@ -214,22 +213,27 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   /// Define the closure to call when the back button is tapped
-  public func onBack(closure: @escaping (ContentVC)->()) 
-    { backClosure = closure }
+  public func onBack(closure: @escaping (ContentVC)->()){
+    backClosure = closure
+  }
+    
+  /// Define the closure to call when the home button is tapped
+  public func onSettings(closure: @escaping (ContentVC)->()){
+    textSettingsClosure = closure
+  }
   
   /// Define the closure to call when the home button is tapped
-  public func onSettings(closure: @escaping (ContentVC)->())
-    { textSettingsClosure = closure }
+  public func onHome(closure: @escaping (ContentVC)->()){
+    homeClosure = closure
+  }
   
-  /// Define the closure to call when the home button is tapped
-  public func onHome(closure: @escaping (ContentVC)->()) 
-    { homeClosure = closure }
+  public func onShare(closure: @escaping (ContentVC)->()){
+    shareClosure = closure; toolBar.setArticleBar()
+  }
   
-  public func onShare(closure: @escaping (ContentVC)->()) 
-  { shareClosure = closure; toolBar.setArticleBar() }
-  
-//  public func onPlay(closure: @escaping (ContentVC)->())
-//  { playClosure = closure }
+//  public func onPlay(closure: @escaping (ContentVC)->()){
+//    playClosure = closure
+//  }
   
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self, maxWidth: 500)
@@ -249,8 +253,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       
       self.textSettingsVC.updateButtonValuesOnOpen()
     }
-    /*
-    onPlay{ [weak self] _ in
+
+    
+    /*onPlay{ [weak self] _ in
       /**
           Issues: on external Control no update
           on currentWebView change not respect current state
@@ -296,65 +301,41 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 //  }
   
   func setupToolbar() {
-    backButton.onPress { [weak self] _ in 
-      guard let self = self else { return }
-      self.backClosure?(self)
-    }
-//    playButton.onPress { [weak self] _ in
-//      guard let self = self else { return }
-//      self.playClosure?(self)
-//    }
-    homeButton.onPress { [weak self] _ in 
-      guard let self = self else { return }
-      self.homeClosure?(self)
-    }
-    shareButton.onPress { [weak self] _ in 
-      guard let self = self else { return }
-      self.shareClosure?(self)
-    }
-    textSettingsButton.onPress { [weak self] _ in
-      guard let self = self else { return }
-      self.textSettingsClosure?(self)
-    }
-    backButton.pinSize(CGSize(width: 46, height: 50))
-    shareButton.pinSize(CGSize(width: 50, height: 50))
-    textSettingsButton.pinSize(CGSize(width: 50, height: 50))
-//    playButton.pinSize(CGSize(width: 40, height: 40))
-    homeButton.pinSize(CGSize(width: 50, height: 50))
     
-    backButton.buttonView.name = "arrowLeft"
-    backButton.buttonView.imageView.contentMode = .right
-    shareButton.buttonView.name = "share"
-    textSettingsButton.buttonView.name = "textSettings"
-//    playButton.buttonView.name = "audio"
-    homeButton.buttonView.name = "home"
-
-    //.vinset = 0.4 -0.4 do nothing
-    //.hinset = -0.4  ..enlarge enorm!  0.4...scales down enorm
-    //Adjusting the baseline incereases the icon too much
+    toolBar.addImageButton(name: "chevron-left",
+                           onPress: { [weak self] _ in
+      guard let self = self else {return}
+      self.backClosure?(self)},
+                           direction: .left,
+                           accessibilityLabel: "zurück")
     
-    // shareButton.buttonView.hinset = -0.07
-    // textSettingsButton.buttonView.hinset = -0.15
-    // textSettingsButton.buttonView.layoutMargins change would be ignored in layout subviews
+    toolBar.addImageButton(name: "home",
+                           onPress: { [weak self] _ in
+      guard let self = self else {return}
+      self.homeClosure?(self)},
+                           direction: .right,
+                           accessibilityLabel: "Ausgabenübersicht")
     
-    toolBar.addButton(backButton, direction: .left)
-    toolBar.addButton(homeButton, direction: .right)
-    toolBar.addArticleButton(shareButton, direction: .center)
-    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
-    toolBar.addButton(textSettingsButton, direction: .center)
-//    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
-//    toolBar.addArticleButton(playButton, direction: .center)
+    shareButton = toolBar.addImageButton(name: "share",
+                                         onPress: { [weak self] _ in
+      guard let self = self else {return}
+      self.shareClosure?(self)},
+                                         direction: .center,
+                                         accessibilityLabel: "Teilen",
+                                         toolbar: .article)
+    
+    toolBar.addSpacer(.center, toolbar: .article)
+    
+    toolBar.addImageButton(name: "text-settings",
+                           onPress: { [weak self] _ in
+      guard let self = self else {return}
+      self.textSettingsClosure?(self)},
+                           direction: .center,
+                           accessibilityLabel: "Texteinstellungen")
+    
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
-    
-    backButton.isAccessibilityElement = true
-    textSettingsButton.isAccessibilityElement = false //make no sense just for seeing people
-    homeButton.isAccessibilityElement = true
-//    playButton.isAccessibilityElement = true
-    shareButton.isAccessibilityElement = true
-    backButton.accessibilityLabel = "zurück"
-    homeButton.accessibilityLabel = "Ausgabenübersicht"
-    shareButton.accessibilityLabel = "Teilen"
+
 //    playButton.accessibilityLabel = "Vorlesen"
   }
   

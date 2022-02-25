@@ -39,6 +39,8 @@ open class FeederContext: DoesLog {
   
   /// Number of seconds to wait until we stop polling for email confirmation
   let PollTimeout: Int64 = 25*3600
+  
+  public var openedIssue: Issue?
 
   /// Name (title) of Feeder
   public var name: String
@@ -64,6 +66,10 @@ open class FeederContext: DoesLog {
   public var netAvailability: NetAvailability
   @Default("useMobile")
   public var useMobile: Bool
+  
+  @Default("autoloadPdf")
+  var autoloadPdf: Bool
+  
   /// isConnected returns true if the Feeder is available
   public var isConnected: Bool { 
     var isCon: Bool
@@ -283,6 +289,7 @@ open class FeederContext: DoesLog {
         self.debug("No push permission") 
         self.pushToken = nil
       }
+      NotificationBusiness.sharedInstance.checkNotificationStatusIfNeeded()
       dfl["pushToken"] = self.pushToken
             
       if oldToken != self.pushToken {
@@ -305,8 +312,22 @@ open class FeederContext: DoesLog {
       case .newIssue:
         //not using checkForNew Issues see its warning!
         //count 1 not working:
-        log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
-        //self.getOvwIssues(feed: self.defaultFeed, count: 1)
+        if App.isAvailable(.AUTODOWNLOAD) == false {
+          log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
+          return
+        }
+        log("Handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
+        switch UIApplication.shared.applicationState {
+          case .active, .background:
+            self.getOvwIssues(feed: self.defaultFeed, count: 1, isAutomatically: true)
+          case .inactive:
+            log("ToDo: Do inactive Download")
+            self.getOvwIssues(feed: self.defaultFeed, count: 1, isAutomatically: true)
+          default:
+            log("Do Nothing")
+        }
+        
+        //
       default:
         self.debug(payload.toString())
     }
@@ -320,8 +341,9 @@ open class FeederContext: DoesLog {
   
   public func updateAuthIfNeeded() {
     //self.isAuthenticated == false
-    if self.gqlFeeder.authToken == nil,
-       let storedAuth = SimpleAuthenticator.getUserData().token {
+    if let storedAuth = SimpleAuthenticator.getUserData().token,
+       ( self.gqlFeeder.authToken == nil || self.gqlFeeder.authToken != storedAuth )
+    {
       self.gqlFeeder.authToken = storedAuth
     }
   }
@@ -521,14 +543,18 @@ open class FeederContext: DoesLog {
     currentFeederErrorReason = err
     var text = ""
     switch err {
-    case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
-    case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
-    case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
-    case .unexpectedResponse: 
-      Alert.message(title: "Fehler", 
-                    message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
-        exit(0)               
-      }
+      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
+      case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        if let d = err.expiredAccountDate {//persist expired account date for all requests!
+          Defaults.expiredAccountDate = d
+        }
+        MainNC.singleton.expiredAccountInfoShown = true
+      case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+      case .unexpectedResponse:
+        Alert.message(title: "Fehler",
+                      message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
+          exit(0)
+        }
     }
         
     if err == .expiredAccount(nil) {
@@ -539,7 +565,6 @@ open class FeederContext: DoesLog {
       log("Delete Userdata!")
       DefaultAuthenticator.deleteUserData()
     }
-    self.gqlFeeder.authToken = nil
     
     Alert.message(title: "Fehler", message: text, closure: { [weak self] in
       ///Do not authenticate here because its not needed here e.g.
@@ -650,13 +675,22 @@ open class FeederContext: DoesLog {
   }
 
   /// Returns true if the Issue needs to be updated
-  public func needsUpdate(issue: StoredIssue) -> Bool {
+  public func needsUpdate(issue: Issue) -> Bool {
     guard !issue.isDownloading else { return false }
-    if issue.isComplete { 
-      if issue.isReduced && isAuthenticated { issue.isComplete = false }
-      return issue.isReduced
+    
+    if issue.isComplete, issue.isReduced, isAuthenticated, !Defaults.expiredAccount {
+      issue.isComplete = false
     }
-    else { return true }
+    return !issue.isComplete
+  }
+  
+  
+  public func needsUpdate(issue: Issue, toShowPdf: Bool = false) -> Bool {
+    var needsUpdate = needsUpdate(issue: issue)
+    if needsUpdate == false && toShowPdf == true {
+      needsUpdate = !issue.isCompleetePDF(in: gqlFeeder.issueDir(issue: issue))
+    }
+    return needsUpdate
   }
   
   /**
@@ -673,7 +707,8 @@ open class FeederContext: DoesLog {
       }
       return
     }
-    guard needsUpdate(issue: issue) else {
+    let loadPages = isPages || autoloadPdf
+    guard needsUpdate(issue: issue, toShowPdf: loadPages) else {
       Notification.send("issue", result: .success(issue), sender: issue)
       return      
     }
@@ -781,7 +816,7 @@ open class FeederContext: DoesLog {
   
   /// Download Issue files and resources if necessary
   private func downloadIssue(issue: StoredIssue, isComplete: Bool = false, isAutomatically: Bool) {
-    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) isComplete: \(isComplete) issueDate: \(issue.date.short)")
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)\(Defaults.expiredAccount ? " Expired!" : "") isComplete: \(isComplete) issueDate: \(issue.date.short)")
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       self.dloader.createIssueDir(issue: issue)

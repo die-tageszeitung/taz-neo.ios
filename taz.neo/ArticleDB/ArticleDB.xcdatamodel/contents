@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19206" systemVersion="20G165" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19574" systemVersion="21C52" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="hasBookmark" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -31,7 +31,7 @@
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <relationship name="html" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="content" inverseEntity="FileEntry"/>
-        <relationship name="images" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="imageContent" inverseEntity="ImageEntry"/>
+        <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="imageContent" inverseEntity="ImageEntry"/>
     </entity>
     <entity name="Descriptor" representedClassName="PersistentDescriptor" syncable="YES" codeGenerationType="class">
         <attribute name="inField" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
