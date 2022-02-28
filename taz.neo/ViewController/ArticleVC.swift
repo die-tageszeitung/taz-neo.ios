@@ -201,6 +201,12 @@ open class ArticleVC: ContentVC {
     }
   }
   
+  public override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)  
+    let player = ArticlePlayer.singleton
+    if player.isPlaying() { async { player.stop() } }
+  }
+  
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     if App.isAvailable(.SEARCH_CONTEXTMENU) {
