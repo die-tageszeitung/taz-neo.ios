@@ -412,6 +412,7 @@ class GenBuildConst
         static var id: String { "#{@param.id}" }
         static var state: String { "#{@param.state}" }
         static var hash: String { "#{@hash}" }
+        static var branch: String { "#{@git.branch}" }
       }
       EOF
     File.open("#{dir}/BuildConst.swift", "w") { |f| f.write(swiftConst) }
