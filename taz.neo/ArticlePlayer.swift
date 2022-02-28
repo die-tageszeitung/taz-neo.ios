@@ -10,7 +10,7 @@ import Foundation
 import NorthLib
 
 /// The ArticlePlayer plays one or more Articles as audio streams
-class ArticlePlayer {
+class ArticlePlayer: DoesLog {
   
   /// The audio player
   public var aplayer: AudioPlayer
@@ -56,8 +56,15 @@ class ArticlePlayer {
     if let images = art.images, !images.isEmpty, 
        let fn = images.first?.fileName {
       let dir = issue.feed.feeder.issueDir(issue: issue).path
+      debug("issue.date: \(issue.date), issueDir: \(dir)")
       let path = "\(dir)/\(fn)"
       let img = UIImage(contentsOfFile: path)
+      if img == nil { 
+        error("Can't load image \(path)") 
+        let file = File(path)
+        if file.exists { log("File exists, size: \(file.size)") }
+        else { log("File doesn't exist") }
+      }
       aplayer.image = img
     }
     else { aplayer.image = nil }
