@@ -108,7 +108,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate {
       mail.subject = "\(BuildConst.name): Protokoll"
       mail.body = """
       Version: \(App.bundleVersion)-\(App.buildNumber)
-      Branch:  \(BuildConst.branch) (\(BuildConst.hash))
+      Branch:  \(BuildConst.branch) (\(BuildConst.hash[0..<7]))
       """
       mail.attach(data: data, fname: "Protokoll.txt")
       do { try mail.present() }
