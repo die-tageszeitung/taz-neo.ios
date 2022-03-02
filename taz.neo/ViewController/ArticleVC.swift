@@ -73,20 +73,20 @@ open class ArticleVC: ContentVC {
       self?.adelegate?.closeIssue()
     }
     onDisplay { [weak self] (idx, oview) in
-      if let this = self {
-        let art = this.articles[idx]
-        this.adelegate?.article = art
-        this.setHeader(artIndex: idx)
-        this.issue.lastArticle = idx
+      if let self = self {
+        let art = self.articles[idx]
+        self.adelegate?.article = art
+        self.setHeader(artIndex: idx)
+        self.issue.lastArticle = idx
         let player = ArticlePlayer.singleton
         if player.isPlaying() { async { player.stop() } }
         if art.canPlayAudio {
-          this.onPlay { _ in 
-            art.toggleAudio(issue: this.issue, sectionName: this.header.title) 
+          self.onPlay { _ in 
+            art.toggleAudio(issue: self.issue, sectionName: self.header.title) 
           }
         }
-        else { this.onPlay(closure: nil) }
-        self?.debug("on display: \(idx), article \(art.html.name)")
+        else { self.onPlay(closure: nil) }
+        self.debug("on display: \(idx), article \(art.html.name)")
      }
     }
     whenLinkPressed { [weak self] (from, to) in
