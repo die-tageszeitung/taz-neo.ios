@@ -202,7 +202,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     if let issueVC = self as? IssueVC {
       Notification.receive("checkForNewIssues", from: issueVC.feederContext) { notification in
         if let status = notification.content as? StatusHeader.status {
-          print("recive status: \(status)")
+          print("receive status: \(status)")
           self.statusHeader.currentStatus = status
         }
       }

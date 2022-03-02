@@ -206,7 +206,7 @@ public class DefaultAuthenticator: Authenticator {
               return;
             case .noPollEntry, .tooManyPollTrys:
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
-              /// In this case user recived the E-Mail for PW Reset,
+              /// In this case user received the E-Mail for PW Reset,
               _ = self.error(info.status.rawValue)
               Notification.send("authenticationSucceeded")
               closure(false)//stop polling
