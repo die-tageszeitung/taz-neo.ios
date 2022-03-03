@@ -15,7 +15,7 @@ import NorthLib
 ///   2. on App Start Check if System Settings still Match with In App User Settings
 /// - not using NorthLib's PushNotification due it handle(remote) PushNotifications
 public final class NotificationBusiness: DoesLog {
-  
+  private var didShowNotificationsDisabledWarning = false
   public static let sharedInstance = NotificationBusiness()
   private init(){}
   
@@ -60,11 +60,14 @@ public final class NotificationBusiness: DoesLog {
   
   /// Helper to show popup, to open system settings
   func showNotificationsDisabledWarning(){
+    if didShowNotificationsDisabledWarning { return }
+    didShowNotificationsDisabledWarning = true
     ///Optional subtext:  "Bitte aktivieren Sie Mitteilungen in den Systemeinstellungen.\n\nMitteilungen werden benötigt um den automatischen Download von Ausgaben zu starten.\nSie können Textnachrichten deaktivieren, falls Sie den automatischen Download von Ausgaben möchten aber nicht die Benachrichtigung außerhalb der App erlauben möchten. "
     Alert.confirm(title: "Bitte erlauben Sie Mitteilungen!",
                   message: "Mitteilungen sind in den Systemeinstellungen deaktiviert.",
                   okText: "Einstellungen öffnen") {  [weak self] accept in
       if accept { self?.openAppInSystemSettings() }
+      self?.didShowNotificationsDisabledWarning = false
     }
   }
   
