@@ -82,7 +82,7 @@ public protocol Authenticator: DoesLog {
   /**
    Use this method to delete authentication relevant user data
    */
-  static func deleteUserData(_ properties: StoredProperty...)
+  static func deleteUserData(excludeDataPolicyAccepted:Bool, _ properties: StoredProperty...)
 
 } // Authenticator 
 
@@ -127,7 +127,7 @@ extension Authenticator {
   /// deletes all stored User Data or selected Userdata
   /// - Parameter properties: limit to properties which schould be deleted
   /// e.g. .token, just for current auth Info
-  public static func deleteUserData(_ properties: StoredProperty...){
+  public static func deleteUserData(excludeDataPolicyAccepted:Bool = false, _ properties: StoredProperty...){
     let dfl = Defaults.singleton
     let kc = Keychain.singleton
 
@@ -135,7 +135,9 @@ extension Authenticator {
       kc["token"] = nil
       kc["id"] = nil
       kc["password"] = nil
-      kc["dataPolicyAccepted"] = nil
+      if excludeDataPolicyAccepted == false {
+        kc["dataPolicyAccepted"] = nil
+      }
       dfl["token"] = nil
       dfl["id"] = nil
       return
