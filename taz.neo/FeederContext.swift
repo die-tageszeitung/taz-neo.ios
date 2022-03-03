@@ -295,7 +295,6 @@ open class FeederContext: DoesLog {
         self.debug("No push permission") 
         self.pushToken = nil
       }
-      NotificationBusiness.sharedInstance.checkNotificationStatusIfNeeded()
       dfl["pushToken"] = self.pushToken
             
       if oldToken != self.pushToken {
