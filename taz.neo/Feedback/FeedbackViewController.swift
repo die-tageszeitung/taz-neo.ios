@@ -550,7 +550,7 @@ class OverlayViewController : UIViewController{
     }
   }
   
-  var xButton = Button<CircledXView>().tazX()
+  var xButton = Button<ImageView>().tazX()
   
   func onX(closure: @escaping ()->()) {
     xButton.isHidden = false
