@@ -477,9 +477,9 @@ extension SettingsVC {
       resetPasswordCell,
       manageAccountCell
     ]
-    if isAuthenticated {
-      cells.append(deleteAccountCell)
-    }
+//    if isAuthenticated {
+//      cells.append(deleteAccountCell)
+//    }
     return cells
   }
   
