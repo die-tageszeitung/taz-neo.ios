@@ -23,11 +23,11 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   @Default("autoloadPdf")
   var autoloadPdf: Bool
   
-  @Default("autoloadNewIssues")
-  var autoloadNewIssues: Bool {
-    ///show/hide autoloadOnlyInWLAN
-    didSet { if oldValue != autoloadNewIssues { refreshAndReload() }}
-  }
+//  @Default("autoloadNewIssues")
+//  var autoloadNewIssues: Bool {
+//    ///show/hide autoloadOnlyInWLAN
+//    didSet { if oldValue != autoloadNewIssues { refreshAndReload() }}
+//  }
   
   var extendedSettingsCollapsed: Bool = true
   
@@ -85,13 +85,13 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   = XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
                   detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
                   accessoryView: SaveLastCountIssuesSettings())
-  lazy var autoloadNewIssuesCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
-                  initialValue: autoloadNewIssues,
-                  onChange: {[weak self] newValue in
-    self?.autoloadNewIssues = newValue
-    if newValue == true { self?.checkNotifications() }
-  })
+//  lazy var autoloadNewIssuesCell: XSettingsCell
+//  = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
+//                  initialValue: autoloadNewIssues,
+//                  onChange: {[weak self] newValue in
+//    self?.autoloadNewIssues = newValue
+//    if newValue == true { self?.checkNotifications() }
+//  })
   lazy var wlanCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
                   initialValue: autoloadOnlyInWLAN,
@@ -391,8 +391,8 @@ extension SettingsVC {
                                   deleted: [IndexPath])
   
   struct TableData{
-    @Default("autoloadNewIssues")
-    var autoloadNewIssues: Bool
+//    @Default("autoloadNewIssues")
+//    var autoloadNewIssues: Bool
     private var sectionContent:[tSectionContent]
     init(sectionContent: [tSectionContent]) {
       self.sectionContent = sectionContent
@@ -488,13 +488,13 @@ extension SettingsVC {
       maxIssuesCell
     ]
     
-    if App.isAvailable(.AUTODOWNLOAD) {
-      cells.append(autoloadNewIssuesCell)
-    }
-    
-    if autoloadNewIssues && App.isAvailable(.AUTODOWNLOAD) {
-      cells.append(wlanCell)
-    }
+//    if App.isAvailable(.AUTODOWNLOAD) {
+//      cells.append(autoloadNewIssuesCell)
+//    }
+//    
+//    if autoloadNewIssues && App.isAvailable(.AUTODOWNLOAD) {
+//      cells.append(wlanCell)
+//    }
     cells.append(epaperLoadCell)
     cells.append(deleteIssuesCell)
     return cells

@@ -22,13 +22,13 @@ public final class NotificationBusiness: DoesLog {
   @Default("isTextNotification")
   var isTextNotification: Bool
   
-  @Default("autoloadNewIssues")
-  var autoloadNewIssues: Bool
+//  @Default("autoloadNewIssues")
+//  var autoloadNewIssues: Bool
   
   /// helper
   var notificationsRequired: Bool {
     get {
-      return isTextNotification || autoloadNewIssues
+      return isTextNotification // || autoloadNewIssues
     }
   }
   
@@ -45,7 +45,7 @@ public final class NotificationBusiness: DoesLog {
   /// Check if in app notifications settings are applyable for current setting in ios system settings
   /// - Parameter finished: callback after async check is finished
   func checkNotificationStatusIfNeeded(finished: (()->())? = nil){
-    if !isTextNotification && !autoloadNewIssues { finished?(); return }
+    if !isTextNotification /*&& !autoloadNewIssues*/ { finished?(); return }
     let notifCenter = UNUserNotificationCenter.current()
     notifCenter.getNotificationSettings(
       completionHandler: { [weak self] (settings) in
