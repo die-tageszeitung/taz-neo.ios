@@ -172,6 +172,12 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
         }
       })
     }
+    
+    if actions.count == 0 {
+      twoFingerErrorReportActivated(sender)
+      return
+    }
+    
     let title = App.appInfo + "\n" + App.authInfo(with: feederContext)
     Alert.actionSheet(title: title,
                       actions: actions) { [weak self] in
