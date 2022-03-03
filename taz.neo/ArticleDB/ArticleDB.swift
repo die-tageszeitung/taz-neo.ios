@@ -1663,6 +1663,7 @@ public final class StoredIssue: Issue, StoredObject {
     for issue in allIssues[keep...] {
       if lastCompleeteIssues.contains(issue) { continue }
       if MainNC.singleton.feederContext.openedIssue?.date == issue.date { continue }
+//      if MainNC.singleton.feederContext.enqueuedDownlod.contains{ $0.date == issue.date} { continue }
       Log.log("reduceToOverview for issue: \(issue.date.short)")
       issue.reduceToOverview()
     }

@@ -172,6 +172,12 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
         }
       })
     }
+    
+    if actions.count == 0 {
+      twoFingerErrorReportActivated(sender)
+      return
+    }
+    
     let title = App.appInfo + "\n" + App.authInfo(with: feederContext)
     Alert.actionSheet(title: title,
                       actions: actions) { [weak self] in
@@ -310,11 +316,9 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   }
   
   func deleteUserData() {
-    SimpleAuthenticator.deleteUserData()
+    SimpleAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
     Defaults.expiredAccountDate = nil
     let dfl = Defaults.singleton
-    let kc = Keychain.singleton
-    kc["dataPolicyAccepted"] = nil
     dfl["isTextNotification"] = "true"
     dfl["nStarted"] = "0"
     dfl["lastStarted"] = "0"

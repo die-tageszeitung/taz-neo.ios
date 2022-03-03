@@ -85,6 +85,12 @@ open class FeederContext: DoesLog {
   /// Has the Feeder been initialized yet
   public var isReady = false
   
+//  public private(set) var enqueuedDownlod:[Issue] = [] {
+//    didSet {
+//      print("Currently Downloading: \(enqueuedDownlod.map{$0.date.gDate()})")
+//    }
+//  }
+  
   /// Are we updating resources
   private var isUpdatingResources = false
   
@@ -289,7 +295,6 @@ open class FeederContext: DoesLog {
         self.debug("No push permission") 
         self.pushToken = nil
       }
-      NotificationBusiness.sharedInstance.checkNotificationStatusIfNeeded()
       dfl["pushToken"] = self.pushToken
             
       if oldToken != self.pushToken {
@@ -714,7 +719,7 @@ open class FeederContext: DoesLog {
     }
     if self.isConnected {
       gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
-                       isPages: isPages) { res in
+                       isPages: loadPages) { res in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)
@@ -792,6 +797,7 @@ open class FeederContext: DoesLog {
 
   /// Download complete Payload of Issue
   private func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
+//    enqueuedDownlod.append(issue)
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     markStartDownload(feed: issue.feed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
       issue.isDownloading = true
@@ -809,6 +815,7 @@ open class FeederContext: DoesLog {
         }
         else { res = .failure(err!) }
         self.markStopDownload(dlId: dlId, tstart: tstart)
+//        self.enqueuedDownlod.removeAll{ $0.date == issue.date}
         Notification.send("issue", result: res, sender: issue)
       }
     }

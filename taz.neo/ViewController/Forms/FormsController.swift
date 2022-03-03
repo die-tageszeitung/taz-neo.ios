@@ -134,7 +134,7 @@ class FormsResultController: UIViewController {
   
   /// Setup the xButton
   func setupXButton() {
-    let xButton = Button<CircledXView>()
+    let xButton = Button<ImageView>()
     xButton.tazX()
     self.view.addSubview(xButton)
     pin(xButton.right, to: self.view.rightGuide(), dist: -15)
