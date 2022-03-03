@@ -15,7 +15,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// The Feed to display
   public var feed: Feed { return feederContext.defaultFeed }
   /// Selected Issue to display
-  public var issue: Issue { issues[index] }
+  public var selectedIssue: Issue { issues[index] }
+  /// Opened Issue for viewing
+  public var openedIssue: Issue?
+  /// Issue reference to pass as IssueInfo
+  public var issue: Issue { openedIssue ?? selectedIssue }
 
   /// The FeederContext providing the Feeder and default Feed
   public var feederContext: FeederContext
@@ -143,7 +147,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     var idx = 0
     for iss in issues {
       if iss.date == date { return }
-      if iss.date < issue.date { break }
+      if iss.date < selectedIssue.date { break }
       idx += 1
     }
     index = idx
@@ -218,7 +222,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Download one section
   private func downloadSection(section: Section, closure: @escaping (Error?)->()) {
-    dloader.downloadSection(issue: self.issue, section: section) { [weak self] err in
+    dloader.downloadSection(issue: self.selectedIssue, section: section) { [weak self] err in
       if err != nil { self?.debug("Section \(section.html.name) DL Errors: last = \(err!)") }
       else { self?.debug("Section \(section.html.name) DL complete") }
       closure(err)
@@ -242,6 +246,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     guard let index = givenIndex ?? self.safeIndex else { return }
     func openIssue() {
       ArticlePlayer.singleton.baseUrl = issue.baseUrl
+      self.openedIssue = selectedIssue
       //call it later if Offline Alert Presented
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
       //prevent multiple pushes!
@@ -407,7 +412,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     
     guard let visible = navigationController?.visibleViewController,
           visible != self,
-          let sissue = issue as? StoredIssue  else {
+          let sissue = selectedIssue as? StoredIssue  else {
       log(">>>> IssueVC.checkReload .. do not show Overlay ..not relevant VC")
       return
     }
@@ -478,8 +483,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(Toolbar.ContentToolbarHeight+UIWindow.maxAxisInset))
     issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
-      self?.showIssue(index: idx, atSection: self?.issue.lastSection, 
-                      atArticle: self?.issue.lastArticle)
+      self?.showIssue(index: idx, atSection: self?.selectedIssue.lastSection, 
+                      atArticle: self?.selectedIssue.lastArticle)
     }
     issueCarousel.onLabelTap { idx in
       self.showDatePicker()
@@ -487,12 +492,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.addMenuItem(title: "Bild Teilen",
                               icon: "share") {[weak self] _ in
       guard let self = self else { return }
-      self.exportMoment(issue: self.issue)
+      self.exportMoment(issue: self.selectedIssue)
     }
-    issueCarousel.addMenuItem(title: "Ausgabe löschen",
-                              icon: "trash") {[weak self] _ in
-      guard let self = self else { return }
-      self.deleteIssue(issue: self.issue)
+    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {_ in
+      self.deleteIssue(issue: self.selectedIssue)
     }
     var scrollChange = false
     issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in
@@ -642,6 +645,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    self.openedIssue = nil
     updateCarouselSize(.zero)//initially show label (set pos not behind toolbar)
     invalidateCarouselLayout()//fix sitze if rotated on pushed vc
     checkForNewIssues()
