@@ -96,6 +96,7 @@ open class GraphQlSession: HttpSession {
           result = .success(dict["data"]!)
         }
         catch {
+          print(error)///watch the decoding error reason
           result = .failure(self.fatal("JSON decoding error"))
         }
       }

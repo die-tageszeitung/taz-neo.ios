@@ -10,7 +10,7 @@ import MessageUI
 import NorthLib
 
 
-class MainNC: NavigationController, UIStyleChangeDelegate,
+class MainTabVC: NavigationController, UIStyleChangeDelegate,
               MFMailComposeViewControllerDelegate {
   
   private var threeFingerAlertOpen: Bool = false
@@ -28,7 +28,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   @Key("dataPolicyAccepted")
   public var dataPolicyAccepted: Bool
   
-  static var singleton: MainNC!
+  static var singleton: MainTabVC!
   public private(set) var isErrorReporting = false
   private var isForeground = false
   
@@ -271,7 +271,6 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       showIntro() { self.showIssueVC() }
     }
     else {
-      feederContext.updateResources(toVersion: -1)
       showIssueVC()
     }
   } 
@@ -344,7 +343,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   override func viewDidLoad() {
     super.viewDidLoad()
     pushViewController(StartupVC(), animated: false)
-    MainNC.singleton = self
+    MainTabVC.singleton = self
     isNavigationBarHidden = true
     isForeground = true
     // Disallow leaving view controllers IssueVC and IntroVC by edge swipe

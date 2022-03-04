@@ -19,6 +19,12 @@ class AppDelegate: NotifiedDelegate {
     saveLastLog()
     self.window = UIWindow(frame: UIScreen.main.bounds)
     self.window?.rootViewController = MainNC()
+//    self.window?.rootViewController =  TmpTestController()
+//    self.window?.rootViewController = SearchSettingsVC()
+//    let res = SearchResultsTVC()
+//    res.searchResponse = GqlFeeder.test()
+//    self.window?.rootViewController = res
+    
 //    self.window?.rootViewController = TestController()
 //    self.window?.rootViewController = NavController()
 //    self.window?.rootViewController = ContentVC()
