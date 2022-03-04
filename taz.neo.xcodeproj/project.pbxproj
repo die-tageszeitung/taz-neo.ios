@@ -39,7 +39,13 @@
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
 		7772B1ED2743BEC300991347 /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
+		7780EC4627CD1875008B5ECE /* SearchResultsTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7780EC4027CD1875008B5ECE /* SearchResultsTVC.swift */; };
+		7780EC4727CD1875008B5ECE /* IssueVCSearchExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7780EC4327CD1875008B5ECE /* IssueVCSearchExtension.swift */; };
+		7780EC4827CD1875008B5ECE /* SearchSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7780EC4427CD1875008B5ECE /* SearchSettingsVC.swift */; };
+		7780EC4927CD1875008B5ECE /* SearchController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7780EC4527CD1875008B5ECE /* SearchController.swift */; };
+		7780EC4B27CD188B008B5ECE /* GqlFeederSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7780EC4A27CD188B008B5ECE /* GqlFeederSearch.swift */; };
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
+		778E578E27CE2A2C008D12C8 /* TazAppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778E578D27CE2A2C008D12C8 /* TazAppEnvironment.swift */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
 		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
 		779DE96126FA3D790056187B /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779DE96026FA3D790056187B /* SettingsVC.swift */; };
@@ -85,7 +91,7 @@
 		AEC7D46D249A598B008630FB /* FeederContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEC7D46C249A598B008630FB /* FeederContext.swift */; };
 		AECCE11823FBD006007C2276 /* ArticleVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B323F6B01A00EAFE78 /* ArticleVC.swift */; };
 		AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */; };
-		AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainNC.swift */; };
+		AECCE11C23FBF3FE007C2276 /* MainTabVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainTabVC.swift */; };
 		AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
@@ -144,7 +150,13 @@
 		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
 		776158192743E8440044516C /* AppIcons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcons; sourceTree = "<group>"; };
 		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
+		7780EC4027CD1875008B5ECE /* SearchResultsTVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultsTVC.swift; sourceTree = "<group>"; };
+		7780EC4327CD1875008B5ECE /* IssueVCSearchExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVCSearchExtension.swift; sourceTree = "<group>"; };
+		7780EC4427CD1875008B5ECE /* SearchSettingsVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchSettingsVC.swift; sourceTree = "<group>"; };
+		7780EC4527CD1875008B5ECE /* SearchController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchController.swift; sourceTree = "<group>"; };
+		7780EC4A27CD188B008B5ECE /* GqlFeederSearch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GqlFeederSearch.swift; sourceTree = "<group>"; };
 		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
+		778E578D27CE2A2C008D12C8 /* TazAppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazAppEnvironment.swift; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
 		779DE96026FA3D790056187B /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
@@ -202,7 +214,7 @@
 		AEBAF5AB219ACFD900566205 /* ContentVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentVC.swift; sourceTree = "<group>"; };
 		AEC7D46C249A598B008630FB /* FeederContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeederContext.swift; sourceTree = "<group>"; };
 		AECAC8FC2440AF1F00D32175 /* CarouselController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselController.swift; sourceTree = "<group>"; };
-		AECCE11B23FBF3FE007C2276 /* MainNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNC.swift; sourceTree = "<group>"; };
+		AECCE11B23FBF3FE007C2276 /* MainTabVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabVC.swift; sourceTree = "<group>"; };
 		AECCE11D23FBF449007C2276 /* StartupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupView.swift; sourceTree = "<group>"; };
 		AED748A9238413D800C09D2D /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		AED748AA238413EB00C09D2D /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
@@ -279,6 +291,7 @@
 			isa = PBXGroup;
 			children = (
 				777048AA27B3B077007164A0 /* NotificationBusiness.swift */,
+				778E578D27CE2A2C008D12C8 /* TazAppEnvironment.swift */,
 			);
 			path = Business;
 			sourceTree = "<group>";
@@ -334,6 +347,10 @@
 		AE4AA2AE23F6AD5700EAFE78 /* ViewController */ = {
 			isa = PBXGroup;
 			children = (
+				7780EC4327CD1875008B5ECE /* IssueVCSearchExtension.swift */,
+				7780EC4527CD1875008B5ECE /* SearchController.swift */,
+				7780EC4027CD1875008B5ECE /* SearchResultsTVC.swift */,
+				7780EC4427CD1875008B5ECE /* SearchSettingsVC.swift */,
 				7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */,
 				0032A4D624C89E1600284723 /* Forms */,
 				AEBAF5AB219ACFD900566205 /* ContentVC.swift */,
@@ -401,6 +418,7 @@
 		AEBAF566219ACD1900566205 /* taz.neo */ = {
 			isa = PBXGroup;
 			children = (
+				7780EC4A27CD188B008B5ECE /* GqlFeederSearch.swift */,
 				777048A727B3B057007164A0 /* Business */,
 				7715968B25CC605D00508DE8 /* Feedback */,
 				0015B73524DD86B30037A8D6 /* Authenticator.swift */,
@@ -408,7 +426,7 @@
 				0015B73624DD86B30037A8D6 /* SimpleAuthenticator.swift */,
 				AE822631232A717E00FFBE67 /* DataModel.swift */,
 				AEBAF58E219ACFAC00566205 /* AppDelegate.swift */,
-				AECCE11B23FBF3FE007C2276 /* MainNC.swift */,
+				AECCE11B23FBF3FE007C2276 /* MainTabVC.swift */,
 				AE4C4FEE26A04EBD006079C8 /* ArticlePlayer.swift */,
 				AEC7D46C249A598B008630FB /* FeederContext.swift */,
 				AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */,
@@ -626,16 +644,19 @@
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				AEC7D467249920DF008630FB /* OverlayTest.swift in Sources */,
 				7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */,
+				7780EC4B27CD188B008B5ECE /* GqlFeederSearch.swift in Sources */,
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */,
 				7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */,
 				AE5DFACF267E10540035162C /* KeychainTest.swift in Sources */,
+				7780EC4827CD1875008B5ECE /* SearchSettingsVC.swift in Sources */,
 				00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */,
 				7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
+				778E578E27CE2A2C008D12C8 /* TazAppEnvironment.swift in Sources */,
 				779DE96126FA3D790056187B /* SettingsVC.swift in Sources */,
 				006E17E924D418090092DC0D /* FormComponents.swift in Sources */,
 				004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */,
@@ -663,16 +684,19 @@
 				004D4F0024ACDC1F008C4EE7 /* FormView.swift in Sources */,
 				AEF2DF35244766E400D1482D /* MomentView.swift in Sources */,
 				77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */,
+				7780EC4627CD1875008B5ECE /* SearchResultsTVC.swift in Sources */,
 				AE5D9EBD23E1B8160002C3B8 /* GraphQlSession.swift in Sources */,
 				AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */,
+				7780EC4927CD1875008B5ECE /* SearchController.swift in Sources */,
 				77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */,
 				778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */,
 				773D564226145E8500B42FEF /* InfoToast.swift in Sources */,
-				AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */,
+				AECCE11C23FBF3FE007C2276 /* MainTabVC.swift in Sources */,
 				AEC7D46D249A598B008630FB /* FeederContext.swift in Sources */,
 				AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */,
 				AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */,
 				AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */,
+				7780EC4727CD1875008B5ECE /* IssueVCSearchExtension.swift in Sources */,
 				0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
 				777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */,

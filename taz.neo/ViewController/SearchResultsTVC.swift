@@ -17,7 +17,7 @@ class SearchResultsTVC:UITableViewController{
   override public func viewDidLoad() {
     super.viewDidLoad()
     self.tableView.register(SearchResultsCell.self, forCellReuseIdentifier: Self.SearchResultsCellIdentifier)
-    self.tableView.backgroundColor = Const.Colors.dimmedBackground
+    self.tableView.backgroundColor = Const.Colors.opacityBackground
     self.tableView.contentInsetAdjustmentBehavior = .never
     
     self.tableView.backgroundView?.onTapping {   [weak self] _ in

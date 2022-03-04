@@ -855,9 +855,9 @@ open class GqlFeeder: Feeder, DoesLog {
       case .success(let frq):  
         let req = frq["feedRequest"]!
         if wasAuthenticated {
-          if MainNC.singleton.expiredAccountInfoShown {//Expired account already shown
+          if TazAppEnvironment.sharedInstance.expiredAccountInfoShown {//Expired account already shown
             if req.authInfo.status == .valid {//account not expired anymore
-              MainNC.singleton.expiredAccountInfoShown = false
+              TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
               Alert.message(message: "Ihr Abo ist wieder aktiv!")
               Defaults.expiredAccountDate = nil
             }

@@ -393,6 +393,12 @@ extension UILabel {
   }
   
   @discardableResult
+  internal func color(_ color: Const.SetColor) -> UILabel {
+    self.textColor = color.color
+    return self
+  }
+  
+  @discardableResult
   func black() -> UILabel {
     self.textColor = UIColor.black
     return self
@@ -443,9 +449,28 @@ extension UILabel {
     return self
   }
   
-  convenience init(_ _text : String, _numberOfLines : Int = 0) {
+  internal convenience init(_ _text : String,
+                   _numberOfLines : Int = 0,
+                   type: tazFontType = .content,
+                   color: Const.SetColor = .ios(.label),
+                   align: NSTextAlignment = .natural) {
     self.init()
     text = _text
     numberOfLines = _numberOfLines
+    switch type {
+      case .bold:
+        self.font = Const.Fonts.titleFont(size: Const.Size.DefaultFontSize)
+      case .content:
+        self.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+      case .small:
+        self.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
+      case .title:
+        self.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+    }
+    self.textColor = color.color
+    self.textAlignment = align
+    
   }
 }
+
+enum tazFontType { case title, small, bold, content }

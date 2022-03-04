@@ -35,7 +35,7 @@ public extension FeedbackType {
 open class FeedbackComposer : DoesLog{
   
   public static func showWith(logData: Data? = nil,
-                              feederContext: FeederContext,
+                              feederContext: FeederContext?,
                               feedbackType: FeedbackType? = nil,
                               finishClosure: @escaping ((Bool) -> ())) {
     let screenshot = UIWindow.screenshot
@@ -80,7 +80,7 @@ open class FeedbackComposer : DoesLog{
                           deviceData: DeviceData? = nil,
                           screenshot: UIImage? = nil,
                           logData: Data? = nil,
-                          feederContext: FeederContext,
+                          feederContext: FeederContext?,
                           finishClosure: @escaping ((Bool) -> ())) {
     
     guard var currentVc = UIViewController.top() else {

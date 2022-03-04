@@ -44,11 +44,13 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   ///obsolate after refactoring & full integration
   public var issues: [Issue] = []
 
-  public var toolBar = ContentToolbar()
-  var toolbarHomeButton: Button<ImageView>?
-  var toolbarSettingsButton: Button<ImageView>?
+//  public var toolBar = ContentToolbar()
+//  var toolbarHomeButton: Button<ImageView>?
+//  var toolbarSettingsButton: Button<ImageView>?
   
   var childPushed = false
+  
+  var searchHelper: SearchHelper? 
   
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
@@ -272,24 +274,24 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       print("Settings Pressed")
     }
     //the buttons and alignments
-    toolbarHomeButton = toolBar.addImageButton(name: "home",
-                               onPress: onHome,
-                               direction: .right,
-                               accessibilityLabel: "Übersicht")
-    
-    _ = toolBar.addImageButton(name: self.isFacsimile ? "mobile-device" : "newspaper",
-                               onPress: onPDF,
-                               direction: .left,
-                               accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
-    
-    _ = toolBar.addImageButton(name: "settings",
-                               onPress: onSettings,
-                               direction: .center,
-                               accessibilityLabel: "Einstellungen")
-        
-    //the toolbar setup itself
-    toolBar.applyDefaultTazSyle()
-    toolBar.pinTo(self.view)
+//    toolbarHomeButton = toolBar.addImageButton(name: "home",
+//                               onPress: onHome,
+//                               direction: .right,
+//                               accessibilityLabel: "Übersicht")
+//    
+//    _ = toolBar.addImageButton(name: self.isFacsimile ? "mobile-device" : "newspaper",
+//                               onPress: onPDF,
+//                               direction: .left,
+//                               accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
+//    
+//    _ = toolBar.addImageButton(name: "settings",
+//                               onPress: onSettings,
+//                               direction: .center,
+//                               accessibilityLabel: "Einstellungen")
+//        
+//    //the toolbar setup itself
+//    toolBar.applyDefaultTazSyle()
+//    toolBar.pinTo(self.view)
   }
 }
 
@@ -713,9 +715,9 @@ extension IssueVcWithBottomTiles {
     }
     
     if scrollDownAnimation.superview == nil {
-      self.view.insertSubview(scrollDownAnimation, belowSubview: toolBar)
+//      self.view.insertSubview(scrollDownAnimation, belowSubview: toolBar)
       scrollDownAnimation.centerX()
-      pin(scrollDownAnimation.bottom, to: toolBar.top, dist: 5)
+//      pin(scrollDownAnimation.bottom, to: toolBar.top, dist: 5)
     }
     
     onMainAfter(delay) {   [weak self] in

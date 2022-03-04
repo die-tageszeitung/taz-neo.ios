@@ -75,10 +75,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
   
   func updateToolbarHomeIcon(){
-    toolbarHomeButton?.buttonView.color
-      = self.safeIndex == 0 && isUp
-      ? Const.Colors.darkSecondaryText.withAlphaComponent(0.2)
-      : Const.Colors.darkSecondaryText.withAlphaComponent(0.9)
+//    toolbarHomeButton?.buttonView.color
+//      = self.safeIndex == 0 && isUp
+//      ? Const.Colors.darkSecondaryText.withAlphaComponent(0.2)
+//      : Const.Colors.darkSecondaryText.withAlphaComponent(0.9)
   }
   
   /// Reset carousel images
@@ -525,7 +525,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
-      self.updateToolbarHomeIcon()
+//      self.updateToolbarHomeIcon()
       self.setLabel(idx: idx, isRotate: true)
       if IssueVC.showAnimations {
         IssueVC.showAnimations = false

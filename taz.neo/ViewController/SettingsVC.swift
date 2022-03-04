@@ -52,7 +52,8 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   // MARK: Cell creation
   ///konto
   lazy var loginCell: XSettingsCell = {
-    guard let feeder = MainNC.singleton.feederContext.gqlFeeder else {
+    return XSettingsCell(text: "...")
+    guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
       return XSettingsCell(text: "..."){} }
     let authenticator = DefaultAuthenticator(feeder: feeder)
     Notification.receive("authenticationSucceeded") { [weak self]_ in
@@ -123,10 +124,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
                   accessoryView: webviewImage)
   lazy var reportErrorCell: XSettingsCell
   = XSettingsCell(text: "Fehler melden",
-                  tapHandler: {MainNC.singleton.showFeedbackErrorReport(.error)} )
+                  tapHandler: {TazAppEnvironment.sharedInstance.showFeedbackErrorReport(.error)} )
   lazy var feedbackCell: XSettingsCell
   = XSettingsCell(text: "Feedback geben",
-                  tapHandler: {MainNC.singleton.showFeedbackErrorReport(.feedback)} )
+                  tapHandler: {TazAppEnvironment.sharedInstance.showFeedbackErrorReport(.feedback)} )
   ///rechtliches
   lazy var termsCell: XSettingsCell
   = XSettingsCell(text: "Allgemeine Geschäftsbedingungen (AGB)",
@@ -461,7 +462,9 @@ extension SettingsVC.TableData{
 
 // MARK: - cell data/creation/helper
 extension SettingsVC {
-  var isAuthenticated: Bool { return MainNC.singleton.feederContext.isAuthenticated }
+  var isAuthenticated: Bool { return false // TazAppEnvironment.sharedInstance.feederContext?.isAuthenticated
+    
+  }
   
   var storageDetails: String {
     let storage = DeviceData().detailStorage
@@ -547,7 +550,7 @@ extension SettingsVC {
                                         preferredStyle:  .alert )
     alert.addAction( UIAlertAction.init( title: "Ja, abmelden", style: .destructive,
                                          handler: { [weak self] _ in
-      MainNC.singleton.deleteUserData()
+      TazAppEnvironment.sharedInstance.deleteUserData()
       self?.refreshAndReload()
     } ) )
     
@@ -561,7 +564,7 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Löschen anfordern", style: .destructive,
                                          handler: { [weak self] _ in
-      guard let feeder = MainNC.singleton.feederContext.gqlFeeder else {
+      guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
         Toast.show(Localized("something_went_wrong_try_later"), .alert)
         return
       }
@@ -595,15 +598,15 @@ extension SettingsVC {
                                         preferredStyle:  .alert )
     alert.addAction( UIAlertAction.init( title: "Löschen", style: .destructive,
                                          handler:  { [weak self] _ in
-      guard let storedFeeder = MainNC.singleton.feederContext.storedFeeder,
+      guard let storedFeeder = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder,
             let storedFeed = storedFeeder.storedFeeds.first else {
               return
             }
-      MainNC.singleton.feederContext.cancelAll()
+      TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
       StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, deleteOrphanFolders: true)
       onMainAfter { [weak self] in
         self?.refreshAndReload()
-        MainNC.singleton.feederContext.resume()
+        TazAppEnvironment.sharedInstance.feederContext?.resume()
         Notification.send("reloadIssues")
       }
     } ) )
@@ -617,8 +620,8 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Daten zurücksetzen", style: .destructive,
                                          handler: { _ in
-      MainNC.singleton.popToRootViewController(animated: false)
-      MainNC.singleton.feederContext.cancelAll()
+//      TazAppEnvironment.sharedInstance.popToRootViewController(animated: false)
+      TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
       ArticleDB.singleton.reset { [weak self] err in
         self?.log("delete database done")
         exit(0)//Restart, resume currently not possible
@@ -644,11 +647,11 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Zurücksetzen", style: .destructive,
                                          handler: { _ in
-      MainNC.singleton.deleteUserData()
+      TazAppEnvironment.sharedInstance.deleteUserData()
       Defaults.singleton.setDefaults(values: ConfigDefaults,
                                      isNotify: false,
                                      forceWrite: true)
-      MainNC.singleton.deleteAll()
+      TazAppEnvironment.sharedInstance.deleteAll()
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
@@ -656,24 +659,24 @@ extension SettingsVC {
   }
   
   func showPrivacy(){
-    guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
+    guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else { return }
     showLocalHtml(from: feeder.dataPolicy, scrollEnabled: true)
   }
   
   func showTerms(){
-    guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
+    guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else { return }
     showLocalHtml(from: feeder.terms, scrollEnabled: true)
   }
   
   func showRevocation(){
-    guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
+    guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else { return }
     showLocalHtml(from: feeder.revocation, scrollEnabled: true)
   }
   
   func resetPassword(){
     self.modalPresentationStyle = .fullScreen
     let id = SimpleAuthenticator.getUserData().id
-    guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
+    guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else { return }
     let childVc = PwForgottController(id: id, auth: DefaultAuthenticator.init(feeder: feeder))
     childVc.modalPresentationStyle = .fullScreen
     self.present(childVc, animated: true)
@@ -685,7 +688,7 @@ extension SettingsVC {
   }
   
   func showOnboarding(){
-    guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
+    guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else { return }
     showLocalHtml(from: feeder.welcomeSlides, scrollEnabled: false)
   }
   

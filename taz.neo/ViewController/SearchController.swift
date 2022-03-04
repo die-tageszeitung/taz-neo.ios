@@ -432,7 +432,7 @@ class SearchResultArticleVc : ArticleVC {
 
 public class TmpTestController:UIViewController{
   
-  var main: MainNC?
+  var main: TazAppEnvironment?
   
   public override func viewDidLoad() {
     super.viewDidLoad()
@@ -447,8 +447,8 @@ public class TmpTestController:UIViewController{
     
     self.view.addSubview(btn)
     btn.center()
-    main = MainNC()
-    main?.pushViewController(UIViewController(), animated: false)
+    main = TazAppEnvironment.sharedInstance
+//    main?.pushViewController(UIViewController(), animated: false)
     main?.setupFeeder()
   }
   

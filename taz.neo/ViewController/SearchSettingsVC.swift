@@ -361,3 +361,25 @@ private class SortingSegmentedControl: UISegmentedControl {
     }
   }
 }
+
+
+public extension UIButton {
+  internal convenience init(_ _text : String,
+                            type: tazFontType = .content) {
+    self.init()
+    self.setTitle(_text, for: .normal)
+    switch type {
+      case .bold:
+        self.titleLabel?.font = Const.Fonts.titleFont(size: Const.Size.DefaultFontSize)
+      case .content:
+        self.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+      case .small:
+        self.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
+      case .title:
+        self.titleLabel?.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+    }
+    self.setTitleColor(Const.SetColor.ios(.tintColor).color, for: .normal)
+    self.setTitleColor(Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.7), for: .highlighted)
+    
+  }
+}

@@ -548,7 +548,7 @@ open class FeederContext: DoesLog {
         if let d = err.expiredAccountDate {//persist expired account date for all requests!
           Defaults.expiredAccountDate = d
         }
-        MainNC.singleton.expiredAccountInfoShown = true
+        TazAppEnvironment.sharedInstance.expiredAccountInfoShown = true
       case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
       case .unexpectedResponse:
         Alert.message(title: "Fehler",
