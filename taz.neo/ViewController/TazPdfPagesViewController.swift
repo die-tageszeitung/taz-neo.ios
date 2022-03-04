@@ -350,6 +350,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.issue = issueInfo.issue
     super.init(data: pdfModel)
     
+    hidesBottomBarWhenPushed = true
+    
     thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
     thumbnailController?.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
     thumbnailController?.cellLabelFont = Const.Fonts.titleFont(size: 12)

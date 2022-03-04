@@ -235,17 +235,21 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     }
   }
   
+  func onHome(){
+    guard let self = self as? IssueVC else { return }
+    self.issueCarousel.carousel.scrollto(0, animated: true)
+    if self.isUp == false {
+      self.scrollUp()
+      self.isUp = true //ensure property is set correctly
+      /// sometimes on heavy load its been scrolled up but property did not set correctly due this happen
+      /// in delegate...wich was interrupted
+    }
+  }
+  
   func setupToolbar() {
     //the button tap closures
     let onHome:((ButtonControl)->()) = { [weak self] _ in
-      guard let self = self as? IssueVC else { return }
-      self.issueCarousel.carousel.scrollto(0, animated: true)
-      if self.isUp == false {
-        self.scrollUp()
-        self.isUp = true //ensure property is set correctly
-        /// sometimes on heavy load its been scrolled up but property did not set correctly due this happen
-        /// in delegate...wich was interrupted
-      }
+      self?.onHome()
     }
     
     let onPDF:((ButtonControl)->()) = {   [weak self] control in

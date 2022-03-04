@@ -23,19 +23,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   override func viewDidLoad() {
     super.viewDidLoad()
     setupTabbar()
-    
-//    pushViewController(StartupVC(), animated: false)
-//    MainTabVC.singleton = self
-//    isNavigationBarHidden = true
-//    isForeground = true
-//    // Disallow leaving view controllers IssueVC and IntroVC by edge swipe
-//    onPopViewController { vc in
-//      if vc is IssueVC || vc is IntroVC {
-//        return false
-//      }
-//      return true
-//    }
-    
+    self.navigationController?.isNavigationBarHidden = true
     registerForStyleUpdates()
   } // viewDidLoad
   
@@ -49,6 +37,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     home.title = "Home"
     home.tabBarItem.image = UIImage(named: "home")
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    
+    let homeNc = NavigationController(rootViewController: home)
+    homeNc.isNavigationBarHidden = true
     
     let bookmarks = UIViewController()
     bookmarks.title = "Leseliste"
@@ -65,12 +56,8 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     settings.tabBarItem.image = UIImage(named: "settings")
     settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
-    self.viewControllers
-    = [ UINavigationController(rootViewController: home),
-        bookmarks,
-        search,
-        settings]
-    self.selectedIndex = 3
+    self.viewControllers = [ homeNc, bookmarks, search, settings]
+    self.selectedIndex = 0
   }
   
   func applyStyles() {
@@ -85,10 +72,30 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   required init(feederContext: FeederContext) {
     self.feederContext = feederContext
     super.init(nibName: nil, bundle: nil)
+    delegate = self
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+
   
-} // MainNC
+  
+} // MainTabVC
+
+extension MainTabVC : UITabBarControllerDelegate {
+  func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+    if tabBarController.selectedViewController != viewController { return true }
+    
+    if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
+       let issueVC = firstVc as? IssueVcWithBottomTiles //IssueVC also works
+    {
+      issueVC.onHome()
+    }
+    else if let tvc = viewController as? UITableViewController
+    {
+      tvc.tableView.scrollRectToVisible(CGRect(x: 1, y: 1, width: 1, height: 1), animated: true)
+    }
+    return true
+  }
+}

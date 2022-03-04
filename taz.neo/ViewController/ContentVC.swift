@@ -452,6 +452,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.feederContext = feederContext
     self.contentTable = ContentTableVC.loadFromNib()
     super.init()
+    hidesBottomBarWhenPushed = true
   }  
    
   required public init?(coder: NSCoder) {

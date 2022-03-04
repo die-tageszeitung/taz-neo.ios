@@ -12,7 +12,7 @@ import NorthLib
  A SettingsVC is a view controller to edit app's user Settings; Cells are not re-used!
  */
 // MARK: - SettingsVC
-open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalCloseable {
+open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   @Default("persistedIssuesCount")
   var persistedIssuesCount: Int
@@ -178,13 +178,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     }
   }
   
-  // MARK: Lifecycle
-  open override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    guard let wrapper =  self.tableView.superview else { return }
-    setupXButtonIfNeeded(targetView:wrapper)
-  }
-  
   open override func viewDidLoad() {
     self.tableView = UITableView(frame: .zero, style: .grouped)
     super.viewDidLoad()
@@ -195,24 +188,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
     initialTextNotificationSetting = isTextNotification
-  }
-  
-  open override func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    guard self.presentedViewController == nil else { return }
-    // free cells / prevent memory leaks
-    // dismiss, willMove, didMove not called if presented modally
-    data = TableData(sectionContent:[])
-    Notification.remove(observer: self)
-    self.tableView.reloadData()
-    
-    if initialTextNotificationSetting != isTextNotification {
-      NotificationBusiness.sharedInstance.updateTextNotificationSettings()
-    }
-  }
-  
-  deinit {
-    print("SettingsVC deinit")
   }
 }
 
