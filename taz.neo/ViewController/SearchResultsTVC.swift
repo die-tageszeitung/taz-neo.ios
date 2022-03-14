@@ -10,16 +10,19 @@ import NorthLib
 
 class SearchResultsTVC:UITableViewController{
   
+  var searchItem:SearchItem?
+  
   public var onBackgroundTap : (()->())?
 
   static let SearchResultsCellIdentifier = "searchResultsCell"
   
   override public func viewDidLoad() {
     super.viewDidLoad()
+    edgesForExtendedLayout = []
     self.tableView.register(SearchResultsCell.self, forCellReuseIdentifier: Self.SearchResultsCellIdentifier)
     self.tableView.backgroundColor = Const.Colors.opacityBackground
-    self.tableView.contentInsetAdjustmentBehavior = .never
-    
+//    self.tableView.contentInsetAdjustmentBehavior = .never
+    self.navigationController?.navigationBar.isTranslucent = false
     self.tableView.backgroundView?.onTapping {   [weak self] _ in
       guard let self = self else { return }
       self.onBackgroundTap?()
@@ -29,17 +32,33 @@ class SearchResultsTVC:UITableViewController{
     self.tableView.tableFooterView = UIView(frame: .zero)
   }
   
-  override func numberOfSections(in tableView: UITableView) -> Int {
-    return 1
-  }
-  
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    print("Results appeard")
     self.tableView.insetsContentViewsToSafeArea = false
   }
   
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+  }
+}
+
+// MARK: - UITableViewDataSource
+extension SearchResultsTVC {
+  override func numberOfSections(in tableView: UITableView) -> Int {
+    return 1
+  }
+  
+  override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return 100 //searchItem?.allArticles?.count ?? 0
+  }
+  
+  override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell = tableView.dequeueReusableCell(withIdentifier: SearchResultsTVC.SearchResultsCellIdentifier,
+                                             for: indexPath) as! SearchResultsCell
+    cell.titleLabel.text = "Eintrag: \(indexPath.row)"
+//    cell.content = self.searchItem?.searchHitList?.valueAt(indexPath.row)
+    return cell
   }
 }
 

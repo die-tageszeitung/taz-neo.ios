@@ -50,12 +50,14 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     search.tabBarItem.image = UIImage(named: "search-magnifier")
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
+    let searchNc = NavigationController(rootViewController: search)
+    
     let settings = SettingsVC()
     settings.title = "Einstellungen"
     settings.tabBarItem.image = UIImage(named: "settings")
     settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
-    self.viewControllers = [ homeNc, bookmarks, search, settings]
+    self.viewControllers = [ homeNc, bookmarks, searchNc, settings]
     self.selectedIndex = 2
   }
   

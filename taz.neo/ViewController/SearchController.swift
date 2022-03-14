@@ -9,8 +9,12 @@
 import NorthLib
 
 class SearchController: UIViewController {
+
+  
   
   var feederContext: FeederContext
+  
+  var searchItem:SearchItem = SearchItem(searchString: "")
   
   var searchController: UISearchController
   
@@ -26,21 +30,13 @@ class SearchController: UIViewController {
     return button
   }()
   
+
+  
   fileprivate let resultsTableController = SearchResultsTVC()
   
-  lazy var searchBarWraper: UIView = {
-    let v = UIView()
-    let bottomBorder = UIView()
-    bottomBorder.pinHeight(0.5)
-    bottomBorder.backgroundColor = .black
-    v.addSubview(bottomBorder)
-    pin(bottomBorder, to: v,insets: Const.Insets.Default, exclude: .top)
-    v.addSubview(extendedSearchButton)
-    pin(extendedSearchButton.bottom, to: v.bottom, dist: 0)
-    pin(extendedSearchButton.right, to: v.right, dist: -Const.Size.SmallPadding)
-    v.pinHeight(85)
-    return v
-  }()
+  
+  /// a uiview not a common UIToolbar
+  lazy var searchBarTools = SearchBarTools()
   
   lazy var placeholder: UIView = {
     let v = UILabel()
@@ -62,13 +58,23 @@ class SearchController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    // Place the search bar in the navigation bar.
+    navigationItem.title = nil
     
-    self.view.addSubview(searchBarWraper)
-    pin(searchBarWraper, toSafe: self.view, dist: 0, exclude: .bottom)
+    self.definesPresentationContext = true
+    self.navigationItem.titleView = searchController.searchBar
+    // Don't hide the navigation bar because the search bar is in it.
+    searchController.hidesNavigationBarDuringPresentation = false
 
-    searchBarWraper.backgroundColor = Const.SetColor.CTBackground.color
-    self.view.backgroundColor = Const.SetColor.CTBackground.color
-    searchBarWraper.addSubview(searchController.searchBar)
+    if let nb = navigationController?.navigationBar {
+      nb.addSubview(searchBarTools)
+      pin(searchBarTools.top, to: nb.bottom, dist: -15)
+      pin(searchBarTools.right, to: nb.right)
+      pin(searchBarTools.left, to: nb.left)
+    }
+
+    self.view.backgroundColor = .red//Const.SetColor.CTBackground.color
+//    searchBarWraper.addSubview(searchController.searchBar)
     searchController.searchBar.placeholder = "taz Archiv durchsuchen"
     searchController.searchBar.backgroundColor = Const.SetColor.CTBackground.color
     searchController.searchBar.backgroundImage = UIImage()//removes seperator
@@ -78,8 +84,51 @@ class SearchController: UIViewController {
     }
     self.view.addSubview(placeholder)
     placeholder.center()
+    isActive = false
+    if #available(iOS 13.0, *) {
+      searchController.automaticallyShowsSearchResultsController = false
+      searchController.showsSearchResultsController = true
+    }
+    searchController.searchResultsUpdater = self
+    searchController.searchBar.delegate = self // Monitor when the search button is tapped.
+//    navigationItem.istra
+//    resultsTableController.tableView.tableHeaderView = searchBarWraper
   }
   
+
+  
+//  var showsSearchResultsController:Bool = false {
+//    didSet {
+//      if #available(iOS 13.0, *) {
+//        searchController.showsSearchResultsController = showsSearchResultsController
+//      }
+//    }
+//  }
+  
+  
+  var isActive:Bool = false {
+    didSet {
+//      searchBarTools.isOpen = false
+      guard let resultsTVC = searchController.searchResultsController as? SearchResultsTVC else { return }
+      
+      if isActive == false && searchBarTools.superview != self {
+        resultsTVC.tableView.tableHeaderView = nil
+        self.view.addSubview(searchBarTools)
+        pin(searchBarTools, toSafe: self.view, exclude: .bottom)
+      }
+      else if isActive == true,
+              resultsTVC.tableView.tableHeaderView != searchBarTools {
+        print("set result frame is: \(searchBarTools.frame)")
+        
+        resultsTVC.tableView.tableHeaderView = searchBarTools
+      }
+      else if isActive == true{
+        print("set result frame is222: \(searchBarTools.frame)")
+        
+        resultsTVC.tableView.tableHeaderView = searchBarTools
+      }
+    }
+  }
   
   required init(feederContext: FeederContext) {
     self.feederContext = feederContext
@@ -98,6 +147,72 @@ extension SearchController {
     print("Filter tapped todo")
   }
 }
+
+extension SearchController: UISearchResultsUpdating {
+  func updateSearchResults(for searchController: UISearchController) {
+    isActive = searchController.isActive
+    print("updateSearchResults..sc.isActive: \(searchController.isActive) sc.isFirstResponder: \(searchController.isFirstResponder) ")
+  }
+}
+
+// MARK: - UISearchControllerDelegate
+//extension SearchController: UISearchControllerDelegate {
+////  updateSearchResults(for: <#T##UISearchController#>)
+//
+//
+//
+//  func updateSearchResults(for searchController: UISearchController) {
+//    if let resultsController = searchController.searchResultsController as? SearchResultsTVC {
+//      resultsController.tableView.tableHeaderView = searchBarTools
+//      print("moved tools to results table header")
+//    }
+//  }
+//}
+
+// MARK: - UISearchBarDelegate
+extension SearchController: UISearchBarDelegate {
+  
+  private func search(){
+    self.resultsTableController.searchItem = searchItem
+    self.resultsTableController.tableView.reloadData()
+//    self.showsSearchResultsController = true
+    self.resultsTableController.tableView.tableHeaderView = searchBarTools
+    print("moved tools to results table header")
+    
+    return
+    guard let feeder = feederContext.gqlFeeder else { return }
+    feeder.search(searchItem: searchItem) { [weak self] result in
+      guard let self = self else { return }
+      switch result {
+        case .success(let updatedSearchItem):
+          self.searchItem = updatedSearchItem
+          self.resultsTableController.searchItem = updatedSearchItem
+          self.resultsTableController.tableView.reloadData()
+//          self.showsSearchResultsController = true
+//          self.header.resultCount = updatedSearchItem.resultCount
+        case .failure(let err):
+          print("an error occoured... \(err)")
+      }
+    }
+  }
+  
+  public func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+    guard let searchString = searchController.searchBar.text, searchString.length > 2 else {
+      Toast.show("Suchbegriff zu kurz!", .alert)
+      searchBarTools.errorTextLabel.text = "Suchbegriff zu kurz!"
+      return
+    }
+    searchBarTools.errorTextLabel.text = nil
+    
+    searchItem.searchString = searchString
+
+    search()
+    
+  }
+}
+
+
+
 
 
 // MARK: - extension String
