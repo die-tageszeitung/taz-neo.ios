@@ -50,7 +50,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   
   var childPushed = false
   
-  var searchHelper: SearchHelper? 
   
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"

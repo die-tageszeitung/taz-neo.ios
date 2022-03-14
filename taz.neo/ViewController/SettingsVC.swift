@@ -163,7 +163,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   lazy var header = SimpleHeaderView("einstellungen")
   ///Close X Button
-  public lazy var xButton = Button<ImageView>().tazX()
   
   let blockingView = BlockingProcessView()
   
@@ -214,7 +213,6 @@ extension SettingsVC {
   
   public func applyStyles() {
     tableView.backgroundColor = Const.SetColor.CTBackground.color
-    xButton.tazX(true)
   }
   
   func setup(){

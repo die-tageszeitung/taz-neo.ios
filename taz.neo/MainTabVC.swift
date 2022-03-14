@@ -9,7 +9,6 @@ import NorthLib
 
 class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
-//  static let singleton = TazAppEnvironment.sharedInstance
   var feederContext: FeederContext
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -46,7 +45,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     bookmarks.tabBarItem.image = UIImage(named: "star")
     bookmarks.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
-    let search = UIViewController()
+    let search = SearchController(feederContext: feederContext )
     search.title = "Suche"
     search.tabBarItem.image = UIImage(named: "search-magnifier")
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
@@ -57,7 +56,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     self.viewControllers = [ homeNc, bookmarks, search, settings]
-    self.selectedIndex = 0
+    self.selectedIndex = 2
   }
   
   func applyStyles() {
@@ -85,6 +84,13 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
 extension MainTabVC : UITabBarControllerDelegate {
   func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+    
+    if let searchController = selectedViewController as? SearchController {
+      searchController.searchController.searchBar.alpha = 0.0
+      searchController.searchController.isActive = false
+      searchController.dismiss(animated: false)
+    }
+    
     if tabBarController.selectedViewController != viewController { return true }
     
     if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
