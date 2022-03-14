@@ -17,12 +17,13 @@ class SearchResultsTVC:UITableViewController{
   /// a uiview not a common UIToolbar
   lazy var searchBarTools:SearchBarTools = {
     let tool = SearchBarTools()
-    tool.onTapping { sender in
-      tool.extendedSearchButton.activeColor = .red
+    tool.extendedSearchButton.onPress { bc in
       self.serachSettingsVC.modalPresentationStyle = UIModalPresentationStyle.popover
-      self.present(self.serachSettingsVC, animated: true, completion: nil)
+      self.present(self.serachSettingsVC, animated: true) {
+        print("filter present compleete")
+      }
       let popoverPresentationController = self.serachSettingsVC.popoverPresentationController
-      popoverPresentationController?.sourceView = sender.view
+      popoverPresentationController?.sourceView = bc
     }
     return tool
   }()
@@ -41,6 +42,11 @@ class SearchResultsTVC:UITableViewController{
     self.tableView.backgroundView?.onTapping {   [weak self] _ in
       guard let self = self else { return }
       self.onBackgroundTap?()
+    }
+    
+    serachSettingsVC.finishedClosure = { [weak self] apply in
+      guard let self = self else { return }
+      self.searchBarTools.filterActive = !self.serachSettingsVC.currentConfig.isDefault
     }
     
     self.tableView.tableHeaderView = searchBarTools
