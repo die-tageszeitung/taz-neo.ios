@@ -12,6 +12,21 @@ class SearchResultsTVC:UITableViewController{
   
   var searchItem:SearchItem?
   
+  lazy var serachSettingsVC = SearchSettingsVC()
+  
+  /// a uiview not a common UIToolbar
+  lazy var searchBarTools:SearchBarTools = {
+    let tool = SearchBarTools()
+    tool.onTapping { sender in
+      tool.extendedSearchButton.activeColor = .red
+      self.serachSettingsVC.modalPresentationStyle = UIModalPresentationStyle.popover
+      self.present(self.serachSettingsVC, animated: true, completion: nil)
+      let popoverPresentationController = self.serachSettingsVC.popoverPresentationController
+      popoverPresentationController?.sourceView = sender.view
+    }
+    return tool
+  }()
+  
   public var onBackgroundTap : (()->())?
 
   static let SearchResultsCellIdentifier = "searchResultsCell"
@@ -28,7 +43,7 @@ class SearchResultsTVC:UITableViewController{
       self.onBackgroundTap?()
     }
     
-    self.tableView.tableHeaderView = UIView(frame: .zero)
+    self.tableView.tableHeaderView = searchBarTools
     self.tableView.tableFooterView = UIView(frame: .zero)
   }
   
@@ -50,7 +65,7 @@ extension SearchResultsTVC {
   }
   
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return 100 //searchItem?.allArticles?.count ?? 0
+    return 0 //searchItem?.allArticles?.count ?? 0
   }
   
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

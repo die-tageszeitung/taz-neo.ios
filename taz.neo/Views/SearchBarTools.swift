@@ -6,6 +6,16 @@
 //  Copyright © 2022 Norbert Thies. All rights reserved.
 //
 
+/**
+ Probleme Umsetzung UI/UX
+ flackern bei von search controller nach tableview verschieben
+ konzept des search controllers passt nicht zu ux konzept
+ hoche annimieren noch keine Lösung
+ => 2-3PT für UI/UX?
+ 
+ */
+
+
 import NorthLib
 
 class SearchBarTools: UIView {
@@ -13,42 +23,31 @@ class SearchBarTools: UIView {
   var bottomAreaHeightConstraint:NSLayoutConstraint?
   var widthConstraint:NSLayoutConstraint?
   
-  var isOpen:Bool = false {
-    didSet {
-      if let tv = self.superview as? UITableView {
-        self.bottomAreaHeightConstraint?.isActive = !self.isOpen
-        self.setNeedsLayout()
-        self.layoutIfNeeded()
-
-        let f2 = !self.isOpen
-        ? CGRect(x: 0.0, y: 0.0, width: 390.0, height: 153)
-        : CGRect(x: 0.0, y: 0.0, width: 390.0, height: 32)
-        
-        
-        // Animate the height change
-//        let f = CGRect(x: 0, y: 0, width: tv.frame.size.width, height: self.frame.size.height)
-//                print("SearchBarTools \n   frame : \(self.frame) \n   new : \(f) \n   tvhf: \(tv.tableHeaderView?.frame )")
-        UIView.animate(withDuration: 0.3, delay: 0.0, options: .curveEaseInOut) {
-          tv.beginUpdates()
-          tv.tableHeaderView?.frame = f2
-          tv.endUpdates()
-//          tv.setNeedsLayout()
-//          tv.layoutIfNeeded()
-        }
-        return
-      }
-      
-
-
-      
-      UIView.animate(seconds: 0.3) { [weak self] in
-        guard let self = self else { return }
-        self.bottomAreaHeightConstraint?.isActive = !self.isOpen
-        self.setNeedsLayout()
-        self.layoutIfNeeded()
-      }
-    }
-  }
+//  var isOpen:Bool = false {
+//    didSet {
+//      if let tv = self.superview as? UITableView {
+//        self.bottomAreaHeightConstraint?.isActive = !self.isOpen
+//        self.setNeedsLayout()
+//        self.layoutIfNeeded()
+//
+//        let f2 = !self.isOpen
+//        ? CGRect(x: 0.0, y: 0.0, width: 390.0, height: 153)
+//        : CGRect(x: 0.0, y: 0.0, width: 390.0, height: 32)
+//
+//
+//        // Animate the height change
+////        let f = CGRect(x: 0, y: 0, width: tv.frame.size.width, height: self.frame.size.height)
+////                print("SearchBarTools \n   frame : \(self.frame) \n   new : \(f) \n   tvhf: \(tv.tableHeaderView?.frame )")
+//        UIView.animate(withDuration: 0.3, delay: 0.0, options: .curveEaseInOut) {
+//          tv.beginUpdates()
+//          tv.tableHeaderView?.frame = f2
+//          tv.endUpdates()
+////          tv.setNeedsLayout()
+////          tv.layoutIfNeeded()
+//        }
+//      }
+//    }
+//  }
   
   lazy var errorTextLabel = UILabel()
   
@@ -60,8 +59,8 @@ class SearchBarTools: UIView {
     button.buttonView.imageView.tintColor = .black
     button.onTapping { [weak self] _ in
       guard let self = self else { return }
-      self.isOpen = !self.isOpen
-      print("Open is now: \(self.isOpen)")
+//      self.isOpen = !self.isOpen
+//      print("Open is now: \(self.isOpen)")
     }
     return button
   }()
@@ -73,7 +72,6 @@ class SearchBarTools: UIView {
   }()
 
   private func setup() {
-    self.addBorder(.yellow.withAlphaComponent(0.7), 6)
     self.addSubview(extendedSearchButton)
     pin(extendedSearchButton.top, to: self.top, dist: 0)
     pin(extendedSearchButton.right, to: self.right, dist: -Const.Size.SmallPadding)
@@ -102,8 +100,6 @@ class SearchBarTools: UIView {
     pin(bottomArea.top, to: seperator.bottom)
     pin(bottomArea.bottom, to: self.bottom)
     
-    self.backgroundColor = .purple
-    bottomArea.backgroundColor = .yellow
     widthConstraint = self.pinWidth(UIWindow.shortSide)
   }
   
