@@ -10,6 +10,10 @@ import NorthLib
 
 class SearchResultsTVC:UITableViewController{
   
+  var searchClosure: (()->())?
+  
+  var openSearchHit: ((GqlSearchHit)->())?
+  
   var searchItem:SearchItem?
   
   lazy var serachSettingsVC = SearchSettingsVC()
@@ -19,9 +23,7 @@ class SearchResultsTVC:UITableViewController{
     let tool = SearchBarTools()
     tool.extendedSearchButton.onPress { bc in
       self.serachSettingsVC.modalPresentationStyle = UIModalPresentationStyle.popover
-      self.present(self.serachSettingsVC, animated: true) {
-        print("filter present compleete")
-      }
+      self.present(self.serachSettingsVC, animated: true)
       let popoverPresentationController = self.serachSettingsVC.popoverPresentationController
       popoverPresentationController?.sourceView = bc
     }
@@ -47,6 +49,7 @@ class SearchResultsTVC:UITableViewController{
     serachSettingsVC.finishedClosure = { [weak self] apply in
       guard let self = self else { return }
       self.searchBarTools.filterActive = !self.serachSettingsVC.currentConfig.isDefault
+      self.searchClosure?()
     }
     
     self.tableView.tableHeaderView = searchBarTools
@@ -71,15 +74,27 @@ extension SearchResultsTVC {
   }
   
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return 0 //searchItem?.allArticles?.count ?? 0
+    return searchItem?.allArticles?.count ?? 0
   }
   
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: SearchResultsTVC.SearchResultsCellIdentifier,
                                              for: indexPath) as! SearchResultsCell
-    cell.titleLabel.text = "Eintrag: \(indexPath.row)"
-//    cell.content = self.searchItem?.searchHitList?.valueAt(indexPath.row)
+    cell.content = self.searchItem?.searchHitList?.valueAt(indexPath.row)
     return cell
+  }
+  
+  override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    guard let currentCount = self.searchItem?.searchHitList?.count else { return }
+    if indexPath.row == currentCount - 2 {
+      searchClosure?()
+    }
+  }
+  
+  override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    if let searchHit = searchItem?.searchHitList?.valueAt(indexPath.row) {
+      openSearchHit?(searchHit)
+    }
   }
 }
 
@@ -194,5 +209,23 @@ extension Scanner {
     guard scanUpTo(string, into: &value) else { return nil }
     scanString(string, into: nil)///Moved the current start scan location for next item
     return value as String?
+  }
+}
+
+
+// MARK: - SearchResultArticleVc
+class SearchResultArticleVc : ArticleVC {
+  var navigationBarHiddenRestoration:Bool?
+  override func setupSlider() {}
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    navigationBarHiddenRestoration = self.navigationController?.isNavigationBarHidden
+    self.navigationController?.isNavigationBarHidden = true
+  }
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    if let val = navigationBarHiddenRestoration {
+      self.navigationController?.isNavigationBarHidden = val
+    }
   }
 }

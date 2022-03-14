@@ -87,18 +87,17 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 extension MainTabVC : UITabBarControllerDelegate {
   func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
     
-    if let searchController = selectedViewController as? SearchController {
-      searchController.searchController.searchBar.alpha = 0.0
-      searchController.searchController.isActive = false
-      searchController.dismiss(animated: false)
-    }
-    
     if tabBarController.selectedViewController != viewController { return true }
     
     if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
        let issueVC = firstVc as? IssueVcWithBottomTiles //IssueVC also works
     {
       issueVC.onHome()
+    }
+    else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
+       let searchController = firstVc as? SearchController //IssueVC also works
+    {
+      searchController.reset()
     }
     else if let tvc = viewController as? UITableViewController
     {

@@ -10,27 +10,18 @@ import NorthLib
 
 class SearchController: UIViewController {
 
-  
-  
   var feederContext: FeederContext
   
-  var searchItem:SearchItem = SearchItem(searchString: "")
+  var dissue:DummyIssue
+  
+  var searchItem:SearchItem = SearchItem(searchString: "") {
+    didSet {
+      resultsTableController.searchItem = searchItem
+      self.resultsTableController.tableView.reloadData()
+    }
+  }
   
   var searchController: UISearchController
-  
-  lazy var extendedSearchButton: Button<ImageView> = {
-    let button = Button<ImageView>()
-    button.pinSize(CGSize(width: 32, height: 32))
-    button.buttonView.hinset = 0.1
-    button.buttonView.name = "filter"
-    button.buttonView.imageView.tintColor = .black
-    button.onTapping { [weak self] _ in
-      self?.filterButtonTapped()
-    }
-    return button
-  }()
-  
-
   
   fileprivate let resultsTableController = SearchResultsTVC()
   
@@ -45,6 +36,13 @@ class SearchController: UIViewController {
     v.pinWidth(UIWindow.shortSide - 2*Const.Size.DefaultPadding)
     return v
   }()
+  
+  func reset(){
+    searchController.isActive = false
+    searchController.dismiss(animated: false)
+    searchItem = SearchItem(searchString: "")
+    resultsTableController.serachSettingsVC.reset()
+  }
   
   
   override func viewWillAppear(_ animated: Bool) {
@@ -79,50 +77,23 @@ class SearchController: UIViewController {
       searchController.automaticallyShowsSearchResultsController = false
       searchController.showsSearchResultsController = true
     }
-    searchController.searchResultsUpdater = self
-    searchController.searchBar.delegate = self // Monitor when the search button is tapped.
-//    navigationItem.istra
-//    resultsTableController.tableView.tableHeaderView = searchBarWraper
+    searchController.searchBar.delegate = self // Monitor when the search button pressed
+    
+    resultsTableController.searchClosure = { [weak self] in
+      self?.search()
+    }
+    
+    
+    resultsTableController.openSearchHit = { [weak self] hit in
+      self?.openSearchHit(hit)
+    }
+    
   }
-  
-
-  
-//  var showsSearchResultsController:Bool = false {
-//    didSet {
-//      if #available(iOS 13.0, *) {
-//        searchController.showsSearchResultsController = showsSearchResultsController
-//      }
-//    }
-//  }
-  
-  
-//  var isActive:Bool = false {
-//    didSet {
-////      searchBarTools.isOpen = false
-//      guard let resultsTVC = searchController.searchResultsController as? SearchResultsTVC else { return }
-//
-//      if isActive == false && searchBarTools.superview != self {
-//        resultsTVC.tableView.tableHeaderView = nil
-//        self.view.addSubview(searchBarTools)
-//        pin(searchBarTools, toSafe: self.view, exclude: .bottom)
-//      }
-//      else if isActive == true,
-//              resultsTVC.tableView.tableHeaderView != searchBarTools {
-//        print("set result frame is: \(searchBarTools.frame)")
-//
-//        resultsTVC.tableView.tableHeaderView = searchBarTools
-//      }
-//      else if isActive == true{
-//        print("set result frame is222: \(searchBarTools.frame)")
-//
-//        resultsTVC.tableView.tableHeaderView = searchBarTools
-//      }
-//    }
-//  }
   
   required init(feederContext: FeederContext) {
     self.feederContext = feederContext
     searchController = UISearchController(searchResultsController: resultsTableController)
+    dissue = DummyIssue(feed: feederContext.defaultFeed)
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -131,61 +102,9 @@ class SearchController: UIViewController {
   }
 }
 
-// MARK: - extension Filter Actions
-extension SearchController {
-  func filterButtonTapped() {
-    print("Filter tapped todo")
-  }
-}
-
-extension SearchController: UISearchResultsUpdating {
-  func updateSearchResults(for searchController: UISearchController) {
-//    isActive = searchController.isActive
-    print("updateSearchResults..sc.isActive: \(searchController.isActive) sc.isFirstResponder: \(searchController.isFirstResponder) ")
-  }
-}
-
-// MARK: - UISearchControllerDelegate
-//extension SearchController: UISearchControllerDelegate {
-////  updateSearchResults(for: <#T##UISearchController#>)
-//
-//
-//
-//  func updateSearchResults(for searchController: UISearchController) {
-//    if let resultsController = searchController.searchResultsController as? SearchResultsTVC {
-//      resultsController.tableView.tableHeaderView = searchBarTools
-//      print("moved tools to results table header")
-//    }
-//  }
-//}
-
 // MARK: - UISearchBarDelegate
 extension SearchController: UISearchBarDelegate {
-  
   private func search(){
-    self.resultsTableController.searchItem = searchItem
-    self.resultsTableController.tableView.reloadData()
-//    self.showsSearchResultsController = true
-    print("moved tools to results table header")
-    
-    return
-    guard let feeder = feederContext.gqlFeeder else { return }
-    feeder.search(searchItem: searchItem) { [weak self] result in
-      guard let self = self else { return }
-      switch result {
-        case .success(let updatedSearchItem):
-          self.searchItem = updatedSearchItem
-          self.resultsTableController.searchItem = updatedSearchItem
-          self.resultsTableController.tableView.reloadData()
-//          self.showsSearchResultsController = true
-//          self.header.resultCount = updatedSearchItem.resultCount
-        case .failure(let err):
-          print("an error occoured... \(err)")
-      }
-    }
-  }
-  
-  public func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
     guard let searchString = searchController.searchBar.text, searchString.length > 2 else {
       Toast.show("Suchbegriff zu kurz!", .alert)
       
@@ -196,12 +115,139 @@ extension SearchController: UISearchBarDelegate {
     
     searchItem.searchString = searchString
 
+    searchItem.settings = self.resultsTableController.serachSettingsVC.currentConfig
+    guard let feeder = feederContext.gqlFeeder else { return }
+    feeder.search(searchItem: searchItem) { [weak self] result in
+      guard let self = self else { return }
+      switch result {
+        case .success(let updatedSearchItem):
+          self.searchItem = updatedSearchItem
+//          self.showsSearchResultsController = true
+//          self.header.resultCount = updatedSearchItem.resultCount
+        case .failure(let err):
+          print("an error occoured... \(err)")
+      }
+    }
+  }
+  
+  public func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
     search()
+  }
+  
+  private func openSearchHit(_ searchHit: GqlSearchHit){
+    let tmp = TmpFileEntry(name: "test")
+    let bs = BookmarkSection(name: "Suche: \(searchItem.searchString)", html: tmp)
+    bs.articles = searchItem.allArticles
+    dissue.search = self.searchItem
+    dissue.sections = [bs]
     
+//    searchDelegate.open(searchHit)
+    
+    feederContext.dloader.downloadFiles(url: searchHit.baseUrl, files: searchHit.article.files) {err in
+  //      print("PayloadDL doneWith Err: \(err)")
+  //    }
+      let path = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.text.sha1)
+
+      let articleVC = SearchResultArticleVc(feederContext: self.feederContext)
+      #warning("missing deleted empty delegate functions")
+      articleVC.delegate = self
+      articleVC.gotoUrl(path)
+
+      self.navigationController?.pushViewController(articleVC, animated: true)
+  //    #warning("Cannot Present while Modal is Presented")
+  //    ///Solution SearchCtrl must be an extendion to IssueVC
+  //
+  //    #warning("more to do's: store local file and open! ")
+  //    presentingVC?.navigationController?.pushViewController(articleVC, animated: true)
+  //    //    self.childArticleVC = articleVC
+
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+//    self.self.searchResultsController?.view.isHidden = true
   }
 }
 
 
+//extension SearchController: IssueInfo {
+//  var issue: Issue {
+//    return dissue
+//  }
+//  
+//  func resetIssueList() {
+//    print("todo...")
+//  }
+//  
+//  
+//}
+
+extension SearchController: ArticleVCdelegate {
+  public var issue: Issue {
+    return self.dissue
+  }
+  
+  
+  public var section: Section? {
+    debug("TODO:: section requested")
+    return nil
+  }
+  
+  public var sections: [Section] {
+    debug("TODO:: sections array requested")
+    return []
+  }
+  
+  public var article: Article? {
+    get {
+      debug("TODO:: article requested")
+      return nil
+    }
+    set {
+      
+    }
+  }
+  
+  public var article2section: [String : [Section]] {
+    debug("TODO:: article2section requested")
+    if let s = dissue.sections, let artArray = searchItem.allArticles {
+      var d : [String : [Section]]  = [:]
+      for art in artArray {
+        d[art.html.fileName] = s
+      }
+      return d
+    }
+    return [:]
+  }
+  
+  public func displaySection(index: Int) {
+    debug("TODO:: displaySection \(index)")
+  }
+  
+  public func linkPressed(from: URL?, to: URL?) {
+    debug("TODO:: linkPressed \(from?.absoluteString) to: \(to?.absoluteString)")
+  }
+  
+  public func closeIssue() {
+    debug("TODO:: closeIssue")
+//    self.navigationController?.popViewController(animated: false)
+  }
+
+  
+  public func resetIssueList() {
+      debug("TODO:: resetIssueList")
+  }
+}
 
 
 
