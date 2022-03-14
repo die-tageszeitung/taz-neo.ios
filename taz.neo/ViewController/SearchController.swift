@@ -14,9 +14,46 @@ class SearchController: UIViewController {
   
   var searchController: UISearchController
   
+  lazy var extendedSearchButton: Button<ImageView> = {
+    let button = Button<ImageView>()
+    button.pinSize(CGSize(width: 32, height: 32))
+    button.buttonView.hinset = 0.1
+    button.buttonView.name = "filter"
+    button.buttonView.imageView.tintColor = .black
+    button.onTapping { [weak self] _ in
+      self?.filterButtonTapped()
+    }
+    return button
+  }()
+  
   fileprivate let resultsTableController = SearchResultsTVC()
   
-  var searchBarWraper = UIView()
+  lazy var searchBarWraper: UIView = {
+    let v = UIView()
+    let bottomBorder = UIView()
+    bottomBorder.pinHeight(0.5)
+    bottomBorder.backgroundColor = .black
+    v.addSubview(bottomBorder)
+    pin(bottomBorder, to: v,insets: Const.Insets.Default, exclude: .top)
+    v.addSubview(extendedSearchButton)
+    pin(extendedSearchButton.bottom, to: v.bottom, dist: 0)
+    pin(extendedSearchButton.right, to: v.right, dist: -Const.Size.SmallPadding)
+    v.pinHeight(85)
+    return v
+  }()
+  
+  lazy var placeholder: UIView = {
+    let v = UILabel()
+    v.text = "Keine aktuelle Suche\nSuchbegriff eingeben und \"Suchen\" drücken."
+    v.textAlignment = .center
+    v.numberOfLines = 0
+    v.contentFont(size: 28)
+    v.textColor = .lightGray
+    #warning("Wrong on ipad change traits todo implement!")
+    v.pinWidth(UIWindow.shortSide - 2*Const.Size.DefaultPadding)
+    return v
+  }()
+  
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -28,11 +65,19 @@ class SearchController: UIViewController {
     
     self.view.addSubview(searchBarWraper)
     pin(searchBarWraper, toSafe: self.view, dist: 0, exclude: .bottom)
-    searchBarWraper.pinHeight(80)
-    searchBarWraper.backgroundColor = .orange
-    self.view.backgroundColor = .yellow
+
+    searchBarWraper.backgroundColor = Const.SetColor.CTBackground.color
+    self.view.backgroundColor = Const.SetColor.CTBackground.color
     searchBarWraper.addSubview(searchController.searchBar)
     searchController.searchBar.placeholder = "taz Archiv durchsuchen"
+    searchController.searchBar.backgroundColor = Const.SetColor.CTBackground.color
+    searchController.searchBar.backgroundImage = UIImage()//removes seperator
+    if #available(iOS 13.0, *) {
+      searchController.searchBar.searchTextField.layer.cornerRadius = 18
+      searchController.searchBar.searchTextField.layer.masksToBounds = true
+    }
+    self.view.addSubview(placeholder)
+    placeholder.center()
   }
   
   
@@ -44,6 +89,13 @@ class SearchController: UIViewController {
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+// MARK: - extension Filter Actions
+extension SearchController {
+  func filterButtonTapped() {
+    print("Filter tapped todo")
   }
 }
 
