@@ -15,7 +15,7 @@ public struct SearchSettings: Equatable {
   public var from:Date?
   public var to:Date?
   
-  public var isDefault: Bool {
+  public var isChanged: Bool {
     get {
       return searchLocation != .everywhere
         || sorting != .relevance

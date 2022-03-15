@@ -52,7 +52,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     let searchNc = NavigationController(rootViewController: search)
     
-    let settings = SettingsVC()
+    let settings = SettingsVC(feederContext: feederContext)
     settings.title = "Einstellungen"
     settings.tabBarItem.image = UIImage(named: "settings")
     settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
@@ -97,7 +97,7 @@ extension MainTabVC : UITabBarControllerDelegate {
     else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
        let searchController = firstVc as? SearchController //IssueVC also works
     {
-      searchController.reset()
+      searchController.restoreInitialState()
     }
     else if let tvc = viewController as? UITableViewController
     {

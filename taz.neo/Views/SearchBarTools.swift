@@ -25,7 +25,7 @@ class SearchBarTools: UIView {
   var filterActive:Bool = false {
     didSet {
       extendedSearchButton.buttonView.isActivated
-      = !filterActive
+      = filterActive
     }
   }
   

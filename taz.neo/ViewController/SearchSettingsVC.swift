@@ -18,7 +18,7 @@ class SearchSettingsVC: UIViewController {
   private var settings = SearchSettingsView()
   private var scrollView = UIScrollView()
   
-  func reset(){
+  func restoreInitialState(){
     currentConfig = SearchSettings()
     lastConfig = nil
   }

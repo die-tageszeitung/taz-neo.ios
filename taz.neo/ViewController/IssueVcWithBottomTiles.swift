@@ -266,16 +266,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       print("PDF Pressed")
     }
     
-    let onSettings:((ButtonControl)->()) = {   [weak self] control in
-      guard let self = self else { return }
-      let navCtrl = UINavigationController(rootViewController: SettingsVC())
-//      navCtrl.modalPresentationStyle = .overCurrentContext
-      navCtrl.isNavigationBarHidden = true
-      self.navigationController?.present(navCtrl, animated: true, completion: {
-        print("Settings Presented")
-      })
-      print("Settings Pressed")
-    }
     //the buttons and alignments
 //    toolbarHomeButton = toolBar.addImageButton(name: "home",
 //                               onPress: onHome,

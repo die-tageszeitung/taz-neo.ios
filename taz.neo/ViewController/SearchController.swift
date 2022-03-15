@@ -12,12 +12,13 @@ class SearchController: UIViewController {
 
   var feederContext: FeederContext
   
+  var bs: BookmarkSection?
+  
   var dissue:DummyIssue
   
   var searchItem:SearchItem = SearchItem(searchString: "") {
     didSet {
       resultsTableController.searchItem = searchItem
-      self.resultsTableController.tableView.reloadData()
     }
   }
   
@@ -37,11 +38,13 @@ class SearchController: UIViewController {
     return v
   }()
   
-  func reset(){
+  func restoreInitialState() -> Bool{
+    if resultsTableController.restoreInitialState() == false {
+      return false
+    }
     searchController.isActive = false
     searchController.dismiss(animated: false)
-    searchItem = SearchItem(searchString: "")
-    resultsTableController.serachSettingsVC.reset()
+    return true
   }
   
   
@@ -122,6 +125,7 @@ extension SearchController: UISearchBarDelegate {
       switch result {
         case .success(let updatedSearchItem):
           self.searchItem = updatedSearchItem
+          self.updateArticleVcIfNeeded()
 //          self.showsSearchResultsController = true
 //          self.header.resultCount = updatedSearchItem.resultCount
         case .failure(let err):
@@ -134,9 +138,27 @@ extension SearchController: UISearchBarDelegate {
     search()
   }
   
+  func updateArticleVcIfNeeded(){
+    guard let articleVC = self.navigationController?.viewControllers.last as? SearchResultArticleVc else { return }
+    guard let bs = bs else { return }
+    guard let searchHit = searchItem.lastResponse?.search.searchHitList?.first else { return }
+    guard let allArticles = searchItem.allArticles else { return }
+    bs.articles = allArticles
+    dissue.search = self.searchItem
+    dissue.sections = [bs]
+    articleVC.searchContents = allArticles
+//    articleVC.articles = allArticles
+//    articleVC.contents = allArticles
+    feederContext.dloader.downloadFiles(url: searchHit.baseUrl, files: searchHit.article.files) { err in
+      let path = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.text.sha1)
+      if err == nil { articleVC.reload() }
+    }
+  }
+  
   private func openSearchHit(_ searchHit: GqlSearchHit){
     let tmp = TmpFileEntry(name: "test")
-    let bs = BookmarkSection(name: "Suche: \(searchItem.searchString)", html: tmp)
+    bs = BookmarkSection(name: "Suche: \(searchItem.searchString)", html: tmp)
+    guard let bs = bs else { return }
     bs.articles = searchItem.allArticles
     dissue.search = self.searchItem
     dissue.sections = [bs]
@@ -151,8 +173,11 @@ extension SearchController: UISearchBarDelegate {
       let articleVC = SearchResultArticleVc(feederContext: self.feederContext)
       #warning("missing deleted empty delegate functions")
       articleVC.delegate = self
+      articleVC.searchClosure = { [weak self] in
+        self?.search()
+      }
       articleVC.gotoUrl(path)
-
+      if err == nil { articleVC.reload() }
       self.navigationController?.pushViewController(articleVC, animated: true)
   //    #warning("Cannot Present while Modal is Presented")
   //    ///Solution SearchCtrl must be an extendion to IssueVC

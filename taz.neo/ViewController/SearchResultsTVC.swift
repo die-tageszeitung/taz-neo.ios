@@ -7,6 +7,7 @@
 //
 
 import NorthLib
+import CoreGraphics
 
 class SearchResultsTVC:UITableViewController{
   
@@ -14,7 +15,11 @@ class SearchResultsTVC:UITableViewController{
   
   var openSearchHit: ((GqlSearchHit)->())?
   
-  var searchItem:SearchItem?
+  var searchItem:SearchItem? {
+    didSet {
+      tableView.reloadData()
+    }
+  }
   
   lazy var serachSettingsVC = SearchSettingsVC()
   
@@ -30,7 +35,33 @@ class SearchResultsTVC:UITableViewController{
     return tool
   }()
   
+  /// ToDo activate/deactivate e.g. on result end/empty
+  lazy var footer:UIView = {
+    let footer =  UIView(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
+    let act = UIActivityIndicatorView()
+    footer.addSubview(act)
+    act.center()
+    act.startAnimating()
+    act.showAnimated()
+    return footer
+  }()
+  
+ 
+  
   public var onBackgroundTap : (()->())?
+  
+  func restoreInitialState() -> Bool{
+    ///first scroll up
+    if tableView.contentOffset.y > 20 {
+      tableView.setContentOffset(.zero, animated: true)
+      return false
+    }
+    //then reset everything
+    searchItem = nil
+    serachSettingsVC.restoreInitialState()
+    self.searchBarTools.filterActive = self.serachSettingsVC.currentConfig.isChanged
+    return true
+  }
 
   static let SearchResultsCellIdentifier = "searchResultsCell"
   
@@ -48,12 +79,12 @@ class SearchResultsTVC:UITableViewController{
     
     serachSettingsVC.finishedClosure = { [weak self] apply in
       guard let self = self else { return }
-      self.searchBarTools.filterActive = !self.serachSettingsVC.currentConfig.isDefault
+      self.searchBarTools.filterActive = self.serachSettingsVC.currentConfig.isChanged
       self.searchClosure?()
     }
     
     self.tableView.tableHeaderView = searchBarTools
-    self.tableView.tableFooterView = UIView(frame: .zero)
+    self.tableView.tableFooterView = footer
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -216,6 +247,33 @@ extension Scanner {
 // MARK: - SearchResultArticleVc
 class SearchResultArticleVc : ArticleVC {
   var navigationBarHiddenRestoration:Bool?
+  
+  var searchClosure: (()->())?
+  
+  override func setHeader(artIndex: Int) {
+    super.setHeader(artIndex: artIndex)
+    if artIndex >= articles.count - 1 {
+      searchClosure?()
+    }
+  }
+  
+  var searchContents: [Article] = [] {
+    didSet {
+      super.articles = searchContents
+      super.contents = searchContents
+      let path = feeder.issueDir(issue: issue).path
+      let curls: [ContentUrl] = contents.map { cnt in
+        ContentUrl(path: path, issue: issue, content: cnt) { [weak self] curl in
+          guard let this = self else { return }
+          this.dloader.downloadIssueData(issue: this.issue, files: curl.content.files) { err in
+            if err == nil { curl.isAvailable = true }
+          }
+        }
+      }
+      displayUrls(urls: curls)
+    }
+  }
+  
   override func setupSlider() {}
   override func viewDidLoad() {
     super.viewDidLoad()

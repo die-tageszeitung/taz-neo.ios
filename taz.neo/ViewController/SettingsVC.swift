@@ -38,6 +38,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   var data:TableData = TableData(sectionContent: [])
   
+  var feederContext: FeederContext
   
   /// factory to create images for cells accessory view; attend every cell needs its own image!
   var webviewImage: UIImageView {
@@ -52,7 +53,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   // MARK: Cell creation
   ///konto
   lazy var loginCell: XSettingsCell = {
-    return XSettingsCell(text: "...")
     guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
       return XSettingsCell(text: "..."){} }
     let authenticator = DefaultAuthenticator(feeder: feeder)
@@ -187,6 +187,15 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
     initialTextNotificationSetting = isTextNotification
+  }
+  
+  required public init(feederContext: FeederContext) {
+    self.feederContext = feederContext
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  required public init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
 }
 
@@ -435,9 +444,7 @@ extension SettingsVC.TableData{
 
 // MARK: - cell data/creation/helper
 extension SettingsVC {
-  var isAuthenticated: Bool { return false // TazAppEnvironment.sharedInstance.feederContext?.isAuthenticated
-    
-  }
+  var isAuthenticated: Bool { return feederContext.isAuthenticated }
   
   var storageDetails: String {
     let storage = DeviceData().detailStorage
