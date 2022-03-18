@@ -71,8 +71,11 @@ public enum GqlSearchSorting: String, CodableEnum {
   }
 }
 
+public typealias resultCount = (total:Int?, currentCount:Int?)
+
 public class GqlSearchResponse: GQLObject {
   public var total: Int
+  public var totalFound: Int
   var authInfo: GqlAuthInfo
   public var text: String
   public var sessionId: String?
@@ -82,7 +85,7 @@ public class GqlSearchResponse: GQLObject {
     if let s = sessionId { sid = "sessionId: \(s)," }
     return "GqlSearchItem{ total:\(total), text: \(text), \(sid)searchHitList: \(String(describing: searchHitList))}"
   }
-  static var fields = "total, text, sessionId, searchHitList { \(GqlSearchHit.fields) }"
+  static var fields = "total, totalFound, text, sessionId, searchHitList { \(GqlSearchHit.fields) }"
 }
 
 
@@ -103,6 +106,8 @@ public class SearchItem: DoesLog {
   public fileprivate(set) var searching: Bool = false
   
   fileprivate static let itemsPerFetch:Int = 20///like API default
+  
+  public private(set) var noMoreSearchResults = true
   public var sessionId: String?
   public var searchString: String {
     didSet {
@@ -119,9 +124,9 @@ public class SearchItem: DoesLog {
     }
   }
   
-  public var resultCount: (Int?, Int?) {
+  public var resultCount: resultCount {
     get{
-      if let total = lastResponse?.search.total,
+      if let total = lastResponse?.search.totalFound,
          let currentCount = searchHitList?.count {
         return (currentCount, total)
       }
@@ -135,6 +140,7 @@ public class SearchItem: DoesLog {
       if searchHitList == nil {
         searchHitList = lastResponse?.search.searchHitList
       } else if let last = lastResponse?.search.searchHitList {
+        noMoreSearchResults = last.isEmpty
         searchHitList?.append(contentsOf: last)
       }
       else {
@@ -165,6 +171,7 @@ public class SearchItem: DoesLog {
   private func reset(){
     sessionId = nil
     searchHitList = nil
+    noMoreSearchResults = false
   }
   
   var request: String {
@@ -193,7 +200,7 @@ public class SearchItem: DoesLog {
       \(sessionArg)
       \(fromDateArg)
        \(toDateArg)
-    ){authInfo {\(GqlAuthInfo.fields)} total, text, sessionId searchHitList{\(GqlSearchHit.fields)}}
+    ){authInfo {\(GqlAuthInfo.fields)} total, totalFound, text, sessionId searchHitList{\(GqlSearchHit.fields)}}
     """
     }
   }
