@@ -220,6 +220,8 @@ public class GqlSearchHit: GQLObject {
   var articleHtml: String?
   /// base URL for Article
   var baseUrl: String
+  /// sectionTitle for Article
+  var sectionTitle: String?
 
   public var sDate: String
   
@@ -232,6 +234,7 @@ public class GqlSearchHit: GQLObject {
     case articleHtml
     case sDate
     case baseUrl
+    case sectionTitle
     case sessionId
   }
   
@@ -243,6 +246,7 @@ public class GqlSearchHit: GQLObject {
     articleHtml = try container.decodeIfPresent(String.self, forKey: .articleHtml)
     sDate = try container.decode(String.self, forKey: .sDate)
     baseUrl = try container.decode(String.self, forKey: .baseUrl)
+    sectionTitle = try container.decodeIfPresent(String.self, forKey: .sectionTitle)
   }
   
   
@@ -251,6 +255,7 @@ public class GqlSearchHit: GQLObject {
       article:\(article),
       snippet:\(snippet ?? "-"),
       teaser:\(teaser ?? "-"),
+      sectionTitle:\(sectionTitle ?? "-"),
       articleHtml:\(articleHtml ?? "-"),
       sDate:\(sDate)",
       baseUrl:\(baseUrl)
@@ -261,6 +266,7 @@ public class GqlSearchHit: GQLObject {
     sDate: date
     snippet
     teaser
+    sectionTitle
     articleHtml
     baseUrl
     article{ \(GqlArticle.fields) }

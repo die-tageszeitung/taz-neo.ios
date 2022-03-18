@@ -368,6 +368,11 @@ public extension Content {
     }
     return ret
   }
+  
+  func authors(_ separator: String = ", ") ->  String? {
+    guard let a = authors else { return nil }
+    return a.map{ $0.name ?? "" }.joined(separator: separator)
+  }
 
 } // Content
 

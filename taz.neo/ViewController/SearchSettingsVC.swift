@@ -375,6 +375,8 @@ public extension UIButton {
     switch type {
       case .bold:
         self.titleLabel?.font = Const.Fonts.titleFont(size: Const.Size.DefaultFontSize)
+      case .contentText:
+        self.titleLabel?.font = Const.Fonts.contentTextFont(size: Const.Size.DefaultFontSize)
       case .content:
         self.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
       case .small:

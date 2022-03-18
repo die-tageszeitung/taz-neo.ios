@@ -134,11 +134,13 @@ class SearchResultsCell: UITableViewCell {
     didSet{
       if let content = content {
         titleLabel.text = content.article.title
+        authorLabel.text = content.article.authors() ?? "- - -"
         contentLabel.attributedText = content.snippet?.attributedFromSnippetString
-        dateLabel.text = content.date.short
+        dateLabel.text = content.date.short + " " + (content.sectionTitle ?? "")
       }
       else {
         titleLabel.text = ""
+        authorLabel.text = ""
         contentLabel.text = ""
         dateLabel.text = ""
       }
@@ -168,6 +170,13 @@ class SearchResultsCell: UITableViewCell {
   }()
 
   lazy var contentLabel: UILabel = {
+    let label = UILabel("", type: .contentText)
+    label.textAlignment = .left
+    label.translatesAutoresizingMaskIntoConstraints = false
+    return label
+  }()
+  
+  lazy var authorLabel: UILabel = {
     let label = UILabel("", type: .content)
     label.textAlignment = .left
     label.translatesAutoresizingMaskIntoConstraints = false
@@ -178,6 +187,7 @@ class SearchResultsCell: UITableViewCell {
     self.backgroundColor = Const.SetColor.CTBackground.color
     addSubview(cellView)
     cellView.addSubview(titleLabel)
+    cellView.addSubview(authorLabel)
     cellView.addSubview(contentLabel)
     cellView.addSubview(dateLabel)
     self.selectionStyle = .none
@@ -185,15 +195,18 @@ class SearchResultsCell: UITableViewCell {
     
     pin(titleLabel.left, to: cellView.left)
     pin(titleLabel.right, to: cellView.right)
+    pin(authorLabel.left, to: cellView.left)
+    pin(authorLabel.right, to: cellView.right)
     pin(contentLabel.left, to: cellView.left)
     pin(contentLabel.right, to: cellView.right)
     pin(dateLabel.left, to: cellView.left)
     pin(dateLabel.right, to: cellView.right)
     
-    pin(titleLabel.top, to: cellView.top)
-    pin(contentLabel.top, to: titleLabel.bottom, dist: 3)
+    pin(titleLabel.top, to: cellView.top, dist: 2)
+    pin(authorLabel.top, to: titleLabel.bottom, dist: 3)
+    pin(contentLabel.top, to: authorLabel.bottom, dist: 3)
     pin(dateLabel.top, to: contentLabel.bottom, dist: 7)
-    pin(dateLabel.bottom, to: cellView.bottom)
+    pin(dateLabel.bottom, to: cellView.bottom, dist: 2)
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -218,7 +231,7 @@ extension String {
       var highlighted:Bool = false
       while !scanner.isAtEnd {
         if highlighted, let tagged = scanner.scanTill(string: closeTag) {
-          s.append(NSAttributedString(string: tagged, attributes: [.backgroundColor: UIColor.yellow.withAlphaComponent(0.7), .foregroundColor: UIColor.black]))
+          s.append(NSAttributedString(string: tagged, attributes: [.backgroundColor: Const.Colors.fountTextHighlight, .foregroundColor: UIColor.black]))
           s.append(NSAttributedString(string: " "))
         }
         else if let text = scanner.scanTill(string: openTag){

@@ -45,6 +45,7 @@ public struct Const {
     static let darkSecondaryText: UIColor = UIColor.rgb(0xebebf5)
     static let appIconGrey: UIColor = darkSecondaryText //UIColor.rgb(0x9c9c9c)
     
+    static let fountTextHighlight: UIColor = UIColor.rgb(0xd50d2e).withAlphaComponent(0.2)
     static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)
     
     static let darkToolbar = darkSecondaryBG
@@ -271,6 +272,7 @@ public struct Const {
     static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
     static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
     static var contentTableFontName = titleFontName
+    static var contentTextFont = "TimesNewRomanPSMT"//Cochin"
 
     static func font(name: String?, size: CGFloat) -> UIFont {
       var font: UIFont? = nil
@@ -290,6 +292,10 @@ public struct Const {
     /// The font to use in content tables
     static func contentTableFont(size: CGFloat) -> UIFont
     { return font(name: contentTableFontName, size: size) }
+    
+    /// The font to use in content tables
+    static func contentTextFont(size: CGFloat) -> UIFont
+    { return font(name: contentTextFont, size: size) }
     
     static var contentFont: UIFont = contentFont(size: Size.DefaultFontSize)
   } // Fonts
@@ -466,6 +472,8 @@ extension UILabel {
         self.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
       case .title:
         self.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+      case .contentText:
+        self.font = Const.Fonts.contentTextFont(size: Const.Size.DefaultFontSize)
     }
     self.textColor = color.color
     self.textAlignment = align
@@ -473,4 +481,4 @@ extension UILabel {
   }
 }
 
-enum tazFontType { case title, small, bold, content }
+enum tazFontType { case title, small, bold, content, contentText }
