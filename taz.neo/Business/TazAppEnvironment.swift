@@ -20,13 +20,20 @@ class TazAppEnvironment /*: NSObject, DoesLog, MFMailComposeViewControllerDelega
   private var threeFingerAlertOpen: Bool = false
   
   public private(set) lazy var rootViewController : UIViewController = {
-    let vc = UIViewController()
-    vc.view.backgroundColor = .red
+    let vc = UIViewController()//Startup Splash Screen?!
+    let spinner = UIActivityIndicatorView()
+    vc.view.addSubview(spinner)
+    spinner.center()
+    spinner.color = .white
+    spinner.startAnimating()
     return vc
   }()  {
     didSet {
       guard let window = UIApplication.shared.delegate?.window else { return }
-      window?.rootViewController = rootViewController
+      window?.hideAnimated() {
+        window?.rootViewController = self.rootViewController
+        window?.showAnimated()
+      }
     }
 }
   
