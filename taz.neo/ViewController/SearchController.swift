@@ -146,7 +146,7 @@ extension SearchController: UISearchBarDelegate {
     dissue.search = self.searchItem
     dissue.sections = [bs]
     articleVC.searchContents = allArticles
-    feederContext.dloader.downloadFiles(url: searchHit.baseUrl, files: searchHit.article.files) { err in
+    feederContext.dloader.downloadSearchResultFiles(url: searchHit.baseUrl, files: searchHit.article.files) { err in
       let path = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.text.sha1)
       if err == nil { articleVC.reload() }
     }
@@ -161,7 +161,8 @@ extension SearchController: UISearchBarDelegate {
     dissue.sections = [bs]
     
     
-    feederContext.dloader.downloadFiles(url: searchHit.baseUrl, files: searchHit.article.files) {err in
+    feederContext.dloader.downloadSearchResultFiles(url: searchHit.baseUrl, files: searchHit.article.files) {[weak self] err in
+      guard let self = self else { return }
       let path = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.text.sha1)
 
       let articleVC = SearchResultArticleVc(feederContext: self.feederContext)
