@@ -134,10 +134,8 @@ public class SearchItem: DoesLog {
     didSet {
       if searchHitList == nil {
         searchHitList = lastResponse?.search.searchHitList
-        appendedItems = nil
       } else if let last = lastResponse?.search.searchHitList {
         searchHitList?.append(contentsOf: last)
-        appendedItems = last
       }
       else {
         self.log("No Data Added!")
@@ -153,7 +151,6 @@ public class SearchItem: DoesLog {
     }
   }
   
-  public var appendedItems: [GqlSearchHit]?
   
   public var searchHitList: [GqlSearchHit]?
   public var offset: Int {
