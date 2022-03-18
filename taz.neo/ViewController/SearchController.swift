@@ -126,7 +126,6 @@ extension SearchController: UISearchBarDelegate {
         case .success(let updatedSearchItem):
           self.searchItem = updatedSearchItem
           self.updateArticleVcIfNeeded()
-//          self.showsSearchResultsController = true
 //          self.header.resultCount = updatedSearchItem.resultCount
         case .failure(let err):
           print("an error occoured... \(err)")
@@ -147,8 +146,6 @@ extension SearchController: UISearchBarDelegate {
     dissue.search = self.searchItem
     dissue.sections = [bs]
     articleVC.searchContents = allArticles
-//    articleVC.articles = allArticles
-//    articleVC.contents = allArticles
     feederContext.dloader.downloadFiles(url: searchHit.baseUrl, files: searchHit.article.files) { err in
       let path = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.text.sha1)
       if err == nil { articleVC.reload() }
@@ -163,11 +160,8 @@ extension SearchController: UISearchBarDelegate {
     dissue.search = self.searchItem
     dissue.sections = [bs]
     
-//    searchDelegate.open(searchHit)
     
     feederContext.dloader.downloadFiles(url: searchHit.baseUrl, files: searchHit.article.files) {err in
-  //      print("PayloadDL doneWith Err: \(err)")
-  //    }
       let path = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.text.sha1)
 
       let articleVC = SearchResultArticleVc(feederContext: self.feederContext)
@@ -179,43 +173,9 @@ extension SearchController: UISearchBarDelegate {
       articleVC.gotoUrl(path)
       if err == nil { articleVC.reload() }
       self.navigationController?.pushViewController(articleVC, animated: true)
-  //    #warning("Cannot Present while Modal is Presented")
-  //    ///Solution SearchCtrl must be an extendion to IssueVC
-  //
-  //    #warning("more to do's: store local file and open! ")
-  //    presentingVC?.navigationController?.pushViewController(articleVC, animated: true)
-  //    //    self.childArticleVC = articleVC
-
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-//    self.self.searchResultsController?.view.isHidden = true
   }
 }
-
-
-//extension SearchController: IssueInfo {
-//  var issue: Issue {
-//    return dissue
-//  }
-//  
-//  func resetIssueList() {
-//    print("todo...")
-//  }
-//  
-//  
-//}
 
 extension SearchController: ArticleVCdelegate {
   public var issue: Issue {
