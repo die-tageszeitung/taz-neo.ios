@@ -112,7 +112,9 @@ extension SearchResultsTVC {
   
   override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
     guard let currentCount = self.searchItem?.searchHitList?.count else { return }
-    if indexPath.row == currentCount - 2 && currentCount > 10 {
+    if indexPath.row == currentCount - 2
+        && currentCount > 2
+        && searchItem?.noMoreSearchResults == false {
       searchClosure?()
       footer.alpha = 1.0
     }
