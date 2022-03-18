@@ -82,6 +82,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   public var shareButton:Button<ImageView>?
 
+  @Default("showBarsOnContentChange")
+  var showBarsOnContentChange: Bool
   
   private var imageOverlay: Overlay?
   
@@ -354,6 +356,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.hide(); self?.header.hide(true) }
       else { self?.toolBar.hide(false); self?.header.hide(false) }
+    }
+    
+    onDisplay {[weak self]_, _  in
+      //Note: use this due onPageChange only fires on link @see WebCollectionView
+      if self?.showBarsOnContentChange == true {
+        self?.toolBar.hide(false)
+        self?.header.hide(false)
+      }
     }
     
     let path = feeder.issueDir(issue: issue).path

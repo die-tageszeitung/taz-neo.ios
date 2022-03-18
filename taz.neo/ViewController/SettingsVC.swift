@@ -20,6 +20,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("autoloadOnlyInWLAN")
   var autoloadOnlyInWLAN: Bool
   
+  @Default("showBarsOnContentChange")
+  var showBarsOnContentChange: Bool
+  
   @Default("autoloadPdf")
   var autoloadPdf: Bool
   
@@ -157,6 +160,11 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
                   isDestructive: true,
                   tapHandler: {[weak self] in self?.requestResetApp()} )
+  lazy var contentChangeSettingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Zeige Toolbar bei Artikelwechsel",
+                  initialValue: showBarsOnContentChange,
+                  onChange: {[weak self] newValue in
+    self?.showBarsOnContentChange = newValue })
   
   /// UI Components
   lazy var footer:Footer = Footer()
@@ -483,6 +491,20 @@ extension SettingsVC {
     return cells
   }
   
+  var extendedSettingsCells:[XSettingsCell] {
+    var cells =  [
+      notificationsCell,
+      memoryUsageCell,
+      deleteDatabaseCell,
+      resetAppCell
+    ]
+    
+    if App.isAlpha {
+      cells.append(contentChangeSettingCell)
+    }
+    return cells
+  }
+  
   //Prototype Cells
   func currentSectionContent() -> [tSectionContent] {
     return [
@@ -510,13 +532,7 @@ extension SettingsVC {
        ]
       ),
       ("erweitert", true,
-       extendedSettingsCollapsed ? [] :
-        [
-          notificationsCell,
-          memoryUsageCell,
-          deleteDatabaseCell,
-          resetAppCell
-        ]
+       extendedSettingsCollapsed ? [] : extendedSettingsCells
       )
     ]
   }
