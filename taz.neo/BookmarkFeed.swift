@@ -127,7 +127,7 @@ public class TmpFileEntry: FileEntry {
   
   public init(name: String) {
     self.name = name
-    self.path = "\(Dir.tmpPath)/\(name)"
+    self.path = "\(Dir.searchResultsPath)/\(name)"
     self.moTime = Date()
   }
 }
