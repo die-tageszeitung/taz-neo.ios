@@ -17,6 +17,9 @@ class SearchResultsTVC:UITableViewController{
   
   var searchItem:SearchItem? {
     didSet {
+      searchItem?.noMoreSearchResults ?? true
+      ? footer.hideAnimated()
+      : footer.showAnimated()
       tableView.reloadData()
     }
   }
@@ -35,25 +38,15 @@ class SearchResultsTVC:UITableViewController{
     return tool
   }()
   
-  /// ToDo activate/deactivate e.g. on result end/empty
-  lazy var footer:UIView = {
-    let footer =  UIView(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
-    let act = UIActivityIndicatorView()
-    footer.addSubview(act)
-    act.center()
-    act.startAnimating()
-    act.showAnimated()
-    return footer
-  }()
-  
- 
+  lazy var footer = LoadingView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
   
   public var onBackgroundTap : (()->())?
   
   func restoreInitialState() -> Bool{
     ///first scroll up
     if tableView.contentOffset.y > 20 {
-      tableView.setContentOffset(.zero, animated: true)
+      let animated = tableView.contentOffset.y < 8*UIWindow.size.height
+      tableView.setContentOffset(CGPoint(x: 1, y: -30), animated: animated)
       return false
     }
     //then reset everything
@@ -84,6 +77,8 @@ class SearchResultsTVC:UITableViewController{
     }
     
     self.tableView.tableHeaderView = searchBarTools
+    footer.style = .white
+    footer.alpha = 0.0
     self.tableView.tableFooterView = footer
   }
   
@@ -117,8 +112,9 @@ extension SearchResultsTVC {
   
   override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
     guard let currentCount = self.searchItem?.searchHitList?.count else { return }
-    if indexPath.row == currentCount - 2 {
+    if indexPath.row == currentCount - 2 && currentCount > 10 {
       searchClosure?()
+      footer.alpha = 1.0
     }
   }
   
@@ -247,11 +243,12 @@ extension Scanner {
 // MARK: - SearchResultArticleVc
 class SearchResultArticleVc : ArticleVC {
   var navigationBarHiddenRestoration:Bool?
-  
+  var maxResults:Int = 0
   var searchClosure: (()->())?
   
   override func setHeader(artIndex: Int) {
     super.setHeader(artIndex: artIndex)
+    header.pageNumber = "\(artIndex+1)/\(maxResults)"
     if artIndex >= articles.count - 1 {
       searchClosure?()
     }

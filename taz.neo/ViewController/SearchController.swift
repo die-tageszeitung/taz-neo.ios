@@ -90,7 +90,7 @@ class SearchController: UIViewController {
     resultsTableController.openSearchHit = { [weak self] hit in
       self?.openSearchHit(hit)
     }
-    
+    feederContext.updateResources()
   }
   
   required init(feederContext: FeederContext) {
@@ -143,6 +143,7 @@ extension SearchController: UISearchBarDelegate {
     guard let searchHit = searchItem.lastResponse?.search.searchHitList?.first else { return }
     guard let allArticles = searchItem.allArticles else { return }
     bs.articles = allArticles
+    articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
     dissue.search = self.searchItem
     dissue.sections = [bs]
     articleVC.searchContents = allArticles
@@ -164,17 +165,17 @@ extension SearchController: UISearchBarDelegate {
     dissue.search = self.searchItem
     dissue.sections = [bs]
     
-    
     feederContext.dloader.downloadSearchResultFiles(url: searchHit.baseUrl, files: searchHit.article.files) {[weak self] err in
       guard let self = self else { return }
       let path = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.text.sha1)
-
-      let articleVC = SearchResultArticleVc(feederContext: self.feederContext)
       #warning("missing deleted empty delegate functions")
+      let articleVC = SearchResultArticleVc(feederContext: self.feederContext)
       articleVC.delegate = self
+      articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
       articleVC.searchClosure = { [weak self] in
         self?.search()
       }
+      articleVC.baseDir = Dir.appSupportPath
       articleVC.gotoUrl(path)
       if err == nil { articleVC.reload() }
       self.navigationController?.pushViewController(articleVC, animated: true)
@@ -251,7 +252,7 @@ extension String {
 // MARK: - GqlSearchHit
 extension GqlSearchHit {
   public func writeToDisk(key:String?) -> String {
-    print(self.baseUrl)
+    print("Base Url to write file: \(self.baseUrl)")
 #warning("unique key if similar seraches produce similar results for highlighting")
     //    e.g.: Hochwaser Oder // VS // Hochwasser Elbe
     /// contain either <span class="snippet">Hochwasser Oder</span>
