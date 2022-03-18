@@ -27,6 +27,11 @@ open class LoadingView: UIView, UIStyleChangeDelegate {
     set { bottomLabel.text = newValue }
   }
   
+  public var style: UIActivityIndicatorView.Style {
+    get { return spinner.style }
+    set { spinner.style = newValue }
+  }
+  
   public func start() { spinner.startAnimating() }
   public func stop() { spinner.stopAnimating() }
   
