@@ -370,8 +370,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let curls: [ContentUrl] = contents.map { cnt in
       ContentUrl(path: path, issue: issue, content: cnt) { [weak self] curl in
         guard let this = self else { return }
-        this.dloader.downloadIssueData(issue: this.issue, files: curl.content.files) { err in
-          if err == nil { curl.isAvailable = true }
+
+        this.dloader.downloadIssueData(issue: this.issue, files: curl.content.files) { [weak self] err in
+          if let err = err {
+            self?.log("Download error, try to display Article: \(err)")
+          }
+          curl.isAvailable = true
         }
       }
     }
