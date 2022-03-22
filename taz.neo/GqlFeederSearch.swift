@@ -9,7 +9,14 @@
 import NorthLib
 
 public struct SearchSettings: Equatable {
-  public var searchLocation:GqlSearchLocation = .everywhere
+  public var title:String?
+  public var author:String?
+  public var text:String?
+  
+  public var filter:GqlSearchFilter = .all
+  public var range = SearchRange()
+  
+//  public var searchLocation:GqlSearchLocation = .everywhere
   public var sorting:GqlSearchSorting = .relevance
   public var minimumDate:Date = Date(timeIntervalSinceReferenceDate: 0)
   public var from:Date?
@@ -17,27 +24,60 @@ public struct SearchSettings: Equatable {
   
   public var isChanged: Bool {
     get {
-      return searchLocation != .everywhere
-        || sorting != .relevance
+      return sorting != .relevance
         || from != nil
         || to != nil
     }
   }
   
   static public func ==(lhs: SearchSettings, rhs: SearchSettings) -> Bool {
-    return lhs.searchLocation == rhs.searchLocation
-    && lhs.sorting == rhs.sorting
+    return lhs.sorting == rhs.sorting
       && lhs.from == rhs.from
       && lhs.to == rhs.to
   }
 }
 
-public enum GqlSearchLocation {
-  case everywhere///default
-  case article
-  case author
-  case articleAndAuthor
+//public enum GqlSearchLocation {
+//  case everywhere///default
+//  case article
+//  case author
+//  case articleAndAuthor
+//}
+//ORIGIN  /// RANGE
+//public enum GqlSearchLocation {
+//  case everywhere///default
+//  case article
+//  case author
+//  case articleAndAuthor
+//}
+
+public enum GqlSearchFilter: String {
+  case all = "Überall"
+  case taz = "taz"
+  case LMd = "Le Monde diplomatique"
+  case Kontext = "Kontext"
+  case weekend = "Wochenendausgaben"
+
+  static let allItems : [GqlSearchFilter] = [.all, .taz, .LMd, .Kontext, .weekend]
 }
+
+public enum SearchRangeOption: String {
+  case all = "Alles"
+  case lastDay = "Letzter Tag"
+  case lastWeek = "Letzte Woche"
+  case lastMonth = "Letzter Monat"
+  case lastYear = "Letztes Jahr"
+  case custom = "Zeitraum festlegen"
+  
+  static let allItems : [SearchRangeOption] = [.all, .lastDay, .lastWeek, .lastMonth, .lastYear, .custom]
+}
+
+public struct SearchRange {
+  var from: Date?
+  var to: Date?
+  var currentOption: SearchRangeOption = .all
+}
+
 
 /// Sorting of search Result
 public enum GqlSearchSorting: String, CodableEnum {
@@ -48,14 +88,16 @@ public enum GqlSearchSorting: String, CodableEnum {
   /// oldest first
   case appearance = "appearance"
   
+  static let allItems : [GqlSearchSorting] = [.relevance, .actuality, .appearance]
+  
   public var labelText: String {
     get{
       switch self {
         case .relevance: return "Relevanz"
 //        case .appearance: return "Erscheinungsdatum"
 //        case .actuality: return "Aktualität"
-        case .appearance: return "Älteste"
-        case .actuality: return "Neueste"
+        case .appearance: return "Älteste zuerst"
+        case .actuality: return "Neueste zuerst"
       }
     }
   }
@@ -98,24 +140,14 @@ public class GqlSearchResponseWrapper: GQLObject {
 }
 
 public class SearchItem: DoesLog {
-  
-  init(searchString:String) {
-    self.searchString = searchString
-  }
-  
+    
   public fileprivate(set) var searching: Bool = false
   
   fileprivate static let itemsPerFetch:Int = 20///like API default
   
   public private(set) var noMoreSearchResults = true
   public var sessionId: String?
-  public var searchString: String {
-    didSet {
-      if oldValue != searchString {
-        reset()
-      }
-    }
-  }
+
   public var settings: SearchSettings = SearchSettings() {
     didSet {
       if oldValue != settings {
@@ -193,7 +225,9 @@ public class SearchItem: DoesLog {
       
       return """
      search(
-        text: "\(searchString)",
+        text: "\(settings.text ?? "")",
+        author: "\(settings.author ?? "")",
+        title: "\(settings.title ?? "")",
         offset: \(offset),
         rowCnt: \(Self.itemsPerFetch),
         sorting: \(settings.sorting)

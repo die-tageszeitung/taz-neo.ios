@@ -16,7 +16,7 @@ class SearchController: UIViewController {
   
   var dissue:DummyIssue
   
-  var searchItem:SearchItem = SearchItem(searchString: "") {
+  var searchItem:SearchItem = SearchItem() {
     didSet {
       resultsTableController.searchItem = searchItem
     }
@@ -116,9 +116,9 @@ extension SearchController: UISearchBarDelegate {
     }
 //    searchBarTools.errorTextLabel.text = nil
     
-    searchItem.searchString = searchString
+//    searchItem.searchString = searchString
 
-    searchItem.settings = self.resultsTableController.serachSettingsVC.currentConfig
+//    searchItem.settings = self.resultsTableController.serachSettingsVC.currentConfig
     guard let feeder = feederContext.gqlFeeder else { return }
     feeder.search(searchItem: searchItem) { [weak self] result in
       guard let self = self else { return }
@@ -159,7 +159,7 @@ extension SearchController: UISearchBarDelegate {
   
   private func openSearchHit(_ searchHit: GqlSearchHit){
     let tmp = TmpFileEntry(name: "test")
-    bs = BookmarkSection(name: "Suche: \(searchItem.searchString)", html: tmp)
+    bs = BookmarkSection(name: "Suche:", html: tmp)
     guard let bs = bs else { return }
     bs.articles = searchItem.allArticles
     dissue.search = self.searchItem

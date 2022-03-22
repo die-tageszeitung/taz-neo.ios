@@ -192,6 +192,51 @@ class Checkbox : UIButton {
   }
 }
 
+// MARK: -  Checkbox
+class RadioButton : UIButton {
+  
+  override var tintColor: UIColor! {
+    didSet {
+      super.tintColor = tintColor
+      self.setBackgroundImage(UIImage.circle(diam: 30, padding: 6, color: tintColor), for: .selected)
+    }
+  }
+  
+  override var isSelected: Bool {
+    didSet {
+      self.layer.borderColor = isSelected
+      ? tintColor.cgColor
+      : Const.SetColor.CTDate.color.cgColor
+    }
+  }
+  
+  func setup(){
+    self.imageView?.contentMode = .scaleAspectFit
+    self.layer.borderWidth = 1.0
+    self.tintColor = Const.Colors.radioGreen
+    self.addTarget(self, action: #selector(toggle), for: .touchUpInside)
+  }
+  
+  override func draw(_ rect: CGRect) {
+    super.draw(rect)
+    self.layer.cornerRadius = (rect.width + rect.height)/4 //circle or ellipse depending on rect
+  }
+  
+  @IBAction func toggle(_ sender: UIButton) {
+    self.isSelected = !self.isSelected
+  }
+  
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
+  }
+}
+
 // MARK: - TazTextField
 public class TazTextField : Padded.TextField, UITextFieldDelegate{
   static let recomendedHeight:CGFloat = 56.0
@@ -583,5 +628,29 @@ class CheckboxWithText:UIView{
     checkbox.pinSize(CGSize(width: 20, height: 20))
     pin(checkbox.centerY, to: self.centerY)
     
+  }
+}
+
+
+extension UIImage {
+  class func circle(diam: CGFloat, padding: CGFloat = 0.0, color: UIColor) -> UIImage? {
+    if padding*2 > diam { return nil }
+
+    UIGraphicsBeginImageContextWithOptions(CGSize(width: diam, height: diam),
+                                           false,
+                                           0)
+    let ctx = UIGraphicsGetCurrentContext()!
+    ctx.saveGState()
+    
+    ctx.setFillColor(color.cgColor)
+    ctx.fillEllipse(in: CGRect(x: padding,
+                               y: padding,
+                               width: diam - 2*padding,
+                               height: diam - 2*padding))
+    ctx.restoreGState()
+    let img = UIGraphicsGetImageFromCurrentImageContext()
+    UIGraphicsEndImageContext()
+    
+    return img
   }
 }

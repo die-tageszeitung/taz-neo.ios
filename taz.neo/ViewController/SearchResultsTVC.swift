@@ -24,16 +24,70 @@ class SearchResultsTVC:UITableViewController{
     }
   }
   
-  lazy var serachSettingsVC = SearchSettingsVC()
+  lazy var serachSettingsVC = SearchSettingsVC2()
+  
+  lazy var testView:UIView = {
+    let testView = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 30))
+    testView.backgroundColor = .yellow
+    testView.pinHeight(200)
+    
+    let btn = UIButton("Touch Me")
+    btn.onTapping { _ in
+      testView.backgroundColor
+      = testView.backgroundColor == .yellow
+      ? .green
+      : .yellow
+    }
+    
+    testView.addSubview(btn)
+    btn.center()
+    
+    return testView
+  }()
   
   /// a uiview not a common UIToolbar
   lazy var searchBarTools:SearchBarTools = {
     let tool = SearchBarTools()
-    tool.extendedSearchButton.onPress { bc in
-      self.serachSettingsVC.modalPresentationStyle = UIModalPresentationStyle.popover
-      self.present(self.serachSettingsVC, animated: true)
-      let popoverPresentationController = self.serachSettingsVC.popoverPresentationController
-      popoverPresentationController?.sourceView = bc
+    tool.extendedSearchButton.onPress {[weak self] bc in
+      guard let self = self else { return }
+
+      if self.serachSettingsVC.parent != nil {
+        self.serachSettingsVC.dismiss(animated: true) {
+          print("dismissed")
+        }
+        return
+      }
+      
+      if self.testView.superview != nil {
+        self.testView.removeFromSuperview()
+        return
+      }
+      
+      if Device.isIpad {
+        self.serachSettingsVC.modalPresentationStyle = UIModalPresentationStyle.popover
+        self.present(self.serachSettingsVC, animated: true)
+        let popoverPresentationController = self.serachSettingsVC.popoverPresentationController
+        popoverPresentationController?.sourceView = bc
+      }
+      else {
+//        self.presentSubVC(controller: self.serachSettingsVC, inView: tool.filterWrapper)
+//        self.searchBarTools.filterWrapper.pinHeight(300)
+        self.searchBarTools.filterWrapper.addSubview(self.testView)
+        pin(self.testView, toSafe: self.searchBarTools.filterWrapper)
+//        testView
+//        UIView.animate(seconds: 1) {
+//          self.tableView.tableHeaderView = self.searchBarTools
+//          self.searchBarTools.filterWrapper.superview?.layoutIfNeeded()
+//        }
+//        self.addChild(self.serachSettingsVC)
+//        self.view.addSubview(self.serachSettingsVC.view)
+//        self.serachSettingsVC.willMove(toParent: self)
+//        pin(self.serachSettingsVC.view, toSafe: self.view, exclude: .bottom)
+//        self.serachSettingsVC.didMove(toParent: self)
+//        pin(self.serachSettingsVC.view.top, to: self.tableView.tableHeaderView!.bottom)
+      }
+      
+      
     }
     return tool
   }()
@@ -52,7 +106,7 @@ class SearchResultsTVC:UITableViewController{
     //then reset everything
     searchItem = nil
     serachSettingsVC.restoreInitialState()
-    self.searchBarTools.filterActive = self.serachSettingsVC.currentConfig.isChanged
+//    self.searchBarTools.filterActive = self.serachSettingsVC.data.settings.isChanged
     return true
   }
 
@@ -70,11 +124,11 @@ class SearchResultsTVC:UITableViewController{
       self.onBackgroundTap?()
     }
     
-    serachSettingsVC.finishedClosure = { [weak self] apply in
-      guard let self = self else { return }
-      self.searchBarTools.filterActive = self.serachSettingsVC.currentConfig.isChanged
-      self.searchClosure?()
-    }
+//    serachSettingsVC.finishedClosure = { [weak self] apply in
+//      guard let self = self else { return }
+//      self.searchBarTools.filterActive = self.serachSettingsVC.data.settings.isChanged
+//      self.searchClosure?()
+//    }
     
     self.tableView.tableHeaderView = searchBarTools
     footer.style = .white

@@ -21,6 +21,7 @@ import NorthLib
 class SearchBarTools: UIView {
   
   lazy var errorTextLabel = UILabel()
+  lazy var filterWrapper = UIView()
   
   var filterActive:Bool = false {
     didSet {
@@ -59,7 +60,14 @@ class SearchBarTools: UIView {
     pin(seperator.right, to: self.right, dist: -Const.Size.DefaultPadding)
     pin(seperator.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(seperator.top, to: extendedSearchButton.bottom)
-    pin(seperator.bottom, to: self.bottom, dist: -2)
+    
+    self.addSubview(filterWrapper)
+    filterWrapper.pinHeight(0, priority: .fittingSizeLevel)
+    pin(filterWrapper.right, to: self.right, dist: -Const.Size.DefaultPadding)
+    pin(filterWrapper.left, to: self.left, dist: Const.Size.DefaultPadding)
+    pin(filterWrapper.top, to: seperator.bottom)
+    pin(filterWrapper.bottom, to: self.bottom, dist: -2)
+    
     self.pinWidth(UIWindow.shortSide)
   }
   

@@ -63,19 +63,19 @@ class SearchSettingsVC: UIViewController {
     handleSorting(sender: settings.sortingControl)
     
     settings.sortingControl.sorting = self.currentConfig.sorting
-    switch self.currentConfig.searchLocation {
-      case .article:
-        settings.sltArticle.isOn = true
-        settings.sltAuthor.isOn = false
-      case .articleAndAuthor:
-        settings.sltArticle.isOn = true
-        settings.sltAuthor.isOn = true
-      case .author:
-        settings.sltAuthor.isOn = true
-        settings.sltArticle.isOn = false
-      default:
-        settings.sltEverywhere.isOn = true
-    }
+//    switch self.currentConfig.searchLocation {
+//      case .article:
+//        settings.sltArticle.isOn = true
+//        settings.sltAuthor.isOn = false
+//      case .articleAndAuthor:
+//        settings.sltArticle.isOn = true
+//        settings.sltAuthor.isOn = true
+//      case .author:
+//        settings.sltAuthor.isOn = true
+//        settings.sltArticle.isOn = false
+//      default:
+//        settings.sltEverywhere.isOn = true
+//    }
     settings.fromPicker.minimumDate = self.currentConfig.minimumDate
     settings.toPicker.minimumDate = self.currentConfig.minimumDate
     settings.fromPicker.maximumDate = Date()
@@ -95,17 +95,17 @@ class SearchSettingsVC: UIViewController {
   @objc func handleApply(){
     self.currentConfig.sorting = settings.sortingControl.sorting
     
-    switch (settings.sltEverywhere.isOn, settings.sltAuthor.isOn, settings.sltArticle.isOn) {
-      case (true,_,_):
-        self.currentConfig.searchLocation = .everywhere
-      case (_,true,true):
-        self.currentConfig.searchLocation = .articleAndAuthor
-      case (_,true,_):
-        self.currentConfig.searchLocation = .author
-      case (_,_,true):
-        self.currentConfig.searchLocation = .article
-      default: break
-    }
+//    switch (settings.sltEverywhere.isOn, settings.sltAuthor.isOn, settings.sltArticle.isOn) {
+//      case (true,_,_):
+//        self.currentConfig.searchLocation = .everywhere
+//      case (_,true,true):
+//        self.currentConfig.searchLocation = .articleAndAuthor
+//      case (_,true,_):
+//        self.currentConfig.searchLocation = .author
+//      case (_,_,true):
+//        self.currentConfig.searchLocation = .article
+//      default: break
+//    }
     
     self.currentConfig.from
       = settings.fromSwitch.isOn

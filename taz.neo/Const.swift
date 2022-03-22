@@ -47,6 +47,7 @@ public struct Const {
     
     static let fountTextHighlight: UIColor = UIColor.rgb(0xd50d2e).withAlphaComponent(0.2)
     static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)
+    static let radioGreen: UIColor =  UIColor.rgb(0x2ca400)
     
     static let darkToolbar = darkSecondaryBG
     static let darkTintColor = darkSecondaryText

@@ -5,7 +5,6 @@
 //  Created by Ringo Müller on 21.09.21.
 //  Copyright © 2021 Norbert Thies. All rights reserved.
 //
-import UIKit
 import NorthLib
 
 /**
@@ -51,7 +50,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
       return iv
     }
   }
-  
   
   // MARK: Cell creation
   ///konto

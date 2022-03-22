@@ -45,7 +45,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     bookmarks.tabBarItem.image = UIImage(named: "star")
     bookmarks.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
-    let search = SearchController(feederContext: feederContext )
+    let search = SearchController(feederContext: feederContext )//SearchSettingsVC2()//
     search.title = "Suche"
     search.tabBarItem.image = UIImage(named: "search-magnifier")
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
