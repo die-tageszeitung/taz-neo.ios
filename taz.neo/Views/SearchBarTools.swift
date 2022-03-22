@@ -20,8 +20,11 @@ import NorthLib
 
 class SearchBarTools: UIView {
   
-  lazy var errorTextLabel = UILabel()
-  lazy var filterWrapper = UIView()
+  let textLabel = UILabel()
+  let filterWrapper = UIView()
+  let seperator = UIView()
+  
+  public private(set) var filterWrapperHeightConstraint: NSLayoutConstraint?
   
   var filterActive:Bool = false {
     didSet {
@@ -41,30 +44,38 @@ class SearchBarTools: UIView {
     return button
   }()
   
+  func set(text: String?, font: UIFont = Const.Fonts.contentFont, color: UIColor = Const.SetColor.ios(.label).color){
+    textLabel.text = text
+    textLabel.font = font
+    textLabel.textColor = color
+  }
+  
   private func setup() {
     self.addSubview(extendedSearchButton)
     pin(extendedSearchButton.top, to: self.top, dist: 0)
     pin(extendedSearchButton.right, to: self.right, dist: -Const.Size.SmallPadding)
     
-    self.addSubview(errorTextLabel)
-    pin(errorTextLabel.centerY, to:extendedSearchButton.centerY)
-    pin(errorTextLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
-    pin(errorTextLabel.right, to: extendedSearchButton.left, dist: -Const.Size.SmallPadding, priority: .fittingSizeLevel)
-    errorTextLabel.contentFont()
-    errorTextLabel.textColor = .red
-    
-    let seperator = UIView()
+    self.addSubview(textLabel)
+    pin(textLabel.centerY, to:extendedSearchButton.centerY)
+    pin(textLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
+    pin(textLabel.right, to: extendedSearchButton.left, dist: -Const.Size.SmallPadding, priority: .fittingSizeLevel)
+    textLabel.contentFont()
+    textLabel.textColor = .red
+
     seperator.pinHeight(0.5)
-    seperator.backgroundColor = .black
+    seperator.backgroundColor = Const.SetColor.ios(.label).color
     self.addSubview(seperator)
     pin(seperator.right, to: self.right, dist: -Const.Size.DefaultPadding)
     pin(seperator.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(seperator.top, to: extendedSearchButton.bottom)
     
     self.addSubview(filterWrapper)
-    filterWrapper.pinHeight(0, priority: .fittingSizeLevel)
-    pin(filterWrapper.right, to: self.right, dist: -Const.Size.DefaultPadding)
-    pin(filterWrapper.left, to: self.left, dist: Const.Size.DefaultPadding)
+    filterWrapperHeightConstraint = filterWrapper.pinHeight(0)
+    
+    let padding = Device.isIpad ? Const.Size.DefaultPadding : 0
+    
+    pin(filterWrapper.right, to: self.right, dist: -padding)
+    pin(filterWrapper.left, to: self.left, dist: padding)
     pin(filterWrapper.top, to: seperator.bottom)
     pin(filterWrapper.bottom, to: self.bottom, dist: -2)
     

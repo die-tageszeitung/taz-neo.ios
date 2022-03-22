@@ -24,7 +24,12 @@ public struct SearchSettings: Equatable {
   
   public var isChanged: Bool {
     get {
-      return sorting != .relevance
+      return
+        author != nil
+        || title != nil
+        || sorting != .relevance
+        || filter != .all
+        || range.currentOption != .all
         || from != nil
         || to != nil
     }

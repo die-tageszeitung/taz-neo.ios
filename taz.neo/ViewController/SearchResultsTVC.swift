@@ -24,26 +24,8 @@ class SearchResultsTVC:UITableViewController{
     }
   }
   
-  lazy var serachSettingsVC = SearchSettingsVC2()
+  lazy var serachSettingsVC = SearchSettingsVC()
   
-  lazy var testView:UIView = {
-    let testView = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 30))
-    testView.backgroundColor = .yellow
-    testView.pinHeight(200)
-    
-    let btn = UIButton("Touch Me")
-    btn.onTapping { _ in
-      testView.backgroundColor
-      = testView.backgroundColor == .yellow
-      ? .green
-      : .yellow
-    }
-    
-    testView.addSubview(btn)
-    btn.center()
-    
-    return testView
-  }()
   
   /// a uiview not a common UIToolbar
   lazy var searchBarTools:SearchBarTools = {
@@ -52,39 +34,39 @@ class SearchResultsTVC:UITableViewController{
       guard let self = self else { return }
 
       if self.serachSettingsVC.parent != nil {
-        self.serachSettingsVC.dismiss(animated: true) {
-          print("dismissed")
+        UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
+          self.searchBarTools.filterWrapperHeightConstraint?.constant = 0
+          self.searchBarTools.textLabel.alpha = 0.0
+          self.searchBarTools.seperator.alpha = 1.0
+          self.searchBarTools.layoutSubviews()
+        } completion: { _ in
+          self.removeSubVC(self.serachSettingsVC)
+          self.checkFilter()
+//          self.serachSettingsVC.dismiss(animated: false)
+          
         }
         return
       }
+      self.searchBarTools.filterActive = true
       
-      if self.testView.superview != nil {
-        self.testView.removeFromSuperview()
-        return
-      }
-      
-      if Device.isIpad {
+      if false && Device.isIpad {
         self.serachSettingsVC.modalPresentationStyle = UIModalPresentationStyle.popover
         self.present(self.serachSettingsVC, animated: true)
         let popoverPresentationController = self.serachSettingsVC.popoverPresentationController
         popoverPresentationController?.sourceView = bc
       }
       else {
-//        self.presentSubVC(controller: self.serachSettingsVC, inView: tool.filterWrapper)
-//        self.searchBarTools.filterWrapper.pinHeight(300)
-        self.searchBarTools.filterWrapper.addSubview(self.testView)
-        pin(self.testView, toSafe: self.searchBarTools.filterWrapper)
-//        testView
-//        UIView.animate(seconds: 1) {
-//          self.tableView.tableHeaderView = self.searchBarTools
-//          self.searchBarTools.filterWrapper.superview?.layoutIfNeeded()
-//        }
-//        self.addChild(self.serachSettingsVC)
-//        self.view.addSubview(self.serachSettingsVC.view)
-//        self.serachSettingsVC.willMove(toParent: self)
-//        pin(self.serachSettingsVC.view, toSafe: self.view, exclude: .bottom)
-//        self.serachSettingsVC.didMove(toParent: self)
-//        pin(self.serachSettingsVC.view.top, to: self.tableView.tableHeaderView!.bottom)
+        self.searchBarTools.textLabel.alpha = 0.0
+        self.searchBarTools.set(text: "erweiterte suche", font: Const.Fonts.boldContentFont)
+        self.searchBarTools.layoutSubviews()
+        self.presentSubVC(controller: self.serachSettingsVC, inView: tool.filterWrapper)
+        UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
+          self.searchBarTools.filterWrapperHeightConstraint?.constant = 1200
+          self.searchBarTools.textLabel.alpha = 1.0
+          self.searchBarTools.seperator.alpha = 0.0
+          self.searchBarTools.layoutSubviews()
+        } completion: { _ in
+        }
       }
       
       
@@ -106,8 +88,12 @@ class SearchResultsTVC:UITableViewController{
     //then reset everything
     searchItem = nil
     serachSettingsVC.restoreInitialState()
-//    self.searchBarTools.filterActive = self.serachSettingsVC.data.settings.isChanged
+    checkFilter()
     return true
+  }
+  
+  func checkFilter(){
+    self.searchBarTools.filterActive = self.serachSettingsVC.data.settings.isChanged
   }
 
   static let SearchResultsCellIdentifier = "searchResultsCell"

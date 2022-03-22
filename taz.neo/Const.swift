@@ -299,6 +299,7 @@ public struct Const {
     { return font(name: contentTextFont, size: size) }
     
     static var contentFont: UIFont = contentFont(size: Size.DefaultFontSize)
+    static var boldContentFont: UIFont = titleFont(size: Size.DefaultFontSize)
   } // Fonts
   
   struct Size {

@@ -7,331 +7,243 @@
 //
 
 import NorthLib
+import SwiftUI
 
-class SearchSettingsVC: UIViewController {
+class SearchSettingsVC: UITableViewController {
   
-  var finishedClosure: ((Bool)->())?
-  
-  public var currentConfig: SearchSettings = SearchSettings()
-  private var lastConfig: SearchSettings?
-  
-  private var settings = SearchSettingsView()
-  private var scrollView = UIScrollView()
+  public private(set) var data = TData()
   
   func restoreInitialState(){
-    currentConfig = SearchSettings()
-    lastConfig = nil
+//    currentConfig = SearchSettings()
+//    lastConfig = nil
+  }
+  
+  lazy var footer:UIView = {
+    let v = UIView()
+    let searchButton = UIButton(type: .roundedRect)
+    searchButton.setTitle("Suchen", for: .normal)
+    let resetButton = UIButton(type: .roundedRect)
+    resetButton.setTitle("Abbrechen", for: .normal)
+    resetButton.addSubview(<#T##view: UIView##UIView#>)
+    v.addSubview(searchButton)
+    v.addSubview(resetButton)
+    pin(searchButton, to: v, dist: Const.Size.DefaultPadding, exclude: .bottom)
+    pin(resetButton, to: v, dist: Const.Size.DefaultPadding, exclude: .top)
+    pin(resetButton.top, to: searchButton.bottom, dist: 6)
+    return v
+  }()
+  
+  
+  func setup(){
+    tableView.register(TazHeaderFooterView.self,
+                       forHeaderFooterViewReuseIdentifier: TazHeaderFooterView.reuseIdentifier)
+    
+    self.tableView.contentInset = UIEdgeInsets(top: -14, left: 0, bottom: 0, right: 0)
+    tableView.separatorInset = Const.Insets.Default //also for header inset
+    tableView.separatorStyle = .none
+    self.view.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    tableView.tableFooterView = footer
+//    data = TableData(sectionContent: [extendedSearchSectionContent, rangeSectionContent, sourceSectionContent])
+    
   }
   
   override func viewDidLoad() {
     super.viewDidLoad()
     setup()
   }
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    lastConfig = currentConfig
-  }
-  
-  override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    super.viewWillTransition(to: size, with: coordinator)
-    settings.pinWidth(size.width)
-  }
-  
-  func setup(){
-    settings.removeFromSuperview()
-    settings = SearchSettingsView()
-    settings.pinWidth(self.view.frame.size.width)
-    self.view.addSubview(scrollView)
-    pin(scrollView, toSafe: self.view)
-    scrollView.addSubview(settings)
-    pin(settings, to: scrollView)
-    
-    self.view.backgroundColor = Const.SetColor.ios(.systemGroupedBackground).color
-    settings.applyButton.addTarget(self,
-                                   action: #selector(handleApply),
-                                   for: .touchUpInside)
-    
-    settings.cancelButton.addTarget(self,
-                                    action: #selector(handleCancel),
-                                    for: .touchUpInside)
-    
-    settings.sortingControl.addTarget(self,
-                                      action: #selector(handleSorting),
-                                      for: .valueChanged)
-    
-    
-    handleSorting(sender: settings.sortingControl)
-    
-    settings.sortingControl.sorting = self.currentConfig.sorting
-//    switch self.currentConfig.searchLocation {
-//      case .article:
-//        settings.sltArticle.isOn = true
-//        settings.sltAuthor.isOn = false
-//      case .articleAndAuthor:
-//        settings.sltArticle.isOn = true
-//        settings.sltAuthor.isOn = true
-//      case .author:
-//        settings.sltAuthor.isOn = true
-//        settings.sltArticle.isOn = false
-//      default:
-//        settings.sltEverywhere.isOn = true
-//    }
-    settings.fromPicker.minimumDate = self.currentConfig.minimumDate
-    settings.toPicker.minimumDate = self.currentConfig.minimumDate
-    settings.fromPicker.maximumDate = Date()
-    settings.toPicker.maximumDate = Date()
-    settings.fromPicker.date = self.currentConfig.from ?? self.currentConfig.minimumDate
-    settings.fromSwitch.isOn = self.currentConfig.from != nil
-    settings.toPicker.date = self.currentConfig.to ?? Date()
-    settings.toSwitch.isOn = self.currentConfig.to != nil
-    
-  }
-  
-  @objc func handleCancel(){
-    finishedClosure?(false)
-    self.presentingViewController?.dismiss(animated: true)
-  }
-  
-  @objc func handleApply(){
-    self.currentConfig.sorting = settings.sortingControl.sorting
-    
-//    switch (settings.sltEverywhere.isOn, settings.sltAuthor.isOn, settings.sltArticle.isOn) {
-//      case (true,_,_):
-//        self.currentConfig.searchLocation = .everywhere
-//      case (_,true,true):
-//        self.currentConfig.searchLocation = .articleAndAuthor
-//      case (_,true,_):
-//        self.currentConfig.searchLocation = .author
-//      case (_,_,true):
-//        self.currentConfig.searchLocation = .article
-//      default: break
-//    }
-    
-    self.currentConfig.from
-      = settings.fromSwitch.isOn
-      ? settings.fromPicker.date
-      : nil
-    
-    self.currentConfig.to
-      = settings.toSwitch.isOn
-      ? settings.toPicker.date
-      : nil
+}
 
-    if let last = lastConfig {
-      finishedClosure?(last != currentConfig)
-    } else {
-      finishedClosure?(true)
+// MARK: - cell data model
+extension SearchSettingsVC {
+  typealias tContent = (title:String?,
+                        cells:[TazCell]?)
+  
+  struct TableData{
+    public private(set) var content:[tContent]
+    
+    func cell(at indexPath: IndexPath) -> TazCell? {
+      return self.content.valueAt(indexPath.section)?.cells?.valueAt(indexPath.row)
     }
     
-    self.presentingViewController?.dismiss(animated: true)
-  }
-  
-  @objc func handleSorting(sender:Any){
-    guard let segCtrl = sender as? SortingSegmentedControl else { return }
-    settings.segmentedDescriptionLabel.text = segCtrl.sorting.detailDescription
+    #warning("add a tablechange handler")
+    init(content: [tContent]) {
+      self.content = content
+    }
   }
 }
 
-private class SearchSettingsView: UIView {
-  
-  ///Sorting
-  public var sortingControl = SortingSegmentedControl()
-  
-  public var segmentedDescriptionLabel = UILabel("".uppercased(),
-                                                 type: .small,
-                                                 color: .ios(.secondaryLabel))
-  
-  public let applyButton = UIButton("Anwenden", type: .bold)
-  public let cancelButton = UIButton("Abbrechen")
-  
-  ///SearchLocationSwitches
-  public var sltEverywhere = UISwitch()
-  public var sltArticle = UISwitch()
-  public var sltAuthor = UISwitch()
-  
-  ///DatePicker
-  public var fromPicker = UIDatePicker()
-  public var toPicker = UIDatePicker()
-  
-  public var fromHeightContraint: NSLayoutConstraint?
-  public var toHeightContraint: NSLayoutConstraint?
-  
-  public var fromSwitch = UISwitch()
-  public var toSwitch = UISwitch()
-  
-  
-  func hStackWith(text: String, control: UIView) -> UIView {
-    let stack = UIStackView()
-    stack.axis = .horizontal
-    let label = UILabel(text)
-    label.setContentCompressionResistancePriority(.required, for: .horizontal)
-    control.setContentHuggingPriority(.required, for: .horizontal)
-    stack.addArrangedSubview(label)
-    stack.addArrangedSubview(control)
-    stack.isLayoutMarginsRelativeArrangement = true
-    stack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12)
-    
-    return stack
+
+// MARK: - UITableViewDataSource
+extension SearchSettingsVC {
+  open override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return data.content.valueAt(section)?.cells?.count ?? 0
   }
   
-  func vSpacer(_ height:CGFloat = 5.0) -> UIView {
-    let v = UIView()
-    v.pinHeight(height)
-    return v
+  open override func numberOfSections(in tableView: UITableView) -> Int {
+    return data.content.count
   }
   
-  func vStackWith(_ views:UIView ...) -> UIStackView {
-    
-    func seperator() -> UIView {
-      let v = UIView()
-      v.pinHeight(0.5)
-      v.backgroundColor =  Const.SetColor.ios(.separator).color
-      return v
-    }
-    
-    let stack = UIStackView()
-    stack.axis = .vertical
-    
-    for v in views {
-      stack.addArrangedSubview(v)
-      //      if views.last != v || (v is UIDatePicker) == false {
-      if views.last != v {
-        stack.addArrangedSubview(seperator())
-      }
-    }
-    
-    stack.backgroundColor = Const.SetColor.ios(.secondarySystemGroupedBackground).color
-    stack.layer.cornerRadius = 5.0
-    return stack
+  open override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    return data.cell(at: indexPath) ?? UITableViewCell()
   }
   
-  @objc func dateSwitchChanged(sender:UISwitch!) {
-    if sender == fromSwitch {
-      fromHeightContraint?.isActive = !sender.isOn
-      fromPicker.isHidden = !sender.isOn
+  open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    guard let title = data.content.valueAt(section)?.title else { return nil }
+    let header = self.tableView.dequeueReusableHeaderFooterView(withIdentifier: TazHeaderFooterView.reuseIdentifier)
+    header?.textLabel?.text = title
+    header?.textLabel?.boldContentFont().labelColor()
+    return header
+  }
+  
+  override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+    return section == 0 ? 0 : UITableView.automaticDimension
+  }
+  
+  open override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+    if let cell = data.cell(at: indexPath),
+       cell is RadioButtonCell || cell is MoreCell {
+      return indexPath
     }
-    else if sender == toSwitch {
-      toHeightContraint?.isActive = !sender.isOn
-      toPicker.isHidden = !sender.isOn
+    return nil
+  }
+
+  open override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    tableView.deselectRow(at: indexPath, animated: true)
+    data.handle(tableView, selectRowAt: indexPath)
+  }
+}
+
+// MARK: - UIStyleChangeDelegate
+extension SearchSettingsVC : UIStyleChangeDelegate {
+  func applyStyles() {
+    print("DOTO")
+  }
+}
+
+//// MARK: - Cell Factorx
+//extension SearchSettingsVC {
+//  static func textInputCell(_ text: String?, _ placeholder: String ) {
+//    print("DOTO")
+//  }
+//}
+
+/// A custom table view cell with TextInput
+class TextInputCell: TazCell {
+  let textField = UITextField()
+  
+  override func setup(){
+    self.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    textField.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
+    //add some pading for corner radius
+    textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 5))
+    textField.leftViewMode = .always
+    textField.clearButtonMode = .whileEditing
+    let customClearButton = UIButton.appearance(whenContainedInInstancesOf: [UITextField.self])
+    #warning("missing padding but work")
+//    customClearButton.tintColor = Const.SetColor.ios(.secondaryLabel).color
+//    customClearButton.setImage(UIImage(named: "xmark"), for: .normal)
+//    textField.rightView = UIImageView(image: UIImage(named: "xmark"))
+//    textField.rightViewMode = .whileEditing
+    let height = 34.0
+    textField.pinHeight(height)
+    textField.layer.cornerRadius = height/2
+    textField.clipsToBounds = true
+    contentView.addSubview(textField)
+    let insets = UIEdgeInsets(top: 4,
+                              left: Const.Size.DefaultPadding,
+                              bottom: -4,
+                              right: -Const.Size.DefaultPadding)
+    pin(textField, to: contentView, insets: insets)
+  }
+}
+
+/// A custom table view cell with label and chevron right
+class MoreCell: TazCell {
+  let label = UILabel()
+  
+  override func setup(){
+    self.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    label.contentFont().labelColor()
+    accessoryType = .disclosureIndicator
+    contentView.addSubview(label)
+    pin(label, to: contentView, dist: Const.Size.DefaultPadding)
+    self.addBorderView(Const.SetColor.ios(.separator).color,
+                              0.7,
+                              edge: .bottom,
+                              insets: Const.Insets.Default)
+  }
+}
+
+/// A custom table view cell with radioButton and label
+class RadioButtonCell: TazCell {
+  private let label = UILabel()
+  public let radioButton = RadioButton()
+  
+  var filter:GqlSearchFilter? {
+    didSet {
+      self.label.text = filter?.rawValue
     }
   }
   
-  @objc func searchLocationSwitchChange(sender:UISwitch!) {
-    switch (sender, sltEverywhere.isOn, sltAuthor.isOn, sltArticle.isOn) {
-      case (sltEverywhere,true,_,_):
-        sltAuthor.isOn = false
-        sltArticle.isOn = false
-      case (sltEverywhere,false,_,_):
-        sltAuthor.isOn = true
-        sltArticle.isOn = true
-      case (sltAuthor,true,true,_):
-        sltEverywhere.isOn = false
-      case (sltArticle,true,_,true):
-        sltEverywhere.isOn = false
-      case (sltArticle,false,false,_): fallthrough
-      case (sltAuthor,false,_,false):
-        sltEverywhere.isOn = !sender.isOn
-      default: break
+  var sorting:GqlSearchSorting? {
+    didSet {
+      self.label.text = sorting?.labelText
     }
   }
   
-  private func setup(){
-    [sltEverywhere, sltAuthor, sltArticle, fromSwitch, toSwitch].forEach { s in
-      s.transform = CGAffineTransform(scaleX: 0.75, y: 0.75)
+  var range:SearchRangeOption? {
+    didSet {
+      self.label.text = range?.rawValue
     }
-    
-    sltEverywhere.addTarget(self,
-                            action: #selector(self.searchLocationSwitchChange),
-                            for: .valueChanged)
-    sltArticle.addTarget(self,
-                         action: #selector(self.searchLocationSwitchChange),
-                         for: .valueChanged)
-    sltAuthor.addTarget(self,
-                        action: #selector(self.searchLocationSwitchChange),
-                        for: .valueChanged)
-    
-    fromSwitch.addTarget(self,
-                         action: #selector(self.dateSwitchChanged),
-                         for: .valueChanged)
-    
-    toSwitch.addTarget(self,
-                       action: #selector(self.dateSwitchChanged),
-                       for: .valueChanged)
-    
-    
-    fromPicker.datePickerMode = .date
-    toPicker.datePickerMode = .date
-    
-    fromPicker.isHidden = true
-    toPicker.isHidden = true
-    
-    if #available(iOS 14.0, *) {
-      fromPicker.preferredDatePickerStyle = .inline
-      toPicker.preferredDatePickerStyle = .inline
-    }
-    
-    fromHeightContraint = fromPicker.pinHeight(0)
-    toHeightContraint = toPicker.pinHeight(0)
-    
-    let hStack = UIStackView()
-    hStack.axis = .horizontal
-    let titleLabel = UILabel("Sucheinstellungen", type: .bold, align: .center)
-    titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
-    applyButton.setContentHuggingPriority(.required, for: .horizontal)
-    cancelButton.setContentHuggingPriority(.required, for: .horizontal)
-    hStack.addArrangedSubview(cancelButton)
-    hStack.addArrangedSubview(titleLabel)
-    hStack.addArrangedSubview(applyButton)
-    hStack.isLayoutMarginsRelativeArrangement = true
-    
-    let verticalStack = UIStackView()
-    verticalStack.spacing = UIStackView.spacingUseSystem
-    verticalStack.alignment = .fill
-    verticalStack.distribution = .fill
-    verticalStack.axis = .vertical
-    
-    verticalStack.isLayoutMarginsRelativeArrangement = true
-    verticalStack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
-    
-    sortingControl.selectedSegmentIndex = 0
-    
-    verticalStack.addArrangedSubview(hStack)
-    verticalStack.addArrangedSubview(vSpacer())
-    verticalStack.addArrangedSubview( UILabel("Sortierung".uppercased(),
-                                              type: .small,
-                                              color: .ios(.secondaryLabel)))
-    verticalStack.addArrangedSubview(sortingControl)
-    verticalStack.addArrangedSubview(segmentedDescriptionLabel)
-    verticalStack.addArrangedSubview(vSpacer())
-    
-    verticalStack.addArrangedSubview( UILabel("Suche in".uppercased(),
-                                              type: .small,
-                                              color: .ios(.secondaryLabel)))
-    verticalStack.addArrangedSubview(
-      vStackWith(hStackWith(text: "Überall suchen", control: sltEverywhere),
-                 hStackWith(text: "In Artikel Titel", control: sltArticle),
-                 hStackWith(text: "Nach Autoren", control: sltAuthor))
-    )
-    
-    verticalStack.addArrangedSubview(vSpacer())
-    verticalStack.addArrangedSubview(UILabel("Zeitraum".uppercased(), type: .small, color: .ios(.secondaryLabel)))
-    
-    verticalStack.addArrangedSubview(
-      vStackWith(
-        hStackWith(text: "Von", control: fromSwitch),
-        fromPicker,
-        hStackWith(text: "Bis", control: toSwitch),
-        toPicker
-      )
-    )
-    
-    verticalStack.addArrangedSubview(UIView())
-    self.addSubview(verticalStack)
-    pin(verticalStack, to: self)
   }
   
-  public override init(frame: CGRect) {
-    super.init(frame: frame)
+  override func setup(){
+    self.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
+    contentView.addSubview(radioButton)
+    contentView.addSubview(label)
+    label.contentFont().labelColor()
+    pin(label, to: contentView, dist: 6, exclude: .left)
+    radioButton.isUserInteractionEnabled = false
+    radioButton.centerY()
+    radioButton.pinSize(CGSize(width: 16, height: 16), priority: .required)
+    pin(radioButton.left, to: contentView.left, dist: Const.Size.DefaultPadding)
+    pin(radioButton.right, to: label.left, dist: -8)
+  }
+}
+
+/// A custom table view cell
+class TazCell: UITableViewCell {
+  
+  func setup(){}//overwriteable
+  
+  // MARK: - Initialization
+  
+  override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+    super.init(style: style, reuseIdentifier: reuseIdentifier)
+    setup()
+  }
+  
+  required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    setup()
+  }
+}
+
+/// A custom table view cell with TextInput
+class TazHeaderFooterView: UITableViewHeaderFooterView {
+  static let reuseIdentifier = "TazHeaderFooterView"
+  
+  func setup(){
+    self.contentView.layoutMargins.left = Const.Size.DefaultPadding
+    self.contentView.layoutMargins.right = Const.Size.DefaultPadding
+    self.addBorderView(Const.SetColor.ios(.separator).color,
+                              0.7,
+                              edge: .bottom,
+                              insets: Const.Insets.Default)
+  }
+  
+  override init(reuseIdentifier: String?) {
+    super.init(reuseIdentifier: reuseIdentifier)
     setup()
   }
   
@@ -339,53 +251,175 @@ private class SearchSettingsView: UIView {
     super.init(coder: coder)
     setup()
   }
-  
-}
-
-private class SortingSegmentedControl: UISegmentedControl {
-  
-  private let items:[GqlSearchSorting] = GqlSearchSorting.allCases
-  
-  init(){
-    super.init(items: items.map{$0.labelText})
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-  
-  public var sorting:GqlSearchSorting {
-    get{
-      return items[self.selectedSegmentIndex]
-    }
-    set{
-      if let i = items.firstIndex(where: { $0 == newValue }) {
-        self.selectedSegmentIndex = i
-      }
-    }
-  }
 }
 
 
-public extension UIButton {
-  internal convenience init(_ _text : String,
-                            type: tazFontType = .content) {
-    self.init()
-    self.setTitle(_text, for: .normal)
-    switch type {
-      case .bold:
-        self.titleLabel?.font = Const.Fonts.titleFont(size: Const.Size.DefaultFontSize)
-      case .contentText:
-        self.titleLabel?.font = Const.Fonts.contentTextFont(size: Const.Size.DefaultFontSize)
-      case .content:
-        self.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
-      case .small:
-        self.titleLabel?.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
-      case .title:
-        self.titleLabel?.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+class TData {
+  
+  typealias tContent = (title:String?,
+                        cells:[TazCell]?)
+  ///added, deleted
+  typealias tChangedIndexPaths = (added: [IndexPath],
+                                  deleted: [IndexPath])
+  
+  public private(set) var content:[tContent] = []
+  
+  var settings = SearchSettings()
+  var expandedSection: Int?
+  
+  lazy var authorInpulCell: TextInputCell = {
+    let cell = TextInputCell()
+    cell.textField.text = settings.author
+    cell.textField.placeholder = "Autor*innen"
+    return cell
+  }()
+  
+  lazy var titleInpulCell: TextInputCell = {
+    let cell = TextInputCell()
+    cell.textField.text = settings.title
+    cell.textField.placeholder = "Titel"
+    return cell
+  }()
+  
+  lazy var rangeCells: [RadioButtonCell] = {
+    var cells: [RadioButtonCell] = []
+    for rangeOption in SearchRangeOption.allItems {
+      let cell = RadioButtonCell()
+      cell.range = rangeOption
+      cells.append(cell)
     }
-    self.setTitleColor(Const.SetColor.ios(.tintColor).color, for: .normal)
-    self.setTitleColor(Const.SetColor.ios(.tintColor).color.withAlphaComponent(0.7), for: .highlighted)
+    return cells
+  }()
+  
+  lazy var rangeMoreCell: MoreCell = {
+    let cell = MoreCell()
+    cell.label.text = settings.range.currentOption.rawValue
+    return cell
+  }()
+  
+  lazy var filterCells: [RadioButtonCell] = {
+    var cells: [RadioButtonCell] = []
+    for filter in GqlSearchFilter.allItems {
+      let cell = RadioButtonCell()
+      cell.filter = filter
+      cells.append(cell)
+    }
+    return cells
+  }()
+  
+  lazy var filterMoreCell: MoreCell = {
+    let cell = MoreCell()
+    cell.label.text = settings.filter.rawValue
+    return cell
+  }()
+  
+  lazy var sortingCells: [RadioButtonCell] = {
+    var cells: [RadioButtonCell] = []
+    for sorting in GqlSearchSorting.allItems {
+      let cell = RadioButtonCell()
+      cell.sorting = sorting
+      cells.append(cell)
+    }
+    return cells
+  }()
+  
+  lazy var sortingMoreCell: MoreCell = {
+    let cell = MoreCell()
+    cell.label.text = settings.filter.rawValue
+    return cell
+  }()
+  
+  
+  func update(){
+    rangeMoreCell.label.text = settings.range.currentOption.rawValue
+    filterMoreCell.label.text = settings.filter.rawValue
+    sortingMoreCell.label.text = settings.sorting.labelText
+
+    rangeCells.forEach{ $0.radioButton.isSelected = $0.range == settings.range.currentOption }
+    filterCells.forEach{ $0.radioButton.isSelected = $0.filter == settings.filter }
+    sortingCells.forEach{ $0.radioButton.isSelected = $0.sorting == settings.sorting }
     
+    content = [
+      (nil, [titleInpulCell, authorInpulCell]),
+      ("zeitraum", expandedSection == 1 ? rangeCells : [rangeMoreCell]),
+      ("erschienen in", expandedSection == 2 ? filterCells : [filterMoreCell]),
+      ("sortierung", expandedSection == 3 ? sortingCells : [sortingMoreCell])
+    ]
   }
+  
+  func cell(at indexPath: IndexPath) -> TazCell? {
+    return self.content.valueAt(indexPath.section)?.cells?.valueAt(indexPath.row)
+  }
+  
+  
+  func handle(_ tableView: UITableView, selectRowAt indexPath: IndexPath) {
+    let cell = cell(at: indexPath)
+    let rbCell = cell as? RadioButtonCell
+    
+    switch (cell, rbCell) {
+      case (rangeMoreCell, _):
+        expandedSection = 1
+      case let (_, rbCell) where rbCell?.range != nil:
+        settings.range.currentOption = rbCell!.range!
+        expandedSection = nil
+      case (filterMoreCell, _):
+        expandedSection = 2
+      case let (_, rbCell) where rbCell?.filter != nil:
+        settings.filter = rbCell!.filter!
+        expandedSection = nil
+      case (sortingMoreCell, _):
+        expandedSection = 3
+      case let (_, rbCell) where rbCell?.sorting != nil:
+        settings.sorting = rbCell!.sorting!
+        expandedSection = nil
+      default:
+        break
+    }
+    
+    update()
+    tableView.reloadData()
+  }
+  
+  /// get updated IndexPath...
+  private func changedIndexPaths(oldData: SettingsVC.TableData) -> SettingsVC.tChangedIndexPaths {
+    var added:[IndexPath] = []
+    var deleted:[IndexPath] = []
+    
+//    for idSect in 0 ... max(self.sectionsCount, oldData.sectionsCount) - 1{
+//      let newCells = self.sectionData(for: idSect)?.cells ?? []
+//      let oldCells = oldData.sectionData(for: idSect)?.cells ?? []
+//
+//      let addedCells = Set(newCells).subtracting(oldCells)
+//      let deletedCells = Set(oldCells).subtracting(newCells)
+//
+//      let newRows = self.rowsIn(section: idSect)
+//      let oldRows = oldData.rowsIn(section: idSect)
+//      for idRow in 0 ... (max(newRows, oldRows, 1) - 1){
+//        let ip = IndexPath(row: idRow , section: idSect)
+//        let newCell = self.cell(at: ip)
+//        let oldCell = oldData.cell(at: ip)
+//
+//        if let newCell = newCell, addedCells.contains(newCell){
+//          added.append(ip)
+//        }
+//
+//        if let oldCell = oldCell, deletedCells.contains(oldCell){
+//          deleted.append(ip)
+//        }
+//      }
+//    }
+    return (added: added, deleted: deleted)
+  }
+  
+  init() {
+    update()
+  }
+  
+//  func cell(for indexPath: IndexPath) -> UITableViewCell {
+//    let rbCell = RadioButtonCell()
+//    rbCell.filter = .all
+//    if settings.filter == .all { rbCell.radioButton.isSelected = true }
+//    tableView.dequeueReusableCell(identifier: "identifier", for: indexPath)
+//  dequeueReusableCellWithIdentifier:(NSString *)identifier forIndexPath:(NSIndexPath *)indexPath
+//  }
 }
