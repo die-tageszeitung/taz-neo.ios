@@ -18,21 +18,14 @@
 
 import NorthLib
 
-class SearchBarTools: UIView {
+// Label and Button
+class SearchBarFixedHeader: UIView {
+  
+  static let height: CGFloat = 30.0
   
   let textLabel = UILabel()
-  let filterWrapper = UIView()
   let seperator = UIView()
-  
-  public private(set) var filterWrapperHeightConstraint: NSLayoutConstraint?
-  
-  var filterActive:Bool = false {
-    didSet {
-      extendedSearchButton.buttonView.isActivated
-      = filterActive
-    }
-  }
-  
+  //todo rename to filter button
   lazy var extendedSearchButton: Button<ImageView> = {
     let button = Button<ImageView>()
     button.pinSize(CGSize(width: 32, height: 32))
@@ -50,9 +43,16 @@ class SearchBarTools: UIView {
     textLabel.textColor = color
   }
   
+  var filterActive:Bool = false {
+    didSet {
+      extendedSearchButton.buttonView.isActivated
+      = filterActive
+    }
+  }
+  
   private func setup() {
     self.addSubview(extendedSearchButton)
-    pin(extendedSearchButton.top, to: self.top, dist: 0)
+    pin(extendedSearchButton.top, to: self.topGuide(), dist: 0)
     pin(extendedSearchButton.right, to: self.right, dist: -Const.Size.SmallPadding)
     
     self.addSubview(textLabel)
@@ -69,17 +69,36 @@ class SearchBarTools: UIView {
     pin(seperator.right, to: self.right, dist: -Const.Size.DefaultPadding)
     pin(seperator.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(seperator.top, to: extendedSearchButton.bottom)
-    
-    self.addSubview(filterWrapper)
-    filterWrapperHeightConstraint = filterWrapper.pinHeight(0)
-    
-    let padding = Device.isIpad ? Const.Size.DefaultPadding : 0
-    
-    pin(filterWrapper.right, to: self.right, dist: -padding)
-    pin(filterWrapper.left, to: self.left, dist: padding)
-    pin(filterWrapper.top, to: seperator.bottom)
-    pin(filterWrapper.bottom, to: self.bottom, dist: -2)
-    
+    pin(seperator.bottom, to: self.bottom, dist: 5)
+    self.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    self.pinWidth(UIWindow.shortSide)
+  }
+  
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
+  }
+}
+
+
+class TableHeaderFilterWrapperView: UIView {
+  let wrapper = UIView()
+
+  public private(set) var filterWrapperHeightConstraint: NSLayoutConstraint?
+  
+  private func setup() {
+    self.addSubview(wrapper)
+    filterWrapperHeightConstraint = wrapper.pinHeight(0)
+    pin(wrapper.right, to: self.right)
+    pin(wrapper.left, to: self.left)
+    pin(wrapper.top, to: self.top, dist: SearchBarFixedHeader.height)
+    pin(wrapper.bottom, to: self.bottom)
+    self.backgroundColor = .yellow
     self.pinWidth(UIWindow.shortSide)
   }
   

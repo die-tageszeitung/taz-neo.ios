@@ -24,7 +24,7 @@ class SearchController: UIViewController {
   
   var searchController: UISearchController
   
-  fileprivate let resultsTableController = SearchResultsTVC(style: .plain)
+  fileprivate let resultsTableController = SearchResultsTVC()
   
   lazy var placeholder: UIView = {
     let v = UILabel()
@@ -111,7 +111,7 @@ extension SearchController: UISearchBarDelegate {
     searchSettings.text = searchController.searchBar.text
      
     if searchSettings.searchTermTooShort {
-      resultsTableController.searchBarTools.set(text: "Suchbegriff zu kurz!",
+      resultsTableController.fixedHeader.set(text: "Suchbegriff zu kurz!",
                                                 font: Const.Fonts.boldContentFont,
                                                 color: Const.Colors.ciColor )
       return
@@ -137,7 +137,7 @@ extension SearchController: UISearchBarDelegate {
             message = "\(count) Treffer"
           }
           self.resultsTableController
-            .searchBarTools.set(text: message,
+            .fixedHeader.set(text: message,
                                 font: Const.Fonts.contentFont)
         case .failure(let err):
           print("an error occoured... \(err)")

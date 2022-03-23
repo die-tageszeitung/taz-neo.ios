@@ -8,6 +8,7 @@
 
 import NorthLib
 import CoreGraphics
+import UIKit
 
 class SearchResultsTVC:UITableViewController{
   
@@ -27,39 +28,43 @@ class SearchResultsTVC:UITableViewController{
   lazy var serachSettingsVC = SearchSettingsVC()
   
   /// a uiview not a common UIToolbar
-  lazy var searchBarTools:SearchBarTools = {
-    let tool = SearchBarTools()
-    tool.extendedSearchButton.onPress { [weak self] _ in
+  lazy var tableHeader:TableHeaderFilterWrapperView = {
+    let view = TableHeaderFilterWrapperView()
+    return view
+  }()
+  
+  /// a uiview not a common UIToolbar
+  lazy var fixedHeader:SearchBarFixedHeader = {
+    let view = SearchBarFixedHeader()
+    view.extendedSearchButton.onPress { [weak self] _ in
       self?.toggleExtendedSearch()
     }
-    return tool
+    return view
   }()
   
   func toggleExtendedSearch(){
     if self.serachSettingsVC.parent == nil {//open
-      self.searchBarTools.filterActive = true
-      self.searchBarTools.textLabel.alpha = 0.0
-      self.searchBarTools.set(text: "erweiterte suche", font: Const.Fonts.boldContentFont)
-      self.searchBarTools.layoutSubviews()
-      self.presentSubVC(controller: self.serachSettingsVC, inView: searchBarTools.filterWrapper)
+      self.fixedHeader.filterActive = true
+      self.fixedHeader.textLabel.alpha = 0.0
+      self.fixedHeader.set(text: "erweiterte suche", font: Const.Fonts.boldContentFont)
+      self.tableHeader.layoutSubviews()
+      self.presentSubVC(controller: self.serachSettingsVC, inView: tableHeader.wrapper)
       UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
-        self.searchBarTools.filterWrapperHeightConstraint?.constant = 1200
-        self.searchBarTools.textLabel.alpha = 1.0
-        self.searchBarTools.seperator.alpha = 0.0
-        self.searchBarTools.layoutSubviews()
+        self.tableHeader.filterWrapperHeightConstraint?.constant = 1200
+        self.fixedHeader.textLabel.alpha = 1.0
+        self.fixedHeader.seperator.alpha = 0.0
+        self.tableHeader.layoutSubviews()
       } completion: { _ in  }
     }
     else {//close
       UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
-        self.searchBarTools.filterWrapperHeightConstraint?.constant = 0
-        self.searchBarTools.textLabel.alpha = 0.0
-        self.searchBarTools.seperator.alpha = 1.0
-        self.searchBarTools.layoutSubviews()
+        self.tableHeader.filterWrapperHeightConstraint?.constant = 0
+        self.fixedHeader.textLabel.alpha = 0.0
+        self.fixedHeader.seperator.alpha = 1.0
+        self.tableHeader.layoutSubviews()
       } completion: { _ in
         self.removeSubVC(self.serachSettingsVC)
         self.checkFilter()
-        //          self.serachSettingsVC.dismiss(animated: false)
-        
       }
     }
   }
@@ -83,13 +88,14 @@ class SearchResultsTVC:UITableViewController{
   }
   
   func checkFilter(){
-    self.searchBarTools.filterActive = self.serachSettingsVC.data.settings.isChanged
+    self.fixedHeader.filterActive = self.serachSettingsVC.data.settings.isChanged
   }
 
   static let SearchResultsCellIdentifier = "searchResultsCell"
   
   override public func viewDidLoad() {
     super.viewDidLoad()
+    self.tableView.tableHeaderView = tableHeader
     edgesForExtendedLayout = []
     self.tableView.register(SearchResultsCell.self, forCellReuseIdentifier: Self.SearchResultsCellIdentifier)
     self.tableView.backgroundColor = Const.Colors.opacityBackground
@@ -99,15 +105,10 @@ class SearchResultsTVC:UITableViewController{
       guard let self = self else { return }
       self.onBackgroundTap?()
     }
-    
-    if #available(iOS 15.0, *) {
-      self.tableView.sectionHeaderTopPadding = 30
-    }
     serachSettingsVC.finishedClosure = { [weak self] doSearch in
       doSearch ? self?.searchClosure?() : nil
     }
     
-    self.tableView.tableHeaderView = searchBarTools
     footer.style = .white
     footer.alpha = 0.0
     self.tableView.tableFooterView = footer
@@ -115,8 +116,9 @@ class SearchResultsTVC:UITableViewController{
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    print("Results appeard")
-    self.tableView.insetsContentViewsToSafeArea = false
+//    self.tableView.insetsContentViewsToSafeArea = false
+    
+    tableView.superview?.addSubview(fixedHeader)
   }
 }
 
