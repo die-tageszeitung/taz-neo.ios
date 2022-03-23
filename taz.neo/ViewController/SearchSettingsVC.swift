@@ -29,6 +29,8 @@ class SearchSettingsVC: UITableViewController {
     
   func restoreInitialState(){
     data.settings = SearchSettings()
+    data.titleInpulCell.textField.text = nil
+    data.authorInpulCell.textField.text = nil
     data.update()
     tableView.reloadData()
   }
@@ -68,10 +70,6 @@ class SearchSettingsVC: UITableViewController {
     pin(resetButton.top, to: searchButton.bottom, dist: 10)
     pin(resetButton.bottom, to: v.bottom, dist: -Const.Size.DefaultPadding)
     
-    resetButton.onTapping { [weak self] _ in
-      self?.restoreInitialState()
-    }
-    
     return v
   }()
   
@@ -79,17 +77,11 @@ class SearchSettingsVC: UITableViewController {
   func setup(){
     tableView.register(TazHeaderFooterView.self,
                        forHeaderFooterViewReuseIdentifier: TazHeaderFooterView.reuseIdentifier)
-    
     self.tableView.contentInset = UIEdgeInsets(top: -14, left: 0, bottom: 0, right: 0)
     tableView.separatorInset = Const.Insets.Default //also for header inset
     tableView.separatorStyle = .none
     self.view.backgroundColor = Const.SetColor.ios(.systemBackground).color
     tableView.tableFooterView = footer
-  }
-  
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    setup()
   }
 }
 
@@ -123,10 +115,10 @@ extension SearchSettingsVC {
   }
   
   open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    guard let title = data.content.valueAt(section)?.title else { return nil }
-    let header = self.tableView.dequeueReusableHeaderFooterView(withIdentifier: TazHeaderFooterView.reuseIdentifier)
-    header?.textLabel?.text = title
-    header?.textLabel?.boldContentFont().labelColor()
+    guard let title = data.content.valueAt(section)?.title,
+          let header = self.tableView.dequeueReusableHeaderFooterView(withIdentifier: TazHeaderFooterView.reuseIdentifier) as? TazHeaderFooterView
+    else { return nil }
+    header.label.text = title
     return header
   }
   
@@ -217,7 +209,7 @@ class RadioButtonCell: TazCell {
   
   var filter:GqlSearchFilter? {
     didSet {
-      self.label.text = filter?.rawValue
+      self.label.text = filter?.labelText
     }
   }
   
@@ -269,7 +261,16 @@ class TazCell: UITableViewCell {
 class TazHeaderFooterView: UITableViewHeaderFooterView {
   static let reuseIdentifier = "TazHeaderFooterView"
   
+  var label: UILabel = UILabel().boldContentFont().labelColor()
+  
   func setup(){
+    self.contentView.addSubview(label)
+    pin(label,
+        to: self.contentView,
+        insets: UIEdgeInsets(top: 0,
+                             left: Const.Size.DefaultPadding,
+                             bottom: -Const.Size.DefaultPadding,
+                             right: -Const.Size.DefaultPadding))
     self.contentView.layoutMargins.left = Const.Size.DefaultPadding
     self.contentView.layoutMargins.right = Const.Size.DefaultPadding
     self.addBorderView(Const.SetColor.ios(.separator).color,

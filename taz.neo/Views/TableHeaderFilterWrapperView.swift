@@ -21,7 +21,10 @@ import NorthLib
 // Label and Button
 class SearchBarFixedHeader: UIView {
   
-  static let height: CGFloat = 30.0
+  public private(set) var filterWrapperHeightConstraint: NSLayoutConstraint?
+  
+  
+  let wrapper = UIView()
   
   let textLabel = UILabel()
   let seperator = UIView()
@@ -39,6 +42,7 @@ class SearchBarFixedHeader: UIView {
   
   func set(text: String?, font: UIFont = Const.Fonts.contentFont, color: UIColor = Const.SetColor.ios(.label).color){
     textLabel.text = text
+    textLabel.alpha = 1.0//ensure visible
     textLabel.font = font
     textLabel.textColor = color
   }
@@ -52,7 +56,7 @@ class SearchBarFixedHeader: UIView {
   
   private func setup() {
     self.addSubview(extendedSearchButton)
-    pin(extendedSearchButton.top, to: self.topGuide(), dist: 0)
+    pin(extendedSearchButton.top, to: self.topGuide(), dist: 8)
     pin(extendedSearchButton.right, to: self.right, dist: -Const.Size.SmallPadding)
     
     self.addSubview(textLabel)
@@ -69,36 +73,15 @@ class SearchBarFixedHeader: UIView {
     pin(seperator.right, to: self.right, dist: -Const.Size.DefaultPadding)
     pin(seperator.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(seperator.top, to: extendedSearchButton.bottom)
-    pin(seperator.bottom, to: self.bottom, dist: 5)
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
-    self.pinWidth(UIWindow.shortSide)
-  }
-  
-  override init(frame: CGRect) {
-    super.init(frame: frame)
-    setup()
-  }
-
-  required init?(coder: NSCoder) {
-    super.init(coder: coder)
-    setup()
-  }
-}
-
-
-class TableHeaderFilterWrapperView: UIView {
-  let wrapper = UIView()
-
-  public private(set) var filterWrapperHeightConstraint: NSLayoutConstraint?
-  
-  private func setup() {
+    
     self.addSubview(wrapper)
     filterWrapperHeightConstraint = wrapper.pinHeight(0)
     pin(wrapper.right, to: self.right)
     pin(wrapper.left, to: self.left)
-    pin(wrapper.top, to: self.top, dist: SearchBarFixedHeader.height)
+    pin(wrapper.top, to: seperator.bottom, dist: 0)
     pin(wrapper.bottom, to: self.bottom)
-    self.backgroundColor = .yellow
+    
     self.pinWidth(UIWindow.shortSide)
   }
   

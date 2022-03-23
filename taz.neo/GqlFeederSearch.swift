@@ -30,9 +30,8 @@ public struct SearchSettings: Equatable {
   
   public var isChanged: Bool {
     get {
-      return
-        author != nil
-        || title != nil
+      return author?.isEmpty == false
+        || title?.isEmpty == false
         || sorting != .relevance
         || filter != .all
         || range.currentOption != .all
@@ -42,32 +41,35 @@ public struct SearchSettings: Equatable {
   }
   
   static public func ==(lhs: SearchSettings, rhs: SearchSettings) -> Bool {
-    return lhs.sorting == rhs.sorting
-      && lhs.from == rhs.from
-      && lhs.to == rhs.to
+    return lhs.author == rhs.author
+    && lhs.text == rhs.text
+    && lhs.title == rhs.title
+    && lhs.sorting == rhs.sorting
+    && lhs.filter == rhs.filter
+    && lhs.range.currentOption == rhs.range.currentOption
+    && lhs.from == rhs.from
+    && lhs.to == rhs.to
   }
 }
 
-//public enum GqlSearchLocation {
-//  case everywhere///default
-//  case article
-//  case author
-//  case articleAndAuthor
-//}
-//ORIGIN  /// RANGE
-//public enum GqlSearchLocation {
-//  case everywhere///default
-//  case article
-//  case author
-//  case articleAndAuthor
-//}
-
 public enum GqlSearchFilter: String {
-  case all = "Überall"
+  case all = "all"
   case taz = "taz"
-  case LMd = "Le Monde diplomatique"
+  case LMd = "LMd"
   case Kontext = "Kontext"
-  case weekend = "Wochenendausgaben"
+  case weekend = "weekend"
+  
+  public var labelText: String {
+    get{
+      switch self {
+        case .all: return "Überall"
+        case .taz: return "taz"
+        case .LMd: return "Le Monde diplomatique"
+        case .Kontext: return "Kontext"
+        case .weekend: return "Wochenendausgaben"
+      }
+    }
+  }
 
   static let allItems : [GqlSearchFilter] = [.all, .taz, .LMd, .Kontext, .weekend]
 }
@@ -89,7 +91,6 @@ public struct SearchRange {
   var currentOption: SearchRangeOption = .all
 }
 
-
 /// Sorting of search Result
 public enum GqlSearchSorting: String, CodableEnum {
   /// relevance (default)
@@ -105,8 +106,6 @@ public enum GqlSearchSorting: String, CodableEnum {
     get{
       switch self {
         case .relevance: return "Relevanz"
-//        case .appearance: return "Erscheinungsdatum"
-//        case .actuality: return "Aktualität"
         case .appearance: return "Älteste zuerst"
         case .actuality: return "Neueste zuerst"
       }
@@ -190,12 +189,12 @@ public class SearchItem: DoesLog {
       if searchHitList == nil {
         searchHitList = lastResponse?.search.searchHitList
       } else if let last = lastResponse?.search.searchHitList {
-        noMoreSearchResults = last.isEmpty
         searchHitList?.append(contentsOf: last)
       }
       else {
         self.log("No Data Added!")
       }
+      noMoreSearchResults = lastResponse?.search.searchHitList?.count == 0
       sessionId = lastResponse?.search.sessionId
     }
   }
@@ -257,6 +256,7 @@ public class SearchItem: DoesLog {
      search(
         \(searchString)
         offset: \(offset),
+        filter: \(settings.filter),
         rowCnt: \(Self.itemsPerFetch),
         sorting: \(settings.sorting)
       \(sessionArg)

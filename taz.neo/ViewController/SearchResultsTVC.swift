@@ -25,12 +25,22 @@ class SearchResultsTVC:UITableViewController{
     }
   }
   
-  lazy var serachSettingsVC = SearchSettingsVC()
-  
-  /// a uiview not a common UIToolbar
-  lazy var tableHeader:TableHeaderFilterWrapperView = {
-    let view = TableHeaderFilterWrapperView()
-    return view
+  lazy var serachSettingsVC:SearchSettingsVC = {
+    let vc = SearchSettingsVC()
+    vc.view.pinWidth(UIWindow.size.width, priority: .defaultLow)//prevent size animation error
+    vc.setup()
+    vc.finishedClosure = { [weak self] doSearch in
+      if doSearch {
+        self?.searchClosure?()
+      }
+      else {
+        //Do both Steps, scroll up and reset
+        _ = self?.restoreInitialState()
+        _ = self?.restoreInitialState()
+      }
+      self?.toggleExtendedSearch()
+    }
+    return vc
   }()
   
   /// a uiview not a common UIToolbar
@@ -43,27 +53,28 @@ class SearchResultsTVC:UITableViewController{
   }()
   
   func toggleExtendedSearch(){
-    if self.serachSettingsVC.parent == nil {//open
+    if self.serachSettingsVC.view.superview == nil {//open
       self.fixedHeader.filterActive = true
       self.fixedHeader.textLabel.alpha = 0.0
       self.fixedHeader.set(text: "erweiterte suche", font: Const.Fonts.boldContentFont)
-      self.tableHeader.layoutSubviews()
-      self.presentSubVC(controller: self.serachSettingsVC, inView: tableHeader.wrapper)
+      fixedHeader.wrapper.addSubview(self.serachSettingsVC.view)
+      fixedHeader.wrapper.layoutSubviews()
+      pin(self.serachSettingsVC.view, to: fixedHeader.wrapper)
       UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
-        self.tableHeader.filterWrapperHeightConstraint?.constant = 1200
+        self.fixedHeader.filterWrapperHeightConstraint?.constant = 1200
         self.fixedHeader.textLabel.alpha = 1.0
         self.fixedHeader.seperator.alpha = 0.0
-        self.tableHeader.layoutSubviews()
+        self.fixedHeader.wrapper.layoutSubviews()
       } completion: { _ in  }
     }
     else {//close
       UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
-        self.tableHeader.filterWrapperHeightConstraint?.constant = 0
+        self.fixedHeader.filterWrapperHeightConstraint?.constant = 0
         self.fixedHeader.textLabel.alpha = 0.0
         self.fixedHeader.seperator.alpha = 1.0
-        self.tableHeader.layoutSubviews()
+        self.fixedHeader.wrapper.layoutSubviews()
       } completion: { _ in
-        self.removeSubVC(self.serachSettingsVC)
+        self.serachSettingsVC.view.removeFromSuperview()
         self.checkFilter()
       }
     }
@@ -73,11 +84,15 @@ class SearchResultsTVC:UITableViewController{
   
   public var onBackgroundTap : (()->())?
   
+  func scrollTop(){
+    let animated = tableView.contentOffset.y < 8*UIWindow.size.height
+    tableView.setContentOffset(CGPoint(x: 1, y: -40), animated: animated)
+  }
+  
   func restoreInitialState() -> Bool{
     ///first scroll up
     if tableView.contentOffset.y > 20 {
-      let animated = tableView.contentOffset.y < 8*UIWindow.size.height
-      tableView.setContentOffset(CGPoint(x: 1, y: -30), animated: animated)
+      scrollTop()
       return false
     }
     //then reset everything
@@ -95,20 +110,14 @@ class SearchResultsTVC:UITableViewController{
   
   override public func viewDidLoad() {
     super.viewDidLoad()
-    self.tableView.tableHeaderView = tableHeader
     edgesForExtendedLayout = []
     self.tableView.register(SearchResultsCell.self, forCellReuseIdentifier: Self.SearchResultsCellIdentifier)
     self.tableView.backgroundColor = Const.Colors.opacityBackground
-//    self.tableView.contentInsetAdjustmentBehavior = .never
     self.navigationController?.navigationBar.isTranslucent = false
     self.tableView.backgroundView?.onTapping {   [weak self] _ in
       guard let self = self else { return }
       self.onBackgroundTap?()
     }
-    serachSettingsVC.finishedClosure = { [weak self] doSearch in
-      doSearch ? self?.searchClosure?() : nil
-    }
-    
     footer.style = .white
     footer.alpha = 0.0
     self.tableView.tableFooterView = footer
@@ -116,9 +125,9 @@ class SearchResultsTVC:UITableViewController{
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-//    self.tableView.insetsContentViewsToSafeArea = false
-    
     tableView.superview?.addSubview(fixedHeader)
+    tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
+    tableView.scrollIndicatorInsets = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
   }
 }
 

@@ -116,8 +116,11 @@ extension SearchController: UISearchBarDelegate {
                                                 color: Const.Colors.ciColor )
       return
     }
-
     searchItem.settings = searchSettings
+    if searchItem.sessionId == nil {
+      resultsTableController.scrollTop()
+    }
+    
     guard let feeder = feederContext.gqlFeeder else { return }
     feeder.search(searchItem: searchItem) { [weak self] result in
       guard let self = self else { return }
