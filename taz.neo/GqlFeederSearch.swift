@@ -22,6 +22,12 @@ public struct SearchSettings: Equatable {
   public var from:Date?
   public var to:Date?
   
+  public var searchTermTooShort:Bool {
+    return text?.isEmpty == true
+    && author?.isEmpty == true
+    && title?.isEmpty  == true
+  }
+  
   public var isChanged: Bool {
     get {
       return
@@ -124,13 +130,20 @@ public class GqlSearchResponse: GQLObject {
   public var total: Int
   public var totalFound: Int
   var authInfo: GqlAuthInfo
-  public var text: String
+  public var searchText: String {
+    get {
+      return "\(title ?? "noTitle")-\(author ?? "noAuthor")-\(text ?? "noText")"
+    }
+  }
+  public var text: String?
+  public var title: String?
+  public var author: String?
   public var sessionId: String?
   public var searchHitList: [GqlSearchHit]?
   public func toString() -> String {
     var sid = ""
     if let s = sessionId { sid = "sessionId: \(s)," }
-    return "GqlSearchItem{ total:\(total), text: \(text), \(sid)searchHitList: \(String(describing: searchHitList))}"
+    return "GqlSearchItem{ total:\(total), title: \(title ?? "-"), author: \(author ?? "-"), text: \(text ?? "-") \(sid)searchHitList: \(String(describing: searchHitList))}"
   }
   static var fields = "total, totalFound, text, sessionId, searchHitList { \(GqlSearchHit.fields) }"
 }
@@ -228,11 +241,21 @@ public class SearchItem: DoesLog {
         sessionArg = ", sessionId: \"\(sId)\""
       }
       
+      var searchString = ""
+      if let txt = settings.text, !txt.isEmpty {
+        searchString += "text: \"\(txt)\","
+      }
+      if let txt = settings.author, !txt.isEmpty {
+        searchString += "author: \"\(txt)\","
+      }
+      if let txt = settings.title, !txt.isEmpty {
+        searchString += "title: \"\(txt)\","
+      }
+      
+      
       return """
      search(
-        text: "\(settings.text ?? "")",
-        author: "\(settings.author ?? "")",
-        title: "\(settings.title ?? "")",
+        \(searchString)
         offset: \(offset),
         rowCnt: \(Self.itemsPerFetch),
         sorting: \(settings.sorting)

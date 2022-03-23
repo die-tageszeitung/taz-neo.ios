@@ -24,7 +24,7 @@ class SearchController: UIViewController {
   
   var searchController: UISearchController
   
-  fileprivate let resultsTableController = SearchResultsTVC()
+  fileprivate let resultsTableController = SearchResultsTVC(style: .plain)
   
   lazy var placeholder: UIView = {
     let v = UILabel()
@@ -70,8 +70,7 @@ class SearchController: UIViewController {
     searchController.searchBar.backgroundColor = Const.SetColor.CTBackground.color
     searchController.searchBar.backgroundImage = UIImage()//removes seperator
     if #available(iOS 13.0, *) {
-      searchController.searchBar.searchTextField.layer.cornerRadius = 18
-      searchController.searchBar.searchTextField.layer.masksToBounds = true
+      searchController.searchBar.searchTextField.defaultStyle(placeholder: "taz Archiv durchsuchen")
     }
     self.view.addSubview(placeholder)
     placeholder.center()
@@ -107,18 +106,18 @@ class SearchController: UIViewController {
 
 // MARK: - UISearchBarDelegate
 extension SearchController: UISearchBarDelegate {
-  private func search(){
-    guard let searchString = searchController.searchBar.text, searchString.length > 2 else {
-      Toast.show("Suchbegriff zu kurz!", .alert)
-      
-//      searchBarTools.errorTextLabel.text = "Suchbegriff zu kurz!"
+  private func search() {
+    var searchSettings = self.resultsTableController.serachSettingsVC.data.settings
+    searchSettings.text = searchController.searchBar.text
+     
+    if searchSettings.searchTermTooShort {
+      resultsTableController.searchBarTools.set(text: "Suchbegriff zu kurz!",
+                                                font: Const.Fonts.boldContentFont,
+                                                color: Const.Colors.ciColor )
       return
     }
-//    searchBarTools.errorTextLabel.text = nil
-    
-//    searchItem.searchString = searchString
 
-//    searchItem.settings = self.resultsTableController.serachSettingsVC.currentConfig
+    searchItem.settings = searchSettings
     guard let feeder = feederContext.gqlFeeder else { return }
     feeder.search(searchItem: searchItem) { [weak self] result in
       guard let self = self else { return }
@@ -126,7 +125,20 @@ extension SearchController: UISearchBarDelegate {
         case .success(let updatedSearchItem):
           self.searchItem = updatedSearchItem
           self.updateArticleVcIfNeeded()
-//          self.header.resultCount = updatedSearchItem.resultCount
+          var message = "Keine Treffer"
+          let rCount = updatedSearchItem.resultCount
+          if let currentCount = rCount.currentCount, let totalCount = rCount.total {
+            message = "\(totalCount)/\(currentCount)"
+          }
+          else if let count = rCount.currentCount {
+            message = "\(count) Treffer"
+          }
+          else if let count = rCount.total {
+            message = "\(count) Treffer"
+          }
+          self.resultsTableController
+            .searchBarTools.set(text: message,
+                                font: Const.Fonts.contentFont)
         case .failure(let err):
           print("an error occoured... \(err)")
       }
@@ -149,7 +161,7 @@ extension SearchController: UISearchBarDelegate {
     articleVC.searchContents = allArticles
     feederContext.dloader.downloadSearchResultFiles(url: searchHit.baseUrl, files: searchHit.article.files) { [weak self] err in
       guard let self = self else { return }
-      _ = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.text.sha1)
+      _ = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.searchText.sha1)
       if let err = err {
         self.log("Download error, try to display Article: \(err)")
       }
@@ -167,7 +179,7 @@ extension SearchController: UISearchBarDelegate {
     
     feederContext.dloader.downloadSearchResultFiles(url: searchHit.baseUrl, files: searchHit.article.files) {[weak self] err in
       guard let self = self else { return }
-      let path = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.text.sha1)
+      let path = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.searchText.sha1)
       #warning("missing deleted empty delegate functions")
       let articleVC = SearchResultArticleVc(feederContext: self.feederContext)
       articleVC.delegate = self

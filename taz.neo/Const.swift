@@ -173,6 +173,9 @@ public struct Const {
     var color : UIColor {
       get{
         let set = colors(name: self)
+        //Bugfix iOS==Dark // App==light ==> Element => dark
+        return Defaults.darkMode ? set.dark ??  set.light : set.light
+        /*
         if #available(iOS 13, *) {
           return UIColor { (traitCollection: UITraitCollection) -> UIColor in
             switch(traitCollection.userInterfaceStyle,
@@ -188,6 +191,7 @@ public struct Const {
         else {
           return Defaults.darkMode ? set.dark ??  set.light : set.light
         }
+        */
       }
     }
     
@@ -312,6 +316,7 @@ public struct Const {
     static let SubtitleFontSize = CGFloat(21)
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
+    static let TextFieldHeight = CGFloat(36.0)//Default Height of Search Controllers Text Input
     static let TextFieldPadding = SmallPadding
     static let SmallPadding = CGFloat(10.0)
     static let TinyPadding = CGFloat(5.0)
@@ -484,3 +489,57 @@ extension UILabel {
 }
 
 enum tazFontType { case title, small, bold, content, contentText }
+
+
+
+
+extension UIButton {
+  
+  static let tazButtonHeight: CGFloat = 44
+  
+  @discardableResult
+  func primary_CTA(_ text: String? =  nil) -> Self {
+    setDefaults()
+    self.layer.backgroundColor = Const.Colors.ciColor.cgColor
+    self.titleLabel?.boldContentFont()
+    self.setTitleColor(UIColor.white, for: .normal)
+    if let t = text {
+      self.setTitle(t, for: .normal)
+    }
+    return self
+  }
+  
+  @discardableResult
+  func secondary_CTA(_ text: String? =  nil) -> Self {
+    setDefaults()
+    self.layer.backgroundColor = UIColor.clear.cgColor
+    self.addBorder(Const.Colors.ciColor,  1.5)
+    self.titleLabel?.contentFont()
+    self.setTitleColor(Const.Colors.ciColor, for: .normal)
+    if let t = text {
+      self.setTitle(t, for: .normal)
+    }
+    return self
+  }
+  
+  private func setDefaults(){
+    self.pinHeight(UIButton.tazButtonHeight)
+    self.layer.cornerRadius = UIButton.tazButtonHeight/2
+  }
+}
+
+
+extension UITextField {
+  @discardableResult
+  func defaultStyle(placeholder: String? =  nil) -> Self {
+    if let p = placeholder {
+      self.attributedPlaceholder = NSAttributedString(
+        string: p,
+        attributes: [NSAttributedString.Key.foregroundColor: Const.SetColor.ios(.tertiaryLabel).color])
+    }
+    self.backgroundColor = Const.SetColor.ios(.quaternarySystemFill).color
+    self.layer.cornerRadius = 18
+    self.layer.masksToBounds = true
+    return self
+  }
+}

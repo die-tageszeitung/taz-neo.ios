@@ -399,6 +399,29 @@ class TazAppEnvironment /*: NSObject, DoesLog, MFMailComposeViewControllerDelega
     dfl["showBottomTilesAnimation"]=nil
     dfl.setDefaults(values: ConfigDefaults)
   }
+  
+  static func setupDefaultStyles(){
+    if let defaultFontName = Const.Fonts.contentFontName,
+       let defaultFont10 =  UIFont(name: defaultFontName, size: 10),
+       let defaultFont =  UIFont(name: defaultFontName, size: Const.Size.DefaultFontSize){
+      UITabBarItem.appearance()
+        .setTitleTextAttributes([NSAttributedString.Key.font:defaultFont10],
+                                for: .normal)
+//      UITabBarItem.appearance()
+//        .setTitleTextAttributes([NSAttributedString.Key.font:defaultFont10],
+//                                for: .selected)
+      #warning("in search ugly fly in effect in simulator")
+//      UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self])
+//        .setTitleTextAttributes([NSAttributedString.Key.font:defaultFont],
+//                                for: .normal)
+//      UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self])
+//        .setTitleTextAttributes([NSAttributedString.Key.font:defaultFont],
+//                                for: .selected)
+    }
+    else {
+      Log.log("Error default taz Font missing")
+    }
+  }
 }
 
 

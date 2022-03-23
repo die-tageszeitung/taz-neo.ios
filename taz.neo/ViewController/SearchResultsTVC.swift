@@ -26,53 +26,43 @@ class SearchResultsTVC:UITableViewController{
   
   lazy var serachSettingsVC = SearchSettingsVC()
   
-  
   /// a uiview not a common UIToolbar
   lazy var searchBarTools:SearchBarTools = {
     let tool = SearchBarTools()
-    tool.extendedSearchButton.onPress {[weak self] bc in
-      guard let self = self else { return }
-
-      if self.serachSettingsVC.parent != nil {
-        UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
-          self.searchBarTools.filterWrapperHeightConstraint?.constant = 0
-          self.searchBarTools.textLabel.alpha = 0.0
-          self.searchBarTools.seperator.alpha = 1.0
-          self.searchBarTools.layoutSubviews()
-        } completion: { _ in
-          self.removeSubVC(self.serachSettingsVC)
-          self.checkFilter()
-//          self.serachSettingsVC.dismiss(animated: false)
-          
-        }
-        return
-      }
-      self.searchBarTools.filterActive = true
-      
-      if false && Device.isIpad {
-        self.serachSettingsVC.modalPresentationStyle = UIModalPresentationStyle.popover
-        self.present(self.serachSettingsVC, animated: true)
-        let popoverPresentationController = self.serachSettingsVC.popoverPresentationController
-        popoverPresentationController?.sourceView = bc
-      }
-      else {
-        self.searchBarTools.textLabel.alpha = 0.0
-        self.searchBarTools.set(text: "erweiterte suche", font: Const.Fonts.boldContentFont)
-        self.searchBarTools.layoutSubviews()
-        self.presentSubVC(controller: self.serachSettingsVC, inView: tool.filterWrapper)
-        UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
-          self.searchBarTools.filterWrapperHeightConstraint?.constant = 1200
-          self.searchBarTools.textLabel.alpha = 1.0
-          self.searchBarTools.seperator.alpha = 0.0
-          self.searchBarTools.layoutSubviews()
-        } completion: { _ in
-        }
-      }
-      
-      
+    tool.extendedSearchButton.onPress { [weak self] _ in
+      self?.toggleExtendedSearch()
     }
     return tool
   }()
+  
+  func toggleExtendedSearch(){
+    if self.serachSettingsVC.parent == nil {//open
+      self.searchBarTools.filterActive = true
+      self.searchBarTools.textLabel.alpha = 0.0
+      self.searchBarTools.set(text: "erweiterte suche", font: Const.Fonts.boldContentFont)
+      self.searchBarTools.layoutSubviews()
+      self.presentSubVC(controller: self.serachSettingsVC, inView: searchBarTools.filterWrapper)
+      UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
+        self.searchBarTools.filterWrapperHeightConstraint?.constant = 1200
+        self.searchBarTools.textLabel.alpha = 1.0
+        self.searchBarTools.seperator.alpha = 0.0
+        self.searchBarTools.layoutSubviews()
+      } completion: { _ in  }
+    }
+    else {//close
+      UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
+        self.searchBarTools.filterWrapperHeightConstraint?.constant = 0
+        self.searchBarTools.textLabel.alpha = 0.0
+        self.searchBarTools.seperator.alpha = 1.0
+        self.searchBarTools.layoutSubviews()
+      } completion: { _ in
+        self.removeSubVC(self.serachSettingsVC)
+        self.checkFilter()
+        //          self.serachSettingsVC.dismiss(animated: false)
+        
+      }
+    }
+  }
   
   lazy var footer = LoadingView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
   
@@ -110,11 +100,12 @@ class SearchResultsTVC:UITableViewController{
       self.onBackgroundTap?()
     }
     
-//    serachSettingsVC.finishedClosure = { [weak self] apply in
-//      guard let self = self else { return }
-//      self.searchBarTools.filterActive = self.serachSettingsVC.data.settings.isChanged
-//      self.searchClosure?()
-//    }
+    if #available(iOS 15.0, *) {
+      self.tableView.sectionHeaderTopPadding = 30
+    }
+    serachSettingsVC.finishedClosure = { [weak self] doSearch in
+      doSearch ? self?.searchClosure?() : nil
+    }
     
     self.tableView.tableHeaderView = searchBarTools
     footer.style = .white
@@ -126,10 +117,6 @@ class SearchResultsTVC:UITableViewController{
     super.viewWillAppear(animated)
     print("Results appeard")
     self.tableView.insetsContentViewsToSafeArea = false
-  }
-  
-  override public func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
   }
 }
 

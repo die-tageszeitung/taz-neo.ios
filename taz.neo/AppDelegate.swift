@@ -16,6 +16,7 @@ class AppDelegate: NotifiedDelegate {
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     TazAppEnvironment.updateDefaultsIfNeeded()
     TazAppEnvironment.saveLastLog()
+    TazAppEnvironment.setupDefaultStyles()
     self.window = UIWindow(frame: UIScreen.main.bounds)
 
     self.window?.rootViewController = TazAppEnvironment.sharedInstance.rootViewController
@@ -36,6 +37,7 @@ class AppDelegate: NotifiedDelegate {
 //    self.window?.rootViewController = OverlayTest()
 //    self.window?.rootViewController = TazPdfPagesViewController()
 //    self.window?.rootViewController = KeychainTest()
+    
     self.window?.makeKeyAndVisible()
     if #available(iOS 13.0, *) {
       UIApplication.shared.keyWindow?.overrideUserInterfaceStyle

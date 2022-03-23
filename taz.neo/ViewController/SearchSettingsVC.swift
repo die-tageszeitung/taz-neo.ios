@@ -11,25 +11,67 @@ import SwiftUI
 
 class SearchSettingsVC: UITableViewController {
   
-  public private(set) var data = TData()
+  var finishedClosure: ((Bool)->())?
   
+  private let _data = TData()
+  public var data: TData {
+    get {
+      /**
+       Ugly but currently working, end input of textfield is maybe too late
+       later improvement maybe to not close extended search if no valit search term
+       */
+      _data.settings.title = _data.titleInpulCell.textField.text
+      _data.settings.author = _data.authorInpulCell.textField.text
+      return _data
+    }
+  }
+
+    
   func restoreInitialState(){
-//    currentConfig = SearchSettings()
-//    lastConfig = nil
+    data.settings = SearchSettings()
+    data.update()
+    tableView.reloadData()
   }
   
   lazy var footer:UIView = {
-    let v = UIView()
-    let searchButton = UIButton(type: .roundedRect)
-    searchButton.setTitle("Suchen", for: .normal)
-    let resetButton = UIButton(type: .roundedRect)
-    resetButton.setTitle("Abbrechen", for: .normal)
-    resetButton.addSubview(<#T##view: UIView##UIView#>)
+    //Workaround for autolayout not working on table footer
+    let estimatedFooterHeight
+    = 2*Const.Size.DefaultPadding
+    + 2*UIButton.tazButtonHeight
+    + 10
+    let v = UIView(frame: CGRect(x: 0,
+                                 y: 0,
+                                 width: UIWindow.size.width,
+                                 height: estimatedFooterHeight))
+    let searchButton = UIButton().primary_CTA("Suche starten")
+    let resetButton = UIButton().secondary_CTA("Zurücksetzen & Schließen")
+    
+    searchButton.onTapping {[weak self] _ in
+      self?.finishedClosure?(true)
+    }
+    
+    resetButton.onTapping {[weak self] _ in
+      self?.restoreInitialState()
+      self?.finishedClosure?(false)
+    }
+    
+    
     v.addSubview(searchButton)
     v.addSubview(resetButton)
-    pin(searchButton, to: v, dist: Const.Size.DefaultPadding, exclude: .bottom)
-    pin(resetButton, to: v, dist: Const.Size.DefaultPadding, exclude: .top)
-    pin(resetButton.top, to: searchButton.bottom, dist: 6)
+    
+    pin(searchButton.left, to: v.left, dist: Const.Size.DefaultPadding)
+    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding)
+    pin(resetButton.left, to: v.left, dist: Const.Size.DefaultPadding)
+    pin(resetButton.right, to: v.right, dist: -Const.Size.DefaultPadding)
+    
+    pin(searchButton.top, to: v.top, dist: Const.Size.DefaultPadding)
+    pin(resetButton.top, to: searchButton.bottom, dist: 10)
+    pin(resetButton.bottom, to: v.bottom, dist: -Const.Size.DefaultPadding)
+    
+    resetButton.onTapping { [weak self] _ in
+      self?.restoreInitialState()
+    }
+    
     return v
   }()
   
@@ -43,8 +85,6 @@ class SearchSettingsVC: UITableViewController {
     tableView.separatorStyle = .none
     self.view.backgroundColor = Const.SetColor.ios(.systemBackground).color
     tableView.tableFooterView = footer
-//    data = TableData(sectionContent: [extendedSearchSectionContent, rangeSectionContent, sourceSectionContent])
-    
   }
   
   override func viewDidLoad() {
@@ -63,11 +103,6 @@ extension SearchSettingsVC {
     
     func cell(at indexPath: IndexPath) -> TazCell? {
       return self.content.valueAt(indexPath.section)?.cells?.valueAt(indexPath.row)
-    }
-    
-    #warning("add a tablechange handler")
-    init(content: [tContent]) {
-      self.content = content
     }
   }
 }
@@ -144,9 +179,10 @@ class TextInputCell: TazCell {
 //    customClearButton.setImage(UIImage(named: "xmark"), for: .normal)
 //    textField.rightView = UIImageView(image: UIImage(named: "xmark"))
 //    textField.rightViewMode = .whileEditing
-    let height = 34.0
+    let height = Const.Size.TextFieldHeight
     textField.pinHeight(height)
     textField.layer.cornerRadius = height/2
+    
     textField.clipsToBounds = true
     contentView.addSubview(textField)
     let insets = UIEdgeInsets(top: 4,
@@ -253,7 +289,6 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
   }
 }
 
-
 class TData {
   
   typealias tContent = (title:String?,
@@ -270,14 +305,14 @@ class TData {
   lazy var authorInpulCell: TextInputCell = {
     let cell = TextInputCell()
     cell.textField.text = settings.author
-    cell.textField.placeholder = "Autor*innen"
+    cell.textField.defaultStyle(placeholder: "Autor*innen")
     return cell
   }()
   
   lazy var titleInpulCell: TextInputCell = {
     let cell = TextInputCell()
     cell.textField.text = settings.title
-    cell.textField.placeholder = "Titel"
+    cell.textField.defaultStyle(placeholder: "Titel")
     return cell
   }()
   
@@ -375,51 +410,50 @@ class TData {
       default:
         break
     }
-    
+    let oldContent = content
     update()
-    tableView.reloadData()
+    reloadAnimatedIfNeeded(tableView: tableView, oldContent: oldContent)
   }
   
   /// get updated IndexPath...
-  private func changedIndexPaths(oldData: SettingsVC.TableData) -> SettingsVC.tChangedIndexPaths {
+  private func reloadAnimatedIfNeeded(tableView: UITableView, oldContent: [tContent]) {
     var added:[IndexPath] = []
     var deleted:[IndexPath] = []
     
-//    for idSect in 0 ... max(self.sectionsCount, oldData.sectionsCount) - 1{
-//      let newCells = self.sectionData(for: idSect)?.cells ?? []
-//      let oldCells = oldData.sectionData(for: idSect)?.cells ?? []
-//
-//      let addedCells = Set(newCells).subtracting(oldCells)
-//      let deletedCells = Set(oldCells).subtracting(newCells)
-//
-//      let newRows = self.rowsIn(section: idSect)
-//      let oldRows = oldData.rowsIn(section: idSect)
-//      for idRow in 0 ... (max(newRows, oldRows, 1) - 1){
-//        let ip = IndexPath(row: idRow , section: idSect)
-//        let newCell = self.cell(at: ip)
-//        let oldCell = oldData.cell(at: ip)
-//
-//        if let newCell = newCell, addedCells.contains(newCell){
-//          added.append(ip)
-//        }
-//
-//        if let oldCell = oldCell, deletedCells.contains(oldCell){
-//          deleted.append(ip)
-//        }
-//      }
-//    }
-    return (added: added, deleted: deleted)
+    for idSect in 0 ... max(content.count, oldContent.count) - 1{
+      let newCells = content.valueAt(idSect)?.cells ?? []
+      let oldCells = oldContent.valueAt(idSect)?.cells ?? []
+
+      let addedCells = Set(newCells).subtracting(oldCells)
+      let deletedCells = Set(oldCells).subtracting(newCells)
+
+      for idRow in 0 ... (max(newCells.count, oldCells.count, 1) - 1){
+        let ip = IndexPath(row: idRow , section: idSect)
+        let newCell = self.cell(at: ip)
+        let oldCell = oldCells.valueAt(idRow)
+
+        if let newCell = newCell, addedCells.contains(newCell){
+          added.append(ip)
+        }
+
+        if let oldCell = oldCell, deletedCells.contains(oldCell){
+          deleted.append(ip)
+        }
+      }
+    }
+    
+    if (added.count + deleted.count) == 0 {
+      tableView.reloadData()
+      return
+    }
+    //middle or fade animation
+    tableView.performBatchUpdates {
+      if deleted.count > 0 { tableView.deleteRows(at: deleted, with: .middle) }
+      if added.count > 0 { tableView.insertRows(at: added, with: .middle) }
+    }
   }
   
   init() {
     update()
   }
-  
-//  func cell(for indexPath: IndexPath) -> UITableViewCell {
-//    let rbCell = RadioButtonCell()
-//    rbCell.filter = .all
-//    if settings.filter == .all { rbCell.radioButton.isSelected = true }
-//    tableView.dequeueReusableCell(identifier: "identifier", for: indexPath)
-//  dequeueReusableCellWithIdentifier:(NSString *)identifier forIndexPath:(NSIndexPath *)indexPath
-//  }
 }

@@ -57,6 +57,7 @@ class SearchBarTools: UIView {
     
     self.addSubview(textLabel)
     pin(textLabel.centerY, to:extendedSearchButton.centerY)
+    textLabel.pinSize(CGSize(width: 200, height: 30), priority: .defaultLow)//prevent size animation error
     pin(textLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(textLabel.right, to: extendedSearchButton.left, dist: -Const.Size.SmallPadding, priority: .fittingSizeLevel)
     textLabel.contentFont()
