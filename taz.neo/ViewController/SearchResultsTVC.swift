@@ -301,7 +301,18 @@ class SearchResultArticleVc : ArticleVC {
   
   override func setHeader(artIndex: Int) {
     super.setHeader(artIndex: artIndex)
-    header.pageNumber = "\(artIndex+1)/\(maxResults)"
+
+    if let searchVc = adelegate as? SearchController,
+       let hit = searchVc.searchItem.searchHitList?.valueAt(artIndex)
+    {
+      header.pageNumber = hit.date.short + " " + (hit.sectionTitle ?? "")
+      header.title = "\(artIndex+1)/\(maxResults)"
+//      header.title = hit.date.short + " " + (hit.sectionTitle ?? "")
+    }
+    else {
+      header.pageNumber = "\(artIndex+1)/\(maxResults)"
+    }
+    
     if artIndex >= articles.count - 1 {
       searchClosure?()
     }
