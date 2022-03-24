@@ -468,10 +468,50 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   var interruptMainTimer: Timer?
   
+  lazy var togglePdfButton: Button<ImageView> = {
+    let imageButton = Button<ImageView>()
+    imageButton.pinSize(CGSize(width: 50, height: 50))
+    imageButton.buttonView.hinset = 0.18
+    imageButton.buttonView.color = Const.Colors.iconButtonInactive
+    imageButton.buttonView.activeColor = Const.Colors.iconButtonActive
+    imageButton.accessibilityLabel = "Ansicht umschalten"
+    imageButton.isAccessibilityElement = true
+    imageButton.onPress(closure: onPDF(sender:))
+    imageButton.layer.cornerRadius = 25
+    imageButton.backgroundColor = Const.Colors.fabBackground
+    imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
+    return imageButton
+  }()
+  
+  func updateTogglePdfButtonPosition(){
+    //Goal: Align on firts Tabbar Icon
+    
+    // get offset by tabbars first subview icon
+    // Risks: future change of order e.g. due additionally subviews
+    // iPhone 8+ Simulator: 52.0
+//    print("left Item Center: \((navigationController?.parent as? MainTabVC)?.tabBar.subviews[1].center)")
+          
+    // calculate offset by tabbars first item cound and windows width
+    // Risks: different icon width, paddings - but favorite way
+    // iPhone 8+ Simulator: 51.75
+    if let itmmscount = (navigationController?.parent as? MainTabVC)?.tabBar.items?.count {
+      let offset = 0.5*UIWindow.size.width/CGFloat(itmmscount)
+      btnLeftConstraint?.constant = offset
+//      print("calculated center: \(offset)")
+    }
+  }
+  
+  var btnLeftConstraint: NSLayoutConstraint?
   
   public override func viewDidLoad() {
     super.viewDidLoad()
     self.headerView.addSubview(issueCarousel)
+    if let ncView = self.navigationController?.view {
+      ncView.addSubview(togglePdfButton)
+      btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
+      pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
+    }
+    
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
     pin(issueCarousel.right, to: self.headerView.right)
@@ -640,11 +680,18 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
   }
   
+  public override func viewWillDisappear(_ animated: Bool) {
+    togglePdfButton.isHidden = true
+    super.viewWillDisappear(animated)
+  }
+  
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     updateCarouselSize(.zero)//initially show label (set pos not behind toolbar)
     invalidateCarouselLayout()//fix sitze if rotated on pushed vc
     checkForNewIssues()
+    updateTogglePdfButtonPosition()
+    togglePdfButton.showAnimated()
   }
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

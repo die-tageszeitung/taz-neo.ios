@@ -158,7 +158,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     collectionView?.register(IssueVCBottomTielesCVCCell.self, forCellWithReuseIdentifier: reuseIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: reuseHeaderIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
-    setupToolbar()
     showPdfInfoIfNeeded()
     setupPullToRefresh()
     if gt_iOS13 == false {
@@ -245,46 +244,17 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     }
   }
   
-  func setupToolbar() {
-    //the button tap closures
-    let onHome:((ButtonControl)->()) = { [weak self] _ in
-      self?.onHome()
-    }
+  func onPDF(sender:Any){
+    self.isFacsimile = !self.isFacsimile
     
-    let onPDF:((ButtonControl)->()) = {   [weak self] control in
-      guard let self = self else { return }
-      self.isFacsimile = !self.isFacsimile
-      
-      if let imageButton = control as? Button<ImageView> {
-        imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
-        imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
-      }
-      self.collectionView.reloadData()
-      if let ivc = self as? IssueVC {
-        ivc.setLabel(idx: ivc.index)
-      }
-      print("PDF Pressed")
+    if let imageButton = sender as? Button<ImageView> {
+      imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
+      imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
     }
-    
-    //the buttons and alignments
-//    toolbarHomeButton = toolBar.addImageButton(name: "home",
-//                               onPress: onHome,
-//                               direction: .right,
-//                               accessibilityLabel: "Übersicht")
-//    
-//    _ = toolBar.addImageButton(name: self.isFacsimile ? "mobile-device" : "newspaper",
-//                               onPress: onPDF,
-//                               direction: .left,
-//                               accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
-//    
-//    _ = toolBar.addImageButton(name: "settings",
-//                               onPress: onSettings,
-//                               direction: .center,
-//                               accessibilityLabel: "Einstellungen")
-//        
-//    //the toolbar setup itself
-//    toolBar.applyDefaultTazSyle()
-//    toolBar.pinTo(self.view)
+    self.collectionView.reloadData()
+    if let ivc = self as? IssueVC {
+      ivc.setLabel(idx: ivc.index)
+    }
   }
 }
 
@@ -449,6 +419,8 @@ extension IssueVcWithBottomTiles {
       footerActivityIndicator.startAnimating()
     }
   }
+  
+  
   
   
   func showMoreIssues(){

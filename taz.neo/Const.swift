@@ -35,6 +35,9 @@ public struct Const {
   
   /// Various color values
   struct Colors {
+    
+    static let fabBackground: UIColor = UIColor.rgb(0x363636).withAlphaComponent(0.8)
+    
     ///Variable Colors, depending light/darkmode
     static var opacityBackground: UIColor { Const.SetColor.CTBackground.color.withAlphaComponent(0.9) }
     ///Static/Constant Colors
@@ -44,6 +47,8 @@ public struct Const {
     static let darkPrimaryText: UIColor =  UIColor.rgb(0xffffff)
     static let darkSecondaryText: UIColor = UIColor.rgb(0xebebf5)
     static let appIconGrey: UIColor = darkSecondaryText //UIColor.rgb(0x9c9c9c)
+    static let iconButtonInactive: UIColor = UIColor.rgb(0x9c9c9c)
+    static let iconButtonActive: UIColor = appIconGrey
     
     static let fountTextHighlight: UIColor = UIColor.rgb(0xd50d2e).withAlphaComponent(0.2)
     static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)
