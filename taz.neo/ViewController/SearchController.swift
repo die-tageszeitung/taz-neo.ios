@@ -10,23 +10,17 @@ import NorthLib
 
 class SearchController: UIViewController {
 
+  private let resultsTableController = SearchResultsTVC()
+  private let defaultSection = BookmarkSection(name: "Suche",
+                                       html: TmpFileEntry(name: "SearchTempSection.tmp"))
+  
+  private var articleVC:SearchResultArticleVc
+  private var dissue:DummyIssue
+  private var searchController: UISearchController
+  
   var feederContext: FeederContext
   
-  var bs: BookmarkSection?
-  
-  var dissue:DummyIssue
-  
-  var searchItem:SearchItem = SearchItem() {
-    didSet {
-      resultsTableController.searchItem = searchItem
-    }
-  }
-  
-  var searchController: UISearchController
-  
-  fileprivate let resultsTableController = SearchResultsTVC()
-  
-  lazy var placeholder: UIView = {
+  lazy var placeholderView: UIView = {
     let v = UILabel()
     v.text = "Suche nach Autor*innen, Artikeln, Rubriken oder Themen"
     v.textAlignment = .center
@@ -46,7 +40,6 @@ class SearchController: UIViewController {
     searchController.dismiss(animated: false)
     return true
   }
-  
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -72,8 +65,8 @@ class SearchController: UIViewController {
     if #available(iOS 13.0, *) {
       searchController.searchBar.searchTextField.defaultStyle(placeholder: "taz Archiv durchsuchen")
     }
-    self.view.addSubview(placeholder)
-    placeholder.center()
+    self.view.addSubview(placeholderView)
+    placeholderView.center()
     
     if #available(iOS 13.0, *) {
       searchController.automaticallyShowsSearchResultsController = false
@@ -96,16 +89,75 @@ class SearchController: UIViewController {
     self.feederContext = feederContext
     searchController = UISearchController(searchResultsController: resultsTableController)
     dissue = DummyIssue(feed: feederContext.defaultFeed)
+    dissue.sections = [defaultSection]
+    articleVC = SearchResultArticleVc(feederContext: self.feederContext)
+    
     super.init(nibName: nil, bundle: nil)
+    
+    self.articleVC.searchClosure = { [weak self] in
+      self?.search()
+    }
+    articleVC.delegate = self
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+  
+  var searchItem:SearchItem = SearchItem() {
+    didSet {
+      updateArticleVcIfNeeded()
+      
+      var message = "Keine Treffer"
+      let rCount = searchItem.resultCount
+      if let currentCount = rCount.currentCount, let totalCount = rCount.total {
+        message = "\(totalCount)/\(currentCount)"
+      }
+      else if let count = rCount.currentCount {
+        message = "\(count) Treffer"
+      }
+      else if let count = rCount.total {
+        message = "\(count) Treffer"
+      }
+      
+      resultsTableController
+        .fixedHeader.set(text: message,
+                            font: Const.Fonts.contentFont)
+      resultsTableController.searchItem = searchItem
+    }
+  }
+  
 }
 
 // MARK: - UISearchBarDelegate
 extension SearchController: UISearchBarDelegate {
+  
+  func updateArticleVcIfNeeded(){
+    self.articleVC.feederContext = self.feederContext
+    self.articleVC.baseDir = Dir.appSupportPath
+    guard let allArticles = searchItem.allArticles else { return }
+    defaultSection.articles = allArticles
+    articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
+    dissue.search = self.searchItem
+    articleVC.searchContents = allArticles
+    articleVC.reload()
+  }
+  
+  private func openSearchHit(_ searchHit: GqlSearchHit){
+    feederContext.dloader.downloadSearchResultFiles(url: searchHit.baseUrl, files: searchHit.article.files) {[weak self] err in
+      guard let self = self else { return }
+      if let err = err {
+        self.log("Download error, try to display Article: \(err)")
+      }
+      self.updateArticleVcIfNeeded()
+      self.articleVC.reload()
+      if self.articleVC.parentViewController == nil {
+        self.navigationController?.isNavigationBarHidden = true
+        self.navigationController?.pushViewController(self.articleVC, animated: true)
+      }
+    }
+  }
+  
   private func search() {
     var searchSettings = self.resultsTableController.serachSettingsVC.data.settings
     searchSettings.text = searchController.searchBar.text
@@ -116,6 +168,8 @@ extension SearchController: UISearchBarDelegate {
                                                 color: Const.Colors.ciColor )
       return
     }
+    //Ensute settings closed e.g. if search by keyboard
+    self.resultsTableController.closeExtendedSearch()
     
     if searchItem.settings != searchSettings {
       searchItem.settings = searchSettings
@@ -130,22 +184,10 @@ extension SearchController: UISearchBarDelegate {
       guard let self = self else { return }
       switch result {
         case .success(let updatedSearchItem):
+          for searchHit in updatedSearchItem.lastResponse?.search.searchHitList ?? [] {
+            searchHit.writeToDisk()
+          }
           self.searchItem = updatedSearchItem
-          self.updateArticleVcIfNeeded()
-          var message = "Keine Treffer"
-          let rCount = updatedSearchItem.resultCount
-          if let currentCount = rCount.currentCount, let totalCount = rCount.total {
-            message = "\(totalCount)/\(currentCount)"
-          }
-          else if let count = rCount.currentCount {
-            message = "\(count) Treffer"
-          }
-          else if let count = rCount.total {
-            message = "\(count) Treffer"
-          }
-          self.resultsTableController
-            .fixedHeader.set(text: message,
-                                font: Const.Fonts.contentFont)
         case .failure(let err):
           print("an error occoured... \(err)")
       }
@@ -156,50 +198,7 @@ extension SearchController: UISearchBarDelegate {
     search()
   }
   
-  func updateArticleVcIfNeeded(){
-    guard let articleVC = self.navigationController?.viewControllers.last as? SearchResultArticleVc else { return }
-    guard let bs = bs else { return }
-    guard let searchHit = searchItem.lastResponse?.search.searchHitList?.first else { return }
-    guard let allArticles = searchItem.allArticles else { return }
-    bs.articles = allArticles
-    articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
-    dissue.search = self.searchItem
-    dissue.sections = [bs]
-    articleVC.searchContents = allArticles
-    feederContext.dloader.downloadSearchResultFiles(url: searchHit.baseUrl, files: searchHit.article.files) { [weak self] err in
-      guard let self = self else { return }
-      _ = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.searchText.sha1)
-      if let err = err {
-        self.log("Download error, try to display Article: \(err)")
-      }
-      articleVC.reload()
-    }
-  }
   
-  private func openSearchHit(_ searchHit: GqlSearchHit){
-    let tmp = TmpFileEntry(name: "test")
-    bs = BookmarkSection(name: "Suche:", html: tmp)
-    guard let bs = bs else { return }
-    bs.articles = searchItem.allArticles
-    dissue.search = self.searchItem
-    dissue.sections = [bs]
-    
-    feederContext.dloader.downloadSearchResultFiles(url: searchHit.baseUrl, files: searchHit.article.files) {[weak self] err in
-      guard let self = self else { return }
-      let path = searchHit.writeToDisk(key: self.searchItem.lastResponse?.search.searchText.sha1)
-      #warning("missing deleted empty delegate functions")
-      let articleVC = SearchResultArticleVc(feederContext: self.feederContext)
-      articleVC.delegate = self
-      articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
-      articleVC.searchClosure = { [weak self] in
-        self?.search()
-      }
-      articleVC.baseDir = Dir.appSupportPath
-      articleVC.gotoUrl(path)
-      if err == nil { articleVC.reload() }
-      self.navigationController?.pushViewController(articleVC, animated: true)
-    }
-  }
 }
 
 extension SearchController: ArticleVCdelegate {
@@ -270,17 +269,8 @@ extension String {
 
 // MARK: - GqlSearchHit
 extension GqlSearchHit {
-  public func writeToDisk(key:String?) -> String {
-    print("Base Url to write file: \(self.baseUrl)")
-#warning("unique key if similar seraches produce similar results for highlighting")
-    //    e.g.: Hochwaser Oder // VS // Hochwasser Elbe
-    /// contain either <span class="snippet">Hochwasser Oder</span>
-    /// or <span class="snippet">Hochwasser Elbe</span>
-    /// if same article found!
-    let key = key ?? "na"
-#warning("ignore unique key currently")
-    
-    //    let filename = key + "-" + self.article.html.fileName
+  @discardableResult
+  public func writeToDisk() -> String {
     let filename = self.article.html.fileName
     let f = TmpFileEntry(name: filename)
     f.content = self.articleHtml

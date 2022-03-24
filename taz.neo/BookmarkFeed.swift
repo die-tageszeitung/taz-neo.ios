@@ -155,7 +155,7 @@ public class DummyIssue: BookmarkIssue {
     for hit in hits {
       for file in hit.article.files {
         if file.fileName == f.fileName {
-          hit.writeToDisk(key: nil)//TOO LATE
+          hit.writeToDisk()//TOO LATE
           return hit.baseUrl
         }
       }

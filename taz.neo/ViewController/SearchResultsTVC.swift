@@ -52,6 +52,12 @@ class SearchResultsTVC:UITableViewController{
     return view
   }()
   
+  func closeExtendedSearch(){
+    if self.serachSettingsVC.view.superview != nil {
+      toggleExtendedSearch()
+    }
+  }
+  
   func toggleExtendedSearch(){
     if self.serachSettingsVC.view.superview == nil {//open
       fixedHeaderButtonConstraint?.isActive = true
@@ -180,7 +186,7 @@ class SearchResultsCell: UITableViewCell {
     didSet{
       if let content = content {
         titleLabel.text = content.article.title
-        authorLabel.text = content.article.authors() ?? "- - -"
+        authorLabel.text = content.article.authors()
         contentLabel.attributedText = content.snippet?.attributedFromSnippetString
         dateLabel.text = content.date.short + " " + (content.sectionTitle ?? "")
       }
@@ -313,8 +319,13 @@ class SearchResultArticleVc : ArticleVC {
     if let searchVc = adelegate as? SearchController,
        let hit = searchVc.searchItem.searchHitList?.valueAt(artIndex)
     {
-      header.pageNumber = hit.date.short + " " + (hit.sectionTitle ?? "")
-      header.title = "\(artIndex+1)/\(maxResults)"
+      header.pageNumber
+      = hit.date.short
+      + " - "
+      + (hit.sectionTitle ?? "")
+      + (hit.sectionTitle != nil ? " - " : "")
+      + "\(artIndex+1)/\(maxResults)"
+      header.title = ""
 //      header.title = hit.date.short + " " + (hit.sectionTitle ?? "")
     }
     else {
