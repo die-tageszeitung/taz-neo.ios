@@ -22,6 +22,16 @@ class SearchSettingsVC: UITableViewController {
        */
       _data.settings.title = _data.titleInpulCell.textField.text
       _data.settings.author = _data.authorInpulCell.textField.text
+      
+      if _data.settings.range.currentOption == .custom {
+        _data.settings.from = _data.datePickers.fromPicker.date
+        _data.settings.to = _data.datePickers.toPicker.date
+      }
+      else {
+        _data.settings.from = _data.settings.range.currentOption.minimumDate
+        _data.settings.to = _data.settings.range.currentOption.maximuDate
+      }
+      
       return _data
     }
   }
@@ -85,10 +95,6 @@ class SearchSettingsVC: UITableViewController {
     tableView.separatorStyle = .none
     self.view.backgroundColor = Const.SetColor.ios(.systemBackground).color
     tableView.tableFooterView = footer
-//    tableView.setNeedsUpdateConstraints()
-//    tableView.updateConstraintsIfNeeded()
-//    tableView.setNeedsLayout()
-//    tableView.layoutIfNeeded()
   }
 }
 
@@ -153,13 +159,6 @@ extension SearchSettingsVC : UIStyleChangeDelegate {
     print("DOTO")
   }
 }
-
-//// MARK: - Cell Factorx
-//extension SearchSettingsVC {
-//  static func textInputCell(_ text: String?, _ placeholder: String ) {
-//    print("DOTO")
-//  }
-//}
 
 /// A custom table view cell with TextInput
 class TextInputCell: TazCell {
@@ -341,13 +340,14 @@ class TData {
     return cells
   }()
   
+  let datePickers = CustomRangeDatePickerView()
+  
   lazy var customRangeCellExpanded: RadioButtonCell = {
     let cell = RadioButtonCell()
     cell.range = .custom
     if true {
-      let datePickers = CustomRangeDatePickerView()
       cell.additionalContentWrapper.addSubview(datePickers)
-      pin(datePickers, to: cell.additionalContentWrapper)
+      pin(datePickers, to: cell.additionalContentWrapper, dist: Const.Size.DefaultPadding)
     }
     else {
       let v = UIView()
@@ -405,16 +405,7 @@ class TData {
   }()
   
   
-  func update(){
-    
-//    if let customRangeCell = rangeCells.last {
-//      UIView.animate(withDuration: 0.5) {
-//        customRangeCell.additionalContentWrapperHeightConstraint?.constant = 0
-//      } completion: { _ in
-//        customRangeCell.additionalContentWrapper.subviews.forEach { $0.removeFromSuperview() }
-//      }
-//    }
-    
+  func update(){    
     rangeMoreCell.label.text = settings.range.currentOption.rawValue
     filterMoreCell.label.text = settings.filter.rawValue
     sortingMoreCell.label.text = settings.sorting.labelText
@@ -524,21 +515,51 @@ class CustomRangeDatePickerView: UIView {
   public var fromPicker = UIDatePicker()
   public var toPicker = UIDatePicker()
   
+  @objc public func dateChanged(_ sender: UIControl) {
+    if sender == fromPicker {
+      toPicker.minimumDate = fromPicker.date
+    }
+    else if sender == toPicker {
+      fromPicker.maximumDate = toPicker.date
+    }
+  }
+  
   func setup(){
     fromPicker.datePickerMode = .date
     toPicker.datePickerMode = .date
+    
+    fromPicker.maximumDate = Date()
+    toPicker.maximumDate = Date()
+    
+    toPicker.minimumDate = Date(timeIntervalSinceReferenceDate: 0)
+    fromPicker.minimumDate = Date(timeIntervalSinceReferenceDate: 0)
+    
+    fromPicker.date = Date(timeIntervalSinceReferenceDate: 0)
+    toPicker.date = Date()
+    
+    toPicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
+    fromPicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
     
     if #available(iOS 14.0, *) {
       fromPicker.preferredDatePickerStyle = .inline
       toPicker.preferredDatePickerStyle = .inline
     }
     
+    let fromLabel = UILabel("Suche von:")
+    let toLabel = UILabel("Suche bis:")
+    self.addSubview(fromLabel)
     self.addSubview(fromPicker)
+    self.addSubview(toLabel)
     self.addSubview(toPicker)
-    pin(fromPicker, to: self, exclude: .bottom)
+    pin(fromLabel, to: self, exclude: .bottom)
+    pin(fromPicker.top, to: fromLabel.bottom, dist: 3)
+    pin(fromPicker.left, to: self.left)
+    pin(fromPicker.right, to: self.right)
+    pin(toLabel.top, to: fromPicker.bottom, dist: 3)
+    pin(toLabel.left, to: self.left)
+    pin(toLabel.right, to: self.right)
+    pin(toPicker.top, to:toLabel.bottom, dist: 5)
     pin(toPicker, to: self, exclude: .top)
-    pin(toPicker.top, to:fromPicker.bottom, dist: 5)
-    self.backgroundColor = .systemRed.withAlphaComponent(0.3)
   }
   
   override init(frame: CGRect) {

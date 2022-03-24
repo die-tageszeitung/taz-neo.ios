@@ -5,24 +5,12 @@
 //  Created by Ringo Müller on 14.03.22.
 //  Copyright © 2022 Norbert Thies. All rights reserved.
 //
-
-/**
- Probleme Umsetzung UI/UX
- flackern bei von search controller nach tableview verschieben
- konzept des search controllers passt nicht zu ux konzept
- hoche annimieren noch keine Lösung
- => 2-3PT für UI/UX?
- 
- */
-
-
 import NorthLib
 
 // Label and Button
 class SearchBarFixedHeader: UIView {
   
   public private(set) var filterWrapperHeightConstraint: NSLayoutConstraint?
-  
   
   let wrapper = UIView()
   

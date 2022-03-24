@@ -83,6 +83,32 @@ public enum SearchRangeOption: String {
   case custom = "Zeitraum festlegen"
   
   static let allItems : [SearchRangeOption] = [.all, .lastDay, .lastWeek, .lastMonth, .lastYear, .custom]
+    
+  var minimumDate: Date? {
+    get {
+      let cal = Calendar.current
+      switch self {
+        case .all:
+          return Date(timeIntervalSinceReferenceDate: 0)
+        case .lastDay:
+          return cal.startOfDay(for: Date(timeIntervalSinceNow: -60*60*24))
+        case .lastWeek:
+          return cal.startOfDay(for: Date(timeIntervalSinceNow: -7*60*60*24))
+        case .lastMonth:
+          let startOfMonth = Date().startOfMonth ?? Date()
+          return Calendar.current.date(byAdding: DateComponents(month: -1),
+                                       to: startOfMonth)
+        case .lastYear:
+          return cal.date(
+            from: DateComponents(year: cal.component(.year, from: Date()) - 1,
+                                 month: 1,
+                                 day: 1))
+        default:
+          return nil
+      }
+    }
+  }
+  var maximuDate: Date? { Date().endOfDay }
 }
 
 public struct SearchRange {

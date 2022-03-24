@@ -54,6 +54,7 @@ class SearchResultsTVC:UITableViewController{
   
   func toggleExtendedSearch(){
     if self.serachSettingsVC.view.superview == nil {//open
+      fixedHeaderButtonConstraint?.isActive = true
       self.fixedHeader.filterActive = true
       self.fixedHeader.textLabel.alpha = 0.0
       self.fixedHeader.set(text: "erweiterte suche", font: Const.Fonts.boldContentFont)
@@ -71,10 +72,11 @@ class SearchResultsTVC:UITableViewController{
         self.fixedHeader.filterWrapperHeightConstraint?.constant = 0
         self.fixedHeader.textLabel.alpha = 0.0
         self.fixedHeader.seperator.alpha = 1.0
-        self.fixedHeader.wrapper.layoutSubviews()
+        self.fixedHeader.layoutSubviews()
       } completion: { _ in
         self.serachSettingsVC.view.removeFromSuperview()
         self.checkFilter()
+        self.fixedHeaderButtonConstraint?.isActive = false
       }
     }
   }
@@ -122,12 +124,15 @@ class SearchResultsTVC:UITableViewController{
     self.tableView.tableFooterView = footer
   }
   
+  var fixedHeaderButtonConstraint: NSLayoutConstraint?
+  
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     if fixedHeader.superview == nil,
         let target = tableView.superview {
       target.addSubview(fixedHeader)
-      pin(fixedHeader, toSafe: target)
+      fixedHeaderButtonConstraint = pin(fixedHeader, toSafe: target).bottom
+      fixedHeaderButtonConstraint?.isActive = false
     }
     tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
     tableView.scrollIndicatorInsets = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)

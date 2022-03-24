@@ -116,7 +116,11 @@ extension SearchController: UISearchBarDelegate {
                                                 color: Const.Colors.ciColor )
       return
     }
-    searchItem.settings = searchSettings
+    
+    if searchItem.settings != searchSettings {
+      searchItem.settings = searchSettings
+    }
+    
     if searchItem.sessionId == nil {
       resultsTableController.scrollTop()
     }
