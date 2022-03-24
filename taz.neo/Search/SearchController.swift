@@ -150,6 +150,9 @@ extension SearchController: UISearchBarDelegate {
         self.log("Download error, try to display Article: \(err)")
       }
       self.updateArticleVcIfNeeded()
+      if let path = searchHit.localPath {
+        self.articleVC.gotoUrl(path)//otherwise idx 0 will be loaded, header not set probably
+      }
       self.articleVC.reload()
       if self.articleVC.parentViewController == nil {
         self.navigationController?.isNavigationBarHidden = true
@@ -200,6 +203,14 @@ extension SearchController: UISearchBarDelegate {
   }
   
   
+}
+
+extension GqlSearchHit {
+  var localPath: String? {
+    let f = File(dir: Dir.searchResultsPath, fname: article.html.fileName)
+    if !f.exists { return nil }
+    return Dir.searchResultsPath + "/" + article.html.fileName
+  }
 }
 
 extension SearchController: ArticleVCdelegate {
