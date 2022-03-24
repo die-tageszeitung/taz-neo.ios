@@ -37,6 +37,7 @@
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
+		77588B4E27ECD87900866836 /* SearchResultArticleVc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77588B4D27ECD87900866836 /* SearchResultArticleVc.swift */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
 		7772B1ED2743BEC300991347 /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		777A1BFA27DF527D00CDD9B0 /* SearchDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777A1BF927DF527D00CDD9B0 /* SearchDelegate.swift */; };
@@ -150,6 +151,7 @@
 		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
 		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
 		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
+		77588B4D27ECD87900866836 /* SearchResultArticleVc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultArticleVc.swift; sourceTree = "<group>"; };
 		776158192743E8440044516C /* AppIcons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcons; sourceTree = "<group>"; };
 		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
 		777A1BF927DF527D00CDD9B0 /* SearchDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchDelegate.swift; sourceTree = "<group>"; };
@@ -291,6 +293,17 @@
 			path = Feedback;
 			sourceTree = "<group>";
 		};
+		77588B4A27ECD84A00866836 /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				7780EC4527CD1875008B5ECE /* SearchController.swift */,
+				7780EC4027CD1875008B5ECE /* SearchResultsTVC.swift */,
+				77F06F8E27E86FCF00D9E866 /* SearchSettingsVC.swift */,
+				77588B4D27ECD87900866836 /* SearchResultArticleVc.swift */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
 		777048A727B3B057007164A0 /* Business */ = {
 			isa = PBXGroup;
 			children = (
@@ -354,9 +367,6 @@
 			isa = PBXGroup;
 			children = (
 				7780EC4327CD1875008B5ECE /* IssueVCSearchExtension.swift */,
-				7780EC4527CD1875008B5ECE /* SearchController.swift */,
-				7780EC4027CD1875008B5ECE /* SearchResultsTVC.swift */,
-				77F06F8E27E86FCF00D9E866 /* SearchSettingsVC.swift */,
 				7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */,
 				0032A4D624C89E1600284723 /* Forms */,
 				AEBAF5AB219ACFD900566205 /* ContentVC.swift */,
@@ -427,6 +437,7 @@
 				7780EC4A27CD188B008B5ECE /* GqlFeederSearch.swift */,
 				777048A727B3B057007164A0 /* Business */,
 				7715968B25CC605D00508DE8 /* Feedback */,
+				77588B4A27ECD84A00866836 /* Search */,
 				0015B73524DD86B30037A8D6 /* Authenticator.swift */,
 				0015B73924DD87DA0037A8D6 /* DefaultAuthenticator.swift */,
 				0015B73624DD86B30037A8D6 /* SimpleAuthenticator.swift */,
@@ -646,6 +657,7 @@
 				AE5D9EC323E1BB2D0002C3B8 /* ContentTableVC.swift in Sources */,
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
 				0015B73724DD86B30037A8D6 /* Authenticator.swift in Sources */,
+				77588B4E27ECD87900866836 /* SearchResultArticleVc.swift in Sources */,
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				AEC7D467249920DF008630FB /* OverlayTest.swift in Sources */,

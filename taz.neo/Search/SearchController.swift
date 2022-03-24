@@ -153,6 +153,7 @@ extension SearchController: UISearchBarDelegate {
       self.articleVC.reload()
       if self.articleVC.parentViewController == nil {
         self.navigationController?.isNavigationBarHidden = true
+//        this.setHeader(artIndex: idx)
         self.navigationController?.pushViewController(self.articleVC, animated: true)
       }
     }
@@ -206,7 +207,6 @@ extension SearchController: ArticleVCdelegate {
     return self.dissue
   }
   
-  
   public var section: Section? {
     debug("TODO:: section requested")
     return nil
@@ -223,7 +223,7 @@ extension SearchController: ArticleVCdelegate {
       return nil
     }
     set {
-      
+      debug("TODO:: article set \(newValue?.title)")
     }
   }
   
@@ -258,8 +258,6 @@ extension SearchController: ArticleVCdelegate {
   }
 }
 
-
-
 // MARK: - extension String
 extension String {
   var sha1:String { self.data(using: .utf8)?.sha1 ?? self }
@@ -277,5 +275,4 @@ extension GqlSearchHit {
     return f.path
   }
 }
-
 
