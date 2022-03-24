@@ -498,6 +498,9 @@ extension UIButton {
   static let tazButtonHeight: CGFloat = 44
   
   @discardableResult
+  /// Primary "Call To Action" Button, sets default styles
+  /// - Parameter text: buttons text for normal state
+  /// - Returns: button itself for chaining
   func primary_CTA(_ text: String? =  nil) -> Self {
     setDefaults()
     self.layer.backgroundColor = Const.Colors.ciColor.cgColor
@@ -509,7 +512,11 @@ extension UIButton {
     return self
   }
   
+  
   @discardableResult
+  /// Secondary "Call To Action" Button, sets default styles
+  /// - Parameter text: buttons text for normal state
+  /// - Returns: button itself for chaining
   func secondary_CTA(_ text: String? =  nil) -> Self {
     setDefaults()
     self.layer.backgroundColor = UIColor.clear.cgColor

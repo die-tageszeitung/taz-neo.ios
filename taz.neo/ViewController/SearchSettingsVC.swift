@@ -36,7 +36,8 @@ class SearchSettingsVC: UITableViewController {
   }
   
   lazy var footer:UIView = {
-    //Workaround for autolayout not working on table footer
+    // manuell size is a workaround due autolayout not working correctly in environment
+    // autolayout in table Header or Footer is main reason
     let estimatedFooterHeight
     = 2*Const.Size.DefaultPadding
     + 2*UIButton.tazButtonHeight
@@ -61,27 +62,33 @@ class SearchSettingsVC: UITableViewController {
     v.addSubview(searchButton)
     v.addSubview(resetButton)
     
-    pin(searchButton.left, to: v.left, dist: Const.Size.DefaultPadding)
-    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding)
-    pin(resetButton.left, to: v.left, dist: Const.Size.DefaultPadding)
-    pin(resetButton.right, to: v.right, dist: -Const.Size.DefaultPadding)
+    pin(searchButton.left, to: v.left, dist: Const.Size.DefaultPadding, priority: .defaultHigh)
+    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
+    pin(resetButton.left, to: v.left, dist: Const.Size.DefaultPadding, priority: .defaultHigh)
+    pin(resetButton.right, to: v.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
     
-    pin(searchButton.top, to: v.top, dist: Const.Size.DefaultPadding)
+    pin(searchButton.top, to: v.top, dist: Const.Size.DefaultPadding, priority: .defaultHigh)
     pin(resetButton.top, to: searchButton.bottom, dist: 10)
-    pin(resetButton.bottom, to: v.bottom, dist: -Const.Size.DefaultPadding)
+    pin(resetButton.bottom, to: v.bottom, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
     
     return v
   }()
   
+  var viewWidthConstraint: NSLayoutConstraint?
   
   func setup(){
+    viewWidthConstraint = self.tableView.pinWidth(UIWindow.size.width, priority: .defaultLow)//prevent size animation error
     tableView.register(TazHeaderFooterView.self,
                        forHeaderFooterViewReuseIdentifier: TazHeaderFooterView.reuseIdentifier)
-    self.tableView.contentInset = UIEdgeInsets(top: -14, left: 0, bottom: 0, right: 0)
+    self.tableView.contentInset = .zero
     tableView.separatorInset = Const.Insets.Default //also for header inset
     tableView.separatorStyle = .none
     self.view.backgroundColor = Const.SetColor.ios(.systemBackground).color
     tableView.tableFooterView = footer
+//    tableView.setNeedsUpdateConstraints()
+//    tableView.updateConstraintsIfNeeded()
+//    tableView.setNeedsLayout()
+//    tableView.layoutIfNeeded()
   }
 }
 
@@ -205,6 +212,7 @@ class MoreCell: TazCell {
 /// A custom table view cell with radioButton and label
 class RadioButtonCell: TazCell {
   private let label = UILabel()
+  let additionalContentWrapper = UIView()
   public let radioButton = RadioButton()
   
   var filter:GqlSearchFilter? {
@@ -229,10 +237,15 @@ class RadioButtonCell: TazCell {
     self.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
     contentView.addSubview(radioButton)
     contentView.addSubview(label)
+    contentView.addSubview(additionalContentWrapper)
+    additionalContentWrapper.pinHeight(0, priority: .defaultLow)
     label.contentFont().labelColor()
-    pin(label, to: contentView, dist: 6, exclude: .left)
+    pin(label.top, to: contentView.top, dist: 6)
+    pin(label.right, to: contentView.right, dist: 6)
+    pin(additionalContentWrapper, to: contentView, exclude: .top)
+    pin(additionalContentWrapper.top, to: label.bottom, dist: 6)
     radioButton.isUserInteractionEnabled = false
-    radioButton.centerY()
+    pin(radioButton.centerY, to: label.centerY)
     radioButton.pinSize(CGSize(width: 16, height: 16), priority: .required)
     pin(radioButton.left, to: contentView.left, dist: Const.Size.DefaultPadding)
     pin(radioButton.right, to: label.left, dist: -8)
@@ -265,12 +278,10 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
   
   func setup(){
     self.contentView.addSubview(label)
-    pin(label,
-        to: self.contentView,
-        insets: UIEdgeInsets(top: 0,
-                             left: Const.Size.DefaultPadding,
-                             bottom: -Const.Size.DefaultPadding,
-                             right: -Const.Size.DefaultPadding))
+    pin(label.top, to: self.contentView.top)
+    pin(label.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
+    pin(label.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding, priority: .defaultLow)
+    pin(label.bottom, to: self.contentView.bottom, dist: -Const.Size.DefaultPadding, priority: .defaultLow)
     self.contentView.layoutMargins.left = Const.Size.DefaultPadding
     self.contentView.layoutMargins.right = Const.Size.DefaultPadding
     self.addBorderView(Const.SetColor.ios(.separator).color,
@@ -303,6 +314,8 @@ class TData {
   var settings = SearchSettings()
   var expandedSection: Int?
   
+  var customRange: Bool = false
+  
   lazy var authorInpulCell: TextInputCell = {
     let cell = TextInputCell()
     cell.textField.text = settings.author
@@ -317,15 +330,41 @@ class TData {
     return cell
   }()
   
-  lazy var rangeCells: [RadioButtonCell] = {
+  lazy var defaultRangeCells: [RadioButtonCell] = {
     var cells: [RadioButtonCell] = []
     for rangeOption in SearchRangeOption.allItems {
+      if rangeOption == .custom { continue }
       let cell = RadioButtonCell()
       cell.range = rangeOption
       cells.append(cell)
     }
     return cells
   }()
+  
+  lazy var customRangeCellExpanded: RadioButtonCell = {
+    let cell = RadioButtonCell()
+    cell.range = .custom
+    if true {
+      let datePickers = CustomRangeDatePickerView()
+      cell.additionalContentWrapper.addSubview(datePickers)
+      pin(datePickers, to: cell.additionalContentWrapper)
+    }
+    else {
+      let v = UIView()
+      v.pinHeight(60, priority: .required)
+      v.backgroundColor = .yellow.withAlphaComponent(0.4)
+      cell.additionalContentWrapper.addSubview(v)
+      pin(v, to: cell.additionalContentWrapper)
+    }
+    return cell
+  }()
+  
+  lazy var customRangeCellColapsed: RadioButtonCell = {
+    let cell = RadioButtonCell()
+    cell.range = .custom
+    return cell
+  }()
+  
   
   lazy var rangeMoreCell: MoreCell = {
     let cell = MoreCell()
@@ -367,9 +406,27 @@ class TData {
   
   
   func update(){
+    
+//    if let customRangeCell = rangeCells.last {
+//      UIView.animate(withDuration: 0.5) {
+//        customRangeCell.additionalContentWrapperHeightConstraint?.constant = 0
+//      } completion: { _ in
+//        customRangeCell.additionalContentWrapper.subviews.forEach { $0.removeFromSuperview() }
+//      }
+//    }
+    
     rangeMoreCell.label.text = settings.range.currentOption.rawValue
     filterMoreCell.label.text = settings.filter.rawValue
     sortingMoreCell.label.text = settings.sorting.labelText
+    
+    var rangeCells:[RadioButtonCell] = []
+    rangeCells.append(contentsOf: defaultRangeCells)
+    if customRange {
+      rangeCells.append(contentsOf: [customRangeCellExpanded])
+    }
+    else {
+      rangeCells.append(contentsOf: [customRangeCellColapsed])
+    }
 
     rangeCells.forEach{ $0.radioButton.isSelected = $0.range == settings.range.currentOption }
     filterCells.forEach{ $0.radioButton.isSelected = $0.filter == settings.filter }
@@ -387,17 +444,20 @@ class TData {
     return self.content.valueAt(indexPath.section)?.cells?.valueAt(indexPath.row)
   }
   
-  
   func handle(_ tableView: UITableView, selectRowAt indexPath: IndexPath) {
     let cell = cell(at: indexPath)
     let rbCell = cell as? RadioButtonCell
     
     switch (cell, rbCell) {
+      case let (_, rbCell) where rbCell?.range == .custom:
+        settings.range.currentOption = rbCell!.range!
+        self.customRange = true
       case (rangeMoreCell, _):
         expandedSection = 1
       case let (_, rbCell) where rbCell?.range != nil:
         settings.range.currentOption = rbCell!.range!
         expandedSection = nil
+        customRange = false
       case (filterMoreCell, _):
         expandedSection = 2
       case let (_, rbCell) where rbCell?.filter != nil:
@@ -456,5 +516,38 @@ class TData {
   
   init() {
     update()
+  }
+}
+
+class CustomRangeDatePickerView: UIView {
+  
+  public var fromPicker = UIDatePicker()
+  public var toPicker = UIDatePicker()
+  
+  func setup(){
+    fromPicker.datePickerMode = .date
+    toPicker.datePickerMode = .date
+    
+    if #available(iOS 14.0, *) {
+      fromPicker.preferredDatePickerStyle = .inline
+      toPicker.preferredDatePickerStyle = .inline
+    }
+    
+    self.addSubview(fromPicker)
+    self.addSubview(toPicker)
+    pin(fromPicker, to: self, exclude: .bottom)
+    pin(toPicker, to: self, exclude: .top)
+    pin(toPicker.top, to:fromPicker.bottom, dist: 5)
+    self.backgroundColor = .systemRed.withAlphaComponent(0.3)
+  }
+  
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
   }
 }

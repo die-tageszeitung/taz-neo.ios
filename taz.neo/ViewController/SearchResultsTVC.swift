@@ -26,19 +26,19 @@ class SearchResultsTVC:UITableViewController{
   }
   
   lazy var serachSettingsVC:SearchSettingsVC = {
-    let vc = SearchSettingsVC()
-    vc.view.pinWidth(UIWindow.size.width, priority: .defaultLow)//prevent size animation error
+    let vc = SearchSettingsVC(style: .grouped)
     vc.setup()
     vc.finishedClosure = { [weak self] doSearch in
       if doSearch {
+        self?.toggleExtendedSearch()
         self?.searchClosure?()
       }
       else {
         //Do both Steps, scroll up and reset
         _ = self?.restoreInitialState()
         _ = self?.restoreInitialState()
+        self?.toggleExtendedSearch()
       }
-      self?.toggleExtendedSearch()
     }
     return vc
   }()
@@ -59,9 +59,8 @@ class SearchResultsTVC:UITableViewController{
       self.fixedHeader.set(text: "erweiterte suche", font: Const.Fonts.boldContentFont)
       fixedHeader.wrapper.addSubview(self.serachSettingsVC.view)
       fixedHeader.wrapper.layoutSubviews()
-      pin(self.serachSettingsVC.view, to: fixedHeader.wrapper)
-      UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
-        self.fixedHeader.filterWrapperHeightConstraint?.constant = 1200
+      pin(self.serachSettingsVC.view, toSafe: fixedHeader.wrapper)
+      UIView.animate(withDuration: 0.5, delay: 0.0, options: .curveEaseInOut) {
         self.fixedHeader.textLabel.alpha = 1.0
         self.fixedHeader.seperator.alpha = 0.0
         self.fixedHeader.wrapper.layoutSubviews()
@@ -125,7 +124,11 @@ class SearchResultsTVC:UITableViewController{
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    tableView.superview?.addSubview(fixedHeader)
+    if fixedHeader.superview == nil,
+        let target = tableView.superview {
+      target.addSubview(fixedHeader)
+      pin(fixedHeader, toSafe: target)
+    }
     tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
     tableView.scrollIndicatorInsets = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
   }

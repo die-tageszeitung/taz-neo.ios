@@ -56,12 +56,12 @@ class SearchBarFixedHeader: UIView {
   
   private func setup() {
     self.addSubview(extendedSearchButton)
-    pin(extendedSearchButton.top, to: self.topGuide(), dist: 8)
+    pin(extendedSearchButton.top, to: self.top, dist: 8)
     pin(extendedSearchButton.right, to: self.right, dist: -Const.Size.SmallPadding)
     
     self.addSubview(textLabel)
     pin(textLabel.centerY, to:extendedSearchButton.centerY)
-    textLabel.pinSize(CGSize(width: 200, height: 30), priority: .defaultLow)//prevent size animation error
+//    textLabel.pinSize(CGSize(width: 200, height: 30), priority: .defaultLow)//prevent size animation error
     pin(textLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(textLabel.right, to: extendedSearchButton.left, dist: -Const.Size.SmallPadding, priority: .fittingSizeLevel)
     textLabel.contentFont()
@@ -72,11 +72,11 @@ class SearchBarFixedHeader: UIView {
     self.addSubview(seperator)
     pin(seperator.right, to: self.right, dist: -Const.Size.DefaultPadding)
     pin(seperator.left, to: self.left, dist: Const.Size.DefaultPadding)
-    pin(seperator.top, to: extendedSearchButton.bottom)
+    pin(seperator.top, to: self.top, dist: 40)
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
     
     self.addSubview(wrapper)
-    filterWrapperHeightConstraint = wrapper.pinHeight(0)
+//    filterWrapperHeightConstraint = wrapper.pinHeight(0)
     pin(wrapper.right, to: self.right)
     pin(wrapper.left, to: self.left)
     pin(wrapper.top, to: seperator.bottom, dist: 0)

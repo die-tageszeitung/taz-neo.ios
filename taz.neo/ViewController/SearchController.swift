@@ -111,7 +111,7 @@ extension SearchController: UISearchBarDelegate {
     searchSettings.text = searchController.searchBar.text
      
     if searchSettings.searchTermTooShort {
-      resultsTableController.fixedHeader.set(text: "Suchbegriff zu kurz!",
+      resultsTableController.fixedHeader.set(text: "Bitte Suchbegriff eingeben!",
                                                 font: Const.Fonts.boldContentFont,
                                                 color: Const.Colors.ciColor )
       return
