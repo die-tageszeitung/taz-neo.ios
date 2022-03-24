@@ -220,7 +220,7 @@ public class SearchItem: DoesLog {
       else {
         self.log("No Data Added!")
       }
-      noMoreSearchResults = lastResponse?.search.searchHitList?.count == 0
+      noMoreSearchResults = (lastResponse?.search.searchHitList?.count ?? 0) == 0
       sessionId = lastResponse?.search.sessionId
     }
   }
