@@ -680,9 +680,9 @@ extension IssueVcWithBottomTiles {
     }
     
     if scrollDownAnimation.superview == nil {
-//      self.view.insertSubview(scrollDownAnimation, belowSubview: toolBar)
+      self.view.addSubview(scrollDownAnimation)
       scrollDownAnimation.centerX()
-//      pin(scrollDownAnimation.bottom, to: toolBar.top, dist: 5)
+      pin(scrollDownAnimation.bottom, to: self.view.bottomGuide(), dist: -12)
     }
     
     onMainAfter(delay) {   [weak self] in
