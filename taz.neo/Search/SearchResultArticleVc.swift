@@ -68,6 +68,14 @@ class SearchResultArticleVc : ArticleVC {
     }
     super.didMove(toParent: parent)
   }
+  
+  override func setup() {
+    super.setup()
+    onHome { [weak self] _ in
+      guard let mainTabVC = self?.navigationController?.parent as? MainTabVC else { return }
+      mainTabVC.selectedIndex = 0
+    }
+  }
 }
 
 
