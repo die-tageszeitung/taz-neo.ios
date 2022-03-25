@@ -483,22 +483,39 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     return imageButton
   }()
   
-  func updateTogglePdfButtonPosition(){
-    //Goal: Align on firts Tabbar Icon
-    
-    // get offset by tabbars first subview icon
-    // Risks: future change of order e.g. due additionally subviews
-    // iPhone 8+ Simulator: 52.0
-//    print("left Item Center: \((navigationController?.parent as? MainTabVC)?.tabBar.subviews[1].center)")
-          
-    // calculate offset by tabbars first item cound and windows width
-    // Risks: different icon width, paddings - but favorite way
-    // iPhone 8+ Simulator: 51.75
-    if let itmmscount = (navigationController?.parent as? MainTabVC)?.tabBar.items?.count {
-      let offset = 0.5*UIWindow.size.width/CGFloat(itmmscount)
-      btnLeftConstraint?.constant = offset
-//      print("calculated center: \(offset)")
+  /// align FAB to tabbars first icon
+  func alignPdfToggleFab(){
+    let defaultOffset = 52.0
+    // if no tabbar set default offset
+    guard let tabBar = (navigationController?.parent as? MainTabVC)?.tabBar else {
+      btnLeftConstraint?.constant = defaultOffset
+      return
     }
+    
+    var offset:CGFloat? = 0.0
+    // Try to get first Buttons Icon Position
+    // In case of changes by apple this may fail
+    for case let btn as UIControl in tabBar.subviews {
+      for case let iv as UIImageView in btn.subviews {
+        offset = iv.center.x + btn.frame.origin.x + tabBar.frame.origin.x
+        break
+      }
+      break
+    }
+    // Verify Icon Position or calculate it
+    // paddings, spacer items, different item sizes,
+    // Icon and Text next not below (like on ipad)
+    // are likely to result in errors
+    if offset == nil
+        || offset ?? 0 < 20
+        || offset ?? 0 > UIWindow.size.width/2
+    {
+      //calculate offset
+      let itmmscount = tabBar.items?.count ?? 4
+      offset = 0.5*tabBar.frame.size.width/CGFloat(itmmscount) + tabBar.frame.origin.x
+    }
+    btnLeftConstraint?.constant = offset ?? defaultOffset
+    //print("tabBar.frame: \(tabBar.frame) ... offset: \(offset ?? defaultOffset) \(offset==nil ? " FALLBACK! " : "")")
   }
   
   var btnLeftConstraint: NSLayoutConstraint?
@@ -690,13 +707,16 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     updateCarouselSize(.zero)//initially show label (set pos not behind toolbar)
     invalidateCarouselLayout()//fix sitze if rotated on pushed vc
     checkForNewIssues()
-    updateTogglePdfButtonPosition()
+    alignPdfToggleFab()
     togglePdfButton.showAnimated()
   }
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
-    onMainAfter { self.invalidateCarouselLayout() }
+    onMainAfter { [weak self] in
+      self?.invalidateCarouselLayout()
+      self?.alignPdfToggleFab()
+    }
   }
   
   @objc private func goingBackground() {}
