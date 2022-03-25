@@ -51,7 +51,7 @@ public let ConfigDefaults = Defaults.Values([
   // need to show PDF Info Toast on startup
   "showPdfInfoToast" : "true",
   // need to show Bottom Tiles Animation
-  "showBottomTilesAnimation" : "false",
+  "showBottomTilesAnimation" : "true",
   // Experimental
   "autoloadOnlyInWLAN" : "false",
   "showBarsOnContentChange" : "false",
