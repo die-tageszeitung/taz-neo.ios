@@ -13,8 +13,7 @@ import NorthLib
 /// optional Menue.
 public class ScrollDownAnimationView: UIView {
   
-  private lazy var bottomArrow = UpArrow()
-  private lazy var topArrow = UpArrow()
+  private lazy var arrow = ArrowView()
   
   private var animating = false
   
@@ -23,49 +22,39 @@ public class ScrollDownAnimationView: UIView {
     doAnimate(repetitions: repetitions)
   }
   
-  func doAnimate(repetitions:Int = 3) {
+  func doAnimate(repetitions:Int) {
     if animating { return }
-    let w = self.bounds.size.width
-    self.bottomArrow.frame.origin.y = 0.4*w
-    self.topArrow.alpha = 0.0
-    self.bottomArrow.alpha = 0.0
+    self.arrow.frame.origin.y = 0
+    self.arrow.alpha = 0.0
     
     // b show, move // fin t show // fin b hide .. t hide
-    UIView.animateKeyframes(withDuration: 1.3, delay: 0, animations: {
+    UIView.animateKeyframes(withDuration: 1.8,
+                            delay: 0.8,
+                            animations: {
       UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.2) {
-        self.bottomArrow.frame.origin.y = 0.22*self.bounds.size.height
-        self.bottomArrow.alpha = 1.0
+        self.arrow.alpha = 1.0
+        self.arrow.frame.origin.y = self.bounds.size.height - self.arrow.frame.height
       }
-      UIView.addKeyframe(withRelativeStartTime: 0.15, relativeDuration: 0.2) {
-        self.topArrow.alpha = 1.0
-      }
-      
-      UIView.addKeyframe(withRelativeStartTime: 0.7, relativeDuration: 0.2) {
-        self.bottomArrow.alpha = 0.0
-      }
-      UIView.addKeyframe(withRelativeStartTime: 0.8, relativeDuration: 0.2) {
-        self.topArrow.alpha = 0.0
+      UIView.addKeyframe(withRelativeStartTime: 0.9, relativeDuration: 0.1) {
+        self.arrow.alpha = 0.0
+        self.arrow.frame.origin.y -= 3
       }
       
     }) {[weak self] _ in
-      if repetitions > 0 { self?.doAnimate(repetitions: repetitions-1)}
+      if repetitions > 1 { self?.doAnimate(repetitions: repetitions-1)}
     }
   }
 
   private func setup() {
-    self.pinSize(CGSize(width: 40, height: 33))
-    topArrow.alpha = 0.0
-    bottomArrow.alpha = 0.0
-    self.addSubview(topArrow)
-    self.addSubview(bottomArrow)
+    self.pinSize(CGSize(width: 28, height: 20))
+    arrow.alpha = 0.0
+    self.addSubview(arrow)
   }
   
   public override func draw(_ rect: CGRect) {
     super.draw(rect)
-    bottomArrow.frame = CGRect(x: 0, y: rect.height/2,
-                               width: rect.width, height: rect.height/2)
-    topArrow.frame = CGRect(x: 0, y: 0,
-                               width: rect.width, height: rect.height/2)
+    arrow.frame = CGRect(x: 0, y: 0,
+                         width: rect.width, height: 0.55*rect.height)
   }
   
   public override init(frame: CGRect) {
@@ -79,11 +68,11 @@ public class ScrollDownAnimationView: UIView {
   }
 }
 
-fileprivate class UpArrow: UIView {
+fileprivate class ArrowView: UIView {
   
   var arrowLayer: CAShapeLayer?
   
-  func drawArrow(strokeWidth: CGFloat = 3.0){
+  func drawArrow(strokeWidth: CGFloat = 3.5){
     arrowLayer?.removeFromSuperlayer()
     arrowLayer = CAShapeLayer()
     guard let arrowLayer = arrowLayer else { return }
@@ -93,9 +82,9 @@ fileprivate class UpArrow: UIView {
         w = frame.size.width
     var pl: CGPoint, pt: CGPoint, pr: CGPoint
         
-    pl = CGPoint(x:sw, y:h-sw)
-    pt = CGPoint(x:w/2, y:sw)
-    pr = CGPoint(x:w-sw, y:h-sw)
+    pl = CGPoint(x:sw, y:sw)
+    pt = CGPoint(x:w/2, y:h-sw)
+    pr = CGPoint(x:w-sw, y:sw)
 
     let arrow =  UIBezierPath()
     arrow.move(to: pl)
@@ -106,7 +95,8 @@ fileprivate class UpArrow: UIView {
     arrowLayer.fillColor = UIColor.clear.cgColor
     arrowLayer.lineWidth = sw
     arrowLayer.lineJoin = .round
-    arrowLayer.strokeColor = UIColor.white.withAlphaComponent(0.35).cgColor
+    arrowLayer.lineCap = .round
+    arrowLayer.strokeColor = UIColor.white.withAlphaComponent(0.5).cgColor
     self.layer.addSublayer(arrowLayer)
   }
   
