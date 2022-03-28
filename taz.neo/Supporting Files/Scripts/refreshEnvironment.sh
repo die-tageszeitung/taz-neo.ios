@@ -83,23 +83,21 @@ function cleanXcodeCache () {
 }
 
 function branch () {
-	branchNewHead=`git branch --show-current`
+  branchNewHead=`git branch --show-current`
+  # Evaluate current environment
+  TAZ_APP_CONFIG="Alpha"
+	
+  case $branchNewHead in
+    Beta*) TAZ_APP_CONFIG="Beta";;
+    beta*) TAZ_APP_CONFIG="Beta";;
+    Release*) TAZ_APP_CONFIG="Release";;
+    release*) TAZ_APP_CONFIG="Release";;
+  esac
 
-	# Evaluate current environment
-	TAZ_APP_CONFIG="Alpha"
-
-	if [[ $branchNewHead == 'beta'  ]]
-	then
-	  TAZ_APP_CONFIG="Beta"
-	elif [[ $branchNewHead == 'release'  ]]
-	then
-	  TAZ_APP_CONFIG="Release"
-	fi
-
-	echo "set Icon and Scheme Config to: $TAZ_APP_CONFIG"
-	setConfig $TAZ_APP_CONFIG
-	echo "update Build Number"
-	ruby genBuildConst.rb -D
+  echo "set Icon and Scheme Config to: $TAZ_APP_CONFIG"
+  setConfig $TAZ_APP_CONFIG
+  echo "update Build Number"
+  ruby genBuildConst.rb -D
 }
 
 function help () {
