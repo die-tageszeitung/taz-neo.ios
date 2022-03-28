@@ -151,7 +151,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   }
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
-    if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
+    if threeFingerAlertOpen || isErrorReporting { return }
+    else { threeFingerAlertOpen = true }
     var actions: [UIAlertAction] = []
     
     if App.isAlpha {
@@ -175,6 +176,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     
     if actions.count == 0 {
       twoFingerErrorReportActivated(sender)
+      threeFingerAlertOpen = false
       return
     }
     
@@ -198,19 +200,19 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
       /// currently never executed due keyWindow was nil when logged in
       targetView.isUserInteractionEnabled = true
       targetView.addGestureRecognizer(reportLPress2)
-      targetView.ifAlphaApp?.addGestureRecognizer(reportLPress3)
+      targetView.addGestureRecognizer(reportLPress3)
     }
     else if let delegate = UIApplication.shared.delegate as? AppDelegate,
             let targetWindow = delegate.window {
       /// ...improved version of previous comparrison ...should be standalone!
       targetWindow.isUserInteractionEnabled = true
       targetWindow.addGestureRecognizer(reportLPress2)
-      targetWindow.ifAlphaApp?.addGestureRecognizer(reportLPress3)
+      targetWindow.addGestureRecognizer(reportLPress3)
     }
     else {
       self.view.isUserInteractionEnabled = true
       self.view.addGestureRecognizer(reportLPress2)
-      self.view.ifAlphaApp?.addGestureRecognizer(reportLPress3)
+      self.view.addGestureRecognizer(reportLPress3)
     }
   }
 
