@@ -312,11 +312,20 @@ class GenBuildConst
       raise "Merge needed" if @git.needsMerge?
       raise "Commit needed:\n#{@git.filesChanged}" if @git.needsCommit?
     end
-    @param = BuildParameters[@git.branch]
-    if !@param
-      @param = BuildParameters["alpha"] if @options[:ignore]
-      raise "Invalid/Unknown branch: #{@git.branch}" if !@param
+    @param = BuildParameters["alpha"]
+    @branch = @git.branch
+    if @branch.start_with?("release", "Release")
+      @param = BuildParameters["release"]
+    elsif @branch.start_with?("beta", "Beta")
+      @param = BuildParameters["beta"]
+    else
+      #@param = BuildParameters[@git.branch]
     end
+    puts("BuildParameters from Branch: #{@git.branch} is: #{@param}")
+    #if !@param
+      #@param = BuildParameters["alpha"] if @options[:ignore]
+      #raise "Invalid/Unknown branch: #{@git.branch}" if !@param
+    #end
     @hash = @git.localHash
     if !@options[:ignore] && @param.state != "alpha" && @hash != @git.remoteHash
       raise "Remote branch differs, perform merge first"
@@ -415,6 +424,7 @@ class GenBuildConst
       }
       EOF
     File.open("#{dir}/BuildConst.swift", "w") { |f| f.write(swiftConst) }
+    puts("Write Sheme Environment PRODUCT_NAME: #{@param.name} // PRODUCT_BUNDLE_IDENTIFIER: #{@param.id}")
     schemeConst = <<~EOF
       PRODUCT_NAME = #{@param.name}
       PRODUCT_BUNDLE_IDENTIFIER = #{@param.id}
@@ -425,6 +435,8 @@ class GenBuildConst
   
 end # class GenBuildConst
 
+puts("running genBuildConst Script (usually from Sheme->Build->PreScript)")
 gbc = GenBuildConst.new
 gbc.updateBuildNumber
 gbc.write
+puts("running genBuildConst done")
