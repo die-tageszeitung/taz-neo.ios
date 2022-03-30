@@ -77,7 +77,7 @@ public class SimpleAuthenticator: Authenticator {
   }
   
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  public func authenticate() {
+  public func authenticate(with targetVC:UIViewController? = nil) {
     withLoginData { [weak self] (id, password) in
       guard let self = self else { return }
       if let id = id, let password = password {

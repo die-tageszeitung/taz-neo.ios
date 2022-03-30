@@ -51,16 +51,13 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   
   // MARK: Cell creation
   ///konto
-  lazy var loginCell: XSettingsCell = {
-    guard let feeder = MainNC.singleton.feederContext.gqlFeeder else {
-      return XSettingsCell(text: "..."){} }
-    let authenticator = DefaultAuthenticator(feeder: feeder)
+  lazy var loginCell: XSettingsCell = {   
     Notification.receive("authenticationSucceeded") { [weak self]_ in
       self?.refreshAndReload()
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
     }
     return XSettingsCell(text: "Anmelden") { [weak self] in
-      authenticator.authenticate(with: self)
+      MainNC.singleton.feederContext.authenticator.authenticate(with: self)
     }
   }()
   lazy var logoutCell: XSettingsCell

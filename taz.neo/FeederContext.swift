@@ -341,7 +341,7 @@ open class FeederContext: DoesLog {
   /// Request authentication from Authenticator
   /// Authenticator will send "authenticationSucceeded" Notification if successful
   public func authenticate() {
-    authenticator.authenticate()
+    authenticator.authenticate(with: nil)
   }
   
   public func updateAuthIfNeeded() {

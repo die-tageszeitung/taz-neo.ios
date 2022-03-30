@@ -222,13 +222,9 @@ public class DefaultAuthenticator: Authenticator {
       closure(true)//continue polling in case of errors, wait status or invalid
     }
   }
-  
-  public func authenticate() {
-    self.authenticate(with: nil)
-  }
-  
+    
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  func authenticate(with targetVC:UIViewController?) {
+  public func authenticate(with targetVC:UIViewController? = nil) {
     guard let rootVC = targetVC ?? rootVC else { return }
 
     let registerController = LoginController(self)
