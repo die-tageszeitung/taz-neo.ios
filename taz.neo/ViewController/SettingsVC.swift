@@ -470,13 +470,17 @@ extension SettingsVC {
   var accountSettingsCells:[XSettingsCell] {
     var cells =
     [
-      isAuthenticated ? logoutCell : loginCell,
       resetPasswordCell,
       manageAccountCell
     ]
-//    if isAuthenticated {
-//      cells.append(deleteAccountCell)
-//    }
+    
+    if isAuthenticated {
+      cells.insert(logoutCell, at: 0)
+      //      cells.append(deleteAccountCell)
+    }
+    else {
+      cells.insert(loginCell, at: 0)
+    }
     return cells
   }
   
