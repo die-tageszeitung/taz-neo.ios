@@ -671,11 +671,10 @@ extension SettingsVC {
   }
   
   func resetPassword(){
-    self.modalPresentationStyle = .fullScreen
     let id = SimpleAuthenticator.getUserData().id
     guard let feeder = MainNC.singleton.feederContext.gqlFeeder else { return }
     let childVc = PwForgottController(id: id, auth: DefaultAuthenticator.init(feeder: feeder))
-    childVc.modalPresentationStyle = .fullScreen
+    childVc.modalPresentationStyle =  Device.isIpad ? .formSheet : .popover
     self.present(childVc, animated: true)
   }
   
@@ -706,7 +705,6 @@ extension SettingsVC {
     introVC.webView.onX { _ in
       introVC.dismiss(animated: true, completion: nil)
     }
-    self.modalPresentationStyle = .fullScreen
     introVC.modalPresentationStyle = .fullScreen
     introVC.webView.webView.atEndOfContent {_ in }
     self.present(introVC, animated: true) {
