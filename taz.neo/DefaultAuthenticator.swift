@@ -42,8 +42,6 @@ public protocol AuthMediator : Authenticator {
    Use this method to delete authentication relevant user data
    */
   static func deleteTempUserData()
-
-  var performPollingClosure: (()->())? { get set}
 }
 
 extension AuthMediator {
@@ -89,20 +87,14 @@ extension DefaultAuthenticator : AuthMediator{
   public func pollSubscription(tmpId:String, tmpPassword:String, requestSoon:Bool = false, resultSuccessText:String?){
     
     if let rt = resultSuccessText { self.resultSuccessText = rt}
-  
+    
     Self.storeTempUserData(tmpId: tmpId, tmpPassword: tmpPassword)
-    if requestSoon == true {
-      DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
-        self.pollSubscription {  [weak self] (resume) in
-          guard let self = self else {return;}
-          if resume == true {
-            self.performPollingClosure?()
-          }
-        }
+    let firstPollRequest: DispatchTime = .now() + (requestSoon ? 1.5 : 15.0)
+    DispatchQueue.global().asyncAfter(deadline: firstPollRequest) { [weak self] in
+      self?.pollSubscription {  [weak self] (resume) in
+        if resume == true { self?.performPollingClosure?() }
       }
-      return;
-    }//eof: requestSoon == true
-    performPollingClosure?()//tell app start polling for incomming push or start timer!
+    }
   }
 }
 
@@ -133,7 +125,7 @@ public class DefaultAuthenticator: Authenticator {
   }()
   
   /// Closure to call when polling of suscription status is required
-  public var performPollingClosure: (()->())?
+  private var performPollingClosure: (()->())?
   /// Define closure to call when polling is necessary
   public func whenPollingRequired(closure: @escaping ()->()) {
     performPollingClosure = closure
