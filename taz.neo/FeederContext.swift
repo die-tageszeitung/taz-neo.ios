@@ -568,6 +568,8 @@ open class FeederContext: DoesLog {
     }
     else {
       log("Delete Userdata!")
+      //prevent permanent "Ihre Kundendaten haben sich geändert."
+      self.gqlFeeder.authToken = nil
       DefaultAuthenticator.deleteUserData()
     }
     
