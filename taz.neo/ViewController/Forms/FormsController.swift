@@ -132,9 +132,14 @@ class FormsResultController: UIViewController {
     }
   }
   
+  let xButton = Button<ImageView>()
+  
   /// Setup the xButton
   func setupXButton() {
-    let xButton = Button<ImageView>()
+    guard self.modalPresentationStyle == .formSheet
+    || self.dismissType == .all
+    || self.dismissType == .allReal
+    else { return }
     xButton.tazX()
     self.view.addSubview(xButton)
     pin(xButton.right, to: self.view.rightGuide(), dist: -15)
