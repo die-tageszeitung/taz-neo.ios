@@ -321,7 +321,7 @@ class GenBuildConst
     else
       #@param = BuildParameters[@git.branch]
     end
-    puts("BuildParameters from Branch: #{@git.branch} is: #{@param}")
+    puts("BuildParameters from Branch: #{@git.branch} is name: #{@param.name} state: #{@param.state} id: #{@param.id}")
     #if !@param
       #@param = BuildParameters["alpha"] if @options[:ignore]
       #raise "Invalid/Unknown branch: #{@git.branch}" if !@param
