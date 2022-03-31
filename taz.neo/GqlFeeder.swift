@@ -842,17 +842,19 @@ open class GqlFeeder: Feeder, DoesLog {
       case .success(let frq):  
         let req = frq["feedRequest"]!
         if wasAuthenticated {
-          if MainNC.singleton.expiredAccountInfoShown {//Expired account already shown
-            if req.authInfo.status == .valid {//account not expired anymore
+          if req.authInfo.status == .valid
+             && Defaults.expiredAccountDate != nil { //account not expired anymore
               MainNC.singleton.expiredAccountInfoShown = false
               Alert.message(message: "Ihr Abo ist wieder aktiv!")
               Defaults.expiredAccountDate = nil
-            }
           }
-          else if req.authInfo.status == .expired {
+          else if req.authInfo.status == .expired
+                  && MainNC.singleton.expiredAccountInfoShown == false {
             ret = .failure(FeederError.expiredAccount(req.authInfo.message))
+            MainNC.singleton.expiredAccountInfoShown = true
           }
-          else if req.authInfo.status != .valid {
+          else if req.authInfo.status != .expired
+                    && req.authInfo.status != .valid {
             self.log("Invalid Auth Status: \(req.authInfo.status) for FeedRequest. WasAuth:\(wasAuthenticated) SessionAuth: \(gqlSession.authToken?.length ?? 0 > 10)")
             ret = .failure(FeederError.changedAccount(req.authInfo.message))
           }

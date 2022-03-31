@@ -548,29 +548,18 @@ open class FeederContext: DoesLog {
     currentFeederErrorReason = err
     var text = ""
     switch err {
-      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
       case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
-        if let d = err.expiredAccountDate {//persist expired account date for all requests!
-          Defaults.expiredAccountDate = d
-        }
-        MainNC.singleton.expiredAccountInfoShown = true
+      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
+        self.gqlFeeder.authToken = nil
+        DefaultAuthenticator.deleteUserData()
       case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+        self.gqlFeeder.authToken = nil
+        DefaultAuthenticator.deleteUserData()
       case .unexpectedResponse:
         Alert.message(title: "Fehler",
                       message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
           exit(0)
         }
-    }
-        
-    if err == .expiredAccount(nil) {
-      ///"expiredAccountAlertPopup" key must be deleted on login to see message again  ...or restart, keep in mind if changing
-      if "expiredAccountAlertPopup".existsAndNotExpired(intervall: .hour*6 ) { return }
-    }
-    else {
-      log("Delete Userdata!")
-      //prevent permanent "Ihre Kundendaten haben sich geändert."
-      self.gqlFeeder.authToken = nil
-      DefaultAuthenticator.deleteUserData()
     }
     
     Alert.message(title: "Fehler", message: text, closure: { [weak self] in
