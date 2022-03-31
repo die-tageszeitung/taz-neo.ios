@@ -53,17 +53,23 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   ///konto
   lazy var loginCell: XSettingsCell = {   
     Notification.receive("authenticationSucceeded") { [weak self]_ in
-      self?.refreshAndReload()
+      guard let self = self else { return }
+      self.logoutCell = self.createLogoutCell()
+      self.refreshAndReload()
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
     }
     return XSettingsCell(text: "Anmelden") { [weak self] in
       MainNC.singleton.feederContext.authenticator.authenticate(with: self)
     }
   }()
-  lazy var logoutCell: XSettingsCell
-  = XSettingsCell(text: "Abmelden (\(SimpleAuthenticator.getUserData().id ?? "???"))",
-                  detailText: Defaults.expiredAccountText,
-                  tapHandler: {[weak self] in self?.requestLogout()} )
+  lazy var logoutCell: XSettingsCell = createLogoutCell()
+  
+  func createLogoutCell() -> XSettingsCell {
+    return XSettingsCell(text: "Abmelden (\(SimpleAuthenticator.getUserData().id ?? "???"))",
+                         detailText: Defaults.expiredAccountText,
+                         tapHandler: {[weak self] in self?.requestLogout()})
+  }
+  
   lazy var resetPasswordCell: XSettingsCell
   = XSettingsCell(text: "Passwort zurücksetzen",
                   tapHandler: {[weak self] in self?.resetPassword()} )
