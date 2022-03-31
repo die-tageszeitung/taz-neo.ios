@@ -51,13 +51,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate, ModalClosea
   
   // MARK: Cell creation
   ///konto
-  lazy var loginCell: XSettingsCell = {   
-    Notification.receive("authenticationSucceeded") { [weak self]_ in
-      guard let self = self else { return }
-      self.logoutCell = self.createLogoutCell()
-      self.refreshAndReload()
-      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
-    }
+  lazy var loginCell: XSettingsCell = {
     return XSettingsCell(text: "Anmelden") { [weak self] in
       MainNC.singleton.feederContext.authenticator.authenticate(with: self)
     }
@@ -255,6 +249,13 @@ extension SettingsVC {
                    name: UIApplication.didBecomeActiveNotification,
                    object: nil)
     checkNotifications()
+    
+    Notification.receive("authenticationSucceeded") { [weak self]_ in
+      guard let self = self else { return }
+      self.logoutCell = self.createLogoutCell()
+      self.refreshAndReload()
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+    }
   }
   
   func refreshAndReload() {
