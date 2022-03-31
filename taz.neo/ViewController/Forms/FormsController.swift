@@ -185,11 +185,7 @@ class FormsResultController: UIViewController {
 //    print("WindowSize: \(UIApplication.shared.windows.first?.bounds.size)  (updateViewSize)")
     
     ///Fix Form Sheet Size
-    if newSize.width > 540 &&
-        ( self.baseLoginController?.modalPresentationStyle == .formSheet //Otutdated?
-          || self.modalPresentationStyle == .formSheet // 1st if started from Settings
-          || self.presentingViewController?.modalPresentationStyle == .formSheet //2nd if started from Settings
-        )  {
+    if newSize.width > 540 && Device.isIpad {
       ///Unfortunattly ui.scrollView.contentSize.height is too small for Register View to use it,
       ///may need 2 Steps to calculate its height, maybe later
       let height:CGFloat = min(windowSize.width,
