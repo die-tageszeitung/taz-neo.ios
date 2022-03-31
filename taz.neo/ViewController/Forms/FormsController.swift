@@ -261,11 +261,20 @@ class FormsResultController: UIViewController {
     var stack = self.modalStack
     switch dismissType {
       case .allReal:
-        stack.forEach { $0.view.isHidden = $0 != self ? true : false }
-        UIViewController.dismiss(stack: stack, animated: false, completion: self.dismissAllFinishedClosure)
+        stack.forEach {
+          if $0.isKind(of: FormsResultController.self){
+            $0.view.isHidden = $0 != self ? true : false
+          }
+        }
+        UIViewController.dismissForms(stack: stack, animated: false, completion: self.dismissAllFinishedClosure)
       case .leftFirst, .all:
-        _ = stack.popLast()//removes first
-        _ = stack.pop()//removes self
+        //remove first, to kept it on vc stack!
+        //currently the firt item in stack is maybe Settungs and a return was maybe not possible
+        #warning("@ringo v0.9.6 Test and Refactor with Tab Controller")
+        if let root = stack.popLast(), root.isKind(of: FormsResultController.self) == false {
+          _ = stack.popLast()
+        }
+        stack.pop()//removes self
         stack.forEach { $0.view.isHidden = true }
         self.dismiss(animated: true) {
           stack.forEach { $0.dismiss(animated: false, completion: nil)}
@@ -298,6 +307,23 @@ extension UIViewController {
         }
       }
     }
+  }
+  
+  /// dismiss helper for stack of modal presented VC's
+  public static func dismissForms(stack:[UIViewController], animated:Bool, completion: (() -> Void)?){
+    var stack = stack
+    let vc = stack.pop()
+    if vc?.isKind(of: FormsResultController.self) == false{
+      completion?()
+      return
+    }
+    vc?.dismiss(animated: animated, completion: {
+      if stack.count > 0 {
+        UIViewController.dismissForms(stack: stack, animated: false, completion: completion)
+      } else {
+        completion?()
+      }
+    })
   }
 }
 
@@ -372,7 +398,13 @@ extension UIViewController{
   /// helper for stack of modal presented VC's, to get all modal presented VC's below self
   var baseLoginController : LoginController? {
     get{
-      return self.modalStack.last as? LoginController
+      if let lc = self.modalStack.last as? LoginController {
+        return lc //login in Article
+      }
+      if let lc = self.modalStack.valueAt(-1, allowReverseSearch: true) as? LoginController {
+        return lc //login in Settings
+      }
+      return nil
     }
   }
 }
