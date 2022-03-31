@@ -317,8 +317,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     authenticator?.unlinkSubscriptionId()
   }
   
-  func deleteUserData() {
-    SimpleAuthenticator.deleteUserData()
+  func deleteUserData(excludeDataPolicyAccepted: Bool) {
+    SimpleAuthenticator.deleteUserData(excludeDataPolicyAccepted: excludeDataPolicyAccepted)
     Defaults.expiredAccountDate = nil
     let dfl = Defaults.singleton
     dfl["isTextNotification"] = "true"

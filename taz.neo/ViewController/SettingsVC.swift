@@ -554,7 +554,7 @@ extension SettingsVC {
                                         preferredStyle:  .alert )
     alert.addAction( UIAlertAction.init( title: "Ja, abmelden", style: .destructive,
                                          handler: { [weak self] _ in
-      MainNC.singleton.deleteUserData()
+      MainNC.singleton.deleteUserData(excludeDataPolicyAccepted: true)
       self?.refreshAndReload()
     } ) )
     
@@ -651,7 +651,7 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Zurücksetzen", style: .destructive,
                                          handler: { _ in
-      MainNC.singleton.deleteUserData()
+      MainNC.singleton.deleteUserData(excludeDataPolicyAccepted: false)
       Defaults.singleton.setDefaults(values: ConfigDefaults,
                                      isNotify: false,
                                      forceWrite: true)

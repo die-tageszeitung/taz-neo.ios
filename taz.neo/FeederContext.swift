@@ -551,10 +551,10 @@ open class FeederContext: DoesLog {
       case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
       case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
         self.gqlFeeder.authToken = nil
-        DefaultAuthenticator.deleteUserData()
-      case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+        DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
+      case .changedAccount: text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
         self.gqlFeeder.authToken = nil
-        DefaultAuthenticator.deleteUserData()
+        DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
       case .unexpectedResponse:
         Alert.message(title: "Fehler",
                       message: "Es gab ein Problem bei der Kommunikation mit dem Server") {

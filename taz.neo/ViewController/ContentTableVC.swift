@@ -161,7 +161,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
     }
     let deleteUserDataAction = UIAction(title: "Kundendaten löschen (Abmelden)",
       image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
-        MainNC.singleton.deleteUserData()
+        MainNC.singleton.deleteUserData(excludeDataPolicyAccepted: true)
     }
     let unlinkSubscriptionIdAction = UIAction(title: "Abo-Verknüpfung löschen (⍺)",
       image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
