@@ -54,27 +54,27 @@ extension AuthMediator {
     return pollSubscription(tmpId:tmpId, tmpPassword:tmpPassword, requestSoon:requestSoon, resultSuccessText: nil)
   }
 
-  static var keychainTempId: String { return "tmpId" }
-  static var keychainTempIdPassword: String { return "tmpPassword" }
+  static var defaultsTempId: String { return "tmpId" }
+  static var defaults: String { return "tmpPassword" }
   
 
   
   public static func storeTempUserData(tmpId: String, tmpPassword: String) {
-    let kc = Keychain.singleton
-    kc[Self.keychainTempId] = tmpId
-    kc[Self.keychainTempIdPassword] = tmpPassword
+    let dfl = Defaults.singleton
+    dfl[Self.defaultsTempId] = tmpId
+    dfl[Self.defaults] = tmpPassword
   }
   
   public static func getTempUserData() -> (tmpId: String?, tmpPassword: String?) {
-    let kc = Keychain.singleton
-    return (tmpId: kc[Self.keychainTempId],
-            tmpPassword: kc[Self.keychainTempIdPassword])
+    let dfl = Defaults.singleton
+    return (tmpId: dfl[Self.defaultsTempId],
+            tmpPassword: dfl[Self.defaults])
   }
   
   public static func deleteTempUserData() {
-    let kc = Keychain.singleton
-    kc[Self.keychainTempId] = nil
-    kc[Self.keychainTempIdPassword] = nil
+    let dfl = Defaults.singleton
+    dfl[Self.defaultsTempId] = nil
+    dfl[Self.defaults] = nil
   }
 }
 
