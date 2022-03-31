@@ -222,7 +222,7 @@ public class DefaultAuthenticator: Authenticator {
     let registerController = LoginController(self)
     
     registerController.modalPresentationStyle
-      =  Device.isIpad ? .formSheet : .popover
+      =  .formSheet
 
     firstPresentedAuthController = registerController
     rootVC.present(registerController, animated: true, completion: {
