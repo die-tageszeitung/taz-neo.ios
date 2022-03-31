@@ -44,6 +44,20 @@ public protocol AuthMediator : Authenticator {
   static func deleteTempUserData()
 }
 
+class TempUserDataStorage {
+  private static let sharedInstance = TempUserDataStorage()
+  private var id: String?
+  private var pass: String?
+  fileprivate static var id: String? {
+    get { return sharedInstance.id }
+    set { sharedInstance.id = newValue }
+  }
+  fileprivate static var pass: String? {
+    get { return sharedInstance.pass }
+    set { sharedInstance.pass = newValue }
+  }
+}
+
 extension AuthMediator {
   
   func pollSubscription(tmpId:String, tmpPassword:String){
@@ -63,18 +77,23 @@ extension AuthMediator {
     let dfl = Defaults.singleton
     dfl[Self.defaultsTempId] = tmpId
     dfl[Self.defaults] = tmpPassword
+    TempUserDataStorage.id = tmpId
+    TempUserDataStorage.pass = tmpPassword
   }
   
   public static func getTempUserData() -> (tmpId: String?, tmpPassword: String?) {
     let dfl = Defaults.singleton
-    return (tmpId: dfl[Self.defaultsTempId],
-            tmpPassword: dfl[Self.defaults])
+    return (tmpId: TempUserDataStorage.id ?? dfl[Self.defaultsTempId],
+            tmpPassword: TempUserDataStorage.pass ?? dfl[Self.defaults])
   }
   
   public static func deleteTempUserData() {
     let dfl = Defaults.singleton
     dfl[Self.defaultsTempId] = nil
     dfl[Self.defaults] = nil
+    //hold it for now maybe empty braces bug its a race condition
+//    TempUserDataStorage.id = nil
+//    TempUserDataStorage.pass = nil
   }
 }
 
