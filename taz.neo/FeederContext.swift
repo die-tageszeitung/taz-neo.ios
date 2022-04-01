@@ -313,7 +313,8 @@ open class FeederContext: DoesLog {
   func processPushNotification(pn: PushNotification, payload: PushNotification.Payload){
     switch payload.notificationType {
       case .subscription:
-        authenticator.pollSubscription(){_ in}
+        log("check subscription status")
+        doPolling()
       case .newIssue:
         //not using checkForNew Issues see its warning!
         //count 1 not working:
