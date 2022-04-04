@@ -152,34 +152,24 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
       } 
     }
   }
-  #warning("TODO")
+  
   @available(iOS 13.0, *)
   fileprivate func createContextMenu() -> UIMenu {
-//    let deleteAction = UIAction(title: "Alle Ausgaben löschen",
-//      image: UIImage(systemName: "trash")) { action in
-//        TazAppEnvironment.sharedInstance.deleteAll()
-//    }
-//    let deleteUserDataAction = UIAction(title: "Kundendaten löschen (Abmelden)",
-//      image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
-//        TazAppEnvironment.sharedInstance.deleteUserData()
-//    }
-//    let unlinkSubscriptionIdAction = UIAction(title: "Abo-Verknüpfung löschen (⍺)",
-//      image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
-//        TazAppEnvironment.sharedInstance.unlinkSubscriptionId()
-//    }
-//    let requestSubscriptionNotification = UIAction(title: "Abo-Push anfordern (⍺)",
-//      image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
-//        TazAppEnvironment.sharedInstance.testNotification(type: NotificationType.subscription)
-//    }
-//    let requestDownloadNotification = UIAction(title: "Download-Push anfordern (⍺)",
-//      image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
-//        TazAppEnvironment.sharedInstance.testNotification(type: NotificationType.subscription)
-//    }
-//    if App.isAlpha {
-//      return UIMenu(title: "", children: [deleteAction, deleteUserDataAction,
-//        unlinkSubscriptionIdAction, requestSubscriptionNotification, requestDownloadNotification])
-//    }
-//    return UIMenu(title: "", children: [deleteAction, deleteUserDataAction])
+    let unlinkSubscriptionIdAction = UIAction(title: "Abo-Verknüpfung löschen (⍺)",
+      image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
+      TazAppEnvironment.sharedInstance.unlinkSubscriptionId()
+    }
+    let requestSubscriptionNotification = UIAction(title: "Abo-Push anfordern (⍺)",
+      image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
+      TazAppEnvironment.sharedInstance.testNotification(type: NotificationType.subscription)
+    }
+    let requestDownloadNotification = UIAction(title: "Download-Push anfordern (⍺)",
+      image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
+      TazAppEnvironment.sharedInstance.testNotification(type: NotificationType.subscription)
+    }
+    if App.isAlpha {
+      return UIMenu(title: "", children: [unlinkSubscriptionIdAction, requestSubscriptionNotification, requestDownloadNotification])
+    }
     return UIMenu(title: "", children: [])
   }
   

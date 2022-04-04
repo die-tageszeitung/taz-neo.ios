@@ -1010,7 +1010,7 @@ extension Feeder {
   
   /// Returns directory where all issue specific data is stored
   public func issueDir(issue: Issue) -> Dir {
-    if issue is DummyIssue {
+    if issue is SearchResultIssue {
       return Dir.searchResults
     }
     return issueDir(feed: issue.feed.name, issue: date2a(issue.date))

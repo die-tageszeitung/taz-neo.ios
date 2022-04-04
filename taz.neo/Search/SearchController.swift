@@ -15,7 +15,7 @@ class SearchController: UIViewController {
                                        html: TmpFileEntry(name: "SearchTempSection.tmp"))
   
   private var articleVC:SearchResultArticleVc
-  private var dissue:DummyIssue
+  private var srIssue:SearchResultIssue
   private var searchController: UISearchController
   
   var feederContext: FeederContext
@@ -88,8 +88,8 @@ class SearchController: UIViewController {
   required init(feederContext: FeederContext) {
     self.feederContext = feederContext
     searchController = UISearchController(searchResultsController: resultsTableController)
-    dissue = DummyIssue(feed: feederContext.defaultFeed)
-    dissue.sections = [defaultSection]
+    srIssue = SearchResultIssue(feed: feederContext.defaultFeed)
+    srIssue.sections = [defaultSection]
     articleVC = SearchResultArticleVc(feederContext: self.feederContext)
     
     super.init(nibName: nil, bundle: nil)
@@ -138,7 +138,7 @@ extension SearchController: UISearchBarDelegate {
     guard let allArticles = searchItem.allArticles else { return }
     defaultSection.articles = allArticles
     articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
-    dissue.search = self.searchItem
+    srIssue.search = self.searchItem
     articleVC.searchContents = allArticles
     articleVC.reload()
   }
@@ -215,7 +215,7 @@ extension GqlSearchHit {
 
 extension SearchController: ArticleVCdelegate {
   public var issue: Issue {
-    return self.dissue
+    return self.srIssue
   }
   
   public var section: Section? {
@@ -240,7 +240,7 @@ extension SearchController: ArticleVCdelegate {
   
   public var article2section: [String : [Section]] {
     debug("TODO:: article2section requested")
-    if let s = dissue.sections, let artArray = searchItem.allArticles {
+    if let s = srIssue.sections, let artArray = searchItem.allArticles {
       var d : [String : [Section]]  = [:]
       for art in artArray {
         d[art.html.fileName] = s

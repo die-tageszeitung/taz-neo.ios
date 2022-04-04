@@ -328,9 +328,16 @@ extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
   ///   - indexPath: to refresh items after change
   /// - Returns: menu with items
   fileprivate func createContextMenu(_ issue: Issue?, indexPath: IndexPath?) -> UIMenu {
-    let menuItems = createMenuItems(issue, indexPath: indexPath).map { m in
-      UIAction(title: m.title,
-               image: UIImage(systemName: m.icon)) {_ in
+    let menuItems = createMenuItems(issue, indexPath: indexPath).map { m -> UIAction in
+      if m.icon == "trash" && issue?.isComplete == false {
+        return UIAction(title: m.title,
+                 image: UIImage(systemName: m.icon),
+                 attributes: .disabled) {_ in
+          m.closure(m.title)
+        }
+      }
+      return UIAction(title: m.title,
+                      image: UIImage(systemName: m.icon)) {_ in
         m.closure(m.title)
       }
     }

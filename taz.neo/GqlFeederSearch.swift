@@ -385,12 +385,13 @@ extension GqlFeeder {
       searchItem.searching = false
       switch res {
         case .success(let searchResponseWrapper):
-          if let authError
-              = self.handleResponseAuthInfo(wasAuthenticated,
-                                            searchResponseWrapper.search.authInfo){
-            closure(.failure(authError))
-            return
-          }
+          #warning("Do not handle unauth error currently!")
+//          if let authError
+//              = self.handleResponseAuthInfo(wasAuthenticated,
+//                                            searchResponseWrapper.search.authInfo){
+//            closure(.failure(authError))
+//            return
+//          }
           searchItem.lastResponse = searchResponseWrapper
           closure(.success(searchItem))
         case .failure(let err):

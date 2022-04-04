@@ -808,20 +808,9 @@ open class GqlFeeder: Feeder, DoesLog {
       static func request(feedName: String, date: Date?, key: String?,
                           count: Int, isOverview: Bool) -> String {
         var dateArg = ""
-        
-
-        
         if let date = date {
           dateArg = ",issueDate:\"\(date.isoDate(tz: GqlFeeder.tz))\""
         }
-
-        //Test in itially fill DB with older Issues to simulate get new!
-        if false {
-          var now = Date()
-          now.addDays(-3)
-          dateArg = ",issueDate:\"\(now.isoDate(tz: GqlFeeder.tz))\""
-        }
-        
         var keyArg = ""
         if let key = key {
           keyArg = ",key:\"\(key)\""
@@ -845,27 +834,27 @@ open class GqlFeeder: Feeder, DoesLog {
     let wasAuthenticated: Bool = authToken != nil
     let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
                                       count: count, isOverview: isOverview)
-    let started = Date()
     gqlSession.query(graphql: request,
       type: [String:FeedRequest].self) {[weak self]  (res) in
       guard let self = self else { return }
       var ret: Result<[Issue],Error>? = nil
-      print("Request Duration: \(Date().timeIntervalSince(started))s for: \(request)")
       switch res {
       case .success(let frq):  
         let req = frq["feedRequest"]!
         if wasAuthenticated {
-          if TazAppEnvironment.sharedInstance.expiredAccountInfoShown {//Expired account already shown
-            if req.authInfo.status == .valid {//account not expired anymore
-              TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
+          if req.authInfo.status == .valid
+             && Defaults.expiredAccountDate != nil { //account not expired anymore
+            TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
               Alert.message(message: "Ihr Abo ist wieder aktiv!")
               Defaults.expiredAccountDate = nil
-            }
           }
-          else if req.authInfo.status == .expired {
+          else if req.authInfo.status == .expired
+                  && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {
             ret = .failure(FeederError.expiredAccount(req.authInfo.message))
+            TazAppEnvironment.sharedInstance.expiredAccountInfoShown = true
           }
-          else if req.authInfo.status != .valid {
+          else if req.authInfo.status != .expired
+                    && req.authInfo.status != .valid {
             self.log("Invalid Auth Status: \(req.authInfo.status) for FeedRequest. WasAuth:\(wasAuthenticated) SessionAuth: \(gqlSession.authToken?.length ?? 0 > 10)")
             ret = .failure(FeederError.changedAccount(req.authInfo.message))
           }

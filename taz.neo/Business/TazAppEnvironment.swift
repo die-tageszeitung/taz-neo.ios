@@ -173,11 +173,9 @@ class TazAppEnvironment /*: NSObject, DoesLog, MFMailComposeViewControllerDelega
   }
   
   func deleteUserData() {
-    SimpleAuthenticator.deleteUserData()
+    SimpleAuthenticator.deleteUserData(excludeDataPolicyAccepted: false)
     Defaults.expiredAccountDate = nil
     let dfl = Defaults.singleton
-    let kc = Keychain.singleton
-    kc["dataPolicyAccepted"] = nil
     dfl["isTextNotification"] = "true"
     dfl["nStarted"] = "0"
     dfl["lastStarted"] = "0"
@@ -402,15 +400,15 @@ class TazAppEnvironment /*: NSObject, DoesLog, MFMailComposeViewControllerDelega
   
   static func setupDefaultStyles(){
     if let defaultFontName = Const.Fonts.contentFontName,
-       let defaultFont10 =  UIFont(name: defaultFontName, size: 10),
-       let defaultFont =  UIFont(name: defaultFontName, size: Const.Size.DefaultFontSize){
+       //       let defaultFont =  UIFont(name: defaultFontName, size: Const.Size.DefaultFontSize),
+        let defaultFont10 =  UIFont(name: defaultFontName, size: 10){
       UITabBarItem.appearance()
         .setTitleTextAttributes([NSAttributedString.Key.font:defaultFont10],
                                 for: .normal)
 //      UITabBarItem.appearance()
 //        .setTitleTextAttributes([NSAttributedString.Key.font:defaultFont10],
 //                                for: .selected)
-      #warning("in search ugly fly in effect in simulator")
+//      #warning("in search ugly fly in effect in simulator")
 //      UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self])
 //        .setTitleTextAttributes([NSAttributedString.Key.font:defaultFont],
 //                                for: .normal)

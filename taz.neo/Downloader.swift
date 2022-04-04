@@ -211,7 +211,7 @@ open class Downloader: DoesLog {
   /// Download Issue files
   public func downloadIssueFiles(issue: Issue, files: [FileEntry], 
                                  closure: @escaping (Error?)->()) {
-    if let di = issue as? DummyIssue {
+    if let di = issue as? SearchResultIssue {
       self.downloadSearchResultFiles(url: di.baseUrlForFiles(files),
                          files: files, closure: closure)
       return

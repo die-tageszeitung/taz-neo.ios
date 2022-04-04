@@ -49,7 +49,7 @@ public class WaitingAppOverlay {
       }
       
       if let title = titleMessage {
-        let label = UILabel(title).titleFont().color(Const.SetColor.ios(.label)).center()
+        let label = UILabel(title).titleFont().white().center()
         layer.addSubview(label)
         pin(label.bottom, to: layer.centerY, dist: -30)
         pin(label.left, to: layer.left, dist: 10)
@@ -57,7 +57,7 @@ public class WaitingAppOverlay {
       }
       
       if let text = bottomMessage {
-        let label = UILabel(text).contentFont().color(.ios(.secondaryLabel)).center()
+        let label = UILabel(text).contentFont().white().center()
         layer.addSubview(label)
         pin(label.top, to: layer.centerY, dist: 30)
         pin(label.left, to: layer.left, dist: 10)

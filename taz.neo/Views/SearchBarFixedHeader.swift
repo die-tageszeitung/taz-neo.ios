@@ -1,5 +1,5 @@
 //
-//  SearchBarTools.swift
+//  SearchBarFixedHeader.swift
 //  taz.neo
 //
 //  Created by Ringo Müller on 14.03.22.

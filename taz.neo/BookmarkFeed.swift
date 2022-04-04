@@ -127,13 +127,12 @@ public class TmpFileEntry: FileEntry {
   
   public init(name: String) {
     self.name = name
-    Dir.searchResults.create()
-    self.path = "\(Dir.searchResultsPath)/\(name)"
+    self.path = "\(Dir.tmpPath)/\(name)"
     self.moTime = Date()
   }
 }
 
-open class DummyPayload: Payload {
+public class DummyPayload: Payload {
   public var localDir: String { "" }
   public var remoteBaseUrl: String { "" }
   public var remoteZipName: String? { nil }
@@ -146,22 +145,4 @@ public class DummyMoment: Moment {
   public var images: [ImageEntry] { [] }
   public var creditedImages: [ImageEntry] { [] }
   public var animation: [FileEntry] { [] }
-}
-
-public class DummyIssue: BookmarkIssue {
-  public func baseUrlForFiles(_ files: [FileEntry]) -> String {
-    guard let s = search,
-          let f = files.first,
-          let hits = s.searchHitList else { return "" }
-    for hit in hits {
-      for file in hit.article.files {
-        if file.fileName == f.fileName {
-          hit.writeToDisk()//TOO LATE
-          return hit.baseUrl
-        }
-      }
-    }
-    return ""
-  }
-  public var search:SearchItem?
 }

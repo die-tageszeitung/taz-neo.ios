@@ -12,9 +12,6 @@ import NorthLib
 class OfflineAlert {
   static let sharedInstance = OfflineAlert()
   
-  static var lastShown:Date?
-
-  
   private init(){}
   
   var needsUpdate : Bool = false

@@ -85,6 +85,12 @@ open class FeederContext: DoesLog {
   /// Has the Feeder been initialized yet
   public var isReady = false
   
+//  public private(set) var enqueuedDownlod:[Issue] = [] {
+//    didSet {
+//      print("Currently Downloading: \(enqueuedDownlod.map{$0.date.gDate()})")
+//    }
+//  }
+  
   /// Are we updating resources
   private var isUpdatingResources = false
   
@@ -289,7 +295,6 @@ open class FeederContext: DoesLog {
         self.debug("No push permission") 
         self.pushToken = nil
       }
-      NotificationBusiness.sharedInstance.checkNotificationStatusIfNeeded()
       dfl["pushToken"] = self.pushToken
             
       if oldToken != self.pushToken {
@@ -308,7 +313,8 @@ open class FeederContext: DoesLog {
   func processPushNotification(pn: PushNotification, payload: PushNotification.Payload){
     switch payload.notificationType {
       case .subscription:
-        authenticator.pollSubscription(){_ in}
+        log("check subscription status")
+        doPolling()
       case .newIssue:
         //not using checkForNew Issues see its warning!
         //count 1 not working:
@@ -336,7 +342,7 @@ open class FeederContext: DoesLog {
   /// Request authentication from Authenticator
   /// Authenticator will send "authenticationSucceeded" Notification if successful
   public func authenticate() {
-    authenticator.authenticate()
+    authenticator.authenticate(with: nil)
   }
   
   public func updateAuthIfNeeded() {
@@ -543,27 +549,18 @@ open class FeederContext: DoesLog {
     currentFeederErrorReason = err
     var text = ""
     switch err {
-      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
       case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
-        if let d = err.expiredAccountDate {//persist expired account date for all requests!
-          Defaults.expiredAccountDate = d
-        }
-        TazAppEnvironment.sharedInstance.expiredAccountInfoShown = true
-      case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
+        self.gqlFeeder.authToken = nil
+        DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
+      case .changedAccount: text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
+        self.gqlFeeder.authToken = nil
+        DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
       case .unexpectedResponse:
         Alert.message(title: "Fehler",
                       message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
           exit(0)
         }
-    }
-        
-    if err == .expiredAccount(nil) {
-      ///"expiredAccountAlertPopup" key must be deleted on login to see message again  ...or restart, keep in mind if changing
-      if "expiredAccountAlertPopup".existsAndNotExpired(intervall: .hour*6 ) { return }
-    }
-    else {
-      log("Delete Userdata!")
-      DefaultAuthenticator.deleteUserData()
     }
     
     Alert.message(title: "Fehler", message: text, closure: { [weak self] in
@@ -714,7 +711,7 @@ open class FeederContext: DoesLog {
     }
     if self.isConnected {
       gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
-                       isPages: isPages) { res in
+                       isPages: loadPages) { res in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)
@@ -792,6 +789,7 @@ open class FeederContext: DoesLog {
 
   /// Download complete Payload of Issue
   private func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
+//    enqueuedDownlod.append(issue)
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     markStartDownload(feed: issue.feed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
       issue.isDownloading = true
@@ -809,6 +807,7 @@ open class FeederContext: DoesLog {
         }
         else { res = .failure(err!) }
         self.markStopDownload(dlId: dlId, tstart: tstart)
+//        self.enqueuedDownlod.removeAll{ $0.date == issue.date}
         Notification.send("issue", result: res, sender: issue)
       }
     }
