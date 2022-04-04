@@ -51,6 +51,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let searchNc = NavigationController(rootViewController: search)
+//    let searchNc = NavigationController(rootViewController: SearchSettingsVC())
     
     let settings = SettingsVC(feederContext: feederContext)
     settings.title = "Einstellungen"
@@ -58,7 +59,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     self.viewControllers = [ homeNc, bookmarks, searchNc, settings]
-    self.selectedIndex = 0
+    self.selectedIndex = 2
   }
   
   func applyStyles() {

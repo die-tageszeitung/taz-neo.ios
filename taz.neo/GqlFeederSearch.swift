@@ -83,6 +83,11 @@ public enum SearchRangeOption: String {
   case custom = "Zeitraum festlegen"
   
   static let allItems : [SearchRangeOption] = [.all, .lastDay, .lastWeek, .lastMonth, .lastYear, .custom]
+  
+  var textWithDate: String {
+    get {
+      return "\(self.rawValue) (\(self.minimumDate?.shortest ?? "") - \(self.maximuDate?.shortest ?? ""))"
+    }}
     
   var minimumDate: Date? {
     get {
@@ -95,14 +100,11 @@ public enum SearchRangeOption: String {
         case .lastWeek:
           return cal.startOfDay(for: Date(timeIntervalSinceNow: -7*60*60*24))
         case .lastMonth:
-          let startOfMonth = Date().startOfMonth ?? Date()
           return Calendar.current.date(byAdding: DateComponents(month: -1),
-                                       to: startOfMonth)
+                                       to: Date())
         case .lastYear:
           return cal.date(
-            from: DateComponents(year: cal.component(.year, from: Date()) - 1,
-                                 month: 1,
-                                 day: 1))
+            from: DateComponents(year: cal.component(.year, from: Date()) - 1))
         default:
           return nil
       }

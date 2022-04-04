@@ -14,6 +14,7 @@ class SearchSettingsVC: UITableViewController {
   var finishedClosure: ((Bool)->())?
   
   private let _data = TData()
+
   public var data: TData {
     get {
       /**
@@ -45,56 +46,120 @@ class SearchSettingsVC: UITableViewController {
     tableView.reloadData()
   }
   
-  lazy var footer:UIView = {
-    // manuell size is a workaround due autolayout not working correctly in environment
-    // autolayout in table Header or Footer is main reason
-    let estimatedFooterHeight
-    = 2*Const.Size.DefaultPadding
-    + 2*UIButton.tazButtonHeight
-    + 10
-    let v = UIView(frame: CGRect(x: 0,
-                                 y: 0,
-                                 width: UIWindow.size.width,
-                                 height: estimatedFooterHeight))
-    let searchButton = UIButton().primary_CTA("Suche starten")
-    let resetButton = UIButton().secondary_CTA("Zurücksetzen & Schließen")
-    
-    searchButton.onTapping {[weak self] _ in
-      self?.finishedClosure?(true)
+  lazy var header:HeaderActionBar = {
+    let h = HeaderActionBar()
+    h.leftButton.onTapping {[weak self] _ in
+      self?.dismiss(animated: true, completion: {[weak self] in
+        self?.restoreInitialState()
+        self?.finishedClosure?(false)
+      })
     }
-    
-    resetButton.onTapping {[weak self] _ in
-      self?.restoreInitialState()
-      self?.finishedClosure?(false)
+    h.rightButton.onTapping {[weak self] _ in
+      self?.dismiss(animated: true, completion: {[weak self] in
+        self?.finishedClosure?(true)
+      })
     }
-    
-    
-    v.addSubview(searchButton)
-    v.addSubview(resetButton)
-    
-    pin(searchButton.left, to: v.left, dist: Const.Size.DefaultPadding, priority: .defaultHigh)
-    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
-    pin(resetButton.left, to: v.left, dist: Const.Size.DefaultPadding, priority: .defaultHigh)
-    pin(resetButton.right, to: v.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
-    
-    pin(searchButton.top, to: v.top, dist: Const.Size.DefaultPadding, priority: .defaultHigh)
-    pin(resetButton.top, to: searchButton.bottom, dist: 10)
-    pin(resetButton.bottom, to: v.bottom, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
-    
-    return v
+    return h
   }()
   
+   
   var viewWidthConstraint: NSLayoutConstraint?
   
   func setup(){
-    viewWidthConstraint = self.tableView.pinWidth(UIWindow.size.width, priority: .defaultLow)//prevent size animation error
+    #warning("bad")
+    _data.tblView = self.tableView
+    _data.updateContentSizeClosure = { [weak self] in
+      guard let self = self else { return }
+      self.preferredContentSize = CGSize(width: self.preferredContentSize.width, height: self.tableView.contentSize.height + 50)
+    }
+    
+    
+//    viewWidthConstraint = self.tableView.pinWidth(UIWindow.size.width, priority: .defaultLow)//prevent size animation error
     tableView.register(TazHeaderFooterView.self,
                        forHeaderFooterViewReuseIdentifier: TazHeaderFooterView.reuseIdentifier)
-    self.tableView.contentInset = .zero
-    tableView.separatorInset = Const.Insets.Default //also for header inset
-    tableView.separatorStyle = .none
-    self.view.backgroundColor = Const.SetColor.ios(.systemBackground).color
-    tableView.tableFooterView = footer
+    self.tableView.backgroundColor = .white
+//    tableView.separatorInset = Const.Insets.Default //also for header inset
+//    tableView.separatorStyle = .none
+//    tableView.preservesSuperviewLayoutMargins = false
+//    tableView.insetsLayoutMarginsFromSafeArea = true
+//    tableView.tableFooterView = footer
+//        self.tableView.contentInset = UIEdgeInsets(top: 40, left: 20, bottom: Const.Size.SmallPadding, right: -80)
+//  tableView.layoutMargins = .init(top: 0.0, left: 20, bottom: 0.0, right: 30)
+        // if you want the separator lines to follow the content width
+//        tableView.separatorInset = tableView.layoutMargins
+  }
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    setup()
+  }
+  
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+
+    if let sv = self.tableView.superview {
+//      pin( self.tableView, toSafe: sv, insets: UIEdgeInsets(top: 0, left: 10, bottom: -50, right: -20))
+      self.tableView.contentInset = UIEdgeInsets(top: 60, left: 0, bottom: 0, right: 0)
+      self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 60, left: 0, bottom: 5, right: 0)
+      sv.addSubview(header)
+      header.pinHeight(60)
+      pin(header, toSafe: sv, insets: UIEdgeInsets(top: 13, left: Const.Size.DefaultPadding, bottom: 0, right: -Const.Size.DefaultPadding), exclude: .bottom)
+    }
+  }
+}
+
+class HeaderActionBar: UIStackView {
+  
+  public lazy var leftButton: UIButton = {
+    let btn = UIButton()
+    btn.translatesAutoresizingMaskIntoConstraints = false
+    btn.setTitle("Zurücksetzen", for: .normal)
+    btn.titleLabel?.font = Const.Fonts.contentFont
+    btn.setTitleColor(Const.SetColor.ios(.label).color, for: .normal)
+    return btn
+  }()
+  
+  public lazy var rightButton: UIButton = {
+    let btn = UIButton()
+    btn.translatesAutoresizingMaskIntoConstraints = false
+    btn.setTitleColor(Const.SetColor.ios(.label).color, for: .normal)
+    btn.setTitle("Suchen", for: .normal)
+    btn.titleLabel?.font = Const.Fonts.contentFont
+    btn.titleLabel?.textColor = .red
+    return btn
+  }()
+  
+  public lazy var label: UILabel = {
+    let lbl = UILabel().boldContentFont()
+    lbl.textColor = .black
+    lbl.numberOfLines = 0
+    lbl.textAlignment = .center
+    lbl.text = "Suchoptionen"
+    return lbl
+  }()
+  
+  func setup(){
+    let blur = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+    self.addSubview(blur)
+    pin(blur, to: self, insets: UIEdgeInsets(top: -10, left: -Const.Size.DefaultPadding, bottom: 0, right: Const.Size.DefaultPadding))
+    self.alignment = .fill
+    self.distribution = .equalCentering
+    self.spacing = 6.0
+    self.axis = .horizontal
+    addArrangedSubview(leftButton)
+    addArrangedSubview(label)
+    addArrangedSubview(rightButton)
+  }
+  
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+  
+  required init(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
   }
 }
 
@@ -188,6 +253,8 @@ class TextInputCell: TazCell {
                               bottom: -4,
                               right: -Const.Size.DefaultPadding)
     pin(textField, to: contentView, insets: insets)
+    
+    
   }
 }
 
@@ -301,7 +368,7 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
 }
 
 class TData {
-  
+  var updateContentSizeClosure: (()->())?
   typealias tContent = (title:String?,
                         cells:[TazCell]?)
   ///added, deleted
@@ -342,20 +409,37 @@ class TData {
   
   let datePickers = CustomRangeDatePickerView()
   
+  var tblView:UITableView?
+  
   lazy var customRangeCellExpanded: RadioButtonCell = {
     let cell = RadioButtonCell()
     cell.range = .custom
-    if true {
-      cell.additionalContentWrapper.addSubview(datePickers)
-      pin(datePickers, to: cell.additionalContentWrapper, dist: Const.Size.DefaultPadding)
+    cell.additionalContentWrapper.addSubview(datePickers)
+    pin(datePickers, to: cell.additionalContentWrapper, dist: Const.Size.DefaultPadding)
+    datePickers.fromCloseLabel.onTapping { [weak self] _ in
+      guard let self = self else { return }
+      self.expandedSection = nil
+      let oldContent = self.content
+//
+//      cell....DO TAP?
+      self.update()
+      cell.gestureRecognizers?.first?.state = .ended
+      guard let tv = self.tblView else { return }
+      self.reloadAnimatedIfNeeded(tableView: tv, oldContent: oldContent)
     }
-    else {
-      let v = UIView()
-      v.pinHeight(60, priority: .required)
-      v.backgroundColor = .yellow.withAlphaComponent(0.4)
-      cell.additionalContentWrapper.addSubview(v)
-      pin(v, to: cell.additionalContentWrapper)
+    datePickers.toCloseLabel.onTapping { [weak self] _ in
+      guard let self = self else { return }
+      self.expandedSection = nil
+      let oldContent = self.content
+//
+//      cell....DO TAP?
+      self.update()
+      cell.gestureRecognizers?.first?.state = .ended
+      #warning("bad")
+      guard let tv = self.tblView else { return }
+      self.reloadAnimatedIfNeeded(tableView: tv, oldContent: oldContent)
     }
+    
     return cell
   }()
   
@@ -368,7 +452,7 @@ class TData {
   
   lazy var rangeMoreCell: MoreCell = {
     let cell = MoreCell()
-    cell.label.text = settings.range.currentOption.rawValue
+    cell.label.text = settings.range.currentOption.textWithDate
     return cell
   }()
   
@@ -405,9 +489,21 @@ class TData {
   }()
   
   
-  func update(){    
-    rangeMoreCell.label.text = settings.range.currentOption.rawValue
-    filterMoreCell.label.text = settings.filter.rawValue
+  func update(){
+    
+    
+    if settings.range.currentOption == .custom {
+      rangeMoreCell.label.text
+      = datePickers.fromPicker.date.shortest
+      + " - "
+      + datePickers.toPicker.date.shortest
+    }
+    else {
+      rangeMoreCell.label.text = settings.range.currentOption.textWithDate
+    }
+    
+    
+    filterMoreCell.label.text = settings.filter.labelText
     sortingMoreCell.label.text = settings.sorting.labelText
     
     var rangeCells:[RadioButtonCell] = []
@@ -441,8 +537,15 @@ class TData {
     
     switch (cell, rbCell) {
       case let (_, rbCell) where rbCell?.range == .custom:
+        if let d = settings.range.currentOption.minimumDate {
+          datePickers.fromPicker.date = d
+        }
+        if let d = settings.range.currentOption.maximuDate {
+          datePickers.toPicker.date = d
+        }
         settings.range.currentOption = rbCell!.range!
         self.customRange = true
+        
       case (rangeMoreCell, _):
         expandedSection = 1
       case let (_, rbCell) where rbCell?.range != nil:
@@ -503,6 +606,9 @@ class TData {
       if deleted.count > 0 { tableView.deleteRows(at: deleted, with: .middle) }
       if added.count > 0 { tableView.insertRows(at: added, with: .middle) }
     }
+    onMainAfter {
+      self.updateContentSizeClosure?()
+    }
   }
   
   init() {
@@ -512,8 +618,11 @@ class TData {
 
 class CustomRangeDatePickerView: UIView {
   
-  public var fromPicker = UIDatePicker()
-  public var toPicker = UIDatePicker()
+  public let fromPicker = UIDatePicker()
+  public let toPicker = UIDatePicker()
+  
+  public let fromCloseLabel = UILabel("Übernehmen")
+  public let toCloseLabel = UILabel("Übernehmen")
   
   @objc public func dateChanged(_ sender: UIControl) {
     if sender == fromPicker {
@@ -547,17 +656,28 @@ class CustomRangeDatePickerView: UIView {
     
     let fromLabel = UILabel("Suche von:")
     let toLabel = UILabel("Suche bis:")
+
+    fromLabel.contentFont()
+    toLabel.contentFont()
+    fromCloseLabel.contentFont()
+    toCloseLabel.contentFont()
     self.addSubview(fromLabel)
+    self.addSubview(fromCloseLabel)
     self.addSubview(fromPicker)
     self.addSubview(toLabel)
+    self.addSubview(toCloseLabel)
     self.addSubview(toPicker)
     pin(fromLabel, to: self, exclude: .bottom)
+    pin(fromCloseLabel.right, to: self.right)
+    pin(fromCloseLabel.centerY, to: fromLabel.centerY)
     pin(fromPicker.top, to: fromLabel.bottom, dist: 3)
     pin(fromPicker.left, to: self.left)
     pin(fromPicker.right, to: self.right)
     pin(toLabel.top, to: fromPicker.bottom, dist: 3)
     pin(toLabel.left, to: self.left)
     pin(toLabel.right, to: self.right)
+    pin(toCloseLabel.right, to: self.right)
+    pin(toCloseLabel.centerY, to: toLabel.centerY)
     pin(toPicker.top, to:toLabel.bottom, dist: 5)
     pin(toPicker, to: self, exclude: .top)
   }

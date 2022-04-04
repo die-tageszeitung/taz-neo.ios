@@ -28,6 +28,9 @@ class SearchResultsTVC:UITableViewController{
   lazy var serachSettingsVC:SearchSettingsVC = {
     let vc = SearchSettingsVC(style: .grouped)
     vc.setup()
+    
+    vc.preferredContentSize = CGSize(width: min(self.view.frame.size.width, 500), height: UIWindow.size.height - 280)
+    
     vc.finishedClosure = { [weak self] doSearch in
       if doSearch {
         self?.toggleExtendedSearch()
@@ -47,7 +50,20 @@ class SearchResultsTVC:UITableViewController{
   lazy var fixedHeader:SearchBarFixedHeader = {
     let view = SearchBarFixedHeader()
     view.extendedSearchButton.onPress { [weak self] _ in
-      self?.toggleExtendedSearch()
+      guard let child = self?.serachSettingsVC else { return }
+      child.modalPresentationStyle = .popover
+
+      let popoverPresenter = child.popoverPresentationController
+//            popoverPresenter?.sourceRect = CGRect(x: 0, y: 0, width: 32, height: 32)
+      popoverPresenter?.permittedArrowDirections = .up
+      popoverPresenter?.canOverlapSourceViewRect = false
+      popoverPresenter?.popoverLayoutMargins = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 4)
+//      popoverPresenter?.popoverLayoutMargins = UIEdgeInsets.zero
+      popoverPresenter?.sourceView = self?.fixedHeader.extendedSearchButton
+      popoverPresenter?.delegate = self
+      self?.present(child, animated: true, completion: {
+        print("presented...")
+      })
     }
     return view
   }()
@@ -59,6 +75,7 @@ class SearchResultsTVC:UITableViewController{
   }
   
   func toggleExtendedSearch(){
+    return
     if self.serachSettingsVC.view.superview == nil {//open
       fixedHeaderButtonConstraint?.isActive = true
       self.fixedHeader.filterActive = true
@@ -142,6 +159,12 @@ class SearchResultsTVC:UITableViewController{
     }
     tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
     tableView.scrollIndicatorInsets = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
+  }
+}
+
+extension SearchResultsTVC: UIPopoverPresentationControllerDelegate {
+  func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+    return .none
   }
 }
 
