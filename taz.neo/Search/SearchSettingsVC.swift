@@ -65,15 +65,51 @@ class SearchSettingsVC: UITableViewController {
    
   var viewWidthConstraint: NSLayoutConstraint?
   
-  func setup(){
-    #warning("bad")
-    _data.tblView = self.tableView
-    _data.updateContentSizeClosure = { [weak self] in
-      guard let self = self else { return }
-      self.preferredContentSize = CGSize(width: self.preferredContentSize.width, height: self.tableView.contentSize.height + 50)
+  
+  /// get updated IndexPath...
+  private func reloadAnimatedIfNeeded(oldContent: [tContent]) {
+    var added:[IndexPath] = []
+    var deleted:[IndexPath] = []
+    
+    for idSect in 0 ... max(_data.content.count, oldContent.count) - 1{
+      let newCells = _data.content.valueAt(idSect)?.cells ?? []
+      let oldCells = oldContent.valueAt(idSect)?.cells ?? []
+
+      let addedCells = Set(newCells).subtracting(oldCells)
+      let deletedCells = Set(oldCells).subtracting(newCells)
+
+      for idRow in 0 ... (max(newCells.count, oldCells.count, 1) - 1){
+        let ip = IndexPath(row: idRow , section: idSect)
+        let newCell = _data.cell(at: ip)
+        let oldCell = oldCells.valueAt(idRow)
+
+        if let newCell = newCell, addedCells.contains(newCell){
+          added.append(ip)
+        }
+
+        if let oldCell = oldCell, deletedCells.contains(oldCell){
+          deleted.append(ip)
+        }
+      }
     }
     
-    
+    if (added.count + deleted.count) == 0 {
+      tableView.reloadData()
+      return
+    }
+    //middle or fade animation
+    tableView.performBatchUpdates {
+      if deleted.count > 0 { tableView.deleteRows(at: deleted, with: .middle) }
+      if added.count > 0 { tableView.insertRows(at: added, with: .middle) }
+    }
+    onMainAfter {
+      [weak self] in
+        guard let self = self else { return }
+        self.preferredContentSize = CGSize(width: self.preferredContentSize.width, height: self.tableView.contentSize.height + 50)
+    }
+  }
+  
+  func setup(){
 //    viewWidthConstraint = self.tableView.pinWidth(UIWindow.size.width, priority: .defaultLow)//prevent size animation error
     tableView.register(TazHeaderFooterView.self,
                        forHeaderFooterViewReuseIdentifier: TazHeaderFooterView.reuseIdentifier)
@@ -87,6 +123,13 @@ class SearchSettingsVC: UITableViewController {
 //  tableView.layoutMargins = .init(top: 0.0, left: 20, bottom: 0.0, right: 30)
         // if you want the separator lines to follow the content width
 //        tableView.separatorInset = tableView.layoutMargins
+    
+    _data.reloadTable = { [weak self] in
+      guard let self = self else { return }
+      let oldContent = self._data.content
+      self._data.update()
+      self.reloadAnimatedIfNeeded(oldContent: oldContent)
+    }
   }
   
   override func viewDidLoad() {
@@ -231,7 +274,7 @@ extension SearchSettingsVC {
 
   open override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
-    data.handle(tableView, selectRowAt: indexPath)
+    data.handle(selectRowAt: indexPath)
   }
 }
 
@@ -385,7 +428,9 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
 }
 
 class TData {
-  var updateContentSizeClosure: (()->())?
+  
+  var reloadTable: (()->())?
+  
   typealias tContent = (title:String?,
                         cells:[TazCell]?)
   ///added, deleted
@@ -426,35 +471,18 @@ class TData {
   
   let datePickers = CustomRangeDatePickerView()
   
-  var tblView:UITableView?
-  
   lazy var customRangeCellExpanded: RadioButtonCell = {
     let cell = RadioButtonCell()
     cell.range = .custom
     cell.additionalContentWrapper.addSubview(datePickers)
     pin(datePickers, to: cell.additionalContentWrapper, dist: Const.Size.DefaultPadding)
     datePickers.fromCloseLabel.onTapping { [weak self] _ in
-      guard let self = self else { return }
-      self.expandedSection = nil
-      let oldContent = self.content
-//
-//      cell....DO TAP?
-      self.update()
-      cell.gestureRecognizers?.first?.state = .ended
-      guard let tv = self.tblView else { return }
-      self.reloadAnimatedIfNeeded(tableView: tv, oldContent: oldContent)
+      self?.expandedSection = nil
+      self?.reloadTable?()
     }
     datePickers.toCloseLabel.onTapping { [weak self] _ in
-      guard let self = self else { return }
-      self.expandedSection = nil
-      let oldContent = self.content
-//
-//      cell....DO TAP?
-      self.update()
-      cell.gestureRecognizers?.first?.state = .ended
-      #warning("bad")
-      guard let tv = self.tblView else { return }
-      self.reloadAnimatedIfNeeded(tableView: tv, oldContent: oldContent)
+      self?.expandedSection = nil
+      self?.reloadTable?()
     }
     
     return cell
@@ -548,7 +576,7 @@ class TData {
     return self.content.valueAt(indexPath.section)?.cells?.valueAt(indexPath.row)
   }
   
-  func handle(_ tableView: UITableView, selectRowAt indexPath: IndexPath) {
+  func handle(selectRowAt indexPath: IndexPath) {
     let cell = cell(at: indexPath)
     let rbCell = cell as? RadioButtonCell
     
@@ -582,51 +610,10 @@ class TData {
       default:
         break
     }
-    let oldContent = content
-    update()
-    reloadAnimatedIfNeeded(tableView: tableView, oldContent: oldContent)
+    reloadTable?()
   }
   
-  /// get updated IndexPath...
-  private func reloadAnimatedIfNeeded(tableView: UITableView, oldContent: [tContent]) {
-    var added:[IndexPath] = []
-    var deleted:[IndexPath] = []
-    
-    for idSect in 0 ... max(content.count, oldContent.count) - 1{
-      let newCells = content.valueAt(idSect)?.cells ?? []
-      let oldCells = oldContent.valueAt(idSect)?.cells ?? []
-
-      let addedCells = Set(newCells).subtracting(oldCells)
-      let deletedCells = Set(oldCells).subtracting(newCells)
-
-      for idRow in 0 ... (max(newCells.count, oldCells.count, 1) - 1){
-        let ip = IndexPath(row: idRow , section: idSect)
-        let newCell = self.cell(at: ip)
-        let oldCell = oldCells.valueAt(idRow)
-
-        if let newCell = newCell, addedCells.contains(newCell){
-          added.append(ip)
-        }
-
-        if let oldCell = oldCell, deletedCells.contains(oldCell){
-          deleted.append(ip)
-        }
-      }
-    }
-    
-    if (added.count + deleted.count) == 0 {
-      tableView.reloadData()
-      return
-    }
-    //middle or fade animation
-    tableView.performBatchUpdates {
-      if deleted.count > 0 { tableView.deleteRows(at: deleted, with: .middle) }
-      if added.count > 0 { tableView.insertRows(at: added, with: .middle) }
-    }
-    onMainAfter {
-      self.updateContentSizeClosure?()
-    }
-  }
+  
   
   init() {
     update()
