@@ -25,22 +25,21 @@ class SearchResultsTVC:UITableViewController{
     }
   }
   
-  lazy var serachSettingsVC:SearchSettingsVC = {
+  public private(set) lazy var serachSettingsVC:SearchSettingsVC = {
     let vc = SearchSettingsVC(style: .grouped)
     vc.setup()
     
     vc.preferredContentSize = CGSize(width: min(self.view.frame.size.width, 500), height: UIWindow.size.height - 280)
     
     vc.finishedClosure = { [weak self] doSearch in
+      self?.checkFilter()
       if doSearch {
-        self?.toggleExtendedSearch()
         self?.searchClosure?()
       }
       else {
         //Do both Steps, scroll up and reset
         _ = self?.restoreInitialState()
         _ = self?.restoreInitialState()
-        self?.toggleExtendedSearch()
       }
     }
     return vc
@@ -67,42 +66,6 @@ class SearchResultsTVC:UITableViewController{
     }
     return view
   }()
-  
-  func closeExtendedSearch(){
-    if self.serachSettingsVC.view.superview != nil {
-      toggleExtendedSearch()
-    }
-  }
-  
-  func toggleExtendedSearch(){
-    return
-    if self.serachSettingsVC.view.superview == nil {//open
-      fixedHeaderButtonConstraint?.isActive = true
-      self.fixedHeader.filterActive = true
-      self.fixedHeader.textLabel.alpha = 0.0
-      self.fixedHeader.set(text: "erweiterte suche", font: Const.Fonts.boldContentFont)
-      fixedHeader.wrapper.addSubview(self.serachSettingsVC.view)
-      fixedHeader.wrapper.layoutSubviews()
-      pin(self.serachSettingsVC.view, toSafe: fixedHeader.wrapper)
-      UIView.animate(withDuration: 0.5, delay: 0.0, options: .curveEaseInOut) {
-        self.fixedHeader.textLabel.alpha = 1.0
-        self.fixedHeader.seperator.alpha = 0.0
-        self.fixedHeader.wrapper.layoutSubviews()
-      } completion: { _ in  }
-    }
-    else {//close
-      UIView.animate(withDuration: 0.7, delay: 0.0, options: .curveEaseInOut) {
-        self.fixedHeader.filterWrapperHeightConstraint?.constant = 0
-        self.fixedHeader.textLabel.alpha = 0.0
-        self.fixedHeader.seperator.alpha = 1.0
-        self.fixedHeader.layoutSubviews()
-      } completion: { _ in
-        self.serachSettingsVC.view.removeFromSuperview()
-        self.checkFilter()
-        self.fixedHeaderButtonConstraint?.isActive = false
-      }
-    }
-  }
   
   lazy var footer = LoadingView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
   

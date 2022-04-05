@@ -35,8 +35,6 @@ public struct SearchSettings: Equatable {
         || sorting != .relevance
         || filter != .all
         || range.currentOption != .all
-        || from != nil
-        || to != nil
     }
   }
   

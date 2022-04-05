@@ -173,7 +173,7 @@ extension SearchController: UISearchBarDelegate {
       return
     }
     //Ensute settings closed e.g. if search by keyboard
-    self.resultsTableController.closeExtendedSearch()
+    self.resultsTableController.serachSettingsVC.dismiss(animated: true)
     
     if searchItem.settings != searchSettings {
       searchItem.settings = searchSettings
