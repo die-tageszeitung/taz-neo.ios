@@ -53,20 +53,10 @@ class SearchResultArticleVc : ArticleVC {
   }
   
   override func setupSlider() {}
-  
-  override func willMove(toParent parent: UIViewController?) {
-    super.willMove(toParent: parent)
-    navCtrl = navigationController
-  }
 
-  var navCtrl:UINavigationController?
-  
-  override func didMove(toParent parent: UIViewController?) {
-    if parent == nil {
-      navCtrl?.isNavigationBarHidden = false
-      navCtrl = nil
-    }
-    super.didMove(toParent: parent)
+  override func viewWillAppear(_ animated: Bool) {
+      super.viewWillAppear(animated)
+      self.navigationController?.setNavigationBarHidden(true, animated: false)
   }
   
   override func setup() {

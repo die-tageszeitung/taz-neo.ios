@@ -44,6 +44,9 @@ class SearchController: UIViewController {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     searchController.searchBar.alpha = 1.0
+    self.navigationController?.setNavigationBarHidden(false, animated: false)
+    resultsTableController.tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
+    resultsTableController.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 45, left: 0, bottom: 0, right: 0)
   }
   
   override func viewDidLoad() {
@@ -155,7 +158,6 @@ extension SearchController: UISearchBarDelegate {
       }
       self.articleVC.reload()
       if self.articleVC.parentViewController == nil {
-        self.navigationController?.isNavigationBarHidden = true
 //        this.setHeader(artIndex: idx)
         self.navigationController?.pushViewController(self.articleVC, animated: true)
       }

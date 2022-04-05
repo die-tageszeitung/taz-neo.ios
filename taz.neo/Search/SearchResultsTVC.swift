@@ -110,18 +110,15 @@ class SearchResultsTVC:UITableViewController{
     self.tableView.tableFooterView = footer
   }
   
-  var fixedHeaderButtonConstraint: NSLayoutConstraint?
-  
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     if fixedHeader.superview == nil,
         let target = tableView.superview {
       target.addSubview(fixedHeader)
-      fixedHeaderButtonConstraint = pin(fixedHeader, toSafe: target).bottom
-      fixedHeaderButtonConstraint?.isActive = false
+      pin(fixedHeader, toSafe: target, exclude: .bottom)
+      tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
+      tableView.scrollIndicatorInsets = UIEdgeInsets(top: 45, left: 0, bottom: 0, right: 0)
     }
-    tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
-    tableView.scrollIndicatorInsets = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
   }
 }
 
