@@ -57,6 +57,21 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     settings.title = "Einstellungen"
     settings.tabBarItem.image = UIImage(named: "settings")
     settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    if gt_iOS13 == false {
+      ///iOS 12 and lower forget insets on select
+      ///@see: https://stackoverflow.com/a/22549516
+      ///set them to zero
+      home.tabBarItem.imageInsets = .zero
+      bookmarks.tabBarItem.imageInsets = .zero
+      search.tabBarItem.imageInsets = .zero
+      settings.tabBarItem.imageInsets = .zero
+      ///...and use resized images
+      home.tabBarItem.image = home.tabBarItem.image?.resized(targetSize: CGSize(width: 32, height: 32), scale: UIScreen.main.scale)
+      bookmarks.tabBarItem.image = bookmarks.tabBarItem.image?.resized(targetSize: CGSize(width: 32, height: 32), scale: UIScreen.main.scale)
+      search.tabBarItem.image = search.tabBarItem.image?.resized(targetSize: CGSize(width: 32, height: 32), scale: UIScreen.main.scale)
+      settings.tabBarItem.image = settings.tabBarItem.image?.resized(targetSize: CGSize(width: 32, height: 32), scale: UIScreen.main.scale)
+
+    }
     
     self.viewControllers = [ homeNc, bookmarks, searchNc, settings]
     self.selectedIndex = 2
