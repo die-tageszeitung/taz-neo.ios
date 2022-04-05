@@ -98,13 +98,30 @@ class SearchSettingsVC: UITableViewController {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
 
-    if let sv = self.tableView.superview {
-//      pin( self.tableView, toSafe: sv, insets: UIEdgeInsets(top: 0, left: 10, bottom: -50, right: -20))
+    if header.superview == nil, let sv = self.tableView.superview {
+      if gt_iOS13 == false {
+        /// unfortunately header height expands till sv bottom and overlays tableView so its not clickable anymore
+        /// insert at 0 also not works then tv overlays header
+        /// simple solution: make the header scrollable on ios 12
+        let headerWrapper = UIView()
+        headerWrapper.pinHeight(60)
+        headerWrapper.pinWidth(sv.frame.size.width)
+        headerWrapper.addSubview(header)
+        pin(header, toSafe: headerWrapper,
+            insets: UIEdgeInsets(top: 0,
+                                 left: Const.Size.DefaultPadding,
+                                 bottom: 0,
+                                 right: -Const.Size.DefaultPadding))
+        headerWrapper.doLayout()
+        self.tableView.tableHeaderView = headerWrapper
+        return
+      }
       self.tableView.contentInset = UIEdgeInsets(top: 60, left: 0, bottom: 0, right: 0)
       self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 60, left: 0, bottom: 5, right: 0)
-      sv.addSubview(header)
       header.pinHeight(60)
+      sv.addSubview(header)
       pin(header, toSafe: sv, insets: UIEdgeInsets(top: 13, left: Const.Size.DefaultPadding, bottom: 0, right: -Const.Size.DefaultPadding), exclude: .bottom)
+      
     }
   }
 }
