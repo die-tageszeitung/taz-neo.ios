@@ -36,11 +36,6 @@ class SearchResultsTVC:UITableViewController{
       if doSearch {
         self?.searchClosure?()
       }
-      else {
-        //Do both Steps, scroll up and reset
-        _ = self?.restoreInitialState()
-        _ = self?.restoreInitialState()
-      }
     }
     return vc
   }()
