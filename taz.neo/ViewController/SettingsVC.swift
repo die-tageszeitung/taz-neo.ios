@@ -656,6 +656,7 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Zurücksetzen", style: .destructive,
                                          handler: { _ in
+      MainNC.singleton.feederContext.endPolling()
       MainNC.singleton.deleteUserData(excludeDataPolicyAccepted: false)
       Defaults.singleton.setDefaults(values: ConfigDefaults,
                                      isNotify: false,
