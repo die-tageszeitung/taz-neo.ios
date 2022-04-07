@@ -698,6 +698,12 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
+    
+    if pushToken == nil && oldToken == nil {
+      closure(.failure(error("one token must not be nil either oldToken or (new) pushToken")))
+      return
+    }
+    
     let pToken = (pushToken == nil) ? "" : "pushToken: \"\(pushToken!)\","
     let oToken = (oldToken == nil) ? "" : "oldToken: \"\(oldToken!)\","
     let request = """

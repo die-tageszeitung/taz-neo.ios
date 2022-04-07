@@ -34,6 +34,18 @@ extension Defaults{
     }
   }
   
+  private static var tmpLastKnownPushToken:String?
+  
+  static var lastKnownPushToken : String? {
+    get {
+      return tmpLastKnownPushToken ?? Defaults.singleton["lastKnownPushToken"] }
+    set {
+      guard newValue != nil else { Log.log("not delete lastKnownPushToken" ); return }
+      Defaults.singleton["lastKnownPushToken"] = newValue
+      tmpLastKnownPushToken = newValue
+    }
+  }
+  
   struct articleTextSize {
     @Default("articleTextSize")
     static var articleTextSize: Int
