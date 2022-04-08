@@ -60,16 +60,6 @@ public class FeedbackViewController : UIViewController{
     super.init(nibName: nil, bundle: nil)
   }
   
-  public override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    updateViewSize(self.view.bounds.size)
-  }
-  
-  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    self.presentedViewController?.viewWillTransition(to: size, with: coordinator)
-    updateViewSize(size)
-  }
-  
   private var initialParent: UINavigationController?
   private var initialParentInteractivePopGestureRecognizerEnabled: Bool = false
   
@@ -93,21 +83,24 @@ public class FeedbackViewController : UIViewController{
     /// 2. on close presenting vc is maybe in wrong size
   }
   
+  
+  public override func viewWillLayoutSubviews() {
+    super.viewWillLayoutSubviews()
+    updateViewSize()
+  }
+  
   private var wConstraint:NSLayoutConstraint?
 
   /// update size for changed traits
-  func updateViewSize(_ newSize:CGSize){
+  private func updateViewSize(){
     guard let feedbackView = feedbackView else { return }
+    let newSize = self.view.superview?.frame.size ?? UIWindow.size
     if let constraint = wConstraint{
+      if constraint.constant == newSize.width - 24 { return }
       feedbackView.stack.removeConstraint(constraint)
     }
     wConstraint = feedbackView.stack.pinWidth(newSize.width - 24, priority: .required)
   }
-  
-//  public override func viewDidDisappear(_ animated: Bool) {
-//    ///Warning Not Working when Presented wirh Overlay!
-//    super.viewDidDisappear(animated)
-//  }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
