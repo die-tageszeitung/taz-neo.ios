@@ -580,7 +580,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       spinner.startAnimating()
     }
     feederContext.getStoredOvwIssues(feed: feed)
-    feederContext.getOvwIssues(feed: feed, count: 20, isAutomatically: false)
+    feederContext.getOvwIssues(feed: feed, count: 4, isAutomatically: false)
   }//Eof viewDidLoad()
   
   var pickerCtrl : DatePickerController?
