@@ -95,12 +95,14 @@ public final class NotificationBusiness: DoesLog {
       return
     }
     feederContext.gqlFeeder.notification(pushToken: feederContext.pushToken,
-                                         oldToken: feederContext.pushToken, isTextNotification: isTextNotification) {[weak self] res in
+                                         oldToken:  Defaults.lastKnownPushToken ?? feederContext.pushToken,
+                                         isTextNotification: isTextNotification) {[weak self] res in
       if let err = res.error() {
         self?.debug("Update pushToken and Notification Settings failed \(err)")
       }
       else {
         self?.debug("Updated pushToken and Notification Settings")
+        Defaults.lastKnownPushToken = feederContext.pushToken
       }
     }
   }

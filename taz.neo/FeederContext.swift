@@ -280,7 +280,8 @@ open class FeederContext: DoesLog {
   public func setupRemoteNotifications() {
     let nd = UIApplication.shared.delegate as! AppDelegate
     let dfl = Defaults.singleton
-    let oldToken = dfl["pushToken"]
+    let oldToken = dfl["pushToken"] ?? Defaults.lastKnownPushToken
+    Defaults.lastKnownPushToken = oldToken
     pushToken = oldToken
     nd.onReceivePush {   [weak self] (pn, payload) in
       self?.processPushNotification(pn: pn, payload: payload)
@@ -290,6 +291,7 @@ open class FeederContext: DoesLog {
       if pn.isPermitted { 
         self.debug("Push permission granted") 
         self.pushToken = pn.deviceId
+        Defaults.lastKnownPushToken = self.pushToken
       }
       else { 
         self.debug("No push permission") 
@@ -303,6 +305,7 @@ open class FeederContext: DoesLog {
                                      isTextNotification: isTextNotification) { [weak self] res in
           if let err = res.error() { self?.error(err) }
           else {
+            Defaults.lastKnownPushToken = self?.pushToken
             self?.debug("Updated PushToken")
           }
         }

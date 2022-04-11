@@ -106,7 +106,6 @@ open class FeedbackComposer : DoesLog{
     if currentVc.isKind(of: UIAlertController.self),
        let presenting = currentVc.presentingViewController {
       currentVc = presenting
-      feedbackViewController.updateViewSize(UIWindow.size)
     }
     else if let nc = currentVc.navigationController {
       if #available(iOS 13.0, *) {
@@ -114,7 +113,6 @@ open class FeedbackComposer : DoesLog{
         restoreModalityController = currentVc
       }
       currentVc = nc
-      feedbackViewController.updateViewSize(UIWindow.size)
     }
     else if #available(iOS 13.0, *), currentVc.presentingViewController != nil {
       currentVc.isModalInPresentation = true

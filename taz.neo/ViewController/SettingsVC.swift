@@ -218,9 +218,13 @@ extension SettingsVC {
       onMain {   [weak self] in
         guard let self = self else { return }
         if let toggle = self.notificationsCell.customAccessoryView as? UISwitch{
-          toggle.isOn
-          = self.isTextNotification
-          && NotificationBusiness.sharedInstance.systemNotificationsEnabled
+          toggle.isOn = self.isTextNotification
+          if NotificationBusiness.sharedInstance.systemNotificationsEnabled {
+            toggle.onTintColor = .systemGreen
+          }
+          else {
+            toggle.onTintColor = UIColor(white: 0.95, alpha: 1.0)
+          }
         }
       }
     }
