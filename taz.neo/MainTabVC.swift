@@ -74,7 +74,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
     
     self.viewControllers = [ homeNc, bookmarks, searchNc, settings]
-    self.selectedIndex = 2
+    self.selectedIndex = 0
   }
   
   func applyStyles() {

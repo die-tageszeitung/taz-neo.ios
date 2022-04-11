@@ -9,14 +9,8 @@
 import NorthLib
 import MessageUI
 
-class TazAppEnvironment /*: NSObject, DoesLog, MFMailComposeViewControllerDelegate */{
-  /**HACK**/
-  func log(_ any:Any?){}
-  func debug(_ any:Any?){}
-  func error(_ any:Any?){}
-  let view = UIView()
+class TazAppEnvironment: DoesLog /*: NSObject, DoesLog, MFMailComposeViewControllerDelegate */{
   
-  var wantLogging = false
   private var threeFingerAlertOpen: Bool = false
   
   public private(set) lazy var rootViewController : UIViewController = {
@@ -58,12 +52,6 @@ class TazAppEnvironment /*: NSObject, DoesLog, MFMailComposeViewControllerDelega
   private var isForeground = false
   
   init(){
-    let feeder = Defaults.currentFeeder
-    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
-    
-    setupLogging()
-    setupTopMenus()
-    setupLogging()
     Notification.receive(UIApplication.willResignActiveNotification) { _ in
       self.goingBackground()
     }
@@ -73,17 +61,22 @@ class TazAppEnvironment /*: NSObject, DoesLog, MFMailComposeViewControllerDelega
     Notification.receive(UIApplication.willTerminateNotification) { _ in
       self.appWillTerminate()
     }
+    setup()
+  }
+  
+  func setup(){
+    let feeder = Defaults.currentFeeder
+    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
+    setupLogging()
+    setupTopMenus()
+    setupLogging()
     setupFeeder()
   }
   
   
   /// Enable logging to file and otional to view
   func setupLogging() {
-    let logView = viewLogger.logView
-    logView.isHidden = true
-    view.addSubview(logView)
-    logView.pinToView(view)
-    Log.append(logger: consoleLogger, /*viewLogger,*/ fileLogger)
+    Log.append(logger: consoleLogger, fileLogger)
     Log.minLogLevel = .Debug
     HttpSession.isDebug = false
     PdfRenderService.isDebug = false
@@ -96,20 +89,6 @@ class TazAppEnvironment /*: NSObject, DoesLog, MFMailComposeViewControllerDelega
     net.whenUp { self.log("Network up") }
     net.whenDown { self.log("Network down") }
     if !net.isAvailable { error("Network not available") }
-    let nd = UIApplication.shared.delegate as! AppDelegate
-//    nd.onSbTap { tview in
-//      if nd.wantLogging {
-//        if logView.isHidden {
-//          self.view.bringSubviewToFront(logView)
-//          logView.scrollToBottom()
-//          logView.isHidden = false
-//        }
-//        else {
-//          self.view.sendSubviewToBack(logView)
-//          logView.isHidden = true
-//        }
-//      }
-//    }
     log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
         "\(App.bundleIdentifier)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
@@ -271,9 +250,9 @@ class TazAppEnvironment /*: NSObject, DoesLog, MFMailComposeViewControllerDelega
       targetWindow.ifAlphaApp?.addGestureRecognizer(reportLPress3)
     }
     else {
-      self.view.isUserInteractionEnabled = true
-      self.view.addGestureRecognizer(reportLPress2)
-      self.view.ifAlphaApp?.addGestureRecognizer(reportLPress3)
+      self.rootViewController.view.isUserInteractionEnabled = true
+      self.rootViewController.view.addGestureRecognizer(reportLPress2)
+      self.rootViewController.view.ifAlphaApp?.addGestureRecognizer(reportLPress3)
     }
   }
   
@@ -285,19 +264,6 @@ class TazAppEnvironment /*: NSObject, DoesLog, MFMailComposeViewControllerDelega
       actions.append(Alert.action("Abo-Verknüpfung löschen (⍺)") {[weak self] _ in self?.unlinkSubscriptionId() })
       actions.append(Alert.action("Abo-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
       actions.append(Alert.action("Download-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
-      actions.append(Alert.action("Protokoll an/aus (⍺)") {[weak self] _ in
-        guard let self = self else { return }
-        let logView = self.viewLogger.logView
-        if logView.isHidden {
-          self.view.bringSubviewToFront(logView)
-          logView.scrollToBottom()
-          logView.isHidden = false
-        }
-        else {
-          self.view.sendSubviewToBack(logView)
-          logView.isHidden = true
-        }
-      })
     }
     
     let title = App.appInfo + "\n" + App.authInfo(with: feederContext)
@@ -437,16 +403,7 @@ extension TazAppEnvironment {
     }
     
     let switchServerHandler: (Any?) -> Void = { [weak self]_ in
-      switch shortcutServer {
-        case Shortcuts.liveServer:
-          Defaults.currentServer = .liveServer
-          self?.deleteAll()
-        case Shortcuts.testServer:
-          Defaults.currentServer = .testServer
-          self?.deleteAll()
-        default:
-          break;
-      }
+      self?.doServerSwitch(to: shortcutServer)
     }
     
     let serverSwitchAction = UIAlertAction(title: "Ja Server wechseln",
@@ -454,20 +411,70 @@ extension TazAppEnvironment {
                                    handler: switchServerHandler )
     let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
     
-    Alert.message(title: "Achtung Serverwechsel!", message: "Möchten Sie den Server vom \(Defaults.serverSwitchText) wechseln?\nAchtung!\nDie App muss neu gestartet werden.\n\n Alle Daten werden gelöscht!", actions: [serverSwitchAction,  cancelAction])
+    let switchText
+    = "Möchten Sie den Server vom "
+    + Defaults.currentServer.title
+    +  " zum "
+    + shortcutServer.title
+    + "wechseln?"
+    + "\nDie App wird im Anschluss beendet und muss manuell neu gestartet werden!"
+    
+    Alert.message(title: "Achtung Serverwechsel!",
+                  message: switchText,
+                  actions: [serverSwitchAction,  cancelAction],
+                  presentationController: rootViewController)
   }
   
+
+  func doServerSwitch(to shortcutServer: Shortcuts) {
+    let oldRoot =  self.rootViewController
+    
+    let intermediateVc = StartupVc()
+    intermediateVc.text = "Bitte warten!\nWechsle zu:\n\(shortcutServer.title)\nDie App wird gleich beendet und muss manuell neu gestartet werden!"
+    self.rootViewController = intermediateVc
+    
+    onMainAfter {[weak self] in
+      self?.feederContext?.cancelAll()
+      ArticleDB.singleton.close()
+      ArticleDB.singleton = nil
+      self?.feederContext = nil
+      
+      if let tab = oldRoot as? MainTabVC {
+        for case let navCtrl as UINavigationController in tab.viewControllers ?? [] {
+          navCtrl.popToRootViewController(animated: false)
+          navCtrl.dismiss(animated: false)
+        }
+        for ctrl in tab.viewControllers ?? [] {
+          if let navCtrl = ctrl as? UINavigationController {
+            for ctrl in navCtrl.viewControllers {
+              NotificationCenter.default.removeObserver(ctrl)
+            }
+            navCtrl.popToRootViewController(animated: false)
+          }
+          NotificationCenter.default.removeObserver(ctrl)
+          ctrl.dismiss(animated: false)
+        }
+        tab.viewControllers = []
+      }
+      Defaults.currentServer = shortcutServer
+      onMainAfter(3) { [weak self] in
+        /// Too many handlers deinit on IssueVC did not work, recives issueOverview and more and crashes
+        exit(0)
+//        self?.setup()
+      }
+    }
+  }
   
   /// app icon shortcut action handler
   /// - Parameter shortcutItem: selected shortcut item
   func handleShortcutItem(_ shortcutItem: UIApplicationShortcutItem) {
     switch shortcutItem.type {
-      case Shortcuts.logging.type:
-        wantLogging = !wantLogging
       case Shortcuts.liveServer.type:
         handleServerSwitch(to: Shortcuts.liveServer)
       case Shortcuts.testServer.type:
         handleServerSwitch(to: Shortcuts.testServer)
+      case Shortcuts.lmdServer.type:
+        handleServerSwitch(to: Shortcuts.lmdServer)
       case "AppInformation":
         break;
       default:
@@ -480,24 +487,18 @@ extension TazAppEnvironment {
 
 // Helper
 extension Defaults{
-  
-  /// Server switch Helper,
-  /// check if server switch shortcut item selected and current server is not selected server
-  /// - Parameter shortcutItem: app icon shortcut item
-  /// - Returns: true if server switch should be performed
-  fileprivate static func isServerSwitch(for shortcutItem: UIApplicationShortcutItem) -> Bool{
-    if shortcutItem.type == Shortcuts.liveServer.type && currentServer != .liveServer { return true }
-    if shortcutItem.type == Shortcuts.testServer.type && currentServer != .testServer { return true }
-    return false
-  }
-  
+    
   ///Helper to get current server from user defaults
   fileprivate static var currentServer : Shortcuts {
     get {
-      if let curr = Defaults.singleton["currentServer"], curr == Shortcuts.testServer.type {
-        return .testServer
+      switch Defaults.singleton["currentServer"] {
+        case Shortcuts.testServer.type:
+          return .testServer
+        case Shortcuts.lmdServer.type:
+          return .lmdServer
+        default:
+          return .liveServer
       }
-      return .liveServer
     }
     set {
       ///only update if changed
@@ -509,26 +510,17 @@ extension Defaults{
   
   static var currentFeeder : (name: String, url: String, feed: String) {
     get {
-      if let curr = Defaults.singleton["currentServer"], curr == Shortcuts.testServer.type {
-        return (name: "taz-testserver", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
+      switch Defaults.singleton["currentServer"] {
+        case Shortcuts.testServer.type:
+          return (name: "taz-test", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
+        case Shortcuts.lmdServer.type:
+          return (name: "LMd", url: "https://dl.monde-diplomatique.de/appGraphQl", feed: "LMd")
+        default:
+          return (name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
       }
-      return (name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
-    }
-  }
-  
-  
-  fileprivate static var serverSwitchText : String {
-    get {
-      if currentServer == .testServer {
-        return "Test Server zum Live Server"
-      }
-      return "Live Server zum Test Server"
     }
   }
 }
-
-
-
 
 /// Helper to add App Shortcuts to App-Icon
 /// Warning View Logger did not work untill MainNC -> setupLogging ...   viewLogger is disabled!
@@ -546,51 +538,73 @@ enum Shortcuts{
       // Shortcuts.logging.shortcutItem(wantsLogging ? .confirmation : nil)
     ]
     
-    if Defaults.currentServer == .liveServer {
-      itms.append(Shortcuts.liveServer.shortcutItem(.confirmation, subtitle: "aktiv"))
-      itms.append(Shortcuts.testServer.shortcutItem())
-    }
-    else {
-      itms.append(Shortcuts.liveServer.shortcutItem())
-      itms.append(Shortcuts.testServer.shortcutItem(.confirmation, subtitle: "aktiv"))
-    }
+    itms.append(Shortcuts.liveServer.shortcutItem)
+    itms.append(Shortcuts.testServer.shortcutItem)
+    itms.append(Shortcuts.lmdServer.shortcutItem)
     return itms
   }
   
-  case liveServer, testServer, feedback, logging
-  
+  case liveServer, testServer, lmdServer, feedback
   
   /// Identifier for shortcut item
   var type:String{
     switch self {
       case .liveServer: return "shortcutItemLiveServer"
       case .testServer: return "shortcutItemTestServer"
+      case .lmdServer: return "shortcutItemLMdServer"
       case .feedback: return "shortcutItemFeedback"
-      case .logging: return "shortcutItemLogging"
     }
   }
-  
   
   /// human readable title
   var title:String{
     switch self {
       case .liveServer: return "Live Server"
       case .testServer: return "Test Server"
+      case .lmdServer: return "LMd Server"
       case .feedback: return "Feedback"
-      case .logging: return "Protokoll einschalten"
     }
   }
+
+  /// ShortcutItem generation Helper for app icon context menu
+  var shortcutItem:UIApplicationShortcutItem { get {
+    let active = Defaults.currentServer == self
     
-  
-  /// ShortcutItem generation Helper
-  /// - Parameters:
-  ///   - iconType: identifier for shortcut item
-  ///   - subtitle: optional subtitle
-  /// - Returns: ShortcutItem for app icon context menu
-  func shortcutItem(_ iconType:UIApplicationShortcutIcon.IconType? = nil, subtitle: String? = nil) -> UIApplicationShortcutItem {
     return UIApplicationShortcutItem(type: self.type,
                                      localizedTitle: self.title,
-                                     localizedSubtitle: subtitle,
-                                     icon: iconType == nil ? nil : UIApplicationShortcutIcon(type: iconType!) )
+                                     localizedSubtitle: active ? "aktiv" : nil,
+                                     icon: active ? UIApplicationShortcutIcon(type: .confirmation) : nil)
+    }
+  }
+}
+
+
+class StartupVc : UIViewController {
+  public var text: String = "Starte..." {
+    didSet {
+      label.text = text
+    }
+  }
+  
+  let label = UILabel()
+  
+  override func viewDidLoad() {
+    label.numberOfLines = -1
+    label.text = text
+    label.contentFont().center()
+    label.textColor = .white
+    
+    let ai = UIActivityIndicatorView(style: .white)
+    self.view.addSubview(label)
+    self.view.addSubview(ai)
+    
+    pin(label.left, to: self.view.leftGuide(isMargin: true), dist: 10)
+    pin(label.right, to: self.view.rightGuide(isMargin: true), dist: 10)
+    label.centerY()
+    
+    ai.centerX()
+    pin(label.top, to: ai.bottom, dist: 10)
+    
+    ai.startAnimating()
   }
 }
