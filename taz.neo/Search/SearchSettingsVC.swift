@@ -92,15 +92,16 @@ class SearchSettingsVC: UITableViewController {
         }
       }
     }
-    
+    #warning("TODO ROW ANIMATION")
+    tableView.reloadData(); return;
     if (added.count + deleted.count) == 0 {
       tableView.reloadData()
       return
     }
     //middle or fade animation
     tableView.performBatchUpdates {
-      if deleted.count > 0 { tableView.deleteRows(at: deleted, with: .middle) }
-      if added.count > 0 { tableView.insertRows(at: added, with: .middle) }
+      if deleted.count > 0 { tableView.deleteRows(at: deleted, with: .none) }
+      if added.count > 0 { tableView.insertRows(at: added, with: .none  ) }
     }
     onMainAfter {
       [weak self] in
