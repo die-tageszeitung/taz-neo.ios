@@ -28,7 +28,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   
   @Default("bottomTilesShown")
   public var bottomTilesShown: Int {
-    didSet { if bottomTilesShown > 5 { showBottomTilesAnimation = false }  }
+    didSet { if bottomTilesShown > 10 { showBottomTilesAnimation = false }  }
   }
 
   /// Are we in facsimile mode
