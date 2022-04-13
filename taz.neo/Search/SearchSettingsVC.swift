@@ -93,7 +93,7 @@ class SearchSettingsVC: UITableViewController {
       }
     }
     #warning("TODO ROW ANIMATION")
-    tableView.reloadData(); return;
+//    tableView.reloadData(); return;
     if (added.count + deleted.count) == 0 {
       tableView.reloadData()
       return
@@ -116,7 +116,7 @@ class SearchSettingsVC: UITableViewController {
                        forHeaderFooterViewReuseIdentifier: TazHeaderFooterView.reuseIdentifier)
     self.tableView.backgroundColor = .white
 //    tableView.separatorInset = Const.Insets.Default //also for header inset
-//    tableView.separatorStyle = .none
+    tableView.separatorStyle = .none
 //    tableView.preservesSuperviewLayoutMargins = false
 //    tableView.insetsLayoutMarginsFromSafeArea = true
 //    tableView.tableFooterView = footer
@@ -286,6 +286,8 @@ extension SearchSettingsVC : UIStyleChangeDelegate {
   }
 }
 
+// MARK: - TextInputCell
+
 /// A custom table view cell with TextInput
 class TextInputCell: TazCell {
   let textField = UITextField()
@@ -303,21 +305,20 @@ class TextInputCell: TazCell {
 //    customClearButton.setImage(UIImage(named: "xmark"), for: .normal)
 //    textField.rightView = UIImageView(image: UIImage(named: "xmark"))
 //    textField.rightViewMode = .whileEditing
-    let height = Const.Size.TextFieldHeight
-    textField.pinHeight(height)
-    textField.layer.cornerRadius = height/2
-    
+    textField.pinHeight(Const.Size.NewTextFieldHeight)
     textField.clipsToBounds = true
     contentView.addSubview(textField)
-    let insets = UIEdgeInsets(top: 4,
+    let insets = UIEdgeInsets(top: 8,
                               left: Const.Size.DefaultPadding,
-                              bottom: -4,
+                              bottom: -8,
                               right: -Const.Size.DefaultPadding)
     pin(textField, to: contentView, insets: insets)
     
     
   }
 }
+
+// MARK: - MoreCell
 
 /// A custom table view cell with label and chevron right
 class MoreCell: TazCell {
@@ -335,6 +336,8 @@ class MoreCell: TazCell {
                               insets: Const.Insets.Default)
   }
 }
+
+// MARK: - RadioButtonCell
 
 /// A custom table view cell with radioButton and label
 class RadioButtonCell: TazCell {
@@ -361,30 +364,29 @@ class RadioButtonCell: TazCell {
   }
   
   override func setup(){
-    self.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
     contentView.addSubview(radioButton)
     contentView.addSubview(label)
     contentView.addSubview(additionalContentWrapper)
     additionalContentWrapper.pinHeight(0, priority: .defaultLow)
     label.contentFont().labelColor()
-    pin(label.top, to: contentView.top, dist: 6)
+    pin(label.top, to: contentView.top, dist: 18)
     pin(label.right, to: contentView.right, dist: 6)
     pin(additionalContentWrapper, to: contentView, exclude: .top)
-    pin(additionalContentWrapper.top, to: label.bottom, dist: 6)
+    pin(additionalContentWrapper.top, to: label.bottom, dist: 16)
     radioButton.isUserInteractionEnabled = false
     pin(radioButton.centerY, to: label.centerY)
-    radioButton.pinSize(CGSize(width: 16, height: 16), priority: .required)
+    radioButton.pinSize(CGSize(width: 28, height: 28), priority: .required)
     pin(radioButton.left, to: contentView.left, dist: Const.Size.DefaultPadding)
-    pin(radioButton.right, to: label.left, dist: -8)
+    pin(radioButton.right, to: label.left, dist: -18)
   }
 }
+
+// MARK: - TazCell
 
 /// A custom table view cell
 class TazCell: UITableViewCell {
   
   func setup(){}//overwriteable
-  
-  // MARK: - Initialization
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -402,12 +404,21 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
   static let reuseIdentifier = "TazHeaderFooterView"
   
   var label: UILabel = UILabel().boldContentFont().labelColor()
+  let chevron = UIImageView(image: UIImage(named: "chevron-up"))
   
   func setup(){
     self.contentView.addSubview(label)
+    self.contentView.addSubview(chevron)
+    
+    chevron.iosLower13?.contentMode = .scaleAspectFit
+    chevron.tintColor = Const.SetColor.ios(.secondaryLabel).color
+    chevron.pinSize(CGSize(width: 24, height: 24))
+    pin(chevron.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding)
+    chevron.centerY()
+
     pin(label.top, to: self.contentView.top)
     pin(label.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
-    pin(label.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding, priority: .defaultLow)
+    pin(label.right, to: chevron.right, dist: -Const.Size.DefaultPadding, priority: .defaultLow)
     pin(label.bottom, to: self.contentView.bottom, dist: -Const.Size.DefaultPadding, priority: .defaultLow)
     self.contentView.layoutMargins.left = Const.Size.DefaultPadding
     self.contentView.layoutMargins.right = Const.Size.DefaultPadding
@@ -415,6 +426,28 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
                               0.7,
                               edge: .bottom,
                               insets: Const.Insets.Default)
+    
+    self.rotateChevron()
+  }
+  
+  var collapsed: Bool = true {
+    didSet {
+      if oldValue == collapsed { return }
+      UIView.animateKeyframes(withDuration: 0.5, delay: 0.0, animations: {
+        UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.5) { [weak self] in
+          guard let self = self else { return }
+          self.chevron.transform = CGAffineTransform(rotationAngle: 0)
+        }
+        
+        UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5) { [weak self] in
+          self?.rotateChevron()
+        }
+      })
+    }
+  }
+  
+  func rotateChevron(){
+    chevron.transform = CGAffineTransform(rotationAngle: self.collapsed ? CGFloat.pi : CGFloat.pi*2)
   }
   
   override init(reuseIdentifier: String?) {
@@ -448,14 +481,14 @@ class TData {
   lazy var authorInpulCell: TextInputCell = {
     let cell = TextInputCell()
     cell.textField.text = settings.author
-    cell.textField.defaultStyle(placeholder: "Autor*innen")
+    cell.textField.defaultStyle(placeholder: "Autor*innen", cornerRadius: 0)
     return cell
   }()
   
   lazy var titleInpulCell: TextInputCell = {
     let cell = TextInputCell()
     cell.textField.text = settings.title
-    cell.textField.defaultStyle(placeholder: "Titel")
+    cell.textField.defaultStyle(placeholder: "Titel", cornerRadius: 0)
     return cell
   }()
   

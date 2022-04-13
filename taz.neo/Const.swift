@@ -321,6 +321,7 @@ public struct Const {
     static let SubtitleFontSize = CGFloat(21)
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
+    static let NewTextFieldHeight = CGFloat(46.0)
     static let TextFieldHeight = CGFloat(36.0)//Default Height of Search Controllers Text Input
     static let TextFieldPadding = SmallPadding
     static let SmallPadding = CGFloat(10.0)
@@ -543,14 +544,14 @@ extension UIButton {
 
 extension UITextField {
   @discardableResult
-  func defaultStyle(placeholder: String? =  nil) -> Self {
+  func defaultStyle(placeholder: String? =  nil, cornerRadius: CGFloat = 18) -> Self {
     if let p = placeholder {
       self.attributedPlaceholder = NSAttributedString(
         string: p,
         attributes: [NSAttributedString.Key.foregroundColor: Const.SetColor.ios(.tertiaryLabel).color])
     }
     self.backgroundColor = Const.SetColor.ios(.quaternarySystemFill).color
-    self.layer.cornerRadius = 18
+    self.layer.cornerRadius = cornerRadius
     self.layer.masksToBounds = true
     return self
   }
