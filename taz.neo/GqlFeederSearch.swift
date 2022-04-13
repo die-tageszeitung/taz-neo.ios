@@ -84,6 +84,7 @@ public enum SearchRangeOption: String {
   
   var textWithDate: String {
     get {
+      if self == .all { return "\(self.rawValue)" }
       return "\(self.rawValue) (\(self.minimumDate?.shortest ?? "") - \(self.maximuDate?.shortest ?? ""))"
     }}
     
@@ -252,12 +253,12 @@ public class SearchItem: DoesLog {
   var request: String {
     get {
       var fromDateArg = ""
-      if let date = settings.from {
+      if settings.range.currentOption != .all, let date = settings.from {
         fromDateArg = ", pubDateFrom: \"\(date.isoDate(tz: GqlFeeder.tz))\""
       }
       
       var toDateArg = ""
-      if let date = settings.to {
+      if settings.range.currentOption != .all, let date = settings.to {
         toDateArg = ", pubDateUntil: \"\(date.isoDate(tz: GqlFeeder.tz))\""
       }
       
