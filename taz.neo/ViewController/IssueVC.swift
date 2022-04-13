@@ -37,6 +37,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     set { issueCarousel.index = newValue; updateToolbarHomeIcon() }
   }
   
+  var verticalPaddings: CGFloat { get {
+    let insets = self.navigationController?.view.safeAreaInsets ?? UIWindow.safeInsets
+    return 42 + insets.top + insets.bottom
+  }}
+  
   public var safeIndex: Int? { get { return issueCarousel.index }}
   
   /// The Section view controller
@@ -532,7 +537,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
     pin(issueCarousel.right, to: self.headerView.right)
-    pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(Toolbar.ContentToolbarHeight+UIWindow.maxAxisInset))
+    pin(issueCarousel.bottom,
+        to: self.headerView.bottomGuide(isMargin: true),
+        dist: -verticalPaddings)
+
     issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
       self?.showIssue(index: idx, atSection: self?.issue.lastSection, 
@@ -756,8 +764,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ? newSize
       : CGSize(width: UIWindow.size.width,
                height: UIWindow.size.height
-                - UIWindow.verticalInsets
-                - Toolbar.ContentToolbarHeight)
+                - verticalPaddings)
+    print("updateCarouselSize: \(newSize)  :: \(size)")
     let availableH = size.height - 20 - self.issueCarouselLabelWrapperHeight
     let useableH = min(730, availableH) //Limit Height (usually on High Res & big iPad's)
     let availableW = size.width
