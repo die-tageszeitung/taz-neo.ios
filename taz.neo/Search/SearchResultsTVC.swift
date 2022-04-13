@@ -193,7 +193,7 @@ class SearchResultsCell: UITableViewCell {
   }()
   
   lazy var dateLabel: UILabel = {
-    let label = UILabel("", type: .small)
+    let label = UILabel("", type: .content)
     label.textAlignment = .left
     label.translatesAutoresizingMaskIntoConstraints = false
     return label
@@ -232,11 +232,11 @@ class SearchResultsCell: UITableViewCell {
     pin(dateLabel.left, to: cellView.left)
     pin(dateLabel.right, to: cellView.right)
     
-    pin(titleLabel.top, to: cellView.top, dist: 2)
-    pin(authorLabel.top, to: titleLabel.bottom, dist: 3)
-    pin(contentLabel.top, to: authorLabel.bottom, dist: 3)
-    pin(dateLabel.top, to: contentLabel.bottom, dist: 7)
-    pin(dateLabel.bottom, to: cellView.bottom, dist: 2)
+    pin(titleLabel.top, to: cellView.top, dist: 15)
+    pin(authorLabel.top, to: titleLabel.bottom, dist: 8)
+    pin(contentLabel.top, to: authorLabel.bottom, dist: 8)
+    pin(dateLabel.top, to: contentLabel.bottom, dist: 8)
+    pin(dateLabel.bottom, to: cellView.bottom, dist: -12)
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
