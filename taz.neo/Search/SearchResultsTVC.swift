@@ -261,6 +261,10 @@ extension String {
       var highlighted:Bool = false
       while !scanner.isAtEnd {
         if highlighted, let tagged = scanner.scanTill(string: closeTag) {
+          let tagged
+          = tagged.starts(with: openTag)
+          ? String(tagged.dropFirst(openTag.count))
+          : tagged
           s.append(NSAttributedString(string: tagged, attributes: [.backgroundColor: Const.Colors.fountTextHighlight, .foregroundColor: UIColor.black]))
           s.append(NSAttributedString(string: " "))
         }
