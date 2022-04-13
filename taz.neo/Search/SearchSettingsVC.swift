@@ -327,7 +327,7 @@ class MoreCell: TazCell {
   override func setup(){
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
     label.contentFont().labelColor()
-    accessoryType = .disclosureIndicator
+    accessoryType = .none
     contentView.addSubview(label)
     pin(label, to: contentView, dist: Const.Size.DefaultPadding)
     self.addBorderView(Const.SetColor.ios(.separator).color,
