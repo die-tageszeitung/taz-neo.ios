@@ -111,20 +111,8 @@ class SearchSettingsVC: UITableViewController {
   }
   
   func setup(){
-//    viewWidthConstraint = self.tableView.pinWidth(UIWindow.size.width, priority: .defaultLow)//prevent size animation error
-    tableView.register(TazHeaderFooterView.self,
-                       forHeaderFooterViewReuseIdentifier: TazHeaderFooterView.reuseIdentifier)
     self.tableView.backgroundColor = .white
-//    tableView.separatorInset = Const.Insets.Default //also for header inset
     tableView.separatorStyle = .none
-//    tableView.preservesSuperviewLayoutMargins = false
-//    tableView.insetsLayoutMarginsFromSafeArea = true
-//    tableView.tableFooterView = footer
-//        self.tableView.contentInset = UIEdgeInsets(top: 40, left: 20, bottom: Const.Size.SmallPadding, right: -80)
-//  tableView.layoutMargins = .init(top: 0.0, left: 20, bottom: 0.0, right: 30)
-        // if you want the separator lines to follow the content width
-//        tableView.separatorInset = tableView.layoutMargins
-    
     _data.reloadTable = { [weak self] in
       guard let self = self else { return }
       let oldContent = self._data.content
@@ -254,11 +242,7 @@ extension SearchSettingsVC {
   }
   
   open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    guard let title = data.content.valueAt(section)?.title,
-          let header = self.tableView.dequeueReusableHeaderFooterView(withIdentifier: TazHeaderFooterView.reuseIdentifier) as? TazHeaderFooterView
-    else { return nil }
-    header.label.text = title
-    return header
+    return data.header(section: section)
   }
   
   override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -401,8 +385,6 @@ class TazCell: UITableViewCell {
 
 /// A custom table view cell with TextInput
 class TazHeaderFooterView: UITableViewHeaderFooterView {
-  static let reuseIdentifier = "TazHeaderFooterView"
-  
   var label: UILabel = UILabel().boldContentFont().labelColor()
   let chevron = UIImageView(image: UIImage(named: "chevron-up"))
   
@@ -464,17 +446,24 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
 class TData {
   
   var reloadTable: (()->())?
-  
-  typealias tContent = (title:String?,
-                        cells:[TazCell]?)
+  typealias tContent = (title:String?, cells:[TazCell]?)
   ///added, deleted
   typealias tChangedIndexPaths = (added: [IndexPath],
                                   deleted: [IndexPath])
   
   public private(set) var content:[tContent] = []
+  private var headerViews:[TazHeaderFooterView] = []
   
   var settings = SearchSettings()
-  var expandedSection: Int?
+  var expandedSection: Int? {
+    didSet {
+      print("set expandedSection to: \(expandedSection) old: \(oldValue)")
+      headerViews.enumerated().forEach( { (index,view) in
+        //index 0 is header of section 1!
+        view.collapsed = index != (expandedSection ?? 0) - 1
+      } )
+    }
+  }
   
   var customRange: Bool = false
   
@@ -567,10 +556,7 @@ class TData {
     return cell
   }()
   
-  
   func update(){
-    
-    
     if settings.range.currentOption == .custom {
       rangeMoreCell.label.text
       = datePickers.fromPicker.date.shortest
@@ -597,13 +583,36 @@ class TData {
     rangeCells.forEach{ $0.radioButton.isSelected = $0.range == settings.range.currentOption }
     filterCells.forEach{ $0.radioButton.isSelected = $0.filter == settings.filter }
     sortingCells.forEach{ $0.radioButton.isSelected = $0.sorting == settings.sorting }
-    
+    ///Title no more used!!
     content = [
       (nil, [titleInpulCell, authorInpulCell]),
       ("zeitraum", expandedSection == 1 ? rangeCells : [rangeMoreCell]),
       ("erschienen in", expandedSection == 2 ? filterCells : [filterMoreCell]),
       ("sortierung", expandedSection == 3 ? sortingCells : [sortingMoreCell])
     ]
+  }
+  
+  func createHeaders(){
+    let titles = ["zeitraum", "erschienen in", "sortierung"]
+    titles.enumerated().forEach( { (index, title) in
+      let section = index + 1
+      let header = TazHeaderFooterView()
+      header.label.text = title
+      header.onTapping { [weak self] _ in
+        guard let self = self else { return }
+        self.expandedSection
+        = self.expandedSection == section
+        ? nil
+        : section
+        self.reloadTable?()
+        header.collapsed = self.expandedSection != section
+      }
+      headerViews.append(header)
+    })
+  }
+  
+  func header(section: Int) -> UIView? {
+    return headerViews.valueAt(section - 1)//first header has no headerView!!
   }
   
   func cell(at indexPath: IndexPath) -> TazCell? {
@@ -628,19 +637,19 @@ class TData {
       case (rangeMoreCell, _):
         expandedSection = 1
       case let (_, rbCell) where rbCell?.range != nil:
+        if settings.range.currentOption == rbCell!.range! { expandedSection = nil}
         settings.range.currentOption = rbCell!.range!
-        expandedSection = nil
         customRange = false
       case (filterMoreCell, _):
         expandedSection = 2
       case let (_, rbCell) where rbCell?.filter != nil:
+        if settings.filter == rbCell!.filter! { expandedSection = nil}
         settings.filter = rbCell!.filter!
-        expandedSection = nil
       case (sortingMoreCell, _):
         expandedSection = 3
       case let (_, rbCell) where rbCell?.sorting != nil:
+        if settings.sorting == rbCell!.sorting! { expandedSection = nil}
         settings.sorting = rbCell!.sorting!
-        expandedSection = nil
       default:
         break
     }
@@ -650,6 +659,7 @@ class TData {
   
   
   init() {
+    createHeaders()
     update()
   }
 }
