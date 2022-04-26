@@ -407,6 +407,11 @@ public extension Article {
   // By default Articles don't have bookmarks
   var hasBookmark: Bool { get { false } set {} }
   
+  func isEqualTo(otherArticle: Article) -> Bool{
+    return self.html.sha256 == otherArticle.html.sha256
+    && self.html.name == otherArticle.html.name
+    && self.title == otherArticle.title
+  }
 } // Article
 
 /**

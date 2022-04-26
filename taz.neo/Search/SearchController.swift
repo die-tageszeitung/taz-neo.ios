@@ -18,6 +18,8 @@ class SearchController: UIViewController {
   private var srIssue:SearchResultIssue
   private var searchController: UISearchController
   
+  private var lastArticleShown: Article?
+  
   var feederContext: FeederContext
   
   lazy var placeholderView: UIView = {
@@ -46,6 +48,13 @@ class SearchController: UIViewController {
     searchController.searchBar.alpha = 1.0
     self.navigationController?.setNavigationBarHidden(false, animated: false)
     resultsTableController.tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
+    
+    if let lastArticle = lastArticleShown,
+       let hitList = searchItem.searchHitList,
+       let idx = hitList.firstIndex(where: { lastArticle.isEqualTo(otherArticle: $0.article)}) {
+      resultsTableController.tableView.scrollToRow(at: IndexPath(row: idx, section:0 ), at: .top, animated: false)
+    }
+   
     resultsTableController.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 45, left: 0, bottom: 0, right: 0)
   }
   
@@ -231,13 +240,8 @@ extension SearchController: ArticleVCdelegate {
   }
   
   public var article: Article? {
-    get {
-      debug("TODO:: article requested")
-      return nil
-    }
-    set {
-      debug("TODO:: article set \(newValue?.title)")
-    }
+    get { return lastArticleShown }
+    set { lastArticleShown = newValue }
   }
   
   public var article2section: [String : [Section]] {
