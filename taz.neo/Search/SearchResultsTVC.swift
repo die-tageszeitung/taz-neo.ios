@@ -25,43 +25,6 @@ class SearchResultsTVC:UITableViewController{
     }
   }
   
-  public private(set) lazy var serachSettingsVC:SearchSettingsVC = {
-    let vc = SearchSettingsVC(style: .grouped)
-    vc.setup()
-    
-    vc.preferredContentSize = CGSize(width: min(self.view.frame.size.width, 500), height: UIWindow.size.height - 280)
-    
-    vc.finishedClosure = { [weak self] doSearch in
-      self?.checkFilter()
-      if doSearch {
-        self?.searchClosure?()
-      }
-    }
-    return vc
-  }()
-  
-  /// a uiview not a common UIToolbar
-  lazy var fixedHeader:SearchBarFixedHeader = {
-    let view = SearchBarFixedHeader()
-    view.extendedSearchButton.onPress { [weak self] _ in
-      guard let child = self?.serachSettingsVC else { return }
-      child.modalPresentationStyle = .popover
-
-      let popoverPresenter = child.popoverPresentationController
-//            popoverPresenter?.sourceRect = CGRect(x: 0, y: 0, width: 32, height: 32)
-      popoverPresenter?.permittedArrowDirections = .up
-      popoverPresenter?.canOverlapSourceViewRect = false
-      popoverPresenter?.popoverLayoutMargins = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 4)
-//      popoverPresenter?.popoverLayoutMargins = UIEdgeInsets.zero
-      popoverPresenter?.sourceView = self?.fixedHeader.extendedSearchButton
-      popoverPresenter?.delegate = self
-      self?.present(child, animated: true, completion: {
-        print("presented...")
-      })
-    }
-    return view
-  }()
-  
   lazy var footer = LoadingView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
   
   public var onBackgroundTap : (()->())?
@@ -79,13 +42,13 @@ class SearchResultsTVC:UITableViewController{
     }
     //then reset everything
     searchItem = nil
-    serachSettingsVC.restoreInitialState()
+//    serachSettingsVC.restoreInitialState()
     checkFilter()
     return true
   }
   
   func checkFilter(){
-    self.fixedHeader.filterActive = self.serachSettingsVC.data.settings.isChanged
+//    self.fixedHeader.filterActive = self.serachSettingsVC.data.settings.isChanged
   }
 
   static let SearchResultsCellIdentifier = "searchResultsCell"
@@ -103,17 +66,6 @@ class SearchResultsTVC:UITableViewController{
     footer.style = .white
     footer.alpha = 0.0
     self.tableView.tableFooterView = footer
-  }
-  
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    if fixedHeader.superview == nil,
-        let target = tableView.superview {
-      target.addSubview(fixedHeader)
-      pin(fixedHeader, toSafe: target, exclude: .bottom)
-      tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
-      tableView.scrollIndicatorInsets = UIEdgeInsets(top: 45, left: 0, bottom: 0, right: 0)
-    }
   }
 }
 

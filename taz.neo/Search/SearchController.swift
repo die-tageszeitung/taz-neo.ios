@@ -58,6 +58,44 @@ class SearchController: UIViewController {
     resultsTableController.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 45, left: 0, bottom: 0, right: 0)
   }
   
+  public private(set) lazy var serachSettingsVC:SearchSettingsVC = {
+    let vc = SearchSettingsVC(style: .grouped)
+    vc.setup()
+    
+    vc.preferredContentSize = CGSize(width: min(self.view.frame.size.width, 500), height: UIWindow.size.height - 280)
+    
+    vc.finishedClosure = { [weak self] doSearch in
+//      self?.checkFilter()
+      if doSearch {
+//        self?.searchClosure?()
+      }
+    }
+    return vc
+  }()
+  
+  
+  /// a uiview not a common UIToolbar
+  lazy var fixedHeader:SearchBarFixedHeader = {
+    let view = SearchBarFixedHeader()
+    view.extendedSearchButton.onPress { [weak self] _ in
+      guard let child = self?.serachSettingsVC else { return }
+      child.modalPresentationStyle = .popover
+
+      let popoverPresenter = child.popoverPresentationController
+//            popoverPresenter?.sourceRect = CGRect(x: 0, y: 0, width: 32, height: 32)
+      popoverPresenter?.permittedArrowDirections = .up
+      popoverPresenter?.canOverlapSourceViewRect = false
+      popoverPresenter?.popoverLayoutMargins = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 4)
+//      popoverPresenter?.popoverLayoutMargins = UIEdgeInsets.zero
+      popoverPresenter?.sourceView = self?.fixedHeader.extendedSearchButton
+//      popoverPresenter?.delegate = self
+      self?.present(child, animated: true, completion: {
+        print("presented...")
+      })
+    }
+    return view
+  }()
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     // Place the search bar in the navigation bar.
@@ -131,10 +169,8 @@ class SearchController: UIViewController {
       else if let count = rCount.total {
         message = "\(count) Treffer"
       }
-      
-      resultsTableController
-        .fixedHeader.set(text: message,
-                            font: Const.Fonts.contentFont)
+      fixedHeader.set(text: message,
+                      font: Const.Fonts.contentFont)
       resultsTableController.searchItem = searchItem
     }
   }
@@ -174,18 +210,18 @@ extension SearchController: UISearchBarDelegate {
   }
   
   private func search() {
-    var searchSettings = self.resultsTableController.serachSettingsVC.data.settings
+    var searchSettings = self.serachSettingsVC.data.settings
     searchSettings.text = searchController.searchBar.text
-     
+
     if searchSettings.searchTermTooShort {
-      resultsTableController.fixedHeader.set(text: "Bitte Suchbegriff eingeben!",
+      fixedHeader.set(text: "Bitte Suchbegriff eingeben!",
                                                 font: Const.Fonts.boldContentFont,
                                                 color: Const.Colors.ciColor )
       return
     }
     //Ensute settings closed e.g. if search by keyboard
-    self.resultsTableController.serachSettingsVC.dismiss(animated: true)
-    
+    self.serachSettingsVC.dismiss(animated: true)
+
     if searchItem.settings != searchSettings {
       searchItem.settings = searchSettings
     }
