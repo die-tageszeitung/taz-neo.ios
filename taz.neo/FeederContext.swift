@@ -369,7 +369,9 @@ open class FeederContext: DoesLog {
   /// openDB opens the Article database and sends a "DBReady" notification  
   private func openDB(name: String) {
     guard ArticleDB.singleton == nil else { return }
-    ArticleDB(name: name) { [weak self] _ in self?.notify("DBReady") }  
+    ArticleDB(name: name) { [weak self] _ in
+      self?.cleanupDbInconsistencyIfNeeded()
+      self?.notify("DBReady") }
   }
   
   /// resetDB removes the Article database and uses openDB to reopen a new version
@@ -394,6 +396,36 @@ open class FeederContext: DoesLog {
       self?.connect()
     }
     openDB(name: name)
+  }
+  
+  private func cleanupDbInconsistencyIfNeeded(){
+    if Defaults.singleton.get(key: "cleanupDbInconsistencyDone") != nil {
+      log("Cleanup DB Inconsistency already done")
+      return
+    }
+    log("Cleanup DB Inconsistency")
+    guard let sf = StoredFeeder.get(name: "taz").first else { return }
+    guard let sf = StoredFeed.get(name: "taz", inFeeder: sf).first else { return }
+    var hasChanges = false
+    
+    let date1 = UsTime(iso: "2022-04-20 12:00:00.00", tz: "Europe/Berlin").date
+    if let issue1 = StoredIssue.get(date: date1, inFeed: sf).first {
+      issue1.delete()
+      log("delete issue: 04-20")
+      hasChanges = true
+    }
+    
+    let date2 = UsTime(iso: "2022-04-21 12:00:00.00", tz: "Europe/Berlin").date
+    if let issue2 = StoredIssue.get(date: date2, inFeed: sf).first {
+      issue2.delete()
+      log("delete issue: 04-21")
+      hasChanges = true
+    }
+    
+    if hasChanges {
+      ArticleDB.save()
+    }
+    Defaults.singleton.set(key: "cleanupDbInconsistencyDone", val: "\(Date())")
   }
   
   private func loadBundledResources(setVersion: Int? = nil) {
