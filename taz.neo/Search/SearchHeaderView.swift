@@ -204,10 +204,10 @@ extension SearchHeaderView {
   public func setHeader(scrollOffset: CGFloat, animateEnd: Bool = false){
     if animateEnd {
       switch scrollOffset {
-        case ..<(-20): print("1: \(scrollOffset)"); setHeader(showMaxi: false)
-        case ..<0: print("2: \(scrollOffset)"); setHeader(showMaxi: true)
-        case ..<20: print("3: \(scrollOffset)"); setHeader(showMaxi: false)
-        default: print("4: \(scrollOffset)"); setHeader(showMaxi: true)
+        case ..<(-20): setHeader(showMaxi: false)
+        case ..<0: setHeader(showMaxi: true)
+        case ..<20: setHeader(showMaxi: false)
+        default: setHeader(showMaxi: true)
       }
       return
     }
