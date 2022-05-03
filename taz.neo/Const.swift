@@ -149,6 +149,15 @@ public struct Const {
       case closeXcircleBackground
       case closeX
     }
+    case taz(taz_Custom)
+    enum taz_Custom {
+      case textFieldBackground
+      case textDisabled
+      case textFieldPlaceholder
+      case textFieldClear
+      case textFieldText
+      case textIconGray
+    }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
       case label
@@ -178,25 +187,7 @@ public struct Const {
     var color : UIColor {
       get{
         let set = colors(name: self)
-        //Bugfix iOS==Dark // App==light ==> Element => dark
         return Defaults.darkMode ? set.dark ??  set.light : set.light
-        /*
-        if #available(iOS 13, *) {
-          return UIColor { (traitCollection: UITraitCollection) -> UIColor in
-            switch(traitCollection.userInterfaceStyle,
-                   traitCollection.accessibilityContrast)
-            {
-              case (.dark, .high): return ((set.darkHigh != nil) ? set.darkHigh : set.dark) ?? set.light
-              case (.dark, _):     return set.dark ?? set.light
-              case (_, .high):     return  set.lightHigh ?? set.light
-              default:             return set.light
-            }
-          }
-        }
-        else {
-          return Defaults.darkMode ? set.dark ??  set.light : set.light
-        }
-        */
       }
     }
     
@@ -272,6 +263,17 @@ public struct Const {
           return (Const.Colors.iOSLight.lightText, Const.Colors.iOSDark.lightText, nil, nil)
         case .ios(.tintColor):
           return (Const.Colors.iOSLight.tintColor, Const.Colors.iOSDark.tintColor, nil, nil)
+        case .taz(.textFieldBackground):
+          return (UIColor.rgb(0xF0F0F0), UIColor.rgb(0x1c1c1c), nil, nil)
+        case .taz(.textFieldText):
+          return (UIColor.rgb(0x1F1F1F), UIColor.rgb(0xF0F0F0), nil, nil)
+        case .taz(.textDisabled): fallthrough
+        case .taz(.textFieldPlaceholder):
+          return (UIColor.rgb(0xA6A6A6), UIColor.rgb(0x505050), nil, nil)
+        case .taz(.textFieldClear):
+          return (UIColor.rgb(0x9C9C9C), UIColor.rgb(0x9C9C9C), nil, nil)
+        case .taz(.textIconGray):
+          return (UIColor.rgb(0x565656), UIColor.rgb(0x929292), nil, nil)
       }
     }
   } // SetColors
@@ -292,7 +294,7 @@ public struct Const {
     }
     
     /// The font to use for content
-    static func contentFont(size: CGFloat) -> UIFont 
+    static func contentFont(size: CGFloat) -> UIFont
     { return font(name: contentFontName, size: size) }
     
     /// The font to use in titles
@@ -321,7 +323,7 @@ public struct Const {
     static let SubtitleFontSize = CGFloat(21)
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
-    static let NewTextFieldHeight = CGFloat(46.0)
+    static let NewTextFieldHeight = CGFloat(40.0)
     static let TextFieldHeight = CGFloat(36.0)//Default Height of Search Controllers Text Input
     static let TextFieldPadding = SmallPadding
     static let SmallPadding = CGFloat(10.0)

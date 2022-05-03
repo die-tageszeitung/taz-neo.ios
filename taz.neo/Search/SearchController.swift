@@ -10,13 +10,18 @@ import NorthLib
 
 class SearchController: UIViewController {
 
-  private let resultsTableController = SearchResultsTVC()
+//  private let resultsTableController = SearchResultsTVC()
+  private let resultsTableController = FakeTableTableViewController()
+  
   private let defaultSection = BookmarkSection(name: "Suche",
                                        html: TmpFileEntry(name: "SearchTempSection.tmp"))
   
   private var articleVC:SearchResultArticleVc
   private var srIssue:SearchResultIssue
-  private var searchController: UISearchController
+  
+  var beginDragOffset:CGFloat?
+  
+  let header = SearchHeaderView()
   
   private var lastArticleShown: Article?
   
@@ -35,20 +40,18 @@ class SearchController: UIViewController {
   }()
   
   func restoreInitialState() -> Bool{
-    if resultsTableController.restoreInitialState() == false {
-      return false
-    }
-    searchController.isActive = false
-    searchController.dismiss(animated: false)
+//    if resultsTableController.restoreInitialState() == false {
+//      return false
+//    }
     return true
   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    searchController.searchBar.alpha = 1.0
-    self.navigationController?.setNavigationBarHidden(false, animated: false)
     resultsTableController.tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
     
+
+
     if let lastArticle = lastArticleShown,
        let hitList = searchItem.searchHitList,
        let idx = hitList.firstIndex(where: { lastArticle.isEqualTo(otherArticle: $0.article)}) {
@@ -73,71 +76,31 @@ class SearchController: UIViewController {
     return vc
   }()
   
-  
-  /// a uiview not a common UIToolbar
-  lazy var fixedHeader:SearchBarFixedHeader = {
-    let view = SearchBarFixedHeader()
-    view.extendedSearchButton.onPress { [weak self] _ in
-      guard let child = self?.serachSettingsVC else { return }
-      child.modalPresentationStyle = .popover
-
-      let popoverPresenter = child.popoverPresentationController
-//            popoverPresenter?.sourceRect = CGRect(x: 0, y: 0, width: 32, height: 32)
-      popoverPresenter?.permittedArrowDirections = .up
-      popoverPresenter?.canOverlapSourceViewRect = false
-      popoverPresenter?.popoverLayoutMargins = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 4)
-//      popoverPresenter?.popoverLayoutMargins = UIEdgeInsets.zero
-      popoverPresenter?.sourceView = self?.fixedHeader.extendedSearchButton
-//      popoverPresenter?.delegate = self
-      self?.present(child, animated: true, completion: {
-        print("presented...")
-      })
-    }
-    return view
-  }()
-  
   override func viewDidLoad() {
     super.viewDidLoad()
-    // Place the search bar in the navigation bar.
-    navigationItem.title = nil
     
-    self.definesPresentationContext = true
-    self.navigationItem.titleView = searchController.searchBar
-    // Don't hide the navigation bar because the search bar is in it.
-    searchController.hidesNavigationBarDuringPresentation = false
-
-
     self.view.backgroundColor = Const.SetColor.CTBackground.color
-    searchController.searchBar.tintColor = .black
-    searchController.searchBar.placeholder = "taz Archiv durchsuchen"
-    searchController.searchBar.backgroundColor = Const.SetColor.CTBackground.color
-    searchController.searchBar.backgroundImage = UIImage()//removes seperator
-    if #available(iOS 13.0, *) {
-      searchController.searchBar.searchTextField.defaultStyle(placeholder: "taz Archiv durchsuchen")
-    }
     self.view.addSubview(placeholderView)
     placeholderView.center()
-    
-    if #available(iOS 13.0, *) {
-      searchController.automaticallyShowsSearchResultsController = false
-      searchController.showsSearchResultsController = true
-    }
-    searchController.searchBar.delegate = self // Monitor when the search button pressed
-    
-    resultsTableController.searchClosure = { [weak self] in
-      self?.search()
-    }
-    
-    
-    resultsTableController.openSearchHit = { [weak self] hit in
-      self?.openSearchHit(hit)
-    }
+    let tbl = FakeTableView()
+    self.view.addSubview(tbl)
+    pin(tbl, toSafe: self.view)
+    tbl.contentInset = UIEdgeInsets(top: 40, left: 0, bottom: 0, right: 0)
+    tbl.delegate = self
+    self.view.addSubview(header)
+    header.topConstraint = pin(header, toSafe: self.view, exclude: .bottom).top
+//    resultsTableController.searchClosure = { [weak self] in
+//      self?.search()
+//    }
+//
+//    resultsTableController.openSearchHit = { [weak self] hit in
+//      self?.openSearchHit(hit)
+//    }
     feederContext.updateResources()
   }
   
   required init(feederContext: FeederContext) {
     self.feederContext = feederContext
-    searchController = UISearchController(searchResultsController: resultsTableController)
     srIssue = SearchResultIssue(feed: feederContext.defaultFeed)
     srIssue.sections = [defaultSection]
     articleVC = SearchResultArticleVc(feederContext: self.feederContext)
@@ -169,13 +132,34 @@ class SearchController: UIViewController {
       else if let count = rCount.total {
         message = "\(count) Treffer"
       }
-      fixedHeader.set(text: message,
-                      font: Const.Fonts.contentFont)
-      resultsTableController.searchItem = searchItem
+      #warning("todo set counts in header")
+//      fixedHeader.set(text: message,
+//                      font: Const.Fonts.contentFont)
+//      resultsTableController.searchItem = searchItem
     }
   }
-  
 }
+
+extension SearchController: UITableViewDelegate {
+
+  func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    beginDragOffset = scrollView.contentOffset.y
+  }
+  
+  func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    guard let beginDragOffset = beginDragOffset else { return }
+    header.setHeader(scrollOffset: beginDragOffset - scrollView.contentOffset.y, animateEnd: true)
+    self.beginDragOffset = nil
+  }
+  
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    guard let beginDragOffset = beginDragOffset else { return }
+//    #warning("implement mini header animation")
+//    log("scrolling offset: \(scrollView.contentOffset.y) beginDragOffset: \(beginDragOffset)")
+    header.setHeader(scrollOffset: beginDragOffset-scrollView.contentOffset.y)
+  }
+}
+  
 
 // MARK: - UISearchBarDelegate
 extension SearchController: UISearchBarDelegate {
@@ -211,12 +195,14 @@ extension SearchController: UISearchBarDelegate {
   
   private func search() {
     var searchSettings = self.serachSettingsVC.data.settings
-    searchSettings.text = searchController.searchBar.text
+    #warning("Todo get text")
+//    searchSettings.text = searchController.searchBar.text
 
     if searchSettings.searchTermTooShort {
-      fixedHeader.set(text: "Bitte Suchbegriff eingeben!",
-                                                font: Const.Fonts.boldContentFont,
-                                                color: Const.Colors.ciColor )
+#warning("Todo get text")
+//      fixedHeader.set(text: "Bitte Suchbegriff eingeben!",
+//                                                font: Const.Fonts.boldContentFont,
+//                                                color: Const.Colors.ciColor )
       return
     }
     //Ensute settings closed e.g. if search by keyboard
@@ -227,7 +213,7 @@ extension SearchController: UISearchBarDelegate {
     }
     
     if searchItem.sessionId == nil {
-      resultsTableController.scrollTop()
+//      resultsTableController.scrollTop()
     }
     
     guard let feeder = feederContext.gqlFeeder else { return }

@@ -52,6 +52,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     let searchNc = NavigationController(rootViewController: search)
 //    let searchNc = NavigationController(rootViewController: SearchSettingsVC())
+    searchNc.isNavigationBarHidden = true
     
     let settings = SettingsVC(feederContext: feederContext)
     settings.title = "Einstellungen"
@@ -74,7 +75,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
     
     self.viewControllers = [ homeNc, bookmarks, searchNc, settings]
-    self.selectedIndex = 0
+    self.selectedIndex = 2
   }
   
   func applyStyles() {
