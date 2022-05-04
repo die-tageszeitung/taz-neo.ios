@@ -9,19 +9,30 @@
 import NorthLib
 import UIKit
 
-class SearchHeaderView: UIView, UIStyleChangeDelegate {
+class SearchHeaderView: UIView {
   
+  // MARK: *** Closures ***
   var searchClosure: (()->())?
   
-  var filterActive:Bool = false {
-    didSet {
+  // MARK: *** Properties ***
+  let cancelButtonRightOffsetVisible = 0.0
+  let cancelButtonRightOffsetHidden = 90.0
+  
+  let resultCountViewTopOffsetVisible = 10.0
+  let resultCountViewTopOffsetHidden = -40.0
+  
+  var textFieldBottomConstraint: NSLayoutConstraint?
+  var topConstraint: NSLayoutConstraint?
+  var cancelButtonRightConstraint: NSLayoutConstraint?
+  var resultCountViewTopConstraint: NSLayoutConstraint?
+  
+  var filterActive:Bool = false { didSet {
       extendedSearchButton.buttonView.isActivated
       = filterActive
-      extendedSearchButton.layoutIfNeeded()
     }
   }
-   
   
+  // MARK: *** UI Components ***
   lazy var searchTextField: UITextField = {
     let tf = UITextField()
     tf.leftView
@@ -61,6 +72,7 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
   }()
   
   let resultCountLabel = UILabel()
+  let miniHeaderLabel = UILabel()
   
   public private(set) lazy var resultCountView: UIView = {
     let padding = 5.0
@@ -80,46 +92,29 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
 
     return wrappedLabel
   }()
-  
-  
-  let label = UILabel()
-  
-  let cancelButtonRightOffsetVisible = 0.0
-  let cancelButtonRightOffsetHidden = 90.0
-  
-  let resultCountViewTopOffsetVisible = 10.0
-  let resultCountViewTopOffsetHidden = -40.0
-  
-  var textFieldBottomConstraint: NSLayoutConstraint?
-  var topConstraint: NSLayoutConstraint?
-  var cancelButtonRightConstraint: NSLayoutConstraint?
-  var resultCountViewTopConstraint: NSLayoutConstraint?
-  
+
+  // MARK: *** Lifecycle ***
   private func setup() {
     self.addSubview(resultCountView)
     self.resultCountView.alpha = 0.0
-    self.addSubview(label)
+    self.addSubview(miniHeaderLabel)
     self.addSubview(searchTextField)
     self.addSubview(extendedSearchButton)
     self.addSubview(cancelButton)
     
-    label.onTapping {[weak self] _ in
+    miniHeaderLabel.onTapping {[weak self] _ in
       self?.searchTextField.becomeFirstResponder()
       self?.setHeader(showMaxi: true)
     }
         
-    label.text = "Platzhalter aktuelle Suche,,,"
-    label.contentFont(size: 10)
-    label.textAlignment = .center
+    miniHeaderLabel.contentFont(size: 10)
+    miniHeaderLabel.textAlignment = .center
     
     //label under Textfield
-    pin(label.left, to: searchTextField.left)
-    pin(label.right, to: searchTextField.right)
+    pin(miniHeaderLabel.left, to: searchTextField.left)
+    pin(miniHeaderLabel.right, to: searchTextField.right)
     
-    //extended Search Settings
-
-    
-    pin(label.centerY, to: searchTextField.centerY)
+    pin(miniHeaderLabel.centerY, to: searchTextField.centerY)
     pin(extendedSearchButton.centerY, to: searchTextField.centerY)
     pin(cancelButton.centerY, to: searchTextField.centerY)
     
@@ -141,6 +136,19 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
     registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
+  public override init(frame: CGRect) {
+    super.init(frame:frame)
+    setup()
+  }
+  
+  public required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
+  }
+} // SearchHeaderView
+
+// MARK: - UITextFieldDelegate -
+extension SearchHeaderView : UIStyleChangeDelegate {
   public func applyStyles(){
     if #available(iOS 13.0, *),
        let clearButton = searchTextField.value(forKeyPath: "_clearButton") as? UIButton {
@@ -165,20 +173,10 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
     
     (searchTextField.rightView?.subviews.first as? UIImageView)?.tintColor
     = Const.SetColor.ios(.label).color
-    
   }
-  
-  public override init(frame: CGRect) {
-    super.init(frame:frame)
-    setup()
-  }
-  
-  public required init?(coder: NSCoder) {
-    super.init(coder: coder)
-    setup()
-  }
-} // SearchHeaderView
+}
 
+// MARK: - UITextFieldDelegate -
 extension SearchHeaderView : UITextFieldDelegate {
   
   func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -210,7 +208,10 @@ extension SearchHeaderView {
   }
   
   func setHeader(showMaxi: Bool) {
-    if !showMaxi { searchTextField.resignFirstResponder() }
+    if !showMaxi {
+      searchTextField.resignFirstResponder()
+      hideCancel()
+    }
     setHeader(scrollOffset: showMaxi ? 100 : -100, animate: true)
   }
   
@@ -225,6 +226,7 @@ extension SearchHeaderView {
     if scrollOffset > 0 { ratio = 1 - ratio }
     let targetOffset = ratio * maxOffset
     let alpha = 1 - ratio // maxi 1...0 mini
+    miniHeaderLabel.text = searchTextField.text
     let iconZoom = 1 - ratio/3 // maxi 1...0.66 mini
     let bottomOffset = -10 + 15*ratio // maxi -10...5 mini
     //print("scrollOffset+/-: \(scrollOffset) targetOffset (0...-50): \(targetOffset) alpha (1...0): \(alpha)  bottomOffset (15...-5): \(bottomOffset)")

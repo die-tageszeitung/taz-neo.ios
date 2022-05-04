@@ -9,8 +9,39 @@
 import NorthLib
 
 class SearchController: UIViewController {
-
-
+  // MARK: *** Properties ***
+  var feederContext: FeederContext
+  
+  private let defaultSection
+  = BookmarkSection(name: "Suche",
+                    html: TmpFileEntry(name: "SearchTempSection.tmp"))
+  
+  private var srIssue:SearchResultIssue
+  private var lastArticleShown: Article?
+  
+  private var articleVC:SearchResultArticleVc
+  
+  var searchItem:SearchItem = SearchItem() {
+    didSet {
+      updateArticleVcIfNeeded()
+      
+      var message = "Keine Treffer"
+      let rCount = searchItem.resultCount
+      if let currentCount = rCount.currentCount, let totalCount = rCount.total {
+        message = "\(totalCount)/\(currentCount)"
+      }
+      else if let count = rCount.currentCount {
+        message = "\(count) Treffer"
+      }
+      else if let count = rCount.total {
+        message = "\(count) Treffer"
+      }
+      header.showResult(text: message)
+      resultsTable.searchItem = searchItem
+    }
+  }
+  
+  // MARK: *** UIComponents ***
   private lazy var resultsTable:SearchResultsTableView = {
     let v = SearchResultsTableView()
     v.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
@@ -27,14 +58,6 @@ class SearchController: UIViewController {
     return v
   }()
   
-  private let defaultSection = BookmarkSection(name: "Suche",
-                                       html: TmpFileEntry(name: "SearchTempSection.tmp"))
-  
-  private var articleVC:SearchResultArticleVc
-  private var srIssue:SearchResultIssue
-  
-
-  
   lazy var header:SearchHeaderView = {
     let header = SearchHeaderView()
     
@@ -48,41 +71,24 @@ class SearchController: UIViewController {
       self?.serachSettingsView.toggle()
       self?.checkFilter()
     }
-    
-    
     header.searchClosure = { [weak self] in
       self?.search()
     }
-    
     return header
   }()
   
   lazy var serachSettingsView:SearchSettingsView = {
     let v = SearchSettingsView(frame: .zero, style: .grouped)
     v.backgroundView = UIView()
-    
-    //    vc.finishedClosure = { [weak self] doSearch in
-    ////      self?.checkFilter()
-    //      if doSearch {
-    ////        self?.searchClosure?()
-    //      }
-    //    }
-    
     v.backgroundView?.onTapping {[weak self] _ in
       v.toggle(toVisible: false)
       self?.checkFilter()
     }
-    
     v.searchButton.addTarget(self,
                              action: #selector(self.handleSearchButton),
                              for: .touchUpInside)
-    
     return v
   }()
-  
-  private var lastArticleShown: Article?
-  
-  var feederContext: FeederContext
   
   lazy var placeholderView: UIView = {
     let v = UILabel()
@@ -95,14 +101,8 @@ class SearchController: UIViewController {
     v.pinWidth(UIWindow.shortSide - 2*Const.Size.DefaultPadding)
     return v
   }()
-  
-  func restoreInitialState() -> Bool{
-    if resultsTable.restoreInitialState() == false {
-      return false
-    }
-    return true
-  }
-  
+    
+  // MARK: *** Lifecycle ***
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     if let lastArticle = lastArticleShown,
@@ -114,24 +114,22 @@ class SearchController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(placeholderView)
-    placeholderView.center()
     self.view.addSubview(resultsTable)
-    pin(resultsTable, toSafe: self.view)
-    resultsTable.contentInset = UIEdgeInsets(top: 40, left: 0, bottom: 0, right: 0)
-    #warning("DELEGATE")
-//    resultsTable.delegate = self
     self.view.addSubview(serachSettingsView)
     self.view.addSubview(header)
     
+    placeholderView.center()
+    pin(resultsTable, toSafe: self.view)
+    resultsTable.contentInset = UIEdgeInsets(top: 40, left: 0, bottom: 0, right: 0)
     header.topConstraint = pin(header, to: self.view, exclude: .bottom).top
-    
     pin(serachSettingsView.left, to: self.view.left)
     pin(serachSettingsView.right, to: self.view.right)
-    serachSettingsView.topConstraint = pin(serachSettingsView.top, to: header.bottom, dist: -UIWindow.size.height)
-    serachSettingsView.bottomConstraint = pin(serachSettingsView.bottom, to: self.view.bottom, dist: -UIWindow.size.height)
+    serachSettingsView.topConstraint
+    = pin(serachSettingsView.top, to: header.bottom, dist: -UIWindow.size.height)
+    serachSettingsView.bottomConstraint
+    = pin(serachSettingsView.bottom, to: self.view.bottom, dist: -UIWindow.size.height)
     
     feederContext.updateResources()
   }
@@ -153,30 +151,16 @@ class SearchController: UIViewController {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
-  var searchItem:SearchItem = SearchItem() {
-    didSet {
-      updateArticleVcIfNeeded()
-      
-      var message = "Keine Treffer"
-      let rCount = searchItem.resultCount
-      if let currentCount = rCount.currentCount, let totalCount = rCount.total {
-        message = "\(totalCount)/\(currentCount)"
-      }
-      else if let count = rCount.currentCount {
-        message = "\(count) Treffer"
-      }
-      else if let count = rCount.total {
-        message = "\(count) Treffer"
-      }
-      header.showResult(text: message)
-      resultsTable.searchItem = searchItem
-    }
-  }
 }
 
-// MARK: - UISearchBarDelegate
-extension SearchController: UISearchBarDelegate {
+// MARK: - Helper Functions -
+extension SearchController {
+  func restoreInitialState() -> Bool{
+    if resultsTable.restoreInitialState() == false {
+      return false
+    }
+    return true
+  }
   
   func updateArticleVcIfNeeded(){
     self.articleVC.feederContext = self.feederContext
@@ -206,7 +190,7 @@ extension SearchController: UISearchBarDelegate {
       }
     }
   }
-  
+
   private func search() {
     var searchSettings = self.serachSettingsView.data.settings
     searchSettings.text = header.searchTextField.text
@@ -241,13 +225,6 @@ extension SearchController: UISearchBarDelegate {
     }
   }
   
-  public func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-    search()
-  }
-}
-
-extension SearchController {
-  
   func checkFilter(){
     onMainAfter {[weak self] in
       self?.header.filterActive
@@ -261,8 +238,7 @@ extension SearchController {
     header.hideCancel()
     serachSettingsView.restoreInitialState()
     serachSettingsView.toggle(toVisible: false)
-
-    #warning("Clear old results")
+    searchItem = SearchItem()
   }
   
   @objc func handleSearchButton(){
@@ -271,14 +247,7 @@ extension SearchController {
   }
 }
 
-extension GqlSearchHit {
-  var localPath: String? {
-    let f = File(dir: Dir.searchResultsPath, fname: article.html.fileName)
-    if !f.exists { return nil }
-    return Dir.searchResultsPath + "/" + article.html.fileName
-  }
-}
-
+// MARK: - ArticleVCdelegate -
 extension SearchController: ArticleVCdelegate {
   public var issue: Issue {
     return self.srIssue
@@ -330,14 +299,15 @@ extension SearchController: ArticleVCdelegate {
   }
 }
 
-// MARK: - extension String
+// MARK: - other extensions -
+// MARK: *** String ***
 extension String {
   var sha1:String { self.data(using: .utf8)?.sha1 ?? self }
   var sha256:String { self.data(using: .utf8)?.sha256 ?? self }
   var md5:String { self.data(using: .utf8)?.md5 ?? self }
 }
 
-// MARK: - GqlSearchHit
+// MARK: *** GqlSearchHit ***
 extension GqlSearchHit {
   @discardableResult
   public func writeToDisk() -> String {
@@ -345,6 +315,12 @@ extension GqlSearchHit {
     let f = TmpFileEntry(name: filename)
     f.content = self.articleHtml
     return f.path
+  }
+  
+  var localPath: String? {
+    let f = File(dir: Dir.searchResultsPath, fname: article.html.fileName)
+    if !f.exists { return nil }
+    return Dir.searchResultsPath + "/" + article.html.fileName
   }
 }
 

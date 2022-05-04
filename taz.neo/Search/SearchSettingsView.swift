@@ -143,17 +143,13 @@ class SearchSettingsView: UITableView {
       pin(topBackground.top, to: sv.top, dist: -50)
       pin(topBackground.left, to: sv.left)
       pin(topBackground.right, to: sv.right)
-      
-      
-      
     }
   }
   
   lazy var topBackground: UIView = {
     let v = UIView()
     v.pinHeight(400)
-    v.backgroundColor = .red
-//    = Const.SetColor.ios(.systemBackground).color
+    v.backgroundColor = Const.SetColor.ios(.systemBackground).color
     return v
   }()
   
