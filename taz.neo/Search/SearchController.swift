@@ -10,7 +10,15 @@ import NorthLib
 
 class SearchController: UIViewController {
 
-  private let resultsTable = SearchResultsTableView()
+
+  private lazy var resultsTable:SearchResultsTableView = {
+    let v = SearchResultsTableView()
+    v.searchClosure = { [weak self] in
+      self?.search()
+    }
+    return v
+  }()
+  
   private let defaultSection = BookmarkSection(name: "Suche",
                                        html: TmpFileEntry(name: "SearchTempSection.tmp"))
   
@@ -28,8 +36,13 @@ class SearchController: UIViewController {
     
     header.extendedSearchButton.onTapping { [weak self] _ in
       self?.header.setHeader(showMaxi: true)
+      self?.header.hideResult()
       self?.serachSettingsView.toggle()
       self?.checkFilter()
+    }
+    
+    header.searchClosure = { [weak self] in
+      self?.search()
     }
     
     return header
@@ -105,9 +118,7 @@ class SearchController: UIViewController {
     self.view.addSubview(header)
     
     header.topConstraint = pin(header, to: self.view, exclude: .bottom).top
-//    resultsTableController.searchClosure = { [weak self] in
-//      self?.search()
-//    }
+
 //
 //    resultsTableController.openSearchHit = { [weak self] hit in
 //      self?.openSearchHit(hit)
@@ -154,10 +165,8 @@ class SearchController: UIViewController {
       else if let count = rCount.total {
         message = "\(count) Treffer"
       }
-      #warning("todo set counts in header")
-//      fixedHeader.set(text: message,
-//                      font: Const.Fonts.contentFont)
-//      resultsTableController.searchItem = searchItem
+      header.showResult(text: message)
+      resultsTable.searchItem = searchItem
     }
   }
 }
@@ -217,25 +226,21 @@ extension SearchController: UISearchBarDelegate {
   
   private func search() {
     var searchSettings = self.serachSettingsView.data.settings
-    #warning("Todo get text")
-//    searchSettings.text = searchController.searchBar.text
-
+    searchSettings.text = header.searchTextField.text
     if searchSettings.searchTermTooShort {
-#warning("Todo get text")
-//      fixedHeader.set(text: "Bitte Suchbegriff eingeben!",
-//                                                font: Const.Fonts.boldContentFont,
-//                                                color: Const.Colors.ciColor )
+      header.showResult(text: "Bitte Suchbegriff eingeben!")
       return
     }
-    //Ensute settings closed e.g. if search by keyboard
-//    self.serachSettingsVC.dismiss(animated: true)
+    
+    header.searchTextField.resignFirstResponder()
+    serachSettingsView.toggle(toVisible: false)
 
     if searchItem.settings != searchSettings {
       searchItem.settings = searchSettings
     }
     
     if searchItem.sessionId == nil {
-//      resultsTableController.scrollTop()
+      resultsTable.scrollTop()
     }
     
     guard let feeder = feederContext.gqlFeeder else { return }
@@ -268,8 +273,8 @@ extension SearchController {
   }
   
   @objc func handleCancelButton(){
-    header.textField.resignFirstResponder()
-    header.textField.text = nil
+    header.searchTextField.resignFirstResponder()
+    header.searchTextField.text = nil
     header.hideCancel()
     serachSettingsView.restoreInitialState()
     serachSettingsView.toggle(toVisible: false)
@@ -278,9 +283,8 @@ extension SearchController {
   }
   
   @objc func handleSearchButton(){
-    print("TODO SEARCH")
-#warning("TODO SEARCH")
     serachSettingsView.toggle(toVisible: false)
+    search()
   }
 }
 
