@@ -15,7 +15,7 @@
                   <BuildableReference
                      BuildableIdentifier = "primary"
                      BlueprintIdentifier = "AEBAF563219ACD1900566205"
-                     BuildableName = "taz.alpha.app"
+                     BuildableName = "taz.beta.app"
                      BlueprintName = "taz.neo"
                      ReferencedContainer = "container:taz.neo.xcodeproj">
                   </BuildableReference>
@@ -33,7 +33,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AEBAF563219ACD1900566205"
-               BuildableName = "taz.alpha.app"
+               BuildableName = "taz.beta.app"
                BlueprintName = "taz.neo"
                ReferencedContainer = "container:taz.neo.xcodeproj">
             </BuildableReference>
@@ -41,7 +41,7 @@
       </BuildActionEntries>
    </BuildAction>
    <TestAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Beta"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
@@ -49,7 +49,7 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Beta"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -63,14 +63,14 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEBAF563219ACD1900566205"
-            BuildableName = "taz.alpha.app"
+            BuildableName = "taz.beta.app"
             BlueprintName = "taz.neo"
             ReferencedContainer = "container:taz.neo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Beta"
       shouldUseLaunchSchemeArgsEnv = "YES"
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
@@ -80,17 +80,17 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEBAF563219ACD1900566205"
-            BuildableName = "taz.alpha.app"
+            BuildableName = "taz.beta.app"
             BlueprintName = "taz.neo"
             ReferencedContainer = "container:taz.neo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
-      buildConfiguration = "Debug">
+      buildConfiguration = "Beta">
    </AnalyzeAction>
    <ArchiveAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Beta"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>
