@@ -13,8 +13,16 @@ class SearchController: UIViewController {
 
   private lazy var resultsTable:SearchResultsTableView = {
     let v = SearchResultsTableView()
+    v.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+    v.scrollIndicatorInsets = UIEdgeInsets(top: 30, left: 0, bottom: 0, right: 0)
     v.searchClosure = { [weak self] in
       self?.search()
+    }
+    v.openSearchHit = { [weak self] hit in
+      self?.openSearchHit(hit)
+    }
+    v.handleScrolling = { [weak self] (offset,end) in
+      self?.header.setHeader(scrollOffset: offset, animateEnd: end)
     }
     return v
   }()
@@ -25,7 +33,7 @@ class SearchController: UIViewController {
   private var articleVC:SearchResultArticleVc
   private var srIssue:SearchResultIssue
   
-  var beginDragOffset:CGFloat?
+
   
   lazy var header:SearchHeaderView = {
     let header = SearchHeaderView()
@@ -40,6 +48,7 @@ class SearchController: UIViewController {
       self?.serachSettingsView.toggle()
       self?.checkFilter()
     }
+    
     
     header.searchClosure = { [weak self] in
       self?.search()
@@ -118,11 +127,6 @@ class SearchController: UIViewController {
     self.view.addSubview(header)
     
     header.topConstraint = pin(header, to: self.view, exclude: .bottom).top
-
-//
-//    resultsTableController.openSearchHit = { [weak self] hit in
-//      self?.openSearchHit(hit)
-//    }
     
     pin(serachSettingsView.left, to: self.view.left)
     pin(serachSettingsView.right, to: self.view.right)
@@ -170,27 +174,6 @@ class SearchController: UIViewController {
     }
   }
 }
-
-extension SearchController: UITableViewDelegate {
-
-  func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-    beginDragOffset = scrollView.contentOffset.y
-  }
-  
-  func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    guard let beginDragOffset = beginDragOffset else { return }
-    header.setHeader(scrollOffset: beginDragOffset - scrollView.contentOffset.y, animateEnd: true)
-    self.beginDragOffset = nil
-  }
-  
-  func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    guard let beginDragOffset = beginDragOffset else { return }
-//    #warning("implement mini header animation")
-//    log("scrolling offset: \(scrollView.contentOffset.y) beginDragOffset: \(beginDragOffset)")
-    header.setHeader(scrollOffset: beginDragOffset-scrollView.contentOffset.y)
-  }
-}
-  
 
 // MARK: - UISearchBarDelegate
 extension SearchController: UISearchBarDelegate {

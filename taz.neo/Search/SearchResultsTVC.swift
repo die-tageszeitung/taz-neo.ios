@@ -12,6 +12,8 @@ import UIKit
 
 class SearchResultsTableView:UITableView{
   
+  var beginDragOffset:CGFloat?
+  
   var searchClosure: (()->())?
   
   var openSearchHit: ((GqlSearchHit)->())?
@@ -74,6 +76,8 @@ class SearchResultsTableView:UITableView{
     super.init(coder: coder)
     setup()
   }
+  
+  var handleScrolling: ((_ withOffset:CGFloat, _ isEnd: Bool)->())?
 }
 
 // MARK: - UITableViewDataSource -
@@ -93,6 +97,21 @@ extension SearchResultsTableView: UITableViewDelegate {
     if let searchHit = searchItem?.searchHitList?.valueAt(indexPath.row) {
       openSearchHit?(searchHit)
     }
+  }
+  
+  func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    beginDragOffset = scrollView.contentOffset.y
+  }
+  
+  func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    guard let beginDragOffset = beginDragOffset else { return }
+    handleScrolling?(beginDragOffset - scrollView.contentOffset.y, true)
+    self.beginDragOffset = nil
+  }
+  
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    guard let beginDragOffset = beginDragOffset else { return }
+    handleScrolling?(beginDragOffset - scrollView.contentOffset.y, false)
   }
   
   
