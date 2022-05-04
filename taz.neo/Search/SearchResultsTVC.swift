@@ -1,5 +1,5 @@
 //
-//  SearchResultsTVC.swift
+//  SearchResultsTableView.swift
 //  taz.neo
 //
 //  Created by Ringo Müller on 29.07.21.
@@ -10,7 +10,7 @@ import NorthLib
 import CoreGraphics
 import UIKit
 
-class SearchResultsTVC:UITableViewController{
+class SearchResultsTableView:UITableView{
   
   var searchClosure: (()->())?
   
@@ -21,7 +21,7 @@ class SearchResultsTVC:UITableViewController{
       searchItem?.noMoreSearchResults ?? true
       ? footer.hideAnimated()
       : footer.showAnimated()
-      tableView.reloadData()
+      self.reloadData()
     }
   }
   
@@ -30,13 +30,13 @@ class SearchResultsTVC:UITableViewController{
   public var onBackgroundTap : (()->())?
   
   func scrollTop(){
-    let animated = tableView.contentOffset.y < 8*UIWindow.size.height
-    tableView.setContentOffset(CGPoint(x: 1, y: -40), animated: animated)
+    let animated = contentOffset.y < 8*UIWindow.size.height
+    setContentOffset(CGPoint(x: 1, y: -40), animated: animated)
   }
   
   func restoreInitialState() -> Bool{
     ///first scroll up
-    if tableView.contentOffset.y > 20 {
+    if contentOffset.y > 20 {
       scrollTop()
       return false
     }
@@ -53,46 +53,33 @@ class SearchResultsTVC:UITableViewController{
 
   static let SearchResultsCellIdentifier = "searchResultsCell"
   
-  override public func viewDidLoad() {
-    super.viewDidLoad()
-    edgesForExtendedLayout = []
-    self.tableView.register(SearchResultsCell.self, forCellReuseIdentifier: Self.SearchResultsCellIdentifier)
-    self.tableView.backgroundColor = Const.Colors.opacityBackground
-    self.navigationController?.navigationBar.isTranslucent = false
-    self.tableView.backgroundView?.onTapping {   [weak self] _ in
-      guard let self = self else { return }
-      self.onBackgroundTap?()
-    }
+  func setup(){
+    self.register(SearchResultsCell.self, forCellReuseIdentifier: Self.SearchResultsCellIdentifier)
+    self.backgroundColor = Const.Colors.opacityBackground
     footer.style = .white
     footer.alpha = 0.0
-    self.tableView.tableFooterView = footer
+    self.tableFooterView = footer
+    
+    self.dataSource = self
+    self.delegate = self
+  }
+  
+  // MARK: *** Lifecycle ***
+  override init(frame: CGRect, style: UITableView.Style) {
+    super.init(frame: frame, style: style)
+    setup()
+  }
+  
+  public required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
   }
 }
 
-extension SearchResultsTVC: UIPopoverPresentationControllerDelegate {
-  func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-    return .none
-  }
-}
-
-// MARK: - UITableViewDataSource
-extension SearchResultsTVC {
-  override func numberOfSections(in tableView: UITableView) -> Int {
-    return 1
-  }
+// MARK: - UITableViewDataSource -
+extension SearchResultsTableView: UITableViewDelegate {
   
-  override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return searchItem?.allArticles?.count ?? 0
-  }
-  
-  override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: SearchResultsTVC.SearchResultsCellIdentifier,
-                                             for: indexPath) as! SearchResultsCell
-    cell.content = self.searchItem?.searchHitList?.valueAt(indexPath.row)
-    return cell
-  }
-  
-  override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+  func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
     guard let currentCount = self.searchItem?.searchHitList?.count else { return }
     if indexPath.row == currentCount - 2
         && currentCount > 2
@@ -102,11 +89,31 @@ extension SearchResultsTVC {
     }
   }
   
-  override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     if let searchHit = searchItem?.searchHitList?.valueAt(indexPath.row) {
       openSearchHit?(searchHit)
     }
   }
+  
+  
+}
+// MARK: - UITableViewDataSource -
+extension SearchResultsTableView: UITableViewDataSource {
+  func numberOfSections(in tableView: UITableView) -> Int {
+    return 1
+  }
+  
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return searchItem?.allArticles?.count ?? 0
+  }
+  
+  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell = tableView.dequeueReusableCell(withIdentifier: Self.SearchResultsCellIdentifier,
+                                             for: indexPath) as! SearchResultsCell
+    cell.content = self.searchItem?.searchHitList?.valueAt(indexPath.row)
+    return cell
+  }
+
 }
 
 // MARK: - SearchResultsCell

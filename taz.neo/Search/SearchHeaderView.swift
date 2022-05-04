@@ -15,8 +15,10 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
     didSet {
       extendedSearchButton.buttonView.isActivated
       = filterActive
+      extendedSearchButton.layoutIfNeeded()
     }
   }
+   
   
   lazy var textField: UITextField = {
     let tf = UITextField()
@@ -44,12 +46,6 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
     button.buttonView.activeColor = Const.SetColor.ios(.tintColor).color
     button.buttonView.color = Const.SetColor.ios_opaque(.closeX).color
     button.buttonView.isActivated = false
-    button.onTapping { [weak self]_ in
-      self?.setHeader(showMaxi: true)
-      self?.resultCountView.alpha ?? 0.0 == 1.0
-      ? self?.hideResult()
-      : self?.showResult()
-    }
     return button
   }()
   
@@ -58,9 +54,6 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
     button.setTitle("Abbrechen", for: .normal)
     button.alpha = 0.0
     button.pinWidth(95)
-    button.addTarget(self,
-                   action: #selector(self.handleCancelButton),
-                   for: .touchUpInside)
     return button
   }()
   
@@ -101,6 +94,7 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
   
   private func setup() {
     self.addSubview(resultCountView)
+    self.resultCountView.alpha = 0.0
     self.addSubview(label)
     self.addSubview(textField)
     self.addSubview(extendedSearchButton)
@@ -119,6 +113,9 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
     pin(label.left, to: textField.left)
     pin(label.right, to: textField.right)
     
+    //extended Search Settings
+
+    
     pin(label.centerY, to: textField.centerY)
     pin(extendedSearchButton.centerY, to: textField.centerY)
     pin(cancelButton.centerY, to: textField.centerY)
@@ -129,7 +126,7 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
                                        dist: resultCountViewTopOffsetVisible)
     
     pin(textField.left, to: self.left, dist: Const.Size.DefaultPadding)
-    pin(textField.top, to: self.top, dist: 8)
+    pin(textField.top, to: self.topGuide(), dist: 8)
     textFieldBottomConstraint = pin(textField.bottom, to: self.bottom, dist: -Const.Size.DefaultPadding)
     
     pin(extendedSearchButton.left, to: textField.right, dist: 5)
@@ -179,15 +176,6 @@ class SearchHeaderView: UIView, UIStyleChangeDelegate {
   }
 } // SearchHeaderView
 
-extension SearchHeaderView {
-  @objc func handleCancelButton(){
-    textField.resignFirstResponder()
-    textField.text = nil
-    hideCancel()
-  }
-}
-
-
 extension SearchHeaderView : UITextFieldDelegate {
   func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
     
@@ -200,8 +188,7 @@ extension SearchHeaderView : UITextFieldDelegate {
 
 // MARK: - Animations
 extension SearchHeaderView {
-  
-  public func setHeader(scrollOffset: CGFloat, animateEnd: Bool = false){
+  func setHeader(scrollOffset: CGFloat, animateEnd: Bool = false){
     if animateEnd {
       switch scrollOffset {
         case ..<(-20): setHeader(showMaxi: false)
@@ -214,7 +201,7 @@ extension SearchHeaderView {
     setHeader(scrollOffset: scrollOffset, animate: false)
   }
   
-  fileprivate func setHeader(showMaxi: Bool) {
+  func setHeader(showMaxi: Bool) {
     if !showMaxi { textField.resignFirstResponder() }
     setHeader(scrollOffset: showMaxi ? 100 : -100, animate: true)
   }
@@ -264,20 +251,20 @@ extension SearchHeaderView {
   }
   
   func showResult(){
-    UIView.animate(seconds: 0.3) { [weak self] in
-      self?.resultCountViewTopConstraint?.constant
-      = self?.resultCountViewTopOffsetVisible ?? 0
-      self?.resultCountView.alpha = 1.0
-      self?.layoutIfNeeded()
-    }
+//    UIView.animate(seconds: 0.3) { [weak self] in
+//      self?.resultCountViewTopConstraint?.constant
+//      = self?.resultCountViewTopOffsetVisible ?? 0
+//      self?.resultCountView.alpha = 1.0
+//      self?.layoutIfNeeded()
+//    }
   }
   
   func hideResult(){
-    UIView.animate(seconds: 0.3) { [weak self] in
-      self?.resultCountViewTopConstraint?.constant
-      = self?.resultCountViewTopOffsetHidden ?? 0
-      self?.resultCountView.alpha = 0.0
-      self?.layoutIfNeeded()
-    }
+//    UIView.animate(seconds: 0.3) { [weak self] in
+//      self?.resultCountViewTopConstraint?.constant
+//      = self?.resultCountViewTopOffsetHidden ?? 0
+//      self?.resultCountView.alpha = 0.0
+//      self?.layoutIfNeeded()
+//    }
   }
 }

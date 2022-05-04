@@ -366,11 +366,14 @@ class TazAppEnvironment: DoesLog /*: NSObject, DoesLog, MFMailComposeViewControl
   
   static func setupDefaultStyles(){
     if let defaultFontName = Const.Fonts.contentFontName,
-       //       let defaultFont =  UIFont(name: defaultFontName, size: Const.Size.DefaultFontSize),
-        let defaultFont10 =  UIFont(name: defaultFontName, size: 10){
+       let defaultFont10 =  UIFont(name: defaultFontName, size: 10){
       UITabBarItem.appearance()
         .setTitleTextAttributes([NSAttributedString.Key.font:defaultFont10],
                                 for: .normal)
+      //Not working
+      // UILabel.appearance(whenContainedInInstancesOf: [UIDatePicker.self]) ...
+      // UILabel.appearance().font = Const.Fonts.contentFont
+            
 //      UITabBarItem.appearance()
 //        .setTitleTextAttributes([NSAttributedString.Key.font:defaultFont10],
 //                                for: .selected)

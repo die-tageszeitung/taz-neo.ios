@@ -21,7 +21,6 @@ class AppDelegate: NotifiedDelegate {
 
     self.window?.rootViewController = TazAppEnvironment.sharedInstance.rootViewController
 //    self.window?.rootViewController =  TmpTestController()
-//    self.window?.rootViewController = SearchSettingsVC()
 //    let res = SearchResultsTVC()
 //    res.searchResponse = GqlFeeder.test()
 //    self.window?.rootViewController = res

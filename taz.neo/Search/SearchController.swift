@@ -10,9 +10,7 @@ import NorthLib
 
 class SearchController: UIViewController {
 
-//  private let resultsTableController = SearchResultsTVC()
-  private let resultsTableController = FakeTableTableViewController()
-  
+  private let resultsTable = SearchResultsTableView()
   private let defaultSection = BookmarkSection(name: "Suche",
                                        html: TmpFileEntry(name: "SearchTempSection.tmp"))
   
@@ -21,7 +19,44 @@ class SearchController: UIViewController {
   
   var beginDragOffset:CGFloat?
   
-  let header = SearchHeaderView()
+  lazy var header:SearchHeaderView = {
+    let header = SearchHeaderView()
+    
+    header.cancelButton.addTarget(self,
+                   action: #selector(self.handleCancelButton),
+                   for: .touchUpInside)
+    
+    header.extendedSearchButton.onTapping { [weak self] _ in
+      self?.header.setHeader(showMaxi: true)
+      self?.serachSettingsView.toggle()
+      self?.checkFilter()
+    }
+    
+    return header
+  }()
+  
+  lazy var serachSettingsView:SearchSettingsView = {
+    let v = SearchSettingsView(frame: .zero, style: .grouped)
+    v.backgroundView = UIView()
+    
+    //    vc.finishedClosure = { [weak self] doSearch in
+    ////      self?.checkFilter()
+    //      if doSearch {
+    ////        self?.searchClosure?()
+    //      }
+    //    }
+    
+    v.backgroundView?.onTapping {[weak self] _ in
+      v.toggle(toVisible: false)
+      self?.checkFilter()
+    }
+    
+    v.searchButton.addTarget(self,
+                             action: #selector(self.handleSearchButton),
+                             for: .touchUpInside)
+    
+    return v
+  }()
   
   private var lastArticleShown: Article?
   
@@ -40,41 +75,20 @@ class SearchController: UIViewController {
   }()
   
   func restoreInitialState() -> Bool{
-//    if resultsTableController.restoreInitialState() == false {
-//      return false
-//    }
+    if resultsTable.restoreInitialState() == false {
+      return false
+    }
     return true
   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    resultsTableController.tableView.contentInset = UIEdgeInsets(top: 35, left: 0, bottom: 0, right: 0)
-    
-
-
     if let lastArticle = lastArticleShown,
        let hitList = searchItem.searchHitList,
        let idx = hitList.firstIndex(where: { lastArticle.isEqualTo(otherArticle: $0.article)}) {
-      resultsTableController.tableView.scrollToRow(at: IndexPath(row: idx, section:0 ), at: .top, animated: false)
+      resultsTable.scrollToRow(at: IndexPath(row: idx, section:0 ), at: .top, animated: false)
     }
-   
-    resultsTableController.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 45, left: 0, bottom: 0, right: 0)
   }
-  
-  public private(set) lazy var serachSettingsVC:SearchSettingsVC = {
-    let vc = SearchSettingsVC(style: .grouped)
-    vc.setup()
-    
-    vc.preferredContentSize = CGSize(width: min(self.view.frame.size.width, 500), height: UIWindow.size.height - 280)
-    
-    vc.finishedClosure = { [weak self] doSearch in
-//      self?.checkFilter()
-      if doSearch {
-//        self?.searchClosure?()
-      }
-    }
-    return vc
-  }()
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -82,13 +96,15 @@ class SearchController: UIViewController {
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(placeholderView)
     placeholderView.center()
-    let tbl = FakeTableView()
-    self.view.addSubview(tbl)
-    pin(tbl, toSafe: self.view)
-    tbl.contentInset = UIEdgeInsets(top: 40, left: 0, bottom: 0, right: 0)
-    tbl.delegate = self
+    self.view.addSubview(resultsTable)
+    pin(resultsTable, toSafe: self.view)
+    resultsTable.contentInset = UIEdgeInsets(top: 40, left: 0, bottom: 0, right: 0)
+    #warning("DELEGATE")
+//    resultsTable.delegate = self
+    self.view.addSubview(serachSettingsView)
     self.view.addSubview(header)
-    header.topConstraint = pin(header, toSafe: self.view, exclude: .bottom).top
+    
+    header.topConstraint = pin(header, to: self.view, exclude: .bottom).top
 //    resultsTableController.searchClosure = { [weak self] in
 //      self?.search()
 //    }
@@ -96,6 +112,12 @@ class SearchController: UIViewController {
 //    resultsTableController.openSearchHit = { [weak self] hit in
 //      self?.openSearchHit(hit)
 //    }
+    
+    pin(serachSettingsView.left, to: self.view.left)
+    pin(serachSettingsView.right, to: self.view.right)
+    serachSettingsView.topConstraint = pin(serachSettingsView.top, to: header.bottom, dist: -UIWindow.size.height)
+    serachSettingsView.bottomConstraint = pin(serachSettingsView.bottom, to: self.view.bottom, dist: -UIWindow.size.height)
+    
     feederContext.updateResources()
   }
   
@@ -194,7 +216,7 @@ extension SearchController: UISearchBarDelegate {
   }
   
   private func search() {
-    var searchSettings = self.serachSettingsVC.data.settings
+    var searchSettings = self.serachSettingsView.data.settings
     #warning("Todo get text")
 //    searchSettings.text = searchController.searchBar.text
 
@@ -206,7 +228,7 @@ extension SearchController: UISearchBarDelegate {
       return
     }
     //Ensute settings closed e.g. if search by keyboard
-    self.serachSettingsVC.dismiss(animated: true)
+//    self.serachSettingsVC.dismiss(animated: true)
 
     if searchItem.settings != searchSettings {
       searchItem.settings = searchSettings
@@ -234,8 +256,32 @@ extension SearchController: UISearchBarDelegate {
   public func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
     search()
   }
+}
+
+extension SearchController {
   
+  func checkFilter(){
+    onMainAfter {[weak self] in
+      self?.header.filterActive
+      = self?.serachSettingsView.data.settings.isChanged ?? false
+    }
+  }
   
+  @objc func handleCancelButton(){
+    header.textField.resignFirstResponder()
+    header.textField.text = nil
+    header.hideCancel()
+    serachSettingsView.restoreInitialState()
+    serachSettingsView.toggle(toVisible: false)
+
+    #warning("Clear old results")
+  }
+  
+  @objc func handleSearchButton(){
+    print("TODO SEARCH")
+#warning("TODO SEARCH")
+    serachSettingsView.toggle(toVisible: false)
+  }
 }
 
 extension GqlSearchHit {
