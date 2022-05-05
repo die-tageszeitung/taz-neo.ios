@@ -54,12 +54,14 @@ class SearchController: UIViewController {
           resultsTable.hideAnimated()
           placeholderView.showAnimated()
         case .firstSearch:
+          resultsTable.hideAnimated()
           placeholderView.hideAnimated()
           centralActivityIndicator.isHidden = false
           centralActivityIndicator.startAnimating()
         case .result:
           centralActivityIndicator.isHidden = false
           centralActivityIndicator.stopAnimating()
+          resultsTable.isHidden = false
       }
     }
   }
@@ -248,16 +250,14 @@ extension SearchController {
     }
     
     if searchItem.sessionId == nil {
-      resultsTable.isHidden = true
-      resultsTable.scrollTop()
+      currentState = .firstSearch
+      header.updateHeaderStatusWith(text: nil, color: nil)
     }
     
     guard let feeder = feederContext.gqlFeeder else { return }
-    #warning("show spinner")
     feeder.search(searchItem: searchItem) { [weak self] result in
       guard let self = self else { return }
-    #warning("hide spinner")
-      self.resultsTable.isHidden = false
+      self.currentState = .result
       switch result {
         case .success(let updatedSearchItem):
           for searchHit in updatedSearchItem.lastResponse?.search.searchHitList ?? [] {
@@ -293,13 +293,13 @@ extension SearchController {
     searchSettingsView.restoreInitialState()
     searchSettingsView.toggle(toVisible: false)
     self.checkFilter()
-    resultsTable.isHidden = true
     header.checkCancelButton()
     header.setHeader(showMaxi: true)
     searchItem = SearchItem()
 //    onMainAfter { [weak self] in
 //      self?.view.layoutIfNeeded()
 //    }
+    self.currentState = .initial
     return true
   }
   
