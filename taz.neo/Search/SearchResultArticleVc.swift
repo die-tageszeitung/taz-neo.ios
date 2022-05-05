@@ -65,6 +65,12 @@ class SearchResultArticleVc : ArticleVC {
       guard let mainTabVC = self?.navigationController?.parent as? MainTabVC else { return }
       mainTabVC.selectedIndex = 0
     }
+    if false && feederContext.isAuthenticated == false {
+      #warning("todo condition, reload")
+      atEndOfContent() { [weak self] isAtEnd in
+        if isAtEnd { self?.feederContext.authenticate() }
+      }
+    }
   }
 }
 
