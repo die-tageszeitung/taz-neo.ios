@@ -45,6 +45,25 @@ class SearchController: UIViewController {
     }
   }
   
+  enum searchState: String {case initial, firstSearch, result}
+  
+  private var currentState: searchState = .initial {
+    didSet {
+      switch currentState {
+        case .initial:
+          resultsTable.hideAnimated()
+          placeholderView.showAnimated()
+        case .firstSearch:
+          placeholderView.hideAnimated()
+          centralActivityIndicator.isHidden = false
+          centralActivityIndicator.startAnimating()
+        case .result:
+          centralActivityIndicator.isHidden = false
+          centralActivityIndicator.stopAnimating()
+      }
+    }
+  }
+  
   // MARK: *** UIComponents ***
   private lazy var resultsTable:SearchResultsTableView = {
     let v = SearchResultsTableView()
@@ -97,16 +116,35 @@ class SearchController: UIViewController {
   }()
   
   lazy var placeholderView: UIView = {
-    let v = UILabel()
-    v.text = "Suche nach Autor*innen, Artikeln, Rubriken oder Themen"
-    v.textAlignment = .center
-    v.numberOfLines = 0
-    v.boldContentFont()
-    v.textColor = .lightGray
-    #warning("Wrong on ipad change traits todo implement!")
-    v.pinWidth(UIWindow.shortSide - 2*Const.Size.DefaultPadding)
+    let v = UIView()
+    
+    let magnifier
+    = UIImageView(image: UIImage(named: "search-magnifier")?
+      .withRenderingMode(.alwaysTemplate))
+    magnifier.tintColor = Const.SetColor.taz(.textFieldClear).color
+    magnifier.pinSize(CGSize(width: 56, height: 56))
+    
+    let label = UILabel()
+    label.text = "Suche nach Autor*innen, Artikeln, Rubriken oder Themen"
+    label.textAlignment = .center
+    label.numberOfLines = 0
+    label.boldContentFont(size: Const.Size.SubtitleFontSize)
+    label.textColor =  Const.SetColor.taz(.textFieldClear).color
+   
+    v.addSubview(magnifier)
+    v.addSubview(label)
+    
+    pin(label.left, to: v.left, dist: Const.Size.DefaultPadding)
+    pin(label.right, to: v.right, dist: -Const.Size.DefaultPadding)
+    label.centerY(dist: -20)
+    
+    magnifier.centerX()
+    pin(magnifier.bottom, to: label.top, dist: -18)
+    
     return v
   }()
+  
+  lazy var centralActivityIndicator = UIActivityIndicatorView()
     
   // MARK: *** Lifecycle ***
   override func viewWillAppear(_ animated: Bool) {
@@ -122,11 +160,12 @@ class SearchController: UIViewController {
     super.viewDidLoad()
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(placeholderView)
+    self.view.addSubview(centralActivityIndicator)
     self.view.addSubview(resultsTable)
     self.view.addSubview(searchSettingsView)
     self.view.addSubview(header)
-    
-    placeholderView.center()
+    centralActivityIndicator.center()
+    pin(placeholderView, toSafe: self.view)
     pin(resultsTable, toSafe: self.view, exclude: .top)
     pin(resultsTable.top, to: header.bottom)
     header.topConstraint = pin(header, to: self.view, exclude: .bottom).top
@@ -138,6 +177,7 @@ class SearchController: UIViewController {
     = pin(searchSettingsView.bottom, to: self.view.bottom, dist: -UIWindow.size.height)
     
     feederContext.updateResources()
+    self.currentState = .initial
   }
   
   required init(feederContext: FeederContext) {
@@ -161,13 +201,6 @@ class SearchController: UIViewController {
 
 // MARK: - Helper Functions -
 extension SearchController {
-  func restoreInitialState() -> Bool{
-    if resultsTable.restoreInitialState() == false {
-      return false
-    }
-    return true
-  }
-  
   func updateArticleVcIfNeeded(){
     self.articleVC.feederContext = self.feederContext
     self.articleVC.baseDir = Dir.appSupportPath
@@ -245,14 +278,15 @@ extension SearchController {
       = self.searchSettingsView.data.settings.isChanged
   }
   
-  @objc func handleCancelButton(){
+  @discardableResult
+  @objc func handleCancelButton() -> Bool{
     if searchSettingsView.isOpen {
       searchSettingsView.toggle(toVisible: false)
-      return
+      return false
     }
     else if resultsTable.isVisible && header.searchTextField.isFirstResponder {
       header.searchTextField.resignFirstResponder()
-      return
+      return false
     }
     header.searchTextField.resignFirstResponder()
     header.searchTextField.text = nil
@@ -261,13 +295,25 @@ extension SearchController {
     self.checkFilter()
     resultsTable.isHidden = true
     header.checkCancelButton()
+    header.setHeader(showMaxi: true)
     searchItem = SearchItem()
+//    onMainAfter { [weak self] in
+//      self?.view.layoutIfNeeded()
+//    }
+    return true
   }
   
   @objc func handleSearchButton(){
     searchSettingsView.toggle(toVisible: false)
     checkFilter()
     search()
+  }
+  
+  func restoreInitialState() -> Bool{
+    if resultsTable.restoreInitialState() == false {
+      return false
+    }
+    return handleCancelButton()
   }
 }
 

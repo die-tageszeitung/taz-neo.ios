@@ -40,6 +40,7 @@ class SearchHeaderView: UIView {
     tf.leftViewMode = .always
     tf.font = Const.Fonts.contentFont
     tf.clearButtonMode = .always
+    
     tf.pinHeight(Const.Size.NewTextFieldHeight)
     tf.clipsToBounds = true
     tf.layer.cornerRadius = Const.Size.NewTextFieldHeight/2
@@ -141,10 +142,11 @@ extension SearchHeaderView : UIStyleChangeDelegate {
     if #available(iOS 13.0, *),
        let clearButton = searchTextField.value(forKeyPath: "_clearButton") as? UIButton {
       let img
-      = UIImage(named:"xmark")?.withTintColor(Const.SetColor.taz(.textFieldClear).color,
-                                              renderingMode: .alwaysOriginal)
+      = UIImage(named:"xmark")?
+        .withTintColor(Const.SetColor.taz(.textFieldClear).color,
+                       renderingMode: .alwaysOriginal)
+        .imageWithInsets(UIEdgeInsets(top: 0, left: 9, bottom: 0, right: 9))
       clearButton.setImage(img, for: .normal)
-//      clearButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -9, bottom: 0, right: 9)
     }
     
     cancelButton.titleLabel?.contentFont()
