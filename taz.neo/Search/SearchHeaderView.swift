@@ -102,8 +102,7 @@ class SearchHeaderView: UIView {
     self.addSubview(extendedSearchButton)
     self.addSubview(cancelButton)
     
-    miniHeaderLabel.onTapping {[weak self] _ in
-      self?.searchTextField.becomeFirstResponder()
+    self.onTapping {[weak self] _ in
       self?.setHeader(showMaxi: true)
     }
         
@@ -111,8 +110,8 @@ class SearchHeaderView: UIView {
     miniHeaderLabel.textAlignment = .center
     
     //label under Textfield
-    pin(miniHeaderLabel.left, to: searchTextField.left)
-    pin(miniHeaderLabel.right, to: searchTextField.right)
+    pin(miniHeaderLabel.left, to: self.left, dist: 10)
+    pin(miniHeaderLabel.right, to: self.right, dist: -10)
     
     pin(miniHeaderLabel.centerY, to: searchTextField.centerY)
     pin(extendedSearchButton.centerY, to: searchTextField.centerY)
@@ -185,9 +184,7 @@ extension SearchHeaderView : UITextFieldDelegate {
   }
   
   func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-    if cancelButtonRightConstraint?.constant ?? 0 > 50, string.isEmpty == false {
-        showCancel()
-    }
+    onMainAfter { [weak self] in self?.checkCancelButton() }
     return true
   }
 }
@@ -210,7 +207,6 @@ extension SearchHeaderView {
   func setHeader(showMaxi: Bool) {
     if !showMaxi {
       searchTextField.resignFirstResponder()
-      hideCancel()
     }
     setHeader(scrollOffset: showMaxi ? 100 : -100, animate: true)
   }
@@ -228,6 +224,7 @@ extension SearchHeaderView {
     let alpha = 1 - ratio // maxi 1...0 mini
     miniHeaderLabel.text = searchTextField.text
     let iconZoom = 1 - ratio/3 // maxi 1...0.66 mini
+    let cancelButtonRightOffset = cancelButtonRightOffsetHidden*ratio // maxi 0...90 mini
     let bottomOffset = -10 + 15*ratio // maxi -10...5 mini
     //print("scrollOffset+/-: \(scrollOffset) targetOffset (0...-50): \(targetOffset) alpha (1...0): \(alpha)  bottomOffset (15...-5): \(bottomOffset)")
     let handler = { [weak self] in
@@ -237,26 +234,32 @@ extension SearchHeaderView {
       self?.extendedSearchButton.contentScaleFactor = iconZoom
       self?.extendedSearchButton.buttonView.transform
       = CGAffineTransform(scaleX: iconZoom, y: iconZoom);
+      self?.cancelButtonRightConstraint?.constant
+      = cancelButtonRightOffset
+      self?.cancelButton.alpha = alpha
       self?.superview?.layoutIfNeeded()
     }
     animate ?  UIView.animate(seconds: 0.3) {  handler() } : handler()
   }
   
-  func showCancel(){
-    UIView.animate(seconds: 0.3) { [weak self] in
-      self?.cancelButtonRightConstraint?.constant
-      = self?.cancelButtonRightOffsetVisible ?? 0
-      self?.cancelButton.alpha = 1.0
-      self?.layoutIfNeeded()
+  func checkCancelButton(){
+    if searchTextField.text?.isEmpty == false || filterActive == true  {
+      if cancelButton.alpha != 1.0 {
+        UIView.animate(seconds: 0.3) { [weak self] in
+          self?.cancelButtonRightConstraint?.constant
+          = self?.cancelButtonRightOffsetVisible ?? 0
+          self?.cancelButton.alpha = 1.0
+          self?.layoutIfNeeded()
+        }
+      }
     }
-  }
-  
-  func hideCancel(){
-    UIView.animate(seconds: 0.3) { [weak self] in
-      self?.cancelButtonRightConstraint?.constant
-      = self?.cancelButtonRightOffsetHidden ?? 0
-      self?.cancelButton.alpha = 0.0
-      self?.layoutIfNeeded()
+    else if cancelButton.alpha != 0.0 {
+      UIView.animate(seconds: 0.3) { [weak self] in
+        self?.cancelButtonRightConstraint?.constant
+        = self?.cancelButtonRightOffsetHidden ?? 0
+        self?.cancelButton.alpha = 0.0
+        self?.layoutIfNeeded()
+      }
     }
   }
   

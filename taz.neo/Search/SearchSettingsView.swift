@@ -9,6 +9,9 @@
 import NorthLib
 
 class SearchSettingsView: UITableView {
+  
+  // MARK: *** Closures ***
+  var propertyChanged: (()->())?
 
   // MARK: *** Properties ***
   private let _data = TData()
@@ -33,6 +36,8 @@ class SearchSettingsView: UITableView {
     
   var topConstraint: NSLayoutConstraint?
   var bottomConstraint: NSLayoutConstraint?
+  
+  var isOpen: Bool { get{ self.topConstraint?.constant == 0 }}
   
   // MARK: *** UI Elements ***
   
@@ -115,6 +120,7 @@ class SearchSettingsView: UITableView {
           deleted.append(ip)
         }
       }
+      propertyChanged?()
     }
     #warning("TODO ROW ANIMATION")
 //    tableView.reloadData(); return;
