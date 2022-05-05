@@ -24,11 +24,11 @@ class SearchController: UIViewController {
   var searchItem:SearchItem = SearchItem() {
     didSet {
       updateArticleVcIfNeeded()
-      
-      var message = "Keine Treffer"
+      var textColor:UIColor?
+      var message: String?
       let rCount = searchItem.resultCount
       if let currentCount = rCount.currentCount, let totalCount = rCount.total {
-        message = "\(totalCount)/\(currentCount)"
+        message = "\(totalCount)/\(currentCount) Treffer"
       }
       else if let count = rCount.currentCount {
         message = "\(count) Treffer"
@@ -36,7 +36,11 @@ class SearchController: UIViewController {
       else if let count = rCount.total {
         message = "\(count) Treffer"
       }
-      header.showResult(text: message)
+      else if resultsTable.isHidden == false {
+        message = "Keine Treffer"
+        textColor = .red
+      }
+      header.updateHeaderStatusWith(text: message, color: textColor)
       resultsTable.searchItem = searchItem
     }
   }
@@ -44,8 +48,6 @@ class SearchController: UIViewController {
   // MARK: *** UIComponents ***
   private lazy var resultsTable:SearchResultsTableView = {
     let v = SearchResultsTableView()
-    v.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
-    v.scrollIndicatorInsets = UIEdgeInsets(top: 30, left: 0, bottom: 0, right: 0)
     v.searchClosure = { [weak self] in
       self?.search()
     }
@@ -68,7 +70,6 @@ class SearchController: UIViewController {
     
     header.extendedSearchButton.onTapping { [weak self] _ in
       self?.header.setHeader(showMaxi: true)
-      self?.header.hideResult()
       self?.searchSettingsView.toggle()
       self?.checkFilter()
     }
@@ -126,8 +127,8 @@ class SearchController: UIViewController {
     self.view.addSubview(header)
     
     placeholderView.center()
-    pin(resultsTable, toSafe: self.view)
-    resultsTable.contentInset = UIEdgeInsets(top: 40, left: 0, bottom: 0, right: 0)
+    pin(resultsTable, toSafe: self.view, exclude: .top)
+    pin(resultsTable.top, to: header.bottom)
     header.topConstraint = pin(header, to: self.view, exclude: .bottom).top
     pin(searchSettingsView.left, to: self.view.left)
     pin(searchSettingsView.right, to: self.view.right)
@@ -200,18 +201,21 @@ extension SearchController {
     var searchSettings = self.searchSettingsView.data.settings
     searchSettings.text = header.searchTextField.text
     if searchSettings.searchTermTooShort {
-      header.showResult(text: "Bitte Suchbegriff eingeben!")
+      header.updateHeaderStatusWith(text: "Bitte Suchbegriff eingeben!",
+                                    color: .red)
       return
     }
     
     header.searchTextField.resignFirstResponder()
     searchSettingsView.toggle(toVisible: false)
+    header.miniHeaderLabel.text = searchSettings.miniHeaderText
 
     if searchItem.settings != searchSettings {
       searchItem.settings = searchSettings
     }
     
     if searchItem.sessionId == nil {
+      resultsTable.isHidden = true
       resultsTable.scrollTop()
     }
     
@@ -228,7 +232,10 @@ extension SearchController {
           }
           self.searchItem = updatedSearchItem
         case .failure(let err):
-          print("an error occoured... \(err)")
+          self.header
+            .updateHeaderStatusWith(text: "Fehler, bitte erneut versuchen!",
+                                    color: .red)
+          self.log("an error occoured... \(err)")
       }
     }
   }
@@ -259,6 +266,7 @@ extension SearchController {
   
   @objc func handleSearchButton(){
     searchSettingsView.toggle(toVisible: false)
+    checkFilter()
     search()
   }
 }
@@ -337,6 +345,18 @@ extension GqlSearchHit {
     let f = File(dir: Dir.searchResultsPath, fname: article.html.fileName)
     if !f.exists { return nil }
     return Dir.searchResultsPath + "/" + article.html.fileName
+  }
+}
+
+// MARK: *** SearchSettings ***
+fileprivate extension SearchSettings {
+  var miniHeaderText:String? {
+    var s:[String] = []
+    if let t = text, !t.isEmpty { s.append("Text: \(t)") }
+    if let t = title, !t.isEmpty { s.append("Titel: \(t)") }
+    if let t = author, !t.isEmpty { s.append("Autor*innen: \(t)") }
+    if s.isEmpty { return nil}
+    return "Suche nach \(s.joined(separator: ", "))"
   }
 }
 

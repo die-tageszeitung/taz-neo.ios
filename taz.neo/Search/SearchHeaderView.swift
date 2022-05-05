@@ -18,22 +18,20 @@ class SearchHeaderView: UIView {
   let cancelButtonRightOffsetVisible = 0.0
   let cancelButtonRightOffsetHidden = 90.0
   
-  let resultCountViewTopOffsetVisible = 10.0
-  let resultCountViewTopOffsetHidden = -40.0
-  
-  var textFieldBottomConstraint: NSLayoutConstraint?
   var topConstraint: NSLayoutConstraint?
   var cancelButtonRightConstraint: NSLayoutConstraint?
-  var resultCountViewTopConstraint: NSLayoutConstraint?
+  var statusLabelTopConstraint: NSLayoutConstraint?
   
   var filterActive:Bool = false { didSet {
-      extendedSearchButton.buttonView.isActivated
-      = filterActive
+    extendedSearchButton.tintColor
+    = filterActive
+    ? Const.SetColor.ios(.tintColor).color
+    : Const.SetColor.ios_opaque(.closeX).color
     }
   }
   
   // MARK: *** UI Components ***
-  lazy var searchTextField: UITextField = {
+  private(set) lazy var searchTextField: UITextField = {
     let tf = UITextField()
     tf.leftView
     = UIImageView(image: UIImage(named:"search-magnifier"))
@@ -52,18 +50,15 @@ class SearchHeaderView: UIView {
     return tf
   }()
   
-  lazy var extendedSearchButton: Button<ImageView> = {
-    let button = Button<ImageView>()
-    button.pinSize(CGSize(width: 32, height: 32))
-    button.buttonView.hinset = 0.1
-    button.buttonView.name = "filter"
-    button.buttonView.activeColor = Const.SetColor.ios(.tintColor).color
-    button.buttonView.color = Const.SetColor.ios_opaque(.closeX).color
-    button.buttonView.isActivated = false
+  private(set) lazy var extendedSearchButton: UIImageView = {
+    let button = UIImageView()
+    button.pinSize(CGSize(width: 26, height: 26))
+    button.image = UIImage(named: "filter")
+    button.tintColor = Const.SetColor.ios_opaque(.closeX).color
     return button
   }()
   
-  lazy var cancelButton: UIButton = {
+  private(set) lazy var cancelButton: UIButton = {
     let button = UIButton()
     button.setTitle("Abbrechen", for: .normal)
     button.alpha = 0.0
@@ -71,32 +66,26 @@ class SearchHeaderView: UIView {
     return button
   }()
   
-  let resultCountLabel = UILabel()
-  let miniHeaderLabel = UILabel()
-  
-  public private(set) lazy var resultCountView: UIView = {
-    let padding = 5.0
-    let height = 14.0
-    let wrappedLabel = resultCountLabel.wrapper(UIEdgeInsets(top: padding,
-                                                             left: padding,
-                                                             bottom: -padding,
-                                                             right: -padding))
-    wrappedLabel.layer.cornerRadius = (height + 2*padding)/2
-    
-    resultCountLabel.text = "Keine Treffer"
-    resultCountLabel.contentFont(size: Const.Size.MiniPageNumberFontSize)
-    resultCountLabel.textColor = .white
-    resultCountLabel.pinHeight(height)
-    wrappedLabel.backgroundColor
-    = Const.Colors.fabBackground.withAlphaComponent(0.9)
-
-    return wrappedLabel
+  private(set) lazy var miniHeaderLabel: UILabel = {
+    let label = UILabel()
+    label.boldContentFont(size: 10)
+    label.textAlignment = .center
+    label.alpha = 0.0
+    return label
   }()
-
+  
+  
+  private(set) lazy var statusLabel: UILabel = {
+    let label = UILabel()
+    label.contentFont(size: Const.Size.SmallerFontSize)
+    label.textAlignment = .center
+    label.alpha = 0.0
+    return label
+  }()
+  
   // MARK: *** Lifecycle ***
   private func setup() {
-    self.addSubview(resultCountView)
-    self.resultCountView.alpha = 0.0
+    self.addSubview(statusLabel)
     self.addSubview(miniHeaderLabel)
     self.addSubview(searchTextField)
     self.addSubview(extendedSearchButton)
@@ -105,34 +94,34 @@ class SearchHeaderView: UIView {
     self.onTapping {[weak self] _ in
       self?.setHeader(showMaxi: true)
     }
-        
-    miniHeaderLabel.contentFont(size: 10)
-    miniHeaderLabel.textAlignment = .center
+            
+    //from left to right
+    pin(statusLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
+    pin(statusLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
+    pin(searchTextField.left, to: self.left, dist: Const.Size.DefaultPadding)
+    pin(extendedSearchButton.left, to: searchTextField.right, dist: 8)
+    pin(cancelButton.left, to: extendedSearchButton.right, dist: 8)
+    cancelButtonRightConstraint = pin(cancelButton.right, to: self.right, dist: cancelButtonRightOffsetHidden)
     
-    //label under Textfield
-    pin(miniHeaderLabel.left, to: self.left, dist: 10)
-    pin(miniHeaderLabel.right, to: self.right, dist: -10)
+    //miniHeaderLabel under Search Textfield
+    pin(miniHeaderLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
+    pin(miniHeaderLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
+
+    //From top to bottom
+    pin(searchTextField.top, to: self.topGuide(), dist: 2)
+    statusLabelTopConstraint = pin(statusLabel.top, to: searchTextField.bottom, dist: 12)
+    pin(statusLabel.bottom, to: self.bottom, dist: -8)
     
+    //in horizontal line with textField
     pin(miniHeaderLabel.centerY, to: searchTextField.centerY)
     pin(extendedSearchButton.centerY, to: searchTextField.centerY)
     pin(cancelButton.centerY, to: searchTextField.centerY)
-    
-    pin(resultCountView.centerX, to: self.centerX)
-    resultCountViewTopConstraint = pin(resultCountView.top,
-                                       to: self.bottom,
-                                       dist: resultCountViewTopOffsetVisible)
-    
-    pin(searchTextField.left, to: self.left, dist: Const.Size.DefaultPadding)
-    pin(searchTextField.top, to: self.topGuide(), dist: 8)
-    textFieldBottomConstraint = pin(searchTextField.bottom, to: self.bottom, dist: -Const.Size.DefaultPadding)
-    
-    pin(extendedSearchButton.left, to: searchTextField.right, dist: 5)
-    pin(cancelButton.left, to: extendedSearchButton.right, dist: 5)
-    cancelButtonRightConstraint = pin(cancelButton.right, to: self.right, dist: cancelButtonRightOffsetHidden)
+
     if #available(iOS 13.0, *) {
       self.addBorder(.opaqueSeparator, 0.5, only: .bottom)
     }
     registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    setStatusLabelTopConstraint()
   }
   
   public override init(frame: CGRect) {
@@ -222,25 +211,35 @@ extension SearchHeaderView {
     if scrollOffset > 0 { ratio = 1 - ratio }
     let targetOffset = ratio * maxOffset
     let alpha = 1 - ratio // maxi 1...0 mini
-    miniHeaderLabel.text = searchTextField.text
     let iconZoom = 1 - ratio/3 // maxi 1...0.66 mini
-    let cancelButtonRightOffset = cancelButtonRightOffsetHidden*ratio // maxi 0...90 mini
-    let bottomOffset = -10 + 15*ratio // maxi -10...5 mini
-    //print("scrollOffset+/-: \(scrollOffset) targetOffset (0...-50): \(targetOffset) alpha (1...0): \(alpha)  bottomOffset (15...-5): \(bottomOffset)")
     let handler = { [weak self] in
-      if let tc = self?.topConstraint { tc.constant = -targetOffset }
-      self?.searchTextField.alpha = alpha
-      self?.textFieldBottomConstraint?.constant = bottomOffset
-      self?.extendedSearchButton.contentScaleFactor = iconZoom
-      self?.extendedSearchButton.buttonView.transform
-      = CGAffineTransform(scaleX: iconZoom, y: iconZoom);
-      self?.cancelButtonRightConstraint?.constant
-      = cancelButtonRightOffset
+      //alphas
       self?.cancelButton.alpha = alpha
+      self?.searchTextField.alpha = alpha
       self?.filterActive == false ? self?.extendedSearchButton.alpha = alpha : nil
-      self?.superview?.layoutIfNeeded()
+      self?.miniHeaderLabel.alpha = ratio
+      //zooms
+      self?.extendedSearchButton.contentScaleFactor = iconZoom
+      self?.extendedSearchButton.transform
+      = CGAffineTransform(scaleX: iconZoom, y: iconZoom);
+      self?.statusLabel.transform
+      = CGAffineTransform(scaleX: iconZoom, y: iconZoom);
+      //distances
+      self?.topConstraint?.constant = -targetOffset/2
+      self?.cancelButtonRightConstraint?.constant
+      = (self?.cancelButtonRightOffsetHidden ?? 0)*ratio // maxi 0...90 mini
+      self?.setStatusLabelTopConstraint(ratio)
     }
-    animate ?  UIView.animate(seconds: 0.3) {  handler() } : handler()
+    animate
+    ?  UIView.animate(seconds: 0.3) {  handler(); self.superview?.layoutIfNeeded() }
+    : handler()
+  }
+  
+  func setStatusLabelTopConstraint(_ ratio: CGFloat? = nil){
+    let ratio = ratio ?? 1 - searchTextField.alpha
+    let offset = statusLabel.text?.isEmpty == true ? -10.0 : 0.0
+    self.statusLabelTopConstraint?.constant
+    = 12 - 22*ratio - offset // maxi 12...-3 mini
   }
   
   func checkCancelButton(){
@@ -264,36 +263,15 @@ extension SearchHeaderView {
     }
   }
   
-  func showResult(text: String){
-    if self.resultCountView.alpha == 1.0 {
-      UIView.animateKeyframes(withDuration: 0.5, delay: 0.0, animations: {
-        UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.5) { [weak self] in
-          self?.resultCountView.alpha = 0.0
-        }
-        UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.1) { [weak self] in
-          self?.resultCountLabel.text = text
-        }
-        UIView.addKeyframe(withRelativeStartTime: 0.6, relativeDuration: 0.4) { [weak self] in
-          self?.resultCountView.alpha = 1.0
-        }
-      })
-      return
-    }
-    self.resultCountLabel.text = text
-    UIView.animate(seconds: 0.3) { [weak self] in
-      self?.resultCountViewTopConstraint?.constant
-      = self?.resultCountViewTopOffsetVisible ?? 0
-      self?.resultCountView.alpha = 1.0
-      self?.layoutIfNeeded()
-    }
-  }
-  
-  func hideResult(){
-    UIView.animate(seconds: 0.3) { [weak self] in
-      self?.resultCountViewTopConstraint?.constant
-      = self?.resultCountViewTopOffsetHidden ?? 0
-      self?.resultCountView.alpha = 0.0
-      self?.layoutIfNeeded()
-    }
+  func updateHeaderStatusWith(text: String?,
+                              color: UIColor?){
+    let color = color ?? Const.SetColor.CTArticle.color
+    if text == statusLabel.text { return }
+    self.statusLabel.hideAnimated(duration: 0.3,
+                                  completion: { [weak self] in
+      self?.statusLabel.text = text
+      self?.statusLabel.textColor = color
+      self?.statusLabel.showAnimated()
+    })
   }
 }
