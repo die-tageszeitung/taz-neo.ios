@@ -44,9 +44,8 @@
 		776853A327FAF233001CCEAD /* GqlFeederSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776853A127FAF233001CCEAD /* GqlFeederSearch.swift */; };
 		776853A427FAF233001CCEAD /* MainTabVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776853A227FAF233001CCEAD /* MainTabVC.swift */; };
 		776853AE27FAF39D001CCEAD /* SearchController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776853AA27FAF39D001CCEAD /* SearchController.swift */; };
-		776853AF27FAF39D001CCEAD /* SearchSettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776853AB27FAF39D001CCEAD /* SearchSettingsVC.swift */; };
 		776853B027FAF39D001CCEAD /* SearchResultArticleVc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776853AC27FAF39D001CCEAD /* SearchResultArticleVc.swift */; };
-		776853B127FAF39D001CCEAD /* SearchResultsTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776853AD27FAF39D001CCEAD /* SearchResultsTVC.swift */; };
+		776853B127FAF39D001CCEAD /* SearchResultsTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776853AD27FAF39D001CCEAD /* SearchResultsTableView.swift */; };
 		776853B327FAF695001CCEAD /* SearchResultIssue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776853B227FAF695001CCEAD /* SearchResultIssue.swift */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
 		7772B1ED2743BEC300991347 /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
@@ -160,9 +159,8 @@
 		776853A127FAF233001CCEAD /* GqlFeederSearch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GqlFeederSearch.swift; sourceTree = "<group>"; };
 		776853A227FAF233001CCEAD /* MainTabVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainTabVC.swift; sourceTree = "<group>"; };
 		776853AA27FAF39D001CCEAD /* SearchController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchController.swift; sourceTree = "<group>"; };
-		776853AB27FAF39D001CCEAD /* SearchSettingsVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchSettingsVC.swift; sourceTree = "<group>"; };
 		776853AC27FAF39D001CCEAD /* SearchResultArticleVc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultArticleVc.swift; sourceTree = "<group>"; };
-		776853AD27FAF39D001CCEAD /* SearchResultsTVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultsTVC.swift; sourceTree = "<group>"; };
+		776853AD27FAF39D001CCEAD /* SearchResultsTableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultsTableView.swift; sourceTree = "<group>"; };
 		776853B227FAF695001CCEAD /* SearchResultIssue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultIssue.swift; sourceTree = "<group>"; };
 		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
 		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
@@ -301,8 +299,7 @@
 			children = (
 				776853AA27FAF39D001CCEAD /* SearchController.swift */,
 				776853AC27FAF39D001CCEAD /* SearchResultArticleVc.swift */,
-				776853AD27FAF39D001CCEAD /* SearchResultsTVC.swift */,
-				776853AB27FAF39D001CCEAD /* SearchSettingsVC.swift */,
+				776853AD27FAF39D001CCEAD /* SearchResultsTableView.swift */,
 				776853B227FAF695001CCEAD /* SearchResultIssue.swift */,
 				773A648C281FD86A00D77C81 /* SearchHeaderView.swift */,
 				7711F3902822574D00230B31 /* SearchSettingsView.swift */,
@@ -667,7 +664,6 @@
 				7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */,
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
 				776853B027FAF39D001CCEAD /* SearchResultArticleVc.swift in Sources */,
-				776853AF27FAF39D001CCEAD /* SearchSettingsVC.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */,
@@ -726,7 +722,7 @@
 				AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */,
 				AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */,
 				7711F3912822574D00230B31 /* SearchSettingsView.swift in Sources */,
-				776853B127FAF39D001CCEAD /* SearchResultsTVC.swift in Sources */,
+				776853B127FAF39D001CCEAD /* SearchResultsTableView.swift in Sources */,
 				AE44F8E62481621C009DA152 /* IssueInfoProtocol.swift in Sources */,
 				7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */,
 				7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */,
