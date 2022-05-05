@@ -12,6 +12,9 @@ class SearchSettingsView: UITableView {
   
   // MARK: *** Closures ***
   var propertyChanged: (()->())?
+  
+  // MARK: *** Delegates ***
+  weak open var textFieldDelegate: UITextFieldDelegate?
 
   // MARK: *** Properties ***
   private let _data = TData()
@@ -214,7 +217,9 @@ extension SearchSettingsView: UITableViewDataSource {
   }
     
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    return data.cell(at: indexPath) ?? UITableViewCell()
+    let cell = data.cell(at: indexPath)
+    (cell as? TextInputCell)?.textField.delegate = textFieldDelegate
+    return cell ?? UITableViewCell()
   }
     
   func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
@@ -232,7 +237,7 @@ extension SearchSettingsView: UITableViewDataSource {
 }
 
 // MARK: - UIStyleChangeDelegate -
-extension SearchSettingsVC : UIStyleChangeDelegate {
+extension SearchSettingsView : UIStyleChangeDelegate {
   func applyStyles() {
     print("DOTO")
   }

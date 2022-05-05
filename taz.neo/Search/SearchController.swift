@@ -40,7 +40,7 @@ class SearchController: UIViewController {
         message = "Keine Treffer"
         textColor = .red
       }
-      header.updateHeaderStatusWith(text: message, color: textColor)
+      header.setStatusLabel(text: message, color: textColor)
       resultsTable.searchItem = searchItem
     }
   }
@@ -94,9 +94,7 @@ class SearchController: UIViewController {
       self?.searchSettingsView.toggle()
       self?.checkFilter()
     }
-    header.searchClosure = { [weak self] in
-      self?.search()
-    }
+    header.searchTextField.delegate = self
     return header
   }()
   
@@ -114,6 +112,7 @@ class SearchController: UIViewController {
       self?.checkFilter()
       self?.header.checkCancelButton()
     }
+    v.textFieldDelegate = self
     return v
   }()
   
@@ -236,7 +235,7 @@ extension SearchController {
     var searchSettings = self.searchSettingsView.data.settings
     searchSettings.text = header.searchTextField.text
     if searchSettings.searchTermTooShort {
-      header.updateHeaderStatusWith(text: "Bitte Suchbegriff eingeben!",
+      header.setStatusLabel(text: "Bitte Suchbegriff eingeben!",
                                     color: .red)
       return
     }
@@ -251,7 +250,7 @@ extension SearchController {
     
     if searchItem.sessionId == nil {
       currentState = .firstSearch
-      header.updateHeaderStatusWith(text: nil, color: nil)
+      header.setStatusLabel(text: nil, color: nil)
     }
     
     guard let feeder = feederContext.gqlFeeder else { return }
@@ -266,7 +265,7 @@ extension SearchController {
           self.searchItem = updatedSearchItem
         case .failure(let err):
           self.header
-            .updateHeaderStatusWith(text: "Fehler, bitte erneut versuchen!",
+            .setStatusLabel(text: "Fehler, bitte erneut versuchen!",
                                     color: .red)
           self.log("an error occoured... \(err)")
       }
@@ -295,6 +294,7 @@ extension SearchController {
     self.checkFilter()
     header.checkCancelButton()
     header.setHeader(showMaxi: true)
+    header.setStatusLabel(text: nil, color: nil)
     searchItem = SearchItem()
 //    onMainAfter { [weak self] in
 //      self?.view.layoutIfNeeded()
@@ -311,9 +311,25 @@ extension SearchController {
   
   func restoreInitialState() -> Bool{
     if resultsTable.restoreInitialState() == false {
+      header.setHeader(showMaxi: true)
       return false
     }
     return handleCancelButton()
+  }
+}
+
+// MARK: - UITextFieldDelegate -
+extension SearchController : UITextFieldDelegate {
+  
+  func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+    search()
+    checkFilter()
+    return true
+  }
+  
+  func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+    onMainAfter { [weak self] in self?.header.checkCancelButton() }
+    return true
   }
 }
 

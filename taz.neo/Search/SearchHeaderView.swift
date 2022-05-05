@@ -10,10 +10,6 @@ import NorthLib
 import UIKit
 
 class SearchHeaderView: UIView {
-  
-  // MARK: *** Closures ***
-  var searchClosure: (()->())?
-  
   // MARK: *** Properties ***
   let cancelButtonRightOffsetVisible = 0.0
   let cancelButtonRightOffsetHidden = 90.0
@@ -35,8 +31,8 @@ class SearchHeaderView: UIView {
     let tf = UITextField()
     tf.leftView
     = UIImageView(image: UIImage(named:"search-magnifier"))
-      .wrapper(UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 0))
-    tf.leftView?.pinSize(CGSize(width: 40, height: 25))
+      .wrapper(UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0))
+    tf.leftView?.pinSize(CGSize(width: 33, height: 25))
     tf.leftViewMode = .always
     tf.font = Const.Fonts.contentFont
     tf.clearButtonMode = .always
@@ -46,7 +42,6 @@ class SearchHeaderView: UIView {
     tf.layer.cornerRadius = Const.Size.NewTextFieldHeight/2
     tf.clipsToBounds = true
     tf.placeholder = "taz Archiv durchsuchen"
-    tf.delegate = self
     tf.returnKeyType = .search
     return tf
   }()
@@ -139,44 +134,14 @@ class SearchHeaderView: UIView {
 // MARK: - UITextFieldDelegate -
 extension SearchHeaderView : UIStyleChangeDelegate {
   public func applyStyles(){
-    if #available(iOS 13.0, *),
-       let clearButton = searchTextField.value(forKeyPath: "_clearButton") as? UIButton {
-      let img
-      = UIImage(named:"xmark")?
-        .withTintColor(Const.SetColor.taz(.textFieldClear).color,
-                       renderingMode: .alwaysOriginal)
-        .imageWithInsets(UIEdgeInsets(top: 0, left: 9, bottom: 0, right: 9))
-      clearButton.setImage(img, for: .normal)
-    }
-    
-    cancelButton.titleLabel?.contentFont()
-    cancelButton.setTitleColor(Const.SetColor.ios(.label).color, for: .normal)
-    
     self.backgroundColor
     = Const.SetColor.ios(.systemBackground).color
-    
+    cancelButton.titleLabel?.contentFont()
+    cancelButton.setTitleColor(Const.SetColor.ios(.label).color, for: .normal)
     searchTextField.backgroundColor
-    = Const.SetColor.ios(.secondarySystemBackground).color
-    
+    = Const.SetColor.taz(.textFieldBackground).color
     (searchTextField.leftView?.subviews.first as? UIImageView)?.tintColor
     = Const.SetColor.ios(.placeholderText).color
-    
-    (searchTextField.rightView?.subviews.first as? UIImageView)?.tintColor
-    = Const.SetColor.ios(.label).color
-  }
-}
-
-// MARK: - UITextFieldDelegate -
-extension SearchHeaderView : UITextFieldDelegate {
-  
-  func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-    searchClosure?()
-    return true
-  }
-  
-  func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-    onMainAfter { [weak self] in self?.checkCancelButton() }
-    return true
   }
 }
 
@@ -265,8 +230,8 @@ extension SearchHeaderView {
     }
   }
   
-  func updateHeaderStatusWith(text: String?,
-                              color: UIColor?){
+  func setStatusLabel(text: String?,
+                      color: UIColor?){
     let color = color ?? Const.SetColor.CTArticle.color
     if text == statusLabel.text { return }
     self.statusLabel.hideAnimated(duration: 0.3,
