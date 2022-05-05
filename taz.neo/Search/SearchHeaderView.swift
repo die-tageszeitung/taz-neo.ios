@@ -237,6 +237,7 @@ extension SearchHeaderView {
       self?.cancelButtonRightConstraint?.constant
       = cancelButtonRightOffset
       self?.cancelButton.alpha = alpha
+      self?.filterActive == false ? self?.extendedSearchButton.alpha = alpha : nil
       self?.superview?.layoutIfNeeded()
     }
     animate ?  UIView.animate(seconds: 0.3) {  handler() } : handler()
