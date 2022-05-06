@@ -418,6 +418,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       urls.remove(at: idx)
       collectionView?.delete(at: idx)
     }
+    if contents.count <= 0 {
+      self.navigationController?.popToRootViewController(animated: true)
+    }
   }
   
   /// Define new contents
