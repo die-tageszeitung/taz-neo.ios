@@ -422,7 +422,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       collectionView?.delete(at: idx)
     }
     if contents.count <= 0 {
-      self.navigationController?.popToRootViewController(animated: true)
+      self.navigationController?.popViewController(animated: true)
     }
   }
   
