@@ -21,6 +21,8 @@ public class BookmarkFeed: Feed, DoesLog {
   public var firstIssue: Date
   public var issues: [Issue]?
   public var dir: Dir { feeder.baseDir }
+  /// total number of bookmarks
+  public var count: Int = 0
   
   public init(feeder: Feeder) {
     self.feeder = feeder
@@ -133,7 +135,9 @@ public class BookmarkFeed: Feed, DoesLog {
     if let issues = issues, issues.count > 0,
        let sections = issues[0].sections, sections.count > 0 {
       let section = sections[0] as! BookmarkSection
-      section.articles = StoredArticle.bookmarkedArticles()
+      let allArticles = StoredArticle.bookmarkedArticles()
+      count = allArticles.count
+      section.articles = allArticles
     }
   }
   
