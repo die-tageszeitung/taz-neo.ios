@@ -44,6 +44,22 @@ open class ArticleVC: ContentVC {
     set { delegate = newValue }
   }
   
+  /// Remove Article from page collection
+  func delete(article: Article) {
+    if let idx = articles.firstIndex(where: { $0.html.name == article.html.name }) {
+      articles.remove(at: idx)
+      deleteContent(at: idx)
+    }
+  }
+  
+  /// Insert Article into page collection
+  func insert(article: Article) {
+    if let idx = articles.firstIndex(where: { $0.html.name == article.html.name }) {
+      articles.insert(article, at: idx)
+      insertContent(content: article, at: idx)
+    }
+  }
+  
   func setup() {
     guard let delegate = self.adelegate else { return }
     self.articles = delegate.issue.allArticles
@@ -72,9 +88,20 @@ open class ArticleVC: ContentVC {
       self?.navigationController?.popViewController(animated: false)
       self?.adelegate?.closeIssue()
     }
+    func displayBookmark(art: Article) {
+      if art.hasBookmark { self.bookmarkButton.buttonView.name = "starFill" }
+      else { self.bookmarkButton.buttonView.name = "star" }
+    }
+    Notification.receive("BookmarkChanged") { msg in
+      if let cart = msg.sender as? StoredArticle,
+         let art = self.article,
+         cart.html.name == art.html.name {
+        displayBookmark(art: art)
+      }
+    }
     onDisplay { [weak self] (idx, oview) in
       if let self = self {
-        let art = self.articles[idx]
+        var art = self.articles[idx]
         self.adelegate?.article = art
         self.setHeader(artIndex: idx)
         self.issue.lastArticle = idx
@@ -86,8 +113,12 @@ open class ArticleVC: ContentVC {
           }
         }
         else { self.onPlay(closure: nil) }
+        self.onBookmark { _ in 
+          art.hasBookmark.toggle() 
+        }
+        displayBookmark(art: art)
         self.debug("on display: \(idx), article \(art.html.name)")
-     }
+      }
     }
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
