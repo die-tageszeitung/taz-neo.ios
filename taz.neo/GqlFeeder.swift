@@ -216,6 +216,12 @@ class GqlAuthor: Author, GQLObject {
 
 /// One Article of an Issue
 class GqlArticle: Article, GQLObject {
+  var realPrimaryIssue: GqlIssue?
+  /// Issue where this Article is stored
+  var primaryIssue: Issue { 
+    get { realPrimaryIssue! } 
+    set { realPrimaryIssue = (newValue as! GqlIssue) }
+  }
   /// File storing article HTML
   var articleHtml: GqlFile
   var html: FileEntry { return articleHtml }
@@ -251,6 +257,12 @@ class GqlArticle: Article, GQLObject {
 
 /// A Section of an Issue
 class GqlSection: Section, GQLObject {
+  var realPrimaryIssue: GqlIssue?
+  /// Issue where this Section is stored
+  var primaryIssue: Issue { 
+    get { realPrimaryIssue! } 
+    set { realPrimaryIssue = (newValue as! GqlIssue) }
+  }
   /// File storing section HTML
   var sectionHtml: GqlFile
   var html: FileEntry { return sectionHtml }
@@ -855,6 +867,16 @@ open class GqlFeeder: Feeder, DoesLog {
             for issue in issues { 
               issue.feed = feed 
               (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages)
+              if let sections = issue.sections as? [GqlSection] {
+                for section in sections {
+                  section.primaryIssue = issue
+                  if let articles = section.articles as? [GqlArticle] { 
+                    for article in articles {
+                      article.primaryIssue = issue
+                    }
+                  }
+                }
+              }
             }
             ret = .success(issues) 
           }
