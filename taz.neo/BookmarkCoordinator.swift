@@ -16,12 +16,14 @@ public class BookmarkCoordinator: IssueInfo, DoesLog {
   public var issue: Issue { bookmarkFeed.issues![0] }
   var isShowingAlert = false
   
-  public var sectionVC: SectionVC?
-//  public lazy var sectionVC: SectionVC = { 
-//    let svc = SectionVC(feederContext: feederContext)
-//    svc.delegate = self
-//    return svc
-//  }()
+  public lazy var sectionVC: SectionVC = { 
+    let svc = SectionVC(feederContext: feederContext)
+    svc.delegate = self
+    svc.isStaticHeader = true
+    svc.header.isLargeTitleFont = false
+    svc.header.subTitle = nil
+    return svc
+  }()
   
   public func resetIssueList() {}
   
@@ -35,12 +37,12 @@ public class BookmarkCoordinator: IssueInfo, DoesLog {
         self.bookmarkFeed.loadAllBookmmarks()
         self.bookmarkFeed.genAllHtml()
         if art.hasBookmark { 
-          self.sectionVC?.insertArticle(art) 
+          self.sectionVC.insertArticle(art) 
         }
         else { 
-          self.sectionVC?.deleteArticle(art) 
+          self.sectionVC.deleteArticle(art) 
         }
-        self.sectionVC?.reload()
+        self.sectionVC.reload()
         if self.bookmarkFeed.count <= 0, UIViewController.top() == self.sectionVC
           { self.nc.popViewController(animated: true) }
       }
@@ -49,11 +51,9 @@ public class BookmarkCoordinator: IssueInfo, DoesLog {
   
   @MainActor
   public func showBookmarks() {
-    if nc.topViewController != sectionVC {
+    if UIViewController.top() != sectionVC {
       if bookmarkFeed.count > 0 {
-        sectionVC = SectionVC(feederContext: feederContext)
-        sectionVC?.delegate = self
-        nc.pushViewController(sectionVC!, animated: false)
+        nc.pushViewController(sectionVC, animated: false)
       }
       else {
         if !isShowingAlert {
