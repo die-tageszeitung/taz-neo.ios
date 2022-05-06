@@ -18,6 +18,8 @@ class SearchHeaderView: UIView {
   var cancelButtonRightConstraint: NSLayoutConstraint?
   var statusLabelTopConstraint: NSLayoutConstraint?
   
+  var statusLabelChanging = false
+  
   var filterActive:Bool = false { didSet {
     extendedSearchButton.tintColor
     = filterActive
@@ -113,7 +115,7 @@ class SearchHeaderView: UIView {
     pin(extendedSearchButton.centerY, to: searchTextField.centerY)
     pin(cancelButton.centerY, to: searchTextField.centerY)
 
-      self.addBorder(.opaqueSeparator, 0.5, only: .bottom)
+    self.addBorder(.opaqueSeparator, 0.5, only: .bottom)
     registerForStyleUpdates(alsoForiOS13AndHigher: true)
     setStatusLabelTopConstraint()
   }
@@ -229,14 +231,22 @@ extension SearchHeaderView {
   }
   
   func setStatusLabel(text: String?,
-                      color: UIColor?){
-    let color = color ?? Const.SetColor.CTArticle.color
+                      color: UIColor?) {
+    if statusLabelChanging {
+      delay(seconds: 0.3) {[weak self] in
+        self?.setStatusLabel(text: text, color: color)
+      }
+      return
+    }
     if text == statusLabel.text { return }
-    self.statusLabel.hideAnimated(duration: 0.3,
-                                  completion: { [weak self] in
+    statusLabelChanging = true
+    let color = color ?? Const.SetColor.CTArticle.color
+    self.statusLabel.hideAnimated(duration: 0.3){ [weak self] in
       self?.statusLabel.text = text
       self?.statusLabel.textColor = color
-      self?.statusLabel.showAnimated()
-    })
+      self?.statusLabel.showAnimated(){ [weak self] in
+        self?.statusLabelChanging = false
+      }
+    }
   }
 }

@@ -244,7 +244,7 @@ public class SearchItem: DoesLog {
     }
   }
   
-  private func reset(){
+  func reset(){
     sessionId = nil
     searchHitList = nil
     noMoreSearchResults = false

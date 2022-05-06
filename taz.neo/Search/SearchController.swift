@@ -26,6 +26,7 @@ class SearchController: UIViewController {
       updateArticleVcIfNeeded()
       var textColor:UIColor?
       var message: String?
+      var newState: searchState = .result
       let rCount = searchItem.resultCount
       if let currentCount = rCount.currentCount, let totalCount = rCount.total {
         message = "\(totalCount)/\(currentCount) Treffer"
@@ -36,16 +37,18 @@ class SearchController: UIViewController {
       else if let count = rCount.total {
         message = "\(count) Treffer"
       }
-      else if resultsTable.isHidden == false {
+      else {
         message = "Keine Treffer"
         textColor = .red
+        newState = .emptyResult
       }
       header.setStatusLabel(text: message, color: textColor)
       resultsTable.searchItem = searchItem
+      self.currentState = newState
     }
   }
   
-  enum searchState: String {case initial, firstSearch, result}
+  enum searchState: String {case initial, firstSearch, result, emptyResult}
   
   private var currentState: searchState = .initial {
     didSet {
@@ -62,6 +65,10 @@ class SearchController: UIViewController {
           centralActivityIndicator.isHidden = false
           centralActivityIndicator.stopAnimating()
           resultsTable.isHidden = false
+        case .emptyResult:
+          centralActivityIndicator.isHidden = true
+          placeholderView.showAnimated()
+          resultsTable.hideAnimated()
       }
     }
   }
@@ -256,7 +263,7 @@ extension SearchController {
     guard let feeder = feederContext.gqlFeeder else { return }
     feeder.search(searchItem: searchItem) { [weak self] result in
       guard let self = self else { return }
-      self.currentState = .result
+
       switch result {
         case .success(let updatedSearchItem):
           for searchHit in updatedSearchItem.lastResponse?.search.searchHitList ?? [] {
@@ -287,6 +294,7 @@ extension SearchController {
       header.searchTextField.resignFirstResponder()
       return false
     }
+    searchItem.reset()
     header.searchTextField.resignFirstResponder()
     header.searchTextField.text = nil
     searchSettingsView.restoreInitialState()
@@ -295,10 +303,6 @@ extension SearchController {
     header.checkCancelButton()
     header.setHeader(showMaxi: true)
     header.setStatusLabel(text: nil, color: nil)
-    searchItem = SearchItem()
-//    onMainAfter { [weak self] in
-//      self?.view.layoutIfNeeded()
-//    }
     self.currentState = .initial
     return true
   }

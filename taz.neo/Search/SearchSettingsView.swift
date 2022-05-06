@@ -81,6 +81,9 @@ class SearchSettingsView: UITableView {
       }
       return
     }
+    data.authorInpulCell.textField.resignFirstResponder()
+    data.titleInpulCell.textField.resignFirstResponder()
+    
     let h = self.frame.size.height + 60
     self.topBackground.isHidden = true
     UIView.animate(seconds: 0.3) { [weak self] in
@@ -256,10 +259,7 @@ class TextInputCell: TazCell {
     textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 5))
     textField.leftViewMode = .always
     textField.clearButtonMode = .whileEditing
-//    customClearButton.tintColor = Const.SetColor.ios(.secondaryLabel).color
-//    customClearButton.setImage(UIImage(named: "xmark"), for: .normal)
-//    textField.rightView = UIImageView(image: UIImage(named: "xmark"))
-//    textField.rightViewMode = .whileEditing
+    textField.returnKeyType = .search
     textField.pinHeight(Const.Size.NewTextFieldHeight)
     textField.clipsToBounds = true
     contentView.addSubview(textField)
