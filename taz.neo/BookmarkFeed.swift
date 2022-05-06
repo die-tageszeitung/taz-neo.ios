@@ -11,7 +11,7 @@ import NorthLib
 
 
 /// A Feed of bookmarked Articles
-public class BookmarkFeed: Feed {
+public class BookmarkFeed: Feed, DoesLog {
   public var name: String
   public var feeder: Feeder
   public var cycle: PublicationCycle { .unknown }
@@ -20,6 +20,7 @@ public class BookmarkFeed: Feed {
   public var lastIssue: Date
   public var firstIssue: Date
   public var issues: [Issue]?
+  public var dir: Dir { feeder.baseDir }
   
   public init(feeder: Feeder) {
     self.feeder = feeder
@@ -40,22 +41,112 @@ public class BookmarkFeed: Feed {
         }
       }
     }
-    
-  } // BookmarkFeed
+  }
   
+  // HTML header
+  static var htmlHeader = """
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE html>
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+  <head>
+  <meta name="generator" content="taz E-Book Generator Version 3.000"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta http-equiv="cache-control" content="no-cache"/>
+  <meta http-equiv="expires" content="0"/>
+  <meta http-equiv="pragma" content="no-cache"/>
+  <title>section.277349.html</title>
+    <link rel="stylesheet" type="text/css" href="resources/base.css"> </link>
+    <link rel="stylesheet" type="text/css" href="resources/base2017.css"> </link>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0"/>
+    <link rel="stylesheet" type="text/css" href="resources/platform.css"> </link>
+    <script src="resources/jquery-3.min.js" type="text/javascript" charset="utf-8" language="javascript"> </script>
+    <script src="resources/tazApi.js" type="text/javascript" charset="utf-8" language="javascript"> </script>
+    <script src="resources/setupApp.js" type="text/javascript" charset="utf-8" language="javascript"> </script>
+    <link rel="stylesheet" type="text/css" href="resources/ressort.css"> </link>
+    <link rel="stylesheet" type="text/css" href="resources/tazApi.css"> </link>
+    <link rel="stylesheet" type="text/css" href="resources/tazApiSection.css"> </link>
+  </head>
+  """
+  
+  /// Get all authors as String with HTML markup
+  public func getAuthors(art: Article) -> String {
+    var ret = ""
+    if let authors = art.authors {
+      guard authors.count > 0 else { return "" }
+      let n = authors.count - 1
+      for i in 0...n {
+        if let name = authors[i].name {
+          ret += name
+          if i != n { ret += ", " }
+        }
+      }
+    }
+    return "<p class=\"VerzeichnisAutor\">\(ret)</p>"
+  }
+  
+  /// Generate HTML for given Section
+  public func genHtml(section: BookmarkSection) {
+    if let articles = section.articles as? [StoredArticle] {
+      var html = """
+      \(BookmarkFeed.htmlHeader)
+      <body>
+      """
+      for art in articles {
+        let issues = art.issues
+        if issues.count > 0 {
+          html += """
+            <div id="content">
+            <a href="\(art.path)" class="RessortDiv">
+              <div class="VerzeichnisArtikel eptPolitik">
+                <h2 class="Titel">\(art.title ?? art.html.name)</h2>
+                <h4 class="Unterzeile">\(art.teaser ?? "")</h4>
+                \(getAuthors(art: art))
+                <div class="VerzeichnisArtikelEnde"/>
+              </div>
+            </a>
+            </div>
+          """
+        }
+      }
+      html += "</body>\n</html>\n"
+      let tmpFile = section.html as! TmpFileEntry
+      tmpFile.content = html
+    }
+  }
+  
+  /// Generate HTML for all Sections
+  public func genAllHtml() {
+    if let issues = self.issues {
+      for issue in issues {
+        if let sections = issue.sections {
+          for section in sections {
+            if let section = section as? BookmarkSection
+            { self.genHtml(section: section) }
+          }
+        }
+      }
+    }
+  }
+  
+  /// Load all bookmarks into single Section
+  public func loadAllBookmmarks() {
+    if let issues = issues, issues.count > 0,
+       let sections = issues[0].sections, sections.count > 0 {
+      let section = sections[0] as! BookmarkSection
+      section.articles = StoredArticle.bookmarkedArticles()
+    }
+  }
+  
+  /// Return BookmarkFeed consisting of one Section with all bookmarks
   public static func allBookmarks(feeder: Feeder) -> BookmarkFeed {
     let bm = BookmarkFeed(feeder: feeder)
     let bmIssue = BookmarkIssue(feed: bm)
-    let bmSection = BookmarkSection(name: "Lesezeichen",
-                                    html: TmpFileEntry(name: "allBookmarks"))
+    let bmSection = BookmarkSection(name: "Leseliste", issue: bmIssue,
+        html: TmpFileEntry(feed: bm, name: "allBookmarks.html"))
     bm.issues = [bmIssue]
     bmIssue.sections = [bmSection]
-    bmSection.articles = StoredArticle.bookmarkedArticles()
-    //#warning("ToDo: 0.9.4+ @Ringo: Build Section-HTML here")
-    /// compute HTML and store it in html
-    let html = "..."
-    let tmpFile = bmSection.html as! TmpFileEntry
-    tmpFile.content = html
+    bm.loadAllBookmmarks()
+    bm.genHtml(section: bmSection)
     return bm
   }
 }
@@ -82,6 +173,7 @@ public class BookmarkIssue: Issue {
   public var lastArticle: Int? { get { nil } set {} }
   public var lastPage: Int? { get { nil } set {} }
   public var payload: Payload { DummyPayload() }
+  public var dir: Dir { feed.dir }
   
   init(feed: Feed) {
     self.feed = feed
@@ -93,16 +185,18 @@ public class BookmarkIssue: Issue {
 /// A Section of bookmarked Articles
 public class BookmarkSection: Section {
   public var name: String
-  public var extendedTitle: String? { nil }
+  public var extendedTitle: String? { name }
   public var type: SectionType { .articles }
   public var articles: [Article]?
   public var navButton: ImageEntry? { nil }
   public var html: FileEntry
   public var images: [ImageEntry]? { nil }
   public var authors: [Author]? { nil }
+  public var primaryIssue: Issue
   
-  public init(name: String, html: FileEntry) {
+  public init(name: String, issue: Issue, html: FileEntry) {
     self.name = name
+    self.primaryIssue = issue
     self.html = html
   }
 }
@@ -125,9 +219,9 @@ public class TmpFileEntry: FileEntry {
     }
   }
   
-  public init(name: String) {
+  public init(feed: BookmarkFeed, name: String) {
     self.name = name
-    self.path = "\(Dir.tmpPath)/\(name)"
+    self.path = "\(feed.dir.path)/\(name)"
     self.moTime = Date()
   }
 }
