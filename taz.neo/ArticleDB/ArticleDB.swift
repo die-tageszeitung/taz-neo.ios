@@ -35,8 +35,6 @@ public class ArticleDB: Database {
 public protocol PersistentObject: NSManagedObject, DoesLog {}
 
 public extension PersistentObject {
-  /// The unique ID of every CoredData entity as String
-  var id: String { objectID.uriRepresentation().absoluteString }
   /// Get object using its ID
   static func get(id: String) -> Self? { 
     let uri = URL(string: id)
@@ -71,7 +69,7 @@ public protocol StoredObject: DoesLog {
 
 public extension StoredObject {  
   
-  var id: String { pr.id } // ID of persistent record
+  var id: String { pr.objectID.uriRepresentation().absoluteString }// ID of persistent record
   static var fetchRequest: NSFetchRequest<PO> { NSFetchRequest<PO>(entityName: entity) }
 
   /// Delete the object from the persistent store
