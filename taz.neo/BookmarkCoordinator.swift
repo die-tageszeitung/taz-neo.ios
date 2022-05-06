@@ -41,6 +41,8 @@ public class BookmarkCoordinator: IssueInfo, DoesLog {
           self.sectionVC?.deleteArticle(art) 
         }
         self.sectionVC?.reload()
+        if self.bookmarkFeed.count <= 0, UIViewController.top() == self.sectionVC
+          { self.nc.popViewController(animated: true) }
       }
     }
   }
