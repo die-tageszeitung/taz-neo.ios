@@ -14,6 +14,7 @@ public class BookmarkCoordinator: IssueInfo, DoesLog {
   public var feederContext: FeederContext
   public lazy var bookmarkFeed = BookmarkFeed.allBookmarks(feeder: feeder) 
   public var issue: Issue { bookmarkFeed.issues![0] }
+  var isShowingAlert = false
   
   public var sectionVC: SectionVC?
 //  public lazy var sectionVC: SectionVC = { 
@@ -44,11 +45,23 @@ public class BookmarkCoordinator: IssueInfo, DoesLog {
     }
   }
   
+  @MainActor
   public func showBookmarks() {
     if nc.topViewController != sectionVC {
-      sectionVC = SectionVC(feederContext: feederContext)
-      sectionVC?.delegate = self
-      nc.pushViewController(sectionVC!, animated: false)
+      if bookmarkFeed.count > 0 {
+        sectionVC = SectionVC(feederContext: feederContext)
+        sectionVC?.delegate = self
+        nc.pushViewController(sectionVC!, animated: false)
+      }
+      else {
+        if !isShowingAlert {
+          isShowingAlert = true
+          Alert.message(title: "Hinweis", 
+            message: "Es liegen noch keine Lesezeichen vor.") { [weak self] in
+            self?.isShowingAlert = false
+          }
+        }
+      }
     }
   }
   
