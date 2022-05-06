@@ -18,6 +18,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate {
   lazy var viewLogger = Log.ViewLogger()
   lazy var fileLogger = Log.FileLogger()
   var feederContext: FeederContext!
+  lazy var bookmarkCoordinator = 
+    BookmarkCoordinator(nc: self, feederContext: feederContext)
   let net = NetAvailability()
   
   var authenticator: Authenticator? { return feederContext.authenticator }
@@ -117,7 +119,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate {
   }
   
   @objc func twoFingerErrorReportActivated(_ sender: UIGestureRecognizer) {
-    showFeedbackErrorReport()
+    showBookmarks()
+    //    showFeedbackErrorReport()
   }
   
   func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil) {
@@ -149,13 +152,19 @@ class MainNC: NavigationController, UIStyleChangeDelegate {
     }
   }
   
+  func showBookmarks() {
+    bookmarkCoordinator.showBookmarks()
+  }
+  
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
     if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
     var actions: [UIAlertAction] = [
       Alert.action("Feedback senden") {_ in self.showFeedbackErrorReport(.feedback) },
       Alert.action("Fehlerbericht senden") {_ in self.showFeedbackErrorReport(.error) },
       Alert.action("Alle Ausgaben löschen") {_ in self.deleteAll() },
-      Alert.action("Kundendaten löschen (Abmelden)") {_ in self.deleteUserData() }]
+      Alert.action("Kundendaten löschen (Abmelden)") {_ in self.deleteUserData() },
+      Alert.action("Leseliste anzeigen") {_ in self.showBookmarks() }
+    ]
     
     if App.isAlpha {
       actions.append(Alert.action("Abo-Verknüpfung löschen (⍺)") {[weak self] _ in self?.unlinkSubscriptionId() })
