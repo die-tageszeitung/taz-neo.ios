@@ -31,6 +31,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       lastIndex = secIndex
     }
   }
+  /// Only change header title according to section title
+  public var isStaticHeader = false
   
   private var initialSection: Int?
   private var initialArticle: Int?
@@ -207,9 +209,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   // Define Header elements
   func setHeader(secIndex: Int) {
     header.title = contents[secIndex].title ?? ""
-    header.subTitle = issue.date.gLowerDate(tz: feeder.timeZone)
-    if index == 0 { header.isLargeTitleFont = true }
-    else { header.isLargeTitleFont = false }
+    if !isStaticHeader {
+      header.subTitle = issue.date.gLowerDate(tz: feeder.timeZone)
+      if index == 0 { header.isLargeTitleFont = true }
+      else { header.isLargeTitleFont = false }
+    }
     header.hide(false)
   }
   
