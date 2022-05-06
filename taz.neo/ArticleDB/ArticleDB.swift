@@ -950,7 +950,16 @@ public final class StoredArticle: Article, StoredObject {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "%@ IN issues", issue.pr)
     request.sortDescriptors = [
-      NSSortDescriptor(key: "Section.order", ascending: true),
+      NSSortDescriptor(key: "order", ascending: true)
+    ]
+    return get(request: request)
+  }
+  
+  /// Return all bookmarked Articles in an Issue
+  public static func bookmarkedArticlesInIssue(issue: StoredIssue) -> [StoredArticle] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "hasBookmark = true AND %@ IN issues", issue.pr)
+    request.sortDescriptors = [
       NSSortDescriptor(key: "order", ascending: true)
     ]
     return get(request: request)
@@ -1718,6 +1727,8 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Deletes data that is not needed for overview
   public func reduceToOverview() {
+    guard StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
+    else { return }
     // Remove files not needed for overview
     storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them
