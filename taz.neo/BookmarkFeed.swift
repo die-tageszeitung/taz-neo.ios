@@ -20,7 +20,7 @@ public class BookmarkFeed: Feed, DoesLog {
   public var lastIssue: Date
   public var firstIssue: Date
   public var issues: [Issue]?
-  public var dir: Dir { feeder.baseDir }
+  public var dir: Dir { Dir("\(feeder.baseDir.path)/bookmarks") }
   /// total number of bookmarks
   public var count: Int = 0
   
@@ -29,6 +29,11 @@ public class BookmarkFeed: Feed, DoesLog {
     self.name = "Bookmarks(\(feeder.title))"
     self.lastIssue = Date()
     self.firstIssue = self.lastIssue
+    dir.create()
+    let rlink = File(dir: dir.path, fname: "resources")
+    let glink = File(dir: dir.path, fname: "global")
+    if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
+    if !glink.isLink { glink.link(to: feeder.globalDir.path) }
   }
   
   deinit {
@@ -37,7 +42,7 @@ public class BookmarkFeed: Feed, DoesLog {
     for issue in issues {
       if let sections = issue.sections {
         for section in sections {
-          if let tmpFile = section.html as? TmpFileEntry {
+          if let tmpFile = section.html as? BookmarkFileEntry {
             tmpFile.content = nil // removes file
           }
         }
@@ -111,7 +116,7 @@ public class BookmarkFeed: Feed, DoesLog {
         }
       }
       html += "</body>\n</html>\n"
-      let tmpFile = section.html as! TmpFileEntry
+      let tmpFile = section.html as! BookmarkFileEntry
       tmpFile.content = html
     }
   }
@@ -145,8 +150,8 @@ public class BookmarkFeed: Feed, DoesLog {
   public static func allBookmarks(feeder: Feeder) -> BookmarkFeed {
     let bm = BookmarkFeed(feeder: feeder)
     let bmIssue = BookmarkIssue(feed: bm)
-    let bmSection = BookmarkSection(name: "Leseliste", issue: bmIssue,
-        html: TmpFileEntry(feed: bm, name: "allBookmarks.html"))
+    let bmSection = BookmarkSection(name: "leseliste", issue: bmIssue,
+        html: BookmarkFileEntry(feed: bm, name: "allBookmarks.html"))
     bm.issues = [bmIssue]
     bmIssue.sections = [bmSection]
     bm.loadAllBookmmarks()
@@ -206,7 +211,7 @@ public class BookmarkSection: Section {
 }
 
 /// A temporary file entry
-public class TmpFileEntry: FileEntry {
+public class BookmarkFileEntry: FileEntry {
   public var name: String
   public var storageType: FileStorageType { .unknown }
   public var moTime: Date
