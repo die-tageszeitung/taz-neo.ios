@@ -83,12 +83,18 @@ open class ContentToolbar: UIView {
   
   public func addArticleButton(_ button: ButtonControl, direction: Toolbar.Direction) {
     toolbar.addButton(button, direction: direction, at: 1)
+    toolbar.addButton(button, direction: direction, at: 2)
   }
   
+  public func addArticlePlayButton(_ button: ButtonControl, direction: Toolbar.Direction) {
+    toolbar.addButton(button, direction: direction, at: 2)
+  }
+ 
   public func addSectionButton(_ button: ButtonControl, direction: Toolbar.Direction) {
     toolbar.addButton(button, direction: direction, at: 0)
   }
   
+  func setArticlePlayBar() { toolbar.bar = 2 }
   func setArticleBar() { toolbar.bar = 1 }
   func setSectionBar() { toolbar.bar = 0 }
   
