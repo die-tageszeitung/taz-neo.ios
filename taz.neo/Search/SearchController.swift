@@ -186,6 +186,12 @@ class SearchController: UIViewController {
     
     feederContext.updateResources()
     self.currentState = .initial
+    
+    Notification.receive("authenticationSucceeded") { [weak self]_ in
+      self?.articleVC.dismiss(animated: true)
+      self?.searchItem.reset()
+      self?.search()
+    }
   }
   
   required init(feederContext: FeederContext) {

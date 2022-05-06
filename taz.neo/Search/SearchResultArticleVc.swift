@@ -6,7 +6,7 @@
 //  Copyright © 2022 Norbert Thies. All rights reserved.
 //
 
-import UIKit
+import NorthLib
 
 // MARK: - SearchResultArticleVc
 class SearchResultArticleVc : ArticleVC {
@@ -65,9 +65,8 @@ class SearchResultArticleVc : ArticleVC {
       guard let mainTabVC = self?.navigationController?.parent as? MainTabVC else { return }
       mainTabVC.selectedIndex = 0
     }
-    if false && feederContext.isAuthenticated == false {
-      #warning("todo condition, reload")
-      atEndOfContent() { [weak self] isAtEnd in
+    atEndOfContent() { [weak self] isAtEnd in
+      if self?.feederContext.isAuthenticated == false || Defaults.expiredAccount {
         if isAtEnd { self?.feederContext.authenticate() }
       }
     }
