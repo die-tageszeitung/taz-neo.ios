@@ -54,7 +54,11 @@ open class ArticleVC: ContentVC {
   
   /// Insert Article into page collection
   func insert(article: Article) {
-    if let idx = articles.firstIndex(where: { $0.html.name == article.html.name }) {
+    // only insert new Article
+    guard articles.firstIndex(where: { $0.html.name == article.html.name }) == nil
+    else { return }
+    let all = delegate.issue.allArticles
+    if let idx = all.firstIndex(where: { $0.html.name == article.html.name }) {
       articles.insert(article, at: idx)
       insertContent(content: article, at: idx)
     }
