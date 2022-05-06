@@ -378,20 +378,31 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
   }
   
-  private func deleteIssue() {
-    if let issue = selectedIssue as? StoredIssue {
-      issue.reduceToOverview()
-      issueCarousel.carousel.reloadData()
-      setLabel(idx: index)
-    }
+  private func delete(issue: StoredIssue) {
+    issue.reduceToOverview()
+    issueCarousel.carousel.reloadData()
+    setLabel(idx: index)
   }
   
-//  private func deleteCompleeteIssue() {
-//    if let issue = issue as? StoredIssue {
-//      issue.deletePersistent()
-//      issueCarousel.carousel.reloadData()
-//    }
-//  }
+  private func deleteIssue() {
+    if let issue = selectedIssue as? StoredIssue {
+      let bookmarked = StoredArticle.bookmarkedArticlesInIssue(issue: issue)
+      if bookmarked.count > 0 {
+        let actions = UIAlertController.init( title: "Ausgabe löschen", 
+          message: "Diese Ausgabe enthält Lesezeichen. Soll sie wirklich " +
+                   "gelöscht werden?",
+          preferredStyle:  .actionSheet )
+        actions.addAction( UIAlertAction.init( title: "Ja", style: .destructive,
+          handler: { [weak self] handler in
+          for art in bookmarked { art.hasBookmark = false }
+          self?.delete(issue: issue)
+        }))
+        actions.addAction(UIAlertAction.init(title: "Nein", style: .default))
+        actions.presentAt(issueCarousel.carousel.view())
+      }
+      else { delete(issue: issue) }
+    }
+  }
   
   /// Check whether it's necessary to reload the current Issue
   public func authenticationSucceededCheckReload() {
