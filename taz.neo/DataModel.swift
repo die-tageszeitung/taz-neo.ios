@@ -303,6 +303,12 @@ public protocol Content {
   var images: [ImageEntry]? { get }
   /// List of authors (if applicable)
   var authors: [Author]? { get }
+  /// Issue where Content data is stored
+  var primaryIssue: Issue { get }
+  /// Directory where Content is stored
+  var dir: Dir { get }
+  /// Absolute pathname of content
+  var path: String { get }
 }
 
 public extension Content {
@@ -316,6 +322,12 @@ public extension Content {
     ret += ")\n  \(html.name)"
     return ret
   }
+  
+  /// Directory where Content is stored
+  var dir: Dir { primaryIssue.dir }
+  
+  /// Absolute pathname of content
+  var path: String { "\(dir.path)/\(html.name)" }
   
   /// All files incl. normal res photos
   var files: [FileEntry] {
@@ -377,7 +389,7 @@ public extension Content {
 public protocol Article: Content, ToString {
   /// File storing audio data
   var audio: FileEntry? { get }
-  /// Title of article
+  /// Teaser of article
   var teaser: String? { get }
   /// Link to online version
   var onlineLink: String? { get }
@@ -689,6 +701,8 @@ public protocol Issue: ToString, AnyObject {
   var lastPage: Int? { get set }
   /// Payload of files
   var payload: Payload { get }
+  /// Directory where all issue specific data is stored
+  var dir: Dir { get }
 }
 
 public extension Issue {
@@ -704,6 +718,9 @@ public extension Issue {
     }
     return ret
   }
+  
+  /// directory where all issue specific data is stored
+  var dir: Dir { Dir(dir: feed.dir.path, fname: feed.feeder.date2a(date)) }
   
   /// All Articles in one Issue (one Article may appear multiple
   /// times in the resulting array if it is referenced in more than
@@ -888,9 +905,12 @@ public protocol Feed: ToString {
   var firstIssue: Date { get }
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
+  /// Directory where all feed specific data is stored
+  var dir: Dir { get }
 } // Feed
 
 public extension Feed {  
+  var dir: Dir { Dir(dir: feeder.baseDir.path, fname: name) }
   var type: FeedType { .publication }
   var lastIssueRead: Date? { nil }
   var lastUpdated: Date? { nil }
@@ -922,6 +942,8 @@ public protocol Feeder: ToString {
   var resourceVersion: Int { get }
   /// The Feeds this Feeder is providing
   var feeds: [Feed] { get }
+  /// Directory where all Feeder specific data is stored
+  var dir: Dir { get }
   
   /// Initilialize with name/title and URL of server
   init(title: String, url: String, closure: @escaping(Result<Feeder,Error>)->())
@@ -952,6 +974,7 @@ extension Feeder {
   
   /// The base directory
   public var baseDir: Dir { return Dir(dir: Dir.appSupportPath, fname: title) }
+  public var dir: Dir { baseDir }
   /// The resources directory
   public var resourcesDir: Dir { return Dir(dir: baseDir.path, fname: "resources") }
   /// The global directory
