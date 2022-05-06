@@ -38,10 +38,8 @@ class AppDelegate: NotifiedDelegate {
 //    self.window?.rootViewController = KeychainTest()
     
     self.window?.makeKeyAndVisible()
-    if #available(iOS 13.0, *) {
-      UIApplication.shared.keyWindow?.overrideUserInterfaceStyle
-        = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
-    } 
+    UIApplication.shared.keyWindow?.overrideUserInterfaceStyle
+    = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
     return true
   }
 

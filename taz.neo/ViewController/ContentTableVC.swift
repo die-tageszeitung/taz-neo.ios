@@ -145,15 +145,12 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
       aspectRatio?.isActive = false
       aspectRatio = momentView.pinAspect(ratio: iwidth/iheight)
       momentWidth = momentView.pinWidth(to: self.view.width, factor: 0.5)
-      if #available(iOS 13.0, *) {
-        let menuInteraction = UIContextMenuInteraction(delegate: self)
-        momentView.addInteraction(menuInteraction)
-        momentView.isUserInteractionEnabled = true
-      } 
+      let menuInteraction = UIContextMenuInteraction(delegate: self)
+      momentView.addInteraction(menuInteraction)
+      momentView.isUserInteractionEnabled = true
     }
   }
   
-  @available(iOS 13.0, *)
   fileprivate func createContextMenu() -> UIMenu {
     let unlinkSubscriptionIdAction = UIAction(title: "Abo-Verknüpfung löschen (⍺)",
       image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
@@ -257,7 +254,6 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   // MARK: - UIContextMenuInteractionDelegate protocol
 
-  @available(iOS 13.0, *)
   public func contextMenuInteraction(_ interaction: UIContextMenuInteraction, 
     configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
     return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) 

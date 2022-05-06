@@ -44,11 +44,7 @@ open class LoadingView: UIView, UIStyleChangeDelegate {
     bottomLabel.font = BottomFont
     bottomLabel.numberOfLines = 0
     bottomLabel.textAlignment = .center
-
-    if #available(iOS 13.0, *) {
-      spinner.style = .large
-    }
-
+    spinner.style = .large
     spinner.startAnimating()
     for view in [topLabel, spinner, bottomLabel] {
       stack.addArrangedSubview(view)

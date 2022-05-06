@@ -24,11 +24,9 @@ extension Defaults{
       if darkMode == newValue || tDarkMode == newValue { return }
       tDarkMode = newValue
       Defaults.singleton["colorMode"] = newValue ? "dark" : nil
-//      Defaults.singleton.
-      if #available(iOS 13.0, *) {
-        //Use Trait Collection for Change
-        UIApplication.shared.keyWindow?.overrideUserInterfaceStyle = newValue ? .dark : .light
-      }
+      //      Defaults.singleton.
+      //Use Trait Collection for Change
+      UIApplication.shared.keyWindow?.overrideUserInterfaceStyle = newValue ? .dark : .light
       /// Some (Article/HTML/CSS) iOS 13+ need also this Info
       NorthLib.Notification.send(globalStylesChangedNotification)
     }

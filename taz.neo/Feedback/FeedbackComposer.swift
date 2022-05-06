@@ -108,13 +108,11 @@ open class FeedbackComposer : DoesLog{
       currentVc = presenting
     }
     else if let nc = currentVc.navigationController {
-      if #available(iOS 13.0, *) {
-        currentVc.isModalInPresentation = true
-        restoreModalityController = currentVc
-      }
+      currentVc.isModalInPresentation = true
+      restoreModalityController = currentVc
       currentVc = nc
     }
-    else if #available(iOS 13.0, *), currentVc.presentingViewController != nil {
+    else if currentVc.presentingViewController != nil {
       currentVc.isModalInPresentation = true
       restoreModalityController = currentVc
     }
@@ -144,9 +142,7 @@ open class FeedbackComposer : DoesLog{
     feedbackViewController.requestCancel = cancelHandler
     
     feedbackBottomSheet?.onClose(closure: { (slider) in
-      if #available(iOS 13.0, *) {
-        restoreModalityController?.isModalInPresentation = false
-      }
+      restoreModalityController?.isModalInPresentation = false
       finishClosure(feedbackViewController.sendSuccess)
       feedbackBottomSheet = nil//Important the memory leak!
     })

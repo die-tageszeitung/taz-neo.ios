@@ -321,7 +321,6 @@ extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
     return items
   }
   
-  @available(iOS 13.0, *)
   /// Create context Menu for given item and indexPath
   /// - Parameters:
   ///   - issue: target issue for actions
@@ -345,7 +344,6 @@ extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
   }
   
   // MARK: - UIContextMenuInteractionDelegate protocol
-  @available(iOS 13.0, *)
   public func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
     configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
     let loc = interaction.location(in: collectionView)
@@ -408,7 +406,7 @@ extension IssueVcWithBottomTiles {
       }
     }
     
-    if #available(iOS 13.0, *), cell.interactions.isEmpty {
+    if cell.interactions.isEmpty {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
       cell.addInteraction(menuInteraction)
       cell.backgroundColor = .black

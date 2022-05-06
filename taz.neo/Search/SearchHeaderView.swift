@@ -113,9 +113,7 @@ class SearchHeaderView: UIView {
     pin(extendedSearchButton.centerY, to: searchTextField.centerY)
     pin(cancelButton.centerY, to: searchTextField.centerY)
 
-    if #available(iOS 13.0, *) {
       self.addBorder(.opaqueSeparator, 0.5, only: .bottom)
-    }
     registerForStyleUpdates(alsoForiOS13AndHigher: true)
     setStatusLabelTopConstraint()
   }
