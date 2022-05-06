@@ -209,13 +209,13 @@ open class ArticleVC: ContentVC {
       }
     } 
   }
+  
   public override func viewWillAppear(_ animated: Bool) {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
     }
     super.viewWillAppear(animated)
   }
-  
   
   public override func viewDidAppear(_ animated: Bool) {
     if self.invalidateLayoutNeededOnViewWillAppear {
