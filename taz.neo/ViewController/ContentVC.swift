@@ -204,7 +204,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
          let hasBookmark = args[1] as? String,
          let bm = Bool(hasBookmark) {
         let arts = StoredArticle.get(file: name)
-        if arts.count > 0 { arts[0].hasBookmark = bm }
+        if arts.count > 0 { 
+          arts[0].hasBookmark = bm 
+          ArticleDB.save()
+        }
       }
       return NSNull()
     }

@@ -115,6 +115,7 @@ open class ArticleVC: ContentVC {
         else { self.onPlay(closure: nil) }
         self.onBookmark { _ in 
           art.hasBookmark.toggle() 
+          ArticleDB.save()
         }
         displayBookmark(art: art)
         self.debug("on display: \(idx), article \(art.html.name)")
