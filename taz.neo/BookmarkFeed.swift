@@ -62,16 +62,16 @@ public class BookmarkFeed: Feed, DoesLog {
   <meta http-equiv="expires" content="0"/>
   <meta http-equiv="pragma" content="no-cache"/>
   <title>section.277349.html</title>
-    <link rel="stylesheet" type="text/css" href="resources/base.css"> </link>
-    <link rel="stylesheet" type="text/css" href="resources/base2017.css"> </link>
+    <link rel="stylesheet" type="text/css" href="resources/base.css">
+    <link rel="stylesheet" type="text/css" href="resources/base2017.css">
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0"/>
-    <link rel="stylesheet" type="text/css" href="resources/platform.css"> </link>
-    <script src="resources/jquery-3.min.js" type="text/javascript" charset="utf-8" language="javascript"> </script>
-    <script src="resources/tazApi.js" type="text/javascript" charset="utf-8" language="javascript"> </script>
-    <script src="resources/setupApp.js" type="text/javascript" charset="utf-8" language="javascript"> </script>
-    <link rel="stylesheet" type="text/css" href="resources/ressort.css"> </link>
-    <link rel="stylesheet" type="text/css" href="resources/tazApi.css"> </link>
-    <link rel="stylesheet" type="text/css" href="resources/tazApiSection.css"> </link>
+    <link rel="stylesheet" type="text/css" href="resources/platform.css">
+    <script src="resources/jquery-3.min.js" type="text/javascript" charset="utf-8" language="javascript"></script>
+    <script src="resources/tazApi.js" type="text/javascript" charset="utf-8" language="javascript"></script>
+    <script src="resources/setupApp.js" type="text/javascript" charset="utf-8" language="javascript"></script>
+    <link rel="stylesheet" type="text/css" href="resources/ressort.css">
+    <link rel="stylesheet" type="text/css" href="resources/tazApi.css">
+    <link rel="stylesheet" type="text/css" href="resources/tazApiSection.css">
   </head>
   """
   
@@ -88,7 +88,7 @@ public class BookmarkFeed: Feed, DoesLog {
         }
       }
     }
-    return "<p class=\"VerzeichnisAutor\">\(ret)</p>"
+    return "<p class=\"VerzeichnisAutor\">\(ret.xmlEscaped())</p>"
   }
   
   /// Generate HTML for given Section
@@ -97,25 +97,26 @@ public class BookmarkFeed: Feed, DoesLog {
       var html = """
       \(BookmarkFeed.htmlHeader)
       <body>
+      <div id="content">\n
       """
       for art in articles {
         let issues = art.issues
         if issues.count > 0 {
+          let title = art.title ?? art.html.name
+          let teaser = art.teaser ?? ""
           html += """
-            <div id="content">
             <a href="\(art.path)" class="RessortDiv">
               <div class="VerzeichnisArtikel eptPolitik">
-                <h2 class="Titel">\(art.title ?? art.html.name)</h2>
-                <h4 class="Unterzeile">\(art.teaser ?? "")</h4>
+                <h2 class="Titel">\(title.xmlEscaped())</h2>
+                <h4 class="Unterzeile">\(teaser.xmlEscaped())</h4>
                 \(getAuthors(art: art))
-                <div class="VerzeichnisArtikelEnde"/>
+                <div class="VerzeichnisArtikelEnde"></div>
               </div>
             </a>
-            </div>
           """
         }
       }
-      html += "</body>\n</html>\n"
+      html += "</div>\n</body>\n</html>\n"
       let tmpFile = section.html as! BookmarkFileEntry
       tmpFile.content = html
     }
