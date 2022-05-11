@@ -393,15 +393,34 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
   }
   
-  func deleteIssue(issue: Issue) {
+  private func delete(issue: StoredIssue) {
+    issue.reduceToOverview()
+    issueCarousel.carousel.reloadData()
+    setLabel(idx: index)
+  }
+  
+  func deleteIssue(issue: Issue? = nil) {
+    let issue = issue ?? self.issue
     if issue.isDownloading {
       Alert.message(message: "Bitte warten Sie bis der Download abgeschlossen ist!")
       return
     }
     if let issue = issue as? StoredIssue {
-      issue.reduceToOverview()
-      issueCarousel.carousel.reloadData()
-      setLabel(idx: index)
+      let bookmarked = StoredArticle.bookmarkedArticlesInIssue(issue: issue)
+      if bookmarked.count > 0 {
+        let actions = UIAlertController.init( title: "Ausgabe löschen", 
+          message: "Diese Ausgabe enthält Lesezeichen. Soll sie wirklich " +
+                   "gelöscht werden?",
+          preferredStyle:  .actionSheet )
+        actions.addAction( UIAlertAction.init( title: "Ja", style: .destructive,
+          handler: { [weak self] handler in
+          for art in bookmarked { art.hasBookmark = false }
+          self?.delete(issue: issue)
+        }))
+        actions.addAction(UIAlertAction.init(title: "Nein", style: .default))
+        actions.presentAt(issueCarousel.carousel.view())
+      }
+      else { delete(issue: issue) }
     }
   }
   
@@ -489,9 +508,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.onLabelTap { idx in
       self.showDatePicker()
     }
-    issueCarousel.addMenuItem(title: "Bild Teilen",
-                              icon: "share") {[weak self] _ in
-      guard let self = self else { return }
+    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
       self.exportMoment(issue: self.selectedIssue)
     }
     issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {_ in

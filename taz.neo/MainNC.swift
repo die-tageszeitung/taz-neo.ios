@@ -10,8 +10,7 @@ import MessageUI
 import NorthLib
 
 
-class MainNC: NavigationController, UIStyleChangeDelegate,
-              MFMailComposeViewControllerDelegate {
+class MainNC: NavigationController, UIStyleChangeDelegate {
   
   private var threeFingerAlertOpen: Bool = false
   var showAnimations = false
@@ -19,6 +18,8 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
   lazy var viewLogger = Log.ViewLogger()
   lazy var fileLogger = Log.FileLogger()
   var feederContext: FeederContext!
+  lazy var bookmarkCoordinator = 
+    BookmarkCoordinator(nc: self, feederContext: feederContext)
   let net = NetAvailability()
   
   var authenticator: Authenticator? { return feederContext.authenticator }
@@ -81,45 +82,48 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
         "Path: \(Dir.appSupportPath)")
   }
   
+  /// Send error report or feedback using mail composition VC
   func produceErrorReport(recipient: String, subject: String = "Feedback", 
-                          completion: (()->())? = nil) {
-    if MFMailComposeViewController.canSendMail() {
-      let mail =  MFMailComposeViewController()
-      let screenshot = UIWindow.screenshot?.jpeg
-      let logData = fileLogger.data
-      mail.mailComposeDelegate = self
-      mail.setToRecipients([recipient])
-      
+                          completion: ((Mail.ResultType)->())? = nil) {
+    if let mail = try? Mail(vc: self) {
       var tazIdText = ""
-      let data = DefaultAuthenticator.getUserData()
-      if let tazID = data.id, tazID.isEmpty == false {
+      let udata = DefaultAuthenticator.getUserData()
+      if let tazID = udata.id, tazID.isEmpty == false {
         tazIdText = " taz-Konto: \(tazID)"
       }
+      mail.subject = "\(subject) \"\(App.name)\" (iOS)\(tazIdText)"
+      mail.body = """
+      App: \(App.name) \(App.bundleVersion)-\(App.buildNumber)
+        \(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)
       
-      mail.setSubject("\(subject) \"\(App.name)\" (iOS)\(tazIdText)")
-      mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
-        isHTML: false)
-      if let screenshot = screenshot {
-        mail.addAttachmentData(screenshot, mimeType: "image/jpeg",
-                               fileName: "taz.neo-screenshot.jpg")
-      }
-      if let logData = logData {
-        mail.addAttachmentData(logData, mimeType: "text/plain",
-                               fileName: "taz.neo-logfile.txt")
-      }
-      self.topmostModalVc.present(mail, animated: true, completion: completion)
+      ...
+      """
+      mail.attachScreenshot()
+      if let prot = fileLogger.data { mail.attach(data: prot, fname: "Protokoll.txt") }
+      do { try mail.present() }
+      catch { self.error(error) }
     }
   }
   
-  func mailComposeController(_ controller: MFMailComposeViewController,
-    didFinishWith result: MFMailComposeResult, error: Error?) {
-    controller.dismiss(animated: true)
-    isErrorReporting = false
+  /// Send logfile to known taz ID
+  func sendLogfile() {
+    if let mail = try? Mail(vc: self),
+       let data = fileLogger.data {
+      if let id = DefaultAuthenticator.getUserData().id { mail.to += id }
+      mail.subject = "\(BuildConst.name): Protokoll"
+      mail.body = """
+      Version: \(App.bundleVersion)-\(App.buildNumber)
+      Branch:  \(BuildConst.branch) (\(BuildConst.hash[0..<7]))
+      """
+      mail.attach(data: data, fname: "Protokoll.txt")
+      do { try mail.present() }
+      catch { self.error(error) }
+    }
   }
   
   @objc func twoFingerErrorReportActivated(_ sender: UIGestureRecognizer) {
-    showFeedbackErrorReport()
+    showBookmarks()
+    //    showFeedbackErrorReport()
   }
   
   func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil) {
@@ -151,15 +155,21 @@ class MainNC: NavigationController, UIStyleChangeDelegate,
     }
   }
   
+  func showBookmarks() {
+    bookmarkCoordinator.showBookmarks()
+  }
+  
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
     if threeFingerAlertOpen || isErrorReporting { return }
     else { threeFingerAlertOpen = true }
     var actions: [UIAlertAction] = []
-    
     if App.isAlpha {
       actions.append(Alert.action("Abo-Verknüpfung löschen (⍺)") {[weak self] _ in self?.unlinkSubscriptionId() })
       actions.append(Alert.action("Abo-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
       actions.append(Alert.action("Download-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
+      actions.append(Alert.action("Protokoll senden") { [weak self] _ in
+        self?.sendLogfile()
+      })
       actions.append(Alert.action("Protokoll an/aus (⍺)") {[weak self] _ in
         guard let self = self else { return }
         let logView = self.viewLogger.logView

@@ -12,16 +12,17 @@ import NorthLib
 public class ContentUrl: WebViewUrl, DoesLog {
 
   public var content: Content
-  public var path: String
-  public lazy var url: URL = URL(fileURLWithPath: path + "/" + content.html.fileName)
+  public lazy var url: URL = URL(fileURLWithPath: content.path)
 
   private var loadClosure: (ContentUrl)->()
   private var _isAvailable = false
   public var isAvailable: Bool {
     get {
       guard !_isAvailable else { return true }
+      let path = content.dir.path
       for f in content.files {
-        if !f.fileNameExists(inDir: path) { self.loadClosure(self); return false }
+        if !f.fileNameExists(inDir: path) 
+          { self.loadClosure(self); return false }
       }
       _isAvailable = true
       return true
@@ -42,9 +43,8 @@ public class ContentUrl: WebViewUrl, DoesLog {
     return view
   }
   
-  public init(path: String, issue: Issue, content: Content, load: @escaping (ContentUrl)->()) {
+  public init(content: Content, load: @escaping (ContentUrl)->()) {
     self.content = content
-    self.path = path
     self.loadClosure = load
   }
   
@@ -74,15 +74,18 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
-
+  public var backButton = Button<ImageView>()
+  public var playButton = Button<ImageView>()
+  public var bookmarkButton = Button<ImageView>()
+  private var playClosure: ((ContentVC)->())?
+  private var bookmarkClosure: ((ContentVC)->())?
   private var backClosure: ((ContentVC)->())?
+  public var homeButton = Button<ImageView>()
   private var homeClosure: ((ContentVC)->())?
+  public var textSettingsButton = Button<ImageView>()
   private var textSettingsClosure: ((ContentVC)->())?
+  public var shareButton = Button<ImageView>()
   private var shareClosure: ((ContentVC)->())?
-  
-  public var shareButton:Button<ImageView>?
-
-  
   private var imageOverlay: Overlay?
   
   var settingsBottomSheet: BottomSheet?
@@ -194,6 +197,27 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
+    self.bridge?.addfunc("setBookmark") { [weak self] jscall in
+      guard let _ = self else { return NSNull() }
+      if let args = jscall.args, args.count > 1,
+         let name = args[0] as? String,
+         let hasBookmark = args[1] as? String,
+         let bm = Bool(hasBookmark) {
+        let arts = StoredArticle.get(file: name)
+        if arts.count > 0 { 
+          arts[0].hasBookmark = bm 
+          ArticleDB.save()
+        }
+      }
+      return NSNull()
+    }
+    self.bridge?.addfunc("getBookmarks") { [weak self] jscall in
+      guard let _ = self else { return NSNull() }
+      let arts = StoredArticle.bookmarkedArticles()
+      var names: [String] = []
+      for a in arts { names += a.html.name }
+      return names
+    }
   }
   
   /// Write tazApi.js to resource directory
@@ -213,27 +237,32 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   /// Define the closure to call when the back button is tapped
-  public func onBack(closure: @escaping (ContentVC)->()){
-    backClosure = closure
-  }
-    
-  /// Define the closure to call when the home button is tapped
-  public func onSettings(closure: @escaping (ContentVC)->()){
-    textSettingsClosure = closure
-  }
+  public func onBack(closure: @escaping (ContentVC)->()) 
+    { backClosure = closure }
+  
+  /// Define the closure to call when the bookmark button is tapped
+  public func onBookmark(closure: @escaping (ContentVC)->()) 
+    { bookmarkClosure = closure }
   
   /// Define the closure to call when the home button is tapped
-  public func onHome(closure: @escaping (ContentVC)->()){
-    homeClosure = closure
+  public func onSettings(closure: @escaping (ContentVC)->())
+    { textSettingsClosure = closure }
+  
+  /// Define the closure to call when the home button is tapped
+  public func onHome(closure: @escaping (ContentVC)->()) 
+    { homeClosure = closure }
+  
+  public func onShare(closure: @escaping (ContentVC)->()) {
+    shareClosure = closure
+    if playClosure == nil { toolBar.setArticleBar() }
+    else { toolBar.setArticlePlayBar() }
   }
   
-  public func onShare(closure: @escaping (ContentVC)->()){
-    shareClosure = closure; toolBar.setArticleBar()
+  public func onPlay(closure: ((ContentVC)->())?) { 
+    playClosure = closure
+    if closure == nil { toolBar.setArticleBar() }
+    else { toolBar.setArticlePlayBar() }
   }
-  
-//  public func onPlay(closure: @escaping (ContentVC)->()){
-//    playClosure = closure
-//  }
   
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self, maxWidth: 500)
@@ -301,42 +330,115 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 //  }
   
   func setupToolbar() {
+    backButton.onPress { [weak self] _ in 
+      guard let self = self else { return }
+      self.backClosure?(self)
+    }
+    bookmarkButton.onPress { [weak self] _ in 
+      guard let self = self else { return }
+      self.bookmarkClosure?(self)
+    }
+    playButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      self.playClosure?(self)
+    }
+    homeButton.onPress { [weak self] _ in 
+      guard let self = self else { return }
+      self.homeClosure?(self)
+    }
+    shareButton.onPress { [weak self] _ in 
+      guard let self = self else { return }
+      self.shareClosure?(self)
+    }
+    textSettingsButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      self.textSettingsClosure?(self)
+    }
+    backButton.pinSize(CGSize(width: 46, height: 50))
+    shareButton.pinSize(CGSize(width: 50, height: 50))
+    textSettingsButton.pinSize(CGSize(width: 50, height: 50))
+    playButton.pinSize(CGSize(width: 40, height: 40))
+    bookmarkButton.pinSize(CGSize(width: 45, height: 45))
+    homeButton.pinSize(CGSize(width: 50, height: 50))
     
-    toolBar.addImageButton(name: "chevron-left",
-                           onPress: { [weak self] _ in
-      guard let self = self else {return}
-      self.backClosure?(self)},
-                           direction: .left,
-                           accessibilityLabel: "zurück")
+    backButton.buttonView.name = "chevron-left"
+    backButton.buttonView.imageView.contentMode = .right
+    shareButton.buttonView.name = "share"
+    textSettingsButton.buttonView.name = "text-settings"
+    bookmarkButton.buttonView.name = "star"
+    playButton.buttonView.name = "audio"
+    homeButton.buttonView.name = "home"
+
+    //.vinset = 0.4 -0.4 do nothing
+    //.hinset = -0.4  ..enlarge enorm!  0.4...scales down enorm
+    //Adjusting the baseline incereases the icon too much
     
-    toolBar.addImageButton(name: "home",
-                           onPress: { [weak self] _ in
-      guard let self = self else {return}
-      self.homeClosure?(self)},
-                           direction: .right,
-                           accessibilityLabel: "Ausgabenübersicht")
+    // shareButton.buttonView.hinset = -0.07
+    // textSettingsButton.buttonView.hinset = -0.15
+    // textSettingsButton.buttonView.layoutMargins change would be ignored in layout subviews
     
-    shareButton = toolBar.addImageButton(name: "share",
-                                         onPress: { [weak self] _ in
-      guard let self = self else {return}
-      self.shareClosure?(self)},
-                                         direction: .center,
-                                         accessibilityLabel: "Teilen",
-                                         toolbar: .article)
-    
-    toolBar.addSpacer(.center, toolbar: .article)
-    
-    toolBar.addImageButton(name: "text-settings",
-                           onPress: { [weak self] _ in
-      guard let self = self else {return}
-      self.textSettingsClosure?(self)},
-                           direction: .center,
-                           accessibilityLabel: "Texteinstellungen")
-    
+    toolBar.addArticleButton(bookmarkButton, direction: .center)
+    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
+    toolBar.addArticleButton(shareButton, direction: .center)
+    toolBar.addArticlePlayButton(Toolbar.Spacer(), direction: .center)
+    toolBar.addArticlePlayButton(playButton, direction: .center)
+    toolBar.addButton(backButton, direction: .left)
+    toolBar.addButton(textSettingsButton, direction: .right)
+//    toolBar.addButton(homeButton, direction: .right)
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
-
-//    playButton.accessibilityLabel = "Vorlesen"
+    
+    backButton.isAccessibilityElement = true
+    textSettingsButton.isAccessibilityElement = false //make no sense just for seeing people
+    homeButton.isAccessibilityElement = true
+    playButton.isAccessibilityElement = true
+    shareButton.isAccessibilityElement = true
+    playButton.isAccessibilityElement = true
+    bookmarkButton.isAccessibilityElement = true
+    backButton.accessibilityLabel = "zurück"
+    homeButton.accessibilityLabel = "Ausgabenübersicht"
+    shareButton.accessibilityLabel = "Teilen"
+    playButton.accessibilityLabel = "Vorlesen"
+    bookmarkButton.accessibilityLabel = "Lesezeichen"
+  }
+  
+  /// Insert new content at (before) index
+  public func insertContent(content: Content, at idx: Int) {
+    let curl = ContentUrl(content: content) { [weak self] curl in
+      guard let self = self else { return }
+      self.dloader.downloadIssueData(issue: self.issue, files: curl.content.files) { err in
+        if err == nil { curl.isAvailable = true }
+      }
+    }
+    contents.insert(content, at: idx)
+    urls.insert(curl, at: idx)
+    collectionView?.insert(at: idx)
+  }
+  
+  /// Delete content at index
+  public func deleteContent(at idx: Int) {
+    if idx < contents.count { 
+      contents.remove(at: idx)
+      urls.remove(at: idx)
+      collectionView?.delete(at: idx)
+    }
+    if contents.count <= 0 {
+      self.navigationController?.popViewController(animated: true)
+    }
+  }
+  
+  /// Define new contents
+  public func setContents(_ contents: [Content]) {
+    self.contents = contents
+    let curls: [ContentUrl] = contents.map { cnt in
+      ContentUrl(content: cnt) { [weak self] curl in
+        guard let self = self else { return }
+        self.dloader.downloadIssueData(issue: self.issue, files: curl.content.files) { err in
+          if err == nil { curl.isAvailable = true }
+        }
+      }
+    }
+    self.urls = curls
   }
   
   // MARK: - viewDidLoad
@@ -347,22 +449,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
     setupSettingsBottomSheet()
     setupToolbar()
-    setupSlider()
+    if let sections = issue.sections, sections.count > 1 { setupSlider() }
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.hide(); self?.header.hide(true) }
       else { self?.toolBar.hide(false); self?.header.hide(false) }
     }
-    
-    let path = feeder.issueDir(issue: issue).path
-    let curls: [ContentUrl] = contents.map { cnt in
-      ContentUrl(path: path, issue: issue, content: cnt) { [weak self] curl in
-        guard let this = self else { return }
-        this.dloader.downloadIssueData(issue: this.issue, files: curl.content.files) { err in
-          if err == nil { curl.isAvailable = true }
-        }
-      }
-    }
-    displayUrls(urls: curls)
+    displayUrls()
     registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
@@ -428,7 +520,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   public func setup(contents: [Content], isLargeHeader: Bool) {
-    self.contents = contents
+    setContents(contents)
     self.isLargeHeader = isLargeHeader
     self.contentTable!.feeder = feeder
     self.contentTable!.issue = issue

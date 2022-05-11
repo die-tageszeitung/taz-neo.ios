@@ -22,7 +22,7 @@ public struct Const {
   
   
   /// Names for NSNotifications
-  /// @ToDo discuss and may change: NorthLib.Notification.swift => recive, send(message:String...
+  /// @ToDo discuss and may change: NorthLib.Notification.swift => receive, send(message:String...
   /// to: send(notification:NSNotification.Name
   /// and here: static let articleLoaded = NSNotification.Name("NotificationName.articleLoaded")
   struct NotificationNames {

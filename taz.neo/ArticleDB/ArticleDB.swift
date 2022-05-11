@@ -35,8 +35,6 @@ public class ArticleDB: Database {
 public protocol PersistentObject: NSManagedObject, DoesLog {}
 
 public extension PersistentObject {
-  /// The unique ID of every CoredData entity as String
-  var id: String { objectID.uriRepresentation().absoluteString }
   /// Get object using its ID
   static func get(id: String) -> Self? { 
     let uri = URL(string: id)
@@ -71,7 +69,7 @@ public protocol StoredObject: DoesLog {
 
 public extension StoredObject {  
   
-  var id: String { pr.id } // ID of persistent record
+  var id: String { pr.objectID.uriRepresentation().absoluteString }// ID of persistent record
   static var fetchRequest: NSFetchRequest<PO> { NSFetchRequest<PO>(entityName: entity) }
 
   /// Delete the object from the persistent store
@@ -880,6 +878,19 @@ public final class StoredArticle: Article, StoredObject {
     }
     return ret
   }
+  public var issues: [StoredIssue] {
+    var ret: [StoredIssue] = []
+    if let issues = pr.issues {
+      for issue in issues {
+        if let issue = issue as? PersistentIssue {
+          ret += StoredIssue(persistent: issue)
+        }
+      }
+    }
+    return ret
+  }
+  /// For now the primary Issue is assumed to be the first one stored
+  public var primaryIssue: Issue { issues[0] }
   
   public required init(persistent: PersistentArticle) { self.pr = persistent }
 
@@ -954,7 +965,16 @@ public final class StoredArticle: Article, StoredObject {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "%@ IN issues", issue.pr)
     request.sortDescriptors = [
-      NSSortDescriptor(key: "Section.order", ascending: true),
+      NSSortDescriptor(key: "order", ascending: true)
+    ]
+    return get(request: request)
+  }
+  
+  /// Return all bookmarked Articles in an Issue
+  public static func bookmarkedArticlesInIssue(issue: StoredIssue) -> [StoredArticle] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "hasBookmark = true AND %@ IN issues", issue.pr)
+    request.sortDescriptors = [
       NSSortDescriptor(key: "order", ascending: true)
     ]
     return get(request: request)
@@ -964,10 +984,21 @@ public final class StoredArticle: Article, StoredObject {
   public static func bookmarkedArticles() -> [StoredArticle] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "hasBookmark = true")
-    request.sortDescriptors = [
-      NSSortDescriptor(key: "order", ascending: true)
-    ]
-    return get(request: request)
+    var arts: [StoredArticle] = get(request: request)
+    arts.sort {
+      let issue1 = $0.issues[0]
+      let issue2 = $1.issues[0]
+      if issue1.date == issue2.date {
+        let section1 = $0.sections[0]
+        let section2 = $1.sections[0]
+        if section1.pr.order == section2.pr.order {
+          return $0.pr.order < $1.pr.order
+        }
+        else { return section1.pr.order < section2.pr.order } 
+      }
+      else { return issue1.date > issue2.date }
+    }
+    return arts
   }
 
 } // StoredArticle
@@ -1257,6 +1288,7 @@ public final class StoredSection: Section, StoredObject {
       else { pr.navButton = nil }      
     }
   }
+  public var primaryIssue: Issue { StoredIssue(persistent: pr.issue!) }
 
   public var images: [ImageEntry]? { StoredImageEntry.imagesInSection(section: self) }
   public var authors: [Author]? { nil }
@@ -1466,6 +1498,10 @@ public final class StoredIssue: Issue, StoredObject {
     self.zipName = object.zipName
     self.zipNamePdf = object.zipNamePdf
     self.imprint = object.imprint
+    if let art = self.imprint as? StoredArticle {
+      art.pr.addToIssues(self.pr)
+      art.pr.issueImprint = self.pr
+    }
     self.status = object.status
     let oldSections = sections
     let oldPages = pages
@@ -1477,6 +1513,13 @@ public final class StoredIssue: Issue, StoredObject {
         ssection.pr.order = order
         pr.addToSections(ssection.pr)
         order += 1
+        if let arts = ssection.articles {
+          for art in arts {
+            if let art = art as? StoredArticle {
+              art.pr.addToIssues(self.pr)
+            }
+          }  
+        }
       }
     }
     if let pages = object.pages {
@@ -1698,6 +1741,8 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Deletes data that is not needed for overview
   public func reduceToOverview() {
+    guard StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
+    else { return }
     // Remove files not needed for overview
     storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them

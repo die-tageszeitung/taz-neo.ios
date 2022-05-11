@@ -81,6 +81,20 @@ open class ContentToolbar: UIView {
     toolbar.addButton(button, direction: direction)
   }
   
+  public func addArticleButton(_ button: ButtonControl, direction: Toolbar.Direction) {
+    toolbar.addButton(button, direction: direction, at: 1)
+    toolbar.addButton(button, direction: direction, at: 2)
+  }
+  
+  public func addArticlePlayButton(_ button: ButtonControl, direction: Toolbar.Direction) {
+    toolbar.addButton(button, direction: direction, at: 2)
+  }
+ 
+  public func addSectionButton(_ button: ButtonControl, direction: Toolbar.Direction) {
+    toolbar.addButton(button, direction: direction, at: 0)
+  }
+  
+  func setArticlePlayBar() { toolbar.bar = 2 }
   func setArticleBar() { toolbar.bar = 1 }
   func setSectionBar() { toolbar.bar = 0 }
   
@@ -100,28 +114,28 @@ open class ContentToolbar: UIView {
 
 // MARK: - Helper for ContentToolbar
 extension ContentToolbar {
-  
-  enum ContentToolbarType { case section, article}
-  
-  func addSpacer(_ direction:Toolbar.Direction,
-                 toolbar:ContentToolbarType? = nil) {
-    addButton(Toolbar.Spacer(),
-              direction: direction,
-              toolbar: toolbar)
+  func addSpacer(_ direction:Toolbar.Direction) {
+    let button = Toolbar.Spacer()
+    self.addButton(button, direction: direction)
   }
-
-  @discardableResult
+  
   func addImageButton(name:String,
                       onPress:@escaping ((ButtonControl)->()),
                       direction: Toolbar.Direction,
                       symbol:String? = nil,
                       accessibilityLabel:String? = nil,
-                      buttonSize:CGSize = CGSize(width: 50, height: 50),
-                      imageWidth:CGFloat? = 32,
-                      toolbar:ContentToolbarType? = nil) -> Button<ImageView> {
+                      isBistable: Bool = true,
+                      width:CGFloat = 52,
+                      height:CGFloat = 48,
+                      vInset:CGFloat = 0.0,
+                      hInset:CGFloat = 0.0
+                      ) -> Button<ImageView> {
     let button = Button<ImageView>()
-    button.pinSize(buttonSize)
-    button.buttonView.hinset = 0.18
+    button.pinWidth(width, priority: .defaultHigh)
+    button.pinHeight(height, priority: .defaultHigh)
+    button.vinset = vInset
+    button.hinset = hInset
+    button.isBistable = isBistable
     button.buttonView.name = name
     button.buttonView.symbol = symbol
     
@@ -129,23 +143,10 @@ extension ContentToolbar {
       button.isAccessibilityElement = true
       button.accessibilityLabel = al
     }
+    
+    self.addButton(button, direction: direction)
     button.onPress(closure: onPress)
-    addButton(button, direction: direction, toolbar: toolbar)
     return button
-  }
-  
-  func addButton(_ button:ButtonControl,
-                 direction:Toolbar.Direction,
-                 toolbar:ContentToolbarType? = nil){
-    if toolbar == .article {
-      self.toolbar.addButton(button, direction: direction, at: 1)
-    }
-    else if toolbar == .section {
-      self.toolbar.addButton(button, direction: direction, at: 0)
-    }
-    else {
-      self.addButton(button, direction: direction)
-    }
   }
 }
 

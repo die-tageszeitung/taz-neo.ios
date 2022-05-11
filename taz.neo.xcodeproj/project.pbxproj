@@ -38,7 +38,6 @@
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
-		7772B1ED2743BEC300991347 /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE98512D2320F83900EAC9D8 /* NorthLib.framework */; };
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
 		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
@@ -90,20 +89,23 @@
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
+		AEF877CD2817087800FD51CD /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AEF877CA2817076B00FD51CD /* NorthLib.framework */; };
+		AEF877D128180B2000FD51CD /* BookmarkCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF877D028180B2000FD51CD /* BookmarkCoordinator.swift */; };
+		AEF877ED282BC47400FD51CD /* Trash.svg in Resources */ = {isa = PBXBuildFile; fileRef = AEF877EC282BC47400FD51CD /* Trash.svg */; };
 		C794F23524FED184007168AC /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C794F23424FED184007168AC /* Helper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		AE98512C2320F83900EAC9D8 /* PBXContainerItemProxy */ = {
+		AEF877C92817076B00FD51CD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */;
+			containerPortal = AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = AE7122C523197AFA00B715A8;
 			remoteInfo = NorthLib;
 		};
-		AE98512E2320F83900EAC9D8 /* PBXContainerItemProxy */ = {
+		AEF877CB2817076B00FD51CD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */;
+			containerPortal = AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = AE71230223197CB800B715A8;
 			remoteInfo = Test;
@@ -189,7 +191,6 @@
 		AE82262C232A70E000FFBE67 /* GraphQlSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphQlSession.swift; sourceTree = "<group>"; };
 		AE822631232A717E00FFBE67 /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		AE86486F248E274F007096B4 /* OverlayTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayTest.swift; sourceTree = "<group>"; };
-		AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NorthLib.xcodeproj; path = ../NorthLib/NorthLib.xcodeproj; sourceTree = "<group>"; };
 		AEAABADD24641BFA001BE414 /* Const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Const.swift; sourceTree = "<group>"; };
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
@@ -211,6 +212,9 @@
 		AEE3D4E9247D31FA00BEDEA3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCarousel.swift; sourceTree = "<group>"; };
 		AEF2DF34244766E400D1482D /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
+		AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NorthLib.xcodeproj; path = ../NorthLib/NorthLib.xcodeproj; sourceTree = "<group>"; };
+		AEF877D028180B2000FD51CD /* BookmarkCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkCoordinator.swift; sourceTree = "<group>"; };
+		AEF877EC282BC47400FD51CD /* Trash.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Trash.svg; sourceTree = "<group>"; };
 		C794F23424FED184007168AC /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -219,9 +223,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AEF877CD2817087800FD51CD /* NorthLib.framework in Frameworks */,
 				AE0EC3FD26C1399300EDDF04 /* libc++.tbd in Frameworks */,
 				AE0EC40026C139A200EDDF04 /* libz.tbd in Frameworks */,
-				7772B1ED2743BEC300991347 /* NorthLib.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -368,22 +372,13 @@
 			path = TestController;
 			sourceTree = "<group>";
 		};
-		AE9851282320F83800EAC9D8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				AE98512D2320F83900EAC9D8 /* NorthLib.framework */,
-				AE98512F2320F83900EAC9D8 /* Test.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		AEBAF55B219ACD1900566205 = {
 			isa = PBXGroup;
 			children = (
+				AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */,
 				77C00CFB25DA9A4A00964861 /* TODO.md */,
 				AEE3D4E9247D31FA00BEDEA3 /* LICENSE */,
 				AEE3D4E6247D316D00BEDEA3 /* README.md */,
-				AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */,
 				AEBAF566219ACD1900566205 /* taz.neo */,
 				AEBAF565219ACD1900566205 /* Products */,
 				AE3D47D623030482002FF0A2 /* Frameworks */,
@@ -403,10 +398,10 @@
 			children = (
 				777048A727B3B057007164A0 /* Business */,
 				7715968B25CC605D00508DE8 /* Feedback */,
+				AE822631232A717E00FFBE67 /* DataModel.swift */,
 				0015B73524DD86B30037A8D6 /* Authenticator.swift */,
 				0015B73924DD87DA0037A8D6 /* DefaultAuthenticator.swift */,
 				0015B73624DD86B30037A8D6 /* SimpleAuthenticator.swift */,
-				AE822631232A717E00FFBE67 /* DataModel.swift */,
 				AEBAF58E219ACFAC00566205 /* AppDelegate.swift */,
 				AECCE11B23FBF3FE007C2276 /* MainNC.swift */,
 				AE4C4FEE26A04EBD006079C8 /* ArticlePlayer.swift */,
@@ -425,6 +420,7 @@
 				AEBAF587219ACEC700566205 /* Supporting Files */,
 				C794F23424FED184007168AC /* Helper.swift */,
 				AE4C4FF826A1ABD9006079C8 /* BookmarkFeed.swift */,
+				AEF877D028180B2000FD51CD /* BookmarkCoordinator.swift */,
 				94487DAB274BCCE10066BCD0 /* AppHelper.swift */,
 			);
 			path = taz.neo;
@@ -433,6 +429,7 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				AEF877EB282BC47400FD51CD /* WebViewResources */,
 				776158192743E8440044516C /* AppIcons */,
 				773D56462614A4DF00B42FEF /* BundledResources */,
 				7745050F25DA80450052E502 /* files */,
@@ -468,6 +465,23 @@
 			children = (
 			);
 			path = Fonts;
+			sourceTree = "<group>";
+		};
+		AEF877C52817076B00FD51CD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AEF877CA2817076B00FD51CD /* NorthLib.framework */,
+				AEF877CC2817076B00FD51CD /* Test.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AEF877EB282BC47400FD51CD /* WebViewResources */ = {
+			isa = PBXGroup;
+			children = (
+				AEF877EC282BC47400FD51CD /* Trash.svg */,
+			);
+			path = WebViewResources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -522,8 +536,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = AE9851282320F83800EAC9D8 /* Products */;
-					ProjectRef = AE9851272320F83800EAC9D8 /* NorthLib.xcodeproj */;
+					ProductGroup = AEF877C52817076B00FD51CD /* Products */;
+					ProjectRef = AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -534,18 +548,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		AE98512D2320F83900EAC9D8 /* NorthLib.framework */ = {
+		AEF877CA2817076B00FD51CD /* NorthLib.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = NorthLib.framework;
-			remoteRef = AE98512C2320F83900EAC9D8 /* PBXContainerItemProxy */;
+			remoteRef = AEF877C92817076B00FD51CD /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		AE98512F2320F83900EAC9D8 /* Test.xctest */ = {
+		AEF877CC2817076B00FD51CD /* Test.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = Test.xctest;
-			remoteRef = AE98512E2320F83900EAC9D8 /* PBXContainerItemProxy */;
+			remoteRef = AEF877CB2817076B00FD51CD /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -561,6 +575,7 @@
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
 				7745050D25DA801F0052E502 /* resources.json in Resources */,
+				AEF877ED282BC47400FD51CD /* Trash.svg in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
 				7745051025DA80450052E502 /* files in Resources */,
 			);
@@ -672,6 +687,7 @@
 				AEC7D46D249A598B008630FB /* FeederContext.swift in Sources */,
 				AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */,
 				AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */,
+				AEF877D128180B2000FD51CD /* BookmarkCoordinator.swift in Sources */,
 				AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */,
 				0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
@@ -793,7 +809,7 @@
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -939,7 +955,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -964,7 +980,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
