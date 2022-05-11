@@ -34,6 +34,12 @@ public class BookmarkFeed: Feed, DoesLog {
     let glink = File(dir: dir.path, fname: "global")
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
+    // Copy resources to bookmark folder
+    if let path = Bundle.main.path(forResource: "Trash.svg", ofType: nil) {
+      let base = File.basename(path)
+      let src = File(path)
+      src.copy(to: "\(dir.path)/\(base)")
+    }
   }
   
   deinit {
@@ -56,15 +62,15 @@ public class BookmarkFeed: Feed, DoesLog {
   <!DOCTYPE html>
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
   <head>
-  <meta name="generator" content="taz E-Book Generator Version 3.000"/>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta http-equiv="cache-control" content="no-cache"/>
-  <meta http-equiv="expires" content="0"/>
-  <meta http-equiv="pragma" content="no-cache"/>
-  <title>section.277349.html</title>
+    <meta name="generator" content="taz E-Book Generator Version 3.000"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="cache-control" content="no-cache"/>
+    <meta http-equiv="expires" content="0"/>
+    <meta http-equiv="pragma" content="no-cache"/>
+    <title>section.277349.html</title>
     <link rel="stylesheet" type="text/css" href="resources/base.css">
     <link rel="stylesheet" type="text/css" href="resources/base2017.css">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0"/>
     <link rel="stylesheet" type="text/css" href="resources/platform.css">
     <script src="resources/jquery-3.min.js" type="text/javascript" charset="utf-8" language="javascript"></script>
     <script src="resources/tazApi.js" type="text/javascript" charset="utf-8" language="javascript"></script>
@@ -72,6 +78,29 @@ public class BookmarkFeed: Feed, DoesLog {
     <link rel="stylesheet" type="text/css" href="resources/ressort.css">
     <link rel="stylesheet" type="text/css" href="resources/tazApi.css">
     <link rel="stylesheet" type="text/css" href="resources/tazApiSection.css">
+    
+    <style>
+      p.issueDate {
+        float: left;
+        font-family           : AktivGrotesk, taz;
+        font-weight           : normal;
+        text-transform        : none;
+        margin-bottom         : 0.556rem;     /*10bx*/
+        font-size             : 0.861rem;     /* 15.5 bx */
+      }
+      img.trash {
+        float: right;
+        margin: -10px 0 0 15px;
+        width: 40px
+      }
+    </style>
+  
+    <script>
+      function deleteBookmark(aname) {
+        console.log("delete: " + aname)
+      }
+    </script>
+  
   </head>
   """
   
@@ -104,12 +133,18 @@ public class BookmarkFeed: Feed, DoesLog {
         if issues.count > 0 {
           let title = art.title ?? art.html.name
           let teaser = art.teaser ?? ""
+          let sdate = art.primaryIssue.date.gDateString(tz: self.feeder.timeZone)
           html += """
             <a href="\(art.path)" class="RessortDiv">
               <div class="VerzeichnisArtikel eptPolitik">
                 <h2 class="Titel">\(title.xmlEscaped())</h2>
                 <h4 class="Unterzeile">\(teaser.xmlEscaped())</h4>
                 \(getAuthors(art: art))
+                <img class="trash" src="Trash.svg" 
+                 onClick='deleteBookmark("\(art.html.name)")'>
+                <p class="issueDate">
+                  \(sdate)
+                </p>
                 <div class="VerzeichnisArtikelEnde"></div>
               </div>
             </a>
