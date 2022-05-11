@@ -112,8 +112,11 @@ open class ArticleVC: ContentVC {
         let player = ArticlePlayer.singleton
         if player.isPlaying() { async { player.stop() } }
         if art.canPlayAudio {
+          self.playButton.buttonView.name = "audio"
           self.onPlay { _ in 
             art.toggleAudio(issue: self.issue, sectionName: self.header.title) 
+            if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
+            else { self.playButton.buttonView.name = "audio" }
           }
         }
         else { self.onPlay(closure: nil) }
