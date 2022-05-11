@@ -90,6 +90,7 @@
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
 		AEF877CD2817087800FD51CD /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AEF877CA2817076B00FD51CD /* NorthLib.framework */; };
 		AEF877D128180B2000FD51CD /* BookmarkCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF877D028180B2000FD51CD /* BookmarkCoordinator.swift */; };
+		AEF877ED282BC47400FD51CD /* Trash.svg in Resources */ = {isa = PBXBuildFile; fileRef = AEF877EC282BC47400FD51CD /* Trash.svg */; };
 		C794F23524FED184007168AC /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C794F23424FED184007168AC /* Helper.swift */; };
 /* End PBXBuildFile section */
 
@@ -211,6 +212,7 @@
 		AEF2DF34244766E400D1482D /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
 		AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NorthLib.xcodeproj; path = ../NorthLib/NorthLib.xcodeproj; sourceTree = "<group>"; };
 		AEF877D028180B2000FD51CD /* BookmarkCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkCoordinator.swift; sourceTree = "<group>"; };
+		AEF877EC282BC47400FD51CD /* Trash.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Trash.svg; sourceTree = "<group>"; };
 		C794F23424FED184007168AC /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -416,6 +418,7 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				AEF877EB282BC47400FD51CD /* WebViewResources */,
 				776158192743E8440044516C /* AppIcons */,
 				773D56462614A4DF00B42FEF /* BundledResources */,
 				7745050F25DA80450052E502 /* files */,
@@ -460,6 +463,14 @@
 				AEF877CC2817076B00FD51CD /* Test.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AEF877EB282BC47400FD51CD /* WebViewResources */ = {
+			isa = PBXGroup;
+			children = (
+				AEF877EC282BC47400FD51CD /* Trash.svg */,
+			);
+			path = WebViewResources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -553,6 +564,7 @@
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
 				7745050D25DA801F0052E502 /* resources.json in Resources */,
+				AEF877ED282BC47400FD51CD /* Trash.svg in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
 				7745051025DA80450052E502 /* files in Resources */,
 			);
