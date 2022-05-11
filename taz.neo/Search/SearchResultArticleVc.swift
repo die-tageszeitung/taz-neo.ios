@@ -17,14 +17,13 @@ class SearchResultArticleVc : ArticleVC {
   override func setHeader(artIndex: Int) {
     super.setHeader(artIndex: artIndex)
 
+    self.isLargeHeader = true
     if let searchVc = adelegate as? SearchController,
        let hit = searchVc.searchItem.searchHitList?.valueAt(artIndex)
     {
       header.pageNumber = "\(artIndex+1)/\(maxResults)"
-      header.title
-      = (hit.sectionTitle ?? "")
-      + (hit.sectionTitle != nil ? " - " : "vom: ")
-      + hit.date.short
+      header.title = hit.sectionTitle ?? ""
+      header.subTitle = "Ausgabe \(hit.date.short)"
     }
     else {
       header.pageNumber = "\(artIndex+1)/\(maxResults)"
@@ -61,6 +60,7 @@ class SearchResultArticleVc : ArticleVC {
   
   override func setup() {
     super.setup()
+    self.isLargeHeader = true
     onHome { [weak self] _ in
       guard let mainTabVC = self?.navigationController?.parent as? MainTabVC else { return }
       mainTabVC.selectedIndex = 0

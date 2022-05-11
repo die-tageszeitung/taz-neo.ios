@@ -146,7 +146,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
     onDisplay { [weak self] (secIndex, oview) in
       guard let self = self else { return }
-      self.debug("onDisplay: \(secIndex)")
+      self.debug("## onDisplay: \(secIndex)")
       self.setHeader(secIndex: secIndex)
       if self.isVisibleVC { 
         self.issue.lastSection = self.index
@@ -189,7 +189,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     header.subTitle = issue.date.gLowerDate(tz: feeder.timeZone)
     if index == 0 { header.isLargeTitleFont = true }
     else { header.isLargeTitleFont = false }
-    header.hide(false)
   }
   
   // Reload Section and Article

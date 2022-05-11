@@ -22,7 +22,7 @@ public protocol ArticleVCdelegate: IssueInfo {
 
 /// The Article view controller managing a collection of Article pages
 open class ArticleVC: ContentVC {
-    
+ public override class var TopMargin: CGFloat { return 52 }
   public var articles: [Article] = []
   public var article: Article? { 
     if let i = index { return articles[i] }
@@ -102,8 +102,9 @@ open class ArticleVC: ContentVC {
     }
     if App.isRelease == false {
       header.onTaps(nTaps: 2) { [weak self] _ in
-        guard let self = self, let art = self.article else { return }
-        art.toggleAudio(sectionName: self.header.title)
+        guard let art = self?.article,
+              let sectionName = self?.header.title else { return }
+        art.toggleAudio(sectionName: sectionName)
       }
     }
   }
