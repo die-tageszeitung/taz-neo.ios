@@ -120,34 +120,7 @@ class SearchController: UIViewController {
     return v
   }()
   
-  lazy var placeholderView: UIView = {
-    let v = UIView()
-    
-    let magnifier
-    = UIImageView(image: UIImage(named: "search-magnifier")?
-      .withRenderingMode(.alwaysTemplate))
-    magnifier.tintColor = Const.SetColor.taz(.textFieldClear).color
-    magnifier.pinSize(CGSize(width: 56, height: 56))
-    
-    let label = UILabel()
-    label.text = "Suche nach Autor*innen, Artikeln, Rubriken oder Themen"
-    label.textAlignment = .center
-    label.numberOfLines = 0
-    label.boldContentFont(size: Const.Size.SubtitleFontSize)
-    label.textColor =  Const.SetColor.taz(.textFieldClear).color
-   
-    v.addSubview(magnifier)
-    v.addSubview(label)
-    
-    pin(label.left, to: v.left, dist: Const.Size.DefaultPadding)
-    pin(label.right, to: v.right, dist: -Const.Size.DefaultPadding)
-    label.centerY(dist: -20)
-    
-    magnifier.centerX()
-    pin(magnifier.bottom, to: label.top, dist: -18)
-    
-    return v
-  }()
+  lazy var placeholderView = PlaceholderView("Suche nach Autor*innen, Artikeln, Rubriken oder Themen", image: UIImage(named: "search-magnifier"))
   
   lazy var centralActivityIndicator = UIActivityIndicatorView()
     

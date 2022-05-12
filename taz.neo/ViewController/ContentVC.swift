@@ -538,13 +538,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.baseDir = feeder.baseDir.path
     onBack { [weak self] _ in
       self?.debug("*** Action: <Back> pressed")
-      
-      if self?.navigationController?.viewControllers.count ?? 0 == 1 {
-        guard let mainTabVC = self?.navigationController?.parent as? MainTabVC else { return }
-        mainTabVC.selectedIndex = 0
-        return
-      }
-      
       self?.navigationController?.popViewController(animated: true)
     }
     onHome { [weak self] _ in

@@ -10,11 +10,6 @@ import UIKit
 
 class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
-  let bookmarksNavigationController = NavigationController()
-  
-  lazy var bookmarkCoordinator =
-    BookmarkCoordinator(nc: bookmarksNavigationController,
-                        feederContext: feederContext)
   var feederContext: FeederContext
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -46,10 +41,11 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     let homeNc = NavigationController(rootViewController: home)
     homeNc.isNavigationBarHidden = true
     
-    bookmarksNavigationController.title = "Leseliste"
-    bookmarksNavigationController.tabBarItem.image = UIImage(named: "star")
-    bookmarksNavigationController.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
-    bookmarksNavigationController.isNavigationBarHidden = true
+    let bookmarksNc = BookmarksNC(feederContext: feederContext)
+    bookmarksNc.title = "Leseliste"
+    bookmarksNc.tabBarItem.image = UIImage(named: "star")
+    bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    bookmarksNc.isNavigationBarHidden = true
     
     let search = SearchController(feederContext: feederContext )
     search.title = "Suche"
@@ -63,7 +59,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     settings.title = "Einstellungen"
     settings.tabBarItem.image = UIImage(named: "settings")
     settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
-    self.viewControllers = [homeNc, bookmarksNavigationController, searchNc, settings]
+    self.viewControllers = [homeNc, bookmarksNc, searchNc, settings]
     self.selectedIndex = 0
   }
   
@@ -91,13 +87,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 } // MainTabVC
 
 extension MainTabVC : UITabBarControllerDelegate {
-  
-  override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-    if item.title == "Leseliste" {
-      bookmarkCoordinator.showBookmarks()
-    }
-  }
-  
   func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
     
     if tabBarController.selectedViewController != viewController { return true }
