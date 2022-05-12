@@ -355,11 +355,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       self.textSettingsClosure?(self)
     }
     backButton.pinSize(CGSize(width: 46, height: 50))
-    shareButton.pinSize(CGSize(width: 50, height: 50))
-    textSettingsButton.pinSize(CGSize(width: 50, height: 50))
-    playButton.pinSize(CGSize(width: 40, height: 40))
-    bookmarkButton.pinSize(CGSize(width: 45, height: 45))
-    homeButton.pinSize(CGSize(width: 50, height: 50))
+    shareButton.pinSize(CGSize(width: 35, height: 35))
+    textSettingsButton.pinSize(CGSize(width: 35, height: 35))
+    playButton.pinSize(CGSize(width: 35, height: 35))
+    bookmarkButton.pinSize(CGSize(width: 35, height: 35))
+    homeButton.pinSize(CGSize(width: 35, height: 35))
     
     backButton.buttonView.name = "chevron-left"
     backButton.buttonView.imageView.contentMode = .right

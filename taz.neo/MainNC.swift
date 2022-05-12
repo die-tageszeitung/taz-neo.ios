@@ -99,7 +99,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate {
       ...
       """
       mail.attachScreenshot()
-      if let prot = fileLogger.data { mail.attach(data: prot, fname: "Protokoll.txt") }
+      if let prot = fileLogger.mem?.data { mail.attach(data: prot, fname: "Protokoll.txt") }
       do { try mail.present() }
       catch { self.error(error) }
     }
@@ -108,7 +108,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate {
   /// Send logfile to known taz ID
   func sendLogfile() {
     if let mail = try? Mail(vc: self),
-       let data = fileLogger.data {
+       let data = fileLogger.mem?.data {
       if let id = DefaultAuthenticator.getUserData().id { mail.to += id }
       mail.subject = "\(BuildConst.name): Protokoll"
       mail.body = """
@@ -130,7 +130,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate {
     if isErrorReporting == true { return }//Prevent multiple Calls
     isErrorReporting = true
     
-    FeedbackComposer.showWith(logData: fileLogger.data,
+    FeedbackComposer.showWith(logData: fileLogger.mem?.data,
                               feederContext: self.feederContext,
                               feedbackType: feedbackType) {[weak self] didSend in
       print("Feedback send? \(didSend)")
@@ -279,7 +279,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate {
     let lastStarted = dfl["lastStarted"]!.usTime
     debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
     logKeychain(msg: "initial")
-    let now = UsTime.now()
+    let now = UsTime.now
     self.showAnimations = (nStarted < 2) || (now.sec - lastStarted.sec) > oneWeek
     IssueVC.showAnimations = self.showAnimations
     SectionVC.showAnimations = self.showAnimations
@@ -360,6 +360,7 @@ class MainNC: NavigationController, UIStyleChangeDelegate {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    Defaults.singleton.addDevice()
     pushViewController(StartupVC(), animated: false)
     MainNC.singleton = self
     isNavigationBarHidden = true

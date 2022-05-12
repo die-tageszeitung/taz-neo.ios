@@ -5,7 +5,7 @@
 //  Copyright © 2019 Norbert Thies. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import NorthLib
 
 /// A protocol defining methods to use by GraphQL objects
@@ -651,7 +651,7 @@ open class GqlFeeder: Feeder, DoesLog {
       case .failure(let err):  
         ret = .failure(err)
       }
-      self.lastUpdated = UsTime.now().date
+      self.lastUpdated = UsTime.now.date
       closure(ret)
     }
   }

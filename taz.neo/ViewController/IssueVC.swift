@@ -172,10 +172,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     else if let err = error as? DownloadError {
       if err.handled == false {  showDownloadErrorAlert() }
-      self.debug(err.enclosedError?.errorText() ?? err.errorText())
+      self.debug(err.enclosedError?.description ?? err.description)
     }
     else if let err = error {
-      self.debug(err.errorText())
+      self.debug(err.description)
       showDownloadErrorAlert()
     }
     else {

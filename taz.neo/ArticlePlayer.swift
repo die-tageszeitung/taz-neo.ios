@@ -6,7 +6,7 @@
 //  Copyright © 2021 Norbert Thies. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import NorthLib
 
 /// The ArticlePlayer plays one or more Articles as audio streams

@@ -12,7 +12,7 @@ import PDFKit
 /**
  Errors a Feeder may encounter
  */
-public enum FeederError: SimpleError, Equatable {
+public enum FeederError: Error, Equatable {
   case invalidAccount(String?)
   case expiredAccount(String?)
   case changedAccount(String?)

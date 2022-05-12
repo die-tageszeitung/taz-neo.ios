@@ -125,8 +125,8 @@ extension ContentToolbar {
                       symbol:String? = nil,
                       accessibilityLabel:String? = nil,
                       isBistable: Bool = true,
-                      width:CGFloat = 52,
-                      height:CGFloat = 48,
+                      width:CGFloat = 40,
+                      height:CGFloat = 40,
                       vInset:CGFloat = 0.0,
                       hInset:CGFloat = 0.0
                       ) -> Button<ImageView> {

@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -86,31 +86,14 @@
 		AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */; };
 		AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainNC.swift */; };
 		AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
+		AECD1A8E282CFDF0007E00EE /* NorthLib in Frameworks */ = {isa = PBXBuildFile; productRef = AECD1A8D282CFDF0007E00EE /* NorthLib */; };
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
-		AEF877CD2817087800FD51CD /* NorthLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AEF877CA2817076B00FD51CD /* NorthLib.framework */; };
 		AEF877D128180B2000FD51CD /* BookmarkCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF877D028180B2000FD51CD /* BookmarkCoordinator.swift */; };
 		AEF877ED282BC47400FD51CD /* Trash.svg in Resources */ = {isa = PBXBuildFile; fileRef = AEF877EC282BC47400FD51CD /* Trash.svg */; };
 		C794F23524FED184007168AC /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C794F23424FED184007168AC /* Helper.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		AEF877C92817076B00FD51CD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = AE7122C523197AFA00B715A8;
-			remoteInfo = NorthLib;
-		};
-		AEF877CB2817076B00FD51CD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = AE71230223197CB800B715A8;
-			remoteInfo = Test;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		0015B73524DD86B30037A8D6 /* Authenticator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
@@ -194,7 +177,7 @@
 		AEAABADD24641BFA001BE414 /* Const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Const.swift; sourceTree = "<group>"; };
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
-		AEBAF564219ACD1900566205 /* die tageszeitung.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "die tageszeitung.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEBAF564219ACD1900566205 /* taz.beta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.beta.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AEBAF573219ACD1A00566205 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -205,6 +188,7 @@
 		AECAC8FC2440AF1F00D32175 /* CarouselController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselController.swift; sourceTree = "<group>"; };
 		AECCE11B23FBF3FE007C2276 /* MainNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNC.swift; sourceTree = "<group>"; };
 		AECCE11D23FBF449007C2276 /* StartupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupView.swift; sourceTree = "<group>"; };
+		AECD1A90282CFE38007E00EE /* NorthLib */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = NorthLib; path = ../NorthLib; sourceTree = "<group>"; };
 		AED748A9238413D800C09D2D /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		AED748AA238413EB00C09D2D /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = taz.neo.entitlements; sourceTree = "<group>"; };
@@ -212,7 +196,6 @@
 		AEE3D4E9247D31FA00BEDEA3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCarousel.swift; sourceTree = "<group>"; };
 		AEF2DF34244766E400D1482D /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
-		AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NorthLib.xcodeproj; path = ../NorthLib/NorthLib.xcodeproj; sourceTree = "<group>"; };
 		AEF877D028180B2000FD51CD /* BookmarkCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkCoordinator.swift; sourceTree = "<group>"; };
 		AEF877EC282BC47400FD51CD /* Trash.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Trash.svg; sourceTree = "<group>"; };
 		C794F23424FED184007168AC /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
@@ -223,8 +206,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AEF877CD2817087800FD51CD /* NorthLib.framework in Frameworks */,
 				AE0EC3FD26C1399300EDDF04 /* libc++.tbd in Frameworks */,
+				AECD1A8E282CFDF0007E00EE /* NorthLib in Frameworks */,
 				AE0EC40026C139A200EDDF04 /* libz.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -375,7 +358,7 @@
 		AEBAF55B219ACD1900566205 = {
 			isa = PBXGroup;
 			children = (
-				AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */,
+				AECD1A90282CFE38007E00EE /* NorthLib */,
 				77C00CFB25DA9A4A00964861 /* TODO.md */,
 				AEE3D4E9247D31FA00BEDEA3 /* LICENSE */,
 				AEE3D4E6247D316D00BEDEA3 /* README.md */,
@@ -388,7 +371,7 @@
 		AEBAF565219ACD1900566205 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AEBAF564219ACD1900566205 /* die tageszeitung.app */,
+				AEBAF564219ACD1900566205 /* taz.beta.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -467,15 +450,6 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
-		AEF877C52817076B00FD51CD /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				AEF877CA2817076B00FD51CD /* NorthLib.framework */,
-				AEF877CC2817076B00FD51CD /* Test.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		AEF877EB282BC47400FD51CD /* WebViewResources */ = {
 			isa = PBXGroup;
 			children = (
@@ -502,8 +476,11 @@
 			dependencies = (
 			);
 			name = taz.neo;
+			packageProductDependencies = (
+				AECD1A8D282CFDF0007E00EE /* NorthLib */,
+			);
 			productName = taz.neo;
-			productReference = AEBAF564219ACD1900566205 /* die tageszeitung.app */;
+			productReference = AEBAF564219ACD1900566205 /* taz.beta.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -532,37 +509,17 @@
 				de,
 			);
 			mainGroup = AEBAF55B219ACD1900566205;
+			packageReferences = (
+				AECD1A8C282CFDF0007E00EE /* XCRemoteSwiftPackageReference "NorthLib" */,
+			);
 			productRefGroup = AEBAF565219ACD1900566205 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = AEF877C52817076B00FD51CD /* Products */;
-					ProjectRef = AEF877C42817076B00FD51CD /* NorthLib.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				AEBAF563219ACD1900566205 /* taz.neo */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		AEF877CA2817076B00FD51CD /* NorthLib.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = NorthLib.framework;
-			remoteRef = AEF877C92817076B00FD51CD /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		AEF877CC2817076B00FD51CD /* Test.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = Test.xctest;
-			remoteRef = AEF877CB2817076B00FD51CD /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		AEBAF562219ACD1900566205 /* Resources */ = {
@@ -1017,6 +974,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AECD1A8C282CFDF0007E00EE /* XCRemoteSwiftPackageReference "NorthLib" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/die-tageszeitung/NorthLib.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AECD1A8D282CFDF0007E00EE /* NorthLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AECD1A8C282CFDF0007E00EE /* XCRemoteSwiftPackageReference "NorthLib" */;
+			productName = NorthLib;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AEBAF55C219ACD1900566205 /* Project object */;
 }
