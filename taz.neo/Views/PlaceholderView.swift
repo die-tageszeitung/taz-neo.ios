@@ -38,12 +38,6 @@ class PlaceholderView: UIView{
     pin(icon.bottom, to: label.top, dist: -18)
   }
   
-  override func didMoveToSuperview() {
-    super.didMoveToSuperview()
-    guard let sv = self.superview else { return }
-    pin(self, toSafe: sv)
-  }
-  
   init(_ text: String, image: UIImage?){
     super.init(frame: .zero)
     self.icon.image = image
