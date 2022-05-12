@@ -43,20 +43,6 @@ class BookmarksNC: UINavigationController {
     return svc
   }()
   
-  public func showBookmarks() {
-    if bookmarkFeed.count > 0 && self.viewControllers.first != sectionVC  {
-      setViewControllers([sectionVC], animated: true)
-    }
-    else if bookmarkFeed.count == 0 && !isShowingAlert {
-      isShowingAlert = true
-      Alert.message(title: "Hinweis",
-                    message: "Es liegen noch keine Lesezeichen vor.",
-                    presentationController:self) { [weak self] in
-        self?.isShowingAlert = false
-      }
-    }
-  }
-  
   func setup() {
     Notification.receive("BookmarkChanged") { [weak self] msg in
       // regenerate all bookmark sections
@@ -82,7 +68,9 @@ class BookmarksNC: UINavigationController {
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    showBookmarks()
+    if bookmarkFeed.count > 0 && self.viewControllers.first != sectionVC  {
+      setViewControllers([sectionVC], animated: true)
+    }
   }
   
   override func viewDidLoad() {
