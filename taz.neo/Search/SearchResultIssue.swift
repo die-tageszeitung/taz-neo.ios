@@ -9,6 +9,24 @@
 import Foundation
 
 public class SearchResultIssue: BookmarkIssue {
+  
+  public override var isComplete: Bool {
+    get{
+      for sect in sections ?? [] {
+        for case let art as SearchArticle in sect.articles ?? [] {
+          if art.isDownloaded == false { return false }
+        }
+      }
+      return true
+    }
+    set{}
+  }
+  
+  static let shared = SearchResultIssue()
+  private init(){
+    super.init(feed: TazAppEnvironment.sharedInstance.feederContext!.defaultFeed)
+  }
+  
   public func baseUrlForFiles(_ files: [FileEntry]) -> String {
     guard let s = search,
           let f = files.first,
@@ -17,6 +35,7 @@ public class SearchResultIssue: BookmarkIssue {
       for file in hit.article.files {
         if file.fileName == f.fileName {
           hit.writeToDisk()//TOO LATE
+          hit.article.isDownloaded = true
           return hit.baseUrl
         }
       }
@@ -24,4 +43,15 @@ public class SearchResultIssue: BookmarkIssue {
     return ""
   }
   public var search:SearchItem?
+}
+
+
+class SearchArticle:GqlArticle{
+  
+  var isDownloaded = false
+  
+  override var primaryIssue: Issue {
+    get{ SearchResultIssue.shared }
+    set{}
+  }
 }

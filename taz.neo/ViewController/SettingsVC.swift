@@ -6,6 +6,7 @@
 //  Copyright © 2021 Norbert Thies. All rights reserved.
 //
 import NorthLib
+import UIKit
 
 /**
  A SettingsVC is a view controller to edit app's user Settings; Cells are not re-used!

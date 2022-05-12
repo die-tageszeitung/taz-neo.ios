@@ -8,6 +8,7 @@
 
 import NorthLib
 import MessageUI
+import UIKit
 
 class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeViewControllerDelegate */{
   
@@ -63,7 +64,8 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
       self.appWillTerminate()
     }
     setup()
-    registerForStyleUpdates()
+    #warning("ToDo")
+//    registerForStyleUpdates()
   }
   
   func setup(){
@@ -105,7 +107,7 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
     let lastStarted = dfl["lastStarted"]!.usTime
     debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
     logKeychain(msg: "initial")
-    let now = UsTime.now()
+    let now = UsTime.now
     self.showAnimations = (nStarted < 2) || (now.sec - lastStarted.sec) > oneWeek
     IssueVC.showAnimations = self.showAnimations
     SectionVC.showAnimations = self.showAnimations
@@ -288,7 +290,7 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
     if isErrorReporting == true { return }//Prevent multiple Calls
     isErrorReporting = true
     
-    FeedbackComposer.showWith(logData: fileLogger.data,
+    FeedbackComposer.showWith(logData: fileLogger.mem?.data,
                               feederContext: self.feederContext,
                               feedbackType: feedbackType) {[weak self] didSend in
       print("Feedback send? \(didSend)")
@@ -317,7 +319,7 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
     if MFMailComposeViewController.canSendMail() {
       let mail =  MFMailComposeViewController()
       let screenshot = UIWindow.screenshot?.jpeg
-      let logData = fileLogger.data
+      let logData = fileLogger.mem?.data
 //      mail.mailComposeDelegate = self
       mail.setToRecipients([recipient])
       
@@ -488,16 +490,16 @@ extension TazAppEnvironment {
     }
   }
 }
-
-extension TazAppEnvironment : UIStyleChangeDelegate {
-  func applyStyles() {
-    if let img  = UIImage(named:"xmark")?
-      .imageWithInsets(UIEdgeInsets(top: 1, left: 9, bottom: 1, right: 9),
-                       tintColor: Const.SetColor.taz(.textFieldClear).color) {
-      UIButton.appearance(whenContainedInInstancesOf: [UITextField.self]).setImage(img, for: .normal)
-    }
-  }
-}
+#warning("ToDO")
+//extension TazAppEnvironment : UIStyleChangeDelegate {
+//  func applyStyles() {
+//    if let img  = UIImage(named:"xmark")?
+//      .imageWithInsets(UIEdgeInsets(top: 1, left: 9, bottom: 1, right: 9),
+//                       tintColor: Const.SetColor.taz(.textFieldClear).color) {
+//      UIButton.appearance(whenContainedInInstancesOf: [UITextField.self]).setImage(img, for: .normal)
+//    }
+//  }
+//}
 
 // Helper
 extension Defaults{

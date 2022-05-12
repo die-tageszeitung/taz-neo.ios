@@ -15,7 +15,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// The Feed to display
   public var feed: Feed { return feederContext.defaultFeed }
   /// Selected Issue to display
-  public var issue: Issue { issues[index] }
+  public var selectedIssue: Issue { issues[index] }
+  /// Opened Issue for viewing
+  public var openedIssue: Issue?
+  /// Issue reference to pass as IssueInfo
+  public var issue: Issue { openedIssue ?? selectedIssue }
 
   /// The FeederContext providing the Feeder and default Feed
   public var feederContext: FeederContext
@@ -78,12 +82,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.reset()
     self.collectionView.reloadData()
   }
-  
+    
   func updateToolbarHomeIcon(){
-//    toolbarHomeButton?.buttonView.color
-//      = self.safeIndex == 0 && isUp
-//      ? Const.Colors.darkSecondaryText.withAlphaComponent(0.2)
-//      : Const.Colors.darkSecondaryText.withAlphaComponent(0.9)
+    #warning("ToDO")
+    //    toolbarHomeButton?.buttonView.color
+    //      = self.safeIndex == 0 && isUp
+    //      ? Const.Colors.darkSecondaryText.withAlphaComponent(0.2)
+    //      : Const.Colors.darkSecondaryText.withAlphaComponent(0.9)
   }
   
   /// Reset carousel images
@@ -148,7 +153,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     var idx = 0
     for iss in issues {
       if iss.date == date { return }
-      if iss.date < issue.date { break }
+      if iss.date < selectedIssue.date { break }
       idx += 1
     }
     index = idx
@@ -173,10 +178,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     else if let err = error as? DownloadError {
       if err.handled == false {  showDownloadErrorAlert() }
-      self.debug(err.enclosedError?.errorText() ?? err.errorText())
+      self.debug(err.enclosedError?.description ?? err.description)
     }
     else if let err = error {
-      self.debug(err.errorText())
+      self.debug(err.description)
       showDownloadErrorAlert()
     }
     else {
@@ -223,7 +228,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Download one section
   private func downloadSection(section: Section, closure: @escaping (Error?)->()) {
-    dloader.downloadSection(issue: self.issue, section: section) { [weak self] err in
+    dloader.downloadSection(issue: self.selectedIssue, section: section) { [weak self] err in
       if err != nil { self?.debug("Section \(section.html.name) DL Errors: last = \(err!)") }
       else { self?.debug("Section \(section.html.name) DL complete") }
       closure(err)
@@ -247,6 +252,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     guard let index = givenIndex ?? self.safeIndex else { return }
     func openIssue() {
       ArticlePlayer.singleton.baseUrl = issue.baseUrl
+      self.openedIssue = selectedIssue
       //call it later if Offline Alert Presented
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
       //prevent multiple pushes!
@@ -393,15 +399,34 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
   }
   
-  func deleteIssue(issue: Issue) {
+  private func delete(issue: StoredIssue) {
+    issue.reduceToOverview()
+    issueCarousel.carousel.reloadData()
+    setLabel(idx: index)
+  }
+  
+  func deleteIssue(issue: Issue? = nil) {
+    let issue = issue ?? self.issue
     if issue.isDownloading {
       Alert.message(message: "Bitte warten Sie bis der Download abgeschlossen ist!")
       return
     }
     if let issue = issue as? StoredIssue {
-      issue.reduceToOverview()
-      issueCarousel.carousel.reloadData()
-      setLabel(idx: index)
+      let bookmarked = StoredArticle.bookmarkedArticlesInIssue(issue: issue)
+      if bookmarked.count > 0 {
+        let actions = UIAlertController.init( title: "Ausgabe löschen", 
+          message: "Diese Ausgabe enthält Lesezeichen. Soll sie wirklich " +
+                   "gelöscht werden?",
+          preferredStyle:  .actionSheet )
+        actions.addAction( UIAlertAction.init( title: "Ja", style: .destructive,
+          handler: { [weak self] handler in
+          for art in bookmarked { art.hasBookmark = false }
+          self?.delete(issue: issue)
+        }))
+        actions.addAction(UIAlertAction.init(title: "Nein", style: .default))
+        actions.presentAt(issueCarousel.carousel.view())
+      }
+      else { delete(issue: issue) }
     }
   }
   
@@ -412,7 +437,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     
     guard let visible = navigationController?.visibleViewController,
           visible != self,
-          let sissue = issue as? StoredIssue  else {
+          let sissue = selectedIssue as? StoredIssue  else {
       log(">>>> IssueVC.checkReload .. do not show Overlay ..not relevant VC")
       return
     }
@@ -524,6 +549,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
   
   var btnLeftConstraint: NSLayoutConstraint?
+
   
   public override func viewDidLoad() {
     super.viewDidLoad()
@@ -533,31 +559,25 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
       pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
     }
-    
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
     pin(issueCarousel.right, to: self.headerView.right)
     pin(issueCarousel.bottom,
         to: self.headerView.bottomGuide(isMargin: true),
         dist: -verticalPaddings)
-
     issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
-      self?.showIssue(index: idx, atSection: self?.issue.lastSection, 
-                      atArticle: self?.issue.lastArticle)
+      self?.showIssue(index: idx, atSection: self?.selectedIssue.lastSection, 
+                      atArticle: self?.selectedIssue.lastArticle)
     }
     issueCarousel.onLabelTap { idx in
       self.showDatePicker()
     }
-    issueCarousel.addMenuItem(title: "Bild Teilen",
-                              icon: "share") {[weak self] _ in
-      guard let self = self else { return }
-      self.exportMoment(issue: self.issue)
+    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
+      self.exportMoment(issue: self.selectedIssue)
     }
-    issueCarousel.addMenuItem(title: "Ausgabe löschen",
-                              icon: "trash") {[weak self] _ in
-      guard let self = self else { return }
-      self.deleteIssue(issue: self.issue)
+    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {_ in
+      self.deleteIssue(issue: self.selectedIssue)
     }
     var scrollChange = false
     issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in
@@ -590,7 +610,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
-//      self.updateToolbarHomeIcon()
       self.setLabel(idx: idx, isRotate: true)
       if IssueVC.showAnimations {
         IssueVC.showAnimations = false
@@ -712,6 +731,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    self.openedIssue = nil
     updateCarouselSize(.zero)//initially show label (set pos not behind toolbar)
     invalidateCarouselLayout()//fix sitze if rotated on pushed vc
     checkForNewIssues()
@@ -764,8 +784,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ? newSize
       : CGSize(width: UIWindow.size.width,
                height: UIWindow.size.height
-                - verticalPaddings)
-    print("updateCarouselSize: \(newSize)  :: \(size)")
+               - verticalPaddings)
     let availableH = size.height - 20 - self.issueCarouselLabelWrapperHeight
     let useableH = min(730, availableH) //Limit Height (usually on High Res & big iPad's)
     let availableW = size.width

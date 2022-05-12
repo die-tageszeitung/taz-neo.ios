@@ -4,3 +4,5 @@ taz.neo/Supporting Files/Resources/files
 zip_resources_version.json
 ConfigSettings.xcconfig
 BuildConst.swift
+swiftpm
+xcuserdata

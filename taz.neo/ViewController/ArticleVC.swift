@@ -22,7 +22,7 @@ public protocol ArticleVCdelegate: IssueInfo {
 
 /// The Article view controller managing a collection of Article pages
 open class ArticleVC: ContentVC {
- public override class var TopMargin: CGFloat { return 52 }
+    
   public var articles: [Article] = []
   public var article: Article? { 
     if let i = index { return articles[i] }
@@ -42,6 +42,26 @@ open class ArticleVC: ContentVC {
   public var adelegate: ArticleVCdelegate? {
     get { delegate as? ArticleVCdelegate }
     set { delegate = newValue }
+  }
+  
+  /// Remove Article from page collection
+  func delete(article: Article) {
+    if let idx = articles.firstIndex(where: { $0.html.name == article.html.name }) {
+      articles.remove(at: idx)
+      deleteContent(at: idx)
+    }
+  }
+  
+  /// Insert Article into page collection
+  func insert(article: Article) {
+    // only insert new Article
+    guard articles.firstIndex(where: { $0.html.name == article.html.name }) == nil
+    else { return }
+    let all = delegate.issue.allArticles
+    if let idx = all.firstIndex(where: { $0.html.name == article.html.name }) {
+      articles.insert(article, at: idx)
+      insertContent(content: article, at: idx)
+    }
   }
   
   func setup() {
@@ -72,15 +92,43 @@ open class ArticleVC: ContentVC {
       self?.navigationController?.popViewController(animated: false)
       self?.adelegate?.closeIssue()
     }
+    func displayBookmark(art: Article) {
+      if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
+      else { self.bookmarkButton.buttonView.name = "star" }
+    }
+    Notification.receive("BookmarkChanged") { msg in
+      if let cart = msg.sender as? StoredArticle,
+         let art = self.article,
+         cart.html.name == art.html.name {
+        displayBookmark(art: art)
+      }
+    }
     onDisplay { [weak self] (idx, oview) in
-      if let this = self {
-        let art = this.articles[idx]
-        this.shareButton?.alpha = (art.onlineLink?.isEmpty ?? true) ? 0.0 : 1.0
-        this.adelegate?.article = art
-        this.setHeader(artIndex: idx)
-        this.issue.lastArticle = idx
-        self?.debug("on display: \(idx), article \(art.html.name)")
-     }
+      if let self = self {
+        var art = self.articles[idx]
+        self.adelegate?.article = art
+        self.setHeader(artIndex: idx)
+        self.issue.lastArticle = idx
+        let player = ArticlePlayer.singleton
+        if player.isPlaying() { async { player.stop() } }
+        if art.canPlayAudio {
+          self.playButton.buttonView.name = "audio"
+          self.onPlay { _ in
+            if let title = self.header.title ?? art.title {
+              art.toggleAudio(issue: self.issue, sectionName: title )
+            }
+            if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
+            else { self.playButton.buttonView.name = "audio" }
+          }
+        }
+        else { self.onPlay(closure: nil) }
+        self.onBookmark { _ in 
+          art.hasBookmark.toggle() 
+          ArticleDB.save()
+        }
+        displayBookmark(art: art)
+        self.debug("on display: \(idx), article \(art.html.name)")
+      }
     }
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
@@ -99,13 +147,6 @@ open class ArticleVC: ContentVC {
     header.onTitle { [weak self] _ in
       self?.debug("*** Action: ToSection pressed")
       self?.navigationController?.popViewController(animated: true)
-    }
-    if App.isRelease == false {
-      header.onTaps(nTaps: 2) { [weak self] _ in
-        guard let art = self?.article,
-              let sectionName = self?.header.title else { return }
-        art.toggleAudio(sectionName: sectionName)
-      }
     }
   }
     
@@ -173,13 +214,13 @@ open class ArticleVC: ContentVC {
       }
     } 
   }
+  
   public override func viewWillAppear(_ animated: Bool) {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
     }
     super.viewWillAppear(animated)
   }
-  
   
   public override func viewDidAppear(_ animated: Bool) {
     if self.invalidateLayoutNeededOnViewWillAppear {
@@ -201,6 +242,12 @@ open class ArticleVC: ContentVC {
     }
   }
   
+  public override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)  
+    let player = ArticlePlayer.singleton
+    if player.isPlaying() { async { player.stop() } }
+  }
+  
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     if App.isAvailable(.SEARCH_CONTEXTMENU) {
@@ -213,7 +260,7 @@ open class ArticleVC: ContentVC {
 extension ArticleVC {
   @objc func search() {
     self.currentWebView?.evaluateJavaScript("window.getSelection().toString()", completionHandler: { selectedText, err in
-      if let e = err { self.log(e.errorText())}
+      if let e = err { self.log(e.description)}
       //#warning("ToDo: 0.9.4+ Implement Search")
       if let txt = selectedText { print("You selected: \(txt)")}
       else { print("no text selection detected")}

@@ -6,9 +6,15 @@
 //
 
 import NorthLib
+import UIKit
 
 class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
+  let bookmarksNavigationController = NavigationController()
+  
+  lazy var bookmarkCoordinator =
+    BookmarkCoordinator(nc: bookmarksNavigationController,
+                        feederContext: feederContext)
   var feederContext: FeederContext
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -40,10 +46,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     let homeNc = NavigationController(rootViewController: home)
     homeNc.isNavigationBarHidden = true
     
-    let bookmarks = UIViewController()
-    bookmarks.title = "Leseliste"
-    bookmarks.tabBarItem.image = UIImage(named: "star")
-    bookmarks.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    bookmarksNavigationController.title = "Leseliste"
+    bookmarksNavigationController.tabBarItem.image = UIImage(named: "star")
+    bookmarksNavigationController.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    bookmarksNavigationController.isNavigationBarHidden = true
     
     let search = SearchController(feederContext: feederContext )
     search.title = "Suche"
@@ -51,30 +57,13 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let searchNc = NavigationController(rootViewController: search)
-//    let searchNc = NavigationController(rootViewController: SearchSettingsVC())
     searchNc.isNavigationBarHidden = true
     
     let settings = SettingsVC(feederContext: feederContext)
     settings.title = "Einstellungen"
     settings.tabBarItem.image = UIImage(named: "settings")
     settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
-    if gt_iOS13 == false {
-      ///iOS 12 and lower forget insets on select
-      ///@see: https://stackoverflow.com/a/22549516
-      ///set them to zero
-      home.tabBarItem.imageInsets = .zero
-      bookmarks.tabBarItem.imageInsets = .zero
-      search.tabBarItem.imageInsets = .zero
-      settings.tabBarItem.imageInsets = .zero
-      ///...and use resized images
-      home.tabBarItem.image = home.tabBarItem.image?.resized(targetSize: CGSize(width: 32, height: 32), scale: UIScreen.main.scale)
-      bookmarks.tabBarItem.image = bookmarks.tabBarItem.image?.resized(targetSize: CGSize(width: 32, height: 32), scale: UIScreen.main.scale)
-      search.tabBarItem.image = search.tabBarItem.image?.resized(targetSize: CGSize(width: 32, height: 32), scale: UIScreen.main.scale)
-      settings.tabBarItem.image = settings.tabBarItem.image?.resized(targetSize: CGSize(width: 32, height: 32), scale: UIScreen.main.scale)
-
-    }
-    
-    self.viewControllers = [ homeNc, bookmarks, searchNc, settings]
+    self.viewControllers = [homeNc, bookmarksNavigationController, searchNc, settings]
     self.selectedIndex = 0
   }
   
@@ -102,6 +91,13 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 } // MainTabVC
 
 extension MainTabVC : UITabBarControllerDelegate {
+  
+  override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+    if item.title == "Leseliste" {
+      bookmarkCoordinator.showBookmarks()
+    }
+  }
+  
   func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
     
     if tabBarController.selectedViewController != viewController { return true }
@@ -123,3 +119,4 @@ extension MainTabVC : UITabBarControllerDelegate {
     return true
   }
 }
+

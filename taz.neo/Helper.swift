@@ -6,7 +6,7 @@
 //  Copyright © 2020 Norbert Thies. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import NorthLib
 
 
@@ -28,7 +28,7 @@ extension Defaults{
       //Use Trait Collection for Change
       UIApplication.shared.keyWindow?.overrideUserInterfaceStyle = newValue ? .dark : .light
       /// Some (Article/HTML/CSS) iOS 13+ need also this Info
-      NorthLib.Notification.send(globalStylesChangedNotification)
+      Notification.send(globalStylesChangedNotification)
     }
   }
   

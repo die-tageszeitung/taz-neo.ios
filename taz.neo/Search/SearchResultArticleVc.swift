@@ -36,9 +36,8 @@ class SearchResultArticleVc : ArticleVC {
     didSet {
       super.articles = searchContents
       super.contents = searchContents
-      let path = feeder.issueDir(issue: issue).path
       let curls: [ContentUrl] = contents.map { cnt in
-        ContentUrl(path: path, issue: issue, content: cnt) { [weak self] curl in
+        ContentUrl(content: cnt) { [weak self] curl in
           guard let this = self else { return }
           this.dloader.downloadIssueData(issue: this.issue, files: curl.content.files) { err in
             if err == nil { curl.isAvailable = true }
@@ -68,7 +67,7 @@ class SearchResultArticleVc : ArticleVC {
         if isAtEnd { self?.feederContext.authenticate() }
       }
     }
-    header.pageNumberLabel.textAlignment = .left
+    header.titleAlignment = .left
   }
 }
 

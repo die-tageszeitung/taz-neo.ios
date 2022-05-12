@@ -266,8 +266,10 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int)
     -> Int {
-    if let n = issue?.sections?.count { return n + 1 }
-    else { return 0 }
+    guard let sections = issue?.sections else { return 0 }
+    let n = sections.count
+    if issue!.imprint != nil { return n+1 }
+    else { return n }
   }
   
   public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
@@ -275,11 +277,10 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
     let cell = tableView.dequeueReusableCell(withIdentifier: sectionCell, 
                                              for: indexPath) as! SectionCell
     guard let issue = issue, 
-      let sections = issue.sections,
-      let imprint = issue.imprint
+      let sections = issue.sections
     else { return cell }
     let n = indexPath.row
-    if n >= sections.count { 
+      if let imprint = issue.imprint, n >= sections.count { 
       cell.cellLabel.text = imprint.title ?? "Impressum"
       cell.cellLabel.textColor = ContentTableVC.ArticleColor
     }

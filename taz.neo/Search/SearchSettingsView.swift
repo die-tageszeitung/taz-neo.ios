@@ -7,6 +7,7 @@
 //
 
 import NorthLib
+import UIKit
 
 class SearchSettingsView: UITableView {
   

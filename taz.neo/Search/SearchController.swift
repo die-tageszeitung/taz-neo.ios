@@ -7,16 +7,13 @@
 //
 
 import NorthLib
+import UIKit
 
 class SearchController: UIViewController {
   // MARK: *** Properties ***
   var feederContext: FeederContext
   
-  private let defaultSection
-  = BookmarkSection(name: "Suche",
-                    html: TmpFileEntry(name: "SearchTempSection.tmp"))
-  
-  private var srIssue:SearchResultIssue
+  private var defaultSection: BookmarkSection
   private var lastArticleShown: Article?
   
   private var articleVC:SearchResultArticleVc
@@ -196,8 +193,8 @@ class SearchController: UIViewController {
   
   required init(feederContext: FeederContext) {
     self.feederContext = feederContext
-    srIssue = SearchResultIssue(feed: feederContext.defaultFeed)
-    srIssue.sections = [defaultSection]
+    defaultSection = BookmarkSection(name: "Suche", issue: SearchResultIssue.shared,
+                                     html: TmpFileEntry(name: "SearchTempSection.tmp"))
     articleVC = SearchResultArticleVc(feederContext: self.feederContext)
     
     super.init(nibName: nil, bundle: nil)
@@ -221,7 +218,7 @@ extension SearchController {
     guard let allArticles = searchItem.allArticles else { return }
     defaultSection.articles = allArticles
     articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
-    srIssue.search = self.searchItem
+    SearchResultIssue.shared.search = self.searchItem
     articleVC.searchContents = allArticles
     articleVC.reload()
   }
@@ -346,7 +343,7 @@ extension SearchController : UITextFieldDelegate {
 // MARK: - ArticleVCdelegate -
 extension SearchController: ArticleVCdelegate {
   public var issue: Issue {
-    return self.srIssue
+    return SearchResultIssue.shared
   }
   
   public var section: Section? {
@@ -366,7 +363,7 @@ extension SearchController: ArticleVCdelegate {
   
   public var article2section: [String : [Section]] {
     debug("TODO:: article2section requested")
-    if let s = srIssue.sections, let artArray = searchItem.allArticles {
+    if let s = SearchResultIssue.shared.sections, let artArray = searchItem.allArticles {
       var d : [String : [Section]]  = [:]
       for art in artArray {
         d[art.html.fileName] = s
@@ -417,6 +414,31 @@ extension GqlSearchHit {
     let f = File(dir: Dir.searchResultsPath, fname: article.html.fileName)
     if !f.exists { return nil }
     return Dir.searchResultsPath + "/" + article.html.fileName
+  }
+}
+
+/// A temporary file entry
+public class TmpFileEntry: FileEntry {
+  public var name: String
+  public var storageType: FileStorageType { .unknown }
+  public var moTime: Date
+  public var size: Int64 { 0 }
+  public var sha256: String { "" }
+  public var path: String
+  
+  /// Read/write access to contents of file
+  public var content: String? {
+    get { File(path).string }
+    set {
+      if let content = newValue { File(path).string = content }
+      else { File(path).remove() }
+    }
+  }
+  
+  public init(name: String) {
+    self.name = name
+    self.path = "\(Dir.tmpPath)/\(name)"
+    self.moTime = Date()
   }
 }
 

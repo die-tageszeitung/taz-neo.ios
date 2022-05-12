@@ -5,7 +5,7 @@
 //  Copyright © 2020 Norbert Thies. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import NorthLib
 
 /**
@@ -241,7 +241,7 @@ open class FeederContext: DoesLog {
     authenticator.whenPollingRequired { self.startPolling() }
     if let peStr = Defaults.singleton["pollEnd"] {
       let pe = Int64(peStr)
-      if pe! <= UsTime.now().sec { endPolling() }
+      if pe! <= UsTime.now.sec { endPolling() }
       else {
         pollEnd = pe
         self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
@@ -252,7 +252,7 @@ open class FeederContext: DoesLog {
   
   /// Method called by Authenticator to start polling timer
   private func startPolling() {
-    self.pollEnd = UsTime.now().sec + PollTimeout
+    self.pollEnd = UsTime.now.sec + PollTimeout
     Defaults.singleton["pollEnd"] = "\(pollEnd!)"
     self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
       repeats: true) { _ in self.doPolling() }
@@ -264,7 +264,7 @@ open class FeederContext: DoesLog {
     authenticator.pollSubscription { [weak self] doContinue in
       guard let self = self else { return }
       guard let pollEnd = self.pollEnd else { self.endPolling(); return }
-      if doContinue { if UsTime.now().sec > pollEnd { self.endPolling() } }
+      if doContinue { if UsTime.now.sec > pollEnd { self.endPolling() } }
       else { self.endPolling() }
     }
   }
@@ -369,7 +369,9 @@ open class FeederContext: DoesLog {
   /// openDB opens the Article database and sends a "DBReady" notification  
   private func openDB(name: String) {
     guard ArticleDB.singleton == nil else { return }
-    ArticleDB(name: name) { [weak self] _ in self?.notify("DBReady") }  
+    ArticleDB(name: name) { [weak self] _ in
+      self?.cleanupDbInconsistencyIfNeeded()
+      self?.notify("DBReady") }
   }
   
   /// resetDB removes the Article database and uses openDB to reopen a new version
@@ -394,6 +396,36 @@ open class FeederContext: DoesLog {
       self?.connect()
     }
     openDB(name: name)
+  }
+  
+  private func cleanupDbInconsistencyIfNeeded(){
+    if Defaults.singleton.get(key: "cleanupDbInconsistencyDone") != nil {
+      log("Cleanup DB Inconsistency already done")
+      return
+    }
+    log("Cleanup DB Inconsistency")
+    guard let sf = StoredFeeder.get(name: "taz").first else { return }
+    guard let sf = StoredFeed.get(name: "taz", inFeeder: sf).first else { return }
+    var hasChanges = false
+    
+    let date1 = UsTime(iso: "2022-04-20 12:00:00.00", tz: "Europe/Berlin").date
+    if let issue1 = StoredIssue.get(date: date1, inFeed: sf).first {
+      issue1.delete()
+      log("delete issue: 04-20")
+      hasChanges = true
+    }
+    
+    let date2 = UsTime(iso: "2022-04-21 12:00:00.00", tz: "Europe/Berlin").date
+    if let issue2 = StoredIssue.get(date: date2, inFeed: sf).first {
+      issue2.delete()
+      log("delete issue: 04-21")
+      hasChanges = true
+    }
+    
+    if hasChanges {
+      ArticleDB.save()
+    }
+    Defaults.singleton.set(key: "cleanupDbInconsistencyDone", val: "\(Date())")
   }
   
   private func loadBundledResources(setVersion: Int? = nil) {
@@ -656,7 +688,7 @@ open class FeederContext: DoesLog {
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
     if let latest = StoredIssue.latest(feed: sfeed), self.isConnected {
-      let now = UsTime.now()
+      let now = UsTime.now
       let latestIssueDate = UsTime(latest.date)
       let nHours = (now.sec - latestIssueDate.sec) / 3600
       if nHours > 6 {
@@ -751,14 +783,14 @@ open class FeederContext: DoesLog {
     let isPush = pushToken != nil
     debug("Sending start of download to server")
     self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush, pushToken: self.pushToken, isAutomatically: isAutomatically) { res in
-      closure(res.value(), UsTime.now())
+      closure(res.value(), UsTime.now)
     }
   }
   
   /// Tell server we stopped downloading
   func markStopDownload(dlId: String?, tstart: UsTime) {
     if let dlId = dlId {
-      let nsec = UsTime.now().timeInterval - tstart.timeInterval
+      let nsec = UsTime.now.timeInterval - tstart.timeInterval
       debug("Sending stop of download to server")
       self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) { [weak self] _ in
         self?.cleanupOldIssues()

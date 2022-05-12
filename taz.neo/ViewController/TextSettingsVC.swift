@@ -60,13 +60,13 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
     func setSize(_ s: Int) {
       textSettings.textSize = s
       articleTextSize = s
-      NorthLib.Notification.send(globalStylesChangedNotification)
+      Notification.send(globalStylesChangedNotification)
     }
     func setPercentageWidth(_ w: Int) {
       //#warning("ToDo 0.9.4: use Helper.swift Defaults.articleTextSize functions @see Settings")
       textSettings.articleColumnPercentageWidth = w
       articleColumnPercentageWidth = w
-      NorthLib.Notification.send(globalStylesChangedNotification)
+      Notification.send(globalStylesChangedNotification)
     }
         
     textSettings.textSize = articleTextSize
@@ -99,7 +99,7 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
       guard let self = self else { return }
       if self.textAlign != "left" {
         self.textAlign = "left"
-        NorthLib.Notification.send(globalStylesChangedNotification)
+        Notification.send(globalStylesChangedNotification)
         self.updateTextAlignmentButtons()
       }
     }
@@ -108,7 +108,7 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
       guard let self = self else { return }
       if self.textAlign != "justify" {
         self.textAlign = "justify"
-        NorthLib.Notification.send(globalStylesChangedNotification)
+        Notification.send(globalStylesChangedNotification)
         self.updateTextAlignmentButtons()
       }
     }

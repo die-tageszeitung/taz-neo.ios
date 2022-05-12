@@ -7,6 +7,7 @@
 //
 
 import NorthLib
+import Foundation
 
 public struct SearchSettings: Equatable {
   public var title:String?
@@ -226,7 +227,7 @@ public class SearchItem: DoesLog {
     }
   }
   
-  public var allArticles: [Article]? {
+  var allArticles: [SearchArticle]? {
     get {
       guard let hits = self.searchHitList else { return nil }
       return hits.map{$0.article}
@@ -300,7 +301,7 @@ public class SearchItem: DoesLog {
 /// One Issue of a Feed
 public class GqlSearchHit: GQLObject {
   /// found Article
-  var article: Article
+  var article: SearchArticle
   /// text for result list
   var snippet: String?
   /// teaser for result list
@@ -329,7 +330,7 @@ public class GqlSearchHit: GQLObject {
     
   public required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    article = try container.decode(GqlArticle.self, forKey: .article)
+    article = try container.decode(SearchArticle.self, forKey: .article)
     snippet = try container.decodeIfPresent(String.self, forKey: .snippet)
     teaser = try container.decodeIfPresent(String.self, forKey: .teaser)
     articleHtml = try container.decodeIfPresent(String.self, forKey: .articleHtml)
