@@ -43,9 +43,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     let bookmarksNc = BookmarksNC(feederContext: feederContext)
     bookmarksNc.title = "Leseliste"
-    bookmarksNc.tabBarItem.image = UIImage(named: "star")
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     bookmarksNc.isNavigationBarHidden = true
+    bookmarksNc.updateTabbarImage()
     
     let search = SearchController(feederContext: feederContext )
     search.title = "Suche"

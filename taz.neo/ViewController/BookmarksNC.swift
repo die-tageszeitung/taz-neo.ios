@@ -54,16 +54,20 @@ class BookmarksNC: UINavigationController {
         if art.hasBookmark {
           self.sectionVC.insertArticle(art)
         }
-        else {
-          self.sectionVC.deleteArticle(art)
-        }
-        self.sectionVC.reload()
         if self.bookmarkFeed.count <= 0 {
-          self.setViewControllers([emptyRoot],
-                                  animated: true)
+          self.viewControllers[0] = emptyRoot
+          self.popToRootViewController(animated: true)
         }
+        self.updateTabbarImage()
       }
     }
+  }
+  
+  func updateTabbarImage(){
+    tabBarItem.image
+    = bookmarkFeed.count == 0
+    ? UIImage(named: "star")
+    : UIImage(named: "star-fill")
   }
   
   override func viewWillAppear(_ animated: Bool) {
