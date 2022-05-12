@@ -58,7 +58,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   /// CSS Margins for Articles and Sections
-  public class var TopMargin: CGFloat { return 80 }
+  public class var TopMargin: CGFloat { return 40 }
   public static let BottomMargin: CGFloat = 50
 
   public var feederContext: FeederContext  
@@ -350,10 +350,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.currentWebView?.scrollView.scrollIndicatorInsets = UIEdgeInsets(top: Self.TopMargin+UIWindow.topInset, left: 0, bottom: Self.BottomMargin, right: 0)
   }
   
-  open override func onPageChange(){
-    print("Page Changed current wv: \(self.currentWebView)")
-  }
-  
   // MARK: - viewDidLoad
   override public func viewDidLoad() {
     super.viewDidLoad()
@@ -367,17 +363,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     setupSlider()
     
     scrollViewDidScroll{[weak self] offset in
-      guard let wv = self?.currentWebView else { return }
       self?.header.scrollViewDidScroll(offset)
     }
     
     scrollViewDidEndDragging{[weak self] offset in
-      guard let wv = self?.currentWebView else { return }
       self?.header.scrollViewDidEndDragging(offset)
     }
     
     scrollViewWillBeginDragging{[weak self] offset in
-      guard let wv = self?.currentWebView else { return }
       self?.header.scrollViewWillBeginDragging(offset)
     }
     
@@ -385,7 +378,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       //Note: use this due onPageChange only fires on link @see WebCollectionView
       if self?.showBarsOnContentChange == true {
         self?.toolBar.hide(false)
-        self?.header.hide(false)
+        self?.header.showAnimated()
       }
       onMainAfter {[weak self] in
         self?.updateScrollView()
@@ -418,7 +411,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.image = UIImage.init(named: "logo")
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
-    header.leftIndent?.constant
+    header.leftConstraint?.constant
     = 8.0 + (slider?.visibleButtonWidth ?? 0.0)
     ///enable shadow for sliderView
     slider?.sliderView.clipsToBounds = false

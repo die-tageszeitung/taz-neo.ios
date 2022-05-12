@@ -21,13 +21,11 @@ class SearchResultArticleVc : ArticleVC {
     if let searchVc = adelegate as? SearchController,
        let hit = searchVc.searchItem.searchHitList?.valueAt(artIndex)
     {
-      header.pageNumber = "\(artIndex+1)/\(maxResults)"
       header.title = hit.sectionTitle ?? ""
       header.subTitle = "Ausgabe \(hit.date.short)"
     }
-    else {
-      header.pageNumber = "\(artIndex+1)/\(maxResults)"
-    }
+    
+    header.pageNumber = "\(artIndex+1) von \(maxResults)"
     
     if artIndex >= articles.count - 1 {
       searchClosure?()
@@ -70,6 +68,7 @@ class SearchResultArticleVc : ArticleVC {
         if isAtEnd { self?.feederContext.authenticate() }
       }
     }
+    header.pageNumberLabel.textAlignment = .left
   }
 }
 
