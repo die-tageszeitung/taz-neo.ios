@@ -99,7 +99,7 @@ extension MainTabVC : UITabBarControllerDelegate {
     else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
        let searchController = firstVc as? SearchController //IssueVC also works
     {
-      searchController.restoreInitialState()
+      _ = searchController.restoreInitialState()
     }
     else if let tvc = viewController as? UITableViewController
     {
