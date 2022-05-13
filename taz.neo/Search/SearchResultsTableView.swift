@@ -231,39 +231,26 @@ class SearchResultsCell: UITableViewCell {
 extension String {
   var attributedFromSnippetString:NSAttributedString? {
     get {
-      let s = NSMutableAttributedString()
+      guard !self.isEmpty else { return nil }
+      let ms = NSMutableAttributedString()
       let openTag =  "<span class=\"snippet\">"
       let closeTag =  "</span>"
+
+      var components = self.components(separatedBy: openTag)
       
-      let scanner = Scanner(string: self)
-      var highlighted:Bool = false
-      while !scanner.isAtEnd {
-        if highlighted, let tagged = scanner.scanTill(string: closeTag) {
-          let tagged
-          = tagged.starts(with: openTag)
-          ? String(tagged.dropFirst(openTag.count))
-          : tagged
-          s.append(NSAttributedString(string: tagged, attributes: [.backgroundColor: Const.Colors.fountTextHighlight, .foregroundColor: UIColor.black]))
-          s.append(NSAttributedString(string: " "))
-        }
-        else if let text = scanner.scanTill(string: openTag){
-          s.append(NSAttributedString(string: text))
-        }
-        highlighted = !highlighted
+      if !self.starts(with: openTag){
+        ms.append(NSAttributedString(string: components.remove(at: 0)))
       }
-      return s.length > 0 ? s : nil
+      for s in components {
+        let highlightedComponents = s.components(separatedBy: closeTag)
+        if let txt = highlightedComponents.valueAt(0) {
+          ms.append(NSAttributedString(string: txt, attributes: [.backgroundColor: Const.Colors.fountTextHighlight, .foregroundColor: UIColor.black]))
+        }
+        if let txt = highlightedComponents.valueAt(1){
+          ms.append(NSAttributedString(string: txt))
+        }
+      }
+      return ms
     }
   }
 }
-
-// MARK: - Scanner
-extension Scanner {
-  public func scanTill(string: String) -> String? {
-    var value: NSString?
-    guard scanUpTo(string, into: &value) else { return nil }
-    scanString(string, into: nil)///Moved the current start scan location for next item
-    return value as String?
-  }
-}
-
-
