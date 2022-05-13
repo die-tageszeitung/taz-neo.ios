@@ -64,8 +64,7 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
       self.appWillTerminate()
     }
     setup()
-    #warning("ToDo")
-//    registerForStyleUpdates()
+    registerForStyleUpdates()
   }
   
   func setup(){
@@ -464,7 +463,7 @@ extension TazAppEnvironment {
         tab.viewControllers = []
       }
       Defaults.currentServer = shortcutServer
-      onMainAfter(3) { [weak self] in
+      onMainAfter(3) {
         /// Too many handlers deinit on IssueVC did not work, recives issueOverview and more and crashes
         exit(0)
 //        self?.setup()
@@ -609,7 +608,7 @@ class StartupVc : UIViewController {
     label.contentFont().center()
     label.textColor = .white
     
-    let ai = UIActivityIndicatorView(style: .white)
+    let ai = UIActivityIndicatorView()
     self.view.addSubview(label)
     self.view.addSubview(ai)
     

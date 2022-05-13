@@ -28,7 +28,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public var issueCarousel = IssueCarousel()
   
   /// Process Indicator for empty Carousel
-  var carouselActivityIndicator:UIActivityIndicatorView? = UIActivityIndicatorView(style: .whiteLarge)
+  var carouselActivityIndicator:UIActivityIndicatorView? = UIActivityIndicatorView(style: .large)
   
   /// the spacing between issueCarousel and the Toolbar
   var issueCarouselLabelWrapperHeight: CGFloat = 120
@@ -393,7 +393,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       let file = File(fn)
       let ext = file.extname
       let dialogue = ExportDialogue<Any>()
-      let name = "\(issue.feed.name)-\(issue.date.isoDate(tz: self.feeder.timeZone)).\(ext)"
+      let name = "\(issue.feed.name)-\(issue.date.isoDate(tz: self.feeder.timeZone)).\(ext ?? "")"
       dialogue.present(item: file.url, subject: name)
     }
   }

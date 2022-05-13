@@ -58,7 +58,6 @@ class SearchResultsTableView:UITableView{
   func setup(){
     self.register(SearchResultsCell.self, forCellReuseIdentifier: Self.SearchResultsCellIdentifier)
     self.backgroundColor = Const.Colors.opacityBackground
-    footer.style = .white
     footer.alpha = 0.0
     self.tableFooterView = footer
     

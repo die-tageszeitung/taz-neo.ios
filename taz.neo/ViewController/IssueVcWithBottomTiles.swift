@@ -88,7 +88,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   var topPos : CGFloat { get { return -UIWindow.topInset }}
   
   /// activity indicator for Bottom Ares, if load more requested
-  let footerActivityIndicator = UIActivityIndicatorView(style: .white)
+  let footerActivityIndicator = UIActivityIndicatorView()
   
   /// offset for snapping between top area (IssueCarousel) and Bottom Area (tile view)
   var scrollSnapHeight : CGFloat { get { return UIScreen.main.bounds.size.height }}
@@ -824,11 +824,7 @@ class StatusHeader: UIView {
     }
   }
   
-  private lazy var activityIndicator : UIActivityIndicatorView = {
-    let view = UIActivityIndicatorView()
-    view.style = .white
-    return view
-  }()
+  private lazy var activityIndicator = UIActivityIndicatorView()
   
   private lazy var label : UILabel = UILabel().contentFont().white().center()
   
