@@ -490,16 +490,15 @@ extension TazAppEnvironment {
     }
   }
 }
-#warning("ToDO")
-//extension TazAppEnvironment : UIStyleChangeDelegate {
-//  func applyStyles() {
-//    if let img  = UIImage(named:"xmark")?
-//      .imageWithInsets(UIEdgeInsets(top: 1, left: 9, bottom: 1, right: 9),
-//                       tintColor: Const.SetColor.taz(.textFieldClear).color) {
-//      UIButton.appearance(whenContainedInInstancesOf: [UITextField.self]).setImage(img, for: .normal)
-//    }
-//  }
-//}
+extension TazAppEnvironment : UIStyleChangeDelegate {
+  func applyStyles() {
+    if let img  = UIImage(named:"xmark")?
+      .imageWithInsets(UIEdgeInsets(top: 1, left: 9, bottom: 1, right: 9),
+                       tintColor: Const.SetColor.taz(.textFieldClear).color) {
+      UIButton.appearance(whenContainedInInstancesOf: [UITextField.self]).setImage(img, for: .normal)
+    }
+  }
+}
 
 // Helper
 extension Defaults{
