@@ -240,7 +240,7 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
     reportLPress3.numberOfTouchesRequired = 3
     
     
-    if let targetView = UIApplication.shared.windows.first{
+    if let targetView = UIApplication.shared.keyWindow {
       /// currently never executed due keyWindow was nil when logged in
       targetView.isUserInteractionEnabled = true
       targetView.addGestureRecognizer(reportLPress2)
