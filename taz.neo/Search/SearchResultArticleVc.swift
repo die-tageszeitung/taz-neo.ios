@@ -16,8 +16,8 @@ class SearchResultArticleVc : ArticleVC {
   
   override func setHeader(artIndex: Int) {
     super.setHeader(artIndex: artIndex)
-
-    self.isLargeHeader = true
+    header.titleLabel.textAlignment = .right
+    self.isLargeHeader = false
     if let searchVc = adelegate as? SearchController,
        let hit = searchVc.searchItem.searchHitList?.valueAt(artIndex)
     {
