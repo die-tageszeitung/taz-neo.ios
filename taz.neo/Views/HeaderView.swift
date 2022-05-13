@@ -157,8 +157,7 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
     
     titleLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
     titleAlignment = .right
-//    DottedLineView.DottedLineDefaultHeight
-    line.pinHeight(2.4)
+    line.pinHeight(DottedLineView.DottedLineDefaultHeight)
     line.backgroundColor = .clear
     line.fillColor = Const.SetColor.ios(.label).color
     line.strokeColor = Const.SetColor.ios(.label).color
@@ -183,8 +182,7 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
     
     pin(subTitleLabel.left, to: self.left, dist:sidePadding)
     pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
-    #warning("todo")
-//    borderView = self.addBorderView(.opaqueSeparator, 0.5, edge: .bottom)
+    borderView = self.addBorderView(.opaqueSeparator, 0.5, edge: .bottom)
     updateUI()
   }
   
