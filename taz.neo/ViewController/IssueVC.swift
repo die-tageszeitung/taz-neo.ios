@@ -84,11 +84,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
     
   func updateToolbarHomeIcon(){
-    #warning("ToDO")
-    //    toolbarHomeButton?.buttonView.color
-    //      = self.safeIndex == 0 && isUp
-    //      ? Const.Colors.darkSecondaryText.withAlphaComponent(0.2)
-    //      : Const.Colors.darkSecondaryText.withAlphaComponent(0.9)
+    self.tabBarItem.image
+    = self.safeIndex == 0 && isUp
+    ? UIImage(named: "home-fill")
+    : UIImage(named: "home")
   }
   
   /// Reset carousel images
@@ -525,11 +524,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     var offset:CGFloat? = 0.0
     // Try to get first Buttons Icon Position
     // In case of changes by apple this may fail
+    var leftButton:UIView?
     for case let btn as UIControl in tabBar.subviews {
-      for case let iv as UIImageView in btn.subviews {
-        offset = iv.center.x + btn.frame.origin.x + tabBar.frame.origin.x
-        break
-      }
+      if leftButton == nil { leftButton = btn }
+      if btn.frame.origin.x < leftButton?.frame.origin.x ?? 0 { leftButton = btn }
+    }
+    for case let iv as UIImageView in leftButton?.subviews ?? [] {
+      offset = iv.center.x + (leftButton?.frame.origin.x ?? 0) + tabBar.frame.origin.x
       break
     }
     // Verify Icon Position or calculate it
@@ -610,6 +611,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
+      self.updateToolbarHomeIcon()
       self.setLabel(idx: idx, isRotate: true)
       if IssueVC.showAnimations {
         IssueVC.showAnimations = false

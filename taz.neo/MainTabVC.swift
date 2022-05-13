@@ -35,7 +35,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     let home = IssueVC(feederContext: feederContext)
     home.title = "Home"
-    home.tabBarItem.image = UIImage(named: "home")
+    home.updateToolbarHomeIcon()
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let homeNc = NavigationController(rootViewController: home)
