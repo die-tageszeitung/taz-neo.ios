@@ -461,6 +461,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     scrollViewWillBeginDragging{[weak self] offset in
       self?.header.scrollViewWillBeginDragging(offset)
     }
+    
+    whenScrolled { [weak self] ratio in
+      if (ratio < 0) { self?.toolBar.hide()}
+      else { self?.toolBar.hide(false)}
+    }
+    
     displayUrls()
     registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
