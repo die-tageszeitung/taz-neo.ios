@@ -92,7 +92,7 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
   var titleBottomIndentL: CGFloat {
     get {
       return (subTitle ?? "").isEmpty
-      ? -8.0
+      ? -18
       : -(subTitleFontSizeDefault * 1.17 + 6.0 + 6.0)
     }
   }
