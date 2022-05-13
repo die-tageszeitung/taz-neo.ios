@@ -380,7 +380,7 @@ extension FormsController: UITextViewDelegate {
       introVC.webView.onX {_ in 
         introVC.dismiss(animated: true, completion: nil)
       }
-      introVC.webView.webView.atEndOfContent {_ in }
+      introVC.webView.webView.scrollDelegate.atEndOfContent {_ in }
       return false
     }
     

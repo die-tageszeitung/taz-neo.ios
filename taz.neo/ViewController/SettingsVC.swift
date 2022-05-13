@@ -710,7 +710,7 @@ extension SettingsVC {
     }
     self.modalPresentationStyle = .fullScreen
     introVC.modalPresentationStyle = .fullScreen
-    introVC.webView.webView.atEndOfContent {_ in }
+    introVC.webView.webView.scrollDelegate.atEndOfContent {_ in }
     self.present(introVC, animated: true) {
       //Overwrite Default in: IntroVC viewDidLoad
       introVC.webView.buttonLabel.text = nil
