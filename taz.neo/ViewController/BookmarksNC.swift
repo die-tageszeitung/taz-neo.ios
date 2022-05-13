@@ -54,6 +54,10 @@ class BookmarksNC: UINavigationController {
         if art.hasBookmark {
           self.sectionVC.insertArticle(art)
         }
+        else {
+          self.sectionVC.deleteArticle(art)
+        }
+        self.sectionVC.reload()
         if self.bookmarkFeed.count <= 0 {
           self.viewControllers[0] = emptyRoot
           self.popToRootViewController(animated: true)
