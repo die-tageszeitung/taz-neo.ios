@@ -69,7 +69,7 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
   var titleLabel = Label()
   var line = DottedLineView()
   var subTitleLabel = Label()
-  var pageNumberLabel = Label()
+  var pageNumberLabel = HidingLabel()
   var borderView:UIView?
 
   private var titleTopConstraint: NSLayoutConstraint?
