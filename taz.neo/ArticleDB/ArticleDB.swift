@@ -917,7 +917,13 @@ public final class StoredArticle: Article, StoredObject {
     else { return defaultIssueDate }
   }
   
-  public var sectionTitle: String? { return pr.sectionTitle }
+  public var sectionTitle: String? { 
+    if let s = pr.sectionTitle { return s }
+    for s in sections {
+      if let t = s.title { return t }
+    }
+    return nil
+  }
   
   public required init(persistent: PersistentArticle) { self.pr = persistent }
 
