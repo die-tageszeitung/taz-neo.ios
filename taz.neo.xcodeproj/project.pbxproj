@@ -58,7 +58,6 @@
 		AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE44F8EA248949B0009DA152 /* ColorTests.swift */; };
 		AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B723F6BEC400EAFE78 /* LoadingView.swift */; };
 		AE4C4FEF26A04EBD006079C8 /* ArticlePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4C4FEE26A04EBD006079C8 /* ArticlePlayer.swift */; };
-		AE4C4FF726A1A512006079C8 /* ArticleDB.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = AE4C4FF626A1A512006079C8 /* ArticleDB.xcdatamodel */; };
 		AE4C4FF926A1ABD9006079C8 /* BookmarkFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4C4FF826A1ABD9006079C8 /* BookmarkFeed.swift */; };
 		AE4F51DB2438C8E800BC9548 /* ArticleDB.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4F51DA2438C8E800BC9548 /* ArticleDB.swift */; };
 		AE5D9EBD23E1B8160002C3B8 /* GraphQlSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE82262C232A70E000FFBE67 /* GraphQlSession.swift */; };
@@ -87,6 +86,8 @@
 		AECCE11C23FBF3FE007C2276 /* MainNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11B23FBF3FE007C2276 /* MainNC.swift */; };
 		AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECCE11D23FBF449007C2276 /* StartupView.swift */; };
 		AECD1A8E282CFDF0007E00EE /* NorthLib in Frameworks */ = {isa = PBXBuildFile; productRef = AECD1A8D282CFDF0007E00EE /* NorthLib */; };
+		AECD1A98282D0EBD007E00EE /* ArticleDB.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = AECD1A95282D0EBD007E00EE /* ArticleDB.xcdatamodeld */; };
+		AEEC919A282E964300F91A2D /* ArticleDBVersionChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEEC9199282E964300F91A2D /* ArticleDBVersionChanges.swift */; };
 		AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */; };
 		AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECAC8FC2440AF1F00D32175 /* CarouselController.swift */; };
 		AEF2DF35244766E400D1482D /* MomentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF2DF34244766E400D1482D /* MomentView.swift */; };
@@ -159,7 +160,6 @@
 		AE4AA2B723F6BEC400EAFE78 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		AE4C49432450412D001A40BE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LogoLaunchScreen.storyboard; sourceTree = "<group>"; };
 		AE4C4FEE26A04EBD006079C8 /* ArticlePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlePlayer.swift; sourceTree = "<group>"; };
-		AE4C4FF626A1A512006079C8 /* ArticleDB.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ArticleDB.xcdatamodel; sourceTree = "<group>"; };
 		AE4C4FF826A1ABD9006079C8 /* BookmarkFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkFeed.swift; sourceTree = "<group>"; };
 		AE4F51DA2438C8E800BC9548 /* ArticleDB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleDB.swift; sourceTree = "<group>"; };
 		AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloader.swift; sourceTree = "<group>"; };
@@ -189,11 +189,14 @@
 		AECCE11B23FBF3FE007C2276 /* MainNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainNC.swift; sourceTree = "<group>"; };
 		AECCE11D23FBF449007C2276 /* StartupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupView.swift; sourceTree = "<group>"; };
 		AECD1A90282CFE38007E00EE /* NorthLib */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = NorthLib; path = ../NorthLib; sourceTree = "<group>"; };
+		AECD1A96282D0EBD007E00EE /* ArticleDB 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "ArticleDB 2.xcdatamodel"; sourceTree = "<group>"; };
+		AECD1A97282D0EBD007E00EE /* ArticleDB.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ArticleDB.xcdatamodel; sourceTree = "<group>"; };
 		AED748A9238413D800C09D2D /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		AED748AA238413EB00C09D2D /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = taz.neo.entitlements; sourceTree = "<group>"; };
 		AEE3D4E6247D316D00BEDEA3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		AEE3D4E9247D31FA00BEDEA3 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		AEEC9199282E964300F91A2D /* ArticleDBVersionChanges.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleDBVersionChanges.swift; sourceTree = "<group>"; };
 		AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCarousel.swift; sourceTree = "<group>"; };
 		AEF2DF34244766E400D1482D /* MomentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentView.swift; sourceTree = "<group>"; };
 		AEF877D028180B2000FD51CD /* BookmarkCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkCoordinator.swift; sourceTree = "<group>"; };
@@ -303,8 +306,9 @@
 		AE16422D222FFEF200DF07DE /* ArticleDB */ = {
 			isa = PBXGroup;
 			children = (
-				AE4C4FF626A1A512006079C8 /* ArticleDB.xcdatamodel */,
+				AECD1A95282D0EBD007E00EE /* ArticleDB.xcdatamodeld */,
 				AE4F51DA2438C8E800BC9548 /* ArticleDB.swift */,
+				AEEC9199282E964300F91A2D /* ArticleDBVersionChanges.swift */,
 			);
 			path = ArticleDB;
 			sourceTree = "<group>";
@@ -620,10 +624,10 @@
 				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,
 				77D0DAEC25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift in Sources */,
 				C794F23524FED184007168AC /* Helper.swift in Sources */,
-				AE4C4FF726A1A512006079C8 /* ArticleDB.xcdatamodel in Sources */,
 				AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */,
 				770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */,
 				7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */,
+				AECD1A98282D0EBD007E00EE /* ArticleDB.xcdatamodeld in Sources */,
 				00E3D2A924E68F5500AE075A /* PwForgottView.swift in Sources */,
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,
 				AE4C4FF926A1ABD9006079C8 /* BookmarkFeed.swift in Sources */,
@@ -659,6 +663,7 @@
 				778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */,
 				AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */,
 				AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */,
+				AEEC919A282E964300F91A2D /* ArticleDBVersionChanges.swift in Sources */,
 				00E3D2A124E68F1B00AE075A /* ConnectTazIdView.swift in Sources */,
 				08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */,
 			);
@@ -993,6 +998,21 @@
 			productName = NorthLib;
 		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin XCVersionGroup section */
+		AECD1A95282D0EBD007E00EE /* ArticleDB.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				AECD1A96282D0EBD007E00EE /* ArticleDB 2.xcdatamodel */,
+				AECD1A97282D0EBD007E00EE /* ArticleDB.xcdatamodel */,
+			);
+			currentVersion = AECD1A96282D0EBD007E00EE /* ArticleDB 2.xcdatamodel */;
+			name = ArticleDB.xcdatamodeld;
+			path = ../../ArticleDB.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = AEBAF55C219ACD1900566205 /* Project object */;
 }
