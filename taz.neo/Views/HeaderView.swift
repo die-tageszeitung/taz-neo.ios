@@ -104,10 +104,12 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
   public var tapRecognizer = TapRecognizer()
     
   public func applyStyles() {
-    titleLabel.textColor = Const.SetColor.HText.color
-    subTitleLabel.textColor = Const.SetColor.HText.color
-    pageNumberLabel.textColor = Const.SetColor.HText.color
+    titleLabel.textColor = Const.SetColor.ios(.label).color
+    subTitleLabel.textColor = Const.SetColor.ios(.label).color
+    pageNumberLabel.textColor = Const.SetColor.ios(.label).color
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    line.fillColor = Const.SetColor.ios(.label).color
+    line.strokeColor = Const.SetColor.ios(.label).color
   }
   
   func updateUI(){
@@ -188,6 +190,7 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
     pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
     borderView = self.addBorderView(.opaqueSeparator, 0.5, edge: .bottom)
     updateUI()
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
   public override init(frame: CGRect) {

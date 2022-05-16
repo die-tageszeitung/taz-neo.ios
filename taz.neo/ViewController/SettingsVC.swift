@@ -190,7 +190,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     data = TableData(sectionContent: currentSectionContent())
     setup()
     applyStyles()
-    registerForStyleUpdates()
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
     initialTextNotificationSetting = isTextNotification
@@ -340,13 +340,18 @@ extension SettingsVC {
 
 // MARK: - Nested Class: Footer
 extension SettingsVC {
-  class Footer:UIView, UIStyleChangeDelegate{
+  class Footer:UIView{
     let label = UILabel()
     let background = UIView()
     
     func applyStyles() {
       background.backgroundColor = Const.Colors.opacityBackground
       label.textColor = Const.SetColor.ios(.secondaryLabel).color
+    }
+    
+    override func layoutSubviews() {
+      super.layoutSubviews()
+      applyStyles()
     }
     
     func setup(){
@@ -361,7 +366,6 @@ extension SettingsVC {
       pin(label.bottom, to: self.bottom)
       pin(background, toSafe: self, dist: 0, exclude: .bottom)
       pin(background.bottom, to: self.bottom, dist: UIWindow.maxInset)
-      registerForStyleUpdates()
     }
     
     init() {
@@ -725,7 +729,7 @@ extension SettingsVC {
 // MARK: - Nested Classes / UI Components
 
 // MARK: -
-class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
+class XSettingsCell:UITableViewCell {
   var tapHandler:(()->())?
   var isDestructive: Bool = false
   var longTapHandler:(()->())?
@@ -744,6 +748,11 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   
   override func prepareForReuse() {
     debug("XSettingsCell prepareForReuse ...should not be called due not reuse cells!")
+  }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    applyStyles()
   }
   
   func applyStyles() {
@@ -783,9 +792,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.isDestructive = isDestructive
     self.tapHandler = tapHandler
     self.longTapHandler = longTapHandler
-    applyStyles()
     setupLayout()
-    registerForStyleUpdates()
   }
   
   init(toggleWithText text: String,
@@ -802,9 +809,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     toggle.addTarget(self, action: #selector(handleToggle(sender:)),
                      for: .valueChanged)
     self.customAccessoryView = toggle
-    applyStyles()
     setupLayout()
-    registerForStyleUpdates()
   }
   
   init(text: String,
@@ -815,9 +820,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.textLabel?.text = text
     self.customAccessoryView = accessoryView
     self.detailTextLabel?.text = detailText
-    applyStyles()
     setupLayout()
-    registerForStyleUpdates()
   }
   
   func setupLayout(){
@@ -926,15 +929,20 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   private var articleTextSize: Int
   
   func applyStyles() {
-    label.labelColor()
+    label.textColor =  Const.SetColor.ios(.label).color
     leftButton.circleIconButton(true)
     rightButton.circleIconButton(true)
   }
   
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    applyStyles()
+  }
+  
   override func setup(){
     super.setup()
-    
     label.contentFont()
+    label.labelColor()
     registerForStyleUpdates()
     label.text = "\(articleTextSize)%"
     
@@ -986,10 +994,12 @@ class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
   private let titleLabel = Label().titleFont(size: Const.Size.TitleFontSize)
   private let line = DottedLineView()
   
-  private func setup() {
-    registerForStyleUpdates()
+  override func layoutSubviews() {
+    super.layoutSubviews()
     applyStyles()
-    
+  }
+  
+  private func setup() {
     self.addSubview(titleLabel)
     self.addSubview(line)
     
@@ -1024,7 +1034,7 @@ class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
 }
 
 // MARK: -
-class SectionHeader: UIView, UIStyleChangeDelegate {
+class SectionHeader: UIView {
   
   let label = UILabel()
   var chevron: UIImageView?
@@ -1049,6 +1059,11 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
     chevron?.transform = CGAffineTransform(rotationAngle: self.collapsed ? CGFloat.pi : CGFloat.pi*2)
   }
   
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    applyStyles()
+  }
+  
   func applyStyles() {
     label.textColor =  Const.SetColor.ios(.label).color
     self.backgroundColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
@@ -1068,8 +1083,6 @@ class SectionHeader: UIView, UIStyleChangeDelegate {
       self.rotateChevron()
     }
     label.titleFont(size: Const.Size.SubtitleFontSize)
-    registerForStyleUpdates()
-    applyStyles()
   }
   
   init(text:String, collapseable: Bool){

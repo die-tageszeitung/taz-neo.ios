@@ -19,6 +19,10 @@ fileprivate class PlaceholderVC: UIViewController{
     self.view
     = PlaceholderView("Die Leseliste ist leer!",
                       image: UIImage(named: "star"))
+  }
+  
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
     self.view.backgroundColor = Const.SetColor.CTBackground.color
   }
 }

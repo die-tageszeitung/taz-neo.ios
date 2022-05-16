@@ -136,9 +136,13 @@ class SearchController: UIViewController {
     }
   }
   
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    self.view.backgroundColor = Const.SetColor.CTBackground.color
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(placeholderView)
     self.view.addSubview(centralActivityIndicator)
     self.view.addSubview(resultsTable)

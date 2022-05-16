@@ -190,8 +190,12 @@ class SearchResultsCell: UITableViewCell {
     return label
   }()
   
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    applyStyles()
+  }
+  
   func setup() {
-    self.backgroundColor = Const.SetColor.CTBackground.color
     addSubview(cellView)
     cellView.addSubview(titleLabel)
     cellView.addSubview(authorLabel)
@@ -223,7 +227,16 @@ class SearchResultsCell: UITableViewCell {
   required init?(coder aDecoder: NSCoder) {
     super.init(coder: aDecoder)
   }
-  
+}
+
+extension SearchResultsCell: UIStyleChangeDelegate {
+  func applyStyles() {
+    self.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    titleLabel.textColor = Const.SetColor.ios(.label).color
+    authorLabel.textColor = Const.SetColor.ios(.label).color
+    contentLabel.textColor = Const.SetColor.ios(.label).color
+    dateLabel.textColor = Const.SetColor.ios(.label).color
+  }
 }
 
 // MARK: - String Ext. attributedFromSnippetString

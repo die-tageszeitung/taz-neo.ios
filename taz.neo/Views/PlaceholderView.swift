@@ -45,6 +45,14 @@ class PlaceholderView: UIView{
     setup()
   }
   
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    
+    label.textColor =  Const.SetColor.taz(.textFieldClear).color
+    icon.tintColor = Const.SetColor.taz(.textFieldClear).color
+  }
+  
   override init(frame: CGRect) {
     super.init(frame: frame)
     setup()

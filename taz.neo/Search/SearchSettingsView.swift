@@ -147,6 +147,12 @@ class SearchSettingsView: UITableView {
 //    }
   }
   
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    searchFooterWrapper.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    topBackground.backgroundColor = Const.SetColor.ios(.systemBackground).color
+  }
+  
   override func didMoveToSuperview() {
     super.didMoveToSuperview()
     if let sv = self.superview,
@@ -204,11 +210,17 @@ extension SearchSettingsView: UITableViewDelegate {
   }
   
   func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    let v = UIView()
-    v.backgroundColor = Const.SetColor.ios(.systemBackground).color
-    return v
+    return SimpleFooterView()
   }
 }
+
+fileprivate class SimpleFooterView: UIView {
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    self.backgroundColor = Const.SetColor.ios(.systemBackground).color
+  }
+}
+
 
 // MARK: - UITableViewDataSource -
 extension SearchSettingsView: UITableViewDataSource {
@@ -240,13 +252,6 @@ extension SearchSettingsView: UITableViewDataSource {
   }
 }
 
-// MARK: - UIStyleChangeDelegate -
-extension SearchSettingsView : UIStyleChangeDelegate {
-  func applyStyles() {
-    print("DOTO")
-  }
-}
-
 // MARK: - Table Components -
 // MARK: *** Cells ***
 /// A custom table view cell with TextInput
@@ -254,8 +259,6 @@ class TextInputCell: TazCell {
   let textField = UITextField()
   
   override func setup(){
-    self.backgroundColor = Const.SetColor.ios(.systemBackground).color
-    textField.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
     //add some pading for corner radius
     textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 5))
     textField.leftViewMode = .always
@@ -270,6 +273,19 @@ class TextInputCell: TazCell {
                               right: -Const.Size.DefaultPadding)
     pin(textField, to: contentView, insets: insets)
   }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    applyStyles()
+  }
+  
+  override func applyStyles() {
+    super.applyStyles()
+    self.textField.defaultStyle(placeholder: self.textField.attributedPlaceholder?.string, cornerRadius: 0)
+    self.textField.textColor = Const.SetColor.ios(.label).color
+    self.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    textField.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
+  }
 }
 
 /// A custom table view cell with label and chevron right
@@ -277,7 +293,6 @@ class MoreCell: TazCell {
   let label = UILabel()
   
   override func setup(){
-    self.backgroundColor = Const.SetColor.ios(.systemBackground).color
     label.contentFont().labelColor()
     accessoryType = .none
     contentView.addSubview(label)
@@ -290,6 +305,11 @@ class MoreCell: TazCell {
                               0.7,
                               edge: .bottom,
                               insets: Const.Insets.Default)
+  }
+  
+  override func applyStyles() {
+    super.applyStyles()
+    self.label.textColor = Const.SetColor.ios(.label).color
   }
 }
 
@@ -334,21 +354,33 @@ class RadioButtonCell: TazCell {
     pin(radioButton.left, to: contentView.left, dist: Const.Size.DefaultPadding)
     pin(radioButton.right, to: label.left, dist: -18)
   }
+  
+  override func applyStyles() {
+    super.applyStyles()
+    self.label.textColor = Const.SetColor.ios(.label).color
+    radioButton.isSelected = radioButton.isSelected
+  }
 }
 
 /// A custom table view cell
-class TazCell: UITableViewCell {
+class TazCell: UITableViewCell, UIStyleChangeDelegate {
+  func applyStyles() {
+    self.backgroundColor = Const.SetColor.ios(.systemBackground).color
+  }
+  
   
   func setup(){}//overwriteable
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
     setup()
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
   required init?(coder aDecoder: NSCoder) {
     super.init(coder: aDecoder)
     setup()
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
 }
 
@@ -375,6 +407,7 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
     self.contentView.layoutMargins.left = Const.Size.DefaultPadding
     self.contentView.layoutMargins.right = Const.Size.DefaultPadding
     self.rotateChevron()
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
   var collapsed: Bool = true {
@@ -408,7 +441,15 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
   }
 }
 
-class CustomRangeDatePickerView: UIView {
+extension TazHeaderFooterView:UIStyleChangeDelegate{
+  func applyStyles() {
+    self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    chevron.tintColor = Const.SetColor.ios(.secondaryLabel).color
+    label.textColor = Const.SetColor.ios(.label).color
+  }
+}
+
+class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
   
   public let fromPicker = UIDatePicker()
   public let toPicker = UIDatePicker()
@@ -425,13 +466,15 @@ class CustomRangeDatePickerView: UIView {
     }
   }
   
-  func setup(){
+  func applyStyles() {
     fromPicker.tintColor = Const.SetColor.ios(.label).color
     toPicker.tintColor = Const.SetColor.ios(.label).color
 
     fromPicker.layer.backgroundColor = Const.SetColor.CTBackground.color.cgColor
     toPicker.layer.backgroundColor = Const.SetColor.CTBackground.color.cgColor
-    
+  }
+  
+  func setup(){
     fromPicker.layer.cornerRadius = 12.0
     toPicker.layer.cornerRadius = 8.0
     
@@ -484,6 +527,7 @@ class CustomRangeDatePickerView: UIView {
     pin(toCloseLabel.centerY, to: toLabel.centerY)
     pin(toPicker.top, to:toLabel.bottom, dist: 15)
     pin(toPicker, to: self, exclude: .top)
+    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
   
   override init(frame: CGRect) {
