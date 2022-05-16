@@ -174,19 +174,25 @@ open class Downloader: DoesLog {
     if payloadQueue.count == 1 { pe.download(dl: self) }
   }
   
-  /// Download files with storage type .issue
-  private func downloadIssueFiles(url: String, feed: String, issue: String, 
-    files: [FileEntry], closure: @escaping (Error?)->()) {
+  /// Download Issue files to directory
+  public func downloadIssueFiles(from url: String, to: Dir, files: [FileEntry], 
+                                 closure: @escaping (Error?)->()) {
     let ifiles = files.filter { $0.storageType == .issue }
     if ifiles.count == 0 { closure(nil); return }
-    createIssueDir(feed: feed, issue: issue)
-    let idir = feeder.issueDir(feed: feed, issue: issue)
-    let hloader = HttpLoader(session: dlSession, baseUrl: url, toDir: idir.path)
+    to.create()
+    let hloader = HttpLoader(session: dlSession, baseUrl: url, toDir: to.path)
     hloader.download(ifiles) { [weak self] hl in
       self?.debug("Issue files:\n\(hloader)")
       if hloader.errors > 0 { closure(hloader.lastError) }
       else { closure(nil) }
     }    
+  }
+  
+  /// Download files with storage type .issue
+  private func downloadIssueFiles(url: String, feed: String, issue: String, 
+    files: [FileEntry], closure: @escaping (Error?)->()) {
+    let idir = feeder.issueDir(feed: feed, issue: issue)
+    downloadIssueFiles(from: url, to: idir, files: files, closure: closure)
   }
 
   /// Download Issue files
