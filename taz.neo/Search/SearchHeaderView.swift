@@ -20,6 +20,8 @@ class SearchHeaderView: UIView {
   
   var statusLabelChanging = false
   
+  var statusLabelSetColor: Const.SetColor?
+  
   var filterActive:Bool = false { didSet {
     extendedSearchButton.tintColor
     = filterActive
@@ -116,9 +118,14 @@ class SearchHeaderView: UIView {
     pin(cancelButton.centerY, to: searchTextField.centerY)
 
     self.addBorder(.opaqueSeparator, 0.5, only: .bottom)
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
     setStatusLabelTopConstraint()
   }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    applyStyles()
+  }
+
   
   public override init(frame: CGRect) {
     super.init(frame:frame)
@@ -132,7 +139,7 @@ class SearchHeaderView: UIView {
 } // SearchHeaderView
 
 // MARK: - UITextFieldDelegate -
-extension SearchHeaderView : UIStyleChangeDelegate {
+extension SearchHeaderView {
   public func applyStyles(){
     self.backgroundColor
     = Const.SetColor.ios(.systemBackground).color
@@ -142,6 +149,7 @@ extension SearchHeaderView : UIStyleChangeDelegate {
     = Const.SetColor.taz(.textFieldBackground).color
     (searchTextField.leftView?.subviews.first as? UIImageView)?.tintColor
     = Const.SetColor.ios(.placeholderText).color
+    if statusLabel.textColor != .red { statusLabel.textColor = Const.SetColor.ios(.label).color}
   }
 }
 
@@ -240,7 +248,7 @@ extension SearchHeaderView {
     }
     if text == statusLabel.text { return }
     statusLabelChanging = true
-    let color = color ?? Const.SetColor.CTArticle.color
+    let color = color ?? Const.SetColor.ios(.label).color
     self.statusLabel.hideAnimated(duration: 0.3){ [weak self] in
       self?.statusLabel.text = text
       self?.statusLabel.textColor = color

@@ -12,7 +12,7 @@ import NorthLib
  The TextSettingsVC is responsible for setting text attributes
  like fontsize of Articles.
  */
-class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
+class TextSettingsVC: UIViewController {
   
   /// View responsible for text settings representation
   private var textSettings = TextSettingsView()
@@ -145,12 +145,15 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
     pin(textSettings.top, to: self.view.top)
     pin(textSettings.left, to: self.view.left, dist: 8)
     pin(textSettings.right, to: self.view.right, dist: -8)
-    registerForStyleUpdates()
   }
   
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    applyStyles()
+  }
 }
 
-class TextSettingsView: UIView, UIStyleChangeDelegate {
+class TextSettingsView: UIView {
   
   /// Default font
   private static let defaultFont = Const.Fonts.contentFont(size: 20)
@@ -280,7 +283,6 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
     verticalStack.setCustomSpacing(12.0, after: modeStack)
     addSubview(verticalStack)
     pin(verticalStack, to: self, dist: 4)
-    registerForStyleUpdates()
   }
   
   func applyStyles() {
@@ -300,6 +302,11 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
           $0.backgroundColor = Const.SetColor.ios(.tertiarySystemBackground).color
           $0.activeColor = Const.SetColor.ios(.tintColor).color
         }
+  }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    applyStyles()
   }
   
   public override init(frame: CGRect) {

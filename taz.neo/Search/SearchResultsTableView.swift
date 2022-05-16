@@ -229,7 +229,7 @@ class SearchResultsCell: UITableViewCell {
   }
 }
 
-extension SearchResultsCell: UIStyleChangeDelegate {
+extension SearchResultsCell {
   func applyStyles() {
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
     titleLabel.textColor = Const.SetColor.ios(.label).color

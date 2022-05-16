@@ -11,7 +11,7 @@ import NorthLib
 enum TitleAlignment { case left, right }
 
 /// The Header to show on top of sections and articles
-open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
+open class HeaderView: UIView,  Touchable {
   let maxOffset = 40.0
   
   private var beginScrollOffset: CGFloat?
@@ -150,7 +150,6 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
    }
   
   private func setup() {
-    registerForStyleUpdates()
     self.addSubview(titleLabel)
     self.addSubview(line)
     self.addSubview(subTitleLabel)
@@ -190,8 +189,13 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
     pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
     borderView = self.addBorderView(.opaqueSeparator, 0.5, edge: .bottom)
     updateUI()
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
   }
+  
+  open override func layoutSubviews() {
+    super.layoutSubviews()
+    applyStyles()
+  }
+
   
   public override init(frame: CGRect) {
     super.init(frame: frame)

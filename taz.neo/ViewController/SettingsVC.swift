@@ -190,10 +190,15 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     data = TableData(sectionContent: currentSectionContent())
     setup()
     applyStyles()
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    registerForStyleUpdates()
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
     initialTextNotificationSetting = isTextNotification
+  }
+  
+  open override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    applyStyles()
   }
   
   required public init(feederContext: FeederContext) {
