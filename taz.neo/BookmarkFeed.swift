@@ -133,7 +133,7 @@ public class BookmarkFeed: Feed, DoesLog {
         if issues.count > 0 {
           let title = art.title ?? art.html.name
           let teaser = art.teaser ?? ""
-          let sdate = art.primaryIssue.date.gDateString(tz: self.feeder.timeZone)
+          let sdate = art.issueDate.gDateString(tz: self.feeder.timeZone)
           html += """
             <a href="\(art.path)" class="RessortDiv">
               <div class="VerzeichnisArtikel eptPolitik">
@@ -237,7 +237,7 @@ public class BookmarkSection: Section {
   public var html: FileEntry
   public var images: [ImageEntry]? { nil }
   public var authors: [Author]? { nil }
-  public var primaryIssue: Issue
+  public var primaryIssue: Issue?
   
   public init(name: String, issue: Issue, html: FileEntry) {
     self.name = name
