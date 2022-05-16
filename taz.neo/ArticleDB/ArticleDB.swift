@@ -19,6 +19,9 @@ public class ArticleDB: Database {
   @discardableResult
   public init(name: String, closure: @escaping (Error?)->()) { 
     super.init(name: name, model: "ArticleDB") 
+    onVersionChange { [weak self] _ in
+      self?.mergeVersions()
+    }
     ArticleDB.singleton = self
     self.open { err in closure(err) }
   }    
@@ -890,7 +893,31 @@ public final class StoredArticle: Article, StoredObject {
     return ret
   }
   /// For now the primary Issue is assumed to be the first one stored
-  public var primaryIssue: Issue { issues[0] }
+  public var primaryIssue: Issue? { issues.count > 0 ? issues[0] : nil }
+  
+  public var dir: Dir {
+    guard let sdir = (html as? StoredFileEntry)?.dir
+    else { fatalError("FileEntry.dir is undefined") }
+    return Dir(sdir)
+  }
+  
+  public var path: String {
+    guard let path = (html as? StoredFileEntry)?.path
+    else { fatalError("FileEntry.path is undefined") }
+    return path
+  }
+  
+  public var baseURL: String {
+    if let s = pr.baseURL { return s }
+    else { return defaultBaseURL }
+  }
+  
+  public var issueDate: Date {
+    if let d = pr.issueDate { return d }
+    else { return defaultIssueDate }
+  }
+  
+  public var sectionTitle: String? { return pr.sectionTitle }
   
   public required init(persistent: PersistentArticle) { self.pr = persistent }
 
@@ -1288,7 +1315,31 @@ public final class StoredSection: Section, StoredObject {
       else { pr.navButton = nil }      
     }
   }
-  public var primaryIssue: Issue { StoredIssue(persistent: pr.issue!) }
+  public var primaryIssue: Issue? { StoredIssue(persistent: pr.issue!) }
+  
+  public var dir: Dir {
+    guard let sdir = (html as? StoredFileEntry)?.dir
+    else { fatalError("FileEntry.dir is undefined") }
+    return Dir(sdir)
+  }
+  
+  public var path: String {
+    guard let path = (html as? StoredFileEntry)?.path
+    else { fatalError("FileEntry.path is undefined") }
+    return path
+  }
+  
+  public var baseURL: String {
+    if let s = pr.baseURL { return s }
+    else { return defaultBaseURL }
+  }
+  
+  public var issueDate: Date {
+    if let d = pr.issueDate { return d }
+    else { return defaultIssueDate }
+  }
+  
+  public var sectionTitle: String? { return pr.sectionTitle }
 
   public var images: [ImageEntry]? { StoredImageEntry.imagesInSection(section: self) }
   public var authors: [Author]? { nil }
@@ -1968,6 +2019,11 @@ public final class StoredFeeder: Feeder, StoredObject {
     let feeders = get(name: object.title)
     if feeders.count > 0 { return feeders[0] }
     else { return nil }
+  }
+  
+  public static func all() -> [StoredFeeder] {
+    let request = fetchRequest
+    return get(request: request)
   }
   
   public required init(title: String, url: String, closure:
