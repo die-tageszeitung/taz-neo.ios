@@ -13,12 +13,13 @@ class SearchController: UIViewController {
   // MARK: *** Properties ***
   var feederContext: FeederContext
   
-  private var defaultSection: BookmarkSection
+  private var defaultSection: SearchSection
+  private var searchResultIssue: SearchResultIssue
   private var lastArticleShown: Article?
   
   private var articleVC:SearchResultArticleVc
   
-  var searchItem:SearchItem = SearchItem() {
+  var searchItem:SearchItem {
     didSet {
       updateArticleVcIfNeeded()
       var textColor:UIColor?
@@ -55,6 +56,7 @@ class SearchController: UIViewController {
           placeholderView.showAnimated()
         case .firstSearch:
           resultsTable.hideAnimated()
+          resultsTable.scrollTop()
           placeholderView.hideAnimated()
           centralActivityIndicator.isHidden = false
           centralActivityIndicator.startAnimating()
@@ -166,9 +168,15 @@ class SearchController: UIViewController {
   
   required init(feederContext: FeederContext) {
     self.feederContext = feederContext
-    defaultSection = BookmarkSection(name: "Suche", issue: SearchResultIssue.shared,
-                                     html: TmpFileEntry(name: "SearchTempSection.tmp"))
+    searchResultIssue = SearchResultIssue.shared
+    defaultSection = SearchSection(name: "Suche",
+                                   issue: searchResultIssue,
+                                   html: TmpFileEntry(name: "SearchTempSection.tmp"))
+    searchResultIssue.sections = [defaultSection]
+    searchItem
+    = SearchItem(articlePrimaryIssue:searchResultIssue)
     articleVC = SearchResultArticleVc(feederContext: self.feederContext)
+    articleVC.baseDir = Dir.searchResultsPath
     
     super.init(nibName: nil, bundle: nil)
     
@@ -191,7 +199,7 @@ extension SearchController {
     guard let allArticles = searchItem.allArticles else { return }
     defaultSection.articles = allArticles
     articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
-    SearchResultIssue.shared.search = self.searchItem
+    searchResultIssue.search = self.searchItem
     articleVC.searchContents = allArticles
     articleVC.reload()
   }
@@ -208,7 +216,7 @@ extension SearchController {
       }
       self.articleVC.reload()
       if self.articleVC.parentViewController == nil {
-//        this.setHeader(artIndex: idx)
+//        setHeader(artIndex: idx)??
         self.navigationController?.pushViewController(self.articleVC, animated: true)
       }
     }
@@ -316,7 +324,7 @@ extension SearchController : UITextFieldDelegate {
 // MARK: - ArticleVCdelegate -
 extension SearchController: ArticleVCdelegate {
   public var issue: Issue {
-    return SearchResultIssue.shared
+    return searchResultIssue
   }
   
   public var section: Section? {
@@ -336,7 +344,7 @@ extension SearchController: ArticleVCdelegate {
   
   public var article2section: [String : [Section]] {
     debug("TODO:: article2section requested")
-    if let s = SearchResultIssue.shared.sections, let artArray = searchItem.allArticles {
+    if let s = searchResultIssue.sections, let artArray = searchItem.allArticles {
       var d : [String : [Section]]  = [:]
       for art in artArray {
         d[art.html.fileName] = s
@@ -387,31 +395,6 @@ extension GqlSearchHit {
     let f = File(dir: Dir.searchResultsPath, fname: article.html.fileName)
     if !f.exists { return nil }
     return Dir.searchResultsPath + "/" + article.html.fileName
-  }
-}
-
-/// A temporary file entry
-public class TmpFileEntry: FileEntry {
-  public var name: String
-  public var storageType: FileStorageType { .unknown }
-  public var moTime: Date
-  public var size: Int64 { 0 }
-  public var sha256: String { "" }
-  public var path: String
-  
-  /// Read/write access to contents of file
-  public var content: String? {
-    get { File(path).string }
-    set {
-      if let content = newValue { File(path).string = content }
-      else { File(path).remove() }
-    }
-  }
-  
-  public init(name: String) {
-    self.name = name
-    self.path = "\(Dir.tmpPath)/\(name)"
-    self.moTime = Date()
   }
 }
 

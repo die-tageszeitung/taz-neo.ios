@@ -7,9 +7,14 @@
 //
 
 import NorthLib
+import UIKit
 
 // MARK: - SearchResultArticleVc
 class SearchResultArticleVc : ArticleVC {
+  
+  /// CSS Margins for Articles and Sections
+  public class override var topMargin: CGFloat { return 75 }
+  
   var navigationBarHiddenRestoration:Bool?
   var maxResults:Int = 0
   var searchClosure: (()->())?

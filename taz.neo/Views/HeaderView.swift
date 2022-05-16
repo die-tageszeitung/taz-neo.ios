@@ -74,6 +74,7 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
 
   private var titleTopConstraint: NSLayoutConstraint?
   private var titleBottomConstraint: NSLayoutConstraint?
+  private var titlePageNumberLabelBottomConstraint: NSLayoutConstraint?
   var leftConstraint: NSLayoutConstraint?
   
   var isExtraLargeTitle: Bool { get { return subTitle != nil && isLargeTitleFont }}
@@ -126,6 +127,8 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
     subTitleLabel.contentFont(size: subTitleFontSizeDefault)
     pageNumberLabel.contentFont(size: subTitleFontSizeDefault)
     lastAnimationRatio = 0.0
+    titlePageNumberLabelBottomConstraint?.constant =
+    (pageNumberLabel.font.pointSize - titleLabel.font.pointSize)/3
     self.subTitleLabel.alpha = 1.0
     self.line.alpha = 1.0
   }
@@ -170,6 +173,7 @@ open class HeaderView: UIView,  UIStyleChangeDelegate, Touchable {
     
     pin(subTitleLabel.bottom, to: self.bottom, dist: -5)
     
+    titlePageNumberLabelBottomConstraint =
     pin(pageNumberLabel.bottom, to: titleLabel.bottom, dist: 0)
     leftConstraint = pin(pageNumberLabel.left, to: self.left, dist:8)
     

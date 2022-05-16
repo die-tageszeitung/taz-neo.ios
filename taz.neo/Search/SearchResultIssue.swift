@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import NorthLib
 
 public class SearchResultIssue: BookmarkIssue {
   
@@ -20,11 +21,6 @@ public class SearchResultIssue: BookmarkIssue {
       return true
     }
     set{}
-  }
-  
-  static let shared = SearchResultIssue()
-  private init(){
-    super.init(feed: TazAppEnvironment.sharedInstance.feederContext!.defaultFeed)
   }
   
   public func baseUrlForFiles(_ files: [FileEntry]) -> String {
@@ -42,7 +38,16 @@ public class SearchResultIssue: BookmarkIssue {
     }
     return ""
   }
-  public var search:SearchItem?
+  
+  public override var dir: Dir { Dir.searchResults }
+  
+  public var search:SearchItem? 
+  
+  static let shared = SearchResultIssue()
+  private init(){
+    super.init(feed: TazAppEnvironment.sharedInstance.feederContext!.defaultFeed)
+  }
+
 }
 
 

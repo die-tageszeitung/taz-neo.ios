@@ -185,7 +185,8 @@ public class GqlSearchResponseWrapper: GQLObject {
 }
 
 public class SearchItem: DoesLog {
-    
+  
+  var articlePrimaryIssue: SearchResultIssue
   public fileprivate(set) var searching: Bool = false
   
   fileprivate static let itemsPerFetch:Int = 20///like API default
@@ -293,6 +294,10 @@ public class SearchItem: DoesLog {
     ){authInfo {\(GqlAuthInfo.fields)} total, totalFound, text, sessionId searchHitList{\(GqlSearchHit.fields)}}
     """
     }
+  }
+  
+  init(articlePrimaryIssue: SearchResultIssue){
+    self.articlePrimaryIssue = articlePrimaryIssue
   }
 }
 

@@ -36,6 +36,7 @@
 		4D73D832282D309A0079FF27 /* SearchResultIssue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D73D82C282D309A0079FF27 /* SearchResultIssue.swift */; };
 		4D73D833282D309A0079FF27 /* SearchController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D73D82D282D309A0079FF27 /* SearchController.swift */; };
 		4D861A65282D399D008FED17 /* NorthLib in Frameworks */ = {isa = PBXBuildFile; productRef = 4D861A64282D399D008FED17 /* NorthLib */; };
+		4DDCC0B328323F4600139F44 /* SearchFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DDCC0B228323F4600139F44 /* SearchFeed.swift */; };
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
 		7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968C25CC605D00508DE8 /* FeedbackViewController.swift */; };
@@ -136,6 +137,7 @@
 		4D73D82C282D309A0079FF27 /* SearchResultIssue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultIssue.swift; sourceTree = "<group>"; };
 		4D73D82D282D309A0079FF27 /* SearchController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchController.swift; sourceTree = "<group>"; };
 		4D861A66282D39AD008FED17 /* NorthLib */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = NorthLib; path = ../NorthLib; sourceTree = "<group>"; };
+		4DDCC0B228323F4600139F44 /* SearchFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFeed.swift; sourceTree = "<group>"; };
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
@@ -442,6 +444,7 @@
 				AEBAF587219ACEC700566205 /* Supporting Files */,
 				C794F23424FED184007168AC /* Helper.swift */,
 				AE4C4FF826A1ABD9006079C8 /* BookmarkFeed.swift */,
+				4DDCC0B228323F4600139F44 /* SearchFeed.swift */,
 				94487DAB274BCCE10066BCD0 /* AppHelper.swift */,
 			);
 			path = taz.neo;
@@ -708,6 +711,7 @@
 				AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */,
 				AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */,
 				00E3D2A124E68F1B00AE075A /* ConnectTazIdView.swift in Sources */,
+				4DDCC0B328323F4600139F44 /* SearchFeed.swift in Sources */,
 				08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

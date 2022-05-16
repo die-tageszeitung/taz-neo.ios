@@ -58,8 +58,8 @@ public class ContentUrl: WebViewUrl, DoesLog {
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   /// CSS Margins for Articles and Sections
-  public class var TopMargin: CGFloat { return 40 }
-  public static let BottomMargin: CGFloat = 50
+  public class var topMargin: CGFloat { return 40 }
+  public static let bottomMargin: CGFloat = 50
 
 
   public var feederContext: FeederContext  
@@ -111,8 +111,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func resetIssueList() { delegate.resetIssueList() }  
 
   /// Write tazApi.css to resource directory
-  public func writeTazApiCss(topMargin: CGFloat = TopMargin,
-                             bottomMargin: CGFloat = BottomMargin, callback: (()->())? = nil) {
+  public func writeTazApiCss(topMargin: CGFloat? = nil,
+                             bottomMargin: CGFloat? = nil, callback: (()->())? = nil) {
+    let topMargin = topMargin ?? Self.topMargin
+    let bottomMargin = bottomMargin ?? Self.bottomMargin
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
     let percentageMaxWidth = Int(dfl["articleColumnPercentageWidth"]!)!
