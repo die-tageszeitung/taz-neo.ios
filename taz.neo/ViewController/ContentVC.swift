@@ -201,8 +201,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let _ = self else { return NSNull() }
       if let args = jscall.args, args.count > 1,
          let name = args[0] as? String,
-         let hasBookmark = args[1] as? String,
-         let bm = Bool(hasBookmark) {
+         let hasBookmark = args[1] as? Int {
+        let bm = hasBookmark != 0 
         let arts = StoredArticle.get(file: name)
         if arts.count > 0 { 
           arts[0].hasBookmark = bm 
@@ -231,6 +231,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       };
       tazApi.pageReady = function (percentSeen, position, npages) {
         tazApi.call("pageReady", undefined, percentSeen, position, npages);
+      };
+      tazApi.setBookmark = function (artName, hasBookmark) {
+        tazApi.call("setBookmark", undefined, artName, hasBookmark);
       };
     """
     tazApiJs.string = JSBridgeObject.js + apiJs
