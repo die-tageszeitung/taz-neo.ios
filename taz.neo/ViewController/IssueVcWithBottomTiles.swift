@@ -160,12 +160,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
     showPdfInfoIfNeeded()
     setupPullToRefresh()
-    if gt_iOS13 == false {
-      let longTouch = UILongPressGestureRecognizer(target: self,
-                        action: #selector(actionMenuTapped))
-      longTouch.numberOfTouchesRequired = 1
-      collectionView.addGestureRecognizer(longTouch)
-    }
     //update download Status Button in issueCarousel
     Notification.receive("issue"){ [weak self] notif in
       guard let i = notif.object as? Issue else { return }
@@ -260,28 +254,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
 
 // MARK: - Cell Long Tap
 extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
-  
-  
-  /// iOS 12 for item long tap
-  /// - Parameter sender: UILongPressGestureRecognizer added to collectionView in viewDidLoad
-  @objc func actionMenuTapped(_ sender: UILongPressGestureRecognizer) {
-    if open { return } else { open = true }
-    if sender.state != .began { return }
-    
-    let p = sender.location(in: self.collectionView)
-    guard let indexPath = self.collectionView.indexPathForItem(at: p) else { return }
-    let issue = issues.valueAt(indexPath.row)
-
-    let menu = createMenuItems(issue, indexPath: indexPath)
-    
-    var actionMenu: [UIAlertAction] = []
-    for m in menu {
-      actionMenu += Alert.action(m.title, closure: m.closure)
-    }
-    Alert.actionSheet(actions: actionMenu) { [weak self] in
-      self?.open = false
-    }
-  }
 
   // Helper alias for iOS 12 vs. > iOS 12
   typealias MenuItem = (title: String, icon: String, closure: (String)->())
@@ -313,11 +285,9 @@ extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
         }
       }))
     }
-    if gt_iOS13 {
-      items.append((title: "Abbrechen",
-                    icon: "xmark.circle",
-                    closure: {_ in }))
-    }
+    items.append((title: "Abbrechen",
+                  icon: "xmark.circle",
+                  closure: {_ in }))
     return items
   }
   

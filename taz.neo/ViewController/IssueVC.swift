@@ -608,7 +608,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
     }
     
-    issueCarousel.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
+    issueCarousel.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
       self.updateToolbarHomeIcon()

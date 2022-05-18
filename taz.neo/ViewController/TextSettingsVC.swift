@@ -228,13 +228,13 @@ class TextSettingsView: UIView {
     
     decreaseWith.inset = 0.435
     increaseWith.inset = 0.435
-    decreaseWith.buttonView.name = "arrow_right_arrow_left_square"
-    increaseWith.buttonView.name = "arrow_right_arrow_left_square_fill"
+    decreaseWith.buttonView.symbol = "arrow.right.arrow.left.square"
+    increaseWith.buttonView.symbol = "arrow.right.arrow.left.square.fill"
     
     textAlignLeft.inset = 0.435
     textAlignJustify.inset = 0.435
-    textAlignLeft.buttonView.image = UIImage(name: "text.alignleft")
-    textAlignJustify.buttonView.image = UIImage(name: "text.justify")
+    textAlignLeft.buttonView.symbol = "text.alignleft"
+    textAlignJustify.buttonView.symbol = "text.justify"
           
     day.buttonView.text = "Tag"
     day.buttonView.font = TextSettingsView.defaultFont

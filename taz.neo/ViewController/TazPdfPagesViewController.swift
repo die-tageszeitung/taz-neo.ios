@@ -267,11 +267,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
  
   // MARK: - updateMenuItems
   func updateMenuItems(updatedSizeIsLandscape: Bool? = nil){
-    let artikelansicht = gt_iOS13 ? "Artikelansicht" : articleFromPdf
-                                                     ? "Artikelansicht ausschalten"
-                                                     : "Artikelansicht einschalten"
     self.menuItems = [
-      (artikelansicht,
+      ("Artikelansicht",
        articleFromPdf ? "checkmark" : "",
        { [weak self] _ in
         guard let self = self else { return }
@@ -419,7 +416,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     setupToolbar()
     setupSlider(sliderContent: thumbnailController)
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    registerForStyleUpdates()
   }
   
   // MARK: - setupSlider

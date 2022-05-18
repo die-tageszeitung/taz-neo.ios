@@ -21,7 +21,6 @@
 		00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A624E68F4600AE075A /* LoginView.swift */; };
 		00E3D2A924E68F5500AE075A /* PwForgottView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A824E68F5500AE075A /* PwForgottView.swift */; };
 		080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
-		08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */; };
 		08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */; };
 		4D308ED6283404C700529592 /* GqlFeederSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308ED4283404C700529592 /* GqlFeederSearch.swift */; };
 		4D308ED7283404C700529592 /* SearchFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308ED5283404C700529592 /* SearchFeed.swift */; };
@@ -122,7 +121,6 @@
 		00E3D2A624E68F4600AE075A /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		00E3D2A824E68F5500AE075A /* PwForgottView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PwForgottView.swift; sourceTree = "<group>"; };
 		080271C624ADDD68002CD2F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Localizable.strings; sourceTree = "<group>"; };
-		08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = FallbackAssets.xcassets; sourceTree = "<group>"; };
 		08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdController.swift; sourceTree = "<group>"; };
 		4D308ED4283404C700529592 /* GqlFeederSearch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GqlFeederSearch.swift; sourceTree = "<group>"; };
 		4D308ED5283404C700529592 /* SearchFeed.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchFeed.swift; sourceTree = "<group>"; };
@@ -465,7 +463,6 @@
 				AEBAF56E219ACD1A00566205 /* Assets.xcassets */,
 				AEBAF573219ACD1A00566205 /* Info.plist */,
 				AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */,
-				08BB4AC824CEC26800B7A6B6 /* FallbackAssets.xcassets */,
 				948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */,
 			);
 			path = "Supporting Files";
@@ -569,7 +566,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
-				08BB4AC924CEC26800B7A6B6 /* FallbackAssets.xcassets in Resources */,
 				773D56472614A4DF00B42FEF /* BundledResources in Resources */,
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,

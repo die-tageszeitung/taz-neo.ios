@@ -470,7 +470,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     
     displayUrls()
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    registerForStyleUpdates()
   }
   
   public func setupSlider() {

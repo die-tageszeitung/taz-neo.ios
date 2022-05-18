@@ -491,7 +491,7 @@ extension TazAppEnvironment {
 }
 extension TazAppEnvironment : UIStyleChangeDelegate {
   func applyStyles() {
-    if let img  = UIImage(named:"xmark")?
+    if let img  = UIImage(name:"xmark")?
       .imageWithInsets(UIEdgeInsets(top: 1, left: 9, bottom: 1, right: 9),
                        tintColor: Const.SetColor.taz(.textFieldClear).color) {
       UIButton.appearance(whenContainedInInstancesOf: [UITextField.self]).setImage(img, for: .normal)

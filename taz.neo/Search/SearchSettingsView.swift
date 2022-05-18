@@ -374,13 +374,13 @@ class TazCell: UITableViewCell, UIStyleChangeDelegate {
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
     setup()
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    registerForStyleUpdates()
   }
   
   required init?(coder aDecoder: NSCoder) {
     super.init(coder: aDecoder)
     setup()
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    registerForStyleUpdates()
   }
 }
 
@@ -407,7 +407,7 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
     self.contentView.layoutMargins.left = Const.Size.DefaultPadding
     self.contentView.layoutMargins.right = Const.Size.DefaultPadding
     self.rotateChevron()
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    registerForStyleUpdates()
   }
   
   var collapsed: Bool = true {
@@ -527,7 +527,7 @@ class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
     pin(toCloseLabel.centerY, to: toLabel.centerY)
     pin(toPicker.top, to:toLabel.bottom, dist: 15)
     pin(toPicker, to: self, exclude: .top)
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    registerForStyleUpdates()
   }
   
   override init(frame: CGRect) {
