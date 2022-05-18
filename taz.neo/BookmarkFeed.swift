@@ -81,8 +81,8 @@ public class BookmarkFeed: Feed, DoesLog {
     
     <style>
       div.collapse {
-        transition: height 2.5s ease;
-        overflow  : hidden;
+        height: 0px;
+        transition: height 1s ease;
       }
       p.issueDate {
         float: left;
@@ -107,12 +107,11 @@ public class BookmarkFeed: Feed, DoesLog {
     </style>
   
     <script>
+      /*
+      $('.trash').click(function(e) {
+      })
+      */
       function deleteBookmark(aname) {
-        /* document.getElementById(aname) */
-        /*
-        document.getElementById("content").children[0].classList.add("collapse");
-        document.getElementById("content").children[0].style.height = "0px";
-        */
         tazApi.setBookmark(aname, false);
       }
     </script>
