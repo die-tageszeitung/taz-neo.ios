@@ -80,6 +80,10 @@ public class BookmarkFeed: Feed, DoesLog {
     <link rel="stylesheet" type="text/css" href="resources/tazApiSection.css">
     
     <style>
+      div.collapse {
+        transition: height 2.5s ease;
+        overflow  : hidden;
+      }
       p.issueDate {
         float: left;
         font-family           : AktivGrotesk, taz;
@@ -90,14 +94,26 @@ public class BookmarkFeed: Feed, DoesLog {
       }
       img.trash {
         float: right;
-        margin: -10px 0 0 15px;
-        width: 40px
+        margin: -20px 0 0 15px;
+        width: 50px
+      }
+      img.picture {
+        float: right;
+        margin: 0 0 10px 10px;
+        width: 65px;
+        height: 65px;
+        object-fit: cover;
       }
     </style>
   
     <script>
       function deleteBookmark(aname) {
-        console.log("delete: " + aname)
+        /* document.getElementById(aname) */
+        /*
+        document.getElementById("content").children[0].classList.add("collapse");
+        document.getElementById("content").children[0].style.height = "0px";
+        */
+        tazApi.setBookmark(aname, false);
       }
     </script>
   
@@ -120,6 +136,15 @@ public class BookmarkFeed: Feed, DoesLog {
     return "<p class=\"VerzeichnisAutor\">\(ret.xmlEscaped())</p>"
   }
   
+  /// Get image of first picture (if available) with markup
+  public func getImage(art: Article) -> String {
+    if let imgs = art.images, imgs.count > 0 {
+      let fn = imgs[0].name
+      return "<img class=\"picture\" src=\"\(art.dir.path)/\(fn)\">"
+    }
+    else { return "" }
+  }
+  
   /// Generate HTML for given Section
   public func genHtml(section: BookmarkSection) {
     if let articles = section.articles as? [StoredArticle] {
@@ -135,19 +160,18 @@ public class BookmarkFeed: Feed, DoesLog {
           let teaser = art.teaser ?? ""
           let sdate = art.issueDate.gDateString(tz: self.feeder.timeZone)
           html += """
+          <div class="VerzeichnisArtikel eptPolitik">
             <a href="\(art.path)" class="RessortDiv">
-              <div class="VerzeichnisArtikel eptPolitik">
-                <h2 class="Titel">\(title.xmlEscaped())</h2>
-                <h4 class="Unterzeile">\(teaser.xmlEscaped())</h4>
-                \(getAuthors(art: art))
-                <img class="trash" src="Trash.svg" 
-                 onClick='deleteBookmark("\(art.html.name)")'>
-                <p class="issueDate">
-                  \(sdate)
-                </p>
-                <div class="VerzeichnisArtikelEnde"></div>
-              </div>
+              \(getImage(art: art))
+              <h2 class="Titel">\(title.xmlEscaped())</h2>
+              <h4 class="Unterzeile">\(teaser.xmlEscaped())</h4>
+              \(getAuthors(art: art))
             </a>
+            <img class="trash" src="Trash.svg" 
+              onClick='deleteBookmark("\(art.html.name)")'>
+            <p class="issueDate">\(sdate)</p>
+            <div class="VerzeichnisArtikelEnde"></div>
+          </div>
           """
         }
       }
