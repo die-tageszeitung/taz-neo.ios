@@ -55,7 +55,7 @@ class SearchArticle:GqlArticle{
   
   var isDownloaded = false
   
-  override var primaryIssue: Issue {
+  override var primaryIssue: Issue? {
     get{ SearchResultIssue.shared }
     set{}
   }

@@ -218,8 +218,8 @@ class GqlAuthor: Author, GQLObject {
 class GqlArticle: Article, GQLObject {
   var realPrimaryIssue: GqlIssue?
   /// Issue where this Article is stored
-  var primaryIssue: Issue { 
-    get { realPrimaryIssue! } 
+  var primaryIssue: Issue? { 
+    get { realPrimaryIssue } 
     set { realPrimaryIssue = (newValue as! GqlIssue) }
   }
   /// File storing article HTML
@@ -259,8 +259,8 @@ class GqlArticle: Article, GQLObject {
 class GqlSection: Section, GQLObject {
   var realPrimaryIssue: GqlIssue?
   /// Issue where this Section is stored
-  var primaryIssue: Issue { 
-    get { realPrimaryIssue! } 
+  var primaryIssue: Issue? { 
+    get { realPrimaryIssue } 
     set { realPrimaryIssue = (newValue as! GqlIssue) }
   }
   /// File storing section HTML
@@ -430,7 +430,7 @@ class GqlIssue: Issue, GQLObject {
     case sectionList
     case pageList
   }
- 
+
   required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     sDate = try container.decode(String.self, forKey: .sDate)

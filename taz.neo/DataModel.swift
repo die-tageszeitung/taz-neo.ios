@@ -304,11 +304,17 @@ public protocol Content {
   /// List of authors (if applicable)
   var authors: [Author]? { get }
   /// Issue where Content data is stored
-  var primaryIssue: Issue { get }
+  var primaryIssue: Issue? { get }
   /// Directory where Content is stored
   var dir: Dir { get }
   /// Absolute pathname of content
   var path: String { get }
+  /// Date of Issue encompassing this Content
+  var issueDate: Date { get }
+  /// Title of Section refering to this content
+  var sectionTitle: String? { get }
+  /// BaseURL of server for this content 
+  var baseURL: String { get }
 }
 
 public extension Content {
@@ -324,11 +330,34 @@ public extension Content {
   }
   
   /// Directory where Content is stored
-  var dir: Dir { primaryIssue.dir }
+  var dir: Dir { 
+    guard let issue = primaryIssue
+    else { fatalError("Undefined primaryIssue") }
+    return issue.dir 
+  }
   
   /// Absolute pathname of content
   var path: String { "\(dir.path)/\(html.name)" }
   
+  /// Date of Issue encompassing this Content (refering to primaryIssue)
+  var defaultIssueDate: Date { 
+    guard let issue = primaryIssue
+    else { fatalError("Undefined primaryIssue") }
+    return issue.date
+  }
+  var issueDate: Date { defaultIssueDate }
+  
+  /// BaseURL of server for this content 
+  var defaultBaseURL: String { 
+    guard let issue = primaryIssue
+    else { fatalError("Undefined primaryIssue") }
+    return issue.baseUrl
+  }
+  var baseURL: String { defaultBaseURL }
+  
+  /// Title of Section refering to this content
+  var sectionTitle: String? { nil }
+ 
   /// All files incl. normal res photos
   var files: [FileEntry] {
     var ret: [FileEntry] = [html]
@@ -380,7 +409,7 @@ public extension Content {
     }
     return ret
   }
-  
+
   func authors(_ separator: String = ", ") ->  String? {
     guard let a = authors else { return nil }
     return a.map{ $0.name ?? "" }.joined(separator: separator)

@@ -113,7 +113,7 @@ open class ArticleVC: ContentVC {
         if player.isPlaying() { async { player.stop() } }
         if art.canPlayAudio {
           self.playButton.buttonView.name = "audio"
-          self.onPlay { _ in
+          self.onPlay { _ in 
             if let title = self.header.title ?? art.title {
               art.toggleAudio(issue: self.issue, sectionName: title )
             }
@@ -152,19 +152,21 @@ open class ArticleVC: ContentVC {
     
   // Define Header elements
   func setHeader(artIndex: Int) {
-    if let art = article, 
-      let sections = adelegate?.article2section[art.html.name],
-      sections.count > 0 {
-      let section = sections[0]
-      if let title = section.title, let articles = section.articles {
-        var i = 0
-        for a in articles {
-          if a.html.name == article?.html.name { break }
-          i += 1
-        }
-        header.title = "\(title)"
-        header.pageNumber = "\(i+1)/\(articles.count)"
-      }        
+    if let art = article {
+      if let sections = adelegate?.article2section[art.html.name],
+         sections.count > 0 {
+        let section = sections[0]
+        if let title = section.title, let articles = section.articles {
+          var i = 0
+          for a in articles {
+            if a.html.name == article?.html.name { break }
+            i += 1
+          }
+          if let st = art.sectionTitle { header.title = st }
+          else { header.title = "\(title)" }
+          header.pageNumber = "\(i+1)/\(articles.count)"
+        }        
+      }
     }
   }
   
