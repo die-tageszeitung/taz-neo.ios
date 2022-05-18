@@ -469,7 +469,7 @@ public class FeedbackViewController : UIViewController{
       self?.feedbackView?.logAttachmentButton.removeFromSuperview()
       self?.logData = nil
     }
-    menu.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") { (_) in }
+    menu.addMenuItem(title: "Abbrechen", icon: "xmark.circle") { (_) in }
     return menu
   }()
   
@@ -484,7 +484,7 @@ public class FeedbackViewController : UIViewController{
       self?.screenshot = nil
       //self.screenshot = nil
     }
-    menu.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") { (_) in }
+    menu.addMenuItem(title: "Abbrechen", icon: "xmark.circle") { (_) in }
     return menu
   }()
   
