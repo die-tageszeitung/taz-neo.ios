@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "text.alignleft.pdf",
+      "filename" : "download-iOS-2.svg",
       "idiom" : "universal"
     }
   ],
@@ -10,6 +10,7 @@
     "version" : 1
   },
   "properties" : {
+    "preserves-vector-representation" : true,
     "template-rendering-intent" : "template"
   }
 }

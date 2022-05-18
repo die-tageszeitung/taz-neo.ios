@@ -410,6 +410,11 @@ public extension Content {
     return ret
   }
 
+  func authors(_ separator: String = ", ") ->  String? {
+    guard let a = authors else { return nil }
+    return a.map{ $0.name ?? "" }.joined(separator: separator)
+  }
+
 } // Content
 
 /**
@@ -443,6 +448,11 @@ public extension Article {
   // By default Articles don't have bookmarks
   var hasBookmark: Bool { get { false } set {} }
   
+  func isEqualTo(otherArticle: Article) -> Bool{
+    return self.html.sha256 == otherArticle.html.sha256
+    && self.html.name == otherArticle.html.name
+    && self.title == otherArticle.title
+  }
 } // Article
 
 /**
@@ -1057,6 +1067,9 @@ extension Feeder {
   
   /// Returns directory where all issue specific data is stored
   public func issueDir(issue: Issue) -> Dir {
+    if issue is SearchResultIssue {
+      return Dir.searchResults
+    }
     return issueDir(feed: issue.feed.name, issue: date2a(issue.date))
   }
   

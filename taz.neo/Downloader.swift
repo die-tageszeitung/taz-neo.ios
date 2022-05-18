@@ -174,6 +174,25 @@ open class Downloader: DoesLog {
     if payloadQueue.count == 1 { pe.download(dl: self) }
   }
   
+  /// Download files for temp Articles (from Search)
+  public func downloadSearchResultFiles(url: String, files: [FileEntry], closure: @escaping (Error?)->()) {
+    let idir = Dir.searchResults
+    idir.create()
+    
+    let rlink = File(dir: idir.path, fname: "resources")
+    let glink = File(dir: idir.path, fname: "global")
+    if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
+    if !glink.isLink { glink.link(to: feeder.globalDir.path) }
+
+    if files.count == 0 { closure(nil); return }
+    let hloader = HttpLoader(session: dlSession, baseUrl: url, toDir: Dir.searchResultsPath)
+    hloader.download(files) { [weak self] hl in
+      self?.debug("Temp Article Files load Stat:\(hloader)\n             targetDir:\(idir.path)")
+      if hloader.errors > 0 { closure(hloader.lastError) }
+      else { closure(nil) }
+    }
+  }
+  
   /// Download Issue files to directory
   public func downloadIssueFiles(from url: String, to: Dir, files: [FileEntry], 
                                  closure: @escaping (Error?)->()) {
@@ -198,6 +217,12 @@ open class Downloader: DoesLog {
   /// Download Issue files
   public func downloadIssueFiles(issue: Issue, files: [FileEntry], 
                                  closure: @escaping (Error?)->()) {
+    if let di = issue as? SearchResultIssue {
+      self.downloadSearchResultFiles(url: di.baseUrlForFiles(files),
+                         files: files, closure: closure)
+      return
+    }
+    
     let name = self.feeder.date2a(issue.date)
     self.downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, 
       issue: name, files: files, closure: closure)   

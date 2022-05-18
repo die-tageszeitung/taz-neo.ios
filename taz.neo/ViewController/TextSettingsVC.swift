@@ -12,7 +12,7 @@ import NorthLib
  The TextSettingsVC is responsible for setting text attributes
  like fontsize of Articles.
  */
-class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
+class TextSettingsVC: UIViewController {
   
   /// View responsible for text settings representation
   private var textSettings = TextSettingsView()
@@ -145,12 +145,15 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
     pin(textSettings.top, to: self.view.top)
     pin(textSettings.left, to: self.view.left, dist: 8)
     pin(textSettings.right, to: self.view.right, dist: -8)
-    registerForStyleUpdates()
   }
   
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    applyStyles()
+  }
 }
 
-class TextSettingsView: UIView, UIStyleChangeDelegate {
+class TextSettingsView: UIView {
   
   /// Default font
   private static let defaultFont = Const.Fonts.contentFont(size: 20)
@@ -225,13 +228,13 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
     
     decreaseWith.inset = 0.435
     increaseWith.inset = 0.435
-    decreaseWith.buttonView.name = "arrow_right_arrow_left_square"
-    increaseWith.buttonView.name = "arrow_right_arrow_left_square_fill"
+    decreaseWith.buttonView.symbol = "arrow.right.arrow.left.square"
+    increaseWith.buttonView.symbol = "arrow.right.arrow.left.square.fill"
     
     textAlignLeft.inset = 0.435
     textAlignJustify.inset = 0.435
-    textAlignLeft.buttonView.image = UIImage(name: "text.alignleft")
-    textAlignJustify.buttonView.image = UIImage(name: "text.justify")
+    textAlignLeft.buttonView.symbol = "text.alignleft"
+    textAlignJustify.buttonView.symbol = "text.justify"
           
     day.buttonView.text = "Tag"
     day.buttonView.font = TextSettingsView.defaultFont
@@ -280,7 +283,6 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
     verticalStack.setCustomSpacing(12.0, after: modeStack)
     addSubview(verticalStack)
     pin(verticalStack, to: self, dist: 4)
-    registerForStyleUpdates()
   }
   
   func applyStyles() {
@@ -300,6 +302,11 @@ class TextSettingsView: UIView, UIStyleChangeDelegate {
           $0.backgroundColor = Const.SetColor.ios(.tertiarySystemBackground).color
           $0.activeColor = Const.SetColor.ios(.tintColor).color
         }
+  }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    applyStyles()
   }
   
   public override init(frame: CGRect) {

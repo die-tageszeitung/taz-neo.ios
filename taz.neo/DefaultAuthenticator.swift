@@ -255,7 +255,7 @@ public class DefaultAuthenticator: Authenticator {
             for v in view.subviews {
               if v.typeName == "UIDimmingView" {
                 v.onTapping { rec in
-                  if MainNC.singleton.isErrorReporting { return }
+                  if TazAppEnvironment.sharedInstance.isErrorReporting { return }
                   v.removeGestureRecognizer(rec)
                   registerController.dismiss(animated: true)
                 }

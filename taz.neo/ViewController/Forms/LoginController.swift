@@ -33,7 +33,7 @@ class LoginController: FormsController {
       return
     }
     
-    if (ui.idInput.text ?? "").isNumber {
+    if !App.isAvailable(.ABOIDLOGIN) && (ui.idInput.text ?? "").isNumber {
       if let txt = ui.idInput.text, let i = Int32(txt){
         self.queryCheckSubscriptionId(aboId: "\(i)" ,aboIdPass: ui.passInput.text ?? "")
       } else {

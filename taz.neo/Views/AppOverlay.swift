@@ -42,7 +42,7 @@ public class WaitingAppOverlay {
       }
       
       if showSpinner {
-        let spinner = UIActivityIndicatorView(style: .white)
+        let spinner = UIActivityIndicatorView()
         layer.addSubview(spinner)
         spinner.center()
         spinner.startAnimating()

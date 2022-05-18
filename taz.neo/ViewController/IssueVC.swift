@@ -28,7 +28,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public var issueCarousel = IssueCarousel()
   
   /// Process Indicator for empty Carousel
-  var carouselActivityIndicator:UIActivityIndicatorView? = UIActivityIndicatorView(style: .whiteLarge)
+  var carouselActivityIndicator:UIActivityIndicatorView? = UIActivityIndicatorView(style: .large)
   
   /// the spacing between issueCarousel and the Toolbar
   var issueCarouselLabelWrapperHeight: CGFloat = 120
@@ -40,6 +40,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     get { issueCarousel.index! }
     set { issueCarousel.index = newValue; updateToolbarHomeIcon() }
   }
+  
+  var verticalPaddings: CGFloat { get {
+    let insets = self.navigationController?.view.safeAreaInsets ?? UIWindow.safeInsets
+    return 42 + insets.top + insets.bottom
+  }}
   
   public var safeIndex: Int? { get { return issueCarousel.index }}
   
@@ -77,12 +82,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.reset()
     self.collectionView.reloadData()
   }
-  
+    
   func updateToolbarHomeIcon(){
-    toolbarHomeButton?.buttonView.color
-      = self.safeIndex == 0 && isUp
-      ? Const.Colors.darkSecondaryText.withAlphaComponent(0.2)
-      : Const.Colors.darkSecondaryText.withAlphaComponent(0.9)
+    self.tabBarItem.image
+    = self.safeIndex == 0 && isUp
+    ? UIImage(named: "home-fill")
+    : UIImage(named: "home")
   }
   
   /// Reset carousel images
@@ -388,7 +393,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       let file = File(fn)
       let ext = file.extname
       let dialogue = ExportDialogue<Any>()
-      let name = "\(issue.feed.name)-\(issue.date.isoDate(tz: self.feeder.timeZone)).\(ext)"
+      let name = "\(issue.feed.name)-\(issue.date.isoDate(tz: self.feeder.timeZone)).\(ext ?? "")"
       dialogue.present(item: file.url, subject: name)
     }
   }
@@ -492,14 +497,75 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   var interruptMainTimer: Timer?
   
+  lazy var togglePdfButton: Button<ImageView> = {
+    let imageButton = Button<ImageView>()
+    imageButton.pinSize(CGSize(width: 50, height: 50))
+    imageButton.buttonView.hinset = 0.18
+    imageButton.buttonView.color = Const.Colors.iconButtonInactive
+    imageButton.buttonView.activeColor = Const.Colors.iconButtonActive
+    imageButton.accessibilityLabel = "Ansicht umschalten"
+    imageButton.isAccessibilityElement = true
+    imageButton.onPress(closure: onPDF(sender:))
+    imageButton.layer.cornerRadius = 25
+    imageButton.backgroundColor = Const.Colors.fabBackground
+    imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
+    return imageButton
+  }()
+  
+  /// align FAB to tabbars first icon
+  func alignPdfToggleFab(){
+    let defaultOffset = 52.0
+    // if no tabbar set default offset
+    guard let tabBar = (navigationController?.parent as? MainTabVC)?.tabBar else {
+      btnLeftConstraint?.constant = defaultOffset
+      return
+    }
+    
+    var offset:CGFloat? = 0.0
+    // Try to get first Buttons Icon Position
+    // In case of changes by apple this may fail
+    var leftButton:UIView?
+    for case let btn as UIControl in tabBar.subviews {
+      if leftButton == nil { leftButton = btn }
+      if btn.frame.origin.x < leftButton?.frame.origin.x ?? 0 { leftButton = btn }
+    }
+    for case let iv as UIImageView in leftButton?.subviews ?? [] {
+      offset = iv.center.x + (leftButton?.frame.origin.x ?? 0) + tabBar.frame.origin.x
+      break
+    }
+    // Verify Icon Position or calculate it
+    // paddings, spacer items, different item sizes,
+    // Icon and Text next not below (like on ipad)
+    // are likely to result in errors
+    if offset == nil
+        || offset ?? 0 < 20
+        || offset ?? 0 > UIWindow.size.width/2
+    {
+      //calculate offset
+      let itmmscount = tabBar.items?.count ?? 4
+      offset = 0.5*tabBar.frame.size.width/CGFloat(itmmscount) + tabBar.frame.origin.x
+    }
+    btnLeftConstraint?.constant = offset ?? defaultOffset
+    //print("tabBar.frame: \(tabBar.frame) ... offset: \(offset ?? defaultOffset) \(offset==nil ? " FALLBACK! " : "")")
+  }
+  
+  var btnLeftConstraint: NSLayoutConstraint?
+
   
   public override func viewDidLoad() {
     super.viewDidLoad()
     self.headerView.addSubview(issueCarousel)
+    if let ncView = self.navigationController?.view {
+      ncView.addSubview(togglePdfButton)
+      btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
+      pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
+    }
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
     pin(issueCarousel.right, to: self.headerView.right)
-    pin(issueCarousel.bottom, to: self.headerView.bottom, dist: -(Toolbar.ContentToolbarHeight+UIWindow.maxAxisInset))
+    pin(issueCarousel.bottom,
+        to: self.headerView.bottomGuide(isMargin: true),
+        dist: -verticalPaddings)
     issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
       self?.showIssue(index: idx, atSection: self?.selectedIssue.lastSection, 
@@ -542,7 +608,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
     }
     
-    issueCarousel.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
+    issueCarousel.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
       self.updateToolbarHomeIcon()
@@ -660,17 +726,27 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
   }
   
+  public override func viewWillDisappear(_ animated: Bool) {
+    togglePdfButton.isHidden = true
+    super.viewWillDisappear(animated)
+  }
+  
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     self.openedIssue = nil
     updateCarouselSize(.zero)//initially show label (set pos not behind toolbar)
     invalidateCarouselLayout()//fix sitze if rotated on pushed vc
     checkForNewIssues()
+    alignPdfToggleFab()
+    togglePdfButton.showAnimated()
   }
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
-    onMainAfter { self.invalidateCarouselLayout() }
+    onMainAfter { [weak self] in
+      self?.invalidateCarouselLayout()
+      self?.alignPdfToggleFab()
+    }
   }
   
   @objc private func goingBackground() {}
@@ -710,8 +786,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ? newSize
       : CGSize(width: UIWindow.size.width,
                height: UIWindow.size.height
-                - UIWindow.verticalInsets
-                - Toolbar.ContentToolbarHeight)
+               - verticalPaddings)
     let availableH = size.height - 20 - self.issueCarouselLabelWrapperHeight
     let useableH = min(730, availableH) //Limit Height (usually on High Res & big iPad's)
     let availableW = size.width

@@ -145,41 +145,29 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
       aspectRatio?.isActive = false
       aspectRatio = momentView.pinAspect(ratio: iwidth/iheight)
       momentWidth = momentView.pinWidth(to: self.view.width, factor: 0.5)
-      if #available(iOS 13.0, *) {
-        let menuInteraction = UIContextMenuInteraction(delegate: self)
-        momentView.addInteraction(menuInteraction)
-        momentView.isUserInteractionEnabled = true
-      } 
+      let menuInteraction = UIContextMenuInteraction(delegate: self)
+      momentView.addInteraction(menuInteraction)
+      momentView.isUserInteractionEnabled = true
     }
   }
   
-  @available(iOS 13.0, *)
   fileprivate func createContextMenu() -> UIMenu {
-    let deleteAction = UIAction(title: "Alle Ausgaben löschen",
-      image: UIImage(systemName: "trash")) { action in
-        MainNC.singleton.deleteAll()
-    }
-    let deleteUserDataAction = UIAction(title: "Kundendaten löschen (Abmelden)",
-      image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
-        MainNC.singleton.deleteUserData(excludeDataPolicyAccepted: true)
-    }
     let unlinkSubscriptionIdAction = UIAction(title: "Abo-Verknüpfung löschen (⍺)",
       image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
-        MainNC.singleton.unlinkSubscriptionId()
+      TazAppEnvironment.sharedInstance.unlinkSubscriptionId()
     }
     let requestSubscriptionNotification = UIAction(title: "Abo-Push anfordern (⍺)",
       image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
-        MainNC.singleton.testNotification(type: NotificationType.subscription)
+      TazAppEnvironment.sharedInstance.testNotification(type: NotificationType.subscription)
     }
     let requestDownloadNotification = UIAction(title: "Download-Push anfordern (⍺)",
       image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
-        MainNC.singleton.testNotification(type: NotificationType.subscription)
+      TazAppEnvironment.sharedInstance.testNotification(type: NotificationType.subscription)
     }
     if App.isAlpha {
-      return UIMenu(title: "", children: [deleteAction, deleteUserDataAction,
-        unlinkSubscriptionIdAction, requestSubscriptionNotification, requestDownloadNotification])
+      return UIMenu(title: "", children: [unlinkSubscriptionIdAction, requestSubscriptionNotification, requestDownloadNotification])
     }
-    return UIMenu(title: "", children: [deleteAction, deleteUserDataAction])
+    return UIMenu(title: "", children: [])
   }
   
   fileprivate var sectionPressedClosure: ((Int)->())?
@@ -266,7 +254,6 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   // MARK: - UIContextMenuInteractionDelegate protocol
 
-  @available(iOS 13.0, *)
   public func contextMenuInteraction(_ interaction: UIContextMenuInteraction, 
     configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
     return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) 

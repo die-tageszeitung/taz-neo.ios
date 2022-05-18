@@ -8,7 +8,6 @@
 import UIKit
 import NorthLib
 
-@available(iOS 13.0, *)
 class ColorData: ToString {
   var name: String
   var text: String?
@@ -35,7 +34,6 @@ class ColorData: ToString {
 // A view controller to test Colors
 class ColorTests: UIViewController {
   
-  @available(iOS 13.0, *)
   func printColors() {
     print(ColorData(name: "label", color: UIColor.label, 
                     text: "The color for text labels that contain primary content"))
@@ -82,11 +80,7 @@ class ColorTests: UIViewController {
   }
   
   override func viewDidLoad() {
-    if #available(iOS 13.0, *) {
       printColors()
-    } else {
-      print("iOS 13 needed.")
-    }
   }
 
 } // ColorTests

@@ -90,7 +90,7 @@ public final class NotificationBusiness: DoesLog {
   }
   
   func updateTextNotificationSettings(){
-    guard let feederContext = MainNC.singleton.feederContext else {
+    guard let feederContext = TazAppEnvironment.sharedInstance.feederContext else {
       debug("Fail to update TextNotificationSettings to: \(isTextNotification)")
       return
     }

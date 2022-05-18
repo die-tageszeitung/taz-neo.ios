@@ -58,8 +58,9 @@ public class ContentUrl: WebViewUrl, DoesLog {
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   /// CSS Margins for Articles and Sections
-  public static let TopMargin: CGFloat = 65
-  public static let BottomMargin: CGFloat = 34
+  public class var topMargin: CGFloat { return 40 }
+  public static let bottomMargin: CGFloat = 50
+
 
   public var feederContext: FeederContext  
   public var delegate: IssueInfo!
@@ -110,8 +111,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func resetIssueList() { delegate.resetIssueList() }  
 
   /// Write tazApi.css to resource directory
-  public func writeTazApiCss(topMargin: CGFloat = TopMargin,
-                             bottomMargin: CGFloat = BottomMargin, callback: (()->())? = nil) {
+  public func writeTazApiCss(topMargin: CGFloat? = nil,
+                             bottomMargin: CGFloat? = nil, callback: (()->())? = nil) {
+    let topMargin = topMargin ?? Self.topMargin
+    let bottomMargin = bottomMargin ?? Self.bottomMargin
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
     let percentageMaxWidth = Int(dfl["articleColumnPercentageWidth"]!)!
@@ -425,9 +428,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       urls.remove(at: idx)
       collectionView?.delete(at: idx)
     }
-    if contents.count <= 0 {
-      self.navigationController?.popViewController(animated: true)
-    }
   }
   
   /// Define new contents
@@ -449,16 +449,31 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewDidLoad()
     writeTazApiCss()
     writeTazApiJs()
-    header.installIn(view: self.view, isLarge: isLargeHeader, isMini: true)
+    self.view.addSubview(header)
+    pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
     if let sections = issue.sections, sections.count > 1 { setupSlider() }
-    whenScrolled { [weak self] ratio in
-      if (ratio < 0) { self?.toolBar.hide(); self?.header.hide(true) }
-      else { self?.toolBar.hide(false); self?.header.hide(false) }
+    
+    scrollViewDidScroll{[weak self] offset in
+      self?.header.scrollViewDidScroll(offset)
     }
+    
+    scrollViewDidEndDragging{[weak self] offset in
+      self?.header.scrollViewDidEndDragging(offset)
+    }
+    
+    scrollViewWillBeginDragging{[weak self] offset in
+      self?.header.scrollViewWillBeginDragging(offset)
+    }
+    
+    whenScrolled { [weak self] ratio in
+      if (ratio < 0) { self?.toolBar.hide()}
+      else { self?.toolBar.hide(false)}
+    }
+    
     displayUrls()
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    registerForStyleUpdates()
   }
   
   public func setupSlider() {
@@ -470,7 +485,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.image = UIImage.init(named: "logo")
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
-    header.leftIndent = 8 + (slider?.visibleButtonWidth ?? 0.0)
+    header.leftConstraint?.constant = 8 + (slider?.visibleButtonWidth ?? 0.0)
     ///enable shadow for sliderView
     slider?.sliderView.clipsToBounds = false
   }
@@ -544,6 +559,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.feederContext = feederContext
     self.contentTable = ContentTableVC.loadFromNib()
     super.init()
+    hidesBottomBarWhenPushed = true
   }  
    
   required public init?(coder: NSCoder) {

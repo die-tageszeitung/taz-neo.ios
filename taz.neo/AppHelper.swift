@@ -60,7 +60,7 @@ public extension App {
     return bundleIdentifier == BuildConst.tazBundleIdentifierAlpha
   }()
   
-  enum Feature { case  PDFEXPORT, INTERNALBROWSER, SEARCH_CONTEXTMENU, AUTODOWNLOAD}
+  enum Feature { case  PDFEXPORT, INTERNALBROWSER, SEARCH_CONTEXTMENU, AUTODOWNLOAD, ABOIDLOGIN}
   
   
   /// Is the beta App
@@ -83,9 +83,11 @@ public extension App {
   /// get current auth info (tazID & logged In status)
   /// - Parameter feederContext: source for info
   /// - Returns: formated string with requested info
-  static func authInfo(with feederContext: FeederContext) -> String {
+  static func authInfo(with feederContext: FeederContext?) -> String {
+    let accountInfo = "taz-Konto: \(DefaultAuthenticator.getUserData().id ?? "-")"
+    guard let feederContext = feederContext else { return "nicht initialisiert, \(accountInfo)"}
     let authInfo = feederContext.isAuthenticated ? "angemeldet" : "NICHT ANGEMELDET"
-    return "\(authInfo), taz-Konto: \(DefaultAuthenticator.getUserData().id ?? "-")"
+    return "\(authInfo), \(accountInfo)"
   }
   
   /// Get info is new Features are available
@@ -95,7 +97,7 @@ public extension App {
   /// - Returns: true if Feature is Available
   static func isAvailable(_ feature: App.Feature) -> Bool {
     switch feature {
-      case .INTERNALBROWSER:
+      case .INTERNALBROWSER, .ABOIDLOGIN:
         return isAlpha //Only in Alpha Versions
       case .PDFEXPORT:
         return isAlpha //Only in Alpha Versions

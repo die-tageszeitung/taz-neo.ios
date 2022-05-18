@@ -58,7 +58,7 @@ public class XImageView: UIImageView {
 
 extension UIImage{
   //shrink given image if target size is bigger than current return org image
-  func resized(targetSize: CGSize) -> UIImage {
+  func resized(targetSize: CGSize, scale: CGFloat = 1.0) -> UIImage {
     let size = self.size
     
     if targetSize.width > size.width &&  targetSize.height > size.height{
@@ -80,7 +80,7 @@ extension UIImage{
     let rect = CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height)
     
     // Actually do the resizing to the rect using the ImageContext stuff
-    UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+    UIGraphicsBeginImageContextWithOptions(newSize, false, scale)
     self.draw(in: rect)
     let newImage = UIGraphicsGetImageFromCurrentImageContext()
     UIGraphicsEndImageContext()

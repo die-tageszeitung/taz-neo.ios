@@ -26,7 +26,7 @@ public class MomentView: UIView, Touchable {
     get { return spinner.isAnimating }
     set {
       if newValue {
-        spinner.style
+        spinner.color
           = self.image?.description.contains("demo-moment-frame") ?? false
           ? .white
           : .gray
@@ -56,7 +56,6 @@ public class MomentView: UIView, Touchable {
     pin(imageView.left, to: self.left)
     pin(imageView.right, to: self.right)
     pin(imageView.centerY, to: self.centerY)
-    spinner.style = .white
     spinner.hidesWhenStopped = true
     addSubview(spinner)
     pin(spinner.centerX, to: self.centerX)

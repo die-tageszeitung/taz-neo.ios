@@ -218,7 +218,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if index == 0 { header.isLargeTitleFont = true }
       else { header.isLargeTitleFont = false }
     }
-    header.hide(false)
+    header.showAnimated()
   }
   
   // Reload Section and Article

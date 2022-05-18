@@ -266,7 +266,7 @@ class FormsResultController: UIViewController {
       case .leftFirst, .all:
         //remove first, to kept it on vc stack!
         //currently the firt item in stack is maybe Settungs and a return was maybe not possible
-        #warning("@ringo v0.9.6 Test and Refactor with Tab Controller")
+        #warning("@ringo v0.9.7 Test and Refactor with Tab Controller")
         if let root = stack.popLast(), root.isKind(of: FormsResultController.self) == false {
           _ = stack.popLast()
         }
@@ -380,7 +380,7 @@ extension FormsController: UITextViewDelegate {
       introVC.webView.onX {_ in 
         introVC.dismiss(animated: true, completion: nil)
       }
-      introVC.webView.webView.atEndOfContent {_ in }
+      introVC.webView.webView.scrollDelegate.atEndOfContent {_ in }
       return false
     }
     

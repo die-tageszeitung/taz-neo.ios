@@ -47,10 +47,10 @@ public class FeedbackViewController : UIViewController{
        screenshot: UIImage? = nil,
        deviceData: DeviceData? = nil,
        logData: Data? = nil,
-       feederContext: FeederContext,
+       feederContext: FeederContext?,
        finishClosure: (() -> ())?) {
     self.feedbackView = FeedbackView(type: type,
-                                     isLoggedIn: feederContext.gqlFeeder?.authToken != nil )
+                                     isLoggedIn: feederContext?.gqlFeeder?.authToken ?? nil != nil )
     self.screenshot = screenshot
     self.type = type
     self.deviceData = deviceData

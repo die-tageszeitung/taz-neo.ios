@@ -862,14 +862,14 @@ open class GqlFeeder: Feeder, DoesLog {
         if wasAuthenticated {
           if req.authInfo.status == .valid
              && Defaults.expiredAccountDate != nil { //account not expired anymore
-              MainNC.singleton.expiredAccountInfoShown = false
+            TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
               Alert.message(message: "Ihr Abo ist wieder aktiv!")
               Defaults.expiredAccountDate = nil
           }
           else if req.authInfo.status == .expired
-                  && MainNC.singleton.expiredAccountInfoShown == false {
+                  && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {
             ret = .failure(FeederError.expiredAccount(req.authInfo.message))
-            MainNC.singleton.expiredAccountInfoShown = true
+            TazAppEnvironment.sharedInstance.expiredAccountInfoShown = true
           }
           else if req.authInfo.status != .expired
                     && req.authInfo.status != .valid {
