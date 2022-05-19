@@ -35,10 +35,12 @@ public class BookmarkFeed: Feed, DoesLog {
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     // Copy resources to bookmark folder
-    if let path = Bundle.main.path(forResource: "Trash.svg", ofType: nil) {
-      let base = File.basename(path)
-      let src = File(path)
-      src.copy(to: "\(dir.path)/\(base)")
+    if let sourceURL = Bundle.main.url(forResource: "Trash",
+                                       withExtension: "svg"){
+      let destURL = URL(fileURLWithPath: "\(dir.path)/Trash.svg")
+      do { try FileManager.default.copyItem(at: sourceURL, to: destURL) } catch {
+        log("Unable to copy file Trash.svg")
+      }
     }
   }
   
