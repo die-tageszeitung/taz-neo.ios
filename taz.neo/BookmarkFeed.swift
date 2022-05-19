@@ -82,40 +82,72 @@ public class BookmarkFeed: Feed, DoesLog {
     <link rel="stylesheet" type="text/css" href="resources/tazApiSection.css">
     
     <style>
-      div.collapse {
-        height: 0px;
-        transition: height 1s ease;
+      div.bookmark-list-itm.collapse {
+        max-height: 0;
+        border: none;
+        transition: max-height .5s, border .5s;
       }
+
+      div.bookmark-list-itm {
+        max-height: 9999px;
+        overflow: hidden;
+      }
+
       p.issueDate {
-        float: left;
-        font-family           : AktivGrotesk, taz;
-        font-weight           : normal;
-        text-transform        : none;
-        margin-bottom         : 0.556rem;     /*10bx*/
-        font-size             : 0.861rem;     /* 15.5 bx */
+          float: left;
+          font-family: AktivGrotesk, taz;
+          font-weight: normal;
+          text-transform: none;
+          margin-bottom: 0.556rem;
+          /*10bx*/
+          font-size: 0.861rem;
+          /* 15.5 bx */
       }
+
       img.trash {
-        float: right;
-        margin: -20px 0 0 15px;
-        width: 50px
+          float: right;
+          margin: -20px 0 0 15px;
+          width: 50px
       }
+
       img.picture {
-        float: right;
-        margin: 0 0 10px 10px;
-        width: 65px;
-        height: 65px;
-        object-fit: cover;
+          float: right;
+          margin: 0 0 10px 10px;
+          width: 65px;
+          height: 65px;
+          object-fit: cover;
       }
     </style>
   
     <script>
-      /*
-      $('.trash').click(function(e) {
-      })
-      */
+      var handleTrashTap = function(target) {
+        var attribute = target.getAttribute("data-article-name");
+        //console.log("tap trash on" + attribute)
+        //console.log("taped on" + target)
+        var parent = target.parentElement.parentElement
+        parent.classList.add('collapse');
+        setTimeout(() => {
+           alert("Löschen Rückgängig ToDo!! By shake and/or Tap on Revert Icon?")
+           // WARNING: Multi Delete May not word due Refresh!
+        }, "1000")
+        setTimeout(() => {
+          deleteBookmark(attribute)
+        }, "3000")
+      };
+
       function deleteBookmark(aname) {
         tazApi.setBookmark(aname, false);
       }
+            
+      document.addEventListener('DOMContentLoaded', function() {
+        var classname = document.getElementsByClassName("trash");
+        for (var i = 0; i < classname.length; i++) {
+          classname[i].addEventListener('click', (event) => {
+            event.preventDefault();
+            handleTrashTap(event.target)
+          });
+        }
+      }, false);
     </script>
   
   </head>
@@ -161,17 +193,18 @@ public class BookmarkFeed: Feed, DoesLog {
           let teaser = art.teaser ?? ""
           let sdate = art.issueDate.gDateString(tz: self.feeder.timeZone)
           html += """
-          <div class="VerzeichnisArtikel eptPolitik">
-            <a href="\(art.path)" class="RessortDiv">
-              \(getImage(art: art))
-              <h2 class="Titel">\(title.xmlEscaped())</h2>
-              <h4 class="Unterzeile">\(teaser.xmlEscaped())</h4>
-              \(getAuthors(art: art))
-            </a>
-            <img class="trash" src="Trash.svg" 
-              onClick='deleteBookmark("\(art.html.name)")'>
-            <p class="issueDate">\(sdate)</p>
-            <div class="VerzeichnisArtikelEnde"></div>
+          <div class="bookmark-list-itm">
+            <div class="VerzeichnisArtikel eptPolitik">
+              <a href="\(art.path)" class="RessortDiv">
+                \(getImage(art: art))
+                <h2 class="Titel">\(title.xmlEscaped())</h2>
+                <h4 class="Unterzeile">\(teaser.xmlEscaped())</h4>
+                \(getAuthors(art: art))
+              </a>
+              <img class="trash" src="Trash.svg" data-article-name="\(art.html.name)">
+              <p class="issueDate">\(sdate)</p>
+              <div class="VerzeichnisArtikelEnde"></div>
+            </div>
           </div>
           """
         }
