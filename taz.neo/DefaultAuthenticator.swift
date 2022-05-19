@@ -42,8 +42,20 @@ public protocol AuthMediator : Authenticator {
    Use this method to delete authentication relevant user data
    */
   static func deleteTempUserData()
+}
 
-  var performPollingClosure: (()->())? { get set}
+class TempUserDataStorage {
+  private static let sharedInstance = TempUserDataStorage()
+  private var id: String?
+  private var pass: String?
+  fileprivate static var id: String? {
+    get { return sharedInstance.id }
+    set { sharedInstance.id = newValue }
+  }
+  fileprivate static var pass: String? {
+    get { return sharedInstance.pass }
+    set { sharedInstance.pass = newValue }
+  }
 }
 
 extension AuthMediator {
@@ -56,27 +68,32 @@ extension AuthMediator {
     return pollSubscription(tmpId:tmpId, tmpPassword:tmpPassword, requestSoon:requestSoon, resultSuccessText: nil)
   }
 
-  static var keychainTempId: String { return "tmpId" }
-  static var keychainTempIdPassword: String { return "tmpPassword" }
+  static var defaultsTempId: String { return "tmpId" }
+  static var defaults: String { return "tmpPassword" }
   
 
   
   public static func storeTempUserData(tmpId: String, tmpPassword: String) {
-    let kc = Keychain.singleton
-    kc[Self.keychainTempId] = tmpId
-    kc[Self.keychainTempIdPassword] = tmpPassword
+    let dfl = Defaults.singleton
+    dfl[Self.defaultsTempId] = tmpId
+    dfl[Self.defaults] = tmpPassword
+    TempUserDataStorage.id = tmpId
+    TempUserDataStorage.pass = tmpPassword
   }
   
   public static func getTempUserData() -> (tmpId: String?, tmpPassword: String?) {
-    let kc = Keychain.singleton
-    return (tmpId: kc[Self.keychainTempId],
-            tmpPassword: kc[Self.keychainTempIdPassword])
+    let dfl = Defaults.singleton
+    return (tmpId: TempUserDataStorage.id ?? dfl[Self.defaultsTempId],
+            tmpPassword: TempUserDataStorage.pass ?? dfl[Self.defaults])
   }
   
   public static func deleteTempUserData() {
-    let kc = Keychain.singleton
-    kc[Self.keychainTempId] = nil
-    kc[Self.keychainTempIdPassword] = nil
+    let dfl = Defaults.singleton
+    dfl[Self.defaultsTempId] = nil
+    dfl[Self.defaults] = nil
+    //hold it for now maybe empty braces bug its a race condition
+//    TempUserDataStorage.id = nil
+//    TempUserDataStorage.pass = nil
   }
 }
 
@@ -89,20 +106,14 @@ extension DefaultAuthenticator : AuthMediator{
   public func pollSubscription(tmpId:String, tmpPassword:String, requestSoon:Bool = false, resultSuccessText:String?){
     
     if let rt = resultSuccessText { self.resultSuccessText = rt}
-  
+    
     Self.storeTempUserData(tmpId: tmpId, tmpPassword: tmpPassword)
-    if requestSoon == true {
-      DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
-        self.pollSubscription {  [weak self] (resume) in
-          guard let self = self else {return;}
-          if resume == true {
-            self.performPollingClosure?()
-          }
-        }
+    let firstPollRequest: DispatchTime = .now() + (requestSoon ? 1.5 : 15.0)
+    DispatchQueue.global().asyncAfter(deadline: firstPollRequest) { [weak self] in
+      self?.pollSubscription {  [weak self] (resume) in
+        if resume == true { self?.performPollingClosure?() }
       }
-      return;
-    }//eof: requestSoon == true
-    performPollingClosure?()//tell app start polling for incomming push or start timer!
+    }
   }
 }
 
@@ -133,7 +144,7 @@ public class DefaultAuthenticator: Authenticator {
   }()
   
   /// Closure to call when polling of suscription status is required
-  public var performPollingClosure: (()->())?
+  private var performPollingClosure: (()->())?
   /// Define closure to call when polling is necessary
   public func whenPollingRequired(closure: @escaping ()->()) {
     performPollingClosure = closure
@@ -206,7 +217,7 @@ public class DefaultAuthenticator: Authenticator {
               return;
             case .noPollEntry, .tooManyPollTrys:
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
-              /// In this case user recived the E-Mail for PW Reset,
+              /// In this case user received the E-Mail for PW Reset,
               _ = self.error(info.status.rawValue)
               Notification.send("authenticationSucceeded")
               closure(false)//stop polling
@@ -222,19 +233,15 @@ public class DefaultAuthenticator: Authenticator {
       closure(true)//continue polling in case of errors, wait status or invalid
     }
   }
-  
-  public func authenticate() {
-    self.authenticate(with: nil)
-  }
-  
+    
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  func authenticate(with targetVC:UIViewController?) {
+  public func authenticate(with targetVC:UIViewController? = nil) {
     guard let rootVC = targetVC ?? rootVC else { return }
 
     let registerController = LoginController(self)
     
     registerController.modalPresentationStyle
-      =  Device.isIpad ? .formSheet : .popover
+      =  .formSheet
 
     firstPresentedAuthController = registerController
     rootVC.present(registerController, animated: true, completion: {
@@ -248,7 +255,7 @@ public class DefaultAuthenticator: Authenticator {
             for v in view.subviews {
               if v.typeName == "UIDimmingView" {
                 v.onTapping { rec in
-                  if MainNC.singleton.isErrorReporting { return }
+                  if TazAppEnvironment.sharedInstance.isErrorReporting { return }
                   v.removeGestureRecognizer(rec)
                   registerController.dismiss(animated: true)
                 }

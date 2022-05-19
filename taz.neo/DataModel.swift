@@ -12,7 +12,7 @@ import PDFKit
 /**
  Errors a Feeder may encounter
  */
-public enum FeederError: SimpleError, Equatable {
+public enum FeederError: Error, Equatable {
   case invalidAccount(String?)
   case expiredAccount(String?)
   case changedAccount(String?)
@@ -303,6 +303,18 @@ public protocol Content {
   var images: [ImageEntry]? { get }
   /// List of authors (if applicable)
   var authors: [Author]? { get }
+  /// Issue where Content data is stored
+  var primaryIssue: Issue? { get }
+  /// Directory where Content is stored
+  var dir: Dir { get }
+  /// Absolute pathname of content
+  var path: String { get }
+  /// Date of Issue encompassing this Content
+  var issueDate: Date { get }
+  /// Title of Section refering to this content
+  var sectionTitle: String? { get }
+  /// BaseURL of server for this content 
+  var baseURL: String { get }
 }
 
 public extension Content {
@@ -317,6 +329,35 @@ public extension Content {
     return ret
   }
   
+  /// Directory where Content is stored
+  var dir: Dir { 
+    guard let issue = primaryIssue
+    else { fatalError("Undefined primaryIssue") }
+    return issue.dir 
+  }
+  
+  /// Absolute pathname of content
+  var path: String { "\(dir.path)/\(html.name)" }
+  
+  /// Date of Issue encompassing this Content (refering to primaryIssue)
+  var defaultIssueDate: Date { 
+    guard let issue = primaryIssue
+    else { fatalError("Undefined primaryIssue") }
+    return issue.date
+  }
+  var issueDate: Date { defaultIssueDate }
+  
+  /// BaseURL of server for this content 
+  var defaultBaseURL: String { 
+    guard let issue = primaryIssue
+    else { fatalError("Undefined primaryIssue") }
+    return issue.baseUrl
+  }
+  var baseURL: String { defaultBaseURL }
+  
+  /// Title of Section refering to this content
+  var sectionTitle: String? { nil }
+ 
   /// All files incl. normal res photos
   var files: [FileEntry] {
     var ret: [FileEntry] = [html]
@@ -369,6 +410,11 @@ public extension Content {
     return ret
   }
 
+  func authors(_ separator: String = ", ") ->  String? {
+    guard let a = authors else { return nil }
+    return a.map{ $0.name ?? "" }.joined(separator: separator)
+  }
+
 } // Content
 
 /**
@@ -377,7 +423,7 @@ public extension Content {
 public protocol Article: Content, ToString {
   /// File storing audio data
   var audio: FileEntry? { get }
-  /// Title of article
+  /// Teaser of article
   var teaser: String? { get }
   /// Link to online version
   var onlineLink: String? { get }
@@ -395,13 +441,18 @@ public extension Article {
   var canPlayAudio: Bool { ArticlePlayer.singleton.canPlay(art: self) }
   
   /// Start/stop audio play if available
-  func toggleAudio(sectionName: String) {
-    ArticlePlayer.singleton.toggle(art: self, sectionName: sectionName)
+  func toggleAudio(issue: Issue, sectionName: String) {
+    ArticlePlayer.singleton.toggle(issue: issue, art: self, sectionName: sectionName)
   }
   
   // By default Articles don't have bookmarks
   var hasBookmark: Bool { get { false } set {} }
   
+  func isEqualTo(otherArticle: Article) -> Bool{
+    return self.html.sha256 == otherArticle.html.sha256
+    && self.html.name == otherArticle.html.name
+    && self.title == otherArticle.title
+  }
 } // Article
 
 /**
@@ -689,6 +740,8 @@ public protocol Issue: ToString, AnyObject {
   var lastPage: Int? { get set }
   /// Payload of files
   var payload: Payload { get }
+  /// Directory where all issue specific data is stored
+  var dir: Dir { get }
 }
 
 public extension Issue {
@@ -704,6 +757,9 @@ public extension Issue {
     }
     return ret
   }
+  
+  /// directory where all issue specific data is stored
+  var dir: Dir { Dir(dir: feed.dir.path, fname: feed.feeder.date2a(date)) }
   
   /// All Articles in one Issue (one Article may appear multiple
   /// times in the resulting array if it is referenced in more than
@@ -905,9 +961,12 @@ public protocol Feed: ToString {
   var firstIssue: Date { get }
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
+  /// Directory where all feed specific data is stored
+  var dir: Dir { get }
 } // Feed
 
 public extension Feed {  
+  var dir: Dir { Dir(dir: feeder.baseDir.path, fname: name) }
   var type: FeedType { .publication }
   var lastIssueRead: Date? { nil }
   var lastUpdated: Date? { nil }
@@ -939,6 +998,8 @@ public protocol Feeder: ToString {
   var resourceVersion: Int { get }
   /// The Feeds this Feeder is providing
   var feeds: [Feed] { get }
+  /// Directory where all Feeder specific data is stored
+  var dir: Dir { get }
   
   /// Initilialize with name/title and URL of server
   init(title: String, url: String, closure: @escaping(Result<Feeder,Error>)->())
@@ -969,6 +1030,7 @@ extension Feeder {
   
   /// The base directory
   public var baseDir: Dir { return Dir(dir: Dir.appSupportPath, fname: title) }
+  public var dir: Dir { baseDir }
   /// The resources directory
   public var resourcesDir: Dir { return Dir(dir: baseDir.path, fname: "resources") }
   /// The global directory
@@ -1005,6 +1067,9 @@ extension Feeder {
   
   /// Returns directory where all issue specific data is stored
   public func issueDir(issue: Issue) -> Dir {
+    if issue is SearchResultIssue {
+      return Dir.searchResults
+    }
     return issueDir(feed: issue.feed.name, issue: date2a(issue.date))
   }
   

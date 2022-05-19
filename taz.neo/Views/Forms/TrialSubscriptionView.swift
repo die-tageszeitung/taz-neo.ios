@@ -69,9 +69,7 @@ public class TrialSubscriptionView : FormView{
   }()
     
   override func createSubviews() -> [UIView] {
-    if #available(iOS 12.0, *) {
-      passInput.textContentType = .newPassword
-    }
+    passInput.textContentType = .newPassword
     passInput.delegate = self
     pass2Input.delegate = self
     

@@ -6,7 +6,7 @@
 //  Copyright © 2020 Norbert Thies. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import NorthLib
 
 
@@ -24,13 +24,23 @@ extension Defaults{
       if darkMode == newValue || tDarkMode == newValue { return }
       tDarkMode = newValue
       Defaults.singleton["colorMode"] = newValue ? "dark" : nil
-//      Defaults.singleton.
-      if #available(iOS 13.0, *) {
-        //Use Trait Collection for Change
-        UIApplication.shared.keyWindow?.overrideUserInterfaceStyle = newValue ? .dark : .light
-      }
+      //      Defaults.singleton.
+      //Use Trait Collection for Change
+      UIWindow.keyWindow?.overrideUserInterfaceStyle = newValue ? .dark : .light
       /// Some (Article/HTML/CSS) iOS 13+ need also this Info
-      NorthLib.Notification.send(globalStylesChangedNotification)
+      Notification.send(globalStylesChangedNotification)
+    }
+  }
+  
+  private static var tmpLastKnownPushToken:String?
+  
+  static var lastKnownPushToken : String? {
+    get {
+      return tmpLastKnownPushToken ?? Defaults.singleton["lastKnownPushToken"] }
+    set {
+      guard newValue != nil else { Log.log("not delete lastKnownPushToken" ); return }
+      Defaults.singleton["lastKnownPushToken"] = newValue
+      tmpLastKnownPushToken = newValue
     }
   }
   

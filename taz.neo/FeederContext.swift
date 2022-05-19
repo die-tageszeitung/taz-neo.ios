@@ -5,7 +5,7 @@
 //  Copyright © 2020 Norbert Thies. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import NorthLib
 
 /**
@@ -241,7 +241,7 @@ open class FeederContext: DoesLog {
     authenticator.whenPollingRequired { self.startPolling() }
     if let peStr = Defaults.singleton["pollEnd"] {
       let pe = Int64(peStr)
-      if pe! <= UsTime.now().sec { endPolling() }
+      if pe! <= UsTime.now.sec { endPolling() }
       else {
         pollEnd = pe
         self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
@@ -252,7 +252,7 @@ open class FeederContext: DoesLog {
   
   /// Method called by Authenticator to start polling timer
   private func startPolling() {
-    self.pollEnd = UsTime.now().sec + PollTimeout
+    self.pollEnd = UsTime.now.sec + PollTimeout
     Defaults.singleton["pollEnd"] = "\(pollEnd!)"
     self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
       repeats: true) { _ in self.doPolling() }
@@ -264,7 +264,7 @@ open class FeederContext: DoesLog {
     authenticator.pollSubscription { [weak self] doContinue in
       guard let self = self else { return }
       guard let pollEnd = self.pollEnd else { self.endPolling(); return }
-      if doContinue { if UsTime.now().sec > pollEnd { self.endPolling() } }
+      if doContinue { if UsTime.now.sec > pollEnd { self.endPolling() } }
       else { self.endPolling() }
     }
   }
@@ -280,7 +280,8 @@ open class FeederContext: DoesLog {
   public func setupRemoteNotifications() {
     let nd = UIApplication.shared.delegate as! AppDelegate
     let dfl = Defaults.singleton
-    let oldToken = dfl["pushToken"]
+    let oldToken = dfl["pushToken"] ?? Defaults.lastKnownPushToken
+    Defaults.lastKnownPushToken = oldToken
     pushToken = oldToken
     nd.onReceivePush {   [weak self] (pn, payload) in
       self?.processPushNotification(pn: pn, payload: payload)
@@ -290,6 +291,7 @@ open class FeederContext: DoesLog {
       if pn.isPermitted { 
         self.debug("Push permission granted") 
         self.pushToken = pn.deviceId
+        Defaults.lastKnownPushToken = self.pushToken
       }
       else { 
         self.debug("No push permission") 
@@ -303,6 +305,7 @@ open class FeederContext: DoesLog {
                                      isTextNotification: isTextNotification) { [weak self] res in
           if let err = res.error() { self?.error(err) }
           else {
+            Defaults.lastKnownPushToken = self?.pushToken
             self?.debug("Updated PushToken")
           }
         }
@@ -313,7 +316,8 @@ open class FeederContext: DoesLog {
   func processPushNotification(pn: PushNotification, payload: PushNotification.Payload){
     switch payload.notificationType {
       case .subscription:
-        authenticator.pollSubscription(){_ in}
+        log("check subscription status")
+        doPolling()
       case .newIssue:
         //not using checkForNew Issues see its warning!
         //count 1 not working:
@@ -341,7 +345,7 @@ open class FeederContext: DoesLog {
   /// Request authentication from Authenticator
   /// Authenticator will send "authenticationSucceeded" Notification if successful
   public func authenticate() {
-    authenticator.authenticate()
+    authenticator.authenticate(with: nil)
   }
   
   public func updateAuthIfNeeded() {
@@ -365,7 +369,9 @@ open class FeederContext: DoesLog {
   /// openDB opens the Article database and sends a "DBReady" notification  
   private func openDB(name: String) {
     guard ArticleDB.singleton == nil else { return }
-    ArticleDB(name: name) { [weak self] _ in self?.notify("DBReady") }  
+    ArticleDB(name: name) { [weak self] _ in
+      self?.cleanupDbInconsistencyIfNeeded()
+      self?.notify("DBReady") }
   }
   
   /// resetDB removes the Article database and uses openDB to reopen a new version
@@ -390,6 +396,36 @@ open class FeederContext: DoesLog {
       self?.connect()
     }
     openDB(name: name)
+  }
+  
+  private func cleanupDbInconsistencyIfNeeded(){
+    if Defaults.singleton.get(key: "cleanupDbInconsistencyDone") != nil {
+      log("Cleanup DB Inconsistency already done")
+      return
+    }
+    log("Cleanup DB Inconsistency")
+    guard let sf = StoredFeeder.get(name: "taz").first else { return }
+    guard let sf = StoredFeed.get(name: "taz", inFeeder: sf).first else { return }
+    var hasChanges = false
+    
+    let date1 = UsTime(iso: "2022-04-20 12:00:00.00", tz: "Europe/Berlin").date
+    if let issue1 = StoredIssue.get(date: date1, inFeed: sf).first {
+      issue1.delete()
+      log("delete issue: 04-20")
+      hasChanges = true
+    }
+    
+    let date2 = UsTime(iso: "2022-04-21 12:00:00.00", tz: "Europe/Berlin").date
+    if let issue2 = StoredIssue.get(date: date2, inFeed: sf).first {
+      issue2.delete()
+      log("delete issue: 04-21")
+      hasChanges = true
+    }
+    
+    if hasChanges {
+      ArticleDB.save()
+    }
+    Defaults.singleton.set(key: "cleanupDbInconsistencyDone", val: "\(Date())")
   }
   
   private func loadBundledResources(setVersion: Int? = nil) {
@@ -548,27 +584,18 @@ open class FeederContext: DoesLog {
     currentFeederErrorReason = err
     var text = ""
     switch err {
-      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
       case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
-        if let d = err.expiredAccountDate {//persist expired account date for all requests!
-          Defaults.expiredAccountDate = d
-        }
-        MainNC.singleton.expiredAccountInfoShown = true
-      case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
+      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
+        self.gqlFeeder.authToken = nil
+        DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
+      case .changedAccount: text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
+        self.gqlFeeder.authToken = nil
+        DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
       case .unexpectedResponse:
         Alert.message(title: "Fehler",
                       message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
           exit(0)
         }
-    }
-        
-    if err == .expiredAccount(nil) {
-      ///"expiredAccountAlertPopup" key must be deleted on login to see message again  ...or restart, keep in mind if changing
-      if "expiredAccountAlertPopup".existsAndNotExpired(intervall: .hour*6 ) { return }
-    }
-    else {
-      log("Delete Userdata!")
-      DefaultAuthenticator.deleteUserData()
     }
     
     Alert.message(title: "Fehler", message: text, closure: { [weak self] in
@@ -661,7 +688,7 @@ open class FeederContext: DoesLog {
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
     if let latest = StoredIssue.latest(feed: sfeed), self.isConnected {
-      let now = UsTime.now()
+      let now = UsTime.now
       let latestIssueDate = UsTime(latest.date)
       let nHours = (now.sec - latestIssueDate.sec) / 3600
       if nHours > 6 {
@@ -756,14 +783,14 @@ open class FeederContext: DoesLog {
     let isPush = pushToken != nil
     debug("Sending start of download to server")
     self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush, pushToken: self.pushToken, isAutomatically: isAutomatically) { res in
-      closure(res.value(), UsTime.now())
+      closure(res.value(), UsTime.now)
     }
   }
   
   /// Tell server we stopped downloading
   func markStopDownload(dlId: String?, tstart: UsTime) {
     if let dlId = dlId {
-      let nsec = UsTime.now().timeInterval - tstart.timeInterval
+      let nsec = UsTime.now.timeInterval - tstart.timeInterval
       debug("Sending stop of download to server")
       self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) { [weak self] _ in
         self?.cleanupOldIssues()

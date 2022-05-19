@@ -35,7 +35,7 @@ public extension FeedbackType {
 open class FeedbackComposer : DoesLog{
   
   public static func showWith(logData: Data? = nil,
-                              feederContext: FeederContext,
+                              feederContext: FeederContext?,
                               feedbackType: FeedbackType? = nil,
                               finishClosure: @escaping ((Bool) -> ())) {
     let screenshot = UIWindow.screenshot
@@ -80,7 +80,7 @@ open class FeedbackComposer : DoesLog{
                           deviceData: DeviceData? = nil,
                           screenshot: UIImage? = nil,
                           logData: Data? = nil,
-                          feederContext: FeederContext,
+                          feederContext: FeederContext?,
                           finishClosure: @escaping ((Bool) -> ())) {
     
     guard var currentVc = UIViewController.top() else {
@@ -106,17 +106,13 @@ open class FeedbackComposer : DoesLog{
     if currentVc.isKind(of: UIAlertController.self),
        let presenting = currentVc.presentingViewController {
       currentVc = presenting
-      feedbackViewController.updateViewSize(UIWindow.size)
     }
     else if let nc = currentVc.navigationController {
-      if #available(iOS 13.0, *) {
-        currentVc.isModalInPresentation = true
-        restoreModalityController = currentVc
-      }
+      currentVc.isModalInPresentation = true
+      restoreModalityController = currentVc
       currentVc = nc
-      feedbackViewController.updateViewSize(UIWindow.size)
     }
-    else if #available(iOS 13.0, *), currentVc.presentingViewController != nil {
+    else if currentVc.presentingViewController != nil {
       currentVc.isModalInPresentation = true
       restoreModalityController = currentVc
     }
@@ -146,9 +142,7 @@ open class FeedbackComposer : DoesLog{
     feedbackViewController.requestCancel = cancelHandler
     
     feedbackBottomSheet?.onClose(closure: { (slider) in
-      if #available(iOS 13.0, *) {
-        restoreModalityController?.isModalInPresentation = false
-      }
+      restoreModalityController?.isModalInPresentation = false
       finishClosure(feedbackViewController.sendSuccess)
       feedbackBottomSheet = nil//Important the memory leak!
     })

@@ -22,7 +22,7 @@ public struct Const {
   
   
   /// Names for NSNotifications
-  /// @ToDo discuss and may change: NorthLib.Notification.swift => recive, send(message:String...
+  /// @ToDo discuss and may change: NorthLib.Notification.swift => receive, send(message:String...
   /// to: send(notification:NSNotification.Name
   /// and here: static let articleLoaded = NSNotification.Name("NotificationName.articleLoaded")
   struct NotificationNames {
@@ -35,6 +35,9 @@ public struct Const {
   
   /// Various color values
   struct Colors {
+    
+    static let fabBackground: UIColor = UIColor.rgb(0x363636).withAlphaComponent(0.8)
+    
     ///Variable Colors, depending light/darkmode
     static var opacityBackground: UIColor { Const.SetColor.CTBackground.color.withAlphaComponent(0.9) }
     ///Static/Constant Colors
@@ -44,8 +47,12 @@ public struct Const {
     static let darkPrimaryText: UIColor =  UIColor.rgb(0xffffff)
     static let darkSecondaryText: UIColor = UIColor.rgb(0xebebf5)
     static let appIconGrey: UIColor = darkSecondaryText //UIColor.rgb(0x9c9c9c)
+    static let iconButtonInactive: UIColor = UIColor.rgb(0x9c9c9c)
+    static let iconButtonActive: UIColor = appIconGrey
     
+    static let fountTextHighlight: UIColor = UIColor.rgb(0xd50d2e).withAlphaComponent(0.2)
     static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)
+    static let radioGreen: UIColor =  UIColor.rgb(0x2ca400)
     
     static let darkToolbar = darkSecondaryBG
     static let darkTintColor = darkSecondaryText
@@ -142,6 +149,15 @@ public struct Const {
       case closeXcircleBackground
       case closeX
     }
+    case taz(taz_Custom)
+    enum taz_Custom {
+      case textFieldBackground
+      case textDisabled
+      case textFieldPlaceholder
+      case textFieldClear
+      case textFieldText
+      case textIconGray
+    }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
       case label
@@ -171,21 +187,7 @@ public struct Const {
     var color : UIColor {
       get{
         let set = colors(name: self)
-        if #available(iOS 13, *) {
-          return UIColor { (traitCollection: UITraitCollection) -> UIColor in
-            switch(traitCollection.userInterfaceStyle,
-                   traitCollection.accessibilityContrast)
-            {
-              case (.dark, .high): return ((set.darkHigh != nil) ? set.darkHigh : set.dark) ?? set.light
-              case (.dark, _):     return set.dark ?? set.light
-              case (_, .high):     return  set.lightHigh ?? set.light
-              default:             return set.light
-            }
-          }
-        }
-        else {
-          return Defaults.darkMode ? set.dark ??  set.light : set.light
-        }
+        return Defaults.darkMode ? set.dark ??  set.light : set.light
       }
     }
     
@@ -261,6 +263,17 @@ public struct Const {
           return (Const.Colors.iOSLight.lightText, Const.Colors.iOSDark.lightText, nil, nil)
         case .ios(.tintColor):
           return (Const.Colors.iOSLight.tintColor, Const.Colors.iOSDark.tintColor, nil, nil)
+        case .taz(.textFieldBackground):
+          return (UIColor.rgb(0xF0F0F0), UIColor.rgb(0x1c1c1c), nil, nil)
+        case .taz(.textFieldText):
+          return (UIColor.rgb(0x1F1F1F), UIColor.rgb(0xF0F0F0), nil, nil)
+        case .taz(.textDisabled): fallthrough
+        case .taz(.textFieldPlaceholder):
+          return (UIColor.rgb(0xA6A6A6), UIColor.rgb(0x505050), nil, nil)
+        case .taz(.textFieldClear):
+          return (UIColor.rgb(0x9C9C9C), UIColor.rgb(0x9C9C9C), nil, nil)
+        case .taz(.textIconGray):
+          return (UIColor.rgb(0x565656), UIColor.rgb(0x929292), nil, nil)
       }
     }
   } // SetColors
@@ -271,6 +284,7 @@ public struct Const {
     static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
     static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
     static var contentTableFontName = titleFontName
+    static var contentTextFont = "TimesNewRomanPSMT"//Cochin"
 
     static func font(name: String?, size: CGFloat) -> UIFont {
       var font: UIFont? = nil
@@ -280,7 +294,7 @@ public struct Const {
     }
     
     /// The font to use for content
-    static func contentFont(size: CGFloat) -> UIFont 
+    static func contentFont(size: CGFloat) -> UIFont
     { return font(name: contentFontName, size: size) }
     
     /// The font to use in titles
@@ -291,7 +305,12 @@ public struct Const {
     static func contentTableFont(size: CGFloat) -> UIFont
     { return font(name: contentTableFontName, size: size) }
     
+    /// The font to use in content tables
+    static func contentTextFont(size: CGFloat) -> UIFont
+    { return font(name: contentTextFont, size: size) }
+    
     static var contentFont: UIFont = contentFont(size: Size.DefaultFontSize)
+    static var boldContentFont: UIFont = titleFont(size: Size.DefaultFontSize)
   } // Fonts
   
   struct Size {
@@ -304,6 +323,8 @@ public struct Const {
     static let SubtitleFontSize = CGFloat(21)
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
+    static let NewTextFieldHeight = CGFloat(40.0)
+    static let TextFieldHeight = CGFloat(36.0)//Default Height of Search Controllers Text Input
     static let TextFieldPadding = SmallPadding
     static let SmallPadding = CGFloat(10.0)
     static let TinyPadding = CGFloat(5.0)
@@ -393,6 +414,12 @@ extension UILabel {
   }
   
   @discardableResult
+  internal func color(_ color: Const.SetColor) -> UILabel {
+    self.textColor = color.color
+    return self
+  }
+  
+  @discardableResult
   func black() -> UILabel {
     self.textColor = UIColor.black
     return self
@@ -443,9 +470,91 @@ extension UILabel {
     return self
   }
   
-  convenience init(_ _text : String, _numberOfLines : Int = 0) {
+  internal convenience init(_ _text : String,
+                   _numberOfLines : Int = 0,
+                   type: tazFontType = .content,
+                   color: Const.SetColor = .ios(.label),
+                   align: NSTextAlignment = .natural) {
     self.init()
     text = _text
     numberOfLines = _numberOfLines
+    switch type {
+      case .bold:
+        self.font = Const.Fonts.titleFont(size: Const.Size.DefaultFontSize)
+      case .content:
+        self.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+      case .small:
+        self.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
+      case .title:
+        self.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+      case .contentText:
+        self.font = Const.Fonts.contentTextFont(size: Const.Size.DefaultFontSize)
+    }
+    self.textColor = color.color
+    self.textAlignment = align
+    
+  }
+}
+
+enum tazFontType { case title, small, bold, content, contentText }
+
+
+
+
+extension UIButton {
+  
+  static let tazButtonHeight: CGFloat = 44
+  
+  @discardableResult
+  /// Primary "Call To Action" Button, sets default styles
+  /// - Parameter text: buttons text for normal state
+  /// - Returns: button itself for chaining
+  func primary_CTA(_ text: String? =  nil) -> Self {
+    setDefaults()
+    self.layer.backgroundColor = Const.Colors.ciColor.cgColor
+    self.titleLabel?.boldContentFont()
+    self.setTitleColor(UIColor.white, for: .normal)
+    if let t = text {
+      self.setTitle(t, for: .normal)
+    }
+    return self
+  }
+  
+  
+  @discardableResult
+  /// Secondary "Call To Action" Button, sets default styles
+  /// - Parameter text: buttons text for normal state
+  /// - Returns: button itself for chaining
+  func secondary_CTA(_ text: String? =  nil) -> Self {
+    setDefaults()
+    self.layer.backgroundColor = UIColor.clear.cgColor
+    self.addBorder(Const.Colors.ciColor,  1.5)
+    self.titleLabel?.contentFont()
+    self.setTitleColor(Const.Colors.ciColor, for: .normal)
+    if let t = text {
+      self.setTitle(t, for: .normal)
+    }
+    return self
+  }
+  
+  private func setDefaults(){
+    self.pinHeight(UIButton.tazButtonHeight)
+    self.layer.cornerRadius = UIButton.tazButtonHeight/2
+  }
+}
+
+
+extension UITextField {
+  @discardableResult
+  func defaultStyle(placeholder: String? =  nil, cornerRadius: CGFloat = 18) -> Self {
+    if let p = placeholder {
+      self.attributedPlaceholder = NSAttributedString(
+        string: p,
+        attributes: [NSAttributedString.Key.foregroundColor: Const.SetColor.ios(.tertiaryLabel).color])
+    }
+    self.backgroundColor = Const.SetColor.ios(.quaternarySystemFill).color
+    self.layer.cornerRadius = cornerRadius
+    self.layer.masksToBounds = true
+    return self
   }
 }

@@ -31,6 +31,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       lastIndex = secIndex
     }
   }
+  /// Only change header title according to section title
+  public var isStaticHeader = false
   
   private var initialSection: Int?
   private var initialArticle: Int?
@@ -167,6 +169,31 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if UIApplication.shared.applicationState != .active { return }
       self?.linkPressed(from: from, to: to)
     }
+    Notification.receive("BookmarkChanged") { msg in
+      if let art = msg.sender as? StoredArticle {
+        let js = """
+          if (typeof tazApi.onBookmarkChange === "function") {
+            tazApi.onBookmarkChange("\(art.html.name)", \(art.hasBookmark))
+          }
+        """
+        self.currentWebView?.jsexec(js)
+        self.debug("Called JS: \(js)")
+      }
+    }
+  }
+  
+  /// Delete Article from ArticleVC
+  func deleteArticle(_ art: Article) {
+    article2section = issue.article2section
+    article2sectionHtml = issue.article2sectionHtml
+    articleVC?.delete(article: art)
+  }
+  
+  /// Insert Article into ArticleVC
+  func insertArticle(_ art: Article) {
+    article2section = issue.article2section
+    article2sectionHtml = issue.article2sectionHtml
+    articleVC?.insert(article: art)
   }
   
   // Return nearest section index containing given Article
@@ -186,10 +213,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   // Define Header elements
   func setHeader(secIndex: Int) {
     header.title = contents[secIndex].title ?? ""
-    header.subTitle = issue.date.gLowerDate(tz: feeder.timeZone)
-    if index == 0 { header.isLargeTitleFont = true }
-    else { header.isLargeTitleFont = false }
-    header.hide(false)
+    if !isStaticHeader {
+      header.subTitle = issue.date.gLowerDate(tz: feeder.timeZone)
+      if index == 0 { header.isLargeTitleFont = true }
+      else { header.isLargeTitleFont = false }
+    }
+    header.showAnimated()
   }
   
   // Reload Section and Article

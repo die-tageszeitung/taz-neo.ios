@@ -266,41 +266,49 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   public var fullPdfOnPageSwitch: Bool
  
   // MARK: - updateMenuItems
-  func updateMenuItems(){
-    let artikelansicht = gt_iOS13 ? "Artikelansicht" : articleFromPdf
-                                                     ? "Artikelansicht ausschalten"
-                                                     : "Artikelansicht einschalten"
+  func updateMenuItems(updatedSizeIsLandscape: Bool? = nil){
     self.menuItems = [
-      (artikelansicht,
+      ("Artikelansicht",
        articleFromPdf ? "checkmark" : "",
        { [weak self] _ in
         guard let self = self else { return }
         self.articleFromPdf = !self.articleFromPdf
         self.updateMenuItems()
-       }),
-      ("Querformat Seitenwechsel: \(fullPdfOnPageSwitch ? "ganze Seite" : "Seitenbreite")",
-       fullPdfOnPageSwitch ? "arrow.up.and.down.and.arrow.left.and.right" : "arrow.left.and.right.square",
-       { [weak self] _ in
-        guard let self = self else { return }
-        self.fullPdfOnPageSwitch = !self.fullPdfOnPageSwitch
-        self.updateMenuItems()
-        if let ziv = self.currentView as? ZoomedImageView {
-          onMainAfter {   [weak self] in
-            self?.applyPageLayout(ziv)
-          }
-        }
-      })]
+       })]
     
     if App.isAlpha {
       self.menuItems.insert((title: "Zoom 1:1 (⍺)",
                              icon: "1.magnifyingglass",
+                             
+                             
                              closure: { [weak self] _ in
         if let ziv = self?.currentView as? ZoomedImageView  {
           ziv.scrollView.setZoomScale(1.0, animated: true)
         }
       }), at: 0)
     }
+
+    if updatedSizeIsLandscape == nil && UIWindow.isLandscape
+    || updatedSizeIsLandscape != nil && updatedSizeIsLandscape ?? false {
+      self.menuItems.append((title: "Breite einpassen",
+                            icon: fullPdfOnPageSwitch ? "" : "checkmark",
+                            closure: {[weak self] _ in self?.changePageHandling()}))
+      self.menuItems.append((title: "ganze Seite",
+                            icon: fullPdfOnPageSwitch ? "checkmark" : "",
+                            closure: {[weak self] _ in self?.changePageHandling()}))
+    }
+    
     (self.currentView as? ZoomedImageViewSpec)?.menu.menu = self.menuItems
+  }
+  
+  func changePageHandling(){
+    self.fullPdfOnPageSwitch = !self.fullPdfOnPageSwitch
+    self.updateMenuItems()
+    if let ziv = self.currentView as? ZoomedImageView {
+      onMainAfter {   [weak self] in
+        self?.applyPageLayout(ziv)
+      }
+    }
   }
   
   public var toolBar = AnimatedContentToolbar()
@@ -326,6 +334,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.feederContext = issueInfo.feederContext
     self.issue = issueInfo.issue
     super.init(data: pdfModel)
+    
+    hidesBottomBarWhenPushed = true
     
     thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
     thumbnailController?.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
@@ -406,7 +416,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     setupToolbar()
     setupSlider(sliderContent: thumbnailController)
-    registerForStyleUpdates(alsoForiOS13AndHigher: true)
+    registerForStyleUpdates()
   }
   
   // MARK: - setupSlider
@@ -431,7 +441,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.pageControl?.layer.shadowOpacity = 1.0
     self.pageControl?.pageIndicatorTintColor = UIColor.white
     self.pageControl?.currentPageIndicatorTintColor = Const.SetColor.CIColor.color
-    self.updateMenuItems()
     
     if let thumbCtrl = self.thumbnailController {
       var insets = UIWindow.keyWindow?.safeAreaInsets ?? UIEdgeInsets.zero
@@ -439,11 +448,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       thumbCtrl.collectionView.contentInset = insets
     }
     updateSlidersWidth()
+    self.updateMenuItems()
   }
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     updateSlidersWidth(size.width)
+    updateMenuItems(updatedSizeIsLandscape: size.width > size.height)
   }
 
   func updateSlidersWidth(_ _newParentWidth : CGFloat? = nil){

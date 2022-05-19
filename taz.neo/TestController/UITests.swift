@@ -58,7 +58,7 @@ class UITests: UIViewController {
     symButton.onPress {_ in
       print(symButton.frame)      
     }
-    //buildPinExample()
+    buildPinExample()
 //    let label = UILabel()
 //    label.font = UIFont(name: "TazAppIcons-Regular", size: 16)!
 //    label.text = "ALSXabcdehilstvx"

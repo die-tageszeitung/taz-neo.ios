@@ -28,7 +28,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   
   @Default("bottomTilesShown")
   public var bottomTilesShown: Int {
-    didSet { if bottomTilesShown > 5 { showBottomTilesAnimation = false }  }
+    didSet { if bottomTilesShown > 10 { showBottomTilesAnimation = false }  }
   }
 
   /// Are we in facsimile mode
@@ -44,11 +44,12 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   ///obsolate after refactoring & full integration
   public var issues: [Issue] = []
 
-  public var toolBar = ContentToolbar()
-  var toolbarHomeButton: Button<ImageView>?
-  var toolbarSettingsButton: Button<ImageView>?
+//  public var toolBar = ContentToolbar()
+//  var toolbarHomeButton: Button<ImageView>?
+//  var toolbarSettingsButton: Button<ImageView>?
   
   var childPushed = false
+  
   
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
@@ -87,7 +88,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   var topPos : CGFloat { get { return -UIWindow.topInset }}
   
   /// activity indicator for Bottom Ares, if load more requested
-  let footerActivityIndicator = UIActivityIndicatorView(style: .white)
+  let footerActivityIndicator = UIActivityIndicatorView()
   
   /// offset for snapping between top area (IssueCarousel) and Bottom Area (tile view)
   var scrollSnapHeight : CGFloat { get { return UIScreen.main.bounds.size.height }}
@@ -157,15 +158,8 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     collectionView?.register(IssueVCBottomTielesCVCCell.self, forCellWithReuseIdentifier: reuseIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: reuseHeaderIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
-    setupToolbar()
     showPdfInfoIfNeeded()
     setupPullToRefresh()
-    if gt_iOS13 == false {
-      let longTouch = UILongPressGestureRecognizer(target: self,
-                        action: #selector(actionMenuTapped))
-      longTouch.numberOfTouchesRequired = 1
-      collectionView.addGestureRecognizer(longTouch)
-    }
     //update download Status Button in issueCarousel
     Notification.receive("issue"){ [weak self] notif in
       guard let i = notif.object as? Issue else { return }
@@ -219,7 +213,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     if let issueVC = self as? IssueVC {
       Notification.receive("checkForNewIssues", from: issueVC.feederContext) { notification in
         if let status = notification.content as? StatusHeader.status {
-          print("recive status: \(status)")
+          print("receive status: \(status)")
           self.statusHeader.currentStatus = status
         }
       }
@@ -233,90 +227,33 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     }
   }
   
-  func setupToolbar() {
-    //the button tap closures
-    let onHome:((ButtonControl)->()) = { [weak self] _ in
-      guard let self = self as? IssueVC else { return }
-      self.issueCarousel.carousel.scrollto(0, animated: true)
-      if self.isUp == false {
-        self.scrollUp()
-        self.isUp = true //ensure property is set correctly
-        /// sometimes on heavy load its been scrolled up but property did not set correctly due this happen
-        /// in delegate...wich was interrupted
-      }
+  func onHome(){
+    guard let self = self as? IssueVC else { return }
+    self.issueCarousel.carousel.scrollto(0, animated: true)
+    if self.isUp == false {
+      self.scrollUp()
+      self.isUp = true //ensure property is set correctly
+      /// sometimes on heavy load its been scrolled up but property did not set correctly due this happen
+      /// in delegate...wich was interrupted
     }
+  }
+  
+  func onPDF(sender:Any){
+    self.isFacsimile = !self.isFacsimile
     
-    let onPDF:((ButtonControl)->()) = {   [weak self] control in
-      guard let self = self else { return }
-      self.isFacsimile = !self.isFacsimile
-      
-      if let imageButton = control as? Button<ImageView> {
-        imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
-        imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
-      }
-      self.collectionView.reloadData()
-      if let ivc = self as? IssueVC {
-        ivc.setLabel(idx: ivc.index)
-      }
-      print("PDF Pressed")
+    if let imageButton = sender as? Button<ImageView> {
+      imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
+      imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
     }
-    
-    let onSettings:((ButtonControl)->()) = {   [weak self] control in
-      guard let self = self else { return }
-      let navCtrl = UINavigationController(rootViewController: SettingsVC())
-//      navCtrl.modalPresentationStyle = .overCurrentContext
-      navCtrl.isNavigationBarHidden = true
-      self.navigationController?.present(navCtrl, animated: true, completion: {
-        print("Settings Presented")
-      })
-      print("Settings Pressed")
+    self.collectionView.reloadData()
+    if let ivc = self as? IssueVC {
+      ivc.setLabel(idx: ivc.index)
     }
-    //the buttons and alignments
-    toolbarHomeButton = toolBar.addImageButton(name: "home",
-                               onPress: onHome,
-                               direction: .right,
-                               accessibilityLabel: "Übersicht")
-    
-    _ = toolBar.addImageButton(name: self.isFacsimile ? "mobile-device" : "newspaper",
-                               onPress: onPDF,
-                               direction: .left,
-                               accessibilityLabel: self.isFacsimile ? "App Ansicht" : "Zeitungsansicht")
-    
-    _ = toolBar.addImageButton(name: "settings",
-                               onPress: onSettings,
-                               direction: .center,
-                               accessibilityLabel: "Einstellungen")
-        
-    //the toolbar setup itself
-    toolBar.applyDefaultTazSyle()
-    toolBar.pinTo(self.view)
   }
 }
 
 // MARK: - Cell Long Tap
 extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
-  
-  
-  /// iOS 12 for item long tap
-  /// - Parameter sender: UILongPressGestureRecognizer added to collectionView in viewDidLoad
-  @objc func actionMenuTapped(_ sender: UILongPressGestureRecognizer) {
-    if open { return } else { open = true }
-    if sender.state != .began { return }
-    
-    let p = sender.location(in: self.collectionView)
-    guard let indexPath = self.collectionView.indexPathForItem(at: p) else { return }
-    let issue = issues.valueAt(indexPath.row)
-
-    let menu = createMenuItems(issue, indexPath: indexPath)
-    
-    var actionMenu: [UIAlertAction] = []
-    for m in menu {
-      actionMenu += Alert.action(m.title, closure: m.closure)
-    }
-    Alert.actionSheet(actions: actionMenu) { [weak self] in
-      self?.open = false
-    }
-  }
 
   // Helper alias for iOS 12 vs. > iOS 12
   typealias MenuItem = (title: String, icon: String, closure: (String)->())
@@ -348,15 +285,12 @@ extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
         }
       }))
     }
-    if gt_iOS13 {
-      items.append((title: "Abbrechen",
-                    icon: "xmark.circle",
-                    closure: {_ in }))
-    }
+    items.append((title: "Abbrechen",
+                  icon: "xmark.circle",
+                  closure: {_ in }))
     return items
   }
   
-  @available(iOS 13.0, *)
   /// Create context Menu for given item and indexPath
   /// - Parameters:
   ///   - issue: target issue for actions
@@ -380,7 +314,6 @@ extension IssueVcWithBottomTiles : UIContextMenuInteractionDelegate{
   }
   
   // MARK: - UIContextMenuInteractionDelegate protocol
-  @available(iOS 13.0, *)
   public func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
     configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
     let loc = interaction.location(in: collectionView)
@@ -443,7 +376,7 @@ extension IssueVcWithBottomTiles {
       }
     }
     
-    if #available(iOS 13.0, *), cell.interactions.isEmpty {
+    if cell.interactions.isEmpty {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
       cell.addInteraction(menuInteraction)
       cell.backgroundColor = .black
@@ -461,6 +394,8 @@ extension IssueVcWithBottomTiles {
       footerActivityIndicator.startAnimating()
     }
   }
+  
+  
   
   
   func showMoreIssues(){
@@ -720,9 +655,9 @@ extension IssueVcWithBottomTiles {
     }
     
     if scrollDownAnimation.superview == nil {
-      self.view.insertSubview(scrollDownAnimation, belowSubview: toolBar)
+      self.view.addSubview(scrollDownAnimation)
       scrollDownAnimation.centerX()
-      pin(scrollDownAnimation.bottom, to: toolBar.top, dist: 5)
+      pin(scrollDownAnimation.bottom, to: self.view.bottomGuide(), dist: -12)
     }
     
     onMainAfter(delay) {   [weak self] in
@@ -859,11 +794,7 @@ class StatusHeader: UIView {
     }
   }
   
-  private lazy var activityIndicator : UIActivityIndicatorView = {
-    let view = UIActivityIndicatorView()
-    view.style = .white
-    return view
-  }()
+  private lazy var activityIndicator = UIActivityIndicatorView()
   
   private lazy var label : UILabel = UILabel().contentFont().white().center()
   

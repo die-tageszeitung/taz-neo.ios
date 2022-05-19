@@ -145,41 +145,29 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
       aspectRatio?.isActive = false
       aspectRatio = momentView.pinAspect(ratio: iwidth/iheight)
       momentWidth = momentView.pinWidth(to: self.view.width, factor: 0.5)
-      if #available(iOS 13.0, *) {
-        let menuInteraction = UIContextMenuInteraction(delegate: self)
-        momentView.addInteraction(menuInteraction)
-        momentView.isUserInteractionEnabled = true
-      } 
+      let menuInteraction = UIContextMenuInteraction(delegate: self)
+      momentView.addInteraction(menuInteraction)
+      momentView.isUserInteractionEnabled = true
     }
   }
   
-  @available(iOS 13.0, *)
   fileprivate func createContextMenu() -> UIMenu {
-    let deleteAction = UIAction(title: "Alle Ausgaben löschen",
-      image: UIImage(systemName: "trash")) { action in
-        MainNC.singleton.deleteAll()
-    }
-    let deleteUserDataAction = UIAction(title: "Kundendaten löschen (Abmelden)",
-      image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
-        MainNC.singleton.deleteUserData()
-    }
     let unlinkSubscriptionIdAction = UIAction(title: "Abo-Verknüpfung löschen (⍺)",
       image: UIImage(systemName: "person.crop.circle.badge.minus")) { action in
-        MainNC.singleton.unlinkSubscriptionId()
+      TazAppEnvironment.sharedInstance.unlinkSubscriptionId()
     }
     let requestSubscriptionNotification = UIAction(title: "Abo-Push anfordern (⍺)",
       image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
-        MainNC.singleton.testNotification(type: NotificationType.subscription)
+      TazAppEnvironment.sharedInstance.testNotification(type: NotificationType.subscription)
     }
     let requestDownloadNotification = UIAction(title: "Download-Push anfordern (⍺)",
       image: UIImage(systemName: "dot.radiowaves.left.and.right")) { action in
-        MainNC.singleton.testNotification(type: NotificationType.subscription)
+      TazAppEnvironment.sharedInstance.testNotification(type: NotificationType.subscription)
     }
     if App.isAlpha {
-      return UIMenu(title: "", children: [deleteAction, deleteUserDataAction,
-        unlinkSubscriptionIdAction, requestSubscriptionNotification, requestDownloadNotification])
+      return UIMenu(title: "", children: [unlinkSubscriptionIdAction, requestSubscriptionNotification, requestDownloadNotification])
     }
-    return UIMenu(title: "", children: [deleteAction, deleteUserDataAction])
+    return UIMenu(title: "", children: [])
   }
   
   fileprivate var sectionPressedClosure: ((Int)->())?
@@ -266,7 +254,6 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   // MARK: - UIContextMenuInteractionDelegate protocol
 
-  @available(iOS 13.0, *)
   public func contextMenuInteraction(_ interaction: UIContextMenuInteraction, 
     configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
     return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) 
@@ -279,8 +266,10 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int)
     -> Int {
-    if let n = issue?.sections?.count { return n + 1 }
-    else { return 0 }
+    guard let sections = issue?.sections else { return 0 }
+    let n = sections.count
+    if issue!.imprint != nil { return n+1 }
+    else { return n }
   }
   
   public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
@@ -288,11 +277,10 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
     let cell = tableView.dequeueReusableCell(withIdentifier: sectionCell, 
                                              for: indexPath) as! SectionCell
     guard let issue = issue, 
-      let sections = issue.sections,
-      let imprint = issue.imprint
+      let sections = issue.sections
     else { return cell }
     let n = indexPath.row
-    if n >= sections.count { 
+      if let imprint = issue.imprint, n >= sections.count { 
       cell.cellLabel.text = imprint.title ?? "Impressum"
       cell.cellLabel.textColor = ContentTableVC.ArticleColor
     }

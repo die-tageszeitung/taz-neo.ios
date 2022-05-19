@@ -5,7 +5,7 @@
 //  Copyright © 2019 Norbert Thies. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import NorthLib
 
 /// A protocol defining methods to use by GraphQL objects
@@ -216,6 +216,12 @@ class GqlAuthor: Author, GQLObject {
 
 /// One Article of an Issue
 class GqlArticle: Article, GQLObject {
+  var realPrimaryIssue: GqlIssue?
+  /// Issue where this Article is stored
+  var primaryIssue: Issue? { 
+    get { realPrimaryIssue } 
+    set { realPrimaryIssue = (newValue as! GqlIssue) }
+  }
   /// File storing article HTML
   var articleHtml: GqlFile
   var html: FileEntry { return articleHtml }
@@ -251,6 +257,12 @@ class GqlArticle: Article, GQLObject {
 
 /// A Section of an Issue
 class GqlSection: Section, GQLObject {
+  var realPrimaryIssue: GqlIssue?
+  /// Issue where this Section is stored
+  var primaryIssue: Issue? { 
+    get { realPrimaryIssue } 
+    set { realPrimaryIssue = (newValue as! GqlIssue) }
+  }
   /// File storing section HTML
   var sectionHtml: GqlFile
   var html: FileEntry { return sectionHtml }
@@ -639,7 +651,7 @@ open class GqlFeeder: Feeder, DoesLog {
       case .failure(let err):  
         ret = .failure(err)
       }
-      self.lastUpdated = UsTime.now().date
+      self.lastUpdated = UsTime.now.date
       closure(ret)
     }
   }
@@ -698,6 +710,12 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
+    
+    if pushToken == nil && oldToken == nil {
+      closure(.failure(error("one token must not be nil either oldToken or (new) pushToken")))
+      return
+    }
+    
     let pToken = (pushToken == nil) ? "" : "pushToken: \"\(pushToken!)\","
     let oToken = (oldToken == nil) ? "" : "oldToken: \"\(oldToken!)\","
     let request = """
@@ -842,17 +860,19 @@ open class GqlFeeder: Feeder, DoesLog {
       case .success(let frq):  
         let req = frq["feedRequest"]!
         if wasAuthenticated {
-          if MainNC.singleton.expiredAccountInfoShown {//Expired account already shown
-            if req.authInfo.status == .valid {//account not expired anymore
-              MainNC.singleton.expiredAccountInfoShown = false
+          if req.authInfo.status == .valid
+             && Defaults.expiredAccountDate != nil { //account not expired anymore
+            TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
               Alert.message(message: "Ihr Abo ist wieder aktiv!")
               Defaults.expiredAccountDate = nil
-            }
           }
-          else if req.authInfo.status == .expired {
+          else if req.authInfo.status == .expired
+                  && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {
             ret = .failure(FeederError.expiredAccount(req.authInfo.message))
+            TazAppEnvironment.sharedInstance.expiredAccountInfoShown = true
           }
-          else if req.authInfo.status != .valid {
+          else if req.authInfo.status != .expired
+                    && req.authInfo.status != .valid {
             self.log("Invalid Auth Status: \(req.authInfo.status) for FeedRequest. WasAuth:\(wasAuthenticated) SessionAuth: \(gqlSession.authToken?.length ?? 0 > 10)")
             ret = .failure(FeederError.changedAccount(req.authInfo.message))
           }
@@ -862,6 +882,16 @@ open class GqlFeeder: Feeder, DoesLog {
             for issue in issues { 
               issue.feed = feed 
               (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages)
+              if let sections = issue.sections as? [GqlSection] {
+                for section in sections {
+                  section.primaryIssue = issue
+                  if let articles = section.articles as? [GqlArticle] { 
+                    for article in articles {
+                      article.primaryIssue = issue
+                    }
+                  }
+                }
+              }
             }
             ret = .success(issues) 
           }

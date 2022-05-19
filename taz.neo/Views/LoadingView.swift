@@ -27,6 +27,11 @@ open class LoadingView: UIView, UIStyleChangeDelegate {
     set { bottomLabel.text = newValue }
   }
   
+  public var style: UIActivityIndicatorView.Style {
+    get { return spinner.style }
+    set { spinner.style = newValue }
+  }
+  
   public func start() { spinner.startAnimating() }
   public func stop() { spinner.stopAnimating() }
   
@@ -39,11 +44,7 @@ open class LoadingView: UIView, UIStyleChangeDelegate {
     bottomLabel.font = BottomFont
     bottomLabel.numberOfLines = 0
     bottomLabel.textAlignment = .center
-
-    if #available(iOS 13.0, *) {
-      spinner.style = .large
-    }
-
+    spinner.style = .large
     spinner.startAnimating()
     for view in [topLabel, spinner, bottomLabel] {
       stack.addArrangedSubview(view)

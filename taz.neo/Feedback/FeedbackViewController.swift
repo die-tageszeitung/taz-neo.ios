@@ -6,7 +6,7 @@
 //  Copyright © 2020 Norbert Thies. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import NorthLib
 import MessageUI
 
@@ -47,10 +47,10 @@ public class FeedbackViewController : UIViewController{
        screenshot: UIImage? = nil,
        deviceData: DeviceData? = nil,
        logData: Data? = nil,
-       feederContext: FeederContext,
+       feederContext: FeederContext?,
        finishClosure: (() -> ())?) {
     self.feedbackView = FeedbackView(type: type,
-                                     isLoggedIn: feederContext.gqlFeeder?.authToken != nil )
+                                     isLoggedIn: feederContext?.gqlFeeder?.authToken ?? nil != nil )
     self.screenshot = screenshot
     self.type = type
     self.deviceData = deviceData
@@ -58,16 +58,6 @@ public class FeedbackViewController : UIViewController{
     self.feederContext = feederContext
     self.doCloseClosure = finishClosure
     super.init(nibName: nil, bundle: nil)
-  }
-  
-  public override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    updateViewSize(self.view.bounds.size)
-  }
-  
-  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    self.presentedViewController?.viewWillTransition(to: size, with: coordinator)
-    updateViewSize(size)
   }
   
   private var initialParent: UINavigationController?
@@ -93,21 +83,24 @@ public class FeedbackViewController : UIViewController{
     /// 2. on close presenting vc is maybe in wrong size
   }
   
+  
+  public override func viewWillLayoutSubviews() {
+    super.viewWillLayoutSubviews()
+    updateViewSize()
+  }
+  
   private var wConstraint:NSLayoutConstraint?
 
   /// update size for changed traits
-  func updateViewSize(_ newSize:CGSize){
+  private func updateViewSize(){
     guard let feedbackView = feedbackView else { return }
+    let newSize = self.view.superview?.frame.size ?? UIWindow.size
     if let constraint = wConstraint{
+      if constraint.constant == newSize.width - 24 { return }
       feedbackView.stack.removeConstraint(constraint)
     }
     wConstraint = feedbackView.stack.pinWidth(newSize.width - 24, priority: .required)
   }
-  
-//  public override func viewDidDisappear(_ animated: Bool) {
-//    ///Warning Not Working when Presented wirh Overlay!
-//    super.viewDidDisappear(animated)
-//  }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -476,7 +469,7 @@ public class FeedbackViewController : UIViewController{
       self?.feedbackView?.logAttachmentButton.removeFromSuperview()
       self?.logData = nil
     }
-    menu.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") { (_) in }
+    menu.addMenuItem(title: "Abbrechen", icon: "xmark.circle") { (_) in }
     return menu
   }()
   
@@ -491,7 +484,7 @@ public class FeedbackViewController : UIViewController{
       self?.screenshot = nil
       //self.screenshot = nil
     }
-    menu.iosHigher13?.addMenuItem(title: "Abbrechen", icon: "xmark.circle") { (_) in }
+    menu.addMenuItem(title: "Abbrechen", icon: "xmark.circle") { (_) in }
     return menu
   }()
   
