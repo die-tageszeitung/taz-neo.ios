@@ -450,15 +450,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     writeTazApiCss()
     writeTazApiJs()
     self.view.addSubview(header)
-    pin(header.top, to: self.view.top)
-    if let cv = collectionView {
-      pin(header.left, to: cv.left)
-      pin(header.right, to: cv.right)
-    } else {
-      pin(header.left, to: self.view.left)
-      pin(header.right, to: self.view.right)
-    }
-    pinTopAnchor = header.bottom
+    pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
     if let sections = issue.sections, sections.count > 1 { setupSlider() }
