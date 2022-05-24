@@ -144,8 +144,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       html, body { 
         font-size: \((CGFloat(textSize)*18)/100)px; 
       }
+    
+      #content:first-child > *:first-child > *:first-child > img,
+      #content:first-child > *:first-child > *:first-child > img:first-child{
+             padding-top: -20px
+      }
+
+    
       body {
-        padding-top: \(topMargin+UIWindow.topInset/2)px;
+        padding-top: 20px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
       }
       p {
@@ -526,6 +533,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
+    self.webviewInsets = UIEdgeInsets(top:58, left: 0, bottom:0, right: 0)
   }
   
   override public func viewWillDisappear(_ animated: Bool) {
@@ -580,4 +588,24 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     fatalError("init(coder:) has not been implemented")
   }
   
+  var headerHeight = 0.0
+  
+  open override func viewWillLayoutSubviews() {
+    super.viewWillLayoutSubviews()
+    /*
+    if header.bounds.height > headerHeight {
+      headerHeight = header.bounds.height
+      let offset = 58.0
+      WiP offset of 58 seams to be the right value on the following phones:
+      print("xxx: headerh: \(headerHeight) pt: 20 offset: \(offset) topInset: \(UIWindow.topInset) bomInset: \(UIWindow.bottomInset) tbh: \(toolBar.totalHeight)")
+    //iPhone SE3: headerh: 53.5 pt: 20 offset: 58.0 topInset: 20.0 bomInset: 0.0 tbh: 52.0
+      //btn: -(50+UIWindow.bottomInset)
+    //iPhone 13: headerh: 53.666666666666664 pt: 20 offset: 58.0 topInset: 47.0 bomInset: 34.0 tbh: 86.0
+      self.webviewInsets = UIEdgeInsets(top:offset,
+                                        left: 0,
+                                        bottom:0,
+                                        right: 0)
+      
+    }*/
+  }
 }
