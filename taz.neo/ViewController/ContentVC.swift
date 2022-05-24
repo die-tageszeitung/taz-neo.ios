@@ -16,6 +16,8 @@ public class ContentUrl: WebViewUrl, DoesLog {
 
   private var loadClosure: (ContentUrl)->()
   private var _isAvailable = false
+  private var errorCount = 0
+  
   public var isAvailable: Bool {
     get {
       guard !_isAvailable else { return true }
@@ -28,18 +30,30 @@ public class ContentUrl: WebViewUrl, DoesLog {
       return true
     }
     set {
-      _isAvailable = true
-      $whenAvailable.notify(sender: self)
+      _isAvailable = newValue
+      if _isAvailable {
+        errorCount = 0
+        $whenAvailable.notify(sender: self)
+      }
+      else {
+        errorCount += 1
+        _waitingView?.bottomText = "\(errorCount) Ladefehler..."
+        delay(seconds: 0.2 * Double(errorCount)) { self.loadClosure(self) }
+      }
     }
   }
   
   @Callback
   public var whenAvailable: Callback<Void>.Store
 
+  private var _waitingView: LoadingView?
+  
   public func waitingView() -> UIView? {
+    if let wv = _waitingView { return wv }
     let view = LoadingView()
     view.topText = content.title ?? ""
     view.bottomText = "wird geladen..."
+    _waitingView = view
     return view
   }
   
@@ -413,7 +427,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let curl = ContentUrl(content: content) { [weak self] curl in
       guard let self = self else { return }
       self.dloader.downloadIssueData(issue: self.issue, files: curl.content.files) { err in
-        if err == nil { curl.isAvailable = true }
+        curl.isAvailable = err == nil
       }
     }
     contents.insert(content, at: idx)
@@ -437,7 +451,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       ContentUrl(content: cnt) { [weak self] curl in
         guard let self = self else { return }
         self.dloader.downloadIssueData(issue: self.issue, files: curl.content.files) { err in
-          if err == nil { curl.isAvailable = true }
+          curl.isAvailable = err == nil
         }
       }
     }
