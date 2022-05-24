@@ -130,8 +130,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       html, body { 
         font-size: \((CGFloat(textSize)*18)/100)px; 
       }
+    
+      #content:first-child > *:first-child > *:first-child > img,
+      #content:first-child > *:first-child > *:first-child > img:first-child{
+             padding-top: -20px
+      }
+
+    
       body {
-        padding-top: \(topMargin+UIWindow.topInset/2)px;
+        padding-top: 20px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
       }
       p {
@@ -512,6 +519,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
+    print("pcv#d1 viewWillAppear")
+    header.updateUI()
+    header.setNeedsLayout()
+    header.layoutIfNeeded()
+    topInset = header.frame.size.height
   }
   
   override public func viewWillDisappear(_ animated: Bool) {
@@ -565,5 +577,52 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   required public init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+  
+  
+  open override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    print("pcv#d1b coll exp 718::: size: \(collectionView?.frame.size.height) \(collectionView?.bounds.size.height)")
+    onMainAfter(3.0) {
+      print("pcv#d1b coll exp 718::: size: \(self.collectionView?.frame.size.height) \(self.collectionView?.bounds.size.height)")
+    }
+  }
+  
+  open override func didMove(toParent parent: UIViewController?) {
+    super.didMove(toParent: parent)
+    print("pcv#d1b didMove toParent \(self.collectionView?.bounds.size.height) selfheight cvc: \(self.view.bounds.height)")
+  }
+  
+  
+  open override func updateViewConstraints() {
+    super.updateViewConstraints()
+    print("pcv#d1b updateViewConstraints cvc: \(self.view.bounds.height)")
+  }
+  
+  open override func systemLayoutFittingSizeDidChange(forChildContentContainer container: UIContentContainer) {
+    super.systemLayoutFittingSizeDidChange(forChildContentContainer: container)
+    print("pcv#d1b systemLayoutFittingSizeDidChange cvc: \(self.view.bounds.height)")
+  }
+  
+  var headerHeight:CGFloat?
+  
+  open override func viewWillLayoutSubviews() {
+    super.viewWillLayoutSubviews()
+    if headerHeight == nil { headerHeight = header.frame.size.height }
+    print("pcv#d1b viewWillLayoutSubviews cvc: \(self.collectionView?.bounds.height)")
+  }
+  open override func viewDidLayoutSubviews() {
+    print("pcv#d1b viewDidLayoutSubviews1 cvc: \(self.collectionView?.bounds.height)")
+    super.viewDidLayoutSubviews()
+    print("pcv#d1b viewDidLayoutSubviews2 cvc: \(self.collectionView?.bounds.height) < \(self.collectionView?.collectionViewLayout.collectionViewContentSize.height)")
+    
+    if let h = headerHeight, h != header.frame.size.height, topInset == 0.0 {
+      topInset = header.frame.size.height
+    }
+    
+  }
+
+
+  
+  
   
 }

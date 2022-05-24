@@ -72,8 +72,16 @@ open class HeaderView: UIView,  Touchable {
   var pageNumberLabel = HidingLabel()
   var borderView:UIView?
 
-  private var titleTopConstraint: NSLayoutConstraint?
-  private var titleBottomConstraint: NSLayoutConstraint?
+  private var titleTopConstraint: NSLayoutConstraint? {
+    didSet {
+      print("pcv#d1 headerview titleTopConstraint set to: \(titleTopConstraint?.constant)")
+    }
+  }
+  private var titleBottomConstraint: NSLayoutConstraint?{
+    didSet {
+      print("pcv#d1 headerview titleBottomConstraint set to: \(titleBottomConstraint?.constant)")
+    }
+  }
   private var titlePageNumberLabelBottomConstraint: NSLayoutConstraint?
   var leftConstraint: NSLayoutConstraint?
   
@@ -113,6 +121,7 @@ open class HeaderView: UIView,  Touchable {
   }
   
   func updateUI(){
+    print("pcv#d1 headerview updateUI")
     switch (subTitle, isLargeTitleFont) {
       case (nil, _)://in Article (missing subtitle) just a bold font
         titleLabel.boldContentFont()
@@ -121,10 +130,7 @@ open class HeaderView: UIView,  Touchable {
       case (_, false)://medium large title for other sections
         titleLabel.titleFont(size: Const.Size.TitleFontSize)
     }
-    UIView.animate(seconds: 0.2) { [weak self] in
-      self?.titleTopConstraint?.constant = self?.titleTopIndentL ?? 0
-      self?.layoutIfNeeded()
-    }
+    self.titleTopConstraint?.constant = self.titleTopIndentL
     self.titleBottomConstraint?.constant = titleBottomIndentL
     subTitleLabel.contentFont(size: subTitleFontSizeDefault)
     pageNumberLabel.contentFont(size: subTitleFontSizeDefault)
@@ -133,6 +139,27 @@ open class HeaderView: UIView,  Touchable {
     (pageNumberLabel.font.pointSize - titleLabel.font.pointSize)/3
     self.subTitleLabel.alpha = 1.0
     self.line.alpha = 1.0
+    print("pcv#d1 headerview updateUI \(self.bounds.height)")
+  }
+  
+  open override func layoutIfNeeded() {
+    super.layoutIfNeeded()
+    print("pcv#d1 headerview layoutIfNeeded \(self.bounds.height)")
+  }
+  
+  open override func updateConstraintsIfNeeded() {
+    super.updateConstraintsIfNeeded()
+    print("pcv#d1 headerview updateConstraintsIfNeeded \(self.bounds.height)")
+  }
+  
+  open override func updateConstraints() {
+    super.updateConstraints()
+    print("pcv#d1 headerview updateConstraints \(self.bounds.height)")
+  }
+  
+  open override func setNeedsLayout() {
+    super.setNeedsLayout()
+    print("pcv#d1 headerview setNeedsLayout \(self.bounds.height)")
   }
 
   private var onTitleClosure: ((String?)->())?
@@ -194,6 +221,7 @@ open class HeaderView: UIView,  Touchable {
   open override func layoutSubviews() {
     super.layoutSubviews()
     applyStyles()
+    print("pcv#d1 headerview layoutSubviews \(self.bounds.height)")
   }
 
   
