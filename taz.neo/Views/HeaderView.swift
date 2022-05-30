@@ -88,10 +88,10 @@ open class HeaderView: UIView,  Touchable {
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
           titleLabel.textAlignment = .right
-          pageNumberLabel.textAlignment = .right
+          pageNumberLabel.textAlignment = .left
           titleFontSizeDefault = Const.Size.DefaultFontSize
           titleTopIndentL = Const.Size.DefaultPadding
-          titleBottomIndentL = -18
+          titleBottomIndentL = -31
       }
       titleLabel.titleFont(size: titleFontSizeDefault)
       updateUI()
