@@ -39,6 +39,12 @@ open class ArticleVC: ContentVC {
       if oldValue == nil { self.setup() } 
     }
   }
+  
+  override func relaese(){
+    super.relaese()
+    adelegate = nil
+  }
+  
   public var adelegate: ArticleVCdelegate? {
     get { delegate as? ArticleVCdelegate }
     set { delegate = newValue }
@@ -64,6 +70,11 @@ open class ArticleVC: ContentVC {
     }
   }
   
+  func displayBookmark(art: Article) {
+    if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
+    else { self.bookmarkButton.buttonView.name = "star" }
+  }
+  
   func setup() {
     guard let delegate = self.adelegate else { return }
     self.articles = delegate.issue.allArticles
@@ -82,7 +93,7 @@ open class ArticleVC: ContentVC {
         self.debug("*** Action: Section \(sectionIndex) " +
           "(delegate.sections[sectionIndex])) in Slider pressed")
       }
-      delegate.displaySection(index: sectionIndex)
+      self.adelegate?.displaySection(index: sectionIndex)
       self.slider?.close()
       self.navigationController?.popViewController(animated: false)
     }
@@ -92,20 +103,18 @@ open class ArticleVC: ContentVC {
       self?.navigationController?.popViewController(animated: false)
       self?.adelegate?.closeIssue()
     }
-    func displayBookmark(art: Article) {
-      if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
-      else { self.bookmarkButton.buttonView.name = "star" }
-    }
-    Notification.receive("BookmarkChanged") { msg in
+
+    Notification.receive("BookmarkChanged") { [weak self] msg in
+      guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,
          cart.html.name == art.html.name {
-        displayBookmark(art: art)
+         self.displayBookmark(art: art)
       }
     }
     onDisplay { [weak self] (idx, oview) in
       if let self = self {
-        var art = self.articles[idx]
+        let art = self.articles[idx]
         self.adelegate?.article = art
         self.setHeader(artIndex: idx)
         self.issue.lastArticle = idx
@@ -113,7 +122,8 @@ open class ArticleVC: ContentVC {
         if player.isPlaying() { async { player.stop() } }
         if art.canPlayAudio {
           self.playButton.buttonView.name = "audio"
-          self.onPlay { _ in 
+          self.onPlay { [weak self] _ in
+            guard let self = self else {return}
             if let title = self.header.title ?? art.title {
               art.toggleAudio(issue: self.issue, sectionName: title )
             }
@@ -122,11 +132,11 @@ open class ArticleVC: ContentVC {
           }
         }
         else { self.onPlay(closure: nil) }
-        self.onBookmark { _ in 
-          art.hasBookmark.toggle() 
+        self.onBookmark { [weak self] _ in
+          self?.articles[idx].hasBookmark.toggle()
           ArticleDB.save()
         }
-        displayBookmark(art: art)
+        self.displayBookmark(art: art)
         self.debug("on display: \(idx), article \(art.html.name)")
       }
     }
@@ -272,7 +282,8 @@ open class ArticleVC: ContentVC {
 //MARK: - Context Menu Actions
 extension ArticleVC {
   @objc func search() {
-    self.currentWebView?.evaluateJavaScript("window.getSelection().toString()", completionHandler: { selectedText, err in
+    self.currentWebView?.evaluateJavaScript("window.getSelection().toString()", completionHandler: {[weak self] selectedText, err in
+      guard let self = self else {return}
       if let e = err { self.log(e.description)}
       //#warning("ToDo: 0.9.4+ Implement Search")
       if let txt = selectedText { print("You selected: \(txt)")}

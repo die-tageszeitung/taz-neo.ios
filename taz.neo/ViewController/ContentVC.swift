@@ -122,6 +122,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     return ContentVC._tazApiJs!
   }
   
+  func relaese(){
+    delegate = nil
+    //Circular reference with: onImagePress, onSectionPress
+    contentTable = nil
+    settingsBottomSheet = nil
+    slider = nil
+  }
+
   public func resetIssueList() { delegate.resetIssueList() }  
 
   /// Write tazApi.css to resource directory
@@ -284,7 +292,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     else { toolBar.setArticlePlayBar() }
   }
   
-  public func onPlay(closure: ((ContentVC)->())?) { 
+  public func onPlay(closure: ((ContentVC)->())?) {
     playClosure = closure
     if closure == nil { toolBar.setArticleBar() }
     else { toolBar.setArticlePlayBar() }
