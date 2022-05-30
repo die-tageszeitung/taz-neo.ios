@@ -168,8 +168,12 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   /// UI Components
   lazy var footer:Footer = Footer()
   
-  lazy var header = SimpleHeaderView("einstellungen")
-  ///Close X Button
+  lazy var header:HeaderView = {
+    let v = HeaderView()
+    v.titletype = .bigLeft
+    v.title = "einstellungen"
+    return v
+  }()
   
   let blockingView = BlockingProcessView()
   
@@ -196,6 +200,16 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     initialTextNotificationSetting = isTextNotification
   }
   
+  open override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    if let sv = self.view.superview {
+      sv.addSubview(header)
+      pin(header, to: sv, exclude: .bottom)
+      pin(self.tableView, toSafe: sv, exclude: .top).bottom?.constant = -50.0
+      pin(self.tableView.top, to: header.bottom)
+    }
+  }
+    
   open override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     applyStyles()
@@ -241,7 +255,6 @@ extension SettingsVC {
   }
   
   func setup(){
-    tableView.tableHeaderView = header
     tableView.separatorInset = .zero
     header.layoutIfNeeded()
     registerForStyleUpdates()
@@ -287,6 +300,20 @@ extension SettingsVC {
       guard let indexPath = tableView.indexPathForRow(at: touchPoint) else { return }
       data.cell(at: indexPath)?.longTapHandler?()
     }
+  }
+}
+
+extension SettingsVC {
+  open override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    self.header.scrollViewDidScroll(scrollView.contentOffset.y)
+  }
+  
+  open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    self.header.scrollViewDidEndDragging(scrollView.contentOffset.y)
+  }
+  
+  open override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    self.header.scrollViewWillBeginDragging(scrollView.contentOffset.y)
   }
 }
 

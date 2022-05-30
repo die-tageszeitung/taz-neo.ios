@@ -215,8 +215,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     header.title = contents[secIndex].title ?? ""
     if !isStaticHeader {
       header.subTitle = issue.date.gLowerDate(tz: feeder.timeZone)
-      if index == 0 { header.isLargeTitleFont = true }
-      else { header.isLargeTitleFont = false }
+      header.titletype = index == 0 ? .section0 : .section
     }
     header.showAnimated()
   }

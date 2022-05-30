@@ -148,6 +148,7 @@ open class ArticleVC: ContentVC {
       self?.debug("*** Action: ToSection pressed")
       self?.navigationController?.popViewController(animated: true)
     }
+    header.titletype = .article
   }
     
   // Define Header elements

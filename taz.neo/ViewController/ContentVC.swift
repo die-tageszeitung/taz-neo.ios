@@ -127,7 +127,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat? = nil,
                              bottomMargin: CGFloat? = nil, callback: (()->())? = nil) {
-    let topMargin = topMargin ?? Self.topMargin
     let bottomMargin = bottomMargin ?? Self.bottomMargin
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!

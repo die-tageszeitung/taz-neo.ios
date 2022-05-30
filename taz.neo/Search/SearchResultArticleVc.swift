@@ -72,7 +72,7 @@ class SearchResultArticleVc : ArticleVC {
         if isAtEnd { self?.feederContext.authenticate() }
       }
     }
-    header.titleAlignment = .left
+    header.titletype = .serach
   }
 }
 
