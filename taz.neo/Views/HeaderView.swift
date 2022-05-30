@@ -138,16 +138,7 @@ open class HeaderView: UIView,  Touchable {
   }
   
   func updateUI(){
-    self.titleTopConstraint?.constant = self.titleTopIndentL
-    self.layoutIfNeeded()
-    self.titleBottomConstraint?.constant = titleBottomIndentL
-    subTitleLabel.contentFont(size: subTitleFontSizeDefault)
-    pageNumberLabel.contentFont(size: subTitleFontSizeDefault)
-    lastAnimationRatio = 0.0
-    titlePageNumberLabelBottomConstraint?.constant =
-    (pageNumberLabel.font.pointSize - titleLabel.font.pointSize)/3
-    self.subTitleLabel.alpha = 1.0
-    self.line.alpha = 1.0
+    showAnimated(false)
   }
 
   private var onTitleClosure: ((String?)->())?
@@ -260,8 +251,8 @@ extension HeaderView {
     }
   }
   
-  func showAnimated(){
-    handleScrolling(offsetDelta: maxOffset, animate: true)
+  func showAnimated(_ animated:Bool = true){
+    handleScrolling(offsetDelta: maxOffset, animate: animated)
   }
   
   ///negative when scroll down ...hide tf, show miniHeader

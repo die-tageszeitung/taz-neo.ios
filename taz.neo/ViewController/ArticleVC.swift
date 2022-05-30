@@ -165,7 +165,16 @@ open class ArticleVC: ContentVC {
           }
           if let st = art.sectionTitle { header.title = st }
           else { header.title = "\(title)" }
-          header.pageNumber = "\(i+1)/\(articles.count)"
+       
+          
+          if section is BookmarkSection {
+            header.titletype = .search
+            header.subTitle = "Ausgabe \(art.issueDate.short)"
+            header.pageNumber = "\(i+1) von \(articles.count)"
+          }
+          else {
+            header.pageNumber = "\(i+1)/\(articles.count)"
+          }
         }        
       }
     }
