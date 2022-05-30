@@ -72,7 +72,7 @@ class SearchResultArticleVc : ArticleVC {
         if isAtEnd { self?.feederContext.authenticate() }
       }
     }
-    header.titletype = .serach
+    header.titletype = .search
   }
 }
 

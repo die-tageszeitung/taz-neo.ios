@@ -8,7 +8,7 @@
 import UIKit
 import NorthLib
 
-enum TitleType { case bigLeft, article, section, section0, serach  }
+enum TitleType { case bigLeft, article, section, section0, search  }
 
 /// The Header to show on top of sections and articles
 open class HeaderView: UIView,  Touchable {
@@ -81,7 +81,7 @@ open class HeaderView: UIView,  Touchable {
           titleFontSizeDefault = Const.Size.LargeTitleFontSize
           titleTopIndentL = Const.Size.DefaultPadding - 11.0
           titleBottomIndentL = -31
-        case .serach:
+        case .search:
           pageNumberLabel.isHidden = false
           subTitleLabel.isHidden = false
           titleLeftConstraint?.constant = 8.0
