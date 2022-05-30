@@ -152,6 +152,7 @@ open class ArticleVC: ContentVC {
   }
     
   // Define Header elements
+  #warning("ToDo: Refactor get HeaderField with Protocol! (ArticleVC, SectionVC...)")
   func setHeader(artIndex: Int) {
     if let art = article {
       if let sections = adelegate?.article2section[art.html.name],
