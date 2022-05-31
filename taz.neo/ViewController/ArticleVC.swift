@@ -40,6 +40,10 @@ open class ArticleVC: ContentVC {
     }
   }
   
+  deinit {
+    log("deinit \(self)")
+  }
+  
   override func relaese(){
     super.relaese()
     adelegate = nil
@@ -70,11 +74,6 @@ open class ArticleVC: ContentVC {
     }
   }
   
-  func displayBookmark(art: Article) {
-    if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
-    else { self.bookmarkButton.buttonView.name = "star" }
-  }
-  
   func setup() {
     guard let delegate = self.adelegate else { return }
     self.articles = delegate.issue.allArticles
@@ -103,18 +102,23 @@ open class ArticleVC: ContentVC {
       self?.navigationController?.popViewController(animated: false)
       self?.adelegate?.closeIssue()
     }
+    
+    func displayBookmark(art: Article) {
+      if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
+      else { self.bookmarkButton.buttonView.name = "star" }
+    }
 
     Notification.receive("BookmarkChanged") { [weak self] msg in
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,
          cart.html.name == art.html.name {
-         self.displayBookmark(art: art)
+         displayBookmark(art: art)
       }
     }
     onDisplay { [weak self] (idx, oview) in
       if let self = self {
-        let art = self.articles[idx]
+        var art = self.articles[idx]
         self.adelegate?.article = art
         self.setHeader(artIndex: idx)
         self.issue.lastArticle = idx
@@ -132,11 +136,11 @@ open class ArticleVC: ContentVC {
           }
         }
         else { self.onPlay(closure: nil) }
-        self.onBookmark { [weak self] _ in
-          self?.articles[idx].hasBookmark.toggle()
+        self.onBookmark { _ in
+          art.hasBookmark.toggle()
           ArticleDB.save()
         }
-        self.displayBookmark(art: art)
+        displayBookmark(art: art)
         self.debug("on display: \(idx), article \(art.html.name)")
       }
     }
