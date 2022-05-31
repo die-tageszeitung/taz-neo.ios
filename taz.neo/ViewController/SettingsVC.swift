@@ -58,10 +58,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
       return XSettingsCell(text: "..."){} }
     let authenticator = DefaultAuthenticator(feeder: feeder)
-    Notification.receive("authenticationSucceeded") { [weak self]_ in
-      self?.refreshAndReload()
-      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
-    }
     return XSettingsCell(text: "Anmelden") { [weak self] in
       authenticator.authenticate(with: self)
     }
