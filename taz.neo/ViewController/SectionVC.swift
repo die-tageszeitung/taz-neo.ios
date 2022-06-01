@@ -123,6 +123,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     self.navigationController?.popViewController(animated: false)
   }
   
+  override func relaese(){
+    super.relaese()
+    articleVC?.relaese()
+  }
+  
   func setup() {
     guard let delegate = self.delegate else { return }
     self.sections = delegate.issue.sections ?? []
@@ -132,14 +137,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
     contentTable?.onSectionPress { [weak self] sectionIndex in
-      if sectionIndex < self!.sections.count {
-        self?.debug("*** Action: Section \(sectionIndex) (\(self!.sections[sectionIndex])) in Slider pressed")
+      guard let self = self else { return }
+      if sectionIndex < self.sections.count {
+        self.debug("*** Action: Section \(sectionIndex) (\(self.sections[sectionIndex])) in Slider pressed")
       }
-      else { 
-        self?.debug("*** Action: \"Impressum\" in Slider pressed")
+      else {
+        self.debug("*** Action: \"Impressum\" in Slider pressed")
       }
-      self?.slider?.close()
-      self?.displaySection(index: sectionIndex)
+      self.slider?.close()
+      self.displaySection(index: sectionIndex)
     }
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")
@@ -169,15 +175,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if UIApplication.shared.applicationState != .active { return }
       self?.linkPressed(from: from, to: to)
     }
-    Notification.receive("BookmarkChanged") { msg in
+    Notification.receive("BookmarkChanged") {[weak self] msg in
       if let art = msg.sender as? StoredArticle {
         let js = """
           if (typeof tazApi.onBookmarkChange === "function") {
             tazApi.onBookmarkChange("\(art.html.name)", \(art.hasBookmark))
           }
         """
-        self.currentWebView?.jsexec(js)
-        self.debug("Called JS: \(js)")
+        self?.currentWebView?.jsexec(js)
+        self?.debug("Called JS: \(js)")
       }
     }
   }
@@ -215,10 +221,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     header.title = contents[secIndex].title ?? ""
     if !isStaticHeader {
       header.subTitle = issue.date.gLowerDate(tz: feeder.timeZone)
-      if index == 0 { header.isLargeTitleFont = true }
-      else { header.isLargeTitleFont = false }
+      header.titletype = index == 0 ? .section0 : .section
     }
-    header.showAnimated()
+    header.showAnimated(false)
   }
   
   // Reload Section and Article

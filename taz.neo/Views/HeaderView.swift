@@ -8,7 +8,7 @@
 import UIKit
 import NorthLib
 
-enum TitleAlignment { case left, right }
+enum TitleType { case bigLeft, article, section, section0, search  }
 
 /// The Header to show on top of sections and articles
 open class HeaderView: UIView,  Touchable {
@@ -33,37 +33,76 @@ open class HeaderView: UIView,  Touchable {
     set{ pageNumberLabel.text = newValue }
   }
   
-  var titleAlignment: TitleAlignment? {
+  var titletype: TitleType = .bigLeft {
     didSet {
-      if titleAlignment == .left {
-        titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        pageNumberLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        titleLabel.textAlignment = .left
-        pageNumberLabel.textAlignment = .left
+      switch titletype {
+        case .bigLeft:
+          pageNumberLabel.isHidden = true
+          subTitleLabel.isHidden = true
+          titleLeftConstraint?.constant = 3.0
+          titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+          pageNumberLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+          titleLabel.textAlignment = .left
+          titleFontSizeDefault = Const.Size.LargeTitleFontSize
+          titleTopIndentL = Const.Size.DefaultPadding - 11.0
+          titleBottomIndentL = -18
+        case .article:
+          pageNumberLabel.isHidden = false
+          subTitleLabel.isHidden = true
+          titleLeftConstraint?.constant = 8.0
+          titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+          pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+          titleLabel.textAlignment = .right
+          pageNumberLabel.textAlignment = .right
+          subTitleLabel.textAlignment = .right
+          titleFontSizeDefault = Const.Size.DefaultFontSize
+          titleTopIndentL = Const.Size.DefaultPadding
+          titleBottomIndentL = -8
+        case .section:
+          pageNumberLabel.isHidden = true
+          subTitleLabel.isHidden = false
+          titleLeftConstraint?.constant = 8.0
+          titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+          pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+          titleLabel.textAlignment = .right
+          pageNumberLabel.textAlignment = .right
+          subTitleLabel.textAlignment = .right
+          titleFontSizeDefault = Const.Size.TitleFontSize
+          titleTopIndentL = Const.Size.DefaultPadding
+          titleBottomIndentL = -31
+        case .section0:
+          pageNumberLabel.isHidden = true
+          subTitleLabel.isHidden = false
+          titleLeftConstraint?.constant = 8.0
+          titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+          pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+          titleLabel.textAlignment = .right
+          pageNumberLabel.textAlignment = .right
+          titleFontSizeDefault = Const.Size.LargeTitleFontSize
+          titleTopIndentL = Const.Size.DefaultPadding - 11.0
+          titleBottomIndentL = -31
+        case .search:
+          pageNumberLabel.isHidden = false
+          subTitleLabel.isHidden = false
+          titleLeftConstraint?.constant = 8.0
+          titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+          pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+          titleLabel.textAlignment = .right
+          pageNumberLabel.textAlignment = .left
+          titleFontSizeDefault = Const.Size.DefaultFontSize
+          titleTopIndentL = Const.Size.DefaultPadding
+          titleBottomIndentL = -31
       }
-      else if titleAlignment == .right{
-        titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        titleLabel.textAlignment = .right
-        pageNumberLabel.textAlignment = .right
-      }
+      titleLabel.titleFont(size: titleFontSizeDefault)
+      updateUI()
     }
   }
   
-  private var titleFontSizeDefault: CGFloat {
-    (subTitle ?? "").isEmpty
-    ? Const.Size.DefaultFontSize
-    : isLargeTitleFont
-    ? Const.Size.LargeTitleFontSize
-    : Const.Size.TitleFontSize
-  }
+  private var titleFontSizeDefault: CGFloat = Const.Size.TitleFontSize
   //FontSize * 1.17 == LabelHeight with our Font
   private var titleFontSizeMini: CGFloat = 12.0
-  private var subTitleFontSizeDefault: CGFloat = Const.Size.DefaultFontSize
+  private let subTitleFontSizeDefault: CGFloat = Const.Size.DefaultFontSize//16
   private var subTitleFontSizeMini: CGFloat = 12.0
-  
-  /// Use large title font if in large mode
-  var isLargeTitleFont = false { didSet { updateUI() } }
   
   //ui
   var titleLabel = Label()
@@ -75,31 +114,17 @@ open class HeaderView: UIView,  Touchable {
   private var titleTopConstraint: NSLayoutConstraint?
   private var titleBottomConstraint: NSLayoutConstraint?
   private var titlePageNumberLabelBottomConstraint: NSLayoutConstraint?
-  var leftConstraint: NSLayoutConstraint?
+  private var titleLeftConstraint: NSLayoutConstraint?
   
-  var isExtraLargeTitle: Bool { get { return subTitle != nil && isLargeTitleFont }}
+  var leftConstraint: NSLayoutConstraint?
   
   var lastAnimationRatio: CGFloat = 0.0
   
   let sidePadding = 11.0
-  var titleTopIndentL: CGFloat {
-    get {
-      return isExtraLargeTitle
-      ? Const.Size.DefaultPadding - 11.0
-      : Const.Size.DefaultPadding
-    }
-  }
-  
-  var titleBottomIndentL: CGFloat {
-    get {
-      return (subTitle ?? "").isEmpty
-      ? -18
-      : -(subTitleFontSizeDefault * 1.17 + 6.0 + 6.0)
-    }
-  }
-    
-  let titleBottomIndentS = -6.0
-  let titleTopIndentS = 4.0
+  var titleTopIndentL: CGFloat = Const.Size.DefaultPadding
+  var titleBottomIndentL: CGFloat = -18//-18 or if subtitle set: -16*1.17-12 = -31
+  let titleBottomIndentS = -4.0
+  let titleTopIndentS = 2.0
     
   public var tapRecognizer = TapRecognizer()
     
@@ -113,26 +138,7 @@ open class HeaderView: UIView,  Touchable {
   }
   
   func updateUI(){
-    switch (subTitle, isLargeTitleFont) {
-      case (nil, _)://in Article (missing subtitle) just a bold font
-        titleLabel.boldContentFont()
-      case (_, true)://extra large title for page1
-        titleLabel.titleFont(size: Const.Size.LargeTitleFontSize)
-      case (_, false)://medium large title for other sections
-        titleLabel.titleFont(size: Const.Size.TitleFontSize)
-    }
-    UIView.animate(seconds: 0.2) { [weak self] in
-      self?.titleTopConstraint?.constant = self?.titleTopIndentL ?? 0
-      self?.layoutIfNeeded()
-    }
-    self.titleBottomConstraint?.constant = titleBottomIndentL
-    subTitleLabel.contentFont(size: subTitleFontSizeDefault)
-    pageNumberLabel.contentFont(size: subTitleFontSizeDefault)
-    lastAnimationRatio = 0.0
-    titlePageNumberLabelBottomConstraint?.constant =
-    (pageNumberLabel.font.pointSize - titleLabel.font.pointSize)/3
-    self.subTitleLabel.alpha = 1.0
-    self.line.alpha = 1.0
+    showAnimated(false)
   }
 
   private var onTitleClosure: ((String?)->())?
@@ -141,13 +147,6 @@ open class HeaderView: UIView,  Touchable {
   public func onTitle(closure: @escaping (String?)->()) {
     onTitleClosure = closure
   }
-  
-  @Default("articleTextSize")
-   private var articleTextSize: Int {
-     didSet{
-       print("articleTextSize changed. in header..")
-     }
-   }
   
   private func setup() {
     self.addSubview(titleLabel)
@@ -160,7 +159,6 @@ open class HeaderView: UIView,  Touchable {
     subTitleLabel.textAlignment = .right
     
     titleLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-    titleAlignment = .right
     line.pinHeight(DottedLineView.DottedLineDefaultHeight)
     line.backgroundColor = .clear
     line.fillColor = Const.SetColor.ios(.label).color
@@ -178,7 +176,7 @@ open class HeaderView: UIView,  Touchable {
     pin(pageNumberLabel.bottom, to: titleLabel.bottom, dist: 0)
     leftConstraint = pin(pageNumberLabel.left, to: self.left, dist:8)
     
-    pin(titleLabel.left, to: pageNumberLabel.right, dist: 8)
+    titleLeftConstraint = pin(titleLabel.left, to: pageNumberLabel.right, dist: 8)
     pin(titleLabel.right, to: self.right, dist: -sidePadding)
     
     pin(line.left, to: self.left, dist:sidePadding)
@@ -206,8 +204,6 @@ open class HeaderView: UIView,  Touchable {
     super.init(coder: coder)
     setup()
   }
-  
-
 } // HeaderView
 
 // MARK: - Scroll delegation
@@ -230,6 +226,11 @@ extension HeaderView {
   }
   
   private func didScrolling(offsetDelta:CGFloat, end: Bool){
+    let isMaxi = self.titleTopConstraint?.constant ?? 0.0 >= titleTopIndentL
+    let isMini = self.titleTopConstraint?.constant ?? 0.0 <= titleTopIndentS
+    
+    if offsetDelta > 0 && isMaxi { return }
+    if offsetDelta < 0 && isMini { return }
     
     switch (end, offsetDelta) {
       case (false, _)://on drag
@@ -238,6 +239,8 @@ extension HeaderView {
         handleScrolling(offsetDelta: -maxOffset, animate: true)
       case (_, ..<0):
         handleScrolling(offsetDelta: maxOffset, animate: true)
+      case (_, 0.0):
+        break
       case (_, ..<(maxOffset/2)):
         handleScrolling(offsetDelta: -maxOffset, animate: true)
       default:
@@ -248,15 +251,13 @@ extension HeaderView {
     }
   }
   
-  func showAnimated(){
-    handleScrolling(offsetDelta: maxOffset, animate: true)
+  func showAnimated(_ animated:Bool = true){
+    handleScrolling(offsetDelta: maxOffset, animate: animated)
   }
   
   ///negative when scroll down ...hide tf, show miniHeader
   ///positive when scroll up ...show tf, show big header
   private func handleScrolling(offsetDelta: CGFloat, animate: Bool){
-    if lastAnimationRatio == 1.0 && offsetDelta < 0 { return }
-    if lastAnimationRatio == 0.0 && offsetDelta > 0 { return }
     var ratio = max(0.0, min(1.0, abs(offsetDelta/maxOffset))) //0...1
     if offsetDelta > 0 { ratio = 1 - ratio }
     lastAnimationRatio = ratio
@@ -271,7 +272,6 @@ extension HeaderView {
     = alpha*(titleFontSizeDefault - titleFontSizeMini) + titleFontSizeMini
     let labelsFontSize
     = alpha*(subTitleFontSizeDefault - subTitleFontSizeMini) + subTitleFontSizeMini
-    print("scroll animate: \(animate) alpha: \(alpha) fastAlpha: \(fastAlpha)")
     let handler = { [weak self] in
       self?.titleLabel.titleFont(size: titleFontSize)
       self?.pageNumberLabel.contentFont(size: labelsFontSize)

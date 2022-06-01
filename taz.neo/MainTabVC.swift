@@ -25,6 +25,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     setupTabbar()
     self.navigationController?.isNavigationBarHidden = true
     registerForStyleUpdates()
+    Notification.receive("authenticationSucceeded") { notif in
+      self.authenticationSucceededCheckReload()
+    }
   } // viewDidLoad
   
   func setupTabbar() {
@@ -81,14 +84,64 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-
-  
-  
 } // MainTabVC
+
+
+extension MainTabVC {
+  /// Check whether it's necessary to reload the current Issue
+  public func authenticationSucceededCheckReload() {
+    feederContext.updateAuthIfNeeded()
+    
+    let selectedNc = selectedViewController as? UINavigationController
+    var reloadTarget: ReloadAfterAuthChanged?
+    
+    if let home = selectedNc?.viewControllers.first as? IssueVC,
+       selectedNc?.topViewController != home/*,
+       feederContext.needsUpdate(issue: home.selectedIssue)*/ {
+      reloadTarget = home
+    }
+    else if let search = selectedNc?.viewControllers.first as? SearchController,
+            selectedNc?.topViewController != search {
+      reloadTarget = search
+    }
+    
+    ///Settings need to be reloaded no matter if selected!
+    if let settings = selectedViewController as? SettingsVC {
+      settings.refreshAndReload()
+    } else  {
+      for case let settings as SettingsVC in self.viewControllers ?? [] {
+        settings.refreshAndReload()
+      }
+    }
+              
+    guard let reloadTarget = reloadTarget else { return }
+    
+    let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
+    
+    WaitingAppOverlay.show(alpha: 1.0,
+                           backbround: snap,
+                           showSpinner: true,
+                           titleMessage: "Aktualisiere Daten",
+                           bottomMessage: "Bitte haben Sie einen Moment Geduld!",
+                           dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
+    
+    Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+    }
+    
+    Notification.receiveOnce("feederUneachable") { [weak self] _ in
+      self?.navigationController!.popToRootViewController(animated: false)
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+      Toast.show(Localized("error"))
+    }
+    onMainAfter(1.0) {
+      reloadTarget.reloadOpened()
+    }
+  }
+}
 
 extension MainTabVC : UITabBarControllerDelegate {
   func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
-    
     if tabBarController.selectedViewController != viewController { return true }
     
     if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
@@ -109,3 +162,6 @@ extension MainTabVC : UITabBarControllerDelegate {
   }
 }
 
+public protocol ReloadAfterAuthChanged {
+  func reloadOpened()
+}

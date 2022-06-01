@@ -41,8 +41,8 @@ class BookmarksNC: UINavigationController {
     svc.delegate = self
     svc.toolBar.hide()
     svc.isStaticHeader = true
-    svc.header.isLargeTitleFont = false
-    svc.header.subTitle = nil
+    svc.header.titletype = .bigLeft
+    svc.header.title = "leseliste"
     svc.hidesBottomBarWhenPushed = false
     return svc
   }()

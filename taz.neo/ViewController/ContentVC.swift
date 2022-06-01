@@ -77,7 +77,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
 
   public var feederContext: FeederContext  
-  public var delegate: IssueInfo!
+  public weak var delegate: IssueInfo!
   public var contentTable: ContentTableVC?
   public var contents: [Content] = []
   public var feeder: Feeder { delegate.feeder }
@@ -122,12 +122,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     return ContentVC._tazApiJs!
   }
   
+  func relaese(){
+    //Circular reference with: onImagePress, onSectionPress
+    settingsBottomSheet = nil
+    slider = nil
+  }
+
   public func resetIssueList() { delegate.resetIssueList() }  
 
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat? = nil,
                              bottomMargin: CGFloat? = nil, callback: (()->())? = nil) {
-    let topMargin = topMargin ?? Self.topMargin
     let bottomMargin = bottomMargin ?? Self.bottomMargin
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
@@ -144,8 +149,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       html, body { 
         font-size: \((CGFloat(textSize)*18)/100)px; 
       }
+    
+      #content:first-child > *:first-child > *:first-child > img,
+      #content:first-child > *:first-child > *:first-child > img:first-child{
+             padding-top: -20px
+      }
+
+    
       body {
-        padding-top: \(topMargin+UIWindow.topInset/2)px;
+        padding-top: 20px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
       }
       p {
@@ -278,7 +290,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     else { toolBar.setArticlePlayBar() }
   }
   
-  public func onPlay(closure: ((ContentVC)->())?) { 
+  public func onPlay(closure: ((ContentVC)->())?) {
     playClosure = closure
     if closure == nil { toolBar.setArticleBar() }
     else { toolBar.setArticlePlayBar() }
@@ -526,6 +538,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
+    self.webviewInsets = UIEdgeInsets(top:58, left: 0, bottom:0, right: 0)
   }
   
   override public func viewWillDisappear(_ animated: Bool) {
@@ -579,5 +592,4 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   required public init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
 }

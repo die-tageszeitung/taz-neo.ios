@@ -237,8 +237,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Setup SectionVC and push it onto the VC stack
   private func pushSectionVC(feederContext: FeederContext, atSection: Int? = nil,
                              atArticle: Int? = nil) {
+    sectionVC?.relaese()
     sectionVC = SectionVC(feederContext: feederContext, atSection: atSection,
                           atArticle: atArticle)
+    if atArticle == nil {
+      sectionVC?.whenLoaded {
+        Notification.send(Const.NotificationNames.articleLoaded)
+      }
+    }
     if let svc = sectionVC {
       svc.delegate = self
       self.navigationController?.pushViewController(svc, animated: false)
@@ -429,72 +435,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
   }
   
-  /// Check whether it's necessary to reload the current Issue
-  public func authenticationSucceededCheckReload() {
-    ///May needed after PDF View Login, if no reconnect appeared
-    feederContext.updateAuthIfNeeded()
-    
-    guard let visible = navigationController?.visibleViewController,
-          visible != self,
-          let sissue = selectedIssue as? StoredIssue  else {
-      log(">>>> IssueVC.checkReload .. do not show Overlay ..not relevant VC")
-      return
-    }
-    
-    log(">>>> IssueVC.checkReload .. current Issue is: \(index) \(sissue.date) iscompleete?: \(issues[index].isComplete), atSection: \(sissue.lastSection ?? -1), atArticle: \(sissue.lastArticle ?? -1)")
-    ///remember status to prevent race conditions
-    let stillDownloading = sissue.isDownloading
-    
-    if (feederContext.needsUpdate(issue: sissue) || stillDownloading) == false {
-      log(">>>> IssueVC.checkReload .. do not show Overlay ... no needed Data OK e.g. Demo?")
-      return
-    }
-    
-    func popAndShowReloaded(){
-      navigationController!.popToRootViewController(animated: false)
-      showIssue(index: index, atSection: sissue.lastSection,
-                atArticle: sissue.lastArticle)
-      log(">>>> IssueVC.checkReload .. showIssue is: \(index) \(sissue.date) iscompleete?: \(issues[index].isComplete), atSection: \(sissue.lastSection ?? -1), atArticle: \(sissue.lastArticle ?? -1)")
-    }
-    
-    if stillDownloading {
-      Notification.receiveOnce("issue", from: sissue) { notif in
-        popAndShowReloaded()
-      }
-    }
-    
-    //Prevent blocking Overlay if no ArticleVC presented
-    //@ToDO may refactor this to a delegate!!!
-    if !UIViewController.keyWindowViewControllerContain(ArticleVC.self,
-                                                        TazPdfPagesViewController.self){
-      return
-    }
-    
-    let snap = NavigationController.top()?
-      .presentingViewController?.view.snapshotView(afterScreenUpdates: false)
-    
-    WaitingAppOverlay.show(alpha: 1.0,
-                           backbround: snap,
-                           showSpinner: true,
-                           titleMessage: "Aktualisiere Daten",
-                           bottomMessage: "Bitte haben Sie einen Moment Geduld!",
-                           dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
-    
-    Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
-      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
-    }
-    
-    Notification.receiveOnce("feederUneachable") { [weak self] _ in
-      self?.navigationController!.popToRootViewController(animated: false)
-      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
-      Toast.show(Localized("error"))
-    }
-    
-    if stillDownloading == false {
-      popAndShowReloaded()
-    }
-  }
-  
   var interruptMainTimer: Timer?
   
   lazy var togglePdfButton: Button<ImageView> = {
@@ -632,10 +572,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         }
       }
       self.provideOverview()
-    }
-    Notification.receive("authenticationSucceeded") { notif in
-      ///WARNING: if auth in settings review previous commit to prevent deadlock with "Aktualisiere Daten" Overlay
-      self.authenticationSucceededCheckReload()
     }
     
     Notification.receive("reloadIssues") {   [weak self] _ in
@@ -807,3 +743,27 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     fatalError("init(coder:) has not been implemented")
   }
 } // IssueVC
+
+extension IssueVC: ReloadAfterAuthChanged {
+  public func reloadOpened(){
+    ///remember status to prevent race conditions
+    let stillDownloading = selectedIssue.isDownloading
+    
+    func popAndShowReloaded(){
+      navigationController?.popToRootViewController(animated: false)
+      showIssue(index: index,
+                atSection: selectedIssue.lastSection,
+                atArticle: selectedIssue.lastArticle)
+    }
+    
+    if stillDownloading {
+      Notification.receiveOnce("issue", from: selectedIssue) { notif in
+        popAndShowReloaded()
+      }
+    }
+    else {
+      popAndShowReloaded()
+    }
+  }
+}
+

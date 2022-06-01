@@ -39,7 +39,8 @@ open class ArticleVC: ContentVC {
       if oldValue == nil { self.setup() } 
     }
   }
-  public var adelegate: ArticleVCdelegate? {
+  
+  public weak var adelegate: ArticleVCdelegate? {
     get { delegate as? ArticleVCdelegate }
     set { delegate = newValue }
   }
@@ -64,9 +65,16 @@ open class ArticleVC: ContentVC {
     }
   }
   
+  func displayBookmark(art: Article) {
+    if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
+    else { self.bookmarkButton.buttonView.name = "star" }
+  }
+  
   func setup() {
-    guard let delegate = self.adelegate else { return }
-    self.articles = delegate.issue.allArticles
+    if let arts = self.adelegate?.issue.allArticles {
+      self.articles = arts
+    }
+    
     if issue.isReduced { 
       atEndOfContent() { [weak self] isAtEnd in
         if isAtEnd { self?.feederContext.authenticate() }
@@ -74,15 +82,15 @@ open class ArticleVC: ContentVC {
     }
     super.setup(contents: articles, isLargeHeader: false)
     contentTable?.onSectionPress { [weak self] sectionIndex in
-      guard let self = self else { return }
-      if sectionIndex >= delegate.sections.count {
+      guard let self = self, let adelegate = self.adelegate else { return }
+      if sectionIndex >= adelegate.sections.count {
         self.debug("*** Action: Impressum pressed")
       }
       else {
         self.debug("*** Action: Section \(sectionIndex) " +
           "(delegate.sections[sectionIndex])) in Slider pressed")
       }
-      delegate.displaySection(index: sectionIndex)
+      self.adelegate?.displaySection(index: sectionIndex)
       self.slider?.close()
       self.navigationController?.popViewController(animated: false)
     }
@@ -92,15 +100,13 @@ open class ArticleVC: ContentVC {
       self?.navigationController?.popViewController(animated: false)
       self?.adelegate?.closeIssue()
     }
-    func displayBookmark(art: Article) {
-      if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
-      else { self.bookmarkButton.buttonView.name = "star" }
-    }
-    Notification.receive("BookmarkChanged") { msg in
+    
+    Notification.receive("BookmarkChanged") { [weak self] msg in
+      guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,
          cart.html.name == art.html.name {
-        displayBookmark(art: art)
+         self.displayBookmark(art: art)
       }
     }
     onDisplay { [weak self] (idx, oview) in
@@ -113,7 +119,8 @@ open class ArticleVC: ContentVC {
         if player.isPlaying() { async { player.stop() } }
         if art.canPlayAudio {
           self.playButton.buttonView.name = "audio"
-          self.onPlay { _ in 
+          self.onPlay { [weak self] _ in
+            guard let self = self else {return}
             if let title = self.header.title ?? art.title {
               art.toggleAudio(issue: self.issue, sectionName: title )
             }
@@ -122,11 +129,11 @@ open class ArticleVC: ContentVC {
           }
         }
         else { self.onPlay(closure: nil) }
-        self.onBookmark { _ in 
-          art.hasBookmark.toggle() 
+        self.onBookmark { _ in
+          art.hasBookmark.toggle()
           ArticleDB.save()
         }
-        displayBookmark(art: art)
+        self.displayBookmark(art: art)
         self.debug("on display: \(idx), article \(art.html.name)")
       }
     }
@@ -148,9 +155,11 @@ open class ArticleVC: ContentVC {
       self?.debug("*** Action: ToSection pressed")
       self?.navigationController?.popViewController(animated: true)
     }
+    header.titletype = .article
   }
     
   // Define Header elements
+  #warning("ToDo: Refactor get HeaderField with Protocol! (ArticleVC, SectionVC...)")
   func setHeader(artIndex: Int) {
     if let art = article {
       if let sections = adelegate?.article2section[art.html.name],
@@ -164,7 +173,16 @@ open class ArticleVC: ContentVC {
           }
           if let st = art.sectionTitle { header.title = st }
           else { header.title = "\(title)" }
-          header.pageNumber = "\(i+1)/\(articles.count)"
+       
+          
+          if section is BookmarkSection {
+            header.titletype = .search
+            header.subTitle = "Ausgabe \(art.issueDate.short)"
+            header.pageNumber = "\(i+1) von \(articles.count)"
+          }
+          else {
+            header.pageNumber = "\(i+1)/\(articles.count)"
+          }
         }        
       }
     }
@@ -261,7 +279,8 @@ open class ArticleVC: ContentVC {
 //MARK: - Context Menu Actions
 extension ArticleVC {
   @objc func search() {
-    self.currentWebView?.evaluateJavaScript("window.getSelection().toString()", completionHandler: { selectedText, err in
+    self.currentWebView?.evaluateJavaScript("window.getSelection().toString()", completionHandler: {[weak self] selectedText, err in
+      guard let self = self else {return}
       if let e = err { self.log(e.description)}
       //#warning("ToDo: 0.9.4+ Implement Search")
       if let txt = selectedText { print("You selected: \(txt)")}

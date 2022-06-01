@@ -162,12 +162,6 @@ class SearchController: UIViewController {
     
     feederContext.updateResources()
     self.currentState = .initial
-    
-    Notification.receive("authenticationSucceeded") { [weak self]_ in
-      self?.articleVC.dismiss(animated: true)
-      self?.searchItem.reset()
-      self?.search()
-    }
   }
   
   required init(feederContext: FeederContext) {
@@ -192,6 +186,14 @@ class SearchController: UIViewController {
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+extension SearchController: ReloadAfterAuthChanged {
+  public func reloadOpened(){
+    self.articleVC.dismiss(animated: true)
+    self.searchItem.reset()
+    self.search(true)
   }
 }
 
@@ -226,12 +228,13 @@ extension SearchController {
     }
   }
 
-  private func search() {
+  private func search(_ sendDismissNotofication:Bool = false) {
     var searchSettings = self.searchSettingsView.data.settings
     searchSettings.text = header.searchTextField.text
     if searchSettings.searchTermTooShort {
       header.setStatusLabel(text: "Bitte Suchbegriff eingeben!",
                                     color: .red)
+      if sendDismissNotofication { Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)}
       return
     }
     
@@ -264,6 +267,7 @@ extension SearchController {
                                     color: .red)
           self.log("an error occoured... \(err)")
       }
+      if sendDismissNotofication { Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)}
     }
   }
   
