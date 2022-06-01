@@ -10,7 +10,7 @@ import Foundation
 
 /// The protocol used to communicate with calling VCs which can provide
 /// infos regarding Feeder, Issue and Downloader
-public protocol IssueInfo {
+public protocol IssueInfo: AnyObject {
   /// The feeder context
   var feederContext: FeederContext { get }
   /// One Issue of a Feed

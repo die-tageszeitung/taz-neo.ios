@@ -137,14 +137,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
     contentTable?.onSectionPress { [weak self] sectionIndex in
-      if sectionIndex < self!.sections.count {
-        self?.debug("*** Action: Section \(sectionIndex) (\(self!.sections[sectionIndex])) in Slider pressed")
+      guard let self = self else { return }
+      if sectionIndex < self.sections.count {
+        self.debug("*** Action: Section \(sectionIndex) (\(self.sections[sectionIndex])) in Slider pressed")
       }
-      else { 
-        self?.debug("*** Action: \"Impressum\" in Slider pressed")
+      else {
+        self.debug("*** Action: \"Impressum\" in Slider pressed")
       }
-      self?.slider?.close()
-      self?.displaySection(index: sectionIndex)
+      self.slider?.close()
+      self.displaySection(index: sectionIndex)
     }
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")

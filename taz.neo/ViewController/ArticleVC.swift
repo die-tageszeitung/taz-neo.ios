@@ -39,13 +39,8 @@ open class ArticleVC: ContentVC {
       if oldValue == nil { self.setup() } 
     }
   }
-    
-  override func relaese(){
-    super.relaese()
-    adelegate = nil
-  }
   
-  public var adelegate: ArticleVCdelegate? {
+  public weak var adelegate: ArticleVCdelegate? {
     get { delegate as? ArticleVCdelegate }
     set { delegate = newValue }
   }
@@ -76,8 +71,10 @@ open class ArticleVC: ContentVC {
   }
   
   func setup() {
-    guard let delegate = self.adelegate else { return }
-    self.articles = delegate.issue.allArticles
+    if let arts = self.adelegate?.issue.allArticles {
+      self.articles = arts
+    }
+    
     if issue.isReduced { 
       atEndOfContent() { [weak self] isAtEnd in
         if isAtEnd { self?.feederContext.authenticate() }
@@ -85,8 +82,8 @@ open class ArticleVC: ContentVC {
     }
     super.setup(contents: articles, isLargeHeader: false)
     contentTable?.onSectionPress { [weak self] sectionIndex in
-      guard let self = self else { return }
-      if sectionIndex >= delegate.sections.count {
+      guard let self = self, let adelegate = self.adelegate else { return }
+      if sectionIndex >= adelegate.sections.count {
         self.debug("*** Action: Impressum pressed")
       }
       else {

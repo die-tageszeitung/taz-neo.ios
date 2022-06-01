@@ -77,7 +77,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
 
   public var feederContext: FeederContext  
-  public var delegate: IssueInfo!
+  public weak var delegate: IssueInfo!
   public var contentTable: ContentTableVC?
   public var contents: [Content] = []
   public var feeder: Feeder { delegate.feeder }
@@ -123,9 +123,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func relaese(){
-    delegate = nil
     //Circular reference with: onImagePress, onSectionPress
-    contentTable = nil
     settingsBottomSheet = nil
     slider = nil
   }
