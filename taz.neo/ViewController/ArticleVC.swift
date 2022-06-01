@@ -39,11 +39,7 @@ open class ArticleVC: ContentVC {
       if oldValue == nil { self.setup() } 
     }
   }
-  
-  deinit {
-    log("deinit \(self)")
-  }
-  
+    
   override func relaese(){
     super.relaese()
     adelegate = nil
@@ -72,6 +68,11 @@ open class ArticleVC: ContentVC {
       articles.insert(article, at: idx)
       insertContent(content: article, at: idx)
     }
+  }
+  
+  func displayBookmark(art: Article) {
+    if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
+    else { self.bookmarkButton.buttonView.name = "star" }
   }
   
   func setup() {
@@ -103,17 +104,12 @@ open class ArticleVC: ContentVC {
       self?.adelegate?.closeIssue()
     }
     
-    func displayBookmark(art: Article) {
-      if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
-      else { self.bookmarkButton.buttonView.name = "star" }
-    }
-
     Notification.receive("BookmarkChanged") { [weak self] msg in
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,
          cart.html.name == art.html.name {
-         displayBookmark(art: art)
+         self.displayBookmark(art: art)
       }
     }
     onDisplay { [weak self] (idx, oview) in
@@ -140,7 +136,7 @@ open class ArticleVC: ContentVC {
           art.hasBookmark.toggle()
           ArticleDB.save()
         }
-        displayBookmark(art: art)
+        self.displayBookmark(art: art)
         self.debug("on display: \(idx), article \(art.html.name)")
       }
     }
