@@ -100,10 +100,10 @@ open class ArticleVC: ContentVC {
       self?.navigationController?.popViewController(animated: false)
       self?.adelegate?.closeIssue()
     }
-    
     Notification.receive("BookmarkChanged") { [weak self] msg in
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
+         self.isVisible,
          let art = self.article,
          cart.html.name == art.html.name {
          self.displayBookmark(art: art)
