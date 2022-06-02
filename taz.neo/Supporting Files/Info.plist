@@ -38,10 +38,6 @@
 	<true/>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string></string>
-	<key>UIAppFonts</key>
-	<array>
-		<string>TazAppIcons-Regular.otf</string>
-	</array>
 	<key>UIApplicationShortcutItems</key>
 	<array>
 		<dict>
