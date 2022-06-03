@@ -10,7 +10,7 @@ import NorthLib
 import MessageUI
 import UIKit
 
-class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeViewControllerDelegate */{
+class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   
   private var threeFingerAlertOpen: Bool = false
   
@@ -287,9 +287,13 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
   func reportFatalError(err: Log.Message) {
     guard !isErrorReporting else { return }
     isErrorReporting = true
-//    if self.presentedViewController != nil {
-//      dismiss(animated: false)
-//    }
+    
+    
+    
+    if let topVc = UIViewController.top(),
+       topVc.presentedViewController != nil {
+      topVc.dismiss(animated: false)
+    }
     Alert.confirm(title: "Interner Fehler",
                   message: "Es liegt ein schwerwiegender interner Fehler vor, möchten Sie uns " +
                            "darüber mit einer Nachricht informieren?\n" +
@@ -300,13 +304,14 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
       else { self.isErrorReporting = false }
     }
   }
+  
   func produceErrorReport(recipient: String, subject: String = "Feedback",
                           completion: (()->())? = nil) {
     if MFMailComposeViewController.canSendMail() {
       let mail =  MFMailComposeViewController()
       let screenshot = UIWindow.screenshot?.jpeg
       let logData = fileLogger.mem?.data
-//      mail.mailComposeDelegate = self
+      mail.mailComposeDelegate = self
       mail.setToRecipients([recipient])
       
       var tazIdText = ""
@@ -327,7 +332,7 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
         mail.addAttachmentData(logData, mimeType: "text/plain",
                                fileName: "taz.neo-logfile.txt")
       }
-//      self.topmostModalVc.present(mail, animated: true, completion: completion)
+      UIViewController.top()?.topmostModalVc.present(mail, animated: true, completion: completion)
     }
   }
   
