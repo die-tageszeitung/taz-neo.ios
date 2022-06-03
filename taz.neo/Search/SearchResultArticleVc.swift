@@ -37,14 +37,17 @@ class SearchResultArticleVc : ArticleVC {
     }
   }
   
-  var searchContents: [Article] = [] {
+  var searchContents: [SearchArticle] = [] {
     didSet {
       super.articles = searchContents
       super.contents = searchContents
-      let curls: [ContentUrl] = contents.map { cnt in
+      let curls: [ContentUrl] = searchContents.map { cnt in
         ContentUrl(content: cnt) { [weak self] curl in
           guard let this = self else { return }
-          this.dloader.downloadIssueData(issue: this.issue, files: curl.content.files) { err in
+          let url = cnt.originalIssueBaseURL ?? cnt.baseURL
+          ///Not Download Article HTML use it from SearchHit, it has highlighting for search term
+          let additionalFiles = curl.content.files.filter{ $0.name != cnt.html.name }
+          this.dloader.downloadSearchHitFiles(files: additionalFiles, baseUrl: url) { err in
             if err == nil { curl.isAvailable = true }
           }
         }

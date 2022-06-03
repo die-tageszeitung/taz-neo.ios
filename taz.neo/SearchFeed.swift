@@ -43,9 +43,6 @@ public class SearchFeed: Feed {
   } // SearchFeed
 }
 
-/// An Issue of Sections of bookmarked Articles
-public class SearchIssue: BookmarkIssue {}
-
 /// A Section of bookmarked Articles
 public class SearchSection: BookmarkSection {}
 

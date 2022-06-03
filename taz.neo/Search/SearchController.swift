@@ -211,20 +211,12 @@ extension SearchController {
   }
   
   private func openSearchHit(_ searchHit: GqlSearchHit){
-    feederContext.dloader.downloadSearchResultFiles(url: searchHit.baseUrl, files: searchHit.article.files) {[weak self] err in
-      guard let self = self else { return }
-      if let err = err {
-        self.log("Download error, try to display Article: \(err)")
-      }
-      self.updateArticleVcIfNeeded()
-      if let path = searchHit.localPath {
-        self.articleVC.gotoUrl(path)//otherwise idx 0 will be loaded, header not set probably
-      }
-      self.articleVC.reload()
-      if self.articleVC.parentViewController == nil {
-//        setHeader(artIndex: idx)??
-        self.navigationController?.pushViewController(self.articleVC, animated: true)
-      }
+    if let idx = searchItem.allArticles?.firstIndex(where: {$0.html.name == searchHit.article.html.name}) {
+      self.articleVC.index = idx
+    }
+    
+    if self.articleVC.parentViewController == nil {
+      self.navigationController?.pushViewController(self.articleVC, animated: true)
     }
   }
 
