@@ -277,14 +277,44 @@ public struct Const {
       }
     }
   } // SetColors
-
+  
   
   /// Various font values
   struct Fonts {
+    ///Helper to print all Bundled woff Fonts from Bundled Ressources (copied to files folder)
+    static func printBundledFonts(type: String = "woff", in dir: String = "files"){
+      for  font in Bundle.main.paths(forResourcesOfType: type, inDirectory: dir) {
+        let name = URL(fileURLWithPath: font).deletingPathExtension().lastPathComponent
+        print("found font: \(name).woff")
+      }
+    }
+    
+    static var quaTextRegularI: String? = UIFont.register(name: "QuaText-RegularItalic", type: "woff", subDir: "files")
+    static var quaTextRegular: String? = UIFont.register(name: "QuaText-Regular", type: "woff", subDir: "files")
+    static var quaTextB: String? = UIFont.register(name: "QuaText-Bold", type: "woff", subDir: "files")
+    static var quaTextBi: String? = UIFont.register(name: "QuaText-BoldItalic", type: "woff", subDir: "files")
+    /// *WARNING* Cannot use bundled Aktiv Grotesk fonts from Ressources, due just one font variant will be loaded,
+    /// Hacky Workaround sleep(1) then load the other Problem is: multiple fonts have same generic font names
+    /// from UIFont extension NorthLib -> register(data: Data)
+    ///  print("try to register font: \(String(describing: cgFont.postScriptName)) (\(String(describing: cgFont.fullName))
+    ///  with \(cgFont.numberOfGlyphs) Glyphes") ...print error if any
+    ///  1st:
+    /// output:. try to register font: Optional(font0000000028494075) (Optional(.) with 3753 Glyphes
+    ///   2nd:
+    ///   Failed to register font Error: Optional(Swift.Unmanaged<__C.CFErrorRef>(_value: Error Domain=com.apple.CoreText.CTFontManagerErrorDomain Code=105 "Could not register the CGFont '<CGFont (0x600002bd0a00): font0000000028494197>'" UserInfo={NSDescription=Could not register the CGFont '<CGFont (0x600002bd0a00): font0000000028494197>', CTFailedCGFont=<CGFont (0x600002bd0a00): font0000000028494197>}))
+    ///   Error is Font already loaded
+    /// With sleep or debugging we have different font names:
+    /// try to register font: Optional(font0000000028494075) (Optional(.) with 3753 Glyphes
+    /// try to register font: Optional(font000000002849411a) (Optional(.) with 3753 Glyphes
+    /// Idea to solve: at first use default font, try to load real font later
+//    static var titleFontName: String? = UIFont.register(name: "AktivGrotesk_W_Bd", type: "woff", subDir: "files")
+//    static var contentFontName: String? = UIFont.register(name: "AktivGrotesk_W_Rg", type: "woff", subDir: "files")
+    ///**SIMPLE SOLUTION FOR THE MOMENT** Use old way!
     static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
     static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
+    
     static var contentTableFontName = titleFontName
-    static var contentTextFont = "TimesNewRomanPSMT"//Cochin"
+    static var contentTextFont = quaTextRegular
 
     static func font(name: String?, size: CGFloat) -> UIFont {
       var font: UIFont? = nil
