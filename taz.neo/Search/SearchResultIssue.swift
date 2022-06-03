@@ -44,7 +44,6 @@ public class SearchResultIssue: BookmarkIssue {
 }
 
 class SearchArticle:GqlArticle{
-  
   var isDownloaded = false
   
   /// every Article from a search can have a own issue
@@ -57,3 +56,33 @@ class SearchArticle:GqlArticle{
     set{}
   }
 }
+
+/// A Section of searched  Articles
+public class SearchSection: BookmarkSection {}
+
+/// A temporary file entry
+public class TmpFileEntry: FileEntry {
+  public var name: String
+  public var storageType: FileStorageType { .unknown }
+  public var moTime: Date
+  public var size: Int64 { 0 }
+  public var sha256: String { "" }
+  public var path: String
+  
+  /// Read/write access to contents of file
+  public var content: String? {
+    get { File(path).string }
+    set {
+      if let content = newValue { File(path).string = content }
+      else { File(path).remove() }
+    }
+  }
+  
+  public init(name: String) {
+    self.name = name
+    self.path = "\(Dir.tmpPath)/\(name)"
+    self.moTime = Date()
+  }
+}
+
+

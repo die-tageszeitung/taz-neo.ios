@@ -23,7 +23,6 @@
 		080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
 		08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */; };
 		4D308ED6283404C700529592 /* GqlFeederSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308ED4283404C700529592 /* GqlFeederSearch.swift */; };
-		4D308ED7283404C700529592 /* SearchFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308ED5283404C700529592 /* SearchFeed.swift */; };
 		4D308EDB283404D400529592 /* TazAppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308ED9283404D400529592 /* TazAppEnvironment.swift */; };
 		4D308EE52834057200529592 /* SearchResultsTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EDF2834057200529592 /* SearchResultsTableView.swift */; };
 		4D308EE62834057200529592 /* SearchHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EE02834057200529592 /* SearchHeaderView.swift */; };
@@ -123,7 +122,6 @@
 		080271C624ADDD68002CD2F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Localizable.strings; sourceTree = "<group>"; };
 		08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdController.swift; sourceTree = "<group>"; };
 		4D308ED4283404C700529592 /* GqlFeederSearch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GqlFeederSearch.swift; sourceTree = "<group>"; };
-		4D308ED5283404C700529592 /* SearchFeed.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchFeed.swift; sourceTree = "<group>"; };
 		4D308ED9283404D400529592 /* TazAppEnvironment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazAppEnvironment.swift; sourceTree = "<group>"; };
 		4D308EDF2834057200529592 /* SearchResultsTableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultsTableView.swift; sourceTree = "<group>"; };
 		4D308EE02834057200529592 /* SearchHeaderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchHeaderView.swift; sourceTree = "<group>"; };
@@ -419,7 +417,6 @@
 			children = (
 				4D308EEB283405A900529592 /* MainTabVC.swift */,
 				4D308ED4283404C700529592 /* GqlFeederSearch.swift */,
-				4D308ED5283404C700529592 /* SearchFeed.swift */,
 				777048A727B3B057007164A0 /* Business */,
 				7715968B25CC605D00508DE8 /* Feedback */,
 				AE822631232A717E00FFBE67 /* DataModel.swift */,
@@ -627,7 +624,6 @@
 			files = (
 				4D308EE52834057200529592 /* SearchResultsTableView.swift in Sources */,
 				AEAABADE24641BFA001BE414 /* Const.swift in Sources */,
-				4D308ED7283404C700529592 /* SearchFeed.swift in Sources */,
 				AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */,
 				7715969525CC605D00508DE8 /* DeviceData.swift in Sources */,
 				AE4F51DB2438C8E800BC9548 /* ArticleDB.swift in Sources */,
