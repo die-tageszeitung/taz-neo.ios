@@ -18,7 +18,7 @@ class SearchSettingsView: UITableView {
   weak open var textFieldDelegate: UITextFieldDelegate?
 
   // MARK: *** Properties ***
-  private let _data = TData()
+  private let _data:TData
 
   var data: TData {
     get {
@@ -33,7 +33,6 @@ class SearchSettingsView: UITableView {
         _data.settings.from = _data.settings.range.currentOption.minimumDate
         _data.settings.to = _data.settings.range.currentOption.maximuDate
       }
-      
       return _data
     }
   }
@@ -188,12 +187,16 @@ class SearchSettingsView: UITableView {
   }
 
   // MARK: *** Lifecycle ***
-  override init(frame: CGRect, style: UITableView.Style) {
+  init(frame: CGRect, style: UITableView.Style, minimumSearchDate:Date) {
+    _data = TData()
+    _data.minimumSearchDate = minimumSearchDate
     super.init(frame: frame, style: style)
     setup()
   }
   
   public required init?(coder: NSCoder) {
+    _data = TData()
+    _data.minimumSearchDate = Date(timeIntervalSinceReferenceDate: 0)
     super.init(coder: coder)
     setup()
   }
@@ -484,15 +487,6 @@ class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
     fromPicker.datePickerMode = .date
     toPicker.datePickerMode = .date
     
-    fromPicker.maximumDate = Date()
-    toPicker.maximumDate = Date()
-    
-    toPicker.minimumDate = Date(timeIntervalSinceReferenceDate: 0)
-    fromPicker.minimumDate = Date(timeIntervalSinceReferenceDate: 0)
-    
-    fromPicker.date = Date(timeIntervalSinceReferenceDate: 0)
-    toPicker.date = Date()
-    
     toPicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
     fromPicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
     
@@ -559,6 +553,17 @@ extension SearchSettingsView {
 
 // MARK: *** cell data model ***
 class TData {
+  fileprivate var minimumSearchDate:Date = Date(timeIntervalSinceReferenceDate: 0){
+    didSet {
+      datePickers.fromPicker.minimumDate = minimumSearchDate
+      datePickers.fromPicker.maximumDate = Date()
+      datePickers.fromPicker.date = minimumSearchDate
+      datePickers.toPicker.minimumDate = minimumSearchDate
+      datePickers.toPicker.maximumDate =  Date()
+      datePickers.toPicker.date =  Date()
+    }
+  }
+
   var reloadTable: (()->())?
   typealias tContent = (title:String, cells:[TazCell]?)
   ///added, deleted

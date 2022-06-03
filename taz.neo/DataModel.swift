@@ -959,6 +959,8 @@ public protocol Feed: ToString {
   var lastUpdated: Date? { get }
   /// Date of first issue available (oldest)  
   var firstIssue: Date { get }
+  /// Date of first searchable issue (oldest)
+  var firstSearchableIssue: Date? { get }
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
   /// Directory where all feed specific data is stored

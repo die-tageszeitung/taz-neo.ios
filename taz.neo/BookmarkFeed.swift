@@ -19,6 +19,7 @@ public class BookmarkFeed: Feed, DoesLog {
   public var issueCnt: Int { 1 }
   public var lastIssue: Date
   public var firstIssue: Date
+  public var firstSearchableIssue: Date?
   public var issues: [Issue]?
   public var dir: Dir { Dir("\(feeder.baseDir.path)/bookmarks") }
   /// total number of bookmarks

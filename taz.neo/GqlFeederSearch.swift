@@ -19,7 +19,6 @@ public struct SearchSettings: Equatable {
   
 //  public var searchLocation:GqlSearchLocation = .everywhere
   public var sorting:GqlSearchSorting = .relevance
-  public var minimumDate:Date = Date(timeIntervalSinceReferenceDate: 0)
   public var from:Date?
   public var to:Date?
   

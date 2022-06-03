@@ -105,7 +105,9 @@ class SearchController: UIViewController {
   }()
   
   lazy var searchSettingsView:SearchSettingsView = {
-    let v = SearchSettingsView(frame: .zero, style: .grouped)
+    let v = SearchSettingsView(frame: .zero,
+                               style: .grouped,
+                               minimumSearchDate: feederContext.defaultFeed.firstSearchableIssue ?? Date(timeIntervalSinceReferenceDate: 0))
     v.backgroundView = UIView()
     v.backgroundView?.onTapping {[weak self] _ in
       v.toggle(toVisible: false)

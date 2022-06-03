@@ -1859,6 +1859,10 @@ public final class StoredFeed: Feed, StoredObject {
     get { return pr.firstIssue! }
     set { pr.firstIssue = newValue }
   }
+  public var firstSearchableIssue: Date? {
+    get { return pr.firstSearchableIssue }
+    set { pr.firstSearchableIssue = newValue }
+  }
   public var lastIssue: Date {
     get { return pr.lastIssue! }
     set { pr.lastIssue = newValue }
@@ -1896,6 +1900,7 @@ public final class StoredFeed: Feed, StoredObject {
     self.issueCnt = object.issueCnt
     self.momentRatio = object.momentRatio
     self.firstIssue = object.firstIssue
+    self.firstSearchableIssue = object.firstSearchableIssue
     self.lastIssue = object.lastIssue
     self.lastIssueRead = object.lastIssueRead
     self.lastUpdated = object.lastUpdated
