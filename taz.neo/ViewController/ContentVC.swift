@@ -157,7 +157,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
     
       body {
-        padding-top: 20px;
+        padding-top: 78px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
       }
       p {
@@ -497,7 +497,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if (ratio < 0) { self?.toolBar.hide()}
       else { self?.toolBar.hide(false)}
     }
-    
     displayUrls()
     registerForStyleUpdates()
   }
@@ -538,7 +537,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
-    self.webviewInsets = UIEdgeInsets(top:58, left: 0, bottom:0, right: 0)
   }
   
   override public func viewWillDisappear(_ animated: Bool) {
