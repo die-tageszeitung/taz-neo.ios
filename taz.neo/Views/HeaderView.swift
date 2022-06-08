@@ -43,7 +43,7 @@ open class HeaderView: UIView,  Touchable {
           titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           titleLabel.textAlignment = .left
-          titleFontSizeDefault = Const.Size.LargeTitleFontSize
+          titleFontSizeDefault = Const.Size.TitleFontSize
           titleTopIndentL = Const.Size.DefaultPadding - 11.0
           titleBottomIndentL = -18
         case .article:
@@ -226,6 +226,8 @@ extension HeaderView {
   }
   
   private func didScrolling(offsetDelta:CGFloat, end: Bool){
+    if titletype == .bigLeft { return }
+    
     let isMaxi = self.titleTopConstraint?.constant ?? 0.0 >= titleTopIndentL
     let isMini = self.titleTopConstraint?.constant ?? 0.0 <= titleTopIndentS
     
