@@ -423,8 +423,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     if self.isMember(of: SearchResultArticleVc.self) == false {
       #warning("No Bookmark Button For Serach Result Articles")
       toolBar.addArticleButton(bookmarkButton, direction: .center)
+      toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     }
-    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticlePlayButton(Toolbar.Spacer(), direction: .center)
     toolBar.addArticlePlayButton(playButton, direction: .center)
