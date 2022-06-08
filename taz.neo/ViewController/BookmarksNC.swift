@@ -57,11 +57,12 @@ class BookmarksNC: UINavigationController {
         self.bookmarkFeed.genAllHtml()
         if art.hasBookmark {
           self.sectionVC.insertArticle(art)
+          self.sectionVC.reload()
         }
         else {
           self.sectionVC.deleteArticle(art)
+          if !self.sectionVC.isVisible { self.sectionVC.reload() }
         }
-        self.sectionVC.reload()
         if self.bookmarkFeed.count <= 0 {
           self.viewControllers[0] = emptyRoot
           self.popToRootViewController(animated: true)

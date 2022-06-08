@@ -202,17 +202,18 @@ open class ArticleVC: ContentVC {
   }
 
   // Export/Share article
-  func exportArticle(article: Article?, from button: UIView? = nil) {
+  public static func exportArticle(article: Article?, artvc: ArticleVC? = nil, 
+                                   from button: UIView? = nil) {
     if let art = article {
       if let link = art.onlineLink, !link.isEmpty {
         if let url = URL(string: link) {
           let actions = UIAlertController.init( title: nil, message: nil,
             preferredStyle:  .actionSheet )
           actions.addAction( UIAlertAction.init( title: "Teilen", style: .default,
-            handler: { [weak self] handler in
+            handler: { handler in
               //previously used PDFEXPORT Compiler Flags
               if App.isAvailable(.PDFEXPORT), #available(iOS 14, *) {
-                self?.exportPdf(article: art, from: button)
+                artvc?.exportPdf(article: art, from: button)
               } else {
                 let dialogue = ExportDialogue<Any>()
                 dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",
@@ -222,7 +223,7 @@ open class ArticleVC: ContentVC {
           actions.addAction( UIAlertAction.init( title: "Online-Version", style: .default,
           handler: {
             (handler: UIAlertAction) in
-            self.debug("Going to online version: \(link)")
+            Log.debug("Going to online version: \(link)")
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
           } ) )
           actions.addAction( UIAlertAction.init( title: "Abbrechen", style: .default,
@@ -253,7 +254,7 @@ open class ArticleVC: ContentVC {
     onShare { [weak self] _ in
       guard let self = self else { return }
       self.debug("*** Action: Share Article")
-      self.exportArticle(article: self.article, from: self.shareButton)
+      ArticleVC.exportArticle(article: self.article, artvc: self, from: self.shareButton)
     }
     
     if App.isAvailable(.SEARCH_CONTEXTMENU) {

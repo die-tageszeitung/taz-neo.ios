@@ -1,0 +1,124 @@
+/*
+ *  Stylesheet for taz bookmarks in iOS
+ */
+
+/* Fonts used */
+/* AktivGrotesk Regular */
+@font-face {
+  font-family   : AktivGrotesk;
+  src           : url(AktivGrotesk_W_Rg.woff) format("woff");
+  font-style    : normal;
+  font-weight   : normal;
+  font-stretch  : normal;
+}
+/* AktivGrotesk Italic */
+@font-face {
+  font-family   : AktivGrotesk;
+  src           : url(AktivGrotesk_W_It.woff) format("woff");
+  font-style    : italic;
+  font-weight   : normal;
+  font-stretch  : normal;
+}
+/* AktivGrotesk Bold */
+@font-face {
+  font-family   : AktivGrotesk;
+  src           : url(AktivGrotesk_W_Bd.woff) format("woff");
+  font-style    : normal;
+  font-weight   : bold;
+  font-stretch  : normal;
+}
+/* AktivGrotesk Bold Italic */
+@font-face {
+  font-family   : AktivGrotesk;
+  src           : url(AktivGrotesk_W_BdIt.woff) format("woff");
+  font-style    : italic;
+  font-weight   : bold;
+  font-stretch  : normal;
+}
+
+html {
+  font-family      : AktivGrotesk, sans-serif;
+  font-weight      : normal;
+  font-size        : 17px;
+  line-height      : 1.2;
+}
+
+* {
+  margin           : 0;
+  padding          : 0;
+}
+
+#content {
+  padding: 61px 15px;
+}
+
+.light {
+  background-color : #fff;
+  color            : #000;
+}
+
+.dark {
+  background-color : #000;
+  color            : #e3e3e3;
+}
+
+/* No visible links */
+a:link, a:visited, a:hover, a:active, a:focus {
+  text-decoration: none;
+  color: black;
+}
+
+article {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: height 0.3s ease-out;
+  height: auto;
+  border-bottom: 1px solid black;
+}
+
+article:last-child {
+  border-bottom: none;
+}
+
+article h2 {
+  padding-top: 15px;
+  padding-bottom: 5px;
+  font-size: 1.03rem;
+  font-weight: bold;
+}
+
+article address {
+  padding-top: 5px;
+  font-style: normal;
+}
+
+article time {
+  font-size: 0.82rem;
+}
+
+.foot {
+  clear: both;
+  padding-top: 5px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.photo {
+  float: right;
+  padding: 20px 0px 10px 10px;
+  width: 17.55vw;
+  height: 17.55vw;
+  object-fit: cover;
+}
+
+.icons {
+  padding-left: 10px;
+}
+
+.icons img {
+  margin: -3px;
+  width: 50px;
+}
