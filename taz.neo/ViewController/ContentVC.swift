@@ -408,8 +408,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     // shareButton.buttonView.hinset = -0.07
     // textSettingsButton.buttonView.hinset = -0.15
     // textSettingsButton.buttonView.layoutMargins change would be ignored in layout subviews
-    
-    toolBar.addArticleButton(bookmarkButton, direction: .center)
+    if self.isMember(of: SearchResultArticleVc.self) == false {
+      #warning("No Bookmark Button For Serach Result Articles")
+      toolBar.addArticleButton(bookmarkButton, direction: .center)
+    }
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticlePlayButton(Toolbar.Spacer(), direction: .center)
