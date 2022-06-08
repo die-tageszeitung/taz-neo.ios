@@ -35,10 +35,15 @@ public class BookmarkFeed: Feed, DoesLog {
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     // Copy resources to bookmark folder
-    if let path = Bundle.main.path(forResource: "Trash.svg", ofType: nil) {
-      let base = File.basename(path)
-      let src = File(path)
-      src.copy(to: "\(dir.path)/\(base)")
+    let resources = ["bookmarks-ios.css", "bookmarks-ios.js", 
+                     "Trash.svg", "Share.svg"]
+    for f in resources {
+      if let path = Bundle.main.path(forResource: f, ofType: nil) {
+        let base = File.basename(path)
+        let src = File(path)
+        let dest = "\(dir.path)/resources/\(base)"
+        src.copyIfNewer(to: dest)
+      }
     }
   }
   
@@ -58,96 +63,14 @@ public class BookmarkFeed: Feed, DoesLog {
   
   // HTML header
   static var htmlHeader = """
-  <?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE html>
-  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+  <html lang="de">
   <head>
-    <meta name="generator" content="taz E-Book Generator Version 3.000"/>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <meta http-equiv="cache-control" content="no-cache"/>
-    <meta http-equiv="expires" content="0"/>
-    <meta http-equiv="pragma" content="no-cache"/>
-    <title>section.277349.html</title>
-    <link rel="stylesheet" type="text/css" href="resources/base.css">
-    <link rel="stylesheet" type="text/css" href="resources/base2017.css">
+    <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0"/>
-    <link rel="stylesheet" type="text/css" href="resources/platform.css">
-    <script src="resources/jquery-3.min.js" type="text/javascript" charset="utf-8" language="javascript"></script>
-    <script src="resources/tazApi.js" type="text/javascript" charset="utf-8" language="javascript"></script>
-    <script src="resources/setupApp.js" type="text/javascript" charset="utf-8" language="javascript"></script>
-    <link rel="stylesheet" type="text/css" href="resources/ressort.css">
-    <link rel="stylesheet" type="text/css" href="resources/tazApi.css">
-    <link rel="stylesheet" type="text/css" href="resources/tazApiSection.css">
-    
-    <style>
-      div.bookmark-list-itm.collapse {
-        max-height: 0;
-        border: none;
-        transition: max-height .5s, border .5s;
-      }
-
-      div.bookmark-list-itm {
-        max-height: 9999px;
-        overflow: hidden;
-      }
-
-      p.issueDate {
-          float: left;
-          font-family: AktivGrotesk, taz;
-          font-weight: normal;
-          text-transform: none;
-          margin-bottom: 0.556rem;
-          /*10bx*/
-          font-size: 0.861rem;
-          /* 15.5 bx */
-      }
-
-      img.trash {
-          float: right;
-          margin: -20px 0 0 15px;
-          width: 50px
-      }
-
-      img.picture {
-          float: right;
-          margin: 0 0 10px 10px;
-          width: 65px;
-          height: 65px;
-          object-fit: cover;
-      }
-    </style>
-  
-    <script>
-      var handleTrashTap = function(target) {
-        var attribute = target.getAttribute("data-article-name");
-        //console.log("tap trash on" + attribute)
-        //console.log("taped on" + target)
-        var parent = target.parentElement.parentElement
-        parent.classList.add('collapse');
-        setTimeout(() => {
-           alert("Löschen Rückgängig ToDo!! By shake and/or Tap on Revert Icon?")
-           // WARNING: Multi Delete May not word due Refresh!
-        }, "1000")
-        setTimeout(() => {
-          deleteBookmark(attribute)
-        }, "3000")
-      };
-
-      function deleteBookmark(aname) {
-        tazApi.setBookmark(aname, false);
-      }
-            
-      document.addEventListener('DOMContentLoaded', function() {
-        var classname = document.getElementsByClassName("trash");
-        for (var i = 0; i < classname.length; i++) {
-          classname[i].addEventListener('click', (event) => {
-            event.preventDefault();
-            handleTrashTap(event.target)
-          });
-        }
-      }, false);
-    </script>
-  
+    <link rel="stylesheet" href="resources/bookmarks-ios.css"/>
+    <script src="resources/tazApi.js"></script>
+    <script src="resources/bookmarks-ios.js"></script>
+    <title>Bookmarks</title>
   </head>
   """
   
@@ -164,14 +87,14 @@ public class BookmarkFeed: Feed, DoesLog {
         }
       }
     }
-    return "<p class=\"VerzeichnisAutor\">\(ret.xmlEscaped())</p>"
+    return "<address>\(ret.xmlEscaped())</address>"
   }
   
   /// Get image of first picture (if available) with markup
   public func getImage(art: Article) -> String {
     if let imgs = art.images, imgs.count > 0 {
       let fn = imgs[0].name
-      return "<img class=\"picture\" src=\"\(art.dir.path)/\(fn)\">"
+      return "<img class=\"photo\" src=\"\(art.dir.path)/\(fn)\">"
     }
     else { return "" }
   }
@@ -182,7 +105,7 @@ public class BookmarkFeed: Feed, DoesLog {
       var html = """
       \(BookmarkFeed.htmlHeader)
       <body>
-      <div id="content">\n
+      <section id="content">\n
       """
       for art in articles {
         let issues = art.issues
@@ -190,24 +113,27 @@ public class BookmarkFeed: Feed, DoesLog {
           let title = art.title ?? art.html.name
           let teaser = art.teaser ?? ""
           let sdate = art.issueDate.gDateString(tz: self.feeder.timeZone)
+          let iso = art.issueDate.isoDate(tz: self.feeder.timeZone)
           html += """
-          <div class="bookmark-list-itm">
-            <div class="VerzeichnisArtikel eptPolitik">
-              <a href="\(art.path)" class="RessortDiv">
-                \(getImage(art: art))
-                <h2 class="Titel">\(title.xmlEscaped())</h2>
-                <h4 class="Unterzeile">\(teaser.xmlEscaped())</h4>
-                \(getAuthors(art: art))
-              </a>
-              <img class="trash" src="Trash.svg" data-article-name="\(art.html.name)">
-              <p class="issueDate">\(sdate)</p>
-              <div class="VerzeichnisArtikelEnde"></div>
+          <article id="\(File.progname(art.html.name))">
+            <a href="\(art.path)">
+              \(getImage(art: art))
+              <h2>\(title.xmlEscaped())</h2>
+              <p>\(teaser.xmlEscaped())</p>
+              \(getAuthors(art: art))
+            </a>
+            <div class = "foot">
+              <time datetime="\(iso)">\(sdate)</time>
+              <div class="icons">
+                <img class="share" src="resources/Share.svg">
+                <img class="trash" src="resources/Trash.svg">
+              </div>
             </div>
-          </div>
+          </article>
           """
         }
       }
-      html += "</div>\n</body>\n</html>\n"
+      html += "</section>\n</body>\n</html>\n"
       let tmpFile = section.html as! BookmarkFileEntry
       tmpFile.content = html
     }
