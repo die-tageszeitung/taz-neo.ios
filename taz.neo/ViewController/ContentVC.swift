@@ -247,6 +247,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       for a in arts { names += a.html.name }
       return names
     }
+    self.bridge?.addfunc("shareArticle") { [weak self] jscall in
+      guard let self = self else { return NSNull() }
+      if let args = jscall.args, args.count > 0,
+         let name = args[0] as? String,
+         let art = self.issue.article(artname: name) {
+        ArticleVC.exportArticle(article: art)
+      }
+      return NSNull()
+    }
   }
   
   /// Write tazApi.js to resource directory
@@ -264,7 +273,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       tazApi.setBookmark = function (artName, hasBookmark) {
         tazApi.call("setBookmark", undefined, artName, hasBookmark);
       };
-    """
+      tazApi.shareArticle = function (artName) {
+        tazApi.call("shareArticle", undefined, artName);
+      };
+   """
     tazApiJs.string = JSBridgeObject.js + apiJs
   }
   
