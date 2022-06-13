@@ -212,8 +212,8 @@ open class ArticleVC: ContentVC {
           actions.addAction( UIAlertAction.init( title: "Teilen", style: .default,
             handler: { handler in
               //previously used PDFEXPORT Compiler Flags
-              if App.isAvailable(.PDFEXPORT), #available(iOS 14, *) {
-                artvc?.exportPdf(article: art, from: button)
+              if let artvc = artvc, App.isAvailable(.PDFEXPORT), #available(iOS 14, *) {
+                artvc.exportPdf(article: art, from: button)
               } else {
                 let dialogue = ExportDialogue<Any>()
                 dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",
