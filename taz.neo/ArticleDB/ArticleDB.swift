@@ -861,12 +861,13 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.teaser }
     set { pr.teaser = newValue }
   }
+  fileprivate var preventBookmarkChangeNotification = false
   public var hasBookmark: Bool {
     get { pr.hasBookmark }
     set {
       let old = pr.hasBookmark
       pr.hasBookmark = newValue
-      if old != newValue {
+      if old != newValue && !preventBookmarkChangeNotification {
         Notification.send("BookmarkChanged", content: sections, sender: self)
       }
     }
@@ -1474,7 +1475,7 @@ public final class StoredIssue: Issue, StoredObject {
     set { pr.baseUrl = newValue }
   }
   public var status: IssueStatus {
-    get { return IssueStatus(pr.status!)! }
+    get { return IssueStatus(pr.status ?? "unknown") ?? IssueStatus.unknown }
     set { pr.status = newValue.representation }
   }
   public var minResourceVersion: Int {
@@ -1544,6 +1545,7 @@ public final class StoredIssue: Issue, StoredObject {
 
   /// Overwrite the persistent values
   public func update(from object: Issue) {
+    let sendUpdatedDemoIssueNotification = self.status == .reduced && object.status != .reduced
     self.feed = object.feed
     self.date = object.date
     self.moTime = object.moTime
@@ -1562,6 +1564,13 @@ public final class StoredIssue: Issue, StoredObject {
     self.status = object.status
     let oldSections = sections
     let oldPages = pages
+    
+    var bookmarkedDemoArticleNames:[String] = []
+    
+    if sendUpdatedDemoIssueNotification {
+      bookmarkedDemoArticleNames = self.allArticles.filter{ $0.hasBookmark }.map{$0.html.name.replacingOccurrences(of: ".public.", with: ".")}
+    }
+    
     if let secs = object.sections {
       var order: Int32 = 0
       for section in secs {
@@ -1573,6 +1582,11 @@ public final class StoredIssue: Issue, StoredObject {
         if let arts = ssection.articles {
           for art in arts {
             if let art = art as? StoredArticle {
+              if bookmarkedDemoArticleNames.contains(art.html.name) {
+                art.preventBookmarkChangeNotification = true
+                art.hasBookmark = true
+                art.preventBookmarkChangeNotification = false
+              }
               art.pr.addToIssues(self.pr)
             }
           }  
@@ -1602,6 +1616,7 @@ public final class StoredIssue: Issue, StoredObject {
         for s in osecs { s.delete() }
       }
     }
+
     // Remove pages no longer needed
     if let opgs = oldPages as? [StoredPage] {
       if let pages = object.pages {
@@ -1621,6 +1636,7 @@ public final class StoredIssue: Issue, StoredObject {
       let mom = StoredMoment(persistent: pr.moment!)
       mom.firstPage = p1
     }
+    if sendUpdatedDemoIssueNotification { Notification.send("updatedDemoIssue") }
   }
     
   /// Return stored record with given name

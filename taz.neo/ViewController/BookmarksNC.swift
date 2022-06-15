@@ -48,6 +48,15 @@ class BookmarksNC: UINavigationController {
   }()
   
   func setup() {
+    
+    Notification.receive("updatedDemoIssue") { [weak self] notif in
+      guard let self = self else { return }
+      self.bookmarkFeed
+      = BookmarkFeed.allBookmarks(feeder: self.feeder)
+      self.sectionVC.delegate = nil
+      self.sectionVC.delegate = self///trigger SectionVC.setup()
+    }
+    
     Notification.receive("BookmarkChanged") { [weak self] msg in
       // regenerate all bookmark sections
       guard let emptyRoot = self?.placeholderVC,
