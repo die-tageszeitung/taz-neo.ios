@@ -84,7 +84,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var issue: Issue { delegate.issue }
   public var feed: Feed { issue.feed }
   public var dloader: Downloader { delegate.dloader }
-  lazy var slider:ButtonSlider? = ButtonSlider(slider: contentTable!, into: self)
+  lazy var slider:ButtonSlider? = {
+    guard let ct = contentTable else { return nil }
+    return ButtonSlider(slider: ct, into: self)
+  }()
   /// Whether to show all content images in a gallery
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
@@ -579,9 +582,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func setup(contents: [Content], isLargeHeader: Bool) {
     setContents(contents)
     self.isLargeHeader = isLargeHeader
-    self.contentTable!.feeder = feeder
-    self.contentTable!.issue = issue
-    self.contentTable!.image = feeder.momentImage(issue: issue)
+    self.contentTable?.feeder = feeder
+    self.contentTable?.issue = issue
+    self.contentTable?.image = feeder.momentImage(issue: issue)
     self.baseDir = feeder.baseDir.path
     onBack { [weak self] _ in
       self?.debug("*** Action: <Back> pressed")

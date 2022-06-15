@@ -38,6 +38,7 @@ class BookmarksNC: UINavigationController {
   
   public lazy var sectionVC: BookmarksSection = {
     let svc = BookmarksSection(feederContext: feederContext)
+    svc.contentTable = nil
     svc.delegate = self
     svc.toolBar.hide()
     svc.isStaticHeader = true
