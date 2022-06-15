@@ -1020,7 +1020,7 @@ public final class StoredArticle: Article, StoredObject {
     request.predicate = NSPredicate(format: "hasBookmark = true")
     var arts: [StoredArticle] = get(request: request)
     arts.sort {
-      let issue1 = $0.issues[0]
+      let issue1 = $0.issues[0]//Seen Non reproduceable Crash here
       let issue2 = $1.issues[0]
       if issue1.date == issue2.date {
         let section1 = $0.sections[0]
