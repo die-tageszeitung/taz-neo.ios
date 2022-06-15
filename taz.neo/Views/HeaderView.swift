@@ -145,7 +145,10 @@ open class HeaderView: UIView,  Touchable {
   
   /// Define closure to call if a title has been touched
   public func onTitle(closure: @escaping (String?)->()) {
-    onTitleClosure = closure
+    self.onTitleClosure = closure
+    self.titleLabel.onTap { [weak self] _ in
+      self?.onTitleClosure?(self?.title ?? "")
+    }
   }
   
   private func setup() {
