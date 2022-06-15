@@ -435,7 +435,7 @@ public protocol Article: Content, ToString {
 
 public extension Article {
   
-  func toString() -> String { "Article \((self as Content).toString())" }
+  func toString() -> String { "\(hasBookmark ? "Bookmarked " : "")Article \((self as Content).toString())" }
   
   /// Returns true if this Article can be played
   var canPlayAudio: Bool { ArticlePlayer.singleton.canPlay(art: self) }
