@@ -63,6 +63,7 @@ public class BookmarkFeed: Feed, DoesLog {
   
   // HTML header
   static var htmlHeader = """
+  <!DOCTYPE html>
   <html lang="de">
   <head>
     <meta charset="UTF-8"/>
@@ -99,6 +100,31 @@ public class BookmarkFeed: Feed, DoesLog {
     else { return "" }
   }
   
+  /// Get the inner HTML of an article
+  public func getInnerHtml(art: StoredArticle) -> String {
+    let title = art.title ?? art.html.name
+    let teaser = art.teaser ?? ""
+    let sdate = art.issueDate.gDateString(tz: self.feeder.timeZone)
+    let iso = art.issueDate.isoDate(tz: self.feeder.timeZone)
+    let utime = art.issueDate.timeIntervalSince1970
+    let html = """
+      <a href="\(art.path)">
+        \(getImage(art: art))
+        <h2>\(title.xmlEscaped())</h2>
+        <p>\(teaser.xmlEscaped())</p>
+        \(getAuthors(art: art))
+      </a>
+      <div class = "foot">
+        <time utime="\(utime)" datetime="\(iso)">\(sdate)</time>
+        <div class="icons">
+          <img class="share" src="resources/Share.svg">
+          <img class="trash" src="resources/Trash.svg">
+        </div>
+      </div>
+    """
+    return html
+  }
+  
   /// Generate HTML for given Section
   public func genHtml(section: BookmarkSection) {
     if let articles = section.articles as? [StoredArticle] {
@@ -107,31 +133,17 @@ public class BookmarkFeed: Feed, DoesLog {
       <body>
       <section id="content">\n
       """
+      var order = 1;
       for art in articles {
         let issues = art.issues
         if issues.count > 0 {
-          let title = art.title ?? art.html.name
-          let teaser = art.teaser ?? ""
-          let sdate = art.issueDate.gDateString(tz: self.feeder.timeZone)
-          let iso = art.issueDate.isoDate(tz: self.feeder.timeZone)
           html += """
-          <article id="\(File.progname(art.html.name))">
-            <a href="\(art.path)">
-              \(getImage(art: art))
-              <h2>\(title.xmlEscaped())</h2>
-              <p>\(teaser.xmlEscaped())</p>
-              \(getAuthors(art: art))
-            </a>
-            <div class = "foot">
-              <time datetime="\(iso)">\(sdate)</time>
-              <div class="icons">
-                <img class="share" src="resources/Share.svg">
-                <img class="trash" src="resources/Trash.svg">
-              </div>
-            </div>
-          </article>
+            <article id="\(File.progname(art.html.name))" style="order:\(order)">
+            \(getInnerHtml(art: art))
+            </article>
           """
         }
+        order += 1
       }
       html += "</section>\n</body>\n</html>\n"
       let tmpFile = section.html as! BookmarkFileEntry
