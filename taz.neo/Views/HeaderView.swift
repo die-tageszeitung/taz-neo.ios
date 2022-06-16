@@ -45,7 +45,7 @@ open class HeaderView: UIView,  Touchable {
           titleLabel.textAlignment = .left
           titleFontSizeDefault = Const.Size.TitleFontSize
           titleTopIndentL = Const.Size.DefaultPadding - 11.0
-          titleBottomIndentL = -18
+          titleBottomIndentL = -0.5
         case .article:
           pageNumberLabel.isHidden = false
           subTitleLabel.isHidden = true
