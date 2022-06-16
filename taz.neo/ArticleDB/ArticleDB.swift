@@ -861,17 +861,21 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.teaser }
     set { pr.teaser = newValue }
   }
-  fileprivate var preventBookmarkChangeNotification = false
   public var hasBookmark: Bool {
     get { pr.hasBookmark }
     set {
       let old = pr.hasBookmark
-      pr.hasBookmark = newValue
-      if old != newValue && !preventBookmarkChangeNotification {
+      setBookmark(newValue)
+      if old != newValue {
         Notification.send("BookmarkChanged", content: sections, sender: self)
       }
     }
   }
+  
+  fileprivate func setBookmark(_ isBookmark:Bool){
+    pr.hasBookmark = isBookmark
+  }
+  
   public var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
   public var authors: [Author]? { StoredAuthor.authorsOfArticle(article: self) }
   public var pageNames: [String]? { nil }
@@ -1583,9 +1587,7 @@ public final class StoredIssue: Issue, StoredObject {
           for art in arts {
             if let art = art as? StoredArticle {
               if bookmarkedDemoArticleNames.contains(art.html.name) {
-                art.preventBookmarkChangeNotification = true
-                art.hasBookmark = true
-                art.preventBookmarkChangeNotification = false
+                art.setBookmark(true)
               }
               art.pr.addToIssues(self.pr)
             }
