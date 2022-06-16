@@ -4,32 +4,32 @@
 
 /* Defines class name of element with id */
 function setClass(clname, id = "content") {
-  var elem = document.getElementById(id);
+  let elem = document.getElementById(id);
   elem.classname = mode;
 }
 
 /* Define padding of CSS selector */
 function setPadding(padding, selector = "body") {
-  var sel = document.querySelector(selector);
+  let sel = document.querySelector(selector);
   sel.style.padding = wpadding;
 }
 
 /* Define font size of CSS selector */
 function setFontSize(val, selector = "html") {
-  var sel = document.querySelector(selector);
+  let sel = document.querySelector(selector);
   sel.style.fontSize = val;
 }
 
 /* Define text alignment of CSS selector */
 function setTextAlign(val, selector = "p") {
-  var sel = document.querySelector(selector);
+  let sel = document.querySelector(selector);
   sel.style.textAlign = val;
 }
 
 /* Shrink article to height 0 */
 function shrink(art) {
-  var currentHeight = art.scrollHeight;
-  var trans = art.style.transition;
+  let currentHeight = art.scrollHeight;
+  let trans = art.style.transition;
   art.style.transition = "";
   requestAnimationFrame(() => {
     art.style.height = currentHeight + "px";
@@ -40,14 +40,61 @@ function shrink(art) {
   });
 }
 
+function resetArticleHeight(event) {
+  let art = event.target;
+  art.style.height = "auto";  
+  art.removeEventListener("transitionend", resetArticleHeight);
+}
+
+/* Grow article to its scrollHeight (ie. the size needed to display it) */
+function grow(art) {
+  art.addEventListener("transitionend", resetArticleHeight);
+  let sheight = art.scrollHeight;
+  let trans = art.style.transition;
+  art.style.transition = "";
+  requestAnimationFrame(() => {
+    art.style.height = "0px";
+    art.style.transition = trans;
+    requestAnimationFrame(() => {
+      art.style.height = sheight + "px";
+    });
+  });
+}
+
+function reallyDeleteBookmark(event) {
+  let art = event.target;
+  const title = art.querySelector("h2").textContent;
+  tazApi.toast("<h3>" + title + "</h3>" + "Löschen rückgängig durch Antippen",
+    3.0, (wasTapped) => {
+    console.log("wasTapped: " + wasTapped);
+    if (wasTapped) {
+      let rect = art.getBoundingClientRect();
+      if (rect.height <= 2) { grow(art); }
+    }
+    else {
+      art.remove();
+      tazApi.setBookmark(art.id + ".html", false);
+    }
+  });
+  art.removeEventListener("transitionend", reallyDeleteBookmark);
+}
+
 /* Delete bookmark */
 function deleteBookmark(elem) {
   const art = elem.parentElement.parentElement.parentElement;
-  art.addEventListener("transitionend", (e) => {
-    art.remove();
-    tazApi.setBookmark(art.id + ".html", false);
-  });
+  art.addEventListener("transitionend", reallyDeleteBookmark);
   shrink(art);
+}
+
+function insertArticle(html, id, order) {
+  let art = docment.createElement("article");
+  art.id = id;
+  art.innerHTML = html;
+  art.style.height = "0px";
+  art.style.order = order;
+  let content = document.getElementbyId("content");
+  content.appendChild(art);
+  grow(art);
 }
 
 /* Share Article */
@@ -58,13 +105,13 @@ function shareArticle(elem) {
 
 /* Set up click functions for share and trash icons */
 function setupButtons() {
-  for (var b of document.getElementsByClassName("trash")) {
+  for (let b of document.getElementsByClassName("trash")) {
     b.addEventListener("click", (event) => {
       event.preventDefault();
       deleteBookmark(event.target);
     });
   }
-  for (var b of document.getElementsByClassName("share")) {
+  for (let b of document.getElementsByClassName("share")) {
     b.addEventListener("click", (event) => {
       event.preventDefault();
       shareArticle(event.target);
@@ -74,7 +121,7 @@ function setupButtons() {
 
 /* Read settings from localStorage */
 function readSettings() {
-  var val = localStorage.getItem("tazApi.colorTheme");
+  let val = localStorage.getItem("tazApi.colorTheme");
   if (val) { setClass(val); }
   if (val = localStorage.getItem("tazApi.padding"))
     { setPadding(val); }
