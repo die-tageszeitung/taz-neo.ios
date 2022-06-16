@@ -137,20 +137,20 @@ extension SearchResultsTableView: UITableViewDataSource {
 // MARK: - SearchResultsCell
 class SearchResultsCell: UITableViewCell {
   
-  var content : GqlSearchHit? {
-    didSet{
-      if let content = content {
-        titleLabel.text = content.article.title
-        authorLabel.text = content.article.authors()
-        contentLabel.attributedText = content.snippet?.attributedFromSnippetString
-        dateLabel.text = content.date.short + " " + (content.sectionTitle ?? "")
-      }
-      else {
-        titleLabel.text = ""
-        authorLabel.text = ""
-        contentLabel.text = ""
-        dateLabel.text = ""
-      }
+  var content : GqlSearchHit? { didSet{ updateContent() }   }
+  
+  private func updateContent(){
+    if let content = content {
+      titleLabel.text = content.article.title
+      authorLabel.text = content.article.authors()
+      contentLabel.attributedText = content.snippet?.attributedFromSnippetString
+      dateLabel.text = content.date.short + " " + (content.sectionTitle ?? "")
+    }
+    else {
+      titleLabel.text = ""
+      authorLabel.text = ""
+      contentLabel.text = ""
+      dateLabel.text = ""
     }
   }
   
@@ -218,8 +218,6 @@ class SearchResultsCell: UITableViewCell {
     pin(contentLabel.top, to: authorLabel.bottom, dist: 8)
     pin(dateLabel.top, to: contentLabel.bottom, dist: 8)
     pin(dateLabel.bottom, to: cellView.bottom, dist: -12)
-    
-    contentLabel.textColor = Const.SetColor.ios(.label).color
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -237,6 +235,8 @@ extension SearchResultsCell {
     titleLabel.textColor = Const.SetColor.ios(.label).color
     authorLabel.textColor = Const.SetColor.ios(.label).color
     dateLabel.textColor = Const.SetColor.ios(.label).color
+    contentLabel.textColor = Const.SetColor.ios(.label).color
+    updateContent()
   }
 }
 
