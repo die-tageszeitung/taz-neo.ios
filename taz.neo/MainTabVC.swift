@@ -41,7 +41,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     home.updateToolbarHomeIcon()
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
-    let homeNc = NavigationController(rootViewController: home)
+    let homeNc = TazNavigationController(rootViewController: home)
     homeNc.isNavigationBarHidden = true
     
     let bookmarksNc = BookmarksNC(feederContext: feederContext)
@@ -55,7 +55,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     search.tabBarItem.image = UIImage(named: "search-magnifier")
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
-    let searchNc = NavigationController(rootViewController: search)
+    let searchNc = TazNavigationController(rootViewController: search)
     searchNc.isNavigationBarHidden = true
     
     let settings = SettingsVC(feederContext: feederContext)
@@ -86,6 +86,13 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   }
 } // MainTabVC
 
+
+class TazNavigationController : NavigationController {
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    onPopViewController{ vc in return !(vc is IntroVC)}
+  }
+}
 
 extension MainTabVC {
   /// Check whether it's necessary to reload the current Issue
