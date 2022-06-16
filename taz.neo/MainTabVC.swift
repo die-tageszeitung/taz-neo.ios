@@ -96,13 +96,15 @@ extension MainTabVC {
     var reloadTarget: ReloadAfterAuthChanged?
     
     if let home = selectedNc?.viewControllers.first as? IssueVC,
-       selectedNc?.topViewController != home/*,
-       feederContext.needsUpdate(issue: home.selectedIssue)*/ {
+       selectedNc?.topViewController != home {
       reloadTarget = home
     }
     else if let search = selectedNc?.viewControllers.first as? SearchController,
             selectedNc?.topViewController != search {
       reloadTarget = search
+    }
+    else if let target = selectedNc as? ReloadAfterAuthChanged {
+      reloadTarget = target
     }
     
     ///Settings need to be reloaded no matter if selected!

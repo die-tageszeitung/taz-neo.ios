@@ -29,6 +29,10 @@ fileprivate class PlaceholderVC: UIViewController{
 
 class BookmarksNC: UINavigationController {
   
+  /// Are we in facsimile mode
+  @Default("isFacsimile")
+  public var isFacsimile: Bool
+  
   private var placeholderVC = PlaceholderVC()
   
   public var feederContext: FeederContext
@@ -37,7 +41,13 @@ class BookmarksNC: UINavigationController {
   var isShowingAlert = false
   
   public lazy var sectionVC: BookmarksSection = {
-    let svc = BookmarksSection(feederContext: feederContext)
+    return createSectionVC()
+  }()
+  
+  func createSectionVC(openArticleAtIndex: Int? = nil) -> BookmarksSection{
+    let svc = BookmarksSection(feederContext: feederContext,
+                               atSection: nil,
+                               atArticle: openArticleAtIndex)
     svc.delegate = self
     svc.toolBar.hide()
     svc.isStaticHeader = true
@@ -45,7 +55,7 @@ class BookmarksNC: UINavigationController {
     svc.header.title = "leseliste"
     svc.hidesBottomBarWhenPushed = false
     return svc
-  }()
+  }
   
   func setup() {
     
@@ -112,4 +122,45 @@ class BookmarksNC: UINavigationController {
 
 extension BookmarksNC: IssueInfo {
   public func resetIssueList() {}
+}
+
+extension BookmarksNC: ReloadAfterAuthChanged {
+  public func reloadOpened(){
+    let lastIndex = (self.viewControllers.last as? ArticleVC)?.index ?? 0
+    var issuesToDownload:[StoredIssue] = []
+    for art in bookmarkFeed.issues?.first?.allArticles ?? [] {
+      if let sissue = art.primaryIssue as? StoredIssue,
+         sissue.status == .reduced,
+         issuesToDownload.contains(sissue) == false {
+        issuesToDownload.append(sissue)
+      }
+    }
+        
+    func downloadNextIfNeeded(){
+      if let nextIssue = issuesToDownload.first {
+        self.feederContext.getCompleteIssue(issue: nextIssue,
+                                             isPages: isFacsimile,
+                                             isAutomatically: false)
+      } else {
+        self.bookmarkFeed
+        = BookmarkFeed.allBookmarks(feeder: self.feeder)
+        self.sectionVC.relaese()
+        self.sectionVC
+        = createSectionVC(openArticleAtIndex: lastIndex)
+        self.viewControllers[0] = self.sectionVC
+        self.popToRootViewController(animated: true)
+        Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+      }
+    }
+    
+    Notification.receive("issue"){ notif in
+      ///ensure the issue download comes from here!
+      guard let issue = notif.object as? Issue else { return }
+      guard let issueIdx = issuesToDownload.firstIndex(where: {$0.date == issue.date})
+      else { return /* Issue Download from somewhere else */ }
+      issuesToDownload.remove(at: issueIdx)
+      downloadNextIfNeeded()
+    }
+    downloadNextIfNeeded()    
+  }
 }
