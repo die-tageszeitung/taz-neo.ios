@@ -189,7 +189,7 @@ open class HeaderView: UIView,  Touchable {
     pin(subTitleLabel.left, to: self.left, dist:sidePadding)
     pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
     borderView = self.addBorderView(.opaqueSeparator, 0.5, edge: .bottom)
-    borderView?.isHidden = true
+    borderView?.alpha = 0.0
     updateUI()
   }
   
@@ -286,7 +286,7 @@ extension HeaderView {
       self?.titleBottomConstraint?.constant = titleBottomIndentConst
       self?.subTitleLabel.alpha = fastAlpha
       self?.line.alpha = fastAlpha
-      self?.borderView?.isHidden = ratio != 1.0
+      self?.borderView?.alpha = ratio
     }
     animate
     ?  UIView.animate(seconds: 0.3) {  handler(); self.superview?.layoutIfNeeded() }
