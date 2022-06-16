@@ -74,7 +74,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   /// CSS Margins for Articles and Sections
   public class var topMargin: CGFloat { return 40 }
   public static let bottomMargin: CGFloat = 50
-
+  
+  @Default("showBarsOnContentChange")
+  var showBarsOnContentChange: Bool
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
@@ -539,6 +541,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.hide()}
       else { self?.toolBar.hide(false)}
+    }
+    onDisplay {[weak self]_, _  in
+      //Note: use this due onPageChange only fires on link @see WebCollectionView
+      if self?.showBarsOnContentChange == true {
+        self?.toolBar.hide(false)
+        self?.header.showAnimated()
+      }
     }
     displayUrls()
     registerForStyleUpdates()

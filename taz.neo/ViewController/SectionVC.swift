@@ -223,7 +223,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       header.subTitle = issue.date.gLowerDate(tz: feeder.timeZone)
       header.titletype = index == 0 ? .section0 : .section
     }
-    header.showAnimated(false)
+    header.showAnimated()
   }
   
   // Reload Section and Article
