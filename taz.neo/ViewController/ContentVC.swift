@@ -265,8 +265,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
           if let d = args[1] as? Int { duration = Double(d) }
           else if let d = args[1] as? Double { duration = d }
         }
+        jscall.delayCallback = true
         Toast.show(msg, minDuration: duration) { wasTapped in
-          jscall.callback(arg: wasTapped)
+          jscall.callback(arg: wasTapped, isDelayed: true)
         }
       }
       return NSNull()
