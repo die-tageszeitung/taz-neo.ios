@@ -218,6 +218,8 @@ class SearchResultsCell: UITableViewCell {
     pin(contentLabel.top, to: authorLabel.bottom, dist: 8)
     pin(dateLabel.top, to: contentLabel.bottom, dist: 8)
     pin(dateLabel.bottom, to: cellView.bottom, dist: -12)
+    
+    contentLabel.textColor = Const.SetColor.ios(.label).color
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -234,7 +236,6 @@ extension SearchResultsCell {
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
     titleLabel.textColor = Const.SetColor.ios(.label).color
     authorLabel.textColor = Const.SetColor.ios(.label).color
-    contentLabel.textColor = Const.SetColor.ios(.label).color
     dateLabel.textColor = Const.SetColor.ios(.label).color
   }
 }
@@ -256,7 +257,8 @@ extension String {
       for s in components {
         let highlightedComponents = s.components(separatedBy: closeTag)
         if let txt = highlightedComponents.valueAt(0) {
-          ms.append(NSAttributedString(string: txt, attributes: [.backgroundColor: Const.Colors.fountTextHighlight, .foregroundColor: UIColor.black]))
+          ms.append(NSAttributedString(string: txt, attributes: [.backgroundColor: Const.Colors.foundTextHighlight,
+            .foregroundColor: UIColor.black]))
         }
         if let txt = highlightedComponents.valueAt(1){
           ms.append(NSAttributedString(string: txt))

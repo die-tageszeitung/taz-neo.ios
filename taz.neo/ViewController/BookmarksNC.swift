@@ -63,7 +63,7 @@ class BookmarksNC: UINavigationController {
       guard let emptyRoot = self?.placeholderVC,
             let self = self else { return }
       if let art = msg.sender as? StoredArticle {
-        self.bookmarkFeed.loadAllBookmmarks()
+        self.bookmarkFeed.loadAllBookmarks()
         self.bookmarkFeed.genAllHtml()
         if art.hasBookmark {
           self.sectionVC.insertArticle(art)

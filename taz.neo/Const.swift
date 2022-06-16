@@ -50,7 +50,7 @@ public struct Const {
     static let iconButtonInactive: UIColor = UIColor.rgb(0x9c9c9c)
     static let iconButtonActive: UIColor = appIconGrey
     
-    static let fountTextHighlight: UIColor = UIColor.rgb(0xd50d2e).withAlphaComponent(0.2)
+    static let foundTextHighlight: UIColor = UIColor.rgb(0xffff88)
     static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)
     static let radioGreen: UIColor =  UIColor.rgb(0x2ca400)
     

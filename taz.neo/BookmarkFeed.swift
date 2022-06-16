@@ -155,7 +155,7 @@ public class BookmarkFeed: Feed, DoesLog {
   }
   
   /// Load all bookmarks into single Section
-  public func loadAllBookmmarks() {
+  public func loadAllBookmarks() {
     if let issues = issues, issues.count > 0,
        let sections = issues[0].sections, sections.count > 0 {
       let section = sections[0] as! BookmarkSection
@@ -173,7 +173,7 @@ public class BookmarkFeed: Feed, DoesLog {
         html: BookmarkFileEntry(feed: bm, name: "allBookmarks.html"))
     bm.issues = [bmIssue]
     bmIssue.sections = [bmSection]
-    bm.loadAllBookmmarks()
+    bm.loadAllBookmarks()
     bm.genHtml(section: bmSection)
     return bm
   }
