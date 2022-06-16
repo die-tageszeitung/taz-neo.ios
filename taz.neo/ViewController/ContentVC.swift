@@ -373,12 +373,21 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 //    self.playButton.buttonView.name = "audio"
 //  }
   
+  @objc func backButtonLongPress(_ sender: UIGestureRecognizer) {
+    self.navigationController?.popToRootViewController(animated: true)
+  }
+  
+  lazy var backButtonLongPressGestureRecognizer:UILongPressGestureRecognizer
+  = UILongPressGestureRecognizer(target: self,
+                                 action: #selector(backButtonLongPress))
+  
   func setupToolbar() {
     backButton.onPress { [weak self] _ in 
       guard let self = self else { return }
       self.backClosure?(self)
     }
-    bookmarkButton.onPress { [weak self] _ in 
+    backButton.addGestureRecognizer(backButtonLongPressGestureRecognizer)
+    bookmarkButton.onPress { [weak self] _ in
       guard let self = self else { return }
       self.bookmarkClosure?(self)
     }
