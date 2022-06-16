@@ -256,6 +256,21 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
+    self.bridge?.addfunc("toast") { [weak self] jscall in
+      guard let _ = self else { return NSNull() }
+      if let args = jscall.args, args.count > 0,
+         let msg = args[0] as? String {
+        var duration = 3.0
+        if args.count > 1 {
+          if let d = args[1] as? Int { duration = Double(d) }
+          else if let d = args[1] as? Double { duration = d }
+        }
+        Toast.show(msg, minDuration: duration) { wasTapped in
+          jscall.callback(arg: wasTapped)
+        }
+      }
+      return NSNull()
+    }
   }
   
   /// Write tazApi.js to resource directory
@@ -276,6 +291,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       tazApi.shareArticle = function (artName) {
         tazApi.call("shareArticle", undefined, artName);
       };
+      tazApi.toast = function(msg, duration, callback) {
+        tazApi.call("toast", callback, msg, duration);
+      };
+      log2bridge(tazApi);
    """
     tazApiJs.string = JSBridgeObject.js + apiJs
   }
