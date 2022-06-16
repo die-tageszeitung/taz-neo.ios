@@ -252,7 +252,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       initialArticle = nil
       SectionVC.showAnimations = false
     }
-    if SectionVC.showAnimations {
+    if SectionVC.showAnimations && issue.sections?.count ?? 0 > 1 {
       SectionVC.showAnimations = false
       delay(seconds: 1.5) {
         self.slider?.open() { _ in
