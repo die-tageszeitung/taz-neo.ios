@@ -163,6 +163,11 @@ extension MainTabVC : UITabBarControllerDelegate {
     {
       _ = searchController.restoreInitialState()
     }
+    else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
+       let content = firstVc as? ContentVC
+    {
+      content.currentWebView?.scrollView.setContentOffset(CGPoint(x:0, y:0), animated: true)
+    }
     else if let tvc = viewController as? UITableViewController
     {
       tvc.tableView.scrollRectToVisible(CGRect(x: 1, y: 1, width: 1, height: 1), animated: true)
