@@ -697,7 +697,12 @@ class TData {
       rangeCells.append(contentsOf: [customRangeCellColapsed])
     }
 
-    rangeCells.forEach{ $0.radioButton.isSelected = $0.range == settings.range.currentOption }
+    rangeCells.forEach{
+      $0.radioButton.isSelected = $0.range == settings.range.currentOption
+      let disabled = settings.filter == .LMd && ($0.range == .lastDay || $0.range == .lastWeek)
+      $0.contentView.alpha = disabled ? 0.3 : 1.0
+      $0.radioButton.isEnabled = !disabled
+    }
     filterCells.forEach{ $0.radioButton.isSelected = $0.filter == settings.filter }
     sortingCells.forEach{ $0.radioButton.isSelected = $0.sorting == settings.sorting }
     ///Title no more used!!
@@ -778,6 +783,12 @@ class TData {
         settings.sorting = rbCell!.sorting!
       default:
         break
+    }
+    
+    if settings.filter == .LMd &&
+        (settings.range.currentOption == .lastDay || settings.range.currentOption == .lastWeek)
+    {
+      settings.range.currentOption = .all
     }
     reloadTable?()
   }
