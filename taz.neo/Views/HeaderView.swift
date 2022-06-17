@@ -59,7 +59,7 @@ open class HeaderView: UIView,  Touchable {
           subTitleLabel.textAlignment = .right
           titleFontSizeDefault = Const.Size.DefaultFontSize
           titleTopIndentL = Const.Size.DefaultPadding
-          titleBottomIndentL = -8
+          titleBottomIndentL = -0.5
         case .section:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = false
@@ -128,6 +128,16 @@ open class HeaderView: UIView,  Touchable {
   var titleBottomIndentL: CGFloat = -18//-18 or if subtitle set: -16*1.17-12 = -31
   let titleBottomIndentS = -4.0
   let titleTopIndentS = 2.0
+  var bottomBorderAlwaysVisible: Bool {
+    get {
+      switch titletype {
+        case .section, .section0, .search:
+          return true
+        default:
+          return false
+      }
+    }
+  }
     
   public var tapRecognizer = TapRecognizer()
     
@@ -188,7 +198,6 @@ open class HeaderView: UIView,  Touchable {
     pin(subTitleLabel.left, to: self.left, dist:sidePadding)
     pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
     borderView = self.addBorderView(.opaqueSeparator, 0.5, edge: .bottom)
-    borderView?.alpha = 0.0
   }
   
   open override func layoutSubviews() {
@@ -292,7 +301,7 @@ extension HeaderView {
       self?.titleBottomConstraint?.constant = titleBottomIndentConst
       self?.subTitleLabel.alpha = fastAlpha
       self?.line.alpha = fastAlpha
-      self?.borderView?.alpha = ratio
+      self?.borderView?.alpha = (self?.bottomBorderAlwaysVisible ?? false) ? 1.0 : ratio
     }
     animated
     ?  UIView.animate(seconds: 0.3) {  handler(); self.superview?.layoutIfNeeded() }
