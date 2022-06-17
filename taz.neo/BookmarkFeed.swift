@@ -12,6 +12,10 @@ import NorthLib
 
 /// A Feed of bookmarked Articles
 public class BookmarkFeed: Feed, DoesLog {
+  
+  @Default("bookmarksListTeaserEnabled")
+  var bookmarksListTeaserEnabled: Bool
+
   public var name: String
   public var feeder: Feeder
   public var cycle: PublicationCycle { .unknown }
@@ -104,7 +108,9 @@ public class BookmarkFeed: Feed, DoesLog {
   /// Get the inner HTML of an article
   public func getInnerHtml(art: StoredArticle) -> String {
     let title = art.title ?? art.html.name
-    let teaser = art.teaser ?? ""
+    let teaser = bookmarksListTeaserEnabled
+    ? "<p>\((art.teaser ?? "").xmlEscaped())</p>"
+    : ""
     let sdate = art.issueDate.gDateString(tz: self.feeder.timeZone)
     let iso = art.issueDate.isoDate(tz: self.feeder.timeZone)
     let utime = art.issueDate.timeIntervalSince1970
@@ -112,7 +118,7 @@ public class BookmarkFeed: Feed, DoesLog {
       <a href="\(art.path)">
         \(getImage(art: art))
         <h2>\(title.xmlEscaped())</h2>
-        <p>\(teaser.xmlEscaped())</p>
+        \(teaser)
         \(getAuthors(art: art))
       </a>
       <div class = "foot">

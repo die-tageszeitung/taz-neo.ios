@@ -37,6 +37,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("isTextNotification")
   var isTextNotification: Bool
   
+  @Default("bookmarksListTeaserEnabled")
+  var bookmarksListTeaserEnabled: Bool
+  
   var initialTextNotificationSetting: Bool?
   
   var data:TableData = TableData(sectionContent: [])
@@ -145,6 +148,16 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                     self?.isTextNotification = newValue
                     if newValue == true { self?.checkNotifications() }
                   })
+  
+  lazy var bookmarksTeaserCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Leseliste Anrisstext",
+                  detailText: "Zeige Anrisstext in Leseliste",
+                  initialValue: bookmarksListTeaserEnabled,
+                  onChange: {[weak self] newValue in
+                    self?.bookmarksListTeaserEnabled = newValue
+                    Notification.send("BookmarkChanged")
+                  })
+  
   lazy var memoryUsageCell: XSettingsCell
   = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
   lazy var deleteDatabaseCell: XSettingsCell
@@ -529,6 +542,7 @@ extension SettingsVC {
   var extendedSettingsCells:[XSettingsCell] {
     var cells =  [
       notificationsCell,
+      bookmarksTeaserCell,
       memoryUsageCell,
       deleteDatabaseCell,
       resetAppCell

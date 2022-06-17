@@ -88,6 +88,10 @@ class BookmarksNC: TazNavigationController {
         }
         self.updateTabbarImage()
       }
+      else {
+        self.bookmarkFeed.genAllHtml()
+        self.sectionVC.reload()
+      }
     }
   }
   

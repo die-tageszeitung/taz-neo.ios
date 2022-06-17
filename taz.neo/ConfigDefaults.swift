@@ -56,8 +56,10 @@ public let ConfigDefaults = Defaults.Values([
   "autoloadOnlyInWLAN" : "false",
   "showBarsOnContentChange" : "false",
   "autoloadPdf" : "false",
-//  "autoloadNewIssues" : "true",
-  "persistedIssuesCount": "20"
+  // "autoloadNewIssues" : "true",
+  "persistedIssuesCount": "20",
+  // show teaser text in bookmarks list
+  "bookmarksListTeaserEnabled" : "true"
 ])
 
 
