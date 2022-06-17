@@ -164,6 +164,20 @@ class SearchController: UIViewController {
     
     feederContext.updateResources()
     self.currentState = .initial
+    
+    NotificationCenter.default.addObserver(
+        self,
+        selector: #selector(keyboardWillShow),
+        name: UIResponder.keyboardWillShowNotification,
+        object: nil
+    )
+    NotificationCenter.default.addObserver(
+        self,
+        selector: #selector(keyboardWillHide),
+        name: UIResponder.keyboardWillHideNotification,
+        object: nil
+    )
+    
   }
   
   required init(feederContext: FeederContext) {
@@ -305,6 +319,22 @@ extension SearchController {
       return false
     }
     return handleCancelButton()
+  }
+}
+
+// MARK: - Handle Keyboard hides SearchSettingsTable
+extension SearchController{
+
+  @objc func keyboardWillShow(_ notification: Notification) {
+      if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
+          let keyboardRectangle = keyboardFrame.cgRectValue
+          let keyboardHeight = keyboardRectangle.height
+        searchSettingsView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: keyboardHeight, right: 0)
+      }
+  }
+  
+  @objc func keyboardWillHide(_ notification: Notification) {
+    searchSettingsView.contentInset = .zero
   }
 }
 
