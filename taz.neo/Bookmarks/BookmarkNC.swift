@@ -1,5 +1,5 @@
 //
-//  BookmarksNC.swift
+//  BookmarkNC.swift
 //  taz.neo
 //
 //  Created by Ringo Müller on 12.05.22.
@@ -8,10 +8,6 @@
 
 import UIKit
 import NorthLib
-
-class BookmarksSection: SectionVC{
-  override func setupToolbar() {}
-}
 
 fileprivate class PlaceholderVC: UIViewController{
   override func viewDidLoad() {
@@ -27,7 +23,7 @@ fileprivate class PlaceholderVC: UIViewController{
   }
 }
 
-class BookmarksNC: UINavigationController {
+class BookmarkNC: UINavigationController {
   
   private var placeholderVC = PlaceholderVC()
   
@@ -36,8 +32,8 @@ class BookmarksNC: UINavigationController {
   public var issue: Issue { bookmarkFeed.issues![0] }
   var isShowingAlert = false
   
-  public lazy var sectionVC: BookmarksSection = {
-    let svc = BookmarksSection(feederContext: feederContext)
+  public lazy var sectionVC: BookmarkSectionVC = {
+    let svc = BookmarkSectionVC(feederContext: feederContext)
     svc.delegate = self
     svc.toolBar.hide()
     svc.isStaticHeader = true
@@ -101,6 +97,6 @@ class BookmarksNC: UINavigationController {
   }
 }
 
-extension BookmarksNC: IssueInfo {
+extension BookmarkNC: IssueInfo {
   public func resetIssueList() {}
 }
