@@ -175,15 +175,16 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if UIApplication.shared.applicationState != .active { return }
       self?.linkPressed(from: from, to: to)
     }
-    Notification.receive("BookmarkChanged") {[weak self] msg in
+    Notification.receive("BookmarkChanged") { [weak self] msg in
       if let art = msg.sender as? StoredArticle {
         let js = """
           if (typeof tazApi.onBookmarkChange === "function") {
-            tazApi.onBookmarkChange("\(art.html.name)", \(art.hasBookmark))
+            tazApi.onBookmarkChange("\(art.html.name)", \(art.hasBookmark));
           }
         """
-        self?.currentWebView?.jsexec(js)
-        self?.debug("Called JS: \(js)")
+        Task { 
+          try? await self?.currentWebView?.jsexec(js) 
+        }
       }
     }
   }
