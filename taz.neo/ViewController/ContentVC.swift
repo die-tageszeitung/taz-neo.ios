@@ -182,8 +182,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
   }
   
-  /// Return dictionary for dynamic CSS data
-  public static func dynamicCSS() -> [String:String] {
+  /// Return dictionary for dynamic HTML style data
+  public static func dynamicStyles() -> [String:String] {
     var css: [String:String] = [:]
     let dfl = Defaults.singleton
     css["colorTheme"] = dfl["colorMode"] == "dark" ? "dark" : "light"
@@ -193,8 +193,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     return css
   }
   
-  public func setDynamicCSS(webView: WebView) async throws -> Bool {
-    let css = Self.dynamicCSS()
+  public func setDynamicStyles(webView: WebView) async throws -> Bool {
+    let css = Self.dynamicStyles()
     let js = """
       (() => {
         if (typeof tazApi.hasDynamicCSS === "function" && tazApi.hasDynamicCSS()) {
@@ -303,10 +303,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
-    self.bridge?.addfunc("setDynamicCSS") { [weak self] jscall in
+    self.bridge?.addfunc("setDynamicStyles") { [weak self] jscall in
       guard let self = self, let wv = jscall.webView
       else { return NSNull() }
-      Task { try? await self.setDynamicCSS(webView: wv) }
+      Task { try? await self.setDynamicStyles(webView: wv) }
       return NSNull()
     }
   }
@@ -332,8 +332,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     tazApi.toast = function(msg, duration, callback) {
       tazApi.call("toast", callback, msg, duration);
     };
-    tazApi.setDynamicCSS = function() {
-      tazApi.call("setDynamicCSS", undefined);
+    tazApi.setDynamicStyles = function() {
+      tazApi.call("setDynamicStyles", undefined);
     };
     
     log2bridge(tazApi);\n
