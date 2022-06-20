@@ -197,7 +197,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let css = Self.dynamicStyles()
     let js = """
       (() => {
-        if (typeof tazApi.hasDynamicCSS === "function" && tazApi.hasDynamicCSS()) {
+        if (typeof tazApi.hasDynamicStyles === "function" && tazApi.hasDynamicStyles()) {
           tazApi.setColorTheme("\(css["colorTheme"]!)");
           tazApi.setTextAlign("\(css["textAlign"]!)");
           tazApi.setFontSize("\(css["fontSize"]!)");

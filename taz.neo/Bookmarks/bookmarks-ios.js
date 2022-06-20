@@ -201,7 +201,7 @@ tazApi.setTextAlign = (alignment) => {
 }
 
 /* Indicates that we can handle CSS change requests */
-tazApi.hasDynamicCSS = () => { return true; }
+tazApi.hasDynamicStyles = () => { return true; }
 
 /* Initialize CSS and setup buttons when DOM is ready */
 document.addEventListener("DOMContentLoaded", (e) => {
