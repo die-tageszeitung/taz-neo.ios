@@ -205,6 +205,6 @@ tazApi.hasDynamicStyles = () => { return true; }
 
 /* Initialize CSS and setup buttons when DOM is ready */
 document.addEventListener("DOMContentLoaded", (e) => {
-  tazApi.setDynamicCSS();
+  tazApi.setDynamicStyles();
   setupButtons();
 });
