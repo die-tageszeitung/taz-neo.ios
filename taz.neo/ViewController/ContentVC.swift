@@ -177,6 +177,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         }
       }
     """
+    URLCache.shared.removeAllCachedResponses()
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
       callback?()
     }

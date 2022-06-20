@@ -31,4 +31,10 @@ open class BookmarkSectionVC: SectionVC {
     }
   }
   
+  /// Remove cache before reloading
+  override open func reload() {
+    URLCache.shared.removeAllCachedResponses()
+    super.reload()
+  }
+  
 }
