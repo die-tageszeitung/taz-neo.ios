@@ -49,7 +49,7 @@ html {
 }
 
 #content {
-  padding: 61px 15px;
+  padding: 61px 15px 5px 15px;
 }
 
 .light {
@@ -62,10 +62,22 @@ html {
   color            : #e3e3e3;
 }
 
+article.light {
+  border-bottom: 1px solid black;
+}
+
+article.dark {
+  border-bottom: 1px solid #e3e3e3;
+}
+
+article:last-child {
+  border-bottom: none;
+}
+
 /* No visible links */
 a:link, a:visited, a:hover, a:active, a:focus {
   text-decoration: none;
-  color: black;
+  /*color: black;*/
 }
 
 article {
@@ -74,22 +86,17 @@ article {
   overflow: hidden;
   transition: height 0.3s ease-out;
   height: auto;
-  border-bottom: 1px solid black;
-}
-
-article:last-child {
-  border-bottom: none;
 }
 
 article h2 {
-  padding-top: 15px;
-  padding-bottom: 5px;
+  padding-top: 0.88rem;
+  padding-bottom: 0.3rem;
   font-size: 1.03rem;
   font-weight: bold;
 }
 
 article address {
-  padding-top: 5px;
+  padding-top: 0.3rem;
   font-style: normal;
 }
 
@@ -99,7 +106,7 @@ article time {
 
 .foot {
   clear: both;
-  padding-top: 5px;
+  padding-top: 0.3rem;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -108,9 +115,9 @@ article time {
 
 .photo {
   float: right;
-  padding: 20px 0px 10px 10px;
-  width: 17.55vw;
-  height: 17.55vw;
+  padding: 1.18rem 0rem 0.6rem 0.6rem;
+  width: 65px;
+  height: 65px;
   object-fit: cover;
 }
 

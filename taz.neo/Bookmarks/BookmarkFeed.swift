@@ -15,7 +15,7 @@ public class BookmarkFeed: Feed, DoesLog {
   
   @Default("bookmarksListTeaserEnabled")
   var bookmarksListTeaserEnabled: Bool
-
+  
   public var name: String
   public var feeder: Feeder
   public var cycle: PublicationCycle { .unknown }
@@ -23,7 +23,6 @@ public class BookmarkFeed: Feed, DoesLog {
   public var issueCnt: Int { 1 }
   public var lastIssue: Date
   public var firstIssue: Date
-  public var firstSearchableIssue: Date?
   public var issues: [Issue]?
   public var dir: Dir { Dir("\(feeder.baseDir.path)/bookmarks") }
   /// total number of bookmarks
@@ -40,7 +39,7 @@ public class BookmarkFeed: Feed, DoesLog {
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     // Copy resources to bookmark folder
-    let resources = ["bookmarks-ios.css", "bookmarks-ios.js", 
+    let resources = ["bookmarks-ios.css", "bookmarks-ios.js",
                      "Trash.svg", "Share.svg"]
     for f in resources {
       if let path = Bundle.main.path(forResource: f, ofType: nil) {
@@ -224,7 +223,7 @@ public class BookmarkIssue: Issue {
   init(feed: Feed) {
     self.feed = feed
     self.date = Date()
-    self.moTime = self.date 
+    self.moTime = self.date
   }
 }
 

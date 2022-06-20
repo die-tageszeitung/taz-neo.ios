@@ -184,6 +184,37 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
   }
   
+  /// Return dictionary for dynamic HTML style data
+  public static func dynamicStyles() -> [String:String] {
+    var css: [String:String] = [:]
+    let dfl = Defaults.singleton
+    css["colorTheme"] = dfl["colorMode"] == "dark" ? "dark" : "light"
+    css["textAlign"] = dfl["textAlign"]
+    css["fontSize"] = dfl["articleTextSize"]
+    css["columnSize"] = dfl["articleColumnPercentageWidth"]
+    return css
+  }
+  
+  public func setDynamicStyles(webView: WebView) async throws -> Bool {
+    let css = Self.dynamicStyles()
+    let js = """
+      (() => {
+        if (typeof tazApi.hasDynamicStyles === "function" && tazApi.hasDynamicStyles()) {
+          tazApi.setColorTheme("\(css["colorTheme"]!)");
+          tazApi.setTextAlign("\(css["textAlign"]!)");
+          tazApi.setFontSize("\(css["fontSize"]!)");
+          tazApi.setColumnSize("\(css["columnSize"]!)");
+          return true;
+        }
+        return false;
+      })()
+    """
+    if let retval = try? await webView.jsexec(js) {
+      return retval as? Int != 0
+    }
+    else { return false }
+  }
+  
   /// pageReady is called when the WebView is ready rendering its contents
   private func pageReady(percentSeen: Int, position: Int) {
     debug("Page Ready: index: \(self.index!), percentSeen: \(percentSeen), position: \(position)")
@@ -274,32 +305,42 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
+    self.bridge?.addfunc("setDynamicStyles") { [weak self] jscall in
+      guard let self = self, let wv = jscall.webView
+      else { return NSNull() }
+      Task { try? await self.setDynamicStyles(webView: wv) }
+      return NSNull()
+    }
   }
   
   /// Write tazApi.js to resource directory
   public func writeTazApiJs() {
     setupBridge()
     let apiJs = """
-      var tazApi = new NativeBridge("tazApi");
-      tazApi.openUrl = function (url) { window.location.href = url };
-      tazApi.openImage = function (url) {
-        tazApi.call("openImage", undefined, url)
-      };
-      tazApi.pageReady = function (percentSeen, position, npages) {
-        tazApi.call("pageReady", undefined, percentSeen, position, npages);
-      };
-      tazApi.setBookmark = function (artName, hasBookmark) {
-        tazApi.call("setBookmark", undefined, artName, hasBookmark);
-      };
-      tazApi.shareArticle = function (artName) {
-        tazApi.call("shareArticle", undefined, artName);
-      };
-      tazApi.toast = function(msg, duration, callback) {
-        tazApi.call("toast", callback, msg, duration);
-      };
-      log2bridge(tazApi);
-   """
-    tazApiJs.string = JSBridgeObject.js + apiJs
+    var tazApi = new NativeBridge("tazApi");
+    tazApi.openUrl = function (url) { window.location.href = url };
+    tazApi.openImage = function (url) {
+      tazApi.call("openImage", undefined, url)
+    };
+    tazApi.pageReady = function (percentSeen, position, npages) {
+      tazApi.call("pageReady", undefined, percentSeen, position, npages);
+    };
+    tazApi.setBookmark = function (artName, hasBookmark) {
+      tazApi.call("setBookmark", undefined, artName, hasBookmark);
+    };
+    tazApi.shareArticle = function (artName) {
+      tazApi.call("shareArticle", undefined, artName);
+    };
+    tazApi.toast = function(msg, duration, callback) {
+      tazApi.call("toast", callback, msg, duration);
+    };
+    tazApi.setDynamicStyles = function() {
+      tazApi.call("setDynamicStyles", undefined);
+    };
+    
+    log2bridge(tazApi);\n
+    """
+    tazApiJs.string = JSBridgeObject.js + "\n\n" + apiJs + "\n"
   }
   
   /// Define the closure to call when the back button is tapped
@@ -575,7 +616,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
     slider?.button.shadow()
-    writeTazApiCss{
+    writeTazApiCss {
       super.reloadAllWebViews()
     }
   }

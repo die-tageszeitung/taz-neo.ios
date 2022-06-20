@@ -1,5 +1,5 @@
 //
-//  BookmarksNC.swift
+//  BookmarkNC.swift
 //  taz.neo
 //
 //  Created by Ringo Müller on 12.05.22.
@@ -8,10 +8,6 @@
 
 import UIKit
 import NorthLib
-
-class BookmarksSection: SectionVC{
-  override func setupToolbar() {}
-}
 
 fileprivate class PlaceholderVC: UIViewController{
   override func viewDidLoad() {
@@ -27,7 +23,7 @@ fileprivate class PlaceholderVC: UIViewController{
   }
 }
 
-class BookmarksNC: TazNavigationController {
+class BookmarkNC: UINavigationController {
   
   /// Are we in facsimile mode
   @Default("isFacsimile")
@@ -40,12 +36,12 @@ class BookmarksNC: TazNavigationController {
   public var issue: Issue { bookmarkFeed.issues![0] }
   var isShowingAlert = false
   
-  public lazy var sectionVC: BookmarksSection = {
+  public lazy var sectionVC: BookmarkSectionVC = {
     return createSectionVC()
   }()
   
-  func createSectionVC(openArticleAtIndex: Int? = nil) -> BookmarksSection{
-    let svc = BookmarksSection(feederContext: feederContext,
+  func createSectionVC(openArticleAtIndex: Int? = nil) -> BookmarkSectionVC{
+    let svc = BookmarkSectionVC(feederContext: feederContext,
                                atSection: nil,
                                atArticle: openArticleAtIndex)
     svc.delegate = self
@@ -58,7 +54,6 @@ class BookmarksNC: TazNavigationController {
   }
   
   func setup() {
-    
     Notification.receive("updatedDemoIssue") { [weak self] notif in
       guard let self = self else { return }
       self.bookmarkFeed
@@ -124,11 +119,12 @@ class BookmarksNC: TazNavigationController {
   }
 }
 
-extension BookmarksNC: IssueInfo {
+extension BookmarkNC: IssueInfo {
   public func resetIssueList() {}
 }
 
-extension BookmarksNC: ReloadAfterAuthChanged {
+
+extension BookmarkNC: ReloadAfterAuthChanged {
   public func reloadOpened(){
     let lastIndex = (self.viewControllers.last as? ArticleVC)?.index ?? 0
     var issuesToDownload:[StoredIssue] = []
@@ -165,6 +161,6 @@ extension BookmarksNC: ReloadAfterAuthChanged {
       issuesToDownload.remove(at: issueIdx)
       downloadNextIfNeeded()
     }
-    downloadNextIfNeeded()    
+    downloadNextIfNeeded()
   }
 }

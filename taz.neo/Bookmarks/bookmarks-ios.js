@@ -2,22 +2,81 @@
  *  JS functions for taz bookmarks in iOS
  */
 
-/* Defines class name of element with id */
-function setClass(clname, id = "content") {
-  let elem = document.getElementById(id);
-  elem.classname = mode;
+/* Set color theme class of element to either "dark" or "light" */
+function setColorTheme(theme, selector = "body") {
+  let elems = document.querySelectorAll(selector);
+  if (elems) {
+    for (let elem of elems) {
+      if (theme == "dark") {
+        elem.classList.remove("light");
+        elem.classList.add("dark");
+      }
+      else {
+        elem.classList.remove("dark");
+        elem.classList.add("light");
+      }
+    }
+  }
+  if (selector == "body") {
+    setColorTheme(theme, "a:link, a:visited, a:hover, a:active, a:focus");
+    setColorTheme(theme, "article");
+  }
 }
 
-/* Define padding of CSS selector */
-function setPadding(padding, selector = "body") {
-  let sel = document.querySelector(selector);
-  sel.style.padding = wpadding;
+/* Adjust photo sizes */
+function adjustPhotoSize(factor) {
+  const newSize = 65.0 * factor;
+  let elems = document.querySelectorAll(".photo");
+  if (elems) {
+    for (let elem of elems) {
+      elem.style.width = newSize + "px";
+      elem.style.height = newSize + "px";
+    }
+  }
+  console.log("new photo size: " + newSize + "px");
 }
 
-/* Define font size of CSS selector */
-function setFontSize(val, selector = "html") {
+/* Adjust horizontal padding of "#content" */
+function adjustPadding(percent) {
+  let horPadding = 15;
+  const windowWidth = parseFloat(window.innerWidth);
+  const windowHeight = parseFloat(window.innerHeight);
+  const isLandscape = Math.abs(window.orientation) == 90;
+  let width, maxwidth;
+  if (isLandscape) { width = Math.max(windowWidth, windowHeight); }
+  else { width = Math.min(windowWidth, windowHeight); }
+  let columnWidth;
+  if (width > 600) {
+    const basewidth = isLandscape ? 600.0 * 1.32 : 600.0;
+    columnWidth = Math.min(basewidth * (percent/100.0), width - 30.0);
+  }
+  else { columnWidth = width - 30.0; }
+  console.log("width:" + width + "px, ",
+              "columnWidth:" + columnWidth + "px");
+  horPadding = (width - columnWidth) / 2.0;
+  let sel = document.querySelector("#content");
+  sel.style.paddingRight = horPadding + "px"
+  sel.style.paddingLeft = horPadding + "px"
+  adjustPhotoSize(columnWidth/390.0);
+}
+
+/* 
+ * Define Size of Article column in percent of viewport width if and only if
+ * the media size is larger than 600px
+ */
+function setColumnSize(percent) {
+  let pc = parseFloat(percent);
+  adjustPadding(pc);
+  window.addEventListener("orientationchange", () => {
+    adjustPadding(pc);
+  })
+}
+
+/* Define font size of CSS selector in percent of default font size */
+function setFontSize(percent, selector = "html") {
   let sel = document.querySelector(selector);
-  sel.style.fontSize = val;
+  let pxsize = 17.0 * (parseFloat(percent)/100.0);
+  sel.style.fontSize = pxsize + "px";
 }
 
 /* Define text alignment of CSS selector */
@@ -119,49 +178,33 @@ function setupButtons() {
   }
 }
 
-/* Read settings from localStorage */
-function readSettings() {
-  let val = localStorage.getItem("tazApi.colorTheme");
-  if (val) { setClass(val); }
-  if (val = localStorage.getItem("tazApi.padding"))
-    { setPadding(val); }
-  if (val = localStorage.getItem("tazApi.fontSize"))
-    { setFontSize(val); }
-  if (val = localStorage.getItem("tazApi.textAlign"))
-    { setTextAlign(val); }
-}
-
 /* Functions used from the native side */ 
 
 /* Set the color theme to use, either "light" or "dark" */
 tazApi.setColorTheme = (theme) => {
-  localStorage.setItem("tazApi.colorTheme", theme);
-  setClass(theme);
+  setColorTheme(theme);
 }
 
-/* Set padding of body, eg. "10px 15px 20px 30px" */
-tazApi.setPadding = (padding) => {
-  localStorage.setItem("tazApi.padding", padding);
-  setPadding(padding);
+/* Set column size of #content if window width > 600px */
+tazApi.setColumnSize = (percent) => {
+  setColumnSize(percent);
 }
 
-/* Set font-size of html element (define root em) */
+/* Set font-size of html element (define root em) in percent of 17px */
 tazApi.setFontSize = (fsize) => {
-  localStorage.setItem("tazApi.fontSize", fsize);
   setFontSize(fsize);
 }
 
 /* Set text alignment of p elements */
 tazApi.setTextAlign = (alignment) => {
-  localStorage.setItem("tazApi.textAlign", alignment);
   setTextAlign(alignment);
 }
 
 /* Indicates that we can handle CSS change requests */
-tazApi.hasDynamicCSS = () => { return true; }
+tazApi.hasDynamicStyles = () => { return true; }
 
 /* Initialize CSS and setup buttons when DOM is ready */
 document.addEventListener("DOMContentLoaded", (e) => {
-  readSettings();
+  tazApi.setDynamicStyles();
   setupButtons();
 });

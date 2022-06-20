@@ -44,7 +44,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     let homeNc = TazNavigationController(rootViewController: home)
     homeNc.isNavigationBarHidden = true
     
-    let bookmarksNc = BookmarksNC(feederContext: feederContext)
+    let bookmarksNc = BookmarkNC(feederContext: feederContext)
     bookmarksNc.title = "Leseliste"
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     bookmarksNc.isNavigationBarHidden = true

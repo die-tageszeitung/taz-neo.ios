@@ -987,9 +987,11 @@ public extension Feed {
   var type: FeedType { .publication }
   var lastIssueRead: Date? { nil }
   var lastUpdated: Date? { nil }
+  var firstSearchableIssue: Date? { nil }
   func toString() -> String {
     return "\(name): \(cycle), \(issueCnt) issues total"
   }
+  
 } // Feed
 
 /** 
