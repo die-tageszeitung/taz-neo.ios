@@ -12,6 +12,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
   var feederContext: FeederContext
   
+  private var popViewControllerClosure: ((UIViewController)->(Bool))
+  = { vc in return !(vc is IntroVC) }
+  
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     Notification.send(Const.NotificationNames.viewSizeTransition,
@@ -41,10 +44,12 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     home.updateToolbarHomeIcon()
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
-    let homeNc = TazNavigationController(rootViewController: home)
+    let homeNc = NavigationController(rootViewController: home)
+    homeNc.onPopViewController(closure: popViewControllerClosure)
     homeNc.isNavigationBarHidden = true
     
     let bookmarksNc = BookmarkNC(feederContext: feederContext)
+    bookmarksNc.onPopViewController(closure: popViewControllerClosure)
     bookmarksNc.title = "Leseliste"
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     bookmarksNc.isNavigationBarHidden = true
@@ -55,7 +60,8 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     search.tabBarItem.image = UIImage(named: "search-magnifier")
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
-    let searchNc = TazNavigationController(rootViewController: search)
+    let searchNc = NavigationController(rootViewController: search)
+    searchNc.onPopViewController(closure: popViewControllerClosure)
     searchNc.isNavigationBarHidden = true
     
     let settings = SettingsVC(feederContext: feederContext)
@@ -85,14 +91,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     fatalError("init(coder:) has not been implemented")
   }
 } // MainTabVC
-
-
-class TazNavigationController : NavigationController {
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    onPopViewController{ vc in return !(vc is IntroVC)}
-  }
-}
 
 extension MainTabVC {
   /// Check whether it's necessary to reload the current Issue

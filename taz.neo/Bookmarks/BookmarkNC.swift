@@ -23,7 +23,7 @@ fileprivate class PlaceholderVC: UIViewController{
   }
 }
 
-class BookmarkNC: UINavigationController {
+class BookmarkNC: NavigationController {
   
   /// Are we in facsimile mode
   @Default("isFacsimile")
