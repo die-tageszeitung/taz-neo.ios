@@ -182,7 +182,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
             tazApi.onBookmarkChange("\(art.html.name)", \(art.hasBookmark));
           }
         """
-        Task { 
+        Task { [weak self] in
           try? await self?.currentWebView?.jsexec(js) 
         }
       }
@@ -224,7 +224,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       header.subTitle = issue.date.gLowerDate(tz: feeder.timeZone)
       header.titletype = index == 0 ? .section0 : .section
     }
-    header.showAnimated(false)
+    header.showAnimated()
   }
   
   // Reload Section and Article
@@ -253,7 +253,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       initialArticle = nil
       SectionVC.showAnimations = false
     }
-    if SectionVC.showAnimations {
+    if SectionVC.showAnimations && issue.sections?.count ?? 0 > 1 {
       SectionVC.showAnimations = false
       delay(seconds: 1.5) {
         self.slider?.open() { _ in

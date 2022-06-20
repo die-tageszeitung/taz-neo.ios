@@ -245,6 +245,7 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate{
   let bottomLabel = UILabel()
   private var borderHeightConstraint: NSLayoutConstraint?
   
+  var onResignFirstResponder: (()->())?
   
   // MARK: > pwInput
   required init(prefilledText: String? = nil,
@@ -385,7 +386,7 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate{
 
 // MARK: - TazTextField : Toolbar
 extension TazTextField{
-  
+    
   fileprivate func createToolbar() -> UIToolbar{
     /// setting toolbar width fixes the h Autolayout issue, unfortunatly not the v one no matter which height
     let toolbar =  UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0))
@@ -460,6 +461,7 @@ extension TazTextField{
     if let nextField = self.superview?.viewWithTag(self.tag + 1) as? UITextField {
       nextField.becomeFirstResponder()
     } else {
+      onResignFirstResponder?()
       self.resignFirstResponder()
     }
   }

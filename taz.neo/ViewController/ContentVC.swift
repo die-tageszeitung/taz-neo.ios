@@ -74,7 +74,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   /// CSS Margins for Articles and Sections
   public class var topMargin: CGFloat { return 40 }
   public static let bottomMargin: CGFloat = 50
-
+  
+  @Default("showBarsOnContentChange")
+  var showBarsOnContentChange: Bool
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
@@ -435,12 +437,21 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 //    self.playButton.buttonView.name = "audio"
 //  }
   
+  @objc func backButtonLongPress(_ sender: UIGestureRecognizer) {
+    self.navigationController?.popToRootViewController(animated: true)
+  }
+  
+  lazy var backButtonLongPressGestureRecognizer:UILongPressGestureRecognizer
+  = UILongPressGestureRecognizer(target: self,
+                                 action: #selector(backButtonLongPress))
+  
   func setupToolbar() {
     backButton.onPress { [weak self] _ in 
       guard let self = self else { return }
       self.backClosure?(self)
     }
-    bookmarkButton.onPress { [weak self] _ in 
+    backButton.addGestureRecognizer(backButtonLongPressGestureRecognizer)
+    bookmarkButton.onPress { [weak self] _ in
       guard let self = self else { return }
       self.bookmarkClosure?(self)
     }
@@ -482,9 +493,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     // shareButton.buttonView.hinset = -0.07
     // textSettingsButton.buttonView.hinset = -0.15
     // textSettingsButton.buttonView.layoutMargins change would be ignored in layout subviews
-    
-    toolBar.addArticleButton(bookmarkButton, direction: .center)
-    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
+    if self.isMember(of: SearchResultArticleVc.self) == false {
+      #warning("No Bookmark Button For Serach Result Articles")
+      toolBar.addArticleButton(bookmarkButton, direction: .center)
+      toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
+    }
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticlePlayButton(Toolbar.Spacer(), direction: .center)
     toolBar.addArticlePlayButton(playButton, direction: .center)
@@ -571,7 +584,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if (ratio < 0) { self?.toolBar.hide()}
       else { self?.toolBar.hide(false)}
     }
-    
+    onDisplay {[weak self]_, _  in
+      //Note: use this due onPageChange only fires on link @see WebCollectionView
+      if self?.showBarsOnContentChange == true {
+        self?.toolBar.hide(false)
+        self?.header.showAnimated()
+      }
+    }
     displayUrls()
     registerForStyleUpdates()
   }

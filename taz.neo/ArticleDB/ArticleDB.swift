@@ -865,12 +865,17 @@ public final class StoredArticle: Article, StoredObject {
     get { pr.hasBookmark }
     set {
       let old = pr.hasBookmark
-      pr.hasBookmark = newValue
+      setBookmark(newValue)
       if old != newValue {
         Notification.send("BookmarkChanged", content: sections, sender: self)
       }
     }
   }
+  
+  fileprivate func setBookmark(_ isBookmark:Bool){
+    pr.hasBookmark = isBookmark
+  }
+  
   public var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
   public var authors: [Author]? { StoredAuthor.authorsOfArticle(article: self) }
   public var pageNames: [String]? { nil }
@@ -1019,7 +1024,7 @@ public final class StoredArticle: Article, StoredObject {
     request.predicate = NSPredicate(format: "hasBookmark = true")
     var arts: [StoredArticle] = get(request: request)
     arts.sort {
-      let issue1 = $0.issues[0]
+      let issue1 = $0.issues[0]//Seen Non reproduceable Crash here
       let issue2 = $1.issues[0]
       if issue1.date == issue2.date {
         let section1 = $0.sections[0]
@@ -1474,7 +1479,7 @@ public final class StoredIssue: Issue, StoredObject {
     set { pr.baseUrl = newValue }
   }
   public var status: IssueStatus {
-    get { return IssueStatus(pr.status!)! }
+    get { return IssueStatus(pr.status ?? "unknown") ?? IssueStatus.unknown }
     set { pr.status = newValue.representation }
   }
   public var minResourceVersion: Int {
@@ -1544,6 +1549,7 @@ public final class StoredIssue: Issue, StoredObject {
 
   /// Overwrite the persistent values
   public func update(from object: Issue) {
+    let sendUpdatedDemoIssueNotification = self.status == .reduced && object.status != .reduced
     self.feed = object.feed
     self.date = object.date
     self.moTime = object.moTime
@@ -1562,6 +1568,13 @@ public final class StoredIssue: Issue, StoredObject {
     self.status = object.status
     let oldSections = sections
     let oldPages = pages
+    
+    var bookmarkedDemoArticleNames:[String] = []
+    
+    if sendUpdatedDemoIssueNotification {
+      bookmarkedDemoArticleNames = self.allArticles.filter{ $0.hasBookmark }.map{$0.html.name.replacingOccurrences(of: ".public.", with: ".")}
+    }
+    
     if let secs = object.sections {
       var order: Int32 = 0
       for section in secs {
@@ -1573,6 +1586,9 @@ public final class StoredIssue: Issue, StoredObject {
         if let arts = ssection.articles {
           for art in arts {
             if let art = art as? StoredArticle {
+              if bookmarkedDemoArticleNames.contains(art.html.name) {
+                art.setBookmark(true)
+              }
               art.pr.addToIssues(self.pr)
             }
           }  
@@ -1602,6 +1618,7 @@ public final class StoredIssue: Issue, StoredObject {
         for s in osecs { s.delete() }
       }
     }
+
     // Remove pages no longer needed
     if let opgs = oldPages as? [StoredPage] {
       if let pages = object.pages {
@@ -1621,6 +1638,7 @@ public final class StoredIssue: Issue, StoredObject {
       let mom = StoredMoment(persistent: pr.moment!)
       mom.firstPage = p1
     }
+    if sendUpdatedDemoIssueNotification { Notification.send("updatedDemoIssue") }
   }
     
   /// Return stored record with given name
@@ -1859,6 +1877,10 @@ public final class StoredFeed: Feed, StoredObject {
     get { return pr.firstIssue! }
     set { pr.firstIssue = newValue }
   }
+  public var firstSearchableIssue: Date? {
+    get { return pr.firstSearchableIssue }
+    set { pr.firstSearchableIssue = newValue }
+  }
   public var lastIssue: Date {
     get { return pr.lastIssue! }
     set { pr.lastIssue = newValue }
@@ -1896,6 +1918,7 @@ public final class StoredFeed: Feed, StoredObject {
     self.issueCnt = object.issueCnt
     self.momentRatio = object.momentRatio
     self.firstIssue = object.firstIssue
+    self.firstSearchableIssue = object.firstSearchableIssue
     self.lastIssue = object.lastIssue
     self.lastIssueRead = object.lastIssueRead
     self.lastUpdated = object.lastUpdated

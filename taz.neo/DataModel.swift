@@ -435,7 +435,7 @@ public protocol Article: Content, ToString {
 
 public extension Article {
   
-  func toString() -> String { "Article \((self as Content).toString())" }
+  func toString() -> String { "\(hasBookmark ? "Bookmarked " : "")Article \((self as Content).toString())" }
   
   /// Returns true if this Article can be played
   var canPlayAudio: Bool { ArticlePlayer.singleton.canPlay(art: self) }
@@ -974,6 +974,8 @@ public protocol Feed: ToString {
   var lastUpdated: Date? { get }
   /// Date of first issue available (oldest)  
   var firstIssue: Date { get }
+  /// Date of first searchable issue (oldest)
+  var firstSearchableIssue: Date? { get }
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
   /// Directory where all feed specific data is stored
@@ -985,9 +987,11 @@ public extension Feed {
   var type: FeedType { .publication }
   var lastIssueRead: Date? { nil }
   var lastUpdated: Date? { nil }
+  var firstSearchableIssue: Date? { nil }
   func toString() -> String {
     return "\(name): \(cycle), \(issueCnt) issues total"
   }
+  
 } // Feed
 
 /** 
@@ -1082,9 +1086,7 @@ extension Feeder {
   
   /// Returns directory where all issue specific data is stored
   public func issueDir(issue: Issue) -> Dir {
-    if issue is SearchResultIssue {
-      return Dir.searchResults
-    }
+    if issue is SearchResultIssue { return Dir.searchResults }
     return issueDir(feed: issue.feed.name, issue: date2a(issue.date))
   }
   

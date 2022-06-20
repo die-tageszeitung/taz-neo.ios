@@ -25,7 +25,7 @@ open class HeaderView: UIView,  Touchable {
     get{ return subTitleLabel.text }
     set{
       subTitleLabel.text = newValue
-      updateUI()
+      setRatio(0, animated: false)
     }
   }
   var pageNumber: String? {
@@ -33,8 +33,10 @@ open class HeaderView: UIView,  Touchable {
     set{ pageNumberLabel.text = newValue }
   }
   
-  var titletype: TitleType = .bigLeft {
+  var titletype: TitleType? {
     didSet {
+      guard let titletype = titletype else { return }
+      
       switch titletype {
         case .bigLeft:
           pageNumberLabel.isHidden = true
@@ -43,9 +45,9 @@ open class HeaderView: UIView,  Touchable {
           titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           titleLabel.textAlignment = .left
-          titleFontSizeDefault = Const.Size.LargeTitleFontSize
+          titleFontSizeDefault = Const.Size.TitleFontSize
           titleTopIndentL = Const.Size.DefaultPadding - 11.0
-          titleBottomIndentL = -18
+          titleBottomIndentL = -0.5
         case .article:
           pageNumberLabel.isHidden = false
           subTitleLabel.isHidden = true
@@ -57,7 +59,7 @@ open class HeaderView: UIView,  Touchable {
           subTitleLabel.textAlignment = .right
           titleFontSizeDefault = Const.Size.DefaultFontSize
           titleTopIndentL = Const.Size.DefaultPadding
-          titleBottomIndentL = -8
+          titleBottomIndentL = -0.5
         case .section:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = false
@@ -94,7 +96,8 @@ open class HeaderView: UIView,  Touchable {
           titleBottomIndentL = -31
       }
       titleLabel.titleFont(size: titleFontSizeDefault)
-      updateUI()
+      lastRatio = -1
+      setRatio(0, animated: false)
     }
   }
   
@@ -118,13 +121,23 @@ open class HeaderView: UIView,  Touchable {
   
   var leftConstraint: NSLayoutConstraint?
   
-  var lastAnimationRatio: CGFloat = 0.0
+  var lastRatio: CGFloat?
   
   let sidePadding = 11.0
   var titleTopIndentL: CGFloat = Const.Size.DefaultPadding
   var titleBottomIndentL: CGFloat = -18//-18 or if subtitle set: -16*1.17-12 = -31
   let titleBottomIndentS = -4.0
   let titleTopIndentS = 2.0
+  var bottomBorderAlwaysVisible: Bool {
+    get {
+      switch titletype {
+        case .section, .section0, .search:
+          return true
+        default:
+          return false
+      }
+    }
+  }
     
   public var tapRecognizer = TapRecognizer()
     
@@ -136,16 +149,15 @@ open class HeaderView: UIView,  Touchable {
     line.fillColor = Const.SetColor.ios(.label).color
     line.strokeColor = Const.SetColor.ios(.label).color
   }
-  
-  func updateUI(){
-    showAnimated(false)
-  }
 
   private var onTitleClosure: ((String?)->())?
   
   /// Define closure to call if a title has been touched
   public func onTitle(closure: @escaping (String?)->()) {
-    onTitleClosure = closure
+    self.onTitleClosure = closure
+    self.titleLabel.onTap { [weak self] _ in
+      self?.onTitleClosure?(self?.title ?? "")
+    }
   }
   
   private func setup() {
@@ -186,7 +198,6 @@ open class HeaderView: UIView,  Touchable {
     pin(subTitleLabel.left, to: self.left, dist:sidePadding)
     pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
     borderView = self.addBorderView(.opaqueSeparator, 0.5, edge: .bottom)
-    updateUI()
   }
   
   open override func layoutSubviews() {
@@ -226,6 +237,8 @@ extension HeaderView {
   }
   
   private func didScrolling(offsetDelta:CGFloat, end: Bool){
+    if titletype == .bigLeft { return }
+    
     let isMaxi = self.titleTopConstraint?.constant ?? 0.0 >= titleTopIndentL
     let isMini = self.titleTopConstraint?.constant ?? 0.0 <= titleTopIndentS
     
@@ -234,33 +247,41 @@ extension HeaderView {
     
     switch (end, offsetDelta) {
       case (false, _)://on drag
-        handleScrolling(offsetDelta: offsetDelta, animate: false)
+        handleScrolling(offsetDelta: offsetDelta, animated: false)
       case (_, ..<(-maxOffset/2)):
-        handleScrolling(offsetDelta: -maxOffset, animate: true)
+        handleScrolling(offsetDelta: -maxOffset, animated: true)
       case (_, ..<0):
-        handleScrolling(offsetDelta: maxOffset, animate: true)
+        handleScrolling(offsetDelta: maxOffset, animated: true)
       case (_, 0.0):
         break
       case (_, ..<(maxOffset/2)):
-        handleScrolling(offsetDelta: -maxOffset, animate: true)
+        handleScrolling(offsetDelta: -maxOffset, animated: true)
       default:
-        handleScrolling(offsetDelta: maxOffset, animate: true)
+        handleScrolling(offsetDelta: maxOffset, animated: true)
     }
     if end {
       self.beginScrollOffset = nil
     }
   }
   
-  func showAnimated(_ animated:Bool = true){
-    handleScrolling(offsetDelta: maxOffset, animate: animated)
+  func showAnimated(){
+    setRatio(0, animated: true)
   }
   
   ///negative when scroll down ...hide tf, show miniHeader
   ///positive when scroll up ...show tf, show big header
-  private func handleScrolling(offsetDelta: CGFloat, animate: Bool){
+  private func handleScrolling(offsetDelta: CGFloat, animated: Bool){
     var ratio = max(0.0, min(1.0, abs(offsetDelta/maxOffset))) //0...1
     if offsetDelta > 0 { ratio = 1 - ratio }
-    lastAnimationRatio = ratio
+    setRatio(ratio, animated: animated)
+  }
+  
+  /// set ratio between (Initial/Big Header) 0...1 (Mini Header)
+  private func setRatio(_ ratio: CGFloat, animated: Bool){
+    print("setRatio: \(ratio) lastRation: \(lastRatio) animated: \(animated)")
+    if ratio == lastRatio { return }
+    lastRatio = ratio
+    
     let alpha = 1 - ratio // maxi 1...0 mini
     let fastAlpha = max(0, 1 - 2*ratio) // maxi 1...0 mini
     let titleTopIndentConst
@@ -280,8 +301,9 @@ extension HeaderView {
       self?.titleBottomConstraint?.constant = titleBottomIndentConst
       self?.subTitleLabel.alpha = fastAlpha
       self?.line.alpha = fastAlpha
+      self?.borderView?.alpha = (self?.bottomBorderAlwaysVisible ?? false) ? 1.0 : ratio
     }
-    animate
+    animated
     ?  UIView.animate(seconds: 0.3) {  handler(); self.superview?.layoutIfNeeded() }
     : handler()
   }

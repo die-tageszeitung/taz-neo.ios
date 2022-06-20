@@ -19,7 +19,6 @@ public struct SearchSettings: Equatable {
   
 //  public var searchLocation:GqlSearchLocation = .everywhere
   public var sorting:GqlSearchSorting = .relevance
-  public var minimumDate:Date = Date(timeIntervalSinceReferenceDate: 0)
   public var from:Date?
   public var to:Date?
   
@@ -223,15 +222,36 @@ public class SearchItem: DoesLog {
       else {
         self.log("No Data Added!")
       }
+      saveArticles(hits: lastResponse?.search.searchHitList)
       noMoreSearchResults = (lastResponse?.search.searchHitList?.count ?? 0) == 0
       sessionId = lastResponse?.search.sessionId
+    }
+  }
+  
+  
+  /// Save Search Hit to its Article HTML File, to use highlightes Search Terms
+  /// - Parameter hits: current array of search hits
+  func saveArticles(hits:[GqlSearchHit]?){
+    guard let hits = hits, hits.count > 0 else { return }
+    onThread {
+      for hit in hits {
+        if let html = hit.articleHtml {
+          File(Dir.searchResultsPath.appending("/\(hit.article.articleHtml.name)")).string = html
+        }
+      }
     }
   }
   
   var allArticles: [SearchArticle]? {
     get {
       guard let hits = self.searchHitList else { return nil }
-      return hits.map{$0.article}
+      return hits.map{
+        let art = $0.article
+        ///Set Search Hit Base URL to Article because this is missing currently,
+        /// used to download server contents from related issue
+        art.originalIssueBaseURL = $0.baseUrl
+        return art
+      }
     }
   }
   

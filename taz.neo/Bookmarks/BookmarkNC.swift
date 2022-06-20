@@ -23,7 +23,11 @@ fileprivate class PlaceholderVC: UIViewController{
   }
 }
 
-class BookmarkNC: UINavigationController {
+class BookmarkNC: NavigationController {
+  
+  /// Are we in facsimile mode
+  @Default("isFacsimile")
+  public var isFacsimile: Bool
   
   private var placeholderVC = PlaceholderVC()
   
@@ -33,7 +37,13 @@ class BookmarkNC: UINavigationController {
   var isShowingAlert = false
   
   public lazy var sectionVC: BookmarkSectionVC = {
-    let svc = BookmarkSectionVC(feederContext: feederContext)
+    return createSectionVC()
+  }()
+  
+  func createSectionVC(openArticleAtIndex: Int? = nil) -> BookmarkSectionVC{
+    let svc = BookmarkSectionVC(feederContext: feederContext,
+                               atSection: nil,
+                               atArticle: openArticleAtIndex)
     svc.delegate = self
     svc.toolBar.hide()
     svc.isStaticHeader = true
@@ -41,15 +51,23 @@ class BookmarkNC: UINavigationController {
     svc.header.title = "leseliste"
     svc.hidesBottomBarWhenPushed = false
     return svc
-  }()
+  }
   
   func setup() {
+    Notification.receive("updatedDemoIssue") { [weak self] notif in
+      guard let self = self else { return }
+      self.bookmarkFeed
+      = BookmarkFeed.allBookmarks(feeder: self.feeder)
+      self.sectionVC.delegate = nil
+      self.sectionVC.delegate = self///trigger SectionVC.setup()
+    }
+    
     Notification.receive("BookmarkChanged") { [weak self] msg in
       // regenerate all bookmark sections
       guard let emptyRoot = self?.placeholderVC,
             let self = self else { return }
       if let art = msg.sender as? StoredArticle {
-        self.bookmarkFeed.loadAllBookmmarks()
+        self.bookmarkFeed.loadAllBookmarks()
         self.bookmarkFeed.genAllHtml()
         if art.hasBookmark {
           self.sectionVC.insertArticle(art)
@@ -64,6 +82,10 @@ class BookmarkNC: UINavigationController {
           self.popToRootViewController(animated: true)
         }
         self.updateTabbarImage()
+      }
+      else {
+        self.bookmarkFeed.genAllHtml()
+        self.sectionVC.reload()
       }
     }
   }
@@ -99,4 +121,46 @@ class BookmarkNC: UINavigationController {
 
 extension BookmarkNC: IssueInfo {
   public func resetIssueList() {}
+}
+
+
+extension BookmarkNC: ReloadAfterAuthChanged {
+  public func reloadOpened(){
+    let lastIndex = (self.viewControllers.last as? ArticleVC)?.index ?? 0
+    var issuesToDownload:[StoredIssue] = []
+    for art in bookmarkFeed.issues?.first?.allArticles ?? [] {
+      if let sissue = art.primaryIssue as? StoredIssue,
+         sissue.status == .reduced,
+         issuesToDownload.contains(sissue) == false {
+        issuesToDownload.append(sissue)
+      }
+    }
+        
+    func downloadNextIfNeeded(){
+      if let nextIssue = issuesToDownload.first {
+        self.feederContext.getCompleteIssue(issue: nextIssue,
+                                             isPages: isFacsimile,
+                                             isAutomatically: false)
+      } else {
+        self.bookmarkFeed
+        = BookmarkFeed.allBookmarks(feeder: self.feeder)
+        self.sectionVC.relaese()
+        self.sectionVC
+        = createSectionVC(openArticleAtIndex: lastIndex)
+        self.viewControllers[0] = self.sectionVC
+        self.popToRootViewController(animated: true)
+        Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+      }
+    }
+    
+    Notification.receive("issue"){ notif in
+      ///ensure the issue download comes from here!
+      guard let issue = notif.object as? Issue else { return }
+      guard let issueIdx = issuesToDownload.firstIndex(where: {$0.date == issue.date})
+      else { return /* Issue Download from somewhere else */ }
+      issuesToDownload.remove(at: issueIdx)
+      downloadNextIfNeeded()
+    }
+    downloadNextIfNeeded()
+  }
 }

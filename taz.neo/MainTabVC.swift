@@ -12,6 +12,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
   var feederContext: FeederContext
   
+  private var popViewControllerClosure: ((UIViewController)->(Bool))
+  = { vc in return !(vc is IntroVC) }
+  
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     Notification.send(Const.NotificationNames.viewSizeTransition,
@@ -42,9 +45,11 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let homeNc = NavigationController(rootViewController: home)
+    homeNc.onPopViewController(closure: popViewControllerClosure)
     homeNc.isNavigationBarHidden = true
     
     let bookmarksNc = BookmarkNC(feederContext: feederContext)
+    bookmarksNc.onPopViewController(closure: popViewControllerClosure)
     bookmarksNc.title = "Leseliste"
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     bookmarksNc.isNavigationBarHidden = true
@@ -56,6 +61,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let searchNc = NavigationController(rootViewController: search)
+    searchNc.onPopViewController(closure: popViewControllerClosure)
     searchNc.isNavigationBarHidden = true
     
     let settings = SettingsVC(feederContext: feederContext)
@@ -86,7 +92,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   }
 } // MainTabVC
 
-
 extension MainTabVC {
   /// Check whether it's necessary to reload the current Issue
   public func authenticationSucceededCheckReload() {
@@ -96,13 +101,15 @@ extension MainTabVC {
     var reloadTarget: ReloadAfterAuthChanged?
     
     if let home = selectedNc?.viewControllers.first as? IssueVC,
-       selectedNc?.topViewController != home/*,
-       feederContext.needsUpdate(issue: home.selectedIssue)*/ {
+       selectedNc?.topViewController != home {
       reloadTarget = home
     }
     else if let search = selectedNc?.viewControllers.first as? SearchController,
             selectedNc?.topViewController != search {
       reloadTarget = search
+    }
+    else if let target = selectedNc as? ReloadAfterAuthChanged {
+      reloadTarget = target
     }
     
     ///Settings need to be reloaded no matter if selected!
@@ -153,6 +160,11 @@ extension MainTabVC : UITabBarControllerDelegate {
        let searchController = firstVc as? SearchController //IssueVC also works
     {
       _ = searchController.restoreInitialState()
+    }
+    else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
+       let content = firstVc as? ContentVC
+    {
+      content.currentWebView?.scrollView.setContentOffset(CGPoint(x:0, y:0), animated: true)
     }
     else if let tvc = viewController as? UITableViewController
     {

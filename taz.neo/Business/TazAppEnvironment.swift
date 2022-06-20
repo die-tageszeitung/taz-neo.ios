@@ -10,7 +10,7 @@ import NorthLib
 import MessageUI
 import UIKit
 
-class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeViewControllerDelegate */{
+class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   
   private var threeFingerAlertOpen: Bool = false
   
@@ -25,13 +25,17 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
   }()  {
     didSet {
       guard let window = UIApplication.shared.delegate?.window else { return }
-      window?.hideAnimated() {
-        window?.rootViewController = self.rootViewController
-        window?.showAnimated()
+      window?.hideAnimated() {[weak self] in
+        guard
+          let self = self,
+          let window = UIApplication.shared.delegate?.window as? UIWindow
+        else { return }
+        window.rootViewController = self.rootViewController
+        window.showAnimated()
+        self.setupTopMenus(targetWindow: window)
       }
     }
-}
-  
+  }
   
   public static let sharedInstance = TazAppEnvironment()
   
@@ -69,9 +73,8 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
   
   func setup(){
     let feeder = Defaults.currentFeeder
+    log("Connect to feeder: \(feeder.name) feed: \(feeder.feed)")
     feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
-    setupLogging()
-    setupTopMenus()
     setupLogging()
     setupFeeder()
   }
@@ -230,7 +233,8 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
     feederContext.setupRemoteNotifications()
   }
   
-  func setupTopMenus() {
+  func setupTopMenus(targetWindow:UIWindow) {
+    self.threeFingerAlertOpen = false
     let reportLPress2 = UILongPressGestureRecognizer(target: self,
         action: #selector(twoFingerErrorReportActivated))
     let reportLPress3 = UILongPressGestureRecognizer(target: self,
@@ -238,25 +242,9 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
     reportLPress2.numberOfTouchesRequired = 2
     reportLPress3.numberOfTouchesRequired = 3
     
-    
-    if let targetView = UIWindow.keyWindow{
-      /// currently never executed due keyWindow was nil when logged in
-      targetView.isUserInteractionEnabled = true
-      targetView.addGestureRecognizer(reportLPress2)
-      targetView.ifAlphaApp?.addGestureRecognizer(reportLPress3)
-    }
-    else if let delegate = UIApplication.shared.delegate as? AppDelegate,
-            let targetWindow = delegate.window {
-      /// ...improved version of previous comparrison ...should be standalone!
-      targetWindow.isUserInteractionEnabled = true
-      targetWindow.addGestureRecognizer(reportLPress2)
-      targetWindow.ifAlphaApp?.addGestureRecognizer(reportLPress3)
-    }
-    else {
-      self.rootViewController.view.isUserInteractionEnabled = true
-      self.rootViewController.view.addGestureRecognizer(reportLPress2)
-      self.rootViewController.view.ifAlphaApp?.addGestureRecognizer(reportLPress3)
-    }
+    targetWindow.isUserInteractionEnabled = true
+    targetWindow.addGestureRecognizer(reportLPress2)
+    targetWindow.ifAlphaApp?.addGestureRecognizer(reportLPress3)
   }
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
@@ -282,17 +270,17 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
   }
   
   @objc func twoFingerErrorReportActivated(_ sender: UIGestureRecognizer) {
+    if isErrorReporting == true { return }//Prevent multiple Calls
     showFeedbackErrorReport()
   }
   
   func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil) {
-    if isErrorReporting == true { return }//Prevent multiple Calls
-    isErrorReporting = true
+    isErrorReporting = true //No Check here to ensure error reporting is available at least from settings
     
     FeedbackComposer.showWith(logData: fileLogger.mem?.data,
                               feederContext: self.feederContext,
                               feedbackType: feedbackType) {[weak self] didSend in
-      print("Feedback send? \(didSend)")
+      self?.log("Feedback send? \(didSend)")
       self?.isErrorReporting = false
     }
   }
@@ -300,9 +288,13 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
   func reportFatalError(err: Log.Message) {
     guard !isErrorReporting else { return }
     isErrorReporting = true
-//    if self.presentedViewController != nil {
-//      dismiss(animated: false)
-//    }
+    
+    
+    
+    if let topVc = UIViewController.top(),
+       topVc.presentedViewController != nil {
+      topVc.dismiss(animated: false)
+    }
     Alert.confirm(title: "Interner Fehler",
                   message: "Es liegt ein schwerwiegender interner Fehler vor, möchten Sie uns " +
                            "darüber mit einer Nachricht informieren?\n" +
@@ -313,13 +305,14 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
       else { self.isErrorReporting = false }
     }
   }
+  
   func produceErrorReport(recipient: String, subject: String = "Feedback",
                           completion: (()->())? = nil) {
     if MFMailComposeViewController.canSendMail() {
       let mail =  MFMailComposeViewController()
       let screenshot = UIWindow.screenshot?.jpeg
       let logData = fileLogger.mem?.data
-//      mail.mailComposeDelegate = self
+      mail.mailComposeDelegate = self
       mail.setToRecipients([recipient])
       
       var tazIdText = ""
@@ -340,7 +333,7 @@ class TazAppEnvironment: NSObject, DoesLog /*: NSObject, DoesLog, MFMailComposeV
         mail.addAttachmentData(logData, mimeType: "text/plain",
                                fileName: "taz.neo-logfile.txt")
       }
-//      self.topmostModalVc.present(mail, animated: true, completion: completion)
+      UIViewController.top()?.topmostModalVc.present(mail, animated: true, completion: completion)
     }
   }
   

@@ -12,6 +12,10 @@ import NorthLib
 
 /// A Feed of bookmarked Articles
 public class BookmarkFeed: Feed, DoesLog {
+  
+  @Default("bookmarksListTeaserEnabled")
+  var bookmarksListTeaserEnabled: Bool
+  
   public var name: String
   public var feeder: Feeder
   public var cycle: PublicationCycle { .unknown }
@@ -35,7 +39,7 @@ public class BookmarkFeed: Feed, DoesLog {
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     // Copy resources to bookmark folder
-    let resources = ["bookmarks-ios.css", "bookmarks-ios.js", 
+    let resources = ["bookmarks-ios.css", "bookmarks-ios.js",
                      "Trash.svg", "Share.svg"]
     for f in resources {
       if let path = Bundle.main.path(forResource: f, ofType: nil) {
@@ -103,7 +107,9 @@ public class BookmarkFeed: Feed, DoesLog {
   /// Get the inner HTML of an article
   public func getInnerHtml(art: StoredArticle) -> String {
     let title = art.title ?? art.html.name
-    let teaser = art.teaser ?? ""
+    let teaser = bookmarksListTeaserEnabled
+    ? "<p>\((art.teaser ?? "").xmlEscaped())</p>"
+    : ""
     let sdate = art.issueDate.gDateString(tz: self.feeder.timeZone)
     let iso = art.issueDate.isoDate(tz: self.feeder.timeZone)
     let utime = art.issueDate.timeIntervalSince1970
@@ -111,7 +117,7 @@ public class BookmarkFeed: Feed, DoesLog {
       <a href="\(art.path)">
         \(getImage(art: art))
         <h2>\(title.xmlEscaped())</h2>
-        <p>\(teaser.xmlEscaped())</p>
+        \(teaser)
         \(getAuthors(art: art))
       </a>
       <div class = "foot">
@@ -166,7 +172,7 @@ public class BookmarkFeed: Feed, DoesLog {
   }
   
   /// Load all bookmarks into single Section
-  public func loadAllBookmmarks() {
+  public func loadAllBookmarks() {
     if let issues = issues, issues.count > 0,
        let sections = issues[0].sections, sections.count > 0 {
       let section = sections[0] as! BookmarkSection
@@ -184,7 +190,7 @@ public class BookmarkFeed: Feed, DoesLog {
         html: BookmarkFileEntry(feed: bm, name: "allBookmarks.html"))
     bm.issues = [bmIssue]
     bmIssue.sections = [bmSection]
-    bm.loadAllBookmmarks()
+    bm.loadAllBookmarks()
     bm.genHtml(section: bmSection)
     return bm
   }
@@ -217,7 +223,7 @@ public class BookmarkIssue: Issue {
   init(feed: Feed) {
     self.feed = feed
     self.date = Date()
-    self.moTime = self.date 
+    self.moTime = self.date
   }
 }
 

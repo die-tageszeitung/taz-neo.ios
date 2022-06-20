@@ -137,20 +137,20 @@ extension SearchResultsTableView: UITableViewDataSource {
 // MARK: - SearchResultsCell
 class SearchResultsCell: UITableViewCell {
   
-  var content : GqlSearchHit? {
-    didSet{
-      if let content = content {
-        titleLabel.text = content.article.title
-        authorLabel.text = content.article.authors()
-        contentLabel.attributedText = content.snippet?.attributedFromSnippetString
-        dateLabel.text = content.date.short + " " + (content.sectionTitle ?? "")
-      }
-      else {
-        titleLabel.text = ""
-        authorLabel.text = ""
-        contentLabel.text = ""
-        dateLabel.text = ""
-      }
+  var content : GqlSearchHit? { didSet{ updateContent() }   }
+  
+  private func updateContent(){
+    if let content = content {
+      titleLabel.text = content.article.title
+      authorLabel.text = content.article.authors()
+      contentLabel.attributedText = content.snippet?.attributedFromSnippetString
+      dateLabel.text = content.date.short + " " + (content.sectionTitle ?? "")
+    }
+    else {
+      titleLabel.text = ""
+      authorLabel.text = ""
+      contentLabel.text = ""
+      dateLabel.text = ""
     }
   }
   
@@ -234,8 +234,9 @@ extension SearchResultsCell {
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
     titleLabel.textColor = Const.SetColor.ios(.label).color
     authorLabel.textColor = Const.SetColor.ios(.label).color
-    contentLabel.textColor = Const.SetColor.ios(.label).color
     dateLabel.textColor = Const.SetColor.ios(.label).color
+    contentLabel.textColor = Const.SetColor.ios(.label).color
+    updateContent()
   }
 }
 
@@ -256,7 +257,8 @@ extension String {
       for s in components {
         let highlightedComponents = s.components(separatedBy: closeTag)
         if let txt = highlightedComponents.valueAt(0) {
-          ms.append(NSAttributedString(string: txt, attributes: [.backgroundColor: Const.Colors.fountTextHighlight, .foregroundColor: UIColor.black]))
+          ms.append(NSAttributedString(string: txt, attributes: [.backgroundColor: Const.Colors.foundTextHighlight,
+            .foregroundColor: UIColor.black]))
         }
         if let txt = highlightedComponents.valueAt(1){
           ms.append(NSAttributedString(string: txt))

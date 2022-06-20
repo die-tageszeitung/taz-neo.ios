@@ -61,20 +61,11 @@ open class ContentToolbar: UIView {
   }
   
   public func hide(_ isHide: Bool = true) {
-    guard let superview = self.superview else { return }
-    if isHide {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.isActive = false
-        self?.heightConstraint = self?.pinHeight(0)
-        superview.layoutIfNeeded()
-      }
-    }
-    else {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.isActive = false
-        self?.heightConstraint = self?.pinHeight(self!.totalHeight)
-        superview.layoutIfNeeded()
-      }
+    let newHeight = isHide == true ? 0 : self.totalHeight
+    if self.heightConstraint?.constant == newHeight { return }
+    UIView.animate(withDuration: 0.5) { [weak self] in
+      self?.heightConstraint?.constant = newHeight
+      self?.superview?.layoutIfNeeded()
     }
   }
   

@@ -493,13 +493,14 @@ class GqlFeed: Feed, GQLObject {
   /// Date of first issue available (oldest)
   var sFirstIssue: String  
   var firstIssue: Date { return UsTime(iso: sFirstIssue, tz: GqlFeeder.tz).date }
+  var sFirstSearchableIssue: String
+  var firstSearchableIssue: Date? { return UsTime(iso: sFirstSearchableIssue, tz: GqlFeeder.tz).date }
   /// The Issues requested of this Feed
   var gqlIssues: [GqlIssue]?
   var issues: [Issue]? { return gqlIssues }
   
   enum CodingKeys: String, CodingKey {
-    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue,
-         gqlIssues
+    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues
   }
 
   required init(from decoder: Decoder) throws {
@@ -510,6 +511,7 @@ class GqlFeed: Feed, GQLObject {
     issueCnt = try container.decode(Int.self, forKey: .issueCnt)
     sLastIssue = try container.decode(String.self, forKey: .sLastIssue)
     sFirstIssue = try container.decode(String.self, forKey: .sFirstIssue)
+    sFirstSearchableIssue = try container.decode(String.self, forKey: .sFirstSearchableIssue)
     gqlIssues = try container.decodeIfPresent([GqlIssue].self, forKey: .gqlIssues)
   }
   
@@ -517,6 +519,7 @@ class GqlFeed: Feed, GQLObject {
       name cycle momentRatio issueCnt
       sLastIssue: issueMaxDate
       sFirstIssue: issueMinDate
+      sFirstSearchableIssue: issueMinSearchDate
     """
 } // class GqlFeed
 

@@ -22,6 +22,10 @@ class LoginController: FormsController {
     ui.loginButton.touch(self, action: #selector(handleLogin))
     ui.registerButton.touch(self, action: #selector(handleRegister))
     ui.passForgottButton.touch(self, action: #selector(handlePwForgot))
+    ui.passInput.onResignFirstResponder = { [weak self] in
+      guard let self = self else {return}
+      self.handleLogin(self.ui.loginButton)
+    }
   }
   
   // MARK: Button Actions

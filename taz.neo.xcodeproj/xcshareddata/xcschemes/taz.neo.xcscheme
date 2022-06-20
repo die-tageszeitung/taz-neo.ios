@@ -15,7 +15,7 @@
                   <BuildableReference
                      BuildableIdentifier = "primary"
                      BlueprintIdentifier = "AEBAF563219ACD1900566205"
-                     BuildableName = "taz.beta.app"
+                     BuildableName = "taz.alpha.app"
                      BlueprintName = "taz.neo"
                      ReferencedContainer = "container:taz.neo.xcodeproj">
                   </BuildableReference>
@@ -33,7 +33,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AEBAF563219ACD1900566205"
-               BuildableName = "taz.beta.app"
+               BuildableName = "taz.alpha.app"
                BlueprintName = "taz.neo"
                ReferencedContainer = "container:taz.neo.xcodeproj">
             </BuildableReference>
@@ -63,7 +63,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEBAF563219ACD1900566205"
-            BuildableName = "taz.beta.app"
+            BuildableName = "taz.alpha.app"
             BlueprintName = "taz.neo"
             ReferencedContainer = "container:taz.neo.xcodeproj">
          </BuildableReference>
@@ -80,7 +80,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEBAF563219ACD1900566205"
-            BuildableName = "taz.beta.app"
+            BuildableName = "taz.alpha.app"
             BlueprintName = "taz.neo"
             ReferencedContainer = "container:taz.neo.xcodeproj">
          </BuildableReference>

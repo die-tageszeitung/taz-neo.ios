@@ -75,11 +75,6 @@ open class ArticleVC: ContentVC {
       self.articles = arts
     }
     
-    if issue.isReduced { 
-      atEndOfContent() { [weak self] isAtEnd in
-        if isAtEnd { self?.feederContext.authenticate() }
-      } 
-    }
     super.setup(contents: articles, isLargeHeader: false)
     contentTable?.onSectionPress { [weak self] sectionIndex in
       guard let self = self, let adelegate = self.adelegate else { return }
@@ -132,6 +127,13 @@ open class ArticleVC: ContentVC {
         self.onBookmark { _ in
           art.hasBookmark.toggle()
           ArticleDB.save()
+        }
+        if art.primaryIssue?.isReduced ?? false {
+          #warning("not working reliable on simulator!!")
+          print("add atEndofcontent to: \(art.title)")
+          self.atEndOfContent() { [weak self] isAtEnd in
+            if isAtEnd { self?.feederContext.authenticate() }
+          }
         }
         self.displayBookmark(art: art)
         self.debug("on display: \(idx), article \(art.html.name)")
@@ -212,8 +214,8 @@ open class ArticleVC: ContentVC {
           actions.addAction( UIAlertAction.init( title: "Teilen", style: .default,
             handler: { handler in
               //previously used PDFEXPORT Compiler Flags
-              if App.isAvailable(.PDFEXPORT), #available(iOS 14, *) {
-                artvc?.exportPdf(article: art, from: button)
+              if let artvc = artvc, App.isAvailable(.PDFEXPORT), #available(iOS 14, *) {
+                artvc.exportPdf(article: art, from: button)
               } else {
                 let dialogue = ExportDialogue<Any>()
                 dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",

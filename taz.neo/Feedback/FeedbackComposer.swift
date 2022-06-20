@@ -83,8 +83,10 @@ open class FeedbackComposer : DoesLog{
                           feederContext: FeederContext?,
                           finishClosure: @escaping ((Bool) -> ())) {
     
-    guard var currentVc = UIViewController.top() else {
+    guard var currentVc = UIViewController.top()?.parent
+    ?? UIViewController.top() else {
       print("Error, no Controller to Present")
+      finishClosure(false)
       return;
     }
     

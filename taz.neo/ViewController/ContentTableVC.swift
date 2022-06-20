@@ -240,7 +240,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    if ContentTableVC.showAnimations {
+    if ContentTableVC.showAnimations && issue?.sections?.count ?? 0 > 1 {
       if ContentTableVC.nAnimations < 2 {
         animateContent()
         ContentTableVC.nAnimations += 1

@@ -105,7 +105,9 @@ class SearchController: UIViewController {
   }()
   
   lazy var searchSettingsView:SearchSettingsView = {
-    let v = SearchSettingsView(frame: .zero, style: .grouped)
+    let v = SearchSettingsView(frame: .zero,
+                               style: .grouped,
+                               minimumSearchDate: feederContext.defaultFeed.firstSearchableIssue ?? Date(timeIntervalSinceReferenceDate: 0))
     v.backgroundView = UIView()
     v.backgroundView?.onTapping {[weak self] _ in
       v.toggle(toVisible: false)
@@ -162,6 +164,20 @@ class SearchController: UIViewController {
     
     feederContext.updateResources()
     self.currentState = .initial
+    
+    NotificationCenter.default.addObserver(
+        self,
+        selector: #selector(keyboardWillShow),
+        name: UIResponder.keyboardWillShowNotification,
+        object: nil
+    )
+    NotificationCenter.default.addObserver(
+        self,
+        selector: #selector(keyboardWillHide),
+        name: UIResponder.keyboardWillHideNotification,
+        object: nil
+    )
+    
   }
   
   required init(feederContext: FeederContext) {
@@ -211,20 +227,12 @@ extension SearchController {
   }
   
   private func openSearchHit(_ searchHit: GqlSearchHit){
-    feederContext.dloader.downloadSearchResultFiles(url: searchHit.baseUrl, files: searchHit.article.files) {[weak self] err in
-      guard let self = self else { return }
-      if let err = err {
-        self.log("Download error, try to display Article: \(err)")
-      }
-      self.updateArticleVcIfNeeded()
-      if let path = searchHit.localPath {
-        self.articleVC.gotoUrl(path)//otherwise idx 0 will be loaded, header not set probably
-      }
-      self.articleVC.reload()
-      if self.articleVC.parentViewController == nil {
-//        setHeader(artIndex: idx)??
-        self.navigationController?.pushViewController(self.articleVC, animated: true)
-      }
+    if let idx = searchItem.allArticles?.firstIndex(where: {$0.html.name == searchHit.article.html.name}) {
+      self.articleVC.index = idx
+    }
+    
+    if self.articleVC.parentViewController == nil {
+      self.navigationController?.pushViewController(self.articleVC, animated: true)
     }
   }
 
@@ -311,6 +319,22 @@ extension SearchController {
       return false
     }
     return handleCancelButton()
+  }
+}
+
+// MARK: - Handle Keyboard hides SearchSettingsTable
+extension SearchController{
+
+  @objc func keyboardWillShow(_ notification: Notification) {
+      if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
+          let keyboardRectangle = keyboardFrame.cgRectValue
+          let keyboardHeight = keyboardRectangle.height
+        searchSettingsView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: keyboardHeight, right: 0)
+      }
+  }
+  
+  @objc func keyboardWillHide(_ notification: Notification) {
+    searchSettingsView.contentInset = .zero
   }
 }
 
