@@ -626,6 +626,20 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     return Defaults.darkMode ?  .lightContent : .default
   }
   
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    onMain(after: 1.0) {[weak self] in
+      let newCoverage = 338 + UIWindow.verticalInsets
+      if self?.settingsBottomSheet?.coverage == newCoverage { return }//no rotate
+      self?.settingsBottomSheet?.coverage =  newCoverage
+      if self?.settingsBottomSheet?.isOpen == false  { return }
+      self?.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
+        self?.settingsBottomSheet?.open()
+        self?.settingsBottomSheet?.slideDown(130)
+      })
+    }
+  }
+  
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
