@@ -1041,8 +1041,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/die-tageszeitung/NorthLib.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.0;
+				branch = release;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
