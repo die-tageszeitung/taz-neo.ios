@@ -717,13 +717,11 @@ extension SettingsVC {
     guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else { return }
     showLocalHtml(from: feeder.revocation, scrollEnabled: true)
   }
-  
   func resetPassword(){
-    self.modalPresentationStyle = .fullScreen
     let id = SimpleAuthenticator.getUserData().id
     guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else { return }
     let childVc = PwForgottController(id: id, auth: DefaultAuthenticator.init(feeder: feeder))
-    childVc.modalPresentationStyle = .fullScreen
+    childVc.modalPresentationStyle = .formSheet
     self.present(childVc, animated: true)
   }
   
