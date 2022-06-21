@@ -276,6 +276,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     let sec: String = (atSection == nil) ? "nil" : "\(atSection!)"
     let art: String = (atArticle == nil) ? "nil" : "\(atArticle!)"
     debug("new SectionVC: section=\(sec), article=\(art)")
+    toolBar.isHidden = true
+    hidesBottomBarWhenPushed = false
   }
   
   required public init?(coder: NSCoder) {

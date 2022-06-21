@@ -247,7 +247,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     if let svc = sectionVC {
       svc.delegate = self
-      self.navigationController?.pushViewController(svc, animated: false)
+      self.navigationController?.pushViewController(svc, animated: true)
     }
   }
   
