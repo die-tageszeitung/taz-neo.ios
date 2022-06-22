@@ -23,6 +23,15 @@ public protocol ArticleVCdelegate: IssueInfo {
 /// The Article view controller managing a collection of Article pages
 open class ArticleVC: ContentVC {
     
+  var hasValidAbo: Bool {feederContext.isAuthenticated && !Defaults.expiredAccount}
+  var needValidAboToShareText: String {
+    if feederContext.isAuthenticated == false {
+      return "Sie müssen angemeldet sein, um Texte zu teilen!"
+    }
+    //otherwise: Defaults.expiredAccount
+    return "Sie benötigen ein gültiges Abonnement, um Texte zu teilen!"
+  }
+  
   public var articles: [Article] = []
   public var article: Article? { 
     if let i = index { return articles[i] }
@@ -107,6 +116,7 @@ open class ArticleVC: ContentVC {
     onDisplay { [weak self] (idx, oview) in
       if let self = self {
         var art = self.articles[idx]
+        self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
         self.adelegate?.article = art
         self.setHeader(artIndex: idx)
         self.issue.lastArticle = idx
@@ -256,7 +266,15 @@ open class ArticleVC: ContentVC {
     onShare { [weak self] _ in
       guard let self = self else { return }
       self.debug("*** Action: Share Article")
-      ArticleVC.exportArticle(article: self.article, artvc: self, from: self.shareButton)
+      if (self.article?.onlineLink ?? "").isEmpty {
+        Alert.actionSheet(message: self.needValidAboToShareText,
+                          actions: UIAlertAction.init( title: "Anmelden",
+                                                       style: .default ){ [weak self] _ in
+          self?.feederContext.authenticate()
+        })
+      } else {
+        ArticleVC.exportArticle(article: self.article, artvc: self, from: self.shareButton)
+      }
     }
     
     if App.isAvailable(.SEARCH_CONTEXTMENU) {
