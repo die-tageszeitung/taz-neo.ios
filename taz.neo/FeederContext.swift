@@ -585,6 +585,7 @@ open class FeederContext: DoesLog {
     var text = ""
     switch err {
       case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        if Defaults.expiredAccountDate == nil { Defaults.expiredAccountDate =  err.expiredAccountDate ?? Date()}
       case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
         self.gqlFeeder.authToken = nil
         DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
