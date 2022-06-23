@@ -190,6 +190,7 @@ open class FeederContext: DoesLog {
     netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
     defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder)[0]
     isReady = true
+    cleanupOldIssues()
     notify("feederReady")            
   }
   
@@ -793,9 +794,7 @@ open class FeederContext: DoesLog {
     if let dlId = dlId {
       let nsec = UsTime.now.timeInterval - tstart.timeInterval
       debug("Sending stop of download to server")
-      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) { [weak self] _ in
-        self?.cleanupOldIssues()
-      }
+      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec){_ in}
     }
   }
   
