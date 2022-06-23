@@ -70,6 +70,29 @@ open class ArticleVC: ContentVC {
     else { self.bookmarkButton.buttonView.name = "star" }
   }
   
+  func toggleBookmark(art: StoredArticle?) {
+    guard let art = art else { return }
+    if art.hasBookmark {
+      Toast.show("""
+        <h3>\(art.title ?? "")</h3>
+        Lesezeichen wird entfernt. Widerrufen durch Antippen.
+      """, minDuration: 3.0) { wasTapped in
+        if !wasTapped {
+          art.hasBookmark = false
+          ArticleDB.save()
+        }
+      }
+    }
+    else {
+      Toast.show("""
+        <h3>\(art.title ?? "")</h3>
+        Wird in Leseliste aufgenommen.
+      """, minDuration: 0)
+      art.hasBookmark = true
+      ArticleDB.save()
+    }
+  }
+  
   func setup() {
     if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
@@ -106,7 +129,7 @@ open class ArticleVC: ContentVC {
     }
     onDisplay { [weak self] (idx, oview) in
       if let self = self {
-        var art = self.articles[idx]
+        let art = self.articles[idx]
         self.adelegate?.article = art
         self.setHeader(artIndex: idx)
         self.issue.lastArticle = idx
@@ -115,7 +138,7 @@ open class ArticleVC: ContentVC {
         if art.canPlayAudio {
           self.playButton.buttonView.name = "audio"
           self.onPlay { [weak self] _ in
-            guard let self = self else {return}
+            guard let self = self else { return }
             if let title = self.header.title ?? art.title {
               art.toggleAudio(issue: self.issue, sectionName: title )
             }
@@ -124,9 +147,9 @@ open class ArticleVC: ContentVC {
           }
         }
         else { self.onPlay(closure: nil) }
-        self.onBookmark { _ in
-          art.hasBookmark.toggle()
-          ArticleDB.save()
+        self.onBookmark { [weak self] _ in
+          guard let self = self else { return }
+          self.toggleBookmark(art: art as? StoredArticle)
         }
         if art.primaryIssue?.isReduced ?? false {
           #warning("not working reliable on simulator!!")
