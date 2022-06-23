@@ -33,7 +33,6 @@ function adjustPhotoSize(factor) {
       elem.style.height = newSize + "px";
     }
   }
-  console.log("new photo size: " + newSize + "px");
 }
 
 /* Adjust horizontal padding of "#content" */
@@ -51,12 +50,12 @@ function adjustPadding(percent) {
     columnWidth = Math.min(basewidth * (percent/100.0), width - 30.0);
   }
   else { columnWidth = width - 30.0; }
-  console.log("width:" + width + "px, ",
-              "columnWidth:" + columnWidth + "px");
   horPadding = (width - columnWidth) / 2.0;
   let sel = document.querySelector("#content");
-  sel.style.paddingRight = horPadding + "px"
-  sel.style.paddingLeft = horPadding + "px"
+  if (sel) {
+    sel.style.paddingRight = horPadding + "px";
+    sel.style.paddingLeft = horPadding + "px";
+  }
   adjustPhotoSize(columnWidth/390.0);
 }
 
@@ -75,14 +74,16 @@ function setColumnSize(percent) {
 /* Define font size of CSS selector in percent of default font size */
 function setFontSize(percent, selector = "html") {
   let sel = document.querySelector(selector);
-  let pxsize = 17.0 * (parseFloat(percent)/100.0);
-  sel.style.fontSize = pxsize + "px";
+  if (sel) {
+    let pxsize = 17.0 * (parseFloat(percent)/100.0);
+    sel.style.fontSize = pxsize + "px";
+  }
 }
 
 /* Define text alignment of CSS selector */
 function setTextAlign(val, selector = "p") {
   let sel = document.querySelector(selector);
-  sel.style.textAlign = val;
+  if (sel) { sel.style.textAlign = val; }
 }
 
 /* Shrink article to height 0 */
@@ -125,7 +126,6 @@ function reallyDeleteBookmark(event) {
   const title = art.querySelector("h2").textContent;
   tazApi.toast("<h3>" + title + "</h3>" + "Löschen rückgängig durch Antippen",
     3.0, (wasTapped) => {
-    console.log("wasTapped: " + wasTapped);
     if (wasTapped) {
       let rect = art.getBoundingClientRect();
       if (rect.height <= 2) { grow(art); }
