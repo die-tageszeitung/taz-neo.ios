@@ -125,6 +125,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func relaese(){
+    super.release()
     //Circular reference with: onImagePress, onSectionPress
     settingsBottomSheet = nil
     slider = nil
