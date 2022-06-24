@@ -65,10 +65,27 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
       authenticator.authenticate(with: self)
     }
   }()
-  lazy var logoutCell: XSettingsCell
-  = XSettingsCell(text: "Abmelden (\(SimpleAuthenticator.getUserData().id ?? "???"))",
-                  detailText: Defaults.expiredAccountText,
-                  tapHandler: {[weak self] in self?.requestLogout()} )
+  
+  lazy var logoutCell: XSettingsCell = {
+    Notification.receive("authenticationSucceeded") { [weak self] _ in
+      self?.updateLogoutCell()
+    }
+    Notification.receive(Const.NotificationNames.expiredAccountDateChanged) {  [weak self] _ in
+      self?.updateLogoutCell()
+    }
+    return logoutCellPrototype
+  }()
+  
+  func updateLogoutCell(){
+    self.logoutCell = self.logoutCellPrototype
+    self.refreshAndReload()
+  }
+  
+  var logoutCellPrototype: XSettingsCell {
+    return XSettingsCell(text: "Abmelden (\(SimpleAuthenticator.getUserData().id ?? "???"))",
+                         detailText: Defaults.expiredAccountText,
+                         tapHandler: {[weak self] in self?.requestLogout()} )}
+  
   lazy var resetPasswordCell: XSettingsCell
   = XSettingsCell(text: "Passwort zurücksetzen",
                   tapHandler: {[weak self] in self?.resetPassword()} )

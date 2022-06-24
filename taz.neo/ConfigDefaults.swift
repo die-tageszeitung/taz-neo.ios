@@ -88,9 +88,10 @@ extension Defaults {
       else {
         Defaults.singleton["expiredAccountDate"] = nil
       }
+      Notification.send(Const.NotificationNames.expiredAccountDateChanged)
     }
   }
-  
+
   static var expiredAccount : Bool { return expiredAccountDate != nil }
   static var expiredAccountText : String? {
     guard let d = expiredAccountDate else { return nil }
