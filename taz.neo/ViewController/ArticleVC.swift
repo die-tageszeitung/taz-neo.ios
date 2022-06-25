@@ -159,7 +159,7 @@ open class ArticleVC: ContentVC {
           }
         }
         self.displayBookmark(art: art)
-        self.debug("on display: \(idx), article \(art.html.name)")
+        self.debug("on display: \(idx), article \(art.html.name):\n\(art.title ?? "Unknown Title")")
       }
     }
     whenLinkPressed { [weak self] (from, to) in
