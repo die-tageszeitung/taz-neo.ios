@@ -16,11 +16,6 @@ class CarouselVC: UIViewController {
   
   override func viewDidLoad() {
     view.backgroundColor = .black
-    if navigationController == nil {
-      let consoleLogger = Log.Logger()
-      Log.append(logger: consoleLogger)
-      Log.minLogLevel = .Debug
-    }
     view.addSubview(issueCarousel)
     pin(issueCarousel, to: view)
     issueCarousel.carousel.scrollFromLeftToRight = true
