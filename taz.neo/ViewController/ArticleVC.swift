@@ -72,25 +72,11 @@ open class ArticleVC: ContentVC {
   
   func toggleBookmark(art: StoredArticle?) {
     guard let art = art else { return }
-    if art.hasBookmark {
-      Toast.show("""
-        <h3>\(art.title ?? "")</h3>
-        Lesezeichen wird entfernt. Widerrufen durch Antippen.
-      """, minDuration: 3.0) { wasTapped in
-        if !wasTapped {
-          art.hasBookmark = false
-          ArticleDB.save()
-        }
-      }
-    }
-    else {
-      Toast.show("""
-        <h3>\(art.title ?? "")</h3>
-        Wird in Leseliste aufgenommen.
-      """, minDuration: 0)
-      art.hasBookmark = true
-      ArticleDB.save()
-    }
+    var msg: String
+    if art.hasBookmark { msg = "Lesezeichen wird entfernt" }
+    else { msg = "Wird in Leseliste aufgenommen" }
+    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)", minDuration: 0)
+    art.hasBookmark.toggle()
   }
   
   func setup() {
