@@ -227,12 +227,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     header.showAnimated()
   }
   
-  // Reload Section and Article
-  override open func reload() {
-    articleVC?.reload()
-    super.reload()
-  }
-  
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     articleVC?.invalidateLayoutNeededOnViewWillAppear = true
