@@ -24,7 +24,10 @@ open class BookmarkSectionVC: SectionVC {
          let wv = currentWebView {
         let id = File.progname(art.html.name)
         let js = """
-          document.getElementById("\(id)").scrollIntoView({block: "center"});
+        {
+          let id = document.getElementById("\(id)");
+          if (id) { id.scrollIntoView({block: "center"}); }
+        } 
         """
         wv.jsexec(js)
       }
