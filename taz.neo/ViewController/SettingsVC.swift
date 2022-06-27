@@ -620,32 +620,71 @@ extension SettingsVC {
     alert.presentAt(self.view)
   }
   
-  func requestAccountDeletion(){
-    let alert = UIAlertController.init( title: "Konto löschen", message: "Hiermit können Sie die Löschung Ihres Kontos und die Beendigung Ihres Abonnements anfordern.\nWir senden Ihnen eine E-Mail mit einem Bestätigungslink. Falls ein laufendes Abonnement mit Ihrem Konto verknüpft ist, wird ihr Konto zur Löschung nach Ablauf des Abo's vorgemerkt. Details entnehmen Sie bitte der E-Mail.",
+  func showAccountDeletionAlert(_ force: Bool = false, url:String? ){
+    
+    var _url: URL?
+    if let surl = url, let url = URL(string: surl) {
+      _url = url
+    }
+    else if let url = URL(string: "https://portal.taz.de/user/deleterole/") {
+      _url = url
+    }
+    
+    let title: String? = force ? "Konto löschen" : nil
+    let actionButtonType: UIAlertAction.Style = force ? .destructive : .default
+    let actionButtonTitle: String = force ? "Konto löschen" : "Webseite öffnen"
+    
+    let message
+    = force
+    ? "Möchten Sie Ihr Konto wirklich löschen?\nDiese Aktion kann nicht Rückgängig gemacht werden. Sie können keine weiteren Ausgaben herunterladen."
+    : "Webseite zum Löschen meines Konto aufrufen?"
+    
+    
+    let alert = UIAlertController.init( title: title,
+                                        message: message,
                                         preferredStyle:  .alert )
-    
-    alert.addAction( UIAlertAction.init( title: "Löschen anfordern", style: .destructive,
+    alert.addAction( UIAlertAction.init( title: actionButtonTitle,
+                                         style: actionButtonType,
                                          handler: { [weak self] _ in
-      guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
+      if force {
+        self?.requestAccountDeletion(force)
+      }
+      else if let _url = _url {
+        UIApplication.shared.open(_url, options: [:], completionHandler: nil)
+      }
+      else {
         Toast.show(Localized("something_went_wrong_try_later"), .alert)
-        return
       }
-      self?.uiBlocked = true
-      feeder.requestAccountDeletion { [weak self] (result) in
-        self?.uiBlocked = false
-        switch result{
-          case .success(let msg):
-            self?.log("Request account deletion success: \(msg)")
-            self?.showRequestAccountDeletionSuccessAlert()
-          case .failure(let err):
-            self?.log("Request account deletion failure: \(err)")
-            Toast.show(Localized("something_went_wrong_try_later"), .alert)
-        }
-      }
+      
     } ) )
-    
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.view)
+  }
+  
+  func requestAccountDeletion(_ force: Bool = false){
+    guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
+      Toast.show(Localized("something_went_wrong_try_later"), .alert)
+      return
+    }
+    self.uiBlocked = true
+    feeder.requestAccountDeletion(forceDelete: force) { [weak self] (result) in
+      self?.uiBlocked = false
+      switch result{
+        case .success(let status):
+          if force {
+            #warning("What should happen here?")
+            //Later after enable account deletion on server side, may the next request fail with account changed, token delete...
+            Toast.show("Konto gelöscht", .alert)
+            return
+          }
+          self?.log("Request account deletion success: \(status)")
+          self?.showAccountDeletionAlert(status.info == .aboId ,
+                                         url: status.cancellationLink)
+        case .failure(let err):
+          self?.log("Request account deletion failure: \(err)")
+          Toast.show(Localized("something_went_wrong_try_later"), .alert)
+      }
+    }
   }
   
   func showRequestAccountDeletionSuccessAlert(){

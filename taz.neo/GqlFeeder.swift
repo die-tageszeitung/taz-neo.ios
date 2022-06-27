@@ -1054,37 +1054,4 @@ open class GqlFeeder: Feeder, DoesLog {
       finished(ret)
     }
   }
-  
-  /// send error report to server
-  public func requestAccountDeletion(finished: @escaping(Result<Bool,Error>)->()) {
-    
-    guard let gqlSession = self.gqlSession else {
-      finished(.failure(fatal("Not connected"))); return
-    }
-    
-    var fields:[String:Any] = [:]
-    fields["message"] = "Ringo: Test Vorbereitung für Account löschen Request, Bitte ignorieren!"
-    fields["appVersion"] = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
-    fields["deviceName"] = UIDevice().model
-    fields["eMail"] = "ringo.mueller@taz.de"
-    fields["installationId"] = App.installationId
-
-    // Data as Array = Dict     remove nil values     map key: value
-    var arrayData = fields.compactMapValues{$0}.map{"\($0.key): \"\($0.value)\""}
-    arrayData += "deviceType: \(Device.deviceType)"
-    arrayData += "deviceFormat: \(Device.deviceFormat)"
-    let request = "errorReport(\(arrayData.joined(separator: ", ")))"
-    
-    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
-      var ret: Result<Bool,Error>
-      switch res {
-        case .success(let dict):
-          print("success_ \(dict)")
-          ret = .success(true)
-        case .failure(let err):  ret = .failure(err)
-      }
-      finished(ret)
-    }
-  }
-  
 } // GqlFeeder
