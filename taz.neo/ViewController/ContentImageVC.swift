@@ -63,11 +63,11 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
       image.imageEntry = high
       delegate.dloader.downloadIssueFiles(from: content.baseURL, 
         to: content.dir, files: [high])
-      { err in
+      { [weak self] err in
         if err == nil { 
           image.image = UIImage(contentsOfFile: "\(path)/\(high.fileName)")
         } else { image.image = image.waitingImage }
-        self.debug("image \(high.fileName): \(image.image?.size ?? CGSize.zero)")
+        self?.debug("image \(high.fileName): \(image.image?.size ?? CGSize.zero)")
         image.isAvailable = true 
       }
     }
@@ -76,7 +76,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
       image.image = image.waitingImage 
     }
     return image
-  } 
+  }
   
   /// Create a ZoomedImage from an image file name
   private func zoomedImage(fname: String) -> ZoomedImage? {
@@ -105,8 +105,8 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   }
   
   /// Create ZoomedImages for all images of a content, load tapped image first
-  private func zoomedImages(content: Content, name: String) -> 
-    (Int, [ZoomedImage]) {
+  private func zoomedImages(content: Content, name: String) ->
+  (Int, [ZoomedImage]) {
     var ret: [ZoomedImage] = []
     var idx: Int = -1
     if let tapped = zoomedImage(content: content, name: name) {
@@ -115,11 +115,11 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
         else { if let zimg = zoomedImage(pair: pair) { ret += zimg } }
       }
     }
-    if idx < 0 { 
+    if idx < 0 {
       if let zimg = zoomedImage(fname: name) { ret += zimg }
       idx = ret.count - 1
     }
-    #warning("ToDo 0.9.4+ @Norbert: crash on open 2nd Image")
+#warning("ToDo 0.9.4+ @Norbert: crash on open 2nd Image")
     ///Corrupt data not reproduceable but documented and zipped
     ///the fix did not change behaviour, but prevents the crash!
     return (min(idx, ret.count-1), ret)
@@ -134,18 +134,18 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   
   private func setupImageCollectionVC() {
     self.xButton.isHidden = true
-    self.onTap { (_,_,_) in self.xButton.isHidden.toggle() }
+    self.onTap { [weak self] (_,_,_) in self?.xButton.isHidden.toggle() }
     self.onX { [weak self] in self?.toCloseClosure?() }
     self.onDisplay { [weak self] (idx, oview) in
       guard let self = self else { return }
       if let zi = self.images[idx] as? ZoomedImage {
         if let ziv = self.currentView as? ZoomedImageView, ziv.menu.menu.count == 0 {
           if zi.imageEntry?.sharable ?? true {
-            ziv.addMenuItem(title: "Bild Teilen", icon: "share") { title in
-              self.exportImage()
+            ziv.addMenuItem(title: "Bild Teilen", icon: "share") { [weak self] title in
+              self?.exportImage()
             }
           }
-          ziv.addMenuItem(title: "Zurück zum Text", icon: "arrow.uturn.left.circle") { 
+          ziv.addMenuItem(title: "Zurück zum Text", icon: "arrow.uturn.left.circle") {
             [weak self] _ in
             self?.toCloseClosure?()
           }
@@ -153,7 +153,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
         }
       }
     }
-    if let img = self.imageTapped { 
+    if let img = self.imageTapped {
       if showImageGallery {
         let (n,images) = zoomedImages(content: self.content, name: img)
         self.images = images
@@ -171,7 +171,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
       self.index = 0
     }
   }
-    
+  
   public init(content: Content, delegate: IssueInfo, imageTapped: String? = nil) {
     self.content = content
     self.delegate = delegate

@@ -234,18 +234,18 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
                                    imageTapped: img)
         imgVC.showImageGallery = self.showImageGallery
         self.imageOverlay = Overlay(overlay:imgVC , into: self)
-        self.imageOverlay!.maxAlpha = 0.9
-        self.imageOverlay!.open(animated: true, fromBottom: true)
+        self.imageOverlay?.maxAlpha = 0.9
+        self.imageOverlay?.open(animated: true, fromBottom: true)
         // Inform Application to re-evaluate Orientation for current ViewController
         NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                         object: nil)
-        self.imageOverlay!.onClose {
-          // reset orientation to portrait
+        self.imageOverlay?.onClose {[weak self] in
+          // reset orientation to portrait //no negative effect on iPad
           UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-          self.imageOverlay = nil
+          self?.imageOverlay = nil
         }
-        imgVC.toClose {
-          self.imageOverlay!.close(animated: true, toBottom: true)
+        imgVC.toClose {[weak self] in
+          self?.imageOverlay?.close(animated: true, toBottom: true)
         }
       }
       return NSNull()
