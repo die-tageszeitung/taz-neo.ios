@@ -257,7 +257,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     guard let index = givenIndex ?? self.safeIndex else { return }
     func openIssue() {
       ArticlePlayer.singleton.baseUrl = issue.baseUrl
-      self.openedIssue = selectedIssue
+      self.openedIssue = issues[index]
       //call it later if Offline Alert Presented
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }
       //prevent multiple pushes!
@@ -508,20 +508,28 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         dist: -verticalPaddings)
     issueCarousel.carousel.scrollFromLeftToRight = carouselScrollFromLeft
     issueCarousel.onTap { [weak self] idx in
-      self?.showIssue(index: idx, atSection: self?.selectedIssue.lastSection, 
-                      atArticle: self?.selectedIssue.lastArticle)
+      guard let self = self, idx < self.issues.count else { return }
+      let issue = self.issues[idx]
+      self.showIssue(index: idx, atSection: issue.lastSection, 
+                     atArticle: issue.lastArticle)
     }
     issueCarousel.onLabelTap { idx in
       self.showDatePicker()
     }
-    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { title in
-      self.exportMoment(issue: self.selectedIssue)
+    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { 
+      [weak self] arg in
+      guard let self = self, let idx = arg as? Int else { return }
+      self.exportMoment(issue: self.issues[idx])
     }
-    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {_ in
-      self.deleteIssue(issue: self.selectedIssue)
+    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") { 
+      [weak self] arg in
+      guard let self = self, let idx = arg as? Int else { return }
+      self.deleteIssue(issue: self.issues[idx])
     }
     var scrollChange = false
-    issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { title in
+    issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { 
+      [weak self] arg in
+      guard let self = self else { return }
       self.issueCarousel.carousel.scrollFromLeftToRight =
         !self.issueCarousel.carousel.scrollFromLeftToRight
       scrollChange = true
