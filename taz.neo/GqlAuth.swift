@@ -126,6 +126,7 @@ enum GqlCancellationInfo: String, CodableEnum {
   case noAuthToken = "noAuthToken"//invalid request missing auth token
   case elapsed = "elapsed"//subscription already elapsed, call portal link to delete other roles
   case specialAccess = "specialAccess"//special Access, cannot be deleted
+  case unknown = "unknown"   /// decoded from unknown string
 } // GqlCancellationInfo
 
 extension GqlFeeder {
