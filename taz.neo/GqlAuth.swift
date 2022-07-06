@@ -109,13 +109,15 @@ struct GqlCancellationStatus: GQLObject {
   var tazIdMail:  String? //Mail of the taz-ID
   var info:GqlCancellationInfo //Infos for account cancelation details
   var cancellationLink: String? //link to portal for deletion of other roles
+  var canceled: Bool //is account already canceled?
   
-  static var fields = "tazIdMail cancellationLink info"
+  static var fields = "tazIdMail cancellationLink info canceled"
   
   func toString() -> String {
     return " \(info.toString())"
     + " tazIdMail \(tazIdMail ?? "-")"
     + " cancellationLink \(cancellationLink ?? "-")"
+    + " canceled \(canceled)"
   }
 } // GqlCancellationStatus
 

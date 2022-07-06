@@ -97,8 +97,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var deleteAccountCell: XSettingsCell
   = XSettingsCell(text: "Konto löschen",
                   isDestructive: true,
-                  tapHandler: {[weak self] in self?.requestAccountDeletion()},
-                  accessoryView: webviewImage)
+                  tapHandler: {[weak self] in self?.requestAccountDeletion()})
   ///ausgabenverwaltung
   lazy var maxIssuesCell: XSettingsCell
   = XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
@@ -517,7 +516,18 @@ extension SettingsVC.TableData{
 
 // MARK: - cell data/creation/helper
 extension SettingsVC {
+  
   var isAuthenticated: Bool { return feederContext.isAuthenticated }
+  
+  var showDeleteAccountCell: Bool {
+    if isAuthenticated == false { return false }
+    let uid = SimpleAuthenticator.getUserData().id ?? ""
+    ///id not saved but Auth Token availabe, something went wrong, existing error, reason unknown, GraphQL either gives an link or not
+    if uid.length == 0 { return true }
+    if uid.isNumber { return true }//abo-ID
+    if uid.contains("@") { return true }//taz-ID
+    return false //Special access, Promo Code/Login
+  }
   
   var storageDetails: String {
     let storage = DeviceData().detailStorage
@@ -533,7 +543,7 @@ extension SettingsVC {
       resetPasswordCell,
       manageAccountCell
     ]
-    if isAuthenticated {
+    if showDeleteAccountCell {
       cells.append(deleteAccountCell)
     }
     return cells
@@ -620,44 +630,56 @@ extension SettingsVC {
     alert.presentAt(self.view)
   }
   
-  func showAccountDeletionAlert(_ force: Bool = false, url:String? ){
-    
-    var _url: URL?
-    if let surl = url, let url = URL(string: surl) {
-      _url = url
+  func showAccountDeletionAlert(status:GqlCancellationStatus, wasForce: Bool = false){
+    var title: String?
+    var text: String?
+    var actionButton: UIAlertAction?
+
+    if status.canceled || wasForce {
+      ///Attention aboID force cancelation need some seconds only future Requests have status.canceled == true
+      title = "Konto gelöscht"
+      text = """
+      \(wasForce ? "Wir haben Ihr Konto" : "Ihr Konto wurde bereits") zur Löschung vorgemerkt. Die Bearbeitung erfolgt normalerweise innerhalb eines Arbeitstages.\n\nWenn Ihr Konto endgültig gelöscht ist, werden Sie automatisch abgemeldet. Heruntergeladene Ausgaben können Sie weiterhin lesen."
+      """
     }
-    else if let url = URL(string: "https://portal.taz.de/user/deleterole/") {
-      _url = url
+    else if status.info == .aboId {
+      text = "Möchten Sie Ihr Konto wirklich löschen?\nDiese Aktion kann nicht Rückgängig gemacht werden. Sie können keine weiteren Ausgaben herunterladen."
+      actionButton = UIAlertAction.init( title: "Konto löschen",
+                                         style: .destructive,
+                                         handler: { [weak self] _ in
+        self?.requestAccountDeletion(true)
+      })
     }
-    
-    let title: String? = force ? "Konto löschen" : nil
-    let actionButtonType: UIAlertAction.Style = force ? .destructive : .default
-    let actionButtonTitle: String = force ? "Konto löschen" : "Webseite öffnen"
-    
-    let message
-    = force
-    ? "Möchten Sie Ihr Konto wirklich löschen?\nDiese Aktion kann nicht Rückgängig gemacht werden. Sie können keine weiteren Ausgaben herunterladen."
-    : "Webseite zum Löschen meines Konto aufrufen?"
-    
+    else if let cLink = status.cancellationLink,
+              !cLink.isEmpty,
+            let url = URL(string: cLink){
+      text = "Webseite zum Löschen Ihres Konto aufrufen?"
+      actionButton = UIAlertAction.init( title: "Webseite öffnen",
+                                         style: .default,
+                                         handler: { _ in
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+      })
+    }
+    else if status.info == .specialAccess {
+      text = "Sie verwenden kein selbst erstelltes Konto. Sie können dieses Konto nicht löschen."
+      + "\n\nBei weiteren Fragen wenden Sie sich bitte an den Service unter app@taz.de."
+    }
+    else {
+      text = "Es ist ein unbekannter Fehler aufgetreten.\n\nBitte wenden Sie sich mit Ihrem Anliegen an unseren Service unter app@taz.de."
+    }
     
     let alert = UIAlertController.init( title: title,
-                                        message: message,
+                                        message: text,
                                         preferredStyle:  .alert )
-    alert.addAction( UIAlertAction.init( title: actionButtonTitle,
-                                         style: actionButtonType,
-                                         handler: { [weak self] _ in
-      if force {
-        self?.requestAccountDeletion(force)
-      }
-      else if let _url = _url {
-        UIApplication.shared.open(_url, options: [:], completionHandler: nil)
-      }
-      else {
-        Toast.show(Localized("something_went_wrong_try_later"), .alert)
-      }
-      
-    } ) )
-    alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    
+    if let actionButton = actionButton {
+      alert.addAction(actionButton)
+      alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    }
+    else {
+      alert.addAction( UIAlertAction.init( title: "OK", style: .cancel) { _ in } )
+    }
+    
     alert.presentAt(self.view)
   }
   
@@ -671,27 +693,13 @@ extension SettingsVC {
       self?.uiBlocked = false
       switch result{
         case .success(let status):
-          if force {
-            #warning("What should happen here?")
-            //Later after enable account deletion on server side, may the next request fail with account changed, token delete...
-            Toast.show("Konto gelöscht", .alert)
-            return
-          }
-          self?.log("Request account deletion success: \(status)")
-          self?.showAccountDeletionAlert(status.info == .aboId ,
-                                         url: status.cancellationLink)
+          self?.log("Request account deletion request success: \(status)")
+          self?.showAccountDeletionAlert(status: status, wasForce: force)
         case .failure(let err):
           self?.log("Request account deletion failure: \(err)")
           Toast.show(Localized("something_went_wrong_try_later"), .alert)
       }
     }
-  }
-  
-  func showRequestAccountDeletionSuccessAlert(){
-    let alert = UIAlertController.init( title: "Hinweis", message: "Ihre Anfrage wird bearbeitet. Sie erhalten in den nächsten Minuten eine E-Mail mit Hinweisen zum weiteren Vorgehen und dem Bestätigungslink.\nBeachten Sie bitte, dass ihr Konto erst gelöscht werden kann, wenn Sie den Bestätigungslink in der E-Mail klicken. Der Bestätigungslink ist 24h gültig.\nFalls Sie Ihr Konto nicht löschen möchten, ignorieren Sie einfach die E-Mail.",
-                                        preferredStyle:  .alert )
-    alert.addAction( UIAlertAction.init( title: "OK", style: .default) { _ in } )
-    alert.presentAt(self.view)
   }
   
   func requestDeleteAllIssues(){
