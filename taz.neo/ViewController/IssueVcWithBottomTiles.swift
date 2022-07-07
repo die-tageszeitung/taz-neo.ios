@@ -223,6 +223,7 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     issueVc.issueCarousel.carousel.pullToLoadMoreHandler = {   [weak self] in
       guard let self = self as? IssueVC else { return }
       self.statusHeader.currentStatus = .fetchNewIssues
+      URLCache.shared.removeAllCachedResponses()
       self.checkForNewIssues()
     }
   }
