@@ -97,7 +97,9 @@ public extension App {
   /// - Returns: true if Feature is Available
   static func isAvailable(_ feature: App.Feature) -> Bool {
     switch feature {
-      case .INTERNALBROWSER, .ABOIDLOGIN:
+      case .ABOIDLOGIN:
+        return true
+      case .INTERNALBROWSER:
         return isAlpha //Only in Alpha Versions
       case .PDFEXPORT:
         return isAlpha //Only in Alpha Versions

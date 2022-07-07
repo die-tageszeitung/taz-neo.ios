@@ -125,6 +125,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func relaese(){
+    super.release()
     //Circular reference with: onImagePress, onSectionPress
     settingsBottomSheet = nil
     slider = nil
@@ -233,18 +234,18 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
                                    imageTapped: img)
         imgVC.showImageGallery = self.showImageGallery
         self.imageOverlay = Overlay(overlay:imgVC , into: self)
-        self.imageOverlay!.maxAlpha = 0.9
-        self.imageOverlay!.open(animated: true, fromBottom: true)
+        self.imageOverlay?.maxAlpha = 0.9
+        self.imageOverlay?.open(animated: true, fromBottom: true)
         // Inform Application to re-evaluate Orientation for current ViewController
         NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                         object: nil)
-        self.imageOverlay!.onClose {
-          // reset orientation to portrait
+        self.imageOverlay?.onClose {[weak self] in
+          // reset orientation to portrait //no negative effect on iPad
           UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-          self.imageOverlay = nil
+          self?.imageOverlay = nil
         }
-        imgVC.toClose {
-          self.imageOverlay!.close(animated: true, toBottom: true)
+        imgVC.toClose {[weak self] in
+          self?.imageOverlay?.close(animated: true, toBottom: true)
         }
       }
       return NSNull()
@@ -624,6 +625,20 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   open override var preferredStatusBarStyle: UIStatusBarStyle {
     return Defaults.darkMode ?  .lightContent : .default
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    onMain(after: 1.0) {[weak self] in
+      let newCoverage = 338 + UIWindow.verticalInsets
+      if self?.settingsBottomSheet?.coverage == newCoverage { return }//no rotate
+      self?.settingsBottomSheet?.coverage =  newCoverage
+      if self?.settingsBottomSheet?.isOpen == false  { return }
+      self?.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
+        self?.settingsBottomSheet?.open()
+        self?.settingsBottomSheet?.slideDown(130)
+      })
+    }
   }
   
   

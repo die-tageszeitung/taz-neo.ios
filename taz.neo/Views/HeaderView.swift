@@ -278,7 +278,6 @@ extension HeaderView {
   
   /// set ratio between (Initial/Big Header) 0...1 (Mini Header)
   private func setRatio(_ ratio: CGFloat, animated: Bool){
-    print("setRatio: \(ratio) lastRation: \(lastRatio) animated: \(animated)")
     if ratio == lastRatio { return }
     lastRatio = ratio
     

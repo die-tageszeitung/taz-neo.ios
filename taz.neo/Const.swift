@@ -30,6 +30,7 @@ public struct Const {
     static let articleLoaded = "NotificationName.articleLoaded"
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
     static let viewSizeTransition = "NotificationName.viewSizeTransition"
+    static let expiredAccountDateChanged = "NotificationName.expiredAccountDateChanged"
     
   } // Filename
   
