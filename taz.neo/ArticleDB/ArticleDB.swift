@@ -1778,6 +1778,12 @@ public final class StoredIssue: Issue, StoredObject {
     let reduceableIssues = allIssues[..<keepPreviewCount]
     
     let keep:Int = keepDownloaded == 0 ? 0 : 2 //Do not reduce the newest 2 Issues
+    
+    if allIssues.isEmpty {
+      Log.log("Prevent crash")
+      return;
+    }
+    
     for issue in allIssues[keep...] {
       if lastCompleeteIssues.contains(issue) { continue }
       if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
