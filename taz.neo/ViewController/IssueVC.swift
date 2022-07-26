@@ -452,6 +452,19 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     return imageButton
   }()
   
+  lazy var loginButton: UILabel = {
+    let login = UILabel()
+    login.accessibilityLabel = "Anmelden"
+    login.isAccessibilityElement = true
+    login.contentFont()
+    login.textColor = .white
+    login.text = "Anmelden"
+    login.onTapping { [weak self] _ in
+       self?.feederContext.authenticate()
+    }
+    return login
+  }()
+  
   /// align FAB to tabbars first icon
   func alignPdfToggleFab(){
     let defaultOffset = 52.0
@@ -499,6 +512,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ncView.addSubview(togglePdfButton)
       btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
       pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
+      if !feederContext.isAuthenticated {
+        ncView.addSubview(loginButton)
+        pin(loginButton.right, to: ncView.rightGuide(), dist: -Const.Dist.margin)
+        pin(loginButton.top, to: ncView.topGuide(), dist: 20)
+      }
     }
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
