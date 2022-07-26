@@ -21,7 +21,8 @@ class LoginController: FormsController {
     ui.idInput.text = DefaultAuthenticator.getUserData().id
     ui.loginButton.touch(self, action: #selector(handleLogin))
     ui.registerButton.touch(self, action: #selector(handleRegister))
-    ui.passForgottButton.touch(self, action: #selector(handlePwForgot))
+    ui.passForgottButton.onTapping {   [weak self] _ in self?.handlePwForgot() }
+    ui.whereIsTheAboId.onTapping {   [weak self] _ in self?.handleWhereIsTheAboId() }
     ui.passInput.onResignFirstResponder = { [weak self] in
       guard let self = self else {return}
       self.handleLogin(self.ui.loginButton)
@@ -63,15 +64,19 @@ class LoginController: FormsController {
     modalFlip(ctrl)
   }
   
-  @IBAction func handlePwForgot(_ sender: UIButton) {
+  func handlePwForgot() {
     modalFlip(PwForgottController(id: ui.idInput.text?.trim,
                                   auth: auth))
+  }
+  func handleWhereIsTheAboId() {
+    Alert.message(message: "Ihre Abo-ID wurde Ihnen per E-Mail zugesand. TBD ggf. Hinweis auf app@taz.de")
   }
   
   
   
   // MARK: queryAuthToken
   func queryAuthToken(tazId: String, tazIdPass: String){
+
     auth.feeder.authenticate(account: tazId, password: tazIdPass, closure:{ [weak self] (result) in
       guard let self = self else { return }
       switch result {

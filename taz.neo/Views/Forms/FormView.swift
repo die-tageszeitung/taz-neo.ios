@@ -55,15 +55,18 @@ public class FormView: UIView {
     
     var tfTags : Int = 100
     
+//    var border:UIColor = .red
+    
     for v in views {
       
       if v is UITextField {
         v.tag = tfTags
         tfTags += 1
       }
-      
+//      border = border == .red ? .green : .red
       //add
       container.addSubview(v)
+//      v.addBorder(border)
       //pin
       if previous == nil {
         pin(v.left, to: container.left, dist: margin)

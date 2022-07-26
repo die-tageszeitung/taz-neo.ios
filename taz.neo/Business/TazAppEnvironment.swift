@@ -68,7 +68,18 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
       self.appWillTerminate()
     }
     setup()
+    copyDemoContent()
     registerForStyleUpdates()
+  }
+  
+  func copyDemoContent(){
+    guard let url = Bundle.main.url(forResource: "trial2", withExtension: "html", subdirectory: "BundledResources") else {
+      log("missing ressource")
+      return
+    }
+    let file = File(url.path )
+    file.copy(to: Dir.appSupportPath.appending("/taz/resources/trial2.html"))
+    log("copy done")
   }
   
   func setup(){

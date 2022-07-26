@@ -142,7 +142,6 @@ extension Padded.Button{
     
     self.setTitleColor(textColor, for: .normal)
     self.layer.cornerRadius = 3.0
-    self.pinHeight(height)
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
     if let target = target, let action = action {
