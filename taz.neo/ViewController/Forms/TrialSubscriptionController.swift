@@ -79,7 +79,7 @@ class TrialSubscriptionController : FormsController {
                 DefaultAuthenticator.storeUserData(id: tazId,
                                       password: tazIdPassword,
                                       token: token)
-                Notification.send("authenticationSucceeded")
+                Notification.send(Const.NotificationNames.authenticationSucceeded)
                 self.ui.blocked = false
                 return;
               }

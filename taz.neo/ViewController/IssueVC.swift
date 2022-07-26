@@ -452,17 +452,19 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     return imageButton
   }()
   
-  lazy var loginButton: UILabel = {
+  lazy var loginButton: UIView = {
     let login = UILabel()
     login.accessibilityLabel = "Anmelden"
     login.isAccessibilityElement = true
     login.contentFont()
     login.textColor = .white
     login.text = "Anmelden"
-    login.onTapping { [weak self] _ in
+
+    let wrapper = login.wrapper(Const.Insets.Default)
+    wrapper.onTapping { [weak self] _ in
        self?.feederContext.authenticate()
     }
-    return login
+    return wrapper
   }()
   
   /// align FAB to tabbars first icon
@@ -504,6 +506,15 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   var btnLeftConstraint: NSLayoutConstraint?
 
+  func updateLoginButton(){
+    if self.feederContext.isAuthenticated {
+      loginButton.removeFromSuperview()
+      return
+    }
+    self.view.addSubview(loginButton)
+    pin(loginButton.right, to: self.view.rightGuide())
+    pin(loginButton.top, to: self.view.topGuide(), dist: 20)
+  }
   
   public override func viewDidLoad() {
     super.viewDidLoad()
@@ -512,12 +523,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ncView.addSubview(togglePdfButton)
       btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
       pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
-      if !feederContext.isAuthenticated {
-        ncView.addSubview(loginButton)
-        pin(loginButton.right, to: ncView.rightGuide(), dist: -Const.Dist.margin)
-        pin(loginButton.top, to: ncView.topGuide(), dist: 20)
-      }
     }
+    Notification.receive(Const.NotificationNames.authenticationSucceeded) { _ in
+      onMainAfter {[weak self] in self?.updateLoginButton() }
+    }
+    Notification.receive(Const.NotificationNames.logoutUserDataDeleted) { _ in
+      onMainAfter {[weak self] in self?.updateLoginButton() }
+    }
+    updateLoginButton()
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
     pin(issueCarousel.right, to: self.headerView.right)

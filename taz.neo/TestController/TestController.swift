@@ -111,7 +111,7 @@ class TestController: PageCollectionVC {
       self.debug("Complete \(issue!)")
       guard self.checkIssueCount(1) else { result(false); return }      
       guard self.checkFileCount(145, inIssue: issue) else { result(false); return }
-      Notification.receiveOnce("authenticationSucceeded") {_ in 
+      Notification.receiveOnce(Const.NotificationNames.authenticationSucceeded) {_ in 
         var gqlIssue: GqlIssue? = nil 
         Notification.receiveOnce("gqlIssue", from: issue) { notification in
           gqlIssue = notification.content as? GqlIssue

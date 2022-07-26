@@ -67,11 +67,14 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   }()
   
   lazy var logoutCell: XSettingsCell = {
-    Notification.receive("authenticationSucceeded") { [weak self] _ in
-      self?.updateLogoutCell()
+    Notification.receive(Const.NotificationNames.authenticationSucceeded) { _ in
+      onMainAfter {[weak self] in self?.updateLogoutCell() }
     }
-    Notification.receive(Const.NotificationNames.expiredAccountDateChanged) {  [weak self] _ in
-      self?.updateLogoutCell()
+    Notification.receive(Const.NotificationNames.expiredAccountDateChanged) {  _ in
+      onMainAfter {[weak self] in self?.updateLogoutCell() }
+    }
+    Notification.receive(Const.NotificationNames.logoutUserDataDeleted) { _ in
+      onMainAfter {[weak self] in self?.refreshAndReload() }
     }
     return logoutCellPrototype
   }()

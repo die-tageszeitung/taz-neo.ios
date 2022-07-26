@@ -168,6 +168,9 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
     feederContext?.gqlFeeder.authToken = nil
     feederContext?.endPolling()
     logKeychain(msg: "after delete")
+    onThreadAfter {
+      Notification.send(Const.NotificationNames.logoutUserDataDeleted)
+    }
   }
   
   func testNotification(type: NotificationType) {

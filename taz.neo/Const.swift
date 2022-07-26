@@ -31,7 +31,8 @@ public struct Const {
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
     static let viewSizeTransition = "NotificationName.viewSizeTransition"
     static let expiredAccountDateChanged = "NotificationName.expiredAccountDateChanged"
-    
+    static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
+    static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
   } // Filename
   
   /// Various color values

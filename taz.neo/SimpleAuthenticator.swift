@@ -86,7 +86,7 @@ public class SimpleAuthenticator: Authenticator {
             case .success(let token): 
               SimpleAuthenticator.storeUserData(id: id, password: password, 
                                                 token: token)
-              Notification.send("authenticationSucceeded")
+              Notification.send(Const.NotificationNames.authenticationSucceeded)
             case .failure(let err):
               if let err = err as? FeederError {
                 var text = ""

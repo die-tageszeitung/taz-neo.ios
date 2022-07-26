@@ -181,7 +181,7 @@ public class DefaultAuthenticator: Authenticator {
                 ///Fix User dismissed modal Login, nort be able to send notification due this just come in dismiss callback
                 if loginFormVc.presentingViewController == nil {
                   self.firstPresentedAuthController = nil
-                  Notification.send("authenticationSucceeded")
+                  Notification.send(Const.NotificationNames.authenticationSucceeded)
                   onMainAfter {//delay otherwise "Aktualisiere Daten hides this!"
                     Toast.show("Erfolgreich angemeldet!")//like Android!
                   }
@@ -190,7 +190,7 @@ public class DefaultAuthenticator: Authenticator {
                 }
                 
                 let dismissFinishedClosure = {
-                  Notification.send("authenticationSucceeded")
+                  Notification.send(Const.NotificationNames.authenticationSucceeded)
                   closure(false)//stop polling
                 }
                 ///If  already a FormsResultController on top of modal stack use its exchange function
@@ -211,7 +211,7 @@ public class DefaultAuthenticator: Authenticator {
               }
               /// If No Login shown, just execute the callbacks
               else {//No Form displayed anymore directly execute callbacks
-                Notification.send("authenticationSucceeded")
+                Notification.send(Const.NotificationNames.authenticationSucceeded)
                 closure(false)//stop polling
               }
               return;
@@ -219,7 +219,7 @@ public class DefaultAuthenticator: Authenticator {
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
               /// In this case user received the E-Mail for PW Reset,
               _ = self.error(info.status.rawValue)
-              Notification.send("authenticationSucceeded")
+              Notification.send(Const.NotificationNames.authenticationSucceeded)
               closure(false)//stop polling
               return;
             case .waitForProc: fallthrough

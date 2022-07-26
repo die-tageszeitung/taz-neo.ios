@@ -28,7 +28,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     setupTabbar()
     self.navigationController?.isNavigationBarHidden = true
     registerForStyleUpdates()
-    Notification.receive("authenticationSucceeded") { notif in
+    Notification.receive(Const.NotificationNames.authenticationSucceeded) { notif in
       self.authenticationSucceededCheckReload()
     }
   } // viewDidLoad
