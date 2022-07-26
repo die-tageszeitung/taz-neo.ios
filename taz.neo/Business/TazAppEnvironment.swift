@@ -73,9 +73,9 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   
   func setup(){
     let feeder = Defaults.currentFeeder
+    setupLogging()
     log("Connect to feeder: \(feeder.name) feed: \(feeder.feed)")
     feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
-    setupLogging()
     setupFeeder()
   }
   

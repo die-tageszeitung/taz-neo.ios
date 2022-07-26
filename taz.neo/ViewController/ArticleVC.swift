@@ -79,6 +79,15 @@ open class ArticleVC: ContentVC {
     else { self.bookmarkButton.buttonView.name = "star" }
   }
   
+  func toggleBookmark(art: StoredArticle?) {
+    guard let art = art else { return }
+    var msg: String
+    if art.hasBookmark { msg = "Lesezeichen wird entfernt" }
+    else { msg = "Wird in Leseliste aufgenommen" }
+    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)", minDuration: 0)
+    art.hasBookmark.toggle()
+  }
+  
   func setup() {
     if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
@@ -115,9 +124,8 @@ open class ArticleVC: ContentVC {
     }
     onDisplay { [weak self] (idx, oview) in
       if let self = self {
-        var art = self.articles[idx]
+        let art = self.articles[idx]
         self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
-        self.adelegate?.article = art
         self.setHeader(artIndex: idx)
         self.issue.lastArticle = idx
         let player = ArticlePlayer.singleton
@@ -125,7 +133,7 @@ open class ArticleVC: ContentVC {
         if art.canPlayAudio {
           self.playButton.buttonView.name = "audio"
           self.onPlay { [weak self] _ in
-            guard let self = self else {return}
+            guard let self = self else { return }
             if let title = self.header.title ?? art.title {
               art.toggleAudio(issue: self.issue, sectionName: title )
             }
@@ -134,9 +142,9 @@ open class ArticleVC: ContentVC {
           }
         }
         else { self.onPlay(closure: nil) }
-        self.onBookmark { _ in
-          art.hasBookmark.toggle()
-          ArticleDB.save()
+        self.onBookmark { [weak self] _ in
+          guard let self = self else { return }
+          self.toggleBookmark(art: art as? StoredArticle)
         }
         if art.primaryIssue?.isReduced ?? false {
           #warning("not working reliable on simulator!!")
@@ -146,7 +154,7 @@ open class ArticleVC: ContentVC {
           }
         }
         self.displayBookmark(art: art)
-        self.debug("on display: \(idx), article \(art.html.name)")
+        self.debug("on display: \(idx), article \(art.html.name):\n\(art.title ?? "Unknown Title")")
       }
     }
     whenLinkPressed { [weak self] (from, to) in

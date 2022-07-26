@@ -103,6 +103,34 @@ struct GqlSubscriptionResetInfo: GQLObject {
   }  
 } // GqlSubscriptionResetInfo
 
+/// GqlCancellationStatus describes the result for user account cancelation/deletion
+struct GqlCancellationStatus: GQLObject {
+  
+  var tazIdMail:  String? //Mail of the taz-ID
+  var info:GqlCancellationInfo //Infos for account cancelation details
+  var cancellationLink: String? //link to portal for deletion of other roles
+  var canceled: Bool //is account already canceled?
+  
+  static var fields = "tazIdMail cancellationLink info canceled"
+  
+  func toString() -> String {
+    return " \(info.toString())"
+    + " tazIdMail \(tazIdMail ?? "-")"
+    + " cancellationLink \(cancellationLink ?? "-")"
+    + " canceled \(canceled)"
+  }
+} // GqlCancellationStatus
+
+/// GqlCancellationInfo hold details for GqlCancellationStatus response
+enum GqlCancellationInfo: String, CodableEnum {
+  case aboId = "aboId"//regular cancelation with aboId, can be deleted from app with force delete flag
+  case tazId = "tazId"//regular cancelation with tazId
+  case noAuthToken = "noAuthToken"//invalid request missing auth token
+  case elapsed = "elapsed"//subscription already elapsed, call portal link to delete other roles
+  case specialAccess = "specialAccess"//special Access, cannot be deleted
+  case unknown = "unknown"   /// decoded from unknown string
+} // GqlCancellationInfo
+
 extension GqlFeeder {
   
   // Get GqlSubscriptionInfo (while waiting for mail confirmation)
@@ -286,6 +314,25 @@ extension GqlFeeder {
       case .failure(let err):  ret = .failure(err)
       }
       closure(ret)
+    }
+  }
+  
+  /// send error report to server
+  func requestAccountDeletion(forceDelete: Bool = false,
+                                     finished: @escaping(Result<GqlCancellationStatus,Error>)->()) {
+    guard let gqlSession = self.gqlSession else {
+      finished(.failure(fatal("Not connected"))); return
+    }
+    let request = "cancellation(isForce: \(forceDelete ? "true" : "false")){\(GqlCancellationStatus.fields)}"
+    
+    gqlSession.mutation(graphql: request, type: [String:GqlCancellationStatus].self) { (res) in
+      var ret: Result<GqlCancellationStatus,Error>
+      switch res {
+        case .success(let dict):
+          ret = .success(dict["cancellation"]!)
+        case .failure(let err):  ret = .failure(err)
+      }
+      finished(ret)
     }
   }
 

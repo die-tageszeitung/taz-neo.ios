@@ -173,6 +173,7 @@ public class IssueCarousel: UIView {
       moment!.image = self.issues[idx].issue
       moment!.isActivity = self.issues[idx].isActivity
       moment!.menu.menu = self.menu
+      moment!.menu.argument = idx
       moment!.onTap {_ in
         if let currentIndex = self.firstMoment(moment: moment!) {
           self.tapClosure?(currentIndex)
@@ -194,10 +195,10 @@ public class IssueCarousel: UIView {
   }
     
   /// Define the menu to display on long touch of a MomentView
-  public var menu: [(title: String, icon: String, closure: (String)->())] = []
+  public var menu: [(title: String, icon: String, closure: (Any?)->())] = []
   
   /// Add an additional menu item
-  public func addMenuItem(title: String, icon: String, closure: @escaping (String)->()) {
+  public func addMenuItem(title: String, icon: String, closure: @escaping (Any?)->()) {
     menu += (title: title, icon: icon, closure: closure)
   }
 
