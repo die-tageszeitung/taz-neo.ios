@@ -635,7 +635,7 @@ extension SettingsVC {
     var text: String?
     var actionButton: UIAlertAction?
 
-    if status.canceled || wasForce {
+    if status.canceled {
       ///Attention aboID force cancelation need some seconds only future Requests have status.canceled == true
       title = "Konto gelöscht"
       text = """
