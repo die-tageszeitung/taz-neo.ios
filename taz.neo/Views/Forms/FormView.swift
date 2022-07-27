@@ -55,7 +55,7 @@ public class FormView: UIView {
     
     var tfTags : Int = 100
     
-//    var border:UIColor = .red
+    var border:UIColor = .red
     
     for v in views {
       
@@ -63,10 +63,10 @@ public class FormView: UIView {
         v.tag = tfTags
         tfTags += 1
       }
-//      border = border == .red ? .green : .red
+      border = border == .red ? .green : .red
       //add
       container.addSubview(v)
-//      v.addBorder(border)
+      v.addBorder(border)
       //pin
       if previous == nil {
         pin(v.left, to: container.left, dist: margin)

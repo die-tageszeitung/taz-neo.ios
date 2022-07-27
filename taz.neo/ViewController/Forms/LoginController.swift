@@ -20,7 +20,11 @@ class LoginController: FormsController {
     super.viewDidLoad()
     ui.idInput.text = DefaultAuthenticator.getUserData().id
     ui.loginButton.touch(self, action: #selector(handleLogin))
-    ui.registerButton.touch(self, action: #selector(handleRegister))
+    ui.registerButton.touch(self, action: #selector(handleTrial))
+    ui.trialSubscriptionButton.touch(self, action: #selector(handleTrial))
+    ui.extendButton.touch(self, action: #selector(handleExtend))
+    ui.switchButton.touch(self, action: #selector(handleSwitch))
+    
     ui.passForgottButton.onTapping {   [weak self] _ in self?.handlePwForgot() }
     ui.whereIsTheAboId.onTapping {   [weak self] _ in self?.handleWhereIsTheAboId() }
     ui.passInput.onResignFirstResponder = { [weak self] in
@@ -53,7 +57,29 @@ class LoginController: FormsController {
     }
   }
   
-  @IBAction func handleRegister(_ sender: UIButton) {
+  @IBAction func handleTrial(_ sender: UIButton) {
+    let ctrl = TrialSubscriptionController(self.auth)
+    // Prefill register Form with current Input if idInput contains a valid E-Mail
+    if (self.ui.idInput.text ?? "").trim.isValidEmail() {
+      ctrl.ui.mailInput.text = self.ui.idInput.text?.trim
+      ctrl.ui.passInput.text = self.ui.passInput.text?.trim
+      ctrl.ui.pass2Input.text = self.ui.passInput.text?.trim
+    }
+    modalFlip(ctrl)
+  }
+  
+  @IBAction func handleExtend(_ sender: UIButton) {
+    let ctrl = ExtendPrintSubscriptionController(self.auth)
+    // Prefill register Form with current Input if idInput contains a valid E-Mail
+    if (self.ui.idInput.text ?? "").trim.isValidEmail() {
+//      ctrl.ui.mailInput.text = self.ui.idInput.text?.trim
+//      ctrl.ui.passInput.text = self.ui.passInput.text?.trim
+//      ctrl.ui.pass2Input.text = self.ui.passInput.text?.trim
+    }
+    modalFlip(ctrl)
+  }
+  
+  @IBAction func handleSwitch(_ sender: UIButton) {
     let ctrl = TrialSubscriptionController(self.auth)
     // Prefill register Form with current Input if idInput contains a valid E-Mail
     if (self.ui.idInput.text ?? "").trim.isValidEmail() {
@@ -184,40 +210,21 @@ class AskForTrial_Controller: FormsController {
     self.tazId = tazId
     self.tazIdPass = tazIdPass
     super.init(auth)
-    
-    if offerTrialSubscription {
-      // Dialog mit Probeabo
-      ui.views = [
-        TazHeader(),
-        Padded.Label(title: Localized("unconnected_taz_id_header"),
-                paddingTop: 30,
-                paddingBottom: 30
-        ),
-        Padded.Button(title: Localized("connect_abo_id"),
-                 target: self, action: #selector(handleConnectAboId)),
-        Padded.Button(title: Localized("trial_subscroption"),
-                 target: self, action: #selector(handleTrialSubscroption)),
-        Padded.Button(type:.outline,
-                 title: Localized("cancel_button"),
-                 target: self, action: #selector(handleBack)),
-        ui.registerTipsButton
-      ]
-    }
-    else {
-      // Dialog ohne Probeabo
-      ui.views = [
-        TazHeader(),
-        Padded.Label(title: Localized("unconnected_taz_id_header"),
-                paddingTop: 30,
-                paddingBottom: 30
-        ),
-        Padded.Button(title: Localized("connect_abo_id"),
-                 target: self, action: #selector(handleConnectAboId)),
-        Padded.Button(type:.outline,
-                 title: Localized("cancel_button"),
-                 target: self, action: #selector(handleBack))
-      ]
-    }
+    ui.views = [
+      TazHeader(),
+      Padded.Label(title: Localized("unconnected_taz_id_header"),
+                   paddingTop: 30,
+                   paddingBottom: 30
+                  ),
+      Padded.Button(title: Localized("connect_abo_id"),
+                    target: self, action: #selector(handleConnectAboId)),
+      Padded.Button(title: Localized("trial_subscroption"),
+                    target: self, action: #selector(handleTrialSubscroption)),
+      Padded.Button(type:.outline,
+                    title: Localized("cancel_button"),
+                    target: self, action: #selector(handleBack)),
+      ui.registerTipsButton
+    ]
   }
   
   required init?(coder: NSCoder) {

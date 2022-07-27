@@ -73,13 +73,13 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   }
   
   func copyDemoContent(){
-    guard let url = Bundle.main.url(forResource: "trial2", withExtension: "html", subdirectory: "BundledResources") else {
-      log("missing ressource")
-      return
+    let demoFiles = ["trial", "extend", "switch"]
+    for filename in demoFiles {
+      if let url = Bundle.main.url(forResource: filename, withExtension: "html", subdirectory: "BundledResources") {
+        let file = File(url.path )
+        file.copy(to: Dir.appSupportPath.appending("/taz/resources/\(filename).html"))
+      }
     }
-    let file = File(url.path )
-    file.copy(to: Dir.appSupportPath.appending("/taz/resources/trial2.html"))
-    log("copy done")
   }
   
   func setup(){
@@ -369,7 +369,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   
   static func updateDefaultsIfNeeded(){
     let dfl = Defaults.singleton
-    dfl["offerTrialSubscription"]=nil
     dfl["showBottomTilesAnimation"]=nil
     dfl.setDefaults(values: ConfigDefaults)
   }

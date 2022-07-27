@@ -33,6 +33,7 @@
 		4D308EEC283405A900529592 /* MainTabVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EEB283405A900529592 /* MainTabVC.swift */; };
 		4D308EEE283405D900529592 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EED283405D900529592 /* PlaceholderView.swift */; };
 		4D308EF02834061600529592 /* BookmarkNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EEF2834061600529592 /* BookmarkNC.swift */; };
+		4D3131F2289159FE0087EE1B /* ExtendPrintSubscriptionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3131F1289159FE0087EE1B /* ExtendPrintSubscriptionController.swift */; };
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
 		7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968C25CC605D00508DE8 /* FeedbackViewController.swift */; };
@@ -136,6 +137,7 @@
 		4D308EEB283405A900529592 /* MainTabVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainTabVC.swift; sourceTree = "<group>"; };
 		4D308EED283405D900529592 /* PlaceholderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
 		4D308EEF2834061600529592 /* BookmarkNC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkNC.swift; sourceTree = "<group>"; };
+		4D3131F1289159FE0087EE1B /* ExtendPrintSubscriptionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtendPrintSubscriptionController.swift; sourceTree = "<group>"; };
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
@@ -250,6 +252,7 @@
 				0032A4DA24C89F1100284723 /* PwForgotController.swift */,
 				08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */,
 				006007E124D1D333001680B6 /* TrialSubscriptionController.swift */,
+				4D3131F1289159FE0087EE1B /* ExtendPrintSubscriptionController.swift */,
 			);
 			path = Forms;
 			sourceTree = "<group>";
@@ -647,6 +650,7 @@
 				0015B73724DD86B30037A8D6 /* Authenticator.swift in Sources */,
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
+				4D3131F2289159FE0087EE1B /* ExtendPrintSubscriptionController.swift in Sources */,
 				AEC7D467249920DF008630FB /* OverlayTest.swift in Sources */,
 				7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */,
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,

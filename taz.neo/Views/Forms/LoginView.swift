@@ -11,10 +11,6 @@ import NorthLib
 import WebKit
 
 public class LoginView : FormView{
-  
-  @Default("offerTrialSubscription")
-  var offerTrialSubscription: Bool
-  
   var idInput = TazTextField(placeholder: Localized("login_username_hint"),
                              textContentType: .emailAddress,
                              enablesReturnKeyAutomatically: true,
@@ -65,25 +61,29 @@ public class LoginView : FormView{
     return wrapper
   }()
   
-  static var trialSubscriptionButton = Padded.Button(title: "Kostenlos Probelesen")
-  
-  var trialSubscriptionView: Padded.View = {
+  var trialSubscriptionButton = Padded.Button(title: "Kostenlos Probelesen")
+  var switchButton = Padded.Button(title: "Wechseln")
+  var extendButton = Padded.Button(title: "Zubuchen")
+    
+  func marketingContainerWidth(button: Padded.Button,
+                               htmlFile:String,
+                               htmlHeight:CGFloat = 150,
+                               fallbackText:String) -> Padded.View{
     let wrapper = Padded.View()
     var intro:UIView
-    let filepath =  Dir.appSupportPath.appending("/taz/resources/trial2.html")
-    let trialHtml = File(filepath)
+    let trialHtml = File(htmlFile)
     
     if trialHtml.exists {
       let wv = WebView()
-//      wv.webView.load(url: dataPolicy.url)
+      //      wv.webView.load(url: dataPolicy.url)
       wv.load(url: trialHtml.url)
-      wv.pinHeight(150)
+      wv.pinHeight(htmlHeight)
       wv.isOpaque = false
       wv.backgroundColor = .clear
       intro = wv
     } else {
       let lbl = UILabel()
-      lbl.text = Localized("trial_subscription_title")
+      lbl.text = fallbackText
       lbl.numberOfLines = 0
       lbl.textAlignment = .center
       lbl.contentFont()
@@ -91,52 +91,42 @@ public class LoginView : FormView{
     }
     
     wrapper.addSubview(intro)
-    wrapper.addSubview(trialSubscriptionButton)
+    wrapper.addSubview(button)
     
     pin(intro, to: wrapper, dist: Const.Dist.margin, exclude: .bottom)
-    pin(trialSubscriptionButton, to: wrapper, dist: Const.Dist.margin, exclude: .top)
-    pin(trialSubscriptionButton.top, to: intro.bottom, dist: Const.Dist.margin)
+    pin(button, to: wrapper, dist: Const.Dist.margin, exclude: .top)
+    pin(button.top, to: intro.bottom, dist: Const.Dist.margin)
     
     wrapper.backgroundColor = UIColor.rgb(0xDEDEDE)
     wrapper.layer.cornerRadius = 8.0
     
-    wrapper.paddingBottom = miniPadding
-    wrapper.paddingTop = miniPadding
     return wrapper
-  }()
+    
+  }
   
   static let miniPadding = 0.0
   
   override func createSubviews() -> [UIView] {
     idInput.paddingBottom = Self.miniPadding
     passInput.paddingBottom = Self.miniPadding
-    if offerTrialSubscription {
-       // Dialog mit Probeabo
-      return   [
-        Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").titleFont(),
-        idInput,
-        whereIsTheAboId,
-        passInput,
-        passForgottButton,
-        loginButton,
-        Padded.Label(title: Localized("trial_subscription_title")),
-        registerButton,
-        trialSubscriptionView,
-        loginTipsButton
-      ]
-     }
-     else {
-       // Dialog ohne Probeabo
-      return   [
-        TazHeader(),
-        Padded.Label(title: Localized("login_required")),
-        idInput,
-        passInput,
-        loginButton,
-        passForgottButton,
-        loginTipsButton
-      ]
-     }
+    return   [
+      Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").boldContentFont(size: 18),
+      idInput,
+      whereIsTheAboId,
+      passInput,
+      passForgottButton,
+      loginButton,
+      marketingContainerWidth(button: trialSubscriptionButton,
+                              htmlFile: Dir.appSupportPath.appending("/taz/resources/trialNOTEXISTFALLBACHTEST.html"),
+                              fallbackText: Localized("trial_subscription_title")),
+      marketingContainerWidth(button: extendButton,
+                              htmlFile: Dir.appSupportPath.appending("/taz/resources/extend.html"),
+                              htmlHeight: 290,
+                              fallbackText: Localized("trial_subscription_title")),
+      marketingContainerWidth(button: switchButton,
+                              htmlFile: Dir.appSupportPath.appending("/taz/resources/switch.html"),
+                              fallbackText: Localized("trial_subscription_title"))
+    ]
   }
   
   // MARK: validate()

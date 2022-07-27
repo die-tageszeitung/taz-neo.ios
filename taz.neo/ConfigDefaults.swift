@@ -38,8 +38,6 @@ public let ConfigDefaults = Defaults.Values([
   "autoDownload" : "true",
   // Allow automatic download over mobile networks
   "autoMobileDownloads" : "false",
-  // Allow trial subscriptions
-  "offerTrialSubscription" : "true",
   // Use facsimile mode if available
   "isFacsimile" : "false",
   // Tap in PDF open ArticleView
