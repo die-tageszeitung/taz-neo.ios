@@ -135,7 +135,14 @@ public class SubscriptionFormView : FormView{
     if type == .print2Digi || type == .printPlusDigi || type == .weekendPlusDigi {
       views.append(contentsOf: [street, city, postcode, country])
     }
-    views.append(contentsOf: [messageLabel, message, requestInfoCheckbox, sendButton, cancelButton])
+    
+    views.append(contentsOf: [messageLabel, message])
+    
+    if self.type == .expiredDigiPrint || self.type == .expiredDigilSubscription {
+      views.append(requestInfoCheckbox)
+    }
+    
+    views.append(contentsOf: [sendButton, cancelButton])
     return views
   }
   
