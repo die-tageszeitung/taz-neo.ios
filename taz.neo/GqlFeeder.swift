@@ -47,6 +47,50 @@ struct GqlAuthInfo: GQLObject {
   }  
 } // GqlAuthInfo
 
+/// A GqlAuthInfo describes an GqlAuthStatus with an optional message
+struct GqlCustomerInfo: GQLObject {
+  /// Authentication status
+  var authInfo:  GqlAuthInfo
+  /// Authentication status
+  var customerType:  GqlCustomerType?
+  /// Optional message in case of !valid
+  var cancellation: String?
+  
+  /// Optional message in case of !valid
+  var sampleType: String?
+  
+  static var fields = "authInfo{\(GqlAuthInfo.fields)} customerType cancellation sampleType"
+  
+  func toString() -> String {
+    var ret = authInfo.toString()
+    if let ct = customerType { ret += ": customerType(\(ct.toString()))" }
+    if let msg = cancellation { ret += "cancellation: (\(msg))" }
+    if let msg = sampleType { ret += "sampleType: (\(msg))" }
+    return ret
+  }
+} // GqlAuthInfo
+
+/// Customer Type
+enum GqlCustomerType: String, CodableEnum {
+  case digital = "digital"  ///common digi abo
+  case combo = "combo"  ///Kombiabo
+  case sample = "sample" ///Probeabo
+  case deliveryBreaker = "deliveryBreaker"///Lieferunterbrecher
+  case unknown   = "unknown"   /// decoded from unknown or unused string e.g. promo
+} // GqlCustomerType
+
+/// Subscription Form Data Type
+enum GqlSubscriptionFormDataType: String, CodableEnum {
+  case expiredDigiPrint = "expiredDigiPrint" //request info for expired subscription with print and digital
+  case requestTrialSubscription = "requestTrialSubscription" //request info for current trial digital subscription
+  case expiredDigilSubscription = "expiredDigilSubscription" //request info for expired digital subscription
+  case print2Digi = "print2Digi" //request info for switch
+  case printPlusDigi = "printPlusDigi" //request info to extend
+  case weekendPlusDigi = "weekendPlusDigi" //request info for weekend print + digital
+  case unknown   = "unknown"   /// decoded from unknown string 
+} // GqlSubscriptionFormDataType
+
+
 /// A GqlAuthToken is returned upon an Authentication request
 struct GqlAuthToken: GQLObject {  
   /// Authentication token (to use for further authentication)  
@@ -1047,7 +1091,7 @@ open class GqlFeeder: Feeder, DoesLog {
       switch res {
         case .success(let dict):
           //        let status = dict["whatever"]!
-          print("success_ \(dict)")
+          print("success: \(dict)")
           ret = .success(true)
         case .failure(let err):  ret = .failure(err)
       }

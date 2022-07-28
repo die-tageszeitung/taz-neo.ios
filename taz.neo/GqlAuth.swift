@@ -335,5 +335,74 @@ extension GqlFeeder {
       finished(ret)
     }
   }
+  
+  // Get current Subscription Infos
+  func customerInfo(closure: @escaping(Result<GqlCustomerInfo,Error>)->()) {
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected"))); return
+    }
+    let request = """
+      customerInfo{\(GqlCustomerInfo.fields)}
+    """
+    gqlSession.query(graphql: request, type: [String:GqlCustomerInfo].self) { (res) in
+      var ret: Result<GqlCustomerInfo,Error>
+      switch res {
+      case .success(let dict):
+        let ai = dict["customerInfo"]!
+        ret = .success(ai)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+  
+  /// Send contact form data to subscription department
+  func subscriptionFormData(type: GqlSubscriptionFormDataType,
+                            mail: String?,
+                            surname: String?,
+                            firstName: String?,
+                            street: String?,
+                            city: String?,
+                            postcode: String?,
+                            country: String?,
+                            message: String?,
+                            requestCurrentSubscriptionOpportunities: Bool?,
+                            closure: @escaping(Result<Bool,Error>)->()) {
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected"))); return
+    }
+    
+    var fields:[String] = []
+    
+    fields.append("typ: \(type.toString())")
+    
+    if let str = mail {  fields.append("mail: \"\(str)\"") }
+    if let str = surname {  fields.append("surname: \"\(str)\"") }
+    if let str = firstName {  fields.append("firstName: \"\(str)\"") }
+    if let str = street {  fields.append("street: \"\(str)\"") }
+    if let str = city {  fields.append("city: \"\(str)\"") }
+    if let str = postcode {  fields.append("postcode: \"\(str)\"") }
+    if let str = country {  fields.append("country: \"\(str)\"") }
+    if let str = message {  fields.append("message: \"\(str)\"") }
+    if let bool = requestCurrentSubscriptionOpportunities {
+      fields.append("requestCurrentSubscriptionOpportunities: \(bool ? 1 : 0)")
+    }
+    let request = """
+      subscriptionFormData(\(fields.joined(separator: ", "))) {
+        \(GqlSubscriptionInfo.fields)
+      }
+    """
+    
+    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
+      var ret: Result<Bool,Error>
+      switch res {
+        case .success(let dict):
+          print("success: \(dict)")
+          ret = .success(true)
+        case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
 
 } // GqlFeeder

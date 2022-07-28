@@ -69,25 +69,11 @@ class LoginController: FormsController {
   }
   
   @IBAction func handleExtend(_ sender: UIButton) {
-    let ctrl = ExtendPrintSubscriptionController(self.auth)
-    // Prefill register Form with current Input if idInput contains a valid E-Mail
-    if (self.ui.idInput.text ?? "").trim.isValidEmail() {
-//      ctrl.ui.mailInput.text = self.ui.idInput.text?.trim
-//      ctrl.ui.passInput.text = self.ui.passInput.text?.trim
-//      ctrl.ui.pass2Input.text = self.ui.passInput.text?.trim
-    }
-    modalFlip(ctrl)
+    modalFlip(SubscriptionFormController(type: .printPlusDigi, auth: self.auth))
   }
   
   @IBAction func handleSwitch(_ sender: UIButton) {
-    let ctrl = TrialSubscriptionController(self.auth)
-    // Prefill register Form with current Input if idInput contains a valid E-Mail
-    if (self.ui.idInput.text ?? "").trim.isValidEmail() {
-      ctrl.ui.mailInput.text = self.ui.idInput.text?.trim
-      ctrl.ui.passInput.text = self.ui.passInput.text?.trim
-      ctrl.ui.pass2Input.text = self.ui.passInput.text?.trim
-    }
-    modalFlip(ctrl)
+    modalFlip(SubscriptionFormController(type: .print2Digi, auth: self.auth))
   }
   
   func handlePwForgot() {
@@ -124,8 +110,12 @@ class LoginController: FormsController {
               Toast.show(Localized("toast_login_failed_retry"), .alert)
               self.ui.passInput.bottomMessage = Localized("register_validation_issue")
             case .expired:
-              self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: authStatusError.message,
-                                                             dismissType: .current))
+              self.modalFlip(
+                SubscriptionFormController(type: .expiredDigilSubscription,
+                                           auth: self.auth,
+                                           expireDateMessage: authStatusError.message,
+                                           customerType: nil)
+              )
             case .unlinked:
               self.modalFlip(AskForTrial_Controller(tazId: tazId,
                                                     tazIdPass: tazIdPass,
@@ -155,8 +145,12 @@ class LoginController: FormsController {
               ctrl.ui.registerButton.setTitle("taz-Konto erstellen", for: .normal)
               self.modalFlip(ctrl)
             case .expired:
-              self.modalFlip(SubscriptionIdElapsedController(expireDateMessage: info.message,
-                                                             dismissType: .current))
+              self.modalFlip(
+                SubscriptionFormController(type: .expiredDigilSubscription,
+                                           auth: self.auth,
+                                           expireDateMessage: info.message,
+                                           customerType: nil)
+              )
             case .alreadyLinked:
               self.ui.idInput.text = info.message
               self.ui.passInput.text = ""
@@ -173,28 +167,6 @@ class LoginController: FormsController {
       }
       self.ui.blocked = false
     })
-  }
-}
-
-// MARK: - SubscriptionIdElapsedCtrl
-class SubscriptionIdElapsedController: FormsResultController {
-  convenience init(expireDateMessage:String?,
-                   dismissType:dismissType) {
-    self.init()
-    var dateString : String = "-"
-    if let msg = expireDateMessage {
-      dateString = UsTime(iso:msg).date.gDate()
-    }
-    let htmlText = Localized(keyWithFormat: "subscription_id_expired", dateString)
-    ui.views = [
-      TazHeader(),
-      CustomTextView(htmlText:htmlText,
-                     textAlignment: .center,
-                     linkTextAttributes: CustomTextView.boldLinks),
-      Padded.Button(type: .outline,
-               title: Localized("cancel_button"),
-               target: self,
-               action: #selector(handleBack))]
   }
 }
 

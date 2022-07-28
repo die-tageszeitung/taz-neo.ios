@@ -42,19 +42,6 @@ extension String{
  - **ConnectTazIdController**
  - **TrialSubscriptionController**
  
- #TODO REMOVE AFTER REFACTOR
- We have the following inheritance
- - FormsController: UIViewController
- - **LoginController**
- - FormsController_Result_Controller
- - AskForTrial_Controller
- - SubscriptionIdElapsedController
- - PwForgottController
- - SubscriptionResetSuccessController
- - PasswordResetRequestedSuccessController
- - TrialSubscriptionController
- - CreateTazIDController
- - ConnectExistingTazIdController
  
  #Discussion TextView with Attributed String for format & handle Links/E-Mail Adresses
  or multiple Views with individual button/click Handler

@@ -233,12 +233,21 @@ public class DefaultAuthenticator: Authenticator {
       closure(true)//continue polling in case of errors, wait status or invalid
     }
   }
+  
+  public func authenticate(with targetVC:UIViewController? = nil) {
+    authenticate(with: targetVC, handleExpired: false)
+  }
     
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
-  public func authenticate(with targetVC:UIViewController? = nil) {
+  public func authenticate(with targetVC:UIViewController? = nil, handleExpired: Bool) {
     guard let rootVC = targetVC ?? rootVC else { return }
 
-    let registerController = LoginController(self)
+    let registerController = handleExpired
+    ? SubscriptionFormController(type: .expiredDigilSubscription,
+                                 auth: self,
+                                 expireDateMessage: nil,
+                                 customerType: nil)
+    : LoginController(self)
     
     registerController.modalPresentationStyle
       =  .formSheet

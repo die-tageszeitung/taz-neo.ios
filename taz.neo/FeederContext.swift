@@ -583,9 +583,14 @@ open class FeederContext: DoesLog {
     }
     debug("handleFeederError for: \(err)")
     currentFeederErrorReason = err
+    var additionalAction: UIAlertAction?
     var text = ""
     switch err {
       case .expiredAccount: text = "Ihr Abo ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        additionalAction = UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
+          guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
+          UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
         if Defaults.expiredAccountDate == nil { Defaults.expiredAccountDate =  err.expiredAccountDate ?? Date()}
       case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
         self.gqlFeeder.authToken = nil
@@ -600,7 +605,9 @@ open class FeederContext: DoesLog {
         }
     }
     
-    Alert.message(title: "Fehler", message: text, closure: { [weak self] in
+   
+
+    Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: { [weak self] in
       ///Do not authenticate here because its not needed here e.g.
       /// expired account due probeabo, user may not want to auth again
       /// additionally it makes more problems currently e.g. Overlay may appear and not disappear
