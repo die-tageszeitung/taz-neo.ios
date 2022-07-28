@@ -10,11 +10,11 @@ import UIKit
 import NorthLib
 
 public class SubscriptionFormView : FormView{
-  // MARK: - All Available fields
-  
+
+  // MARK: - All possible fields
   let type: GqlSubscriptionFormDataType
   
-  var expireDateMessage:String?
+  var expireDate:Date?
   var customerType: GqlCustomerType?
   
   var idInput = TazTextField(placeholder: "E-Mail-Adresse oder Abonummer (wenn vorhanden)",
@@ -84,8 +84,13 @@ public class SubscriptionFormView : FormView{
   var title: UILabel? {
     var text: String? = nil
     switch type {
-      case .expiredDigiPrint:
-        text = "Umwandlung meines Print Abos in ein Digital Abonement"
+      case .expiredDigiPrint, .expiredDigilSubscription:
+        if let d = expireDate {
+          text = "Ihr Probeabo ist am \(d.gDate()) abgelaufen."
+        }
+        else {
+          text = "Ihr Probeabo ist abgelaufen."
+        }
       case .print2Digi:
         text = "Ja!Ich möchte nur noch digital lesen."
       case .printPlusDigi:
@@ -94,14 +99,19 @@ public class SubscriptionFormView : FormView{
         break
     }
     guard let text = text else { return nil }
-    return Padded.Label(title: text).boldContentFont()
+    return Padded.Label(title: text).titleFont(size: 18)
   }
   
   var subTitle: UILabel? {
     var text: String? = nil
     switch type {
-      case .expiredDigiPrint:
-        text = "Sie sind taz Print AbonementIn und möchten die taz digital am Abend vor erscheinen der Print Ausgabe lesen. Gerne informieren wir Sie über die Möglichkeiten."
+      case .expiredDigiPrint, .expiredDigilSubscription:
+        text = """
+        Wir haben Ihnen zum Ablauf Ihres kostenlosen Probeabos Informationen zu unseren Abonnements an Ihre E-Mail-Adresse zugesandt.
+        Falls Sie diese E-Mail nicht finden können, oder weitere Fragen an unsere Aboabteilung haben, können Sie jetzt einfach der Abo Abteilung eine Nachricht zusenden.
+        
+        Für weitere Fragen, wenden Sie sich bitte an unseren Service unter: fragen@taz.de
+        """
       case .print2Digi://Achtung anderer Text erst in Step 2 mit Taz-ID!!
         text = "Das machen wir gerne! Geben Sie Ihre bei uns hinterlegten Kundendaten ein, so dass wir Sie zuordnen können. Wir werden sie dann kontaktieren, so dass Sie schnell an Ihre Zugangsdaten kommen."
       case .printPlusDigi:
@@ -117,7 +127,11 @@ public class SubscriptionFormView : FormView{
     var views:[UIView] = []
     if let v = title { views.append(v) }
     if let v = subTitle { views.append(v) }
-    views.append(contentsOf: [idInput, firstName, lastName])
+    
+    if !(self.type == .expiredDigiPrint || self.type == .expiredDigilSubscription){
+      views.append(contentsOf: [idInput, firstName, lastName])
+    }
+  
     if type == .print2Digi || type == .printPlusDigi || type == .weekendPlusDigi {
       views.append(contentsOf: [street, city, postcode, country])
     }
@@ -158,10 +172,10 @@ public class SubscriptionFormView : FormView{
   }
   
   init(type: GqlSubscriptionFormDataType,
-       expireDateMessage:String? = nil,
+       expireDate:Date? = nil,
        customerType: GqlCustomerType? = nil) {
     self.type = type
-    self.expireDateMessage = expireDateMessage
+    self.expireDate = expireDate
     self.customerType = customerType
     super.init(frame: .zero)
   }

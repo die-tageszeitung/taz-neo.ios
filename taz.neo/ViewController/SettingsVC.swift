@@ -628,8 +628,17 @@ extension SettingsVC {
       TazAppEnvironment.sharedInstance.deleteUserData()
       self?.refreshAndReload()
     } ) )
-    
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
+    
+    if (Defaults.expiredAccountText != nil) {
+      alert.addAction( UIAlertAction.init( title: "Weitere Informationen", style: .default,
+                                           handler: { [weak self] _ in
+        guard let self = self else { return }
+        guard let feeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else { return }
+        DefaultAuthenticator(feeder: feeder).authenticate(with: self)
+      } ) )
+    }
+    
     alert.presentAt(self.view)
   }
   

@@ -110,10 +110,14 @@ class LoginController: FormsController {
               Toast.show(Localized("toast_login_failed_retry"), .alert)
               self.ui.passInput.bottomMessage = Localized("register_validation_issue")
             case .expired:
+              var expiredDate: Date?
+              if let isoDate = authStatusError.message {
+                expiredDate = UsTime(iso:isoDate).date
+              }
               self.modalFlip(
                 SubscriptionFormController(type: .expiredDigilSubscription,
                                            auth: self.auth,
-                                           expireDateMessage: authStatusError.message,
+                                           expireDate: expiredDate,
                                            customerType: nil)
               )
             case .unlinked:
@@ -145,10 +149,14 @@ class LoginController: FormsController {
               ctrl.ui.registerButton.setTitle("taz-Konto erstellen", for: .normal)
               self.modalFlip(ctrl)
             case .expired:
+              var expiredDate: Date?
+              if let isoDate = info.message {
+                expiredDate = UsTime(iso:isoDate).date
+              }
               self.modalFlip(
                 SubscriptionFormController(type: .expiredDigilSubscription,
                                            auth: self.auth,
-                                           expireDateMessage: info.message,
+                                           expireDate: expiredDate,
                                            customerType: nil)
               )
             case .alreadyLinked:

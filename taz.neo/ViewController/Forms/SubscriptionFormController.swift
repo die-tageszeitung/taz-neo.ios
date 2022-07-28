@@ -121,10 +121,13 @@ class SubscriptionFormController : FormsController {
     
   required init(type: GqlSubscriptionFormDataType,
                 auth:AuthMediator,
-                expireDateMessage:String? = nil,
+                expireDate:Date? = nil,
                 customerType: GqlCustomerType? = nil) {
     self.type = type
-    self.contentView = SubscriptionFormView(type: type)
+    self.contentView
+    = SubscriptionFormView(type: type,
+                           expireDate: expireDate,
+                           customerType: customerType)
     super.init(auth)
   }
   

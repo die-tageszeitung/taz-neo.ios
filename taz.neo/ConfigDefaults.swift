@@ -89,6 +89,23 @@ extension Defaults {
       Notification.send(Const.NotificationNames.expiredAccountDateChanged)
     }
   }
+  
+  static var customerType : GqlCustomerType? {
+    get {
+      if let curr = Defaults.singleton["customerType"] {
+        return GqlCustomerType.fromExternal(curr)
+      }
+      return nil
+    }
+    set {
+      if let type = newValue {
+        Defaults.singleton["customerType"] = type.toString()
+      }
+      else {
+        Defaults.singleton["customerType"] = nil
+      }
+    }
+  }
 
   static var expiredAccount : Bool { return expiredAccountDate != nil }
   static var expiredAccountText : String? {
