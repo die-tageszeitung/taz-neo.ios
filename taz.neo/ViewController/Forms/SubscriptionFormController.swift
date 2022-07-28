@@ -26,6 +26,9 @@ class SubscriptionFormController : FormsController {
   
   var onMissingNameRequested:(()->())?
   
+  @Default("fakeSubscriptionRequests")
+  var fakeSubscriptionRequests: Bool
+  
   let type: GqlSubscriptionFormDataType
   
   private var contentView:SubscriptionFormView
@@ -34,9 +37,16 @@ class SubscriptionFormController : FormsController {
   // MARK: viewDidLoad
   override func viewDidLoad() {
     super.viewDidLoad()
-    ui.sendButton.touch(self, action: #selector(handleSubmitFake))
+    ui.sendButton.touch(self, action: #selector(handleSubmit))
     ui.cancelButton.touch(self, action: #selector(handleBack))
   }
+  
+  @IBAction func handleSubmit(_ sender: UIButton) {
+    fakeSubscriptionRequests
+    ? handleSubmitFake(sender)
+    : handleSubmitReal(sender)
+  }
+  
   
   // MARK: handleCancel Action
   @IBAction func handleSubmitFake(_ sender: UIButton) {
@@ -84,7 +94,7 @@ class SubscriptionFormController : FormsController {
   }
   
   // MARK: handleCancel Action
-  @IBAction func handleSubmit(_ sender: UIButton) {
+  @IBAction func handleSubmitReal(_ sender: UIButton) {
     ui.blocked = true
     
     if let errormessage = ui.validate() {

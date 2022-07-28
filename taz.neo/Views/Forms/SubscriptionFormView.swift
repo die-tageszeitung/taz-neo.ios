@@ -83,24 +83,24 @@ public class SubscriptionFormView : FormView{
   
   var title: UILabel? {
     
-    var abo = "Abo"
+    var abo = ""
     
     switch customerType {
       case .sample: abo = "Probeabo"
-        
-      default:
-        <#code#>
+      case .combo: abo = "Kombiabo"
+      case .digital: abo = "Abo"
+      case .deliveryBreaker: abo = "Print Ersatzabo"
+      default: abo = "Abo"
     }
-    
     
     var text: String? = nil
     switch type {
       case .expiredDigiPrint, .expiredDigilSubscription:
         if let d = expireDate {
-          text = "Ihr Probeabo ist am \(d.gDate()) abgelaufen."
+          text = "Ihr \(abo) ist am \(d.gDate()) abgelaufen."
         }
         else {
-          text = "Ihr Probeabo ist abgelaufen."
+          text = "Ihr \(abo) ist abgelaufen."
         }
       case .print2Digi:
         text = "Ja!Ich möchte nur noch digital lesen."
@@ -163,7 +163,7 @@ public class SubscriptionFormView : FormView{
     var errors = false
     //switch or zubuchen
     if type == .print2Digi || type == .printPlusDigi || type == .weekendPlusDigi {
-      if "\(postcode.text ?? "")\(city.text ?? "")\(street.text ?? "")\(country.text ?? "")".length < 20 {
+      if "\(postcode.text ?? "")\(city.text ?? "")\(street.text ?? "")\(country.text ?? "")".length < 15 {
         postcode.bottomMessage = "Bitte Adresse überprüfen"
         city.bottomMessage = "Bitte Adresse überprüfen"
         street.bottomMessage = "Bitte Adresse überprüfen"

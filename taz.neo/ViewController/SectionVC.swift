@@ -12,6 +12,9 @@ import NorthLib
 /// The Section view controller managing a collection of Section pages
 open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelegate {
   
+  @Default("tabbarInSection")
+  var tabbarInSection: Bool
+  
   private var articleVC: ArticleVC?
   private var lastIndex: Int?
   public var sections: [Section] = []
@@ -270,8 +273,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     let sec: String = (atSection == nil) ? "nil" : "\(atSection!)"
     let art: String = (atArticle == nil) ? "nil" : "\(atArticle!)"
     debug("new SectionVC: section=\(sec), article=\(art)")
-    toolBar.isHidden = true
-    hidesBottomBarWhenPushed = false
+    if tabbarInSection {
+      toolBar.isHidden = true
+      hidesBottomBarWhenPushed = false
+    }
   }
   
   required public init?(coder: NSCoder) {

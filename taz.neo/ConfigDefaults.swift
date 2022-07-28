@@ -57,7 +57,10 @@ public let ConfigDefaults = Defaults.Values([
   // "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
   // show teaser text in bookmarks list
-  "bookmarksListTeaserEnabled" : "true"
+  "bookmarksListTeaserEnabled" : "true",
+  "fakeSubscriptionRequests" : "true",
+  "tabbarInSection" : "false"
+  
 ])
 
 
