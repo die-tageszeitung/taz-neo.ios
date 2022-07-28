@@ -34,19 +34,19 @@ class SubscriptionFormController : FormsController {
   // MARK: viewDidLoad
   override func viewDidLoad() {
     super.viewDidLoad()
-    ui.sendButton.touch(self, action: #selector(handleSubmit))
+    ui.sendButton.touch(self, action: #selector(handleSubmitFake))
     ui.cancelButton.touch(self, action: #selector(handleBack))
   }
   
   // MARK: handleCancel Action
-  @IBAction func handleSubmit1(_ sender: UIButton) {
+  @IBAction func handleSubmitFake(_ sender: UIButton) {
     ui.blocked = true
     
-//    if let errormessage = ui.validate() {
-//      Toast.show(errormessage, .alert)
-//      ui.blocked = false
-//      return
-//    }
+    if let errormessage = ui.validate() {
+      Toast.show(errormessage, .alert)
+      ui.blocked = false
+      return
+    }
       
     
     let msg = """
@@ -62,8 +62,6 @@ class SubscriptionFormController : FormsController {
         country: \(ui.country.text ?? "")
         requestInfoCheckbox: \(ui.requestInfoCheckbox.checked ? "Bitte Infos" : "Keine Infos")
     """
-        
-    return;
     
     auth.feeder.errorReport(message: msg,
                            lastAction: nil,

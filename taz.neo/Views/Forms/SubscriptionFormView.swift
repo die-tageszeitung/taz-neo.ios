@@ -82,6 +82,17 @@ public class SubscriptionFormView : FormView{
   var cancelButton =  Padded.Button(type:.outline, title: Localized("cancel_button"))
   
   var title: UILabel? {
+    
+    var abo = "Abo"
+    
+    switch customerType {
+      case .sample: abo = "Probeabo"
+        
+      default:
+        <#code#>
+    }
+    
+    
     var text: String? = nil
     switch type {
       case .expiredDigiPrint, .expiredDigilSubscription:

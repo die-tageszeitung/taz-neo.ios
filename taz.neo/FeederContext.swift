@@ -571,6 +571,19 @@ open class FeederContext: DoesLog {
     return success
   }
   
+  func updateSubscriptionStatus() {
+    self.gqlFeeder.customerInfo { [weak self] res in
+      switch res {
+      case .success(let ci):
+       print(ci)
+          self?.log("Update CustomerType from: \(Defaults.customerType) to \(ci.customerType)" )
+          Defaults.customerType = ci.customerType
+      case .failure(let err):
+          self?.log("cannot get customerInfo: \(err)")
+      }
+    }
+  }
+  
   private var currentFeederErrorReason : FeederError?
   
   /// Feeder has flagged an error
@@ -592,6 +605,7 @@ open class FeederContext: DoesLog {
           UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
         if Defaults.expiredAccountDate == nil { Defaults.expiredAccountDate =  err.expiredAccountDate ?? Date()}
+        updateSubscriptionStatus()
       case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
         self.gqlFeeder.authToken = nil
         DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
