@@ -114,11 +114,22 @@ public class SubscriptionFormView : FormView{
   }
   
   var subTitle: UILabel? {
+    var abo = ""
+    
+    switch customerType {
+      case .sample: abo = "kostenlosen Probeabos"
+      case .combo: abo = "Kombiabos"
+      case .digital: abo = "Abos"
+      case .deliveryBreaker: abo = "Print Ersatzabos"
+      default: abo = "Abos"
+    }
+    
+    
     var text: String? = nil
     switch type {
       case .expiredDigiPrint, .expiredDigilSubscription:
         text = """
-        Wir haben Ihnen zum Ablauf Ihres kostenlosen Probeabos Informationen zu unseren Abonnements an Ihre E-Mail-Adresse zugesandt.
+        Wir haben Ihnen zum Ablauf Ihres \(abo) Informationen zu unseren Abonnements an Ihre E-Mail-Adresse zugesandt.
         Falls Sie diese E-Mail nicht finden können, oder weitere Fragen an unsere Aboabteilung haben, können Sie jetzt einfach der Abo Abteilung eine Nachricht zusenden.
         
         Für weitere Fragen, wenden Sie sich bitte an unseren Service unter: fragen@taz.de

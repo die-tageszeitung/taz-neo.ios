@@ -571,15 +571,17 @@ open class FeederContext: DoesLog {
     return success
   }
   
-  func updateSubscriptionStatus() {
+  func updateSubscriptionStatus(closure: @escaping (Bool)->()) {
     self.gqlFeeder.customerInfo { [weak self] res in
       switch res {
       case .success(let ci):
        print(ci)
           self?.log("Update CustomerType from: \(Defaults.customerType) to \(ci.customerType)" )
           Defaults.customerType = ci.customerType
+          closure(true)
       case .failure(let err):
           self?.log("cannot get customerInfo: \(err)")
+          closure(false)
       }
     }
   }
@@ -604,8 +606,15 @@ open class FeederContext: DoesLog {
           guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
           UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
+        if Defaults.expiredAccountDate != nil {
+          return //dont show popup on each start
+        }
+        
         if Defaults.expiredAccountDate == nil { Defaults.expiredAccountDate =  err.expiredAccountDate ?? Date()}
-        updateSubscriptionStatus()
+        updateSubscriptionStatus { _ in
+          self.authenticator.authenticate(with: nil)
+        }
+        return; //Prevent default Popup
       case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
         self.gqlFeeder.authToken = nil
         DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
@@ -619,8 +628,6 @@ open class FeederContext: DoesLog {
         }
     }
     
-   
-
     Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: { [weak self] in
       ///Do not authenticate here because its not needed here e.g.
       /// expired account due probeabo, user may not want to auth again
