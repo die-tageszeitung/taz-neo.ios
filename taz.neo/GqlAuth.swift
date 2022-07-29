@@ -91,6 +91,31 @@ struct GqlSubscriptionInfo: GQLObject {
   }  
 } // GqlSubscriptionInfo
 
+/// A GqlSubscriptionInfo describes an GqlAuthStatus with an optional message
+struct GqlSubscriptionFormData: GQLObject {
+  /// Subscription status
+  var error:  GqlSubscriptionFormDataError?
+  /// Optional message in case of !valid
+  var errorMessage: String?
+
+  
+  static var fields = "error errorMessage"
+  
+  func toString() -> String {
+    var ret = ""
+    if let error = error { ret += "\n error: \(error.toString())" }
+    if let errorMessage = errorMessage { ret += "errorMessage: \(errorMessage)" }
+    return ret
+  }
+} // GqlSubscriptionInfo
+
+/// Subscription Form Data Error
+enum GqlSubscriptionFormDataError: String, CodableEnum {
+  case noMailAdress = "noMailAdress"
+  case unknown          = "unknown"   /// decoded from unknown string
+} // SubscriptionFormDataError
+
+
 /// A GqlSubscriptionResetInfo describes the result of a subscriptionReset method
 struct GqlSubscriptionResetInfo: GQLObject {  
   /// Subscription reset status
@@ -385,15 +410,15 @@ extension GqlFeeder {
     if let str = country {  fields.append("country: \"\(str)\"") }
     if let str = message {  fields.append("message: \"\(str)\"") }
     if let bool = requestCurrentSubscriptionOpportunities {
-      fields.append("requestCurrentSubscriptionOpportunities: \(bool ? 1 : 0)")
+      fields.append("requestCurrentSubscriptionOpportunities: \(bool ? "true" : "false")")
     }
     let request = """
       subscriptionFormData(\(fields.joined(separator: ", "))) {
-        \(GqlSubscriptionInfo.fields)
+        \(GqlSubscriptionFormData.fields)
       }
     """
     
-    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionFormData].self) { (res) in
       var ret: Result<Bool,Error>
       switch res {
         case .success(let dict):

@@ -18,7 +18,7 @@ public class SubscriptionFormView : FormView{
   var customerType: GqlCustomerType?
   
   var idInput = TazTextField(placeholder: "E-Mail-Adresse oder Abonummer (wenn vorhanden)",
-                                    textContentType: .name,
+                                    textContentType: .emailAddress,
                                     enablesReturnKeyAutomatically: true,
                                     keyboardType: .default,
                                     autocapitalizationType: .words)
