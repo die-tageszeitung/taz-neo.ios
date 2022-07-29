@@ -58,7 +58,7 @@ public let ConfigDefaults = Defaults.Values([
   "persistedIssuesCount": "20",
   // show teaser text in bookmarks list
   "bookmarksListTeaserEnabled" : "true",
-  "fakeSubscriptionRequests" : "true",
+  "fakeSubscriptionRequests" : "false",
   "tabbarInSection" : "false"
   
 ])

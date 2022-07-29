@@ -61,7 +61,6 @@ class SubscriptionFormController : FormsController {
     
     let msg = """
     Error Report Zweckentfremded zum testen der Kontaktformulare
-    Kopie geht bereits automatisch an ringo
     ===
         id: \(ui.idInput.text ?? "")
         firstName: \(ui.firstName.text ?? "")
@@ -73,12 +72,16 @@ class SubscriptionFormController : FormsController {
         requestInfoCheckbox: \(ui.requestInfoCheckbox.checked ? "Bitte Infos" : "Keine Infos")
     """
     
+    var mail:String? = nil
+    
+    if let m = ui.idInput.text, m.isValidEmail() { mail = m  }
+    
     auth.feeder.errorReport(message: msg,
                            lastAction: nil,
                            conditions: nil,
                            deviceData: nil,
                            errorProtocol: nil,
-                           eMail: "ringo.mueller@taz.de",
+                           eMail: mail,
                            screenshotName: nil,
                            screenshot: nil) { (result) in
                             self.ui.blocked = false
