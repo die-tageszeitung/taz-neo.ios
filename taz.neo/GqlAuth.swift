@@ -111,7 +111,12 @@ struct GqlSubscriptionFormData: GQLObject {
 
 /// Subscription Form Data Error
 enum GqlSubscriptionFormDataError: String, CodableEnum {
-  case noMailAdress = "noMailAdress"
+  case noMail = "noMail" //no mail adress given
+  case invalidMail = "invalidMail" //invalid mail adress
+  case noSurname = "noSurname" //no noSurname" given
+  case noFirstName = "noFirstName" //no Firstname given
+  case noCity = "noCity" //no City given
+  case employees = "employees" //form not for internal users
   case unknown          = "unknown"   /// decoded from unknown string
 } // SubscriptionFormDataError
 
@@ -399,7 +404,7 @@ extension GqlFeeder {
     
     var fields:[String] = []
     
-    fields.append("typ: \(type.toString())")
+    fields.append("type: \(type.toString())")
     
     if let str = mail {  fields.append("mail: \"\(str)\"") }
     if let str = surname {  fields.append("surname: \"\(str)\"") }
