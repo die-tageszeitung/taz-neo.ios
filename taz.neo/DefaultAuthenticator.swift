@@ -240,7 +240,7 @@ public class DefaultAuthenticator: Authenticator {
     let handleExpired = Defaults.expiredAccountText != nil
 
     let registerController = handleExpired
-    ? SubscriptionFormController(type: .expiredDigilSubscription,
+    ? SubscriptionFormController(type: .expiredDigiSubscription,
                                  auth: self,
                                  expireDate: Defaults.expiredAccountDate,
                                  customerType: Defaults.customerType)

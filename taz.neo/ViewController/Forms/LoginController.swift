@@ -115,7 +115,7 @@ class LoginController: FormsController {
                 expiredDate = UsTime(iso:isoDate).date
               }
               self.modalFlip(
-                SubscriptionFormController(type: .expiredDigilSubscription,
+                SubscriptionFormController(type: .expiredDigiSubscription,
                                            auth: self.auth,
                                            expireDate: expiredDate,
                                            customerType: nil)
@@ -154,7 +154,7 @@ class LoginController: FormsController {
                 expiredDate = UsTime(iso:isoDate).date
               }
               self.modalFlip(
-                SubscriptionFormController(type: .expiredDigilSubscription,
+                SubscriptionFormController(type: .expiredDigiSubscription,
                                            auth: self.auth,
                                            expireDate: expiredDate,
                                            customerType: nil)

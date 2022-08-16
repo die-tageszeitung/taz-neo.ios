@@ -83,7 +83,7 @@ enum GqlCustomerType: String, CodableEnum {
 enum GqlSubscriptionFormDataType: String, CodableEnum {
   case expiredDigiPrint = "expiredDigiPrint" //request info for expired subscription with print and digital
   case requestTrialSubscription = "requestTrialSubscription" //request info for current trial digital subscription
-  case expiredDigilSubscription = "expiredDigilSubscription" //request info for expired digital subscription
+  case expiredDigiSubscription = "expiredDigiSubscription" //request info for expired digital subscription
   case print2Digi = "print2Digi" //request info for switch
   case printPlusDigi = "printPlusDigi" //request info to extend
   case weekendPlusDigi = "weekendPlusDigi" //request info for weekend print + digital

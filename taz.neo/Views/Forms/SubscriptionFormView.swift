@@ -95,7 +95,7 @@ public class SubscriptionFormView : FormView{
     
     var text: String? = nil
     switch type {
-      case .expiredDigiPrint, .expiredDigilSubscription:
+      case .expiredDigiPrint, .expiredDigiSubscription:
         if let d = expireDate {
           text = "Ihr \(abo) ist am \(d.gDate()) abgelaufen."
         }
@@ -127,7 +127,7 @@ public class SubscriptionFormView : FormView{
     
     var text: String? = nil
     switch type {
-      case .expiredDigiPrint, .expiredDigilSubscription:
+      case .expiredDigiPrint, .expiredDigiSubscription:
         text = """
         Wir haben Ihnen zum Ablauf Ihres \(abo) Informationen zu unseren Abonnements an Ihre E-Mail-Adresse zugesandt.
         Falls Sie diese E-Mail nicht finden können, oder weitere Fragen an unsere Aboabteilung haben, können Sie jetzt einfach der Abo Abteilung eine Nachricht zusenden.
@@ -150,7 +150,7 @@ public class SubscriptionFormView : FormView{
     if let v = title { views.append(v) }
     if let v = subTitle { views.append(v) }
     
-    if !(self.type == .expiredDigiPrint || self.type == .expiredDigilSubscription){
+    if !(self.type == .expiredDigiPrint || self.type == .expiredDigiSubscription){
       views.append(contentsOf: [idInput, firstName, lastName])
     }
   
@@ -160,7 +160,7 @@ public class SubscriptionFormView : FormView{
     
     views.append(contentsOf: [messageLabel, message])
     
-    if self.type == .expiredDigiPrint || self.type == .expiredDigilSubscription {
+    if self.type == .expiredDigiPrint || self.type == .expiredDigiSubscription {
       views.append(requestInfoCheckbox)
     }
     
