@@ -370,7 +370,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   static func updateDefaultsIfNeeded(){
     let dfl = Defaults.singleton
     dfl["showBottomTilesAnimation"]=nil
-    dfl["fakeSubscriptionRequests"]=nil
     dfl.setDefaults(values: ConfigDefaults)
   }
   

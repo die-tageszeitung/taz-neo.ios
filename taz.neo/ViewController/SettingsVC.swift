@@ -40,9 +40,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("bookmarksListTeaserEnabled")
   var bookmarksListTeaserEnabled: Bool
   
-  @Default("fakeSubscriptionRequests")
-  var fakeSubscriptionRequests: Bool
-  
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   
@@ -182,15 +179,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                     self?.bookmarksListTeaserEnabled = newValue
                     Notification.send("BookmarkChanged")
                   })
-  
-  lazy var fakeSubscriptionRequestsCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Abo Formulare simulieren",
-                  detailText: "Mail Kopie an Ringo!",
-                  initialValue: fakeSubscriptionRequests,
-                  onChange: {[weak self] newValue in
-                    self?.fakeSubscriptionRequests = newValue
-                  })
-  
+    
   lazy var tabbarInSectionCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Teige Tabbar auf Sectionebene",
                   initialValue: tabbarInSection,
@@ -601,7 +590,6 @@ extension SettingsVC {
     
     if App.isAlpha {
       cells.append(contentChangeSettingCell)
-      cells.append(fakeSubscriptionRequestsCell)
       cells.append(tabbarInSectionCell)
     }
     return cells

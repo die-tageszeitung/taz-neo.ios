@@ -26,9 +26,6 @@ class SubscriptionFormController : FormsController {
   
   var onMissingNameRequested:(()->())?
   
-  @Default("fakeSubscriptionRequests")
-  var fakeSubscriptionRequests: Bool
-  
   let type: GqlSubscriptionFormDataType
   
   private var contentView:SubscriptionFormView
@@ -41,63 +38,8 @@ class SubscriptionFormController : FormsController {
     ui.cancelButton.touch(self, action: #selector(handleBack))
   }
   
+  // MARK: handleSubmit Action
   @IBAction func handleSubmit(_ sender: UIButton) {
-    fakeSubscriptionRequests
-    ? handleSubmitFake(sender)
-    : handleSubmitReal(sender)
-  }
-  
-  
-  // MARK: handleCancel Action
-  @IBAction func handleSubmitFake(_ sender: UIButton) {
-    ui.blocked = true
-    
-    if let errormessage = ui.validate() {
-      Toast.show(errormessage, .alert)
-      ui.blocked = false
-      return
-    }
-      
-    
-    let msg = """
-    Error Report Zweckentfremded zum testen der Kontaktformulare
-    ===
-        id: \(ui.idInput.text ?? "")
-        firstName: \(ui.firstName.text ?? "")
-        lastName: \(ui.lastName.text ?? "")
-        street: \(ui.street.text ?? "")
-        city: \(ui.city.text ?? "")
-        postcode: \(ui.postcode.text ?? "")
-        country: \(ui.country.text ?? "")
-        requestInfoCheckbox: \(ui.requestInfoCheckbox.checked ? "Bitte Infos" : "Keine Infos")
-    """
-    
-    var mail:String? = nil
-    
-    if let m = ui.idInput.text, m.isValidEmail() { mail = m  }
-    
-    auth.feeder.errorReport(message: msg,
-                           lastAction: nil,
-                           conditions: nil,
-                           deviceData: nil,
-                           errorProtocol: nil,
-                           eMail: mail,
-                           screenshotName: nil,
-                           screenshot: nil) { (result) in
-                            self.ui.blocked = false
-                            switch result{
-                              case .success(let msg):
-                                self.showResultWith(message: "Anfrage übermittelt",
-                                                    backButtonTitle: Self.backButtonTitle,
-                                                    dismissType: .allReal)
-                              case .failure(let err):
-                                Toast.show("Fekhler beim senden", .alert)
-                            }
-    }
-  }
-  
-  // MARK: handleCancel Action
-  @IBAction func handleSubmitReal(_ sender: UIButton) {
     ui.blocked = true
     
     if let errormessage = ui.validate() {
