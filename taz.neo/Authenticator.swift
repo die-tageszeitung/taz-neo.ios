@@ -101,6 +101,7 @@ extension Authenticator {
     kc["token"] = token
     kc["id"] = id
     kc["password"] = password
+    TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
   }
   
   public static func getUserData(requestKeychainPassword: Bool = false) -> (id: String?, password: String?, token: String?) {

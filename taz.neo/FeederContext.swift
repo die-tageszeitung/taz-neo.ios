@@ -278,7 +278,7 @@ open class FeederContext: DoesLog {
   }
 
   /// Ask for push token and report it to server
-  public func setupRemoteNotifications() {
+  public func setupRemoteNotifications(force: Bool? = false) {
     let nd = UIApplication.shared.delegate as! AppDelegate
     let dfl = Defaults.singleton
     let oldToken = dfl["pushToken"] ?? Defaults.lastKnownPushToken
@@ -300,7 +300,7 @@ open class FeederContext: DoesLog {
       }
       dfl["pushToken"] = self.pushToken
             
-      if oldToken != self.pushToken {
+      if force == true || oldToken != self.pushToken {
         let isTextNotification = dfl["isTextNotification"]!.bool
         self.gqlFeeder.notification(pushToken: self.pushToken, oldToken: oldToken,
                                      isTextNotification: isTextNotification) { [weak self] res in
