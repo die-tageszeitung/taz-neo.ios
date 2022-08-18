@@ -307,7 +307,8 @@ public class SearchItem: DoesLog {
         offset: \(offset),
         filter: \(settings.filter),
         rowCnt: \(Self.itemsPerFetch),
-        sorting: \(settings.sorting)
+        sorting: \(settings.sorting),
+        \(TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder.deviceInfoString ?? "") 
       \(sessionArg)
       \(fromDateArg)
        \(toDateArg)
