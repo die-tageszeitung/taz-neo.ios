@@ -299,16 +299,20 @@ open class FeederContext: DoesLog {
         self.pushToken = nil
       }
       dfl["pushToken"] = self.pushToken
+     
+      //not send request if no change and not force happens eg. on every App Start
+      if force == false && oldToken == self.pushToken { return }
+      // if force ensure not to send old token if oldToken == newToken
+      let oldToken = (force == true && oldToken == self.pushToken) ? nil : oldToken
             
-      if force == true || oldToken != self.pushToken {
-        let isTextNotification = dfl["isTextNotification"]!.bool
-        self.gqlFeeder.notification(pushToken: self.pushToken, oldToken: oldToken,
-                                     isTextNotification: isTextNotification) { [weak self] res in
-          if let err = res.error() { self?.error(err) }
-          else {
-            Defaults.lastKnownPushToken = self?.pushToken
-            self?.debug("Updated PushToken")
-          }
+      let isTextNotification = dfl["isTextNotification"]!.bool
+      
+      self.gqlFeeder.notification(pushToken: self.pushToken, oldToken: oldToken,
+                                  isTextNotification: isTextNotification) { [weak self] res in
+        if let err = res.error() { self?.error(err) }
+        else {
+          Defaults.lastKnownPushToken = self?.pushToken
+          self?.debug("Updated PushToken")
         }
       }
     }

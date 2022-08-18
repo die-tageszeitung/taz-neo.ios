@@ -168,6 +168,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                   initialValue: isTextNotification,
                   onChange: {[weak self] newValue in
                     self?.isTextNotification = newValue
+                    TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
                     if newValue == true { self?.checkNotifications() }
                   })
   
