@@ -291,13 +291,13 @@ public class SearchItem: DoesLog {
       
       var searchString = ""
       if let txt = settings.text, !txt.isEmpty {
-        searchString += "text: \"\(txt)\","
+        searchString += "text: \(txt.quote()),"
       }
       if let txt = settings.author, !txt.isEmpty {
-        searchString += "author: \"\(txt)\","
+        searchString += "author: \(txt.quote()),"
       }
       if let txt = settings.title, !txt.isEmpty {
-        searchString += "title: \"\(txt)\","
+        searchString += "title: \(txt.quote()),"
       }
       
       
