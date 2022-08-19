@@ -48,7 +48,16 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   
   var authenticator: Authenticator? { return feederContext?.authenticator }
   
-  public var expiredAccountInfoShown = false
+  //ToDo Refactor this, make a small Business which includes Settings, Accound Expired, handle login with expiredAccount ... when implement login with expiredAccount
+  ///Last error: loggedIn with Expired Account, ExpiredAccountFeederError was not unset when login with other account, when this also expiures (in one App Session!) popup not shown, no more "Ihr Konto ist wieder aktiv"
+  ///...expired Info not shown in Settings until App-Restart; Under demo Article No Info
+  public var expiredAccountInfoShown = false {
+    didSet {
+      if expiredAccountInfoShown == false {
+        feederContext?.clearExpiredAccountFeederError()
+      }
+    }
+  }
 
   @Key("dataPolicyAccepted")
   public var dataPolicyAccepted: Bool
@@ -184,6 +193,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
     onThreadAfter {
       Notification.send(Const.NotificationNames.logoutUserDataDeleted)
     }
+    expiredAccountInfoShown = false
     feederContext?.setupRemoteNotifications(force: true)
   }
   
