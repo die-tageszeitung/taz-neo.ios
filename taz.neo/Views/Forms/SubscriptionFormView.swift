@@ -21,7 +21,7 @@ public class SubscriptionFormView : FormView{
                                     textContentType: .emailAddress,
                                     enablesReturnKeyAutomatically: true,
                                     keyboardType: .default,
-                                    autocapitalizationType: .words)
+                                    autocapitalizationType: .none)
     
   var firstName = TazTextField(placeholder: "Vorname",
                                textContentType: .givenName,

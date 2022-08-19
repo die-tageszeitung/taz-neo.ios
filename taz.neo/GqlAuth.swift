@@ -406,17 +406,18 @@ extension GqlFeeder {
     
     fields.append("type: \(type.toString())")
     
-    if let str = mail {  fields.append("mail: \"\(str)\"") }
-    if let str = surname {  fields.append("surname: \"\(str)\"") }
-    if let str = firstName {  fields.append("firstName: \"\(str)\"") }
-    if let str = street {  fields.append("street: \"\(str)\"") }
-    if let str = city {  fields.append("city: \"\(str)\"") }
-    if let str = postcode {  fields.append("postcode: \"\(str)\"") }
-    if let str = country {  fields.append("country: \"\(str)\"") }
-    if let str = message {  fields.append("message: \"\(str)\"") }
+    if let str = mail {  fields.append("mail: \(str.quote())") }
+    if let str = surname {  fields.append("surname: \(str.quote())") }
+    if let str = firstName {  fields.append("firstName: \(str.quote())") }
+    if let str = street {  fields.append("street: \(str.quote())") }
+    if let str = city {  fields.append("city: \(str.quote())") }
+    if let str = postcode {  fields.append("postcode: \(str.quote())") }
+    if let str = country {  fields.append("country: \(str.quote())") }
+    if let str = message {  fields.append("message: \(str.quote())") }
     if let bool = requestCurrentSubscriptionOpportunities {
       fields.append("requestCurrentSubscriptionOpportunities: \(bool ? "true" : "false")")
     }
+    //Later maybe: subscriptionFormData(\(fields.joined(separator: ", ")), \(deviceInfoString)) {
     let request = """
       subscriptionFormData(\(fields.joined(separator: ", "))) {
         \(GqlSubscriptionFormData.fields)
