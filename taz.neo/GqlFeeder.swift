@@ -55,7 +55,6 @@ struct GqlCustomerInfo: GQLObject {
   var customerType:  GqlCustomerType?
   /// Optional message in case of !valid
   var cancellation: String?
-  
   /// Optional message in case of !valid
   var sampleType: String?
   
@@ -97,8 +96,9 @@ struct GqlAuthToken: GQLObject {
   var token: String?
   /// Authentication info
   var authInfo: GqlAuthInfo
+  var customerType: GqlCustomerType?
   
-  static var fields = "token authInfo{\(GqlAuthInfo.fields)}"
+  static var fields = "token authInfo{\(GqlAuthInfo.fields)} customerType"
   
   func toString() -> String {
     var ret: String
@@ -739,7 +739,9 @@ open class GqlFeeder: Feeder, DoesLog {
           self?.status?.authInfo = atoken.authInfo
           switch atoken.authInfo.status {
             case .expired, .unlinked, .invalid, .alreadyLinked, .notValidMail, .unknown:
-              ret = .failure(AuthStatusError(status: atoken.authInfo.status, message: atoken.authInfo.message))
+              ret = .failure(AuthStatusError(status: atoken.authInfo.status,
+                                             customerType: atoken.customerType,
+                                             message: atoken.authInfo.message))
             case .valid:
               self?.authToken = atoken.token!
               ret = .success(atoken.token!)
@@ -910,8 +912,9 @@ open class GqlFeeder: Feeder, DoesLog {
           if req.authInfo.status == .valid
              && Defaults.expiredAccountDate != nil { //account not expired anymore
             TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
-              Alert.message(message: "Ihr Abo ist wieder aktiv!")
-              Defaults.expiredAccountDate = nil
+            TazAppEnvironment.sharedInstance.feederContext?.clearExpiredAccountFeederError()
+            Alert.message(message: "Ihr Abo ist wieder aktiv!")
+            Defaults.expiredAccountDate = nil
           }
           else if req.authInfo.status == .expired
                   && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {

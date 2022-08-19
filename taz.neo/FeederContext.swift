@@ -579,14 +579,18 @@ open class FeederContext: DoesLog {
     self.gqlFeeder.customerInfo { [weak self] res in
       switch res {
       case .success(let ci):
-       print(ci)
-          self?.log("Update CustomerType from: \(Defaults.customerType) to \(ci.customerType)" )
           Defaults.customerType = ci.customerType
           closure(true)
       case .failure(let err):
           self?.log("cannot get customerInfo: \(err)")
           closure(false)
       }
+    }
+  }
+  
+  func clearExpiredAccountFeederError(){
+    if currentFeederErrorReason == .expiredAccount(nil) {
+      currentFeederErrorReason = nil
     }
   }
   

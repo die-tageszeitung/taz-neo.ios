@@ -81,6 +81,7 @@ public enum FeederError: Error, Equatable {
 
 struct AuthStatusError: Swift.Error {
   var status:  GqlAuthStatus
+  var customerType:  GqlCustomerType?
   var message: String?
 }
 

@@ -118,7 +118,7 @@ class LoginController: FormsController {
                 SubscriptionFormController(type: .expiredDigiSubscription,
                                            auth: self.auth,
                                            expireDate: expiredDate,
-                                           customerType: nil)
+                                           customerType: authStatusError.customerType)
               )
             case .unlinked:
               self.modalFlip(AskForTrial_Controller(tazId: tazId,
