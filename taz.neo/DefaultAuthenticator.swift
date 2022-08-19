@@ -137,12 +137,6 @@ public class DefaultAuthenticator: Authenticator {
   
   private var firstPresentedAuthController:UIViewController?
   
-  /// Root view controller to present Forms
-  private lazy var rootVC: UIViewController? = {
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    return appDelegate.window?.rootViewController
-  }()
-  
   /// Closure to call when polling of suscription status is required
   private var performPollingClosure: (()->())?
   /// Define closure to call when polling is necessary
@@ -235,7 +229,12 @@ public class DefaultAuthenticator: Authenticator {
   }
   
   public func authenticate(with targetVC:UIViewController? = nil) {
-    guard let rootVC = targetVC ?? rootVC else { return }
+    
+    guard let rootVC
+    = targetVC
+    ??  (TazAppEnvironment.sharedInstance.rootViewController as? UITabBarController)?.selectedViewController
+    ?? UIWindow.rootVC
+    else { return }
     
     let handleExpired = Defaults.expiredAccountText != nil
 
