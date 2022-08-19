@@ -147,8 +147,6 @@ open class ArticleVC: ContentVC {
           self.toggleBookmark(art: art as? StoredArticle)
         }
         if art.primaryIssue?.isReduced ?? false {
-          #warning("not working reliable on simulator!!")
-          print("add atEndofcontent to: \(art.title)")
           self.atEndOfContent() { [weak self] isAtEnd in
             if isAtEnd { self?.feederContext.authenticate() }
           }
