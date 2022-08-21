@@ -417,9 +417,8 @@ extension GqlFeeder {
     if let bool = requestCurrentSubscriptionOpportunities {
       fields.append("requestCurrentSubscriptionOpportunities: \(bool ? "true" : "false")")
     }
-    //Later maybe: subscriptionFormData(\(fields.joined(separator: ", ")), \(deviceInfoString)) {
     let request = """
-      subscriptionFormData(\(fields.joined(separator: ", "))) {
+      subscriptionFormData(\(fields.joined(separator: ", ")), \(deviceInfoString)) {
         \(GqlSubscriptionFormData.fields)
       }
     """
