@@ -62,8 +62,8 @@ public class LoginView : FormView{
   }()
   
   var trialSubscriptionButton = Padded.Button(title: "Kostenlos Probelesen")
-  var switchButton = Padded.Button(title: "Wechseln")
-  var extendButton = Padded.Button(title: "Zubuchen")
+  var switchButton = Padded.Button(title: "Kostenlos auf Digital umsteigen")
+  var extendButton = Padded.Button(title: "Jetzt digital freischalten")
     
   func marketingContainerWidth(button: Padded.Button,
                                htmlFile:String,
@@ -76,8 +76,12 @@ public class LoginView : FormView{
     if trialHtml.exists {
       let wv = WebView()
       //      wv.webView.load(url: dataPolicy.url)
+      wv.whenLoaded {_ in
+        wv.evaluateJavaScript("document.body.scrollHeight", completionHandler: { (height, error) in
+          wv.pinHeight((height as! CGFloat) - 15.0)
+        })
+      }
       wv.load(url: trialHtml.url)
-      wv.pinHeight(htmlHeight)
       wv.isOpaque = false
       wv.backgroundColor = .clear
       intro = wv
@@ -121,7 +125,6 @@ public class LoginView : FormView{
                               fallbackText: Localized("trial_subscription_title")),
       marketingContainerWidth(button: extendButton,
                               htmlFile: Dir.appSupportPath.appending("/taz/resources/extend.html"),
-                              htmlHeight: 290,
                               fallbackText: Localized("trial_subscription_title")),
       marketingContainerWidth(button: switchButton,
                               htmlFile: Dir.appSupportPath.appending("/taz/resources/switch.html"),
