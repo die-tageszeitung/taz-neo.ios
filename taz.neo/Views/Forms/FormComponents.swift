@@ -106,6 +106,7 @@ extension Padded.Label{
   convenience init(title: String? = nil,
                    font: UIFont = Const.Fonts.contentFont(size: DefaultFontSize),
                    textColor: UIColor = Const.SetColor.CTDate.color,
+                   textAlignment: NSTextAlignment = .left,
                    paddingTop: CGFloat = 8,
                    paddingBottom: CGFloat = 8) {
     self.init()
@@ -115,7 +116,7 @@ extension Padded.Label{
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
     self.numberOfLines = 0
-    self.textAlignment = .center
+    self.textAlignment = textAlignment
   }
 }
 

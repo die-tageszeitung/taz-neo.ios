@@ -74,7 +74,6 @@ public class TrialSubscriptionView : FormView{
     pass2Input.delegate = self
     
     return   [
-      TazHeader(),
       Padded.Label(title: Localized("trial_subscription_title")),
       mailInput,
       passInput,

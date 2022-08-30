@@ -191,7 +191,6 @@ class AskForTrial_Controller: FormsController {
     self.tazIdPass = tazIdPass
     super.init(auth)
     ui.views = [
-      TazHeader(),
       Padded.Label(title: Localized("unconnected_taz_id_header"),
                    paddingTop: 30,
                    paddingBottom: 30

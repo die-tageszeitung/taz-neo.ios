@@ -62,19 +62,18 @@ public class SubscriptionFormView : FormView{
   var requestInfoCheckbox: CheckboxWithText = {
     let view = CheckboxWithText()
     view.textView.isEditable = false
-    view.textView.text = "Bitte informieren Sie mich zu aktuellen Abo Möglichkeiten"
+    view.textView.text = "Bitte informieren Sie mich zu aktuellen Abo-Möglichkeiten"
     view.textView.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
     view.textView.textColor = Const.SetColor.HText.color
     return view
   }()
   
-  var messageLabel = Padded.Label(title: "Ihre Nachricht:").contentFont(size: Const.Size.SmallerFontSize).align(.left)
-
-  var message:UITextView = {
-    let ti = UITextView()
-    ti.pinHeight(50)
-    ti.addBorder(.lightGray, 0.5)
-    ti.layer.cornerRadius = 8.0
+  var message:ViewWithTextView = {
+    let ti
+    = ViewWithTextView(text: nil,
+                       font: Const.Fonts.contentFont(size: Const.Size.DefaultFontSize))
+    ti.placeholder = "Ihre Nachricht"
+    ti.border.isHidden = false
     return ti
   }()
 
@@ -130,9 +129,9 @@ public class SubscriptionFormView : FormView{
       case .expiredDigiPrint, .expiredDigiSubscription:
         text = """
         Wir haben Ihnen zum Ablauf Ihres \(abo) Informationen zu unseren Abonnements an Ihre E-Mail-Adresse zugesandt.
-        Falls Sie diese E-Mail nicht finden können, oder weitere Fragen an unsere Aboabteilung haben, können Sie jetzt einfach der Abo Abteilung eine Nachricht zusenden.
+        Falls Sie diese E-Mail nicht finden können, oder weitere Fragen haben, können Sie jetzt einfach unserem Service-Team eine Nachricht zusenden.
         
-        Für weitere Fragen, wenden Sie sich bitte an unseren Service unter: fragen@taz.de
+        Für weitere Fragen erreichen Sie unser Service-Team auch unter: fragen@taz.de
         """
       case .print2Digi://Achtung anderer Text erst in Step 2 mit Taz-ID!!
         text = "Das machen wir gerne! Geben Sie Ihre bei uns hinterlegten Kundendaten ein, so dass wir Sie zuordnen können. Wir werden sie dann kontaktieren, so dass Sie schnell an Ihre Zugangsdaten kommen."
@@ -158,7 +157,7 @@ public class SubscriptionFormView : FormView{
       views.append(contentsOf: [street, city, postcode, country])
     }
     
-    views.append(contentsOf: [messageLabel, message])
+    views.append(message)
     
     if self.type == .expiredDigiPrint || self.type == .expiredDigiSubscription {
       views.append(requestInfoCheckbox)
@@ -189,9 +188,16 @@ public class SubscriptionFormView : FormView{
       }
     }
     
-    if (message.text ?? "").isEmpty || message.text.length < 8 {
+    if (message.text ?? "").isEmpty {
       errors = true
-      Toast.show("Bitte Feld Nachricht ausfüllen!", .alert)
+      message.bottomMessage = "Bitte ausfüllen!"
+    }
+    else if (message.text?.length ?? 0) < 8 {
+      errors = true
+      message.bottomMessage = "Ihre Nachricht ist zu kurz!"
+    }
+    else {
+      message.bottomMessage = nil
     }
     
     if errors {

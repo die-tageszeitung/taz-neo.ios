@@ -78,7 +78,6 @@ public class ConnectTazIdView : FormView{
     pass2Input.delegate = self
     
     return [
-      TazHeader(),
       Padded.Label(title: Localized("taz_id_account_create_intro")),
       alreadyHaveTazIdButton,
       mailInput,

@@ -134,7 +134,6 @@ class PasswordResetRequestedSuccessController: FormsResultController {
     super.init(nibName: nil, bundle: nil)
     self.dismissType = .two
     ui.views =  [
-      TazHeader(),
       Padded.Label(title: Localized("login_forgot_password_email_sent_header"),
               paddingTop: 30,
               paddingBottom: 30
@@ -164,7 +163,6 @@ class SubscriptionResetSuccessController: FormsResultController, MFMailComposeVi
     super.init(nibName: nil, bundle: nil)
     self.dismissType = .two
     ui.views =   [
-      TazHeader(),
       Padded.Label(title: Localized("login_forgot_password_email_sent_header")
       ),
       Padded.Label(title: Localized("subscription_reset_found_link")

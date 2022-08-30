@@ -174,7 +174,6 @@ class TrialSubscriptionRequestNameCtrl : TrialSubscriptionController{
     ui.registerButton.setTitle(Localized("send_button"), for: .normal)
     // Dialog mit Probeabo
     ui.views = [
-      TazHeader(),
       Padded.Label(title: Localized("fragment_login_missing__names_header")),
       ui.firstnameInput,
       ui.lastnameInput,

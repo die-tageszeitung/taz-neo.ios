@@ -61,8 +61,8 @@ class SubscriptionFormController : FormsController {
       self?.ui.blocked = false
       switch result{
         case .success(let msg):
-          self?.showResultWith(message: "Anfrage übermittelt",
-                              backButtonTitle: Self.backButtonTitle,
+          self?.showResultWith(message: "Ihre Anfrage wurde an unser Serviceteam übermittelt. Für weitere Fragen erreichen Sie unser Service-Team unter: fragen@taz.de",
+                              backButtonTitle: "Schließen",
                               dismissType: .allReal)
           self?.log("Success: \(msg)")
         case .failure(let err):

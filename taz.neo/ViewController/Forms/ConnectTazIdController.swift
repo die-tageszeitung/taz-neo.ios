@@ -165,7 +165,6 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
     ui.registerButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     
     ui.views = [
-      TazHeader(),
       Padded.Label(title: Localized("connect_abo_id_title")),
       ui.mailInput,//Is now Number Input
       ui.passInput,
@@ -231,7 +230,6 @@ class ConnectTazIdRequestNameCtrl : ConnectTazIdController{
     super.init(aboId: aboId, aboIdPassword: aboIdPassword, auth: auth)
     ui.registerButton.setTitle(Localized("send_button"), for: .normal)
     ui.views = [
-      TazHeader(),
       Padded.Label(title: Localized("taz_id_account_create_intro")),
       ui.firstnameInput,
       ui.lastnameInput,
@@ -272,7 +270,6 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     ui.registerButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     
     ui.views = [
-      TazHeader(),
       Padded.Label(title: Localized("fragment_login_request_test_subscription_existing_account")),
       Padded.Button(type: .label,
                title: Localized("fragment_login_missing_credentials_switch_to_registration"),

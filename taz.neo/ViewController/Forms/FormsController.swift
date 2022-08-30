@@ -146,7 +146,7 @@ class FormsResultController: UIViewController {
     super.viewDidLoad()
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(ui)
-    pin(ui, toSafe: self.view).top.constant = 0
+    pin(ui, to: self.view).top.constant = 0
     setupXButton()
   }
   
@@ -203,7 +203,6 @@ class FormsResultController: UIViewController {
     messageLabel2.numberOfLines = 0
     
     ui.views = [
-      TazHeader(),
       messageLabel,
       messageLabel2,
       Padded.Button(title: backButtonTitle,

@@ -89,7 +89,7 @@ public class LoginView : FormView{
       let lbl = UILabel()
       lbl.text = fallbackText
       lbl.numberOfLines = 0
-      lbl.textAlignment = .center
+      lbl.textAlignment = .left
       lbl.contentFont()
       intro = lbl
     }
@@ -114,7 +114,7 @@ public class LoginView : FormView{
     idInput.paddingBottom = Self.miniPadding
     passInput.paddingBottom = Self.miniPadding
     return   [
-      Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").boldContentFont(size: 18),
+      Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").boldContentFont(size: 18).align(.left),
       idInput,
       whereIsTheAboId,
       passInput,
@@ -171,7 +171,6 @@ public class NotLinkedLoginAboIDView : LoginView {
   override func createSubviews() -> [UIView] {
     loginButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     return   [
-      TazHeader(),
       Padded.Label(title: Localized("connect_abo_id_title")),
       aboIdInput,
       passInput,

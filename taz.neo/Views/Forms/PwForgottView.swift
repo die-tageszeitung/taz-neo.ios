@@ -16,7 +16,6 @@ public class PwForgottView : FormView{
   
   override func createSubviews() -> [UIView] {
     return  [
-      TazHeader(),
       introLabel,
       idInput,
       submitButton,

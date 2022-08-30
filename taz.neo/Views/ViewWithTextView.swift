@@ -23,6 +23,13 @@ public class ViewWithTextView : UIStackView{
   let bottomLabel = UILabel()
   let textView = PlaceholderUITextView()
   
+  lazy var border : UIView = {
+    let v = UIView()
+    v.pinHeight(2.0)
+    v.addBorderView(.black, 1.0, edge: .bottom, insets: .zero)
+    return v
+  }()
+  
   weak open var delegate: UITextViewDelegate? {
     didSet {
       textView.tvDelegate = delegate
@@ -88,6 +95,7 @@ public class ViewWithTextView : UIStackView{
     
     self.addArrangedSubview(topLabel)
     self.addArrangedSubview(textView)
+    self.addArrangedSubview(border)
     self.addArrangedSubview(bottomLabel)
     
     textView.textContainerInset = UIEdgeInsets.zero
@@ -103,7 +111,7 @@ public class ViewWithTextView : UIStackView{
 }
 
 class PlaceholderUITextView: UITextView {
-  
+  public var placeholderInsets:UIEdgeInsets = .zero
   public var placeholder:String?{  didSet{ setup()}  }
   weak open var tvDelegate: UITextViewDelegate?
   
@@ -115,8 +123,8 @@ class PlaceholderUITextView: UITextView {
     if self.placeholder == nil { return }
     super.delegate = self
     self.insertSubview(placeholderLabel, at: 0)
-    pin(placeholderLabel.top, to: self.top)
-    pin(placeholderLabel.left, to: self.left)
+    pin(placeholderLabel.top, to: self.top, dist: placeholderInsets.top)
+    pin(placeholderLabel.left, to: self.left, dist: placeholderInsets.left)
     placeholderLabel.numberOfLines = 0
     placeholderLabel.text = placeholder
   }
