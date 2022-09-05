@@ -55,7 +55,6 @@ class SubscriptionFormController : FormsController {
                                      street: ui.street.text,
                                      city: ui.city.text,
                                      postcode: ui.postcode.text,
-                                     country: ui.country.text,
                                      message: ui.message.text,
                                      requestCurrentSubscriptionOpportunities: ui.requestInfoCheckbox.checked){ [weak self] (result) in
       self?.ui.blocked = false

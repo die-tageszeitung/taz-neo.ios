@@ -83,6 +83,7 @@ struct AuthStatusError: Swift.Error {
   var status:  GqlAuthStatus
   var customerType:  GqlCustomerType?
   var message: String?
+  var token: String?
 }
 
 struct DefaultError: Swift.Error {

@@ -394,7 +394,6 @@ extension GqlFeeder {
                             street: String?,
                             city: String?,
                             postcode: String?,
-                            country: String?,
                             message: String?,
                             requestCurrentSubscriptionOpportunities: Bool?,
                             closure: @escaping(Result<Bool,Error>)->()) {
@@ -412,7 +411,6 @@ extension GqlFeeder {
     if let str = street {  fields.append("street: \(str.quote())") }
     if let str = city {  fields.append("city: \(str.quote())") }
     if let str = postcode {  fields.append("postcode: \(str.quote())") }
-    if let str = country {  fields.append("country: \(str.quote())") }
     if let str = message {  fields.append("message: \(str.quote())") }
     if let bool = requestCurrentSubscriptionOpportunities {
       fields.append("requestCurrentSubscriptionOpportunities: \(bool ? "true" : "false")")

@@ -53,12 +53,6 @@ public class SubscriptionFormView : FormView{
                                keyboardType: .numberPad,
                                autocapitalizationType: .none)
   
-  var country = TazTextField(placeholder: "Land",
-                               textContentType: .countryName,
-                               enablesReturnKeyAutomatically: true,
-                               keyboardType: .default,
-                               autocapitalizationType: .words)
-  
   var requestInfoCheckbox: CheckboxWithText = {
     let view = CheckboxWithText()
     view.textView.isEditable = false
@@ -102,7 +96,7 @@ public class SubscriptionFormView : FormView{
           text = "Ihr \(abo) ist abgelaufen."
         }
       case .print2Digi:
-        text = "Ja!Ich möchte nur noch digital lesen."
+        text = "Ja! Ich möchte nur noch digital lesen."
       case .printPlusDigi:
         text = "Ja! Schalten Sie die App zu meinem Abo frei!"
       default:
@@ -134,9 +128,9 @@ public class SubscriptionFormView : FormView{
         Für weitere Fragen erreichen Sie unser Service-Team auch unter: fragen@taz.de
         """
       case .print2Digi://Achtung anderer Text erst in Step 2 mit Taz-ID!!
-        text = "Das machen wir gerne! Geben Sie Ihre bei uns hinterlegten Kundendaten ein, so dass wir Sie zuordnen können. Wir werden sie dann kontaktieren, so dass Sie schnell an Ihre Zugangsdaten kommen."
+        text = "Super! Auf in die Zukunft. Herzlichen Glückwunsch zu diesem Schritt. Um Sie einordnen zu können, brauchen wir ein paar Daten von Ihnen.\nWir kontaktieren Sie in den nächsten Tagen per Mail."
       case .printPlusDigi:
-        text = "Das machen wir gerne! Geben Sie Ihre bei uns hinterlegten Kundendaten ein, so dass wir Sie zuordnen können. Wir werden sie dann kontaktieren, so dass Sie schnell an Ihre Zugangsdaten kommen."
+        text = "Das machen wir gerne! Geben Sie Ihre bei uns hinterlegten Kundendaten ein, so dass wir Sie zuordnen können.\nWir werden Sie dann kontaktieren."
       default:
         break
     }
@@ -154,7 +148,7 @@ public class SubscriptionFormView : FormView{
     }
   
     if type == .print2Digi || type == .printPlusDigi || type == .weekendPlusDigi {
-      views.append(contentsOf: [street, city, postcode, country])
+      views.append(contentsOf: [street, city, postcode])
     }
     
     views.append(message)
@@ -173,18 +167,16 @@ public class SubscriptionFormView : FormView{
     var errors = false
     //switch or zubuchen
     if type == .print2Digi || type == .printPlusDigi || type == .weekendPlusDigi {
-      if "\(postcode.text ?? "")\(city.text ?? "")\(street.text ?? "")\(country.text ?? "")".length < 15 {
+      if "\(postcode.text ?? "")\(city.text ?? "")\(street.text ?? "")".length < 12 {
         postcode.bottomMessage = "Bitte Adresse überprüfen"
         city.bottomMessage = "Bitte Adresse überprüfen"
         street.bottomMessage = "Bitte Adresse überprüfen"
-        country.bottomMessage = "Bitte Adresse überprüfen"
         errors = true
       }
       else {
         postcode.bottomMessage = ""
         city.bottomMessage = ""
         street.bottomMessage = ""
-        country.bottomMessage = ""
       }
     }
     

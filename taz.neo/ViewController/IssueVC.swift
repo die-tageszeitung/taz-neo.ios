@@ -457,10 +457,19 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     login.accessibilityLabel = "Anmelden"
     login.isAccessibilityElement = true
     login.contentFont()
-    login.textColor = .white
+    login.textColor = Const.Colors.iconButtonInactive
     login.text = "Anmelden"
+    
+    let arrow = UIImageView(image: UIImage(name: "arrow.right"))
+    arrow.tintColor = Const.Colors.iconButtonInactive
+    
+    let wrapper = UIView()
+    wrapper.addSubview(login)
+    wrapper.addSubview(arrow)
+    pin(login, to: wrapper, dist:Const.Size.DefaultPadding, exclude: .right)
+    pin(arrow, to: wrapper, dist:Const.Size.DefaultPadding, exclude: .left)
+    pin(login.right, to: arrow.left, dist: -5.0)
 
-    let wrapper = login.wrapper(Const.Insets.Default)
     wrapper.onTapping { [weak self] _ in
        self?.feederContext.authenticate()
     }

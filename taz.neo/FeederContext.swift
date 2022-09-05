@@ -594,7 +594,7 @@ open class FeederContext: DoesLog {
     }
   }
   
-  private var currentFeederErrorReason : FeederError?
+  var currentFeederErrorReason : FeederError?
   
   /// Feeder has flagged an error
   func handleFeederError(_ err: FeederError, closure: @escaping ()->()) {
@@ -617,8 +617,9 @@ open class FeederContext: DoesLog {
         if Defaults.expiredAccountDate != nil {
           return //dont show popup on each start
         }
-        
-        if Defaults.expiredAccountDate == nil { Defaults.expiredAccountDate =  err.expiredAccountDate ?? Date()}
+        if Defaults.expiredAccountDate == nil {
+          Defaults.expiredAccountDate =  err.expiredAccountDate ?? Date()
+        }
         updateSubscriptionStatus { _ in
           self.authenticator.authenticate(with: nil)
         }
@@ -635,7 +636,6 @@ open class FeederContext: DoesLog {
           exit(0)
         }
     }
-    
     Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: { [weak self] in
       ///Do not authenticate here because its not needed here e.g.
       /// expired account due probeabo, user may not want to auth again

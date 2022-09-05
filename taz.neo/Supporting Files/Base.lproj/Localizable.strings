@@ -39,7 +39,16 @@
 "trial_subscription_title" = "Sie möchten die digitale Ausgabe der taz 6 Wochen kostenlos und unverbindlich testen?";
 
 /* translation from Android */
-"ask_for_trial_subscription_title" = "Möchten Sie die digitale Ausgabe der taz 6 Wochen kostenlos testen?";
+"login_trial_subscription_title" = "Noch kein Abo?";
+"login_trial_subscription_body" = "Testen Sie uns doch mal 6 Wochen für umme! Nach 6 Wochen können Sie unabhängigen Journalismus mit 45.000 anderen digitalen Leser:innen in verschiedenen Abo-Modellen lesen.";
+"login_trial_subscription_button_text" = "Jetzt kostenlos testen";
+"login_switch_print2digi_title" = "Papierlos glücklich lesen";
+"login_switch_print2digi_body" = "Sie haben ein Print-Abo und wollen nur noch digital lesen? Auf in die Zukunft! taz wird digital. Machen Sie es wie weitere 45.000 digitale Leser:innen.\nWie es geht? Kontaktieren Sie unser Service-Team.";
+"login_switch_print2digi_button_text" = "Jetzt informieren";
+"login_extend_print_with_digi_title" = "Sie haben die taz im Print \nund möchten diese um Digital erweitern?";
+"login_extend_print_with_digi_body" = "Kein Problem — kontaktieren Sie unser Service-Team.";
+"login_extend_print_with_digi_button_text" = "Jetzt Infos anfordern";
+
 
 
 "no_mail_title" = "Achtung";

@@ -114,12 +114,24 @@ class LoginController: FormsController {
               if let isoDate = authStatusError.message {
                 expiredDate = UsTime(iso:isoDate).date
               }
-              self.modalFlip(
-                SubscriptionFormController(type: .expiredDigiSubscription,
+              TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason =
+              FeederError.expiredAccount(authStatusError.message)
+              Defaults.expiredAccountDate =  expiredDate ?? Date()
+              let expiredForm
+              = SubscriptionFormController(type: .expiredDigiSubscription,
                                            auth: self.auth,
                                            expireDate: expiredDate,
                                            customerType: authStatusError.customerType)
-              )
+              expiredForm.dismissAllFinishedClosure = {
+                Notification.send(Const.NotificationNames.authenticationSucceeded)
+              }
+              expiredForm.dismissType = .allReal
+              
+              if let token = authStatusError.token {
+                DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPass, token: token)
+              }
+              
+              self.modalFlip(expiredForm)
             case .unlinked:
               self.modalFlip(AskForTrial_Controller(tazId: tazId,
                                                     tazIdPass: tazIdPass,

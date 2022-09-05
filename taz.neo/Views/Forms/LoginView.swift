@@ -61,21 +61,21 @@ public class LoginView : FormView{
     return wrapper
   }()
   
-  var trialSubscriptionButton = Padded.Button(title: "Kostenlos Probelesen")
-  var switchButton = Padded.Button(title: "Kostenlos auf Digital umsteigen")
-  var extendButton = Padded.Button(title: "Jetzt digital freischalten")
+  var trialSubscriptionButton = Padded.Button(title: Localized("login_trial_subscription_button_text"))
+  var switchButton = Padded.Button(title: Localized("login_switch_print2digi_button_text"))
+  var extendButton = Padded.Button(title: Localized("login_extend_print_with_digi_button_text"))
     
   func marketingContainerWidth(button: Padded.Button,
                                htmlFile:String,
                                htmlHeight:CGFloat = 150,
+                               fallbackTitle: String?,
                                fallbackText:String) -> Padded.View{
     let wrapper = Padded.View()
     var intro:UIView
     let trialHtml = File(htmlFile)
     
-    if trialHtml.exists {
+    if false && trialHtml.exists {//deactivated for release
       let wv = WebView()
-      //      wv.webView.load(url: dataPolicy.url)
       wv.whenLoaded {_ in
         wv.evaluateJavaScript("document.body.scrollHeight", completionHandler: { (height, error) in
           wv.pinHeight((height as! CGFloat) - 15.0)
@@ -91,7 +91,25 @@ public class LoginView : FormView{
       lbl.numberOfLines = 0
       lbl.textAlignment = .left
       lbl.contentFont()
-      intro = lbl
+      
+      if let title = fallbackTitle, title.length > 0 {
+        let tl = UILabel()
+        tl.text = title
+        tl.numberOfLines = 0
+        tl.textAlignment = .left
+        tl.contentFont(size: Const.Size.SubtitleFontSize)
+        let wrapper = UIStackView()
+        wrapper.axis = .vertical
+        wrapper.spacing = 6.0
+        wrapper.alignment = .top
+        wrapper.distribution = .fillProportionally
+        wrapper.addArrangedSubview(tl)
+        wrapper.addArrangedSubview(lbl)
+        intro = wrapper
+      }
+      else {
+        intro = lbl
+      }
     }
     
     wrapper.addSubview(intro)
@@ -114,21 +132,24 @@ public class LoginView : FormView{
     idInput.paddingBottom = Self.miniPadding
     passInput.paddingBottom = Self.miniPadding
     return   [
-      Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").boldContentFont(size: 18).align(.left),
+      Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").contentFont(size: Const.Size.SubtitleFontSize).align(.left),
       idInput,
-      whereIsTheAboId,
+      /*whereIsTheAboId,*/
       passInput,
       passForgottButton,
       loginButton,
       marketingContainerWidth(button: trialSubscriptionButton,
                               htmlFile: Dir.appSupportPath.appending("/taz/resources/trialNOTEXISTFALLBACHTEST.html"),
-                              fallbackText: Localized("trial_subscription_title")),
-      marketingContainerWidth(button: extendButton,
-                              htmlFile: Dir.appSupportPath.appending("/taz/resources/extend.html"),
-                              fallbackText: Localized("trial_subscription_title")),
+                              fallbackTitle: Localized("login_trial_subscription_title"),
+                              fallbackText: Localized("login_trial_subscription_body")),
       marketingContainerWidth(button: switchButton,
-                              htmlFile: Dir.appSupportPath.appending("/taz/resources/switch.html"),
-                              fallbackText: Localized("trial_subscription_title"))
+                              htmlFile: Dir.appSupportPath.appending("/taz/resources/switch1.html"),
+                              fallbackTitle: Localized("login_switch_print2digi_title"),
+                              fallbackText: Localized("login_switch_print2digi_body")),
+      marketingContainerWidth(button: extendButton,
+                              htmlFile: Dir.appSupportPath.appending("/taz/resources/extend1.html"),
+                              fallbackTitle: Localized("login_extend_print_with_digi_title"),
+                              fallbackText: Localized("login_extend_print_with_digi_body"))
     ]
   }
   

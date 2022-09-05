@@ -737,16 +737,22 @@ open class GqlFeeder: Feeder, DoesLog {
         case .success(let auth):
           let atoken = auth["authToken"]!
           self?.status?.authInfo = atoken.authInfo
+          if let token = atoken.token {
+            self?.authToken = token
+          }
           switch atoken.authInfo.status {
             case .expired, .unlinked, .invalid, .alreadyLinked, .notValidMail, .unknown:
               ret = .failure(AuthStatusError(status: atoken.authInfo.status,
                                              customerType: atoken.customerType,
-                                             message: atoken.authInfo.message))
+                                             message: atoken.authInfo.message,
+                                             token: atoken.token))
+              
             case .valid:
-              self?.authToken = atoken.token!
               ret = .success(atoken.token!)
-        }
-        case .failure(let err):  ret = .failure(err)
+          }
+        case .failure(let err):
+          self?.log("test: \(err)")
+          ret = .failure(err)
       }
       closure(ret)
     }
