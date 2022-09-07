@@ -64,10 +64,16 @@ public class FeedbackView : UIView {
   }
   
   private func setup() {
-    self.onTapping { [weak self] (_) in
-      self?.endEditing(false)
-    }
     setupText()
+    
+    self.onTapping { [weak self] (_) in self?.endEditing(false)}
+//    senderMailDescriptionLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    lastInteractionTextView.topLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    lastInteractionTextView.bottomLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    environmentTextView.topLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    environmentTextView.bottomLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    messageTextView.topLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    messageTextView.bottomLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
 
     cancelButton.setTitle("Abbrechen", for: .normal)
     cancelButton.setTitleColor(Const.SetColor.ios(.link).color, for: .normal)
