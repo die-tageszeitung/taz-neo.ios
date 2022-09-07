@@ -70,6 +70,11 @@ class SubscriptionFormController : FormsController {
       }
     }
   }
+  
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    super.handleBack(nil)
+  }
     
   required init(type: GqlSubscriptionFormDataType,
                 auth:AuthMediator,
