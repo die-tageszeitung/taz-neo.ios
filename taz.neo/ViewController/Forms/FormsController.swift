@@ -129,9 +129,7 @@ class FormsResultController: UIViewController {
     pin(xButton.right, to: self.view.rightGuide(), dist: -15)
     pin(xButton.top, to: self.view.topGuide(), dist: 15)
     xButton.onPress { [weak self] _ in
-      guard let self = self else { return }
-      self.dismissType = .all
-      self.handleBack(nil)
+      self?.handleBack(nil)
     }
   }
     
