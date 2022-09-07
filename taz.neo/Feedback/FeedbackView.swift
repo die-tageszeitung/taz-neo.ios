@@ -166,7 +166,7 @@ public class FeedbackView : UIView {
   }
   
   func setupText(){
-    messageTextView.topMessage = "Ihre Nachhricht"
+    messageTextView.topMessage = "Ihre Nachricht"
     lastInteractionTextView.topMessage = "Letzte Interaktion"
     environmentTextView.topMessage = "Zustand"
     
