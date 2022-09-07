@@ -150,8 +150,9 @@ public class SubscriptionFormView : FormView{
     if type == .print2Digi || type == .printPlusDigi || type == .weekendPlusDigi {
       views.append(contentsOf: [street, city, postcode])
     }
-    
+    views.append( UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10)))//spacer
     views.append(message)
+    views.append( UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10)))//spacer
     
     if self.type == .expiredDigiPrint || self.type == .expiredDigiSubscription {
       views.append(requestInfoCheckbox)

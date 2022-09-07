@@ -26,7 +26,7 @@ public class ViewWithTextView : UIStackView{
   lazy var border : UIView = {
     let v = UIView()
     v.pinHeight(2.0)
-    v.addBorderView(.black, 1.0, edge: .bottom, insets: .zero)
+    v.addBorderView(Const.SetColor.ForegroundHeavy.color, 1.0, edge: .bottom, insets: .zero)
     return v
   }()
   

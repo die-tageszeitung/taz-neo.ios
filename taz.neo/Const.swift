@@ -159,6 +159,7 @@ public struct Const {
       case textFieldClear
       case textFieldText
       case textIconGray
+      case secondaryBackground
     }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
@@ -276,6 +277,9 @@ public struct Const {
           return (UIColor.rgb(0x9C9C9C), UIColor.rgb(0x9C9C9C), nil, nil)
         case .taz(.textIconGray):
           return (UIColor.rgb(0x565656), UIColor.rgb(0x929292), nil, nil)
+        case .taz(.secondaryBackground):
+          return (UIColor.rgb(0xDEDEDE), UIColor.rgb(0x323232), nil, nil)
+          
       }
     }
   } // SetColors

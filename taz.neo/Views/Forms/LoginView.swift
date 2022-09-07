@@ -119,7 +119,7 @@ public class LoginView : FormView{
     pin(button, to: wrapper, dist: Const.Dist.margin, exclude: .top)
     pin(button.top, to: intro.bottom, dist: Const.Dist.margin)
     
-    wrapper.backgroundColor = UIColor.rgb(0xDEDEDE)
+    wrapper.backgroundColor = Const.SetColor.taz(.secondaryBackground).color
     wrapper.layer.cornerRadius = 8.0
     
     return wrapper
