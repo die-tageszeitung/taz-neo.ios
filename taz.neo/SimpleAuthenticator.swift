@@ -92,7 +92,7 @@ public class SimpleAuthenticator: Authenticator {
                 var text = ""
                 switch err {
                   case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
-                  case .expiredAccount: text = "Ihr Abo ist abgelaufen."
+                  case .expiredAccount: text = "Ihr Abonnement ist abgelaufen."
                   case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
                   case .unexpectedResponse:                
                     text = "Es gab ein Problem bei der Kommunikation mit dem Server."

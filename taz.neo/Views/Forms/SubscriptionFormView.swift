@@ -81,7 +81,7 @@ public class SubscriptionFormView : FormView{
     switch customerType {
       case .sample: abo = "Probeabo"
       case .combo: abo = "Kombiabo"
-      case .digital: abo = "Abo"
+      case .digital: abo = "Abonnement"
       case .deliveryBreaker: abo = "Print Ersatzabo"
       default: abo = "Abo"
     }
@@ -112,7 +112,7 @@ public class SubscriptionFormView : FormView{
     switch customerType {
       case .sample: abo = "kostenlosen Probeabos"
       case .combo: abo = "Kombiabos"
-      case .digital: abo = "Abos"
+      case .digital: abo = "Abonnements"
       case .deliveryBreaker: abo = "Print Ersatzabos"
       default: abo = "Abos"
     }
