@@ -236,9 +236,7 @@ public class DefaultAuthenticator: Authenticator {
     ?? UIWindow.rootVC
     else { return }
     
-    let handleExpired = Defaults.expiredAccountText != nil
-
-    let registerController = handleExpired
+    let registerController = Defaults.expiredAccount
     ? SubscriptionFormController(type: .expiredDigiSubscription,
                                  auth: self,
                                  expireDate: Defaults.expiredAccountDate,
