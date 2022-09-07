@@ -29,7 +29,7 @@ public class LoginView : FormView{
   
   var whereIsTheAboId: Padded.View = {
     let lbl = UILabel()
-    lbl.text = "Wo finde ich die AboID?"
+    lbl.text = "Hilfe"
     lbl.contentFont(size: Const.Size.MiniPageNumberFontSize)
     lbl.textColor = .gray
     lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
@@ -134,7 +134,7 @@ public class LoginView : FormView{
     return   [
       Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").contentFont(size: Const.Size.SubtitleFontSize).align(.left),
       idInput,
-      /*whereIsTheAboId,*/
+      whereIsTheAboId,
       passInput,
       passForgottButton,
       loginButton,

@@ -81,10 +81,8 @@ class LoginController: FormsController {
                                   auth: auth))
   }
   func handleWhereIsTheAboId() {
-    Alert.message(message: "Ihre Abo-ID wurde Ihnen per E-Mail zugesand. TBD ggf. Hinweis auf app@taz.de")
+    Alert.message(title:"", message:Localized("fragment_login_help"))
   }
-  
-  
   
   // MARK: queryAuthToken
   func queryAuthToken(tazId: String, tazIdPass: String){
