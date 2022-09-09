@@ -78,18 +78,6 @@ enum GqlCustomerType: String, CodableEnum {
   case unknown   = "unknown"   /// decoded from unknown or unused string e.g. promo
 } // GqlCustomerType
 
-/// Subscription Form Data Type
-enum GqlSubscriptionFormDataType: String, CodableEnum {
-  case expiredDigiPrint = "expiredDigiPrint" //request info for expired subscription with print and digital
-  case requestTrialSubscription = "requestTrialSubscription" //request info for current trial digital subscription
-  case expiredDigiSubscription = "expiredDigiSubscription" //request info for expired digital subscription
-  case print2Digi = "print2Digi" //request info for switch
-  case printPlusDigi = "printPlusDigi" //request info to extend
-  case weekendPlusDigi = "weekendPlusDigi" //request info for weekend print + digital
-  case unknown   = "unknown"   /// decoded from unknown string 
-} // GqlSubscriptionFormDataType
-
-
 /// A GqlAuthToken is returned upon an Authentication request
 struct GqlAuthToken: GQLObject {  
   /// Authentication token (to use for further authentication)  

@@ -236,18 +236,23 @@ public class DefaultAuthenticator: Authenticator {
     ?? UIWindow.rootVC
     else { return }
     
-    let registerController = Defaults.expiredAccount
-    ? SubscriptionFormController(type: .expiredDigiSubscription,
-                                 auth: self,
-                                 expireDate: Defaults.expiredAccountDate,
-                                 customerType: Defaults.customerType)
-    : LoginController(self)
+    var authController:FormsController
+    if let expiredDate = Defaults.expiredAccountDate {
+      let formType = Defaults.customerType?.formDataType ?? .expiredDigiSubscription
+      authController = SubscriptionFormController(formType: formType,
+                                                  auth: self,
+                                                  expireDate: expiredDate,
+                                                  customerType: Defaults.customerType)
+    }
+    else {
+      authController = LoginController(self)
+    }
     
-    registerController.modalPresentationStyle
+    authController.modalPresentationStyle
       =  .formSheet
 
-    firstPresentedAuthController = registerController
-    rootVC.present(registerController, animated: true, completion: {
+    firstPresentedAuthController = authController
+    rootVC.present(authController, animated: true, completion: {
       rootVC.presentationController?.presentedView?.gestureRecognizers?[0].isEnabled = true
       /// Add TapOn Background like in popup presentation
       if Device.isIphone { return }
@@ -260,7 +265,7 @@ public class DefaultAuthenticator: Authenticator {
                 v.onTapping { rec in
                   if TazAppEnvironment.sharedInstance.isErrorReporting { return }
                   v.removeGestureRecognizer(rec)
-                  registerController.dismiss(animated: true)
+                  authController.dismiss(animated: true)
                 }
                 return
               }

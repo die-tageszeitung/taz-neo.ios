@@ -387,7 +387,7 @@ extension GqlFeeder {
   }
   
   /// Send contact form data to subscription department
-  func subscriptionFormData(type: GqlSubscriptionFormDataType,
+  func subscriptionFormData(type: SubscriptionFormDataType,
                             mail: String?,
                             surname: String?,
                             firstName: String?,

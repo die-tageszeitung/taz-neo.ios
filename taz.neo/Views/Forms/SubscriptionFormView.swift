@@ -12,7 +12,7 @@ import NorthLib
 public class SubscriptionFormView : FormView{
 
   // MARK: - All possible fields
-  let type: GqlSubscriptionFormDataType
+  let formType: SubscriptionFormDataType
   
   var expireDate:Date?
   var customerType: GqlCustomerType?
@@ -87,20 +87,19 @@ public class SubscriptionFormView : FormView{
     }
     
     var text: String? = nil
-    switch type {
-      case .expiredDigiPrint, .expiredDigiSubscription:
+    
+    switch formType {
+      case .print2Digi:
+        text = "Ja! Ich möchte nur noch digital lesen."
+      case .printPlusDigi:
+        text = "Ja! Schalten Sie die App zu meinem Abo frei!"
+      default:
         if let d = expireDate {
           text = "Ihr \(abo) ist am \(d.gDate()) abgelaufen."
         }
         else {
           text = "Ihr \(abo) ist abgelaufen."
         }
-      case .print2Digi:
-        text = "Ja! Ich möchte nur noch digital lesen."
-      case .printPlusDigi:
-        text = "Ja! Schalten Sie die App zu meinem Abo frei!"
-      default:
-        break
     }
     guard let text = text else { return nil }
     return Padded.Label(title: text).titleFont(size: 18)
@@ -117,23 +116,22 @@ public class SubscriptionFormView : FormView{
       default: abo = "Abos"
     }
     
-    
     var text: String? = nil
-    switch type {
-      case .expiredDigiPrint, .expiredDigiSubscription:
+    
+    switch formType {
+      case .print2Digi://Achtung anderer Text erst in Step 2 mit Taz-ID!!
+        text = "Super! Auf in die Zukunft. Herzlichen Glückwunsch zu diesem Schritt. Um Sie einordnen zu können, brauchen wir ein paar Daten von Ihnen.\nWir kontaktieren Sie in den nächsten Tagen per Mail."
+      case .printPlusDigi:
+        text = "Das machen wir gerne! Geben Sie Ihre bei uns hinterlegten Kundendaten ein, so dass wir Sie zuordnen können.\nWir werden Sie dann kontaktieren."
+      default:
         text = """
         Wir haben Ihnen zum Ablauf Ihres \(abo) Informationen zu unseren Abonnements an Ihre E-Mail-Adresse zugesandt.
         Falls Sie diese E-Mail nicht finden können, oder weitere Fragen haben, können Sie jetzt einfach unserem Service-Team eine Nachricht zusenden.
         
         Für weitere Fragen erreichen Sie unser Service-Team auch unter: fragen@taz.de
         """
-      case .print2Digi://Achtung anderer Text erst in Step 2 mit Taz-ID!!
-        text = "Super! Auf in die Zukunft. Herzlichen Glückwunsch zu diesem Schritt. Um Sie einordnen zu können, brauchen wir ein paar Daten von Ihnen.\nWir kontaktieren Sie in den nächsten Tagen per Mail."
-      case .printPlusDigi:
-        text = "Das machen wir gerne! Geben Sie Ihre bei uns hinterlegten Kundendaten ein, so dass wir Sie zuordnen können.\nWir werden Sie dann kontaktieren."
-      default:
-        break
     }
+    
     guard let text = text else { return nil }
     return Padded.Label(title: text).contentFont()
   }
@@ -142,19 +140,15 @@ public class SubscriptionFormView : FormView{
     var views:[UIView] = []
     if let v = title { views.append(v) }
     if let v = subTitle { views.append(v) }
-    
-    if !(self.type == .expiredDigiPrint || self.type == .expiredDigiSubscription){
-      views.append(contentsOf: [idInput, firstName, lastName])
-    }
   
-    if type == .print2Digi || type == .printPlusDigi || type == .weekendPlusDigi {
-      views.append(contentsOf: [street, city, postcode])
+    if !self.formType.expiredForm {
+      views.append(contentsOf: [idInput, firstName, lastName, street, city, postcode])
     }
     views.append( UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10)))//spacer
     views.append(message)
     views.append( UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10)))//spacer
     
-    if self.type == .expiredDigiPrint || self.type == .expiredDigiSubscription {
+    if self.formType.expiredForm {
       views.append(requestInfoCheckbox)
     }
     
@@ -167,7 +161,7 @@ public class SubscriptionFormView : FormView{
   func validate() -> String?{
     var errors = false
     //switch or zubuchen
-    if type == .print2Digi || type == .printPlusDigi || type == .weekendPlusDigi {
+    if !formType.expiredForm {
       if "\(postcode.text ?? "")\(city.text ?? "")\(street.text ?? "")".length < 12 {
         postcode.bottomMessage = "Bitte Adresse überprüfen"
         city.bottomMessage = "Bitte Adresse überprüfen"
@@ -199,10 +193,10 @@ public class SubscriptionFormView : FormView{
     return nil
   }
   
-  init(type: GqlSubscriptionFormDataType,
+  init(formType: SubscriptionFormDataType,
        expireDate:Date? = nil,
        customerType: GqlCustomerType? = nil) {
-    self.type = type
+    self.formType = formType
     self.expireDate = expireDate
     self.customerType = customerType
     super.init(frame: .zero)

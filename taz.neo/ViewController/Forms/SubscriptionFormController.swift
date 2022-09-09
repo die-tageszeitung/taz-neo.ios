@@ -26,8 +26,6 @@ class SubscriptionFormController : FormsController {
   
   var onMissingNameRequested:(()->())?
   
-  let type: GqlSubscriptionFormDataType
-  
   private var contentView:SubscriptionFormView
   override var ui : SubscriptionFormView { get { return contentView }}
   
@@ -48,7 +46,7 @@ class SubscriptionFormController : FormsController {
       return
     }
     
-    auth.feeder.subscriptionFormData(type: ui.type,
+    auth.feeder.subscriptionFormData(type: ui.formType,
                                      mail: ui.idInput.text,
                                      surname: ui.lastName.text,
                                      firstName: ui.firstName.text,
@@ -76,13 +74,12 @@ class SubscriptionFormController : FormsController {
     super.handleBack(nil)
   }
     
-  required init(type: GqlSubscriptionFormDataType,
+  required init(formType: SubscriptionFormDataType,
                 auth:AuthMediator,
                 expireDate:Date? = nil,
                 customerType: GqlCustomerType? = nil) {
-    self.type = type
     self.contentView
-    = SubscriptionFormView(type: type,
+    = SubscriptionFormView(formType: formType,
                            expireDate: expireDate,
                            customerType: customerType)
     super.init(auth)
@@ -90,5 +87,48 @@ class SubscriptionFormController : FormsController {
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+
+/// Subscription Form Data Type
+enum SubscriptionFormDataType: String {
+  case expiredDigiPrint = "expiredDigiPrint" //request info for expired subscription with print and digital
+  case trialSubscription = "trialSubscription" //request info for current trial digital subscription
+  case expiredDigiSubscription = "expiredDigiSubscription" //request info for expired digital subscription
+  case print2Digi = "print2Digi" //request info for switch
+  case printPlusDigi = "printPlusDigi" //request info to extend
+} // SubscriptionFormDataType
+
+extension SubscriptionFormDataType {
+  //Prevent API to App Mapping due not all API Cases are implemented in UI
+  //thats why unknown case also not exists here, to make switches exhaustive
+  func toString() -> String { rawValue }
+}
+
+extension SubscriptionFormDataType {
+  var expiredForm : Bool {
+    switch self {
+      case .trialSubscription, .expiredDigiSubscription, .expiredDigiPrint:
+        return true
+      default:
+        return false
+    }
+  }
+}
+
+/// GqlCustomerType to SubscriptionFormDataType
+extension GqlCustomerType {
+  var formDataType : SubscriptionFormDataType {
+    switch self {
+      case .sample:
+        return .trialSubscription
+      case .digital:
+        return .expiredDigiSubscription
+      case .combo:
+        return .expiredDigiPrint
+      default://deliveryBreaker,unknown
+        return .expiredDigiSubscription
+    }
   }
 }

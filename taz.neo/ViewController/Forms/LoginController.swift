@@ -69,11 +69,13 @@ class LoginController: FormsController {
   }
   
   @IBAction func handleExtend(_ sender: UIButton) {
-    modalFlip(SubscriptionFormController(type: .printPlusDigi, auth: self.auth))
+    modalFlip(SubscriptionFormController(formType: .printPlusDigi,
+                                         auth: self.auth))
   }
   
   @IBAction func handleSwitch(_ sender: UIButton) {
-    modalFlip(SubscriptionFormController(type: .print2Digi, auth: self.auth))
+      modalFlip(SubscriptionFormController(formType: .print2Digi,
+                                           auth: self.auth))
   }
   
   func handlePwForgot() {
@@ -116,7 +118,7 @@ class LoginController: FormsController {
               FeederError.expiredAccount(authStatusError.message)
               Defaults.expiredAccountDate =  expiredDate ?? Date()
               let expiredForm
-              = SubscriptionFormController(type: .expiredDigiSubscription,
+              = SubscriptionFormController(formType: authStatusError.customerType?.formDataType ?? .expiredDigiSubscription,
                                            auth: self.auth,
                                            expireDate: expiredDate,
                                            customerType: authStatusError.customerType)
@@ -165,7 +167,7 @@ class LoginController: FormsController {
                 expiredDate = UsTime(iso:isoDate).date
               }
               self.modalFlip(
-                SubscriptionFormController(type: .expiredDigiSubscription,
+                SubscriptionFormController(formType: .expiredDigiSubscription,
                                            auth: self.auth,
                                            expireDate: expiredDate,
                                            customerType: nil)
