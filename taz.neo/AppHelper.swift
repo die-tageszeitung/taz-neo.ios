@@ -98,7 +98,7 @@ public extension App {
   static func isAvailable(_ feature: App.Feature) -> Bool {
     switch feature {
       case .ABOIDLOGIN:
-        return true
+        return true //WARNING Handle expiredSubscription may not work correct!! do not turn off this feature for Release
       case .INTERNALBROWSER:
         return isAlpha //Only in Alpha Versions
       case .PDFEXPORT:
