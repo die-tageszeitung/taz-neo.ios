@@ -147,6 +147,7 @@ class LoginController: FormsController {
   }
   
   // MARK: queryCheckSubscriptionId
+  // ToDo WARNING Handle expiredSubscription may not work correct!!
   func queryCheckSubscriptionId(aboId: String, aboIdPass: String){
     auth.feeder.checkSubscriptionId(aboId: aboId, password: aboIdPass, closure: { (result) in
       switch result {
