@@ -476,6 +476,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     return wrapper
   }()
   
+  lazy var topGradient = VerticalGradientView()
+  
   /// align FAB to tabbars first icon
   func alignPdfToggleFab(){
     let defaultOffset = 52.0
@@ -520,9 +522,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       loginButton.removeFromSuperview()
       return
     }
-    self.view.addSubview(loginButton)
-    pin(loginButton.right, to: self.view.rightGuide())
-    pin(loginButton.top, to: self.view.topGuide(), dist: 20)
+    self.headerView.addSubview(loginButton)
+    pin(loginButton.right, to: self.headerView.rightGuide())
+    pin(loginButton.top, to: self.headerView.topGuide(), dist: 20)
+    topGradient.bringToFront()
   }
   
   public override func viewDidLoad() {
@@ -539,6 +542,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     Notification.receive(Const.NotificationNames.logoutUserDataDeleted) { _ in
       onMainAfter {[weak self] in self?.updateLoginButton() }
     }
+    self.view.addSubview(topGradient)
+    topGradient.pinHeight(UIWindow.maxAxisInset)
+    pin(topGradient.left, to: self.view.left)
+    pin(topGradient.right, to: self.view.right)
+    pin(topGradient.top, to: self.view.top)
+    
     updateLoginButton()
     pin(issueCarousel.top, to: self.headerView.top)
     pin(issueCarousel.left, to: self.headerView.left)
