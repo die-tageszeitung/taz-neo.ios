@@ -237,7 +237,8 @@ public class DefaultAuthenticator: Authenticator {
     else { return }
     
     var authController:FormsController
-    if let expiredDate = Defaults.expiredAccountDate {
+    if self.feeder.isAuthenticated,
+      let expiredDate = Defaults.expiredAccountDate {
       let formType = Defaults.customerType?.formDataType ?? .expiredDigiSubscription
       authController = SubscriptionFormController(formType: formType,
                                                   auth: self,
