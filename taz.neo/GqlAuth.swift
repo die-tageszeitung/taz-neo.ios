@@ -118,6 +118,55 @@ enum GqlSubscriptionFormDataError: String, CodableEnum {
   case noCity = "noCity" //no City given
   case employees = "employees" //form not for internal users
   case unknown          = "unknown"   /// decoded from unknown string
+
+  func errWithMessage(message: String?) -> SubscriptionFormDataError {
+    switch self {
+      case .noMail:
+        return .noMail(message)
+      case .invalidMail:
+        return .invalidMail(message)
+      case .noSurname:
+        return .noSurname(message)
+      case .noFirstName:
+        return .noFirstName(message)
+      case .noCity:
+        return .noCity(message)
+      case .employees:
+        return .employees(message)
+      case .unknown:
+        return .unknown(message)
+    }
+  }
+  
+  
+}
+
+/// Subscription Form Data Error
+enum SubscriptionFormDataError: Error {
+  case noMail(String?)
+  case invalidMail(String?)
+  case noSurname(String?)
+  case noFirstName(String?)
+  case noCity(String?)
+  case employees(String?)
+  case unknown(String?)
+  case unexpectedResponse(String?)
+
+  public var errorDescription: String? { return description }
+  
+  public var associatedValue: String? {
+    switch self {
+      case .noMail(let msg): return msg
+      case .invalidMail(let msg): return msg
+      case .noSurname(let msg): return msg
+      case .noFirstName(let msg): return msg
+      case .noCity(let msg): return msg
+      case .employees(let msg): return msg
+      case .unknown(let msg): return msg
+      case .unexpectedResponse(let msg): return msg
+    }
+  }
+
 } // SubscriptionFormDataError
 
 
@@ -425,8 +474,14 @@ extension GqlFeeder {
       var ret: Result<Bool,Error>
       switch res {
         case .success(let dict):
-          print("success: \(dict)")
-          ret = .success(true)
+          if let data = dict["subscriptionFormData"],
+              let err = data.error,
+              let msg = data.errorMessage {
+            ret = .failure(err.errWithMessage(message: msg))
+          }
+          else {
+            ret = .success(true)
+          }
         case .failure(let err):  ret = .failure(err)
       }
       closure(ret)

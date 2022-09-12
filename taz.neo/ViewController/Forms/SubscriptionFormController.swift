@@ -63,7 +63,12 @@ class SubscriptionFormController : FormsController {
                               dismissType: .allReal)
           self?.log("Success: \(msg)")
         case .failure(let err):
-          Toast.show("Fehler beim senden", .alert)
+          if let fe = err as? SubscriptionFormDataError, let msg = fe.associatedValue {
+            Toast.show("<b>Fehler beim senden</b></br>\(msg)", .alert)
+          }
+          else{
+            Toast.show("Fehler beim senden", .alert)
+          }
           self?.log("Failed: \(err)")
       }
     }
