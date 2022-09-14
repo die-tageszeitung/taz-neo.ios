@@ -306,7 +306,6 @@ extension SettingsVC {
   }
   
   func refreshAndReload() {
-    if self.parentViewController == nil { return }
     let oldData = data
     data = TableData(sectionContent: currentSectionContent())
     
