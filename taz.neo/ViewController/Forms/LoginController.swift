@@ -122,13 +122,11 @@ class LoginController: FormsController {
                                            auth: self.auth,
                                            expireDate: expiredDate,
                                            customerType: authStatusError.customerType)
-              expiredForm.dismissAllFinishedClosure = {
-                Notification.send(Const.NotificationNames.authenticationSucceeded)
-              }
               expiredForm.dismissType = .allReal
               
               if let token = authStatusError.token {
                 DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPass, token: token)
+                Notification.send(Const.NotificationNames.authenticationSucceeded)
               }
               
               self.modalFlip(expiredForm)
