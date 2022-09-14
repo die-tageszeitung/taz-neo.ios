@@ -552,6 +552,11 @@ extension SettingsVC {
   }
   
   var accountSettingsCells:[XSettingsCell] {
+    ///ensure both cells are initialized, prevents edge case:
+    ///login on article with expired AboID may end in deadlock, only app restart fix this
+    _ = logoutCell
+    _ = loginCell
+    print("isAuthenticated: \(isAuthenticated)")
     var cells =
     [
       isAuthenticated ? logoutCell : loginCell,
