@@ -122,6 +122,11 @@ extension MainTabVC {
     }
               
     guard let reloadTarget = reloadTarget else { return }
+    if Defaults.expiredAccount {
+      //DemoIssue only will be exchanged with DemoIssue
+      log("not refresh if expired account")
+      return
+    }
     
     let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
     
