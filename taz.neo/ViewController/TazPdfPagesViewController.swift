@@ -345,6 +345,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     self.onTap { [weak self] (oimg, x, y) in
       guard let self = self else { return }
+      
+      if self.feederContext.isAuthenticated == false || Defaults.expiredAccount {
+        self.feederContext.authenticate()
+        return
+      }
+      
       if self.articleFromPdf == false { return }
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
