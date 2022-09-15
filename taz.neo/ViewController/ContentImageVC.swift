@@ -172,12 +172,19 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     }
   }
   
+  private var orientationClosure:OrientationClosure? = OrientationClosure()
+  
   public init(content: Content, delegate: IssueInfo, imageTapped: String? = nil) {
     self.content = content
     self.delegate = delegate
     self.imageTapped = imageTapped
     super.init() 
     super.pinTopToSafeArea = false
+    if #available(iOS 16.0, *) {
+      orientationClosure?.onOrientationChange(closure: {[weak self] in
+        self?.setNeedsUpdateOfSupportedInterfaceOrientations()
+      })
+    }
   }
   
   required init?(coder: NSCoder) {
@@ -188,5 +195,12 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     super.viewDidLoad()
     setupImageCollectionVC()
   }
-    
+  public override func viewWillDisappear(_ animated: Bool) {
+    if #available(iOS 16.0, *), let parent = self.parentViewController {
+      onMainAfter {
+        parent.setNeedsUpdateOfSupportedInterfaceOrientations()
+      }
+    }
+    super.viewWillDisappear(animated)
+  }
 } // ContentImageVC
