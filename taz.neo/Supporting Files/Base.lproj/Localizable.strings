@@ -100,7 +100,7 @@
 "digiabo_access_request_subject" = "Digiabo Zugangsdaten";
 
 /* Abo Mail Text*/
-"digiabo_access_request_message" = "Hallo,\nich kann mich nicht in der taz.neo App anmelden.\n\nMeine AboID lautet: \n\n(Bitte ggf. um weitere Informationen ergänzen!)";
+"digiabo_access_request_message" = "Hallo,\nich kann mich nicht in der taz App anmelden.\n\nMeine AboID lautet: \n\n(Bitte ggf. um weitere Informationen ergänzen!)";
 
 /* Haben Sie Ihre Zugangsdaten gefunden? */
 "subscription_reset_found_link" = "Haben Sie Ihre Zugangsdaten gefunden?";
