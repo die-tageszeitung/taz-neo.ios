@@ -730,6 +730,9 @@ open class GqlFeeder: Feeder, DoesLog {
           }
           switch atoken.authInfo.status {
             case .expired, .unlinked, .invalid, .alreadyLinked, .notValidMail, .unknown:
+              if let token = atoken.token {
+                self?.authToken = token
+              }
               ret = .failure(AuthStatusError(status: atoken.authInfo.status,
                                              customerType: atoken.customerType,
                                              message: atoken.authInfo.message,

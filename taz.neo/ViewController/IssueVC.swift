@@ -264,25 +264,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if self.navigationController?.topViewController != self { return }
       let authenticatePDF = { [weak self] in
         guard let self = self else { return }
+        if self.feederContext.isAuthenticated {
+          //shows expired form
+          self.feederContext.authenticate()
+          return
+        }
         let loginAction = UIAlertAction(title: Localized("login_button"),
                                         style: .default) { _ in
           self.feederContext.authenticate()
         }
         let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
-        var expiredText = Localized("subscription_id_expired_withoutDate")
-        if let d = Defaults.expiredAccountDate {
-          expiredText = Localized(keyWithFormat: "subscription_id_expired", d.gDate())
-        }
-        
-        expiredText
-        = expiredText.htmlAttributed?.string.replacingOccurrences(of: "\n\n", with: "\n")
-        ?? "Ihr taz-Digiabo ist seit abgelaufen!"
-        
-        let msg = self.feederContext.isAuthenticated
-        ? expiredText
-        : "Um das ePaper zu lesen, müssen Sie sich anmelden."
-        
-        
+        let msg = "Um das ePaper zu lesen, müssen Sie sich anmelden."
         Alert.message(title: "Fehler", message: msg, actions: [loginAction, cancelAction])
       }
       
