@@ -232,7 +232,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     super.viewDidLoad()
     data = TableData(sectionContent: currentSectionContent())
     setup()
-    applyStyles()
     registerForStyleUpdates()
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
@@ -249,11 +248,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     }
   }
     
-  open override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
-    applyStyles()
-  }
-  
   required public init(feederContext: FeederContext) {
     self.feederContext = feederContext
     super.init(nibName: nil, bundle: nil)
@@ -291,6 +285,10 @@ extension SettingsVC {
   
   public func applyStyles() {
     tableView.backgroundColor = Const.SetColor.CTBackground.color
+    if let toggle = self.darkmodeSettingsCell.customAccessoryView as? UISwitch,
+       toggle.isOn != Defaults.darkMode {
+      toggle.isOn = Defaults.darkMode
+    }
   }
   
   func setup(){
@@ -1065,6 +1063,7 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     label.textColor =  Const.SetColor.ios(.label).color
     leftButton.circleIconButton(true)
     rightButton.circleIconButton(true)
+    label.text = "\(articleTextSize)%"
   }
   
   override func layoutSubviews() {
