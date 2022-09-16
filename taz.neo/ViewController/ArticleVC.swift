@@ -22,6 +22,9 @@ public protocol ArticleVCdelegate: IssueInfo {
 
 /// The Article view controller managing a collection of Article pages
 open class ArticleVC: ContentVC {
+  
+  @Default("smartBackFromArticle")
+  var smartBackFromArticle: Bool
     
   var hasValidAbo: Bool {feederContext.isAuthenticated && !Defaults.expiredAccount}
   var needValidAboToShareText: String {
@@ -125,6 +128,9 @@ open class ArticleVC: ContentVC {
     onDisplay { [weak self] (idx, oview) in
       if let self = self {
         let art = self.articles[idx]
+        if self.smartBackFromArticle {
+          self.adelegate?.article = art
+        }
         self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
         self.setHeader(artIndex: idx)
         self.issue.lastArticle = idx
