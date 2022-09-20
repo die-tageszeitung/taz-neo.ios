@@ -128,8 +128,6 @@ class SearchSettingsView: UITableView {
       }
       propertyChanged?()
     }
-    #warning("TODO ROW ANIMATION")
-//    tableView.reloadData(); return;
     if (added.count + deleted.count) == 0 {
       reloadData()
       return
@@ -139,11 +137,6 @@ class SearchSettingsView: UITableView {
       if deleted.count > 0 { deleteRows(at: deleted, with: .none) }
       if added.count > 0 { insertRows(at: added, with: .none  ) }
     }
-//    onMainAfter {
-//      [weak self] in
-//        guard let self = self else { return }
-//        self.preferredContentSize = CGSize(width: self.preferredContentSize.width, height: self.tableView.contentSize.height + 50)
-//    }
   }
   
   override func layoutSubviews() {
@@ -576,7 +569,6 @@ class TData {
   var settings = SearchSettings()
   var expandedSection: Int? {
     didSet {
-      print("set expandedSection to: \(expandedSection) old: \(oldValue)")
       headerViews.enumerated().forEach( { (index,view) in
         //index 0 is header of section 1!
         view.collapsed = index != (expandedSection ?? 0) - 1

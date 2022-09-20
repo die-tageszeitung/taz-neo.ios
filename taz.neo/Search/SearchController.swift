@@ -391,7 +391,7 @@ extension SearchController: ArticleVCdelegate {
   }
   
   public func linkPressed(from: URL?, to: URL?) {
-    debug("TODO:: linkPressed \(from?.absoluteString) to: \(to?.absoluteString)")
+    debug("TODO:: linkPressed \(from?.absoluteString ?? "-") to: \(to?.absoluteString ?? "-")")
   }
   
   public func closeIssue() {

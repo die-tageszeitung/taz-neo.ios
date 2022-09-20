@@ -141,7 +141,7 @@ extension MainTabVC {
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
     }
     
-    Notification.receiveOnce("feederUneachable") { [weak self] _ in
+    Notification.receiveOnce("feederUneachable") { _ in
       /// popToRootViewController is no more needed here due its done by reloadTarget.reloadOpened
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
       Toast.show(Localized("error"))
