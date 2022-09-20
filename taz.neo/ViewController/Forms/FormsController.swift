@@ -308,12 +308,26 @@ extension UIViewController {
 extension FormsResultController{
   /// Present given VC on topmost Viewcontroller with flip transition
   func modalFlip(_ controller:UIViewController){
+    modalFromBottomNew(controller); return;
     if Device.isIpad, let size = self.baseLoginController?.view.bounds.size {
       controller.preferredContentSize = size
       
     }
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .flipHorizontal
+    
+    ensureMain {
+      self.topmostModalVc.present(controller, animated: true, completion:nil)
+    }
+  }
+  
+  func modalFromBottomNew(_ controller:UIViewController){
+    if Device.isIpad, let size = self.baseLoginController?.view.bounds.size {
+      controller.preferredContentSize = size
+      
+    }
+    controller.modalPresentationStyle = .overCurrentContext
+    controller.modalTransitionStyle = .coverVertical
     
     ensureMain {
       self.topmostModalVc.present(controller, animated: true, completion:nil)
