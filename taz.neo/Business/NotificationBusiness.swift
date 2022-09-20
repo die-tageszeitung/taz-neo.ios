@@ -88,22 +88,4 @@ public final class NotificationBusiness: DoesLog {
       self?.openAppInSystemSettings()
     })
   }
-  
-  func updateTextNotificationSettings(){
-    guard let feederContext = TazAppEnvironment.sharedInstance.feederContext else {
-      debug("Fail to update TextNotificationSettings to: \(isTextNotification)")
-      return
-    }
-    feederContext.gqlFeeder.notification(pushToken: feederContext.pushToken,
-                                         oldToken:  Defaults.lastKnownPushToken ?? feederContext.pushToken,
-                                         isTextNotification: isTextNotification) {[weak self] res in
-      if let err = res.error() {
-        self?.debug("Update pushToken and Notification Settings failed \(err)")
-      }
-      else {
-        self?.debug("Updated pushToken and Notification Settings")
-        Defaults.lastKnownPushToken = feederContext.pushToken
-      }
-    }
-  }
 }
