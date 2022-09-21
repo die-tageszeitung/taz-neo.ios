@@ -280,7 +280,7 @@ open class ArticleVC: ContentVC {
       self.debug("*** Action: Share Article")
       if (self.article?.onlineLink ?? "").isEmpty {
         Alert.actionSheet(message: self.needValidAboToShareText,
-                          actions: UIAlertAction.init( title: "Anmelden",
+                          actions: UIAlertAction.init( title: self.feederContext.isAuthenticated ? "Weitere Informationen" : "Anmelden",
                                                        style: .default ){ [weak self] _ in
           self?.feederContext.authenticate()
         })
