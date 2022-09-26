@@ -801,7 +801,10 @@ extension SettingsVC {
       Defaults.singleton.setDefaults(values: ConfigDefaults,
                                      isNotify: false,
                                      forceWrite: true)
-      TazAppEnvironment.sharedInstance.deleteAll()
+      Toast.show("App wird zurückgesetzt und muss neu gestartet werden.", .alert)
+      onThreadAfter(4.0) {
+        TazAppEnvironment.sharedInstance.deleteAll()
+      }
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
