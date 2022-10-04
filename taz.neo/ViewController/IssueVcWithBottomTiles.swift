@@ -247,8 +247,8 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
     }
     self.collectionView.reloadData()
-    if let ivc = self as? IssueVC {
-      ivc.setLabel(idx: ivc.index)
+    if let ivc = self as? IssueVC, let idx = ivc.safeIndex {
+      ivc.setLabel(idx: idx)
     }
   }
 }
