@@ -710,6 +710,8 @@ public protocol Issue: ToString, AnyObject {
   var feed: Feed { get set }
   /// Issue date
   var date: Date { get }
+  /// date until issue is valid if more then one
+  var validityDate: Date? { get }
   /// The date/time of the latest modification
   var moTime: Date { get }
   /// Is this Issue a week end edition
@@ -747,6 +749,22 @@ public protocol Issue: ToString, AnyObject {
 }
 
 public extension Issue {
+  
+  func validityDateText(timeZone:String, short:Bool = false) -> String {
+    let shortest = UIWindow.size.width < 370
+    
+    guard let endDate = validityDate else {
+      return short ? shortest ? date.shortest : date.short : date.gLowerDate(tz: timeZone)
+    }
+    
+    let dateFormatterGet = DateFormatter()
+    dateFormatterGet.dateFormat = "dd"
+    let day = dateFormatterGet.string(from: date)
+    
+    return short
+    ? "\(day). - \(endDate.shortest)"
+    : "Woche \(day). - \(endDate.short)"
+  }
   
   func toString() -> String {
     var ret = "Issue \(date.isoDate()), key: \(key ?? "[undefined]"), " +

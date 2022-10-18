@@ -394,6 +394,11 @@ class GqlIssue: Issue, GQLObject {
   /// Issue date
   var sDate: String 
   var date: Date { return UsTime(iso: sDate, tz: GqlFeeder.tz).date }
+  /// date until issue is valid if more then one
+  var sValidityDate: String?
+  var validityDate: Date? {
+    guard let dateString = sValidityDate, dateString.length > 8 else { return nil }
+    return UsTime(iso: dateString, tz: GqlFeeder.tz).date }
   /// Modification time as String of seconds since 1970-01-01 00:00:00 UTC
   var sMoTime: String?
   /// Modification time as Date
@@ -449,6 +454,7 @@ class GqlIssue: Issue, GQLObject {
   
   enum CodingKeys: String, CodingKey {
     case sDate
+    case sValidityDate
     case sMoTime
     case sIsWeekend
     case gqlMoment
@@ -466,6 +472,7 @@ class GqlIssue: Issue, GQLObject {
   required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     sDate = try container.decode(String.self, forKey: .sDate)
+    sValidityDate = try container.decodeIfPresent(String.self, forKey: .sValidityDate)
     sMoTime = try container.decodeIfPresent(String.self, forKey: .sMoTime)
     sIsWeekend = try container.decodeIfPresent(Bool.self, forKey: .sIsWeekend)
     gqlMoment = try container.decode(GqlMoment.self, forKey: .gqlMoment)
@@ -479,6 +486,9 @@ class GqlIssue: Issue, GQLObject {
     sectionList = try container.decodeIfPresent([GqlSection].self, 
                                                 forKey: .sectionList)
     pageList = try container.decodeIfPresent([GqlPage].self, forKey: .pageList)
+    if sValidityDate != nil {
+      print("stop: \(self.validityDate)")
+    }
   }
   
   func setPayload(feeder: GqlFeeder, isPages: Bool = false) {
@@ -486,7 +496,8 @@ class GqlIssue: Issue, GQLObject {
   }
 
   static var ovwFields = """
-  sDate: date 
+  sDate: date
+  sValidityDate: validityDate
   sMoTime: moTime
   sIsWeekend: isWeekend
   gqlMoment: moment { \(GqlMoment.fields) } 

@@ -1455,6 +1455,10 @@ public final class StoredIssue: Issue, StoredObject {
     get { return pr.date! }
     set { pr.date = newValue }
   }
+  public var validityDate: Date? {
+    get { return pr.validityDate }
+    set { pr.validityDate = newValue }
+  }
   public var moTime: Date {
     get { return pr.moTime! }
     set { pr.moTime = newValue }
@@ -1552,6 +1556,7 @@ public final class StoredIssue: Issue, StoredObject {
     let sendUpdatedDemoIssueNotification = self.status == .reduced && object.status != .reduced
     self.feed = object.feed
     self.date = object.date
+    self.validityDate = object.validityDate
     self.moTime = object.moTime
     self.isWeekend = object.isWeekend
     self.moment = object.moment
