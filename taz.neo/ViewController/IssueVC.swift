@@ -377,8 +377,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       sdate += " \u{2601}"
     }
     if isRotate {
-      if let last = self.lastIndex, last != idx {
-        self.issueCarousel.setText(sdate, isUp: idx > last)
+      if self.lastIndex != idx {
+        self.issueCarousel.setText(sdate)
       }
       else { self.issueCarousel.pureText = sdate }
       self.lastIndex = idx

@@ -59,8 +59,8 @@ public class IssueCarousel: UIView {
   }
   
   /// Text to show in label and defining the scrolling direction in the Label
-  public func setText(_ text: String, isUp: Bool) {
-    label.setText(text, isUp: isUp)
+  public func setText(_ text: String) {
+    label.setText(text)
   }
   
   /// Append issue images to list of images
