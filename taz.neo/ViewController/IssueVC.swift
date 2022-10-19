@@ -203,20 +203,22 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Requests sufficient overview Issues from DB/server
   private func provideOverview() {
-    let n = issues.count
-    if n > 0 {
-      if (n - index) < 6 { 
-        var last = issues.last!.date
-        last.addDays(-1)
-        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last, isAutomatically: false)
-      }
-      if index < 6 {
-        var date = issues.first!.date
-        date.addDays(10)
-        feederContext.getOvwIssues(feed: feed, count: 10, fromDate: date, isAutomatically: false)
-      }
+    if issues.count < 2 {
+      //Initial Case, just load 2 Issues to fill the overview
+      feederContext.getOvwIssues(feed: feed, count: 2, isAutomatically: false)
     }
-    else { feederContext.getOvwIssues(feed: feed, count: 20, isAutomatically: false) }
+    else if (issues.count - index) < 6 {
+      //end of list case, add older issues
+      var last = issues.last!.date
+      last.addDays(-10)
+      feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last, isAutomatically: false)
+    }
+    else {
+      //otherwise get 10 latest issues; with no date server deliveres the latest ones
+      #warning("TODO >0.9.9 Test this // Logic changed/simplified")
+      //What happen if April App start, last App Start was January? will March be filled correctly?
+      feederContext.getOvwIssues(feed: feed, count: 10, fromDate: nil, isAutomatically: false)
+    }
   }
   
   /// Empty overview array and request new overview
