@@ -195,7 +195,7 @@
 "toast_login_with_email" = "Bitte melden Sie sich mit Ihrer E-Mail-Adresse an!";
 
 /* from website */
-"password_too_short" = "Ihr Passwort ist zu kurz (min. 8 Zeichen)!";
+"password_too_short" = "Ihr Passwort ist zu kurz (min. 12 Zeichen)!";
 
 /* zum Probeabo */
 "trial_subscroption" = "Probeabo abschließen";
