@@ -202,6 +202,7 @@ public class BookmarkIssue: Issue {
   public var isComplete: Bool { get { false } set {} }
   public var feed: Feed
   public var date: Date
+  public var validityDate: Date?
   public var moTime: Date
   public var isWeekend: Bool { false }
   public var moment: Moment { DummyMoment() }

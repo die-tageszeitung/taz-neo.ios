@@ -338,7 +338,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   public init(issueInfo:IssueInfo) {
     Log.minLogLevel = .Debug
     let pdfModel = NewPdfModel(issueInfo: issueInfo)
-    pdfModel.title = issueInfo.issue.date.gDate().replacingOccurrences(of: ", ", with: ",\n")
+    
+    var title
+    = issueInfo.issue.validityDateText(timeZone: issueInfo.feeder.timeZone)
+    title = title.replacingOccurrences(of: ", ", with: ",\n")
+    title = title.replacingOccurrences(of: "Woche ", with: "Woche\n")
+    pdfModel.title = title
+    
     
     if let count = issueInfo.issue.pages?.count,
        let lastIndex = issueInfo.issue.lastPage,

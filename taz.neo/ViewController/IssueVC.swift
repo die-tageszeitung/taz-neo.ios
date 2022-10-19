@@ -372,7 +372,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   func setLabel(idx: Int, isRotate: Bool = false) {
     guard idx >= 0 && idx < self.issues.count else { return }
     let issue = self.issues[idx]
-    var sdate = issue.date.gLowerDate(tz: self.feeder.timeZone)
+    var sdate = issue.validityDateText(timeZone: self.feeder.timeZone)
     if hasDownloadableContent(issue: issue) {
       sdate += " \u{2601}"
     }
