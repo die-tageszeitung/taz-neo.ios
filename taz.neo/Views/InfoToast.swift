@@ -19,38 +19,45 @@ public class InfoToast : UIView {
   ///   - hasCloseX: should top right close x be displayed
   ///   - autoDisappearAfter: TODO Automatic disappear after Timeout in seconds
   ///   - dismissHandler: handler to be called after toast dismissed
-  public static func showWith(image : UIImage?, title : String?, text : String?, buttonText:String = "OK", hasCloseX : Bool = true, autoDisappearAfter : Float? = nil, dismissHandler : (()->())? = nil) {
+  public static func showWith(lottieUrl : URL, title : String?, text : String?, buttonText:String = "OK", hasCloseX : Bool = true, autoDisappearAfter : Float? = nil, dismissHandler : (()->())? = nil) {
     onMain {
       guard let delegate = UIApplication.shared.delegate,
             let window = delegate.window as? UIWindow else {  return }
-      let toast = InfoToast(image: image,
+      let toast = InfoToast(lottieUrl: lottieUrl,
                             title: title,
                             text: text,
                             buttonText: buttonText,
                             hasCloseX: hasCloseX,
                             autoDisappearAfter: autoDisappearAfter,
                             dismissHandler: dismissHandler)
+      
+      
+      func showAnimated(){
+        UIView.animate(withDuration: 0.9,
+                       delay: 0,
+                       usingSpringWithDamping: 0.6,
+                       initialSpringVelocity: 0.8,
+                       options: UIView.AnimationOptions.curveEaseInOut,
+                       animations: {
+                        toast.shadeView.alpha = 1.0
+                        toast.scrollViewYConstraint?.constant = 0
+                        toast.layoutIfNeeded()
+                       }, completion: { (_) in
+                        if toast.isTopmost == false {
+                          window.bringSubviewToFront(toast)
+                        }
+                       })
+      }
       toast.shadeView.alpha = 0.0
       toast.isHidden = true
+      
+      toast.webView.whenLoaded { _ in
+        showAnimated()
+      }
       window.addSubview(toast)
       toast.scrollViewYConstraint?.constant = window.frame.size.height
       toast.layoutIfNeeded()
       toast.isHidden = false
-            
-      UIView.animate(withDuration: 0.9,
-                     delay: 0,
-                     usingSpringWithDamping: 0.6,
-                     initialSpringVelocity: 0.8,
-                     options: UIView.AnimationOptions.curveEaseInOut,
-                     animations: {
-                      toast.shadeView.alpha = 1.0
-                      toast.scrollViewYConstraint?.constant = 0
-                      toast.layoutIfNeeded()
-                     }, completion: { (_) in
-                      if toast.isTopmost == false {
-                        window.bringSubviewToFront(toast)
-                      }
-                     })
     }
   }
 
@@ -60,8 +67,8 @@ public class InfoToast : UIView {
   private let linePadding:CGFloat = 15
   private let sidePadding:CGFloat = 20
   
-  // MARK: - Properties
-  private var image : UIImage?
+  
+  private var lottieUrl : URL
   private var title : String?
   private var text : String?
   private var buttonText:String
@@ -79,8 +86,8 @@ public class InfoToast : UIView {
   
   // MARK: - Lifecycle
   
-  init(image : UIImage?, title : String?, text : String?, buttonText:String = "OK", hasCloseX : Bool = true, autoDisappearAfter : Float? = nil, dismissHandler : (()->())? = nil) {
-    self.image = image
+  init(lottieUrl : URL, title : String?, text : String?, buttonText:String = "OK", hasCloseX : Bool = true, autoDisappearAfter : Float? = nil, dismissHandler : (()->())? = nil) {
+    self.lottieUrl = lottieUrl
     self.title = title
     self.text = text
     self.buttonText = buttonText
@@ -108,14 +115,11 @@ public class InfoToast : UIView {
     ///Layout Components
     var pinTopAnchor:LayoutAnchorY = container.topGuide()
     
-    if let img = image {
-      container.addSubview(imageView)
-      pin(imageView.right, to: container.rightGuide(), dist: -sidePadding)
-      pin(imageView.left, to: container.leftGuide(), dist: sidePadding)
-      pin(imageView.top, to: pinTopAnchor, dist: 35)
-      imageView.pinAspect(ratio: img.size.width/img.size.height)
-      pinTopAnchor = imageView.bottom
-    }
+    container.addSubview(webView)
+    pin(webView.right, to: container.rightGuide(), dist:0)
+    pin(webView.left, to: container.leftGuide(), dist: 20)
+    pin(webView.top, to: pinTopAnchor, dist: -5)
+    pinTopAnchor = webView.bottom
     
     if (title != nil) {
       container.addSubview(titleLabel)
@@ -227,10 +231,11 @@ public class InfoToast : UIView {
     return x
   }()
   
-  lazy var imageView: UIImageView  = {
-    var view = UIImageView()
-    view.image = image
-    view.contentMode = .scaleAspectFit
+  
+  lazy var webView: WebView  = {
+    var view = WebView()
+    view.load(url: lottieUrl)
+    view.pinHeight(320)
     return view
   }()
   

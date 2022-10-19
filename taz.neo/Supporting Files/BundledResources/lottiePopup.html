@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+        <title>Lottie Animation</title>
+        <script src="../files/jquery-3.min.js"></script>
+        <script src="../files/welcomeSlidesLottie.min.js"></script>
+        <script src="../files/welcomeSlidesLottieSmartphone.js"></script>
+        <script src="../files/welcomeSlidesLottieTablet.js"></script>
+        <script>
+            $(document).ready(function() {
+                const player = document.getElementById("lottieplayer");
+                if (navigator.userAgent.match(/iPad/)) {
+                    player.load(lottie_tablet);
+                } else {
+                    player.load(lottie_smartphone);
+                }
+            });
+        </script>
+    </head>
+    <body>
+      <div class="lottie-wrapper">
+        <lottie-player
+          id="lottieplayer"
+          background="transparent"
+          speed="1"
+          loop
+          autoplay >
+        </lottie-player>
+      </div>
+    </body>
+</html>
