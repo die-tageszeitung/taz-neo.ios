@@ -213,7 +213,6 @@ public class InfoToast : UIView {
     var view = UIScrollView()
     view.backgroundColor = UIColor.white
     view.layer.cornerRadius = 7.0
-//    view.addBorder(.red)
     return view
   }()
   
