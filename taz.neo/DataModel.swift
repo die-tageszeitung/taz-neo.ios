@@ -753,7 +753,7 @@ public extension Issue {
   func validityDateText(timeZone:String, short:Bool = false) -> String {
     let shortest = UIWindow.size.width < 370
     
-    guard let endDate = validityDate else {
+    guard let endDate = validityDate, isWeekend else {
       return short ? shortest ? date.shortest : date.short : date.gLowerDate(tz: timeZone)
     }
     
