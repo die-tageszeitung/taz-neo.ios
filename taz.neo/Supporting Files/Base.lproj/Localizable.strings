@@ -197,6 +197,8 @@
 /* from website */
 "password_too_short" = "Ihr Passwort ist zu kurz (min. 12 Zeichen)!";
 
+"password_contains_mail" = "Ihr Passwort darf nicht Teile Ihrer E-Mail enthalten!";
+
 /* zum Probeabo */
 "trial_subscroption" = "Probeabo abschließen";
 
