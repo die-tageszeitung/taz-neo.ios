@@ -57,8 +57,6 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     //button.cloudImage = UIImage(named: "download")
     button.setTitleColor(Const.Colors.appIconGrey, for: .normal)
     button.titleLabel?.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
-    button.contentHorizontalAlignment = .left
-
     
     Notification.receive("issueProgress", closure: {   [weak self] notif in
       guard let self = self else { return }
@@ -93,6 +91,7 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     else {
       button.downloadState = .notStarted
     }
+    
   }
   
   

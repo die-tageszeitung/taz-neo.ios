@@ -752,17 +752,17 @@ public extension Issue {
   
   func validityDateText(timeZone:String, short:Bool = false, leadingText: String? = "woche, ") -> String {
     
-    guard let endDate = validityDate, isWeekend else {
+    guard let endDate = validityDate, isWeekend, !short else {
       return short ? date.short : date.gLowerDate(tz: timeZone)
     }
     
-    let leadingText = short ? "" : leadingText ?? ""
+//    let leadingText = short ? "" : leadingText ?? ""
     
     let dateFormatterGet = DateFormatter()
     dateFormatterGet.dateFormat = "d.M."
     let day = dateFormatterGet.string(from: date)
     
-    return "\(leadingText)\(day)–\(endDate.shorter)"
+    return "\(leadingText ?? "")\(day) – \(endDate.short)"
   }
   
   func toString() -> String {
