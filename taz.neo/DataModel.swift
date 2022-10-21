@@ -750,20 +750,19 @@ public protocol Issue: ToString, AnyObject {
 
 public extension Issue {
   
-  func validityDateText(timeZone:String, short:Bool = false) -> String {
-    let shortest = UIWindow.size.width < 370
+  func validityDateText(timeZone:String, short:Bool = false, leadingText: String? = "woche, ") -> String {
     
-    guard let endDate = validityDate, isWeekend else {
-      return short ? shortest ? date.shortest : date.short : date.gLowerDate(tz: timeZone)
+    guard let endDate = validityDate, isWeekend, !short else {
+      return short ? date.short : date.gLowerDate(tz: timeZone)
     }
     
+//    let leadingText = short ? "" : leadingText ?? ""
+    
     let dateFormatterGet = DateFormatter()
-    dateFormatterGet.dateFormat = "dd"
+    dateFormatterGet.dateFormat = "d.M."
     let day = dateFormatterGet.string(from: date)
     
-    return short
-    ? "\(day). - \(endDate.shortest)"
-    : "Woche \(day). - \(endDate.short)"
+    return "\(leadingText ?? "")\(day) – \(endDate.short)"
   }
   
   func toString() -> String {

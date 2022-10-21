@@ -669,9 +669,9 @@ class TData {
   func update(){
     if settings.range.currentOption == .custom {
       rangeMoreCell.label.text
-      = datePickers.fromPicker.date.shortest
+      = datePickers.fromPicker.date.shorter
       + " - "
-      + datePickers.toPicker.date.shortest
+      + datePickers.toPicker.date.shorter
     }
     else {
       rangeMoreCell.label.text = settings.range.currentOption.textWithDate

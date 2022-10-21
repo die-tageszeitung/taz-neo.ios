@@ -85,7 +85,7 @@ public enum SearchRangeOption: String {
   var textWithDate: String {
     get {
       if self == .all { return "\(self.rawValue)" }
-      return "\(self.rawValue) (\(self.minimumDate?.shortest ?? "") - \(self.maximuDate?.shortest ?? ""))"
+      return "\(self.rawValue) (\(self.minimumDate?.shorter ?? "") - \(self.maximuDate?.shorter ?? ""))"
     }}
     
   var minimumDate: Date? {

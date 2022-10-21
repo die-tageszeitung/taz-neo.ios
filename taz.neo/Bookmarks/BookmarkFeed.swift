@@ -113,6 +113,7 @@ public class BookmarkFeed: Feed, DoesLog {
     let sdate = art.issueDate.gDateString(tz: self.feeder.timeZone)
     let iso = art.issueDate.isoDate(tz: self.feeder.timeZone)
     let utime = art.issueDate.timeIntervalSince1970
+    let dateText = art.primaryIssue?.validityDateText(timeZone: GqlFeeder.tz, leadingText: "wochentaz, ")
     let html = """
       <a href="\(art.path)">
         \(getImage(art: art))
@@ -121,7 +122,7 @@ public class BookmarkFeed: Feed, DoesLog {
         \(getAuthors(art: art))
       </a>
       <div class = "foot">
-        <time utime="\(utime)" datetime="\(iso)">\(sdate)</time>
+        <time utime="\(utime)" datetime="\(iso)">\(dateText ?? sdate)</time>
         <div class="icons">
           <img class="share" src="resources/Share.svg">
           <img class="trash" src="resources/Trash.svg">
