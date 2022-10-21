@@ -6,16 +6,11 @@
         <title>Lottie Animation</title>
         <script src="../files/jquery-3.min.js"></script>
         <script src="../files/welcomeSlidesLottie.min.js"></script>
-        <script src="../files/welcomeSlidesLottieSmartphone.js"></script>
-        <script src="../files/welcomeSlidesLottieTablet.js"></script>
+        <script src="./trypdf.js"></script>
         <script>
             $(document).ready(function() {
                 const player = document.getElementById("lottieplayer");
-                if (navigator.userAgent.match(/iPad/)) {
-                    player.load(lottie_tablet);
-                } else {
-                    player.load(lottie_smartphone);
-                }
+                player.load(lottie_pdf);
             });
         </script>
     </head>
