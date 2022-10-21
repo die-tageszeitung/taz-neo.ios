@@ -136,9 +136,6 @@ class FormsResultController: UIViewController {
   var ui : FormView { get { return contentView }}
   
   var dismissType:dismissType = .current
-  /// dispisses all modal until the first occurence of given type
-  /// so dismissUntil should be a UIViewController
-//  var dismissUntil:Any.Type?@Idea
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -146,6 +143,20 @@ class FormsResultController: UIViewController {
     self.view.addSubview(ui)
     pin(ui, to: self.view).top.constant = 0
     setupXButton()
+  }
+  
+  override var preferredContentSize: CGSize {
+    get{
+      let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
+      updateViewSize(windowSize)
+      ui.container.doLayout()
+      let h = min(ui.container.frame.size.height, windowSize.height)
+      return  CGSize(width: 540, height: h)
+    }
+    set{
+      log("not implemented")
+    }
+ 
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -163,19 +174,11 @@ class FormsResultController: UIViewController {
     }
     
     let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
-//    print("ScreenSize: \(screenSize)  (updateViewSize)")
-//    print("WindowSize: \(UIApplication.shared.windows.first?.bounds.size)  (updateViewSize)")
     
     ///Fix Form Sheet Size
     if newSize.width > 540 && Device.isIpad {
-      ///Unfortunattly ui.scrollView.contentSize.height is too small for Register View to use it,
-      ///may need 2 Steps to calculate its height, maybe later
-      let height:CGFloat = min(windowSize.width,
-                               windowSize.height)
-        
       let formSheetSize = CGSize(width: 540,
-                                 height: height)
-      self.preferredContentSize = formSheetSize
+                                 height: windowSize.height)
       wConstraint = ui.container.pinWidth(formSheetSize.width, priority: .required)
     } else {
       wConstraint = ui.container.pinWidth(newSize.width, priority: .required)
@@ -247,7 +250,6 @@ class FormsResultController: UIViewController {
       case .leftFirst, .all:
         //remove first, to kept it on vc stack!
         //currently the firt item in stack is maybe Settungs and a return was maybe not possible
-        #warning("@ringo v0.9.7 Test and Refactor with Tab Controller")
         if let root = stack.popLast(), root.isKind(of: FormsResultController.self) == false {
           _ = stack.popLast()
         }
@@ -308,12 +310,26 @@ extension UIViewController {
 extension FormsResultController{
   /// Present given VC on topmost Viewcontroller with flip transition
   func modalFlip(_ controller:UIViewController){
+    modalFromBottomNew(controller); return;
     if Device.isIpad, let size = self.baseLoginController?.view.bounds.size {
       controller.preferredContentSize = size
       
     }
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .flipHorizontal
+    
+    ensureMain {
+      self.topmostModalVc.present(controller, animated: true, completion:nil)
+    }
+  }
+  
+  func modalFromBottomNew(_ controller:UIViewController){
+    if Device.isIpad, let size = self.baseLoginController?.view.bounds.size {
+      controller.preferredContentSize = size
+      
+    }
+    controller.modalPresentationStyle = .overCurrentContext
+    controller.modalTransitionStyle = .coverVertical
     
     ensureMain {
       self.topmostModalVc.present(controller, animated: true, completion:nil)

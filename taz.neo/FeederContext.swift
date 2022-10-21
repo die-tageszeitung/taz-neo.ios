@@ -875,6 +875,8 @@ open class FeederContext: DoesLog {
           res = .success(issue) 
           issue.isComplete = true
           ArticleDB.save()
+          //inform DownloadStatusButton: download finished
+          Notification.send("issueProgress", content: (1,1), sender: issue)
         }
         else { res = .failure(err!) }
         self.markStopDownload(dlId: dlId, tstart: tstart)

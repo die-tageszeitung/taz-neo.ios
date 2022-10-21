@@ -91,6 +91,14 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
     return p?.firstIndex(where: { $0.pageReference?.pdf?.fileName == link }) ?? nil
   }
   
+  public func pageIndexForArticle(_ article: Article) -> Int? {
+    let p = images as? [ZoomedPdfPageImage]
+    return p?.firstIndex(where: { zoomedPdfPageImage in
+      zoomedPdfPageImage.pageReference?.frames?
+        .first(where: { $0.link?.lastPathComponent == article.path.lastPathComponent}) != nil
+    }) ?? nil
+  }
+  
   private var whenScrolledHandler : WhenScrolledHandler?
   public func whenScrolled(minRatio: CGFloat, _ closure: @escaping (CGFloat) -> ()) {
     whenScrolledHandler = (minRatio, closure)
@@ -108,8 +116,6 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   func item(atIndex: Int) -> ZoomedPdfImageSpec? {
     return images.valueAt(atIndex)
   }
-  
- 
   
   var images : [ZoomedPdfImageSpec] = []
   
@@ -215,7 +221,18 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   
   public var sections: [Section]
   
-  public var article: Article?
+  @Default("smartBackFromArticle")
+  var smartBackFromArticle: Bool
+  
+  public var article: Article? {
+    didSet {
+      if smartBackFromArticle == false { return }
+      guard let mod = self.pdfModel as? NewPdfModel else { return }
+      guard let art = article else { return }
+      let i = mod.pageIndexForArticle(art)
+      self.index = i
+    }
+  }
   ///reference to pushed child vc, if any
   var childArticleVC: ArticleVcWithPdfInSlider?
   
@@ -321,7 +338,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   public init(issueInfo:IssueInfo) {
     Log.minLogLevel = .Debug
     let pdfModel = NewPdfModel(issueInfo: issueInfo)
-    pdfModel.title = issueInfo.issue.date.gDate().replacingOccurrences(of: ", ", with: ",\n")
+    
+    var title
+    = issueInfo.issue.validityDateText(timeZone: issueInfo.feeder.timeZone)
+    title = title.replacingOccurrences(of: ", ", with: ",\n")
+    title = title.replacingOccurrences(of: "Woche ", with: "Woche\n")
+    pdfModel.title = title
+    
     
     if let count = issueInfo.issue.pages?.count,
        let lastIndex = issueInfo.issue.lastPage,

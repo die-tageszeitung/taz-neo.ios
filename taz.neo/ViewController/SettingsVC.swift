@@ -43,6 +43,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   
+  @Default("smartBackFromArticle")
+  var smartBackFromArticle: Bool
+  
   var initialTextNotificationSetting: Bool?
   
   var data:TableData = TableData(sectionContent: [])
@@ -181,11 +184,20 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                     Notification.send("BookmarkChanged")
                   })
     
-  lazy var tabbarInSectionCell: XSettingsCell
+  lazy var tabbarInSectionCellALPHA: XSettingsCell
   = XSettingsCell(toggleWithText: "Teige Tabbar auf Sectionebene",
+                  detailText: "Alpha Feature",
                   initialValue: tabbarInSection,
                   onChange: {[weak self] newValue in
                     self?.tabbarInSection = newValue
+                  })
+  
+  lazy var smartBackFromArticleCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Intelligentes Zurück",
+                  detailText: "Zurück im Artikel führt zu zugehörigem Eintrag",
+                  initialValue: smartBackFromArticle,
+                  onChange: {[weak self] newValue in
+                    self?.smartBackFromArticle = newValue
                   })
   
   lazy var memoryUsageCell: XSettingsCell
@@ -198,8 +210,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
                   isDestructive: true,
                   tapHandler: {[weak self] in self?.requestResetApp()} )
-  lazy var contentChangeSettingCell: XSettingsCell
+  lazy var contentChangeSettingCellALPHA: XSettingsCell
   = XSettingsCell(toggleWithText: "Zeige Toolbar bei Artikelwechsel",
+                  detailText: "Alpha Feature",
                   initialValue: showBarsOnContentChange,
                   onChange: {[weak self] newValue in
     self?.showBarsOnContentChange = newValue })
@@ -232,7 +245,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     super.viewDidLoad()
     data = TableData(sectionContent: currentSectionContent())
     setup()
-    applyStyles()
     registerForStyleUpdates()
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
@@ -249,11 +261,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     }
   }
     
-  open override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
-    applyStyles()
-  }
-  
   required public init(feederContext: FeederContext) {
     self.feederContext = feederContext
     super.init(nibName: nil, bundle: nil)
@@ -291,6 +298,10 @@ extension SettingsVC {
   
   public func applyStyles() {
     tableView.backgroundColor = Const.SetColor.CTBackground.color
+    if let toggle = self.darkmodeSettingsCell.customAccessoryView as? UISwitch,
+       toggle.isOn != Defaults.darkMode {
+      toggle.isOn = Defaults.darkMode
+    }
   }
   
   func setup(){
@@ -589,14 +600,15 @@ extension SettingsVC {
     var cells =  [
       notificationsCell,
       bookmarksTeaserCell,
+      smartBackFromArticleCell,
       memoryUsageCell,
       deleteDatabaseCell,
       resetAppCell
     ]
     
     if App.isAlpha {
-      cells.append(contentChangeSettingCell)
-      cells.append(tabbarInSectionCell)
+      cells.append(contentChangeSettingCellALPHA)
+      cells.append(tabbarInSectionCellALPHA)
     }
     return cells
   }
@@ -1065,6 +1077,7 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     label.textColor =  Const.SetColor.ios(.label).color
     leftButton.circleIconButton(true)
     rightButton.circleIconButton(true)
+    label.text = "\(articleTextSize)%"
   }
   
   override func layoutSubviews() {

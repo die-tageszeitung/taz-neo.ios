@@ -115,7 +115,7 @@ public class ConnectTazIdView : FormView{
       errors = true
       passInput.bottomMessage = Localized("login_password_error_empty")
     }
-    else if (passInput.text ?? "").length < 7 {
+    else if (passInput.text ?? "").length < 12 {
       errors = true
       passInput.bottomMessage = Localized("password_too_short")
     }

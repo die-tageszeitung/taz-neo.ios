@@ -22,6 +22,9 @@ public protocol ArticleVCdelegate: IssueInfo {
 
 /// The Article view controller managing a collection of Article pages
 open class ArticleVC: ContentVC {
+  
+  @Default("smartBackFromArticle")
+  var smartBackFromArticle: Bool
     
   var hasValidAbo: Bool {feederContext.isAuthenticated && !Defaults.expiredAccount}
   var needValidAboToShareText: String {
@@ -125,6 +128,9 @@ open class ArticleVC: ContentVC {
     onDisplay { [weak self] (idx, oview) in
       if let self = self {
         let art = self.articles[idx]
+        if self.smartBackFromArticle {
+          self.adelegate?.article = art
+        }
         self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
         self.setHeader(artIndex: idx)
         self.issue.lastArticle = idx
@@ -213,7 +219,7 @@ open class ArticleVC: ContentVC {
         guard let data = data else { return }
         let dialogue = ExportDialogue<Data>()
         let altText = "\(art.teaser ?? "")\n\(art.onlineLink!)"
-        dialogue.present(item: data, altText: altText, view: button,
+        dialogue.present(item: data, altText: altText, onlineLink: art.onlineLink, view: button,
                          subject: art.title)
       }
     }
@@ -222,36 +228,13 @@ open class ArticleVC: ContentVC {
   // Export/Share article
   public static func exportArticle(article: Article?, artvc: ArticleVC? = nil, 
                                    from button: UIView? = nil) {
-    if let art = article {
-      if let link = art.onlineLink, !link.isEmpty {
-        if let url = URL(string: link) {
-          let actions = UIAlertController.init( title: nil, message: nil,
-            preferredStyle:  .actionSheet )
-          actions.addAction( UIAlertAction.init( title: "Teilen", style: .default,
-            handler: { handler in
-              //previously used PDFEXPORT Compiler Flags
-              if let artvc = artvc, App.isAvailable(.PDFEXPORT), #available(iOS 14, *) {
-                artvc.exportPdf(article: art, from: button)
-              } else {
-                let dialogue = ExportDialogue<Any>()
-                dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",
-                                 view: button, subject: art.title)
-              }
-          } ) )
-          actions.addAction( UIAlertAction.init( title: "Online-Version", style: .default,
-          handler: {
-            (handler: UIAlertAction) in
-            Log.debug("Going to online version: \(link)")
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-          } ) )
-          actions.addAction( UIAlertAction.init( title: "Abbrechen", style: .default,
-          handler: {
-            (handler: UIAlertAction) in
-          } ) )
-          actions.presentAt(button)
-        } 
-      }
-    } 
+    if let art = article,
+       let link = art.onlineLink,
+       !link.isEmpty{
+          let dialogue = ExportDialogue<Any>()
+          dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",
+                           view: button, subject: art.title, onlineLink: link)
+    }
   }
   
   public override func viewWillAppear(_ animated: Bool) {
@@ -274,7 +257,7 @@ open class ArticleVC: ContentVC {
       self.debug("*** Action: Share Article")
       if (self.article?.onlineLink ?? "").isEmpty {
         Alert.actionSheet(message: self.needValidAboToShareText,
-                          actions: UIAlertAction.init( title: "Anmelden",
+                          actions: UIAlertAction.init( title: self.feederContext.isAuthenticated ? "Weitere Informationen" : "Anmelden",
                                                        style: .default ){ [weak self] _ in
           self?.feederContext.authenticate()
         })

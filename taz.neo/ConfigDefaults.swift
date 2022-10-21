@@ -58,6 +58,7 @@ public let ConfigDefaults = Defaults.Values([
   "persistedIssuesCount": "20",
   // show teaser text in bookmarks list
   "bookmarksListTeaserEnabled" : "true",
+  "smartBackFromArticle" : "true",
   "tabbarInSection" : "false"
   
 ])

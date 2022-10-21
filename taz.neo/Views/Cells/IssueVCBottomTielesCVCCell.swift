@@ -77,8 +77,7 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     button.stopHandler = nil
     
     guard let issue = issue else { return }
-    
-    let title = UIWindow.size.width < 370 ? issue.date.shortest : issue.date.shorter
+    let title = issue.validityDateText(timeZone: GqlFeeder.tz, short: true)
     button.setTitle(title, for: .normal)
     
     momentView.isActivity = issue.isDownloading

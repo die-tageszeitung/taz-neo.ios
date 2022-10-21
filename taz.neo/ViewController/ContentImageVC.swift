@@ -172,12 +172,21 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     }
   }
   
+  private var orientationClosure:OrientationClosure? = OrientationClosure()
+  
   public init(content: Content, delegate: IssueInfo, imageTapped: String? = nil) {
     self.content = content
     self.delegate = delegate
     self.imageTapped = imageTapped
     super.init() 
     super.pinTopToSafeArea = false
+    if #available(iOS 16.0, *) {
+      orientationClosure?.onOrientationChange(closure: {[weak self] in
+        #warning("Exchange this, when building from xcode 14")
+        self?.perform(Selector(("setNeedsUpdateOfSupportedInterfaceOrientations")))
+//        self?.setNeedsUpdateOfSupportedInterfaceOrientations()
+      })
+    }
   }
   
   required init?(coder: NSCoder) {
@@ -188,5 +197,14 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     super.viewDidLoad()
     setupImageCollectionVC()
   }
-    
+  public override func viewWillDisappear(_ animated: Bool) {
+    if #available(iOS 16.0, *), let parent = self.parentViewController {
+      onMainAfter {
+        parent.perform(Selector(("setNeedsUpdateOfSupportedInterfaceOrientations")))
+        #warning("Exchange this, when building from xcode 14")
+//        parent.setNeedsUpdateOfSupportedInterfaceOrientations()
+      }
+    }
+    super.viewWillDisappear(animated)
+  }
 } // ContentImageVC
