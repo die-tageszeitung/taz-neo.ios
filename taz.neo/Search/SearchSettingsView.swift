@@ -55,13 +55,29 @@ class SearchSettingsView: UITableView {
     return btn
   }()
   
+  lazy var helpButton: UILabel = {
+    let lbl = UILabel()
+    lbl.text = "Hilfe"
+    lbl.contentFont(size: Const.Size.MiniPageNumberFontSize)
+    lbl.textColor = .gray
+    lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
+    return lbl
+  }()
+  
   private lazy var searchFooterWrapper: UIView = {
-    let v = searchButton.wrapper(UIEdgeInsets(top: 5, left: Const.Size.DefaultPadding, bottom: -5, right: -Const.Size.DefaultPadding), priority: .defaultHigh)
-    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+10)
+    let v = UIView()
+    v.addSubview(searchButton)
+    v.addSubview(helpButton)
+    
+    pin(searchButton.top, to: v.top, dist: 5.0)
+    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding)
+    pin(searchButton.left, to: v.left, dist: Const.Size.DefaultPadding)
+    
+    pin(helpButton.top, to: searchButton.bottom, dist: Const.Size.DefaultPadding)
+    pin(helpButton.left, to: v.left, dist: Const.Size.DefaultPadding)
+    //No need to close Autolayout due Footer needs Fix Frame foe easier use
+    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+40)
     v.backgroundColor = Const.SetColor.ios(.systemBackground).color
-    v.onTapping { _ in
-      print("tap footer..")
-    }
     return v
   }()
   

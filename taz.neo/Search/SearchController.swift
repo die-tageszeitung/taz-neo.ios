@@ -120,6 +120,25 @@ class SearchController: UIViewController {
       self?.checkFilter()
       self?.header.checkCancelButton()
     }
+    v.helpButton.onTapping {[weak self] _ in
+      guard let url = Bundle.main.url(forResource: "searchHelp",
+                                      withExtension: "html",
+                                      subdirectory: "files"),
+            case let file = File(url),
+            file.exists  else {
+        self?.log("search Help not found")
+        return
+      }
+      
+      InfoToast.showWith(lottieUrl: url,
+                         title: nil,
+                         text: nil,
+                         buttonText: "OK",
+                         hasCloseX: true,
+                         autoDisappearAfter: nil) {   [weak self] in
+        self?.log("Search Help closed")
+      }
+    }
     v.textFieldDelegate = self
     return v
   }()
