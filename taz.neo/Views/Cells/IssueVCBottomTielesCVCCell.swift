@@ -22,9 +22,9 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   
   public override func prepareForReuse() {
     self.momentView.image = nil
-    self.button.startHandler = nil
-    self.button.startHandler = nil
-    self.button.setTitle("", for: .normal)
+    self.button.indicator.startHandler = nil
+    self.button.indicator.startHandler = nil
+    self.button.label.text = nil
   }
   
   override init(frame: CGRect) {
@@ -55,8 +55,8 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     button.tintColor = Const.Colors.appIconGrey
     //not use cloud image from assets due huge padding
     //button.cloudImage = UIImage(named: "download")
-    button.setTitleColor(Const.Colors.appIconGrey, for: .normal)
-    button.titleLabel?.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
+    button.label.textColor = Const.Colors.appIconGrey
+    button.label.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
     
     Notification.receive("issueProgress", closure: {   [weak self] notif in
       guard let self = self else { return }
@@ -64,8 +64,8 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
       if let (loaded,total) = notif.content as? (Int64,Int64) {
         let percent = Float(loaded)/Float(total)
         if percent > 0.05 {
-          self.button.downloadState = .process
-          self.button.percent = percent
+          self.button.indicator.downloadState = .process
+          self.button.indicator.percent = percent
         }
         if percent == 1.0 {  self.momentView.isActivity = false }
       }
@@ -73,27 +73,25 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   }
   
   private func update(){
-    button.startHandler = nil
-    button.stopHandler = nil
+    button.indicator.startHandler = nil
+    button.indicator.stopHandler = nil
     
     guard let issue = issue else { return }
-    let title = issue.validityDateText(timeZone: GqlFeeder.tz, short: true)
-    button.setTitle(title, for: .normal)
+    button.label.text = issue.validityDateText(timeZone: GqlFeeder.tz,
+                                               short: true)
     
     momentView.isActivity = issue.isDownloading
     
     if issue.isDownloading {
-      button.downloadState = .waiting
+      button.indicator.downloadState = .waiting
     }
     else if issue.isComplete {
-      button.downloadState = .done
+      button.indicator.downloadState = .done
     }
     else {
-      button.downloadState = .notStarted
+      button.indicator.downloadState = .notStarted
     }
-    
   }
-  
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")

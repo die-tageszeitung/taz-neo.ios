@@ -365,15 +365,14 @@ extension IssueVcWithBottomTiles {
         cell.momentView.image = nil
       }
       if hasDownloadableContent(issue: issue) {
-        cell.button.startHandler = { [weak self] in
+        cell.button.onTapping {[weak self] _ in
           guard let self = self, let sissue = issue as? StoredIssue else { return }
-          cell.button.startHandler = nil
-          cell.button.downloadState = .waiting
+          cell.button.indicator.downloadState = .waiting
           cell.momentView.isActivity = true
           issueVC.feederContext.getCompleteIssue(issue: sissue,
                                                  isPages: self.isFacsimile, isAutomatically: false)
         }
-        cell.button.downloadState = .notStarted
+        cell.button.indicator.downloadState = .notStarted
       }
     }
     
@@ -417,15 +416,15 @@ extension IssueVcWithBottomTiles {
     guard let cell = collectionView.cellForItem(at: indexPath)
                      as? IssueVCBottomTielesCVCCell else { return }
     if issueVC.issue.isDownloading {
-      cell.button.downloadState = .process
+      cell.button.indicator.downloadState = .process
       cell.momentView.isActivity = true
     }
     else if issueVC.issue.isComplete {
-      cell.button.downloadState = .done
+      cell.button.indicator.downloadState = .done
       cell.momentView.isActivity = false
     }
     else {
-      cell.button.downloadState = .process
+      cell.button.indicator.downloadState = .process
       cell.momentView.isActivity = true
     }
     cell.momentView.setNeedsLayout()
