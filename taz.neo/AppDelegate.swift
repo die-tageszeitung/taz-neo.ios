@@ -45,7 +45,7 @@ class TestC:UIViewController {
     pin(ds.left, to: self.view.left, dist: 12.0)
     pin(ds.right, to: self.view.right, dist: -12.0)
     ds.pinHeight(25.0)
-    ds.addBorder(.red)
+//    ds.addBorder(.red)
     ds.label.text = "Press the button"
     ds.label.textColor = .white
     ds.tintColor = .white
