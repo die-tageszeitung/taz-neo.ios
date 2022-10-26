@@ -8,54 +8,6 @@
 import UIKit
 import NorthLib
 
-
-class TestC:UIViewController {
-  
-  let ds = DownloadStatusButton()
-
-  var states: [DownloadStatusIndicatorState] =
-  [
-    .notStarted,
-    .waiting,
-    .process,
-    .justDone,
-    .done,
-    .notStarted,
-    .waiting,
-    .process,
-    .justDone,
-    .done,
-    .notStarted,
-    .waiting,
-    .process,
-    .justDone,
-    .done,
-    .notStarted,
-    .waiting,
-    .process,
-    .justDone,
-    .done
-  ]
-  
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    self.view.addSubview(ds)
-    ds.indicator.downloadState = .notStarted
-    ds.center()
-    pin(ds.left, to: self.view.left, dist: 12.0)
-    pin(ds.right, to: self.view.right, dist: -12.0)
-    ds.pinHeight(25.0)
-//    ds.addBorder(.red)
-    ds.label.text = "Press the button"
-    ds.label.textColor = .white
-    ds.tintColor = .white
-    ds.label.onTapping { _ in
-      self.ds.indicator.downloadState = self.states.pop()
-      print("state: \(self.ds.indicator.downloadState)")
-    }
-  }
-}
-
 @UIApplicationMain
 class AppDelegate: NotifiedDelegate {
 
@@ -66,8 +18,7 @@ class AppDelegate: NotifiedDelegate {
     TazAppEnvironment.saveLastLog()
     TazAppEnvironment.setupDefaultStyles()
     self.window = UIWindow(frame: UIScreen.main.bounds)
-    self.window?.rootViewController =  TestC()
-//    self.window?.rootViewController = TazAppEnvironment.sharedInstance.rootViewController
+    self.window?.rootViewController = TazAppEnvironment.sharedInstance.rootViewController
 //    self.window?.rootViewController =  TmpTestController()
 //    let res = SearchResultsTVC()
 //    res.searchResponse = GqlFeeder.test()
