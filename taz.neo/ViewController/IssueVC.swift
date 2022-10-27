@@ -28,7 +28,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public var issueCarousel = IssueCarousel()
   
   /// Process Indicator for empty Carousel
-  var carouselActivityIndicator:UIActivityIndicatorView? = UIActivityIndicatorView(style: .large)
+  lazy var carouselActivityIndicator:UIActivityIndicatorView? = {
+    let spinner = UIActivityIndicatorView(style: .large)
+    spinner.tintColor = .white
+    return spinner
+  }()
   
   /// the spacing between issueCarousel and the Toolbar
   var issueCarouselLabelWrapperHeight: CGFloat = 120
