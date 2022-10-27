@@ -22,8 +22,6 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   
   public override func prepareForReuse() {
     self.momentView.image = nil
-    self.button.indicator.startHandler = nil
-    self.button.indicator.startHandler = nil
     self.button.label.text = nil
   }
   
@@ -73,9 +71,6 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   }
   
   private func update(){
-    button.indicator.startHandler = nil
-    button.indicator.stopHandler = nil
-    
     guard let issue = issue else { return }
     button.label.text = issue.validityDateText(timeZone: GqlFeeder.tz,
                                                short: true)
@@ -85,7 +80,7 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     if issue.isDownloading {
       button.indicator.downloadState = .waiting
     }
-    else if issue.isComplete {
+    else if issue.status.watchable {
       button.indicator.downloadState = .done
     }
     else {

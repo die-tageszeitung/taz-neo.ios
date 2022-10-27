@@ -368,6 +368,7 @@ extension IssueVcWithBottomTiles {
         cell.button.onTapping {[weak self] _ in
           guard let self = self, let sissue = issue as? StoredIssue else { return }
           cell.button.indicator.downloadState = .waiting
+          cell.button.indicator.percent = 0.0
           cell.momentView.isActivity = true
           issueVC.feederContext.getCompleteIssue(issue: sissue,
                                                  isPages: self.isFacsimile, isAutomatically: false)
