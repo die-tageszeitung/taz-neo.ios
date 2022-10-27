@@ -750,19 +750,29 @@ public protocol Issue: ToString, AnyObject {
 
 public extension Issue {
   
-  func validityDateText(timeZone:String, short:Bool = false, leadingText: String? = "woche, ") -> String {
+  func validityDateText(timeZone:String,
+                        short:Bool = false,
+                        shorter:Bool = false,
+                        leadingText: String? = "woche, ") -> String {
     
-    guard let endDate = validityDate, isWeekend, !short else {
-      return short ? date.short : date.gLowerDate(tz: timeZone)
+    guard let endDate = validityDate, isWeekend else {
+      return shorter ? date.shorter
+      : short ? date.short
+      : date.gLowerDate(tz: timeZone)
     }
     
-//    let leadingText = short ? "" : leadingText ?? ""
+    let mSwitch = endDate.components().month != date.components().month
     
-    let dateFormatterGet = DateFormatter()
-    dateFormatterGet.dateFormat = "d.M."
-    let day = dateFormatterGet.string(from: date)
+    let dfFrom = DateFormatter()
+    dfFrom.dateFormat = mSwitch ? "d.M." : "d."
     
-    return "\(leadingText ?? "")\(day) – \(endDate.short)"
+    let dfTo = DateFormatter()
+    dfTo.dateFormat = shorter ? "d.M.yy" : "d.M.yyyy"
+    
+    let from = dfFrom.string(from: date)
+    let to = dfTo.string(from: endDate)
+    
+    return "\(leadingText ?? "")\(from) – \(to)"
   }
   
   func toString() -> String {

@@ -54,7 +54,6 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     //not use cloud image from assets due huge padding
     //button.cloudImage = UIImage(named: "download")
     button.label.textColor = Const.Colors.appIconGrey
-    button.label.font = Const.Fonts.contentFont(size: Const.ASize.DefaultFontSize)
     
     Notification.receive("issueProgress", closure: {   [weak self] notif in
       guard let self = self else { return }
@@ -70,10 +69,41 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     })
   }
   
+  private func updateLabel(){
+    guard let issue = issue else { return }
+
+//    let smaller = self.frame.size.width < 160
+    let smaller
+    = Device.isIpad
+    ? traitCollection.horizontalSizeClass == .compact
+    : UIWindow.size.width < 360
+    
+    button.label.font
+    = Const.Fonts.contentFont(size: smaller ? 14.0 : 15.0)
+    
+    button.label.text
+    = issue.validityDateText(timeZone: GqlFeeder.tz,
+                             short: true,
+                             shorter: smaller,
+                             leadingText: "")
+//    print("window size: \(UIWindow.size.width) sizeClass: \(traitCollection.horizontalSizeClass.rawValue) self size: \(self.frame.size.width.rounded()) smaler: \(smaller) text: \(button.label.text ?? "")")
+  }
+  
+  public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    if !Device.isIpad { return }
+    updateLabel()
+  }
+  
+//  public override var frame: CGRect {
+//    didSet{
+//      if frame.width != oldValue.width { updateLabel() }
+//    }
+//  }
+  
   private func update(){
     guard let issue = issue else { return }
-    button.label.text = issue.validityDateText(timeZone: GqlFeeder.tz,
-                                               short: true)
+    updateLabel()
     
     momentView.isActivity = issue.isDownloading
     

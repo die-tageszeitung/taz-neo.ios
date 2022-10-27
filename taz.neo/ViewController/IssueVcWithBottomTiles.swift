@@ -394,8 +394,24 @@ extension IssueVcWithBottomTiles {
       showMoreIssues()
       footerActivityIndicator.startAnimating()
     }
+//    (cell as? IssueVCBottomTielesCVCCell)?.updateLabel()
   }
   
+  
+//  public override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+//    super.willTransition(to: newCollection, with: coordinator)
+//    self.updateLabels()
+//  }
+//  
+//  
+//  func updateLabels(){
+//    for i in 0...issues.count - 1
+//    {
+//      if let cell = self.collectionView(self.collectionView, cellForItemAt: NSIndexPath(row: i, section: 1) as IndexPath) as? IssueVCBottomTielesCVCCell {
+//        cell.updateLabel()
+//      }
+//    }
+//  }
   
   
   
