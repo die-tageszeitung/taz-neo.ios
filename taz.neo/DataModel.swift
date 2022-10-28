@@ -754,7 +754,6 @@ public extension Issue {
                         short:Bool = false,
                         shorter:Bool = false,
                         leadingText: String? = "woche, ") -> String {
-//    return "29.10. – 5.11.2022"//Problematic date
     guard let endDate = validityDate, isWeekend else {
       return shorter ? date.shorter
       : short ? date.short

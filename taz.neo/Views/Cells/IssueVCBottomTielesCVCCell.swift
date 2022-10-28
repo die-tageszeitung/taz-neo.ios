@@ -78,7 +78,6 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   private func updateLabel(){
     guard let issue = issue else { return }
 
-//    let smaller = self.frame.size.width < 160
     let shorter
     = Device.isIpad
     ? traitCollection.horizontalSizeClass == .compact
