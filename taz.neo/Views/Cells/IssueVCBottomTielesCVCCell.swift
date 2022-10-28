@@ -54,6 +54,7 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     //not use cloud image from assets due huge padding
     //button.cloudImage = UIImage(named: "download")
     button.label.textColor = Const.Colors.appIconGrey
+    button.label.font = Const.Fonts.contentFont(size: 15.0)
     
     Notification.receive("issueProgress", closure: {   [weak self] notif in
       guard let self = self else { return }
@@ -69,37 +70,36 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     })
   }
   
+  
+  /// Update (or just set) Label Text
+  /// on **iPhone** no Changes, fixes **Text depending Screen Resolution**
+  /// on **iPad horizontalSizeClass changes are handled**, unfortunately resolution checks result here in
+  /// strange behaviour that some cells not get updated and still show e.g. 22.10.22 and the next 23.10.2022
   private func updateLabel(){
     guard let issue = issue else { return }
 
 //    let smaller = self.frame.size.width < 160
-    let smaller
+    let shorter
     = Device.isIpad
     ? traitCollection.horizontalSizeClass == .compact
-    : UIWindow.size.width < 360
+    : UIWindow.size.width <= 375 //Iphone 6-iPhone 13mini
     
-    button.label.font
-    = Const.Fonts.contentFont(size: smaller ? 14.0 : 15.0)
+    ///iPhone 12 has 390 @see: https://www.ios-resolution.com
+    ///or iPad Pro * 1/3 @see: https://developer.apple.com/design/human-interface-guidelines/foundations/layout
     
     button.label.text
     = issue.validityDateText(timeZone: GqlFeeder.tz,
                              short: true,
-                             shorter: smaller,
+                             shorter: shorter,
                              leadingText: "")
-//    print("window size: \(UIWindow.size.width) sizeClass: \(traitCollection.horizontalSizeClass.rawValue) self size: \(self.frame.size.width.rounded()) smaler: \(smaller) text: \(button.label.text ?? "")")
   }
   
   public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
     super.traitCollectionDidChange(previousTraitCollection)
     if !Device.isIpad { return }
+    if previousTraitCollection?.horizontalSizeClass == traitCollection.horizontalSizeClass { return }
     updateLabel()
   }
-  
-//  public override var frame: CGRect {
-//    didSet{
-//      if frame.width != oldValue.width { updateLabel() }
-//    }
-//  }
   
   private func update(){
     guard let issue = issue else { return }
