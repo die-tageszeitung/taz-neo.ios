@@ -51,8 +51,6 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     button.pinHeight(buttonHeight)
     pin(button.topGuide(), to: momentView.bottomGuide(), dist: buttonOffset, priority: .fittingSizeLevel)
     button.tintColor = Const.Colors.appIconGrey
-    //not use cloud image from assets due huge padding
-    //button.cloudImage = UIImage(named: "download")
     button.label.textColor = Const.Colors.appIconGrey
     button.label.font = Const.Fonts.contentFont(size: 15.0)
     
@@ -85,7 +83,6 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     
     ///iPhone 12 has 390 @see: https://www.ios-resolution.com
     ///or iPad Pro * 1/3 @see: https://developer.apple.com/design/human-interface-guidelines/foundations/layout
-    
     button.label.text
     = issue.validityDateText(timeZone: GqlFeeder.tz,
                              short: true,
