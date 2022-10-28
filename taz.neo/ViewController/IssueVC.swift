@@ -30,7 +30,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Process Indicator for empty Carousel
   lazy var carouselActivityIndicator:UIActivityIndicatorView? = {
     let spinner = UIActivityIndicatorView(style: .large)
-    spinner.tintColor = .white
+    spinner.color = .white
     return spinner
   }()
   
