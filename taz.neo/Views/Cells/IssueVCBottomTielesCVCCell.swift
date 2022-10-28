@@ -14,7 +14,7 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   public let momentView = MomentView()
   public let button = DownloadStatusButton()
   let buttonHeight:CGFloat = 30.0
-  let buttonOffset:CGFloat = 3.0
+  let buttonOffset:CGFloat = 0.0
   
   var menu:ContextMenu?
   
