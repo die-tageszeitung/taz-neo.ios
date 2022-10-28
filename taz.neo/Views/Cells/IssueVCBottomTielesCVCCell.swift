@@ -50,9 +50,8 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
     pin(button, to: contentView, exclude: .top)
     button.pinHeight(buttonHeight)
     pin(button.topGuide(), to: momentView.bottomGuide(), dist: buttonOffset, priority: .fittingSizeLevel)
-    button.tintColor = Const.Colors.appIconGrey
-    button.label.textColor = Const.Colors.appIconGrey
     button.label.font = Const.Fonts.contentFont(size: 15.0)
+    button.color = Const.Colors.appIconGrey
     
     Notification.receive("issueProgress", closure: {   [weak self] notif in
       guard let self = self else { return }
