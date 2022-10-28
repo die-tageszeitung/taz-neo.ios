@@ -456,7 +456,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     login.textColor = Const.Colors.iconButtonInactive
     login.text = "Anmelden"
     
-    let arrow = UIImageView(image: UIImage(name: "arrow.right"))
+    let arrow
+    = UIImageView(image: UIImage(name: "arrow.right")?
+      .withTintColor(Const.Colors.iconButtonInactive,
+                     renderingMode: .alwaysOriginal))
     arrow.tintColor = Const.Colors.iconButtonInactive
     
     let wrapper = UIView()
