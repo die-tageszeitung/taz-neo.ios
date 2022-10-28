@@ -17,7 +17,7 @@ public class SubscriptionFormView : FormView{
   var expireDate:Date?
   var customerType: GqlCustomerType?
   
-  var idInput = TazTextField(placeholder: "E-Mail-Adresse oder Abonummer (wenn vorhanden)",
+  var idInput = TazTextField(placeholder: "E-Mail-Adresse",
                                     textContentType: .emailAddress,
                                     enablesReturnKeyAutomatically: true,
                                     keyboardType: .default,
@@ -66,7 +66,7 @@ public class SubscriptionFormView : FormView{
     let ti
     = ViewWithTextView(text: nil,
                        font: Const.Fonts.contentFont(size: Const.Size.DefaultFontSize))
-    ti.placeholder = "Ihre Nachricht"
+    ti.placeholder = "Ihre Nachricht und Abonummer (wenn vorhanden)"
     ti.border.isHidden = false
     return ti
   }()
