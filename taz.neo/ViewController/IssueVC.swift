@@ -765,9 +765,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           self?.addIssue(issue: errIssue)
         }
       }
+      else if let issue = notif.content as? Issue {
+        self?.statusHeader.currentStatus = .none
+        self?.addIssue(issue: issue)
+      }
       else {
         self?.statusHeader.currentStatus = .none
-        self?.addIssue(issue: notif.content as! Issue)
       }
     }
   }
