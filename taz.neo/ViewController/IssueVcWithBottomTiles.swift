@@ -409,7 +409,9 @@ extension IssueVcWithBottomTiles {
     guard let issueVC = self as? IssueVC else { return }
     /// Note: if using "animated: true" => Bug: opened Issue stays white!
     issueVC.issueCarousel.carousel.scrollto(indexPath.row)
-    issueVC.showIssue(index: indexPath.row)
+    let issue = issueVC.issues[indexPath.row]
+    issueVC.showIssue(index: indexPath.row, atSection: issue.lastSection,
+                   atArticle: issue.lastArticle)
     ///Work with Issue drop on cell, and notifications for download start/stop
     guard let cell = collectionView.cellForItem(at: indexPath)
                      as? IssueVCBottomTielesCVCCell else { return }
