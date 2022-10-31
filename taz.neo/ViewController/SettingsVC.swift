@@ -1039,6 +1039,11 @@ class SaveLastCountIssuesSettings: TextSizeSetting {
     : "alle"
   }
   
+  override func applyStyles() {
+    super.applyStyles()
+    updatePersistedIssuesCount()
+  }
+  
   override func setup(){
     super.setup()
     label.text = "\(persistedIssuesCount)"
