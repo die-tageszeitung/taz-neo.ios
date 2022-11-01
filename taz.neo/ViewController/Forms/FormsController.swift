@@ -336,7 +336,7 @@ extension FormsResultController{
     }
   }
   
-  func modalFromBottom(_ controller:UIViewController){
+  func modalFromBottom(_ controller:UIViewController, completion: (() -> Void)? = nil){
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .coverVertical
     
@@ -347,7 +347,7 @@ extension FormsResultController{
       }
       else{
         ensureMain {
-          topmostModalVc.present(controller, animated: true, completion:nil)
+          topmostModalVc.present(controller, animated: true, completion:completion)
         }
         break
       }
@@ -373,7 +373,14 @@ extension FormsController: UITextViewDelegate {
     if let localResource = localResource, localResource.exists {
       let introVC = IntroVC()
       introVC.webView.webView.load(url: localResource.url)
-      modalFromBottom(introVC)
+      modalFromBottom(introVC) {
+        //Overwrite Default in: IntroVC viewDidLoad
+        introVC.webView.buttonLabel.text = nil
+        //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
+        guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
+        bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
+        bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
+      }
       introVC.webView.onX {_ in 
         introVC.dismiss(animated: true, completion: nil)
       }
