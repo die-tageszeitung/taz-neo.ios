@@ -119,11 +119,11 @@ public class ConnectTazIdView : FormView{
       errors = true
       passInput.bottomMessage = Localized("password_too_short")
     }
-    else if let mailLeading = mailInput.text?.components(separatedBy: "@").first,
-            ((passInput.text?.contains(mailLeading)) != nil) {
-      errors = true
-      passInput.bottomMessage = Localized("password_contains_mail")
-    }
+//    else if let mailLeading = mailInput.text?.components(separatedBy: "@").first,
+//            passInput.text?.contains(mailLeading) != false {
+//      errors = true
+//      passInput.bottomMessage = Localized("password_contains_mail")
+//    }
     
     if pass2Input.isVisible, (pass2Input.text ?? "").isEmpty {
       errors = true
