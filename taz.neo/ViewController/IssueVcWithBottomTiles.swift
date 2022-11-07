@@ -43,12 +43,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   ///moved issues here to prevent some performance and other issues
   ///obsolate after refactoring & full integration
   public var issues: [Issue] = []
-
-//  public var toolBar = ContentToolbar()
-//  var toolbarHomeButton: Button<ImageView>?
-//  var toolbarSettingsButton: Button<ImageView>?
-  
-  
   
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
   private let reuseHeaderIdentifier = "issueVcCollectionViewHeader"
