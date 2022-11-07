@@ -48,7 +48,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
 //  var toolbarHomeButton: Button<ImageView>?
 //  var toolbarSettingsButton: Button<ImageView>?
   
-  var childPushed = false
   
   
   private let reuseIdentifier = "issueVcCollectionViewBottomCell"
@@ -158,7 +157,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     collectionView?.register(IssueVCBottomTielesCVCCell.self, forCellWithReuseIdentifier: reuseIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: reuseHeaderIdentifier)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: reuseFooterIdentifier)
-    showPdfInfoIfNeeded()
     setupPullToRefresh()
     //update download Status Button in issueCarousel
     Notification.receive("issue"){ [weak self] notif in
@@ -169,11 +167,9 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
     }
   }
   
-  public override func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    if self.navigationController?.viewControllers.last != self {
-      childPushed = true
-    }
+  public override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    showPdfInfoIfNeeded()
   }
   
   public override func viewWillAppear(_ animated: Bool) {
@@ -181,10 +177,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
       UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
     }
     super.viewWillAppear(animated)
-    if childPushed {
-      childPushed = false
-      showScrollDownAnimationIfNeeded(delay: 2.0)
-    }
     updateCollectionViewLayout(self.view.frame.size)
   }
   
@@ -644,7 +636,7 @@ extension IssueVcWithBottomTiles {
   ///  - no active animation
   ///
   /// - Parameter delay: delay after animation started if applicable
-  func showScrollDownAnimationIfNeeded(delay:Double = 3.0) {
+  func showScrollDownAnimationIfNeeded(delay:Double = 2.0) {
     if showBottomTilesAnimation == false { return }
     guard (Date().timeIntervalSince(bottomTilesLastShown) >= 60*60*24) &&
           (Date().timeIntervalSince(bottomTilesAnimationLastShown) >= 30)
