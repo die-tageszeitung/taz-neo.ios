@@ -40,7 +40,7 @@ html {
   font-family      : AktivGrotesk, sans-serif;
   font-weight      : normal;
   font-size        : 17px;
-  line-height      : 1.2;
+  line-height      : 1.23;
 }
 
 * {
@@ -48,8 +48,12 @@ html {
   padding          : 0;
 }
 
-#content {
+body {
   padding: 61px 15px 5px 15px;
+}
+
+section {
+  padding-bottom: 0.6rem;
 }
 
 .light {
@@ -62,6 +66,33 @@ html {
   color            : #e3e3e3;
 }
 
+header {
+  clear: both;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-bottom: 0.6rem;
+}
+
+header.light {
+  border-bottom: 1px dashed black;
+}
+
+header.dark {
+  border-bottom: 1px dashed #e3e3e3;
+}
+
+img.moment {
+  float: left;
+  padding-right: 0.6rem;
+  height: 36px;
+}
+
+header h1 {
+  font-size: 1.06rem;
+  font-weight: bold;
+}
+
 article.light {
   border-bottom: 1px solid black;
 }
@@ -70,9 +101,11 @@ article.dark {
   border-bottom: 1px solid #e3e3e3;
 }
 
+/*
 article:last-child {
   border-bottom: none;
 }
+*/
 
 /* No visible links */
 a:link, a:visited, a:hover, a:active, a:focus {
@@ -91,25 +124,39 @@ article {
 article h2 {
   padding-top: 0.88rem;
   padding-bottom: 0.3rem;
-  font-size: 1.03rem;
+  font-size: 0.88rem;
   font-weight: bold;
 }
 
+article p {
+  font-size: 0.85rem;
+}
+
 article address {
-  padding-top: 0.3rem;
+  font-size: 0.79rem;
+  font-weight: bold;
   font-style: normal;
 }
 
 article time {
-  font-size: 0.82rem;
+  font-size: 0.71rem;
+  font-weight: normal;
+  font-style: normal;
 }
 
 .foot {
   clear: both;
-  padding-top: 0.3rem;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
+  margin-top: -0.5rem;
+}
+
+.author {
+  clear: both;
+  display: flex;
+  flex-direction: row;
   align-items: center;
 }
 
@@ -121,11 +168,13 @@ article time {
   object-fit: cover;
 }
 
-.icons {
+img.share {
   padding-left: 10px;
+  margin-right: -5px;
+  width: 48px;
 }
 
-.icons img {
-  margin: -3px;
-  width: 50px;
+img.bookmark {
+  padding-bottom: 10px;
+  width: 30px;
 }
