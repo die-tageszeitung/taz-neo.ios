@@ -274,6 +274,8 @@ class GqlArticle: Article, GQLObject {
   /// List of authors
   var authorList: [GqlAuthor]?
   var authors: [Author]? { return authorList }
+  var serverId: Int?
+  var readingDuration: Int?
 
   static var fields = """
   articleHtml { \(GqlFile.fields) }
@@ -282,6 +284,8 @@ class GqlArticle: Article, GQLObject {
   teaser
   onlineLink
   pageNames: pageNameList
+  serverId: mediaSyncId
+  readingDuration: readMinutes
   imageList { \(GqlImage.fields) }
   authorList { \(GqlAuthor.fields) }
   """  

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="20086" systemVersion="21E258" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="2">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21512" systemVersion="21G115" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="2">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="hasBookmark" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="onlineLink" optional="YES" attributeType="String"/>
+        <attribute name="readingDuration" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="serverId" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="teaser" optional="YES" attributeType="String"/>
         <relationship name="audio" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="articleAudio" inverseEntity="FileEntry"/>
         <relationship name="authors" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Author" inverseName="articles" inverseEntity="Author"/>
@@ -195,22 +197,4 @@
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="sections" inverseEntity="Issue"/>
         <relationship name="navButton" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="navSection" inverseEntity="ImageEntry"/>
     </entity>
-    <elements>
-        <element name="Article" positionX="-52304.70703125" positionY="-34778.95703125" width="128" height="209"/>
-        <element name="Author" positionX="-52485.62890625" positionY="-35092.16015625" width="128" height="103"/>
-        <element name="Content" positionX="-52600.859375" positionY="-34418.77734375" width="128" height="149"/>
-        <element name="Descriptor" positionX="-51924.47265625" positionY="-35092.5859375" width="128" height="118"/>
-        <element name="Feed" positionX="-52533.1796875" positionY="-34944.84375" width="128" height="224"/>
-        <element name="Feeder" positionX="-52810.859375" positionY="-34899.69140625" width="128" height="178"/>
-        <element name="FileEntry" positionX="-53019" positionY="-35010" width="128" height="239"/>
-        <element name="Frame" positionX="-51920.18359375" positionY="-34620.09375" width="128" height="149"/>
-        <element name="ImageEntry" positionX="-53001" positionY="-34992" width="128" height="209"/>
-        <element name="Issue" positionX="-52847.8671875" positionY="-34702.765625" width="128" height="359"/>
-        <element name="Moment" positionX="-52992" positionY="-35010" width="128" height="119"/>
-        <element name="Page" positionX="-52203.38671875" positionY="-34559.82421875" width="128" height="164"/>
-        <element name="Payload" positionX="-53189.828125" positionY="-34824.89453125" width="128" height="179"/>
-        <element name="Remark" positionX="-52138.01171875" positionY="-35159.59375" width="128" height="118"/>
-        <element name="Resources" positionX="-53009.359375" positionY="-34422.0859375" width="128" height="88"/>
-        <element name="Section" positionX="-52493.79296875" positionY="-34734.5234375" width="128" height="119"/>
-    </elements>
 </model>

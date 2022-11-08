@@ -499,6 +499,7 @@ open class FeederContext: DoesLog {
     if let latest = StoredResources.latest() {
       if latest.resourceVersion >= version, latest.isComplete {
         isUpdatingResources = false
+        debug("No need to read resources version \(latest.resourceVersion)")
         notify("resourcesReady");
         return
       }
