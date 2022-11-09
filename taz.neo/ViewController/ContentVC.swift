@@ -148,7 +148,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\";" }
     let cssContent = """
       \(colorModeImport)
-      @import "scroll.css";
+
       html, body { 
         font-size: \((CGFloat(textSize)*18)/100)px; 
       }
@@ -173,7 +173,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
             position: absolute;
             left: 50%;
           }
-        
+        div.VerzeichnisInfo,
         div.VerzeichnisArtikel{
           margin-left: 0;
           margin-right: 0;
