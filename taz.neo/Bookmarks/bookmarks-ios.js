@@ -20,6 +20,7 @@ function setColorTheme(theme, selector = "body") {
   if (selector == "body") {
     setColorTheme(theme, "a:link, a:visited, a:hover, a:active, a:focus");
     setColorTheme(theme, "article");
+    setColorTheme(theme, "header");
   }
 }
 
@@ -162,9 +163,9 @@ function shareArticle(elem) {
   tazApi.shareArticle(art.id + ".html");
 }
 
-/* Set up click functions for share and trash icons */
+/* Set up click functions for share and bookmark icons */
 function setupButtons() {
-  for (let b of document.getElementsByClassName("trash")) {
+  for (let b of document.getElementsByClassName("bookmark")) {
     b.addEventListener("click", (event) => {
       event.preventDefault();
       deleteBookmark(event.target);

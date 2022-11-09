@@ -567,10 +567,10 @@ enum Shortcuts{
   
   static func currentItems() -> [UIApplicationShortcutItem]{
     // No Server Switch for Release App
-    if App.isRelease {
-      return []
-      // return [Shortcuts.logging.shortcutItem()] //deactivated logging ui for release
-    }
+//    if App.isRelease {
+//      return []
+//      // return [Shortcuts.logging.shortcutItem()] //deactivated logging ui for release
+//    }
     var itms:[UIApplicationShortcutItem] = [
       // Shortcuts.feedback.shortcutItem(.mail),
       // Shortcuts.logging.shortcutItem(wantsLogging ? .confirmation : nil)

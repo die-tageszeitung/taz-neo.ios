@@ -83,7 +83,7 @@ open class GraphQlSession: HttpSession {
     -> Result<T,Error> where T: Decodable {
     var result: Result<T,Error>
     if let d = data {
-      //self.debug("Received: \"\(String(decoding: d, as: UTF8.self)[0..<2000])\"")
+      self.debug("Received: \"\(String(decoding: d, as: UTF8.self)[0..<2000])\"")
       if let gerr = GraphQlError.from(data: d) {
         self.error("Errorneous data sent to server: \(graphql)")
         self.fatal("GraphQL-Server encountered error:\n\(gerr)")
@@ -114,7 +114,7 @@ open class GraphQlSession: HttpSession {
     else {
       let quoted = "\(requestType) {\(graphql)}".quote()
       let str = "{ \"query\": \(quoted) }"
-      //debug("Sending: \(requestType) {\n\(graphql)\n}")
+      debug("Sending: \(requestType) {\n\(graphql)\n}")
       post(url, data: str.data(using: .utf8)!) { [weak self] res in
         guard let self = self else { return }
         if case let .success(data) = res {
