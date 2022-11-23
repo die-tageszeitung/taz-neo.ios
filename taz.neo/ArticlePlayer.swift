@@ -42,7 +42,7 @@ class ArticlePlayer: DoesLog {
     return "\(baseUrl)/\(art.audio!.fileName)"
   }
   
-  /// Plays the passed Article
+    /// Plays the passed Article
   public func play(issue: Issue, art: Article, sectionName: String) {
     guard let url = url(art) else { return }
     aplayer.file = url
