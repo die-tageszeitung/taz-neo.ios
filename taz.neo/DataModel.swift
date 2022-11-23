@@ -1111,7 +1111,10 @@ extension Feeder {
   public var revocation: String { resourcesDir.path + "/" + Const.Filename.revocation }
   /// Pathname to terms & conditions
   public var terms: String { resourcesDir.path + "/" + Const.Filename.terms }
-
+  /// Pathname to terms & conditions
+  public var passwordCheckJs: String { resourcesDir.path + "/" + Const.Filename.passwordCheckJs }
+  public var passwordCheckJsUrl: URL? { File(passwordCheckJs).url }
+  
   /// resource version as Int
   public var storedResVersion: Int {
     get { return Int(resVersionFile.string.trim) ?? 0 }

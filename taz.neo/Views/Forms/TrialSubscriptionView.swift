@@ -20,51 +20,33 @@ extension TrialSubscriptionView : UITextFieldDelegate {
     }
   }
   
+  
+  /// Performes local password check, manipulate passwordInputs bottomLabel and bottomMessage
+  /// - Parameters:
+  ///   - password: password to be checked
+  ///   - mail: usermail to check if particullary contained in password
+  func doPasswortCheck(password: String, mail: String?) {
+    Task { [weak self] in
+      guard let self = self else { return }
+      let pwq = await pwValidator.check(password: password, mail: mail)
+      self.passInput.bottomMessage = pwq.message
+      self.passInput.bottomLabel.textColor = pwq.quality.color
+      self.registerButton.isEnabled = pwq.valid
+    }
+  }
+
+  
   public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
     if let textFieldString = textField.text, let swtRange = Range(range, in: textFieldString) {
-          let newString = textFieldString.replacingCharacters(in: swtRange, with: string)
-          print("FullString: \(newString)")
-      
-      
-      wv.evaluateJavaScript("checkPassword('\(newString)', '\(mailInput.text ?? "")');", completionHandler: { [weak self] (qs, error) in
-        guard let dict = qs as? [String: Any] else { return }
-        if let msg = dict["message"] as? String {
-          self?.passInput.bottomMessage = msg
-        }
-        if let col = dict["color"] as? String {
-          //ToDo hex color conversion
-          switch col {
-            case "#f00":
-              self?.passInput.bottomLabel.textColor = UIColor.rgb(0xff0000)
-            case "#fb0":
-              self?.passInput.bottomLabel.textColor = UIColor.rgb(0xffbb0)
-            case "#0f0":
-              self?.passInput.bottomLabel.textColor = UIColor.rgb(0x00ff00)
-            default:
-              self?.passInput.bottomLabel.textColor = UIColor.rgb(0xcccccc)
-          }
-        }
-      })
-      
+      let newString = textFieldString.replacingCharacters(in: swtRange, with: string)
+      doPasswortCheck(password: newString, mail: mailInput.text)
     }
-
-      return true
+    return true
   }
 }
 
 public class TrialSubscriptionView : FormView{
-  
-  public override func willMove(toSuperview newSuperview: UIView?) {
-    super.willMove(toSuperview: newSuperview)
-    if let url = Bundle.main.url(forResource: "pwcheckimport", withExtension: "html", subdirectory: "BundledResources") {
-      wv.load(url: url)
-    }
-  }
-  
-  let wv = WebView()
-
-
-  
+  let pwValidator = PasswordValidator()
   
   var exchangeResponder = false
   
