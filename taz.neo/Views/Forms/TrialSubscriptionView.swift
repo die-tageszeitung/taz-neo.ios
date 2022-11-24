@@ -30,7 +30,7 @@ extension TrialSubscriptionView : UITextFieldDelegate {
       guard let self = self else { return }
       let pwq = await pwValidator.check(password: password, mail: mail)
       self.passInput.bottomMessage = pwq.message
-      self.passInput.bottomLabel.textColor = pwq.quality.color
+      self.passInput.bottomLabel.textColor = pwq.strength.color
       self.registerButton.isEnabled = pwq.valid
     }
   }

@@ -9,6 +9,15 @@
 import NorthLib
 import WebKit
 
+// MARK: - NorthLib project repository part (later) Helper to wrap WebView only to execute JS
+
+/// Wraps JS execution funtionallity
+///
+/// May produce **WARNINGS** in log:
+/// ... GPUProcessProxy::gpuProcessExited: reason=IdleExit
+/// ... WebProcessProxy::gpuProcessExited: reason=IdleExit
+/// may deactivate by: Environment Variables set OS_ACTIVITY_MODE = disable
+/// @see: https://stackoverflow.com/a/45211641
 open class Javascript {
   
   private var jsFileUrl:URL?
@@ -16,6 +25,9 @@ open class Javascript {
   private var wv:WebView
   
   @MainActor
+  /// Evaluates given JS String in current environment
+  /// - Parameter javaScriptString: js to execute
+  /// - Returns: result of the script evaluation or an error or nil
   open func evaluate(_ javaScriptString: String) async throws -> Any? {
     return try? await wv.evaluateJavaScript(javaScriptString)
   }
@@ -51,20 +63,25 @@ open class Javascript {
   }
   
   
-  
+  /// constructor
+  /// - Parameter jsFileUrl: optional passed js fileUrl with js code e.g. libs
   public init(_ jsFileUrl:URL? = nil) {
     wv = Self.createWebView(jsFileUrl)
   }
 }
- 
-public enum passwordQualityLevel: Int {
+
+// MARK: - taz project repository Password Test Class and Helper
+
+/// enum/mapper for password quality/strength level
+public enum PasswordStrengthLevel: Int {
   case none = 0
   case low = 1
   case medium = 2
   case height = 3
 }
 
-extension passwordQualityLevel {
+/// helper extension for password quality/strength level enum
+extension PasswordStrengthLevel {
   static func from(_ value:Any?) -> Self{
     if let val = value as? Int, let v = Self(rawValue: val) {
       return v
@@ -88,42 +105,32 @@ extension passwordQualityLevel {
   }
 }
 
+/// alias/mapper for password test result
 public typealias passwordQuality
-= (valid: Bool, message:String?, quality:passwordQualityLevel)
+= (valid: Bool, message:String?, strength :PasswordStrengthLevel)
 
-///Part of Newspaper App Project
+/// PasswordValidator class to hide JS execution code from app logic
 class PasswordValidator: DoesLog {
-  
-  
-//    TazAppEnvironment.sharedInstance.feederContext?.updateResources()
-//    if let url = Bundle.main.url(forResource: "pwcheckimport", withExtension: "html", subdirectory: "BundledResources") {
-//      wv.load(url: url)
-//    }
-  
-  
  var s =  StoredResources.latest()
   
   var js = Javascript(TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.passwordCheckJsUrl)
-  
-  
-//  func check(password: String, mail: String?) async -> passwordQuality {
-//    try await js.evaluate(<#T##javaScriptString: String##String#>)
-//
-//    return {valid:  true, message: "Du bist auf dem richtigen Weg!", level: 2, color: "#fb0"};
-//  }
-  
+
+  /// Checks whether the password match the required requirements
+  /// wrapper for shared JS
+  ///  on JS Errors simple alternate check will be executed
+  /// - Parameters:
+  ///   - password: password to check
+  ///   - mail: e-mail address to check if is not part of the password
+  /// - Returns: test result with triple contain: valid:Bool, errormessage:String?, strength: PasswordStrengthLevel
   func check(password: String, mail: String?) async -> passwordQuality {
       do {
         let jsCall = "checkPassword('\(password)', '\(mail ?? "")');"
-        let jsCall2 = "function hi(){ {valid:  true, message: \"Das geht noch besser!\", level: 1};}; hi();"
-        //
         let result = try await js.evaluate(jsCall)
         
         if let dict = result as? [String: Any],
-           false,
            let valid = dict["valid"] as? Bool {
           let msg = dict["message"] as? String
-          return (valid, msg, passwordQualityLevel.from( dict["level"]))
+          return (valid, msg, PasswordStrengthLevel.from( dict["level"]))
         }
       } catch {
         log("crash!")
@@ -134,7 +141,7 @@ class PasswordValidator: DoesLog {
   func checkAlternate(password: String, mail: String?) -> passwordQuality  {
     log("use alternative password check")
     return password.length > 11
-    ? (true, "Passwort erfüllt Anforderung Mindestlänge", passwordQualityLevel.height)
-    : (false, "Passwort ist zu kurz", passwordQualityLevel.none)
+    ? (true, "Passwort erfüllt Anforderung Mindestlänge", PasswordStrengthLevel.height)
+    : (false, "Passwort ist zu kurz", PasswordStrengthLevel.none)
   }
 }
