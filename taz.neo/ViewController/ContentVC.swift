@@ -569,18 +569,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     setupToolbar()
     if let sections = issue.sections, sections.count > 1 { setupSlider() }
     
-    scrollViewDidScroll{[weak self] offset in
-      self?.header.scrollViewDidScroll(offset)
-    }
-    
-    scrollViewDidEndDragging{[weak self] offset in
-      self?.header.scrollViewDidEndDragging(offset)
-    }
-    
-    scrollViewWillBeginDragging{[weak self] offset in
-      self?.header.scrollViewWillBeginDragging(offset)
-    }
-    
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.hide()}
       else { self?.toolBar.hide(false)}
