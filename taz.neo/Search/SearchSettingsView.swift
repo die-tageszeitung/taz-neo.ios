@@ -470,11 +470,45 @@ class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
   public let toCloseLabel = UILabel("Übernehmen")
   
   @objc public func dateChanged(_ sender: UIControl) {
+    if #available(iOS 16, *) {
+      dateChangedWorkaround(sender)
+    }
+    else {
+      dateChangedLegacy(sender)
+    }
+  }
+  
+  func dateChangedLegacy(_ sender: UIControl) {
     if sender == fromPicker {
       toPicker.minimumDate = fromPicker.date
     }
     else if sender == toPicker {
       fromPicker.maximumDate = toPicker.date
+    }
+  }
+  
+  @available(iOS 16, *)
+  /// fixes ios 16 crash Bug if to picker selects lower date then from picker.minimum date
+  /// other fixes are also possible but then ux changes
+  /// ios below 16 handles error itself
+  /// strage other behaviours only when in wheels mode
+  /// this solution seam to work
+  func dateChangedWorkaround(_ sender: UIControl) {
+    if sender == fromPicker {
+      toPicker.preferredDatePickerStyle = .wheels
+      if toPicker.date < fromPicker.date {
+        toPicker.date = fromPicker.date
+      }
+      toPicker.minimumDate = fromPicker.date
+      toPicker.preferredDatePickerStyle = .inline
+    }
+    else if sender == toPicker {
+      fromPicker.preferredDatePickerStyle = .wheels
+      if toPicker.date < fromPicker.date {
+        fromPicker.date = toPicker.date
+      }
+      fromPicker.maximumDate = toPicker.date
+      fromPicker.preferredDatePickerStyle = .inline
     }
   }
   
