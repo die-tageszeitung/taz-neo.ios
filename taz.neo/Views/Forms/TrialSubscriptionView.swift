@@ -37,6 +37,7 @@ extension TrialSubscriptionView : UITextFieldDelegate {
 
   
   public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+    guard textField == passInput else { return true }
     if let textFieldString = textField.text, let swtRange = Range(range, in: textFieldString) {
       let newString = textFieldString.replacingCharacters(in: swtRange, with: string)
       doPasswortCheck(password: newString, mail: mailInput.text)
