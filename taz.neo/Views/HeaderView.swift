@@ -303,7 +303,7 @@ extension HeaderView {
       self?.borderView?.alpha = (self?.bottomBorderAlwaysVisible ?? false) ? 1.0 : ratio
     }
     animated
-    ?  UIView.animate(seconds: 0.3) {  handler(); self.superview?.layoutIfNeeded() }
-    : handler()
+    ?  UIView.animate(seconds: 0.3) {handler(); self.superview?.layoutIfNeeded() }
+    : handler();self.superview?.layoutIfNeeded()
   }
 }
