@@ -113,7 +113,6 @@ open class HeaderView: UIView,  Touchable {
   var subTitleLabel = Label()
   var pageNumberLabel = HidingLabel()
   var borderView:UIView?
-  var borderLine = DottedLineView()
 
   private var titleTopConstraint: NSLayoutConstraint?
   private var titleBottomConstraint: NSLayoutConstraint?
@@ -127,12 +126,12 @@ open class HeaderView: UIView,  Touchable {
   let sidePadding = 11.0
   var titleTopIndentL: CGFloat = Const.Size.DefaultPadding
   var titleBottomIndentL: CGFloat = -18//-18 or if subtitle set: -16*1.17-12 = -31
-  let titleBottomIndentS = -DottedLineView.DottedLineDefaultHeight
+  let titleBottomIndentS = -4.0
   let titleTopIndentS = 2.0
   var bottomBorderAlwaysVisible: Bool {
     get {
       switch titletype {
-        case .search:
+        case .section, .section0, .search:
           return true
         default:
           return false
@@ -149,9 +148,6 @@ open class HeaderView: UIView,  Touchable {
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
     line.fillColor = Const.SetColor.ios(.label).color
     line.strokeColor = Const.SetColor.ios(.label).color
-    
-    borderLine.fillColor = Const.SetColor.ios(.label).color
-    borderLine.strokeColor = Const.SetColor.ios(.label).color
   }
 
   private var onTitleClosure: ((String?)->())?
@@ -167,8 +163,6 @@ open class HeaderView: UIView,  Touchable {
   private func setup() {
     self.addSubview(titleLabel)
     self.addSubview(line)
-    borderLine.alpha = 0.0
-    self.addSubview(borderLine)
     self.addSubview(subTitleLabel)
     self.addSubview(pageNumberLabel)
     
@@ -178,14 +172,9 @@ open class HeaderView: UIView,  Touchable {
     
     titleLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
     line.pinHeight(DottedLineView.DottedLineDefaultHeight)
-    borderLine.pinHeight(DottedLineView.DottedLineDefaultHeight)
     line.backgroundColor = .clear
     line.fillColor = Const.SetColor.ios(.label).color
     line.strokeColor = Const.SetColor.ios(.label).color
-
-    borderLine.backgroundColor = .clear
-    borderLine.fillColor = Const.SetColor.ios(.label).color
-    borderLine.strokeColor = Const.SetColor.ios(.label).color
     
     titleTopConstraint
     = pin(titleLabel.top, to: self.topGuide(), dist: titleTopIndentL)
@@ -205,10 +194,6 @@ open class HeaderView: UIView,  Touchable {
     pin(line.left, to: self.left, dist:sidePadding)
     pin(line.right, to: self.right, dist:-sidePadding)
     pin(line.top, to: titleLabel.bottom)
-    
-    pin(borderLine.left, to: self.left, dist:sidePadding)
-    pin(borderLine.right, to: self.right, dist:-sidePadding)
-    pin(borderLine.bottom, to: self.bottom)
     
     pin(subTitleLabel.left, to: self.left, dist:sidePadding)
     pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
@@ -297,6 +282,7 @@ extension HeaderView {
     lastRatio = ratio
     
     let alpha = 1 - ratio // maxi 1...0 mini
+    let fastAlpha = max(0, 1 - 2*ratio) // maxi 1...0 mini
     let titleTopIndentConst
     = alpha*(titleTopIndentL - titleTopIndentS) + titleTopIndentS
     let titleBottomIndentConst
@@ -312,23 +298,9 @@ extension HeaderView {
       self?.subTitleLabel.contentFont(size: labelsFontSize)
       self?.titleTopConstraint?.constant = titleTopIndentConst
       self?.titleBottomConstraint?.constant = titleBottomIndentConst
-      
-      if ratio <= 0.5 {
-        let a = 1 - 2*ratio
-        self?.subTitleLabel.alpha = a
-        self?.line.alpha = a
-        self?.borderView?.alpha = a
-        self?.borderLine.alpha = 0.0
-      }
-      else {
-        self?.subTitleLabel.alpha = 0.0
-        self?.line.alpha = 0.0
-        self?.borderView?.alpha = 0.0
-        self?.borderLine.alpha = 2*ratio - 1
-      }
-      if self?.bottomBorderAlwaysVisible == true {
-        self?.borderView?.alpha = 1.0
-      }
+      self?.subTitleLabel.alpha = fastAlpha
+      self?.line.alpha = fastAlpha
+      self?.borderView?.alpha = (self?.bottomBorderAlwaysVisible ?? false) ? 1.0 : ratio
     }
     animated
     ?  UIView.animate(seconds: 0.3) {handler(); self.superview?.layoutIfNeeded() }
