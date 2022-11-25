@@ -75,4 +75,12 @@ public extension Date {
       return dateFormatterGet.string(from: self)
     }
   }
+  
+  var filename:String{
+    get{
+      let dateFormatterGet = DateFormatter()
+      dateFormatterGet.dateFormat = "yyyy-MM-dd"
+      return dateFormatterGet.string(from: self)
+    }
+  }
 }

@@ -60,7 +60,7 @@ public extension App {
     return bundleIdentifier == BuildConst.tazBundleIdentifierAlpha
   }()
   
-  enum Feature { case  PDFEXPORT, INTERNALBROWSER, SEARCH_CONTEXTMENU, AUTODOWNLOAD, ABOIDLOGIN}
+  enum Feature { case  PDFEXPORT, FAKSIMILEEXPORT, INTERNALBROWSER, SEARCH_CONTEXTMENU, AUTODOWNLOAD, ABOIDLOGIN}
   
   
   /// Is the beta App
@@ -101,6 +101,10 @@ public extension App {
         return true //WARNING Handle expiredSubscription may not work correct!! do not turn off this feature for Release
       case .INTERNALBROWSER:
         return isAlpha //Only in Alpha Versions
+      case .FAKSIMILEEXPORT:
+        return isAlpha
+        && (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de")
+        //Only in Alpha Versions only for taz Accounts
       case .PDFEXPORT:
         return isAlpha //Only in Alpha Versions
       case .SEARCH_CONTEXTMENU:
