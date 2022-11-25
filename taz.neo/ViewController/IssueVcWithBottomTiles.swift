@@ -94,7 +94,6 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   /// Indicate if current state is top on IssueCaroussel or Bottom on Tiele View
   var isUp:Bool = true {
     didSet {
-      (self as? IssueVC)?.updateToolbarHomeIcon()
       if isUp && oldValue == false {
         (self as? IssueVC)?.invalidateCarouselLayout()
       }

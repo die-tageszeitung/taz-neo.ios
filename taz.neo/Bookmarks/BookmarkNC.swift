@@ -81,7 +81,6 @@ class BookmarkNC: NavigationController {
           self.viewControllers[0] = emptyRoot
           self.popToRootViewController(animated: true)
         }
-        self.updateTabbarImage()
       }
       else {
         self.bookmarkFeed.genAllHtml()
@@ -89,14 +88,7 @@ class BookmarkNC: NavigationController {
       }
     }
   }
-  
-  func updateTabbarImage(){
-    tabBarItem.image
-    = bookmarkFeed.count == 0
-    ? UIImage(named: "star")
-    : UIImage(named: "star-fill")
-  }
-  
+   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     if bookmarkFeed.count > 0 && self.viewControllers.first != sectionVC  {

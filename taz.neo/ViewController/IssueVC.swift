@@ -42,7 +42,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   #warning("Access \"issueCarousel.index!\" may fail, not use force unwrap")
   public var index: Int {
     get { issueCarousel.index! }
-    set { issueCarousel.index = newValue; updateToolbarHomeIcon() }
+    set { issueCarousel.index = newValue }
   }
   
   var verticalPaddings: CGFloat { get {
@@ -85,13 +85,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issues = [] 
     issueCarousel.reset()
     self.collectionView.reloadData()
-  }
-    
-  func updateToolbarHomeIcon(){
-    self.tabBarItem.image
-    = self.safeIndex == 0 && isUp
-    ? UIImage(named: "home-fill")
-    : UIImage(named: "home")
   }
   
   /// Reset carousel images
@@ -607,7 +600,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
-      self.updateToolbarHomeIcon()
       self.setLabel(idx: idx, isRotate: true)
       if IssueVC.showAnimations {
         IssueVC.showAnimations = false

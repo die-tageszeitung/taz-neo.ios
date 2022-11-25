@@ -617,15 +617,18 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     //the buttons and alignments
     _ = toolBar.addImageButton(name: "home",
-                           onPress: onHome,
-                           direction: .right,
-                           accessibilityLabel: "Übersicht"
-                           )
+                               onPress: onHome,
+                               direction: .right,
+                               accessibilityLabel: "Übersicht"
+    )
     _ = toolBar.addImageButton(name: "chevron-left",
-                           onPress: onHome,
-                           direction: .left,
-                           accessibilityLabel: "Zurück"
-                           )
+                               onPress: onHome,
+                               direction: .left,
+                               accessibilityLabel: "Zurück",
+                               width: 35,
+                               height: 40,
+                               contentMode: .right
+    )
     
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
