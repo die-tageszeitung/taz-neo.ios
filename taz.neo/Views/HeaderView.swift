@@ -126,12 +126,12 @@ open class HeaderView: UIView,  Touchable {
   let sidePadding = 11.0
   var titleTopIndentL: CGFloat = Const.Size.DefaultPadding
   var titleBottomIndentL: CGFloat = -18//-18 or if subtitle set: -16*1.17-12 = -31
-  let titleBottomIndentS = -4.0
+  let titleBottomIndentS = -DottedLineView.DottedLineDefaultHeight/2
   let titleTopIndentS = 2.0
   var bottomBorderAlwaysVisible: Bool {
     get {
       switch titletype {
-        case .section, .section0, .search:
+        case .search:
           return true
         default:
           return false
@@ -175,7 +175,7 @@ open class HeaderView: UIView,  Touchable {
     line.backgroundColor = .clear
     line.fillColor = Const.SetColor.ios(.label).color
     line.strokeColor = Const.SetColor.ios(.label).color
-    
+
     titleTopConstraint
     = pin(titleLabel.top, to: self.topGuide(), dist: titleTopIndentL)
     
@@ -282,7 +282,6 @@ extension HeaderView {
     lastRatio = ratio
     
     let alpha = 1 - ratio // maxi 1...0 mini
-    let fastAlpha = max(0, 1 - 2*ratio) // maxi 1...0 mini
     let titleTopIndentConst
     = alpha*(titleTopIndentL - titleTopIndentS) + titleTopIndentS
     let titleBottomIndentConst
@@ -298,9 +297,19 @@ extension HeaderView {
       self?.subTitleLabel.contentFont(size: labelsFontSize)
       self?.titleTopConstraint?.constant = titleTopIndentConst
       self?.titleBottomConstraint?.constant = titleBottomIndentConst
-      self?.subTitleLabel.alpha = fastAlpha
-      self?.line.alpha = fastAlpha
-      self?.borderView?.alpha = (self?.bottomBorderAlwaysVisible ?? false) ? 1.0 : ratio
+      
+      if ratio <= 0.5 {
+        let a = 1 - 2*ratio
+        self?.subTitleLabel.alpha = a
+        self?.borderView?.alpha = a
+      }
+      else {
+        self?.subTitleLabel.alpha = 0.0
+        self?.borderView?.alpha = 0.0
+      }
+      if self?.bottomBorderAlwaysVisible == true {
+        self?.borderView?.alpha = 1.0
+      }
     }
     animated
     ?  UIView.animate(seconds: 0.3) {handler(); self.superview?.layoutIfNeeded() }
