@@ -433,6 +433,10 @@ public protocol Article: Content, ToString {
   var hasBookmark: Bool { get set }
   /// List of PDF page (-file) names containing this article
   var pageNames: [String]? { get }
+  /// Server side article ID
+  var serverId: Int? { get }
+  /// Aprox. reading duration in minutes
+  var readingDuration: Int? { get }
 } // Article
 
 public extension Article {
@@ -668,9 +672,23 @@ public extension Moment {
     }
     return ret
   }
+  
+  /// Return the image with the highest resolution
+  func lowest(images: [ImageEntry]) -> ImageEntry? {
+    var ret: ImageEntry?
+    for img in images {
+      if let lowest = ret, img.resolution.rawValue >= lowest.resolution.rawValue
+      { continue }
+      else { ret = img }
+    }
+    return ret
+  }
 
   /// Image in highest resolution
   var highres: ImageEntry? { highest(images: images) }
+
+  /// Image in lowest resolution
+  var lowres: ImageEntry? { highest(images: images) }
   
   /// Credited image in highest resolution
   var creditedHighres: ImageEntry? { highest(images: creditedImages) }
@@ -1093,7 +1111,10 @@ extension Feeder {
   public var revocation: String { resourcesDir.path + "/" + Const.Filename.revocation }
   /// Pathname to terms & conditions
   public var terms: String { resourcesDir.path + "/" + Const.Filename.terms }
-
+  /// Pathname to terms & conditions
+  public var passwordCheckJs: String { resourcesDir.path + "/" + Const.Filename.passwordCheckJs }
+  public var passwordCheckJsUrl: URL? { File(passwordCheckJs).url }
+  
   /// resource version as Int
   public var storedResVersion: Int {
     get { return Int(resVersionFile.string.trim) ?? 0 }
@@ -1137,6 +1158,18 @@ extension Feeder {
     return nil
   }
   
+  /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
+  public func smallMomentImageName(issue: Issue, isPdf: Bool = false)
+    -> String? {
+    var file: FileEntry?
+    if isPdf { file = issue.moment.facsimile }
+    else { file = issue.moment.lowres }
+    if let img = file {
+      return "\(issueDir(issue: issue).path)/\(img.fileName)"
+    }
+    return nil
+  }
+
   /// Returns the name of the first PDF page file name (if available)
   public func momentPdfName(issue: Issue) -> String? {
     if let fac1 = issue.pageOneFacsimile {

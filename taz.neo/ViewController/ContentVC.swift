@@ -148,7 +148,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\";" }
     let cssContent = """
       \(colorModeImport)
-      @import "scroll.css";
+
       html, body { 
         font-size: \((CGFloat(textSize)*18)/100)px; 
       }
@@ -173,7 +173,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
             position: absolute;
             left: 50%;
           }
-        
+        div.VerzeichnisInfo,
         div.VerzeichnisArtikel{
           margin-left: 0;
           margin-right: 0;
@@ -568,18 +568,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     setupSettingsBottomSheet()
     setupToolbar()
     if let sections = issue.sections, sections.count > 1 { setupSlider() }
-    
-    scrollViewDidScroll{[weak self] offset in
-      self?.header.scrollViewDidScroll(offset)
-    }
-    
-    scrollViewDidEndDragging{[weak self] offset in
-      self?.header.scrollViewDidEndDragging(offset)
-    }
-    
-    scrollViewWillBeginDragging{[weak self] offset in
-      self?.header.scrollViewWillBeginDragging(offset)
-    }
     
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.hide()}

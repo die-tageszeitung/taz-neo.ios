@@ -120,7 +120,8 @@ extension ContentToolbar {
                       width:CGFloat = 30,
                       height:CGFloat = 30,
                       vInset:CGFloat = 0.0,
-                      hInset:CGFloat = 0.0
+                      hInset:CGFloat = 0.0,
+                      contentMode: ContentMode? = nil
                       ) -> Button<ImageView> {
     let button = Button<ImageView>()
     button.pinWidth(width, priority: .defaultHigh)
@@ -130,6 +131,10 @@ extension ContentToolbar {
     button.isBistable = isBistable
     button.buttonView.name = name
     button.buttonView.symbol = symbol
+    
+    if let cm = contentMode {
+      button.buttonView.imageView.contentMode = cm
+    }
     
     if let al = accessibilityLabel {
       button.isAccessibilityElement = true

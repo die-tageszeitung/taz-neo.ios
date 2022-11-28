@@ -186,6 +186,12 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
     dfl["lastStarted"] = "0"
     dfl["installationId"] = nil
     dfl["pushToken"] = nil
+    
+    dfl["bottomTilesLastShown"] = nil
+    dfl["bottomTilesShown"] = nil
+    dfl["showBottomTilesAnimation"] = nil
+    dfl["bottomTilesAnimationLastShown"] = nil
+    
     Defaults.lastKnownPushToken = nil
     feederContext?.gqlFeeder.authToken = nil
     feederContext?.endPolling()
@@ -382,7 +388,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   
   static func updateDefaultsIfNeeded(){
     let dfl = Defaults.singleton
-    dfl["showBottomTilesAnimation"]=nil
     dfl.setDefaults(values: ConfigDefaults)
   }
   
@@ -562,10 +567,10 @@ enum Shortcuts{
   
   static func currentItems() -> [UIApplicationShortcutItem]{
     // No Server Switch for Release App
-    if App.isRelease {
-      return []
-      // return [Shortcuts.logging.shortcutItem()] //deactivated logging ui for release
-    }
+//    if App.isRelease {
+//      return []
+//      // return [Shortcuts.logging.shortcutItem()] //deactivated logging ui for release
+//    }
     var itms:[UIApplicationShortcutItem] = [
       // Shortcuts.feedback.shortcutItem(.mail),
       // Shortcuts.logging.shortcutItem(wantsLogging ? .confirmation : nil)

@@ -608,6 +608,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     slider?.button.shadow()
   }
   
+  private var shareButton: Button<ImageView>?
+  
   // MARK: - setupToolbar
   func setupToolbar() {
     //the button tap closures
@@ -615,17 +617,42 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self?.navigationController?.popViewController(animated: true)
     }
     
+    let onShare:((ButtonControl)->()) = { [weak self] _ in
+      guard let self = self,
+            let i = self.index,
+            let pi = self.pdfModel?.item(atIndex:i) as? ZoomedPdfPageImage,
+            let page = pi.pageReference?.pagina,
+            let url = pi.pageReference?.pdfDocument(inIssueDir: self.issue.dir)?.documentURL else { return }
+      let filename = "taz_\(self.issue.date.filename)_S-\(page).pdf"
+      let tempUrl = NSTemporaryDirectory() + filename
+      let cp = File(url).copy(to:tempUrl, isOverwrite: true)
+      let tmpFile = File(dir: NSTemporaryDirectory(), fname: filename).url
+      
+      let dialogue = ExportDialogue<Any>()
+      dialogue.present(item: tmpFile,
+                       view: self.shareButton ?? self.toolBar,
+                       subject: "taz vom \(self.issue.date.short) Seite \(page)")
+    }
+    
     //the buttons and alignments
     _ = toolBar.addImageButton(name: "home",
-                           onPress: onHome,
-                           direction: .right,
-                           accessibilityLabel: "Übersicht"
-                           )
+                               onPress: onHome,
+                               direction: .right,
+                               accessibilityLabel: "Übersicht")
     _ = toolBar.addImageButton(name: "chevron-left",
-                           onPress: onHome,
-                           direction: .left,
-                           accessibilityLabel: "Zurück"
-                           )
+                               onPress: onHome,
+                               direction: .left,
+                               accessibilityLabel: "Zurück",
+                               width: 35,
+                               height: 40,
+                               contentMode: .right)
+    if App.isAvailable(.FAKSIMILEEXPORT){
+      shareButton = toolBar.addImageButton(name: "share",
+                                 onPress: onShare,
+                                 direction: .center,
+                                 accessibilityLabel: "Teilen")
+
+    }
     
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()

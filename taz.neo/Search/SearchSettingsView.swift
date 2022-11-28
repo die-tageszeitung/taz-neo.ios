@@ -55,13 +55,29 @@ class SearchSettingsView: UITableView {
     return btn
   }()
   
+  lazy var helpButton: UILabel = {
+    let lbl = UILabel()
+    lbl.text = "Hilfe"
+    lbl.contentFont(size: Const.Size.MiniPageNumberFontSize)
+    lbl.textColor = .gray
+    lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
+    return lbl
+  }()
+  
   private lazy var searchFooterWrapper: UIView = {
-    let v = searchButton.wrapper(UIEdgeInsets(top: 5, left: Const.Size.DefaultPadding, bottom: -5, right: -Const.Size.DefaultPadding), priority: .defaultHigh)
-    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+10)
+    let v = UIView()
+    v.addSubview(searchButton)
+    v.addSubview(helpButton)
+    
+    pin(searchButton.top, to: v.top, dist: 5.0)
+    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding)
+    pin(searchButton.left, to: v.left, dist: Const.Size.DefaultPadding)
+    
+    pin(helpButton.top, to: searchButton.bottom, dist: Const.Size.DefaultPadding)
+    pin(helpButton.left, to: v.left, dist: Const.Size.DefaultPadding)
+    //No need to close Autolayout due Footer needs Fix Frame foe easier use
+    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+40)
     v.backgroundColor = Const.SetColor.ios(.systemBackground).color
-    v.onTapping { _ in
-      print("tap footer..")
-    }
     return v
   }()
   
@@ -454,11 +470,45 @@ class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
   public let toCloseLabel = UILabel("Übernehmen")
   
   @objc public func dateChanged(_ sender: UIControl) {
+    if #available(iOS 16, *) {
+      dateChangedWorkaround(sender)
+    }
+    else {
+      dateChangedLegacy(sender)
+    }
+  }
+  
+  func dateChangedLegacy(_ sender: UIControl) {
     if sender == fromPicker {
       toPicker.minimumDate = fromPicker.date
     }
     else if sender == toPicker {
       fromPicker.maximumDate = toPicker.date
+    }
+  }
+  
+  @available(iOS 16, *)
+  /// fixes ios 16 crash Bug if to picker selects lower date then from picker.minimum date
+  /// other fixes are also possible but then ux changes
+  /// ios below 16 handles error itself
+  /// strage other behaviours only when in wheels mode
+  /// this solution seam to work
+  func dateChangedWorkaround(_ sender: UIControl) {
+    if sender == fromPicker {
+      toPicker.preferredDatePickerStyle = .wheels
+      if toPicker.date < fromPicker.date {
+        toPicker.date = fromPicker.date
+      }
+      toPicker.minimumDate = fromPicker.date
+      toPicker.preferredDatePickerStyle = .inline
+    }
+    else if sender == toPicker {
+      fromPicker.preferredDatePickerStyle = .wheels
+      if toPicker.date < fromPicker.date {
+        fromPicker.date = toPicker.date
+      }
+      fromPicker.maximumDate = toPicker.date
+      fromPicker.preferredDatePickerStyle = .inline
     }
   }
   

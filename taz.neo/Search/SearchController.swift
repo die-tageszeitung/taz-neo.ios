@@ -120,6 +120,38 @@ class SearchController: UIViewController {
       self?.checkFilter()
       self?.header.checkCancelButton()
     }
+    v.helpButton.onTapping {[weak self] _ in
+      guard let url = Bundle.main.url(forResource: "searchHelp",
+                                      withExtension: "html",
+                                      subdirectory: "files"),
+            case let file = File(url),
+            file.exists  else {
+        self?.log("search Help not found")
+        return
+      }
+      let introVC = IntroVC()
+      introVC.htmlIntro = url.absoluteString
+      introVC.topOffset = 40
+      let intro = file
+      introVC.webView.webView.load(url: intro.url)
+      introVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
+      introVC.webView.webView.scrollView.isScrollEnabled = true
+      
+      introVC.webView.onX { _ in
+        introVC.dismiss(animated: true, completion: nil)
+      }
+      self?.modalPresentationStyle = .fullScreen
+      introVC.modalPresentationStyle = .fullScreen
+      introVC.webView.webView.scrollDelegate.atEndOfContent {_ in }
+      self?.present(introVC, animated: true) {
+        //Overwrite Default in: IntroVC viewDidLoad
+        introVC.webView.buttonLabel.text = nil
+        //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
+        guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
+        bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
+        bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
+      }
+    }
     v.textFieldDelegate = self
     return v
   }()

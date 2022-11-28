@@ -871,6 +871,25 @@ public final class StoredArticle: Article, StoredObject {
       }
     }
   }
+  public var serverId: Int? {
+    get { return pr.serverId != 0 ? Int(pr.serverId) : nil }
+    set {
+      if let id = newValue {
+        pr.serverId = Int64(id)
+      }
+      else { pr.serverId = 0 }
+    }
+  }
+  public var readingDuration: Int? {
+    get { return pr.readingDuration != 0 ? Int(pr.readingDuration) : nil }
+    set {
+      if let id = newValue {
+        pr.readingDuration = Int64(id)
+      }
+      else { pr.readingDuration = 0 }
+    }
+  }
+
   
   fileprivate func setBookmark(_ isBookmark:Bool){
     pr.hasBookmark = isBookmark
@@ -944,6 +963,8 @@ public final class StoredArticle: Article, StoredObject {
     self.audio = object.audio
     self.onlineLink = object.onlineLink
     self.teaser = object.teaser
+    self.serverId = object.serverId
+    self.readingDuration = object.readingDuration
     if let imgs = object.images {
       var order: Int32 = 0
       for img in imgs {

@@ -260,6 +260,11 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
       pin(self.tableView.top, to: header.bottom)
     }
   }
+  
+  open override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    checkNotifications()
+  }
     
   required public init(feederContext: FeederContext) {
     self.feederContext = feederContext
@@ -273,8 +278,8 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
 
 // MARK: - Helper
 extension SettingsVC {
-  
   @objc func applicationDidBecomeActive(notification: NSNotification) {
+    guard (self.parent as? MainTabVC)?.selectedViewController == self else { return }
     checkNotifications()
   }
   

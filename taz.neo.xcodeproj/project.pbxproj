@@ -57,6 +57,7 @@
 		77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA74642892836600D1039B /* SubscriptionFormView.swift */; };
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77D0DAEC25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */; };
+		77E5E1BC292D772200611148 /* Javascript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E5E1BB292D772200611148 /* Javascript.swift */; };
 		94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94487DAB274BCCE10066BCD0 /* AppHelper.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
@@ -91,6 +92,8 @@
 		AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */; };
 		AEAE18B1285E213600B67A91 /* BookmarkSectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAE18B0285E213600B67A91 /* BookmarkSectionVC.swift */; };
 		AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAEE0002456D9EC00F627FE /* StartupVC.swift */; };
+		AEB935332917E81F000330DA /* Star.svg in Resources */ = {isa = PBXBuildFile; fileRef = AEB935312917E81F000330DA /* Star.svg */; };
+		AEB935342917E81F000330DA /* StarFilled.svg in Resources */ = {isa = PBXBuildFile; fileRef = AEB935322917E81F000330DA /* StarFilled.svg */; };
 		AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF56E219ACD1A00566205 /* Assets.xcassets */; };
 		AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF570219ACD1A00566205 /* LaunchScreen.storyboard */; };
 		AEBAF594219ACFAC00566205 /* TestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58D219ACFAC00566205 /* TestController.swift */; };
@@ -164,6 +167,7 @@
 		77C00CFB25DA9A4A00964861 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDownAnimationView.swift; sourceTree = "<group>"; };
 		77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueVCBottomTielesCVCCell.swift; sourceTree = "<group>"; };
+		77E5E1BB292D772200611148 /* Javascript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Javascript.swift; sourceTree = "<group>"; };
 		77F0D1342742B4E900D3A432 /* addLocalResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addLocalResources.sh; sourceTree = "<group>"; };
 		77F0D1372742B4E900D3A432 /* downloadBundledResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = downloadBundledResources.sh; sourceTree = "<group>"; };
 		77F0D1392742B58400D3A432 /* LastBuildNumber.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = LastBuildNumber.rb; sourceTree = "<group>"; };
@@ -209,7 +213,9 @@
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
 		AEAE18B0285E213600B67A91 /* BookmarkSectionVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkSectionVC.swift; sourceTree = "<group>"; };
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
-		AEBAF564219ACD1900566205 /* taz.alpha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.alpha.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEB935312917E81F000330DA /* Star.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Star.svg; sourceTree = "<group>"; };
+		AEB935322917E81F000330DA /* StarFilled.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = StarFilled.svg; sourceTree = "<group>"; };
+		AEBAF564219ACD1900566205 /* die tageszeitung.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "die tageszeitung.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AEBAF573219ACD1A00566205 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -313,6 +319,7 @@
 			children = (
 				4D308ED9283404D400529592 /* TazAppEnvironment.swift */,
 				777048AA27B3B077007164A0 /* NotificationBusiness.swift */,
+				77E5E1BB292D772200611148 /* Javascript.swift */,
 			);
 			path = Business;
 			sourceTree = "<group>";
@@ -420,7 +427,7 @@
 		AEBAF565219ACD1900566205 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AEBAF564219ACD1900566205 /* taz.alpha.app */,
+				AEBAF564219ACD1900566205 /* die tageszeitung.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -499,6 +506,8 @@
 				AE4C4FF826A1ABD9006079C8 /* BookmarkFeed.swift */,
 				AE1632832848A4C9004CB55E /* Share.svg */,
 				AEF877EC282BC47400FD51CD /* Trash.svg */,
+				AEB935312917E81F000330DA /* Star.svg */,
+				AEB935322917E81F000330DA /* StarFilled.svg */,
 				AE1632852848A666004CB55E /* bookmarks-ios.css */,
 				AE1632872848A728004CB55E /* bookmarks-ios.js */,
 			);
@@ -534,7 +543,7 @@
 				AECD1A8D282CFDF0007E00EE /* NorthLib */,
 			);
 			productName = taz.neo;
-			productReference = AEBAF564219ACD1900566205 /* taz.alpha.app */;
+			productReference = AEBAF564219ACD1900566205 /* die tageszeitung.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -583,11 +592,13 @@
 				AE5D9EC423E1BB2D0002C3B8 /* ContentTableVC.xib in Resources */,
 				773D56472614A4DF00B42FEF /* BundledResources in Resources */,
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
+				AEB935342917E81F000330DA /* StarFilled.svg in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
 				7745050D25DA801F0052E502 /* resources.json in Resources */,
 				AE1632862848A666004CB55E /* bookmarks-ios.css in Resources */,
 				AEF877ED282BC47400FD51CD /* Trash.svg in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
+				AEB935332917E81F000330DA /* Star.svg in Resources */,
 				AE1632882848A728004CB55E /* bookmarks-ios.js in Resources */,
 				7745051025DA80450052E502 /* files in Resources */,
 				AE1632842848A4C9004CB55E /* Share.svg in Resources */,
@@ -645,6 +656,7 @@
 			files = (
 				4D308EE52834057200529592 /* SearchResultsTableView.swift in Sources */,
 				AEAABADE24641BFA001BE414 /* Const.swift in Sources */,
+				77E5E1BC292D772200611148 /* Javascript.swift in Sources */,
 				AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */,
 				7715969525CC605D00508DE8 /* DeviceData.swift in Sources */,
 				AE4F51DB2438C8E800BC9548 /* ArticleDB.swift in Sources */,
@@ -832,7 +844,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2022110301;
+				CURRENT_PROJECT_VERSION = 2022112801;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
@@ -841,7 +853,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.9;
+				MARKETING_VERSION = 0.9.10;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -980,7 +992,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2022110301;
+				CURRENT_PROJECT_VERSION = 2022112801;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -988,7 +1000,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.9;
+				MARKETING_VERSION = 0.9.10;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1006,7 +1018,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2022110301;
+				CURRENT_PROJECT_VERSION = 2022112801;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -1014,7 +1026,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.9;
+				MARKETING_VERSION = 0.9.10;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
