@@ -41,6 +41,7 @@ open class HeaderView: UIView,  Touchable {
         case .bigLeft:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = true
+          borderView?.isHidden = true
           titleLeftConstraint?.constant = 3.0
           titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -51,6 +52,7 @@ open class HeaderView: UIView,  Touchable {
         case .article:
           pageNumberLabel.isHidden = false
           subTitleLabel.isHidden = true
+          borderView?.isHidden = true
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -63,6 +65,7 @@ open class HeaderView: UIView,  Touchable {
         case .section:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = false
+          borderView?.isHidden = false
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -75,6 +78,7 @@ open class HeaderView: UIView,  Touchable {
         case .section0:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = false
+          borderView?.isHidden = false
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -86,6 +90,7 @@ open class HeaderView: UIView,  Touchable {
         case .search:
           pageNumberLabel.isHidden = false
           subTitleLabel.isHidden = false
+          borderView?.isHidden = false
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -128,16 +133,6 @@ open class HeaderView: UIView,  Touchable {
   var titleBottomIndentL: CGFloat = -18//-18 or if subtitle set: -16*1.17-12 = -31
   let titleBottomIndentS = -DottedLineView.DottedLineDefaultHeight/2
   let titleTopIndentS = 2.0
-  var bottomBorderAlwaysVisible: Bool {
-    get {
-      switch titletype {
-        case .search:
-          return true
-        default:
-          return false
-      }
-    }
-  }
     
   public var tapRecognizer = TapRecognizer()
     
@@ -251,11 +246,9 @@ extension HeaderView {
       case (_, ..<(-maxOffset/2)):
         handleScrolling(offsetDelta: -maxOffset, animated: true)
       case (_, ..<0):
-        handleScrolling(offsetDelta: maxOffset, animated: true)
+        handleScrolling(offsetDelta: -maxOffset, animated: true)
       case (_, 0.0):
         break
-      case (_, ..<(maxOffset/2)):
-        handleScrolling(offsetDelta: -maxOffset, animated: true)
       default:
         handleScrolling(offsetDelta: maxOffset, animated: true)
     }
@@ -307,7 +300,7 @@ extension HeaderView {
         self?.subTitleLabel.alpha = 0.0
         self?.borderView?.alpha = 0.0
       }
-      if self?.bottomBorderAlwaysVisible == true {
+      if self?.titletype == .search {
         self?.borderView?.alpha = 1.0
       }
     }
