@@ -124,7 +124,7 @@ class PasswordValidator: DoesLog {
   /// - Returns: test result with triple contain: valid:Bool, errormessage:String?, strength: PasswordStrengthLevel
   func check(password: String, mail: String?) async -> passwordQuality {
       do {
-        let jsCall = "tazPasswordSpec.checkLocal('\(password)', '\(mail ?? "")');"
+        let jsCall = "checkPassword('\(password)', '\(mail ?? "")');"
         let result = try await js.evaluate(jsCall)
         
         if let dict = result as? [String: Any],
