@@ -18,7 +18,7 @@ public struct Const {
     static let welcomeSlides = "welcomeSlides.html"
     static let revocation = "welcomeRevocation.html"
     static let terms = "welcomeTerms.html"
-    static let passwordCheckJs = "pwqcheck.js"
+    static let passwordCheckJs = "tazPasswordSpec.js"
   } // Filename
   
   
