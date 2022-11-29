@@ -267,9 +267,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       delay(seconds: 1.5) {
         self.slider?.open() { _ in
           delay(seconds: 1.5) {
-            self.slider?.close() { _ in
-              self.slider?.blinkButton()
-            }
+            self.slider?.close()
           }
         }
       }
