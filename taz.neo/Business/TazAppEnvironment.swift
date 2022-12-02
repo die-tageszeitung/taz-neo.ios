@@ -339,12 +339,15 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
     }
   }
   
-  func produceErrorReport(recipient: String, subject: String = "Feedback",
+  func produceErrorReport(recipient: String,
+                          subject: String = "Feedback",
+                          logData: Data? = nil,
+                          addScreenshot: Bool = true,
                           completion: (()->())? = nil) {
     if MFMailComposeViewController.canSendMail() {
       let mail =  MFMailComposeViewController()
       let screenshot = UIWindow.screenshot?.jpeg
-      let logData = fileLogger.mem?.data
+      let logData = logData ?? fileLogger.mem?.data
       mail.mailComposeDelegate = self
       mail.setToRecipients([recipient])
       
@@ -358,7 +361,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
       mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
         isHTML: false)
-      if let screenshot = screenshot {
+      if addScreenshot, let screenshot = screenshot {
         mail.addAttachmentData(screenshot, mimeType: "image/jpeg",
                                fileName: "taz.neo-screenshot.jpg")
       }
