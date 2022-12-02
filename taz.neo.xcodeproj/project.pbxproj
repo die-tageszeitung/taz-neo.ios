@@ -215,7 +215,7 @@
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
 		AEB935312917E81F000330DA /* Star.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Star.svg; sourceTree = "<group>"; };
 		AEB935322917E81F000330DA /* StarFilled.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = StarFilled.svg; sourceTree = "<group>"; };
-		AEBAF564219ACD1900566205 /* taz.alpha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.alpha.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEBAF564219ACD1900566205 /* die tageszeitung.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "die tageszeitung.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AEBAF573219ACD1A00566205 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -427,7 +427,7 @@
 		AEBAF565219ACD1900566205 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AEBAF564219ACD1900566205 /* taz.alpha.app */,
+				AEBAF564219ACD1900566205 /* die tageszeitung.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -543,7 +543,7 @@
 				AECD1A8D282CFDF0007E00EE /* NorthLib */,
 			);
 			productName = taz.neo;
-			productReference = AEBAF564219ACD1900566205 /* taz.alpha.app */;
+			productReference = AEBAF564219ACD1900566205 /* die tageszeitung.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
