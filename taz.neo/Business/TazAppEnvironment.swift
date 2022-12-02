@@ -382,7 +382,9 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
     @see also FeedbackViewController adds this in feedback request
      Question: is this called for incomming push notification?
      */
-    File(Log.FileLogger.defaultLogfile)
+    File(Log.FileLogger.lastLogfile)
+      .copy(to: Log.FileLogger.secondLastLogfile, isOverwrite: true)
+    File(Log.FileLogger.tmpLogfile)
       .copy(to: Log.FileLogger.lastLogfile, isOverwrite: true)
   }
   
