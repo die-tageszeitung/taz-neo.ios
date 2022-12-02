@@ -112,9 +112,10 @@ extension Authenticator {
     if requestKeychainPassword == false,
        let id = did, id.length > 0,
        let token = dtoken, token.length > 0 {
+      Log.log("INFO :: USE DEFAULTS")
       return (id: id, password: nil, token: token)
     }
-
+    Log.log("WARNING ACCESS KEYCHAIN :: requestKeychainPassword: \(requestKeychainPassword)")
     let kc = Keychain.singleton
     let kid = kc["id"]
     let ktoken = kc["token"]
