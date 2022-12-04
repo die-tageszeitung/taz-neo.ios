@@ -180,9 +180,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
     Notification.receive("BookmarkChanged") { [weak self] msg in
       if let art = msg.sender as? StoredArticle {
+        let name = File.progname(art.html.name)
         let js = """
           if (typeof tazApi.onBookmarkChange === "function") {
-            tazApi.onBookmarkChange("\(art.html.name)", \(art.hasBookmark));
+            tazApi.onBookmarkChange("\(name)", \(art.hasBookmark));
           }
         """
         Task { [weak self] in

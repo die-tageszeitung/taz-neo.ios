@@ -267,7 +267,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
          let name = args[0] as? String,
          let hasBookmark = args[1] as? Int {
         let bm = hasBookmark != 0 
-        let arts = StoredArticle.get(file: name)
+        let arts = StoredArticle.get(file: name + ".html")
         if arts.count > 0 { 
           arts[0].hasBookmark = bm 
           ArticleDB.save()
@@ -279,7 +279,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let _ = self else { return NSNull() }
       let arts = StoredArticle.bookmarkedArticles()
       var names: [String] = []
-      for a in arts { names += a.html.name }
+      for a in arts { names += File.progname(a.html.name) }
       return names
     }
     self.bridge?.addfunc("shareArticle") { [weak self] jscall in
@@ -329,6 +329,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     };
     tazApi.setBookmark = function (artName, hasBookmark) {
       tazApi.call("setBookmark", undefined, artName, hasBookmark);
+    };
+    tazApi.getBookmarks = function (callback) {
+      tazApi.call("getBookmarks", callback);
     };
     tazApi.shareArticle = function (artName) {
       tazApi.call("shareArticle", undefined, artName);
