@@ -152,7 +152,7 @@ function insertArticle(html, id, order) {
   art.innerHTML = html;
   art.style.height = "0px";
   art.style.order = order;
-  let content = document.getElementbyId("content");
+  let content = document.getElementById("content");
   content.appendChild(art);
   grow(art);
 }
