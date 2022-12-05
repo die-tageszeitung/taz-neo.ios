@@ -46,6 +46,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
   
+  @Default("articleFromPdf")
+  public var articleFromPdf: Bool
+  
   var initialTextNotificationSetting: Bool?
   
   var data:TableData = TableData(sectionContent: [])
@@ -136,6 +139,11 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   ///darstellung
   lazy var textSizeSettingsCell: XSettingsCell
   = XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting())
+  lazy var articleFromPdfCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Im Pdf Artikelansicht",
+                  detailText: "Artikelansicht ein-/ausschalten",
+                  initialValue: articleFromPdf,
+                  onChange: {[weak self] newValue in self?.articleFromPdf = newValue })
   lazy var darkmodeSettingsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nachtmodus",
                   initialValue: Defaults.darkMode,
@@ -249,6 +257,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
     initialTextNotificationSetting = isTextNotification
+    $articleFromPdf.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.articleFromPdfCell.customAccessoryView as? UISwitch)?.isOn = self.articleFromPdf
+    }
   }
   
   open override func viewWillAppear(_ animated: Bool) {
@@ -626,6 +638,7 @@ extension SettingsVC {
       ("darstellung", false,
        [
         textSizeSettingsCell,
+        articleFromPdfCell,
         darkmodeSettingsCell
        ]
       ),
@@ -885,7 +898,7 @@ class XSettingsCell:UITableViewCell {
   var longTapHandler:(()->())?
   private var toggleHandler: ((Bool)->())?
   
-  private(set) var customAccessoryView:UIView?
+  fileprivate(set) var customAccessoryView:UIView?
   
   override var accessoryView: UIView? {
     set { self.customAccessoryView = newValue }
