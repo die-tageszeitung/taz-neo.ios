@@ -268,9 +268,20 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
          let hasBookmark = args[1] as? Int {
         let bm = hasBookmark != 0 
         let arts = StoredArticle.get(file: name + ".html")
-        if arts.count > 0 { 
-          arts[0].hasBookmark = bm 
-          ArticleDB.save()
+        if arts.count > 0 {
+          let art = arts[0]
+          if art.hasBookmark != bm {
+            art.hasBookmark = bm
+            ArticleDB.save()
+            if args.count > 2, let showToast = args[2] as? Int, showToast != 0 {
+              let msg = bm ? "Wird in Leseliste aufgenommen" :
+                             "Lesezeichen wird entfernt"
+              if let title = art.title {
+                Toast.show("<h3>\(title)</h3>\(msg)", minDuration: 0)
+              }
+              else { Toast.show(msg, minDuration: 0) }
+            }
+          }
         }
       }
       return NSNull()
@@ -327,8 +338,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     tazApi.pageReady = function (percentSeen, position, npages) {
       tazApi.call("pageReady", undefined, percentSeen, position, npages);
     };
-    tazApi.setBookmark = function (artName, hasBookmark) {
-      tazApi.call("setBookmark", undefined, artName, hasBookmark);
+    tazApi.setBookmark = function (artName, hasBookmark, showToast) {
+      tazApi.call("setBookmark", undefined, artName, hasBookmark, showToast);
     };
     tazApi.getBookmarks = function (callback) {
       tazApi.call("getBookmarks", callback);
