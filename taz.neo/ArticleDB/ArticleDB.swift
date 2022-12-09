@@ -1791,7 +1791,7 @@ public final class StoredIssue: Issue, StoredObject {
                                   keepDownloaded: Int,
                                   keepPreviews: Int = 30,
                                   deleteOrphanFolders:Bool = false) {
-    
+    Log.log("keepDownloaded: \(keepDownloaded) keepPreviews: \(keepPreviews) deleteOrphanFolders: \(deleteOrphanFolders)")
     let lastCompleeteIssues:[StoredIssue]
     = keepDownloaded == 0
     ? []

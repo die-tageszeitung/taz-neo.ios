@@ -129,6 +129,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
     let lastStarted = dfl["lastStarted"]!.usTime
     debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
     logKeychain(msg: "initial")
+    logSystemEvents()
     let now = UsTime.now
     self.showAnimations = (nStarted < 2) || (now.sec - lastStarted.sec) > oneWeek
     IssueVC.showAnimations = self.showAnimations
@@ -231,6 +232,26 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
     if let msg = msg { intro += " (\(msg))" }
     intro += ":\n"
     debug("\(intro)\(str)")
+  }
+  
+  func logSystemEvents() {
+    
+    NotificationCenter.default.addObserver(forName: NSNotification.Name.NSProcessInfoPowerStateDidChange,
+                                           object: nil,
+                                           queue: nil,
+                                           using: { [weak self] _ in
+      self?.log("isLowPowerModeEnabled: \(ProcessInfo.processInfo.isLowPowerModeEnabled)")
+    })
+    
+    NotificationCenter.default.addObserver(forName: UIApplication.backgroundRefreshStatusDidChangeNotification,
+                                           object: nil,
+                                           queue: nil,
+                                           using: { [weak self] _ in
+      self?.log("backgroundRefreshStatus: \(UIApplication.shared.backgroundRefreshStatus)")
+    })
+    
+    self.log("isLowPowerModeEnabled: \(ProcessInfo.processInfo.isLowPowerModeEnabled)")
+    self.log("backgroundRefreshStatus: \(UIApplication.shared.backgroundRefreshStatus)")
   }
   
   func showIntro(closure: @escaping ()->()) {

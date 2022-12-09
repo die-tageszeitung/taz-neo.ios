@@ -55,6 +55,7 @@ class AppDelegate: NotifiedDelegate {
   func application(_ application: UIApplication,
                    handleEventsForBackgroundURLSession identifier: String,
                    completionHandler: @escaping () -> Void) {
+    log("store bg Download compleetion")
     HttpSession.bgCompletionHandlers[identifier] = completionHandler
   }
 
