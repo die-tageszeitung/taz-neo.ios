@@ -1810,11 +1810,14 @@ public final class StoredIssue: Issue, StoredObject {
       return;
     }
     
-    for issue in allIssues[keep...] {
-      if lastCompleeteIssues.contains(issue) { continue }
-      if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
-      Log.log("reduceToOverview for issue: \(issue.date.short)")
-      issue.reduceToOverview()
+    if keep <= allIssues.count {
+      for issue in allIssues[keep...] {
+        if lastCompleeteIssues.contains(issue) { continue }
+        if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
+        Log.log("reduceToOverview for issue: \(issue.date.short)")
+        issue.delete()
+        issue.reduceToOverview()
+      }
     }
          
     guard deleteOrphanFolders else { return }
