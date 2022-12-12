@@ -1831,6 +1831,13 @@ public final class StoredIssue: Issue, StoredObject {
     }
     
     for issue in reduceableIssues {
+      if issue.pr.feed == nil {
+        Log.log("PREVENTED CRASH")
+        if App.isAlpha {
+          Toast.show("Chrash verhindert!\nDetails im log, bitte an Entwickler senden!\n𝛼")
+        }
+        continue
+      }
       let dir = feed.feeder.issueDir(issue: issue)
       if dir.exists { knownDirs.append(dir.path)}
     }
