@@ -654,12 +654,12 @@ extension SettingsVC {
   
   //Prototype Cells
   func currentSectionContent() -> [tSectionContent] {
+#warning("REMOVE deleteNearlyAll BEFORE RELEASE ")
     return [
       ("konto", false, accountSettingsCells),
       ("ausgabenverwaltung", false, issueSettingsCells),
       ("darstellung", false,
        [
-        #warning("REMOVE BEFORE RELEASE")
         deleteNearlyAll,
         textSizeSettingsCell,
         articleFromPdfCell,
