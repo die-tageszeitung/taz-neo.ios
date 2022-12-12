@@ -230,9 +230,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if let args = jscall.args, args.count > 0,
          let img = args[0] as? String {
         let current = self.contents[self.index!]
-        let imgVC = ContentImageVC(content: current, delegate: self,
-                                   imageTapped: img)
-        imgVC.showImageGallery = self.showImageGallery
+        let imgVC = ContentImageVC(content: current,
+                                   delegate: self,
+                                   imageTapped: img,
+                                   showImageGallery: self.showImageGallery)
         self.imageOverlay = Overlay(overlay:imgVC , into: self)
         self.imageOverlay?.maxAlpha = 0.9
         self.imageOverlay?.open(animated: true, fromBottom: true)
@@ -267,10 +268,21 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
          let name = args[0] as? String,
          let hasBookmark = args[1] as? Int {
         let bm = hasBookmark != 0 
-        let arts = StoredArticle.get(file: name)
-        if arts.count > 0 { 
-          arts[0].hasBookmark = bm 
-          ArticleDB.save()
+        let arts = StoredArticle.get(file: name + ".html")
+        if arts.count > 0 {
+          let art = arts[0]
+          if art.hasBookmark != bm {
+            art.hasBookmark = bm
+            ArticleDB.save()
+            if args.count > 2, let showToast = args[2] as? Int, showToast != 0 {
+              let msg = bm ? "Wird in Leseliste aufgenommen" :
+                             "Lesezeichen wird entfernt"
+              if let title = art.title {
+                Toast.show("<h3>\(title)</h3>\(msg)", minDuration: 0)
+              }
+              else { Toast.show(msg, minDuration: 0) }
+            }
+          }
         }
       }
       return NSNull()
@@ -279,7 +291,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let _ = self else { return NSNull() }
       let arts = StoredArticle.bookmarkedArticles()
       var names: [String] = []
-      for a in arts { names += a.html.name }
+      for a in arts { names += File.progname(a.html.name) }
       return names
     }
     self.bridge?.addfunc("shareArticle") { [weak self] jscall in
@@ -327,8 +339,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     tazApi.pageReady = function (percentSeen, position, npages) {
       tazApi.call("pageReady", undefined, percentSeen, position, npages);
     };
-    tazApi.setBookmark = function (artName, hasBookmark) {
-      tazApi.call("setBookmark", undefined, artName, hasBookmark);
+    tazApi.setBookmark = function (artName, hasBookmark, showToast) {
+      tazApi.call("setBookmark", undefined, artName, hasBookmark, showToast);
+    };
+    tazApi.getBookmarks = function (callback) {
+      tazApi.call("getBookmarks", callback);
     };
     tazApi.shareArticle = function (artName) {
       tazApi.call("shareArticle", undefined, artName);

@@ -184,7 +184,7 @@ public class FeedbackView : UIView {
     switch type {
       case .feedback:
         subjectLabel.text = "Feedback"
-        messageTextView.placeholder = "Ihr Feedback."
+        messageTextView.placeholder = "Ihr Feedback.\n \n "
       case .error:
         subjectLabel.text = "Fehler melden"
         messageTextView.placeholder = "Beschreiben Sie ihr Problem bitte hier."

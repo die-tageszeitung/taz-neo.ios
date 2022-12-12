@@ -46,6 +46,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
   
+  @Default("articleFromPdf")
+  public var articleFromPdf: Bool
+  
   var initialTextNotificationSetting: Bool?
   
   var data:TableData = TableData(sectionContent: [])
@@ -136,6 +139,11 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   ///darstellung
   lazy var textSizeSettingsCell: XSettingsCell
   = XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting())
+  lazy var articleFromPdfCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Im Pdf Artikelansicht",
+                  detailText: "Artikelansicht ein-/ausschalten",
+                  initialValue: articleFromPdf,
+                  onChange: {[weak self] newValue in self?.articleFromPdf = newValue })
   lazy var darkmodeSettingsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nachtmodus",
                   initialValue: Defaults.darkMode,
@@ -175,6 +183,28 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                     if newValue == true { self?.checkNotifications() }
                   })
   
+  #warning("REMOVE BEFORE RELEASE")
+  lazy var deleteNearlyAll: XSettingsCell
+  = XSettingsCell(text: "Lösche fast alles",
+                  detailText: "Achtung vorbereitung für Auto Download",
+                  tapHandler: {[weak self] in
+    Toast.show("Lösche vieles!", .alert)
+    guard let storedFeeder = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder,
+          let storedFeed = storedFeeder.storedFeeds.first else {
+            return
+          }
+    TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
+    StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 1, deleteOrphanFolders: true)
+    onMainAfter(2.0) { [weak self] in
+     // self?.refreshAndReload()
+    //  TazAppEnvironment.sharedInstance.feederContext?.resume()
+  //    Notification.send("reloadIssues")
+      Toast.show("done better restart app")
+    }
+    URLCache.shared.removeAllCachedResponses()
+  })
+
+
   lazy var bookmarksTeaserCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Leseliste Anrisstext",
                   detailText: "Zeige Anrisstext in Leseliste",
@@ -249,6 +279,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
     initialTextNotificationSetting = isTextNotification
+    $articleFromPdf.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.articleFromPdfCell.customAccessoryView as? UISwitch)?.isOn = self.articleFromPdf
+    }
   }
   
   open override func viewWillAppear(_ animated: Bool) {
@@ -620,12 +654,15 @@ extension SettingsVC {
   
   //Prototype Cells
   func currentSectionContent() -> [tSectionContent] {
+#warning("REMOVE deleteNearlyAll BEFORE RELEASE ")
     return [
       ("konto", false, accountSettingsCells),
       ("ausgabenverwaltung", false, issueSettingsCells),
       ("darstellung", false,
        [
+        deleteNearlyAll,
         textSizeSettingsCell,
+        articleFromPdfCell,
         darkmodeSettingsCell
        ]
       ),
@@ -885,7 +922,7 @@ class XSettingsCell:UITableViewCell {
   var longTapHandler:(()->())?
   private var toggleHandler: ((Bool)->())?
   
-  private(set) var customAccessoryView:UIView?
+  fileprivate(set) var customAccessoryView:UIView?
   
   override var accessoryView: UIView? {
     set { self.customAccessoryView = newValue }
