@@ -183,6 +183,28 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                     if newValue == true { self?.checkNotifications() }
                   })
   
+  #warning("REMOVE BEFORE RELEASE")
+  lazy var deleteNearlyAll: XSettingsCell
+  = XSettingsCell(text: "Lösche fast alles",
+                  detailText: "Achtung vorbereitung für Auto Download",
+                  tapHandler: {[weak self] in
+    Toast.show("Lösche vieles!", .alert)
+    guard let storedFeeder = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder,
+          let storedFeed = storedFeeder.storedFeeds.first else {
+            return
+          }
+    TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
+    StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 1, deleteOrphanFolders: true)
+    onMainAfter(2.0) { [weak self] in
+     // self?.refreshAndReload()
+    //  TazAppEnvironment.sharedInstance.feederContext?.resume()
+  //    Notification.send("reloadIssues")
+      Toast.show("done better restart app")
+    }
+    URLCache.shared.removeAllCachedResponses()
+  })
+
+
   lazy var bookmarksTeaserCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Leseliste Anrisstext",
                   detailText: "Zeige Anrisstext in Leseliste",
@@ -637,6 +659,8 @@ extension SettingsVC {
       ("ausgabenverwaltung", false, issueSettingsCells),
       ("darstellung", false,
        [
+        #warning("REMOVE BEFORE RELEASE")
+        deleteNearlyAll,
         textSizeSettingsCell,
         articleFromPdfCell,
         darkmodeSettingsCell
