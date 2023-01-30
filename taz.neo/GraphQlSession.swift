@@ -95,6 +95,25 @@ open class GraphQlSession: HttpSession {
           let dict = try dec.decode([String:T].self, from: d)
           result = .success(dict["data"]!)
         }
+        catch let DecodingError.dataCorrupted(context) {
+          print(context)
+          result = .failure(self.fatal("JSON decoding error"))
+        } catch let DecodingError.keyNotFound(key, context) {
+          print("Key '\(key)' not found:", context.debugDescription)
+          print("codingPath:", context.codingPath)
+          result = .failure(self.fatal("JSON decoding error"))
+        } catch let DecodingError.valueNotFound(value, context) {
+          print("Value '\(value)' not found:", context.debugDescription)
+          print("codingPath:", context.codingPath)
+          result = .failure(self.fatal("JSON decoding error"))
+        } catch let DecodingError.typeMismatch(type, context)  {
+          print("Type '\(type)' mismatch:", context.debugDescription)
+          print("codingPath:", context.codingPath)
+          result = .failure(self.fatal("JSON decoding error"))
+        } catch {
+          print("error: ", error)
+          result = .failure(self.fatal("JSON decoding error"))
+        }
         catch {
           result = .failure(self.fatal("JSON decoding error"))
         }

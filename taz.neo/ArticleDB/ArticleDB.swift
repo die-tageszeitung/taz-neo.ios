@@ -1451,10 +1451,64 @@ public final class StoredSection: Section, StoredObject {
 
 extension PersistentIssue: PersistentObject {}
 
+extension PersistentPublicationDates: PersistentObject {}
 
 extension StoredIssue: Equatable {
   static public func ==(lhs: StoredIssue, rhs: StoredIssue) -> Bool {
     return lhs.date == rhs.date
+  }
+}
+
+
+public final class StoredPublicationDates: PublicationDates, StoredObject {
+  
+  public static var entity = "PublicationDates"
+  public var pr: PersistentPublicationDates // persistent record
+  
+  /// Return stored record with given name
+  public static func latest() -> Date? {
+    let request = fetchRequest
+    let res = get(request: request)
+    if res.count > 1 {
+      Log.debug("Unexpected to have \(res.count) Items")
+      return nil
+    }
+    guard let res = res.first else { return nil }
+    return res.dates.max()
+  }
+  
+  public static func get(object: PublicationDates) -> Self? {
+    let request = fetchRequest
+    request.predicate
+    = NSPredicate(format: "(cycle = %@)",
+                  object.cycle.description)
+    return get(request: request).first
+  }
+      
+  public func toString() -> String {
+    var range: [String] = []
+    if let min = self.dates.min(){ range.append(min.short) }
+    if let max = self.dates.max(){ range.append(max.short) }
+    return "Cycle: \(self.cycle), Range: \(range.joined(separator: " - "))"
+  }
+
+  public var cycle: PublicationCycle {
+    get { return PublicationCycle(pr.cycle!)! }
+    set { pr.cycle = newValue.representation }
+  }
+  
+  public var dates: [Date] {
+    get { return pr.dates! }
+    set { pr.dates = newValue }
+  }
+  
+  public required init(persistent: PersistentPublicationDates){
+    self.pr = persistent
+  }
+  /// Overwrite the persistent values
+    public func update(from object: PublicationDates) {
+      self.cycle = object.cycle
+      self.dates = object.dates
   }
 }
 
@@ -1947,6 +2001,18 @@ public final class StoredFeed: Feed, StoredObject {
 
   public var storedIssues: [StoredIssue] { StoredIssue.issuesInFeed(feed: self) }
   public var issues: [Issue]? { storedIssues }
+  
+  /// publicationDates this Feed
+  public var publicationDates: PublicationDates? {
+    get {
+      guard let pd = pr.publicationDates else { return nil }
+      return StoredPublicationDates(persistent: pd)
+    }
+    set {
+      guard let pubDates = newValue else { pr.publicationDates = nil; return }
+      pr.publicationDates = StoredPublicationDates.persist(object: pubDates).pr
+    }
+  }
   
   public required init(persistent: PersistentFeed) { self.pr = persistent }
 

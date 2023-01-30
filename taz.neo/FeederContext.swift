@@ -189,9 +189,11 @@ open class FeederContext: DoesLog {
     self.dloader = Downloader(feeder: gqlFeeder)
     netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
     defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder)[0]
+    updatePublicationDates(feed: defaultFeed)
     isReady = true
     cleanupOldIssues()
-    notify("feederReady")            
+    notify("feederReady")
+    
   }
   
   /// React to the feeder being online or not
@@ -744,6 +746,28 @@ open class FeederContext: DoesLog {
     }
     else {
       Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
+    }
+  }
+  
+  /**
+
+   */
+  public func updatePublicationDates(feed: Feed) {
+    guard self.isConnected else { return }
+    self.gqlFeeder.publicationDates(feed: feed,
+                                    fromDate: feed.publicationDates?.dates.max()) { result in
+      if let gqlPubDates = result.value() {
+        if let storedPubDates = feed.publicationDates {
+          var dates = storedPubDates.dates
+          dates.append(contentsOf: gqlPubDates.dates)
+          (storedPubDates as? StoredPublicationDates)?.dates = dates
+        }
+        else {
+          let storedPubDates =  StoredPublicationDates.persist(object: gqlPubDates)
+          (feed as? StoredFeed)?.publicationDates = storedPubDates
+        }
+        ArticleDB.save()
+      }
     }
   }
 

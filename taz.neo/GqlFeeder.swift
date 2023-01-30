@@ -47,7 +47,7 @@ struct GqlAuthInfo: GQLObject {
   }  
 } // GqlAuthInfo
 
-/// A GqlAuthInfo describes an GqlAuthStatus with an optional message
+/// A GqlCustomerInfo describes an customer
 struct GqlCustomerInfo: GQLObject {
   /// Authentication status
   var authInfo:  GqlAuthInfo
@@ -67,7 +67,7 @@ struct GqlCustomerInfo: GQLObject {
     if let msg = sampleType { ret += "sampleType: (\(msg))" }
     return ret
   }
-} // GqlAuthInfo
+} // GqlCustomerInfo
 
 /// Customer Type
 enum GqlCustomerType: String, CodableEnum {
@@ -389,6 +389,105 @@ class GqlMoment: Moment, GQLObject {
     momentList { \(GqlFile.fields) }
   """
 } // GqlMoment
+/*
+/// A GqlPublicationDate describes a Publication Date
+struct GqlPublicationDate: GQLObject {
+  /// Issue date
+  var sDate: String
+  var date: Date
+  
+  static var fields = "publicationDates"
+
+  func toString() -> String {
+    return sDate
+  }
+} // GqlPublicationDate
+
+/// A GqlPublicationDate describes a Publication Date
+struct GqlPublicationDates: GQLObject {
+
+  var dates: [GqlPublicationDate]
+  
+  static var fields = "publicationDates"
+
+  func toString() -> String {
+    return "some dates: \(dates.count)"
+  }
+} // GqlPublicationDate
+*/
+/// The Payload of files from the download server
+class GqlPublicationDates: PublicationDates, GQLObject {
+  
+  var sPublicationDates: [String]
+  var dates: [Date] {
+    return sPublicationDates.compactMap{ UsTime(iso: $0, tz: GqlFeeder.tz).date }
+  }
+//  {
+//    return [Date()]
+////    return UsTime(iso: sDate, tz: GqlFeeder.tz).date
+//  }
+  var name: String
+  var cycle: PublicationCycle
+  
+  
+  static var fields = """
+  product {
+    name,
+    cycle,
+    sPublicationDates:publicationDates
+  }
+  """
+   
+  
+//  /// Initialize PublicationDates from Resources
+//  init(feeder: GqlFeeder, resources: GqlResources) {
+//    localDir = feeder.resourcesDir.path
+//    remoteBaseUrl = resources.resourceBaseUrl
+//    remoteZipName = resources.resourceZipName
+//    files = resources.files
+//    self.resources = resources
+//  }
+//
+//  /// Initialize PublicationDates from Issue
+//  init(feeder: GqlFeeder, issue: GqlIssue, isPages: Bool = false) {
+//    localDir = feeder.issueDir(issue: issue).path
+//    remoteBaseUrl = issue.baseUrl
+//    remoteZipName = issue.zipName
+//    files = issue.files(isPages: isPages)
+//    self.issue = issue
+//  }
+  
+  enum CodingKeys: String, CodingKey {
+    case publicationDates
+    case name
+    case cycle
+  }
+  
+  
+  
+  required init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    print("Do Encode!")
+    
+//    sDate = try container.decode(String.self, forKey: .sDate)
+//    sValidityDate = try container.decodeIfPresent(String.self, forKey: .sValidityDate)
+//
+//    if sValidityDate != nil {
+//      print("stop: \(self.validityDate)")
+//    }
+    sPublicationDates = []
+//    try container.decode(String.self, forKey: .sFirstIssue)
+    
+    sPublicationDates = try container.decode([String].self,
+                                              forKey: .publicationDates)
+    name = try container.decode(String.self, forKey: .name)
+    cycle = try container.decode(PublicationCycle.self, forKey: .cycle)
+  }
+  
+} // GqlPayload
+
+
+
 
 /// One Issue of a Feed
 class GqlIssue: Issue, GQLObject {
@@ -521,6 +620,8 @@ class GqlIssue: Issue, GQLObject {
   """
 } // GqlIssue
 
+
+
 /// A Feed of publication issues and articles
 class GqlFeed: Feed, GQLObject {  
   var gqlFeeder: GqlFeeder!
@@ -545,6 +646,8 @@ class GqlFeed: Feed, GQLObject {
   /// The Issues requested of this Feed
   var gqlIssues: [GqlIssue]?
   var issues: [Issue]? { return gqlIssues }
+  /// publicationDates this Feed
+  var publicationDates: PublicationDates?
   
   enum CodingKeys: String, CodingKey {
     case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues
@@ -874,6 +977,55 @@ open class GqlFeeder: Feeder, DoesLog {
       case .failure(let err):  ret = .failure(err)
       }
       closure(ret)
+    }
+  }
+  
+  
+  // Update PublicationDates
+  public func publicationDates(feed: Feed,
+                               fromDate: Date?,
+                               closure: @escaping(Result<PublicationDates,Error>)->()) {
+    struct PublicationDatesRequest: Decodable {
+      var authInfo: GqlAuthInfo
+      var publicationDates: [GqlPublicationDates]
+      static func request(feed: Feed, date: Date?) -> String {
+        var dateArg = "publicationDates"
+        if let date = date {
+          dateArg = "publicationDates(start: \"\(date.isoDate(tz: GqlFeeder.tz))\")"
+        }
+        return """
+        publicationDatesRequest: product {
+          authInfo { \(GqlAuthInfo.fields) }
+            publicationDates: feedList(name:"\(feed.name)") {
+            name
+            cycle
+            \(dateArg)
+          }
+        }
+        """
+      }
+    }
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected"))); return
+    }
+    
+    let request = PublicationDatesRequest.request(feed: feed,
+                                                  date: fromDate)
+    gqlSession.query(graphql: request, type: [String:PublicationDatesRequest].self) {[weak self] (res) in
+      guard let self = self else { return }
+      switch res {
+        case .success(let dict):
+          let response = dict["publicationDatesRequest"]
+          if let pubDates = response?.publicationDates,
+             pubDates.count == 1,
+             let pubDObj = pubDates.first {
+            closure(.success(pubDObj))
+            return
+          }
+        case .failure(let err):
+          closure(.failure(err))
+      }
+      closure( .failure(self.error(DefaultError(message: "unexpected"))))
     }
   }
  

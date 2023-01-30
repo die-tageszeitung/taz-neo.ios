@@ -718,6 +718,23 @@ public extension IssueStatus {
   var watchable : Bool { return self != .unknown}
 }
 
+/// PublicationDate
+public protocol PublicationDates: ToString, AnyObject {
+  /// Publication dates array
+  var dates: [Date] { get }
+  /// Publication cycle
+  var cycle: PublicationCycle { get }
+}
+
+public extension PublicationDates {
+  func toString() -> String {
+    var range: [String] = []
+    if let min = self.dates.min(){ range.append(min.short) }
+    if let max = self.dates.max(){ range.append(max.short) }
+    return "Cycle: \(self.cycle), Range: \(range.joined(separator: " - "))"
+  }
+}
+
 /// One Issue of a Feed
 public protocol Issue: ToString, AnyObject {  
   /// Is this Issue currently being downloaded
@@ -1024,6 +1041,8 @@ public protocol Feed: ToString {
   var firstSearchableIssue: Date? { get }
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
+  /// publicationDates this Feed
+  var publicationDates: PublicationDates? { get }
   /// Directory where all feed specific data is stored
   var dir: Dir { get }
 } // Feed
