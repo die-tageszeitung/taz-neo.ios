@@ -408,7 +408,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
 
     
-    /*onPlay{ [weak self] _ in
+    onPlay{ [weak self] _ in
       /**
           Issues: on external Control no update
           on currentWebView change not respect current state
@@ -435,7 +435,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       } else {
         self.playButton.buttonView.color = Const.Colors.iOSDark.secondaryLabel
         
-        let trackTitle:String = "taz \(self.issue.date.short) \(self.header.miniTitle ?? "")"
+        let trackTitle:String = "taz \(self.issue.date.short) \(self.header.title ?? "") \(self.header.subTitle ?? "")"
         var albumTitle = "Artikel"
         if let content = self.contents.valueAt(self.index ?? 0),
            let contentTitle = content.title{
@@ -445,7 +445,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
           self?.playButton.buttonView.name = "audio"
         }
       }
-    }*/
+    }
   }
   
 //  open override func onPageChange(){

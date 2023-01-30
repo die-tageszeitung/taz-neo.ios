@@ -153,6 +153,9 @@ open class ArticleVC: ContentVC {
             else { self.playButton.buttonView.name = "audio" }
           }
         }
+        else if true || App.isAlpha {
+          self.playButton.buttonView.name = "audio"
+        }
         else { self.onPlay(closure: nil) }
         self.onBookmark { [weak self] _ in
           guard let self = self else { return }
