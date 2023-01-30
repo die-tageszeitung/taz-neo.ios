@@ -757,7 +757,7 @@ extension SettingsVC {
             let storedFeed = storedFeeder.storedFeeds.first else {
               return
             }
-      TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
+//      TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
       StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, deleteOrphanFolders: true)
       onMainAfter { [weak self] in
         self?.refreshAndReload()
@@ -775,20 +775,7 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Daten zurücksetzen", style: .destructive,
                                          handler: { _ in
-//      TazAppEnvironment.sharedInstance.popToRootViewController(animated: false)
-      TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
-      ArticleDB.singleton.reset { [weak self] err in
-        self?.log("delete database done")
-        exit(0)//Restart, resume currently not possible
-        //#warning("ToDo: 0.9.4 enable resume of feederCOntext / Re-Init here")
-        //onMainAfter { [weak self]  in
-        //  self?.content[0] = Settings.content()[0]
-        //  let ip0 = IndexPath(row: 1, section: 0)
-        //  self?.tableView.reloadRows(at: [ip0], with: .fade)
-        //  MainNC.singleton.feederContext.resume()
-        //  MainNC.singleton.showIssueVC()
-        //}
-      }
+      TazAppEnvironment.sharedInstance.deleteAll()
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )

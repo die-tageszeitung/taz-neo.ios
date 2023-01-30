@@ -192,7 +192,7 @@ public extension ImageEntry {
   static func highRes(_ fname: String) -> String {
     let prefix = self.prefix(fname)
     let ext = File.extname(fname)
-    return "\(prefix).high.\(ext)"
+    return "\(prefix).high.\(ext ?? "unknown")"
   }
   
   /// The prefix of the filename
@@ -1044,7 +1044,7 @@ public extension Feed {
  A Feeder is an abstract datatype handling the communication with a server
  providing Feeds.
  */
-public protocol Feeder: ToString {  
+public protocol Feeder: ToString, AnyObject {  
   /// Timezone Feeder lives in
   var timeZone: String { get }
   /// URL of GraphQL server

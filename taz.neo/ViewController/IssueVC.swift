@@ -434,7 +434,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     imageButton.buttonView.activeColor = Const.Colors.iconButtonActive
     imageButton.accessibilityLabel = "Ansicht umschalten"
     imageButton.isAccessibilityElement = true
-    imageButton.onPress(closure: onPDF(sender:))
+    imageButton.onPress { [weak self] s in self?.onPDF(sender: s) }
     imageButton.layer.cornerRadius = 25
     imageButton.backgroundColor = Const.Colors.fabBackground
     imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
@@ -554,8 +554,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.showIssue(index: idx, atSection: issue.lastSection, 
                      atArticle: issue.lastArticle)
     }
-    issueCarousel.onLabelTap { idx in
-      self.showDatePicker()
+    issueCarousel.onLabelTap { [weak self] idx in
+      self?.showDatePicker()
     }
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { 
       [weak self] arg in

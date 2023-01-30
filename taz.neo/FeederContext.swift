@@ -22,6 +22,8 @@ import NorthLib
      network connectivity changed, feeder is not reachable
    - feederReady(FeederContext)
      Feeder data is available (if not reachable then data is from DB)
+   - feederRelease
+     Feeder is going to release its data in 0.5s
    - issueOverview(Result<Issue,Error>)
      Issue Overview has been received (and stored in DB) 
    - gqlIssue(Result<GqlIssue,Error>)
@@ -223,16 +225,6 @@ open class FeederContext: DoesLog {
   private var pollingTimer: Timer?
   private var pollEnd: Int64?
   
-  //#warning("ToDo: 0.9.4 fix App crash if called when active downloads")
-  /// Crash reasons:
-  /// 1. task from session created but session invalidated
-  /// 2. force unwrap optional : StoredFileEntry.pr.name
-  /// this was also called on 3-finger-deleteApp with App restart
-  public func cancelAll() {
-    self.gqlFeeder.status?.feeds = []
-    self.gqlFeeder.gqlSession?.session.invalidateAndCancel()
-    self.dloader.killAll()
-  }
   public func resume() {
     self.checkNetwork()
   }
@@ -379,12 +371,20 @@ open class FeederContext: DoesLog {
     }
   }
   
+  /// closeDB closes the Article database
+  private func closeDB() {
+    if let db = ArticleDB.singleton {
+      db.close()
+      ArticleDB.singleton = nil
+    }
+  }
+  
   /// resetDB removes the Article database and uses openDB to reopen a new version
   private func resetDB() {
     guard ArticleDB.singleton != nil else { return }
     let name = ArticleDB.singleton.name
+    closeDB()
     ArticleDB.dbRemove(name: name)
-    ArticleDB.singleton = nil
     openDB(name: name)
   }
     
@@ -401,6 +401,25 @@ open class FeederContext: DoesLog {
       self?.connect()
     }
     openDB(name: name)
+  }
+  
+  /// release closes the Database and removes all feeder specific content
+  /// if isRemove == true. Also all other resources are released.
+  public func release(isRemove: Bool, onRelease: @escaping ()->()) {
+    notify("feederRelease")
+    onMain(after: 0.5) { [weak self] in
+      guard let self else { return }
+      let feederDir = self.gqlFeeder?.dir
+      self.gqlFeeder?.release()
+      self.gqlFeeder = nil
+      self.dloader?.release()
+      self.dloader = nil
+      self.closeDB()
+      if let dir = feederDir, isRemove {
+        for f in dir.scan() { File(f).remove() }
+      }
+      onRelease()
+    }
   }
   
   private func loadBundledResources(setVersion: Int? = nil) {

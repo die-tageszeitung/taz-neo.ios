@@ -706,6 +706,13 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
   
+  /// Close gqlSession and release resources
+  public func release() {
+    gqlSession?.release()
+    gqlSession = nil
+    status = nil
+  }
+  
   /**
    Authenticate with server.
    

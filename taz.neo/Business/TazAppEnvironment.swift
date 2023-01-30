@@ -10,18 +10,24 @@ import NorthLib
 import MessageUI
 import UIKit
 
-class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
+class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate {
+  
+  class Spinner: UIViewController {
+    convenience init() {
+      self.init(nibName: nil, bundle: nil)
+      let spinner = UIActivityIndicatorView()
+      view.addSubview(spinner)
+      spinner.center()
+      spinner.color = .white
+      spinner.startAnimating()
+    } 
+  }
   
   private var threeFingerAlertOpen: Bool = false
   
   public private(set) lazy var rootViewController : UIViewController = {
-    let vc = UIViewController()//Startup Splash Screen?!
-    let spinner = UIActivityIndicatorView()
-    vc.view.addSubview(spinner)
-    spinner.center()
-    spinner.color = .white
-    spinner.startAnimating()
-    return vc
+    // Startup Splash Screen?!
+    return Spinner()
   }()  {
     didSet {
       guard let window = UIApplication.shared.delegate?.window else { return }
@@ -67,14 +73,14 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   
   override init(){
     super.init()
-    Notification.receive(UIApplication.willResignActiveNotification) { _ in
-      self.goingBackground()
+    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+      self?.goingBackground()
     }
-    Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
-      self.goingForeground()
+    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+      self?.goingForeground()
     }
-    Notification.receive(UIApplication.willTerminateNotification) { _ in
-      self.appWillTerminate()
+    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
+      self?.appWillTerminate()
     }
     setup()
     copyDemoContent()
@@ -92,13 +98,9 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   }
   
   func setup(){
-    let feeder = Defaults.currentFeeder
     setupLogging()
-    log("Connect to feeder: \(feeder.name) feed: \(feeder.feed)")
-    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
     setupFeeder()
   }
-  
   
   /// Enable logging to file and otional to view
   func setupLogging() {
@@ -161,16 +163,28 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   }
  
   func deleteAll() {
-//    popToRootViewController(animated: false)
-    feederContext?.cancelAll()
-    ArticleDB.singleton.close()
-    /// Remove all content
+    reset(isDelete: true)
+    // TODO: remove exit when reset works without crashing
+    exit(0)
+  }
+  
+  func deleteData() {
     for f in Dir.appSupport.scan() {
       debug("remove: \(f)")
       File(f).remove()
     }
-    log("delete all done successfully")
-    exit(0)
+    log("App data deleted.")
+  }
+  
+  func reset(isDelete: Bool = true) {
+    rootViewController = Spinner()
+    feederContext?.release(isRemove: isDelete) { [weak self] in
+      guard let self else { return }
+      self.feederContext = nil
+      if isDelete { self.deleteData() } 
+        // TODO: reinitialize feederContext when this no longer crashes
+//      self.setupFeeder(isStartup: false)
+    }
   }
   
   func unlinkSubscriptionId() {
@@ -209,11 +223,15 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
     }
   }
   
-  func setupFeeder() {
-    Notification.receiveOnce("feederReady") { notification in
-      guard let fctx = notification.sender as? FeederContext else { return }
+  func setupFeeder(isStartup: Bool = true) {
+    let feeder = Defaults.currentFeeder
+    log("Connecting to feeder: \(feeder.name) feed: \(feeder.feed)")
+    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
+    Notification.receiveOnce("feederReady") { [weak self] notification in
+      guard let self, let fctx = notification.sender as? FeederContext else { return }
       self.debug(fctx.storedFeeder.toString())
-      self.startup()
+      if isStartup { self.startup() }
+      else { self.showHome() }
     }
   }
   
@@ -469,11 +487,8 @@ extension TazAppEnvironment {
     self.rootViewController = intermediateVc
     
     onMainAfter {[weak self] in
-      self?.feederContext?.cancelAll()
-      ArticleDB.singleton.close()
-      ArticleDB.singleton = nil
-      self?.feederContext = nil
-      
+      guard let self else { return }
+      self.reset(isDelete: false)
       if let tab = oldRoot as? MainTabVC {
         for case let navCtrl as UINavigationController in tab.viewControllers ?? [] {
           navCtrl.popToRootViewController(animated: false)
