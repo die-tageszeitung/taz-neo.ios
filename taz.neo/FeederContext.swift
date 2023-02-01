@@ -760,6 +760,7 @@ open class FeederContext: DoesLog {
         if let storedPubDates = feed.publicationDates {
           var dates = storedPubDates.dates
           dates.append(contentsOf: gqlPubDates.dates)
+          dates = Array(Set(dates))//removes duplicates, sort when using
           (storedPubDates as? StoredPublicationDates)?.dates = dates
         }
         else {
@@ -862,6 +863,9 @@ open class FeederContext: DoesLog {
   }
   
   func cleanupOldIssues(){
+    #warning("do not cleanup currently!")
+    debug("warning do not cleanup currently!")
+    return;
     if self.dloader.isDownloading { return }
     guard let feed = self.storedFeeder.feeds[0] as? StoredFeed else { return }
     let persistedIssuesCount:Int = Defaults.singleton["persistedIssuesCount"]?.int ?? 20

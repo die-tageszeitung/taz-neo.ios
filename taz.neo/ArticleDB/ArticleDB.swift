@@ -15,6 +15,8 @@ public class ArticleDB: Database {
   /// There is only one article DB in the app
   public static var singleton: ArticleDB!
   
+  let dbQueue = DispatchQueue(label: "database-queue")
+  
   /// Initialize with name of database, open it and call the passed closure
   @discardableResult
   public init(name: String, closure: @escaping (Error?)->()) { 

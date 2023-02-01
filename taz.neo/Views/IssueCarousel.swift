@@ -25,6 +25,9 @@ public class IssueCarousel: UIView {
   // Label for the center image
   private(set) var label = CrossfadeLabel()
   
+  public var issueImages: [String: (issue: UIImage?, isActivity: Bool)] = [:]
+  
+  
   /// Current central image
   public var index: Int? {
     get { return carousel.index }
@@ -63,19 +66,19 @@ public class IssueCarousel: UIView {
     label.setText(text)
   }
   
-  /// Append issue images to list of images
-  public func appendIssues(_ issues: [UIImage]) {
-    self.issues.append(contentsOf: issues.map { (issue: $0, isActivity: false) })
-    setup()
-    carousel.count = self.issues.count
-  }
+//  /// Append issue images to list of images
+//  public func appendIssues(_ issues: [UIImage]) {
+//    self.issues.append(contentsOf: issues.map { (issue: $0, isActivity: false) })
+//    setup()
+//    carousel.count = self.issues.count
+//  }
   
-  /// Insert Issue at index
-  public func insertIssue(_ issue: UIImage, at index: Int) {
-    if carousel.provider == nil { reset() }
-    self.issues.insert((issue: issue, isActivity: false), at: index)
-    carousel.insert(at: index)
-  }
+//  /// Insert Issue at index
+//  public func insertIssue(_ issue: UIImage, at index: Int) {
+//    if carousel.provider == nil { reset() }
+//    self.issues.insert((issue: issue, isActivity: false), at: index)
+//    carousel.insert(at: index)
+//  }
   
   /// Insert Issue at index
   public func updateIssue(_ issue: UIImage, at index: Int, isActivity: Bool = false, preventZoomInAnimation: Bool = false) {
@@ -94,18 +97,18 @@ public class IssueCarousel: UIView {
   }
   
   
-  /// Define list of images
-  public func setIssues(_ issues: [UIImage]) {
-    reset()
-    self.issues.append(contentsOf: issues.map { (issue: $0, isActivity: false) })
-    carousel.count = issues.count
-  }
+//  /// Define list of images
+//  public func setIssues(_ issues: [UIImage]) {
+//    reset()
+//    self.issues.append(contentsOf: issues.map { (issue: $0, isActivity: false) })
+//    carousel.count = issues.count
+//  }
   
   /// Reset to empty carousel
   public func reset() {
     self.issues = []
     setup()
-    carousel.count = 0
+    carousel.count = 100
     self.index = 0    
   }
   
@@ -170,16 +173,17 @@ public class IssueCarousel: UIView {
       guard let self = self else { return MomentView() }
       var moment: MomentView? = view as? MomentView
       if moment == nil { moment = MomentView() }
-      moment!.image = self.issues[idx].issue
-      moment!.isActivity = self.issues[idx].isActivity
-      moment!.menu.menu = self.menu
-      moment!.menu.argument = idx
-      moment!.onTap {_ in
-        if let currentIndex = self.firstMoment(moment: moment!) {
-          self.tapClosure?(currentIndex)
-        }
-      }
-      return moment!
+      return moment!;
+////      moment!.image = self.issues[idx].issue!
+////      moment!.isActivity = self.issues[idx].isActivity
+//      moment!.menu.menu = self.menu
+//      moment!.menu.argument = idx
+//      moment!.onTap {_ in
+//        if let currentIndex = self.firstMoment(moment: moment!) {
+//          self.tapClosure?(currentIndex)
+//        }
+//      }
+//      return moment!
     }
   }
   

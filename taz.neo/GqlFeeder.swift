@@ -1031,7 +1031,7 @@ open class GqlFeeder: Feeder, DoesLog {
  
   // Get Issues
   public func issues(feed: Feed, date: Date? = nil, key: String? = nil,
-    count: Int = 20, isOverview: Bool = false, isPages: Bool = false,
+                     count: Int = 20, isOverview: Bool = false, isPages: Bool = false, returnOnMain: Bool = true, 
     closure: @escaping(Result<[Issue],Error>)->()) { 
     struct FeedRequest: Decodable {
       var authInfo: GqlAuthInfo
@@ -1066,7 +1066,7 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
                                       count: count, isOverview: isOverview)
     gqlSession.query(graphql: request,
-      type: [String:FeedRequest].self) {[weak self]  (res) in
+      type: [String:FeedRequest].self, returnOnMain: returnOnMain) {[weak self]  (res) in
       guard let self = self else { return }
       var ret: Result<[Issue],Error>? = nil
       switch res {

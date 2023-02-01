@@ -124,7 +124,7 @@ open class GraphQlSession: HttpSession {
   }
   
   public func request<T>(requestType: String, graphql: String, type: T.Type,
-                         fromData: Data? = nil, closure: @escaping(Result<T,Error>)->())
+                         fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>)->())
     where T: Decodable {
     guard let url = self.url else { return }
     if let data = fromData {
@@ -134,7 +134,7 @@ open class GraphQlSession: HttpSession {
       let quoted = "\(requestType) {\(graphql)}".quote()
       let str = "{ \"query\": \(quoted) }"
       debug("Sending: \(requestType) {\n\(graphql)\n}")
-      post(url, data: str.data(using: .utf8)!) { [weak self] res in
+      post(url, data: str.data(using: .utf8)!, returnOnMain: returnOnMain) { [weak self] res in
         guard let self = self else { return }
         if case let .success(data) = res {
           closure(self.requestResult(data: data, graphql: graphql, type: type))
@@ -147,9 +147,9 @@ open class GraphQlSession: HttpSession {
   }
   
   public func query<T>(graphql: String, type: T.Type,
-                       fromData: Data? = nil, closure: @escaping(Result<T,Error>)->())
+                       fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>)->())
     where T: Decodable { 
-      request(requestType: "query", graphql: graphql, type: type, fromData: fromData,
+      request(requestType: "query", graphql: graphql, type: type, fromData: fromData, returnOnMain: returnOnMain,
               closure: closure)
   }
   

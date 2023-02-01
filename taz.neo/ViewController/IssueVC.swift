@@ -22,7 +22,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public var issue: Issue { openedIssue ?? selectedIssue }
 
   /// The FeederContext providing the Feeder and default Feed
-  public var feederContext: FeederContext
+  public var feederContext: FeederContext { didSet{ updatePubDates()} }
+  
+  func updatePubDates(){
+    self.publicationDates = feederContext.defaultFeed.publicationDates?.dates ?? []
+  }
   
   /// The IssueCarousel showing the available Issues
   public var issueCarousel = IssueCarousel()
@@ -102,6 +106,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Add Issue to carousel
   private func addIssue(issue: Issue) {
+    let img = feeder.momentImage(issue: issue, isPdf: isFacsimile)
+    self.issueCarousel.issueImages[issue.date.short]
+    = (issue: img ?? UIImage(named: "demo-moment-frame"),
+       isActivity: img == nil )
+    return;
+    
     ///Update an Issue if Placeholder was there!
     if let idx = issues.firstIndex(where: { $0.date == issue.date}) {
       issues[idx] = issue
@@ -132,7 +142,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       ///happen after login after restart!
       collectionView.performBatchUpdates { [weak self] in
         self?.issues.insert(issue, at: idx)
-        self?.issueCarousel.insertIssue(img, at: idx)
+//        self?.issueCarousel.insertIssue(img, at: idx)
         self?.collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
       }
 
@@ -367,6 +377,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   fileprivate var lastIndex: Int?
  
   func setLabel(idx: Int, isRotate: Bool = false) {
+    if let date =  publicationDates.valueAt(idx) {
+      self.issueCarousel.pureText = date.shorter
+      return
+    }
     guard idx >= 0 && idx < self.issues.count else { return }
     let issue = self.issues[idx]
     var sdate = issue.validityDateText(timeZone: self.feeder.timeZone)
@@ -601,6 +615,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
       self.setLabel(idx: idx, isRotate: true)
+      return
       if IssueVC.showAnimations {
         IssueVC.showAnimations = false
         //self.issueCarousel.showAnimations()
@@ -621,7 +636,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
       self.provideOverview()
     }
-    
+    self.provideOverview()
+    self.issueCarousel.reset()
     Notification.receive("reloadIssues") {   [weak self] _ in
       self?.scrollUp(animated: false)
 //      self?.isArchiveMode = true
@@ -743,6 +759,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
     super.init()
+    updatePubDates()
     updateCarouselSize(.zero)
     if let cfl = issueCarousel.carousel.collectionViewLayout as? CarouselFlowLayout {
       cfl.onLayoutChanged{   [weak self]  newSize in

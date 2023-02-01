@@ -34,7 +34,11 @@
 		4D308EEE283405D900529592 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EED283405D900529592 /* PlaceholderView.swift */; };
 		4D308EF02834061600529592 /* BookmarkNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EEF2834061600529592 /* BookmarkNC.swift */; };
 		4D3131F2289159FE0087EE1B /* SubscriptionFormController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3131F1289159FE0087EE1B /* SubscriptionFormController.swift */; };
+		4DED20C02987D9A5005B8A00 /* NewIssueVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DED20BF2987D9A5005B8A00 /* NewIssueVC.swift */; };
+		4DED20C42987E4C2005B8A00 /* DataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DED20C32987E4C2005B8A00 /* DataService.swift */; };
+		4DED20C62987E63F005B8A00 /* IssueCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DED20C52987E63F005B8A00 /* IssueCollectionViewCell.swift */; };
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
+		7707B59C29884FF200B75D82 /* NewIssueCVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7707B59B29884FF200B75D82 /* NewIssueCVC.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
 		7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968C25CC605D00508DE8 /* FeedbackViewController.swift */; };
 		7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968D25CC605D00508DE8 /* FeedbackComposer.swift */; };
@@ -142,7 +146,11 @@
 		4D308EED283405D900529592 /* PlaceholderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
 		4D308EEF2834061600529592 /* BookmarkNC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkNC.swift; sourceTree = "<group>"; };
 		4D3131F1289159FE0087EE1B /* SubscriptionFormController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormController.swift; sourceTree = "<group>"; };
+		4DED20BF2987D9A5005B8A00 /* NewIssueVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewIssueVC.swift; sourceTree = "<group>"; };
+		4DED20C32987E4C2005B8A00 /* DataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataService.swift; sourceTree = "<group>"; };
+		4DED20C52987E63F005B8A00 /* IssueCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCollectionViewCell.swift; sourceTree = "<group>"; };
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
+		7707B59B29884FF200B75D82 /* NewIssueCVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewIssueCVC.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
 		7715968D25CC605D00508DE8 /* FeedbackComposer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackComposer.swift; sourceTree = "<group>"; };
@@ -320,6 +328,7 @@
 				4D308ED9283404D400529592 /* TazAppEnvironment.swift */,
 				777048AA27B3B077007164A0 /* NotificationBusiness.swift */,
 				77E5E1BB292D772200611148 /* Javascript.swift */,
+				4DED20C32987E4C2005B8A00 /* DataService.swift */,
 			);
 			path = Business;
 			sourceTree = "<group>";
@@ -328,6 +337,7 @@
 			isa = PBXGroup;
 			children = (
 				77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */,
+				4DED20C52987E63F005B8A00 /* IssueCollectionViewCell.swift */,
 			);
 			path = Cells;
 			sourceTree = "<group>";
@@ -392,6 +402,8 @@
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
 				00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */,
 				779DE96026FA3D790056187B /* SettingsVC.swift */,
+				4DED20BF2987D9A5005B8A00 /* NewIssueVC.swift */,
+				7707B59B29884FF200B75D82 /* NewIssueCVC.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -655,6 +667,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D308EE52834057200529592 /* SearchResultsTableView.swift in Sources */,
+				4DED20C42987E4C2005B8A00 /* DataService.swift in Sources */,
 				AEAABADE24641BFA001BE414 /* Const.swift in Sources */,
 				77E5E1BC292D772200611148 /* Javascript.swift in Sources */,
 				AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */,
@@ -685,6 +698,7 @@
 				4D308EEE283405D900529592 /* PlaceholderView.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
 				779DE96126FA3D790056187B /* SettingsVC.swift in Sources */,
+				4DED20C62987E63F005B8A00 /* IssueCollectionViewCell.swift in Sources */,
 				006E17E924D418090092DC0D /* FormComponents.swift in Sources */,
 				004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */,
 				AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */,
@@ -715,6 +729,7 @@
 				AECCE11823FBD006007C2276 /* ArticleVC.swift in Sources */,
 				004D4F0024ACDC1F008C4EE7 /* FormView.swift in Sources */,
 				AEF2DF35244766E400D1482D /* MomentView.swift in Sources */,
+				7707B59C29884FF200B75D82 /* NewIssueCVC.swift in Sources */,
 				77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */,
 				AE5D9EBD23E1B8160002C3B8 /* GraphQlSession.swift in Sources */,
 				AE80A3952449C3250012DFFA /* IssueVC.swift in Sources */,
@@ -723,6 +738,7 @@
 				773D564226145E8500B42FEF /* InfoToast.swift in Sources */,
 				AEC7D46D249A598B008630FB /* FeederContext.swift in Sources */,
 				AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */,
+				4DED20C02987D9A5005B8A00 /* NewIssueVC.swift in Sources */,
 				AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */,
 				AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */,
 				0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */,
