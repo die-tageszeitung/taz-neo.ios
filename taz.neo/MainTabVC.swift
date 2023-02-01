@@ -46,7 +46,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     else {
       let service = DataService(feederContext: feederContext)
 //      home = NewIssueVC(service: service)
-      home = NewIssueCVC(service: service)
+      home = HomeTVC(service: service)
     }
     home.title = "Home"
     home.tabBarItem.image = UIImage(named: "home")
