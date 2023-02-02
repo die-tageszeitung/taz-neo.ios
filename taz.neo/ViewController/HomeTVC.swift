@@ -24,9 +24,9 @@ class HomeTVC: UITableViewController {
    unten 5.5.2015 HOME => Scroll Tiles newest => HOME GOTO TOP
    
    */
-  
   var carouselController: IssueCarouselCVC
   var tilesController: IssueCarouselCVC
+  var wasUp = true
   
   var carouselControllerCell: UITableViewCell
   var tilesControllerCell: UITableViewCell
@@ -84,6 +84,11 @@ class HomeTVC: UITableViewController {
 
 // MARK: - UIScrollViewDelegate
 extension HomeTVC {
+  
+  override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    wasUp = scrollView.contentOffset.y < 2*self.view.frame.size.height/3
+  }
+  
   open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
     snapCell()
   }
@@ -91,10 +96,21 @@ extension HomeTVC {
   open override func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
     snapCell()
   }
-  
+
   func snapCell() {
-    let up = self.view.frame.size.height/2 > self.tableView.contentOffset.y
-    let ip = IndexPath(row: up ? 0 : 1, section: 0)
-    self.tableView.scrollToRow(at: ip, at: .top, animated: true)
+    if wasUp && self.tableView.contentOffset.y > self.view.frame.size.height*0.15 {
+      scroll(up: false)
+    } else if !wasUp && self.tableView.contentOffset.y > self.view.frame.size.height*0.85 {
+      scroll(up: false)
+    }
+    else {
+      scroll(up: true)
+    }
+  }
+  
+  func scroll(up:Bool){
+    self.tableView.scrollToRow(at:  IndexPath(row: up ? 0 : 1, section: 0),
+                               at: .top,
+                               animated: true)
   }
 }
