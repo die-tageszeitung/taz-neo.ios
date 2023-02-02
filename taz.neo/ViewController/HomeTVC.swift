@@ -33,6 +33,7 @@ class HomeTVC: UITableViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    self.view.backgroundColor = .black
   }
   
   // MARK: - Table view data source
@@ -92,9 +93,8 @@ extension HomeTVC {
   }
   
   func snapCell() {
-    let x = self.view.frame.size.height/2 > self.tableView.contentOffset.y
-    print("Scroll up?: \(x) ch:\(self.view.frame.size.height/2) > offset: \(self.tableView.contentOffset.y)")
-    let ip = IndexPath(row: x ? 0 : 1, section: 0)
+    let up = self.view.frame.size.height/2 > self.tableView.contentOffset.y
+    let ip = IndexPath(row: up ? 0 : 1, section: 0)
     self.tableView.scrollToRow(at: ip, at: .top, animated: true)
   }
 }
