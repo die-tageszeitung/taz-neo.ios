@@ -12,7 +12,7 @@ import NorthLib
 
 class IssueCarouselCVC: UICollectionViewController {
   
-  var service: DataService
+  var service: IssueOverviewService
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -88,7 +88,7 @@ class IssueCarouselCVC: UICollectionViewController {
     */
 
   
-  public init(service: DataService) {
+  public init(service: IssueOverviewService) {
     self.service = service
     let layout = CarouselFlowLayout()
     layout.scrollDirection = .horizontal

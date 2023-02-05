@@ -18,26 +18,45 @@ import NorthLib
  
  
  */
-class DataService: NSObject, DoesLog {
-  
-  var pdf = false
+class IssueOverviewService: NSObject, DoesLog {
+
+  @Default("isFacsimile")
+  public var isFacsimile: Bool
   
   var loading = false
   //  var loadMoreDates:[Date] = [:]
   
-  var feederContext: FeederContext
+  internal var feederContext: FeederContext
   var feed: StoredFeed
-  var issueDates: [Date]
+
+  public private(set) var issueDates: [Date]
+  private var issues: [Date:StoredIssue] = [:]
   
-  var issues: [Date:Issue] = [:]
+  func momentImage(issue: Issue?, isPdf: Bool) -> UIImage? {
+    guard let issue else { return nil }
+    return feederContext.storedFeeder.momentImage(issue: issue, isPdf: isPdf)
+  }
   
-  func image(for index: Int) -> UIImage? {
-    guard let date = issueDates.valueAt(index) else { return nil }
+  func image(for index: Int, isPdf: Bool? = nil) -> UIImage? {
+    let isPdf = isPdf ?? isFacsimile
+    return momentImage(issue: getIssue(at: index), isPdf: isPdf)
+  }
+  
+  func date(at index: Int) -> Date? {
+    return issueDates.valueAt(index)
+  }
+
+  func issue(at date: Date) -> StoredIssue? {
+    return issues[date]
+  }
+  
+  func getIssue(at index: Int) -> Issue? {
+    guard let date = date(at: index) else { return nil }
     guard let issue = issues[date] else {
       loadOverviews(fromDate: date)
       return nil
     }
-    return feederContext.storedFeeder.momentImage(issue: issue, isPdf: false)
+    return issue
   }
   
   func loadOverviews(fromDate: Date){
@@ -45,6 +64,33 @@ class DataService: NSObject, DoesLog {
       self?.loadOverviews1(fromDate: fromDate)
     }
   }
+  
+  func hasDownloadableContent(issue: Issue) -> Bool {
+    guard let sIssue = issue as? StoredIssue else { return true }
+    return feederContext.needsUpdate(issue: sIssue,toShowPdf: isFacsimile)
+  }
+  
+  func getCompleteIssue(issue: Issue) {
+    guard let sIssue = issue as? StoredIssue else { return }
+    feederContext.getCompleteIssue(issue: sIssue,
+                                   isPages: self.isFacsimile,
+                                   isAutomatically: false)
+  }
+  
+  func showIssue(at date: Date, pushToNc: UINavigationController){
+    guard let issue = issue(at: date) else {
+      error("no issue available to open at date: \(date.short)")
+      #warning("Load Data and open later!?")
+      return
+    }
+    #warning("Refactor IssueInfo must be a init Property in ContentVC to not have the strong/optional reference here")
+    issueInfo = IssueDisplayService(feederContext: feederContext,
+                                        issue: issue)
+    issueInfo?.showIssue(pushToNc: pushToNc)
+  }
+  
+  var issueInfo:IssueDisplayService?
+  
   func loadOverviews1(fromDate: Date){
     guard feederContext.isConnected else {
       debug("TBD Fehler offline")
@@ -100,15 +146,19 @@ class DataService: NSObject, DoesLog {
   func dlFile(issue: Issue){
     let dir = issue.dir
     var file: [FileEntry] = []
-    if let f = pdf ? issue.pageOneFacsimile : issue.moment.images.first {
+    if let f = isFacsimile ? issue.pageOneFacsimile : issue.moment.images.first {
       if f.exists(inDir: dir.path) { debug("Do something") ; return}
       file.append(f)
     }
    
     //check if in temp Dir?
     self.feederContext.dloader.downloadIssueFiles(issue: issue, files: file) {[weak self] err in
+      guard let sissue = issue as? StoredIssue else {
+        self?.error("Issue is not a Stored Issue")
+        return
+      }
       self?.debug("downloaded")
-      self?.issues[issue.date] = issue
+      self?.issues[issue.date] = sissue
     }
   }
   
@@ -170,7 +220,7 @@ class DataService: NSObject, DoesLog {
 //  }
       
   
-  func addIssue(issue: Issue, isError: Bool = false){
+  func addIssue(issue: StoredIssue, isError: Bool = false){
     if let oldIssue = issues[issue.date] {
       debug("overwriting \(oldIssue) with: \(issue)")
     }

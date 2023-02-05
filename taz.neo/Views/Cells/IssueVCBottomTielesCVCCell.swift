@@ -23,6 +23,7 @@ public class IssueVCBottomTielesCVCCell : UICollectionViewCell {
   public override func prepareForReuse() {
     self.momentView.image = nil
     self.button.label.text = nil
+    self.issue = nil
   }
   
   override init(frame: CGRect) {

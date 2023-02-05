@@ -23,7 +23,7 @@ use issueCarousel vs implement UICollectionViewController
 
 class NewIssueVC: PageCollectionVC {
   
-  var service: DataService
+  var service: IssueOverviewService
   
   
 //  override var collectionView:PageCollectionView? = CarouselView()
@@ -77,7 +77,7 @@ class NewIssueVC: PageCollectionVC {
     count = service.issueDates.count
   }
   
-  public init(service: DataService) {
+  public init(service: IssueOverviewService) {
     self.service = service
     super.init()
     collectionView = CarouselView()

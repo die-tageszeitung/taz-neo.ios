@@ -40,11 +40,11 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     self.tabBar.tintColor = .white
     
     var home:UIViewController
-    if false {
+    if true {
       home = IssueVC(feederContext: feederContext)
     }
     else {
-      let service = DataService(feederContext: feederContext)
+      let service = IssueOverviewService(feederContext: feederContext)
 //      home = NewIssueVC(service: service)
       home = HomeTVC(service: service)
     }

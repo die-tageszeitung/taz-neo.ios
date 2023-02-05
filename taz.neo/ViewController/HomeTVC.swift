@@ -23,9 +23,12 @@ class HomeTVC: UITableViewController {
    BETTER 2 STEP NAVIGATION
    unten 5.5.2015 HOME => Scroll Tiles newest => HOME GOTO TOP
    
+   footerActivityIndicator for bottom cells no more needed saves ~70LInes
+   SNAPP SCROLLING (IF WORKS) SAVES ~40LINES
+   
    */
   var carouselController: IssueCarouselCVC
-  var tilesController: IssueCarouselCVC
+  var tilesController: IssueTilesCVC
   var wasUp = true
   
   var carouselControllerCell: UITableViewCell
@@ -57,10 +60,10 @@ class HomeTVC: UITableViewController {
   }
   
   
-  public init(service: DataService) {
+  public init(service: IssueOverviewService) {
     //    self.service = service
     carouselController = IssueCarouselCVC(service: service)
-    tilesController = IssueCarouselCVC(service: service)
+    tilesController = IssueTilesCVC(service: service)
     
     carouselControllerCell = UITableViewCell()
     tilesControllerCell = UITableViewCell()
@@ -86,7 +89,7 @@ class HomeTVC: UITableViewController {
 extension HomeTVC {
   
   override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-    wasUp = scrollView.contentOffset.y < 2*self.view.frame.size.height/3
+    wasUp = scrollView.contentOffset.y < self.view.frame.size.height*0.7
   }
   
   open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
@@ -114,3 +117,5 @@ extension HomeTVC {
                                animated: true)
   }
 }
+
+
