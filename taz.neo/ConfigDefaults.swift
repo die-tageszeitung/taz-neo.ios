@@ -59,8 +59,7 @@ public let ConfigDefaults = Defaults.Values([
   // show teaser text in bookmarks list
   "bookmarksListTeaserEnabled" : "true",
   "smartBackFromArticle" : "true",
-  "tabbarInSection" : "false"
-  
+  "tabbarInSection" : "false",
 ])
 
 
