@@ -170,6 +170,11 @@ extension MainTabVC : UITabBarControllerDelegate {
       issueVC.onHome()
     }
     else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
+       let home = firstVc as? HomeTVC
+    {
+      home.onHome()
+    }
+    else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
        let searchController = firstVc as? SearchController //IssueVC also works
     {
       _ = searchController.restoreInitialState()

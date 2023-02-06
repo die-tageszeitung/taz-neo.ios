@@ -11,6 +11,10 @@ import NorthLib
 
 class HomeTVC: UITableViewController {
   
+  /// Are we in facsimile mode
+  @Default("isFacsimile")
+  public var isFacsimile: Bool
+  
   //  var service: DataService
   
   /**
@@ -27,6 +31,8 @@ class HomeTVC: UITableViewController {
    SNAPP SCROLLING (IF WORKS) SAVES ~40LINES
    
    */
+  // MARK: - UI Components / Vars
+  
   var carouselController: IssueCarouselCVC
   var tilesController: IssueTilesCVC
   var wasUp = true
@@ -34,10 +40,46 @@ class HomeTVC: UITableViewController {
   var carouselControllerCell: UITableViewCell
   var tilesControllerCell: UITableViewCell
   
+  lazy var togglePdfButton: Button<ImageView> = {
+    let imageButton = Button<ImageView>()
+    imageButton.pinSize(CGSize(width: 50, height: 50))
+    imageButton.buttonView.hinset = 0.18
+    imageButton.buttonView.color = Const.Colors.iconButtonInactive
+    imageButton.buttonView.activeColor = Const.Colors.iconButtonActive
+    imageButton.accessibilityLabel = "Ansicht umschalten"
+    imageButton.isAccessibilityElement = true
+    imageButton.onPress(closure: onPDF(sender:))
+    imageButton.layer.cornerRadius = 25
+    imageButton.backgroundColor = Const.Colors.fabBackground
+    imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
+    return imageButton
+  }()
+  
+  var btnLeftConstraint: NSLayoutConstraint?
+  
+  // MARK: - Lifecycle
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .black
+    
+    if let ncView = self.navigationController?.view {
+      ncView.addSubview(togglePdfButton)
+      btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
+      pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
+    }
   }
+  
+  public override func viewWillDisappear(_ animated: Bool) {
+    togglePdfButton.isHidden = true
+    super.viewWillDisappear(animated)
+  }
+  
+  public override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    togglePdfButton.showAnimated()
+  }
+  
   
   // MARK: - Table view data source
   
@@ -85,11 +127,18 @@ class HomeTVC: UITableViewController {
   }
 }
 
-// MARK: - UIScrollViewDelegate
+// MARK: - UIScrollViewDelegate (and Helper)
 extension HomeTVC {
+
+  @discardableResult
+  fileprivate func verifyUp() -> Bool {
+    guard let scrollView = self.tableView else { return wasUp }
+    wasUp = scrollView.contentOffset.y < self.view.frame.size.height*0.7
+    return wasUp
+  }
   
   override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-    wasUp = scrollView.contentOffset.y < self.view.frame.size.height*0.7
+    verifyUp()
   }
   
   open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
@@ -115,6 +164,43 @@ extension HomeTVC {
     self.tableView.scrollToRow(at:  IndexPath(row: up ? 0 : 1, section: 0),
                                at: .top,
                                animated: true)
+  }
+}
+
+// MARK: - PDF App View Switching
+extension HomeTVC {
+  func onPDF(sender:Any){
+    self.isFacsimile = !self.isFacsimile
+    
+    if let imageButton = sender as? Button<ImageView> {
+      imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
+      imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
+    }
+    
+    self.tilesController.collectionView.reloadData()
+//    self.collectionView.reloadData()
+//    if let ivc = self as? IssueVC, let idx = ivc.safeIndex {
+//      ivc.setLabel(idx: idx)
+//    }
+  }
+}
+
+// MARK: - Tab Home handling
+extension HomeTVC {
+  func onHome(){
+    if verifyUp() {
+      self.tilesController.collectionView
+        .scrollToItem(at: IndexPath(row: 0, section: 0),
+                      at: .top,
+                      animated: false)
+      self.carouselController.collectionView
+        .scrollToItem(at: IndexPath(row: 0, section: 0),
+                      at: .centeredHorizontally,
+                      animated: true)
+    }
+    else {
+      self.scroll(up: true)
+    }
   }
 }
 
