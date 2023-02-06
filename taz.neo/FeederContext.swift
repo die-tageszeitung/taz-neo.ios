@@ -196,11 +196,26 @@ open class FeederContext: DoesLog {
     notify("feederReady")            
   }
   
+  /// Do we need reinitialization?
+  private func needsReInit() -> Bool {
+    if let storedFeeder = self.storedFeeder {
+       let sfeed = storedFeeder.feeds[0]
+       let gfeed = gqlFeeder.feeds[0]
+      return sfeed.cycle == gfeed.cycle 
+    }
+    return false
+  }
+  
   /// React to the feeder being online or not
   private func feederStatus(isOnline: Bool) {
     if isOnline {
-      self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
-      feederReady()
+      if needsReInit() { 
+        TazAppEnvironment.sharedInstance.resetApp() 
+      }
+      else {
+        self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
+        feederReady()
+      }
     }
     else {
       let feeders = StoredFeeder.get(name: name)
@@ -659,6 +674,8 @@ open class FeederContext: DoesLog {
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
+    let sicount = sfeed.issues?.count ?? 0
+    guard sicount < sfeed.issueCnt else { return }
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       if self.isConnected {
