@@ -87,7 +87,7 @@ class ConnectTazIdController : FormsController {
               self.showResultWith(message: Localized("tazid_connect_create_successful_header"),
                                   backButtonTitle: Self.backButtonTitle,
                                   dismissType: .allReal)
-              Notification.send(Const.NotificationNames.authenticationSucceeded)
+              (self.auth as? DefaultAuthenticator)?.notifySuccess()
             case .waitForMail:///user need to confirm mail
               self.showResultWith(message: Localized(keyWithFormat: "fragment_login_confirm_email_header", tazId),
                                   backButtonTitle: Self.backButtonTitle,
