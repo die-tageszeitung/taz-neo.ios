@@ -164,8 +164,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
  
   func deleteAll() {
     reset(isDelete: true)
-    // TODO: remove exit when reset works without crashing
-    exit(0)
   }
   
   func deleteData() {
@@ -184,9 +182,22 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       if isDelete { self.deleteData() } 
         // TODO: reinitialize feederContext when this no longer crashes
 //      self.setupFeeder(isStartup: false)
+      exit(0) // until feederContext is removed properly
     }
   }
   
+  /// Reset App and delete data 
+  public func resetApp() {
+    Alert.message(title: "Neustart erforderlich", 
+      message: """
+        Zur Reinitialisierung der App ist ein Neustart erforderlich.
+        Die App wird sich jetzt beenden. Starten Sie sie bitte anschließend
+        erneut.
+      """) { [weak self] in
+      self?.reset(isDelete: true)
+    }
+  }
+
   func unlinkSubscriptionId() {
     authenticator?.unlinkSubscriptionId()
   }
