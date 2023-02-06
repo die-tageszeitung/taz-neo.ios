@@ -50,7 +50,21 @@ class IssueOverviewService: NSObject, DoesLog {
     return issues[date]
   }
   
+  var dbload = false
+  
   func getIssue(at index: Int) -> Issue? {
+    if index + 3 > issues.count && dbload == false {
+      dbload = true
+      if let lastIssue = issues.sorted(by: { $0.0 > $1.0 }).last?.key as? Date {
+        let sIssues = StoredIssue.issuesInFeed(feed: feed, count: 10, fromDate: lastIssue)
+        for issue in sIssues {
+          issues[issue.date] = issue
+        }
+      }
+      dbload = false
+    }
+    
+    
     guard let date = date(at: index) else { return nil }
     guard let issue = issues[date] else {
       loadOverviews(fromDate: date)
@@ -175,7 +189,7 @@ class IssueOverviewService: NSObject, DoesLog {
 //        self?.addIssue(issue: issue)
 //      }
 //    }
-    let sIssues = StoredIssue.issuesInFeed(feed: feed)
+    let sIssues = StoredIssue.issuesInFeed(feed: feed, count: 10)
     for issue in sIssues {
       issues[issue.date] = issue
     }

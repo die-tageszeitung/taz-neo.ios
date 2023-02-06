@@ -14,7 +14,6 @@ class IssueCollectionViewCell: UICollectionViewCell {
   static let Identifier = "issueCollectionViewCell"
   
   let momentView = MomentView()
-  let lbl = UILabel()
 
   public var image: UIImage? {
     didSet {
@@ -35,16 +34,10 @@ class IssueCollectionViewCell: UICollectionViewCell {
     if momentView.superview != nil { return }
     contentView.addBorder(.green)
     contentView.addSubview(momentView)
-//    pin(momentView, to: contentView)
-    momentView.pinSize(CGSize(width: 220, height: 330))
-    momentView.centerX()
-    momentView.centerY()
-    contentView.addSubview(lbl)
-    lbl.pinSize(CGSize(width: 120, height: 30))
-    lbl.centerX()
-    lbl.centerY()
-    lbl.contentFont()
-    lbl.textColor = .blue
+    pin(momentView, to: contentView)
+//    momentView.pinSize(CGSize(width: 220, height: 330))
+//    momentView.centerX()
+//    momentView.centerY()
     contentView.clipsToBounds = true
   }
 }

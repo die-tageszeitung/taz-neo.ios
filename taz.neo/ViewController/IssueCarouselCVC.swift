@@ -51,7 +51,6 @@ class IssueCarouselCVC: UICollectionViewController {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: IssueCollectionViewCell.Identifier, for: indexPath)
     
       (cell as? IssueCollectionViewCell)?.image = service.image(for: indexPath.row)
-      (cell as? IssueCollectionViewCell)?.lbl.text = service.issueDates.valueAt(indexPath.row)?.short ?? "-"
     
         return cell
     }
@@ -86,23 +85,112 @@ class IssueCarouselCVC: UICollectionViewController {
     
     }
     */
-
+ 
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    updateCarouselSize(nil)
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    updateCarouselSize(size)
+  }
+  
+  public override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+  }
   
   public init(service: IssueOverviewService) {
     self.service = service
     let layout = CarouselFlowLayout()
     layout.scrollDirection = .horizontal
-    layout.itemSize = CGSize(width: 300, height: 400)
     layout.sectionInset = .zero
-    layout.minimumLineSpacing = UIScreen.main.bounds.width - 300
-    
+    layout.minimumInteritemSpacing = 1000000.0
     
     super.init(collectionViewLayout: layout)
+
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
   
+  
+}
+
+extension IssueCarouselCVC {
+  fileprivate func updateCarouselSize(_ newSize:CGSize?){
+    guard let layout = self.collectionView.collectionViewLayout as? CarouselFlowLayout else { return }
+    let size = newSize ?? self.view.frame.size
+    let defaultPageRatio:CGFloat = 0.670219
+    
+//    if size.isPortrait {
+      let w = size.width*0.6
+      let h = w/defaultPageRatio
+      layout.itemSize = CGSize(width: w, height: h)
+      layout.minimumLineSpacing =
+       size.width*0.155//0.3/2 out of view bei 0.4/2
+      return
+//    } else {
+//
+//    }
+//
+    let maxItmH = 0.6 * size.height //1.3 Zoom 2/3 höhe = 0.66*1/1.3 = 0.46
+    //
+    
+    
+    //MAx Scale == 1.3
+    //=>
+    layout.itemSize = CGSize(width: size.width*0.6, height: size.height*0.5)
+//Screen-w 1170 Moment 912*1363
+    //rel page width: 0.77
+    layout.minimumLineSpacing = size.width*0.155//0.3/2 out of view bei 0.4/2
+    //was ist mit iPad??
+    return
+    var verticalPaddings: CGFloat { get {
+      let insets = self.navigationController?.view.safeAreaInsets ?? UIWindow.safeInsets
+      return 42 + insets.top + insets.bottom
+    }}
+    var issueCarouselLabelWrapperHeight: CGFloat = 120
+    
+    /* REMOVE! from 1st implementation
+     layout.scrollDirection = .horizontal
+     layout.itemSize = CGSize(width: 300, height: 400)
+     layout.sectionInset = .zero
+     layout.minimumLineSpacing = UIScreen.main.bounds.width - 300
+
+     
+     
+     **/
+    
+    
+//    let size
+//      = newSize != .zero
+//      ? newSize
+//      : CGSize(width: UIWindow.size.width,
+//               height: UIWindow.size.height
+//               - verticalPaddings)
+    let siz2e = newSize ?? self.view.frame.size
+    
+//    let availableH = size.height - 20 - issueCarouselLabelWrapperHeight
+//    let useableH = min(730, availableH) //Limit Height (usually on High Res & big iPad's)
+//    let availableW = size.width
+    let defauletPageRatio:CGFloat = 0.670219
+//    let maxZoom:CGFloat = 1.3
+    let maxPageWidth = size.width * 0.5
+//    defaultPageRatio * useableH / maxZoom
+//    let relPageWidth = maxPageWidth/availableW
+//    let relativePageWidth = min(0.6, relPageWidth*0.99)//limit to prevent touch
+//    let relativeSpacing = min(0.12, 0.2*relPageWidth/0.85)
+//    let maxHeight = size.width * relativePageWidth * 1.3 / defaultPageRatio
+    let maxHeight = maxPageWidth/defaultPageRatio
+    
+//    let padding = (size.height - maxHeight)/2
+//    self.issueCarousel.labelTopConstraintConstant = 0 - padding
+//    self.statusBottomConstraint?.constant = padding - 36
+    
+    guard let layout = self.collectionView.collectionViewLayout as? CarouselFlowLayout else { return }
+    layout.itemSize = CGSize(width: maxPageWidth, height: maxHeight)
+  }
   
 }

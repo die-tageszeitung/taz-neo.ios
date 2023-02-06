@@ -14,9 +14,7 @@ public class MomentView: UIView, Touchable {
   
   /// The ImageView
   public var imageView: UIImageView = UIImageView()
-  
-  public var testLabel = UILabel()
-  
+    
   // Aspect ratio constraint
   private var aspectRatioConstraint: NSLayoutConstraint? = nil
   
@@ -64,16 +62,6 @@ public class MomentView: UIView, Touchable {
     pin(spinner.centerY, to: self.centerY)
     self.bringSubviewToFront(spinner)
     self.backgroundColor = .clear
-    
-    addSubview(testLabel)
-    self.addBorder(.green)
-    
-    testLabel.contentFont()
-    testLabel.textColor = .red
-    testLabel.textAlignment = .center
-    testLabel.pinSize(CGSize(width: 120, height: 40))
-    testLabel.centerX()
-    testLabel.centerY()
   }
   
   public override init(frame: CGRect) {

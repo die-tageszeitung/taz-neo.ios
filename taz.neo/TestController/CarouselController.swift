@@ -40,7 +40,7 @@ class CarouselVC: UIViewController {
     issueCarousel.addMenuItem(title: "Kontakt", icon: "envelope") { arg in
       self.debug("Kontakt")
     }
-//    issueCarousel.appendIssues(images)
+    issueCarousel.appendIssues(images)
     issueCarousel.index = 0
   }
   

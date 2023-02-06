@@ -20,6 +20,13 @@ class HomeTVC: UITableViewController {
   /**
    Selection unten => Top Ausgabe ist selectiert
    
+   Memory
+   old IssueVC
+    Started as App91MB scroll -36d 179MBscroll -90d 333mb
+   new
+   Started as App21MB scroll -36d 95MBscroll -90d 91mb
+   
+   
    same Index
    ==> besser: ich bin 1.1.2005 oben scrolle runter und bin dort auch P*A*R*T*Y
    ==> kann SOMIT besser die richtige Ausgabe finden und muss nicht ewig scrollen

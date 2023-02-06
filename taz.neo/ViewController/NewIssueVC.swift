@@ -71,7 +71,6 @@ class NewIssueVC: PageCollectionVC {
     viewProvider { [weak self] (index, oview) in
       let moment = oview as? MomentView ?? MomentView()
       moment.image = self?.service.image(for: index)
-      moment.testLabel.text = self?.service.issueDates.valueAt(index)?.short ?? "-"
       return moment
     }
     count = service.issueDates.count

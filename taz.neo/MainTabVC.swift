@@ -40,7 +40,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     self.tabBar.tintColor = .white
     
     var home:UIViewController
-    if true {
+    if false {
       home = IssueVC(feederContext: feederContext)
     }
     else {
