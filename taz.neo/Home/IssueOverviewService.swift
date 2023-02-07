@@ -34,7 +34,9 @@ class IssueOverviewService: NSObject, DoesLog {
   
   func momentImage(issue: Issue?, isPdf: Bool) -> UIImage? {
     guard let issue else { return nil }
-    return feederContext.storedFeeder.momentImage(issue: issue, isPdf: isPdf)
+    let img = feederContext.storedFeeder.momentImage(issue: issue, isPdf: isPdf)
+    print("img: \(img)")
+    return img
   }
   
   func image(for index: Int, isPdf: Bool? = nil) -> UIImage? {
@@ -117,7 +119,7 @@ class IssueOverviewService: NSObject, DoesLog {
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: fromDate,
                                         count: 10,
-                                        isOverview: true,
+                                        isOverview: true,isPages: true,
                                         returnOnMain: true) {[weak self] res in
       guard let self else { return }
       if let issues = res.value() {

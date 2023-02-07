@@ -176,8 +176,28 @@ class IssueTilesCVC: UICollectionViewController {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
 }
+
+extension IssueTilesCVC {
+  func reloadVisibleCells() {
+    let vips = self.collectionView.indexPathsForVisibleItems
+    for ip in vips {
+      _ = self.collectionView.cellForItem(at: ip)
+    }
+    //is faster tested with iPadOS 16.2 iPad Pro 2 Simulators same
+    // Data/environment; code change if false,... Lamdscape
+    // reconfigure feels ~1/3 faster
+    // @see: https://swiftsenpai.com/development/cells-reload-improvements-ios-15/
+    if #available(iOS 15.0, *) {
+      self.collectionView.reconfigureItems(at: vips)
+    } else {
+      UIView.performWithoutAnimation {
+        self.collectionView.reloadItems(at: vips)
+      }
+    }
+  }
+}
+
 // MARK: - UICollectionViewDelegateFlowLayout
 extension IssueTilesCVC: UICollectionViewDelegateFlowLayout {
   public func collectionView(_ collectionView: UICollectionView,

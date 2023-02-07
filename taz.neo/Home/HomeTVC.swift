@@ -194,12 +194,8 @@ extension HomeTVC {
       imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
       imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
     }
-    
-    self.tilesController.collectionView.reloadData()
-//    self.collectionView.reloadData()
-//    if let ivc = self as? IssueVC, let idx = ivc.safeIndex {
-//      ivc.setLabel(idx: idx)
-//    }
+    self.tilesController.reloadVisibleCells()
+    self.carouselController.reloadVisibleCells()
   }
 }
 
