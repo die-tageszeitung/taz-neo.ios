@@ -15,6 +15,7 @@ class HomeTVC: UITableViewController {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
   //  var service: DataService
   
   /**
@@ -37,6 +38,9 @@ class HomeTVC: UITableViewController {
    footerActivityIndicator for bottom cells no more needed saves ~70LInes
    SNAPP SCROLLING (IF WORKS) SAVES ~40LINES
    
+   @next Refactoring: https://developer.apple.com/documentation/uikit/views_and_controls/collection_views/implementing_modern_collection_views
+    * pro: less Memory all in one
+    * con: no experiance now, no time, 2023's implementation seam to work an is maintainable
    */
   // MARK: - UI Components / Vars
   
@@ -69,12 +73,19 @@ class HomeTVC: UITableViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .black
+    self.tableView.showsVerticalScrollIndicator = false
+    self.tableView.showsHorizontalScrollIndicator = false
     
     if let ncView = self.navigationController?.view {
       ncView.addSubview(togglePdfButton)
       btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
       pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
     }
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    setNeedsStatusBarAppearanceUpdate()
   }
   
   public override func viewWillDisappear(_ animated: Bool) {

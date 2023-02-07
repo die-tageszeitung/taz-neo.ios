@@ -52,6 +52,7 @@
 		773D56472614A4DF00B42FEF /* BundledResources in Resources */ = {isa = PBXBuildFile; fileRef = 773D56462614A4DF00B42FEF /* BundledResources */; };
 		7745050D25DA801F0052E502 /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = 7745050C25DA801F0052E502 /* resources.json */; };
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
+		7746EF7D29924872000C8E6B /* IssueCarouselFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7746EF7C29924872000C8E6B /* IssueCarouselFlowLayout.swift */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
@@ -168,6 +169,7 @@
 		773D56462614A4DF00B42FEF /* BundledResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResources; sourceTree = "<group>"; };
 		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
 		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
+		7746EF7C29924872000C8E6B /* IssueCarouselFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCarouselFlowLayout.swift; sourceTree = "<group>"; };
 		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
 		776158192743E8440044516C /* AppIcons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcons; sourceTree = "<group>"; };
 		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
@@ -328,14 +330,26 @@
 			path = Feedback;
 			sourceTree = "<group>";
 		};
+		7746EF7B29924818000C8E6B /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				4DED20BF2987D9A5005B8A00 /* NewIssueVC.swift */,
+				7707B59B29884FF200B75D82 /* IssueCarouselCVC.swift */,
+				77324BFE298AC9F9001B8323 /* HomeTVC.swift */,
+				77324C00298ACA20001B8323 /* IssueTilesCVC.swift */,
+				4DED20C32987E4C2005B8A00 /* IssueOverviewService.swift */,
+				77D8A22E298D4D0A00E5788B /* IssueDisplayService.swift */,
+				7746EF7C29924872000C8E6B /* IssueCarouselFlowLayout.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
 		777048A727B3B057007164A0 /* Business */ = {
 			isa = PBXGroup;
 			children = (
 				4D308ED9283404D400529592 /* TazAppEnvironment.swift */,
 				777048AA27B3B077007164A0 /* NotificationBusiness.swift */,
 				77E5E1BB292D772200611148 /* Javascript.swift */,
-				4DED20C32987E4C2005B8A00 /* IssueOverviewService.swift */,
-				77D8A22E298D4D0A00E5788B /* IssueDisplayService.swift */,
 			);
 			path = Business;
 			sourceTree = "<group>";
@@ -409,10 +423,6 @@
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
 				00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */,
 				779DE96026FA3D790056187B /* SettingsVC.swift */,
-				4DED20BF2987D9A5005B8A00 /* NewIssueVC.swift */,
-				7707B59B29884FF200B75D82 /* IssueCarouselCVC.swift */,
-				77324BFE298AC9F9001B8323 /* HomeTVC.swift */,
-				77324C00298ACA20001B8323 /* IssueTilesCVC.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -456,6 +466,7 @@
 		AEBAF566219ACD1900566205 /* taz.neo */ = {
 			isa = PBXGroup;
 			children = (
+				7746EF7B29924818000C8E6B /* Home */,
 				4D308EEB283405A900529592 /* MainTabVC.swift */,
 				4D308ED4283404C700529592 /* GqlFeederSearch.swift */,
 				777048A727B3B057007164A0 /* Business */,
@@ -696,6 +707,7 @@
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */,
+				7746EF7D29924872000C8E6B /* IssueCarouselFlowLayout.swift in Sources */,
 				7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */,
 				AE5DFACF267E10540035162C /* KeychainTest.swift in Sources */,
 				4D308ED6283404C700529592 /* GqlFeederSearch.swift in Sources */,
