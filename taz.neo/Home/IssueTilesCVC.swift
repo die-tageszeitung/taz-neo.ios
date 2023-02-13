@@ -73,8 +73,18 @@ class IssueTilesCVC: UICollectionViewController {
     
     cell.issue = issue
     
-    cell.momentView.image = service.momentImage(issue: issue,
-                                                isPdf: isFacsimile)
+#warning("TODO")
+//    Task.init {
+//      #warning("either or async")
+//      cell.momentView.image
+//      = await service.image(for: indexPath.row)
+//      
+////      cell.momentView.image = await service.momentImage(issue: issue,
+////                                                  isPdf: isFacsimile)
+//      
+//    }
+    
+
     
     if service.hasDownloadableContent(issue: issue) {
       cell.button.onTapping {[weak self] _ in

@@ -49,10 +49,14 @@ class IssueCarouselCVC: UICollectionViewController {
   }
   
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: IssueCollectionViewCell.Identifier, for: indexPath)
-    
-    (cell as? IssueCollectionViewCell)?.image = service.image(for: indexPath.row)
-    
+    let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: IssueCollectionViewCell.Identifier,
+      for: indexPath)
+    guard let cell = cell as? IssueCollectionViewCell,
+          let data = service.cellData(for: indexPath.row) else { return cell }
+    cell.date = data.date
+    cell.issue = data.issue
+    cell.image = data.image
     return cell
   }
   

@@ -68,11 +68,11 @@ class NewIssueVC: PageCollectionVC {
         self?.updateCarouselSize(newSize)
       }
     }
-    viewProvider { [weak self] (index, oview) in
-      let moment = oview as? MomentView ?? MomentView()
-      moment.image = self?.service.image(for: index)
-      return moment
-    }
+//    viewProvider { [weak self] (index, oview) in
+//      let moment = oview as? MomentView ?? MomentView()
+//      moment.image = self?.service.image(for: index)
+//      return moment
+//    }
     count = service.issueDates.count
   }
   

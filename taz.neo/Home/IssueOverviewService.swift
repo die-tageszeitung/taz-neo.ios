@@ -15,71 +15,182 @@ import NorthLib
  
  Next Steps:
  - load more issues
+ - switch pdf/issue
+ open issue
+ download button
+ 
+ goto date
  
  
+ Bug: leere ausgaben:
+ 
+ #Async Download Images Problematik
+ * Wenn Ich eine CVCell habe deren Image ich nicht kenne:
+      ** CVC hält Issue Referenz
+      ** Task/Async Download des Images
+      ** Downloader Success => Notification
+      ** ** Haben alle Zellen listener? Auf iPad Pro 12" können das 30 Zellen sein
+      ** ** ständiges hinzufügen/entfernen von Listener bringt auch nichts
+ 
+ 
+ finish callback?
+ 
+ TODO REFACTOR
  */
-class IssueOverviewService: NSObject, DoesLog {
 
+
+//schneller switch PDF - Moment? >> muss verhindern, dass in App Ansicht PDF Moment gezeigt wird!
+
+/// for issueImageLoaded Notification
+/// loader to prevent e.g. switch to PDF load finished for app view, worng image set to cell
+typealias IssueCellData = (date: Date, issue:StoredIssue?, image: UIImage?)
+
+/// using Dates short String Representation for store and find issues for same date, ignore time
+fileprivate extension Date { var key : String { short } }
+
+class IssueOverviewService: NSObject, DoesLog {
+  
   @Default("isFacsimile")
   public var isFacsimile: Bool
-  
-  var loading = false
-  //  var loadMoreDates:[Date] = [:]
-  
+
   internal var feederContext: FeederContext
   var feed: StoredFeed
-
+  
   public private(set) var issueDates: [Date]
-  private var issues: [Date:StoredIssue] = [:]
+  private var issues: [String:StoredIssue]
   
-  func momentImage(issue: Issue?, isPdf: Bool) -> UIImage? {
-    guard let issue else { return nil }
-    let img = feederContext.storedFeeder.momentImage(issue: issue, isPdf: isPdf)
-    print("img: \(img)")
-    return img
+  func cellData(for index: Int) -> IssueCellData? {
+    guard let date = date(at: index) else {
+      error("No Entry for: \(index), This should not be requested")
+      return nil
+    }
+    guard let issue = issue(at: date) else {
+      apiLoadIssue(for: date)
+      return IssueCellData(date: date, issue: nil, image: nil)
+    }
+    let img = feederContext.storedFeeder.momentImage(issue: issue,
+                                                     isPdf: isFacsimile)
+    if img == nil { apiLoadMomentImages(for: issue, isPdf: isFacsimile) }
+    return IssueCellData(date: issue.date, issue: issue, image: img)
   }
-  
-  func image(for index: Int, isPdf: Bool? = nil) -> UIImage? {
-    let isPdf = isPdf ?? isFacsimile
-    return momentImage(issue: getIssue(at: index), isPdf: isPdf)
-  }
-  
+
   func date(at index: Int) -> Date? {
     return issueDates.valueAt(index)
   }
-
+  
   func issue(at date: Date) -> StoredIssue? {
+    return issues[date.key]
+  }
+  
+  func issue(at date: String) -> StoredIssue? {
     return issues[date]
   }
   
-  var dbload = false
+  func image(for issue: StoredIssue) -> UIImage? {
+    let img = feederContext.storedFeeder.momentImage(issue: issue,
+                                                     isPdf: isFacsimile)
+    if img == nil {
+      apiLoadMomentImages(for: issue, isPdf: isFacsimile)
+    }
+    return img
+  }
   
-  func getIssue(at index: Int) -> Issue? {
-    if index + 3 > issues.count && dbload == false {
-      dbload = true
-      if let lastIssue = issues.sorted(by: { $0.0 > $1.0 }).last?.key as? Date {
-        let sIssues = StoredIssue.issuesInFeed(feed: feed, count: 10, fromDate: lastIssue)
-        for issue in sIssues {
-          issues[issue.date] = issue
+  var loadingDates: [String] = []
+  
+
+  /// server request data
+  /// calculates which is the newest to request issue date from server and how many are to load
+  /// limit is max 20
+  /// lookup in loades issues and loadingDates
+  /// - Parameter date: date to lookup
+  /// - Returns: date for server request and limit
+  func loadParameter(for date: Date) -> (Date, Int) {
+    var start: Date?
+    var count = 0
+    for i in -10...10 {
+      var d = date
+      d.addDays(-i)
+      if !issueDates.contains(d) { continue }//ignore future dates
+      if issue(at: d.key) != nil {
+        //skip its loaded
+        if start == nil { continue } //before Date
+        else { break } //after date, limit fount
+      }
+      if loadingDates.contains(d.key) {
+        //skip its loading
+        if start == nil { continue } //before Date
+        else { break } //after date, limit fount
+      }
+      if start == nil { start = d }
+      count += 1
+    }
+    return (start ?? date , count)
+  }
+  
+  func apiLoadIssue(for date: Date) {
+    let (start, count) = loadParameter(for: date)
+    var lds:[String] = []
+    for i in 0...count {
+      var d = date
+      d.addDays(-i)
+      lds.append(d.key)
+    }
+    
+    guard lds.count > 0 else { return }
+    
+    //remember which issue Overviews are loaded currently
+    loadingDates.append(contentsOf: lds)
+    
+    //skip if offline
+    #warning("Mybe improve here!")
+    guard feederContext.isConnected else { return }
+    
+    self.feederContext.gqlFeeder.issues(feed: feed,
+                                        date: start,
+                                        count: count,
+                                        isOverview: isFacsimile,
+                                        returnOnMain: true) {[weak self] res in
+      guard let self = self else { return }
+      if let issues = res.value() {
+        for issue in issues {
+          let si = StoredIssue.persist(object: issue)
+          self.issues[issue.date.key] = si
+        }
+        ArticleDB.save()
+        for issue in issues {
+          Notification.send(Const.NotificationNames.issueUpdate,
+                            content: issue.date,
+                            sender: self)
         }
       }
-      dbload = false
+    }
+  }
+  
+  
+  
+  
+  
+  func getIssue(at index: Int) -> StoredIssue? {
+    if index + 3 > issues.count {
+      if let lastIssue = issues.sorted(by: { $0.0 > $1.0 }).last?.key as? Date {
+        let sIssues = StoredIssue.issuesInFeed(feed: feed)
+        for issue in sIssues {
+          issues[issue.date.key] = issue
+        }
+      }
     }
     
     
     guard let date = date(at: index) else { return nil }
-    guard let issue = issues[date] else {
-      loadOverviews(fromDate: date)
+    guard let issue = issues[date.key] else {
+      #warning("ASYNC TODO")
+//      loadOverviews(fromDate: date, isPdf: isFacsimile)
       return nil
     }
     return issue
   }
   
-  func loadOverviews(fromDate: Date){
-    onThread {[weak self] in
-      self?.loadOverviews1(fromDate: fromDate)
-    }
-  }
+  
   
   func hasDownloadableContent(issue: Issue) -> Bool {
     guard let sIssue = issue as? StoredIssue else { return true }
@@ -96,158 +207,106 @@ class IssueOverviewService: NSObject, DoesLog {
   func showIssue(at date: Date, pushToNc: UINavigationController){
     guard let issue = issue(at: date) else {
       error("no issue available to open at date: \(date.short)")
-      #warning("Load Data and open later!?")
+#warning("Load Data and open later!?")
       return
     }
-    #warning("Refactor IssueInfo must be a init Property in ContentVC to not have the strong/optional reference here")
+#warning("Refactor IssueInfo must be a init Property in ContentVC to not have the strong/optional reference here")
     issueInfo = IssueDisplayService(feederContext: feederContext,
-                                        issue: issue)
+                                    issue: issue)
     issueInfo?.showIssue(pushToNc: pushToNc)
   }
-  
+
   var issueInfo:IssueDisplayService?
+//
+//  func loadOverviews(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
+//
+//  }
   
-  func loadOverviews1(fromDate: Date){
-    guard feederContext.isConnected else {
-      debug("TBD Fehler offline")
-      
-      return
+//  func loadOverview(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
+//    do {
+//      return try await withCheckedThrowingContinuation { continuation in
+//        loadOverview(fromDate: fromDate, isPdf: isPdf) { result in
+//          continuation.resume(with: result)
+//        }
+//      }
+//    }
+//    catch {
+//      return nil
+//    }
+//  }
+  
+//  func loadOverview2(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
+//    return nil
+////    return try await withCheckedThrowingContinuation { continuation in
+////      loadOverview(fromDate: fromDate, isPdf: isPdf) { result in
+////        continuation.resume(with: result)
+////      }
+////    }
+////    catch {
+////      return nil
+////    }
+//  }
+  
+  func apiLoadMomentImages(for issue: StoredIssue, isPdf: Bool) {
+    let dir = issue.dir
+    var files: [FileEntry] = []
+
+    if isPdf, let f = issue.pageOneFacsimile {
+      files.append(f)
     }
-    guard !loading else { return }
-    loading = true
+    else if !isPdf, issue.moment.carouselFiles.count > 0 {
+      files = issue.moment.carouselFiles
+    }
     
-    self.feederContext.gqlFeeder.issues(feed: feed,
-                                        date: fromDate,
-                                        count: 10,
-                                        isOverview: true,isPages: true,
-                                        returnOnMain: true) {[weak self] res in
-      guard let self else { return }
-      if let issues = res.value() {
-        for issue in issues {
-          let si = StoredIssue.get(date: issue.date, inFeed: self.feed)
-          if si.count < 1 {
-            StoredIssue.persist(object: issue)
-            onThread {[weak self] in
-              self?.dlFile(issue: issue)
-            }
-          }
-          
-          //#warning("ToDo 0.9.4+: Missing Update of an stored Issue")
-          ///in old app timestamps are compared!
-          ///What if Overview new MoTime but compleete Issue is in DB and User is in Issue to read!!
-          /// if si.first?.moTime != issue.moTime ...
-          /// an update may result in a crash
-        }
-                  ArticleDB.save()
-        //          let sissues = StoredIssue.issuesInFeed(feed: sfeed,
-        //                                                 count: count,
-        //                                                 fromDate: fromDate)
-        //          for issue in sissues { self.downloadIssue(issue: issue, isAutomatically: isAutomatically) }
+    for f in files {
+      if f.exists(inDir: dir.path) {
+        debug("something went wrong: file exists, need no Download. File: \(f.name) in \(dir.path)")
       }
-      //        else {
-      //          if let err = res.error() as? FeederError {
-      //            self.handleFeederError(err) {
-      //              self.getOvwIssues(feed: feed, count: count, fromDate: fromDate, isAutomatically: isAutomatically)
-      //            }
-      //          }
-      //          else {
-      //            let res: Result<Issue,Error> = .failure(res.error()!)
-      //            self.notify("issueOverview", result: res)
-      //          }
-      //          return
     }
-    self.loading = false
+    onThread {
+      //check if in temp Dir?
+      self.feederContext.dloader
+        .downloadIssueFiles(issue: issue, files: files) {[weak self] err in
+          let img = self?.feederContext.storedFeeder.momentImage(issue: issue,
+                                                                 isPdf: isPdf)
+          if img == nil {
+            self?.debug("something went wrong: downloaded file did not exist!")
+          }
+          let icd = IssueCellData(date: issue.date, issue: issue, image: img)
+          Notification.send(Const.NotificationNames.issueUpdate,
+                            content: issue.date,
+                            sender: self)
+      }
+    }
   }
   
-  func dlFile(issue: Issue){
-    let dir = issue.dir
-    var file: [FileEntry] = []
-    if let f = isFacsimile ? issue.pageOneFacsimile : issue.moment.images.first {
-      if f.exists(inDir: dir.path) { debug("Do something") ; return}
-      file.append(f)
-    }
-   
-    //check if in temp Dir?
-    self.feederContext.dloader.downloadIssueFiles(issue: issue, files: file) {[weak self] err in
-      guard let sissue = issue as? StoredIssue else {
-        self?.error("Issue is not a Stored Issue")
-        return
-      }
-      self?.debug("downloaded")
-      self?.issues[issue.date] = sissue
-    }
+  
+    
+  
+  func updateIssue(issue:StoredIssue){
+    self.issues[issue.date.key] = issue
   }
   
   func setup(){
-//    #warning("un-init need to be implemented!")
-//    Notification.receive("issueOverview") { [weak self] notif in
-//      if let err = notif.error {
-//        self?.debug("Error: \(err)")
-//        if let errIssue = notif.sender as? Issue {
-//          self?.addIssue(issue: errIssue, isError: true)
-//        }
-//      }
-//      else if let issue = notif.content as? Issue {
-//        self?.addIssue(issue: issue)
-//      }
-//    }
-    let sIssues = StoredIssue.issuesInFeed(feed: feed, count: 10)
-    for issue in sIssues {
-      issues[issue.date] = issue
-    }
-//    load()
 
   }
   
-//  func load(fromDate:Date){
-//    if loadMoreDates.isEmpty == false {
-//      loadMoreDates.append(fromDate)
-//      return
+//  func addIssue(issue: StoredIssue, isError: Bool = false){
+//    if let oldIssue = issues[issue.date] {
+//      debug("overwriting \(oldIssue) with: \(issue)")
 //    }
-//
-//    if loadMore { return}
-//    loadMore = true
-//    feederContext.getOvwIssues(feed: feed,
-//                               count: 10, fromDate: Date(),
-//                               isAutomatically: false)
+//    issues[issue.date] = issue
 //  }
-  
-//  func loadNext(){
-//    /**
-//
-//     fc: load 10 Datum +/- 10 => no response
-//
-//     schnelles scrollen anzeigen => dann in overview reingehen
-//
-//     ...Es wird scheinbar immer Moment + PDF geladen, egal was ich anzeige.
-//     durch laden von nur einem von beiden kann dl um 50% beschleunigt werden
-//
-//
-//     */
-//    let date = loadMoreDates.popLast()
-//
-//    if feederContext.isConnected {
-//      self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: min(count, 20),
-//                            isOverview: true) { res in
-//
-//
-//      }
-//    }
-//  }
-      
-  
-  func addIssue(issue: StoredIssue, isError: Bool = false){
-    if let oldIssue = issues[issue.date] {
-      debug("overwriting \(oldIssue) with: \(issue)")
-    }
-    issues[issue.date] = issue
-  }
   
   /// Initialize with FeederContext
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
     self.feed = feederContext.defaultFeed
     issueDates = feed.publicationDates?.dates.sorted().reversed() ?? []
+    
+    issues = StoredIssue.issuesInFeed(feed: feed).reduce(into: [String: StoredIssue]()) {
+      $0[$1.date.key] = $1
+    }
     super.init()
     setup()
   }

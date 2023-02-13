@@ -1170,7 +1170,8 @@ extension Feeder {
         file = highres
       }
     }
-    if file == nil { file = issue.moment.highres }
+      #warning("TODODOD")
+    if file == nil { file = issue.moment.highres }///Agrrrr
     if let img = file {
       return "\(issueDir(issue: issue).path)/\(img.fileName)"
     }
@@ -1208,25 +1209,15 @@ extension Feeder {
   /// Returns the "Moment" Image as Gif-Animation or in highest resolution
   public func momentImage(issue: Issue, isCredited: Bool = false,
                           isPdf: Bool = false) -> UIImage? {
-    var img:UIImage?
-        
     if let fn = momentImageName(issue: issue, isCredited: isCredited,
                                 isPdf: isPdf) {
       if File.extname(fn) == "gif" {
-        img = UIImage.animatedGif(File(fn).data)
+        return UIImage.animatedGif(File(fn).data)
       }
       else {
-        img = UIImage(contentsOfFile: fn)
+        return UIImage(contentsOfFile: fn)
       }
     }
-    
-    if img != nil { return img }
-    
-    if let sissue = issue as? StoredIssue, sissue.isOvwComplete == false {
-      return UIImage(named: "demo-moment-frame")
-    }
-    //Currently: do not return demo frame for issue.isOverview items, otherwise home, bottom area did not work
-    //issue would be: frame stays, no refresh with real moment
     return nil
   }
 
