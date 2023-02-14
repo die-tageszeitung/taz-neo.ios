@@ -52,7 +52,7 @@ class IssueOverviewService: NSObject, DoesLog {
   
   @Default("isFacsimile")
   public var isFacsimile: Bool
-
+  
   internal var feederContext: FeederContext
   var feed: StoredFeed
   
@@ -68,12 +68,11 @@ class IssueOverviewService: NSObject, DoesLog {
       apiLoadIssue(for: date)
       return IssueCellData(date: date, issue: nil, image: nil)
     }
-    let img = feederContext.storedFeeder.momentImage(issue: issue,
-                                                     isPdf: isFacsimile)
+    let img = self.storedImage(issue: issue, isPdf: isFacsimile)
     if img == nil { apiLoadMomentImages(for: issue, isPdf: isFacsimile) }
     return IssueCellData(date: issue.date, issue: issue, image: img)
   }
-
+  
   func date(at index: Int) -> Date? {
     return issueDates.valueAt(index)
   }
@@ -87,8 +86,7 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func image(for issue: StoredIssue) -> UIImage? {
-    let img = feederContext.storedFeeder.momentImage(issue: issue,
-                                                     isPdf: isFacsimile)
+    let img = self.storedImage(issue: issue, isPdf: isFacsimile)
     if img == nil {
       apiLoadMomentImages(for: issue, isPdf: isFacsimile)
     }
@@ -97,7 +95,7 @@ class IssueOverviewService: NSObject, DoesLog {
   
   var loadingDates: [String] = []
   
-
+  
   /// server request data
   /// calculates which is the newest to request issue date from server and how many are to load
   /// limit is max 20
@@ -142,7 +140,7 @@ class IssueOverviewService: NSObject, DoesLog {
     loadingDates.append(contentsOf: lds)
     
     //skip if offline
-    #warning("Mybe improve here!")
+#warning("Mybe improve here!")
     guard feederContext.isConnected else { return }
     
     self.feederContext.gqlFeeder.issues(feed: feed,
@@ -183,8 +181,8 @@ class IssueOverviewService: NSObject, DoesLog {
     
     guard let date = date(at: index) else { return nil }
     guard let issue = issues[date.key] else {
-      #warning("ASYNC TODO")
-//      loadOverviews(fromDate: date, isPdf: isFacsimile)
+#warning("ASYNC TODO")
+      //      loadOverviews(fromDate: date, isPdf: isFacsimile)
       return nil
     }
     return issue
@@ -215,42 +213,42 @@ class IssueOverviewService: NSObject, DoesLog {
                                     issue: issue)
     issueInfo?.showIssue(pushToNc: pushToNc)
   }
-
+  
   var issueInfo:IssueDisplayService?
-//
-//  func loadOverviews(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
-//
-//  }
+  //
+  //  func loadOverviews(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
+  //
+  //  }
   
-//  func loadOverview(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
-//    do {
-//      return try await withCheckedThrowingContinuation { continuation in
-//        loadOverview(fromDate: fromDate, isPdf: isPdf) { result in
-//          continuation.resume(with: result)
-//        }
-//      }
-//    }
-//    catch {
-//      return nil
-//    }
-//  }
+  //  func loadOverview(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
+  //    do {
+  //      return try await withCheckedThrowingContinuation { continuation in
+  //        loadOverview(fromDate: fromDate, isPdf: isPdf) { result in
+  //          continuation.resume(with: result)
+  //        }
+  //      }
+  //    }
+  //    catch {
+  //      return nil
+  //    }
+  //  }
   
-//  func loadOverview2(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
-//    return nil
-////    return try await withCheckedThrowingContinuation { continuation in
-////      loadOverview(fromDate: fromDate, isPdf: isPdf) { result in
-////        continuation.resume(with: result)
-////      }
-////    }
-////    catch {
-////      return nil
-////    }
-//  }
+  //  func loadOverview2(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
+  //    return nil
+  ////    return try await withCheckedThrowingContinuation { continuation in
+  ////      loadOverview(fromDate: fromDate, isPdf: isPdf) { result in
+  ////        continuation.resume(with: result)
+  ////      }
+  ////    }
+  ////    catch {
+  ////      return nil
+  ////    }
+  //  }
   
   func apiLoadMomentImages(for issue: StoredIssue, isPdf: Bool) {
     let dir = issue.dir
     var files: [FileEntry] = []
-
+    
     if isPdf, let f = issue.pageOneFacsimile {
       files.append(f)
     }
@@ -267,8 +265,7 @@ class IssueOverviewService: NSObject, DoesLog {
       //check if in temp Dir?
       self.feederContext.dloader
         .downloadIssueFiles(issue: issue, files: files) {[weak self] err in
-          let img = self?.feederContext.storedFeeder.momentImage(issue: issue,
-                                                                 isPdf: isPdf)
+          let img = self?.storedImage(issue: issue, isPdf: isPdf)
           if img == nil {
             self?.debug("something went wrong: downloaded file did not exist!")
           }
@@ -276,12 +273,16 @@ class IssueOverviewService: NSObject, DoesLog {
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: issue.date,
                             sender: self)
-      }
+        }
     }
   }
   
   
-    
+  func storedImage(issue: StoredIssue, isPdf: Bool) -> UIImage? {
+    return feederContext.storedFeeder.momentImage(issue: issue,
+                                                  isPdf: isPdf,
+                                                  usePdfAlternative: false)
+  }
   
   func updateIssue(issue:StoredIssue){
     self.issues[issue.date.key] = issue

@@ -1159,19 +1159,23 @@ extension Feeder {
   }
   
   /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
-  public func momentImageName(issue: Issue, isCredited: Bool = false,
-                              isPdf: Bool = false)
+  public func momentImageName(issue: Issue,
+                              isCredited: Bool = false,
+                              isPdf: Bool = false,
+                              usePdfAlternative: Bool = true)
     -> String? {
     var file: FileEntry?
-    if isPdf { file = issue.moment.facsimile }
+    if isPdf {
+      file = issue.moment.facsimile
+    }
     else {
       file = issue.moment.animatedGif
       if isCredited, let highres = issue.moment.creditedHighres {
         file = highres
       }
     }
-      #warning("TODODOD")
-    if file == nil { file = issue.moment.highres }///Agrrrr
+    let loadHighres = !isPdf || usePdfAlternative
+    if file == nil && loadHighres { file = issue.moment.highres }
     if let img = file {
       return "\(issueDir(issue: issue).path)/\(img.fileName)"
     }
@@ -1207,10 +1211,14 @@ extension Feeder {
   }
 
   /// Returns the "Moment" Image as Gif-Animation or in highest resolution
-  public func momentImage(issue: Issue, isCredited: Bool = false,
-                          isPdf: Bool = false) -> UIImage? {
-    if let fn = momentImageName(issue: issue, isCredited: isCredited,
-                                isPdf: isPdf) {
+  public func momentImage(issue: Issue,
+                          isCredited: Bool = false,
+                          isPdf: Bool = false,
+                          usePdfAlternative: Bool = true) -> UIImage? {
+    if let fn = momentImageName(issue: issue,
+                                isCredited: isCredited,
+                                isPdf: isPdf,
+                                usePdfAlternative: usePdfAlternative) {
       if File.extname(fn) == "gif" {
         return UIImage.animatedGif(File(fn).data)
       }
