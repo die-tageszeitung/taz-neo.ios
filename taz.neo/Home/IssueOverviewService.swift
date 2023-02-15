@@ -133,8 +133,14 @@ class IssueOverviewService: NSObject, DoesLog {
       d.addDays(-i)
       lds.append(d.key)
     }
+
+    guard count > 0 else {
+      return
+    }
     
-    guard lds.count > 0 else { return }
+    guard lds.count > 0 else {
+      return
+    }
     
     //remember which issue Overviews are loaded currently
     loadingDates.append(contentsOf: lds)
@@ -142,6 +148,8 @@ class IssueOverviewService: NSObject, DoesLog {
     //skip if offline
 #warning("Mybe improve here!")
     guard feederContext.isConnected else { return }
+    
+    log(">> Load \(count) Issues from: \(start.short)")
     
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: start,

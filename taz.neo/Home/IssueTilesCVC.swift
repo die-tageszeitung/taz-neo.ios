@@ -11,13 +11,14 @@ import NorthLib
 
 class IssueTilesCVC: UICollectionViewController {
   
+  private static let reuseCellId = "IssueTilesCvcCell"
+  
   /// Are we in facsimile mode
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
   private let lineSpacing:CGFloat = 20.0
   private let itemSpacing:CGFloat = UIWindow.shortSide > 320 ? 30.0 : 20.0
-  private static let reuseCellId = "issueTilesCVCCell"
   
   var service: IssueOverviewService
 
@@ -29,7 +30,7 @@ class IssueTilesCVC: UICollectionViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     collectionView?.backgroundColor = .black
-    collectionView?.register(IssueVCBottomTielesCVCCell.self,
+    collectionView?.register(IssueTilesCvcCell.self,
                              forCellWithReuseIdentifier: Self.reuseCellId)
   }
   
@@ -57,54 +58,20 @@ class IssueTilesCVC: UICollectionViewController {
     return service.issueDates.count
   }
   
-  public override func collectionView(_ collectionView: UICollectionView,
-                                      cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+  
+  override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: Self.reuseCellId,
+      for: indexPath)
+    guard let cell = cell as? IssueTilesCvcCell,
+          let data = service.cellData(for: indexPath.row) else { return cell }
     
-    let _cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.reuseCellId,
-                                                   for: indexPath)
-    
-    guard let cell = _cell as? IssueVCBottomTielesCVCCell else { return _cell }
-    
-    guard let issue = service.getIssue(at: indexPath.row) else {
-      cell.button.indicator.downloadState = .waiting
-      cell.button.label.text = service.date(at: indexPath.row)?.short ?? "-"
-      return cell
-    }
-    
-    cell.issue = issue
-    
-#warning("TODO")
-//    Task.init {
-//      #warning("either or async")
-//      cell.momentView.image
-//      = await service.image(for: indexPath.row)
-//      
-////      cell.momentView.image = await service.momentImage(issue: issue,
-////                                                  isPdf: isFacsimile)
-//      
-//    }
-    
-
-    
-    if service.hasDownloadableContent(issue: issue) {
-      cell.button.onTapping {[weak self] _ in
-        guard let self else { return }
-        cell.button.indicator.downloadState = .waiting
-        cell.button.indicator.percent = 0.0
-        cell.momentView.isActivity = true
-        self.service.getCompleteIssue(issue: issue)
-      }
-      cell.button.indicator.downloadState = .notStarted
-    }
-    //
-    //    if cell.interactions.isEmpty {
-    //      let menuInteraction = UIContextMenuInteraction(delegate: self)
-    //      cell.addInteraction(menuInteraction)
-    //      cell.backgroundColor = .black
-    //    }
+    cell.date = data.date
+    cell.issue = data.issue
+    cell.image = data.image
     return cell
   }
-  
+    
   
   // MARK: > Cell Display
   public override func collectionView(_ collectionView: UICollectionView,
@@ -134,7 +101,7 @@ class IssueTilesCVC: UICollectionViewController {
     //    issueVC.issueCarousel.carousel.scrollto(indexPath.row)
     ///Work with Issue drop on cell, and notifications for download start/stop
     guard let cell = collectionView.cellForItem(at: indexPath)
-                     as? IssueVCBottomTielesCVCCell else {
+                     as? IssueTilesCvcCell else {
       log("Error: Cell could not be found & configured")
       return
     }

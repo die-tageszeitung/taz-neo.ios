@@ -11,12 +11,12 @@ import NorthLib
 
 class IssueCollectionViewCell: UICollectionViewCell {
  
-  static let Identifier = "issueCollectionViewCell"
+  let momentView = MomentView()
   
-  private let momentView = MomentView()
+  var cvBottomConstraint: NSLayoutConstraint?
 
-  var issue: StoredIssue?
-  var date: Date?
+  final var issue: StoredIssue? { didSet { didUpdateIssue()}}
+  final var date: Date?{ didSet { didUpdateDate()}}
   var image: UIImage? {
     didSet {
       momentView.image = image
@@ -27,6 +27,9 @@ class IssueCollectionViewCell: UICollectionViewCell {
     }
   }
 
+  func didUpdateDate(){}
+  func didUpdateIssue(){}
+  
   public override func prepareForReuse() {
     image = nil
     issue = nil
@@ -35,7 +38,7 @@ class IssueCollectionViewCell: UICollectionViewCell {
   
   func setup(){
     contentView.addSubview(momentView)
-    pin(momentView, to: contentView)
+    cvBottomConstraint = pin(momentView, to: contentView).bottom
     contentView.layer.borderWidth = 1.0
     contentView.layer.cornerRadius = 7.0
     

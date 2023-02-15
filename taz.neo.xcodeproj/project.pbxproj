@@ -65,6 +65,7 @@
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77D0DAEC25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */; };
 		77D8A22F298D4D0A00E5788B /* IssueDisplayService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D8A22E298D4D0A00E5788B /* IssueDisplayService.swift */; };
+		77DA5EA1299BC9BD00F07C77 /* IssueTilesCvcCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77DA5EA0299BC9BD00F07C77 /* IssueTilesCvcCell.swift */; };
 		77E5E1BC292D772200611148 /* Javascript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E5E1BB292D772200611148 /* Javascript.swift */; };
 		94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94487DAB274BCCE10066BCD0 /* AppHelper.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
@@ -183,6 +184,7 @@
 		77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDownAnimationView.swift; sourceTree = "<group>"; };
 		77D0DAEB25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueVCBottomTielesCVCCell.swift; sourceTree = "<group>"; };
 		77D8A22E298D4D0A00E5788B /* IssueDisplayService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueDisplayService.swift; sourceTree = "<group>"; };
+		77DA5EA0299BC9BD00F07C77 /* IssueTilesCvcCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueTilesCvcCell.swift; sourceTree = "<group>"; };
 		77E5E1BB292D772200611148 /* Javascript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Javascript.swift; sourceTree = "<group>"; };
 		77F0D1342742B4E900D3A432 /* addLocalResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addLocalResources.sh; sourceTree = "<group>"; };
 		77F0D1372742B4E900D3A432 /* downloadBundledResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = downloadBundledResources.sh; sourceTree = "<group>"; };
@@ -340,6 +342,7 @@
 				4DED20C32987E4C2005B8A00 /* IssueOverviewService.swift */,
 				77D8A22E298D4D0A00E5788B /* IssueDisplayService.swift */,
 				7746EF7C29924872000C8E6B /* IssueCarouselFlowLayout.swift */,
+				77DA5EA0299BC9BD00F07C77 /* IssueTilesCvcCell.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -746,6 +749,7 @@
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */,
 				4D308EF02834061600529592 /* BookmarkNC.swift in Sources */,
+				77DA5EA1299BC9BD00F07C77 /* IssueTilesCvcCell.swift in Sources */,
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,
 				4D308EDB283404D400529592 /* TazAppEnvironment.swift in Sources */,
 				4D308EE62834057200529592 /* SearchHeaderView.swift in Sources */,

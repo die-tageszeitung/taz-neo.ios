@@ -12,6 +12,8 @@ import NorthLib
 
 class IssueCarouselCVC: UICollectionViewController {
   
+  private static let reuseCellId = "issueCollectionViewCell"
+  
   var nextHorizontalSizeClass:UIUserInterfaceSizeClass?
   var service: IssueOverviewService
   
@@ -23,7 +25,7 @@ class IssueCarouselCVC: UICollectionViewController {
     
     // Register cell classes
     self.collectionView!.register(IssueCollectionViewCell.self,
-                                  forCellWithReuseIdentifier: IssueCollectionViewCell.Identifier)
+                                  forCellWithReuseIdentifier: Self.reuseCellId)
     self.collectionView.backgroundColor = .black
   }
   
@@ -50,7 +52,7 @@ class IssueCarouselCVC: UICollectionViewController {
   
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(
-      withReuseIdentifier: IssueCollectionViewCell.Identifier,
+      withReuseIdentifier: Self.reuseCellId,
       for: indexPath)
     guard let cell = cell as? IssueCollectionViewCell,
           let data = service.cellData(for: indexPath.row) else { return cell }

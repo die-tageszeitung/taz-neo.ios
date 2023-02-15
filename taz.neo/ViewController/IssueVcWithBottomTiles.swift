@@ -339,7 +339,7 @@ extension IssueVcWithBottomTiles {
     guard let cell = _cell as? IssueVCBottomTielesCVCCell else { return _cell }
     
     if let issueVC = self as? IssueVC,
-       let issue = issues.valueAt(indexPath.row) {
+       let issue = issues.valueAt(indexPath.row) as? StoredIssue {
       
       cell.issue = issue
       

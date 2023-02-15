@@ -1624,7 +1624,9 @@ public final class StoredIssue: Issue, StoredObject {
 
   public var sections: [Section]? { StoredSection.sectionsInIssue(issue: self) }
   public var pages: [Page]? { StoredPage.pagesInIssue(issue: self) }
-  public var isDownloading: Bool = false
+  public var isDownloading: Bool = false {
+    willSet {}
+  }
 
   public required init(persistent: PersistentIssue) { self.pr = persistent }
 
