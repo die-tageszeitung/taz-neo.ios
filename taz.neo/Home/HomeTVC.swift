@@ -73,26 +73,27 @@ class HomeTVC: UITableViewController {
   var tilesControllerCell: UITableViewCell
   
   lazy var togglePdfButton: Button<ImageView> = {
-    let imageButton = Button<ImageView>()
-    imageButton.pinSize(CGSize(width: 50, height: 50))
-    imageButton.buttonView.hinset = 0.18
-    imageButton.buttonView.color = Const.Colors.iconButtonInactive
-    imageButton.buttonView.activeColor = Const.Colors.iconButtonActive
-    imageButton.accessibilityLabel = "Ansicht umschalten"
-    imageButton.isAccessibilityElement = true
-    imageButton.onPress(closure: onPDF(sender:))
-    imageButton.layer.cornerRadius = 25
-    imageButton.backgroundColor = Const.Colors.fabBackground
-    imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
-    return imageButton
+    return createTogglePdfButton()
+  }()
+
+  lazy var loginButton: UIView = {
+    return createLoginButton()
   }()
   
+  lazy var topGradient = VerticalGradientView()
+  
   var btnLeftConstraint: NSLayoutConstraint?
+  
+  // MARK: - Custom Components
   
   // MARK: - Lifecycle
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    
+    prepareCarouselControllerCell()
+    prepareTilesControllerCell()
+    
     self.view.backgroundColor = .black
     self.tableView.showsVerticalScrollIndicator = false
     self.tableView.showsHorizontalScrollIndicator = false
@@ -101,6 +102,12 @@ class HomeTVC: UITableViewController {
       ncView.addSubview(togglePdfButton)
       btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
       pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
+      
+      ncView.addSubview(topGradient)
+      topGradient.pinHeight(UIWindow.maxAxisInset)
+      pin(topGradient.left, to: ncView.left)
+      pin(topGradient.right, to: ncView.right)
+      pin(topGradient.top, to: ncView.top)
     }
   }
   
@@ -142,24 +149,17 @@ class HomeTVC: UITableViewController {
   
   
   public init(service: IssueOverviewService, feederContext: FeederContext) {
-    //    self.service = service
     carouselController = IssueCarouselCVC(service: service)
     tilesController = IssueTilesCVC(service: service)
     self.feederContext = feederContext
     
-    carouselControllerCell = UITableViewCell()
+    carouselControllerCell =  UITableViewCell()
     tilesControllerCell = UITableViewCell()
     
     super.init(style: .plain)
     
     self.addChild(carouselController)
     self.addChild(tilesController)
-    
-    carouselControllerCell.contentView.addSubview(carouselController.view)
-    pin(carouselController.view, to: carouselControllerCell)
-    
-    tilesControllerCell.contentView.addSubview(tilesController.view)
-    pin(tilesController.view, to: tilesControllerCell)
   }
   
   required init?(coder: NSCoder) {
@@ -269,5 +269,85 @@ extension HomeTVC: PushIssueDelegate {
     }
     self.issueInfo = issueInfo
     self.navigationController?.pushViewController(viewController, animated: true)
+  }
+}
+
+
+// MARK: - Cell Factory
+extension HomeTVC {
+  
+  fileprivate func prepareCarouselControllerCell() {
+    carouselControllerCell.contentView.addSubview(carouselController.view)
+    pin(carouselController.view, to: carouselControllerCell)
+    
+    Notification.receive(Const.NotificationNames.authenticationSucceeded) { _ in
+      onMainAfter {[weak self] in self?.updateLoginButton() }
+    }
+    Notification.receive(Const.NotificationNames.logoutUserDataDeleted) { _ in
+      onMainAfter {[weak self] in self?.updateLoginButton() }
+    }
+    updateLoginButton()
+  }
+  
+  func updateLoginButton(){
+    if self.feederContext.isAuthenticated {
+      loginButton.removeFromSuperview()
+      return
+    }
+    carouselControllerCell.contentView.addSubview(loginButton)
+    pin(loginButton.right, to: carouselControllerCell.contentView.rightGuide())
+    pin(loginButton.top, to: carouselControllerCell.contentView.topGuide(), dist: 20)
+    topGradient.bringToFront()
+  }
+  
+  fileprivate func prepareTilesControllerCell() {
+    tilesControllerCell.contentView.addSubview(tilesController.view)
+    pin(tilesController.view, to: tilesControllerCell)
+  }
+  
+}
+
+// MARK: - UI Components Creation Helper
+extension HomeTVC {
+  fileprivate func createTogglePdfButton() -> Button<ImageView> {
+    let imageButton = Button<ImageView>()
+    imageButton.pinSize(CGSize(width: 50, height: 50))
+    imageButton.buttonView.hinset = 0.18
+    imageButton.buttonView.color = Const.Colors.iconButtonInactive
+    imageButton.buttonView.activeColor = Const.Colors.iconButtonActive
+    imageButton.accessibilityLabel = "Ansicht umschalten"
+    imageButton.isAccessibilityElement = true
+    imageButton.onPress(closure: onPDF(sender:))
+    imageButton.layer.cornerRadius = 25
+    imageButton.backgroundColor = Const.Colors.fabBackground
+    imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
+    return imageButton
+  }
+  
+  fileprivate func createLoginButton() -> UIView {
+    let login = UILabel()
+    login.accessibilityLabel = "Anmelden"
+    login.isAccessibilityElement = true
+    login.contentFont()
+    login.textColor = Const.Colors.iconButtonInactive
+    login.text = "Anmelden"
+    
+    let arrow
+    = UIImageView(image: UIImage(name: "arrow.right")?
+      .withTintColor(Const.Colors.iconButtonInactive,
+                     renderingMode: .alwaysOriginal))
+    arrow.tintColor = Const.Colors.iconButtonInactive
+    
+    let wrapper = UIView()
+    wrapper.addSubview(login)
+    wrapper.addSubview(arrow)
+    pin(login, to: wrapper, dist:Const.Size.DefaultPadding, exclude: .right)
+    pin(arrow, to: wrapper, dist:Const.Size.DefaultPadding, exclude: .left)
+    pin(login.right, to: arrow.left, dist: -5.0)
+
+    wrapper.onTapping { [weak self] _ in
+       self?.feederContext.authenticate()
+    }
+    return wrapper
   }
 }
