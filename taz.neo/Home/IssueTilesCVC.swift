@@ -87,16 +87,24 @@ class IssueTilesCVC: UICollectionViewController {
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,
                                       didSelectItemAt indexPath: IndexPath) {
+    
     guard let date = self.service.date(at: indexPath.row) else {
       error("Impossible Error: Date for IndexPath not found")
       return
     }
-    guard let navigationController = self.navigationController else {
-      error("Refacoring Error: Date navigation controller not found")
+//    guard let navigationController = self.navigationController else {
+//      error("Refacoring Error: Date navigation controller not found")
+//      return
+//    }
+    guard let issue = self.service.getIssue(at: indexPath.row) else {
+      error("Issue not available try later")
       return
     }
     
-    self.service.showIssue(at: date, pushToNc: navigationController)
+    (parent as? OpenIssueDelegate)?.openIssue(issue)
+    return
+    
+//    self.service.showIssue(at: date, pushToNc: navigationController)
     #warning("ToDo select in carousell!")
     //    issueVC.issueCarousel.carousel.scrollto(indexPath.row)
     ///Work with Issue drop on cell, and notifications for download start/stop
@@ -106,13 +114,13 @@ class IssueTilesCVC: UICollectionViewController {
       return
     }
     
-    let issue = self.service.issue(at: date)
+    let issue2 = self.service.issue(at: date)
     
-    if issue?.isDownloading ?? false {
+    if issue2?.isDownloading ?? false {
       cell.button.indicator.downloadState = .process
       cell.momentView.isActivity = true
     }
-    else if issue?.isComplete ?? false {
+    else if issue2?.isComplete ?? false {
       cell.button.indicator.downloadState = .done
       cell.momentView.isActivity = false
     }
@@ -125,16 +133,11 @@ class IssueTilesCVC: UICollectionViewController {
   
   // MARK: UICollectionViewDelegate
   
-  /*
-   // Uncomment these methods to specify if an action menu should be displayed for the specified item, and react to actions performed on the item
-   override func collectionView(_ collectionView: UICollectionView, shouldShowMenuForItemAt indexPath: IndexPath) -> Bool {
-   return false
-   }
-   
-   */
-  
 
- 
+  // Uncomment these methods to specify if an action menu should be displayed for the specified item, and react to actions performed on the item
+  override func collectionView(_ collectionView: UICollectionView, shouldShowMenuForItemAt indexPath: IndexPath) -> Bool {
+    return true
+  }
   
   public init(service: IssueOverviewService) {
     self.service = service

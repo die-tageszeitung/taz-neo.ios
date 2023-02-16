@@ -131,7 +131,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider = nil
   }
 
-  public func resetIssueList() { delegate.resetIssueList() }  
+  public func resetIssueList() {
+    #warning("ToDo delegate.resetIssueList")
+//    delegate.resetIssueList()
+  }
 
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat? = nil,

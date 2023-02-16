@@ -61,7 +61,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     if issue.isDownloading {
       button.indicator.downloadState = .waiting
     }
-    else if issue.status.watchable {
+    else if issue.status.downloaded {
       button.indicator.downloadState = .done
     }
     else {

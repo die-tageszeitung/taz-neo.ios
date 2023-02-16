@@ -14,9 +14,7 @@ public protocol IssueInfo: AnyObject {
   /// The feeder context
   var feederContext: FeederContext { get }
   /// One Issue of a Feed
-  var issue: Issue { get }
-  /// Reset the list of Issues to the most current issue
-  func resetIssueList()
+  var issue: Issue { get }//issue not optional => HomeVC cannot be IssueInfo die it may not hold a issue
 }
 
 public extension IssueInfo {

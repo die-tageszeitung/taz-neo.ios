@@ -716,6 +716,9 @@ public enum IssueStatus: String, CodableEnum {
 
 public extension IssueStatus {
   var watchable : Bool { return self != .unknown}
+  var downloaded : Bool {
+    return self == .regular || self == .demo
+  }
 }
 
 /// PublicationDate

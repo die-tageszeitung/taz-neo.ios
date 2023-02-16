@@ -10,14 +10,9 @@ import UIKit
 import UIKit
 import NorthLib
 
-class IssueDisplayService: IssueInfo, DoesLog {
+class IssueDisplayService: NSObject, IssueInfo, DoesLog {
   var issue: Issue {
     return sissue
-  }
-  
-  func resetIssueList() {
-    #warning("todo")
-    error("todo")
   }
   
   
@@ -41,7 +36,7 @@ extension IssueDisplayService {
                          atSection: Int? = nil,
                          atArticle: Int? = nil,
                          atPage: Int? = nil,
-                         navigationController: UINavigationController) {
+                         pushDelegate: PushIssueDelegate) {
     ArticlePlayer.singleton.baseUrl = issue.baseUrl
 #warning("DO prevent multiple pushes!")
     //prevent multiple pushes!
@@ -67,8 +62,9 @@ extension IssueDisplayService {
       let pushPdf = { [weak self] in
         guard let self = self else { return }
         let vc = TazPdfPagesViewController(issueInfo: self)
-        navigationController.pushViewController(vc, animated: true)
-        if issue.status == .reduced {  authenticatePDF()
+        pushDelegate.push(vc, issueInfo: self)
+        if issue.status == .reduced {
+          authenticatePDF()
         }
         
       }
@@ -94,7 +90,7 @@ extension IssueDisplayService {
       self.pushSectionVC(issue: issue,
                          atSection: atSection,
                          atArticle: atArticle,
-                         navigationController: navigationController)
+                         pushDelegate: pushDelegate)
     }
   }
   
@@ -102,7 +98,7 @@ extension IssueDisplayService {
   private func pushSectionVC(issue:StoredIssue,
                              atSection: Int? = nil,
                              atArticle: Int? = nil,
-                             navigationController: UINavigationController) {
+                             pushDelegate: PushIssueDelegate) {
     let sectionVC = SectionVC(feederContext: feederContext,
                               atSection: atSection,
                               atArticle: atArticle)
@@ -113,12 +109,11 @@ extension IssueDisplayService {
         Notification.send(Const.NotificationNames.articleLoaded)
       }
     }
-    navigationController.pushViewController(sectionVC,
-                                            animated: true)
+    pushDelegate.push(sectionVC, issueInfo: self)
   }
   
   
-  func showIssue(pushToNc: UINavigationController){
+  func showIssue(pushDelegate: PushIssueDelegate){
     let issue = self.sissue
     feederContext.openedIssue = issue //remember opened issue to not delete if
     debug("*** Action: Entering \(issue.feed.name)-" +
@@ -135,7 +130,7 @@ extension IssueDisplayService {
                 atSection: issue.lastSection,
                 atArticle: issue.lastArticle,
                 atPage: issue.lastPage,
-                navigationController: pushToNc)
+                pushDelegate: pushDelegate)
       return
     }
     //      if isDownloading {
@@ -146,7 +141,10 @@ extension IssueDisplayService {
     //      issueCarousel.index = index
     //      issueCarousel.setActivity(idx: index, isActivity: true)
     Notification.receiveOnce("issueStructure", from: issue) { [weak self] notif in
-      guard let self = self else { return }
+      guard let self = self else {
+        Log.debug("i'am gone!")
+        return
+      }
       let issue = self.sissue
       guard notif.error == nil else {
         self.handleDownloadError(error: notif.error!)
@@ -155,7 +153,7 @@ extension IssueDisplayService {
                     atSection: issue.lastSection,
                     atArticle: issue.lastArticle,
                     atPage: issue.lastPage,
-                    navigationController: pushToNc) }
+                    pushDelegate: pushDelegate) }
 //        self.issueCarousel.setActivity(idx: index, isActivity: false)
         return
       }
@@ -169,14 +167,14 @@ extension IssueDisplayService {
                                                                     atSection: issue.lastSection,
                                                                     atArticle: issue.lastArticle,
                                                                     atPage: issue.lastPage,
-                                                                    navigationController: pushToNc)  }
+                                                                    pushDelegate: pushDelegate)  }
           return
         }
         self.openIssue(issue: issue,
                   atSection: issue.lastSection,
                   atArticle: issue.lastArticle,
                   atPage: issue.lastPage,
-                  navigationController: pushToNc)
+                  pushDelegate: pushDelegate)
         Notification.receiveOnce("issue", from: issue) { [weak self] notif in
           guard let self = self else { return }
           if let err = notif.error {

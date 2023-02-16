@@ -9,11 +9,32 @@
 import UIKit
 import NorthLib
 
+/// Protocol to handle Open and Display an Issue
+protocol OpenIssueDelegate {
+  /// open a Issue
+  func openIssue(_ issue:StoredIssue)
+}
+
+/// Protocol to handle Open and Display an Issue
+protocol PushIssueDelegate {
+  /// delagate back the push of a child VC to prevent multiple pushes
+  func push(_ viewController:UIViewController, issueInfo: IssueDisplayService)
+}
+
 class HomeTVC: UITableViewController {
   
   /// Are we in facsimile mode
   @Default("isFacsimile")
   public var isFacsimile: Bool
+  
+  #warning("Refactor ContentVC should hold it's IssueInfo Reference")
+  ///Needed because ContentVC did not has a strong reference to its IssueInfo Object
+  ///if not using this both vars
+  ///Array: Push after Download not work
+  ///Var: IssueInfo no content to display
+  var loadingIssueInfos:[IssueDisplayService] = []
+  var issueInfo:IssueDisplayService?
+  var feederContext:FeederContext
   
   override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
   //  var service: DataService
@@ -120,10 +141,11 @@ class HomeTVC: UITableViewController {
   }
   
   
-  public init(service: IssueOverviewService) {
+  public init(service: IssueOverviewService, feederContext: FeederContext) {
     //    self.service = service
     carouselController = IssueCarouselCVC(service: service)
     tilesController = IssueTilesCVC(service: service)
+    self.feederContext = feederContext
     
     carouselControllerCell = UITableViewCell()
     tilesControllerCell = UITableViewCell()
@@ -218,4 +240,34 @@ extension HomeTVC {
   }
 }
 
+extension HomeTVC: OpenIssueDelegate {
+  func openIssue(_ issue: StoredIssue) {
+    ///How to prevent multiple open?
+    ///already pushed => no problem
+    ///3 downloads in Progress => first downloaded? n/ last clicked?
+    ///previously first clicked was used so do it again
+    ///What happen if download fail? => Nothing another tap may download and open a issue
+    ///QUESTIONS
+    ///should/can i handle massive multiple downloads?
+    ///should i allow?
+    ///YES: Which one is selected? What if selected is no reference here?
+    ///if  not what happen if i only have
+    
+    let issueInfo = IssueDisplayService(feederContext: feederContext,
+                                    issue: issue)
+    loadingIssueInfos.append(issueInfo)
+    issueInfo.showIssue(pushDelegate: self)
+  }
+}
 
+extension HomeTVC: PushIssueDelegate {
+  func push(_ viewController: UIViewController, issueInfo: IssueDisplayService) {
+    loadingIssueInfos.removeAll(where: { $0 == issueInfo })
+    if navigationController?.topViewController != self {
+      log("skip pushing: \(viewController) since another is already pushed. the other: \(String(describing: navigationController?.topViewController))")
+      return
+    }
+    self.issueInfo = issueInfo
+    self.navigationController?.pushViewController(viewController, animated: true)
+  }
+}
