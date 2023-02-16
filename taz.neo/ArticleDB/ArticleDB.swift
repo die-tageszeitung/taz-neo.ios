@@ -10,7 +10,7 @@ import CoreData
 import NorthLib
 
 /// A quite simple Database derivation
-public class ArticleDB: Database {  
+public class ArticleDB: Database2 {  
   
   /// There is only one article DB in the app
   public static var singleton: ArticleDB!
@@ -29,8 +29,9 @@ public class ArticleDB: Database {
   }    
   
   /// The managed object context
-  public static var context: NSManagedObjectContext { return singleton.context! }
-  
+  public static var context: NSManagedObjectContext { return singleton.context }
+  public static var importContext: NSManagedObjectContext? { return singleton.importContext }
+
   /// Save the singleton's context
   public static func save() { singleton.save() }
   
@@ -113,7 +114,8 @@ public extension StoredObject {
   /// Execute fetch request and return persistent records
   static func getPersistent(request: NSFetchRequest<PO>) -> [PO] {
     do {
-      let res = try ArticleDB.context.fetch(request)
+      let ctx = Thread.isMain ? ArticleDB.context : ArticleDB.importContext ?? ArticleDB.context
+      let res = try ctx.fetch(request)
       return res
     }
     catch let err { Log.error(err) }
