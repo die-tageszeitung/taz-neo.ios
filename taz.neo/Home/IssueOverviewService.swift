@@ -201,30 +201,23 @@ class IssueOverviewService: NSObject, DoesLog {
                                         date: params.startDate,
                                         count: params.count,
                                         isOverview: false,
-                                        returnOnMain: false) {[weak self] res in
+                                        returnOnMain: true) {[weak self] res in
       guard let self = self else { return }
-      ArticleDB.singleton.executeOnImportContext {
-        var issueDates:[Date] = []
-        if let issues = res.value() {
-          for issue in issues {
-            StoredIssue.persist(object: issue)
-            issueDates.append(issue.date)
-          }
-          ArticleDB.save()
-        }
-        else {
-          self.log("error in preview load from \(params.startDate) count: \(params.count)")
-        }
-        onMain {[weak self] in
-          for date in issueDates {
-            Notification.send(Const.NotificationNames.issueUpdate,
-                              content: date,
-                              sender: self)
-          }
-          self?.apiLoadNext()
-        }
-      }
       self.debug("Finished load Issues for: \(params.startDate), count: \(params.count)")
+      if let issues = res.value() {
+        for issue in issues {
+          let si = StoredIssue.persist(object: issue)
+          self.issues[issue.date.key] = si
+          Notification.send(Const.NotificationNames.issueUpdate,
+                            content: issue.date,
+                            sender: self)
+        }
+        ArticleDB.save()
+      }
+      else {
+        self.log("error in preview load from \(params.startDate) count: \(params.count)")
+      }
+      self.apiLoadNext()
     }
   }
   
