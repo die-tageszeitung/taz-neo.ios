@@ -195,7 +195,7 @@ class IssueOverviewService: NSObject, DoesLog {
       return
     }
     
-    debug("Load Issues for: \(params.startDate), count: \(params.count)")
+    debug("Load Issues for: \(params.startDate.short), count: \(params.count)")
     
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: params.startDate,
@@ -203,19 +203,24 @@ class IssueOverviewService: NSObject, DoesLog {
                                         isOverview: false,
                                         returnOnMain: true) {[weak self] res in
       guard let self = self else { return }
-      self.debug("Finished load Issues for: \(params.startDate), count: \(params.count)")
+      var newIssues: [StoredIssue] = []
+      self.debug("Finished load Issues for: \(params.startDate.short), count: \(params.count)")
+      let start = Date()
       if let issues = res.value() {
         for issue in issues {
-          let si = StoredIssue.persist(object: issue)
-          self.issues[issue.date.key] = si
+          newIssues.append(StoredIssue.persist(object: issue))
+        }
+        self.log("Finished load Issues for: \(params.startDate.short) DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
+        ArticleDB.save()
+        for si in newIssues {
+          self.issues[si.date.key] = si
           Notification.send(Const.NotificationNames.issueUpdate,
-                            content: issue.date,
+                            content: si.date,
                             sender: self)
         }
-        ArticleDB.save()
       }
       else {
-        self.log("error in preview load from \(params.startDate) count: \(params.count)")
+        self.log("error in preview load from \(params.startDate.short) count: \(params.count)")
       }
       self.apiLoadNext()
     }
