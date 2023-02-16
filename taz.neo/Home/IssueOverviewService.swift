@@ -202,40 +202,22 @@ class IssueOverviewService: NSObject, DoesLog {
                                         count: params.count,
                                         isOverview: false,
                                         returnOnMain: true) {[weak self] res in
-      Task.init {[weak self] in
-        guard let self = self else { return }
-        self.debug("Finished load Issues for: \(params.startDate), count: \(params.count)")
-        if let issues = res.value() {
-          
-          do {
-            try await ArticleDB.importContext?.perform {
-              for issue in issues {
-                let si = StoredIssue.persist(object: issue)
-              }
-            }
-          }
-          catch  {
-            print("Error \(error)")
-            
-          }
-          
-          
-          
-          for issue in issues {
-            //          self.issues[issue.date.key] = si
-          }
-          ArticleDB.save()
-          for issue in issues {
-            Notification.send(Const.NotificationNames.issueUpdate,
-                              content: issue.date,
-                              sender: self)
-          }
+      guard let self = self else { return }
+      self.debug("Finished load Issues for: \(params.startDate), count: \(params.count)")
+      if let issues = res.value() {
+        for issue in issues {
+          let si = StoredIssue.persist(object: issue)
+          self.issues[issue.date.key] = si
+          Notification.send(Const.NotificationNames.issueUpdate,
+                            content: issue.date,
+                            sender: self)
         }
-        else {
-          self.log("error in preview load from \(params.startDate) count: \(params.count)")
-        }
-        self.apiLoadNext()
+        ArticleDB.save()
       }
+      else {
+        self.log("error in preview load from \(params.startDate) count: \(params.count)")
+      }
+      self.apiLoadNext()
     }
   }
   
