@@ -12,8 +12,25 @@ import NorthLib
 
 class IssueCarouselCVC: UICollectionViewController {
   
+  @Default("showBottomTilesAnimation")
+  public var showBottomTilesAnimation: Bool
+  
+  @Default("bottomTilesAnimationLastShown")
+  public var bottomTilesAnimationLastShown: Date
+  
+  @Default("bottomTilesLastShown")
+  public var bottomTilesLastShown: Date
+  
+  @Default("bottomTilesShown")
+  public var bottomTilesShown: Int {
+    didSet { if bottomTilesShown > 10 { showBottomTilesAnimation = false }  }
+  }
+  
   private var statusButtonBottomConstraint: NSLayoutConstraint?
   private var topStatusButtonConstraint:NSLayoutConstraint?
+  
+  /// Animation for ScrollDown
+  var scrollDownAnimationView: ScrollDownAnimationView?
   
   public var pullToLoadMoreHandler: (()->())?
   private static let reuseCellId = "issueCollectionViewCell"
@@ -218,6 +235,47 @@ extension IssueCarouselCVC {
       self?.statusHeader.currentStatus = .fetchNewIssues
       URLCache.shared.removeAllCachedResponses()
       self?.service.checkForNewIssues()
+    }
+  }
+}
+
+
+// MARK: - showScrollDownAnimationIfNeeded
+extension IssueCarouselCVC {
+  
+  
+  /// shows an animation to generate the user's interest in the lower area
+  ///  **Requirements to show animation:**
+  ///
+  ///  **showBottomTilesAnimation** ConfigDefault is true
+  ///  **bottomTilesLastShown** is at least 24h ago
+  ///  **bottomTilesAnimationLastShown** is at least 30s ago
+  ///  - no active animation
+  ///
+  /// - Parameter delay: delay after animation started if applicable
+  func showScrollDownAnimationIfNeeded(delay:Double = 2.0) {
+    if showBottomTilesAnimation == false { return }
+    guard (Date().timeIntervalSince(bottomTilesLastShown) >= 60*60*24) &&
+          (Date().timeIntervalSince(bottomTilesAnimationLastShown) >= 30)
+    else { return }
+    
+    if scrollDownAnimationView == nil {
+      scrollDownAnimationView = ScrollDownAnimationView()
+    }
+    
+    guard let scrollDownAnimation = scrollDownAnimationView else {
+      return
+    }
+    
+    if scrollDownAnimation.superview == nil {
+      self.view.addSubview(scrollDownAnimation)
+      scrollDownAnimation.centerX()
+      pin(scrollDownAnimation.bottom, to: self.view.bottomGuide(), dist: -12)
+    }
+    
+    onMainAfter(delay) {   [weak self] in
+      self?.scrollDownAnimationView?.animate()
+      self?.bottomTilesAnimationLastShown = Date()
     }
   }
 }

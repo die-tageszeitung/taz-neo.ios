@@ -27,20 +27,6 @@ class HomeTVC: UITableViewController {
   @Default("showPdfInfoToast")
   public var showPdfInfoToast: Bool
   
-  @Default("showBottomTilesAnimation")
-  public var showBottomTilesAnimation: Bool
-  
-  @Default("bottomTilesAnimationLastShown")
-  public var bottomTilesAnimationLastShown: Date
-  
-  @Default("bottomTilesLastShown")
-  public var bottomTilesLastShown: Date
-  
-  @Default("bottomTilesShown")
-  public var bottomTilesShown: Int {
-    didSet { if bottomTilesShown > 10 { showBottomTilesAnimation = false }  }
-  }
-  
   /// Are we in facsimile mode
   @Default("isFacsimile")
   public var isFacsimile: Bool
@@ -93,9 +79,6 @@ class HomeTVC: UITableViewController {
   
   var carouselControllerCell: UITableViewCell
   var tilesControllerCell: UITableViewCell
-  
-  /// Animation for ScrollDown
-  var scrollDownAnimationView: ScrollDownAnimationView?
   
   lazy var togglePdfButton: Button<ImageView> = {
     return createTogglePdfButton()
@@ -460,51 +443,11 @@ extension HomeTVC {
 }
 
 
-// MARK: - showScrollDownAnimationIfNeeded
-extension HomeTVC {
-  
-  
-  /// shows an animation to generate the user's interest in the lower area
-  ///  **Requirements to show animation:**
-  ///
-  ///  **showBottomTilesAnimation** ConfigDefault is true
-  ///  **bottomTilesLastShown** is at least 24h ago
-  ///  **bottomTilesAnimationLastShown** is at least 30s ago
-  ///  - no active animation
-  ///
-  /// - Parameter delay: delay after animation started if applicable
-  func showScrollDownAnimationIfNeeded(delay:Double = 2.0) {
-    if showBottomTilesAnimation == false { return }
-    guard (Date().timeIntervalSince(bottomTilesLastShown) >= 60*60*24) &&
-          (Date().timeIntervalSince(bottomTilesAnimationLastShown) >= 30)
-    else { return }
-    
-    if scrollDownAnimationView == nil {
-      scrollDownAnimationView = ScrollDownAnimationView()
-    }
-    
-    guard let scrollDownAnimation = scrollDownAnimationView else {
-      return
-    }
-    
-    if scrollDownAnimation.superview == nil {
-      self.view.addSubview(scrollDownAnimation)
-      scrollDownAnimation.centerX()
-      pin(scrollDownAnimation.bottom, to: self.view.bottomGuide(), dist: -12)
-    }
-    
-    onMainAfter(delay) {   [weak self] in
-      self?.scrollDownAnimationView?.animate()
-      self?.bottomTilesAnimationLastShown = Date()
-    }
-  }
-}
-
 // MARK: - ShowPDF Info Toast
 extension HomeTVC {
   func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
     if showPdfInfoToast == false {
-      showScrollDownAnimationIfNeeded()
+      self.carouselController.showScrollDownAnimationIfNeeded()
       return
     }
     
@@ -530,7 +473,7 @@ extension HomeTVC {
                           autoDisappearAfter: nil) {   [weak self] in
         self?.log("PdfInfoToast showen and closed")
         self?.showPdfInfoToast = false
-        self?.showScrollDownAnimationIfNeeded()
+        self?.carouselController.showScrollDownAnimationIfNeeded()
       }
     }
   }
