@@ -97,7 +97,9 @@ class IssueOverviewService: NSObject, DoesLog {
   
   var loadingDates: [String] = []
   
-  
+  func checkForNewIssues() {
+    log("ToDo, check for new Issues")
+  }
   
   
   /// server request data

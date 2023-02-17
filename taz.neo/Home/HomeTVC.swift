@@ -23,6 +23,24 @@ protocol PushIssueDelegate {
 
 class HomeTVC: UITableViewController {
   
+  /// should show PDF Info Toast on startup (from config defaults)
+  @Default("showPdfInfoToast")
+  public var showPdfInfoToast: Bool
+  
+  @Default("showBottomTilesAnimation")
+  public var showBottomTilesAnimation: Bool
+  
+  @Default("bottomTilesAnimationLastShown")
+  public var bottomTilesAnimationLastShown: Date
+  
+  @Default("bottomTilesLastShown")
+  public var bottomTilesLastShown: Date
+  
+  @Default("bottomTilesShown")
+  public var bottomTilesShown: Int {
+    didSet { if bottomTilesShown > 10 { showBottomTilesAnimation = false }  }
+  }
+  
   /// Are we in facsimile mode
   @Default("isFacsimile")
   public var isFacsimile: Bool
@@ -35,6 +53,7 @@ class HomeTVC: UITableViewController {
   var loadingIssueInfos:[IssueDisplayService] = []
   var issueInfo:IssueDisplayService?
   var feederContext:FeederContext
+  var issueOverviewService: IssueOverviewService
   
   override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
   //  var service: DataService
@@ -65,12 +84,18 @@ class HomeTVC: UITableViewController {
    */
   // MARK: - UI Components / Vars
   
+  var pickerCtrl : DatePickerController?
+  var overlay : Overlay?
+  
   var carouselController: IssueCarouselCVC
   var tilesController: IssueTilesCVC
   var wasUp = true
   
   var carouselControllerCell: UITableViewCell
   var tilesControllerCell: UITableViewCell
+  
+  /// Animation for ScrollDown
+  var scrollDownAnimationView: ScrollDownAnimationView?
   
   lazy var togglePdfButton: Button<ImageView> = {
     return createTogglePdfButton()
@@ -91,29 +116,21 @@ class HomeTVC: UITableViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    prepareCarouselControllerCell()
-    prepareTilesControllerCell()
-    
     self.view.backgroundColor = .black
     self.tableView.showsVerticalScrollIndicator = false
     self.tableView.showsHorizontalScrollIndicator = false
     
-    if let ncView = self.navigationController?.view {
-      ncView.addSubview(togglePdfButton)
-      btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
-      pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
-      
-      ncView.addSubview(topGradient)
-      topGradient.pinHeight(UIWindow.maxAxisInset)
-      pin(topGradient.left, to: ncView.left)
-      pin(topGradient.right, to: ncView.right)
-      pin(topGradient.top, to: ncView.top)
-    }
+    setupCarouselControllerCell()
+    setupTilesControllerCell()
+    setupTogglePdfButton()
+    setupTopGradient()
+    setupDateButton()
   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     setNeedsStatusBarAppearanceUpdate()
+    updateCarouselSize(size: self.view.frame.size)
   }
   
   public override func viewWillDisappear(_ animated: Bool) {
@@ -124,8 +141,21 @@ class HomeTVC: UITableViewController {
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     togglePdfButton.showAnimated()
+    showPdfInfoIfNeeded()
   }
   
+  var nextHorizontalSizeClass:UIUserInterfaceSizeClass?
+  
+  override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+    nextHorizontalSizeClass = newCollection.horizontalSizeClass
+    super.willTransition(to: newCollection, with: coordinator)
+  }
+  
+  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    updateCarouselSize(size: size, horizontalSizeClass: nextHorizontalSizeClass)
+    nextHorizontalSizeClass = nil
+  }
   
   // MARK: - Table view data source
   
@@ -152,6 +182,7 @@ class HomeTVC: UITableViewController {
     carouselController = IssueCarouselCVC(service: service)
     tilesController = IssueTilesCVC(service: service)
     self.feederContext = feederContext
+    self.issueOverviewService = service
     
     carouselControllerCell =  UITableViewCell()
     tilesControllerCell = UITableViewCell()
@@ -273,12 +304,26 @@ extension HomeTVC: PushIssueDelegate {
 }
 
 
-// MARK: - Cell Factory
+// MARK: - Subview Setup/Configuration
 extension HomeTVC {
   
-  fileprivate func prepareCarouselControllerCell() {
+  fileprivate func updateCarouselSize(size:CGSize, horizontalSizeClass:UIUserInterfaceSizeClass? = nil){
+    let horizontalSizeClass
+    = horizontalSizeClass ?? self.traitCollection.horizontalSizeClass
+    carouselController
+      .updateCarouselSize(size,
+                          horizontalSizeClass: horizontalSizeClass)
+  }
+  
+  fileprivate func setupTilesControllerCell() {
+    tilesControllerCell.contentView.addSubview(tilesController.view)
+    pin(tilesController.view, to: tilesControllerCell)
+  }
+  
+  fileprivate func setupCarouselControllerCell() {
     carouselControllerCell.contentView.addSubview(carouselController.view)
-    pin(carouselController.view, to: carouselControllerCell)
+    pin(carouselController.view, toSafe: carouselControllerCell).bottom.constant = -UIWindow.topInset
+    carouselControllerCell.backgroundColor = .clear
     
     Notification.receive(Const.NotificationNames.authenticationSucceeded) { _ in
       onMainAfter {[weak self] in self?.updateLoginButton() }
@@ -289,7 +334,7 @@ extension HomeTVC {
     updateLoginButton()
   }
   
-  func updateLoginButton(){
+  fileprivate func updateLoginButton(){
     if self.feederContext.isAuthenticated {
       loginButton.removeFromSuperview()
       return
@@ -300,11 +345,73 @@ extension HomeTVC {
     topGradient.bringToFront()
   }
   
-  fileprivate func prepareTilesControllerCell() {
-    tilesControllerCell.contentView.addSubview(tilesController.view)
-    pin(tilesController.view, to: tilesControllerCell)
+  fileprivate func setupTogglePdfButton(){
+    guard let ncView = navigationController?.view else { return }
+    ncView.addSubview(togglePdfButton)
+    btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
+    pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
   }
   
+  fileprivate func setupTopGradient(){
+    guard let ncView = navigationController?.view else { return }
+    ncView.addSubview(topGradient)
+    topGradient.pinHeight(UIWindow.maxAxisInset)
+    pin(topGradient.left, to: ncView.left)
+    pin(topGradient.right, to: ncView.right)
+    pin(topGradient.top, to: ncView.top)
+  }
+  
+  fileprivate func setupDateButton(){
+
+  }
+  
+ 
+}
+
+extension HomeTVC {
+  func showDatePicker(){
+    #warning("setup dates and more")
+//    let fromDate = feed.firstIssue
+//    let toDate = feed.lastIssue
+    
+    if pickerCtrl == nil {
+      var min = Date()
+      min.addDays(-20)
+      pickerCtrl = DatePickerController(minimumDate: min,
+                                         maximumDate: Date(),
+                                         selectedDate: Date())
+      pickerCtrl?.pickerFont = Const.Fonts.contentFont
+    }
+    guard let pickerCtrl = pickerCtrl else { return }
+    
+    if overlay == nil {
+      overlay = Overlay(overlay:pickerCtrl , into: self)
+      overlay?.enablePinchAndPan = false
+      overlay?.maxAlpha = 0.9
+    }
+        
+//    pickerCtrl.doneHandler = {
+//      self.overlay?.close(animated: true)
+//      self.provideOverview(at: pickerCtrl.selectedDate)
+//    }
+    
+    pickerCtrl.doneHandler = {
+      let dstr = pickerCtrl.selectedDate.gDate(tz: self.feederContext.gqlFeeder.timeZone)
+      Alert.message(title: "Baustelle",
+                    message: "Hier werden später die Ausgaben um den \"\(dstr)\" angezeigt.") { [weak self] in
+        self?.overlay?.close(animated: true)
+      }
+    }
+    overlay?.onClose(closure: {  [weak self] in
+      self?.overlay = nil
+      self?.pickerCtrl = nil
+    })
+    
+    //Update labelButton Offset
+//    pickerCtrl.bottomOffset = issueCarousel.labelTopConstraintConstant + 50
+    
+    overlay?.openAnimated(fromView: loginButton, toView: pickerCtrl.content)
+  }
 }
 
 // MARK: - UI Components Creation Helper
@@ -349,5 +456,82 @@ extension HomeTVC {
        self?.feederContext.authenticate()
     }
     return wrapper
+  }
+}
+
+
+// MARK: - showScrollDownAnimationIfNeeded
+extension HomeTVC {
+  
+  
+  /// shows an animation to generate the user's interest in the lower area
+  ///  **Requirements to show animation:**
+  ///
+  ///  **showBottomTilesAnimation** ConfigDefault is true
+  ///  **bottomTilesLastShown** is at least 24h ago
+  ///  **bottomTilesAnimationLastShown** is at least 30s ago
+  ///  - no active animation
+  ///
+  /// - Parameter delay: delay after animation started if applicable
+  func showScrollDownAnimationIfNeeded(delay:Double = 2.0) {
+    if showBottomTilesAnimation == false { return }
+    guard (Date().timeIntervalSince(bottomTilesLastShown) >= 60*60*24) &&
+          (Date().timeIntervalSince(bottomTilesAnimationLastShown) >= 30)
+    else { return }
+    
+    if scrollDownAnimationView == nil {
+      scrollDownAnimationView = ScrollDownAnimationView()
+    }
+    
+    guard let scrollDownAnimation = scrollDownAnimationView else {
+      return
+    }
+    
+    if scrollDownAnimation.superview == nil {
+      self.view.addSubview(scrollDownAnimation)
+      scrollDownAnimation.centerX()
+      pin(scrollDownAnimation.bottom, to: self.view.bottomGuide(), dist: -12)
+    }
+    
+    onMainAfter(delay) {   [weak self] in
+      self?.scrollDownAnimationView?.animate()
+      self?.bottomTilesAnimationLastShown = Date()
+    }
+  }
+}
+
+// MARK: - ShowPDF Info Toast
+extension HomeTVC {
+  func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
+    if showPdfInfoToast == false {
+      showScrollDownAnimationIfNeeded()
+      return
+    }
+    
+    onThreadAfter(delay) { [weak self] in
+        guard let url = Bundle.main.url(forResource: "lottiePopup",
+                                     withExtension: "html",
+                                        subdirectory: "BundledResources") else {
+          self?.log("Bundled lottie HTML not found!")
+          return
+        }
+      
+        let file = File(url)
+        guard file.exists  else {
+          self?.log("Bundled lottie HTML File not found!")
+          return
+        }
+      
+      InfoToast.showWith(lottieUrl: url,
+                          title: "Entdecken Sie jetzt die Zeitungsansicht",
+                          text: "Hier können Sie zwischen der mobilen und der Ansicht der Zeitungsseiten wechseln",
+                          buttonText: "OK",
+                          hasCloseX: true,
+                          autoDisappearAfter: nil) {   [weak self] in
+        self?.log("PdfInfoToast showen and closed")
+        self?.showPdfInfoToast = false
+        self?.showScrollDownAnimationIfNeeded()
+      }
+    }
   }
 }

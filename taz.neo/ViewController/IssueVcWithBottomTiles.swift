@@ -796,9 +796,11 @@ class StatusHeader: UIView {
     pin(activityIndicator.top, to: self.top, dist: Const.Dist.margin)
     
     pin(label.left, to: self.left, dist: Const.Dist.margin)
-    pin(label.right, to: self.right, dist: Const.Dist.margin)
+    pin(label.right, to: self.right, dist: -Const.Dist.margin)
     pin(label.top, to: activityIndicator.bottom, dist: Const.Dist.margin)
-    pin(label.bottom, to: self.bottom, dist: Const.Dist.margin)
+    pin(label.bottom, to: self.bottom, dist: 0)
+    label.addBorder(.red)
+    activityIndicator.addBorder(.red)
   }
 
   
