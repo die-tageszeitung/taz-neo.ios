@@ -108,16 +108,6 @@ class IssueCarouselCVC: UICollectionViewController {
        scrollView.contentOffset.x < -50 {
       handler()
     }
-    ///Stop fix offset NOT WORKING HERE for manuell stops
-    /*
-    ///Fix cell offset if user manually stops
-    guard let cv = collectionView else { return }
-    let center = self.view.convert(targetContentOffset.pointee, to: cv)
-    guard let ip = cv.indexPathForItem(at: center) else { return }
-    self.collectionView.scrollToItem(at: ip,
-                                     at: .centeredHorizontally,
-                                     animated: true)
-     */
   }
    
   
@@ -126,14 +116,6 @@ class IssueCarouselCVC: UICollectionViewController {
     dateLabel.alpha = 0.2
     downloadButton.alpha = 0.5
   }
-
-  ///Stop fix offset NOT WORKING HERE => Strange Behaviour! for manuell stops
-//  override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-//    guard let centerIndex else { return }
-//    self.collectionView.scrollToItem(at: IndexPath(row: centerIndex, section: 0),
-//                                     at: .centeredHorizontally,
-//                                     animated: true)
-//  }
   
   ///Stop fix offset IS VERRY SLOW HERE for manuell stops
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
