@@ -14,8 +14,6 @@ import NorthLib
  Motivation: Helper to load Data from Server uses FeederContext
  
  Next Steps:
- - load more issues
- - switch pdf/issue
  open issue
  download button
  
@@ -32,12 +30,10 @@ import NorthLib
       ** ** Haben alle Zellen listener? Auf iPad Pro 12" können das 30 Zellen sein
       ** ** ständiges hinzufügen/entfernen von Listener bringt auch nichts
  
- 
  finish callback?
  
  TODO REFACTOR
  */
-
 
 //schneller switch PDF - Moment? >> muss verhindern, dass in App Ansicht PDF Moment gezeigt wird!
 
@@ -91,6 +87,27 @@ class IssueOverviewService: NSObject, DoesLog {
     return issueDates.firstIndex(where: { $0 <= date }) ?? 0
   }
   
+  var carousselUpdateStatusButton: DownloadStatusButton?
+  var carousselActiveDownloadIssue: StoredIssue?
+  
+  func download(issueAtIndex: Int?, updateStatusButton: DownloadStatusButton?) {
+    updateStatusButton?.indicator.downloadState = .waiting
+    guard let idx = issueAtIndex,
+        let issue = issue(at: idx),
+          hasDownloadableContent(issue: issue) else {
+      self.log("not downloading for idx: \(issueAtIndex ?? -1)")
+      return
+    }
+    updateStatusButton?.indicator.percent = 0.0
+    
+    self.carousselUpdateStatusButton = updateStatusButton
+    self.carousselActiveDownloadIssue = issue
+    
+    feederContext.getCompleteIssue(issue: issue,
+                                   isPages: self.isFacsimile,
+                                   isAutomatically: false)
+  }
+  
   func issueDownloadState(at index: Int) -> DownloadStatusIndicatorState {
     guard let d = date(at: index) else { return .notStarted }
     guard let issue = issue(at: d) else { return .notStarted }
@@ -102,6 +119,21 @@ class IssueOverviewService: NSObject, DoesLog {
   
   func issue(at date: Date) -> StoredIssue? {
     return issues[date.key]
+  }
+  
+  func issue(at index: Int) -> StoredIssue? {
+    /* WTF? 
+    if index + 3 > issues.count {
+      if let lastIssue = issues.sorted(by: { $0.0 > $1.0 }).last?.key as? Date {
+        let sIssues = StoredIssue.issuesInFeed(feed: feed)
+        for issue in sIssues {
+          issues[issue.date.key] = issue
+        }
+      }
+    }
+*/
+    guard let date = issueDates.valueAt(index) else { return nil }
+    return issue(at: date)
   }
   
   func issue(at date: String) -> StoredIssue? {
@@ -151,60 +183,7 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     return (start ?? date , count)
   }
-  
-  func XXXapiLoadIssue(for date: Date) {
-    
-    
-    let (start, count) = loadParameter(for: date)
-    var lds:[String] = []
-    for i in 0...count {
-      var d = date
-      d.addDays(-i)
-      lds.append(d.key)
-    }
-
-    guard count > 0 else {
-      return
-    }
-    
-    guard lds.count > 0 else {
-      return
-    }
-    
-    //remember which issue Overviews are loaded currently
-    loadingDates.append(contentsOf: lds)
-    
-    //skip if offline
-#warning("Mybe improve here!")
-    guard feederContext.isConnected else { return }
-    
-    log(">> Load \(count) Issues from: \(start.short)")
-    
-    self.feederContext.gqlFeeder.issues(feed: feed,
-                                        date: start,
-                                        count: count,
-                                        isOverview: isFacsimile,
-                                        returnOnMain: true) {[weak self] res in
-      guard let self = self else { return }
-      if let issues = res.value() {
-        for issue in issues {
-          let si = StoredIssue.persist(object: issue)
-          self.issues[issue.date.key] = si
-        }
-        ArticleDB.save()
-        for issue in issues {
-          Notification.send(Const.NotificationNames.issueUpdate,
-                            content: issue.date,
-                            sender: self)
-        }
-      }
-      else {//handle failures
-          //Try again
-        //handle offline?
-      }
-    }
-  }
-  
+   
   func apiLoadPreview(for date: Date, isAutoEnqueued:Bool = false) {
     if isAutoEnqueued && issue(at: date) != nil {
       debug("Already loaded: \(date.key) skip loading")
@@ -254,29 +233,6 @@ class IssueOverviewService: NSObject, DoesLog {
     apiLoadPreview(for: next, isAutoEnqueued: true)
   }
   
-  
-  func getIssue(at index: Int) -> StoredIssue? {
-    if index + 3 > issues.count {
-      if let lastIssue = issues.sorted(by: { $0.0 > $1.0 }).last?.key as? Date {
-        let sIssues = StoredIssue.issuesInFeed(feed: feed)
-        for issue in sIssues {
-          issues[issue.date.key] = issue
-        }
-      }
-    }
-    
-    
-    guard let date = date(at: index) else { return nil }
-    guard let issue = issues[date.key] else {
-#warning("ASYNC TODO")
-      //      loadOverviews(fromDate: date, isPdf: isFacsimile)
-      return nil
-    }
-    return issue
-  }
-  
-  
-  
   func hasDownloadableContent(issue: Issue) -> Bool {
     guard let sIssue = issue as? StoredIssue else { return true }
     return feederContext.needsUpdate(issue: sIssue,toShowPdf: isFacsimile)
@@ -291,36 +247,6 @@ class IssueOverviewService: NSObject, DoesLog {
   
   
   
-
-  //
-  //  func loadOverviews(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
-  //
-  //  }
-  
-  //  func loadOverview(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
-  //    do {
-  //      return try await withCheckedThrowingContinuation { continuation in
-  //        loadOverview(fromDate: fromDate, isPdf: isPdf) { result in
-  //          continuation.resume(with: result)
-  //        }
-  //      }
-  //    }
-  //    catch {
-  //      return nil
-  //    }
-  //  }
-  
-  //  func loadOverview2(fromDate: Date, isPdf: Bool) async -> [UIImage]?{
-  //    return nil
-  ////    return try await withCheckedThrowingContinuation { continuation in
-  ////      loadOverview(fromDate: fromDate, isPdf: isPdf) { result in
-  ////        continuation.resume(with: result)
-  ////      }
-  ////    }
-  ////    catch {
-  ////      return nil
-  ////    }
-  //  }
   
   func apiLoadMomentImages(for issue: StoredIssue, isPdf: Bool){
     loadPreviewsQueue.async {[weak self] in
@@ -372,16 +298,29 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func setup(){
-
+    setupCarousselProgressButton()
   }
   
-//  func addIssue(issue: StoredIssue, isError: Bool = false){
-//    if let oldIssue = issues[issue.date] {
-//      debug("overwriting \(oldIssue) with: \(issue)")
-//    }
-//    issues[issue.date] = issue
-//  }
-  
+  func setupCarousselProgressButton(){
+    Notification.receive("issueProgress", closure: { [weak self] notif in
+      guard let self,
+      let btn = self.carousselUpdateStatusButton,
+      let issue = self.carousselActiveDownloadIssue,
+      (notif.object as? Issue)?.date == issue.date else { return }
+      if let (loaded,total) = notif.content as? (Int64,Int64) {
+        let percent = Float(loaded)/Float(total)
+        if percent > 0.05 {
+          btn.indicator.downloadState = .process
+          btn.indicator.percent = percent
+        }
+        if percent == 1.0 {
+          self.carousselUpdateStatusButton = nil
+          self.carousselActiveDownloadIssue = nil
+        }
+      }
+    })
+  }
+    
   /// Initialize with FeederContext
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext

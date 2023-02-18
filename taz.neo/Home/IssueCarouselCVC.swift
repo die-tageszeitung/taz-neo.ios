@@ -57,18 +57,21 @@ class IssueCarouselCVC: UICollectionViewController {
     statusWrapperWidthConstraint = v.pinWidth(0)
     dateLabel.contentFont().white()
     dateLabel.textAlignment = .center
-    pin(downloadButton.right, to: v.right)
-    downloadButton.centerY()
+    pin(downloadButton, to: v, exclude: .left)
     downloadButton.color = .white
     pin(dateLabel.left, to: v.left, dist: 25)
     pin(dateLabel.right, to: v.right, dist: -25)
     dateLabel.centerY()
-    v.pinHeight(30)
+    v.pinHeight(28)
     
     dateLabel.onTapping {[weak self] _ in
       self?.showDatePicker()
     }
-    
+    downloadButton.onTapping { [weak self] _ in
+      if self?.downloadButton.indicator.downloadState == .done { return }
+      self?.service.download(issueAtIndex: self?.centerIndex,
+                             updateStatusButton: self?.downloadButton)
+    }
     return v
   }()
   
@@ -110,7 +113,7 @@ class IssueCarouselCVC: UICollectionViewController {
 
   override func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
     if let handler = pullToLoadMoreHandler,
-       scrollView.contentOffset.x < -50 {
+       scrollView.contentOffset.x < -1.3*self.collectionView.contentInset.left {
       handler()
     }
   }
@@ -177,7 +180,7 @@ class IssueCarouselCVC: UICollectionViewController {
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,
                                       didSelectItemAt indexPath: IndexPath) {
-    guard let issue = self.service.getIssue(at: indexPath.row) else {
+    guard let issue = self.service.issue(at: indexPath.row) else {
       error("Issue not available try later")
       return
     }
@@ -347,7 +350,7 @@ extension IssueCarouselCVC {
 //    let toDate = feed.lastIssue
     
     if pickerCtrl == nil {
-      let selected = service.date(at: lastCenterIndex ?? 0)
+      let selected = service.date(at: centerIndex ?? 0)
       pickerCtrl = DatePickerController(minimumDate: service.firstIssueDate,
                                         maximumDate: service.lastIssueDate,
                                          selectedDate: selected ?? service.firstIssueDate)

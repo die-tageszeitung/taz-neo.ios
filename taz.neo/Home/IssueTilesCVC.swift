@@ -87,7 +87,7 @@ class IssueTilesCVC: UICollectionViewController {
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,
                                       didSelectItemAt indexPath: IndexPath) {
-    guard let issue = self.service.getIssue(at: indexPath.row) else {
+    guard let issue = self.service.issue(at: indexPath.row) else {
       error("Issue not available try later")
       return
     }
