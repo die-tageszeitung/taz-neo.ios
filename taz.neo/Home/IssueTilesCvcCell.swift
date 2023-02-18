@@ -57,16 +57,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     }
     
     momentView.isActivity = issue.isDownloading
-    
-    if issue.isDownloading {
-      button.indicator.downloadState = .waiting
-    }
-    else if issue.status.downloaded {
-      button.indicator.downloadState = .done
-    }
-    else {
-      button.indicator.downloadState = .notStarted
-    }
+    button.setStatus(from: issue)
   }
   
   func updateTraitCollection(_ traitCollection: UITraitCollection){

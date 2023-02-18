@@ -26,8 +26,9 @@ class IssueCarouselCVC: UICollectionViewController {
     didSet { if bottomTilesShown > 10 { showBottomTilesAnimation = false }  }
   }
   
-  private var statusButtonBottomConstraint: NSLayoutConstraint?
   private var topStatusButtonConstraint:NSLayoutConstraint?
+  private var statusWrapperBottomConstraint: NSLayoutConstraint?
+  private var statusWrapperWidthConstraint:NSLayoutConstraint?
   
   /// Animation for ScrollDown
   var scrollDownAnimationView: ScrollDownAnimationView?
@@ -43,13 +44,28 @@ class IssueCarouselCVC: UICollectionViewController {
     return cv.indexPathForItem(at: center)?.row
   }
   
+  let downloadButton = DownloadStatusButton()
+  let dateLabel = CrossfadeLabel()
   
-  var statusButton: UILabel = {
-    let lb = UILabel()
-    lb.text = "Press Me"
-    lb.boldContentFont().white()
-    lb.addBorder(.blue)
-    return lb
+  lazy var bottomItemsWrapper: UIView = {
+    let v = UIView()
+    v.addSubview(downloadButton)
+    v.addSubview(dateLabel)
+    statusWrapperWidthConstraint = v.pinWidth(0)
+    dateLabel.contentFont().white()
+    dateLabel.textAlignment = .center
+    pin(downloadButton.right, to: v.right)
+    downloadButton.centerY()
+    pin(dateLabel.left, to: v.left, dist: 25)
+    pin(dateLabel.right, to: v.right, dist: -25)
+    dateLabel.centerY()
+    v.pinHeight(30)
+    
+    dateLabel.onTapping { _ in
+      
+    }
+    
+    return v
   }()
   
   
@@ -68,9 +84,9 @@ class IssueCarouselCVC: UICollectionViewController {
                                   forCellWithReuseIdentifier: Self.reuseCellId)
     self.collectionView.backgroundColor = .black
     
-    self.view.addSubview(statusButton)
-    statusButton.centerX()
-    statusButtonBottomConstraint = pin(statusButton.top, to: self.view.bottom, dist: 0)
+    self.view.addSubview(bottomItemsWrapper)
+    bottomItemsWrapper.centerX()
+    statusWrapperBottomConstraint = pin(bottomItemsWrapper.top, to: self.view.bottom, dist: 0)
     setupPullToRefresh()
   }
     
@@ -86,11 +102,63 @@ class IssueCarouselCVC: UICollectionViewController {
     }
   }
     
+
   override func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
     if let handler = pullToLoadMoreHandler,
        scrollView.contentOffset.x < -50 {
       handler()
     }
+    ///Stop fix offset NOT WORKING HERE for manuell stops
+    /*
+    ///Fix cell offset if user manually stops
+    guard let cv = collectionView else { return }
+    let center = self.view.convert(targetContentOffset.pointee, to: cv)
+    guard let ip = cv.indexPathForItem(at: center) else { return }
+    self.collectionView.scrollToItem(at: ip,
+                                     at: .centeredHorizontally,
+                                     animated: true)
+     */
+  }
+   
+  
+  override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    bottomItemsWrapper.isUserInteractionEnabled = false
+    dateLabel.alpha = 0.2
+    downloadButton.alpha = 0.5
+  }
+
+  ///Stop fix offset NOT WORKING HERE => Strange Behaviour! for manuell stops
+//  override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+//    guard let centerIndex else { return }
+//    self.collectionView.scrollToItem(at: IndexPath(row: centerIndex, section: 0),
+//                                     at: .centeredHorizontally,
+//                                     animated: true)
+//  }
+  
+  ///Stop fix offset IS VERRY SLOW HERE for manuell stops
+  override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    ///Problem scrolle oder springe (und ggf scrolle) DONE
+    ///komme an index wo nur das Datum aber nicht das issue bekannt ist
+    ///kein issue => zeige download wolke TODO
+    ///issue zeige zustand und richtiges datum (wochentaz) TODO
+    ///...
+    ///war kein issue da..kommt dann rein...refresh date TODO
+    guard let idx = centerIndex,
+          let date = service.date(at: idx) else { return }
+    let issue = service.issue(at: date)
+    let txt
+    = issue?.validityDateText(timeZone: GqlFeeder.tz,
+                              short: true)
+    ?? date.short
+    dateLabel.setText(txt)
+    downloadButton.setStatus(from: issue)
+    downloadButton.alpha = 1.0
+    
+        guard let centerIndex else { return }
+        self.collectionView.scrollToItem(at: IndexPath(row: centerIndex, section: 0),
+                                         at: .centeredHorizontally,
+                                         animated: true)
+    
   }
     
   // MARK: UICollectionViewDataSource
@@ -171,31 +239,33 @@ extension IssueCarouselCVC {
     let defaultPageRatio:CGFloat = 0.670219
     
     var sideInset = 0.0
+    var cw: CGFloat//cellWidth
     //https://developer.apple.com/design/human-interface-guidelines/foundations/layout/
     if horizontalSizeClass == .compact && size.width < size.height * 0.6 {
-      let w = size.width*0.6
-      let h = w/defaultPageRatio
-      layout.itemSize = CGSize(width: w, height: h)
+      cw = size.width*0.6
+      let h = cw/defaultPageRatio
+      layout.itemSize = CGSize(width: cw, height: h)
       layout.minimumLineSpacing //= 60.0
       = size.width*0.155//0.3/2 out of view bei 0.4/2
-      sideInset = (size.width - w)/2
+      sideInset = (size.width - cw)/2
     } else {
       //Moments are 660*985
       let h = min(size.height*0.5, 985*UIScreen.main.scale)
-      let w = h*defaultPageRatio
-      layout.itemSize = CGSize(width: w, height: h)
+      cw = h*defaultPageRatio
+      layout.itemSize = CGSize(width: cw, height: h)
       layout.minimumLineSpacing //= 60.0
-      = w*0.3//0.3/2 out of view bei 0.4/2
-      sideInset = (size.width - w)/2
+      = cw*0.3//0.3/2 out of view bei 0.4/2
+      sideInset = (size.width - cw)/2
     }
 
     let  offset = 0.5*( size.height
              - UIWindow.topInset
              - layout.maxScale*layout.itemSize.height) - 10
-    print("dist is: -0,5* (\(size.height)   -   \(UIWindow.topInset)   -   \(layout.maxScale*layout.itemSize.height))=\(statusButtonBottomConstraint?.constant ?? 0)\n  0.5 * ( size.height - UIWindow.safeInsets.top - HomeTVC.defaultHeight - layout.maxScale*layout.itemSize.height)")
+//    print("dist is: -0,5* (\(size.height)   -   \(UIWindow.topInset)   -   \(layout.maxScale*layout.itemSize.height))=\(statusWrapperBottomConstraint?.constant ?? 0)\n  0.5 * ( size.height - UIWindow.safeInsets.top - HomeTVC.defaultHeight - layout.maxScale*layout.itemSize.height)")
     
     topStatusButtonConstraint?.constant = offset
-    statusButtonBottomConstraint?.constant = -offset
+    statusWrapperBottomConstraint?.constant = -offset
+    statusWrapperWidthConstraint?.constant = cw*layout.maxScale
     
     self.collectionView.contentInset
     = UIEdgeInsets(top:0,left:sideInset,bottom:0,right:sideInset)

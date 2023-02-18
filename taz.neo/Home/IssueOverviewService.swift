@@ -61,6 +61,12 @@ class IssueOverviewService: NSObject, DoesLog {
   public private(set) var issueDates: [Date]
   private var issues: [String:StoredIssue]
   
+  
+  /// cell data to display issue cell in caroussel or tiles
+  /// start download for issuePreview if no data available
+  /// start download for image if no image available
+  /// - Parameter index: index for requested cell
+  /// - Returns: cell data if any with date, issue if locally available, image if locally available
   func cellData(for index: Int) -> IssueCellData? {
     guard let date = date(at: index) else {
       error("No Entry for: \(index), This should not be requested")
