@@ -33,7 +33,7 @@ class IssueCarouselCVC: UICollectionViewController {
   /// Animation for ScrollDown
   var scrollDownAnimationView: ScrollDownAnimationView?
   
-  public var pullToLoadMoreHandler: (()->())?
+  private var pullToLoadMoreHandler: (()->())?
   private static let reuseCellId = "issueCollectionViewCell"
   
   var lastCenterIndex: Int?
@@ -70,7 +70,7 @@ class IssueCarouselCVC: UICollectionViewController {
   }()
   
   
-  lazy var statusHeader = StatusHeader()
+  lazy var statusHeader = FetchNewStatusHeader()
 
   var service: IssueOverviewService
   
@@ -268,7 +268,6 @@ extension IssueCarouselCVC {
     topStatusButtonConstraint = pin(statusHeader.bottom, to: self.view.top, dist: 0)
     #warning("ToDo check for new issues implementation and remove status")
     #warning("ToDo statusHeader is wrong pos")
-    statusHeader.currentStatus = .fetchNewIssues
     statusHeader.onTapping { [weak self] _ in
     }
     /**

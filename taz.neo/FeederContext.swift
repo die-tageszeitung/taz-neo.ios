@@ -143,7 +143,7 @@ open class FeederContext: DoesLog {
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
     notify("feederReachable")
     //disables offline status label
-    Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
+    Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.none, error: nil, sender: self)
   }
   
   /// Feeder is not reachable
@@ -738,14 +738,14 @@ open class FeederContext: DoesLog {
         let ndays = (now.sec - latestIssueDate.sec) / (3600*24) + 1
         getOvwIssues(feed: feed, count: Int(ndays), isAutomatically: isAutomatically)
       } else {
-        Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
+        Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.none, error: nil, sender: self)
       }
     }
     else if self.isConnected == false {
-      Notification.send("checkForNewIssues", content: StatusHeader.status.offline, error: nil, sender: self)
+      Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.offline, error: nil, sender: self)
     }
     else {
-      Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
+      Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.none, error: nil, sender: self)
     }
   }
   

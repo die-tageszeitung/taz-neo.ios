@@ -609,12 +609,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if self.issues.count - idx <= 1 {
         if self.feederContext.isConnected == false {
           Notification.send("checkForNewIssues",
-                            content: StatusHeader.status.offline,
+                            content: FetchNewStatusHeader.status.offline,
                             error: nil,
                             sender: self.feederContext)
         } else {
           Notification.send("checkForNewIssues",
-                            content: StatusHeader.status.fetchMoreIssues,
+                            content: FetchNewStatusHeader.status.fetchMoreIssues,
                             error: nil,
                             sender: self.feederContext)
         }
