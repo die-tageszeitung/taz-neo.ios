@@ -56,6 +56,7 @@ class IssueCarouselCVC: UICollectionViewController {
     dateLabel.textAlignment = .center
     pin(downloadButton.right, to: v.right)
     downloadButton.centerY()
+    downloadButton.color = .white
     pin(dateLabel.left, to: v.left, dist: 25)
     pin(dateLabel.right, to: v.right, dist: -25)
     dateLabel.centerY()
@@ -88,6 +89,7 @@ class IssueCarouselCVC: UICollectionViewController {
     bottomItemsWrapper.centerX()
     statusWrapperBottomConstraint = pin(bottomItemsWrapper.top, to: self.view.bottom, dist: 0)
     setupPullToRefresh()
+    updateBottomWrapper(for: 0)
   }
     
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -110,8 +112,7 @@ class IssueCarouselCVC: UICollectionViewController {
     }
   }
    
-  
-  override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+  override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
     bottomItemsWrapper.isUserInteractionEnabled = false
     dateLabel.alpha = 0.2
     downloadButton.alpha = 0.5
@@ -125,22 +126,22 @@ class IssueCarouselCVC: UICollectionViewController {
     ///issue zeige zustand und richtiges datum (wochentaz) TODO
     ///...
     ///war kein issue da..kommt dann rein...refresh date TODO
-    guard let idx = centerIndex,
-          let date = service.date(at: idx) else { return }
+    guard let centerIndex else { return }
+    updateBottomWrapper(for: centerIndex)
+    self.collectionView.scrollToItem(at: IndexPath(row: centerIndex, section: 0),
+                                     at: .centeredHorizontally,
+                                     animated: true)
+  }
+  
+  func updateBottomWrapper(for cidx: Int){
+    guard let date = service.date(at: cidx) else { return }
     let issue = service.issue(at: date)
-    let txt
-    = issue?.validityDateText(timeZone: GqlFeeder.tz,
-                              short: true)
+    let txt = issue?.validityDateText(timeZone: GqlFeeder.tz,
+                                      short: true)
     ?? date.short
     dateLabel.setText(txt)
-    downloadButton.setStatus(from: issue)
+    downloadButton.indicator.downloadState = service.issueDownloadState(at: cidx)
     downloadButton.alpha = 1.0
-    
-        guard let centerIndex else { return }
-        self.collectionView.scrollToItem(at: IndexPath(row: centerIndex, section: 0),
-                                         at: .centeredHorizontally,
-                                         animated: true)
-    
   }
     
   // MARK: UICollectionViewDataSource

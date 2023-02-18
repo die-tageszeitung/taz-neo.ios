@@ -57,7 +57,8 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     }
     
     momentView.isActivity = issue.isDownloading
-    button.setStatus(from: issue)
+    #warning("ToDo Update Cell")
+//    button.setStatus(from: issue)
   }
   
   func updateTraitCollection(_ traitCollection: UITraitCollection){

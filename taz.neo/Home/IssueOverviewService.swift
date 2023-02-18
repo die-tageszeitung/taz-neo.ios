@@ -85,6 +85,15 @@ class IssueOverviewService: NSObject, DoesLog {
     return issueDates.valueAt(index)
   }
   
+  func issueDownloadState(at index: Int) -> DownloadStatusIndicatorState {
+    guard let d = date(at: index) else { return .notStarted }
+    guard let issue = issue(at: d) else { return .notStarted }
+    if issue.isDownloading { return .process }
+    return feederContext.needsUpdate(issue: issue,toShowPdf: isFacsimile)
+    ? .notStarted
+    : .done
+  }
+  
   func issue(at date: Date) -> StoredIssue? {
     return issues[date.key]
   }
