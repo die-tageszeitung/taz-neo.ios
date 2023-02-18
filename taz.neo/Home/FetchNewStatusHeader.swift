@@ -145,6 +145,7 @@ class FetchNewStatusHeader: UIView {
     addSubview(activityIndicator)
     addSubview(label)
     label.font = Const.Fonts.contentFont(size: 14)
+    activityIndicator.color = .white
     activityIndicator.centerX()
     pin(activityIndicator.top, to: self.top, dist: Const.Dist.margin)
     

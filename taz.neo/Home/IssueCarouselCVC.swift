@@ -47,6 +47,9 @@ class IssueCarouselCVC: UICollectionViewController {
   let downloadButton = DownloadStatusButton()
   let dateLabel = CrossfadeLabel()
   
+  var pickerCtrl : DatePickerController?
+  var overlay : Overlay?
+  
   lazy var bottomItemsWrapper: UIView = {
     let v = UIView()
     v.addSubview(downloadButton)
@@ -62,8 +65,8 @@ class IssueCarouselCVC: UICollectionViewController {
     dateLabel.centerY()
     v.pinHeight(30)
     
-    dateLabel.onTapping { _ in
-      
+    dateLabel.onTapping {[weak self] _ in
+      self?.showDatePicker()
     }
     
     return v
@@ -126,9 +129,14 @@ class IssueCarouselCVC: UICollectionViewController {
     ///issue zeige zustand und richtiges datum (wochentaz) TODO
     ///...
     ///war kein issue da..kommt dann rein...refresh date TODO
+    bottomItemsWrapper.isUserInteractionEnabled = true
     guard let centerIndex else { return }
     updateBottomWrapper(for: centerIndex)
-    self.collectionView.scrollToItem(at: IndexPath(row: centerIndex, section: 0),
+    scrollTo(centerIndex)
+  }
+  
+  func scrollTo(_ index: Int, animated:Bool = true){
+    self.collectionView.scrollToItem(at: IndexPath(row: index, section: 0),
                                      at: .centeredHorizontally,
                                      animated: true)
   }
@@ -329,5 +337,52 @@ extension IssueCarouselCVC {
       self?.scrollDownAnimationView?.animate()
       self?.bottomTilesAnimationLastShown = Date()
     }
+  }
+}
+
+extension IssueCarouselCVC {
+  func showDatePicker(){
+    #warning("setup dates and more")
+//    let fromDate = feed.firstIssue
+//    let toDate = feed.lastIssue
+    
+    if pickerCtrl == nil {
+      let selected = service.date(at: lastCenterIndex ?? 0)
+      pickerCtrl = DatePickerController(minimumDate: service.firstIssueDate,
+                                        maximumDate: service.lastIssueDate,
+                                         selectedDate: selected ?? service.firstIssueDate)
+      pickerCtrl?.pickerFont = Const.Fonts.contentFont
+    }
+    guard let pickerCtrl = pickerCtrl else { return }
+    
+    if overlay == nil {
+      overlay = Overlay(overlay:pickerCtrl , into: self)
+      overlay?.enablePinchAndPan = false
+      overlay?.maxAlpha = 0.9
+    }
+        
+//    pickerCtrl.doneHandler = {
+//      self.overlay?.close(animated: true)
+//      self.provideOverview(at: pickerCtrl.selectedDate)
+//    }
+    
+    pickerCtrl.doneHandler = {[weak self] in
+      guard let self else { return }
+      let date = pickerCtrl.selectedDate
+      let idx = self.service.nextIndex(for: date) 
+      var smallJump = false
+      if let i = self.centerIndex, i.distance(to: idx) < 50 { smallJump = true }
+      self.scrollTo(idx, animated: smallJump)
+      self.overlay?.close(animated: true)
+    }
+    overlay?.onClose(closure: {  [weak self] in
+      self?.overlay = nil
+      self?.pickerCtrl = nil
+    })
+    
+    //Update labelButton Offset
+//    pickerCtrl.bottomOffset = issueCarousel.labelTopConstraintConstant + 50
+    
+    overlay?.openAnimated(fromView: bottomItemsWrapper, toView: pickerCtrl.content)
   }
 }

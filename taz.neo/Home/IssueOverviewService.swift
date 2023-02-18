@@ -59,6 +59,8 @@ class IssueOverviewService: NSObject, DoesLog {
   var feed: StoredFeed
   
   public private(set) var issueDates: [Date]
+  public var firstIssueDate: Date { feed.firstIssue }
+  public var lastIssueDate: Date { feed.lastIssue }
   private var issues: [String:StoredIssue]
   
   
@@ -83,6 +85,10 @@ class IssueOverviewService: NSObject, DoesLog {
   
   func date(at index: Int) -> Date? {
     return issueDates.valueAt(index)
+  }
+  
+  func nextIndex(for date: Date) -> Int {
+    return issueDates.firstIndex(where: { $0 <= date }) ?? 0
   }
   
   func issueDownloadState(at index: Int) -> DownloadStatusIndicatorState {

@@ -347,54 +347,6 @@ extension HomeTVC {
   fileprivate func setupDateButton(){
 
   }
-  
- 
-}
-
-extension HomeTVC {
-  func showDatePicker(){
-    #warning("setup dates and more")
-//    let fromDate = feed.firstIssue
-//    let toDate = feed.lastIssue
-    
-    if pickerCtrl == nil {
-      var min = Date()
-      min.addDays(-20)
-      pickerCtrl = DatePickerController(minimumDate: min,
-                                         maximumDate: Date(),
-                                         selectedDate: Date())
-      pickerCtrl?.pickerFont = Const.Fonts.contentFont
-    }
-    guard let pickerCtrl = pickerCtrl else { return }
-    
-    if overlay == nil {
-      overlay = Overlay(overlay:pickerCtrl , into: self)
-      overlay?.enablePinchAndPan = false
-      overlay?.maxAlpha = 0.9
-    }
-        
-//    pickerCtrl.doneHandler = {
-//      self.overlay?.close(animated: true)
-//      self.provideOverview(at: pickerCtrl.selectedDate)
-//    }
-    
-    pickerCtrl.doneHandler = {
-      let dstr = pickerCtrl.selectedDate.gDate(tz: self.feederContext.gqlFeeder.timeZone)
-      Alert.message(title: "Baustelle",
-                    message: "Hier werden später die Ausgaben um den \"\(dstr)\" angezeigt.") { [weak self] in
-        self?.overlay?.close(animated: true)
-      }
-    }
-    overlay?.onClose(closure: {  [weak self] in
-      self?.overlay = nil
-      self?.pickerCtrl = nil
-    })
-    
-    //Update labelButton Offset
-//    pickerCtrl.bottomOffset = issueCarousel.labelTopConstraintConstant + 50
-    
-    overlay?.openAnimated(fromView: loginButton, toView: pickerCtrl.content)
-  }
 }
 
 // MARK: - UI Components Creation Helper
