@@ -184,20 +184,20 @@ class IssueOverviewService: NSObject, DoesLog {
     return (start ?? date , count)
   }
    
-  func apiLoadPreview(for date: Date, isAutoEnqueued:Bool = false) {
-    if isAutoEnqueued && issue(at: date) != nil {
+  func apiLoadPreview(for date: Date?, isAutoEnqueued:Bool = false) {
+    if let date, isAutoEnqueued && issue(at: date) != nil {
       debug("Already loaded: \(date.key) skip loading")
       apiLoadNext()
       return
     }
     
     guard let params = loadingParameters(date: date) else {
-      debug("No valid Loading for: \(date.key); isAutoEnqueued: \(isAutoEnqueued) skip loading")
+      debug("No valid Loading for: \(date?.key ?? "-"); isAutoEnqueued: \(isAutoEnqueued) skip loading")
       apiLoadNext()
       return
     }
     
-    debug("Load Issues for: \(params.startDate.short), count: \(params.count)")
+    debug("Load Issues for: \(params.startDate?.short ?? "-"), count: \(params.count)")
     
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: params.startDate,
@@ -206,13 +206,13 @@ class IssueOverviewService: NSObject, DoesLog {
                                         returnOnMain: true) {[weak self] res in
       guard let self = self else { return }
       var newIssues: [StoredIssue] = []
-      self.debug("Finished load Issues for: \(params.startDate.short), count: \(params.count)")
+      self.debug("Finished load Issues for: \(params.startDate?.short ?? "-"), count: \(params.count)")
       let start = Date()
       if let issues = res.value() {
         for issue in issues {
           newIssues.append(StoredIssue.persist(object: issue))
         }
-        self.log("Finished load Issues for: \(params.startDate.short) DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
+        self.log("Finished load Issues for: \(params.startDate?.short ?? "-") DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
         ArticleDB.save()
         for si in newIssues {
           self.issues[si.date.key] = si
@@ -222,7 +222,7 @@ class IssueOverviewService: NSObject, DoesLog {
         }
       }
       else {
-        self.log("error in preview load from \(params.startDate.short) count: \(params.count)")
+        self.log("error in preview load from \(params.startDate?.short ?? "-") count: \(params.count)")
       }
       self.apiLoadNext()
     }
@@ -296,11 +296,7 @@ class IssueOverviewService: NSObject, DoesLog {
   func updateIssue(issue:StoredIssue){
     self.issues[issue.date.key] = issue
   }
-  
-  func setup(){
-    setupCarousselProgressButton()
-  }
-  
+    
   func setupCarousselProgressButton(){
     Notification.receive("issueProgress", closure: { [weak self] notif in
       guard let self,
@@ -330,14 +326,18 @@ class IssueOverviewService: NSObject, DoesLog {
     issues = StoredIssue.issuesInFeed(feed: feed).reduce(into: [String: StoredIssue]()) {
       $0[$1.date.key] = $1
     }
+
     super.init()
-    setup()
+    if issues.count < 3 {
+      apiLoadPreview(for: nil, isAutoEnqueued: false)
+    }
+    setupCarousselProgressButton()
   }
   
   private var lc = LoadCoordinator()
 }
 
-fileprivate typealias LoadingParams = (startDate: Date, count: Int)
+fileprivate typealias LoadingParams = (startDate: Date?, count: Int)
 
 
 /// A Helper to select next loads
@@ -378,7 +378,12 @@ fileprivate extension IssueOverviewService {
   /// helps to enqueue load overview requests
   /// - Parameter date: date for requested issue
   /// - Returns: load params for api call or nil if load not needed
-  func loadingParameters(date: Date)->LoadingParams?{
+  func loadingParameters(date: Date?)->LoadingParams?{
+    //Initial Load!
+    guard let date else {
+      return LoadingParams(startDate: nil, count: 3)
+    }
+    
     if lc.loadingDates.contains(where: { d in return d == date.key }) {
       debug("Already loading: \(date.key) skip loading")
       return nil
