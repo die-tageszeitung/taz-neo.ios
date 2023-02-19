@@ -202,7 +202,7 @@ class IssueOverviewService: NSObject, DoesLog {
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: params.startDate,
                                         count: params.count,
-                                        isOverview: false,
+                                        isOverview: true,
                                         returnOnMain: true) {[weak self] res in
       guard let self = self else { return }
       var newIssues: [StoredIssue] = []
@@ -214,11 +214,15 @@ class IssueOverviewService: NSObject, DoesLog {
         }
         self.log("Finished load Issues for: \(params.startDate?.short ?? "-") DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
         ArticleDB.save()
+        let sendReload = self.issues.count < 2
         for si in newIssues {
           self.issues[si.date.key] = si
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: si.date,
                             sender: self)
+        }
+        if sendReload {
+          Notification.send(Const.NotificationNames.reloadIssueList)
         }
       }
       else {
@@ -328,8 +332,11 @@ class IssueOverviewService: NSObject, DoesLog {
     }
 
     super.init()
-    if issues.count < 3 {
-      apiLoadPreview(for: nil, isAutoEnqueued: false)
+    Notification.receive(Const.NotificationNames.reloadIssueDates) {[weak self] _ in
+      if let newDates = self?.feed.publicationDates?.dates.sorted() {
+        self?.issueDates = newDates.reversed()
+      }
+      self?.apiLoadPreview(for: nil, isAutoEnqueued: false)
     }
     setupCarousselProgressButton()
   }
@@ -381,7 +388,7 @@ fileprivate extension IssueOverviewService {
   func loadingParameters(date: Date?)->LoadingParams?{
     //Initial Load!
     guard let date else {
-      return LoadingParams(startDate: nil, count: 3)
+      return LoadingParams(startDate: nil, count: 2)
     }
     
     if lc.loadingDates.contains(where: { d in return d == date.key }) {
@@ -405,7 +412,7 @@ fileprivate extension IssueOverviewService {
       if start == nil { start = d }
       count += 1
       loadingDates.append(d.key)
-      if count >= 10 { break }//do not load more than 20 Issue Previews at once
+      if count >= 6 { break }//do not load more than 20 Issue Previews at once
     }
     
     guard let start = start else { return nil }

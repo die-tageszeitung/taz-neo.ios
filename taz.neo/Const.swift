@@ -28,6 +28,8 @@ public struct Const {
   /// and here: static let articleLoaded = NSNotification.Name("NotificationName.articleLoaded")
   struct NotificationNames {
     /// Some resource filenames
+    static let reloadIssueDates = "NotificationName.reloadIssueDates"
+    static let reloadIssueList = "NotificationName.reloadIssueList"
     static let issueUpdate = "NotificationName.issueUpdate"
     static let articleLoaded = "NotificationName.articleLoaded"
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"

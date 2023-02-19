@@ -174,6 +174,10 @@ class HomeTVC: UITableViewController {
     
     self.addChild(carouselController)
     self.addChild(tilesController)
+    Notification.receive(Const.NotificationNames.reloadIssueList) {[weak self] _ in
+      self?.carouselController.collectionView.reloadData()
+      self?.tilesController.collectionView.reloadData()
+    }
   }
   
   required init?(coder: NSCoder) {

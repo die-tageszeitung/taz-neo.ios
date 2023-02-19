@@ -82,7 +82,6 @@ class IssueCarouselCVC: UICollectionViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     // Uncomment the following line to preserve selection between presentations
     // self.clearsSelectionOnViewWillAppear = false
     
@@ -372,10 +371,12 @@ extension IssueCarouselCVC {
     pickerCtrl.doneHandler = {[weak self] in
       guard let self else { return }
       let date = pickerCtrl.selectedDate
-      let idx = self.service.nextIndex(for: date) 
+      let idx = self.service.nextIndex(for: date)
+      #warning("if animated switch every cell between will be loaded results in enormous API cals and latency!")
+      ///todo reactivate smallJump but with better logic e.g. not load beetwen items!
       var smallJump = false
       if let i = self.centerIndex, i.distance(to: idx) < 50 { smallJump = true }
-      self.scrollTo(idx, animated: smallJump)
+      self.scrollTo(idx, animated: false)
       self.overlay?.close(animated: true)
     }
     overlay?.onClose(closure: {  [weak self] in

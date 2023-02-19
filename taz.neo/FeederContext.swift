@@ -756,11 +756,14 @@ open class FeederContext: DoesLog {
     guard self.isConnected else { return }
     self.gqlFeeder.publicationDates(feed: feed,
                                     fromDate: feed.publicationDates?.dates.max()) { result in
+      var sendReload = true
       if let gqlPubDates = result.value() {
         if let storedPubDates = feed.publicationDates {
+          let oldCount = storedPubDates.dates.count
           var dates = storedPubDates.dates
           dates.append(contentsOf: gqlPubDates.dates)
           dates = Array(Set(dates))//removes duplicates, sort when using
+          sendReload = oldCount < dates.count
           (storedPubDates as? StoredPublicationDates)?.dates = dates
         }
         else {
@@ -768,6 +771,8 @@ open class FeederContext: DoesLog {
           (feed as? StoredFeed)?.publicationDates = storedPubDates
         }
         ArticleDB.save()
+        if sendReload == false { return }
+        Notification.send(Const.NotificationNames.reloadIssueDates)
       }
     }
   }
