@@ -301,10 +301,10 @@ extension IssueCarouselCVC {
       }
     }
     self.pullToLoadMoreHandler = {   [weak self] in
-      if self?.statusHeader.currentStatus == .fetchNewIssues { return }
-      self?.statusHeader.currentStatus = .fetchNewIssues
       URLCache.shared.removeAllCachedResponses()
-      self?.service.checkForNewIssues()
+      if self?.service.checkForNewIssues() ?? false {
+        self?.statusHeader.currentStatus = .fetchNewIssues
+      }
     }
   }
 }

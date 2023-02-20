@@ -159,8 +159,17 @@ class IssueOverviewService: NSObject, DoesLog {
 //  /// Date keys which are currently loading the preview
 //  var loadingDates: [String] = []
   
-  func checkForNewIssues() {
+  
+  @discardableResult
+  /// checks for new issues, if not currently doing this
+  /// - Returns: true if check will be executed; false if check is still in progress
+  func checkForNewIssues() -> Bool {
+    let key = Date.init(timeIntervalSince1970: 0).key
+    if loadingDates.contains(where: { return $0==key}) {
+      return false
+    }
     apiLoadPreview(for: nil, count: 3)
+    return true
   }
 
   func apiLoadPreview(for date: Date?, count: Int) {
