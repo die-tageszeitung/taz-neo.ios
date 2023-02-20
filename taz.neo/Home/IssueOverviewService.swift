@@ -40,6 +40,7 @@ import NorthLib
 /// for issueImageLoaded Notification
 /// loader to prevent e.g. switch to PDF load finished for app view, worng image set to cell
 typealias IssueCellData = (date: Date, issue:StoredIssue?, image: UIImage?)
+typealias EnqueuedMomentLoad = (issue: StoredIssue, files: [FileEntry], isPdf: Bool)
 
 /// using Dates short String Representation for store and find issues for same date, ignore time
 fileprivate extension Date { var key : String { short } }
@@ -51,6 +52,8 @@ class IssueOverviewService: NSObject, DoesLog {
   
   let loadPreviewsQueue = DispatchQueue(label: "apiLoadPreviewQueue",qos: .userInitiated)
   let loadPreviewsGroup = DispatchGroup()
+  let loadPreviewsLock = NSLock()
+  var loadPreviewsStack: [EnqueuedMomentLoad] = []
   let loadPreviewsSemaphore = DispatchSemaphore(value: 3)
   
   internal var feederContext: FeederContext
@@ -264,11 +267,32 @@ class IssueOverviewService: NSObject, DoesLog {
       }
     }
     
+    
+    
     loadPreviewsQueue.async(group: loadPreviewsGroup) { [weak self] in
       guard let self = self else { return }
+      let load = EnqueuedMomentLoad(issue: issue, files: files, isPdf: isPdf)
+      self.loadPreviewsLock.with { [weak self] in  self?.loadPreviewsStack.push(load) }
+      
       self.debug("enqueue download \(files.count) Issue files for \(issue.date.key)")
+      #warning("ToDo its FIFO, but we need LIFO")
+      /// Idea put all in array with push/pop
       self.loadPreviewsGroup.enter()
       self.loadPreviewsSemaphore.wait()
+      
+      let next = self.loadPreviewsStack.last
+      self.loadPreviewsLock.with { [weak self] in  _ = self?.loadPreviewsStack.popLast() }
+      
+      guard let next = next else {
+        self.loadPreviewsGroup.leave()
+        self.loadPreviewsSemaphore.signal()
+        return
+      }
+      
+      let issue = next.issue
+      let isPdf = next.isPdf
+      let files = next.files
+      
       self.debug("do download \(files.count) Issue files for \(issue.date.key)")
       self.feederContext.dloader
         .downloadIssueFiles(issue: issue, files: files) {[weak self] err in
@@ -285,7 +309,6 @@ class IssueOverviewService: NSObject, DoesLog {
           self?.loadPreviewsGroup.leave()
           self?.loadPreviewsSemaphore.signal()
         }
-      
     }
   }
   
@@ -374,4 +397,15 @@ fileprivate class LoadCoordinator: NSObject, DoesLog {
 //    loadingDates
 //    = loadingDates.enumerated().compactMap{ keysToRemove.contains($1.key) ? nil : $1 }
 //  }
+}
+
+
+fileprivate extension NSLock {
+
+    @discardableResult
+    func with<T>(_ block: () throws -> T) rethrows -> T {
+        lock()
+        defer { unlock() }
+        return try block()
+    }
 }
