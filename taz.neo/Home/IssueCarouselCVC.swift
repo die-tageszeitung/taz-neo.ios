@@ -36,7 +36,9 @@ class IssueCarouselCVC: UICollectionViewController {
   private var pullToLoadMoreHandler: (()->())?
   private static let reuseCellId = "issueCollectionViewCell"
   
-  var lastCenterIndex: Int?
+  var transitionLastCenterIndex: Int?
+  var scrollLastCenterIndex: Int = 0
+  var preventApiLoadUntilIndex: Int?
   
   var centerIndex: Int? {
     guard let cv = collectionView else { return nil }
@@ -98,11 +100,11 @@ class IssueCarouselCVC: UICollectionViewController {
   }
     
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    if lastCenterIndex == nil { lastCenterIndex = centerIndex}
+    if transitionLastCenterIndex == nil { transitionLastCenterIndex = centerIndex}
     super.viewWillTransition(to: size, with: coordinator)
     onMain{[weak self] in
-      guard let idx = self?.lastCenterIndex else { return }
-      self?.lastCenterIndex = nil
+      guard let idx = self?.transitionLastCenterIndex else { return }
+      self?.transitionLastCenterIndex = nil
       self?.collectionView.scrollToItem(at: IndexPath(row: idx, section: 0),
                       at: .centeredHorizontally,
                       animated: true)
@@ -116,13 +118,13 @@ class IssueCarouselCVC: UICollectionViewController {
       handler()
     }
   }
-   
-  override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-    bottomItemsWrapper.isUserInteractionEnabled = false
-    dateLabel.alpha = 0.2
-    downloadButton.alpha = 0.5
-  }
   
+  override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    guard let i = centerIndex, scrollLastCenterIndex != i else { return }
+    scrollLastCenterIndex = i
+    updateBottomWrapper(for: i)
+  }
+     
   ///Stop fix offset IS VERRY SLOW HERE for manuell stops
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     ///Problem scrolle oder springe (und ggf scrolle) DONE
@@ -137,7 +139,14 @@ class IssueCarouselCVC: UICollectionViewController {
     scrollTo(centerIndex)
   }
   
-  func scrollTo(_ index: Int, animated:Bool = true){
+  func scrollTo(_ index: Int, animated:Bool = true, fromJumpToDate: Bool = false){
+    if fromJumpToDate,
+        let layout = self.collectionView.collectionViewLayout as? CarouselFlowLayout {
+      let visibleCellCount
+      = min(5, self.view.frame.size.width/(layout.itemSize.width*1.3 + 1))
+      preventApiLoadUntilIndex = index - Int(visibleCellCount/2)
+    }
+    updateBottomWrapper(for: index)
     self.collectionView.scrollToItem(at: IndexPath(row: index, section: 0),
                                      at: .centeredHorizontally,
                                      animated: true)
@@ -151,7 +160,6 @@ class IssueCarouselCVC: UICollectionViewController {
     ?? date.short
     dateLabel.setText(txt)
     downloadButton.indicator.downloadState = service.issueDownloadState(at: cidx)
-    downloadButton.alpha = 1.0
   }
     
   // MARK: UICollectionViewDataSource
@@ -168,6 +176,15 @@ class IssueCarouselCVC: UICollectionViewController {
     let cell = collectionView.dequeueReusableCell(
       withReuseIdentifier: Self.reuseCellId,
       for: indexPath)
+    if let i = preventApiLoadUntilIndex,
+       i != indexPath.row,
+       let cell = cell as? IssueCollectionViewCell{
+      ///Jump to date called prevent all intermediate API Calls, return empty cell, just set date for
+      cell.date = service.date(at: i)
+      return cell
+    }
+    preventApiLoadUntilIndex = nil
+    
     guard let cell = cell as? IssueCollectionViewCell,
           let data = service.cellData(for: indexPath.row) else { return cell }
     cell.date = data.date
@@ -372,11 +389,10 @@ extension IssueCarouselCVC {
       guard let self else { return }
       let date = pickerCtrl.selectedDate
       let idx = self.service.nextIndex(for: date)
-      #warning("if animated switch every cell between will be loaded results in enormous API cals and latency!")
       ///todo reactivate smallJump but with better logic e.g. not load beetwen items!
       var smallJump = false
       if let i = self.centerIndex, i.distance(to: idx) < 50 { smallJump = true }
-      self.scrollTo(idx, animated: false)
+      self.scrollTo(idx, animated: smallJump, fromJumpToDate: true)
       self.overlay?.close(animated: true)
     }
     overlay?.onClose(closure: {  [weak self] in
