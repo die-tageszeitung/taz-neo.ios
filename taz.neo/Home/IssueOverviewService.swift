@@ -50,6 +50,8 @@ class IssueOverviewService: NSObject, DoesLog {
   public var isFacsimile: Bool
   
   let loadPreviewsQueue = DispatchQueue(label: "apiLoadPreviewQueue",qos: .userInitiated)
+  let loadPreviewsGroup = DispatchGroup()
+  let loadPreviewsSemaphore = DispatchSemaphore(value: 3)
   
   internal var feederContext: FeederContext
   var feed: StoredFeed
@@ -71,7 +73,7 @@ class IssueOverviewService: NSObject, DoesLog {
       return nil
     }
     guard let issue = issue(at: date) else {
-      apiLoadPreview(for: date)
+      apiLoadPreview(for: date, count: 6)
       return IssueCellData(date: date, issue: nil, image: nil)
     }
     let img = self.storedImage(issue: issue, isPdf: isFacsimile)
@@ -148,99 +150,95 @@ class IssueOverviewService: NSObject, DoesLog {
     return img
   }
   
+  /// Date keys which are currently loading the preview
   var loadingDates: [String] = []
   
+//  /// Date keys which are currently loading the preview
+//  var loadingDates: [String] = []
+  
   func checkForNewIssues() {
-    log("ToDo, check for new Issues")
+    apiLoadPreview(for: nil, count: 3)
   }
-  
-  
-  /// server request data
-  /// calculates which is the newest to request issue date from server and how many are to load
-  /// limit is max 20
-  /// lookup in loades issues and loadingDates
-  /// - Parameter date: date to lookup
-  /// - Returns: date for server request and limit
-  func loadParameter(for date: Date) -> (Date, Int) {
-    var start: Date?
-    var count = 0
-    for i in -10...10 {
-      var d = date
-      d.addDays(-i)
-      if !issueDates.contains(d) { continue }//ignore future and not existing dates
-      if issue(at: d.key) != nil {
-        //skip its loaded
-        if start == nil { continue } //before Date
-        else { break } //after date, limit fount
-      }
-      if loadingDates.contains(d.key) {
-        //skip its loading
-        if start == nil { continue } //before Date
-        else { break } //after date, limit fount
-      }
-      if start == nil { start = d }
-      count += 1
-    }
-    return (start ?? date , count)
-  }
-   
-  func apiLoadPreview(for date: Date?, isAutoEnqueued:Bool = false) {
-    if let date, isAutoEnqueued && issue(at: date) != nil {
+
+  func apiLoadPreview(for date: Date?, count: Int) {
+    if let date, issue(at: date) != nil {
       debug("Already loaded: \(date.key) skip loading")
-      apiLoadNext()
       return
     }
     
-    guard let params = loadingParameters(date: date) else {
-      debug("No valid Loading for: \(date?.key ?? "-"); isAutoEnqueued: \(isAutoEnqueued) skip loading")
-      apiLoadNext()
+    let d1 = date ?? Date.init(timeIntervalSince1970: 0)
+    
+    if loadingDates.contains(where: { return $0==d1.key}) {
+      debug("Already loading: \(date?.key ?? "latest"), skip loading")
       return
     }
     
-    debug("Load Issues for: \(params.startDate?.short ?? "-"), count: \(params.count)")
+    var count = count
+    
+    let availableIssues = issues.map({ $0.value.date.key })
+    var currentLoadingDates: [String] = []
+    
+    if let date {
+      for i in 0...count {
+        var d = date
+        d.addDays(-i)
+        if availableIssues.contains(d.key) { count = i+1; break }
+        if loadingDates.contains(d.key) { count = i+1; break }
+        currentLoadingDates.append(d.key)
+      }
+    } else {
+      currentLoadingDates.append(d1.key)
+    }
+    
+    addToLoading(currentLoadingDates)
+    
+    debug("Load Issues for: \(date?.short ?? "-"), count: \(count)")
     
     self.feederContext.gqlFeeder.issues(feed: feed,
-                                        date: params.startDate,
-                                        count: params.count,
+                                        date: date,
+                                        count: count,
                                         isOverview: true,
                                         returnOnMain: true) {[weak self] res in
       guard let self = self else { return }
       var newIssues: [StoredIssue] = []
-      self.debug("Finished load Issues for: \(params.startDate?.short ?? "-"), count: \(params.count)")
+      self.debug("Finished load Issues for: \(date?.short ?? "-"), count: \(count)")
       let start = Date()
       if let issues = res.value() {
         for issue in issues {
           newIssues.append(StoredIssue.persist(object: issue))
         }
-        self.log("Finished load Issues for: \(params.startDate?.short ?? "-") DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
+        self.log("Finished load Issues for: \(date?.short ?? "-") DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
         ArticleDB.save()
-        let sendReload = self.issues.count < 2
         for si in newIssues {
           self.issues[si.date.key] = si
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: si.date,
                             sender: self)
         }
-        if sendReload {
+        if date == nil {
           Notification.send(Const.NotificationNames.reloadIssueList)
         }
       }
       else {
-        self.log("error in preview load from \(params.startDate?.short ?? "-") count: \(params.count)")
+        self.log("error in preview load from \(date?.short ?? "-") count: \(count)")
       }
-      self.apiLoadNext()
+      self.removeFromLoading(currentLoadingDates)
     }
   }
-  
-  func apiLoadNext(){
-    guard let next = lc.next else { return }
-    apiLoadPreview(for: next, isAutoEnqueued: true)
-  }
-  
   func hasDownloadableContent(issue: Issue) -> Bool {
     guard let sIssue = issue as? StoredIssue else { return true }
     return feederContext.needsUpdate(issue: sIssue,toShowPdf: isFacsimile)
   }
+  
+  func removeFromLoading(_ dates: [String]){
+    loadingDates
+    = loadingDates.enumerated().filter { !dates.contains($0.element) }.map { $0.element }
+  }
+  
+  func addToLoading(_ dates: [String]){
+    loadingDates.append(contentsOf: dates)
+  }
+  
   
   func getCompleteIssue(issue: Issue) {
     guard let sIssue = issue as? StoredIssue else { return }
@@ -249,16 +247,7 @@ class IssueOverviewService: NSObject, DoesLog {
                                    isAutomatically: false)
   }
   
-  
-  
-  
-  func apiLoadMomentImages(for issue: StoredIssue, isPdf: Bool){
-    loadPreviewsQueue.async {[weak self] in
-      self?.apiLoadMomentImagesQ(for:issue, isPdf: isPdf)
-    }
-  }
-  #warning("TODO ENSURE MAX 5 PARALLEL DOWNLOADS NOT THHIS WAY!!")
-  func apiLoadMomentImagesQ(for issue: StoredIssue, isPdf: Bool) {
+  func apiLoadMomentImages(for issue: StoredIssue, isPdf: Bool) {
     let dir = issue.dir
     var files: [FileEntry] = []
     
@@ -274,22 +263,31 @@ class IssueOverviewService: NSObject, DoesLog {
         debug("something went wrong: file exists, need no Download. File: \(f.name) in \(dir.path)")
       }
     }
-//    onThread {
-      //check if in temp Dir?
+    
+    loadPreviewsQueue.async(group: loadPreviewsGroup) { [weak self] in
+      guard let self = self else { return }
+      self.debug("enqueue download \(files.count) Issue files for \(issue.date.key)")
+      self.loadPreviewsGroup.enter()
+      self.loadPreviewsSemaphore.wait()
+      self.debug("do download \(files.count) Issue files for \(issue.date.key)")
       self.feederContext.dloader
         .downloadIssueFiles(issue: issue, files: files) {[weak self] err in
+          self?.debug("done download \(files.count) Issue files for \(issue.date.key)")
           let img = self?.storedImage(issue: issue, isPdf: isPdf)
           if img == nil {
             self?.debug("something went wrong: downloaded file did not exist!")
           }
           let icd = IssueCellData(date: issue.date, issue: issue, image: img)
+          ///Danger
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: issue.date,
                             sender: self)
+          self?.loadPreviewsGroup.leave()
+          self?.loadPreviewsSemaphore.signal()
         }
-//    }
+      
+    }
   }
-  
   
   func storedImage(issue: StoredIssue, isPdf: Bool) -> UIImage? {
     return feederContext.storedFeeder.momentImage(issue: issue,
@@ -336,7 +334,6 @@ class IssueOverviewService: NSObject, DoesLog {
       if let newDates = self?.feed.publicationDates?.dates.sorted() {
         self?.issueDates = newDates.reversed()
       }
-      self?.apiLoadPreview(for: nil, isAutoEnqueued: false)
     }
     setupCarousselProgressButton()
   }
@@ -377,47 +374,4 @@ fileprivate class LoadCoordinator: NSObject, DoesLog {
 //    loadingDates
 //    = loadingDates.enumerated().compactMap{ keysToRemove.contains($1.key) ? nil : $1 }
 //  }
-}
-
-fileprivate extension IssueOverviewService {
-  /// Helper to create API Load Parameters
-  /// prevents to load a issue overview twice
-  /// helps to enqueue load overview requests
-  /// - Parameter date: date for requested issue
-  /// - Returns: load params for api call or nil if load not needed
-  func loadingParameters(date: Date?)->LoadingParams?{
-    //Initial Load!
-    guard let date else {
-      return LoadingParams(startDate: nil, count: 2)
-    }
-    
-    if lc.loadingDates.contains(where: { d in return d == date.key }) {
-      debug("Already loading: \(date.key) skip loading")
-      return nil
-    }
-    //API params from date and count
-    var start: Date?
-    var count = 0
-    var loadingDates:[String] = []
-    
-    for i in -10...30 {
-      var d = date
-      d.addDays(-i)
-      if !issueDates.contains(d) { continue }//ignore future and not existing dates
-      if issue(at: d.key) != nil ||  lc.loadingDates.contains(d.key) {
-        //skip its loaded
-        if start == nil { continue } //before Date
-        else { break } //after date, limit fount
-      }
-      if start == nil { start = d }
-      count += 1
-      loadingDates.append(d.key)
-      if count >= 6 { break }//do not load more than 20 Issue Previews at once
-    }
-    
-    guard let start = start else { return nil }
-    if count == 0 { return nil }//impossible
-    lc.loadingDates.append(contentsOf: loadingDates)
-    return LoadingParams(startDate: start, count: count)
-  }
 }

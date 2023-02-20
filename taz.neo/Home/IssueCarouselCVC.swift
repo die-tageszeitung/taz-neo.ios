@@ -293,24 +293,15 @@ extension IssueCarouselCVC {
     pin(statusHeader.left, to: self.view.left)
     pin(statusHeader.right, to: self.view.right)
     topStatusButtonConstraint = pin(statusHeader.bottom, to: self.view.top, dist: 0)
-    #warning("ToDo check for new issues implementation and remove status")
-    #warning("ToDo statusHeader is wrong pos")
-    statusHeader.onTapping { [weak self] _ in
+       
+    Notification.receive("checkForNewIssues", from: self.service.feederContext) { notification in
+      if let status = notification.content as? FetchNewStatusHeader.status {
+        print("receive status: \(status)")
+        self.statusHeader.currentStatus = status
+      }
     }
-    /**
-     issueCarousel.onLabelTap { idx in
-       self.showDatePicker()
-     }
-     */
-    
-    
-//    Notification.receive("checkForNewIssues", from: issueVC.feederContext) { notification in
-//      if let status = notification.content as? StatusHeader.status {
-//        print("receive status: \(status)")
-//        self.statusHeader.currentStatus = status
-//      }
-//    }
     self.pullToLoadMoreHandler = {   [weak self] in
+      if self?.statusHeader.currentStatus == .fetchNewIssues { return }
       self?.statusHeader.currentStatus = .fetchNewIssues
       URLCache.shared.removeAllCachedResponses()
       self?.service.checkForNewIssues()
