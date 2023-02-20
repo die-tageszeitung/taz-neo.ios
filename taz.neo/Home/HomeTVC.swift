@@ -41,7 +41,7 @@ class HomeTVC: UITableViewController {
   var feederContext:FeederContext
   var issueOverviewService: IssueOverviewService
   
-  override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
+  override var preferredStatusBarStyle: UIStatusBarStyle { .darkContent }
   //  var service: DataService
   
   /**
