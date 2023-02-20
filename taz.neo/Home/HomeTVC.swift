@@ -41,7 +41,7 @@ class HomeTVC: UITableViewController {
   var feederContext:FeederContext
   var issueOverviewService: IssueOverviewService
   
-  override var preferredStatusBarStyle: UIStatusBarStyle { .darkContent }
+  override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent}
   //  var service: DataService
   
   /**
@@ -176,6 +176,7 @@ class HomeTVC: UITableViewController {
     self.addChild(tilesController)
     Notification.receive(Const.NotificationNames.reloadIssueList) {[weak self] _ in
       self?.carouselController.collectionView.reloadData()
+      self?.carouselController.statusHeader.currentStatus = .none
       self?.tilesController.collectionView.reloadData()
     }
   }
