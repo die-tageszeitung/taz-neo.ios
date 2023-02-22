@@ -128,6 +128,8 @@ class IssueTilesCVC: UICollectionViewController {
 extension IssueTilesCVC {
   func reloadVisibleCells() {
     let vips = self.collectionView.indexPathsForVisibleItems
+    //Prevent download all Issues in Caroussel on current date switch to PDF
+    if vips.count == 0 { return }
     for ip in vips {
       _ = self.collectionView.cellForItem(at: ip)
     }
