@@ -335,8 +335,8 @@
 		7746EF7B29924818000C8E6B /* Home */ = {
 			isa = PBXGroup;
 			children = (
-				7707B59B29884FF200B75D82 /* IssueCarouselCVC.swift */,
 				77324BFE298AC9F9001B8323 /* HomeTVC.swift */,
+				7707B59B29884FF200B75D82 /* IssueCarouselCVC.swift */,
 				77324C00298ACA20001B8323 /* IssueTilesCVC.swift */,
 				4DED20C32987E4C2005B8A00 /* IssueOverviewService.swift */,
 				77D8A22E298D4D0A00E5788B /* IssueDisplayService.swift */,
