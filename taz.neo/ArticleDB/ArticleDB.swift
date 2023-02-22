@@ -1211,7 +1211,9 @@ public final class StoredPage: Page, StoredObject {
       let jpgPath = File.prefname(pdfPath) + ".jpg"
       if File(pdfPath).exists {
         if !File(jpgPath).exists {
-          let img = UIImage.pdf(File(pdfPath).data)
+          ///ensure facsimile images for home are not bigger than the images from Backend
+          ///saved storage before: Image was 700-900KB now: 200-400KB
+          let img = UIImage.pdf(File(pdfPath).data, width: 660/UIScreen.main.scale, useHeight: false)
           img?.save(to: jpgPath)
           return true
         }
