@@ -65,10 +65,15 @@ class IssueTilesCVC: UICollectionViewController {
       for: indexPath)
     guard let cell = cell as? IssueTilesCvcCell,
           let data = service.cellData(for: indexPath.row) else { return cell }
-    
     cell.date = data.date
     cell.issue = data.issue
     cell.image = data.image
+    cell.button.indicator.downloadState = service.issueDownloadState(at: indexPath.row)
+    cell.button.onTapping { [weak self] _ in
+      if cell.button.indicator.downloadState == .done  { return }
+      self?.service.download(issueAtIndex: indexPath.row,
+                             updateStatusButton: cell.button)
+    }
     return cell
   }
     

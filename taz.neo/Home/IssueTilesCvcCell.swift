@@ -15,6 +15,10 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
   let buttonHeight:CGFloat = 30.0
   let buttonOffset:CGFloat = 0.0
   
+  /// Are we in facsimile mode
+  @Default("isFacsimile")
+  public var isFacsimile: Bool
+  
   var shorter: Bool = false
   
   private var shortDate:String?
@@ -57,8 +61,6 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     }
     
     momentView.isActivity = issue.isDownloading
-    #warning("ToDo Update Cell")
-//    button.setStatus(from: issue)
   }
   
   func updateTraitCollection(_ traitCollection: UITraitCollection){
@@ -79,19 +81,6 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     contentView.layer.borderWidth = 0.0
     cvBottomConstraint?.isActive = false
     updateTraitCollection(traitCollection)
-    
-    ///**NO SUPER SETUP!**
-    /**
-     Bugfix after Merge
-     set ImageViews BG Color to same color like Collection Views BG fix white layer on focus
-     UIColor.clear or UIColor(white: 0, alpha: 0) did not work
-     Issue is not in last Build before Merge 0.4.18-2021011501 ...but flickering is there on appearing so its half of the bug
-     - was also build with same xcode version/ios sdk
-     issue did not disappear if deployment target is set back to 11.4
-     */
-//    momentView.backgroundColor = .black
-//    momentView.contentMode = .scaleAspectFit
-//    menu = ContextMenu(view: momentView)
     
     pin(momentView.bottom,
         to: contentView.bottom,
@@ -114,53 +103,17 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
           self.button.indicator.downloadState = .process
           self.button.indicator.percent = percent
         }
-        if percent == 1.0 {  self.momentView.isActivity = false }
+        if percent == 1.0 {
+          self.momentView.isActivity = false
+          if self.isFacsimile, self.issue?.isComplete == false {
+            self.button.indicator.downloadState =  .notStarted
+          } else {
+            self.button.indicator.downloadState =  .justDone
+            self.button.indicator.percent =  1.0
+          }
+        }
       }
     })
   }
-  /*
-   ****
-   From CVC
-   
-   
-   guard let issue = service.getIssue(at: indexPath.row) else {
-     cell.button.indicator.downloadState = .waiting
-    
-     return cell
-     
-     
-     if service.hasDownloadableContent(issue: issue) {
-       cell.button.onTapping {[weak self] _ in
-         guard let self else { return }
-         cell.button.indicator.downloadState = .waiting
-         cell.button.indicator.percent = 0.0
-         cell.momentView.isActivity = true
-         self.service.getCompleteIssue(issue: issue)
-       }
-       cell.button.indicator.downloadState = .notStarted
-     }
-     //
-     //    if cell.interactions.isEmpty {
-     //      let menuInteraction = UIContextMenuInteraction(delegate: self)
-     //      cell.addInteraction(menuInteraction)
-     //      cell.backgroundColor = .black
-     //    }
-    
-   }
-   
-   ****
-   
-   
-   
-
-
-  
-  private func update(){
-    guard let issue = issue else { return }
-    updateLabel()
-    
-   
-  }
-  */
 }
 

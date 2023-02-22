@@ -103,7 +103,6 @@ class IssueOverviewService: NSObject, DoesLog {
       self.log("not downloading for idx: \(issueAtIndex ?? -1)")
       return
     }
-    updateStatusButton?.indicator.percent = 0.0
     
     self.carousselUpdateStatusButton = updateStatusButton
     self.carousselActiveDownloadIssue = issue
@@ -117,7 +116,7 @@ class IssueOverviewService: NSObject, DoesLog {
     guard let d = date(at: index) else { return .notStarted }
     guard let issue = issue(at: d) else { return .notStarted }
     if issue.isDownloading { return .process }
-    return feederContext.needsUpdate(issue: issue,toShowPdf: isFacsimile)
+    return feederContext.needsUpdate(issue: issue, toShowPdf: isFacsimile)
     ? .notStarted
     : .done
   }
