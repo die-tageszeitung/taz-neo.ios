@@ -112,6 +112,10 @@ extension MainTabVC {
        selectedNc?.topViewController != home {
       reloadTarget = home
     }
+    else if let home = selectedNc?.viewControllers.first as? HomeTVC,
+       selectedNc?.topViewController != home {
+      reloadTarget = home
+    }
     else if let search = selectedNc?.viewControllers.first as? SearchController,
             selectedNc?.topViewController != search {
       reloadTarget = search
