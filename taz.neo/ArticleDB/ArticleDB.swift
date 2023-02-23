@@ -1213,7 +1213,7 @@ public final class StoredPage: Page, StoredObject {
         if !File(jpgPath).exists {
           ///ensure facsimile images for home are not bigger than the images from Backend
           ///saved storage before: Image was 700-900KB now: 200-400KB
-          let img = UIImage.pdf(File(pdfPath).data, width: 660/UIScreen.main.scale, useHeight: false)
+          let img = UIImage.pdf(File(pdfPath).data, width: 660, useHeight: false)
           img?.save(to: jpgPath)
           return true
         }
