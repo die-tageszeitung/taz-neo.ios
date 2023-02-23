@@ -220,14 +220,18 @@ class IssueOverviewService: NSObject, DoesLog {
         }
         self.log("Finished load Issues for: \(date?.short ?? "-") DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
         ArticleDB.save()
+        var loadedDates:[Date] = []
         for si in newIssues {
           self.issues[si.date.key] = si
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: si.date,
                             sender: self)
+          if date == nil {
+            loadedDates.append(si.date)
+          }
         }
         if date == nil {
-          Notification.send(Const.NotificationNames.reloadIssueList)
+          self.addLatestDates(dates: loadedDates)
         }
       }
       else {
@@ -236,6 +240,16 @@ class IssueOverviewService: NSObject, DoesLog {
       self.removeFromLoading(currentLoadingDates)
     }
   }
+  
+  /// Ensute probybly new downloaded issue previews are in issueDatesArray, send reload is some added
+  func addLatestDates(dates: [Date]) {
+    var allDates = self.issueDates
+    allDates.append(contentsOf: dates)
+    allDates = allDates.sorted().reversed()
+    if self.issueDates.count == allDates.count { return }
+    Notification.send(Const.NotificationNames.reloadIssueList)
+  }
+  
   func hasDownloadableContent(issue: Issue) -> Bool {
     guard let sIssue = issue as? StoredIssue else { return true }
     return feederContext.needsUpdate(issue: sIssue,toShowPdf: isFacsimile)
