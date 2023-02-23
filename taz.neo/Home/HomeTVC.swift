@@ -210,6 +210,12 @@ extension HomeTVC {
 
   func snapCell() {
     if wasUp && self.tableView.contentOffset.y > self.view.frame.size.height*0.15 {
+      ///focus issue from caroussel to tiles 
+      if let idx = self.carouselController.centerIndex {
+        self.tilesController.collectionView.scrollToItem(at: IndexPath(row: idx, section: 0),
+                        at: .centeredVertically,
+                        animated: false)
+      }
       scroll(up: false)
     } else if !wasUp && self.tableView.contentOffset.y > self.view.frame.size.height*0.85 {
       scroll(up: false)
@@ -254,6 +260,18 @@ extension HomeTVC {
                       animated: true)
     }
     else {
+      let ips = self.tilesController.collectionView.indexPathsForVisibleItems.map { $0.row }
+      let count = ips.count
+      ///focus issue from tiles to caroussel
+      ///    if not cell 0 visible in tiles
+      ///    if not current caroussel center is visible in tiles
+      ///    use tiles center cell to focus caroussel
+      if !ips.contains(0),
+         !ips.contains(carouselController.centerIndex ?? 0),
+         count>0,
+         let idx = ips.sorted().valueAt(count/2) {
+        self.carouselController.scrollTo(idx)
+      }
       self.scroll(up: true)
     }
   }
