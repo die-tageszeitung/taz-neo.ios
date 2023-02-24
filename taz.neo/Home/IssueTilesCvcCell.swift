@@ -99,10 +99,6 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
       if (notif.object as? Issue)?.date != self.issue?.date { return }
       if let (loaded,total) = notif.content as? (Int64,Int64) {
         let percent = Float(loaded)/Float(total)
-        if percent > 0.05 {
-          self.button.indicator.downloadState = .process
-          self.button.indicator.percent = percent
-        }
         if percent == 1.0 {
           self.momentView.isActivity = false
           if self.isFacsimile, self.issue?.isComplete == false {
@@ -111,6 +107,13 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
             self.button.indicator.downloadState =  .justDone
             self.button.indicator.percent =  1.0
           }
+        }
+        else if percent > 0.05 {
+          self.button.indicator.downloadState = .process
+          self.button.indicator.percent = percent
+        }
+        else {
+          //ToDO handle just started
         }
       }
     })
