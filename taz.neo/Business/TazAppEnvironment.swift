@@ -313,10 +313,28 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
     var actions: [UIAlertAction] = []
     
-    if App.isAlpha {
-      actions.append(Alert.action("Abo-Verknüpfung löschen (⍺)") {[weak self] _ in self?.unlinkSubscriptionId() })
-      actions.append(Alert.action("Abo-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
-      actions.append(Alert.action("Download-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
+    let dfl = Defaults.singleton
+    let id = dfl["id"]
+    if let id = id, id =~ ".*\\@taz\\.de$" {
+      actions.append(Alert.action("Abo-Verknüpfung löschen") {[weak self] _ in self?.unlinkSubscriptionId() })
+      actions.append(Alert.action("Abo-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
+      actions.append(Alert.action("Download-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
+      let sMin = Alert.action("Simuliere höhere Minimalversion") { _ in
+        dfl["simulateFailedMinVersion"] = "true"
+        Alert.confirm(title: "Beenden", 
+          message: "Die App wird jetzt beendet, zum Simulieren bitte neu starten") { terminate in
+          if terminate { exit(0) }
+        }
+      }
+      actions.append(sMin)
+      let sCheck = Alert.action("Simuliere höhere Version im AppStore") { _ in
+        dfl["simulateNewVersion"] = "true"
+        Alert.confirm(title: "Beenden", 
+          message: "Die App wird jetzt beendet, zum Simulieren bitte neu starten") { terminate in
+          if terminate { exit(0) }
+        }
+      }
+      actions.append(sCheck)
     }
     
     let title = App.appInfo + "\n" + App.authInfo(with: feederContext)
