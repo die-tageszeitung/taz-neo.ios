@@ -72,6 +72,12 @@ open class FeederContext: DoesLog {
   @Default("autoloadPdf")
   var autoloadPdf: Bool
   
+  @Default("simulateFailedMinVersion")
+  var simulateFailedMinVersion: Bool
+  
+  @Default("simulateNewVersion")
+  var simulateNewVersion: Bool
+  
   /// isConnected returns true if the Feeder is available
   public var isConnected: Bool { 
     var isCon: Bool
@@ -86,6 +92,19 @@ open class FeederContext: DoesLog {
   }
   /// Has the Feeder been initialized yet
   public var isReady = false
+  
+  /// Has minVersion been met?
+  public var minVersionOK = false
+  
+  /// Bundle ID to use for App store retrieval
+  public var bundleID = App.bundleIdentifier
+  
+  /// Overwrite for current App version
+  public var currentVersion = App.version
+  
+  /// Server required minimal App version
+  public var minVersion: Version?
+
   
 //  public private(set) var enqueuedDownlod:[Issue] = [] {
 //    didSet {
@@ -138,6 +157,66 @@ open class FeederContext: DoesLog {
       OfflineAlert.message(title: title, message: msg, closure: closure)
     }
   }
+  
+  private func enforceUpdate(closure: (()->())? = nil) {
+    let id = bundleID
+    guard let store = try? StoreApp(id) else { 
+      error("Can't find App with bundle ID '\(id)' in AppStore")
+      return 
+    }
+    let msg = """
+      Es liegt eine neue Version dieser App mit folgenden Änderungen vor:
+        
+      \(store.releaseNotes)
+        
+      Sie haben momentan die Version \(currentVersion) installiert. Um aktuelle
+      Ausgaben zu laden, ist mindestens die Version \(String(describing: minVersion))
+      erforderlich. Möchten Sie jetzt eine neue Version laden?
+    """
+    Alert.confirm(title: "Update erforderlich", message: msg) { [weak self] doUpdate in
+      guard let self else { return }
+      if self.simulateFailedMinVersion {
+        Defaults.singleton["simulateFailedMinVersion"] = "false"
+      }
+      if doUpdate { 
+        store.openInAppStore { closure?() }
+      }
+      else { exit(0) }
+    }
+  }
+  
+  private func check4Update() {
+    async { [weak self] in
+      guard let self else { return }
+      let id = self.bundleID
+      let version = self.currentVersion
+      guard let store = try? StoreApp(id) else { 
+        self.error("Can't find App with bundle ID '\(id)' in AppStore")
+        return 
+      }
+      self.debug("Version check: \(version) current, \(store.version) store")
+      if store.version > version {
+        let msg = """
+        Sie haben momentan die Version \(self.currentVersion) installiert.
+        Es liegt eine neue Version \(store.version) mit folgenden Änderungen vor:
+        
+        \(store.releaseNotes)
+        
+        Möchten Sie im AppStore ein Update veranlassen?
+        """
+        onMain(after: 2.0) { 
+          Alert.confirm(title: "Update", message: msg) { [weak self] doUpdate in
+            guard let self else { return }
+            if self.simulateNewVersion {
+              Defaults.singleton["simulateNewVersion"] = "false"
+            }
+            if doUpdate { store.openInAppStore() }
+          }
+        }
+      }
+    }
+  }
+
   
   /// Feeder is now reachable
   private func feederReachable(feeder: Feeder) {
@@ -215,14 +294,20 @@ open class FeederContext: DoesLog {
       else {
         self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
         feederReady()
+        check4Update()
       }
     }
     else {
       let feeders = StoredFeeder.get(name: name)
       if feeders.count == 1 {
         self.storedFeeder = feeders[0]
-        self.noConnection(to: name, isExit: false) {  [weak self] in
-          self?.feederReady()            
+        if minVersionOK {
+          self.noConnection(to: name, isExit: false) {  [weak self] in
+            self?.feederReady()            
+          }
+        }
+        else {
+          self.enforceUpdate()
         }
       }
       else {
@@ -231,7 +316,7 @@ open class FeederContext: DoesLog {
           /// Try to connect if network is available now e.g. User has seen Popup No Connection
           /// User activated MobileData/WLAN, press OK => Retry not App Exit
           if self.netAvailability.isAvailable { self.connect() }
-          else { exit(0)}
+          else { exit(0) }
         }
       }
     }
@@ -372,8 +457,27 @@ open class FeederContext: DoesLog {
   /// Connect to Feeder and send "feederReady" Notification
   private func connect() {
     gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
-      let feeder = res.value()
-      self?.feederStatus(isOnline: feeder != nil)
+      guard let self else { return }
+      if let _ = res.value() {
+        if self.simulateFailedMinVersion {
+          self.minVersion = Version("135.0.0")
+          self.feederStatus(isOnline: false)
+              }
+              else {
+          self.minVersionOK = true
+          self.feederStatus(isOnline: true)
+        }
+      }
+      else {
+        if let err = res.error() as? FeederError {
+          if case .minVersionRequired(let smv) = err {
+            self.minVersion = Version(smv)
+            self.debug("App Min Version \(smv) failed")
+          }
+          else { self.minVersionOK = true }
+        }
+        self.feederStatus(isOnline: false)
+      }
     }
     authenticator = DefaultAuthenticator(feeder: gqlFeeder)
   }
@@ -411,9 +515,24 @@ open class FeederContext: DoesLog {
     self.url = url
     self.feedName = feedName
     self.netAvailability = NetAvailability(host: host)
+    if self.simulateNewVersion || simulateFailedMinVersion {
+      self.bundleID = "de.taz.taz.2"
+    }
+    if self.simulateNewVersion {
+      self.currentVersion = Version("0.5.0")      
+    }
     Notification.receive("DBReady") { [weak self] _ in
       self?.debug("DB Ready")
       self?.connect()
+    }
+    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+      guard let self else { return }
+      if !self.minVersionOK { 
+        onMain(after: 1.0) {
+          self.log("Exit due to minimal version not met")
+          exit(0)
+        }
+      }
     }
     openDB(name: name)
   }
@@ -640,6 +759,7 @@ open class FeederContext: DoesLog {
                       message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
           exit(0)
         }
+      case.minVersionRequired: break
     }
     Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: { [weak self] in
       ///Do not authenticate here because its not needed here e.g.
