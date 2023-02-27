@@ -24,6 +24,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   }
   
   private var threeFingerAlertOpen: Bool = false
+  private var devGestureRecognizer: UIGestureRecognizer?
   
   public private(set) lazy var rootViewController : UIViewController = {
     // Startup Splash Screen?!
@@ -302,18 +303,34 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     return false
   }
   
+  // is called after successful login
+  func addThreeFingerMenu(targetWindow:UIWindow?) {
+    guard devGestureRecognizer == nil else { return }
+    let reportLPress3 = UILongPressGestureRecognizer(target: self,
+        action: #selector(threeFingerTouch))
+    reportLPress3.numberOfTouchesRequired = 3
+    targetWindow?.isUserInteractionEnabled = true
+    targetWindow?.addGestureRecognizer(reportLPress3)
+    devGestureRecognizer = reportLPress3
+  }
+  
+  static func checkcDevMenu() {
+    guard let win = UIApplication.shared.delegate?.window else { return }
+    let env = TazAppEnvironment.sharedInstance
+    if env.isTazUser() { env.addThreeFingerMenu(targetWindow: win) }
+    else if let recog = env.devGestureRecognizer {
+      win?.removeGestureRecognizer(recog)
+    }
+  }
+  
   func setupTopMenus(targetWindow:UIWindow) {
     self.threeFingerAlertOpen = false
     let reportLPress2 = UILongPressGestureRecognizer(target: self,
         action: #selector(twoFingerErrorReportActivated))
-    let reportLPress3 = UILongPressGestureRecognizer(target: self,
-        action: #selector(threeFingerTouch))
     reportLPress2.numberOfTouchesRequired = 2
-    reportLPress3.numberOfTouchesRequired = 3
-    
     targetWindow.isUserInteractionEnabled = true
     targetWindow.addGestureRecognizer(reportLPress2)
-    if App.isAlpha || isTazUser() { targetWindow.addGestureRecognizer(reportLPress3) }
+    if App.isAlpha || isTazUser() { addThreeFingerMenu(targetWindow: targetWindow) }
   }
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
