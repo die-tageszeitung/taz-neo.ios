@@ -418,27 +418,13 @@ public class FeedbackViewController : UIViewController{
   }
   
   lazy var logString: String? = {
-    var log = ""
-    if let data = logData,
-        let lString = String(data:data , encoding: .utf8) {
-      log = lString
-    }
-    else {
-      //Feedback need no Log!
-      return nil
-    }
-    
-    let lastLog = File(Log.FileLogger.lastLogfile)
-    if lastLog.exists,
-       let lString = String(data:lastLog.data, encoding: .utf8) {
+    if let data = logData {
+      let lastLog = File(Log.FileLogger.lastLogfile)
       let created = lastLog.cTime.dateAndTime
-      log += "\n###################################"
-      log += "\n     L A S T - E X E C U T I O N"
-      log += "\n     \(created)"
-      log += "\n###################################\n\n"
-      log += lString
+      return Log.FileLogger.string(data: data, includeOldLog: true)
     }
-    return log
+    //Feedback need no Log!
+    return nil
   }()
   
   func showLog(){
@@ -562,3 +548,52 @@ class OverlayViewController : UIViewController{
     print("deinit OverlayViewController")
   }
 }
+
+
+extension Log.FileLogger {
+  
+  public static var allLog:String? {
+    string(data: File(Log.FileLogger.tmpLogfile).data, includeOldLog: true)
+  }
+  
+  /// Logfile from last execution
+  public static var secondLastLogfile: String = tmpLogfile + ".2old"
+  
+  public static func string(data: Data?, includeOldLog: Bool = false) -> String? {
+    var log = ""
+    if let data = data,
+       let lString = String(data:data , encoding: .utf8) {
+      log = lString
+    }
+    
+    let lastLog = File(Log.FileLogger.lastLogfile)
+    if lastLog.exists,
+       let lString = String(data:lastLog.data, encoding: .utf8) {
+      let created = lastLog.cTime.dateAndTime
+      log += "\n###################################"
+      log += "\n     L A S T - E X E C U T I O N"
+      log += "\n     \(created)"
+      log += "\n###################################\n\n"
+      log += lString
+    }
+    
+    if !(DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
+      return log
+    }
+    
+    //for @taz.de useraccounts add 3 app session logs
+    
+    let secondLastLog = File(Log.FileLogger.secondLastLogfile)
+    if secondLastLog.exists,
+       let lString = String(data:lastLog.data, encoding: .utf8) {
+      let created = lastLog.cTime.dateAndTime
+      log += "\n###################################"
+      log += "\n     2nd L A S T - E X E C U T I O N"
+      log += "\n     \(created)"
+      log += "\n###################################\n\n"
+      log += lString
+    }
+    return log
+  }
+  
+} // extension Log.FileLogger

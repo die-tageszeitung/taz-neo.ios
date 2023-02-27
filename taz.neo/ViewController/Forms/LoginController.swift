@@ -95,7 +95,7 @@ class LoginController: FormsController {
         case .success(let token):
           DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPass, token: token)
           self.dismiss(animated: true){
-            Notification.send(Const.NotificationNames.authenticationSucceeded)
+            (self.auth as? DefaultAuthenticator)?.notifySuccess()
           }
         case .failure(let error):
           guard let authStatusError = error as? AuthStatusError else {
@@ -126,7 +126,7 @@ class LoginController: FormsController {
               
               if let token = authStatusError.token {
                 DefaultAuthenticator.storeUserData(id: tazId, password: tazIdPass, token: token)
-                Notification.send(Const.NotificationNames.authenticationSucceeded)
+                (self.auth as? DefaultAuthenticator)?.notifySuccess()
               }
               
               self.modalFlip(expiredForm)

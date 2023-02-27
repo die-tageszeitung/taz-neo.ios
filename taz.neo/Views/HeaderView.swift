@@ -41,6 +41,7 @@ open class HeaderView: UIView,  Touchable {
         case .bigLeft:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = true
+          borderView?.isHidden = true
           titleLeftConstraint?.constant = 3.0
           titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -51,6 +52,7 @@ open class HeaderView: UIView,  Touchable {
         case .article:
           pageNumberLabel.isHidden = false
           subTitleLabel.isHidden = true
+          borderView?.isHidden = true
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -63,6 +65,7 @@ open class HeaderView: UIView,  Touchable {
         case .section:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = false
+          borderView?.isHidden = false
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -75,6 +78,7 @@ open class HeaderView: UIView,  Touchable {
         case .section0:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = false
+          borderView?.isHidden = false
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -86,6 +90,7 @@ open class HeaderView: UIView,  Touchable {
         case .search:
           pageNumberLabel.isHidden = false
           subTitleLabel.isHidden = false
+          borderView?.isHidden = false
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -126,18 +131,8 @@ open class HeaderView: UIView,  Touchable {
   let sidePadding = 11.0
   var titleTopIndentL: CGFloat = Const.Size.DefaultPadding
   var titleBottomIndentL: CGFloat = -18//-18 or if subtitle set: -16*1.17-12 = -31
-  let titleBottomIndentS = -4.0
+  let titleBottomIndentS = -DottedLineView.DottedLineDefaultHeight/2
   let titleTopIndentS = 2.0
-  var bottomBorderAlwaysVisible: Bool {
-    get {
-      switch titletype {
-        case .section, .section0, .search:
-          return true
-        default:
-          return false
-      }
-    }
-  }
     
   public var tapRecognizer = TapRecognizer()
     
@@ -175,7 +170,7 @@ open class HeaderView: UIView,  Touchable {
     line.backgroundColor = .clear
     line.fillColor = Const.SetColor.ios(.label).color
     line.strokeColor = Const.SetColor.ios(.label).color
-    
+
     titleTopConstraint
     = pin(titleLabel.top, to: self.topGuide(), dist: titleTopIndentL)
     
@@ -251,11 +246,9 @@ extension HeaderView {
       case (_, ..<(-maxOffset/2)):
         handleScrolling(offsetDelta: -maxOffset, animated: true)
       case (_, ..<0):
-        handleScrolling(offsetDelta: maxOffset, animated: true)
+        handleScrolling(offsetDelta: -maxOffset, animated: true)
       case (_, 0.0):
         break
-      case (_, ..<(maxOffset/2)):
-        handleScrolling(offsetDelta: -maxOffset, animated: true)
       default:
         handleScrolling(offsetDelta: maxOffset, animated: true)
     }
@@ -282,7 +275,6 @@ extension HeaderView {
     lastRatio = ratio
     
     let alpha = 1 - ratio // maxi 1...0 mini
-    let fastAlpha = max(0, 1 - 2*ratio) // maxi 1...0 mini
     let titleTopIndentConst
     = alpha*(titleTopIndentL - titleTopIndentS) + titleTopIndentS
     let titleBottomIndentConst
@@ -298,12 +290,22 @@ extension HeaderView {
       self?.subTitleLabel.contentFont(size: labelsFontSize)
       self?.titleTopConstraint?.constant = titleTopIndentConst
       self?.titleBottomConstraint?.constant = titleBottomIndentConst
-      self?.subTitleLabel.alpha = fastAlpha
-      self?.line.alpha = fastAlpha
-      self?.borderView?.alpha = (self?.bottomBorderAlwaysVisible ?? false) ? 1.0 : ratio
+      
+      if ratio <= 0.5 {
+        let a = 1 - 2*ratio
+        self?.subTitleLabel.alpha = a
+        self?.borderView?.alpha = a
+      }
+      else {
+        self?.subTitleLabel.alpha = 0.0
+        self?.borderView?.alpha = 0.0
+      }
+      if self?.titletype == .search {
+        self?.borderView?.alpha = 1.0
+      }
     }
     animated
-    ?  UIView.animate(seconds: 0.3) {  handler(); self.superview?.layoutIfNeeded() }
-    : handler()
+    ?  UIView.animate(seconds: 0.3) {handler(); self.superview?.layoutIfNeeded() }
+    : handler();self.superview?.layoutIfNeeded()
   }
 }

@@ -23,7 +23,7 @@ import NorthLib
 open class Downloader: DoesLog {
   
   /// The Feeder providing data
-  public var feeder: Feeder
+  public weak var feeder: Feeder?
   
   public var isDownloading: Bool {
     get {
@@ -32,13 +32,15 @@ open class Downloader: DoesLog {
     }
   }
   
-  public func killAll(){
-    payloadQueue = []
-    dlSession._session?.invalidateAndCancel()
-  }
-  
   // The HttpSession to use for downloading files
-  private var dlSession: HttpSession
+  private var _dlSession: HttpSession?
+  private var dlSession: HttpSession {
+    if _dlSession == nil {
+      let name = feeder?.baseUrl ?? "undefined"
+      _dlSession = HttpSession(name: "DL:\(name)")
+    }
+    return _dlSession!
+  }
   
   // Payload queue entry
   private struct PayloadEntry {
@@ -97,18 +99,25 @@ open class Downloader: DoesLog {
   /// Initialize with base directory and create global sub directories
   public init(feeder: Feeder) {
     self.feeder = feeder
-    //self.dlSession = HttpSession.background("DL:\(feeder.baseUrl)")
-    self.dlSession = HttpSession(name: "DL:\(feeder.baseUrl)")
     createDirs()
   }
   
+  public func release(){
+    payloadQueue = []
+    _dlSession?.release()
+    _dlSession = nil
+    feeder = nil
+  }
+  
   public func createDirs() {
+    guard let feeder else { return }
     feeder.globalDir.create()
     feeder.resourcesDir.create()
     if !feeder.resVersionFile.exists { feeder.storedResVersion = 0 }
   }
   
   public func createIssueDir(feed: String, issue: String) {
+    guard let feeder else { return }
     createDirs()
     let idir = feeder.issueDir(feed: feed, issue: issue)
     idir.create()
@@ -119,7 +128,8 @@ open class Downloader: DoesLog {
   }
   
   public func createIssueDir(issue: Issue) {
-    let name = self.feeder.date2a(issue.date)
+    guard let feeder else { return }
+    let name = feeder.date2a(issue.date)
     createIssueDir(feed: issue.feed.name, issue: name)
   }
   
@@ -133,6 +143,7 @@ open class Downloader: DoesLog {
   
   /// Download global files (ie. files with storage type .global)
   private func downloadGlobalFiles(files: [FileEntry], closure: @escaping (Error?)->()) {
+    guard let feeder else { return }
     let globals = files.filter { $0.storageType == .global }
     if globals.count == 0 { closure(nil); return }
     let toDir = feeder.globalDir.path
@@ -151,8 +162,8 @@ open class Downloader: DoesLog {
     let globals = files.filter { $0.storageType == .global }
     guard globals.count > 0 else { closure(nil); return }
     downloadGlobalFiles(files: globals) { [weak self] err in
-      guard let self = self, err == nil else { closure(err); return }
-      self.updateStoredFiles(files: globals, toDir: self.feeder.globalDir.path)
+      guard let self, let feeder = self.feeder, err == nil else { closure(err); return }
+      self.updateStoredFiles(files: globals, toDir: feeder.globalDir.path)
       closure(nil)
     }
   }
@@ -191,6 +202,7 @@ open class Downloader: DoesLog {
   /// Download files with storage type .issue
   private func downloadIssueFiles(url: String, feed: String, issue: String, 
     files: [FileEntry], closure: @escaping (Error?)->()) {
+    guard let feeder else { return }
     let idir = feeder.issueDir(feed: feed, issue: issue)
     downloadIssueFiles(from: url, to: idir, files: files, closure: closure)
   }
@@ -213,7 +225,8 @@ open class Downloader: DoesLog {
   public func downloadIssueFiles(issue: Issue,
                                  files: [FileEntry],
                                  closure: @escaping (Error?)->()) {
-    let name = self.feeder.date2a(issue.date)
+    guard let feeder else { return }
+    let name = feeder.date2a(issue.date)
     self.downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, 
       issue: name, files: files, closure: closure)   
   }

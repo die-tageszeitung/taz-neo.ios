@@ -28,8 +28,8 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     setupTabbar()
     self.navigationController?.isNavigationBarHidden = true
     registerForStyleUpdates()
-    Notification.receive(Const.NotificationNames.authenticationSucceeded) { notif in
-      self.authenticationSucceededCheckReload()
+    Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
+      self?.authenticationSucceededCheckReload()
     }
   } // viewDidLoad
   
@@ -41,7 +41,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     let home = IssueVC(feederContext: feederContext)
     home.title = "Home"
-    home.updateToolbarHomeIcon()
+    home.tabBarItem.image = UIImage(named: "home")
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let homeNc = NavigationController(rootViewController: home)
@@ -51,9 +51,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     let bookmarksNc = BookmarkNC(feederContext: feederContext)
     bookmarksNc.onPopViewController(closure: popViewControllerClosure)
     bookmarksNc.title = "Leseliste"
+    bookmarksNc.tabBarItem.image = UIImage(named: "star")
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     bookmarksNc.isNavigationBarHidden = true
-    bookmarksNc.updateTabbarImage()
     
     let search = SearchController(feederContext: feederContext )
     search.title = "Suche"

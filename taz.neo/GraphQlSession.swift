@@ -62,6 +62,8 @@ public class GraphQlError: LocalizedError, Codable, CustomStringConvertible {
 /// A class to read/write from GraphQL servers
 open class GraphQlSession: HttpSession {
   
+  public override var isDebugLogging: Bool { false }
+  
   /// The Server URL to get data from
   public var url: String?
   
@@ -72,8 +74,11 @@ open class GraphQlSession: HttpSession {
   
   public init(_ url: String, authToken: String? = nil) {
     self.url = url
-    self.authToken = authToken
     super.init(name: "GQL:\(url)")
+    if let authToken {
+      self.authToken = authToken
+      header["X-tazAppAuthKey"] = authToken
+    }
     header["Accept"] = "application/json, */*"
     header["Content-Type"] = "application/json"
     header["Accept-Encoding"] = "gzip"

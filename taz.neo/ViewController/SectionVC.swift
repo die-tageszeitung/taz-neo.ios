@@ -240,6 +240,18 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   override public func viewDidLoad() {
     super.viewDidLoad()
     self.index = initialSection ?? 0
+    
+    scrollViewDidScroll{[weak self] offset in
+      self?.header.scrollViewDidScroll(offset)
+    }
+    
+    scrollViewDidEndDragging{[weak self] offset in
+      self?.header.scrollViewDidEndDragging(offset)
+    }
+    
+    scrollViewWillBeginDragging{[weak self] offset in
+      self?.header.scrollViewWillBeginDragging(offset)
+    }
   }
   
   override public func viewDidAppear(_ animated: Bool) {
@@ -256,9 +268,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       delay(seconds: 1.5) {
         self.slider?.open() { _ in
           delay(seconds: 1.5) {
-            self.slider?.close() { _ in
-              self.slider?.blinkButton()
-            }
+            self.slider?.close()
           }
         }
       }

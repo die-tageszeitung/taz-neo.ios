@@ -42,7 +42,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   #warning("Access \"issueCarousel.index!\" may fail, not use force unwrap")
   public var index: Int {
     get { issueCarousel.index! }
-    set { issueCarousel.index = newValue; updateToolbarHomeIcon() }
+    set { issueCarousel.index = newValue }
   }
   
   var verticalPaddings: CGFloat { get {
@@ -85,13 +85,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issues = [] 
     issueCarousel.reset()
     self.collectionView.reloadData()
-  }
-    
-  func updateToolbarHomeIcon(){
-    self.tabBarItem.image
-    = self.safeIndex == 0 && isUp
-    ? UIImage(named: "home-fill")
-    : UIImage(named: "home")
   }
   
   /// Reset carousel images
@@ -441,7 +434,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     imageButton.buttonView.activeColor = Const.Colors.iconButtonActive
     imageButton.accessibilityLabel = "Ansicht umschalten"
     imageButton.isAccessibilityElement = true
-    imageButton.onPress(closure: onPDF(sender:))
+    imageButton.onPress { [weak self] s in self?.onPDF(sender: s) }
     imageButton.layer.cornerRadius = 25
     imageButton.backgroundColor = Const.Colors.fabBackground
     imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
@@ -561,8 +554,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.showIssue(index: idx, atSection: issue.lastSection, 
                      atArticle: issue.lastArticle)
     }
-    issueCarousel.onLabelTap { idx in
-      self.showDatePicker()
+    issueCarousel.onLabelTap { [weak self] idx in
+      self?.showDatePicker()
     }
     issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { 
       [weak self] arg in
@@ -607,7 +600,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.addMenuItem(title: "Abbrechen", icon: "xmark.circle") {_ in}
     issueCarousel.carousel.onDisplay { [weak self] (idx, om) in
       guard let self = self else { return }
-      self.updateToolbarHomeIcon()
       self.setLabel(idx: idx, isRotate: true)
       if IssueVC.showAnimations {
         IssueVC.showAnimations = false
