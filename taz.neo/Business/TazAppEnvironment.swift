@@ -318,8 +318,9 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     guard let win = UIApplication.shared.delegate?.window else { return }
     let env = TazAppEnvironment.sharedInstance
     if env.isTazUser() { env.addThreeFingerMenu(targetWindow: win) }
-    else if let recog = env.devGestureRecognizer {
+    else if let recog = env.devGestureRecognizer, !App.isAlpha {
       win?.removeGestureRecognizer(recog)
+      env.devGestureRecognizer = nil
     }
   }
   
