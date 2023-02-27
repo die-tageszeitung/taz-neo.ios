@@ -571,6 +571,40 @@ class GqlFeed: Feed, GQLObject {
     """
 } // class GqlFeed
 
+/// GqlAppInfo stores data regarding the running App as provided by the server
+class GqlAppInfo: GQLObject {
+  /// minimal App version required
+  var minVersion: String?
+  
+  static var fields = "minVersion"
+  
+  func toString() -> String {
+    return "minVersion: \(minVersion ?? "0")"
+  }
+  
+  public static func query(feeder: GqlFeeder, closure: @escaping(Result<GqlAppInfo,Error>)->()) {
+    let request = """
+      appInfo: app(os: "iOS", type: "native") {
+        \(GqlAppInfo.fields)
+      }
+    """
+    guard let session = feeder.gqlSession else { 
+      closure(.failure(Log.error("No GraphQl Session")))
+      return
+    }
+    session.query(graphql: request, type: [String:GqlAppInfo].self) { res in
+      var ret: Result<GqlAppInfo,Error>
+      switch res {
+      case .success(let str): 
+        let appInfo = str["appInfo"]!
+        ret = .success(appInfo)
+      case .failure(let err):   ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+}
+
 /// GqlFeederStatus stores some Feeder specific data
 class GqlFeederStatus: GQLObject {  
   /// Authentication Info
@@ -694,19 +728,39 @@ open class GqlFeeder: Feeder, DoesLog {
     self.title = title
     let (_,_,token) = SimpleAuthenticator.getUserData()
     self.gqlSession = GraphQlSession(url, authToken: token)
-    self.feederStatus { [weak self] (res) in
-      guard let self = self else { return }
-      var ret: Result<Feeder,Error>
-      switch res {
-      case .success(let st):   
-        ret = .success(self)
-        self.status = st
-        self.lastUpdated = Date()
-      case .failure(let err):  
-        ret = .failure(err)
+    
+    func getStatus() {
+      feederStatus { [weak self] (res) in
+        guard let self = self else { return }
+        var ret: Result<Feeder,Error>
+        switch res {
+        case .success(let st):   
+          ret = .success(self)
+          self.status = st
+          self.lastUpdated = Date()
+        case .failure(let err):  
+          ret = .failure(err)
+        }
+        self.lastUpdated = UsTime.now.date
+        closure(ret)
       }
-      self.lastUpdated = UsTime.now.date
-      closure(ret)
+    }
+    
+    GqlAppInfo.query(feeder: self) { [weak self] res in
+      guard let self else { return }
+      if let mv = res.value() {
+        if let mvs = mv.minVersion {
+          let minVersion = Version(mvs)
+          self.debug("Version check: current(\(App.version), server(mvs)")
+          if App.version < minVersion { 
+            closure(.failure(FeederError.minVersionRequired(mvs)))
+            return
+          }
+        } 
+        else { self.debug("Server doesn't return minVersion") }
+      }
+      else { self.error("Can't get minimal App version from server") }
+      getStatus()
     }
   }
   
