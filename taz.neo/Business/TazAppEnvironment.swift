@@ -295,6 +295,13 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     feederContext.setupRemoteNotifications()
   }
   
+  private func isTazUser() -> Bool {
+    let dfl = Defaults.singleton
+    let id = dfl["id"]
+    if let id = id, id =~ ".*\\@taz\\.de$" { return true }
+    return false
+  }
+  
   func setupTopMenus(targetWindow:UIWindow) {
     self.threeFingerAlertOpen = false
     let reportLPress2 = UILongPressGestureRecognizer(target: self,
@@ -306,36 +313,33 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     
     targetWindow.isUserInteractionEnabled = true
     targetWindow.addGestureRecognizer(reportLPress2)
-    targetWindow.ifAlphaApp?.addGestureRecognizer(reportLPress3)
+    if App.isAlpha || isTazUser() { targetWindow.addGestureRecognizer(reportLPress3) }
   }
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
     if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
     var actions: [UIAlertAction] = []
-    
     let dfl = Defaults.singleton
-    let id = dfl["id"]
-    if let id = id, id =~ ".*\\@taz\\.de$" {
-      actions.append(Alert.action("Abo-Verknüpfung löschen") {[weak self] _ in self?.unlinkSubscriptionId() })
-      actions.append(Alert.action("Abo-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
-      actions.append(Alert.action("Download-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
-      let sMin = Alert.action("Simuliere höhere Minimalversion") { _ in
-        dfl["simulateFailedMinVersion"] = "true"
-        Alert.confirm(title: "Beenden", 
-          message: "Die App wird jetzt beendet, zum Simulieren bitte neu starten") { terminate in
-          if terminate { exit(0) }
-        }
+    
+    actions.append(Alert.action("Abo-Verknüpfung löschen") {[weak self] _ in self?.unlinkSubscriptionId() })
+    actions.append(Alert.action("Abo-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
+    actions.append(Alert.action("Download-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
+    let sMin = Alert.action("Simuliere höhere Minimalversion") { _ in
+      dfl["simulateFailedMinVersion"] = "true"
+      Alert.confirm(title: "Beenden",
+                    message: "Die App wird jetzt beendet, zum Simulieren bitte neu starten") { terminate in
+        if terminate { exit(0) }
       }
-      actions.append(sMin)
-      let sCheck = Alert.action("Simuliere höhere Version im AppStore") { _ in
-        dfl["simulateNewVersion"] = "true"
-        Alert.confirm(title: "Beenden", 
-          message: "Die App wird jetzt beendet, zum Simulieren bitte neu starten") { terminate in
-          if terminate { exit(0) }
-        }
-      }
-      actions.append(sCheck)
     }
+    actions.append(sMin)
+    let sCheck = Alert.action("Simuliere höhere Version im AppStore") { _ in
+      dfl["simulateNewVersion"] = "true"
+      Alert.confirm(title: "Beenden",
+                    message: "Die App wird jetzt beendet, zum Simulieren bitte neu starten") { terminate in
+        if terminate { exit(0) }
+      }
+    }
+    actions.append(sCheck)
     
     let title = App.appInfo + "\n" + App.authInfo(with: feederContext)
     Alert.actionSheet(title: title,
