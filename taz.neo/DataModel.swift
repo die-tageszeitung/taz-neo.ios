@@ -17,6 +17,7 @@ public enum FeederError: Error, Equatable {
   case expiredAccount(String?)
   case changedAccount(String?)
   case unexpectedResponse(String?)
+  case minVersionRequired(String)
   
   public var description: String {
     switch self {
@@ -28,6 +29,8 @@ public enum FeederError: Error, Equatable {
       return "Changed Account: \(msg ?? "unknown reason")"
     case .unexpectedResponse(let msg):
       return "Unexpected server response: \(msg ?? "unknown reason")"
+    case .minVersionRequired(let msg):
+      return "Minimal version requirement failed \(msg)"
     }
   }    
   public var errorDescription: String? { return description }
@@ -38,6 +41,7 @@ public enum FeederError: Error, Equatable {
       case .expiredAccount(let msg): return msg
       case .changedAccount(let msg): return msg
       case .unexpectedResponse(let msg): return msg
+      case .minVersionRequired(let msg): return msg
     }
   }
   
