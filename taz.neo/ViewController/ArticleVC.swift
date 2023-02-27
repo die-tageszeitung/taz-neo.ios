@@ -92,8 +92,8 @@ open class ArticleVC: ContentVC {
   func toggleBookmark(art: StoredArticle?) {
     guard let art = art else { return }
     var msg: String
-    if art.hasBookmark { msg = "Lesezeichen wird entfernt" }
-    else { msg = "Wird in Leseliste aufgenommen" }
+    if art.hasBookmark { msg = "Der Artikel wurde aus ihrer Leseliste entfernt." }
+    else { msg = "Der Artikel wurde in ihrer Leseliste gespeichert." }
     Toast.show("<h3>\(art.title ?? "")</h3>\(msg)", minDuration: 0)
     art.hasBookmark.toggle()
   }
