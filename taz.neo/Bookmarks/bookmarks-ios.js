@@ -133,7 +133,7 @@ function reallyDeleteBookmark(event) {
     }
     else {
       art.remove();
-      tazApi.setBookmark(art.id + ".html", false);
+      tazApi.setBookmark(art.id, false);
     }
   });
   art.removeEventListener("transitionend", reallyDeleteBookmark);
