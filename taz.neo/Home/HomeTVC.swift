@@ -88,7 +88,6 @@ class HomeTVC: UITableViewController {
     return createLoginButton()
   }()
   
-  lazy var topGradient = VerticalGradientView()
   
   var btnLeftConstraint: NSLayoutConstraint?
   
@@ -106,7 +105,6 @@ class HomeTVC: UITableViewController {
     setupCarouselControllerCell()
     setupTilesControllerCell()
     setupTogglePdfButton()
-    setupTopGradient()
     setupDateButton()
   }
   
@@ -348,7 +346,6 @@ extension HomeTVC {
     carouselControllerCell.contentView.addSubview(loginButton)
     pin(loginButton.right, to: carouselControllerCell.contentView.rightGuide())
     pin(loginButton.top, to: carouselControllerCell.contentView.topGuide(), dist: 20)
-    topGradient.bringToFront()
   }
   
   fileprivate func setupTogglePdfButton(){
@@ -356,15 +353,6 @@ extension HomeTVC {
     ncView.addSubview(togglePdfButton)
     btnLeftConstraint = pin(togglePdfButton.centerX, to: ncView.left, dist: 50)
     pin(togglePdfButton.bottom, to: ncView.bottomGuide(), dist: -65)
-  }
-  
-  fileprivate func setupTopGradient(){
-    guard let ncView = navigationController?.view else { return }
-    ncView.addSubview(topGradient)
-    topGradient.pinHeight(UIWindow.maxAxisInset)
-    pin(topGradient.left, to: ncView.left)
-    pin(topGradient.right, to: ncView.right)
-    pin(topGradient.top, to: ncView.top)
   }
   
   fileprivate func setupDateButton(){
