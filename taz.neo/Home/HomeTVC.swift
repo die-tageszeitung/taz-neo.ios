@@ -176,6 +176,7 @@ class HomeTVC: UITableViewController {
       self?.carouselController.collectionView.reloadData()
       self?.carouselController.statusHeader.currentStatus = .none
       self?.tilesController.collectionView.reloadData()
+      self?.carouselController.updateBottomWrapper(for: 0, force: true)
     }
   }
   
@@ -241,6 +242,8 @@ extension HomeTVC {
     }
     self.tilesController.reloadVisibleCells()
     self.carouselController.reloadVisibleCells()
+    self.carouselController.updateBottomWrapper(for: self.carouselController.centerIndex ?? 0,
+                                                force: true)
   }
 }
 
