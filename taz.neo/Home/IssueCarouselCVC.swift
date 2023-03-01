@@ -61,9 +61,8 @@ class IssueCarouselCVC: UICollectionViewController {
     dateLabel.textAlignment = .center
     pin(downloadButton, to: v, exclude: .left)
     downloadButton.color = .white
-    pin(dateLabel.left, to: v.left, dist: 25)
-    pin(dateLabel.right, to: v.right, dist: -25)
-    dateLabel.centerY()
+    pin(dateLabel.left, to: v.left, dist: 25, priority: .defaultLow)
+    pin(dateLabel.right, to: v.right, dist: -25, priority: .defaultLow)
     v.pinHeight(28)
     
     dateLabel.onTapping {[weak self] _ in
