@@ -274,8 +274,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
             art.hasBookmark = bm
             ArticleDB.save()
             if args.count > 2, let showToast = args[2] as? Int, showToast != 0 {
-              let msg = bm ? "Wird in Leseliste aufgenommen" :
-                             "Lesezeichen wird entfernt"
+              let msg = bm ? "Der Artikel wurde in ihrer Leseliste gespeichert." :
+                             "Der Artikel wurde aus ihrer Leseliste entfernt."
               if let title = art.title {
                 Toast.show("<h3>\(title)</h3>\(msg)", minDuration: 0)
               }
