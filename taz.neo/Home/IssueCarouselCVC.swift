@@ -179,8 +179,9 @@ class IssueCarouselCVC: UICollectionViewController {
     if let i = preventApiLoadUntilIndex,
        i != indexPath.row,
        let cell = cell as? IssueCollectionViewCell{
-      ///Jump to date called prevent all intermediate API Calls, return empty cell, just set date for
-      cell.date = service.date(at: i)
+      ///Jump to date called prevent all intermediate API Calls, return empty cell,
+      ///just set the date for update the cell within a notification
+      cell.date = service.date(at: indexPath.row)
       return cell
     }
     preventApiLoadUntilIndex = nil
