@@ -154,7 +154,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     index = idx
   }
-  
+  #warning("@r adopt this to pass download error!")
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
     self.debug("Err: \(error?.description ?? "-")")
@@ -252,6 +252,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   func showIssue(index givenIndex: Int? = nil, atSection: Int? = nil,
                          atArticle: Int? = nil) {
     guard let index = givenIndex ?? self.safeIndex else { return }
+    #warning("@R: handle offline, show auth popup")
     func openIssue() {
       ArticlePlayer.singleton.baseUrl = issue.baseUrl
       self.openedIssue = issues[index]

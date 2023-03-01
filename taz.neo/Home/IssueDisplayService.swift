@@ -146,8 +146,8 @@ extension IssueDisplayService {
         return
       }
       let issue = self.sissue
-      guard notif.error == nil else {
-        self.handleDownloadError(error: notif.error!)
+      if let err = notif.error {
+        self.handleDownloadError(error: err)
         if issue.status.watchable && self.isFacsimile {
           self.openIssue(issue: issue,
                     atSection: issue.lastSection,
@@ -215,7 +215,10 @@ extension IssueDisplayService {
       OfflineAlert.message(title: "Warnung", message: message)
     }
     
-    if let err = error as? DownloadError, let err2 = err.enclosedError as? FeederError {
+    if let err = error as? FeederError {
+      feederContext.handleFeederError(err){}
+    }
+    else if let err = error as? DownloadError, let err2 = err.enclosedError as? FeederError {
       feederContext.handleFeederError(err2){}
     }
     else if let err = error as? DownloadError {

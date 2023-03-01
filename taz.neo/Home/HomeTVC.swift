@@ -101,6 +101,10 @@ class HomeTVC: UITableViewController {
     self.view.backgroundColor = .black
     self.tableView.showsVerticalScrollIndicator = false
     self.tableView.showsHorizontalScrollIndicator = false
+    ///on tapping the down arrows on ipad6mini, the seperator appears no matter what i setup here:
+    self.tableView.separatorColor = .clear
+    self.tableView.separatorStyle = .none
+    self.tableView.allowsSelection = false///seams that it was at first seperator and then selection!
     
     setupCarouselControllerCell()
     setupTilesControllerCell()

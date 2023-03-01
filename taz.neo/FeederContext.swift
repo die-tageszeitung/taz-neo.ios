@@ -802,7 +802,7 @@ open class FeederContext: DoesLog {
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
-  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false, isAutomatically: Bool) {
+  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false, isAutomatically: Bool, notifyAuthError:Bool = false) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
@@ -819,6 +819,14 @@ open class FeederContext: DoesLog {
       gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
                        isPages: loadPages) { res in
         if let issues = res.value(), issues.count == 1 {
+          ///Needed for new Caroussel due it not check permanent for auth status within overview check
+          if notifyAuthError, let err = res.error() {
+            let errorResult : Result<[Issue], Error>
+              = .failure(DownloadError(handled: false, enclosedError: err))
+            Notification.send("issueStructure",
+                              result: errorResult,
+                              sender: issue)
+          }
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)
           issue.update(from: dissue)

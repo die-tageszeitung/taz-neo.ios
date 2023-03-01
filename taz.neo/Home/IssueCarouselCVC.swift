@@ -40,6 +40,8 @@ class IssueCarouselCVC: UICollectionViewController {
   var scrollLastCenterIndex: Int = 0
   var preventApiLoadUntilIndex: Int?
   
+  var centerIssueDateKey:String?
+  
   var centerIndex: Int? {
     guard let cv = collectionView else { return nil }
     let center = self.view.convert(cv.center, to: cv)
@@ -70,8 +72,9 @@ class IssueCarouselCVC: UICollectionViewController {
     }
     downloadButton.onTapping { [weak self] _ in
       if self?.downloadButton.indicator.downloadState == .done { return }
-      self?.service.download(issueAtIndex: self?.centerIndex,
-                             updateStatusButton: self?.downloadButton)
+      if let issue = self?.service.download(issueAtIndex: self?.centerIndex){
+        self?.downloadButton.indicator.downloadState = .waiting
+      }
     }
     return v
   }()
@@ -96,6 +99,7 @@ class IssueCarouselCVC: UICollectionViewController {
     statusWrapperBottomConstraint = pin(bottomItemsWrapper.top, to: self.view.bottom, dist: 0)
     setupPullToRefresh()
     updateBottomWrapper(for: 0)
+    setupReceiveDownloadIssueNotification()
   }
     
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -151,14 +155,20 @@ class IssueCarouselCVC: UICollectionViewController {
                                      animated: true)
   }
   
-  func updateBottomWrapper(for cidx: Int){
+  func updateBottomWrapper(for cidx: Int, force: Bool = false){
     guard let date = service.date(at: cidx) else { return }
     let issue = service.issue(at: date)
     let txt = issue?.validityDateText(timeZone: GqlFeeder.tz,
-                                      short: true)
-    ?? date.short
-    dateLabel.setText(txt)
-    downloadButton.indicator.downloadState = service.issueDownloadState(at: cidx)
+                                      short: true) ?? date.short
+    let newKey = date.issueKey
+    if force || newKey != centerIssueDateKey {
+      let state = service.issueDownloadState(at: cidx)
+      print("changed from: \(centerIssueDateKey ?? "-") to \(newKey) state: \(state)")
+      //set to waiting if in progress due we dont know current percentage!
+      downloadButton.indicator.downloadState = state == .process ? .waiting : state
+      centerIssueDateKey = newKey
+      dateLabel.setText(txt)
+    }
   }
     
   // MARK: UICollectionViewDataSource
@@ -267,9 +277,9 @@ extension IssueCarouselCVC {
       = cw*0.3//0.3/2 out of view bei 0.4/2
       sideInset = (size.width - cw)/2
     }
-
+    ///Warning: using maxinset! due top inset is wrong after rotation because its called from viewWillTransition
     let  offset = 0.5*( size.height
-             - UIWindow.topInset
+             - UIWindow.maxInset
              - layout.maxScale*layout.itemSize.height) - 10
 //    print("dist is: -0,5* (\(size.height)   -   \(UIWindow.topInset)   -   \(layout.maxScale*layout.itemSize.height))=\(statusWrapperBottomConstraint?.constant ?? 0)\n  0.5 * ( size.height - UIWindow.safeInsets.top - HomeTVC.defaultHeight - layout.maxScale*layout.itemSize.height)")
     
@@ -294,10 +304,10 @@ extension IssueCarouselCVC {
     pin(statusHeader.right, to: self.view.right)
     topStatusButtonConstraint = pin(statusHeader.bottom, to: self.view.top, dist: 0)
        
-    Notification.receive("checkForNewIssues", from: self.service.feederContext) { notification in
+    Notification.receive("checkForNewIssues", from: self.service.feederContext) { [weak self] notification in
       if let status = notification.content as? FetchNewStatusHeader.status {
         print("receive status: \(status)")
-        self.statusHeader.currentStatus = status
+        self?.statusHeader.currentStatus = status
       }
     }
     self.pullToLoadMoreHandler = {   [weak self] in
@@ -306,6 +316,23 @@ extension IssueCarouselCVC {
         self?.statusHeader.currentStatus = .fetchNewIssues
       }
     }
+  }
+}
+
+
+extension IssueCarouselCVC {
+  func setupReceiveDownloadIssueNotification(){
+    Notification.receive("issueProgress", closure: { [weak self] notif in
+      guard let key = self?.centerIssueDateKey,
+            (notif.object as? Issue)?.date.issueKey == key else { return }
+      if let (loaded,total) = notif.content as? (Int64,Int64) {
+        let percent = Float(loaded)/Float(total)
+        if percent > 0.05 {
+          self?.downloadButton.indicator.downloadState = .process
+          self?.downloadButton.indicator.percent = percent
+        }
+      }
+    })
   }
 }
 

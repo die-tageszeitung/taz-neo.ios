@@ -43,7 +43,7 @@ typealias IssueCellData = (date: Date, issue:StoredIssue?, image: UIImage?)
 typealias EnqueuedMomentLoad = (issue: StoredIssue, files: [FileEntry], isPdf: Bool)
 
 /// using Dates short String Representation for store and find issues for same date, ignore time
-fileprivate extension Date { var key : String { short } }
+extension Date { var issueKey : String { short } }
 
 class IssueOverviewService: NSObject, DoesLog {
   
@@ -92,37 +92,40 @@ class IssueOverviewService: NSObject, DoesLog {
     return issueDates.firstIndex(where: { $0 <= date }) ?? 0
   }
   
-  var carousselUpdateStatusButton: DownloadStatusButton?
-  var carousselActiveDownloadIssue: StoredIssue?
-  
-  func download(issueAtIndex: Int?, updateStatusButton: DownloadStatusButton?) {
-    updateStatusButton?.indicator.downloadState = .waiting
+  @discardableResult
+  func download(issueAtIndex: Int?) -> StoredIssue? {
     guard let idx = issueAtIndex,
         let issue = issue(at: idx),
           hasDownloadableContent(issue: issue) else {
       self.log("not downloading for idx: \(issueAtIndex ?? -1)")
-      return
+      return nil
     }
-    
-    self.carousselUpdateStatusButton = updateStatusButton
-    self.carousselActiveDownloadIssue = issue
-    
+        
     feederContext.getCompleteIssue(issue: issue,
                                    isPages: self.isFacsimile,
-                                   isAutomatically: false)
+                                   isAutomatically: false,
+                                   notifyAuthError: true)
+    return issue
   }
   
   func issueDownloadState(at index: Int) -> DownloadStatusIndicatorState {
-    guard let d = date(at: index) else { return .notStarted }
-    guard let issue = issue(at: d) else { return .notStarted }
+    guard let d = date(at: index) else {
+      print("no date for \(index)")
+      return .notStarted
+    }
+    guard let issue = issue(at: d) else {
+      print("no issue for \(index) date: \(d.issueKey)")
+      return .notStarted
+    }
     if issue.isDownloading { return .process }
+    print("issue for \(index) date: \(d.issueKey) is either not started or done")
     return feederContext.needsUpdate(issue: issue, toShowPdf: isFacsimile)
     ? .notStarted
     : .done
   }
   
   func issue(at date: Date) -> StoredIssue? {
-    return issues[date.key]
+    return issues[date.issueKey]
   }
   
   func issue(at index: Int) -> StoredIssue? {
@@ -163,7 +166,7 @@ class IssueOverviewService: NSObject, DoesLog {
   /// checks for new issues, if not currently doing this
   /// - Returns: true if check will be executed; false if check is still in progress
   func checkForNewIssues() -> Bool {
-    let key = Date.init(timeIntervalSince1970: 0).key
+    let key = Date.init(timeIntervalSince1970: 0).issueKey
     if loadingDates.contains(where: { return $0==key}) {
       return false
     }
@@ -173,37 +176,36 @@ class IssueOverviewService: NSObject, DoesLog {
 
   func apiLoadPreview(for date: Date?, count: Int) {
     if let date, issue(at: date) != nil {
-      debug("Already loaded: \(date.key) skip loading")
+      debug("Already loaded: \(date.issueKey) skip loading")
       return
     }
     
-    let d1 = date ?? Date.init(timeIntervalSince1970: 0)
-    
-    if loadingDates.contains(where: { return $0==d1.key}) {
-      debug("Already loading: \(date?.key ?? "latest"), skip loading")
+    if let date = date, loadingDates.contains(where: { return $0==date.issueKey}) {
+      debug("Already loading: \(date.issueKey), skip loading")
       return
     }
     
     var count = count
     
-    let availableIssues = issues.map({ $0.value.date.key })
-    var currentLoadingDates: [String] = []
+    let availableIssues = issues.map({ $0.value.date.issueKey })
+    var currentLoadingDates: [Date] = []
     
     if let date {
-      for i in 0...count {
+      for i in -count/2...count/2 {
         var d = date
         d.addDays(-i)
-        if availableIssues.contains(d.key) { count = i+1; break }
-        if loadingDates.contains(d.key) { count = i+1; break }
-        currentLoadingDates.append(d.key)
+        if availableIssues.contains(d.issueKey) { count = i+1; break }
+        if loadingDates.contains(d.issueKey) { count = i+1; break }
+        currentLoadingDates.append(d)
       }
-    } else {
-      currentLoadingDates.append(d1.key)
     }
     
-    addToLoading(currentLoadingDates)
+    let date = currentLoadingDates.first ?? date
+    count = currentLoadingDates.count > 0 ? currentLoadingDates.count : count
+    let sCurrentLoadingDates = currentLoadingDates.map{$0.issueKey}
+    addToLoading(sCurrentLoadingDates)
     
-    debug("Load Issues for: \(date?.short ?? "-"), count: \(count)")
+    debug("Load Issues for: \(date?.short ?? "newest"), count: \(count)")
     
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: date,
@@ -213,8 +215,13 @@ class IssueOverviewService: NSObject, DoesLog {
       guard let self = self else { return }
       var newIssues: [StoredIssue] = []
       self.debug("Finished load Issues for: \(date?.short ?? "-"), count: \(count)")
-      let start = Date()
+      
+      if let err = res.error() as? FeederError {
+        self.handleDownloadError(error: err)
+      }
+      #warning("ToDo handle Error issue!!! NEWNEW")
       if let issues = res.value() {
+        let start = Date()
         for issue in issues {
           newIssues.append(StoredIssue.persist(object: issue))
         }
@@ -222,7 +229,7 @@ class IssueOverviewService: NSObject, DoesLog {
         ArticleDB.save()
         var loadedDates:[Date] = []
         for si in newIssues {
-          self.issues[si.date.key] = si
+          self.updateIssue(issue: si)
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: si.date,
                             sender: self)
@@ -234,10 +241,7 @@ class IssueOverviewService: NSObject, DoesLog {
           self.addLatestDates(dates: loadedDates)
         }
       }
-      else {
-        self.log("error in preview load from \(date?.short ?? "-") count: \(count)")
-      }
-      self.removeFromLoading(currentLoadingDates)
+      self.removeFromLoading(sCurrentLoadingDates)
     }
   }
   
@@ -264,14 +268,6 @@ class IssueOverviewService: NSObject, DoesLog {
     loadingDates.append(contentsOf: dates)
   }
   
-  
-  func getCompleteIssue(issue: Issue) {
-    guard let sIssue = issue as? StoredIssue else { return }
-    feederContext.getCompleteIssue(issue: sIssue,
-                                   isPages: self.isFacsimile,
-                                   isAutomatically: false)
-  }
-  
   func apiLoadMomentImages(for issue: StoredIssue, isPdf: Bool) {
     let dir = issue.dir
     var files: [FileEntry] = []
@@ -289,16 +285,12 @@ class IssueOverviewService: NSObject, DoesLog {
       }
     }
     
-    
-    
     loadPreviewsQueue.async(group: loadPreviewsGroup) { [weak self] in
       guard let self = self else { return }
       let load = EnqueuedMomentLoad(issue: issue, files: files, isPdf: isPdf)
       self.loadPreviewsLock.with { [weak self] in  self?.loadPreviewsStack.push(load) }
       
-      self.debug("enqueue download \(files.count) Issue files for \(issue.date.key)")
-      #warning("ToDo its FIFO, but we need LIFO")
-      /// Idea put all in array with push/pop
+      self.debug("enqueue download \(files.count) Issue files for \(issue.date.issueKey)")
       self.loadPreviewsGroup.enter()
       self.loadPreviewsSemaphore.wait()
       
@@ -315,16 +307,14 @@ class IssueOverviewService: NSObject, DoesLog {
       let isPdf = next.isPdf
       let files = next.files
       
-      self.debug("do download \(files.count) Issue files for \(issue.date.key)")
+      self.debug("do download \(files.count) Issue files for \(issue.date.issueKey)")
       self.feederContext.dloader
         .downloadIssueFiles(issue: issue, files: files) {[weak self] err in
-          self?.debug("done download \(files.count) Issue files for \(issue.date.key)")
+          self?.debug("done download \(files.count) Issue files for \(issue.date.issueKey)")
           let img = self?.storedImage(issue: issue, isPdf: isPdf)
           if img == nil {
             self?.debug("something went wrong: downloaded file did not exist!")
           }
-          let icd = IssueCellData(date: issue.date, issue: issue, image: img)
-          ///Danger
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: issue.date,
                             sender: self)
@@ -341,27 +331,7 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func updateIssue(issue:StoredIssue){
-    self.issues[issue.date.key] = issue
-  }
-    
-  func setupCarousselProgressButton(){
-    Notification.receive("issueProgress", closure: { [weak self] notif in
-      guard let self,
-      let btn = self.carousselUpdateStatusButton,
-      let issue = self.carousselActiveDownloadIssue,
-      (notif.object as? Issue)?.date == issue.date else { return }
-      if let (loaded,total) = notif.content as? (Int64,Int64) {
-        let percent = Float(loaded)/Float(total)
-        if percent > 0.05 {
-          btn.indicator.downloadState = .process
-          btn.indicator.percent = percent
-        }
-        if percent == 1.0 {
-          self.carousselUpdateStatusButton = nil
-          self.carousselActiveDownloadIssue = nil
-        }
-      }
-    })
+    self.issues[issue.date.issueKey] = issue
   }
     
   /// Initialize with FeederContext
@@ -371,20 +341,70 @@ class IssueOverviewService: NSObject, DoesLog {
     issueDates = feed.publicationDates?.dates.sorted().reversed() ?? []
     
     issues = StoredIssue.issuesInFeed(feed: feed).reduce(into: [String: StoredIssue]()) {
-      $0[$1.date.key] = $1
+      $0[$1.date.issueKey] = $1
     }
 
     super.init()
     Notification.receive(Const.NotificationNames.reloadIssueDates) {[weak self] _ in
       if let newDates = self?.feed.publicationDates?.dates.sorted() {
         self?.issueDates = newDates.reversed()
+        Notification.send(Const.NotificationNames.reloadIssueList)
       }
     }
-    setupCarousselProgressButton()
+    ///Update downloaded Issue Reference
+    Notification.receive("issue"){ [weak self] notif in
+      guard let issue = notif.object as? StoredIssue else { return }
+      print("update issue after download for: \(issue.date.issueKey)")
+      self?.updateIssue(issue: issue)
+    }
+    ///Update downloaded Issue Reference
+    Notification.receive("issueStructure"){ [weak self] notif in
+      guard let error = notif.error as? DownloadError else { return }
+      self?.handleDownloadError(error: error)
+    }
   }
   
   private var lc = LoadCoordinator()
 }
+
+
+extension IssueOverviewService {
+  /// Inspect download Error and show it to user
+  func handleDownloadError(error: Error?) {
+    self.debug("Err: \(error?.description ?? "-")")
+    func showDownloadErrorAlert() {
+      let message = """
+                    Beim Laden der Ausgabe ist ein Fehler aufgetreten.
+                    Bitte versuchen Sie es zu einem späteren Zeitpunkt
+                    noch einmal.
+                    Sie können bereits heruntergeladene Ausgaben auch
+                    ohne Internet-Zugriff lesen.
+                    """
+      OfflineAlert.message(title: "Warnung", message: message)
+    }
+    #warning("1st ok next at download handle error!!")
+    if let err = error as? FeederError {
+      feederContext.handleFeederError(err){}
+    }
+    else if let err = error as? DownloadError, let err2 = err.enclosedError as? FeederError {
+      feederContext.handleFeederError(err2){}
+    }
+    else if let err = error as? DownloadError {
+      if err.handled == false {  showDownloadErrorAlert() }
+      self.debug(err.enclosedError?.description ?? err.description)
+    }
+    else if let err = error {
+      self.debug(err.description)
+      showDownloadErrorAlert()
+    }
+    else {
+      self.debug("unspecified download error")
+      showDownloadErrorAlert()
+    }
+//    self.isDownloading = false
+  }
+}
+
 
 fileprivate typealias LoadingParams = (startDate: Date?, count: Int)
 
