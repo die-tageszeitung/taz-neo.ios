@@ -76,18 +76,6 @@ class IssueTilesCVC: UICollectionViewController {
     }
     return cell
   }
-    
-  
-  // MARK: > Cell Display
-  public override func collectionView(_ collectionView: UICollectionView,
-                                      willDisplay cell: UICollectionViewCell,
-                                      forItemAt indexPath: IndexPath) {
-    //    if indexPath.section == 1,
-    //       indexPath.row > issues.count - 2 {
-    //      showMoreIssues()
-    //      footerActivityIndicator.startAnimating()
-    //    }
-  }
   
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,
