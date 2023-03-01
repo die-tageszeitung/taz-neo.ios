@@ -70,9 +70,9 @@ class IssueTilesCVC: UICollectionViewController {
     cell.image = data.image
     cell.button.indicator.downloadState = service.issueDownloadState(at: indexPath.row)
     cell.button.onTapping { [weak self] _ in
-      if cell.button.indicator.downloadState == .done  { return }
-      self?.service.download(issueAtIndex: indexPath.row,
-                             updateStatusButton: cell.button)
+      if self?.service.download(issueAtIndex: indexPath.row) != nil {
+        cell.button.indicator.downloadState = .waiting
+      }
     }
     return cell
   }
