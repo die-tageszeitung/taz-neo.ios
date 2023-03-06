@@ -434,7 +434,7 @@ public class FeedbackViewController : UIViewController{
   func showLog(){
     let logVc = OverlayViewController()
     let logView = SimpleLogView()
-    logView.append(txt: logString ?? "")
+    logView.append(txt: logString ?? "", color: Defaults.darkMode ? .white : .black)
     logVc.view.addSubview(logView)
     pin(logView, to: logVc.view)
     logVc.activateCloseX()
