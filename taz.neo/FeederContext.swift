@@ -94,7 +94,7 @@ open class FeederContext: DoesLog {
   public var isReady = false
   
   /// Has minVersion been met?
-  public var minVersionOK = false
+  public var minVersionOK = true
   
   /// Bundle ID to use for App store retrieval
   public var bundleID = App.bundleIdentifier
@@ -164,13 +164,14 @@ open class FeederContext: DoesLog {
       error("Can't find App with bundle ID '\(id)' in AppStore")
       return 
     }
+    let minVersion = self.minVersion?.toString() ?? "unbekannt"
     let msg = """
       Es liegt eine neue Version dieser App mit folgenden Änderungen vor:
         
       \(store.releaseNotes)
         
       Sie haben momentan die Version \(currentVersion) installiert. Um aktuelle
-      Ausgaben zu laden, ist mindestens die Version \(String(describing: minVersion))
+      Ausgaben zu laden, ist mindestens die Version \(minVersion)
       erforderlich. Möchten Sie jetzt eine neue Version laden?
     """
     Alert.confirm(title: "Update erforderlich", message: msg) { [weak self] doUpdate in
@@ -288,6 +289,10 @@ open class FeederContext: DoesLog {
   /// React to the feeder being online or not
   private func feederStatus(isOnline: Bool) {
     if isOnline {
+      guard minVersionOK else {
+        enforceUpdate()
+        return
+      }
       if needsReInit() { 
         TazAppEnvironment.sharedInstance.resetApp() 
       }
@@ -301,13 +306,8 @@ open class FeederContext: DoesLog {
       let feeders = StoredFeeder.get(name: name)
       if feeders.count == 1 {
         self.storedFeeder = feeders[0]
-        if minVersionOK {
-          self.noConnection(to: name, isExit: false) {  [weak self] in
-            self?.feederReady()            
-          }
-        }
-        else {
-          self.enforceUpdate()
+        self.noConnection(to: name, isExit: false) {  [weak self] in
+          self?.feederReady()
         }
       }
       else {
@@ -461,18 +461,17 @@ open class FeederContext: DoesLog {
       if let _ = res.value() {
         if self.simulateFailedMinVersion {
           self.minVersion = Version("135.0.0")
-          self.feederStatus(isOnline: false)
-              }
-              else {
-          self.minVersionOK = true
-          self.feederStatus(isOnline: true)
+          self.minVersionOK = false
         }
+        else { self.minVersionOK = true }
+        self.feederStatus(isOnline: true)
       }
       else {
         if let err = res.error() as? FeederError {
           if case .minVersionRequired(let smv) = err {
             self.minVersion = Version(smv)
             self.debug("App Min Version \(smv) failed")
+            self.minVersionOK = false
           }
           else { self.minVersionOK = true }
         }
