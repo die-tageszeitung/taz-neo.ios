@@ -35,6 +35,7 @@
 		4D308EF02834061600529592 /* BookmarkNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EEF2834061600529592 /* BookmarkNC.swift */; };
 		4D3131F2289159FE0087EE1B /* SubscriptionFormController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3131F1289159FE0087EE1B /* SubscriptionFormController.swift */; };
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
+		77078B6129B68B11001D11FD /* IssueCollectionViewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77078B6029B68B11001D11FD /* IssueCollectionViewActions.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
 		7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968C25CC605D00508DE8 /* FeedbackViewController.swift */; };
 		7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968D25CC605D00508DE8 /* FeedbackComposer.swift */; };
@@ -152,6 +153,7 @@
 		4D308EEF2834061600529592 /* BookmarkNC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkNC.swift; sourceTree = "<group>"; };
 		4D3131F1289159FE0087EE1B /* SubscriptionFormController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormController.swift; sourceTree = "<group>"; };
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
+		77078B6029B68B11001D11FD /* IssueCollectionViewActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCollectionViewActions.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
 		7715968D25CC605D00508DE8 /* FeedbackComposer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackComposer.swift; sourceTree = "<group>"; };
@@ -353,6 +355,7 @@
 				777749C329B630E900ECA3A8 /* IssueOverviewService.swift */,
 				777749C529B630E900ECA3A8 /* IssueTilesCVC.swift */,
 				777749C629B630E900ECA3A8 /* IssueTilesCvcCell.swift */,
+				77078B6029B68B11001D11FD /* IssueCollectionViewActions.swift */,
 			);
 			name = Home;
 			sourceTree = "<group>";
@@ -733,6 +736,7 @@
 				AE4C4FEF26A04EBD006079C8 /* ArticlePlayer.swift in Sources */,
 				0015B73A24DD87DA0037A8D6 /* DefaultAuthenticator.swift in Sources */,
 				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,
+				77078B6129B68B11001D11FD /* IssueCollectionViewActions.swift in Sources */,
 				AEAE18B1285E213600B67A91 /* BookmarkSectionVC.swift in Sources */,
 				77D0DAEC25E8FDF900C9CB59 /* IssueVCBottomTielesCVCCell.swift in Sources */,
 				C794F23524FED184007168AC /* Helper.swift in Sources */,

@@ -9,7 +9,7 @@
 import UIKit
 import NorthLib
 
-class IssueTilesCVC: UICollectionViewController {
+class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
   
   private static let reuseCellId = "IssueTilesCvcCell"
   
@@ -74,6 +74,13 @@ class IssueTilesCVC: UICollectionViewController {
         cell.button.indicator.downloadState = .waiting
       }
     }
+    
+    if cell.interactions.isEmpty {
+      let menuInteraction = UIContextMenuInteraction(delegate: self)
+      cell.addInteraction(menuInteraction)
+      cell.backgroundColor = .black
+    }
+    
     return cell
   }
   
@@ -110,6 +117,12 @@ class IssueTilesCVC: UICollectionViewController {
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+extension IssueTilesCVC {
+  func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+    return _contextMenuInteraction(interaction, configurationForMenuAtLocation: location)
   }
 }
 

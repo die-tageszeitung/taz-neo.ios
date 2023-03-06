@@ -405,6 +405,19 @@ extension IssueOverviewService {
   }
 }
 
+extension IssueOverviewService {
+  func exportMoment(issue: Issue) {
+    if let feeder = feederContext.gqlFeeder,
+        let fn = feeder.momentImageName(issue: issue, isCredited: true) {
+      let file = File(fn)
+      let ext = file.extname
+      let dialogue = ExportDialogue<Any>()
+      let name = "\(issue.feed.name)-\(issue.date.isoDate(tz: feeder.timeZone)).\(ext ?? "")"
+      dialogue.present(item: file.url, subject: name)
+    }
+  }
+}
+
 
 fileprivate typealias LoadingParams = (startDate: Date?, count: Int)
 

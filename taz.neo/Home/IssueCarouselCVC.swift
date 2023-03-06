@@ -10,8 +10,7 @@ import UIKit
 import NorthLib
 
 
-class IssueCarouselCVC: UICollectionViewController {
-  
+class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   @Default("showBottomTilesAnimation")
   public var showBottomTilesAnimation: Bool
   
@@ -200,6 +199,13 @@ class IssueCarouselCVC: UICollectionViewController {
     cell.date = data.date
     cell.issue = data.issue
     cell.image = data.image
+    
+    if cell.interactions.isEmpty {
+      let menuInteraction = UIContextMenuInteraction(delegate: self)
+      cell.addInteraction(menuInteraction)
+      cell.backgroundColor = .black
+    }
+    
     return cell
   }
   
@@ -250,6 +256,12 @@ extension IssueCarouselCVC {
         self.collectionView.reloadItems(at: vips)
       }
     }
+  }
+}
+
+extension IssueCarouselCVC {
+  func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+    return _contextMenuInteraction(interaction, configurationForMenuAtLocation: location)
   }
 }
 
