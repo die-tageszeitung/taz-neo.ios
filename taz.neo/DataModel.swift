@@ -17,6 +17,7 @@ public enum FeederError: Error, Equatable {
   case expiredAccount(String?)
   case changedAccount(String?)
   case unexpectedResponse(String?)
+  case minVersionRequired(String)
   
   public var description: String {
     switch self {
@@ -28,6 +29,8 @@ public enum FeederError: Error, Equatable {
       return "Changed Account: \(msg ?? "unknown reason")"
     case .unexpectedResponse(let msg):
       return "Unexpected server response: \(msg ?? "unknown reason")"
+    case .minVersionRequired(let msg):
+      return "Minimal version requirement failed \(msg)"
     }
   }    
   public var errorDescription: String? { return description }
@@ -38,6 +41,7 @@ public enum FeederError: Error, Equatable {
       case .expiredAccount(let msg): return msg
       case .changedAccount(let msg): return msg
       case .unexpectedResponse(let msg): return msg
+      case .minVersionRequired(let msg): return msg
     }
   }
   
@@ -192,7 +196,7 @@ public extension ImageEntry {
   static func highRes(_ fname: String) -> String {
     let prefix = self.prefix(fname)
     let ext = File.extname(fname)
-    return "\(prefix).high.\(ext)"
+    return "\(prefix).high.\(ext ?? "unknown")"
   }
   
   /// The prefix of the filename
@@ -1066,7 +1070,7 @@ public extension Feed {
  A Feeder is an abstract datatype handling the communication with a server
  providing Feeds.
  */
-public protocol Feeder: ToString {  
+public protocol Feeder: ToString, AnyObject {  
   /// Timezone Feeder lives in
   var timeZone: String { get }
   /// URL of GraphQL server

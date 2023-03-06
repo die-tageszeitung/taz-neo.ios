@@ -10,18 +10,25 @@ import NorthLib
 import MessageUI
 import UIKit
 
-class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
+class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate {
+  
+  class Spinner: UIViewController {
+    convenience init() {
+      self.init(nibName: nil, bundle: nil)
+      let spinner = UIActivityIndicatorView()
+      view.addSubview(spinner)
+      spinner.center()
+      spinner.color = .white
+      spinner.startAnimating()
+    } 
+  }
   
   private var threeFingerAlertOpen: Bool = false
+  private var devGestureRecognizer: UIGestureRecognizer?
   
   public private(set) lazy var rootViewController : UIViewController = {
-    let vc = UIViewController()//Startup Splash Screen?!
-    let spinner = UIActivityIndicatorView()
-    vc.view.addSubview(spinner)
-    spinner.center()
-    spinner.color = .white
-    spinner.startAnimating()
-    return vc
+    // Startup Splash Screen?!
+    return Spinner()
   }()  {
     didSet {
       guard let window = UIApplication.shared.delegate?.window else { return }
@@ -67,14 +74,14 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   
   override init(){
     super.init()
-    Notification.receive(UIApplication.willResignActiveNotification) { _ in
-      self.goingBackground()
+    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+      self?.goingBackground()
     }
-    Notification.receive(UIApplication.willEnterForegroundNotification) { _ in
-      self.goingForeground()
+    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+      self?.goingForeground()
     }
-    Notification.receive(UIApplication.willTerminateNotification) { _ in
-      self.appWillTerminate()
+    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
+      self?.appWillTerminate()
     }
     setup()
     copyDemoContent()
@@ -92,17 +99,13 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   }
   
   func setup(){
-    let feeder = Defaults.currentFeeder
     setupLogging()
-    log("Connect to feeder: \(feeder.name) feed: \(feeder.feed)")
-    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
     setupFeeder()
   }
   
-  
   /// Enable logging to file and otional to view
   func setupLogging() {
-    Log.append(logger: consoleLogger, fileLogger)
+    Log.append(logger: fileLogger)
     Log.minLogLevel = .Debug
     HttpSession.isDebug = false
     PdfRenderService.isDebug = false
@@ -162,18 +165,41 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   }
  
   func deleteAll() {
-//    popToRootViewController(animated: false)
-    feederContext?.cancelAll()
-    ArticleDB.singleton.close()
-    /// Remove all content
+    reset(isDelete: true)
+  }
+  
+  func deleteData() {
     for f in Dir.appSupport.scan() {
       debug("remove: \(f)")
       File(f).remove()
     }
-    log("delete all done successfully")
-    exit(0)
+    log("App data deleted.")
   }
   
+  func reset(isDelete: Bool = true) {
+    rootViewController = Spinner()
+    feederContext?.release(isRemove: isDelete) { [weak self] in
+      guard let self else { return }
+      self.feederContext = nil
+      if isDelete { self.deleteData() } 
+        // TODO: reinitialize feederContext when this no longer crashes
+//      self.setupFeeder(isStartup: false)
+      exit(0) // until feederContext is removed properly
+    }
+  }
+  
+  /// Reset App and delete data 
+  public func resetApp() {
+    Alert.message(title: "Neustart erforderlich", 
+      message: """
+        Zur Reinitialisierung der App ist ein Neustart erforderlich.
+        Die App wird sich jetzt beenden. Starten Sie sie bitte anschließend
+        erneut.
+      """) { [weak self] in
+      self?.reset(isDelete: true)
+    }
+  }
+
   func unlinkSubscriptionId() {
     authenticator?.unlinkSubscriptionId()
   }
@@ -210,11 +236,15 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
     }
   }
   
-  func setupFeeder() {
-    Notification.receiveOnce("feederReady") { notification in
-      guard let fctx = notification.sender as? FeederContext else { return }
+  func setupFeeder(isStartup: Bool = true) {
+    let feeder = Defaults.currentFeeder
+    log("Connecting to feeder: \(feeder.name) feed: \(feeder.feed)")
+    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
+    Notification.receiveOnce("feederReady") { [weak self] notification in
+      guard let self, let fctx = notification.sender as? FeederContext else { return }
       self.debug(fctx.storedFeeder.toString())
-      self.startup()
+      if isStartup { self.startup() }
+      else { self.showHome() }
     }
   }
   
@@ -287,29 +317,68 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
     feederContext.setupRemoteNotifications()
   }
   
+  private func isTazUser() -> Bool {
+    let dfl = Defaults.singleton
+    let id = dfl["id"]
+    if let id = id, id =~ ".*\\@taz\\.de$" { return true }
+    return false
+  }
+  
+  // is called after successful login
+  func addThreeFingerMenu(targetWindow:UIWindow?) {
+    guard devGestureRecognizer == nil else { return }
+    let reportLPress3 = UILongPressGestureRecognizer(target: self,
+        action: #selector(threeFingerTouch))
+    reportLPress3.numberOfTouchesRequired = 3
+    targetWindow?.isUserInteractionEnabled = true
+    targetWindow?.addGestureRecognizer(reportLPress3)
+    devGestureRecognizer = reportLPress3
+  }
+  
+  static func checkcDevMenu() {
+    guard let win = UIApplication.shared.delegate?.window else { return }
+    let env = TazAppEnvironment.sharedInstance
+    if env.isTazUser() { env.addThreeFingerMenu(targetWindow: win) }
+    else if let recog = env.devGestureRecognizer, !App.isAlpha {
+      win?.removeGestureRecognizer(recog)
+      env.devGestureRecognizer = nil
+    }
+  }
+  
   func setupTopMenus(targetWindow:UIWindow) {
     self.threeFingerAlertOpen = false
     let reportLPress2 = UILongPressGestureRecognizer(target: self,
         action: #selector(twoFingerErrorReportActivated))
-    let reportLPress3 = UILongPressGestureRecognizer(target: self,
-        action: #selector(threeFingerTouch))
     reportLPress2.numberOfTouchesRequired = 2
-    reportLPress3.numberOfTouchesRequired = 3
-    
     targetWindow.isUserInteractionEnabled = true
     targetWindow.addGestureRecognizer(reportLPress2)
-    targetWindow.ifAlphaApp?.addGestureRecognizer(reportLPress3)
+    if App.isAlpha || isTazUser() { addThreeFingerMenu(targetWindow: targetWindow) }
   }
   
   @objc func threeFingerTouch(_ sender: UIGestureRecognizer) {
     if threeFingerAlertOpen { return } else { threeFingerAlertOpen = true }
     var actions: [UIAlertAction] = []
+    let dfl = Defaults.singleton
     
-    if App.isAlpha {
-      actions.append(Alert.action("Abo-Verknüpfung löschen (⍺)") {[weak self] _ in self?.unlinkSubscriptionId() })
-      actions.append(Alert.action("Abo-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
-      actions.append(Alert.action("Download-Push anfordern (⍺)") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
+    actions.append(Alert.action("Abo-Verknüpfung löschen") {[weak self] _ in self?.unlinkSubscriptionId() })
+    actions.append(Alert.action("Abo-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
+    actions.append(Alert.action("Download-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
+    let sMin = Alert.action("Simuliere höhere Minimalversion") { _ in
+      dfl["simulateFailedMinVersion"] = "true"
+      Alert.confirm(title: "Beenden",
+                    message: "Die App wird jetzt beendet, zum Simulieren bitte neu starten") { terminate in
+        if terminate { exit(0) }
+      }
     }
+    actions.append(sMin)
+    let sCheck = Alert.action("Simuliere höhere Version im AppStore") { _ in
+      dfl["simulateNewVersion"] = "true"
+      Alert.confirm(title: "Beenden",
+                    message: "Die App wird jetzt beendet, zum Simulieren bitte neu starten") { terminate in
+        if terminate { exit(0) }
+      }
+    }
+    actions.append(sCheck)
     
     let title = App.appInfo + "\n" + App.authInfo(with: feederContext)
     Alert.actionSheet(title: title,
@@ -325,13 +394,14 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate{
   
   @objc func twoFingerErrorReportActivated(_ sender: UIGestureRecognizer) {
     if isErrorReporting == true { return }//Prevent multiple Calls
-    showFeedbackErrorReport()
+    showFeedbackErrorReport(screenshot: UIWindow.screenshot)
   }
   
-  func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil) {
+  func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil, screenshot: UIImage? = nil) {
     isErrorReporting = true //No Check here to ensure error reporting is available at least from settings
     
     FeedbackComposer.showWith(logData: fileLogger.mem?.data,
+                              screenshot: screenshot,
                               feederContext: self.feederContext,
                               feedbackType: feedbackType) {[weak self] didSend in
       self?.log("Feedback send? \(didSend)")
@@ -490,11 +560,8 @@ extension TazAppEnvironment {
     self.rootViewController = intermediateVc
     
     onMainAfter {[weak self] in
-      self?.feederContext?.cancelAll()
-      ArticleDB.singleton.close()
-      ArticleDB.singleton = nil
-      self?.feederContext = nil
-      
+      guard let self else { return }
+      self.reset(isDelete: false)
       if let tab = oldRoot as? MainTabVC {
         for case let navCtrl as UINavigationController in tab.viewControllers ?? [] {
           navCtrl.popToRootViewController(animated: false)

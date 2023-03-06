@@ -37,12 +37,16 @@ struct GqlAuthInfo: GQLObject {
   var status:  GqlAuthStatus
   /// Optional message in case of !valid
   var message: String?
+  /// Is delivery weekly?
+  var oWeekly: Bool?
+  var weekly: Bool { oWeekly ?? false }
   
-  static var fields = "status message"
+  static var fields = "status message oWeekly:loginWeek"
   
   func toString() -> String {
     var ret = status.toString()
     if let msg = message { ret += ": (\(msg))" }
+    ret += ", \(weekly ? "weekly" : "default") delivery"
     return ret
   }  
 } // GqlAuthInfo
@@ -589,9 +593,6 @@ class GqlIssue: Issue, GQLObject {
     sectionList = try container.decodeIfPresent([GqlSection].self, 
                                                 forKey: .sectionList)
     pageList = try container.decodeIfPresent([GqlPage].self, forKey: .pageList)
-    if sValidityDate != nil {
-      print("stop: \(self.validityDate)")
-    }
   }
   
   func setPayload(feeder: GqlFeeder, isPages: Bool = false) {
@@ -673,6 +674,40 @@ class GqlFeed: Feed, GQLObject {
     """
 } // class GqlFeed
 
+/// GqlAppInfo stores data regarding the running App as provided by the server
+class GqlAppInfo: GQLObject {
+  /// minimal App version required
+  var minVersion: String?
+  
+  static var fields = "minVersion"
+  
+  func toString() -> String {
+    return "minVersion: \(minVersion ?? "0")"
+  }
+  
+  public static func query(feeder: GqlFeeder, closure: @escaping(Result<GqlAppInfo,Error>)->()) {
+    let request = """
+      appInfo: app(os: "iOS", type: "native") {
+        \(GqlAppInfo.fields)
+      }
+    """
+    guard let session = feeder.gqlSession else { 
+      closure(.failure(Log.error("No GraphQl Session")))
+      return
+    }
+    session.query(graphql: request, type: [String:GqlAppInfo].self) { res in
+      var ret: Result<GqlAppInfo,Error>
+      switch res {
+      case .success(let str): 
+        let appInfo = str["appInfo"]!
+        ret = .success(appInfo)
+      case .failure(let err):   ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+}
+
 /// GqlFeederStatus stores some Feeder specific data
 class GqlFeederStatus: GQLObject {  
   /// Authentication Info
@@ -752,6 +787,8 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   /// The GraphQL server delivering the Feeds
   public var gqlSession: GraphQlSession?
+  /// Last weekly status
+  private var wasWeekly = false
   
   let deviceType = "apple"
   lazy var deviceInfoString : String = {
@@ -792,21 +829,55 @@ open class GqlFeeder: Feeder, DoesLog {
     closure: @escaping(Result<Feeder,Error>)->()) {
     self.baseUrl = url
     self.title = title
-    self.gqlSession = GraphQlSession(url)
-    self.feederStatus { [weak self] (res) in
-      guard let self = self else { return }
-      var ret: Result<Feeder,Error>
-      switch res {
-      case .success(let st):   
-        ret = .success(self)
-        self.status = st
-        self.lastUpdated = Date()
-      case .failure(let err):  
-        ret = .failure(err)
+    let (_,_,token) = SimpleAuthenticator.getUserData()
+    self.gqlSession = GraphQlSession(url, authToken: token)
+    
+    func getStatus() {
+      feederStatus { [weak self] (res) in
+        guard let self = self else { return }
+        var ret: Result<Feeder,Error>
+        switch res {
+        case .success(let st):   
+          ret = .success(self)
+          self.status = st
+          self.lastUpdated = Date()
+        case .failure(let err):  
+          ret = .failure(err)
+        }
+        self.lastUpdated = UsTime.now.date
+        closure(ret)
       }
-      self.lastUpdated = UsTime.now.date
-      closure(ret)
     }
+    
+    GqlAppInfo.query(feeder: self) { [weak self] res in
+      guard let self else { return }
+      if let mv = res.value() {
+        if let mvs = mv.minVersion {
+          let minVersion = Version(mvs)
+          self.debug("Version check: current(\(App.version), server(mvs)")
+          if App.version < minVersion { 
+            closure(.failure(FeederError.minVersionRequired(mvs)))
+            return
+          }
+        } 
+        else { self.debug("Server doesn't return minVersion") }
+      }
+      else { self.error("Can't get minimal App version from server") }
+      getStatus()
+    }
+  }
+  
+  /// Close gqlSession and release resources
+  public func release() {
+    gqlSession?.release()
+    gqlSession = nil
+    status = nil
+  }
+  
+  /// Check whether the delivery status has been changed, returns true if it has
+  public func deliveryChanged() -> Bool {
+    guard let status else { return false }
+    return status.authInfo.weekly != wasWeekly
   }
   
   /**
@@ -837,6 +908,7 @@ open class GqlFeeder: Feeder, DoesLog {
         \(GqlAuthToken.fields)
       }
     """
+    wasWeekly = status?.authInfo.weekly ?? false
     gqlSession.query(graphql: request, type: [String:GqlAuthToken].self) { [weak self] (res) in
       var ret: Result<String,Error>
       switch res {

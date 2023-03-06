@@ -35,10 +35,10 @@ public extension FeedbackType {
 open class FeedbackComposer : DoesLog{
   
   public static func showWith(logData: Data? = nil,
+                              screenshot: UIImage? = nil,
                               feederContext: FeederContext?,
                               feedbackType: FeedbackType? = nil,
                               finishClosure: @escaping ((Bool) -> ())) {
-    let screenshot = UIWindow.screenshot
     let deviceData = DeviceData()
     
     let feedbackHandler: (Any?) -> Void = { _ in

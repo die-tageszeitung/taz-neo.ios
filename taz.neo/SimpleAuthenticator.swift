@@ -96,6 +96,7 @@ public class SimpleAuthenticator: Authenticator {
                   case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
                   case .unexpectedResponse:                
                     text = "Es gab ein Problem bei der Kommunikation mit dem Server."
+                  case .minVersionRequired: text = "Minimale App-Version nicht vorhanden."
                 }
                 Alert.message(title: "Fehler", message: text)
               }

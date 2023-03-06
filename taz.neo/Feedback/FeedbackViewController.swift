@@ -118,6 +118,10 @@ public class FeedbackViewController : UIViewController{
     if let img = screenshot, img.size.height > 0, img.size.width > 0 {
       feedbackView.logAttachmentButton.pinWidth(feedbackView.attachmentButtonHeight * img.size.width / img.size.height, priority: .required)
     }
+    else {
+      //not calculated, fast fix just prevent huge log icon
+      feedbackView.logAttachmentButton.pinWidth(feedbackView.attachmentButtonHeight * 0.4, priority: .required)
+    }
     
     self.view.addSubview(feedbackView)
     pin(feedbackView, to:self.view)
@@ -430,7 +434,7 @@ public class FeedbackViewController : UIViewController{
   func showLog(){
     let logVc = OverlayViewController()
     let logView = SimpleLogView()
-    logView.append(txt: logString ?? "")
+    logView.append(txt: logString ?? "", color: Defaults.darkMode ? .white : .black)
     logVc.view.addSubview(logView)
     pin(logView, to: logVc.view)
     logVc.activateCloseX()

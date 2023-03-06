@@ -119,9 +119,6 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
       if let zimg = zoomedImage(fname: name) { ret += zimg }
       idx = ret.count - 1
     }
-#warning("ToDo 0.9.4+ @Norbert: crash on open 2nd Image")
-    ///Corrupt data not reproduceable but documented and zipped
-    ///the fix did not change behaviour, but prevents the crash!
     return (min(idx, ret.count-1), ret)
   }
     
@@ -182,10 +179,9 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     super.init() 
     super.pinTopToSafeArea = false
     if #available(iOS 16.0, *) {
-      orientationClosure?.onOrientationChange(closure: {[weak self] in
-        #warning("Exchange this, when building from xcode 14")
-        self?.perform(Selector(("setNeedsUpdateOfSupportedInterfaceOrientations")))
-//        self?.setNeedsUpdateOfSupportedInterfaceOrientations()
+      orientationClosure?.onOrientationChange(closure: { [weak self] in
+        guard let self else { return }
+        self.perform(#selector(self.setNeedsUpdateOfSupportedInterfaceOrientations))
       })
     }
   }
@@ -201,9 +197,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   public override func viewWillDisappear(_ animated: Bool) {
     if #available(iOS 16.0, *), let parent = self.parentViewController {
       onMainAfter {
-        parent.perform(Selector(("setNeedsUpdateOfSupportedInterfaceOrientations")))
-        #warning("Exchange this, when building from xcode 14")
-//        parent.setNeedsUpdateOfSupportedInterfaceOrientations()
+        parent.perform(#selector(parent.setNeedsUpdateOfSupportedInterfaceOrientations))
       }
     }
     super.viewWillDisappear(animated)

@@ -150,6 +150,19 @@ public class DefaultAuthenticator: Authenticator {
     if token != nil { feeder.authToken = token! }
   }
   
+  // Returns true if the notification has been sent
+  @discardableResult
+  public func notifySuccess() -> Bool {
+    if feeder.deliveryChanged() { 
+      TazAppEnvironment.sharedInstance.resetApp() 
+      return false
+    }
+    else {
+      Notification.send(Const.NotificationNames.authenticationSucceeded)
+      return true
+    }
+  }
+  
   //Called if incomming PushNotification comes or Timer fires
   public func pollSubscription(closure: @escaping (_ continue: Bool)->()) {
     feeder.subscriptionPoll(installationId: installationId) { [weak self] (result) in
@@ -175,16 +188,17 @@ public class DefaultAuthenticator: Authenticator {
                 ///Fix User dismissed modal Login, nort be able to send notification due this just come in dismiss callback
                 if loginFormVc.presentingViewController == nil {
                   self.firstPresentedAuthController = nil
-                  Notification.send(Const.NotificationNames.authenticationSucceeded)
-                  onMainAfter {//delay otherwise "Aktualisiere Daten hides this!"
-                    Toast.show("Erfolgreich angemeldet!")//like Android!
+                  if self.notifySuccess() {
+                    onMainAfter {//delay otherwise "Aktualisiere Daten hides this!"
+                      Toast.show("Erfolgreich angemeldet!")//like Android!
+                    }
                   }
                   closure(false)//stop polling
                   return;
                 }
                 
                 let dismissFinishedClosure = {
-                  Notification.send(Const.NotificationNames.authenticationSucceeded)
+                  self.notifySuccess()
                   closure(false)//stop polling
                 }
                 ///If  already a FormsResultController on top of modal stack use its exchange function
@@ -205,7 +219,7 @@ public class DefaultAuthenticator: Authenticator {
               }
               /// If No Login shown, just execute the callbacks
               else {//No Form displayed anymore directly execute callbacks
-                Notification.send(Const.NotificationNames.authenticationSucceeded)
+                self.notifySuccess()
                 closure(false)//stop polling
               }
               return;
@@ -213,7 +227,7 @@ public class DefaultAuthenticator: Authenticator {
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
               /// In this case user received the E-Mail for PW Reset,
               _ = self.error(info.status.rawValue)
-              Notification.send(Const.NotificationNames.authenticationSucceeded)
+              self.notifySuccess()
               closure(false)//stop polling
               return;
             case .waitForProc: fallthrough

@@ -22,6 +22,8 @@ import NorthLib
      network connectivity changed, feeder is not reachable
    - feederReady(FeederContext)
      Feeder data is available (if not reachable then data is from DB)
+   - feederRelease
+     Feeder is going to release its data in 0.5s
    - issueOverview(Result<Issue,Error>)
      Issue Overview has been received (and stored in DB) 
    - gqlIssue(Result<GqlIssue,Error>)
@@ -70,6 +72,12 @@ open class FeederContext: DoesLog {
   @Default("autoloadPdf")
   var autoloadPdf: Bool
   
+  @Default("simulateFailedMinVersion")
+  var simulateFailedMinVersion: Bool
+  
+  @Default("simulateNewVersion")
+  var simulateNewVersion: Bool
+  
   /// isConnected returns true if the Feeder is available
   public var isConnected: Bool { 
     var isCon: Bool
@@ -84,6 +92,19 @@ open class FeederContext: DoesLog {
   }
   /// Has the Feeder been initialized yet
   public var isReady = false
+  
+  /// Has minVersion been met?
+  public var minVersionOK = true
+  
+  /// Bundle ID to use for App store retrieval
+  public var bundleID = App.bundleIdentifier
+  
+  /// Overwrite for current App version
+  public var currentVersion = App.version
+  
+  /// Server required minimal App version
+  public var minVersion: Version?
+
   
 //  public private(set) var enqueuedDownlod:[Issue] = [] {
 //    didSet {
@@ -136,6 +157,67 @@ open class FeederContext: DoesLog {
       OfflineAlert.message(title: title, message: msg, closure: closure)
     }
   }
+  
+  private func enforceUpdate(closure: (()->())? = nil) {
+    let id = bundleID
+    guard let store = try? StoreApp(id) else { 
+      error("Can't find App with bundle ID '\(id)' in AppStore")
+      return 
+    }
+    let minVersion = self.minVersion?.toString() ?? "unbekannt"
+    let msg = """
+      Es liegt eine neue Version dieser App mit folgenden Änderungen vor:
+        
+      \(store.releaseNotes)
+        
+      Sie haben momentan die Version \(currentVersion) installiert. Um aktuelle
+      Ausgaben zu laden, ist mindestens die Version \(minVersion)
+      erforderlich. Möchten Sie jetzt eine neue Version laden?
+    """
+    Alert.confirm(title: "Update erforderlich", message: msg) { [weak self] doUpdate in
+      guard let self else { return }
+      if self.simulateFailedMinVersion {
+        Defaults.singleton["simulateFailedMinVersion"] = "false"
+      }
+      if doUpdate { 
+        store.openInAppStore { closure?() }
+      }
+      else { exit(0) }
+    }
+  }
+  
+  private func check4Update() {
+    async { [weak self] in
+      guard let self else { return }
+      let id = self.bundleID
+      let version = self.currentVersion
+      guard let store = try? StoreApp(id) else { 
+        self.error("Can't find App with bundle ID '\(id)' in AppStore")
+        return 
+      }
+      self.debug("Version check: \(version) current, \(store.version) store")
+      if store.version > version {
+        let msg = """
+        Sie haben momentan die Version \(self.currentVersion) installiert.
+        Es liegt eine neue Version \(store.version) mit folgenden Änderungen vor:
+        
+        \(store.releaseNotes)
+        
+        Möchten Sie im AppStore ein Update veranlassen?
+        """
+        onMain(after: 2.0) { 
+          Alert.confirm(title: "Update", message: msg) { [weak self] doUpdate in
+            guard let self else { return }
+            if self.simulateNewVersion {
+              Defaults.singleton["simulateNewVersion"] = "false"
+            }
+            if doUpdate { store.openInAppStore() }
+          }
+        }
+      }
+    }
+  }
+
   
   /// Feeder is now reachable
   private func feederReachable(feeder: Feeder) {
@@ -196,18 +278,38 @@ open class FeederContext: DoesLog {
     
   }
   
+  /// Do we need reinitialization?
+  private func needsReInit() -> Bool {
+    if let storedFeeder = self.storedFeeder {
+       let sfeed = storedFeeder.feeds[0]
+       let gfeed = gqlFeeder.feeds[0]
+      return sfeed.cycle == gfeed.cycle 
+    }
+    return false
+  }
+  
   /// React to the feeder being online or not
   private func feederStatus(isOnline: Bool) {
     if isOnline {
-      self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
-      feederReady()
+      guard minVersionOK else {
+        enforceUpdate()
+        return
+      }
+      if needsReInit() { 
+        TazAppEnvironment.sharedInstance.resetApp() 
+      }
+      else {
+        self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
+        feederReady()
+        check4Update()
+      }
     }
     else {
       let feeders = StoredFeeder.get(name: name)
       if feeders.count == 1 {
         self.storedFeeder = feeders[0]
         self.noConnection(to: name, isExit: false) {  [weak self] in
-          self?.feederReady()            
+          self?.feederReady()
         }
       }
       else {
@@ -216,7 +318,7 @@ open class FeederContext: DoesLog {
           /// Try to connect if network is available now e.g. User has seen Popup No Connection
           /// User activated MobileData/WLAN, press OK => Retry not App Exit
           if self.netAvailability.isAvailable { self.connect() }
-          else { exit(0)}
+          else { exit(0) }
         }
       }
     }
@@ -225,16 +327,6 @@ open class FeederContext: DoesLog {
   private var pollingTimer: Timer?
   private var pollEnd: Int64?
   
-  //#warning("ToDo: 0.9.4 fix App crash if called when active downloads")
-  /// Crash reasons:
-  /// 1. task from session created but session invalidated
-  /// 2. force unwrap optional : StoredFileEntry.pr.name
-  /// this was also called on 3-finger-deleteApp with App restart
-  public func cancelAll() {
-    self.gqlFeeder.status?.feeds = []
-    self.gqlFeeder.gqlSession?.session.invalidateAndCancel()
-    self.dloader.killAll()
-  }
   public func resume() {
     self.checkNetwork()
   }
@@ -369,8 +461,26 @@ open class FeederContext: DoesLog {
   /// Connect to Feeder and send "feederReady" Notification
   private func connect() {
     gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
-      let feeder = res.value()
-      self?.feederStatus(isOnline: feeder != nil)
+      guard let self else { return }
+      if let _ = res.value() {
+        if self.simulateFailedMinVersion {
+          self.minVersion = Version("135.0.0")
+          self.minVersionOK = false
+        }
+        else { self.minVersionOK = true }
+        self.feederStatus(isOnline: true)
+      }
+      else {
+        if let err = res.error() as? FeederError {
+          if case .minVersionRequired(let smv) = err {
+            self.minVersion = Version(smv)
+            self.debug("App Min Version \(smv) failed")
+            self.minVersionOK = false
+          }
+          else { self.minVersionOK = true }
+        }
+        self.feederStatus(isOnline: false)
+      }
     }
     authenticator = DefaultAuthenticator(feeder: gqlFeeder)
   }
@@ -379,16 +489,24 @@ open class FeederContext: DoesLog {
   private func openDB(name: String) {
     guard ArticleDB.singleton == nil else { return }
     ArticleDB(name: name) { [weak self] _ in
-      self?.cleanupDbInconsistencyIfNeeded()
-      self?.notify("DBReady") }
+      self?.notify("DBReady") 
+    }
+  }
+  
+  /// closeDB closes the Article database
+  private func closeDB() {
+    if let db = ArticleDB.singleton {
+      db.close()
+      ArticleDB.singleton = nil
+    }
   }
   
   /// resetDB removes the Article database and uses openDB to reopen a new version
   private func resetDB() {
     guard ArticleDB.singleton != nil else { return }
     let name = ArticleDB.singleton.name
+    closeDB()
     ArticleDB.dbRemove(name: name)
-    ArticleDB.singleton = nil
     openDB(name: name)
   }
     
@@ -400,41 +518,45 @@ open class FeederContext: DoesLog {
     self.url = url
     self.feedName = feedName
     self.netAvailability = NetAvailability(host: host)
+    if self.simulateNewVersion || simulateFailedMinVersion {
+      self.bundleID = "de.taz.taz.2"
+    }
+    if self.simulateNewVersion {
+      self.currentVersion = Version("0.5.0")      
+    }
     Notification.receive("DBReady") { [weak self] _ in
       self?.debug("DB Ready")
       self?.connect()
     }
+    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+      guard let self else { return }
+      if !self.minVersionOK { 
+        onMain(after: 1.0) {
+          self.log("Exit due to minimal version not met")
+          exit(0)
+        }
+      }
+    }
     openDB(name: name)
   }
   
-  private func cleanupDbInconsistencyIfNeeded(){
-    if Defaults.singleton.get(key: "cleanupDbInconsistencyDone") != nil {
-      log("Cleanup DB Inconsistency already done")
-      return
+  /// release closes the Database and removes all feeder specific content
+  /// if isRemove == true. Also all other resources are released.
+  public func release(isRemove: Bool, onRelease: @escaping ()->()) {
+    notify("feederRelease")
+    onMain(after: 0.5) { [weak self] in
+      guard let self else { return }
+      let feederDir = self.gqlFeeder?.dir
+      self.gqlFeeder?.release()
+      self.gqlFeeder = nil
+      self.dloader?.release()
+      self.dloader = nil
+      self.closeDB()
+      if let dir = feederDir, isRemove {
+        for f in dir.scan() { File(f).remove() }
+      }
+      onRelease()
     }
-    log("Cleanup DB Inconsistency")
-    guard let sf = StoredFeeder.get(name: "taz").first else { return }
-    guard let sf = StoredFeed.get(name: "taz", inFeeder: sf).first else { return }
-    var hasChanges = false
-    
-    let date1 = UsTime(iso: "2022-04-20 12:00:00.00", tz: "Europe/Berlin").date
-    if let issue1 = StoredIssue.get(date: date1, inFeed: sf).first {
-      issue1.delete()
-      log("delete issue: 04-20")
-      hasChanges = true
-    }
-    
-    let date2 = UsTime(iso: "2022-04-21 12:00:00.00", tz: "Europe/Berlin").date
-    if let issue2 = StoredIssue.get(date: date2, inFeed: sf).first {
-      issue2.delete()
-      log("delete issue: 04-21")
-      hasChanges = true
-    }
-    
-    if hasChanges {
-      ArticleDB.save()
-    }
-    Defaults.singleton.set(key: "cleanupDbInconsistencyDone", val: "\(Date())")
   }
   
   private func loadBundledResources(setVersion: Int? = nil) {
@@ -640,6 +762,7 @@ open class FeederContext: DoesLog {
                       message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
           exit(0)
         }
+      case.minVersionRequired: break
     }
     Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: { [weak self] in
       ///Do not authenticate here because its not needed here e.g.
@@ -674,6 +797,8 @@ open class FeederContext: DoesLog {
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
+    let sicount = sfeed.issues?.count ?? 0
+    guard sicount < sfeed.issueCnt else { return }
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       if self.isConnected {

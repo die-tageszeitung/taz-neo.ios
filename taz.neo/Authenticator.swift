@@ -101,6 +101,7 @@ extension Authenticator {
     kc["token"] = token
     kc["id"] = id
     kc["password"] = password
+    TazAppEnvironment.checkcDevMenu()
     TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
   }
   
