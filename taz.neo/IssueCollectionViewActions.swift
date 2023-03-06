@@ -25,7 +25,13 @@ extension IssueCollectionViewActions {
     
     let mainAction = issue.isComplete
     ? UIAction(title: "Ausgabe löschen",
-               image: UIImage(named: "trash")){_ in issue.reduceToOverview()}
+               image: UIImage(named: "trash")){[weak self] _ in
+      issue.reduceToOverview()
+      self?.collectionView.reloadItems(at: [indexPath])
+      guard let ccvc = self as? IssueCarouselCVC,
+            ccvc.centerIndex == indexPath.row else { return }
+      ccvc.downloadButton.indicator.downloadState = .notStarted
+    }
     : UIAction(title: "Ausgabe laden",
                image: UIImage(named: "download")){[weak self] _ in
       self?.service.download(issueAtIndex: indexPath.row)}
