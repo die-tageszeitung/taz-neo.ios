@@ -118,6 +118,10 @@ public class FeedbackViewController : UIViewController{
     if let img = screenshot, img.size.height > 0, img.size.width > 0 {
       feedbackView.logAttachmentButton.pinWidth(feedbackView.attachmentButtonHeight * img.size.width / img.size.height, priority: .required)
     }
+    else {
+      //not calculated, fast fix just prevent huge log icon
+      feedbackView.logAttachmentButton.pinWidth(feedbackView.attachmentButtonHeight * 0.4, priority: .required)
+    }
     
     self.view.addSubview(feedbackView)
     pin(feedbackView, to:self.view)

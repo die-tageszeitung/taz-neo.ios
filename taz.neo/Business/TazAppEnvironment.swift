@@ -373,13 +373,14 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   @objc func twoFingerErrorReportActivated(_ sender: UIGestureRecognizer) {
     if isErrorReporting == true { return }//Prevent multiple Calls
-    showFeedbackErrorReport()
+    showFeedbackErrorReport(screenshot: UIWindow.screenshot)
   }
   
-  func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil) {
+  func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil, screenshot: UIImage? = nil) {
     isErrorReporting = true //No Check here to ensure error reporting is available at least from settings
     
     FeedbackComposer.showWith(logData: fileLogger.mem?.data,
+                              screenshot: screenshot,
                               feederContext: self.feederContext,
                               feedbackType: feedbackType) {[weak self] didSend in
       self?.log("Feedback send? \(didSend)")
