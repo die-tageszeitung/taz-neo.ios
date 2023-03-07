@@ -64,6 +64,15 @@ public class ContentUrl: WebViewUrl, DoesLog {
   
 } // ContentUrl
 
+extension String {
+  /// Remove .html or .public.html from filename
+  func nonPublic() -> String {
+    var prefix = File.progname(self)
+    if prefix.hasSuffix(".public") { prefix = File.progname(prefix) }
+    return prefix
+  }
+}
+
 // MARK: - ContentVC
 /**
  A ContentVC is a view controller that displays an array of Articles or Sections 
@@ -266,12 +275,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       return NSNull()
     }
     self.bridge?.addfunc("setBookmark") { [weak self] jscall in
-      guard let _ = self else { return NSNull() }
+      guard let self else { return NSNull() }
       if let args = jscall.args, args.count > 1,
          let name = args[0] as? String,
          let hasBookmark = args[1] as? Int {
-        let bm = hasBookmark != 0 
-        let arts = StoredArticle.get(file: name + ".html")
+        let bm = hasBookmark != 0
+        let artName = name + (self.feederContext.isAuthenticated ? ".html" : ".public.html")
+        let arts = StoredArticle.get(file: artName)
         if arts.count > 0 {
           let art = arts[0]
           if art.hasBookmark != bm {
@@ -294,7 +304,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let _ = self else { return NSNull() }
       let arts = StoredArticle.bookmarkedArticles()
       var names: [String] = []
-      for a in arts { names += File.progname(a.html.name) }
+      for a in arts { names += a.html.name.nonPublic() }
       return names
     }
     self.bridge?.addfunc("shareArticle") { [weak self] jscall in

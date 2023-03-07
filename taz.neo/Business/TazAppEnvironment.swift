@@ -105,6 +105,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   /// Enable logging to file and otional to view
   func setupLogging() {
+    Log.log("Setting up logging")
     Log.append(logger: fileLogger)
     Log.minLogLevel = .Debug
     HttpSession.isDebug = false
