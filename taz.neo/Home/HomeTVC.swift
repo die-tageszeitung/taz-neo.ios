@@ -255,6 +255,7 @@ extension HomeTVC {
 extension HomeTVC {
   func onHome(){
     if verifyUp() {
+      self.carouselController.preventApiLoadUntilIndex = 0
       self.tilesController.collectionView
         .scrollToItem(at: IndexPath(row: 0, section: 0),
                       at: .top,
