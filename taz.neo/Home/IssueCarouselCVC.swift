@@ -25,6 +25,20 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     didSet { if bottomTilesShown > 10 { showBottomTilesAnimation = false }  }
   }
   
+  /// scroll from left to right or vice versa
+  @Default("scrollFromLeftToRight")
+  public var scrollFromLeftToRight: Bool {
+    didSet {
+      if scrollFromLeftToRight {
+        collectionView.transform = CGAffineTransform(rotationAngle: CGFloat.pi)
+      }
+      else {
+        collectionView.transform = .identity
+      }
+      collectionView.reloadData()
+    }
+  }
+  
   private var topStatusButtonConstraint:NSLayoutConstraint?
   private var statusWrapperBottomConstraint: NSLayoutConstraint?
   private var statusWrapperWidthConstraint:NSLayoutConstraint?
@@ -92,6 +106,10 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     self.collectionView!.register(IssueCollectionViewCell.self,
                                   forCellWithReuseIdentifier: Self.reuseCellId)
     self.collectionView.backgroundColor = .black
+    
+    if scrollFromLeftToRight {
+      collectionView.transform = CGAffineTransform(rotationAngle: CGFloat.pi)
+    }
     
     self.view.addSubview(bottomItemsWrapper)
     bottomItemsWrapper.centerX()
@@ -200,9 +218,16 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     cell.issue = data.issue
     cell.image = data.image
     
-    if cell.interactions.isEmpty {
+    if scrollFromLeftToRight {
+      cell.contentView.transform = CGAffineTransform(rotationAngle: -CGFloat.pi)
+    }
+    else {
+      cell.contentView.transform = CGAffineTransform(rotationAngle: 0)
+    }
+    
+    if cell.momentView.interactions.isEmpty {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
-      cell.addInteraction(menuInteraction)
+      cell.momentView.addInteraction(menuInteraction)
       cell.backgroundColor = .black
     }
     

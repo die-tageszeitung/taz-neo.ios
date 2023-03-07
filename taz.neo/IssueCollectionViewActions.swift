@@ -40,10 +40,22 @@ extension IssueCollectionViewActions {
                                image: UIImage(named: "share")) {[weak self] _ in
       self?.service.exportMoment(issue: issue)
     }
+    
+    let invertRotation = UIAction(title: "Scrollrichtung umkehren",
+                               image: UIImage(named: "repeat")) {[weak self] _ in
+      guard let ccvc = self as? IssueCarouselCVC else { return }
+      ccvc.scrollFromLeftToRight = !ccvc.scrollFromLeftToRight
+    }
+    
+    var actions: [UIAction] =  [mainAction, shareAction]
+    
+    if self is IssueCarouselCVC {
+      actions.append(invertRotation)
+    }
         
     return UIContextMenuConfiguration(identifier: nil,
                                       previewProvider: nil){ _ -> UIMenu? in
-      return  UIMenu(title: "", children: [mainAction, shareAction])
+      return UIMenu(title: "", children: actions)
     }
   }
 }
