@@ -268,6 +268,9 @@ public class DefaultAuthenticator: Authenticator {
 
     firstPresentedAuthController = authController
     rootVC.present(authController, animated: true, completion: {
+      #warning("ToDo prevent iPad tap on BG to close Login Modals by removing compleetion handlers")
+      //works only in combination with: self.isModalInPresentation = true in FormsController
+      return;
       rootVC.presentationController?.presentedView?.gestureRecognizers?[0].isEnabled = true
       /// Add TapOn Background like in popup presentation
       if Device.isIphone { return }

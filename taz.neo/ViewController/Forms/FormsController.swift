@@ -143,6 +143,7 @@ class FormsResultController: UIViewController {
     self.view.addSubview(ui)
     pin(ui, to: self.view).top.constant = 0
     setupXButton()
+    self.isModalInPresentation = true
   }
   
   override var preferredContentSize: CGSize {
