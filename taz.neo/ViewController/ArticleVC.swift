@@ -124,7 +124,6 @@ open class ArticleVC: ContentVC {
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,
-         self.isVisible,
          cart.html?.name == art.html?.name {
          self.displayBookmark(art: art)
       }
