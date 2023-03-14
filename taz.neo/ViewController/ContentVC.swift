@@ -38,7 +38,10 @@ public class ContentUrl: WebViewUrl, DoesLog {
       else {
         errorCount += 1
         _waitingView?.bottomText = "\(errorCount) Ladefehler..."
-        delay(seconds: 0.2 * Double(errorCount)) { self.loadClosure(self) }
+        delay(seconds: 0.2 * Double(errorCount)) { [weak self] in
+          guard let self = self else { return }
+          self.loadClosure(self)
+        }
       }
     }
   }
