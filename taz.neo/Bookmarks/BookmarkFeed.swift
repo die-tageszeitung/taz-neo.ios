@@ -113,7 +113,7 @@ public class BookmarkFeed: Feed, DoesLog {
   
   /// Get the inner HTML of an article
   public func getInnerHtml(art: StoredArticle) -> String {
-    let title = art.title ?? art.html.name
+    let title = art.title ?? art.html?.name ?? ""
     let teaser = bookmarksListTeaserEnabled
     ? "<p>\((art.teaser ?? "").xmlEscaped())</p>"
     : ""
@@ -154,7 +154,7 @@ public class BookmarkFeed: Feed, DoesLog {
         let issues = art.issues
         if issues.count > 0 {
           html += """
-            <article id="\(File.progname(art.html.name))" style="order:\(order)">
+            <article id="\(File.progname(art.html?.name ?? ""))" style="order:\(order)">
             \(getInnerHtml(art: art))
             </article>\n
           """
@@ -278,7 +278,7 @@ public class BookmarkSection: Section {
   public var groupedArticles: [Date:[Article]]?
   public var issueDates: [Date]?
   public var navButton: ImageEntry? { nil }
-  public var html: FileEntry
+  public var html: FileEntry?
   public var images: [ImageEntry]? { nil }
   public var authors: [Author]? { nil }
   public var primaryIssue: Issue?

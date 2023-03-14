@@ -225,8 +225,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Download one section
   private func downloadSection(section: Section, closure: @escaping (Error?)->()) {
     dloader.downloadSection(issue: self.selectedIssue, section: section) { [weak self] err in
-      if err != nil { self?.debug("Section \(section.html.name) DL Errors: last = \(err!)") }
-      else { self?.debug("Section \(section.html.name) DL complete") }
+      if err != nil { self?.debug("Section \(section.html?.name ?? "-") DL Errors: last = \(err!)") }
+      else { self?.debug("Section \(section.html?.name ?? "-") DL complete") }
       closure(err)
     }   
   }

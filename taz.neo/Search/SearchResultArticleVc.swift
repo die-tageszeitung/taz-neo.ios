@@ -46,7 +46,7 @@ class SearchResultArticleVc : ArticleVC {
           guard let this = self else { return }
           let url = cnt.originalIssueBaseURL ?? cnt.baseURL
           ///Not Download Article HTML use it from SearchHit, it has highlighting for search term
-          let additionalFiles = curl.content.files.filter{ $0.name != cnt.html.name }
+          let additionalFiles = curl.content.files.filter{ $0.name != cnt.html?.name }
           this.dloader.downloadSearchHitFiles(files: additionalFiles, baseUrl: url) { err in
             if err == nil { curl.isAvailable = true }
           }

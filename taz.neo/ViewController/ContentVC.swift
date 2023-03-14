@@ -303,7 +303,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let _ = self else { return NSNull() }
       let arts = StoredArticle.bookmarkedArticles()
       var names: [String] = []
-      for a in arts { names += a.html.name.nonPublic() }
+      for a in arts { names += a.html?.name.nonPublic() ?? "-" }
       return names
     }
     self.bridge?.addfunc("shareArticle") { [weak self] jscall in

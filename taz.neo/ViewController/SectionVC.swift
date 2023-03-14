@@ -88,7 +88,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       }    
       else {
         for s in self.sections {
-          if fn == s.html.name { 
+          if fn == s.html?.name {
             self.gotoUrl(url: to) 
             if top == articleVC {
               navigationController?.popViewController(animated: true)
@@ -180,7 +180,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
     Notification.receive("BookmarkChanged") { [weak self] msg in
       if let art = msg.sender as? StoredArticle {
-        let name = art.html.name.nonPublic()
+        guard let name = art.html?.name.nonPublic() else { return }
         let js = """
           if (typeof tazApi.onBookmarkChange === "function") {
             tazApi.onBookmarkChange("\(name)", \(art.hasBookmark));
@@ -209,12 +209,13 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   // Return nearest section index containing given Article
   func article2index(art: Article) -> Int {
-    if let sects = article2sectionHtml[art.html.fileName] {
-      if let s = section, sects.contains(s.html.fileName) { return index! }
+    if let fileName = art.html?.fileName,
+        let sects = article2sectionHtml[fileName] {
+      if let s = section, let fn = s.html?.fileName, sects.contains(fn) { return index! }
       else {
         let fn = sects[0]
         for i in 0 ..< sections.count {
-          if fn == sections[i].html.fileName { return i }
+          if fn == sections[i].html?.fileName { return i }
         }
       }
     }

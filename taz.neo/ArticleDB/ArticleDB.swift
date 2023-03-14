@@ -829,9 +829,15 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.title }
     set { pr.title = newValue }
   }
-  public var html: FileEntry {
-    get { return StoredFileEntry(persistent: pr.html!) }
-    set { 
+  public var html: FileEntry? {
+    get {
+      guard let html = pr.html else { return nil }
+      return StoredFileEntry(persistent: html) }
+    set {
+      guard let newValue = newValue else {
+        pr.html = nil
+        return
+      }
       pr.html = StoredFileEntry.persist(object: newValue).pr 
       pr.html!.content = pr
     }
@@ -1006,7 +1012,8 @@ public final class StoredArticle: Article, StoredObject {
   }
     
   public static func get(object: Article) -> StoredArticle? {
-    let tmp = get(file: object.html.name)
+    guard let name =  object.html?.name else { return nil }
+    let tmp = get(file:name)
     if tmp.count > 0 { return tmp[0] }
     else { return nil }
   }
@@ -1323,14 +1330,23 @@ public final class StoredSection: Section, StoredObject {
     get { return SectionType(pr.type!)! }
     set { pr.type = newValue.representation }
   }
-  public var html: FileEntry {
-    get { return StoredFileEntry(persistent: pr.html!) }
+  public var html: FileEntry? {
+    get {
+      guard let html = pr.html else { return nil }
+      return StoredFileEntry(persistent: html)
+    }
     set {
-      if let old = pr.html, old.name != newValue.name { old.delete() }
+      guard let newValue = newValue else {
+        pr.html?.delete()
+        pr.html = nil
+        return
+      }
+      if pr.html?.name != newValue.name { pr.html?.delete() }
       pr.html = StoredFileEntry.persist(object: newValue).pr 
-      pr.html!.content = pr
+      pr.html?.content = pr
     }
   }
+
   public var navButton: ImageEntry? {
     get { 
       if let pbutton = pr.navButton { return StoredImageEntry(persistent: pbutton) }
@@ -1417,7 +1433,7 @@ public final class StoredSection: Section, StoredObject {
       }
       // Remove unneeded articles
       for art in articles as! [StoredArticle] {
-        if !arts.contains(where: { $0.html.name == art.html.name }) {
+        if !arts.contains(where: { $0.html?.name == art.html?.name }) {
           debug("deleting \(art)")
           art.delete()
         }
@@ -1434,7 +1450,8 @@ public final class StoredSection: Section, StoredObject {
   }
   
   public static func get(object: Section) -> StoredSection? {
-    let tmp = get(file: object.html.name)
+    guard let name = object.html?.name else { return nil }
+    let tmp = get(file: name)
     if tmp.count > 0 { return tmp[0] }
     else { return nil }
   }
@@ -1528,7 +1545,7 @@ public final class StoredIssue: Issue, StoredObject {
     }
     set {
       if let sim = newValue {
-        if let old = pr.imprint, old.html?.name != sim.html.name {
+        if let old = pr.imprint, old.html?.name != sim.html?.name {
           old.delete()
         }
         pr.imprint = StoredArticle.persist(object: sim).pr
@@ -1598,7 +1615,7 @@ public final class StoredIssue: Issue, StoredObject {
     var bookmarkedDemoArticleNames:[String] = []
     
     if sendUpdatedDemoIssueNotification {
-      bookmarkedDemoArticleNames = self.allArticles.filter{ $0.hasBookmark }.map{$0.html.name.replacingOccurrences(of: ".public.", with: ".")}
+      bookmarkedDemoArticleNames = self.allArticles.filter{ $0.hasBookmark }.map{($0.html?.name ?? "").replacingOccurrences(of: ".public.", with: ".")}
     }
     
     if let secs = object.sections {
@@ -1611,8 +1628,8 @@ public final class StoredIssue: Issue, StoredObject {
         order += 1
         if let arts = ssection.articles {
           for art in arts {
-            if let art = art as? StoredArticle {
-              if bookmarkedDemoArticleNames.contains(art.html.name) {
+            if let art = art as? StoredArticle, let name = art.html?.name {
+              if bookmarkedDemoArticleNames.contains(name) {
                 art.setBookmark(true)
               }
               art.pr.addToIssues(self.pr)
@@ -1635,7 +1652,7 @@ public final class StoredIssue: Issue, StoredObject {
     if let osecs = oldSections as? [StoredSection] {
       if let secs = object.sections {
         for s in osecs {
-          if !secs.contains(where: { $0.html.name == s.html.name }) {
+          if !secs.contains(where: { $0.html?.name == s.html?.name }) {
             s.delete()
           }
         }

@@ -302,7 +302,7 @@ public extension Author {
  */
 public protocol Content {
   /// File storing content HTML
-  var html: FileEntry { get }
+  var html: FileEntry? { get }
   /// Optional title of content
   var title: String? { get }
   /// List of images used in content
@@ -331,7 +331,7 @@ public extension Content {
       ret += au[0].toString()
     }
     else { ret += "author unknown" }
-    ret += ")\n  \(html.name)"
+    ret += ")\n  \(html?.name ?? "")"
     return ret
   }
   
@@ -343,7 +343,7 @@ public extension Content {
   }
   
   /// Absolute pathname of content
-  var path: String { "\(dir.path)/\(html.name)" }
+  var path: String { "\(dir.path)/\(html?.name ?? "")" }
   
   /// Date of Issue encompassing this Content (refering to primaryIssue)
   var defaultIssueDate: Date { 
@@ -366,6 +366,7 @@ public extension Content {
  
   /// All files incl. normal res photos
   var files: [FileEntry] {
+    guard let html = html else { return [] }
     var ret: [FileEntry] = [html]
     if let imgs = images, imgs.count > 0 {
       for img in imgs { if img.resolution == .normal { ret += img } }
@@ -459,8 +460,9 @@ public extension Article {
   var hasBookmark: Bool { get { false } set {} }
   
   func isEqualTo(otherArticle: Article) -> Bool{
-    return self.html.sha256 == otherArticle.html.sha256
-    && self.html.name == otherArticle.html.name
+    return self.html?.sha256 == otherArticle.html?.sha256
+    && self.html?.name.length ?? 0 > 0
+    && self.html?.name == otherArticle.html?.name
     && self.title == otherArticle.title
   }
 } // Article
@@ -495,7 +497,7 @@ public extension Section {
   func toString() -> String {
     var ret = "Section \"\(name)\""
     if let tit = extendedTitle { ret += " (\(tit))" }
-    ret += ", type: \(type.toString())\n  \(html.toString())"
+    ret += ", type: \(type.toString())\n  \(html?.toString() ?? "-")"
     if let button = navButton { ret += "\n  navButton: \(button.toString())" }
     if let arts = articles {
       ret += ":\n"
@@ -518,7 +520,9 @@ public extension Section {
   var articleHtml: [String] {
     var ret: [String] = []
     if let arts = articles, arts.count > 0 {
-      for art in arts { ret += art.html.fileName }
+      for art in arts {
+        ret += art.html?.fileName ?? "-"
+      }
     }
     return ret
   }
@@ -831,7 +835,7 @@ public extension Issue {
       for sect in sects { 
         if let arts = sect.articles { 
           for art in arts {
-            if art.html.name == artname || art.html.name == "\(artname).html" 
+            if art.html?.name == artname || art.html?.name == "\(artname).html" 
               { return art }
           }
         } 
@@ -923,9 +927,9 @@ public extension Issue {
   var sectionHtml: [String] {
     var ret: [String] = []
     if let sects = sections, sects.count > 0 {
-      for sect in sects { ret += sect.html.fileName }
+      for sect in sects { ret += sect.html?.fileName ?? "-" }
     }
-    ret += imprint?.html.fileName ?? ""
+    ret += imprint?.html?.fileName ?? ""
     return ret
   }
   
@@ -945,9 +949,9 @@ public extension Issue {
     var ret: [String:[String]] = [:]
     if let sects = sections, sects.count > 0 {
       for sect in sects { 
-        let sectHtml = sect.html.fileName
+        guard let sectHtml = sect.html?.fileName else { continue }
         for art in sect.articles ?? [] {
-          let artHtml = art.html.fileName
+          guard let artHtml = art.html?.fileName else { continue }
           if ret[artHtml] != nil { ret[artHtml]! += sectHtml }
           else { ret[artHtml] = [sectHtml] }
         }
@@ -964,7 +968,7 @@ public extension Issue {
     if let sects = sections, sects.count > 0 {
       for sect in sects { 
         for art in sect.articles ?? [] {
-          let artHtml = art.html.fileName
+          guard let artHtml = art.html?.fileName else { continue }
           if ret[artHtml] != nil { ret[artHtml]! += sect }
           else { ret[artHtml] = [sect] }
         }

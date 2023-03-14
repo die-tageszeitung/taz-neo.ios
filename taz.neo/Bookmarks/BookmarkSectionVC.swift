@@ -22,7 +22,7 @@ open class BookmarkSectionVC: SectionVC {
     didSet {
       if let art = article,
          let wv = currentWebView {
-        let id = File.progname(art.html.name)
+        let id = File.progname(art.html?.name ?? "")
         let js = """
         {
           let id = document.getElementById("\(id)");

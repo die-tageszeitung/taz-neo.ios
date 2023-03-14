@@ -260,7 +260,7 @@ class GqlArticle: Article, GQLObject {
   }
   /// File storing article HTML
   var articleHtml: GqlFile
-  var html: FileEntry { return articleHtml }
+  var html: FileEntry? { return articleHtml }
   /// File storing article MP3 (if any)
   var audioFile: GqlFile?
   var audio: FileEntry? { return audioFile }
@@ -305,7 +305,7 @@ class GqlSection: Section, GQLObject {
   }
   /// File storing section HTML
   var sectionHtml: GqlFile
-  var html: FileEntry { return sectionHtml }
+  var html: FileEntry? { return sectionHtml }
   /// Name of section
   var name: String
   /// Optional title (not to display in table of contents)

@@ -411,6 +411,7 @@ open class FeederContext: DoesLog {
   }
   
   func processPushNotification(pn: PushNotification, payload: PushNotification.Payload){
+    log("Processing: \(payload)")
     switch payload.notificationType {
       case .subscription:
         log("check subscription status")
