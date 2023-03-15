@@ -15,12 +15,34 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   class Spinner: UIViewController {
     convenience init() {
       self.init(nibName: nil, bundle: nil)
+      self.view.backgroundColor = .black
       let spinner = UIActivityIndicatorView()
       view.addSubview(spinner)
       spinner.center()
       spinner.color = .white
       spinner.startAnimating()
-    } 
+      let lb = UILabel()
+      lb.isHidden = true
+      lb.text = "Verbinde..."
+      lb.textAlignment = .center
+      view.addSubview(lb)
+      lb.numberOfLines = 0
+      pin(lb.left, to: view.left, dist: 10.0)
+      pin(lb.right, to: view.right, dist: -10.0)
+      lb.contentFont(size: 12.0)
+      lb.textColor = .lightGray
+      pin(lb.top, to: spinner.bottom, dist: 20.0)
+      onMain(after: 2.0) {
+        lb.showAnimated()
+      }
+      onMain(after: 9.0) {
+        lb.text = "Ups, das dauert aber heute lang!\n\nBitte überprüfen Sie Ihre Internetverbindung oder tippen Sie bitte hier, um uns einen Fehler zu melden."
+        lb.onTapping {_ in
+          TazAppEnvironment.sharedInstance.showFeedbackErrorReport(screenshot: UIWindow.screenshot)
+          lb.text = "Falls das Problem weiterhin besteht und die taz Server erreichbar sind:\n• Fehlerbericht wurde erfolgreich gesendet\n• taz.de ist im Browser erreichbar\nbeenden Sie bitte die App und starten sie diese neu."
+        }
+      }
+    }
   }
   
   private var threeFingerAlertOpen: Bool = false
@@ -31,6 +53,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     return Spinner()
   }()  {
     didSet {
+//      return;//Simulate Connect Errors
       guard let window = UIApplication.shared.delegate?.window else { return }
       window?.hideAnimated() {[weak self] in
         guard
