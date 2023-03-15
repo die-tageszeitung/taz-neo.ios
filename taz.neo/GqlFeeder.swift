@@ -732,6 +732,7 @@ open class GqlFeeder: Feeder, DoesLog {
     func getStatus() {
       feederStatus { [weak self] (res) in
         guard let self = self else { return }
+        self.debug("feederStatus->res \(res)")
         var ret: Result<Feeder,Error>
         switch res {
         case .success(let st):   

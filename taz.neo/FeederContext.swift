@@ -288,6 +288,7 @@ open class FeederContext: DoesLog {
   
   /// React to the feeder being online or not
   private func feederStatus(isOnline: Bool) {
+    debug("isOnline: \(isOnline)")
     if isOnline {
       guard minVersionOK else {
         enforceUpdate()
