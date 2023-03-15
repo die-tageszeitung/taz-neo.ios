@@ -342,8 +342,15 @@ public extension Content {
     return issue.dir 
   }
   
+  #warning("ToDo make path also optional soon")
   /// Absolute pathname of content
-  var path: String { "\(dir.path)/\(html?.name ?? "")" }
+  var path: String {
+    guard let html = html else {
+      Log.error("html(File) is nil")
+      return ""
+    }
+    return "\(dir.path)/\(html.name)"
+  }
   
   /// Date of Issue encompassing this Content (refering to primaryIssue)
   var defaultIssueDate: Date { 
