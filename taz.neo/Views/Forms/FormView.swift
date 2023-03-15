@@ -76,7 +76,7 @@ public class FormView: UIView {
       }
       previous = v
     }
-    pin(previous!.bottom, to: container.bottom, dist: -margin)
+    pin(previous!.bottom, to: container.bottom, dist: -margin - 30.0)
     
     scrollView.addSubview(container)
     NorthLib.pin(container, to: scrollView)
