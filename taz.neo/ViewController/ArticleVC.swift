@@ -231,12 +231,19 @@ open class ArticleVC: ContentVC {
   // Export/Share article
   public static func exportArticle(article: Article?, artvc: ArticleVC? = nil, 
                                    from button: UIView? = nil) {
+    
+    let img = article?.images?.first?.image(dir: artvc?.delegate.issue.dir)
+    
     if let art = article,
        let link = art.onlineLink,
        !link.isEmpty{
           let dialogue = ExportDialogue<Any>()
-          dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",
-                           view: button, subject: art.title, onlineLink: link)
+        dialogue.present(item: link,
+                       altText: nil,
+                       onlineLink: link,
+                       view: button,
+                       subject: art.title,
+                       image: img)
     }
   }
   
