@@ -212,6 +212,12 @@ public extension ImageEntry {
   }
 }
 
+public extension ImageEntry {
+  func image(dir: Dir?) -> UIImage? {
+    guard let path = dir?.path else { return nil }
+    return UIImage(contentsOfFile: "\(path)/\(name)") }
+}
+
 /**
  A list of files to transfer from the download server
  */
@@ -688,7 +694,7 @@ public extension Moment {
     return ret
   }
   
-  /// Return the image with the highest resolution
+  /// Return the image with the lowest resolution
   func lowest(images: [ImageEntry]) -> ImageEntry? {
     var ret: ImageEntry?
     for img in images {
