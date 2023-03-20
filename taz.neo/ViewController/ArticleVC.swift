@@ -212,6 +212,12 @@ open class ArticleVC: ContentVC {
           }
         }        
       }
+      else if art.title != nil,
+              art.title == adelegate?.issue.imprint?.title,
+              art.sectionTitle == nil {
+        header.title = art.title
+        header.pageNumber = nil
+      }
     }
   }
   
