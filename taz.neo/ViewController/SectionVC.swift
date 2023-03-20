@@ -224,7 +224,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     
   // Define Header elements
   func setHeader(secIndex: Int) {
-    header.title = contents[secIndex].title ?? ""
+    header.title = contents.valueAt(secIndex)?.title ?? ""
     if !isStaticHeader {
       header.subTitle = issue.validityDateText(timeZone: feeder.timeZone)
       header.titletype = index == 0 ? .section0 : .section
