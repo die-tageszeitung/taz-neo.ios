@@ -35,15 +35,16 @@ open class Javascript {
   private static func createWebView(_ jsFile:URL?=nil) -> WebView{
     let wv = WebView()
     
-    var scriptTag = ""
-    
-    if let f = jsFile, File(f.path).exists {
-      wv.baseDir = f.relativePath
-      scriptTag
-      = """
-            <script type="text/javascript" src="\(f.absoluteURL.lastPathComponent)"></script>
-         """
+    if let file = jsFile{
+      let ressourcesUrl = file.deletingLastPathComponent()
+      wv.loadFileURL(file, allowingReadAccessTo: ressourcesUrl)
+      wv.baseDir = ressourcesUrl.path
     }
+    
+    let scriptTag
+    = """
+            <script type="text/javascript" src="\(jsFile?.lastPathComponent ?? "tazPasswordSpec.js")"></script>
+         """
     
     let html = """
      <!DOCTYPE html>
