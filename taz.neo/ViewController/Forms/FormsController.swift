@@ -120,10 +120,6 @@ class FormsResultController: UIViewController {
   
   /// Setup the xButton
   func setupXButton() {
-    guard self.modalPresentationStyle == .formSheet
-    || self.dismissType == .all
-    || self.dismissType == .allReal
-    else { return }
     xButton.tazX()
     self.view.addSubview(xButton)
     pin(xButton.right, to: self.view.rightGuide(), dist: -15)
@@ -345,6 +341,8 @@ extension FormsController: UITextViewDelegate {
     
     if let localResource = localResource, localResource.exists {
       let introVC = IntroVC()
+      introVC.topOffset = Const.Dist.margin
+      introVC.isModalInPresentation = true
       introVC.webView.webView.load(url: localResource.url)
       modalFromBottom(introVC) {
         //Overwrite Default in: IntroVC viewDidLoad
