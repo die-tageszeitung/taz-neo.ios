@@ -73,11 +73,6 @@ class SubscriptionFormController : FormsController {
       }
     }
   }
-  
-  override func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(animated)
-    super.handleBack(nil)
-  }
     
   required init(formType: SubscriptionFormDataType,
                 auth:AuthMediator,

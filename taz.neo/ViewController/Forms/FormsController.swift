@@ -233,8 +233,29 @@ class FormsResultController: UIViewController {
     modalFromBottom(successCtrl)
   }
   
+  func handleRequestCancelUserInput(){
+    let dismissAction = UIAlertAction(title: "Ja, Änderungen verwerfen",
+                                      style: .destructive) { [weak self] _ in
+      self?.dismiss()
+    }
+    let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
+    
+    Alert.message(message:  "Änderungen verwerfen?",
+                  actions: [dismissAction,  cancelAction],
+                  presentationController: self)
+  }
+  
   // MARK: handleBack Action
   @IBAction func handleBack(_ sender: UIButton?) {
+    if self.ui.hasUserInput {
+      handleRequestCancelUserInput()
+    } else {
+      dismiss()
+    }
+  }
+    
+    // MARK: handleBack Action
+  func dismiss() {
     var stack = self.modalStack
     switch dismissType {
       case .allReal:

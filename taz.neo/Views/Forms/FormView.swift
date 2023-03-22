@@ -20,6 +20,14 @@ public class FormView: UIView {
   
   let blockingView = BlockingProcessView()
   
+  public var hasUserInput : Bool {
+    for v in views ?? [] {
+      if (v as? TazTextField)?.text?.length ?? 0 > 0 { return true }
+      if (v as? ViewWithTextView)?.text?.length ?? 0 > 0 { return true }
+    }
+    return false
+  }
+  
   public var blocked : Bool = false {
     didSet{
       ensureMain { [weak self] in
@@ -49,6 +57,7 @@ public class FormView: UIView {
     self.subviews.forEach({ $0.removeFromSuperview() })
     self.backgroundColor = Const.SetColor.CTBackground.color
     if views.isEmpty { return }
+    self.views = views
     
     let margin : CGFloat = Const.Size.DefaultPadding
     var previous : UIView?
