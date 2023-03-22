@@ -46,13 +46,21 @@ class SubscriptionFormController : FormsController {
       return
     }
     
+    var subscriptionId: Int32?
+    
+    if let sidText = ui.aboIdInput.text,
+       let sid = Int32(sidText) {
+      subscriptionId = sid
+    }
+    
     auth.feeder.subscriptionFormData(type: ui.formType,
-                                     mail: ui.idInput.text,
+                                     mail: ui.mailInput.text,
                                      surname: ui.lastName.text,
                                      firstName: ui.firstName.text,
                                      street: ui.street.text,
                                      city: ui.city.text,
                                      postcode: ui.postcode.text,
+                                     subscriptionId: subscriptionId,
                                      message: ui.message.text,
                                      requestCurrentSubscriptionOpportunities: ui.requestInfoCheckbox.checked){ [weak self] (result) in
       self?.ui.blocked = false

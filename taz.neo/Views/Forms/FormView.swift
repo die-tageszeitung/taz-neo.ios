@@ -66,7 +66,7 @@ public class FormView: UIView {
     
     for v in views {
       
-      if v is UITextField {
+      if v is KeyboardToolbarForText {
         v.tag = tfTags
         tfTags += 1
       }

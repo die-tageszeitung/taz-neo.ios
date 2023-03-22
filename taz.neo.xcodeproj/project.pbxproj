@@ -46,6 +46,7 @@
 		773D56472614A4DF00B42FEF /* BundledResources in Resources */ = {isa = PBXBuildFile; fileRef = 773D56462614A4DF00B42FEF /* BundledResources */; };
 		7745050D25DA801F0052E502 /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = 7745050C25DA801F0052E502 /* resources.json */; };
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
+		774C6F8129CB5BAF001285FB /* KeyboardToolbarForText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7754453525D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
@@ -155,6 +156,7 @@
 		773D56462614A4DF00B42FEF /* BundledResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResources; sourceTree = "<group>"; };
 		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
 		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
+		774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardToolbarForText.swift; sourceTree = "<group>"; };
 		7754453225D1742E00ABE3F8 /* IssueVcWithBottomTiles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueVcWithBottomTiles.swift; sourceTree = "<group>"; };
 		776158192743E8440044516C /* AppIcons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcons; sourceTree = "<group>"; };
 		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
@@ -275,6 +277,7 @@
 				00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */,
 				006E17E824D418090092DC0D /* FormComponents.swift */,
 				77BA74642892836600D1039B /* SubscriptionFormView.swift */,
+				774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */,
 			);
 			path = Forms;
 			sourceTree = "<group>";
@@ -726,6 +729,7 @@
 				AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */,
 				AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */,
 				0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */,
+				774C6F8129CB5BAF001285FB /* KeyboardToolbarForText.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
 				777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */,
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,
@@ -844,7 +848,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2023032101;
+				CURRENT_PROJECT_VERSION = 2023032201;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
@@ -992,7 +996,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2023032101;
+				CURRENT_PROJECT_VERSION = 2023032201;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -1018,7 +1022,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2023032101;
+				CURRENT_PROJECT_VERSION = 2023032201;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "$(SRCROOT)/taz.neo/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;

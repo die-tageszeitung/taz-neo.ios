@@ -92,7 +92,7 @@ public class FeedbackView : UIView {
       sendButton.isEnabled = true
     }
     
-    senderMail.delegate = self
+    senderMail.textfield.delegate = self
     senderMail.textfield.keyboardType = .emailAddress
     senderMail.textfield.autocapitalizationType = .none
     senderMail.textfield.textContentType = .emailAddress
@@ -134,17 +134,17 @@ public class FeedbackView : UIView {
     }
     stack.addArrangedSubview(senderMailDescriptionLabel)
     stack.addArrangedSubview(senderMail)
-    senderMail.tag = 0
+    senderMail.tag = 10
     stack.addArrangedSubview(UIView.seperator())
     stack.addArrangedSubview(messageTextView)
-    messageTextView.tag = 1
+    messageTextView.tag = 11
     if type == .error {
       stack.addArrangedSubview(UIView.seperator())
       stack.addArrangedSubview(lastInteractionTextView)
-      lastInteractionTextView.tag = 2
+      lastInteractionTextView.tag = 12
       stack.addArrangedSubview(UIView.seperator())
       stack.addArrangedSubview(environmentTextView)
-      environmentTextView.tag = 3
+      environmentTextView.tag = 13
       stack.addArrangedSubview(UIView.seperator())
       stack.addArrangedSubview(attachmentsLabel)
       stack.addArrangedSubview(hStack2)
@@ -252,6 +252,12 @@ extension FeedbackView : UITextViewDelegate{
 }
 
 extension FeedbackView : UITextFieldDelegate{
+  
+  public func textFieldDidBeginEditing(_ textField: UITextField) {
+    guard let ti = textField as? KeyboardToolbarForText else { return }
+    textField.inputAccessoryView = ti.inputToolbar
+  }
+  
   public func textFieldDidEndEditing(_ textField: UITextField){
     if textField != senderMail.textfield { return}//only handle this here!
     checkSendButton()
