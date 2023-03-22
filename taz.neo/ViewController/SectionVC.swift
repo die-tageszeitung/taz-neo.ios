@@ -240,6 +240,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   override public func viewDidLoad() {
     super.viewDidLoad()
+    self.showImageGallery = false
     self.index = initialSection ?? 0
     
     scrollViewDidScroll{[weak self] offset in

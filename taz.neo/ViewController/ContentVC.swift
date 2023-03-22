@@ -242,9 +242,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if let args = jscall.args, args.count > 0,
          let img = args[0] as? String {
         let current = self.contents[self.index!]
-        let imgVC = ContentImageVC(content: current, delegate: self,
-                                   imageTapped: img)
-        imgVC.showImageGallery = self.showImageGallery
+        let imgVC = ContentImageVC(content: current,
+                                   delegate: self,
+                                   imageTapped: img,
+                                   showImageGallery: self.showImageGallery)
         self.imageOverlay = Overlay(overlay:imgVC , into: self)
         self.imageOverlay?.maxAlpha = 0.9
         self.imageOverlay?.open(animated: true, fromBottom: true)

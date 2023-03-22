@@ -42,7 +42,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   /// The ZoomedImage
   var image: ZoomedImage?
   /// Show an image gallery if available
-  var showImageGallery = true
+  var showImageGallery:Bool
   
   /// Closure to call when this VC wishes to close itself
   private var toCloseClosure: (()->())?
@@ -171,10 +171,11 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   
   private var orientationClosure:OrientationClosure? = OrientationClosure()
   
-  public init(content: Content, delegate: IssueInfo, imageTapped: String? = nil) {
+  public init(content: Content, delegate: IssueInfo, imageTapped: String? = nil, showImageGallery:Bool) {
     self.content = content
     self.delegate = delegate
     self.imageTapped = imageTapped
+    self.showImageGallery = showImageGallery
     super.init() 
     super.pinTopToSafeArea = false
     if #available(iOS 16.0, *) {
