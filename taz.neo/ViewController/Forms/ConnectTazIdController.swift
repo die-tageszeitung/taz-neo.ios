@@ -48,7 +48,7 @@ class ConnectTazIdController : FormsController {
     ///may the user already wrote its credentials before he recognize there is a already have taz-Id button
     child.ui.mailInput.text = ui.mailInput.text
     child.ui.passInput.text = ui.passInput.text
-    modalFlip(child)
+    modalFromBottom(child)
   }
   
   // MARK: handleLogin Action
@@ -211,7 +211,7 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
     ctrl.ui.introLabel.text = Localized("login_forgot_subscription_password_header")
     
     ctrl.childDismissType = .two //Reset & ResetSuccess
-    modalFlip(ctrl)
+    modalFromBottom(ctrl)
   }
 }
 
@@ -335,7 +335,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     ctrl.ui.introLabel.text = Localized("login_forgot_tazid_password_header")
     
     ctrl.childDismissType = .two //Reset & ResetSuccess
-    modalFlip(ctrl)
+    modalFromBottom(ctrl)
   }
 }
 

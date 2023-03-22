@@ -76,7 +76,7 @@ class PwForgottController: FormsController {
               self.updateParentIfApplyable(id)
               let ctrl = SubscriptionResetSuccessController()
               if let cdt = self.childDismissType { ctrl.dismissType = cdt}
-              self.modalFlip(ctrl)
+              self.modalFromBottom(ctrl)
         }
         //ToDo #901
         case .failure:
@@ -98,7 +98,7 @@ class PwForgottController: FormsController {
               self.updateParentIfApplyable(id)
               let ctrl = PasswordResetRequestedSuccessController()
               if let cdt = self.childDismissType { ctrl.dismissType = cdt}
-              self.modalFlip(ctrl)
+              self.modalFromBottom(ctrl)
             case .invalidMail:
               Toast.show(Localized("error_invalid_email_or_abo_id"))
             case .mailError:
