@@ -148,7 +148,7 @@ extension FormView {
     if UIScreen.isIpadRegularSize { return }
     if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue {
       let keyboardRectangle = keyboardFrame.cgRectValue
-      let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardRectangle.height, right: 0)
+      let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardRectangle.height + 30, right: 0)
       scrollView.contentInset = contentInsets
     }
   }
