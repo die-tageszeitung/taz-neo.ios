@@ -293,6 +293,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self.debug("Showing Intro")
       let introVC = IntroVC()
       let feeder = self.feederContext?.storedFeeder
+      introVC.webView.showBottomButtonInitially()
       introVC.htmlDataPolicy = feeder?.dataPolicy
       introVC.htmlIntro = feeder?.welcomeSlides
       Notification.receiveOnce("dataPolicyAccepted") { notif in

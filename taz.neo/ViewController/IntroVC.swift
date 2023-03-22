@@ -39,7 +39,6 @@ class IntroVC: UIViewController {
     webView.buttonLabel.text = "Akzeptieren"
     webView.buttonLabel.clipsToBounds = true
     webView.buttonLabel.layer.cornerRadius = 5
-    webView.showBottomButtonInitially()
     webView.xButton.tazX()
     if let htmlDataPolicy = htmlDataPolicy,
        let htmlIntro = htmlIntro {
