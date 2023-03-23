@@ -1000,6 +1000,7 @@ open class GqlFeeder: Feeder, DoesLog {
             TazAppEnvironment.sharedInstance.feederContext?.clearExpiredAccountFeederError()
             Alert.message(message: "Ihr Abo ist wieder aktiv!")
             Defaults.expiredAccountDate = nil
+            Notification.send(Const.NotificationNames.authenticationSucceeded)
           }
           else if req.authInfo.status == .expired
                   && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {
