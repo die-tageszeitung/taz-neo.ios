@@ -54,6 +54,12 @@ class BookmarkNC: NavigationController {
   }
   
   func setup() {
+    Notification.receive(Const.NotificationNames.expiredAccountDateChanged) { [weak self] notif in
+      guard self?.feeder.isAuthenticated ?? false else { return }
+      guard Defaults.expiredAccount == false else { return }
+      self?.reloadOpened()
+    }
+    
     Notification.receive("updatedDemoIssue") { [weak self] notif in
       guard let self = self else { return }
       self.bookmarkFeed
@@ -118,7 +124,7 @@ extension BookmarkNC: IssueInfo {
 
 extension BookmarkNC: ReloadAfterAuthChanged {
   public func reloadOpened(){
-    let lastIndex = (self.viewControllers.last as? ArticleVC)?.index ?? 0
+    let lastIndex: Int? = (self.viewControllers.last as? ArticleVC)?.index
     var issuesToDownload:[StoredIssue] = []
     for art in bookmarkFeed.issues?.first?.allArticles ?? [] {
       if let sissue = art.primaryIssue as? StoredIssue,
@@ -133,15 +139,19 @@ extension BookmarkNC: ReloadAfterAuthChanged {
         self.feederContext.getCompleteIssue(issue: nextIssue,
                                              isPages: isFacsimile,
                                              isAutomatically: false)
-      } else {
+      } else if let idx = lastIndex {
         self.bookmarkFeed
         = BookmarkFeed.allBookmarks(feeder: self.feeder)
         self.sectionVC.relaese()
         self.sectionVC
-        = createSectionVC(openArticleAtIndex: lastIndex)
+        = createSectionVC(openArticleAtIndex: idx)
         self.viewControllers[0] = self.sectionVC
         self.popToRootViewController(animated: true)
         Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+      } else {
+        self.bookmarkFeed
+        = BookmarkFeed.allBookmarks(feeder: self.feeder)
+        self.sectionVC.reload()
       }
     }
     
