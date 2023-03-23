@@ -740,6 +740,7 @@ open class FeederContext: DoesLog {
           UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
         if Defaults.expiredAccountDate != nil {
+          closure()
           return //dont show popup on each start
         }
         if Defaults.expiredAccountDate == nil {
@@ -748,6 +749,7 @@ open class FeederContext: DoesLog {
         updateSubscriptionStatus { _ in
           self.authenticator.authenticate(with: nil)
         }
+        closure()
         return; //Prevent default Popup
       case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
         self.gqlFeeder.authToken = nil
