@@ -731,14 +731,9 @@ open class FeederContext: DoesLog {
     }
     debug("handleFeederError for: \(err)")
     currentFeederErrorReason = err
-    var additionalAction: UIAlertAction?
     var text = ""
     switch err {
       case .expiredAccount: text = "Ihr Abonnement ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
-        additionalAction = UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
-          guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
-          UIApplication.shared.open(url, options: [:], completionHandler: nil)
-        }
         if Defaults.expiredAccountDate != nil {
           closure()
           return //dont show popup on each start
