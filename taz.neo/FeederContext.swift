@@ -64,6 +64,17 @@ open class FeederContext: DoesLog {
   public var defaultFeed: StoredFeed!
   /// The Downloader to use 
   public var dloader: Downloader!
+  
+  
+  /**
+   [...]
+   SCNetworkReachability and  NWPathMonitor
+   is not perfect; it can result in both false positives (saying that something is reachable when it’s not) and false negatives (saying that something is unreachable when it is). It also suffers from TOCTTOU issues.
+   [...]
+   Source: https://developer.apple.com/forums/thread/105822
+   Written by: Quinn “The Eskimo!”   Apple Developer Relations, Developer Technical Support, Core OS/Hardware
+    => this is maybe the problem within our: Issue not appears, download not work issues
+   */
   /// netAvailability is used to check for network access to the Feeder
   public var netAvailability: NetAvailability
   @Default("useMobile")
@@ -78,6 +89,8 @@ open class FeederContext: DoesLog {
   @Default("simulateNewVersion")
   var simulateNewVersion: Bool
   
+  var netStatusVerification = Date()
+  
   /// isConnected returns true if the Feeder is available
   public var isConnected: Bool { 
     var isCon: Bool
@@ -88,6 +101,18 @@ open class FeederContext: DoesLog {
       else { isCon = true }
     }
     else { isCon = false }
+    
+    //every 60 seconds check if NetAvailability really work
+    if !isCon,
+       netStatusVerification.timeIntervalSinceNow < -10,
+        let host = URL(string: self.url)?.host,
+        NetAvailability(host: host).isAvailable {
+      netStatusVerification = Date()
+      log("Seams we need to update NetAvailability")
+      updateNetAvailabilityObserver()
+      
+    }
+    
     return isCon
   }
   /// Has the Feeder been initialized yet
@@ -217,7 +242,6 @@ open class FeederContext: DoesLog {
       }
     }
   }
-
   
   /// Feeder is now reachable
   private func feederReachable(feeder: Feeder) {
@@ -225,13 +249,23 @@ open class FeederContext: DoesLog {
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
     notify("feederReachable")
     //disables offline status label
-    Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
+    Notification.send("checkForNewIssues", content: StatusHeader.status.fetchNewIssues, error: nil, sender: self)
+    manuelCheckForNewIssues(feed: self.defaultFeed, isAutomatically: false)
   }
   
   /// Feeder is not reachable
   private func feederUnreachable() {
     self.debug("Feeder now unreachable")
     notify("feederUneachable")
+  }
+  
+  private func updateNetAvailabilityObserver() {
+    guard let host = URL(string: self.url)?.host else {
+      log("cannot update NetAvailabilityObserver for URL Host: \(url)")
+      return
+    }
+    self.netAvailability = NetAvailability(host: host)
+    self.netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
   }
   
   /// Network status has changed 
@@ -843,23 +877,22 @@ open class FeederContext: DoesLog {
     }
     updateResources()
   }
-  
+
+  #warning("2 more things: ")
+  ///2 sachen on re enter app if last check > 60s && last Issue > 4h => do manuell check
+  ///
+  ///
   /// checkForNewIssues requests new overview issues from the server if
   /// more than 12 hours have passed since the latest stored issue
-  public func checkForNewIssues(feed: Feed, isAutomatically: Bool) {
+  public func manuelCheckForNewIssues(feed: Feed, isAutomatically: Bool) {
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
     if let latest = StoredIssue.latest(feed: sfeed), self.isConnected {
       let now = UsTime.now
-      let latestIssueDate = UsTime(latest.date)
-      let nHours = (now.sec - latestIssueDate.sec) / 3600
-      if nHours > 6 {
-        let ndays = (now.sec - latestIssueDate.sec) / (3600*24) + 1
-        getOvwIssues(feed: feed, count: Int(ndays), isAutomatically: isAutomatically)
-      } else {
-        Notification.send("checkForNewIssues", content: StatusHeader.status.none, error: nil, sender: self)
-      }
+      let latestIssueDate = UsTime(latest.date) //UsTime(year: 2023, month: 3, day: 23, hour: 3, min: 0, sec: 0) ??
+      let ndays = max(2, (now.sec - latestIssueDate.sec) / (3600*24) + 1)//ensure to load at least 2 current issue previews
+      getOvwIssues(feed: feed, count: Int(ndays), isAutomatically: isAutomatically)
     }
     else if self.isConnected == false {
       Notification.send("checkForNewIssues", content: StatusHeader.status.offline, error: nil, sender: self)
