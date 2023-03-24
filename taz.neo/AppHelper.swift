@@ -110,7 +110,7 @@ public extension App {
       case .SEARCH_CONTEXTMENU:
         return isAlpha //Only in Alpha Versions
       case .AUTODOWNLOAD:
-        return isAlpha //Only in Alpha Versions
+        return true || isAlpha //Only in Alpha Versions
     }
   }
 }
