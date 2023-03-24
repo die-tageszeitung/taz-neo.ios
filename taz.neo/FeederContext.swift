@@ -459,17 +459,24 @@ open class FeederContext: DoesLog {
           return
         }
         log("Handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
-        switch UIApplication.shared.applicationState {
-          case .active, .background:
-            self.getOvwIssues(feed: self.defaultFeed, count: 1, isAutomatically: true)
-          case .inactive:
-            log("ToDo: Do inactive Download")
-            self.getOvwIssues(feed: self.defaultFeed, count: 1, isAutomatically: true)
-          default:
-            log("Do Nothing")
+        
+        
+        let sfs = StoredFeed.get(name: defaultFeed.name, inFeeder: storedFeeder)
+        guard let sf0 = sfs.first else {
+          log("feed not found")
+          return
+        }
+        guard let sissue = StoredIssue.issuesInFeed(feed: sf0, count: 1).first else {
+          log("issue not found")
+          return
         }
         
-        //
+        guard !sissue.isComplete else {
+          log("issue still downloaded")
+          return
+        }
+        log("Download Issue: \(sissue.date.short)")
+        self.getCompleteIssue(issue: sissue, isAutomatically: true)
       default:
         self.debug(payload.toString())
     }
