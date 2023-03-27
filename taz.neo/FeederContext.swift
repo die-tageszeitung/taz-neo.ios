@@ -83,6 +83,9 @@ open class FeederContext: DoesLog {
   @Default("autoloadPdf")
   var autoloadPdf: Bool
   
+  @Default("autoloadNewIssues")
+  var autoloadNewIssues: Bool
+  
   @Default("simulateFailedMinVersion")
   var simulateFailedMinVersion: Bool
   
@@ -92,29 +95,23 @@ open class FeederContext: DoesLog {
   var netStatusVerification = Date()
   
   /// isConnected returns true if the Feeder is available
-  public var isConnected: Bool { 
-    var isCon: Bool
-    if netAvailability.isAvailable {
-      if netAvailability.isMobile {
-        isCon = useMobile
-      } 
-      else { isCon = true }
-    }
-    else { isCon = false }
+  public var isConnected: Bool {
+    ///do recheck every 60s (10 in Simulator) to ensure netAvailability works correctly
+    let timeout = Device.isSimulator ? -10.0 : -60.0
     
-    //every 60 seconds check if NetAvailability really work
-    if !isCon,
-       netStatusVerification.timeIntervalSinceNow < -10,
-        let host = URL(string: self.url)?.host,
-        NetAvailability(host: host).isAvailable {
+    if let host = URL(string: self.url)?.host,
+      netStatusVerification.timeIntervalSinceNow > timeout {
       netStatusVerification = Date()
-      log("Seams we need to update NetAvailability")
-      updateNetAvailabilityObserver()
-      
+      let available  = NetAvailability(host: host).isAvailable
+      if available != netAvailability.isAvailable {
+        log("Seams we need to update NetAvailability")
+        updateNetAvailabilityObserver()
+      }
+      return available
     }
-    
-    return isCon
+    return netAvailability.isAvailable
   }
+  
   /// Has the Feeder been initialized yet
   public var isReady = false
   
@@ -272,15 +269,6 @@ open class FeederContext: DoesLog {
   private func checkNetwork() {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     if isConnected {
-      //#warning("ToDo: 0.9.4 loock for logs&errors after 0.9.3 release")
-      /// To discuss: idea to reset previous feeder's gqlSession's URLSession to get rid of download errors
-      /// e.g. if the session exists over 3h...
-      //      if let oldFeeder = self.gqlFeeder {
-      //        oldFeeder.gqlSession?.session.reset {   [weak self] in
-      //          self?.log("Old Session Resetted!!")
-      //        }
-      //      }
-      
       self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
         guard let self = self else { return }
         if let feeder = res.value() {
@@ -388,7 +376,7 @@ open class FeederContext: DoesLog {
   
   /// Ask Authenticator to poll server for authentication,
   /// send 
-  private func doPolling() {
+  func doPolling() {
     authenticator.pollSubscription { [weak self] doContinue in
       guard let self = self else { return }
       guard let pollEnd = self.pollEnd else { self.endPolling(); return }
@@ -411,9 +399,6 @@ open class FeederContext: DoesLog {
     let oldToken = dfl["pushToken"] ?? Defaults.lastKnownPushToken
     Defaults.lastKnownPushToken = oldToken
     pushToken = oldToken
-    nd.onReceivePush {   [weak self] (pn, payload) in
-      self?.processPushNotification(pn: pn, payload: payload)
-    }
     nd.permitPush {[weak self] pn in
       guard let self = self else { return }
       if pn.isPermitted { 
@@ -442,43 +427,6 @@ open class FeederContext: DoesLog {
           self?.debug("Updated PushToken")
         }
       }
-    }
-  }
-  
-  func processPushNotification(pn: PushNotification, payload: PushNotification.Payload){
-    log("Processing: \(payload)")
-    switch payload.notificationType {
-      case .subscription:
-        log("check subscription status")
-        doPolling()
-      case .newIssue:
-        //not using checkForNew Issues see its warning!
-        //count 1 not working:
-        if App.isAvailable(.AUTODOWNLOAD) == false {
-          log("Currently not handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
-          return
-        }
-        log("Handle new Issue Push Current App State: \(UIApplication.shared.stateDescription)")
-        
-        
-        let sfs = StoredFeed.get(name: defaultFeed.name, inFeeder: storedFeeder)
-        guard let sf0 = sfs.first else {
-          log("feed not found")
-          return
-        }
-        guard let sissue = StoredIssue.issuesInFeed(feed: sf0, count: 1).first else {
-          log("issue not found")
-          return
-        }
-        
-        guard !sissue.isComplete else {
-          log("issue still downloaded")
-          return
-        }
-        log("Download Issue: \(sissue.date.short)")
-        self.getCompleteIssue(issue: sissue, isAutomatically: true)
-      default:
-        self.debug(payload.toString())
     }
   }
   
@@ -895,6 +843,7 @@ open class FeederContext: DoesLog {
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
+    #warning("ToDO")
     if let latest = StoredIssue.latest(feed: sfeed), self.isConnected {
       let now = UsTime.now
       let latestIssueDate = UsTime(latest.date) //UsTime(year: 2023, month: 3, day: 23, hour: 3, min: 0, sec: 0) ??
@@ -1067,23 +1016,4 @@ open class FeederContext: DoesLog {
   }
 
 } // FeederContext
-
-
-extension PushNotification.Payload {
-  public var notificationType: NotificationType? {
-    get {
-      guard let data = self.custom["data"] as? [AnyHashable:Any] else { return nil }
-      for case let (key, value) as (String, String) in data {
-        if key == "perform" && value == "subscriptionPoll" {
-          return NotificationType.subscription
-        }
-        else if key == "refresh" && value == "aboPoll" {
-          return NotificationType.newIssue
-        }
-      }
-      return nil
-    }
-  }
-}
-
 
