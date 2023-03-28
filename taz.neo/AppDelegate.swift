@@ -39,7 +39,6 @@ class AppDelegate: NotifiedDelegate {
     self.window?.makeKeyAndVisible()
     UIWindow.keyWindow?.overrideUserInterfaceStyle
     = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
-    ApnPushDelegate.setup()
     return true
   }
 
