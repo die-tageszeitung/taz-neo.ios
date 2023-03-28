@@ -222,14 +222,28 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     return 0
   }
     
-  // Define Header elements
+  // Define Header elements including menu slider
   func setHeader(secIndex: Int) {
-    header.title = contents.valueAt(secIndex)?.title ?? ""
+    let content = contents.valueAt(secIndex)
+    
+    if let section = content as? Section {
+      self.slider?.collapsedButton = section.type == .advertisement
+      
+      if section.type == .advertisement {
+        header.title = section.title ?? ""
+        header.hideAnimated()
+        toolBar.hide(true)
+        return
+      }
+    }
+    
+    header.title = content?.title ?? ""
     if !isStaticHeader {
       header.subTitle = issue.validityDateText(timeZone: feeder.timeZone)
       header.titletype = index == 0 ? .section0 : .section
     }
     header.showAnimated()
+    toolBar.hide(false)
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

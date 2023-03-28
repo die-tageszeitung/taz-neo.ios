@@ -485,6 +485,7 @@ public extension Article {
  */
 public enum SectionType: String, CodableEnum {  
   case articles = "articles"  /// a list of articles
+  case advertisement = "advertisement" /// advertisement no article
   case text     = "text"      /// a single HTML text (eg. imprint)
   case unknown  = "unknown"   /// decoded from unknown string
 } // SectionType
