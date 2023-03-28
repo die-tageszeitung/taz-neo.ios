@@ -257,6 +257,10 @@ extension HeaderView {
     }
   }
   
+  func hideAnimated(){
+    setRatio(1, animated: true)
+  }
+
   func showAnimated(){
     setRatio(0, animated: true)
   }
