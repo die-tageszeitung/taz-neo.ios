@@ -384,6 +384,12 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     }
     actions.append(sCheck)
     
+    ///Simulate App Termination by System not forced by user
+    ///may wait some minutes to test backgroud data update by push
+    if (DefaultAuthenticator.getUserData().id ?? "") == "ringo.mueller@taz.de" {
+      actions.append(Alert.action("App beenden") {_ in exit(0)})
+    }
+    
     let title = App.appInfo + "\n" + App.authInfo(with: feederContext)
     Alert.actionSheet(title: title,
                       actions: actions) { [weak self] in
