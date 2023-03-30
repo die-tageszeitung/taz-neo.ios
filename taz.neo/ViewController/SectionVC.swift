@@ -88,7 +88,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       }    
       else {
         for s in self.sections {
-          if fn == s.html.name { 
+          if fn == s.html?.name {
             self.gotoUrl(url: to) 
             if top == articleVC {
               navigationController?.popViewController(animated: true)
@@ -180,7 +180,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
     Notification.receive("BookmarkChanged") { [weak self] msg in
       if let art = msg.sender as? StoredArticle {
-        let name = art.html.name.nonPublic()
+        guard let name = art.html?.name.nonPublic() else { return }
         let js = """
           if (typeof tazApi.onBookmarkChange === "function") {
             tazApi.onBookmarkChange("\(name)", \(art.hasBookmark));
@@ -209,26 +209,41 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   // Return nearest section index containing given Article
   func article2index(art: Article) -> Int {
-    if let sects = article2sectionHtml[art.html.fileName] {
-      if let s = section, sects.contains(s.html.fileName) { return index! }
+    if let fileName = art.html?.fileName,
+        let sects = article2sectionHtml[fileName] {
+      if let s = section, let fn = s.html?.fileName, sects.contains(fn) { return index! }
       else {
         let fn = sects[0]
         for i in 0 ..< sections.count {
-          if fn == sections[i].html.fileName { return i }
+          if fn == sections[i].html?.fileName { return i }
         }
       }
     }
     return 0
   }
     
-  // Define Header elements
+  // Define Header elements including menu slider
   func setHeader(secIndex: Int) {
-    header.title = contents[secIndex].title ?? ""
+    let content = contents.valueAt(secIndex)
+    
+    if let section = content as? Section {
+      self.slider?.collapsedButton = section.type == .advertisement
+      
+      if section.type == .advertisement {
+        header.title = section.title ?? ""
+        header.hideAnimated()
+        toolBar.hide(true)
+        return
+      }
+    }
+    
+    header.title = content?.title ?? ""
     if !isStaticHeader {
       header.subTitle = issue.validityDateText(timeZone: feeder.timeZone)
       header.titletype = index == 0 ? .section0 : .section
     }
     header.showAnimated()
+    toolBar.hide(false)
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

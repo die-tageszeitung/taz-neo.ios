@@ -32,6 +32,7 @@ extension TrialSubscriptionView : UITextFieldDelegate {
       self.passInput.bottomMessage = pwq.message
       self.passInput.bottomLabel.textColor = pwq.strength.color
       self.registerButton.isEnabled = pwq.valid
+      self.registerButton.alpha = pwq.valid ? 1.0 : 0.3
     }
   }
 

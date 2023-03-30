@@ -65,21 +65,21 @@ class LoginController: FormsController {
       ctrl.ui.passInput.text = self.ui.passInput.text?.trim
       ctrl.ui.pass2Input.text = self.ui.passInput.text?.trim
     }
-    modalFlip(ctrl)
+    modalFromBottom(ctrl)
   }
   
   @IBAction func handleExtend(_ sender: UIButton) {
-    modalFlip(SubscriptionFormController(formType: .printPlusDigi,
+    modalFromBottom(SubscriptionFormController(formType: .printPlusDigi,
                                          auth: self.auth))
   }
   
   @IBAction func handleSwitch(_ sender: UIButton) {
-      modalFlip(SubscriptionFormController(formType: .print2Digi,
+      modalFromBottom(SubscriptionFormController(formType: .print2Digi,
                                            auth: self.auth))
   }
   
   func handlePwForgot() {
-    modalFlip(PwForgottController(id: ui.idInput.text?.trim,
+    modalFromBottom(PwForgottController(id: ui.idInput.text?.trim,
                                   auth: auth))
   }
   func handleWhereIsTheAboId() {
@@ -129,9 +129,9 @@ class LoginController: FormsController {
                 (self.auth as? DefaultAuthenticator)?.notifySuccess()
               }
               
-              self.modalFlip(expiredForm)
+              self.modalFromBottom(expiredForm)
             case .unlinked:
-              self.modalFlip(AskForTrial_Controller(tazId: tazId,
+              self.modalFromBottom(AskForTrial_Controller(tazId: tazId,
                                                     tazIdPass: tazIdPass,
                                                     auth: self.auth))
             case .notValidMail: fallthrough
@@ -158,13 +158,13 @@ class LoginController: FormsController {
               let ctrl = ConnectTazIdController(aboId: aboId,
                                                 aboIdPassword: aboIdPass, auth: self.auth)
               ctrl.ui.registerButton.setTitle("taz-Konto erstellen", for: .normal)
-              self.modalFlip(ctrl)
+              self.modalFromBottom(ctrl)
             case .expired:
               var expiredDate: Date?
               if let isoDate = info.message {
                 expiredDate = UsTime(iso:isoDate).date
               }
-              self.modalFlip(
+              self.modalFromBottom(
                 SubscriptionFormController(formType: .expiredDigiSubscription,
                                            auth: self.auth,
                                            expireDate: expiredDate,
@@ -223,7 +223,7 @@ class AskForTrial_Controller: FormsController {
   
   // MARK: Button Actions
   @IBAction func handleConnectAboId(_ sender: UIButton) {
-    modalFlip(ConnectTazIdRequestAboIdCtrl(tazId: tazId, tazIdPassword: tazIdPass, auth: auth))
+    modalFromBottom(ConnectTazIdRequestAboIdCtrl(tazId: tazId, tazIdPassword: tazIdPass, auth: auth))
   }
   
   @IBAction func handleTrialSubscroption(_ sender: UIButton) {
@@ -231,7 +231,7 @@ class AskForTrial_Controller: FormsController {
     let ctrl = TrialSubscriptionRequestNameCtrl(tazId: tazId, tazIdPassword: tazIdPass, auth: auth)
     ///Test if TrialSubscription work without first/lastname!
     ctrl.onMissingNameRequested = {
-      self.modalFlip(ctrl)
+      self.modalFromBottom(ctrl)
     }
     ctrl.createTrialSubscription(tazId: tazId, tazIdPassword: tazIdPass)
     

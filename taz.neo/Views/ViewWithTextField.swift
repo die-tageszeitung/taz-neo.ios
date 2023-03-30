@@ -12,19 +12,19 @@ import NorthLib
 
 
 /// A UITextView with Top Label (for Description), Bottom Label (for Errormessages), Placeholder Label (Placeholder)
-public class ViewWithTextField : UIStackView{
+public class ViewWithTextField : UIStackView, KeyboardToolbarForText{
+  public var inputToolbar: UIToolbar { textfield.inputToolbar }
+  
+  public override var tag: Int {
+    get { return textfield.tag}
+    set { textfield.tag = newValue }
+  }
   
   var textViewheightConstraint:NSLayoutConstraint?
   
   let topLabel = UILabel()
   let bottomLabel = UILabel()
-  let textfield = UITextField()
-  
-  weak open var delegate: UITextFieldDelegate? {
-    didSet{
-      textfield.delegate = delegate
-    }
-  }
+  let textfield = CustomUITextField()
   
   // MARK: > bottomMessage
   var bottomMessage: String?{
@@ -91,4 +91,10 @@ public class ViewWithTextField : UIStackView{
   required init(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+}
+
+class CustomUITextField:UITextField, KeyboardToolbarForText{
+  lazy public var inputToolbar: UIToolbar = createToolbar()
+  
+  var container: UIView? { return self.superview?.superview}
 }

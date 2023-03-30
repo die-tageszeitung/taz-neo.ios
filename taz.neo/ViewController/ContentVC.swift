@@ -38,7 +38,10 @@ public class ContentUrl: WebViewUrl, DoesLog {
       else {
         errorCount += 1
         _waitingView?.bottomText = "\(errorCount) Ladefehler..."
-        delay(seconds: 0.2 * Double(errorCount)) { self.loadClosure(self) }
+        delay(seconds: 0.2 * Double(errorCount)) { [weak self] in
+          guard let self = self else { return }
+          self.loadClosure(self)
+        }
       }
     }
   }
@@ -280,8 +283,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
          let name = args[0] as? String,
          let hasBookmark = args[1] as? Int {
         let bm = hasBookmark != 0
-        let artName = name + (self.feederContext.isAuthenticated ? ".html" : ".public.html")
-        let arts = StoredArticle.get(file: artName)
+        ///logic error if  expired account articles downloaded with expired account have .public.html former downloaded .html
+//        let artName = name + (self.feederContext.isAuthenticated ? ".html" : ".public.html")
+        var arts = StoredArticle.get(file: name + ".html")
+        if arts.count == 0 {
+          arts = StoredArticle.get(file: name + ".public.html")
+        }
+        
         if arts.count > 0 {
           let art = arts[0]
           if art.hasBookmark != bm {
@@ -304,7 +312,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let _ = self else { return NSNull() }
       let arts = StoredArticle.bookmarkedArticles()
       var names: [String] = []
-      for a in arts { names += a.html.name.nonPublic() }
+      for a in arts { names += a.html?.name.nonPublic() ?? "-" }
       return names
     }
     self.bridge?.addfunc("shareArticle") { [weak self] jscall in

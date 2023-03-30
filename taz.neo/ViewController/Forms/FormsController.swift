@@ -120,10 +120,6 @@ class FormsResultController: UIViewController {
   
   /// Setup the xButton
   func setupXButton() {
-    guard self.modalPresentationStyle == .formSheet
-    || self.dismissType == .all
-    || self.dismissType == .allReal
-    else { return }
     xButton.tazX()
     self.view.addSubview(xButton)
     pin(xButton.right, to: self.view.rightGuide(), dist: -15)
@@ -143,6 +139,7 @@ class FormsResultController: UIViewController {
     self.view.addSubview(ui)
     pin(ui, to: self.view).top.constant = 0
     setupXButton()
+    self.isModalInPresentation = true
   }
   
   override var preferredContentSize: CGSize {
@@ -233,11 +230,32 @@ class FormsResultController: UIViewController {
                               backButtonTitle: backButtonTitle,
                               dismissType: dismissType)
     successCtrl.dismissAllFinishedClosure = dismissAllFinishedClosure
-    modalFlip(successCtrl)
+    modalFromBottom(successCtrl)
+  }
+  
+  func handleRequestCancelUserInput(){
+    let dismissAction = UIAlertAction(title: "Ja, Änderungen verwerfen",
+                                      style: .destructive) { [weak self] _ in
+      self?.dismiss()
+    }
+    let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
+    
+    Alert.message(message:  "Änderungen verwerfen?",
+                  actions: [dismissAction,  cancelAction],
+                  presentationController: self)
   }
   
   // MARK: handleBack Action
   @IBAction func handleBack(_ sender: UIButton?) {
+    if self.ui.hasUserInput {
+      handleRequestCancelUserInput()
+    } else {
+      dismiss()
+    }
+  }
+    
+    // MARK: handleBack Action
+  func dismiss() {
     var stack = self.modalStack
     switch dismissType {
       case .allReal:
@@ -308,34 +326,6 @@ extension UIViewController {
 
 // MARK: - Modal Present extension for FormsResultController
 extension FormsResultController{
-  /// Present given VC on topmost Viewcontroller with flip transition
-  func modalFlip(_ controller:UIViewController){
-    modalFromBottomNew(controller); return;
-    if Device.isIpad, let size = self.baseLoginController?.view.bounds.size {
-      controller.preferredContentSize = size
-      
-    }
-    controller.modalPresentationStyle = .overCurrentContext
-    controller.modalTransitionStyle = .flipHorizontal
-    
-    ensureMain {
-      self.topmostModalVc.present(controller, animated: true, completion:nil)
-    }
-  }
-  
-  func modalFromBottomNew(_ controller:UIViewController){
-    if Device.isIpad, let size = self.baseLoginController?.view.bounds.size {
-      controller.preferredContentSize = size
-      
-    }
-    controller.modalPresentationStyle = .overCurrentContext
-    controller.modalTransitionStyle = .coverVertical
-    
-    ensureMain {
-      self.topmostModalVc.present(controller, animated: true, completion:nil)
-    }
-  }
-  
   func modalFromBottom(_ controller:UIViewController, completion: (() -> Void)? = nil){
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .coverVertical
@@ -372,6 +362,8 @@ extension FormsController: UITextViewDelegate {
     
     if let localResource = localResource, localResource.exists {
       let introVC = IntroVC()
+      introVC.topOffset = Const.Dist.margin
+      introVC.isModalInPresentation = true
       introVC.webView.webView.load(url: localResource.url)
       modalFromBottom(introVC) {
         //Overwrite Default in: IntroVC viewDidLoad

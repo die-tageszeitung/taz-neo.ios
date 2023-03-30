@@ -17,7 +17,7 @@ public class SubscriptionFormView : FormView{
   var expireDate:Date?
   var customerType: GqlCustomerType?
   
-  var idInput = TazTextField(placeholder: "E-Mail-Adresse",
+  var mailInput = TazTextField(placeholder: "E-Mail-Adresse",
                                     textContentType: .emailAddress,
                                     enablesReturnKeyAutomatically: true,
                                     keyboardType: .default,
@@ -53,6 +53,12 @@ public class SubscriptionFormView : FormView{
                                keyboardType: .numberPad,
                                autocapitalizationType: .none)
   
+  var aboIdInput = TazTextField(placeholder: "Abo-Nummer (wenn vorhanden)",
+                               textContentType: .none,
+                               enablesReturnKeyAutomatically: true,
+                               keyboardType: .numberPad,
+                               autocapitalizationType: .none)
+  
   var requestInfoCheckbox: CheckboxWithText = {
     let view = CheckboxWithText()
     view.textView.isEditable = false
@@ -66,7 +72,7 @@ public class SubscriptionFormView : FormView{
     let ti
     = ViewWithTextView(text: nil,
                        font: Const.Fonts.contentFont(size: Const.Size.DefaultFontSize))
-    ti.placeholder = "Ihre Nachricht und Abonummer (wenn vorhanden)"
+    ti.placeholder = "Ihre Nachricht"
     ti.border.isHidden = false
     return ti
   }()
@@ -142,7 +148,7 @@ public class SubscriptionFormView : FormView{
     if let v = subTitle { views.append(v) }
   
     if !self.formType.expiredForm {
-      views.append(contentsOf: [idInput, firstName, lastName, street, city, postcode])
+      views.append(contentsOf: [mailInput, firstName, lastName, street, city, postcode, aboIdInput])
     }
     views.append( UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10)))//spacer
     views.append(message)

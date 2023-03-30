@@ -73,7 +73,19 @@ open class FeedbackComposer : DoesLog{
     
     let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel) { _ in finishClosure(false) }
     
-    Alert.message(title: "Rückmeldung", message: "Möchten Sie einen Fehler melden oder uns Feedback geben?", actions: [feedbackAction, errorReportAction, cancelAction])
+    let simulatorAction = UIAlertAction(title: "Simulator: handleNewIssuePush",
+                                       style: .default,
+                                        handler: {_ in
+      TazAppEnvironment.sharedInstance.feederContext?.handleNewIssuePush()
+      finishClosure(false)
+    })
+    
+    let actions
+    = Device.isSimulator
+    ? [feedbackAction, errorReportAction, simulatorAction, cancelAction]
+    : [feedbackAction, errorReportAction, cancelAction]
+    
+    Alert.message(title: "Rückmeldung", message: "Möchten Sie einen Fehler melden oder uns Feedback geben?", actions: actions)
   }
   
   public static func send(type: FeedbackType,

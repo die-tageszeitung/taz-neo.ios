@@ -20,6 +20,14 @@ public class FormView: UIView {
   
   let blockingView = BlockingProcessView()
   
+  public var hasUserInput : Bool {
+    for v in views ?? [] {
+      if (v as? TazTextField)?.text?.length ?? 0 > 0 { return true }
+      if (v as? ViewWithTextView)?.text?.length ?? 0 > 0 { return true }
+    }
+    return false
+  }
+  
   public var blocked : Bool = false {
     didSet{
       ensureMain { [weak self] in
@@ -49,6 +57,7 @@ public class FormView: UIView {
     self.subviews.forEach({ $0.removeFromSuperview() })
     self.backgroundColor = Const.SetColor.CTBackground.color
     if views.isEmpty { return }
+    self.views = views
     
     let margin : CGFloat = Const.Size.DefaultPadding
     var previous : UIView?
@@ -57,7 +66,7 @@ public class FormView: UIView {
     
     for v in views {
       
-      if v is UITextField {
+      if v is KeyboardToolbarForText {
         v.tag = tfTags
         tfTags += 1
       }
@@ -76,7 +85,7 @@ public class FormView: UIView {
       }
       previous = v
     }
-    pin(previous!.bottom, to: container.bottom, dist: -margin)
+    pin(previous!.bottom, to: container.bottom, dist: -margin - 30.0)
     
     scrollView.addSubview(container)
     NorthLib.pin(container, to: scrollView)
@@ -145,9 +154,10 @@ extension FormView {
   }
   
   @objc func keyboardWillShow(_ notification: Notification) {
+    if UIScreen.isIpadRegularSize { return }
     if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue {
       let keyboardRectangle = keyboardFrame.cgRectValue
-      let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardRectangle.height, right: 0)
+      let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardRectangle.height + 30, right: 0)
       scrollView.contentInset = contentInsets
     }
   }

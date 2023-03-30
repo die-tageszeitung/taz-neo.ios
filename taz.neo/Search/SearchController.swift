@@ -259,7 +259,7 @@ extension SearchController {
   }
   
   private func openSearchHit(_ searchHit: GqlSearchHit){
-    if let idx = searchItem.allArticles?.firstIndex(where: {$0.html.name == searchHit.article.html.name}) {
+    if let idx = searchItem.allArticles?.firstIndex(where: {$0.html?.name == searchHit.article.html?.name}) {
       self.articleVC.index = idx
     }
     
@@ -411,7 +411,8 @@ extension SearchController: ArticleVCdelegate {
     if let s = searchResultIssue.sections, let artArray = searchItem.allArticles {
       var d : [String : [Section]]  = [:]
       for art in artArray {
-        d[art.html.fileName] = s
+        guard let fileName = art.html?.fileName else { continue }
+        d[fileName] = s
       }
       return d
     }
@@ -448,17 +449,18 @@ extension String {
 // MARK: *** GqlSearchHit ***
 extension GqlSearchHit {
   @discardableResult
-  public func writeToDisk() -> String {
-    let filename = self.article.html.fileName
+  public func writeToDisk() -> String? {
+    guard let filename = self.article.html?.fileName else { return nil }
     let f = TmpFileEntry(name: filename)
     f.content = self.articleHtml
     return f.path
   }
   
   var localPath: String? {
-    let f = File(dir: Dir.searchResultsPath, fname: article.html.fileName)
+    guard let fileName = article.html?.fileName else { return nil }
+    let f = File(dir: Dir.searchResultsPath, fname: fileName)
     if !f.exists { return nil }
-    return Dir.searchResultsPath + "/" + article.html.fileName
+    return Dir.searchResultsPath + "/" + fileName
   }
 }
 

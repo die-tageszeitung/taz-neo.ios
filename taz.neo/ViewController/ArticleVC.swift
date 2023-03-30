@@ -59,7 +59,9 @@ open class ArticleVC: ContentVC {
   
   /// Remove Article from page collection
   func delete(article: Article) {
-    if let idx = articles.firstIndex(where: { $0.html.name == article.html.name }) {
+    //not delete articles without filename
+    guard let name = article.html?.name, name.length > 0 else { return }
+    if let idx = articles.firstIndex(where: { $0.html?.name == name }) {
       articles.remove(at: idx)
       deleteContent(at: idx)
     }
@@ -67,20 +69,15 @@ open class ArticleVC: ContentVC {
   
   /// Insert Article into page collection
   func insert(article: Article) {
+    //not insert articles without filename
+    guard let name = article.html?.name, name.length > 0 else { return }
     // only insert new Article
-    debug("1")
-    guard articles.firstIndex(where: { $0.html.name == article.html.name }) == nil
-    else {
-      debug("exit")
-      return }
+    guard articles.firstIndex(where: { $0.html?.name == name }) == nil
+    else { return }
     let all = delegate.issue.allArticles
-    if let idx = all.firstIndex(where: { $0.html.name == article.html.name }) {
-      debug("insert")
+    if let idx = all.firstIndex(where: { $0.html?.name == name }) {
       articles.insert(article, at: idx)
       insertContent(content: article, at: idx)
-    }
-    else {
-      debug("not insert due not found!")
     }
   }
   
@@ -127,7 +124,7 @@ open class ArticleVC: ContentVC {
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,
-         cart.html.name == art.html.name {
+         cart.html?.name == art.html?.name {
          self.displayBookmark(art: art)
       }
     }
@@ -153,9 +150,6 @@ open class ArticleVC: ContentVC {
             else { self.playButton.buttonView.name = "audio" }
           }
         }
-        else if true || App.isAlpha {
-          self.playButton.buttonView.name = "audio"
-        }
         else { self.onPlay(closure: nil) }
         self.onBookmark { [weak self] _ in
           guard let self = self else { return }
@@ -167,7 +161,7 @@ open class ArticleVC: ContentVC {
           }
         }
         self.displayBookmark(art: art)
-        self.debug("on display: \(idx), article \(art.html.name):\n\(art.title ?? "Unknown Title")")
+        self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
       }
     }
     whenLinkPressed { [weak self] (from, to) in
@@ -194,14 +188,14 @@ open class ArticleVC: ContentVC {
   // Define Header elements
   #warning("ToDo: Refactor get HeaderField with Protocol! (ArticleVC, SectionVC...)")
   func setHeader(artIndex: Int) {
-    if let art = article {
-      if let sections = adelegate?.article2section[art.html.name],
+    if let art = article, let name = art.html?.name {
+      if let sections = adelegate?.article2section[name],
          sections.count > 0 {
         let section = sections[0]
         if let title = section.title, let articles = section.articles {
           var i = 0
           for a in articles {
-            if a.html.name == article?.html.name { break }
+            if a.html?.name == article?.html?.name { break }
             i += 1
           }
           if let st = art.sectionTitle { header.title = st }
@@ -217,6 +211,12 @@ open class ArticleVC: ContentVC {
             header.pageNumber = "\(i+1)/\(articles.count)"
           }
         }        
+      }
+      else if art.title != nil,
+              art.title == adelegate?.issue.imprint?.title,
+              art.sectionTitle == nil {
+        header.title = art.title
+        header.pageNumber = nil
       }
     }
   }
@@ -237,12 +237,19 @@ open class ArticleVC: ContentVC {
   // Export/Share article
   public static func exportArticle(article: Article?, artvc: ArticleVC? = nil, 
                                    from button: UIView? = nil) {
+    
+    let img = article?.images?.first?.image(dir: artvc?.delegate.issue.dir)
+    
     if let art = article,
        let link = art.onlineLink,
        !link.isEmpty{
           let dialogue = ExportDialogue<Any>()
-          dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",
-                           view: button, subject: art.title, onlineLink: link)
+        dialogue.present(item: link,
+                       altText: nil,
+                       onlineLink: link,
+                       view: button,
+                       subject: art.title,
+                       image: img)
     }
   }
   

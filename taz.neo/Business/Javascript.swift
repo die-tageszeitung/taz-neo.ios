@@ -35,15 +35,16 @@ open class Javascript {
   private static func createWebView(_ jsFile:URL?=nil) -> WebView{
     let wv = WebView()
     
-    var scriptTag = ""
-    
-    if let f = jsFile, File(f.path).exists {
-      wv.baseDir = f.relativePath
-      scriptTag
-      = """
-            <script type="text/javascript" src="\(f.absoluteURL.lastPathComponent)"></script>
-         """
+    if let file = jsFile{
+      let ressourcesUrl = file.deletingLastPathComponent()
+      wv.loadFileURL(file, allowingReadAccessTo: ressourcesUrl)
+      wv.baseDir = ressourcesUrl.path
     }
+    
+    let scriptTag
+    = """
+            <script type="text/javascript" src="\(jsFile?.lastPathComponent ?? "tazPasswordSpec.js")"></script>
+         """
     
     let html = """
      <!DOCTYPE html>
@@ -92,15 +93,15 @@ extension PasswordStrengthLevel {
   var color:UIColor {
     switch self {
       case .height:
-        return .green
+        return UIColor.rgb(0x228400)
       case .medium:
-        return .orange
-      case .low:
-        return .red
+        return UIColor.rgb(0xBA5900)
       case .none:
         fallthrough
+      case .low:
+        fallthrough
       default:
-        return .lightGray
+        return UIColor.rgb(0xC01111)
     }
   }
 }
@@ -126,11 +127,11 @@ class PasswordValidator: DoesLog {
       do {
         let jsCall = "tazPasswordSpec.checkLocal('\(password)', '\(mail ?? "")');"
         let result = try await js.evaluate(jsCall)
-        
+        //throw "error" //uncomment to test js error and fallback evaluation
         if let dict = result as? [String: Any],
            let valid = dict["valid"] as? Bool {
           let msg = dict["message"] as? String
-          return (valid, msg, PasswordStrengthLevel.from( dict["level"]))
+          return (valid, msg, PasswordStrengthLevel.from( dict["strength"]))
         }
       } catch {
         log("crash!")
@@ -141,7 +142,7 @@ class PasswordValidator: DoesLog {
   func checkAlternate(password: String, mail: String?) -> passwordQuality  {
     log("use alternative password check")
     return password.length > 11
-    ? (true, "Passwort erfüllt Anforderung Mindestlänge", PasswordStrengthLevel.height)
-    : (false, "Passwort ist zu kurz", PasswordStrengthLevel.none)
+    ? (true, nil, PasswordStrengthLevel.height)
+    : (false, "Das Passwort muss mindestens 12 Zeichen lang sein.", PasswordStrengthLevel.none)
   }
 }

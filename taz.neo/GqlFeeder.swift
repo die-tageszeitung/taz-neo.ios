@@ -260,7 +260,7 @@ class GqlArticle: Article, GQLObject {
   }
   /// File storing article HTML
   var articleHtml: GqlFile
-  var html: FileEntry { return articleHtml }
+  var html: FileEntry? { return articleHtml }
   /// File storing article MP3 (if any)
   var audioFile: GqlFile?
   var audio: FileEntry? { return audioFile }
@@ -305,7 +305,7 @@ class GqlSection: Section, GQLObject {
   }
   /// File storing section HTML
   var sectionHtml: GqlFile
-  var html: FileEntry { return sectionHtml }
+  var html: FileEntry? { return sectionHtml }
   /// Name of section
   var name: String
   /// Optional title (not to display in table of contents)
@@ -835,6 +835,7 @@ open class GqlFeeder: Feeder, DoesLog {
     func getStatus() {
       feederStatus { [weak self] (res) in
         guard let self = self else { return }
+        self.debug("feederStatus->res \(res)")
         var ret: Result<Feeder,Error>
         switch res {
         case .success(let st):   
@@ -1151,6 +1152,7 @@ open class GqlFeeder: Feeder, DoesLog {
             TazAppEnvironment.sharedInstance.feederContext?.clearExpiredAccountFeederError()
             Alert.message(message: "Ihr Abo ist wieder aktiv!")
             Defaults.expiredAccountDate = nil
+            Notification.send(Const.NotificationNames.authenticationSucceeded)
           }
           else if req.authInfo.status == .expired
                   && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {

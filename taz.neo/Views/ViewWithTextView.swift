@@ -14,10 +14,15 @@ import NorthLib
 
 
 /// A UITextView with Top Label (for Description), Bottom Label (for Errormessages), Placeholder Label (Placeholder)
-public class ViewWithTextView : UIStackView{
+public class ViewWithTextView : UIStackView, KeyboardToolbarForText{
+  public var inputToolbar: UIToolbar { textView.inputToolbar }
+  
+  public override var tag: Int {
+    get { return textView.tag}
+    set { textView.tag = newValue }
+  }
   
   var textViewheightConstraint:NSLayoutConstraint?
-  
   
   let topLabel = UILabel()
   let bottomLabel = UILabel()
@@ -110,7 +115,11 @@ public class ViewWithTextView : UIStackView{
   }
 }
 
-class PlaceholderUITextView: UITextView {
+class PlaceholderUITextView: UITextView, KeyboardToolbarForText {
+  lazy public var inputToolbar: UIToolbar = createToolbar()
+  
+  var container: UIView? { return self.superview?.superview}
+  
   public var placeholderInsets:UIEdgeInsets = .zero
   public var placeholder:String?{  didSet{ setup()}  }
   weak open var tvDelegate: UITextViewDelegate?
@@ -151,10 +160,16 @@ extension PlaceholderUITextView: UITextViewDelegate {
     tvDelegate?.textViewDidEndEditing?(textView)
   }
   
+  func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
+    textView.inputAccessoryView = inputToolbar
+    return true
+  }
+  
   public func textViewDidBeginEditing(_ textView: UITextView)
   {
     placeholderLabel.isHidden = true
     tvDelegate?.textViewDidBeginEditing?(textView)
+    textView.inputAccessoryView = inputToolbar
   }
   
   func textViewDidChange(_ textView: UITextView) {
