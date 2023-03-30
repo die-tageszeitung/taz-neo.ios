@@ -80,6 +80,9 @@ open class FeederContext: DoesLog {
   @Default("useMobile")
   public var useMobile: Bool
   
+  @Default("autoloadOnlyInWLAN")
+  var autoloadOnlyInWLAN: Bool
+  
   @Default("autoloadPdf")
   var autoloadPdf: Bool
   
@@ -842,7 +845,7 @@ open class FeederContext: DoesLog {
        */
       self.gqlFeeder.issues(feed: sFeed,
                             count: 1,
-                            isOverview: true,
+                            isOverview: false,
                             isPages: self.autoloadPdf) { res in
         if let issues = res.value() {//Fetch result got an 'latest' Issue
           guard issues.count == 1 else {
@@ -855,10 +858,39 @@ open class FeederContext: DoesLog {
           let si = StoredIssue.get(date: issue.date, inFeed: sFeed)
           #warning("did not overwrite existing issue")
           ///in 03/2023 due an server/editorial error the next day issue was published round 3:00 pm, was revoked but server logs said 5-10 People got this issue **HOW TO HANDLE THIS IN FUTURE?**
-          if si.count < 1 {
+          ///
+          ///
+          self.log("got issue from \(issue.date.short) from server with status: \(issue.status) got issue in db with status: \(si.first?.status.localizedDescription ?? "- no Issue in DB -") dbIssue isComplete: \(si.first?.isComplete ?? false)")
+          
+          
+          /* Possible states for both
+                case regular = "regular"          /// authenticated Issue access
+                case demo    = "demo"             /// demo Issue
+                case locked  = "locked"           /// no access
+                case reduced = "reduced(public)"  /// available for everybody/incomplete articles
+                case unknown = "unknown"          /// decoded from unknown string
+          */
+          
+          var persist = false
+          
+          ///ensure no full issue (demo/regular) is overwritten with reduced
+          if issue.status == .regular {
+            self.log("persist server version due its a regular one")//probably overwrite old local one
+            persist = true
+          }///update with the new one
+          else if (si.first?.status == .regular || si.first?.status == .demo) == false {
+            self.log("there is no full issue locally so overwrite it with the new one from server")
+            persist = true
+          }
+          
+          #warning("got issue from 30.3.2023 from server with status: regular got issue in db with status: regular dbIssue isComplete: false")
+          ///Discussion: overwrite regular overview with regular full is ok!
+          
+          if persist {
             StoredIssue.persist(object: issue)
             ArticleDB.save()
           }
+          
           guard let sissue = StoredIssue.issuesInFeed(feed: sFeed,
                                                       count: 1,
                                                       fromDate: issue.date).first else {
@@ -866,7 +898,14 @@ open class FeederContext: DoesLog {
             pNotify(.failed)
             return
           }
+          
+          if self.autoloadOnlyInWLAN, self.netAvailability.isMobile {
+            self.log("Prevent compleete Download in celluar for: \(sissue.date.short), just load overview")
+            pNotify(.newData)
+            return
+          }
           self.log("Download Compleete Issue: \(sissue.date.short)")
+          
           self.dloader.createIssueDir(issue: issue)
           Notification.receive("issue"){ notif in
             ///ensure the issue download comes from here!
