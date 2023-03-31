@@ -42,7 +42,14 @@ open class FeederContext: DoesLog {
   /// Number of seconds to wait until we stop polling for email confirmation
   let PollTimeout: Int64 = 25*3600
   
-  public var openedIssue: Issue?
+  public var openedIssue: Issue? {
+    didSet {
+      if let openedIssue = openedIssue,
+         openedIssue.date == getLatestStoredIssue()?.date {
+        UIApplication.shared.applicationIconBadgeNumber = 0
+      }
+    }
+  }
 
   /// Name (title) of Feeder
   public var name: String
@@ -787,6 +794,11 @@ open class FeederContext: DoesLog {
     })
   }
   
+  
+  /// GET IS BULLSHIT DUE IT NOT RETURNS A ISSUE!
+  /// - Parameters:
+  ///   - feed: <#feed description#>
+  ///   - count: <#count description#>
   public func getStoredOvwIssues(feed: Feed, count: Int = 10){
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     if let sf0 = sfs.first {
@@ -799,6 +811,11 @@ open class FeederContext: DoesLog {
     }
   }
   
+  public func getLatestStoredIssue() -> StoredIssue? {
+    let sfs = StoredFeed.get(name: defaultFeed.name, inFeeder: storedFeeder)
+    guard let sf0 = sfs.first else {error("sfs.first not found"); return nil }
+    return StoredIssue.issuesInFeed(feed: sf0, count: 1).first
+  }
   
   /**
    Get/Download latestIssue requested by PushNotification
@@ -904,6 +921,7 @@ open class FeederContext: DoesLog {
           
           if self.autoloadOnlyInWLAN, self.netAvailability.isMobile {
             self.log("Prevent compleete Download in celluar for: \(sissue.date.short), just load overview")
+            LocalNotifications.notifyNewIssue(issue: sissue, feeder: self.gqlFeeder)
             fetchCompletionHandler?(.newData)
             return
           }
@@ -914,6 +932,7 @@ open class FeederContext: DoesLog {
             ///ensure the issue download comes from here!
             guard let downloaded = notif.object as? Issue else { return }
             guard downloaded.date.short == issue.date.short else { return }
+            LocalNotifications.notifyNewIssue(issue: sissue, feeder: self.gqlFeeder)
             fetchCompletionHandler?(.newData)
           }
           self.downloadCompleteIssue(issue: sissue, isAutomatically: true)
@@ -940,17 +959,21 @@ open class FeederContext: DoesLog {
     guard self.isConnected else { return }
     self.gqlFeeder.publicationDates(feed: feed,
                                     fromDate: feed.publicationDates?.dates.max()) { result in
+      var newIssuesAvailable = false
       if let gqlPubDates = result.value() {
         if let storedPubDates = feed.publicationDates {
           var dates = storedPubDates.dates
           dates.append(contentsOf: gqlPubDates.dates)
+          newIssuesAvailable = storedPubDates.dates.count < dates.count
           (storedPubDates as? StoredPublicationDates)?.dates = dates
         }
         else {
           let storedPubDates =  StoredPublicationDates.persist(object: gqlPubDates)
           (feed as? StoredFeed)?.publicationDates = storedPubDates
+          newIssuesAvailable = true
         }
         ArticleDB.save()
+        if newIssuesAvailable { Notification.send(Const.NotificationNames.reloadIssueDates) }
       }
     }
   }
@@ -1218,3 +1241,33 @@ extension PushNotification.Payload {
 }
 
 
+fileprivate extension LocalNotifications {
+  //Helper to trigger local Notification if App is in Background
+  static func notifyNewIssue(issue:StoredIssue, feeder:Feeder){
+    var attachmentURL:URL?
+    if let filepath = feeder.smallMomentImageName(issue: issue) {
+      Log.log("Found Moment Image in: \(filepath)")
+      attachmentURL =  URL(fileURLWithPath: filepath)
+    }
+    else {
+      Log.debug("Not Found Moment Image for: \(issue.date)")
+    }
+    
+    var subtitle: String?
+    var message = "Jetzt lesen!"
+    
+    if let firstArticle = issue.sections?.first?.articles?.first,
+       let aTitle = firstArticle.title,
+       let aTeaser = firstArticle.teaser {
+      subtitle = "Lesen Sie heute: \(aTitle)"
+      message = aTeaser
+    }
+    
+    Self.notify(title: "Die taz vom \(issue.date.short) ist verfügbar.",
+                subtitle: subtitle,
+                message: message,
+                badge: UIApplication.shared.applicationIconBadgeNumber + 1,
+                attachmentURL: attachmentURL)
+    
+  }
+}
