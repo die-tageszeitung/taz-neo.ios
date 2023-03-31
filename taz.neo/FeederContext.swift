@@ -454,7 +454,7 @@ open class FeederContext: DoesLog {
   }
   
   func processPushNotification(pn: PushNotification, payload: PushNotification.Payload, fetchCompletionHandler: FetchCompletionHandler?){
-    log("Processing: \(payload)")
+    log("Processing: \(payload) AppState: \(UIApplication.shared.stateDescription)")
     switch payload.notificationType {
       case .subscription:
         log("check subscription status")
@@ -462,6 +462,10 @@ open class FeederContext: DoesLog {
       case .newIssue:
         handleNewIssuePush(fetchCompletionHandler)
       default:
+        if UIApplication.shared.applicationState == .active,
+           let body = payload.custom["body"] as? String {
+          Toast.show(body)
+        }
         self.debug(payload.toString())
         fetchCompletionHandler?(.noData)
     }
