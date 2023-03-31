@@ -1275,6 +1275,8 @@ public enum NotificationType: String, CodableEnum {
   /// new subscription info available
   case subscription = "subscription(subscriptionPoll)" 
   /// new issue available
-  case newIssue     = "newIssue(aboPoll)"    
+  case newIssue = "newIssue(aboPoll)"
+  case textNotificationAlert = "textNotificationAlert"
+  case textNotificationToast = "textNotificationToast"
   case unknown      = "unknown"   /// decoded from unknown string
 } // NotificationType

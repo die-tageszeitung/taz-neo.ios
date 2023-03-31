@@ -461,12 +461,19 @@ open class FeederContext: DoesLog {
         doPolling(fetchCompletionHandler)
       case .newIssue:
         handleNewIssuePush(fetchCompletionHandler)
-      default:
-        if UIApplication.shared.applicationState == .active,
-           let body = payload.custom["body"] as? String {
-          Toast.show(body)
+      case .textNotificationAlert:
+        #warning("may comes in double if real PN!")
+        if UIApplication.shared.applicationState == .active {
+          LocalNotifications.notify(payload: payload)
         }
-        self.debug(payload.toString())
+        fetchCompletionHandler?(.noData)
+      case .textNotificationToast:
+        if UIApplication.shared.applicationState == .active,
+           let msg = payload.textNotificationMessage {
+          Toast.show(msg)
+        }
+        fetchCompletionHandler?(.noData)
+      default:
         fetchCompletionHandler?(.noData)
     }
   }
@@ -1238,8 +1245,32 @@ extension PushNotification.Payload {
         else if key == "refresh" && value == "aboPoll" {
           return NotificationType.newIssue
         }
+        else if key == "type" && value == "alert" {
+          return NotificationType.textNotificationAlert
+        }
+        else if key == "type" && value == "toast" {
+          return NotificationType.textNotificationToast
+        }
       }
       return nil
+    }
+  }
+  
+  public var textNotificationMessage: String? {
+    get {
+      guard let data = self.custom["data"] as? [AnyHashable:Any] else { return nil }
+      debug("found data: \(data)")
+      guard data["type"] as? String == "alert" ||
+              data["type"] as? String == "toast" else {
+        debug("value for data.type is: \(data["type"] ?? "-")")
+        return nil
+      }
+      guard let body = data["body"] as? String else {
+        debug("no value for data.body")
+        return nil
+      }
+      debug("data.body is: \(body)")
+      return body
     }
   }
 }
@@ -1272,6 +1303,76 @@ fileprivate extension LocalNotifications {
                 message: message,
                 badge: UIApplication.shared.applicationIconBadgeNumber + 1,
                 attachmentURL: attachmentURL)
-    
+  }
+  
+  static func notify(payload: PushNotification.Payload){
+    guard let message = payload.standard?.alert?.body else {
+      Log.debug("no standard payload found, not notify localy")
+      return
+    }
+    Self.notify(title: payload.standard?.alert?.title, message:message)
   }
 }
+
+extension UIAlertAction {
+  static func developerPushActions(callback: @escaping (Bool) -> ()?) -> [UIAlertAction] {
+    let newIssue:UIAlertAction = UIAlertAction(title: "Simulator: NewIssuePush",
+                                                 style: .default){_ in
+      let payload:[AnyHashable : Any] = [
+        "aps":[
+          "content-available" : 1,
+          "sound": nil],
+        "data":[
+          "refresh": "aboPoll"
+        ]
+      ]
+      TazAppEnvironment.sharedInstance.feederContext?.processPushNotification(pn: PushNotification(),
+                                                                              payload: PushNotification.Payload(payload),
+                                                                              fetchCompletionHandler: nil)
+      callback(false)
+    }
+
+    let textPushAlert:UIAlertAction = UIAlertAction(title: "Simulator: TextPush Alert",
+                                                    style: .default){_ in
+      let payload:[AnyHashable : Any] = [
+        "aps":[
+          "alert":[
+            "title": "2 Test",
+            "body": "Hallo dies ist ein zweiter Test"],
+          "sound": "default"],
+        "data":[
+          "type": "alert",
+          "title": " ",
+          "body": "<h1>Testüberschrift</h1><h2>Subhead</h2><p><b>Hallo</b> <i>dies <del>ist</del> ein <mark>zweiter</mark></i><br/><u>Test!</u></p>\n"
+        ]
+      ]
+      TazAppEnvironment.sharedInstance.feederContext?.processPushNotification(pn: PushNotification(),
+                                                                              payload: PushNotification.Payload(payload),
+                                                                              fetchCompletionHandler: nil)
+      callback(false)
+    }
+
+    let textPushToast:UIAlertAction = UIAlertAction(title: "Simulator: TextPush Toast",
+                                                    style: .default){_ in
+      let payload:[AnyHashable : Any] = [
+        "aps":[
+          "alert":[
+            "title": "2 Test",
+            "body": "Hallo dies ist ein zweiter Test"],
+          "sound": "default"],
+        "data":[
+          "type": "toast",
+          "title": " ",
+          "body": "<h1>Testüberschrift</h1><h2>Subhead</h2><p><b>Hallo</b> <i>dies <del>ist</del> ein <mark>zweiter</mark></i><br/><u>Test!</u></p>\n"
+        ]
+      ]
+      TazAppEnvironment.sharedInstance.feederContext?.processPushNotification(pn: PushNotification(),
+                                                                              payload: PushNotification.Payload(payload),
+                                                                              fetchCompletionHandler: nil)
+      callback(false)
+    }
+
+    return [newIssue, textPushAlert, textPushToast]
+  }
+}
+
