@@ -103,8 +103,7 @@ class IssueOverviewService: NSObject, DoesLog {
         
     feederContext.getCompleteIssue(issue: issue,
                                    isPages: self.isFacsimile,
-                                   isAutomatically: false,
-                                   notifyAuthError: true)
+                                   isAutomatically: false)
     return issue
   }
   

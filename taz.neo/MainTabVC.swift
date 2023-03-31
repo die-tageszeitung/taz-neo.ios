@@ -45,7 +45,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
     else {
       let service = IssueOverviewService(feederContext: feederContext)
-//      home = NewIssueVC(service: service)
       home = HomeTVC(service: service, feederContext: feederContext)
     }
     home.title = "Home"

@@ -255,7 +255,7 @@ open class FeederContext: DoesLog {
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
     notify("feederReachable")
     //disables offline status label
-    Notification.send("checkForNewIssues", content: StatusHeader.status.fetchNewIssues, error: nil, sender: self)
+    Notification.send("checkForNewIssues", content:FetchNewStatusHeader.status.fetchNewIssues, error: nil, sender: self)
     checkForNewIssues(feed: self.defaultFeed, isAutomatically: true)
   }
   
@@ -302,6 +302,7 @@ open class FeederContext: DoesLog {
     self.dloader = Downloader(feeder: gqlFeeder)
     netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
     defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder)[0]
+    updatePublicationDates(feed: defaultFeed)
     isReady = true
     cleanupOldIssues()
     notify("feederReady")            
@@ -370,7 +371,7 @@ open class FeederContext: DoesLog {
       else {
         pollEnd = pe
         self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
-          repeats: true) { _ in self.doPolling() }        
+          repeats: true) { _ in self.doPolling() }
       }
     }
   }
@@ -385,8 +386,11 @@ open class FeederContext: DoesLog {
   
   /// Ask Authenticator to poll server for authentication,
   /// send 
-  func doPolling() {
+  func doPolling(_ fetchCompletionHandler: FetchCompletionHandler? = nil) {
     authenticator.pollSubscription { [weak self] doContinue in
+      ///No matter if continue or not, iusually activate account takes more than 30s
+      ///so its necessary to call push fetchCompletionHandler after first attempt
+      fetchCompletionHandler?(.noData)
       guard let self = self else { return }
       guard let pollEnd = self.pollEnd else { self.endPolling(); return }
       if doContinue { if UsTime.now.sec > pollEnd { self.endPolling() } }
@@ -399,7 +403,6 @@ open class FeederContext: DoesLog {
     self.pollingTimer?.invalidate()
     self.pollEnd = nil
     Defaults.singleton["pollEnd"] = nil
-    Notification.send(NotificationNames.remoteNotificationFetchCompleete, content: UIBackgroundFetchResult.newData)
   }
 
   /// Ask for push token and report it to server
@@ -409,8 +412,8 @@ open class FeederContext: DoesLog {
     let oldToken = dfl["pushToken"] ?? Defaults.lastKnownPushToken
     Defaults.lastKnownPushToken = oldToken
     pushToken = oldToken
-    nd.onReceivePush {   [weak self] (pn, payload) in
-      self?.processPushNotification(pn: pn, payload: payload)
+    nd.onReceivePush { [weak self] (pn, payload, completion) in
+      self?.processPushNotification(pn: pn, payload: payload, fetchCompletionHandler: completion)
     }
     nd.permitPush {[weak self] pn in
       guard let self = self else { return }
@@ -443,16 +446,17 @@ open class FeederContext: DoesLog {
     }
   }
   
-  func processPushNotification(pn: PushNotification, payload: PushNotification.Payload){
+  func processPushNotification(pn: PushNotification, payload: PushNotification.Payload, fetchCompletionHandler: FetchCompletionHandler?){
     log("Processing: \(payload)")
     switch payload.notificationType {
       case .subscription:
         log("check subscription status")
-        doPolling()
+        doPolling(fetchCompletionHandler)
       case .newIssue:
-        handleNewIssuePush()
+        handleNewIssuePush(fetchCompletionHandler)
       default:
         self.debug(payload.toString())
+        fetchCompletionHandler?(.noData)
     }
   }
   
@@ -799,7 +803,7 @@ open class FeederContext: DoesLog {
   /**
    Get/Download latestIssue requested by PushNotification
    */
-  public func handleNewIssuePush() {
+  public func handleNewIssuePush(_ fetchCompletionHandler: FetchCompletionHandler?) {
     ///Challange: on receive push usually a download happen and then a newData is needed (no matter if full download or just overviewDownload)
     ///in case of full download the newData send is simple
     ///But how to implement the partialDownloadForNewData?
@@ -808,20 +812,19 @@ open class FeederContext: DoesLog {
     ///if we send remoteNotificationFetchCompleete newData too early the System killy all Download Processes and wen miss data
     ///if wen send it too late the automatic .failed is told the system
     ///can we check that there are still downloads?
-    
-    func pNotify(_ result:UIBackgroundFetchResult){
-      Notification.send(NotificationNames.remoteNotificationFetchCompleete, content:result)
-    }
+
+    //fetzchcompleetionhandler within notifications are hard to handle ...crashes appeared in prev version,
     
     if App.isAvailable(.AUTODOWNLOAD) == false {
       log("Currently not handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
-      pNotify(.noData)
+      fetchCompletionHandler?(.noData)
       return
     }
     log("Handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
     
     guard let sFeed = StoredFeed.get(name: self.defaultFeed.name, inFeeder: storedFeeder).first else {
       self.error("Expected to have a stored feed, but did not found one.")
+      fetchCompletionHandler?(.noData)
       return
     }
     
@@ -850,7 +853,7 @@ open class FeederContext: DoesLog {
         if let issues = res.value() {//Fetch result got an 'latest' Issue
           guard issues.count == 1 else {
             self.error("Expected to find 1 issue found: \(issues.count)")
-            pNotify(.failed)
+            fetchCompletionHandler?(.failed)
             return
           }
           guard let issue = issues.first else { return }
@@ -895,13 +898,13 @@ open class FeederContext: DoesLog {
                                                       count: 1,
                                                       fromDate: issue.date).first else {
             self.error("Expected to find downloaded issue (\(issue.date.short) in db.")
-            pNotify(.failed)
+            fetchCompletionHandler?(.failed)
             return
           }
           
           if self.autoloadOnlyInWLAN, self.netAvailability.isMobile {
             self.log("Prevent compleete Download in celluar for: \(sissue.date.short), just load overview")
-            pNotify(.newData)
+            fetchCompletionHandler?(.newData)
             return
           }
           self.log("Download Compleete Issue: \(sissue.date.short)")
@@ -911,7 +914,7 @@ open class FeederContext: DoesLog {
             ///ensure the issue download comes from here!
             guard let downloaded = notif.object as? Issue else { return }
             guard downloaded.date.short == issue.date.short else { return }
-            pNotify(.newData)
+            fetchCompletionHandler?(.newData)
           }
           self.downloadCompleteIssue(issue: sissue, isAutomatically: true)
         }
@@ -919,18 +922,39 @@ open class FeederContext: DoesLog {
           self.error("There was an error: \(err)")
           let res: Result<Issue,Error> = .failure(err)
           self.notify("issueOverview", result: res)
-          pNotify(.failed)
+          fetchCompletionHandler?(.failed)
         }
         else {
           self.error("Did not found a issue")
           let res: Result<Issue,Error> = .failure(Log.error("Did not found a issue"))
           self.notify("issueOverview", result: res)
-          pNotify(.noData)
+          fetchCompletionHandler?(.noData)
         }
       }
     }
     updateResources()
   }
+  
+  
+  public func updatePublicationDates(feed: Feed) {
+    guard self.isConnected else { return }
+    self.gqlFeeder.publicationDates(feed: feed,
+                                    fromDate: feed.publicationDates?.dates.max()) { result in
+      if let gqlPubDates = result.value() {
+        if let storedPubDates = feed.publicationDates {
+          var dates = storedPubDates.dates
+          dates.append(contentsOf: gqlPubDates.dates)
+          (storedPubDates as? StoredPublicationDates)?.dates = dates
+        }
+        else {
+          let storedPubDates =  StoredPublicationDates.persist(object: gqlPubDates)
+          (feed as? StoredFeed)?.publicationDates = storedPubDates
+        }
+        ArticleDB.save()
+      }
+    }
+  }
+
   
   /**
    Get Overview Issues from Feed
@@ -1001,7 +1025,7 @@ open class FeederContext: DoesLog {
   public func checkForNewIssues(feed: Feed,
                                 isAutomatically: Bool = false, isPushRequested: Bool = false) {
     Notification.send("checkForNewIssues",
-                      content: self.isConnected ? StatusHeader.status.none : StatusHeader.status.offline,
+                      content: self.isConnected ?FetchNewStatusHeader.status.none :FetchNewStatusHeader.status.offline,
                       error: nil,
                       sender: self)
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)

@@ -195,8 +195,8 @@ extension IssueDisplayService {
   /// Download one section
   private func downloadSection(issue:StoredIssue, section: Section, closure: @escaping (Error?)->()) {
     feederContext.dloader.downloadSection(issue: issue, section: section) { [weak self] err in
-      if err != nil { self?.debug("Section \(section.html.name) DL Errors: last = \(err!)") }
-      else { self?.debug("Section \(section.html.name) DL complete") }
+      if err != nil { self?.debug("Section \(section.html?.name ?? "-") DL Errors: last = \(err!)") }
+      else { self?.debug("Section \(section.html?.name ?? "-") DL complete") }
       closure(err)
     }
   }

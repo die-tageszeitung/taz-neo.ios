@@ -76,7 +76,7 @@ open class FeedbackComposer : DoesLog{
     let simulatorAction = UIAlertAction(title: "Simulator: handleNewIssuePush",
                                        style: .default,
                                         handler: {_ in
-      TazAppEnvironment.sharedInstance.feederContext?.handleNewIssuePush()
+      TazAppEnvironment.sharedInstance.feederContext?.handleNewIssuePush(nil)
       finishClosure(false)
     })
     
