@@ -17,7 +17,7 @@ extension UIApplication {
       case .active:
         return "active"
       case .background:
-        return "active"
+        return "background"
       case .inactive:
         return "inactive"
       default:
