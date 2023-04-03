@@ -146,7 +146,7 @@ class TestController: PageCollectionVC {
       if pn.isPermitted { self.debug("Permission granted") }
       else { self.debug("No permission") }
     }
-    nd.onReceivePush { (pn, payload) in
+    nd.onReceivePush { (pn, payload, _) in
       self.debug(payload.toString())
     }
     self.view.backgroundColor = UIColor.red

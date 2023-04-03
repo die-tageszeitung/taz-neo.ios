@@ -411,7 +411,7 @@ open class FeederContext: DoesLog {
     let oldToken = dfl["pushToken"] ?? Defaults.lastKnownPushToken
     Defaults.lastKnownPushToken = oldToken
     pushToken = oldToken
-    nd.onReceivePush {   [weak self] (pn, payload) in
+    nd.onReceivePush {   [weak self] (pn, payload, _) in
       self?.processPushNotification(pn: pn, payload: payload)
     }
     nd.permitPush {[weak self] pn in
