@@ -321,6 +321,16 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if let sissue = issue as? StoredIssue {
       guard feederContext.needsUpdate(issue: sissue, toShowPdf: isFacsimile) else { openIssue(); return }
       if isDownloading {
+        onThreadAfter(5.0) {[weak self] in
+          ///Bad Hack for: tapping on Issue nothing happen, no download no open, but device is online
+          ///Reason: There seams to be a Race Condition where isDownloading is set to true
+          ///even if no download is needed
+          ///OR callback did not set isDownload back to false
+          ///due this bug happen in debug session i'll set isDownloading to false in a breackpoint
+          ///and on next tap the issue opened as expected
+          #warning("Ensure this did not happen with new Home Implementation")
+          self?.isDownloading = false
+        }
         statusHeader.currentStatus = .loadIssue
         return
       }
