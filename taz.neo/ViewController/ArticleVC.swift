@@ -215,7 +215,7 @@ open class ArticleVC: ContentVC {
         }        
       }
       else if art.title != nil,
-              art.title == adelegate?.issue.imprint?.title,
+              art.html?.isEqualTo(adelegate?.issue.imprint?.html) ?? false,
               art.sectionTitle == nil {
         header.title = art.title
         header.pageNumber = nil
