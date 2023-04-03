@@ -874,6 +874,7 @@ open class FeederContext: DoesLog {
         no Problem for new Home!
         **try to release new Home as soon as possible!**
        */
+#warning("NEW ISSUE IS NOT LOADED! ")
       self.gqlFeeder.issues(feed: sFeed,
                             count: 1,
                             isOverview: false,
@@ -944,7 +945,8 @@ open class FeederContext: DoesLog {
             guard let downloaded = notif.object as? Issue else { return }
             guard downloaded.date.short == issue.date.short else { return }
             LocalNotifications.notifyNewIssue(issue: sissue, feeder: self.gqlFeeder)
-            fetchCompletionHandler?(.newData)
+            #warning("KILL SWITCH due 2nd call on receive issue!")
+            fetchCompletionHandler?(.newData)//2nd Time Call!
           }
           self.downloadCompleteIssue(issue: sissue, isAutomatically: true)
         }
