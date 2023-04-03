@@ -82,6 +82,8 @@ open class ArticleVC: ContentVC {
   }
   
   func displayBookmark(art: Article) {
+    bookmarkButton.isHidden = art.html?.isEqualTo(delegate.issue.imprint?.html) ?? false
+    
     if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
     else { self.bookmarkButton.buttonView.name = "star" }
   }
@@ -160,7 +162,7 @@ open class ArticleVC: ContentVC {
             if isAtEnd { self?.feederContext.authenticate() }
           }
         }
-        self.displayBookmark(art: art)
+        self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
         self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
       }
     }

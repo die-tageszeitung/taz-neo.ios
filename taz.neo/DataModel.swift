@@ -126,6 +126,18 @@ public protocol FileEntry: DlFile, ToString, DoesLog {
   var sha256: String { get }
 }
 
+extension FileEntry {
+  /// Two FileEntry are equal if sha256, name and filesize is equal and filesize is > 0
+  /// **IGNORING moTime**
+    func isEqualTo(_ other: FileEntry?) -> Bool {
+        guard let otherFileEntry = other as? Self else { return false }
+      return self.size > 0
+      && self.size == otherFileEntry.size
+      && self.name == otherFileEntry.name
+      && self.sha256 == otherFileEntry.sha256
+    }
+}
+
 public extension FileEntry {
   /// We are currently not interested in mime types
   var mimeType: String? { return nil }
