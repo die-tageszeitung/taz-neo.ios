@@ -154,7 +154,7 @@ public class DefaultAuthenticator: Authenticator {
   @discardableResult
   public func notifySuccess() -> Bool {
     if feeder.deliveryChanged() { 
-      TazAppEnvironment.sharedInstance.resetApp() 
+      TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin) 
       return false
     }
     else {

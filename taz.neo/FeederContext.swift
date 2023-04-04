@@ -329,7 +329,7 @@ open class FeederContext: DoesLog {
         return
       }
       if needsReInit() { 
-        TazAppEnvironment.sharedInstance.resetApp() 
+        TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin) 
       }
       else {
         self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
@@ -946,6 +946,14 @@ open class FeederContext: DoesLog {
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           Notification.send("gqlIssue", result: .success(dissue), sender: issue)
+          if issue.date != dissue.date {
+            self.error("Cannot Update issue \(issue.date.short)/\(issue.isWeekend ? "weekend" : "weekday") with issue \(dissue.date.short)/\(dissue.isWeekend ? "weekend" : "weekday") feeders cycle: \(self.gqlFeeder.feeds.first?.cycle.toString() ?? "-")")
+            let unexpectedResult : Result<[Issue], Error>
+              = .failure(DownloadError(message: "Weekend Login cannot load weekday issues", handled: true))
+            Notification.send("issueStructure", result: unexpectedResult, sender: issue)
+            TazAppEnvironment.sharedInstance.resetApp(.wrongCycleDownloadError)
+            return
+          }
           issue.update(from: dissue)
           ArticleDB.save()
           Notification.send("issueStructure", result: .success(issue), sender: issue)
