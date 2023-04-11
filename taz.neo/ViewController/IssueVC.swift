@@ -335,6 +335,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         return
       }
       isDownloading = true
+      statusHeader.currentStatus = .loadIssue
       issueCarousel.index = index
       issueCarousel.setActivity(idx: index, isActivity: true)
       Notification.receiveOnce("issueStructure", from: sissue) { [weak self] notif in
