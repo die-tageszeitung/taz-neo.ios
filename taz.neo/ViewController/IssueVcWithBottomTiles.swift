@@ -725,7 +725,7 @@ class StatusHeader: UIView {
   
   private func checkStatus(){
     //let last error at least 5s
-    if let sec = lastErrorShown?.timeIntervalSince(Date()), sec < 5 {
+    if let sec = lastErrorShown?.timeIntervalSince(Date()), abs(sec) < 5 {
       onMain(after: sec + 1) {   [weak self] in
         self?.checkStatus()
       }
