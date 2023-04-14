@@ -28,6 +28,7 @@ class SearchResultArticleVc : ArticleVC {
     {
       header.title = hit.sectionTitle ?? ""
       header.subTitle = "Ausgabe \(hit.date.short)"
+      ArticlePlayer.singleton.baseUrl = hit.baseUrl
     }
     
     header.pageNumber = "\(artIndex+1) von \(maxResults)"
