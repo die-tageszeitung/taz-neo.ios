@@ -25,6 +25,18 @@ class IntroVC: UIViewController {
   }
   
   var webViewTopOffsetConstraint: NSLayoutConstraint?
+  
+  public func linkPressed(from: URL?, to: URL?) {
+    guard let to = to else { return }
+    
+    self.debug("Calling application for: \(to.absoluteString)")
+    if UIApplication.shared.canOpenURL(to) {
+      UIApplication.shared.open(to, options: [:], completionHandler: nil)
+    }
+    else {
+      error("No application or no permission for: \(to.absoluteString)")
+    }
+  }
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -57,6 +69,10 @@ class IntroVC: UIViewController {
           }
         }
       }
+    }
+    webView.webView.whenLinkPressed { [weak self] (from, to) in
+      if UIApplication.shared.applicationState != .active { return }
+      self?.linkPressed(from: from, to: to)
     }
   }
 } // WebViewTests
