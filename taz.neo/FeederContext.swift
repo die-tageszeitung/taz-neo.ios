@@ -471,6 +471,9 @@ open class FeederContext: DoesLog {
         
         //
       default:
+        if UIApplication.shared.applicationState == .active {
+          LocalNotifications.notify(payload: payload)
+        }
         self.debug(payload.toString())
     }
   }
@@ -1087,4 +1090,12 @@ extension PushNotification.Payload {
   }
 }
 
-
+fileprivate extension LocalNotifications {
+  static func notify(payload: PushNotification.Payload){
+    guard let message = payload.standard?.alert?.body else {
+      Log.debug("no standard payload found, not notify localy")
+      return
+    }
+    Self.notify(title: payload.standard?.alert?.title, message:message)
+  }
+}
