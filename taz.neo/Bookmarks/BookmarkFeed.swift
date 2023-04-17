@@ -40,7 +40,7 @@ public class BookmarkFeed: Feed, DoesLog {
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     // Copy resources to bookmark folder
     let resources = ["bookmarks-ios.css", "bookmarks-ios.js",
-                     "Star.svg", "StarFilled.svg", "Share.svg"]
+                     "Star.svg", "StarFilled.svg", "Share.svg", "dot-night.svg", "dot-day.svg"]
     for f in resources {
       if let path = Bundle.main.path(forResource: f, ofType: nil) {
         let base = File.basename(path)
@@ -118,6 +118,7 @@ public class BookmarkFeed: Feed, DoesLog {
     ? "<p>\((art.teaser ?? "").xmlEscaped())</p>"
     : ""
     let html = """
+      <div class="dottedline"></div>
       <a href="\(art.path)">
         \(getImage(art: art))
         <h2>\(title.xmlEscaped())</h2>
