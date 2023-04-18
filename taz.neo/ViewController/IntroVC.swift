@@ -40,7 +40,7 @@ class IntroVC: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-//    self.view.backgroundColor = .white
+    self.view.backgroundColor = .white
     self.view.addSubview(webView)
     pin(webView, to: self.view, exclude: .top)
     webViewTopOffsetConstraint = pin(webView.top, to: self.view.top, dist: topOffset)
@@ -52,7 +52,6 @@ class IntroVC: UIViewController {
     webView.buttonLabel.clipsToBounds = true
     webView.buttonLabel.layer.cornerRadius = 5
     webView.xButton.tazX()
-    writeTazApiCss()
     if let htmlDataPolicy = htmlDataPolicy,
        let htmlIntro = htmlIntro {
       let dataPolicy = File(htmlDataPolicy)
@@ -74,18 +73,6 @@ class IntroVC: UIViewController {
     webView.webView.whenLinkPressed { [weak self] (from, to) in
       if UIApplication.shared.applicationState != .active { return }
       self?.linkPressed(from: from, to: to)
-    }
-  }
-  
-  /// Write tazApi.css to resource directory
-  public func writeTazApiCss() {
-    var cssContent: String = ""
-    if Defaults.darkMode { cssContent = "@import \"themeNight.css\";" }
-    guard let path
-    = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder.resourcesDir.path
-    else { return }
-    File(dir: path, fname: "base.css").open(mode: "w"){ f in
-      f.writeline(cssContent)
     }
   }
 } // WebViewTests
