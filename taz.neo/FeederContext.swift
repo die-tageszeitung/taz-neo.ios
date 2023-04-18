@@ -726,7 +726,7 @@ open class FeederContext: DoesLog {
         bundledFile.copy(to: targetPath)
         let destFile = File(targetPath)
         if destFile.exists { destFile.mTime = globalFile.moTime }
-        log("File \(bundledFile.basename) moved... exist in resdir? : \(globalFile.existsIgnoringTime(inDir: self.gqlFeeder.resourcesDir.path))")
+        debug("File \(bundledFile.basename) moved... exist in resdir? : \(globalFile.existsIgnoringTime(inDir: self.gqlFeeder.resourcesDir.path))")
       } else {
         log("* Warning: File \(bundledFile.basename) may not exist (\(bundledFile.exists)), mtime, size is wrong  \(bundledFile.size) !=? \(globalFile.size)")
         success = false
