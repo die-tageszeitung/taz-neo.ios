@@ -733,7 +733,10 @@ open class FeederContext: DoesLog {
       }
     }
     resources.isDownloading = false
-    if success == false { resources.delete() }
+    if success == false {
+      log("* Warning: There was an error due persisting Bundled Ressources ....delete them.")
+      resources.delete()
+    }
     return success
   }
   
