@@ -609,20 +609,6 @@ open class FeederContext: DoesLog {
     }
   }
   
-  /// Load bundles resources (from the main bundle)
-  private func loadBundledResources2(setVersion: Int? = nil) {
-    if let json = File(inMain: "resources.json"),
-       let resdir = Dir(inMain: "files") {
-      gqlFeeder.resources(fromData: json.data) { [weak self] result in
-        guard let self = self else { return }
-        if case let .success(resources) = result {
-          self.loadResources(res: resources, fromCacheDir: resdir.path)
-          if let v = setVersion { StoredResources.latest()?.resourceVersion = v }
-        }
-      }
-    }
-  }
-  
   /// Load resources from server with optional cache directory
   private func loadResources(res: Resources, fromCacheDir: String? = nil) {
     let previous = StoredResources.latest()
