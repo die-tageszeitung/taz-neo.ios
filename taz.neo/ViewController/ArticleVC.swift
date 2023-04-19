@@ -91,9 +91,20 @@ open class ArticleVC: ContentVC {
   func toggleBookmark(art: StoredArticle?) {
     guard let art = art else { return }
     var msg: String
-    if art.hasBookmark { msg = "Der Artikel wurde aus ihrer Leseliste entfernt." }
+    var completion:((Bool)->())? = nil
+    
+    if art.hasBookmark {
+      msg = "Der Artikel wurde aus ihrer Leseliste entfernt.<br/>Löschen rückgängig durch Antippen"
+      completion = { wasTapped in
+        guard wasTapped else { return }
+        art.hasBookmark = true
+        Toast.show("Löschen wurde wiederrufen!")
+      }
+    }
     else { msg = "Der Artikel wurde in ihrer Leseliste gespeichert." }
-    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)", minDuration: 0)
+    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)",
+               minDuration: 0,
+               completion: completion)
     art.hasBookmark.toggle()
   }
   

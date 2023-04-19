@@ -78,6 +78,7 @@ class BookmarkNC: NavigationController {
         if art.hasBookmark {
           self.sectionVC.insertArticle(art)
           self.sectionVC.reload()
+          self.ensureBookmarkListVisibleIfNeeded(animated: false)
         }
         else {
           self.sectionVC.deleteArticle(art)
@@ -94,12 +95,16 @@ class BookmarkNC: NavigationController {
       }
     }
   }
+  
+  func ensureBookmarkListVisibleIfNeeded(animated: Bool = true){
+    if bookmarkFeed.count > 0 && self.viewControllers.first != sectionVC  {
+      setViewControllers([sectionVC], animated: animated)
+    }
+  }
    
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    if bookmarkFeed.count > 0 && self.viewControllers.first != sectionVC  {
-      setViewControllers([sectionVC], animated: true)
-    }
+    ensureBookmarkListVisibleIfNeeded()
   }
   
   override func viewDidLoad() {
