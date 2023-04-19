@@ -39,6 +39,16 @@ public class BookmarkFeed: Feed, DoesLog {
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     // Copy resources to bookmark folder
+    copyBookmarkRessourcesIfNeeded()
+  }
+  
+  func copyBookmarkRessourcesIfNeeded(){
+    let required = "\(App.bundleIdentifier)_v\(App.bundleVersion)#\(App.buildNumber)"
+    if Defaults.bookmarkRessourcesVersion == required {
+      log("Not updating BookmarkRessources due its the current: \(required)")
+      return
+    }
+    log("updating BookmarkRessources to: \(required)")
     let resources = ["bookmarks-ios.css", "bookmarks-ios.js",
                      "Star.svg", "StarFilled.svg", "Share.svg", "dot-night.svg", "dot-day.svg"]
     for f in resources {
@@ -46,9 +56,10 @@ public class BookmarkFeed: Feed, DoesLog {
         let base = File.basename(path)
         let src = File(path)
         let dest = "\(dir.path)/resources/\(base)"
-        src.copyIfNewer(to: dest)
+        src.copy(to: dest)
       }
     }
+    Defaults.bookmarkRessourcesVersion = required
   }
   
   deinit {
