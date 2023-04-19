@@ -44,11 +44,6 @@ extension Defaults{
     }
   }
   
-  static var bookmarkRessourcesVersion : String? {
-    get { return Defaults.singleton["bookmarkRessourcesVersion"] }
-    set { Defaults.singleton["bookmarkRessourcesVersion"] = newValue }
-  }
-  
   struct articleTextSize {
     @Default("articleTextSize")
     static var articleTextSize: Int
