@@ -46,7 +46,7 @@ public class BookmarkFeed: Feed, DoesLog {
         let base = File.basename(path)
         let src = File(path)
         let dest = "\(dir.path)/resources/\(base)"
-        src.copyIfNewer(to: dest)
+        src.copyResource(to: dest)
       }
     }
   }
@@ -330,3 +330,25 @@ public class DummyMoment: Moment {
   public var creditedImages: [ImageEntry] { [] }
   public var animation: [FileEntry] { [] }
 }
+
+/// Small File extension to copy resource files
+extension File {
+  /**
+   copies a file to a destination given by its pathname.
+
+   self is only copied if it is either newer than the destination file
+   (in this case it is an update of a new app version) or the destination
+   file is newer than the source file (in this case it has been copied before
+   but the mtime has not been set to that of the source file).
+   After copying the destination file's mtime is set to that of the source
+   file.
+   */
+  public func copyResource(to: String) {
+    let dest = File(to)
+    if dest.mtime != self.mtime {
+      self.copy(to: to)
+      dest.mtime = self.mtime
+    }
+  }
+}
+
