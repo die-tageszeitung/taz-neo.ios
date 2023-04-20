@@ -172,7 +172,7 @@ class SearchController: UIViewController {
   
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    self.view.backgroundColor = Const.SetColor.CTBackground.color
+    self.view.backgroundColor = Const.SetColor.HBackground.color
   }
   
   override func viewDidLoad() {

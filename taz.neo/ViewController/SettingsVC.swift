@@ -302,7 +302,7 @@ extension SettingsVC {
   }
   
   public func applyStyles() {
-    tableView.backgroundColor = Const.SetColor.CTBackground.color
+    tableView.backgroundColor = Const.SetColor.HBackground.color
     if let toggle = self.darkmodeSettingsCell.customAccessoryView as? UISwitch,
        toggle.isOn != Defaults.darkMode {
       toggle.isOn = Defaults.darkMode
@@ -432,7 +432,7 @@ extension SettingsVC {
     let background = UIView()
     
     func applyStyles() {
-      background.backgroundColor = Const.Colors.opacityBackground
+      background.backgroundColor = Const.SetColor.HBackground.color
       label.textColor = Const.SetColor.ios(.secondaryLabel).color
     }
     
@@ -1209,7 +1209,7 @@ class SectionHeader: UIView {
   
   func applyStyles() {
     label.textColor =  Const.SetColor.ios(.label).color
-    self.backgroundColor = Const.SetColor.CTBackground.color.withAlphaComponent(0.9)
+    self.backgroundColor = Const.SetColor.HBackground.color
   }
   
   func setup(){
