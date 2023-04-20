@@ -191,6 +191,8 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   func setupPullToRefresh() {
     //add status Header
     self.view.addSubview(statusHeader)
+    ///on some Devices e.g. iPhone 8+ the Status Header overlays the Login Button nearly completly that its hard to touch it.
+    statusHeader.isUserInteractionEnabled = false
     pin(statusHeader.left, to: self.view.left)
     pin(statusHeader.right, to: self.view.right)
     statusBottomConstraint = pin(statusHeader.bottom, to: self.view.topGuide(), dist: 0)
