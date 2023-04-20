@@ -250,7 +250,7 @@ public class DefaultAuthenticator: Authenticator {
     ?? UIWindow.rootVC
     else { return }
     
-    if TazAppEnvironment.sharedInstance.feederContext?.needsReInit() ?? false {
+    if self.feeder.isAuthenticated && TazAppEnvironment.sharedInstance.feederContext?.needsReInit() ?? false {
       TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin)
       return
     }
