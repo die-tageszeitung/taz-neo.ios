@@ -282,7 +282,7 @@ class TextSettingsView: UIView {
     verticalStack.addArrangedSubview(alignStack)
     verticalStack.setCustomSpacing(12.0, after: modeStack)
     addSubview(verticalStack)
-    pin(verticalStack, to: self, dist: 4)
+    pin(verticalStack, to: self, dist: 4, priority: .fittingSizeLevel)
   }
   
   func applyStyles() {
