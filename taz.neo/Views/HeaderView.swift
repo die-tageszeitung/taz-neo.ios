@@ -48,7 +48,10 @@ open class HeaderView: UIView,  Touchable {
           titleLabel.textAlignment = .left
           titleFontSizeDefault = Const.Size.TitleFontSize
           titleTopIndentL = Const.Size.DefaultPadding - 11.0
-          titleBottomIndentL = -0.5
+          titleLineDistConstraint?.constant = 4.0
+          titleBottomIndentL = -(titleLineDistConstraint?.constant ?? 0.0) - 0.5
+          ///apply value otherwise it is not set due didScrolling ... if titletype == .bigLeft { return }
+          titleBottomConstraint?.constant = titleBottomIndentL
         case .article:
           pageNumberLabel.isHidden = false
           subTitleLabel.isHidden = true
@@ -123,6 +126,7 @@ open class HeaderView: UIView,  Touchable {
   private var titleBottomConstraint: NSLayoutConstraint?
   private var titlePageNumberLabelBottomConstraint: NSLayoutConstraint?
   private var titleLeftConstraint: NSLayoutConstraint?
+  private var titleLineDistConstraint: NSLayoutConstraint?
   
   var leftConstraint: NSLayoutConstraint?
   
@@ -188,7 +192,8 @@ open class HeaderView: UIView,  Touchable {
     
     pin(line.left, to: self.left, dist:sidePadding)
     pin(line.right, to: self.right, dist:-sidePadding)
-    pin(line.top, to: titleLabel.bottom)
+    titleLineDistConstraint =
+    pin(line.top, to: titleLabel.bottom, dist: 0)
     
     pin(subTitleLabel.left, to: self.left, dist:sidePadding)
     pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
