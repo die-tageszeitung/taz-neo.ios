@@ -291,13 +291,13 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   func setupFeeder(isStartup: Bool = true) {
     let feeder = Defaults.currentFeeder
     log("Connecting to feeder: \(feeder.name) feed: \(feeder.feed)")
-    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
     Notification.receiveOnce("feederReady") { [weak self] notification in
       guard let self, let fctx = notification.sender as? FeederContext else { return }
       self.debug(fctx.storedFeeder.toString())
       if isStartup { self.startup() }
       else { self.showHome() }
     }
+    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
   }
   
   // Logs Keychain variables if in debug mode
