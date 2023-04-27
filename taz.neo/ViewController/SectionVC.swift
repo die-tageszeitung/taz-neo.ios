@@ -63,14 +63,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }    
   }
   
-  private func showArticle(url: URL? = nil, index: Int? = nil) {
+  private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true) {
     if let avc = articleVC {
       if let url = url { avc.gotoUrl(url: url) }
       else if let index = index { avc.index = index }
       if let nvc = navigationController {
         if avc != nvc.topViewController {
           avc.writeTazApiCss()
-          nvc.pushViewController(avc, animated: true)
+          nvc.pushViewController(avc, animated: animated)
         }
       }
     }
@@ -268,16 +268,20 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     scrollViewWillBeginDragging{[weak self] offset in
       self?.header.scrollViewWillBeginDragging(offset)
     }
+    
+    if initialArticle != nil {
+      self.header.isHidden = true
+    }
   }
   
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     if let iart = initialArticle {
-      delay(seconds: 1.0) { [weak self] in
-        self?.showArticle(index: iart)
-      }
-      initialArticle = nil
+      articleVC?.view.doLayout()
+      self.showArticle(index: iart, animated: false)
       SectionVC.showAnimations = false
+      initialArticle = nil
+      self.header.isHidden = false
     }
     if SectionVC.showAnimations && issue.sections?.count ?? 0 > 1 {
       SectionVC.showAnimations = false
