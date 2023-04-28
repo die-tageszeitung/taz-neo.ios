@@ -773,11 +773,9 @@ open class FeederContext: DoesLog {
         closure()
         return; //Prevent default Popup
       case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
-        self.gqlFeeder.authToken = nil
-        DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
+        fallthrough
       case .changedAccount: text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
-        self.gqlFeeder.authToken = nil
-        DefaultAuthenticator.deleteUserData(excludeDataPolicyAccepted: true)
+        TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true)
       case .unexpectedResponse:
         Alert.message(title: "Fehler",
                       message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
