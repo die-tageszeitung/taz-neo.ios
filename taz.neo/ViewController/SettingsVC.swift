@@ -259,6 +259,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
       pin(self.tableView, toSafe: sv, exclude: .top).bottom?.constant = -50.0
       pin(self.tableView.top, to: header.bottom)
     }
+    self.tableView.contentInset = UIEdgeInsets(top: 23, left: 0, bottom: 0, right: 0)
   }
   
   open override func viewDidAppear(_ animated: Bool) {
