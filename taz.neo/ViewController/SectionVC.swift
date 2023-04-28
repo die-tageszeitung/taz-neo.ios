@@ -268,21 +268,24 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     scrollViewWillBeginDragging{[weak self] offset in
       self?.header.scrollViewWillBeginDragging(offset)
     }
-    
-    if initialArticle != nil {
-      self.header.isHidden = true
-    }
   }
   
-  override public func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
     if let iart = initialArticle {
       articleVC?.view.doLayout()
       self.showArticle(index: iart, animated: false)
       SectionVC.showAnimations = false
       initialArticle = nil
-      self.header.isHidden = false
+      self.header.isHidden = true
+      self.collectionView?.isHidden = true
     }
+  }
+  
+  override public func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    self.header.isHidden = false
+    self.collectionView?.isHidden = false
     if SectionVC.showAnimations && issue.sections?.count ?? 0 > 1 {
       SectionVC.showAnimations = false
       delay(seconds: 1.5) {

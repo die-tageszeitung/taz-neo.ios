@@ -274,7 +274,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
   
   var thumbnailController : PdfOverviewCollectionVC?
-  var slider:ButtonSlider?
+  var slider:PdfButtonSlider?
   
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
@@ -392,6 +392,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       childThumbnailController.cellLabelFont = Const.Fonts.titleFont(size: 12)
       childThumbnailController.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
       childThumbnailController.cellLabelLinesCount = 2
+      childThumbnailController.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
       let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
                                                sliderContent: childThumbnailController)
       articleVC.delegate = self
@@ -406,10 +407,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       articleVC.gotoUrl(path: path, file: link)
       self.navigationController?.pushViewController(articleVC, animated: true)
       self.childArticleVC = articleVC
-      
-      onMainAfter { [weak self] in
-        self?.updateSlidersWidth()
-      }
     }
   }
   
@@ -450,7 +447,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   
   // MARK: - setupSlider
   func setupSlider(sliderContent:UIViewController){
-    slider = ButtonSlider(slider: sliderContent, into: self)
+    slider = PdfButtonSlider(slider: sliderContent, into: self)
     guard let slider = slider else { return }
     slider.sliderView.clipsToBounds = false
     slider.image = UIImage.init(named: "logo")
@@ -485,30 +482,22 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     updateSlidersWidth(size.width)
     updateMenuItems(updatedSizeIsLandscape: size.width > size.height)
   }
-
-  func updateSlidersWidth(_ _newParentWidth : CGFloat? = nil){
-    let newParentWidth = _newParentWidth ?? self.view.frame.size.width
-    let ratio:CGFloat = PdfDisplayOptions.Overview.sliderCoverageRatio
-    let sliderWidth = min(UIScreen.main.bounds.size.width * ratio,
-                          UIScreen.main.bounds.size.height * ratio,
-                          newParentWidth)
-    let lInset = UIWindow.safeInsets.left
-
+  
+  func updateSlidersWidth(_ newParentWidth : CGFloat? = nil){
+    let sliderWidth = min(UIScreen.main.bounds.size.width,
+                          UIScreen.main.bounds.size.height,
+                          newParentWidth ?? UIScreen.main.bounds.size.width,
+                          500)
+    ///formally lInset = UIWindow.safeInsets.left was added
+    ///but after rotation this is not yet the right value because viewWillTransition is called before
+    ///UIWindow.safeInsets are changed
     if let slider = self.slider,
-       let newSliderWidth = (sliderWidth - slider.button.frame.size.width + lInset) as CGFloat?,
-       ///Cast newWidth to optional toassign var in place
-       abs(newSliderWidth - slider.coverage) > 1 {
-      slider.coverageRatio = newSliderWidth/newParentWidth
+       let newSliderWidth = (sliderWidth - slider.button.frame.size.width) as CGFloat?{
+      slider.coverage = newSliderWidth
       slider.updateSliderWidthIfNeeded(newSliderWidth)
+
     }
-    
-    if let slider = childArticleVC?.slider,
-       let newSliderWidth = (sliderWidth - slider.button.frame.size.width + lInset) as CGFloat?,
-       ///Cast newWidth to optional toassign var in place
-       abs(newSliderWidth - slider.coverage) > 1 {
-      slider.coverageRatio = newSliderWidth/newParentWidth
-      slider.updateSliderWidthIfNeeded(newSliderWidth)
-    }
+    childArticleVC?.updateSlidersWidth(sliderWidth: sliderWidth)
   }
   
   // MARK: - setupViewProvider
@@ -697,6 +686,19 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     super.setupSlider()
   }
   
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    updateSlidersWidth(sliderWidth: self.view.frame.size.width)
+  }
+  
+  func updateSlidersWidth(sliderWidth : CGFloat){
+    let sliderWidth = min(sliderWidth, 500)
+    guard let buttonWidth = slider?.button.frame.size.width,
+            let coverage = (sliderWidth - buttonWidth) as CGFloat? else {  return }
+    slider?.coverage = coverage
+    slider?.updateSliderWidthIfNeeded(coverage)
+  }
+  
   override func willMove(toParent parent: UIViewController?) {
     if parent == nil {
       self.slider?.close()
@@ -716,6 +718,23 @@ class ArticleVcWithPdfInSlider : ArticleVC {
       delegate = nil
       self.slider = nil
       self.settingsBottomSheet = nil
+    }
+  }
+}
+
+
+/// Custom Child class to get rid of the slider width bug e.g. in PDF Pages Slider
+/// Bug: Open PDF Rotate 90°, 180°, 90°, wait each animation, now were back open Slider => wrong size due
+/// coverage calculated with iPhone Screen height instead width
+/// Slider coverage calculates with saved coverageration => multiple issues are here
+class PdfButtonSlider: ButtonSlider {
+  var _coverage: CGFloat = UIScreen.main.bounds.size.width
+  
+  override var coverage: CGFloat {
+    get { return _coverage }
+    set {
+      _coverage = newValue
+      resetConstraints()
     }
   }
 }
