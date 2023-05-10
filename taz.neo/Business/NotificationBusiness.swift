@@ -48,8 +48,7 @@ public final class NotificationBusiness: DoesLog {
         self.systemNotificationsEnabled
         = settings.authorizationStatus == .provisional
         || settings.authorizationStatus == .authorized
-        && settings.notificationCenterSetting == .enabled
-        || settings.lockScreenSetting == .enabled
+            && (settings.notificationCenterSetting == .enabled || settings.lockScreenSetting == .enabled)
         finished?()
       })
   }
