@@ -45,7 +45,8 @@
 import UIKit
 import NorthLib
 
-#warning("TODO CLASS DESCRIPTION/NAME")
+/// Helper to "toast" any view
+/// will display view on top of current window with animation from bottom
 class InfoToasterView: UIView{
   /// Closure will be called when dismissed
   fileprivate var dismissHandler: (()->())? = nil
@@ -55,7 +56,10 @@ class InfoToasterView: UIView{
   fileprivate var pinBottom: Bool = false { didSet { setPosition() }}
   
   // MARK: - Default Params
-  var maxWidth: CGFloat = 380
+  var maxWidth: CGFloat
+  = UIWindow.keyWindow?.traitCollection.horizontalSizeClass == .compact
+  ? UIWindow.keyWindow?.frame.size.width ?? 380
+  : 380
 
   // MARK: - LayoutConstrains
   fileprivate var scrollViewWidthConstraint : NSLayoutConstraint?
@@ -239,7 +243,7 @@ fileprivate extension InfoToasterView {
     Notification.receive(Const.NotificationNames.traitCollectionDidChange) {   [weak self] notification in
       guard let self = self else { return }
       guard let traitCollection = notification.content as? UITraitCollection else { return }
-      self.pinBottom = UIWindow.keyWindow?.traitCollection.horizontalSizeClass == .compact
+      self.pinBottom = traitCollection.horizontalSizeClass == .compact
       self.doLayout()
     }
     self.pinBottom = UIWindow.keyWindow?.traitCollection.horizontalSizeClass == .compact
