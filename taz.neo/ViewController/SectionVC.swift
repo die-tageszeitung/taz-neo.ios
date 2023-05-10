@@ -70,6 +70,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if let nvc = navigationController {
         if avc != nvc.topViewController {
           avc.writeTazApiCss()
+          avc.toolBar.show(show:true, animated: false)
+          avc.header.show(show: true, animated: false)
           nvc.pushViewController(avc, animated: animated)
         }
       }
@@ -231,8 +233,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       
       if section.type == .advertisement {
         header.title = section.title ?? ""
-        header.hideAnimated()
-        toolBar.hide(true)
+        header.show(show: false, animated: true)
+        toolBar.show(show:false, animated: true)
         return
       }
     }
@@ -242,8 +244,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       header.subTitle = issue.validityDateText(timeZone: feeder.timeZone)
       header.titletype = index == 0 ? .section0 : .section
     }
-    header.showAnimated()
-    toolBar.hide(false)
+    header.show(show: true, animated: true)
+    toolBar.show(show:true, animated: true)
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

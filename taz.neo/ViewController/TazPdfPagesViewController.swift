@@ -328,7 +328,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
   }
   
-  public var toolBar = AnimatedContentToolbar()
+  public var toolBar = ContentToolbar()
   
   override public var preferredStatusBarStyle: UIStatusBarStyle {
     return .lightContent
@@ -522,9 +522,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       }
 
       ziv.whenZoomed {   [weak self] zoomedIn in
-        self?.toolBar.hide(zoomedIn)
+        self?.toolBar.show(show:!zoomedIn, animated: true)
       }
-      self?.toolBar.hide(false)
+      self?.toolBar.show(show:true, animated: true)
     }
   }
 
@@ -658,8 +658,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
     
     self.whenScrolled(minRatio: 0.01) { [weak self] ratio in
-      if ratio < 0 { self?.toolBar.hide()}
-      else { self?.toolBar.hide(false)}
+      if ratio < 0 { self?.toolBar.show(show:false, animated: true)}
+      else { self?.toolBar.show(show:true, animated: true)}
     }
   }
 }

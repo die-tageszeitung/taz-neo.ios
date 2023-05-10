@@ -60,7 +60,21 @@ open class ContentToolbar: UIView {
     heightConstraint = self.pinHeight(totalHeight)
   }
   
-  public func hide(_ isHide: Bool = true) {
+  func show(show:Bool, animated:Bool){
+    
+    func doShow(show:Bool){
+      let newHeight = show ? self.totalHeight : 0
+      if self.heightConstraint?.constant == newHeight { return }
+      self.heightConstraint?.constant = newHeight
+      self.superview?.layoutIfNeeded()
+    }
+    
+    animated
+    ? UIView.animate(withDuration: 0.5) { doShow(show: show) }
+    : doShow(show: show)
+  }
+  
+  private func hide(_ isHide: Bool = true) {
     let newHeight = isHide == true ? 0 : self.totalHeight
     if self.heightConstraint?.constant == newHeight { return }
     UIView.animate(withDuration: 0.5) { [weak self] in
@@ -144,24 +158,5 @@ extension ContentToolbar {
     self.addButton(button, direction: direction)
     button.onPress(closure: onPress)
     return button
-  }
-}
-
-// MARK: - AnimatedContentToolbar
-/// ContentToolbar with easier constraint animation and changed animation target
-public class AnimatedContentToolbar : ContentToolbar {
-  public override func hide(_ isHide: Bool = true) {
-    if isHide {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.constant = 0
-        self?.superview?.layoutIfNeeded()
-      }
-    }
-    else if self.heightConstraint?.constant != self.totalHeight {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.constant = self!.totalHeight
-        self?.superview?.layoutIfNeeded()
-      }
-    }
   }
 }

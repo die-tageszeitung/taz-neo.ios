@@ -45,7 +45,7 @@ class BookmarkNC: NavigationController {
                                atSection: nil,
                                atArticle: openArticleAtIndex)
     svc.delegate = self
-    svc.toolBar.hide()
+    svc.toolBar.show(show:false, animated: true)
     svc.isStaticHeader = true
     svc.header.titletype = .bigLeft
     svc.header.title = "leseliste"

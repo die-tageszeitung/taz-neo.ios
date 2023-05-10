@@ -262,12 +262,8 @@ extension HeaderView {
     }
   }
   
-  func hideAnimated(){
-    setRatio(1, animated: true)
-  }
-
-  func showAnimated(){
-    setRatio(0, animated: true)
+  func show(show:Bool, animated:Bool){
+    setRatio(show ? 0 : 1, animated: animated)
   }
   
   ///negative when scroll down ...hide tf, show miniHeader
