@@ -990,6 +990,18 @@ open class FeederContext: DoesLog {
     }
   }
   
+  func didDownload(_ issue: Issue){
+    guard issue.date == self.defaultFeed.lastIssue else { return }
+    guard let momentPublicationDate = issue.moment.files.first?.moTime else { return }
+    ///momentPublicationDate is in UTC timeIntervalSinceNow calculates also with utc, so timeZone calculation needed!
+    //is called multiple times!
+    //debug("New Issue:\n  issue Date: \(issue.date)\n  defaultFeed.lastIssue: \(self.defaultFeed.lastIssue)\n  defaultFeed.lastUpdated: \(self.defaultFeed.lastUpdated)\n  defaultFeed.lastIssueRead: \(self.defaultFeed.lastIssueRead)")
+    NotificationBusiness
+      .sharedInstance
+      .showPopupIfNeeded(newIssueAvailableSince: -momentPublicationDate.timeIntervalSinceNow)
+    
+  }
+  
   func cleanupOldIssues(){
     if self.dloader.isDownloading { return }
     guard let feed = self.storedFeeder.feeds[0] as? StoredFeed else { return }
@@ -1001,17 +1013,18 @@ open class FeederContext: DoesLog {
   
   /// Download partial Payload of Issue
   private func downloadPartialIssue(issue: StoredIssue) {
-    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
-    self.dloader.downloadPayload(payload: issue.payload as! StoredPayload) { err in
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate: \(issue.date.short)")
+    self.dloader.downloadPayload(payload: issue.payload as! StoredPayload, atEnd: { [weak self] err in
       var res: Result<StoredIssue,Error>
       if err == nil {
         issue.isOvwComplete = true
-        res = .success(issue) 
+        res = .success(issue)
         ArticleDB.save()
+        self?.didDownload(issue)
       }
       else { res = .failure(err!) }
       Notification.send("issueOverview", result: res, sender: issue)
-    }
+    })
   }
 
   /// Download complete Payload of Issue
@@ -1024,18 +1037,19 @@ open class FeederContext: DoesLog {
         onProgress: { (bytesLoaded,totalBytes) in
           Notification.send("issueProgress", content: (bytesLoaded,totalBytes),
                             sender: issue)
-        }) { err in
+        }) {[weak self] err in
         issue.isDownloading = false
         var res: Result<StoredIssue,Error>
         if err == nil { 
           res = .success(issue) 
           issue.isComplete = true
           ArticleDB.save()
+          self?.didDownload(issue)
           //inform DownloadStatusButton: download finished
           Notification.send("issueProgress", content: (1,1), sender: issue)
         }
         else { res = .failure(err!) }
-        self.markStopDownload(dlId: dlId, tstart: tstart)
+        self?.markStopDownload(dlId: dlId, tstart: tstart)
 //        self.enqueuedDownlod.removeAll{ $0.date == issue.date}
         Notification.send("issue", result: res, sender: issue)
       }

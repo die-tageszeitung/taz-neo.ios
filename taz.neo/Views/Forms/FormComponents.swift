@@ -123,7 +123,7 @@ extension Padded.Label{
 // MARK: - taz UIButton
 extension Padded.Button{
   
-  enum tazButtonType { case normal, outline, label }
+  enum tazButtonType { case normal, outline, label, newBlackOutline}
   
   convenience init( type: tazButtonType = .normal,
                     title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
@@ -135,11 +135,12 @@ extension Padded.Button{
                     target: Any? = nil,
                     action: Selector? = nil) {
     self.init()
+    
     if let title = title {
       self.setTitle(title, for: .normal)
     }
     self.backgroundColor = color
-    self.setBackgroundColor(color: color.withAlphaComponent(0.8), forState: .selected)
+    self.setBackgroundColor(color: color.withAlphaComponent(0.8), forState: .highlighted)
     
     self.setTitleColor(textColor, for: .normal)
     self.layer.cornerRadius = 3.0
@@ -149,16 +150,25 @@ extension Padded.Button{
       self.addTarget(target, action: action, for: .touchUpInside)
     }
     
+    
     switch type {
       case .outline:
         self.backgroundColor = .clear
-        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .selected)
+        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
         self.addBorder(Const.SetColor.CIColor.color, 1.0)
         self.setTitleColor(Const.SetColor.CIColor.color, for: .normal)
       case .label:
         self.backgroundColor = .clear
-        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .selected)
+        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
         self.setTitleColor(Const.SetColor.CIColor.color, for: .normal)
+      case .newBlackOutline:
+        self.backgroundColor = .clear
+        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
+        self.addBorder(Const.SetColor.CTDate.color, 1.5)
+        self.setTitleColor(Const.SetColor.CTDate.color, for: .normal)
+        self.titleLabel?.font = Const.Fonts.boldContentFont
+        self.pinHeight(height)
+        self.layer.cornerRadius = height/2
       case .normal: fallthrough
       default:
         self.backgroundColor = color

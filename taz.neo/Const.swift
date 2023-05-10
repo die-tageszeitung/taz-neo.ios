@@ -31,6 +31,7 @@ public struct Const {
     static let articleLoaded = "NotificationName.articleLoaded"
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
     static let viewSizeTransition = "NotificationName.viewSizeTransition"
+    static let traitCollectionDidChange = "NotificationName.traitCollectionDidChange"
     static let expiredAccountDateChanged = "NotificationName.expiredAccountDateChanged"
     static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
     static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
@@ -222,7 +223,7 @@ public struct Const {
         case .ios_opaque(.closeX):
           return (UIColor.rgb(0x5D5E63), UIColor.rgb(0xB8B8C1), nil, nil)
         case .ios_opaque(.closeXcircleBackground):
-          return (UIColor.rgb(0xDCDCDE), UIColor.rgb(0x424147), nil, nil)
+          return (UIColor.rgb(0xE9E9EB), UIColor.rgb(0x39393D), nil, nil)
         case .ios(.label):
           return (Const.Colors.iOSLight.label, Const.Colors.iOSDark.label, nil, nil)
         case .ios(.secondaryLabel):

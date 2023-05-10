@@ -585,6 +585,9 @@ extension IssueVcWithBottomTiles: UICollectionViewDelegateFlowLayout {
 // MARK: - ShowPDF Info Toast
 extension IssueVcWithBottomTiles {
   func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
+    ///Disable PDF Lottie Toast to prevent overlayed with Notifications Alert
+    #warning("ToDo: remove PDF Lottie Sources")
+    return;
     if showPdfInfoToast == false {
       showScrollDownAnimationIfNeeded()
       return

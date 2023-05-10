@@ -13,6 +13,15 @@ import UIKit
 class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate {
   
   class Spinner: UIViewController {
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+      super.viewWillTransition(to: size, with: coordinator)
+      Notification.send(Const.NotificationNames.viewSizeTransition,
+                        content: size,
+                        error: nil,
+                        sender: nil)
+    }
+    
+    
     convenience init() {
       self.init(nibName: nil, bundle: nil)
       self.view.backgroundColor = .black
@@ -47,6 +56,8 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   private var threeFingerAlertOpen: Bool = false
   private var devGestureRecognizer: UIGestureRecognizer?
+  
+  var shouldShowNotifications = true
   
   public private(set) lazy var rootViewController : UIViewController = {
     // Startup Splash Screen?!
@@ -272,6 +283,8 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       dfl["showBottomTilesAnimation"] = nil
       dfl["bottomTilesAnimationLastShown"] = nil
       
+      Defaults.notificationsActivationPopupRejectedTemporaryDate = nil
+      Defaults.notificationsActivationPopupRejectedDate = nil
       Defaults.lastKnownPushToken = nil
     }
     feederContext?.gqlFeeder.authToken = nil

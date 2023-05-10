@@ -133,6 +133,52 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "Alle Ausgaben löschen",
                   isDestructive: true,
                   tapHandler: {[weak self] in self?.requestDeleteAllIssues()} )
+  ///notifications, mitteilungen
+  var notificationsCell: NotificationsSettingsCell {
+    
+    let systemNotificationsEnabled
+    = NotificationBusiness.sharedInstance.systemNotificationsEnabled
+    
+    var detailText: NSMutableAttributedString
+    
+    switch (isTextNotification, systemNotificationsEnabled) {
+      case (true, true):
+        detailText
+        = NSMutableAttributedString(string: "\ntaz Mitteilungen sind immer eine gute Wahl. Sie werden zum Bescheidwisser und verpassen keine Ausgabe.")
+      case (true, false):
+        detailText
+        = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen  deaktiviert. Diese müssen aktiviert sein, um Mitteilungen zu erhalten.")
+        detailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 30, length: 20))
+      case (false, true):
+        detailText
+        = NSMutableAttributedString(string: "\nMit Mitteilungen sind Sie immer informiert, wann die neue taz kommt. kein Spam, kein unötiges Bling bling. Nur gute Ware")
+      case (false, false):
+        detailText
+        = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen ebenfalls zu aktivieren.")
+        detailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 30, length: 20))
+      case (_, _):
+        detailText
+        = NSMutableAttributedString(string: "\n\n")
+    }
+    
+    let cell = NotificationsSettingsCell(toggleWithText: "mitteilungen erlauben", detailText: detailText, initialValue: isTextNotification, onChange: {[weak self] newValue in
+      self?.isTextNotification = newValue
+      TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
+      self?.refreshAndReload()
+    })
+    
+    if systemNotificationsEnabled == false && isTextNotification == true {
+      cell.detailLabelTextColor = .red
+      (cell.customAccessoryView as? UISwitch)?.onTintColor = UIColor(white: 0.95, alpha: 1.0)
+    }
+    
+    if systemNotificationsEnabled == false {
+      cell.tapHandler = { NotificationBusiness.sharedInstance.openAppInSystemSettings() }
+    }
+    
+    return cell
+  }
+
   ///darstellung
   lazy var textSizeSettingsCell: XSettingsCell
   = XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting())
@@ -165,16 +211,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "Widerruf",
                   tapHandler: {[weak self] in self?.showRevocation()} )
   ///erweitert
-  lazy var notificationsCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Mitteilungen erlauben",
-                  detailText: "Zeige Mitteilungen außerhalb der App an (Banner, Sperrbildschirm)",
-                  initialValue: isTextNotification,
-                  onChange: {[weak self] newValue in
-                    self?.isTextNotification = newValue
-                    TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
-                    if newValue == true { self?.checkNotifications() }
-                  })
-  
   lazy var bookmarksTeaserCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Leseliste Anrisstext",
                   detailText: "Zeige Anrisstext in Leseliste",
@@ -285,19 +321,9 @@ extension SettingsVC {
   }
   
   func checkNotifications(){
-    NotificationBusiness.sharedInstance.checkNotificationStatusIfNeeded {
-      //disable notifications toggle / Do not disable autoload toggle!
-      onMain {   [weak self] in
-        guard let self = self else { return }
-        if let toggle = self.notificationsCell.customAccessoryView as? UISwitch{
-          toggle.isOn = self.isTextNotification
-          if NotificationBusiness.sharedInstance.systemNotificationsEnabled {
-            toggle.onTintColor = .systemGreen
-          }
-          else {
-            toggle.onTintColor = UIColor(white: 0.95, alpha: 1.0)
-          }
-        }
+    NotificationBusiness.sharedInstance.checkNotificationStatus {
+      onMain {[weak self] in
+        self?.refreshAndReload()
       }
     }
   }
@@ -582,6 +608,7 @@ extension SettingsVC {
     if showDeleteAccountCell {
       cells.append(deleteAccountCell)
     }
+    cells.append(notificationsCell)
     return cells
   }
   
@@ -604,7 +631,6 @@ extension SettingsVC {
   
   var extendedSettingsCells:[XSettingsCell] {
     var cells =  [
-      notificationsCell,
       bookmarksTeaserCell,
       smartBackFromArticleCell,
       memoryUsageCell,
@@ -868,6 +894,7 @@ extension SettingsVC {
 
 // MARK: -
 class XSettingsCell:UITableViewCell {
+  var padding = 10.0
   var tapHandler:(()->())?
   var isDestructive: Bool = false
   var longTapHandler:(()->())?
@@ -978,7 +1005,7 @@ class XSettingsCell:UITableViewCell {
         av.centerY()
       }
       else {
-        pin(av.top, to: self.contentView.top, dist: 10)
+        pin(av.top, to: self.contentView.top, dist: padding)
       }
       pin(label.right, to: av.left, dist: -dist)
       label.heightAnchor.constraint(greaterThanOrEqualToConstant: av.frame.size.height).isActive = true
@@ -988,19 +1015,19 @@ class XSettingsCell:UITableViewCell {
     }
     
     pin(label.left, to: contentView.left, dist: dist)
-    pin(label.top, to: contentView.top, dist: 10, priority: .defaultHigh)
+    pin(label.top, to: contentView.top, dist: padding, priority: .defaultHigh)
     
     if let dtl = self.detailTextLabel{
       pin(label.bottom, to: dtl.top)
     }
     else {
-      pin(label.bottom, to: contentView.bottom, dist: -10, priority: .defaultHigh)
+      pin(label.bottom, to: contentView.bottom, dist: -padding, priority: .defaultHigh)
     }
     
     if let subLabel = self.detailTextLabel {
       pin(subLabel.left, to: contentView.left, dist: dist)
       pin(subLabel.right, to: contentView.right, dist: -dist)
-      pin(subLabel.bottom, to: contentView.bottom, dist: -10)
+      pin(subLabel.bottom, to: contentView.bottom, dist: -padding)
     }
     self.setNeedsUpdateConstraints()
     self.setNeedsLayout()
@@ -1010,6 +1037,37 @@ class XSettingsCell:UITableViewCell {
   
   @objc public func handleToggle(sender: UISwitch) {
     toggleHandler?(sender.isOn)
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+}
+
+
+class NotificationsSettingsCell:XSettingsCell {
+  
+  var detailLabelTextColor: UIColor?
+  
+  override func setupLayout() {
+    padding = 30.0
+    super.setupLayout()
+  }
+  
+  override func applyStyles() {
+    super.applyStyles()
+    self.textLabel?.titleFont(size: Const.Size.SubtitleFontSize)
+    self.detailTextLabel?.textColor
+    = detailLabelTextColor ?? Const.SetColor.ios(.secondaryLabel).color
+  }
+  
+  init(toggleWithText text: String,
+       detailText: NSAttributedString,
+       initialValue:Bool,
+       onChange: @escaping ((Bool)->())){
+    super.init(toggleWithText: text, detailText: ".", initialValue: initialValue, onChange: onChange)
+    self.detailTextLabel?.attributedText = detailText
+    setupLayout()
   }
   
   required init?(coder: NSCoder) {

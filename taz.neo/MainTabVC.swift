@@ -23,6 +23,14 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
                       sender: nil)
   }
   
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    Notification.send(Const.NotificationNames.traitCollectionDidChange,
+                      content: self.traitCollection,
+                      error: nil,
+                      sender: nil)
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     setupTabbar()

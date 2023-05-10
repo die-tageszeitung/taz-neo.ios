@@ -92,6 +92,42 @@ extension Defaults {
     }
   }
   
+  ///Helper to get current server from user defaults
+  static var notificationsActivationPopupRejectedDate : Date? {
+    get {
+      if let curr = Defaults.singleton["notificationsActivationPopupRejectedDate"] {
+        return Date.fromString(curr)
+      }
+      return nil
+    }
+    set {
+      if let date = newValue {
+        Defaults.singleton["notificationsActivationPopupRejectedDate"] = Date.toString(date)
+      }
+      else {
+        Defaults.singleton["notificationsActivationPopupRejectedDate"] = nil
+      }
+    }
+  }
+  
+  ///Helper to get current server from user defaults
+  static var notificationsActivationPopupRejectedTemporaryDate : Date? {
+    get {
+      if let curr = Defaults.singleton["notificationsActivationPopupRejectedTemporaryDate"] {
+        return Date.fromString(curr)
+      }
+      return nil
+    }
+    set {
+      if let date = newValue {
+        Defaults.singleton["notificationsActivationPopupRejectedTemporaryDate"] = Date.toString(date)
+      }
+      else {
+        Defaults.singleton["notificationsActivationPopupRejectedTemporaryDate"] = nil
+      }
+    }
+  }
+  
   static var customerType : GqlCustomerType? {
     get {
       if let curr = Defaults.singleton["customerType"] {
