@@ -105,7 +105,7 @@ extension NotificationBusiness {
     
     showingNotificationsPopup = true
     
-    let toast = RequestNotificationsAgainView(newIssueAvailableSince: newIssueAvailableSince)
+    let toast = NotificationsView(newIssueAvailableSince: newIssueAvailableSince)
     toast.onDismiss {[weak self] in
       self?.showingNotificationsPopup = false
     }

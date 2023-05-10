@@ -1,5 +1,5 @@
 //
-//  RequestNotificationsAgain.swift
+//  NotificationsView.swift
 //  taz.neo
 //
 //  Created by Ringo Müller on 03.05.23.
@@ -8,7 +8,7 @@
 import UIKit
 import NorthLib
 
-class RequestNotificationsAgainView: InfoToasterView {
+class NotificationsView: InfoToasterView {
   private var titleLabel = UILabel()
   private var messageLabel = UILabel()
   
