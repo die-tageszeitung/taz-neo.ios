@@ -8,6 +8,9 @@
 import UIKit
 import NorthLib
 
+/// Helper view to re-enable notifications if needed
+/// Will be displayed nearly everywhere in the app on topmost in apps window
+/// uses InfoToasterView to be displayed
 class NotificationsView: InfoToasterView {
   private var titleLabel = UILabel()
   private var messageLabel = UILabel()
