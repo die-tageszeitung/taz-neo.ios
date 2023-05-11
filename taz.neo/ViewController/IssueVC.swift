@@ -108,7 +108,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if let img = feeder.momentImage(issue: issue, isPdf: isFacsimile), self.issueCarousel[idx].description.contains("demo-moment-frame"){
         self.issueCarousel.updateIssue(img, at: idx, preventZoomInAnimation: true)
       }
-      else if (self.collectionView as? PageCollectionView)?.preventInit == false {
+      else {
         ///Refresh Items may not implemented on Data/Model Side
         self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)])
       }
@@ -127,13 +127,14 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         spinner.stopAnimating()
         spinner.removeFromSuperview()
       }
-      debug("inserting issue \(issue.date.isoDate()) at \(idx) before count: \(self.issues.count) / \(self.issueCarousel.carousel.count)/\(self.collectionView(self.collectionView, numberOfItemsInSection: 1))")
+      debug("inserting issue \(issue.date.isoDate()) at \(idx)")
       ///Fix Crash Bug occoured on iOS 12.4 Simulator  ...not happen on 0.9.0 Release on iPhone 6 iOS 12.5.3
       ///happen after login after restart!
-      self.issues.insert(issue, at: idx)
-      self.issueCarousel.insertIssue(img, at: idx)
-//      self.collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
-      self.collectionView.reloadData()
+      collectionView.performBatchUpdates { [weak self] in
+        self?.issues.insert(issue, at: idx)
+        self?.issueCarousel.insertIssue(img, at: idx)
+        self?.collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
+      }
 
       if let idx = issueCarousel.index { setLabel(idx: idx) }
       if let date = selectedIssueDate {
