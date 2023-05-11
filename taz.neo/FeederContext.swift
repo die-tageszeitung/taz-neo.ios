@@ -221,7 +221,7 @@ open class FeederContext: DoesLog {
         return 
       }
       self.debug("Version check: \(version) current, \(store.version) store")
-      if store.version > version {
+      if store.needUpdate() {
         let msg = """
         Sie haben momentan die Version \(self.currentVersion) installiert.
         Es liegt eine neue Version \(store.version) mit folgenden Änderungen vor:
@@ -237,6 +237,7 @@ open class FeederContext: DoesLog {
               Defaults.singleton["simulateNewVersion"] = "false"
             }
             if doUpdate { store.openInAppStore() }
+            else { Defaults.newStoreVersionFoundDate = Date()}///delay again for 20? days
           }
         }
       }
@@ -1098,5 +1099,56 @@ fileprivate extension LocalNotifications {
       return
     }
     Self.notify(title: payload.standard?.alert?.title, message:message)
+  }
+}
+
+
+fileprivate extension StoreApp {
+  
+  ///check if App Update Popup should be shown
+  func needUpdate() -> Bool {
+    ///ensure store version is higher then running version
+    guard self.version > App.version else { return false }
+    
+    ///ensure store version is the same like the delayed one otherwise delay the store version
+    ///to e.g. current version 0.20.0 delayed 0.20.1 has critical bug 0.20.2 is in phased release
+    ///ensure not all 0.20.0 users get 0.20.2, they should stay on 0.20.0 for a while
+    guard let delayedVersion = Defaults.singleton["newStoreVersion"],
+          delayedVersion == self.version.toString() else {
+      Defaults.singleton["newStoreVersion"] = self.version.toString()
+      Defaults.newStoreVersionFoundDate = Date()
+      return false
+    }
+    
+    ///ensure update popup for **NON AUTOMATIC UPDATE USERS only** comes et first after
+    /// x days 20 = 60s*60min*24h*20d* = 3600*24*20  ::: Test 2 Minutes == 60*2*
+    guard let versionFoundDate = Defaults.newStoreVersionFoundDate,
+          abs(versionFoundDate.timeIntervalSinceNow) > 3600*24*20 else {
+      return false
+    }
+    ///update is needed
+    return true
+  }
+}
+
+fileprivate extension Defaults {
+  
+  ///Helper to persist newStoreVersionFoundDate
+  ///no need to reset on reset App, no need to use somewhere else
+  static var newStoreVersionFoundDate : Date? {
+    get {
+      if let curr = Defaults.singleton["newStoreVersionFoundDate"] {
+        return Date.fromString(curr)
+      }
+      return nil
+    }
+    set {
+      if let date = newValue {
+        Defaults.singleton["newStoreVersionFoundDate"] = Date.toString(date)
+      }
+      else {
+        Defaults.singleton["newStoreVersionFoundDate"] = nil
+      }
+    }
   }
 }
