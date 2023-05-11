@@ -13,6 +13,10 @@ import NorthLib
 /// written to have a minimal Impact on IssueVC on Integration
 public class IssueVcWithBottomTiles : UICollectionViewController {
   
+  var inited: Bool {
+    return collectionView.visibleCells.count > 0
+  }
+  
   /// should show PDF Info Toast on startup (from config defaults)
   @Default("showPdfInfoToast")
   public var showPdfInfoToast: Bool
