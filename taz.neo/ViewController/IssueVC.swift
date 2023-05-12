@@ -128,9 +128,18 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         spinner.removeFromSuperview()
       }
       debug("inserting issue \(issue.date.isoDate()) at \(idx)")
-      self.issues.insert(issue, at: idx)
-      self.issueCarousel.insertIssue(img, at: idx)
-      self.inited == true ? self.collectionView.insertItems(at: [IndexPath(item: idx, section: 1)]) : nil
+      
+      if self.inited == true {
+        collectionView.performBatchUpdates { [weak self] in
+          self?.issues.insert(issue, at: idx)
+          self?.issueCarousel.insertIssue(img, at: idx)
+          self?.collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
+        }
+      }
+      else {
+        self.issues.insert(issue, at: idx)
+        self.issueCarousel.insertIssue(img, at: idx)
+      }
 
       if let idx = issueCarousel.index { setLabel(idx: idx) }
       if let date = selectedIssueDate {
@@ -735,8 +744,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     onMainAfter { [weak self] in
-      self?.invalidateCarouselLayout()
       self?.alignPdfToggleFab()
+      if self?.inited == true {
+        self?.invalidateCarouselLayout()
+      }
     }
   }
   
