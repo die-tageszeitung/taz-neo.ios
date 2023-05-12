@@ -33,10 +33,10 @@ public final class NotificationBusiness: DoesLog {
     
   var showingNotificationsPopup = false
   
-  
-  
   /// remember async called system setting
   var systemNotificationsEnabled: Bool?
+  ///remember last accessed auth status due its maybe not determinated after new install
+  var systemNotificationsStatus: UNAuthorizationStatus?
   
   /// Check if in app notifications settings are applyable for current setting in ios system settings
   /// - Parameter finished: callback after async check is finished
@@ -45,6 +45,12 @@ public final class NotificationBusiness: DoesLog {
     notifCenter.getNotificationSettings(
       completionHandler: { [weak self] (settings) in
         guard let self = self else { return }
+        self.systemNotificationsStatus = settings.authorizationStatus
+        if settings.authorizationStatus == .notDetermined {
+          finished?()
+          return;
+        }
+        
         self.systemNotificationsEnabled
         = settings.authorizationStatus == .provisional
         || settings.authorizationStatus == .authorized
@@ -75,6 +81,17 @@ public final class NotificationBusiness: DoesLog {
 extension NotificationBusiness {
   func showPopupIfNeeded(newIssueAvailableSince: TimeInterval){
     guard !showingNotificationsPopup else { return }
+    
+    if self.systemNotificationsStatus == .notDetermined {
+      onThreadAfter(5.0){[weak self] in
+        self?.checkNotificationStatus{
+          onMain {[weak self] in
+            self?.showPopupIfNeeded(newIssueAvailableSince: newIssueAvailableSince)
+          }
+        }
+      }
+      return;
+    }
     
     if self.systemNotificationsEnabled == nil {
       self.checkNotificationStatus{
