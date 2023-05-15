@@ -635,12 +635,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                                width: 35,
                                height: 40,
                                contentMode: .right)
-    if App.isAvailable(.FAKSIMILEEXPORT){
+    
+    if App.isAvailable(.FAKSIMILEEXPORT)
+      || (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
       shareButton = toolBar.addImageButton(name: "share",
                                  onPress: onShare,
                                  direction: .center,
                                  accessibilityLabel: "Teilen")
-
     }
     
     //the toolbar setup itself
