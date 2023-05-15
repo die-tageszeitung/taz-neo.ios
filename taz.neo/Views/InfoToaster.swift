@@ -147,6 +147,10 @@ extension InfoToasterView {
                    }, completion: { [weak self] _ in
                      self?.wrapper.removeFromSuperview()
                      self?.dismissHandler?()
+                     self?.dismissHandler = nil
+                     self?.xButtonHandler = nil
+                     self?.scrollView.removeFromSuperview()
+                     self?.removeFromSuperview()
                    })
   }
   
