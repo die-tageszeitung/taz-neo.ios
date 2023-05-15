@@ -316,7 +316,7 @@ open class FeederContext: DoesLog {
     if let storedFeeder = self.storedFeeder {
        let sfeed = storedFeeder.feeds[0]
        let gfeed = gqlFeeder.feeds[0]
-      return sfeed.cycle == gfeed.cycle 
+      return !(sfeed.cycle == gfeed.cycle)
     }
     return false
   }
