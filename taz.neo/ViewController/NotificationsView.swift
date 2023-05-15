@@ -117,7 +117,7 @@ class NotificationsView: InfoToasterView {
   @objc func applicationDidBecomeActive(notification: NSNotification) {
     NotificationBusiness.sharedInstance.checkNotificationStatus {
       if NotificationBusiness.sharedInstance.systemNotificationsEnabled == false { return }
-      Toast.show("Mitteilungen sind jetzt aktiviert! ❤️")
+      ///Toast.show("Mitteilungen sind jetzt aktiviert! ❤️")
       onMain {[weak self] in
         self?.dismiss()
         self?.removeObservers()
