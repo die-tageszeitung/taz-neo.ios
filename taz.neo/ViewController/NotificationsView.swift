@@ -133,7 +133,6 @@ class NotificationsView: InfoToasterView {
   
   required init(newIssueAvailableSince: TimeInterval) {
     let hours = Int(round(newIssueAvailableSince / 3600))
-    let newIssueAvailableSince = Date()
     titleLabel.text = "Immer Bescheid wissen"
     
     messageLabel.text =
