@@ -120,16 +120,20 @@ class NotificationsView: InfoToasterView {
       Toast.show("Mitteilungen sind jetzt aktiviert! ❤️")
       onMain {[weak self] in
         self?.dismiss()
+        self?.removeObservers()
       }
     }
+  }
+  
+  func removeObservers(){
+    NotificationCenter.default.removeObserver(self)
   }
   
   override func didMoveToSuperview() {
     super.didMoveToSuperview()
     guard superview == nil else { return }
-    NotificationCenter.default.removeObserver(self)
+    NotificationCenter.default.removeObserver(self)//not working indicates memory leak
   }
-
   
   required init(newIssueAvailableSince: TimeInterval) {
     let hours = Int(round(newIssueAvailableSince / 3600))
