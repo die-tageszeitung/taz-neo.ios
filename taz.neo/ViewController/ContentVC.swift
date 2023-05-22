@@ -606,14 +606,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     if let sections = issue.sections, sections.count > 1 { setupSlider() }
     
     whenScrolled { [weak self] ratio in
-      if (ratio < 0) { self?.toolBar.hide()}
-      else { self?.toolBar.hide(false)}
+      if (ratio < 0) { self?.toolBar.show(show: false, animated: true)}
+      else { self?.toolBar.show(show:true, animated: true)}
     }
     onDisplay {[weak self]_, _  in
       //Note: use this due onPageChange only fires on link @see WebCollectionView
       if self?.showBarsOnContentChange == true {
-        self?.toolBar.hide(false)
-        self?.header.showAnimated()
+        self?.toolBar.show(show:true, animated: true)
+        self?.header.show(show: true, animated: true)
       }
     }
     displayUrls()

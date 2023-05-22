@@ -53,6 +53,7 @@ class LoginController: FormsController {
       }
     }
     else {
+      self.ui.idInput.text = self.ui.idInput.text?.trim
       self.queryAuthToken(tazId: (self.ui.idInput.text ?? ""),tazIdPass: self.ui.passInput.text ?? "")
     }
   }
@@ -98,6 +99,12 @@ class LoginController: FormsController {
             (self.auth as? DefaultAuthenticator)?.notifySuccess()
           }
         case .failure(let error):
+          if error is URLError {
+            Toast.show(Localized("communication_breakdown"))
+            self.ui.blocked = false
+            return
+          }
+          
           guard let authStatusError = error as? AuthStatusError else {
             //generell error e.g. no connection
             Toast.show(Localized("something_went_wrong_try_later"))

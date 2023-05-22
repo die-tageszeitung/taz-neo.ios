@@ -13,6 +13,8 @@ import NorthLib
 /// written to have a minimal Impact on IssueVC on Integration
 public class IssueVcWithBottomTiles : UICollectionViewController {
   
+  var inited = false
+  
   /// should show PDF Info Toast on startup (from config defaults)
   @Default("showPdfInfoToast")
   public var showPdfInfoToast: Bool
@@ -191,6 +193,8 @@ public class IssueVcWithBottomTiles : UICollectionViewController {
   func setupPullToRefresh() {
     //add status Header
     self.view.addSubview(statusHeader)
+    ///on some Devices e.g. iPhone 8+ the Status Header overlays the Login Button nearly completly that its hard to touch it.
+    statusHeader.isUserInteractionEnabled = false
     pin(statusHeader.left, to: self.view.left)
     pin(statusHeader.right, to: self.view.right)
     statusBottomConstraint = pin(statusHeader.bottom, to: self.view.topGuide(), dist: 0)
@@ -339,7 +343,7 @@ extension IssueVcWithBottomTiles {
     guard let cell = _cell as? IssueVCBottomTielesCVCCell else { return _cell }
     
     if let issueVC = self as? IssueVC,
-       let issue = issues.valueAt(indexPath.row) as? StoredIssue {
+       let issue = issues.valueAt(indexPath.row) {
       
       cell.issue = issue
       
@@ -374,6 +378,7 @@ extension IssueVcWithBottomTiles {
   public override func collectionView(_ collectionView: UICollectionView,
                                       willDisplay cell: UICollectionViewCell,
                                       forItemAt indexPath: IndexPath) {
+    if indexPath.section == 1 && inited == false { inited = true }
     if indexPath.section == 1,
        indexPath.row > issues.count - 2 {
       showMoreIssues()
@@ -583,6 +588,12 @@ extension IssueVcWithBottomTiles: UICollectionViewDelegateFlowLayout {
 // MARK: - ShowPDF Info Toast
 extension IssueVcWithBottomTiles {
   func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
+    ///Disable PDF Lottie Toast to prevent overlayed with Notifications Alert
+    #warning("ToDo: remove PDF Lottie Sources")
+    onMainAfter(delay) { [weak self] in
+      self?.showScrollDownAnimationIfNeeded()
+    }
+    return;
     if showPdfInfoToast == false {
       showScrollDownAnimationIfNeeded()
       return
@@ -655,5 +666,3 @@ extension IssueVcWithBottomTiles {
     }
   }
 }
-
-

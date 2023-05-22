@@ -13,6 +13,15 @@ import UIKit
 class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate {
   
   class Spinner: UIViewController {
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+      super.viewWillTransition(to: size, with: coordinator)
+      Notification.send(Const.NotificationNames.viewSizeTransition,
+                        content: size,
+                        error: nil,
+                        sender: nil)
+    }
+    
+    
     convenience init() {
       self.init(nibName: nil, bundle: nil)
       self.view.backgroundColor = .black
@@ -47,6 +56,8 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   private var threeFingerAlertOpen: Bool = false
   private var devGestureRecognizer: UIGestureRecognizer?
+  
+  var shouldShowNotifications = true
   
   public private(set) lazy var rootViewController : UIViewController = {
     // Startup Splash Screen?!
@@ -212,14 +223,43 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     }
   }
   
-  /// Reset App and delete data 
-  public func resetApp() {
-    Alert.message(title: "Neustart erforderlich", 
-      message: """
-        Zur Reinitialisierung der App ist ein Neustart erforderlich.
-        Die App wird sich jetzt beenden. Starten Sie sie bitte anschließend
-        erneut.
-      """) { [weak self] in
+  enum resetAppReason {
+    case cycleChangeWithLogin, wrongCycleDownloadError
+  }
+
+  /// Reset App and delete data
+  /// - Parameter reason: reason to display right message to user
+  /// Warning in some unknown cases a weekend login did not fire resetApp(.cycleChangeWithLogin) then
+  /// it may fired immediately on update an weekday issue
+  public func resetApp(_ reason: resetAppReason) {
+    let weeklyLogin = self.feederContext?.gqlFeeder.feeds.first?.cycle == .weekly
+    var message: String
+    switch (reason, weeklyLogin) {
+      case (.cycleChangeWithLogin, _):
+        message = """
+            Zur Reinitialisierung der App ist ein Neustart erforderlich.
+            Die App wird sich jetzt beenden. Starten Sie sie bitte anschließend
+            erneut.
+          """
+      case (.wrongCycleDownloadError, true):
+        message = """
+            Es ist ein Fehler aufgetreten.
+            Anscheinend sind Sie mit einem Wochentaz Abo angemeldet,
+            in den lokalen Daten sind jedoch Werktagsausgaben vorhanden.
+            Eine Reinitialisierung und Neustart der App ist erforderlich.
+            Die App wird sich jetzt beenden. Starten Sie sie bitte anschließend
+            erneut.
+          """
+      case (.wrongCycleDownloadError, false):
+        message = """
+            Es ist ein Fehler aufgetreten.
+            Eine Reinitialisierung und Neustart der App ist erforderlich.
+            Die App wird sich jetzt beenden. Starten Sie sie bitte anschließend
+            erneut.
+          """
+    }
+    Alert.message(title: "Neustart erforderlich",
+      message: message) { [weak self] in
       self?.reset(isDelete: true)
     }
   }
@@ -228,22 +268,26 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     authenticator?.unlinkSubscriptionId()
   }
   
-  func deleteUserData() {
-    SimpleAuthenticator.deleteUserData(excludeDataPolicyAccepted: false)
+  func deleteUserData(logoutFromServer: Bool = false) {
+    SimpleAuthenticator.deleteUserData(logoutFromServer: logoutFromServer)
     Defaults.expiredAccountDate = nil
-    let dfl = Defaults.singleton
-    dfl["isTextNotification"] = "true"
-    dfl["nStarted"] = "0"
-    dfl["lastStarted"] = "0"
-    dfl["installationId"] = nil
-    dfl["pushToken"] = nil
-    
-    dfl["bottomTilesLastShown"] = nil
-    dfl["bottomTilesShown"] = nil
-    dfl["showBottomTilesAnimation"] = nil
-    dfl["bottomTilesAnimationLastShown"] = nil
-    
-    Defaults.lastKnownPushToken = nil
+    if logoutFromServer == false {
+      let dfl = Defaults.singleton
+      dfl["isTextNotification"] = "true"
+      dfl["nStarted"] = "0"
+      dfl["lastStarted"] = "0"
+      dfl["installationId"] = nil
+      dfl["pushToken"] = nil
+      
+      dfl["bottomTilesLastShown"] = nil
+      dfl["bottomTilesShown"] = nil
+      dfl["showBottomTilesAnimation"] = nil
+      dfl["bottomTilesAnimationLastShown"] = nil
+      
+      Defaults.notificationsActivationPopupRejectedTemporaryDate = nil
+      Defaults.notificationsActivationPopupRejectedDate = nil
+      Defaults.lastKnownPushToken = nil
+    }
     feederContext?.gqlFeeder.authToken = nil
     feederContext?.endPolling()
     logKeychain(msg: "after delete")
@@ -263,13 +307,13 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   func setupFeeder(isStartup: Bool = true) {
     let feeder = Defaults.currentFeeder
     log("Connecting to feeder: \(feeder.name) feed: \(feeder.feed)")
-    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
     Notification.receiveOnce("feederReady") { [weak self] notification in
       guard let self, let fctx = notification.sender as? FeederContext else { return }
       self.debug(fctx.storedFeeder.toString())
       if isStartup { self.startup() }
       else { self.showHome() }
     }
+    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
   }
   
   // Logs Keychain variables if in debug mode
@@ -314,7 +358,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self.debug("Showing Intro")
       let introVC = IntroVC()
       let feeder = self.feederContext?.storedFeeder
-      introVC.webView.showBottomButtonInitially()
+      introVC.webView.toggleBottomButton = false
       introVC.htmlDataPolicy = feeder?.dataPolicy
       introVC.htmlIntro = feeder?.welcomeSlides
       Notification.receiveOnce("dataPolicyAccepted") { notif in
@@ -693,10 +737,10 @@ enum Shortcuts{
   
   static func currentItems() -> [UIApplicationShortcutItem]{
     // No Server Switch for Release App
-//    if App.isRelease {
-//      return []
-//      // return [Shortcuts.logging.shortcutItem()] //deactivated logging ui for release
-//    }
+    if App.isRelease {
+      return []
+      // return [Shortcuts.logging.shortcutItem()] //deactivated logging ui for release
+    }
     var itms:[UIApplicationShortcutItem] = [
       // Shortcuts.feedback.shortcutItem(.mail),
       // Shortcuts.logging.shortcutItem(wantsLogging ? .confirmation : nil)

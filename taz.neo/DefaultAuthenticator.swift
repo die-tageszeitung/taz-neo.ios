@@ -154,7 +154,7 @@ public class DefaultAuthenticator: Authenticator {
   @discardableResult
   public func notifySuccess() -> Bool {
     if feeder.deliveryChanged() { 
-      TazAppEnvironment.sharedInstance.resetApp() 
+      TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin) 
       return false
     }
     else {
@@ -249,6 +249,11 @@ public class DefaultAuthenticator: Authenticator {
     ??  (TazAppEnvironment.sharedInstance.rootViewController as? UITabBarController)?.selectedViewController
     ?? UIWindow.rootVC
     else { return }
+    
+    if self.feeder.isAuthenticated && TazAppEnvironment.sharedInstance.feederContext?.needsReInit() ?? false {
+      TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin)
+      return
+    }
     
     var authController:FormsController
     if self.feeder.isAuthenticated,

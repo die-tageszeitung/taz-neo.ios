@@ -40,13 +40,13 @@ public class BookmarkFeed: Feed, DoesLog {
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     // Copy resources to bookmark folder
     let resources = ["bookmarks-ios.css", "bookmarks-ios.js",
-                     "Star.svg", "StarFilled.svg", "Share.svg"]
+                     "Star.svg", "StarFilled.svg", "Share.svg", "dot-night.svg", "dot-day.svg"]
     for f in resources {
       if let path = Bundle.main.path(forResource: f, ofType: nil) {
         let base = File.basename(path)
         let src = File(path)
         let dest = "\(dir.path)/resources/\(base)"
-        src.copyIfNewer(to: dest)
+        src.copyResource(to: dest)
       }
     }
   }
@@ -118,6 +118,7 @@ public class BookmarkFeed: Feed, DoesLog {
     ? "<p>\((art.teaser ?? "").xmlEscaped())</p>"
     : ""
     let html = """
+      <div class="dottedline"></div>
       <a href="\(art.path)">
         \(getImage(art: art))
         <h2>\(title.xmlEscaped())</h2>
@@ -329,3 +330,25 @@ public class DummyMoment: Moment {
   public var creditedImages: [ImageEntry] { [] }
   public var animation: [FileEntry] { [] }
 }
+
+/// Small File extension to copy resource files
+extension File {
+  /**
+   copies a file to a destination given by its pathname.
+
+   self is only copied if it is either newer than the destination file
+   (in this case it is an update of a new app version) or the destination
+   file is newer than the source file (in this case it has been copied before
+   but the mtime has not been set to that of the source file).
+   After copying the destination file's mtime is set to that of the source
+   file.
+   */
+  public func copyResource(to: String) {
+    let dest = File(to)
+    if dest.mtime != self.mtime {
+      self.copy(to: to)
+      dest.mtime = self.mtime
+    }
+  }
+}
+

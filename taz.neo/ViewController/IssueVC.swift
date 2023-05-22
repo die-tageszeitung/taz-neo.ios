@@ -110,7 +110,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       }
       else {
         ///Refresh Items may not implemented on Data/Model Side
-        self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)])
+        inited ? self.collectionView.reloadItems(at: [IndexPath(item: idx, section: 1)]) : nil
       }
       return
     }
@@ -128,12 +128,17 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         spinner.removeFromSuperview()
       }
       debug("inserting issue \(issue.date.isoDate()) at \(idx)")
-      ///Fix Crash Bug occoured on iOS 12.4 Simulator  ...not happen on 0.9.0 Release on iPhone 6 iOS 12.5.3
-      ///happen after login after restart!
-      collectionView.performBatchUpdates { [weak self] in
-        self?.issues.insert(issue, at: idx)
-        self?.issueCarousel.insertIssue(img, at: idx)
-        self?.collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
+      
+      if self.inited == true {
+        collectionView.performBatchUpdates { [weak self] in
+          self?.issues.insert(issue, at: idx)
+          self?.issueCarousel.insertIssue(img, at: idx)
+          self?.collectionView.insertItems(at: [IndexPath(item: idx, section: 1)])
+        }
+      }
+      else {
+        self.issues.insert(issue, at: idx)
+        self.issueCarousel.insertIssue(img, at: idx)
       }
 
       if let idx = issueCarousel.index { setLabel(idx: idx) }
@@ -336,6 +341,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         return
       }
       isDownloading = true
+      statusHeader.currentStatus = .loadIssue
       issueCarousel.index = index
       issueCarousel.setActivity(idx: index, isActivity: true)
       Notification.receiveOnce("issueStructure", from: sissue) { [weak self] notif in
@@ -739,8 +745,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     onMainAfter { [weak self] in
-      self?.invalidateCarouselLayout()
       self?.alignPdfToggleFab()
+      if self?.inited == true {
+        self?.invalidateCarouselLayout()
+      }
     }
   }
   

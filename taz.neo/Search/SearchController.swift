@@ -172,7 +172,7 @@ class SearchController: UIViewController {
   
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    self.view.backgroundColor = Const.SetColor.CTBackground.color
+    self.view.backgroundColor = Const.SetColor.HBackground.color
   }
   
   override func viewDidLoad() {
@@ -424,7 +424,14 @@ extension SearchController: ArticleVCdelegate {
   }
   
   public func linkPressed(from: URL?, to: URL?) {
-    debug("TODO:: linkPressed \(from?.absoluteString ?? "-") to: \(to?.absoluteString ?? "-")")
+    guard let to = to else { return }
+    self.debug("Calling application for: \(to.absoluteString)")
+    if UIApplication.shared.canOpenURL(to) {
+      UIApplication.shared.open(to, options: [:], completionHandler: nil)
+    }
+    else {
+      error("No application or no permission for: \(to.absoluteString)")
+    }
   }
   
   public func closeIssue() {

@@ -63,14 +63,16 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }    
   }
   
-  private func showArticle(url: URL? = nil, index: Int? = nil) {
+  private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true) {
     if let avc = articleVC {
       if let url = url { avc.gotoUrl(url: url) }
       else if let index = index { avc.index = index }
       if let nvc = navigationController {
         if avc != nvc.topViewController {
           avc.writeTazApiCss()
-          nvc.pushViewController(avc, animated: true)
+          avc.toolBar.show(show:true, animated: false)
+          avc.header.show(show: true, animated: false)
+          nvc.pushViewController(avc, animated: animated)
         }
       }
     }
@@ -231,8 +233,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       
       if section.type == .advertisement {
         header.title = section.title ?? ""
-        header.hideAnimated()
-        toolBar.hide(true)
+        header.show(show: false, animated: true)
+        toolBar.show(show:false, animated: true)
         return
       }
     }
@@ -242,8 +244,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       header.subTitle = issue.validityDateText(timeZone: feeder.timeZone)
       header.titletype = index == 0 ? .section0 : .section
     }
-    header.showAnimated()
-    toolBar.hide(false)
+    header.show(show: true, animated: true)
+    toolBar.show(show:true, animated: true)
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -270,15 +272,22 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
   }
   
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    if let iart = initialArticle {
+      articleVC?.view.doLayout()
+      self.showArticle(index: iart, animated: false)
+      SectionVC.showAnimations = false
+      initialArticle = nil
+      self.header.isHidden = true
+      self.collectionView?.isHidden = true
+    }
+  }
+  
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    if let iart = initialArticle {
-      delay(seconds: 1.0) { [weak self] in
-        self?.showArticle(index: iart)
-      }
-      initialArticle = nil
-      SectionVC.showAnimations = false
-    }
+    self.header.isHidden = false
+    self.collectionView?.isHidden = false
     if SectionVC.showAnimations && issue.sections?.count ?? 0 > 1 {
       SectionVC.showAnimations = false
       delay(seconds: 1.5) {

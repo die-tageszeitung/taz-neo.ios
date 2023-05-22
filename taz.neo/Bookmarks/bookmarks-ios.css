@@ -43,17 +43,24 @@ html {
   line-height      : 1.23;
 }
 
+.icons {
+    width: 80px;
+    display: flex;
+    margin-top: -5px;
+    justify-content: right;
+}
+
 * {
   margin           : 0;
   padding          : 0;
 }
 
 body {
-  padding: 61px 15px 5px 15px;
+  padding: 68px 15px 5px 15px;
 }
 
 section {
-  padding-bottom: 0.6rem;
+  padding-bottom: 0.1rem;
 }
 
 .light {
@@ -66,6 +73,11 @@ section {
   color            : #e3e3e3;
 }
 
+.foot time {
+    color: #9c9c9c;
+    float: left;
+}
+
 header {
   clear: both;
   display: flex;
@@ -74,12 +86,19 @@ header {
   padding-bottom: 0.6rem;
 }
 
-header.light {
-  border-bottom: 1px dashed black;
+.dottedline {
+  height: 1.7px;
+  background-repeat: repeat-x;
+  background-size: contain;
+  margin-top: 4px;
 }
 
-header.dark {
-  border-bottom: 1px dashed #e3e3e3;
+article.light .dottedline {
+  background-image: url("dot-day.svg");
+}
+
+article.dark .dottedline {
+  background-image: url("dot-night.svg");
 }
 
 img.moment {
@@ -93,24 +112,26 @@ header h1 {
   font-weight: bold;
 }
 
-article.light {
-  border-bottom: 1px solid black;
+body.dark section {
+  border-top: 0.7px solid #e3e3e3;
+}
+body.light section {
+  border-top: 0.7px solid #1f1f1f;
 }
 
-article.dark {
-  border-bottom: 1px solid #e3e3e3;
+section {
+  padding-top: 8px;
+  margin-top: 8px;
 }
 
-/*
-article:last-child {
-  border-bottom: none;
+body section:first-child {
+  border-top: none;
+  padding-top: 0px;
 }
-*/
 
 /* No visible links */
 a:link, a:visited, a:hover, a:active, a:focus {
   text-decoration: none;
-  /*color: black;*/
 }
 
 article {
@@ -123,25 +144,33 @@ article {
 
 article h2 {
   padding-top: 0.88rem;
-  padding-bottom: 0.3rem;
   font-size: 0.88rem;
   font-weight: bold;
 }
 
 article p {
   font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
 }
 
 article address {
-  font-size: 0.79rem;
-  font-weight: bold;
-  font-style: normal;
+    font-size: 0.79rem;
+    font-weight: bold;
+    font-style: normal;
+    float: left;
+    padding-right: 7px;
+    line-height: 1rem;
 }
 
 article time {
   font-size: 0.71rem;
   font-weight: normal;
   font-style: normal;
+  line-height: 1rem;
 }
 
 .foot {
@@ -150,14 +179,15 @@ article time {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin-top: -0.5rem;
+  margin-bottom: 3px;
+  margin-top: 4px;
 }
 
 .author {
-  clear: both;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+    clear: both;
+    /* display: flex; */
+    /* flex-direction: row; */
+    /* align-items: center; */
 }
 
 .photo {
@@ -169,12 +199,12 @@ article time {
 }
 
 img.share {
-  padding-left: 10px;
-  margin-right: -5px;
-  width: 48px;
+  margin-right: 12px;
+  margin-bottom: -4px;
+  width: 24px;
 }
 
 img.bookmark {
-  padding-bottom: 10px;
-  width: 30px;
+  width: 26px;
+  margin-top: 1px;
 }

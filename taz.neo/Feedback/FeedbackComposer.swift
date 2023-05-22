@@ -125,6 +125,10 @@ open class FeedbackComposer : DoesLog{
       currentVc.isModalInPresentation = true
       restoreModalityController = currentVc
     }
+    
+    if let tabVC = currentVc.parent as? UITabBarController {
+      currentVc = tabVC
+    }
                                                        
     feedbackBottomSheet = FullscreenBottomSheet(slider: feedbackViewController,
                                               into: currentVc)

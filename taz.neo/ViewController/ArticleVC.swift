@@ -82,6 +82,8 @@ open class ArticleVC: ContentVC {
   }
   
   func displayBookmark(art: Article) {
+    bookmarkButton.isHidden = art.html?.isEqualTo(delegate.issue.imprint?.html) ?? false
+    
     if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
     else { self.bookmarkButton.buttonView.name = "star" }
   }
@@ -89,9 +91,20 @@ open class ArticleVC: ContentVC {
   func toggleBookmark(art: StoredArticle?) {
     guard let art = art else { return }
     var msg: String
-    if art.hasBookmark { msg = "Der Artikel wurde aus ihrer Leseliste entfernt." }
+    var completion:((Bool)->())? = nil
+    
+    if art.hasBookmark {
+      msg = "Der Artikel wurde aus ihrer Leseliste entfernt.<br/>Löschen rückgängig durch Antippen"
+      completion = { wasTapped in
+        guard wasTapped else { return }
+        art.hasBookmark = true
+        Toast.show("Löschen wurde wiederrufen!")
+      }
+    }
     else { msg = "Der Artikel wurde in ihrer Leseliste gespeichert." }
-    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)", minDuration: 0)
+    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)",
+               minDuration: 0,
+               completion: completion)
     art.hasBookmark.toggle()
   }
   
@@ -129,40 +142,50 @@ open class ArticleVC: ContentVC {
       }
     }
     onDisplay { [weak self] (idx, oview) in
-      if let self = self {
-        let art = self.articles[idx]
-        if self.smartBackFromArticle {
-          self.adelegate?.article = art
-        }
-        self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
-        self.setHeader(artIndex: idx)
-        self.issue.lastArticle = idx
-        let player = ArticlePlayer.singleton
-        if player.isPlaying() { async { player.stop() } }
-        if art.canPlayAudio {
-          self.playButton.buttonView.name = "audio"
-          self.onPlay { [weak self] _ in
-            guard let self = self else { return }
-            if let title = self.header.title ?? art.title {
-              art.toggleAudio(issue: self.issue, sectionName: title )
-            }
-            if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
-            else { self.playButton.buttonView.name = "audio" }
-          }
-        }
-        else { self.onPlay(closure: nil) }
-        self.onBookmark { [weak self] _ in
-          guard let self = self else { return }
-          self.toggleBookmark(art: art as? StoredArticle)
-        }
-        if art.primaryIssue?.isReduced ?? false {
-          self.atEndOfContent() { [weak self] isAtEnd in
-            if isAtEnd { self?.feederContext.authenticate() }
-          }
-        }
-        self.displayBookmark(art: art)
-        self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
+      guard let self = self else { return }
+      guard let art = self.articles.valueAt(idx) else {
+        ///prevent crash on search result login on 2nd or later load more results
+        log("fail to access artikel at index: \(idx)  when only \(self.articles.count) exist")
+        return
       }
+      if self.smartBackFromArticle {
+        self.adelegate?.article = art
+      }
+      self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
+      self.setHeader(artIndex: idx)
+      self.issue.lastArticle = idx
+      let player = ArticlePlayer.singleton
+      if player.isPlaying() { async { player.stop() } }
+      if art.canPlayAudio {
+        self.playButton.buttonView.name = "audio"
+        self.onPlay { [weak self] _ in
+          guard let self = self else { return }
+          if let title = self.header.title ?? art.title {
+            art.toggleAudio(issue: self.issue, sectionName: title )
+          }
+          if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
+          else { self.playButton.buttonView.name = "audio" }
+        }
+      }
+      else { self.onPlay(closure: nil) }
+      player.onEnd { [weak self] err in
+        self?.playButton.buttonView.name = "audio"
+        guard let err = err else { return }
+        //Offline Error: err._userInfo?.value(forKey: "NSUnderlyingError") as? NSError)?.code == -1020
+        self?.debug("Failed to play with error: \(err)")
+        Toast.show("Die Vorlesefunktion konnte nicht gestartet werden.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.")
+      }
+      self.onBookmark { [weak self] _ in
+        guard let self = self else { return }
+        self.toggleBookmark(art: art as? StoredArticle)
+      }
+      if art.primaryIssue?.isReduced ?? false {
+        self.atEndOfContent() { [weak self] isAtEnd in
+          if isAtEnd { self?.feederContext.authenticate() }
+        }
+      }
+      self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
+      self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
     }
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
@@ -213,7 +236,7 @@ open class ArticleVC: ContentVC {
         }        
       }
       else if art.title != nil,
-              art.title == adelegate?.issue.imprint?.title,
+              art.html?.isEqualTo(adelegate?.issue.imprint?.html) ?? false,
               art.sectionTitle == nil {
         header.title = art.title
         header.pageNumber = nil

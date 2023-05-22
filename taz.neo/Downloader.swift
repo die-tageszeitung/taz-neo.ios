@@ -178,6 +178,9 @@ open class Downloader: DoesLog {
       if let self = self {
         if self.payloadQueue.count > 0 { self.payloadQueue.removeFirst() }
         if self.payloadQueue.count > 0 { self.payloadQueue[0].download(dl: self) }
+        ///maybe better check
+        ///if payloadQueue.contains(where: {$0.payload.issue?.date == payload.issue?.date && $0.payload.issue?.date != nil}) == false {...
+        ///to ensute payload of *one* issue is compleetly downloaded instead of fire at end every file
         atEnd(err)
       }
     }
