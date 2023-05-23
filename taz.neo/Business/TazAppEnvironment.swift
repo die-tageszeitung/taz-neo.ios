@@ -82,7 +82,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   var showAnimations = false
   lazy var consoleLogger = Log.Logger()
-  lazy var viewLogger = Log.ViewLogger()
   lazy var fileLogger = Log.FileLogger()
   var feederContext: FeederContext?
   let net = NetAvailability()
