@@ -974,6 +974,7 @@ open class FeederContext: DoesLog {
         if let storedPubDates = feed.publicationDates {
           var dates = storedPubDates.dates
           dates.append(contentsOf: gqlPubDates.dates)
+          dates = Array(Set(dates)).sorted()
           newIssuesAvailable = storedPubDates.dates.count < dates.count
           (storedPubDates as? StoredPublicationDates)?.dates = dates
         }
