@@ -39,7 +39,7 @@ import NorthLib
 
 /// for issueImageLoaded Notification
 /// loader to prevent e.g. switch to PDF load finished for app view, worng image set to cell
-typealias IssueCellData = (date: Date, issue:StoredIssue?, image: UIImage?)
+typealias IssueCellData = (date: PublicationDate, issue:StoredIssue?, image: UIImage?)
 typealias EnqueuedMomentLoad = (issue: StoredIssue, files: [FileEntry], isPdf: Bool)
 
 /// using Dates short String Representation for store and find issues for same date, ignore time
@@ -59,7 +59,7 @@ class IssueOverviewService: NSObject, DoesLog {
   internal var feederContext: FeederContext
   var feed: StoredFeed
   
-  public private(set) var issueDates: [Date]
+  public private(set) var publicationDates: [PublicationDate]
   public var firstIssueDate: Date { feed.firstIssue }
   public var lastIssueDate: Date { feed.lastIssue }
   private var issues: [String:StoredIssue]
@@ -71,25 +71,25 @@ class IssueOverviewService: NSObject, DoesLog {
   /// - Parameter index: index for requested cell
   /// - Returns: cell data if any with date, issue if locally available, image if locally available
   func cellData(for index: Int) -> IssueCellData? {
-    guard let date = date(at: index) else {
+    guard let publicationDate = date(at: index) else {
       error("No Entry for: \(index), This should not be requested")
       return nil
     }
-    guard let issue = issue(at: date) else {
-      apiLoadPreview(for: date, count: 6)
-      return IssueCellData(date: date, issue: nil, image: nil)
+    guard let issue = issue(at: publicationDate.date) else {
+      apiLoadPreview(for: publicationDate.date, count: 6)
+      return IssueCellData(date: publicationDate, issue: nil, image: nil)
     }
     let img = self.storedImage(issue: issue, isPdf: isFacsimile)
     if img == nil { apiLoadMomentImages(for: issue, isPdf: isFacsimile) }
-    return IssueCellData(date: issue.date, issue: issue, image: img)
+    return IssueCellData(date: publicationDate, issue: issue, image: img)
   }
   
-  func date(at index: Int) -> Date? {
-    return issueDates.valueAt(index)
+  func date(at index: Int) -> PublicationDate? {
+    return publicationDates.valueAt(index)
   }
   
   func nextIndex(for date: Date) -> Int {
-    return issueDates.firstIndex(where: { $0 <= date }) ?? 0
+    return publicationDates.firstIndex(where: { $0.date <= date }) ?? 0
   }
   
   @discardableResult
@@ -112,12 +112,12 @@ class IssueOverviewService: NSObject, DoesLog {
       print("no date for \(index)")
       return .notStarted
     }
-    guard let issue = issue(at: d) else {
-      print("no issue for \(index) date: \(d.issueKey)")
+    guard let issue = issue(at: d.date) else {
+      print("no issue for \(index) date: \(d.date)")
       return .notStarted
     }
     if issue.isDownloading { return .process }
-    print("issue for \(index) date: \(d.issueKey) is either not started or done")
+    print("issue for \(index) date: \(d.date) is either not started or done")
     return feederContext.needsUpdate(issue: issue, toShowPdf: isFacsimile)
     ? .notStarted
     : .done
@@ -138,8 +138,8 @@ class IssueOverviewService: NSObject, DoesLog {
       }
     }
 */
-    guard let date = issueDates.valueAt(index) else { return nil }
-    return issue(at: date)
+    guard let date = publicationDates.valueAt(index) else { return nil }
+    return issue(at: date.date)
   }
   
   func issue(at date: String) -> StoredIssue? {
@@ -164,7 +164,7 @@ class IssueOverviewService: NSObject, DoesLog {
   @discardableResult
   /// checks for new issues, if not currently doing this
   /// - Returns: true if check will be executed; false if check is still in progress
-  func checkForNewIssues() -> Bool {
+  func checkForNewIssues2() -> Bool {
     let key = Date.init(timeIntervalSince1970: 0).issueKey
     if loadingDates.contains(where: { return $0==key}) {
       return false
@@ -172,8 +172,18 @@ class IssueOverviewService: NSObject, DoesLog {
     apiLoadPreview(for: nil, count: 3)
     return true
   }
+  
+  
+  var isCheckingForNewIssues = false
+  
+  func checkForNewIssues() -> Bool{
+    if isCheckingForNewIssues { return false }
+    feederContext.updatePublicationDates(feed: feederContext.defaultFeed)
+    return true
+  }
 
   func apiLoadPreview(for date: Date?, count: Int) {
+//    feederContext.
     if let date, issue(at: date) != nil {
       debug("Already loaded: \(date.issueKey) skip loading")
       return
@@ -246,11 +256,13 @@ class IssueOverviewService: NSObject, DoesLog {
   
   /// Ensute probybly new downloaded issue previews are in issueDatesArray, send reload is some added
   func addLatestDates(dates: [Date]) {
-    var allDates = self.issueDates
-    allDates.append(contentsOf: dates)
-    allDates = allDates.sorted().reversed()
-    if self.issueDates.count == allDates.count { return }
-    Notification.send(Const.NotificationNames.reloadIssueList)
+    #warning("TODO")
+    log("WARNING TODO")
+//    var allDates = self.issueDates
+//    allDates.append(contentsOf: dates)
+//    allDates = allDates.sorted().reversed()
+//    if self.issueDates.count == allDates.count { return }
+//    Notification.send(Const.NotificationNames.reloadIssueList)
   }
   
   func hasDownloadableContent(issue: Issue) -> Bool {
@@ -337,19 +349,25 @@ class IssueOverviewService: NSObject, DoesLog {
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
     self.feed = feederContext.defaultFeed
-    issueDates = feed.publicationDates?.dates.sorted().reversed() ?? []
+    #warning("ensure sorted!")
+
+    publicationDates = feed.publicationDates ?? []
+//    publicationDates = feed.publicationDates?.sorted() ?? []
     
     issues = StoredIssue.issuesInFeed(feed: feed).reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1
     }
 
     super.init()
-    Notification.receive(Const.NotificationNames.reloadIssueDates) {[weak self] _ in
-      if let newDates = self?.feed.publicationDates?.dates.sorted() {
-        self?.issueDates = newDates.reversed()
-        Notification.send(Const.NotificationNames.reloadIssueList)
-      }
-    }
+    log("WARNING ENSURE SORTED PUB DATES se above")
+#warning("ensure reload after update!")
+log("WARNING ensure reload after update")
+//    Notification.receive(Const.NotificationNames.reloadIssueDates) {[weak self] _ in
+//      if let newDates = self?.feed.publicationDates?.dates.sorted() {
+//        self?.issueDates = newDates.reversed()
+//        Notification.send(Const.NotificationNames.reloadIssueList)
+//      }
+//    }
     ///Update downloaded Issue Reference
     Notification.receive("issue"){ [weak self] notif in
       guard let issue = notif.object as? StoredIssue else { return }

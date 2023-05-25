@@ -173,11 +173,11 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   }
   
   func updateBottomWrapper(for cidx: Int, force: Bool = false){
-    guard let date = service.date(at: cidx) else { return }
-    let issue = service.issue(at: date)
+    guard let publicationDate = service.date(at: cidx) else { return }
+    let issue = service.issue(at: publicationDate.date)
     let txt = issue?.validityDateText(timeZone: GqlFeeder.tz,
-                                      short: true) ?? date.short
-    let newKey = date.issueKey
+                                      short: true) ?? publicationDate.date.short
+    let newKey = publicationDate.date.issueKey
     if force || newKey != centerIssueDateKey {
       let state = service.issueDownloadState(at: cidx)
       print("changed from: \(centerIssueDateKey ?? "-") to \(newKey) state: \(state)")
@@ -195,7 +195,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   }
   
   override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return service.issueDates.count
+    return service.publicationDates.count
   }
   
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -207,14 +207,14 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
        let cell = cell as? IssueCollectionViewCell{
       ///Jump to date called prevent all intermediate API Calls, return empty cell,
       ///just set the date for update the cell within a notification
-      cell.date = service.date(at: indexPath.row)
+      cell.date = service.date(at: indexPath.row)?.date
       return cell
     }
     preventApiLoadUntilIndex = nil
     
     guard let cell = cell as? IssueCollectionViewCell,
           let data = service.cellData(for: indexPath.row) else { return cell }
-    cell.date = data.date
+    cell.date = data.date.date
     cell.issue = data.issue
     cell.image = data.image
     
@@ -421,7 +421,7 @@ extension IssueCarouselCVC {
 //    let toDate = feed.lastIssue
     
     if pickerCtrl == nil {
-      let selected = service.date(at: centerIndex ?? 0)
+      let selected = service.date(at: centerIndex ?? 0)?.date
       pickerCtrl = DatePickerController(minimumDate: service.firstIssueDate,
                                         maximumDate: service.lastIssueDate,
                                          selectedDate: selected ?? service.firstIssueDate)

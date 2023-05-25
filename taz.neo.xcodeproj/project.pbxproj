@@ -921,7 +921,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.12;
+				MARKETING_VERSION = 0.10.1;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -1068,7 +1068,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.12;
+				MARKETING_VERSION = 0.10.1;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1094,7 +1094,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.12;
+				MARKETING_VERSION = 0.10.1;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

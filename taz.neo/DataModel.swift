@@ -756,19 +756,21 @@ public extension IssueStatus {
 }
 
 /// PublicationDate
-public protocol PublicationDates: ToString, AnyObject {
-  /// Publication dates array
-  var dates: [Date] { get }
-  /// Publication cycle
-  var cycle: PublicationCycle { get }
+public protocol PublicationDate: ToString, AnyObject {
+  /// Publication date
+  var date: Date { get }
+  /// validity date for week issue
+  var validityDate: Date? { get }
+  /// Reference to Feed providing this Issue
+  var feed: Feed? { get set }
 }
 
-public extension PublicationDates {
+public extension PublicationDate {
   func toString() -> String {
-    var range: [String] = []
-    if let min = self.dates.min(){ range.append(min.short) }
-    if let max = self.dates.max(){ range.append(max.short) }
-    return "Cycle: \(self.cycle), Range: \(range.joined(separator: " - "))"
+    if let v = validityDate {
+      return "\(self.date.short) - \(v.short)"
+    }
+    return (self.date.short)
   }
 }
 
@@ -1067,6 +1069,7 @@ public protocol Feed: ToString {
   /// Number of issues available
   var issueCnt: Int { get }
   /// Date of last issue available (newest)
+  #warning("WHERE FROM?? USING PUB DATES!!")
   var lastIssue: Date { get }
   /// Date of issue last read
   var lastIssueRead: Date? { get }
@@ -1079,7 +1082,7 @@ public protocol Feed: ToString {
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
   /// publicationDates this Feed
-  var publicationDates: PublicationDates? { get }
+  var publicationDates: [PublicationDate]? { get }
   /// Directory where all feed specific data is stored
   var dir: Dir { get }
 } // Feed

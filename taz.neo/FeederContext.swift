@@ -66,7 +66,16 @@ open class FeederContext: DoesLog {
   /// The GraphQL Feeder (from server)
   public var gqlFeeder: GqlFeeder!
   /// The stored Feeder (from DB)
-  public var storedFeeder: StoredFeeder!
+  public var storedFeeder: StoredFeeder! {
+    didSet {
+      /// used due  a chicken or the egg causality dilemma
+      /// if i start online no db is on startup available to read the data, but we dont want to load all dates if just a few are needed
+      /// other challenges: initial start, migration from 0.9.x, online/offline start, switch daily/weekly
+      /// ...actually FeederContext needs a big refactoring mybe with a bundled initial issue
+      /// to get rid of all the patches
+      latestPublicationDate =  (storedFeeder.feeds.first as? StoredFeed)?.lastPublicationDate
+    }
+  }
   /// The default Feed to show
   public var defaultFeed: StoredFeed!
   /// The Downloader to use 
@@ -103,6 +112,12 @@ open class FeederContext: DoesLog {
   var simulateNewVersion: Bool
   
   var netStatusVerification = Date()
+  
+  var latestPublicationDate:Date? {
+    didSet {
+      Defaults.latestPublicationDate = latestPublicationDate
+    }
+  }
   
   /// isConnected returns true if the Feeder is available
   public var isConnected: Bool { 
@@ -294,8 +309,14 @@ open class FeederContext: DoesLog {
       //          self?.log("Old Session Resetted!!")
       //        }
       //      }
-      
-      self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
+      #warning("MISSING latestIssueDate")
+      log("WARNING MISSING latestIssueDate")
+      //latestIssue:storedFeeder.feeds.first?.lastIssue
+      self.gqlFeeder
+      = GqlFeeder(title: name,
+                  url: url
+                  
+      ) { [weak self] res in
         guard let self = self else { return }
         if let feeder = res.value() {
           if let gqlFeeder = feeder as? GqlFeeder,
@@ -319,7 +340,6 @@ open class FeederContext: DoesLog {
     self.dloader = Downloader(feeder: gqlFeeder)
     netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
     defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder)[0]
-    updatePublicationDates(feed: defaultFeed)
     isReady = true
     cleanupOldIssues()
     notify("feederReady")            
@@ -551,6 +571,7 @@ open class FeederContext: DoesLog {
     guard ArticleDB.singleton != nil else { return }
     let name = ArticleDB.singleton.name
     closeDB()
+    Defaults.latestPublicationDate = nil
     ArticleDB.dbRemove(name: name)
     openDB(name: name)
   }
@@ -562,6 +583,7 @@ open class FeederContext: DoesLog {
     self.name = name
     self.url = url
     self.feedName = feedName
+    self.latestPublicationDate = Defaults.latestPublicationDate
     self.netAvailability = NetAvailability(host: host)
     if self.simulateNewVersion || simulateFailedMinVersion {
       self.bundleID = "de.taz.taz.2"
@@ -825,9 +847,11 @@ open class FeederContext: DoesLog {
     return StoredIssue.issuesInFeed(feed: sf0, count: 1).first
   }
   
-  /**
-   Get/Download latestIssue requested by PushNotification
-   */
+  
+  /// Get/Download latestIssue requested by PushNotification
+  /// - Parameter fetchCompletionHandler: handler to be called on end
+  ///
+  /// Not using zipped download due if download breaks all received data is gone
   public func handleNewIssuePush(_ fetchCompletionHandler: FetchCompletionHandler?) {
     ///Challange: on receive push usually a download happen and then a newData is needed (no matter if full download or just overviewDownload)
     ///in case of full download the newData send is simple
@@ -837,8 +861,6 @@ open class FeederContext: DoesLog {
     ///if we send remoteNotificationFetchCompleete newData too early the System killy all Download Processes and wen miss data
     ///if wen send it too late the automatic .failed is told the system
     ///can we check that there are still downloads?
-
-    //fetzchcompleetionhandler within notifications are hard to handle ...crashes appeared in prev version,
     
     if App.isAvailable(.AUTODOWNLOAD) == false {
       log("Currently not handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
@@ -857,15 +879,6 @@ open class FeederContext: DoesLog {
       guard let self = self else { return }
       #warning("Discussion: Why not use isOverview == true")
       /**
-       if using is overview == true the zip will be used, **must be implemented...** (unknown effort, source of various failures, increasing complexity...)
-       this may saves 10% Data transfer, the single file transfer should also be compressed
-       but if the single file transfer breaks e.g. between 20% and 99% all files are in Temp folder on next Issue Download Request they must not be downloaded!
-       if usinfg the zip 2 Options
-       * download the full zip again
-       * downlaod all files seperatly
-       => This is not worth...
-       Keep It Simple Stupid K.I.S.S
-       -----------------------
         Download 1 ore move 'overviews'?
         Problem: if more dates missing there are maybe empty places in issueOverview,
         no Problem for new Home!
@@ -964,28 +977,40 @@ open class FeederContext: DoesLog {
     updateResources()
   }
   
-  
   public func updatePublicationDates(feed: Feed) {
     guard self.isConnected else { return }
-    self.gqlFeeder.publicationDates(feed: feed,
-                                    fromDate: feed.publicationDates?.dates.max()) { result in
-      var newIssuesAvailable = false
-      if let gqlPubDates = result.value() {
-        if let storedPubDates = feed.publicationDates {
-          var dates = storedPubDates.dates
-          dates.append(contentsOf: gqlPubDates.dates)
-          dates = Array(Set(dates)).sorted()
-          newIssuesAvailable = storedPubDates.dates.count < dates.count
-          (storedPubDates as? StoredPublicationDates)?.dates = dates
-        }
-        else {
-          let storedPubDates =  StoredPublicationDates.persist(object: gqlPubDates)
-          (feed as? StoredFeed)?.publicationDates = storedPubDates
-          newIssuesAvailable = true
-        }
-        ArticleDB.save()
-        if newIssuesAvailable { Notification.send(Const.NotificationNames.reloadIssueDates) }
+    self.gqlFeeder.feederStatus { [weak self] result in
+      
+      if let err = result.error() {
+        self?.debug(err.description)
+        
+        let status = self?.isConnected == false
+        ? FetchNewStatusHeader.status.offline
+        : FetchNewStatusHeader.status.downloadError
+        Notification.send("checkForNewIssues", content: status, error: nil, sender: self)
+        return
       }
+      
+      guard let gqlFeederStatus = result.value(),
+            let self = self,
+            let gqlFeed = gqlFeederStatus.feeds.first,
+            gqlFeed.name == self.defaultFeed.name,
+            let pubDates = feed.publicationDates,
+            pubDates.count > 0,
+            let latestApiDate = pubDates.max(by: { a, b in a.date < b.date}),
+            (self.latestPublicationDate ?? Date(timeIntervalSince1970: 0)) < latestApiDate.date,
+            let sfeed = StoredFeed.get(name: feed.name,
+                                       inFeeder: self.storedFeeder).first else {
+        self?.debug("no new data")
+        Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.none, error: nil, sender: self)
+        return
+      }
+      
+      log("persist: \(pubDates.count) publicationDates")
+      StoredPublicationDate.persist(publicationDates: pubDates, inFeed: sfeed)
+      ArticleDB.save()
+      Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.loadPreview, error: nil, sender: self)
+      Notification.send(Const.NotificationNames.reloadIssueDates)
     }
   }
 

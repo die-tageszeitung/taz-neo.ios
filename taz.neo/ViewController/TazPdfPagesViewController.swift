@@ -10,8 +10,6 @@ import Foundation
 import NorthLib
 import PDFKit
 
-
-
 protocol PdfDownloadDelegate {
   func downloadPdf(_ page:Page, finishedCallback: @escaping ((Bool)->()))
 }
@@ -21,7 +19,7 @@ protocol PdfDownloadDelegate {
 /// - usually they have only 1 Page
 public class ZoomedPdfPageImage: ZoomedPdfImage {
   public override var pageType : PdfPageType {
-    get {
+    get { 
       switch pageReference?.type {
       case .double:
         return . double

@@ -8,6 +8,49 @@
 import UIKit
 import NorthLib
 
+/// **IDEAS/THOUGHTS ABOUT PUBLICATION DATES**
+/// PUBLICATION DATES is used on Home to show Issues
+/// at least the date is available, may the Image is not available
+///
+/// WHEN ADD ONE OR UPDATE LIST?
+/// - on App Start
+///    - old seperate Request update.... FeederContext > connect FeederReady > update...
+///    - new within init gqlfeeder
+///         - saves 1 Request
+///         - update fetch check for new Issues seperatly > reduces request/response sizes
+///         - **TODO** IMPLEMENT > TEST
+/// - pull to refresh
+///         - update PubDates
+///         - **TODO** REFACTOR > TEST
+/// - receive Push "newIssue"
+///         - download given Issue and update List or add ONE!
+///         - **TODO** IMPLEMENT > TEST
+/// - on migration from 0.9.12 > 1.0.0 if started offline! **MUST HAVE**
+///         -  ADD ALL KNOWN IN DB ISSUE DATES
+///         - **TODO** IMPLEMENT > TEST
+///
+/// CHALLENGES
+/// issue in DB requires base url and many more too much to load for all issues
+/// **DB**feed(1) - (n)publicationDate (publicationDate, validityDate?)
+/// **API**feed{ publicationDates{[dates]}  validityDates{[{date, validityDate}]}
+///  ==> need to add validityDate to matching publicationDate **TODO**
+///
+///
+///
+///
+/** NEXT CHALLENNGE HOW TO make
+ 
+ GqlPublicationDate GqlValidityDate to
+ 
+ publicationDates
+ 
+ in
+ */
+
+fileprivate var xgqlPublicationDate: VirtualPublicationDate?
+fileprivate var xgqlFeed: GqlFeed?
+
+
 /// A protocol defining methods to use by GraphQL objects
 protocol GQLObject: Decodable, ToString {
   /// A String listing the GraphQL field names of an GraphQL object
@@ -393,105 +436,92 @@ class GqlMoment: Moment, GQLObject {
     momentList { \(GqlFile.fields) }
   """
 } // GqlMoment
-/*
-/// A GqlPublicationDate describes a Publication Date
-struct GqlPublicationDate: GQLObject {
-  /// Issue date
+
+/// may Initialize PublicationDates from Resources in future
+#warning("TODO 1.0.0 Initialize pubDates")
+/// #warning may initialize pubDates from db issues if no internet Migration to 1.0.0!!" FOR OFFLINE START
+class VirtualPublicationDate: PublicationDate, GQLObject {
+  
+  var feed: Feed?
+  
   var sDate: String
-  var date: Date
-  
-  static var fields = "publicationDates"
-
-  func toString() -> String {
-    return sDate
+  var date: Date {
+      return UsTime(iso: sDate, tz: GqlFeeder.tz).date
   }
-} // GqlPublicationDate
-
-/// A GqlPublicationDate describes a Publication Date
-struct GqlPublicationDates: GQLObject {
-
-  var dates: [GqlPublicationDate]
-  
-  static var fields = "publicationDates"
-
-  func toString() -> String {
-    return "some dates: \(dates.count)"
+  static var fields: String {
+    guard let last
+            = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate else {
+      return "gqlPublicationDates:publicationDates"
+    }
+    return """
+              gqlPublicationDates:publicationDates(start:"\(last.isoDate(tz: GqlFeeder.tz))")
+           """
   }
-} // GqlPublicationDate
-*/
-/// The Payload of files from the download server
-class GqlPublicationDates: PublicationDates, GQLObject {
   
-  var sPublicationDates: [String]
-  var dates: [Date] {
-    return sPublicationDates.compactMap{ UsTime(iso: $0, tz: GqlFeeder.tz).date }
-  }
-//  {
-//    return [Date()]
-////    return UsTime(iso: sDate, tz: GqlFeeder.tz).date
-//  }
-  var name: String
-  var cycle: PublicationCycle
-  
-  
-  static var fields = """
-  product {
-    name,
-    cycle,
-    sPublicationDates:publicationDates
-  }
-  """
-   
-  
-//  /// Initialize PublicationDates from Resources
-//  init(feeder: GqlFeeder, resources: GqlResources) {
-//    localDir = feeder.resourcesDir.path
-//    remoteBaseUrl = resources.resourceBaseUrl
-//    remoteZipName = resources.resourceZipName
-//    files = resources.files
-//    self.resources = resources
-//  }
-//
-//  /// Initialize PublicationDates from Issue
-//  init(feeder: GqlFeeder, issue: GqlIssue, isPages: Bool = false) {
-//    localDir = feeder.issueDir(issue: issue).path
-//    remoteBaseUrl = issue.baseUrl
-//    remoteZipName = issue.zipName
-//    files = issue.files(isPages: isPages)
-//    self.issue = issue
-//  }
+  var sValidityDate: String?
+  var validityDate: Date?
   
   enum CodingKeys: String, CodingKey {
-    case publicationDates
-    case name
-    case cycle
+    case sDate
+    case sValidityDate
   }
   
+  func toString() -> String {
+    guard let vd = validityDate else {
+      return "date: \(date.short)"
+    }
+    return "date: \(date.short) - \(vd.short)"
+  }
   
+  required init(from sDate: String, feed: Feed) {
+    self.sDate = sDate
+    self.feed = feed
+  }
   
   required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    print("Do Encode!")
-    
-//    sDate = try container.decode(String.self, forKey: .sDate)
+    sDate = try container.decode(String.self, forKey: .sDate)
 //    sValidityDate = try container.decodeIfPresent(String.self, forKey: .sValidityDate)
-//
-//    if sValidityDate != nil {
-//      print("stop: \(self.validityDate)")
-//    }
-    sPublicationDates = []
-//    try container.decode(String.self, forKey: .sFirstIssue)
-    
-    sPublicationDates = try container.decode([String].self,
-                                              forKey: .publicationDates)
-    name = try container.decode(String.self, forKey: .name)
-    cycle = try container.decode(PublicationCycle.self, forKey: .cycle)
   }
   
-} // GqlPayload
+}// GqlPublicationDate
 
-
-
+class GqlValidityDate: GQLObject {
+  var sDate: String
+  var date: Date {
+    return UsTime(iso: sDate, tz: GqlFeeder.tz).date
+  }
+  var sValidityDate: String?
+  var validityDate: Date? {
+    guard let d = sValidityDate else { return nil }
+    return UsTime(iso: d, tz: GqlFeeder.tz).date
+  }
+  
+  static var fields = """
+    gqlValidityDates:validityDates{
+              sDate: date
+              sValidityDate: validityDate
+        }
+  """
+  
+  enum CodingKeys: String, CodingKey {
+    case sDate
+    case sValidityDate
+  }
+  
+  func toString() -> String {
+    guard let vd = validityDate else {
+      return "date: \(date.short)"
+    }
+    return "date: \(date.short) - \(vd.short)"
+  }
+  
+  required init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    sDate = try container.decode(String.self, forKey: .sDate)
+    sValidityDate = try container.decodeIfPresent(String.self, forKey: .sValidityDate)
+  }
+}// GqlValidityDate
 
 /// One Issue of a Feed
 class GqlIssue: Issue, GQLObject {
@@ -647,11 +677,12 @@ class GqlFeed: Feed, GQLObject {
   /// The Issues requested of this Feed
   var gqlIssues: [GqlIssue]?
   var issues: [Issue]? { return gqlIssues }
-  /// publicationDates this Feed
-  var publicationDates: PublicationDates?
-  
+  var gqlValidityDates: [GqlValidityDate]?
+  var vPublicationDates: [VirtualPublicationDate]?
+  var publicationDates: [PublicationDate]? { return vPublicationDates}
+
   enum CodingKeys: String, CodingKey {
-    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues
+    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues, gqlValidityDates, gqlPublicationDates
   }
 
   required init(from decoder: Decoder) throws {
@@ -664,6 +695,19 @@ class GqlFeed: Feed, GQLObject {
     sFirstIssue = try container.decode(String.self, forKey: .sFirstIssue)
     sFirstSearchableIssue = try container.decode(String.self, forKey: .sFirstSearchableIssue)
     gqlIssues = try container.decodeIfPresent([GqlIssue].self, forKey: .gqlIssues)
+    
+    let publicationDates = try container.decodeIfPresent([String].self, forKey: .gqlPublicationDates)
+    gqlValidityDates = try container.decodeIfPresent([GqlValidityDate].self, forKey: .gqlValidityDates)
+    
+    vPublicationDates = []
+    
+    for pd in publicationDates ?? [] {
+      let vpd = VirtualPublicationDate(from: pd, feed: self)
+      if let vd = gqlValidityDates?.first(where: { $0.sDate == pd }){
+        vpd.validityDate = vd.validityDate
+      }
+      vPublicationDates?.append(vpd)
+    }
   }
   
   static var fields = """
@@ -671,6 +715,8 @@ class GqlFeed: Feed, GQLObject {
       sLastIssue: issueMaxDate
       sFirstIssue: issueMinDate
       sFirstSearchableIssue: issueMinSearchDate
+      \(VirtualPublicationDate.fields)
+      \(GqlValidityDate.fields)
     """
 } // class GqlFeed
 
@@ -1038,7 +1084,7 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = """
       feederStatus: product {
         \(GqlFeederStatus.fields)
-      }
+    }
     """
     gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self) { (res) in
       var ret: Result<GqlFeederStatus,Error>
@@ -1053,7 +1099,22 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
   
+  var latestIssue: Date?
   
+//  var publicationDatesParam: String {
+//    guard let latestIssue = latestIssue else {
+//      return """
+//        publicationDates
+//        validityDate{date, validityDate}
+//        """
+//    }
+//    return """
+//      publicationDates(start: \"\(latestIssue.isoDate(tz: GqlFeeder.tz))\")
+//      validityDate{date, validityDate}
+//      """
+//  }
+  #warning("TODO UPDATE ON PULL TO REFRESH COMES LATER")
+  /*
   // Update PublicationDates
   public func publicationDates(feed: Feed,
                                fromDate: Date?,
@@ -1062,9 +1123,15 @@ open class GqlFeeder: Feeder, DoesLog {
       var authInfo: GqlAuthInfo
       var publicationDates: [GqlPublicationDates]
       static func request(feed: Feed, date: Date?) -> String {
-        var dateArg = "publicationDates"
+        var dateArg = """
+                        publicationDates
+                        validityDate
+                    """
         if let date = date {
-          dateArg = "publicationDates(start: \"\(date.isoDate(tz: GqlFeeder.tz))\")"
+          dateArg = """
+                    publicationDates(start: \"\(date.isoDate(tz: GqlFeeder.tz))\")
+                    validityDate
+                    """
         }
         return """
         publicationDatesRequest: product {
@@ -1101,6 +1168,7 @@ open class GqlFeeder: Feeder, DoesLog {
       closure( .failure(self.error(DefaultError(message: "unexpected"))))
     }
   }
+  */
  
   // Get Issues
   public func issues(feed: Feed, date: Date? = nil, key: String? = nil,
