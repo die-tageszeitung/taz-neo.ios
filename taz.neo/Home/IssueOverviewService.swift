@@ -128,16 +128,6 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func issue(at index: Int) -> StoredIssue? {
-    /* WTF? 
-    if index + 3 > issues.count {
-      if let lastIssue = issues.sorted(by: { $0.0 > $1.0 }).last?.key as? Date {
-        let sIssues = StoredIssue.issuesInFeed(feed: feed)
-        for issue in sIssues {
-          issues[issue.date.key] = issue
-        }
-      }
-    }
-*/
     guard let date = publicationDates.valueAt(index) else { return nil }
     return issue(at: date.date)
   }
@@ -156,24 +146,6 @@ class IssueOverviewService: NSObject, DoesLog {
   
   /// Date keys which are currently loading the preview
   var loadingDates: [String] = []
-  
-//  /// Date keys which are currently loading the preview
-//  var loadingDates: [String] = []
-  
-  
-  @discardableResult
-  /// checks for new issues, if not currently doing this
-  /// - Returns: true if check will be executed; false if check is still in progress
-  func checkForNewIssues2() -> Bool {
-    let key = Date.init(timeIntervalSince1970: 0).issueKey
-    if loadingDates.contains(where: { return $0==key}) {
-      return false
-    }
-    apiLoadPreview(for: nil, count: 3)
-    return true
-  }
-  
-  
   var isCheckingForNewIssues = false
   
   func checkForNewIssues() -> Bool{
@@ -182,39 +154,34 @@ class IssueOverviewService: NSObject, DoesLog {
     return true
   }
 
-  func apiLoadPreview(for date: Date?, count: Int) {
-//    feederContext.
-    if let date, issue(at: date) != nil {
-      debug("Already loaded: \(date.issueKey) skip loading")
-      return
-    }
+  
+  ///Optimized load previews
+  ///e.g. called on jump to date + ipad need to load date +/- 5 issues
+  ///or on scrolling need to load date + 5..10 issues
+  ///           5 or 10 5= more stocking because next laod needed //// 10 increased loading time **wrong beause images are loaded asyc in another thread!**
+  func apiLoadPreview(for date: Date, count: Int) {
     
-    if let date = date, loadingDates.contains(where: { return $0==date.issueKey}) {
+    if loadingDates.contains(where: { return $0==date.issueKey}) {
       debug("Already loading: \(date.issueKey), skip loading")
       return
     }
-    
     var count = count
     
     let availableIssues = issues.map({ $0.value.date.issueKey })
     var currentLoadingDates: [Date] = []
     
-    if let date {
-      for i in -count/2...count/2 {
-        var d = date
-        d.addDays(-i)
-        if availableIssues.contains(d.issueKey) { count = i+1; break }
-        if loadingDates.contains(d.issueKey) { count = i+1; break }
-        currentLoadingDates.append(d)
-      }
+    for i in -count/2...count/2 {
+      var d = date
+      d.addDays(-i)
+      if availableIssues.contains(d.issueKey) { count = i+1; break }
+      if loadingDates.contains(d.issueKey) { count = i+1; break }
+      currentLoadingDates.append(d)
     }
     
     let date = currentLoadingDates.first ?? date
     count = currentLoadingDates.count > 0 ? currentLoadingDates.count : count
     let sCurrentLoadingDates = currentLoadingDates.map{$0.issueKey}
     addToLoading(sCurrentLoadingDates)
-    
-    debug("Load Issues for: \(date?.short ?? "newest"), count: \(count)")
     
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: date,
@@ -223,46 +190,27 @@ class IssueOverviewService: NSObject, DoesLog {
                                         returnOnMain: true) {[weak self] res in
       guard let self = self else { return }
       var newIssues: [StoredIssue] = []
-      self.debug("Finished load Issues for: \(date?.short ?? "-"), count: \(count)")
+      self.debug("Finished load Issues for: \(date.short), count: \(count)")
       
       if let err = res.error() as? FeederError {
         self.handleDownloadError(error: err)
       }
-      #warning("ToDo handle Error issue!!! NEWNEW")
       if let issues = res.value() {
         let start = Date()
         for issue in issues {
           newIssues.append(StoredIssue.persist(object: issue))
         }
-        self.log("Finished load Issues for: \(date?.short ?? "-") DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
+        self.log("Finished load Issues for: \(date.short) DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
         ArticleDB.save()
-        var loadedDates:[Date] = []
         for si in newIssues {
           self.updateIssue(issue: si)
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: si.date,
                             sender: self)
-          if date == nil {
-            loadedDates.append(si.date)
-          }
-        }
-        if date == nil {
-          self.addLatestDates(dates: loadedDates)
         }
       }
       self.removeFromLoading(sCurrentLoadingDates)
     }
-  }
-  
-  /// Ensute probybly new downloaded issue previews are in issueDatesArray, send reload is some added
-  func addLatestDates(dates: [Date]) {
-    #warning("TODO")
-    log("WARNING TODO")
-//    var allDates = self.issueDates
-//    allDates.append(contentsOf: dates)
-//    allDates = allDates.sorted().reversed()
-//    if self.issueDates.count == allDates.count { return }
-//    Notification.send(Const.NotificationNames.reloadIssueList)
   }
   
   func hasDownloadableContent(issue: Issue) -> Bool {
@@ -349,18 +297,12 @@ class IssueOverviewService: NSObject, DoesLog {
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
     self.feed = feederContext.defaultFeed
-    #warning("ensure sorted!")
-
     publicationDates = feed.publicationDates ?? []
     
     issues = StoredIssue.issuesInFeed(feed: feed).reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1
     }
-
     super.init()
-    log("WARNING ENSURE SORTED PUB DATES se above")
-#warning("ensure reload after update!")
-log("WARNING ensure reload after update")
 //    Notification.receive(Const.NotificationNames.reloadIssueDates) {[weak self] _ in
 //      if let newDates = self?.feed.publicationDates?.dates.sorted() {
 //        self?.issueDates = newDates.reversed()
@@ -417,7 +359,6 @@ extension IssueOverviewService {
       self.debug("unspecified download error")
       showDownloadErrorAlert()
     }
-//    self.isDownloading = false
   }
 }
 
@@ -463,11 +404,6 @@ fileprivate class LoadCoordinator: NSObject, DoesLog {
     nextDates = nextDates[nextDates.endIndex - 20 ..< nextDates.endIndex].sorted()
   }
   
-//  func remove(_ datesToRemove: [Date]){
-//    let keysToRemove = datesToRemove.enumerated().compactMap{$1.key}
-//    loadingDates
-//    = loadingDates.enumerated().compactMap{ keysToRemove.contains($1.key) ? nil : $1 }
-//  }
 }
 
 
