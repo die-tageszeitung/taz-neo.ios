@@ -12,14 +12,7 @@ import NorthLib
 
 /**
  Motivation: Helper to load Data from Server uses FeederContext
- 
- Next Steps:
- open issue
- download button
- 
- goto date
- 
- 
+  
  Bug: leere ausgaben:
  
  #Async Download Images Problematik
@@ -154,7 +147,6 @@ class IssueOverviewService: NSObject, DoesLog {
     return true
   }
 
-  
   ///Optimized load previews
   ///e.g. called on jump to date + ipad need to load date +/- 5 issues
   ///or on scrolling need to load date + 5..10 issues
@@ -303,12 +295,7 @@ class IssueOverviewService: NSObject, DoesLog {
       $0[$1.date.issueKey] = $1
     }
     super.init()
-//    Notification.receive(Const.NotificationNames.reloadIssueDates) {[weak self] _ in
-//      if let newDates = self?.feed.publicationDates?.dates.sorted() {
-//        self?.issueDates = newDates.reversed()
-//        Notification.send(Const.NotificationNames.reloadIssueList)
-//      }
-//    }
+    
     ///Update downloaded Issue Reference
     Notification.receive("issue"){ [weak self] notif in
       guard let issue = notif.object as? StoredIssue else { return }
@@ -324,7 +311,6 @@ class IssueOverviewService: NSObject, DoesLog {
   
   private var lc = LoadCoordinator()
 }
-
 
 extension IssueOverviewService {
   /// Inspect download Error and show it to user
@@ -375,23 +361,10 @@ extension IssueOverviewService {
   }
 }
 
-
-fileprivate typealias LoadingParams = (startDate: Date?, count: Int)
-
-
 /// A Helper to select next loads
 fileprivate class LoadCoordinator: NSObject, DoesLog {
   fileprivate var loadingDates: [String] = []
   fileprivate var nextDates: [Date] = []
-//  var isLoading: Bool = false {
-//    didSet {
-//      //In Case of Errors allow another Loader after 10s
-//      if isLoading == false { return }
-//      onThreadAfter(10.0) {[weak self] in
-//        self?.isLoading = false
-//      }
-//    }
-//  }
   
   var next: Date? {
     reduceNextIfNeeded()
@@ -403,9 +376,7 @@ fileprivate class LoadCoordinator: NSObject, DoesLog {
     if nextDates.count < 30 { return }
     nextDates = nextDates[nextDates.endIndex - 20 ..< nextDates.endIndex].sorted()
   }
-  
 }
-
 
 fileprivate extension NSLock {
 
