@@ -1485,23 +1485,6 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   public var pr: PersistentPublicationDate // persistent record
   
   public var feed: Feed?
-  /* TOO EXPENSIVE STORED FEED GET DATABASE OPERATION
-  {
-    get {
-      guard let prFeed = pr.feed else { return nil }
-      return StoredFeed(persistent: prFeed) }
-    set {
-      guard let new = newValue else {
-        pr.feed?.removeFromPublicationDates(self.pr)
-        pr.feed = nil
-        return
-      }
-      if let sfeed = StoredFeed.get(object: new) {
-        pr.feed = sfeed.pr
-        pr.feed?.addToPublicationDates(self.pr)
-      }
-    }
-  }*/
   
   public var date: Date {
     get { return pr.date! }
@@ -1512,21 +1495,19 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
     set { pr.validityDate = newValue }
   }
   
-  public static func persist(publicationDates: [PublicationDate], inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+  public static func persist(publicationDates: [PublicationDate],
+                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
     var ret:[StoredPublicationDate] = []
     let allPr = Self.getAll(inFeed: feed)
     
-    
     for pubDate in publicationDates {
-      var storedRecord: StoredPublicationDate
-      = allPr.first(where: { $0.date == pubDate.date })
-      ?? new()
+      let storedRecord: StoredPublicationDate
+      = allPr.first(where: { $0.date == pubDate.date }) ?? new()
       storedRecord.update(from: pubDate)
-      storedRecord.feed = feed///not needed due feeds: pr.addToPublicationDates(storedRecord.pr)?
+      storedRecord.feed = feed
       ret.append(storedRecord)
       feed.pr.addToPublicationDates(storedRecord.pr)
     }
-//    feed.pr.addToPublicationDates( NSSet(array: ret.map { $0.pr }))//Not Saving time
     return ret
   }
   
@@ -1579,55 +1560,6 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
     self.validityDate = object.validityDate
   }
   
-  
-//  public static var entity = "PublicationDate"
-//  public var pr: PersistentPublicationDate // persistent record
-//
-//  /// Return stored record with given name
-//  public static func latest() -> Date? {
-//    let request = fetchRequest
-//    let res = get(request: request)
-//    if res.count > 1 {
-//      Log.debug("Unexpected to have \(res.count) Items")
-//      return nil
-//    }
-//    guard let res = res.first else { return nil }
-//    return res.dates.max()
-//  }
-//
-//  public static func get(object: PublicationDates) -> Self? {
-//    let request = fetchRequest
-//    request.predicate
-//    = NSPredicate(format: "(cycle = %@)",
-//                  object.cycle.description)
-//    return get(request: request).first
-//  }
-//
-//  public func toString() -> String {
-//    var range: [String] = []
-//    if let min = self.dates.min(){ range.append(min.short) }
-//    if let max = self.dates.max(){ range.append(max.short) }
-//    return "Cycle: \(self.cycle), Range: \(range.joined(separator: " - "))"
-//  }
-//
-//  public var cycle: PublicationCycle {
-//    get { return PublicationCycle(pr.cycle!)! }
-//    set { pr.cycle = newValue.representation }
-//  }
-//
-//  public var dates: [Date] {
-//    get { return pr.dates! }
-//    set { pr.dates = newValue }
-//  }
-//
-//  public required init(persistent: PersistentPublicationDates){
-//    self.pr = persistent
-//  }
-//  /// Overwrite the persistent values
-//    public func update(from object: PublicationDates) {
-//      self.cycle = object.cycle
-//      self.dates = object.dates
-//  }
 } //StoredPublicationDate
 
 extension PersistentIssue: PersistentObject {}
@@ -2163,27 +2095,6 @@ public final class StoredFeed: Feed, StoredObject {
           pr.removeFromIssues(issue.pr)
         }
       }
-    }
-    if false, let pubDates = object.publicationDates {
-      let start = Date()
-      for pubDate in pubDates {
-        if pubDate.feed == nil {
-          pubDate.feed = self
-        }
-        let sPubDate = StoredPublicationDate.persist(object: pubDate)
-        sPubDate.pr.feed = pr
-        pr.addToPublicationDates(sPubDate.pr)
-      }
-#warning("not removing wrong publicationDates!")
-      /// Remove publicationDates no longer needed e.g. wrongly delivered by temporary api error
-      /// **is not possible due we request only the newest ones
-//      for pd in self.publicationDates as! [StoredPublicationDate] {
-//        if !pubDates.contains(where: { $0.date == pd.date }) {
-//          pr.removeFromPublicationDates(pd.pr)
-//        }
-//      }
-      ///Saving 3770 PublicationDates took 50.65366303920746s
-      log("Saving \(pubDates.count) PublicationDates took \(abs(start.timeIntervalSinceNow))s")
     }
     if let pubDates = object.publicationDates {
       let start = Date()

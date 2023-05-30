@@ -352,7 +352,6 @@ class IssueOverviewService: NSObject, DoesLog {
     #warning("ensure sorted!")
 
     publicationDates = feed.publicationDates ?? []
-//    publicationDates = feed.publicationDates?.sorted() ?? []
     
     issues = StoredIssue.issuesInFeed(feed: feed).reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1

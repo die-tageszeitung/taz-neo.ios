@@ -28,28 +28,6 @@ import NorthLib
 /// - on migration from 0.9.12 > 1.0.0 if started offline! **MUST HAVE**
 ///         -  ADD ALL KNOWN IN DB ISSUE DATES
 ///         - **TODO** IMPLEMENT > TEST
-///
-/// CHALLENGES
-/// issue in DB requires base url and many more too much to load for all issues
-/// **DB**feed(1) - (n)publicationDate (publicationDate, validityDate?)
-/// **API**feed{ publicationDates{[dates]}  validityDates{[{date, validityDate}]}
-///  ==> need to add validityDate to matching publicationDate **TODO**
-///
-///
-///
-///
-/** NEXT CHALLENNGE HOW TO make
- 
- GqlPublicationDate GqlValidityDate to
- 
- publicationDates
- 
- in
- */
-
-fileprivate var xgqlPublicationDate: VirtualPublicationDate?
-fileprivate var xgqlFeed: GqlFeed?
-
 
 /// A protocol defining methods to use by GraphQL objects
 protocol GQLObject: Decodable, ToString {
@@ -437,10 +415,8 @@ class GqlMoment: Moment, GQLObject {
   """
 } // GqlMoment
 
-/// may Initialize PublicationDates from Resources in future
-#warning("TODO 1.0.0 Initialize pubDates")
-/// #warning may initialize pubDates from db issues if no internet Migration to 1.0.0!!" FOR OFFLINE START
-class VirtualPublicationDate: PublicationDate, GQLObject {
+///
+class GqlPublicationDate: PublicationDate, GQLObject {
   
   var feed: Feed?
   
@@ -449,13 +425,13 @@ class VirtualPublicationDate: PublicationDate, GQLObject {
       return UsTime(iso: sDate, tz: GqlFeeder.tz).date
   }
   static var fields: String {
-    guard let last
-            = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate else {
-      return "gqlPublicationDates:publicationDates"
+    var startArg = ""
+    if let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
+      startArg = """
+                 (start:"\(last.isoDate(tz: GqlFeeder.tz))")
+                 """
     }
-    return """
-              gqlPublicationDates:publicationDates(start:"\(last.isoDate(tz: GqlFeeder.tz))")
-           """
+    return "gqlPublicationDates:publicationDates\(startArg)"
   }
   
   var sValidityDate: String?
@@ -481,7 +457,6 @@ class VirtualPublicationDate: PublicationDate, GQLObject {
   required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     sDate = try container.decode(String.self, forKey: .sDate)
-//    sValidityDate = try container.decodeIfPresent(String.self, forKey: .sValidityDate)
   }
   
 }// GqlPublicationDate
@@ -497,12 +472,20 @@ class GqlValidityDate: GQLObject {
     return UsTime(iso: d, tz: GqlFeeder.tz).date
   }
   
-  static var fields = """
-    gqlValidityDates:validityDates{
-              sDate: date
-              sValidityDate: validityDate
-        }
-  """
+  static var fields: String {
+    var startArg = ""
+    if let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
+      startArg = """
+                 (start:"\(last.isoDate(tz: GqlFeeder.tz))")
+                 """
+    }
+    return """
+           gqlValidityDates:validityDates\(startArg){
+             sDate: date
+             sValidityDate: validityDate
+          }
+          """
+  }
   
   enum CodingKeys: String, CodingKey {
     case sDate
@@ -677,9 +660,7 @@ class GqlFeed: Feed, GQLObject {
   /// The Issues requested of this Feed
   var gqlIssues: [GqlIssue]?
   var issues: [Issue]? { return gqlIssues }
-  var gqlValidityDates: [GqlValidityDate]?
-  var vPublicationDates: [VirtualPublicationDate]?
-  var publicationDates: [PublicationDate]? { return vPublicationDates}
+  var publicationDates: [PublicationDate]?
 
   enum CodingKeys: String, CodingKey {
     case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues, gqlValidityDates, gqlPublicationDates
@@ -696,17 +677,20 @@ class GqlFeed: Feed, GQLObject {
     sFirstSearchableIssue = try container.decode(String.self, forKey: .sFirstSearchableIssue)
     gqlIssues = try container.decodeIfPresent([GqlIssue].self, forKey: .gqlIssues)
     
-    let publicationDates = try container.decodeIfPresent([String].self, forKey: .gqlPublicationDates)
-    gqlValidityDates = try container.decodeIfPresent([GqlValidityDate].self, forKey: .gqlValidityDates)
     
-    vPublicationDates = []
+    ///Encode gqlPublicationDates and gqlValidityDates and generate PublicationDates for persist in DB
+    let gqlPublicationDates
+    = try container.decodeIfPresent([String].self, forKey: .gqlPublicationDates)
+    let gqlValidityDates
+    = try container.decodeIfPresent([GqlValidityDate].self, forKey: .gqlValidityDates)
+    publicationDates = []
     
-    for pd in publicationDates ?? [] {
-      let vpd = VirtualPublicationDate(from: pd, feed: self)
-      if let vd = gqlValidityDates?.first(where: { $0.sDate == pd }){
-        vpd.validityDate = vd.validityDate
+    for gpd in gqlPublicationDates ?? [] {
+      let pd = GqlPublicationDate(from: gpd, feed: self)
+      if let gvd = gqlValidityDates?.first(where: { $0.sDate == gpd }){
+        pd.validityDate = gvd.validityDate
       }
-      vPublicationDates?.append(vpd)
+      publicationDates?.append(pd)
     }
   }
   
@@ -715,7 +699,7 @@ class GqlFeed: Feed, GQLObject {
       sLastIssue: issueMaxDate
       sFirstIssue: issueMinDate
       sFirstSearchableIssue: issueMinSearchDate
-      \(VirtualPublicationDate.fields)
+      \(GqlPublicationDate.fields)
       \(GqlValidityDate.fields)
     """
 } // class GqlFeed
