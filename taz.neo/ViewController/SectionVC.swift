@@ -69,6 +69,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       else if let index = index { avc.index = index }
       if let nvc = navigationController {
         if avc != nvc.topViewController {
+          avc.view.doLayout()
           avc.writeTazApiCss()
           avc.toolBar.show(show:true, animated: false)
           avc.header.show(show: true, animated: false)
