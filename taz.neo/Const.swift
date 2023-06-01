@@ -30,6 +30,8 @@ public struct Const {
     /// Some resource filenames
     static let reloadIssueDates = "NotificationName.reloadIssueDates"
     static let reloadIssueList = "NotificationName.reloadIssueList"
+    static let feederReachable = "NotificationName.feederReachable"
+    static let feederUnreachable = "NotificationName.feederUnreachable"
     static let issueUpdate = "NotificationName.issueUpdate"
     static let articleLoaded = "NotificationName.articleLoaded"
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"

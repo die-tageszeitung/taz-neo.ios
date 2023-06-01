@@ -637,7 +637,7 @@ class GqlIssue: Issue, GQLObject {
 
 
 /// A Feed of publication issues and articles
-class GqlFeed: Feed, GQLObject {  
+class GqlFeed: Feed, GQLObject {
   var gqlFeeder: GqlFeeder!
   /// The Feeder offering this Feed
   var feeder: Feeder { gqlFeeder }
@@ -694,14 +694,19 @@ class GqlFeed: Feed, GQLObject {
     }
   }
   
-  static var fields = """
-      name cycle momentRatio issueCnt
-      sLastIssue: issueMaxDate
-      sFirstIssue: issueMinDate
-      sFirstSearchableIssue: issueMinSearchDate
-      \(GqlPublicationDate.fields)
-      \(GqlValidityDate.fields)
-    """
+  
+  static var fields: String {
+      get {
+        return """
+          name cycle momentRatio issueCnt
+          sLastIssue: issueMaxDate
+          sFirstIssue: issueMinDate
+          sFirstSearchableIssue: issueMinSearchDate
+          \(GqlPublicationDate.fields)
+          \(GqlValidityDate.fields)
+        """
+      }
+  }
 } // class GqlFeed
 
 /// GqlAppInfo stores data regarding the running App as provided by the server
@@ -751,13 +756,17 @@ class GqlFeederStatus: GQLObject {
   /// Feeds this Feeder provides
   var feeds: [GqlFeed]
   
-  static var fields = """
-  authInfo{\(GqlAuthInfo.fields)}
-  resourceVersion
-  resourceBaseUrl
-  globalBaseUrl
-  feeds: feedList { \(GqlFeed.fields) }
-  """
+  static var fields: String {
+      get {
+          return """
+            authInfo{\(GqlAuthInfo.fields)}
+            resourceVersion
+            resourceBaseUrl
+            globalBaseUrl
+            feeds: feedList { \(GqlFeed.fields) }
+          """
+      }
+  }
   
   func toString() -> String {
     var ret = """
@@ -879,7 +888,9 @@ open class GqlFeeder: Feeder, DoesLog {
         closure(ret)
       }
     }
-    
+    #warning("PI: is it required to do this request everytime?")
+    ///...on net status change? Prio: low
+    ///Pi: PerformanceImprovement Idea
     GqlAppInfo.query(feeder: self) { [weak self] res in
       guard let self else { return }
       if let mv = res.value() {

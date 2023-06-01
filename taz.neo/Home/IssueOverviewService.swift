@@ -34,6 +34,7 @@ import NorthLib
 /// loader to prevent e.g. switch to PDF load finished for app view, worng image set to cell
 typealias IssueCellData = (date: PublicationDate, issue:StoredIssue?, image: UIImage?)
 typealias EnqueuedMomentLoad = (issue: StoredIssue, files: [FileEntry], isPdf: Bool)
+typealias FailedLoad = (date: Date, count: Int)
 
 /// using Dates short String Representation for store and find issues for same date, ignore time
 extension Date { var issueKey : String { short } }
@@ -48,6 +49,7 @@ class IssueOverviewService: NSObject, DoesLog {
   let loadPreviewsLock = NSLock()
   var loadPreviewsStack: [EnqueuedMomentLoad] = []
   let loadPreviewsSemaphore = DispatchSemaphore(value: 3)
+  var lastLoadFailed: FailedLoad?
   
   internal var feederContext: FeederContext
   var feed: StoredFeed
@@ -139,12 +141,13 @@ class IssueOverviewService: NSObject, DoesLog {
   
   /// Date keys which are currently loading the preview
   var loadingDates: [String] = []
+  var loadFaildPreviews: [StoredIssue] = []
   var isCheckingForNewIssues = false
   
-  func checkForNewIssues() -> Bool{
-    if isCheckingForNewIssues { return false }
+  func checkForNewIssues() {
+    if isCheckingForNewIssues { return }
     feederContext.updatePublicationDates(feed: feederContext.defaultFeed)
-    return true
+    
   }
 
   ///Optimized load previews
@@ -186,6 +189,13 @@ class IssueOverviewService: NSObject, DoesLog {
       
       if let err = res.error() as? FeederError {
         self.handleDownloadError(error: err)
+      } else if let err = res.error() as? URLError {
+        ///offline
+        self.debug("failed to load")
+        self.lastLoadFailed = FailedLoad(date, count)
+      } else if let err = res.error(){
+        self.debug("failed to load")
+        ///unknown
       }
       if let issues = res.value() {
         let start = Date()
@@ -246,7 +256,13 @@ class IssueOverviewService: NSObject, DoesLog {
       self.loadPreviewsSemaphore.wait()
       
       let next = self.loadPreviewsStack.last
-      self.loadPreviewsLock.with { [weak self] in  _ = self?.loadPreviewsStack.popLast() }
+      self.loadPreviewsLock.with { [weak self] in
+        _ = self?.loadPreviewsStack.popLast()
+      }
+      /*
+      WARNING: Go offline, scroll to unknown issues, go online the issues stay in Stack and wount be downloaded!
+      
+      */
       
       guard let next = next else {
         self.loadPreviewsGroup.leave()
@@ -265,6 +281,7 @@ class IssueOverviewService: NSObject, DoesLog {
           let img = self?.storedImage(issue: issue, isPdf: isPdf)
           if img == nil {
             self?.debug("something went wrong: downloaded file did not exist!")
+            self?.loadFaildPreviews.append(issue)
           }
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: issue.date,
@@ -276,7 +293,7 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func storedImage(issue: StoredIssue, isPdf: Bool) -> UIImage? {
-    return feederContext.storedFeeder.momentImage(issue: issue,
+    return feederContext.storedFeeder?.momentImage(issue: issue,
                                                   isPdf: isPdf,
                                                   usePdfAlternative: false)
   }
@@ -284,12 +301,18 @@ class IssueOverviewService: NSObject, DoesLog {
   func updateIssue(issue:StoredIssue){
     self.issues[issue.date.issueKey] = issue
   }
+  
+  func updatePublicationDates(){
+    guard let pubDates = feed.publicationDates else { return }
+    debug("before: \(publicationDates.count) after: \(pubDates.count)")
+    publicationDates = pubDates
+  }
     
   /// Initialize with FeederContext
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
     self.feed = feederContext.defaultFeed
-    publicationDates = feed.publicationDates ?? []
+    self.publicationDates = feed.publicationDates ?? []
     
     issues = StoredIssue.issuesInFeed(feed: feed).reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1
@@ -306,6 +329,19 @@ class IssueOverviewService: NSObject, DoesLog {
     Notification.receive("issueStructure"){ [weak self] notif in
       guard let error = notif.error as? DownloadError else { return }
       self?.handleDownloadError(error: error)
+    }
+    
+    Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
+      #warning("ToDo resume latest loadPreviewStack...send online")
+      self?.debug("LoadingDates: \(self?.loadingDates)")
+      self?.debug("loadPreviewsStack: \(self?.loadPreviewsStack)")
+      self?.debug("feeder is reachable")
+//      for i in self?.loadFaildPreviews ?? [] {
+//        self?.apiLoadMomentImages(for: i, isPdf: self?.isFacsimile ?? false)
+//      }
+      if let ll = self?.lastLoadFailed {
+        self?.apiLoadPreview(for: ll.date, count: ll.count)
+      }
     }
   }
   

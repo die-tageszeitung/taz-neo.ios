@@ -177,10 +177,20 @@ class HomeTVC: UITableViewController {
     self.addChild(carouselController)
     self.addChild(tilesController)
     Notification.receive(Const.NotificationNames.reloadIssueList) {[weak self] _ in
+      self?.issueOverviewService.updatePublicationDates()
       self?.carouselController.collectionView.reloadData()
       self?.carouselController.statusHeader.currentStatus = .none
       self?.tilesController.collectionView.reloadData()
       self?.carouselController.updateBottomWrapper(for: 0, force: true)
+    }
+    Notification.receive(Const.NotificationNames.feederUnreachable) {[weak self] _ in
+      self?.carouselController.statusHeader.currentStatus = .offline
+    }
+    ///Update Status Header or not?
+    ///NO: because we dont know last status and dont know what to resume
+    ///YES: we're online now and user can (re)init next action, need to see no blocking stuff is there
+    Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
+      self?.carouselController.statusHeader.currentStatus = .none
     }
   }
   

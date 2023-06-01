@@ -348,10 +348,10 @@ extension IssueCarouselCVC {
       }
     }
     self.pullToLoadMoreHandler = {   [weak self] in
+      if self?.service.isCheckingForNewIssues ?? false { return }
+      self?.statusHeader.currentStatus = .fetchNewIssues
       URLCache.shared.removeAllCachedResponses()
-      if self?.service.checkForNewIssues() ?? false {
-        self?.statusHeader.currentStatus = .fetchNewIssues
-      }
+      self?.service.checkForNewIssues()
     }
   }
 }

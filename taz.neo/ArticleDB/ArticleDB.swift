@@ -1511,7 +1511,6 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
     return ret
   }
   
-  
   /// Return stored record with given name
   public static func get(date: Date, inFeed feed: StoredFeed) -> [StoredPublicationDate] {
     let nsdate = NSDate(timeIntervalSinceReferenceDate:
@@ -2065,7 +2064,26 @@ public final class StoredFeed: Feed, StoredObject {
   public var issues: [Issue]? { storedIssues }
   
   
-  public var storedPublicationDates: [StoredPublicationDate] { StoredPublicationDate.publicationDatesInFeed(feed: self) }
+  public var storedPublicationDates: [StoredPublicationDate] {
+    let dates = StoredPublicationDate.publicationDatesInFeed(feed: self)
+    if !dates.isEmpty { return dates }
+    return publicationDatesFromStoredIssues()
+  }
+  
+  private func publicationDatesFromStoredIssues() -> [StoredPublicationDate] {
+    var dates: [PublicationDate] = []
+    for issue in storedIssues {
+      let date = GqlPublicationDate(from: issue.date.dbIssueRepresentation, feed: self)
+      date.validityDate = issue.validityDate
+      dates.append(date)
+    }
+    guard let issue = issues?.first else { return [] }
+    let sDates
+    = StoredPublicationDate.persist(publicationDates: dates, inFeed: self)
+    ArticleDB.save()
+    return sDates
+  }
+  
   public var publicationDates: [PublicationDate]? { storedPublicationDates }
   
   public required init(persistent: PersistentFeed) { self.pr = persistent }

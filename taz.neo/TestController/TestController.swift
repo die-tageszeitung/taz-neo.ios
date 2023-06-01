@@ -177,10 +177,11 @@ class TestController: PageCollectionVC {
       print("resource progress: \(loaded)/\(total)")
     }
     Notification.receive("feederReady") { notification in 
-      guard let fctx = notification.sender as? FeederContext else { return }
+      guard let fctx = notification.sender as? FeederContext,
+      let storedFeeder = fctx.storedFeeder else { return }
       self.feederContext = fctx
-      self.debug(fctx.storedFeeder.toString())
-      self.feed = StoredFeed.get(name: "taz", inFeeder: fctx.storedFeeder)[0]
+      self.debug(fctx.storedFeeder?.toString())
+      self.feed = StoredFeed.get(name: "taz", inFeeder: storedFeeder)[0]
       self.testSingleOverview { ok in
         if ok { 
           self.debug("testSingleOverview OK") 
@@ -194,7 +195,7 @@ class TestController: PageCollectionVC {
         else { self.error("testSingleOverview failed") }
       } 
     }
-    Notification.receive("feederReachable") {_ in 
+    Notification.receive(Const.NotificationNames.feederReachable) {_ in 
       self.debug("feeder is reachable")
     }
     Notification.receive("feederNotReachable") {_ in 

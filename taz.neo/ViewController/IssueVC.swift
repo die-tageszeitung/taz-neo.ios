@@ -713,7 +713,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Check for new issues only if not in archive mode
   public func checkForNewIssues() {
-    if !isArchiveMode { feederContext.checkForNewIssues(feed: feed, isAutomatically: false) }
+    #warning("deprecated class")
+//    if !isArchiveMode { feederContext.checkForNewIssues(feed: feed, isAutomatically: false) }
   }
   
   func invalidateCarouselLayout() {

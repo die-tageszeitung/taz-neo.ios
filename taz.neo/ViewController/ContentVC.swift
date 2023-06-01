@@ -690,6 +690,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
+    #warning("move this to get rid of UITableViewAlertForLayoutOutsideViewHierarchy  (SymbolicBreakpoint) Error")
     slider?.close()
     self.settingsBottomSheet?.close()
     if let overlay = imageOverlay { overlay.close(animated: false) }

@@ -114,7 +114,7 @@ public typealias passwordQuality
 class PasswordValidator: DoesLog {
  var s =  StoredResources.latest()
   
-  var js = Javascript(TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.passwordCheckJsUrl)
+  var js = Javascript(TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.passwordCheckJsUrl)
 
   /// Checks whether the password match the required requirements
   /// wrapper for shared JS

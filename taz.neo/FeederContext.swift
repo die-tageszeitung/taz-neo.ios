@@ -79,7 +79,15 @@ open class FeederContext: DoesLog {
   /// The default Feed to show
   public var defaultFeed: StoredFeed!
   /// The Downloader to use 
-  public var dloader: Downloader!
+  public var dloader: Downloader! {
+    didSet {
+      guard let old = oldValue else { return }
+      ///This fixes endless Loop of IssueOverviewService.apiLoadMomentImages
+      ///if offline scroll to unknown moment, go online due the used downloader did not recognize
+      ///online status
+      old.release()
+    }
+  }
   
   
   /**
@@ -276,16 +284,16 @@ open class FeederContext: DoesLog {
   private func feederReachable(feeder: Feeder) {
     self.debug("Feeder now reachable")
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
-    notify("feederReachable")
+    notify(Const.NotificationNames.feederReachable)
     //disables offline status label
-    Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.fetchNewIssues, error: nil, sender: self)
-    checkForNewIssues(feed: self.defaultFeed, isAutomatically: false)
+//    Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.fetchNewIssues, error: nil, sender: self)
+//    checkForNewIssues(feed: self.defaultFeed, isAutomatically: false)
   }
   
   /// Feeder is not reachable
   private func feederUnreachable() {
     self.debug("Feeder now unreachable")
-    notify("feederUneachable")
+    notify(Const.NotificationNames.feederUnreachable)
   }
   
   private func updateNetAvailabilityObserver() {
@@ -309,19 +317,17 @@ open class FeederContext: DoesLog {
       //          self?.log("Old Session Resetted!!")
       //        }
       //      }
-      #warning("MISSING latestIssueDate")
-      log("WARNING MISSING latestIssueDate")
-      //latestIssue:storedFeeder.feeds.first?.lastIssue
-      self.gqlFeeder
-      = GqlFeeder(title: name,
-                  url: url
-                  
-      ) { [weak self] res in
+      
+      self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
         guard let self = self else { return }
         if let feeder = res.value() {
           if let gqlFeeder = feeder as? GqlFeeder,
              let storedAuth = SimpleAuthenticator.getUserData().token {
             gqlFeeder.authToken = storedAuth
+          }
+          if let gqlFeeder = feeder as? GqlFeeder {
+            //Update Feeder with PublicationDates
+            self.persist(gqlFeeder: gqlFeeder)
           }
           self.feederReachable(feeder: feeder)
         }
@@ -335,10 +341,25 @@ open class FeederContext: DoesLog {
     else { self.feederUnreachable() }
   }
   
+  private func persist(gqlFeeder:GqlFeeder){
+    let oldCnt
+    = storedFeeder == nil ///WARNING DO NOT REMOVE THE CHECK OTHERWISE APP WILL CRASH on init
+    ? 0 ///unfortunately refactor storedFeeder to be an optional is an enormous undertaking
+    : self.storedFeeder?.feeds.first?.publicationDates?.count
+    self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
+    let newCnt = self.storedFeeder?.feeds.first?.publicationDates?.count
+    if oldCnt == newCnt { return }
+    Notification.send(Const.NotificationNames.reloadIssueList)
+  }
+  
   /// Feeder is initialized, set up other objects
   private func feederReady() {
     self.dloader = Downloader(feeder: gqlFeeder)
     netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
+    guard let storedFeeder = storedFeeder else {
+      log("storedFeeder not initialized yet!")
+      return
+    }
     defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder)[0]
     isReady = true
     cleanupOldIssues()
@@ -367,7 +388,7 @@ open class FeederContext: DoesLog {
         TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin) 
       }
       else {
-        self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
+        self.persist(gqlFeeder: self.gqlFeeder)
         feederReady()
         check4Update()
       }
@@ -672,6 +693,10 @@ open class FeederContext: DoesLog {
   /// Downloads resources if necessary
   public func updateResources(toVersion: Int = -1) {
     guard !isUpdatingResources else { return }
+    guard let storedFeeder = storedFeeder else {
+      log("storedFeeder not initialized yet!")
+      return
+    }
     isUpdatingResources = true
     let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
     if StoredResources.latest() == nil { loadBundledResources(/*setVersion: 1*/) }
@@ -869,7 +894,8 @@ open class FeederContext: DoesLog {
     }
     log("Handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
     
-    guard let sFeed = StoredFeed.get(name: self.defaultFeed.name, inFeeder: storedFeeder).first else {
+    guard let storedFeeder = storedFeeder,
+          let sFeed = StoredFeed.get(name: self.defaultFeed.name, inFeeder: storedFeeder).first else {
       self.error("Expected to have a stored feed, but did not found one.")
       fetchCompletionHandler?(.noData)
       return
@@ -877,14 +903,6 @@ open class FeederContext: DoesLog {
     
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
-      #warning("Discussion: Why not use isOverview == true")
-      /**
-        Download 1 ore move 'overviews'?
-        Problem: if more dates missing there are maybe empty places in issueOverview,
-        no Problem for new Home!
-        **try to release new Home as soon as possible!**
-       */
-#warning("NEW ISSUE IS NOT LOADED! ")
       self.gqlFeeder.issues(feed: sFeed,
                             count: 1,
                             isOverview: false,
@@ -978,12 +996,17 @@ open class FeederContext: DoesLog {
   }
   
   public func updatePublicationDates(feed: Feed) {
-    guard self.isConnected else { return }
+    guard self.isConnected else {
+      Notification.send("checkForNewIssues",
+                        content: FetchNewStatusHeader.status.offline,
+                        error: nil,
+                        sender: self)
+      return
+    }
     self.gqlFeeder.feederStatus { [weak self] result in
       
       if let err = result.error() {
         self?.debug(err.description)
-        
         let status = self?.isConnected == false
         ? FetchNewStatusHeader.status.offline
         : FetchNewStatusHeader.status.downloadError
@@ -993,27 +1016,27 @@ open class FeederContext: DoesLog {
       
       guard let gqlFeederStatus = result.value(),
             let self = self,
+            let sFeed = self.storedFeeder?.feeds[0] as? StoredFeed,
             let gqlFeed = gqlFeederStatus.feeds.first,
-            gqlFeed.name == self.defaultFeed.name,
-            let pubDates = feed.publicationDates,
-            pubDates.count > 0,
-            let latestApiDate = pubDates.max(by: { a, b in a.date < b.date}),
-            (self.latestPublicationDate ?? Date(timeIntervalSince1970: 0)) < latestApiDate.date,
-            let sfeed = StoredFeed.get(name: feed.name,
-                                       inFeeder: self.storedFeeder).first else {
+            let gqlPubDates = gqlFeed.publicationDates,
+            gqlPubDates.count > 0 else {
         self?.debug("no new data")
-        Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.none, error: nil, sender: self)
+        Notification.send("checkForNewIssues",
+                          content: FetchNewStatusHeader.status.none,
+                          error: nil,
+                          sender: self)
         return
       }
-      
-      log("persist: \(pubDates.count) publicationDates")
-      StoredPublicationDate.persist(publicationDates: pubDates, inFeed: sfeed)
+      let oldCnt = feed.publicationDates?.count ?? 0
+      _ = StoredPublicationDate.persist(publicationDates: gqlPubDates, inFeed: sFeed)
+      let newCnt = feed.publicationDates?.count ?? 0
+      if oldCnt == newCnt { return }
       ArticleDB.save()
+      log("persist: \(newCnt - oldCnt) publicationDates")
       Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.loadPreview, error: nil, sender: self)
-      Notification.send(Const.NotificationNames.reloadIssueDates)
+      Notification.send(Const.NotificationNames.reloadIssueList)
     }
   }
-
   
   /**
    Get Overview Issues from Feed
@@ -1024,6 +1047,10 @@ open class FeederContext: DoesLog {
    */
   public func getOvwIssues(feed: Feed, count: Int, fromDate: Date? = nil, isAutomatically: Bool) {
     log("feed: \(feed.name) count: \(count) fromDate: \(fromDate?.short ?? "-")")
+    guard let storedFeeder = storedFeeder else {
+      log("storedFeeder not initialized yet!")
+      return
+    }
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     guard sfs.count > 0 else { return }
     let sfeed = sfs[0]
@@ -1081,29 +1108,29 @@ open class FeederContext: DoesLog {
   
   /// checkForNewIssues requests new overview issues from the server if
   /// more than 12 hours have passed since the latest stored issue
-  public func checkForNewIssues(feed: Feed,
-                                isAutomatically: Bool = false, isPushRequested: Bool = false) {
-    Notification.send("checkForNewIssues",
-                      content: self.isConnected ?FetchNewStatusHeader.status.none :FetchNewStatusHeader.status.offline,
-                      error: nil,
-                      sender: self)
-    let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
-    guard sfs.count > 0 else { return }
-    let sfeed = sfs[0]
-    if let latest = StoredIssue.latest(feed: sfeed) {
-      let now = UsTime.now
-      let latestIssueDate = UsTime(latest.date) //UsTime(year: 2023, month: 3, day: 23, hour: 3, min: 0, sec: 0) ??
-      let ndays = max(2, (now.sec - latestIssueDate.sec) / (3600*24) + 1)//ensure to load at least 2 current issue previews
-      getOvwIssues(feed: feed, count: Int(ndays), isAutomatically: isAutomatically)
-      #warning("For new Home do check for new Dates!")
-    }
-    else if self.isConnected == false {
-      Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.offline, error: nil, sender: self)
-    }
-    else {
-      Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.none, error: nil, sender: self)
-    }
-  }
+//  public func checkForNewIssues(feed: Feed,
+//                                isAutomatically: Bool = false, isPushRequested: Bool = false) {
+//    Notification.send("checkForNewIssues",
+//                      content: self.isConnected ?FetchNewStatusHeader.status.none :FetchNewStatusHeader.status.offline,
+//                      error: nil,
+//                      sender: self)
+//    let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
+//    guard sfs.count > 0 else { return }
+//    let sfeed = sfs[0]
+//    if let latest = StoredIssue.latest(feed: sfeed) {
+//      let now = UsTime.now
+//      let latestIssueDate = UsTime(latest.date) //UsTime(year: 2023, month: 3, day: 23, hour: 3, min: 0, sec: 0) ??
+//      let ndays = max(2, (now.sec - latestIssueDate.sec) / (3600*24) + 1)//ensure to load at least 2 current issue previews
+//      getOvwIssues(feed: feed, count: Int(ndays), isAutomatically: isAutomatically)
+//      #warning("For new Home do check for new Dates!")
+//    }
+//    else if self.isConnected == false {
+//      Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.offline, error: nil, sender: self)
+//    }
+//    else {
+//      Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.none, error: nil, sender: self)
+//    }
+//  }
 
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: Issue) -> Bool {
@@ -1217,7 +1244,7 @@ open class FeederContext: DoesLog {
   
   func cleanupOldIssues(){
     if self.dloader.isDownloading { return }
-    guard let feed = self.storedFeeder.feeds[0] as? StoredFeed else { return }
+    guard let feed = self.storedFeeder?.feeds[0] as? StoredFeed else { return }
     let persistedIssuesCount:Int = Defaults.singleton["persistedIssuesCount"]?.int ?? 20
     StoredIssue.removeOldest(feed: feed,
                              keepDownloaded: persistedIssuesCount,

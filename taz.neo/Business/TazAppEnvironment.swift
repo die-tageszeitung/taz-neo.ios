@@ -190,7 +190,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   func goingForeground() {
     isForeground = true
-    debug("Entering foreground")
+    debug("Entering foreground is connected?: \(feederContext?.isConnected)")
   }
   
   func appWillTerminate() {
