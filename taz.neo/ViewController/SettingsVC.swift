@@ -713,7 +713,7 @@ extension SettingsVC {
       } ) )
     }
     
-    alert.presentAt(self.view)
+    alert.presentAt(self.logoutCell)
   }
   
   func showAccountDeletionAlert(status:GqlCancellationStatus, wasForce: Bool = false){
@@ -766,7 +766,7 @@ extension SettingsVC {
       alert.addAction( UIAlertAction.init( title: "OK", style: .cancel) { _ in } )
     }
     
-    alert.presentAt(self.view)
+    alert.presentAt(self.deleteAccountCell)
   }
   
   func requestAccountDeletion(_ force: Bool = false){
@@ -806,7 +806,7 @@ extension SettingsVC {
       }
     } ) )
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
-    alert.presentAt(self.view)
+    alert.presentAt(self.deleteIssuesCell)
   }
   
   func requestDatabaseDelete(){
@@ -819,7 +819,7 @@ extension SettingsVC {
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
-    alert.presentAt(self.view)
+    alert.presentAt(self.deleteDatabaseCell)
   }
   
   func requestResetApp(){
@@ -837,7 +837,7 @@ extension SettingsVC {
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
-    alert.presentAt(self.view)
+    alert.presentAt(self.resetAppCell)
   }
   
   func showPrivacy(){
