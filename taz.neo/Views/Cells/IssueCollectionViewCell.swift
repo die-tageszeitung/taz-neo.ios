@@ -16,7 +16,7 @@ class IssueCollectionViewCell: UICollectionViewCell {
   var cvBottomConstraint: NSLayoutConstraint?
 
   final var issue: StoredIssue? { didSet { didUpdateIssue()}}
-  final var date: Date?{ didSet { didUpdateDate()}}
+  final var publicationDate: PublicationDate?{ didSet { didUpdateDate()}}
   var image: UIImage? {
     didSet {
       momentView.image = image
@@ -33,7 +33,7 @@ class IssueCollectionViewCell: UICollectionViewCell {
   public override func prepareForReuse() {
     image = nil
     issue = nil
-    date = nil
+    publicationDate = nil
   }
   
   func setup(){
@@ -45,7 +45,7 @@ class IssueCollectionViewCell: UICollectionViewCell {
     Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
       guard let date = notification.content as? Date,
             let service = notification.sender as? IssueOverviewService,
-            date.short == self?.date?.short else { return }
+            date.issueKey == self?.publicationDate?.date.issueKey else { return }
       //set issue if not available yet
       if self?.issue == nil { self?.issue = service.issue(at: date) }
       //skip for now if issue still loading
@@ -55,7 +55,7 @@ class IssueCollectionViewCell: UICollectionViewCell {
         let img = service.image(for: issue)
         if img == nil { return }
         onMain {[weak self] in
-          guard date.short == self?.date?.short else { return }
+          guard date.short == self?.publicationDate?.date.short else { return }
           self?.image = img
         }
       }

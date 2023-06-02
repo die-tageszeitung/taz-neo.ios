@@ -772,6 +772,17 @@ public extension PublicationDate {
     }
     return (self.date.short)
   }
+  
+  func validityDateText(timeZone:String,
+                        short:Bool = false,
+                        shorter:Bool = false,
+                        leadingText: String? = "woche, ") -> String {
+    return date.validityDateText(validityDate: validityDate,
+                                 timeZone: GqlFeeder.tz,
+                                 short: short,
+                                 shorter: shorter,
+                                 leadingText: leadingText)
+  }
 }
 
 /// One Issue of a Feed
@@ -828,24 +839,11 @@ public extension Issue {
                         short:Bool = false,
                         shorter:Bool = false,
                         leadingText: String? = "woche, ") -> String {
-    guard let endDate = validityDate, isWeekend else {
-      return shorter ? date.shorter
-      : short ? date.short
-      : date.gLowerDate(tz: timeZone)
-    }
-    
-    let mSwitch = endDate.components().month != date.components().month
-    
-    let dfFrom = DateFormatter()
-    dfFrom.dateFormat = mSwitch ? "d.M." : "d."
-    
-    let dfTo = DateFormatter()
-    dfTo.dateFormat = shorter ? "d.M.yy" : "d.M.yyyy"
-    
-    let from = dfFrom.string(from: date)
-    let to = dfTo.string(from: endDate)
-    
-    return "\(leadingText ?? "")\(from) – \(to)"
+    return date.validityDateText(validityDate: validityDate,
+                                 timeZone: timeZone,
+                                 short: short,
+                                 shorter: shorter,
+                                 leadingText: leadingText)
   }
   
   func toString() -> String {

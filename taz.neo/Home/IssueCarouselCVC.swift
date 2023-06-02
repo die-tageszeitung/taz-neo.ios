@@ -207,14 +207,14 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
        let cell = cell as? IssueCollectionViewCell{
       ///Jump to date called prevent all intermediate API Calls, return empty cell,
       ///just set the date for update the cell within a notification
-      cell.date = service.date(at: indexPath.row)?.date
+      cell.publicationDate = service.date(at: indexPath.row)
       return cell
     }
     preventApiLoadUntilIndex = nil
     
     guard let cell = cell as? IssueCollectionViewCell,
           let data = service.cellData(for: indexPath.row) else { return cell }
-    cell.date = data.date.date
+    cell.publicationDate = data.date
     cell.issue = data.issue
     cell.image = data.image
     

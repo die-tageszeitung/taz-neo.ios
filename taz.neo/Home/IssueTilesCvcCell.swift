@@ -44,7 +44,10 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
   
   func updateLabel(){
     guard let issue = issue else {
-      button.label.text = date?.short ?? "-"
+      button.label.text = publicationDate?.validityDateText(timeZone: GqlFeeder.tz,
+                                                            short: true,
+                                                            shorter: shorter,
+                                                            leadingText: "")
       return
     }
     button.label.text

@@ -39,6 +39,35 @@ typealias FailedLoad = (date: Date, count: Int)
 /// using Dates short String Representation for store and find issues for same date, ignore time
 extension Date { var issueKey : String { short } }
 
+extension Date {
+  func validityDateText(validityDate: Date?,
+                        timeZone:String,
+                        short:Bool = false,
+                        shorter:Bool = false,
+                        leadingText: String? = "woche, ") -> String {
+    guard let endDate = validityDate else {
+      return shorter ? self.shorter
+      : short ? self.short
+      : self.gLowerDate(tz: timeZone)
+    }
+    
+    let mSwitch = endDate.components().month != self.components().month
+    
+    let dfFrom = DateFormatter()
+    dfFrom.dateFormat = mSwitch ? "d.M." : "d."
+    
+    let dfTo = DateFormatter()
+    dfTo.dateFormat = shorter ? "d.M.yy" : "d.M.yyyy"
+    
+    let from = dfFrom.string(from: self)
+    let to = dfTo.string(from: endDate)
+    
+    return "\(leadingText ?? "")\(from) – \(to)"
+  }
+  
+  
+}
+
 class IssueOverviewService: NSObject, DoesLog {
   
   @Default("isFacsimile")

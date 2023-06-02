@@ -65,7 +65,7 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
       for: indexPath)
     guard let cell = cell as? IssueTilesCvcCell,
           let data = service.cellData(for: indexPath.row) else { return cell }
-    cell.date = data.date.date
+    cell.publicationDate = data.date
     cell.issue = data.issue
     cell.image = data.image
     cell.button.indicator.downloadState = service.issueDownloadState(at: indexPath.row)
