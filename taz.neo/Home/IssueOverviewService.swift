@@ -35,6 +35,7 @@ import NorthLib
 typealias IssueCellData = (date: PublicationDate, issue:StoredIssue?, image: UIImage?)
 typealias EnqueuedMomentLoad = (issue: StoredIssue, files: [FileEntry], isPdf: Bool)
 typealias FailedLoad = (date: Date, count: Int)
+typealias IndexPathMoved = (from: IndexPath, to: IndexPath)
 
 /// using Dates short String Representation for store and find issues for same date, ignore time
 extension Date { var issueKey : String { short } }
@@ -203,7 +204,7 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     
     let date = currentLoadingDates.first ?? date
-    count = currentLoadingDates.count > 0 ? currentLoadingDates.count : count
+    count = abs(currentLoadingDates.count > 0 ? currentLoadingDates.count : count)
     let sCurrentLoadingDates = currentLoadingDates.map{$0.issueKey}
     addToLoading(sCurrentLoadingDates)
     
@@ -331,10 +332,90 @@ class IssueOverviewService: NSObject, DoesLog {
     self.issues[issue.date.issueKey] = issue
   }
   
-  func updatePublicationDates(){
-    guard let pubDates = feed.publicationDates else { return }
-    debug("before: \(publicationDates.count) after: \(pubDates.count)")
-    publicationDates = pubDates
+  
+  func updatePublicationDates(refresh collectionView: UICollectionView,
+                              verticalCv: Bool) -> Bool {
+    guard let newPubDates = feed.publicationDates else { return false }
+    debug("before: \(publicationDates.count) after: \(newPubDates.count)")
+  
+    if publicationDates.count != newPubDates.count {
+      Notification.send("checkForNewIssues",
+                        content: FetchNewStatusHeader.status.loadPreview,
+                        error: nil,
+                        sender: self)
+    }
+    ///Warning Work with Issue Keys not with PublicationDates for performance reasons
+    ///insert/update 4 of 3770 Publication Datees took < 50s in Debugging on intel mac
+    ///with String Keys only 4s
+    let newDates = newPubDates.map{ $0.date.issueKey }
+    let oldDates = publicationDates.map{ $0.date.issueKey }
+    
+    var insertIp: [IndexPath] = []
+    var movedIp: [IndexPathMoved] = []
+    var usedOld: [String] = []
+    
+    ///find added and move items indexPaths
+    for (nIdx, newElm) in newDates.enumerated() {
+      var found = false
+      for (oIdx, oldElm) in oldDates.enumerated() {
+        if newElm == oldElm {
+          if nIdx != oIdx {
+            movedIp.append(IndexPathMoved(from:IndexPath(row: oIdx, section: 0),
+                                          to:IndexPath(row: nIdx, section: 0)))
+          }
+          usedOld.append(oldElm)
+          found = true;
+          break;
+        }
+      }
+      if found == false {
+        insertIp.append(IndexPath(row: nIdx, section: 0))
+      }
+    }
+    
+    ///find removed items indexPaths
+    var deletedIp: [IndexPath] = []
+    for (idx, oldElm) in oldDates.enumerated() {
+      if usedOld.contains(oldElm) == false {
+        deletedIp.append(IndexPath(row: idx, section: 0))
+      }
+    }
+    
+    if insertIp.count == 0, movedIp.count == 0, deletedIp.count == 0 {
+      return false
+    }
+    
+    
+    let offset
+    = verticalCv
+    ? collectionView.contentSize.height - collectionView.contentOffset.y
+    : collectionView.contentSize.width - collectionView.contentOffset.x
+    
+    ///Update Issue Carousel
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    
+    collectionView.performBatchUpdates({
+      if insertIp.count > 0 {
+        collectionView.insertItems(at: insertIp)
+      }
+      if deletedIp.count > 0 {
+        collectionView.deleteItems(at: deletedIp)
+      }
+      for pair in movedIp {
+        collectionView.moveItem(at: pair.from, to: pair.to)
+      }
+      ///updateData
+      publicationDates = newPubDates
+    }, completion: {_ in
+      collectionView.contentOffset
+      = verticalCv
+      ? CGPointMake(0, collectionView.contentSize.height - offset)
+      : CGPointMake(collectionView.contentSize.width - offset, 0)
+      CATransaction.commit()
+    })
+    ///inform sender to refresh other collectionView
+    return true
   }
     
   /// Initialize with FeederContext

@@ -34,7 +34,6 @@
 		4D308EEE283405D900529592 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EED283405D900529592 /* PlaceholderView.swift */; };
 		4D308EF02834061600529592 /* BookmarkNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EEF2834061600529592 /* BookmarkNC.swift */; };
 		4D3131F2289159FE0087EE1B /* SubscriptionFormController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3131F1289159FE0087EE1B /* SubscriptionFormController.swift */; };
-		4DDD325A2A29F3F800172BDC /* IssueCollectionViewUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DDD32592A29F3F800172BDC /* IssueCollectionViewUpdate.swift */; };
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
 		7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968C25CC605D00508DE8 /* FeedbackViewController.swift */; };
@@ -158,7 +157,6 @@
 		4D308EED283405D900529592 /* PlaceholderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
 		4D308EEF2834061600529592 /* BookmarkNC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkNC.swift; sourceTree = "<group>"; };
 		4D3131F1289159FE0087EE1B /* SubscriptionFormController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormController.swift; sourceTree = "<group>"; };
-		4DDD32592A29F3F800172BDC /* IssueCollectionViewUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCollectionViewUpdate.swift; sourceTree = "<group>"; };
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
@@ -359,7 +357,6 @@
 				773500AB2A1C0A7C00678647 /* IssueDisplayService.swift */,
 				773500AC2A1C0A7C00678647 /* FetchNewStatusHeader.swift */,
 				773500AD2A1C0A7C00678647 /* IssueCarouselFlowLayout.swift */,
-				4DDD32592A29F3F800172BDC /* IssueCollectionViewUpdate.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -745,7 +742,6 @@
 				4D308EEE283405D900529592 /* PlaceholderView.swift in Sources */,
 				773500B22A1C0A7C00678647 /* HomeTVC.swift in Sources */,
 				773500B92A1C0B7E00678647 /* IssueCollectionViewActions.swift in Sources */,
-				4DDD325A2A29F3F800172BDC /* IssueCollectionViewUpdate.swift in Sources */,
 				773500AF2A1C0A7C00678647 /* IssueCarouselCVC.swift in Sources */,
 				77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,

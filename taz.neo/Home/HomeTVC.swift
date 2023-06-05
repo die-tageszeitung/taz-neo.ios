@@ -177,26 +177,19 @@ class HomeTVC: UITableViewController {
     self.addChild(carouselController)
     self.addChild(tilesController)
     Notification.receive(Const.NotificationNames.reloadIssueList) {[weak self] _ in
-      
-      let oldCount = self?.issueOverviewService.publicationDates.count
-      self?.issueOverviewService.updatePublicationDates()
-      let newCount = self?.issueOverviewService.publicationDates.count
-      
-      if oldCount == newCount { return }
-      
-      self?.carouselController.inse
-      
-      self?.carouselController.collectionView.performBatchUpdates({
-        <#code#>
-      })
-      
-      
-      
-      self?.issueOverviewService.updatePublicationDates()
-      self?.carouselController.collectionView.reloadData()
       self?.carouselController.statusHeader.currentStatus = .none
-      self?.tilesController.collectionView.reloadData()
-      self?.carouselController.updateBottomWrapper(for: 0, force: true)
+
+      guard let service = self?.issueOverviewService,
+            let self = self else { return }
+      let up = self.verifyUp()
+      guard let targetCv = up ? self.carouselController.collectionView
+                              : self.tilesController.collectionView else { return }
+      
+      guard service.updatePublicationDates(refresh: targetCv,
+                                           verticalCv: !up) else { return }
+      //refresh the other collection view controller
+      if up { self.tilesController.collectionView.reloadData() }
+      else { self.carouselController.collectionView.reloadData() }
     }
     Notification.receive(Const.NotificationNames.feederUnreachable) {[weak self] _ in
       self?.carouselController.statusHeader.currentStatus = .offline

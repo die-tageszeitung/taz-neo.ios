@@ -10,7 +10,7 @@ import UIKit
 import NorthLib
 
 
-class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions, IssueCollectionViewUpdate {
+class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   @Default("showBottomTilesAnimation")
   public var showBottomTilesAnimation: Bool
   
