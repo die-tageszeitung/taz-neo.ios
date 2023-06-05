@@ -177,6 +177,21 @@ class HomeTVC: UITableViewController {
     self.addChild(carouselController)
     self.addChild(tilesController)
     Notification.receive(Const.NotificationNames.reloadIssueList) {[weak self] _ in
+      
+      let oldCount = self?.issueOverviewService.publicationDates.count
+      self?.issueOverviewService.updatePublicationDates()
+      let newCount = self?.issueOverviewService.publicationDates.count
+      
+      if oldCount == newCount { return }
+      
+      self?.carouselController.inse
+      
+      self?.carouselController.collectionView.performBatchUpdates({
+        <#code#>
+      })
+      
+      
+      
       self?.issueOverviewService.updatePublicationDates()
       self?.carouselController.collectionView.reloadData()
       self?.carouselController.statusHeader.currentStatus = .none
