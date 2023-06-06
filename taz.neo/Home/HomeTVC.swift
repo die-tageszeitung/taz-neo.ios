@@ -176,27 +176,30 @@ class HomeTVC: UITableViewController {
     
     self.addChild(carouselController)
     self.addChild(tilesController)
-    Notification.receive(Const.NotificationNames.reloadIssueList) {[weak self] _ in
-      self?.carouselController.statusHeader.currentStatus = .none
+    ///Handle new issues
+    Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
+      self?.carouselController.statusHeader.currentStatus = .loadPreview
 
       guard let service = self?.issueOverviewService,
             let self = self else { return }
       let up = self.verifyUp()
+      ///cv to be reloaded by service
+      ///unfortunately we have to tell vc the changed indexPaths and then refresh the datamodel then commit changes
+      ///the other cv: tiles or carousel will be reloaded with reloadData()  due not visible
       guard let targetCv = up ? self.carouselController.collectionView
                               : self.tilesController.collectionView else { return }
-      
-      guard service.updatePublicationDates(refresh: targetCv,
+      ///if no changes not reload
+      guard service.reloadPublicationDates(refresh: targetCv,
                                            verticalCv: !up) else { return }
       //refresh the other collection view controller
       if up { self.tilesController.collectionView.reloadData() }
       else { self.carouselController.collectionView.reloadData() }
     }
+    ///Handle reachability changes: show offline status
     Notification.receive(Const.NotificationNames.feederUnreachable) {[weak self] _ in
       self?.carouselController.statusHeader.currentStatus = .offline
     }
-    ///Update Status Header or not?
-    ///NO: because we dont know last status and dont know what to resume
-    ///YES: we're online now and user can (re)init next action, need to see no blocking stuff is there
+    ///Handle reachability changes: show offline status
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
       self?.carouselController.statusHeader.currentStatus = .none
     }

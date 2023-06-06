@@ -285,9 +285,6 @@ open class FeederContext: DoesLog {
     self.debug("Feeder now reachable")
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
     notify(Const.NotificationNames.feederReachable)
-    //disables offline status label
-//    Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.fetchNewIssues, error: nil, sender: self)
-//    checkForNewIssues(feed: self.defaultFeed, isAutomatically: false)
   }
   
   /// Feeder is not reachable
@@ -349,7 +346,7 @@ open class FeederContext: DoesLog {
     self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
     let newCnt = self.storedFeeder?.feeds.first?.publicationDates?.count
     if oldCnt == newCnt { return }
-    Notification.send(Const.NotificationNames.reloadIssueList)
+    Notification.send(Const.NotificationNames.publicationDatesChanged)
   }
   
   /// Feeder is initialized, set up other objects
@@ -995,49 +992,6 @@ open class FeederContext: DoesLog {
     updateResources()
   }
   
-  public func updatePublicationDates(feed: Feed) {
-    guard self.isConnected else {
-      Notification.send("checkForNewIssues",
-                        content: FetchNewStatusHeader.status.offline,
-                        error: nil,
-                        sender: self)
-      return
-    }
-    self.gqlFeeder.feederStatus { [weak self] result in
-      
-      if let err = result.error() {
-        self?.debug(err.description)
-        let status = self?.isConnected == false
-        ? FetchNewStatusHeader.status.offline
-        : FetchNewStatusHeader.status.downloadError
-        Notification.send("checkForNewIssues", content: status, error: nil, sender: self)
-        return
-      }
-      
-      guard let gqlFeederStatus = result.value(),
-            let self = self,
-            let sFeed = self.storedFeeder?.feeds[0] as? StoredFeed,
-            let gqlFeed = gqlFeederStatus.feeds.first,
-            let gqlPubDates = gqlFeed.publicationDates,
-            gqlPubDates.count > 0 else {
-        self?.debug("no new data")
-        Notification.send("checkForNewIssues",
-                          content: FetchNewStatusHeader.status.none,
-                          error: nil,
-                          sender: self)
-        return
-      }
-      let oldCnt = feed.publicationDates?.count ?? 0
-      _ = StoredPublicationDate.persist(publicationDates: gqlPubDates, inFeed: sFeed)
-      let newCnt = feed.publicationDates?.count ?? 0
-      if oldCnt == newCnt { return }
-      ArticleDB.save()
-      log("persist: \(newCnt - oldCnt) publicationDates")
-      Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.loadPreview, error: nil, sender: self)
-      Notification.send(Const.NotificationNames.reloadIssueList)
-    }
-  }
-  
   /**
    Get Overview Issues from Feed
    
@@ -1105,32 +1059,6 @@ open class FeederContext: DoesLog {
     }
     updateResources()
   }
-  
-  /// checkForNewIssues requests new overview issues from the server if
-  /// more than 12 hours have passed since the latest stored issue
-//  public func checkForNewIssues(feed: Feed,
-//                                isAutomatically: Bool = false, isPushRequested: Bool = false) {
-//    Notification.send("checkForNewIssues",
-//                      content: self.isConnected ?FetchNewStatusHeader.status.none :FetchNewStatusHeader.status.offline,
-//                      error: nil,
-//                      sender: self)
-//    let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
-//    guard sfs.count > 0 else { return }
-//    let sfeed = sfs[0]
-//    if let latest = StoredIssue.latest(feed: sfeed) {
-//      let now = UsTime.now
-//      let latestIssueDate = UsTime(latest.date) //UsTime(year: 2023, month: 3, day: 23, hour: 3, min: 0, sec: 0) ??
-//      let ndays = max(2, (now.sec - latestIssueDate.sec) / (3600*24) + 1)//ensure to load at least 2 current issue previews
-//      getOvwIssues(feed: feed, count: Int(ndays), isAutomatically: isAutomatically)
-//      #warning("For new Home do check for new Dates!")
-//    }
-//    else if self.isConnected == false {
-//      Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.offline, error: nil, sender: self)
-//    }
-//    else {
-//      Notification.send("checkForNewIssues", content: FetchNewStatusHeader.status.none, error: nil, sender: self)
-//    }
-//  }
 
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: Issue) -> Bool {

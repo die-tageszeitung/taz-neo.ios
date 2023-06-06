@@ -341,7 +341,7 @@ extension IssueCarouselCVC {
     pin(statusHeader.right, to: self.view.right)
     topStatusButtonConstraint = pin(statusHeader.bottom, to: self.view.top, dist: 0)
        
-    Notification.receive("checkForNewIssues", from: self.service.feederContext) { [weak self] notification in
+    Notification.receive(Const.NotificationNames.checkForNewIssues, from: self.service) { [weak self] notification in
       if let status = notification.content as? FetchNewStatusHeader.status {
         print("receive status: \(status)")
         self?.statusHeader.currentStatus = status
@@ -351,7 +351,7 @@ extension IssueCarouselCVC {
       if self?.service.isCheckingForNewIssues ?? false { return }
       self?.statusHeader.currentStatus = .fetchNewIssues
       URLCache.shared.removeAllCachedResponses()
-      self?.service.checkForNewIssues()
+      self?.service.checkForNewIssues(force: true)
     }
   }
 }

@@ -173,13 +173,9 @@ class IssueOverviewService: NSObject, DoesLog {
   var loadingDates: [String] = []
   var loadFaildPreviews: [StoredIssue] = []
   var isCheckingForNewIssues = false
+  var lastUpdateCheck = Date()///set to init time to simplify; on online app start auto check is done and on reconnect
   
-  func checkForNewIssues() {
-    if isCheckingForNewIssues { return }
-    feederContext.updatePublicationDates(feed: feederContext.defaultFeed)
-    
-  }
-
+  
   ///Optimized load previews
   ///e.g. called on jump to date + ipad need to load date +/- 5 issues
   ///or on scrolling need to load date + 5..10 issues
@@ -333,13 +329,18 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   
-  func updatePublicationDates(refresh collectionView: UICollectionView,
+  /// refresh data model, reloads active collectionView
+  /// - Parameters:
+  ///   - collectionView: cv to reload animated
+  ///   - verticalCv: is vertical (tiles) or horizointal (carousel)
+  /// - Returns: true if new issues available and reload, false if not
+  func reloadPublicationDates(refresh collectionView: UICollectionView,
                               verticalCv: Bool) -> Bool {
     guard let newPubDates = feed.publicationDates else { return false }
     debug("before: \(publicationDates.count) after: \(newPubDates.count)")
   
     if publicationDates.count != newPubDates.count {
-      Notification.send("checkForNewIssues",
+      Notification.send(Const.NotificationNames.checkForNewIssues,
                         content: FetchNewStatusHeader.status.loadPreview,
                         error: nil,
                         sender: self)
@@ -450,13 +451,117 @@ class IssueOverviewService: NSObject, DoesLog {
 //        self?.apiLoadMomentImages(for: i, isPdf: self?.isFacsimile ?? false)
 //      }
       if let ll = self?.lastLoadFailed {
+        ///TODO!!!
+        #warning("todo check!")
         self?.apiLoadPreview(for: ll.date, count: ll.count)
       }
+    }
+    
+    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+      self?.checkForNewIssues(force: false)
     }
   }
   
   private var lc = LoadCoordinator()
 }
+
+// MARK: - extension Check for New PublicationDates (Issues)
+extension IssueOverviewService {
+  
+  /// check for new issues from pull to refresh (force == true)
+  /// and app will enter foreground
+  /// - Parameter force: ensure check
+  func checkForNewIssues(force: Bool) {
+    if force == false && isCheckingForNewIssues {
+      return
+    }
+    
+    ///only check after 5pm  on app resume (usually new issue comes after 6pm)
+    if !force && Date().timeIntervalSince(feederContext.latestPublicationDate?.startOfDay ?? Date()) < 3600*18 {
+      log("no need to check for new Issue due latest issue is from today, its too early")
+      return
+    }
+    
+    ///only check every 5 Minutes on app resume
+    if !force &&  Date().timeIntervalSince(lastUpdateCheck) < 5*60 {
+      log("no need to check for new Issue due last auto check was just now")
+      return
+    }
+    
+    guard feederContext.isConnected else {
+      Notification.send(Const.NotificationNames.checkForNewIssues,
+                        content: FetchNewStatusHeader.status.offline,
+                        error: nil,
+                        sender: self)
+      return
+    }
+    
+    if !force {
+      ///update status Header
+      Notification.send(Const.NotificationNames.checkForNewIssues,
+                        content: FetchNewStatusHeader.status.fetchNewIssues,
+                        error: nil,
+                        sender: self)
+    }
+    
+    isCheckingForNewIssues = true
+    
+    updatePublicationDates(feed: feederContext.defaultFeed)
+  }
+    
+  /// check api for new publicationDates (Issues)
+  /// ensure feeder is connected otherwise request will fail
+  /// - Parameter feed: feed to update
+  public func updatePublicationDates(feed: Feed) {
+    log("update")
+
+    feederContext.gqlFeeder.feederStatus { [weak self] result in
+      
+      self?.isCheckingForNewIssues = false
+      
+      if let err = result.error() {
+        self?.debug(err.description)
+        let status = self?.feederContext.isConnected == false
+        ? FetchNewStatusHeader.status.offline
+        : FetchNewStatusHeader.status.downloadError
+        Notification.send(Const.NotificationNames.checkForNewIssues, content: status, error: nil, sender: self)
+        return
+      }
+      
+      self?.lastUpdateCheck = Date()
+      
+      guard let gqlFeederStatus = result.value(),
+            let self = self,
+            let sFeed = self.feederContext.storedFeeder?.feeds[0] as? StoredFeed,
+            let gqlFeed = gqlFeederStatus.feeds.first,
+            let gqlPubDates = gqlFeed.publicationDates,
+            gqlPubDates.count > 0 else {
+        ///usually we have 1 date due request with todays and latest date return todys date again
+        self?.debug("no new data")
+        Notification.send(Const.NotificationNames.checkForNewIssues,
+                          content: FetchNewStatusHeader.status.none,
+                          error: nil,
+                          sender: self)
+        return
+      }
+      let oldCnt = feed.publicationDates?.count ?? 0
+      _ = StoredPublicationDate.persist(publicationDates: gqlPubDates, inFeed: sFeed)
+      let newCnt = feed.publicationDates?.count ?? 0
+      if oldCnt == newCnt {
+        Notification.send(Const.NotificationNames.checkForNewIssues,
+                          content: FetchNewStatusHeader.status.none,
+                          error: nil,
+                          sender: self)
+        return
+      }
+      ArticleDB.save()
+      log("persist: \(newCnt - oldCnt) publicationDates")
+      Notification.send(Const.NotificationNames.checkForNewIssues, content: FetchNewStatusHeader.status.loadPreview, error: nil, sender: self)
+      Notification.send(Const.NotificationNames.publicationDatesChanged)
+    }
+  }
+}
+
 
 extension IssueOverviewService {
   /// Inspect download Error and show it to user

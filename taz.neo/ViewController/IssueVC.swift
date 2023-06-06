@@ -625,12 +625,12 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.debug("on display: \(idx) / \(self.issues.count)")
       if self.issues.count - idx <= 1 {
         if self.feederContext.isConnected == false {
-          Notification.send("checkForNewIssues",
+          Notification.send(Const.NotificationNames.checkForNewIssues,
                             content: FetchNewStatusHeader.status.offline,
                             error: nil,
                             sender: self.feederContext)
         } else {
-          Notification.send("checkForNewIssues",
+          Notification.send(Const.NotificationNames.checkForNewIssues,
                             content: FetchNewStatusHeader.status.fetchMoreIssues,
                             error: nil,
                             sender: self.feederContext)
