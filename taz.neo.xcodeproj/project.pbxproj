@@ -54,6 +54,7 @@
 		773500B92A1C0B7E00678647 /* IssueCollectionViewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500B82A1C0B7E00678647 /* IssueCollectionViewActions.swift */; };
 		773D564226145E8500B42FEF /* InfoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773D564126145E8500B42FEF /* InfoToast.swift */; };
 		773D56472614A4DF00B42FEF /* BundledResources in Resources */ = {isa = PBXBuildFile; fileRef = 773D56462614A4DF00B42FEF /* BundledResources */; };
+		773E3DA32A2F683E00222EE5 /* NewContentTableVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773E3DA22A2F683E00222EE5 /* NewContentTableVC.swift */; };
 		7745050D25DA801F0052E502 /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = 7745050C25DA801F0052E502 /* resources.json */; };
 		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
 		774C6F8129CB5BAF001285FB /* KeyboardToolbarForText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */; };
@@ -178,6 +179,7 @@
 		7738E50C2744596200453CD8 /* genBuildConst.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = genBuildConst.rb; sourceTree = "<group>"; };
 		773D564126145E8500B42FEF /* InfoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToast.swift; sourceTree = "<group>"; };
 		773D56462614A4DF00B42FEF /* BundledResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResources; sourceTree = "<group>"; };
+		773E3DA22A2F683E00222EE5 /* NewContentTableVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewContentTableVC.swift; sourceTree = "<group>"; };
 		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
 		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
 		774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardToolbarForText.swift; sourceTree = "<group>"; };
@@ -430,6 +432,7 @@
 				0032A4D624C89E1600284723 /* Forms */,
 				AEBAF5AB219ACFD900566205 /* ContentVC.swift */,
 				AE5D9EC123E1BB2D0002C3B8 /* ContentTableVC.swift */,
+				773E3DA22A2F683E00222EE5 /* NewContentTableVC.swift */,
 				AE5D9EC223E1BB2D0002C3B8 /* ContentTableVC.xib */,
 				AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */,
 				AE4AA2B323F6B01A00EAFE78 /* ArticleVC.swift */,
@@ -767,6 +770,7 @@
 				C794F23524FED184007168AC /* Helper.swift in Sources */,
 				AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */,
 				770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */,
+				773E3DA32A2F683E00222EE5 /* NewContentTableVC.swift in Sources */,
 				7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */,
 				00E3D2A924E68F5500AE075A /* PwForgottView.swift in Sources */,
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,

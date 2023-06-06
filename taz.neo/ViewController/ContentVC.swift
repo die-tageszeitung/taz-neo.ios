@@ -92,7 +92,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
-  public var contentTable: ContentTableVC?
+  public var contentTable: NewContentTableVC?
   public var contents: [Content] = []
   public var feeder: Feeder { delegate.feeder }
   public var issue: Issue { delegate.issue }
@@ -716,7 +716,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
  
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
-    self.contentTable = ContentTableVC.loadFromNib()
+    self.contentTable = NewContentTableVC(style: .plain)
     super.init()
     hidesBottomBarWhenPushed = true
   }  
