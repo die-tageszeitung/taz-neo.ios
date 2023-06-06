@@ -102,6 +102,7 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     guard let issue = issue(at: publicationDate.date) else {
       apiLoadPreview(for: publicationDate.date, count: 6)
+      log("request preview for: \(index) date: \(publicationDate.date.short)")
       return IssueCellData(date: publicationDate, issue: nil, image: nil)
     }
     let img = self.storedImage(issue: issue, isPdf: isFacsimile)
@@ -186,26 +187,44 @@ class IssueOverviewService: NSObject, DoesLog {
       debug("Already loading: \(date.issueKey), skip loading")
       return
     }
-    var count = count
-    
     let availableIssues = issues.map({ $0.value.date.issueKey })
     var currentLoadingDates: [Date] = []
     
-    for i in -count/2...count/2 {
+    var start:Date?
+    var end:Date?
+    
+    ///set the optimized request, do not load dates twice
+    for i in -count/2...count/2 {//-3,-2,-1,0,1,2,3
       var d = date
       d.addDays(-i)
-      if availableIssues.contains(d.issueKey) { count = i+1; break }
-      if loadingDates.contains(d.issueKey) { count = i+1; break }
+      if availableIssues.contains(d.issueKey)
+      || loadingDates.contains(d.issueKey) {
+        if start != nil {
+          end = d
+          break
+        }
+        continue
+      } else if start == nil {
+        start = d
+      }
       currentLoadingDates.append(d)
     }
     
-    let date = currentLoadingDates.first ?? date
-    count = abs(currentLoadingDates.count > 0 ? currentLoadingDates.count : count)
+    var count = count
+    if let start = start, let end = end {
+      let days = start.timeIntervalSince(end)/(3600*24)
+      count = Int(days)
+    }
+    else if start == nil {
+      log("no need to load")
+      return
+    }
+    
     let sCurrentLoadingDates = currentLoadingDates.map{$0.issueKey}
     addToLoading(sCurrentLoadingDates)
     
     self.feederContext.gqlFeeder.issues(feed: feed,
-                                        date: date,
+                                        date: start,
                                         count: count,
                                         isOverview: true,
                                         returnOnMain: true) {[weak self] res in
