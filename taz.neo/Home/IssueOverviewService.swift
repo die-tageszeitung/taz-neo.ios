@@ -213,7 +213,7 @@ class IssueOverviewService: NSObject, DoesLog {
     var count = count
     if let start = start, let end = end {
       let days = start.timeIntervalSince(end)/(3600*24)
-      count = Int(days)
+      count = max(1, Int(days))
     }
     else if start == nil {
       log("no need to load")
@@ -236,10 +236,10 @@ class IssueOverviewService: NSObject, DoesLog {
         self.handleDownloadError(error: err)
       } else if let err = res.error() as? URLError {
         ///offline
-        self.debug("failed to load")
+        self.debug("failed to load \(err)")
         self.lastLoadFailed = FailedLoad(date, count)
       } else if let err = res.error(){
-        self.debug("failed to load")
+        self.debug("failed to load \(err)")
         ///unknown
       }
       if let issues = res.value() {
