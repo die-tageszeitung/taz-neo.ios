@@ -15,11 +15,60 @@ import UIKit
 /// cell as Article Preview (like in serach or bookmarks
 public class NewContentTableVC: UITableViewController {
   
+  fileprivate static let CellIdentifier = "NewContentTableVcCell"
+  
   var feeder:Feeder?
   var image:UIImage?
   var issue:Issue?
-  var largestTextWidth = 0.0
+  var largestTextWidth = 100.0
   var expandedSections: [Int] = []
+  
+  var widthConstraint:NSLayoutConstraint?
+  
+  fileprivate var sectionPressedClosure: ((Int)->())?
+  fileprivate var imagePressedClosure: (()->())?
+  
+  
+}
+  
+///lifecycle
+extension NewContentTableVC {
+  public override func viewDidLoad() {
+    super.viewDidLoad()
+    self.tableView.register(NewContentTableVcCell.self,
+                            forCellReuseIdentifier: Self.CellIdentifier)
+  }
+  
+  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    self.widthConstraint?.constant = size.width
+    
+//    updateWidth(size.width)
+  }
+  
+  open override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+//    widthConstraint = self.tableView.pinWidth(self.view.frame.size.width)
+//    updateWidth(self.view.frame.size.width)
+  }
+
+//  func updateWidth(_ width:CGFloat) {
+//    widthConstraint?.constant
+//    topGradient.isHidden = UIDevice.current.orientation.isLandscape && Device.isIphone
+//  }
+}
+
+///actions
+extension NewContentTableVC {
+  /// Define closure to call when a content label has been pressed
+  public func onSectionPress(closure: @escaping (Int)->()) {
+    sectionPressedClosure = closure
+  }
+  
+  /// Define closure to call when the image has been tapped
+  public func onImagePress(closure: @escaping ()->()) {
+    imagePressedClosure = closure
+  }
 }
 
 ///handle expanded/collapsed
@@ -84,10 +133,23 @@ extension NewContentTableVC {
     log("you tapped: \(art.title)")
   }
   
+  public override func tableView(_ tableView: UITableView,
+                                 cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell
+    = tableView.dequeueReusableCell(withIdentifier: Self.CellIdentifier,
+                                    for: indexPath) as? NewContentTableVcCell
+    ?? NewContentTableVcCell()
+    return cell
+  }
+  
   
 }
 
 
-class NewContentTableVcHeader: UIView {
+fileprivate class NewContentTableVcHeader: UIView {
+  
+}
+
+fileprivate  class NewContentTableVcCell: UITableViewCell {
   
 }
