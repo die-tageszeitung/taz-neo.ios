@@ -114,31 +114,31 @@ open class ArticleVC: ContentVC {
     }
     
     super.setup(contents: articles, isLargeHeader: false)
-    contentTable?.onArticlePress{[weak self] article in
-      guard let self = self else { return }
-      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
-      self.adelegate?.linkPressed(from: nil, to: url)
-      self.slider?.close()
-    }
-    contentTable?.onSectionPress { [weak self] sectionIndex in
-      guard let self = self, let adelegate = self.adelegate else { return }
-      if sectionIndex >= adelegate.sections.count {
-        self.debug("*** Action: Impressum pressed")
-      }
-      else {
-        self.debug("*** Action: Section \(sectionIndex) " +
-          "(delegate.sections[sectionIndex])) in Slider pressed")
-      }
-      self.adelegate?.displaySection(index: sectionIndex)
-      self.slider?.close()
-      self.navigationController?.popViewController(animated: false)
-    }
-    contentTable?.onImagePress { [weak self] in
-      self?.debug("*** Action: Moment in Slider pressed")
-      self?.slider?.close()
-      self?.navigationController?.popViewController(animated: false)
-      self?.adelegate?.closeIssue()
-    }
+//    contentTable?.onArticlePress{[weak self] article in
+//      guard let self = self else { return }
+//      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+//      self.adelegate?.linkPressed(from: nil, to: url)
+//      self.slider?.close()
+//    }
+//    contentTable?.onSectionPress { [weak self] sectionIndex in
+//      guard let self = self, let adelegate = self.adelegate else { return }
+//      if sectionIndex >= adelegate.sections.count {
+//        self.debug("*** Action: Impressum pressed")
+//      }
+//      else {
+//        self.debug("*** Action: Section \(sectionIndex) " +
+//          "(delegate.sections[sectionIndex])) in Slider pressed")
+//      }
+//      self.adelegate?.displaySection(index: sectionIndex)
+//      self.slider?.close()
+//      self.navigationController?.popViewController(animated: false)
+//    }
+//    contentTable?.onImagePress { [weak self] in
+//      self?.debug("*** Action: Moment in Slider pressed")
+//      self?.slider?.close()
+//      self?.navigationController?.popViewController(animated: false)
+//      self?.adelegate?.closeIssue()
+//    }
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
@@ -239,7 +239,8 @@ open class ArticleVC: ContentVC {
           else {
             header.pageNumber = "\(i+1)/\(articles.count)"
           }
-        }        
+          contentTable?.artIndex = i
+        }
       }
       else if art.title != nil,
               art.html?.isEqualTo(adelegate?.issue.imprint?.html) ?? false,
@@ -318,7 +319,8 @@ open class ArticleVC: ContentVC {
   }
   
   public override func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(animated)  
+    super.viewWillDisappear(animated)
+    (delegate as? SectionVC)?.slider?.updateSlider()
     let player = ArticlePlayer.singleton
     if player.isPlaying() { async { player.stop() } }
   }

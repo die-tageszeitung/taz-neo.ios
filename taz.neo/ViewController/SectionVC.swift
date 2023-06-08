@@ -31,6 +31,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if let lidx = lastIndex, secIndex != lidx {
         displaySection(index: secIndex)
       }
+      contentTable?.sectIndex = secIndex
+      articleVC?.contentTable?.sectIndex = secIndex
       lastIndex = secIndex
     }
   }
@@ -146,6 +148,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
       self.linkPressed(from: nil, to: url)
       self.slider?.close()
+      self.articleVC?.slider?.close()
     }
     contentTable?.onSectionPress { [weak self] sectionIndex in
       guard let self = self else { return }
@@ -156,6 +159,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
         self.debug("*** Action: \"Impressum\" in Slider pressed")
       }
       self.slider?.close()
+      self.articleVC?.slider?.close()
+      self.articleVC?.navigationController?.popViewController(animated: true)
       self.displaySection(index: sectionIndex)
     }
     contentTable?.onImagePress { [weak self] in
@@ -174,6 +179,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
     super.showImageGallery = false
     articleVC = ArticleVC(feederContext: feederContext)
+    articleVC?.contentTable = self.contentTable
     articleVC?.delegate = self
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
@@ -312,6 +318,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     initialSection = atSection
     initialArticle = atArticle
     super.init(feederContext: feederContext)
+    contentTable = NewContentTableVC(style: .plain)
     let sec: String = (atSection == nil) ? "nil" : "\(atSection!)"
     let art: String = (atArticle == nil) ? "nil" : "\(atArticle!)"
     debug("new SectionVC: section=\(sec), article=\(art)")

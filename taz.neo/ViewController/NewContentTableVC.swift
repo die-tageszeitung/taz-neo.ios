@@ -19,6 +19,15 @@ public class NewContentTableVC: UITableViewController {
   fileprivate static let CellIdentifier = "NewContentTableVcCell"
   fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
   
+  var artIndex: Int? { didSet {
+    if oldValue == artIndex { return }
+    updateHighlight()
+  }}
+  var sectIndex: Int? { didSet {
+    if oldValue == sectIndex { return }
+    updateHighlight()
+  }}
+  
   var feeder:Feeder?
   var image:UIImage? {
     didSet {
@@ -49,6 +58,13 @@ public class NewContentTableVC: UITableViewController {
   public override func viewWillLayoutSubviews() {
     super.viewWillLayoutSubviews()
     setupTopView()
+  }
+  
+  func updateHighlight(){
+    if artIndex == nil {
+      
+    }
+    print("slidershow: sect: \(sectIndex) art:\(artIndex)")
   }
   
   func setupTopView(){

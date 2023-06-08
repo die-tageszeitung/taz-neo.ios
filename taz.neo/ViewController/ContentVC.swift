@@ -716,7 +716,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
  
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
-    self.contentTable = NewContentTableVC(style: .plain)
     super.init()
     hidesBottomBarWhenPushed = true
   }  

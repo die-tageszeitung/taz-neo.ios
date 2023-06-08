@@ -229,6 +229,7 @@ class SearchController: UIViewController {
     self.articleVC.searchClosure = { [weak self] in
       self?.search()
     }
+    articleVC.contentTable = NewContentTableVC(style: .plain)
     articleVC.delegate = self
   }
   
