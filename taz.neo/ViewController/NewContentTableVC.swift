@@ -20,8 +20,18 @@ public class NewContentTableVC: UITableViewController {
   fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
   
   var feeder:Feeder?
-  var image:UIImage?
-  var issue:Issue?
+  var image:UIImage? {
+    didSet {
+            (self.tableView.tableHeaderView as? NewContentTableVcHeader)?.image = image
+    }
+  }
+  var issue:Issue? {
+    didSet {
+      if issue?.date == oldValue?.date { return }
+      (self.tableView.tableHeaderView as? NewContentTableVcHeader)?.issue = issue
+      tableView.reloadData()
+    }
+  }
   var largestTextWidth = 300.0
   var expandedSections: [Int] = []
   
@@ -47,6 +57,7 @@ extension NewContentTableVC {
     if #available(iOS 15.0, *) {
       self.tableView.sectionHeaderTopPadding = 0
     }
+    setupHeader()
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -58,6 +69,7 @@ extension NewContentTableVC {
   
   open override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+
 //    widthConstraint = self.tableView.pinWidth(self.view.frame.size.width)
 //    updateWidth(self.view.frame.size.width)
   }
@@ -83,6 +95,25 @@ extension NewContentTableVC {
 
 ///handle expanded/collapsed
 extension NewContentTableVC {
+  
+  func setupHeader(){
+    let header = NewContentTableVcHeader(frame: CGRect(x: 0,
+                                                       y: 0,
+                                                       width: UIScreen.shortSide,
+                                                       height: 250))
+    header.bottomLabel.onTapping {[weak self] _ in
+      if header.bottomLabel.text == header.closeText {
+        header.bottomLabel.text = header.openText
+        self?.collapseAll()
+      }else {
+        header.bottomLabel.text = header.closeText
+        self?.expandAll()
+      }
+    }
+    header.pinHeight(250.0)
+    self.tableView.tableHeaderView = header
+  }
+  
   func collapse(section: Int){
     
   }
@@ -188,8 +219,6 @@ extension NewContentTableVC {
       self?.log("You tapped header with tdx: \(header.tag)")
       header.collapsed = self?.toggle(section: header.tag) ?? true
     }
-    
-    
     return header
   }
   
@@ -217,6 +246,68 @@ extension NewContentTableVC {
 
 fileprivate class NewContentTableVcHeader: UIView {
   
+  let closeText = "alle ressorts schliessen"
+  let openText = "alle ressorts öffnen"
+  
+  var issue: Issue? {
+    didSet {
+      topLabel.text
+      = "\(issue?.validityDateText(timeZone: GqlFeeder.tz) ?? "")"
+        .replacingOccurrences(of: ", ", with: ",\n")
+    }
+  }
+  
+  var image: UIImage? {
+    didSet {
+      imageView.image = image
+      updateImage()
+    }
+  }
+  
+  var imageView = UIImageView()
+  var topLabel = UILabel()
+  var bottomLabel = UILabel()
+  
+  var imageAspectConstraint: NSLayoutConstraint?
+  
+  override func didMoveToSuperview() {
+    if imageView.superview == nil { setup() }
+    super.didMoveToSuperview()
+  }
+  
+  func updateImage(){
+    guard let image = image else { return }
+    let ratio = image.size.width / image.size.height
+    if imageAspectConstraint == nil {
+      imageAspectConstraint = imageView.pinAspect(ratio: ratio)
+    }
+    else {
+      imageAspectConstraint?.constant = ratio
+    }
+  }
+  
+  func setup(){
+    self.addSubview(imageView)
+    self.addSubview(topLabel)
+    self.addSubview(bottomLabel)
+    
+    imageView.shadow()
+    imageView.contentMode = .scaleAspectFit
+    
+    topLabel.contentFont()
+    bottomLabel.contentFont()
+    
+    bottomLabel.text = openText
+    topLabel.numberOfLines = 0
+    
+    pin(imageView, to: self, dist: Const.Size.DefaultPadding, exclude: .right)
+    pin(topLabel.left, to: imageView.right, dist: 10)
+    pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
+    pin(topLabel.top, to: imageView.top)
+    pin(bottomLabel.left, to: imageView.right, dist: 10)
+    pin(bottomLabel.bottom, to: imageView.bottom)
+    pin(bottomLabel.right, to: self.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
+  }
 }
 
 fileprivate  class NewContentTableVcCell: UITableViewCell {
