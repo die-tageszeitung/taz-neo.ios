@@ -114,6 +114,12 @@ open class ArticleVC: ContentVC {
     }
     
     super.setup(contents: articles, isLargeHeader: false)
+    contentTable?.onArticlePress{[weak self] article in
+      guard let self = self else { return }
+      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+      self.adelegate?.linkPressed(from: nil, to: url)
+      self.slider?.close()
+    }
     contentTable?.onSectionPress { [weak self] sectionIndex in
       guard let self = self, let adelegate = self.adelegate else { return }
       if sectionIndex >= adelegate.sections.count {

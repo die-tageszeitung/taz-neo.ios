@@ -38,10 +38,29 @@ public class NewContentTableVC: UITableViewController {
   var widthConstraint:NSLayoutConstraint?
   
   fileprivate var sectionPressedClosure: ((Int)->())?
-  fileprivate var articlePressedClosure: ((Int)->())?
+  fileprivate var articlePressedClosure: ((Article)->())?
   fileprivate var imagePressedClosure: (()->())?
   
+  lazy var topView: UIView = {
+    let v = UIView()
+    return v
+  }()
   
+  public override func viewWillLayoutSubviews() {
+    super.viewWillLayoutSubviews()
+    setupTopView()
+  }
+  
+  func setupTopView(){
+    if topView.superview == nil {
+      self.view.addSubview(topView)
+      pin(topView, toSafe: self.view, exclude: .bottom).top?.constant = -30
+      topView.pinHeight(40.0)
+      topView.backgroundColor = Const.SetColor.CTBackground.color
+      self.tableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+    }
+    self.view.bringSubviewToFront(topView)
+  }
 }
   
 ///lifecycle
@@ -84,7 +103,7 @@ extension NewContentTableVC {
     sectionPressedClosure = closure
   }
   
-  public func onArticlePress(closure: @escaping (Int)->()) {
+  public func onArticlePress(closure: @escaping (Article)->()) {
     articlePressedClosure = closure
   }
   
@@ -229,7 +248,7 @@ extension NewContentTableVC {
       log("Article you tapped not found for section: \(indexPath.section), row: \(indexPath.row)")
       return
     }
-    articlePressedClosure?(indexPath.row)
+    articlePressedClosure?(art)
     log("you tapped: \(art.title)")
   }
   

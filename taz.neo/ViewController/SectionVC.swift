@@ -141,9 +141,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
-    contentTable?.onArticlePress{[weak self] idx in
+    contentTable?.onArticlePress{[weak self] article in
       guard let self = self else { return }
-      self.showArticle(index: idx)
+      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+      self.linkPressed(from: nil, to: url)
       self.slider?.close()
     }
     contentTable?.onSectionPress { [weak self] sectionIndex in
