@@ -38,6 +38,7 @@ public class NewContentTableVC: UITableViewController {
   var widthConstraint:NSLayoutConstraint?
   
   fileprivate var sectionPressedClosure: ((Int)->())?
+  fileprivate var articlePressedClosure: ((Int)->())?
   fileprivate var imagePressedClosure: (()->())?
   
   
@@ -81,6 +82,10 @@ extension NewContentTableVC {
   /// Define closure to call when a content label has been pressed
   public func onSectionPress(closure: @escaping (Int)->()) {
     sectionPressedClosure = closure
+  }
+  
+  public func onArticlePress(closure: @escaping (Int)->()) {
+    articlePressedClosure = closure
   }
   
   /// Define closure to call when the image has been tapped
@@ -224,6 +229,7 @@ extension NewContentTableVC {
       log("Article you tapped not found for section: \(indexPath.section), row: \(indexPath.row)")
       return
     }
+    articlePressedClosure?(indexPath.row)
     log("you tapped: \(art.title)")
   }
   

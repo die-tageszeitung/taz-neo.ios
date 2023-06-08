@@ -121,7 +121,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
           error("No application or no permission for: \(to.absoluteString)")
         }
       }
-
     }
   }
   
@@ -142,6 +141,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
+    contentTable?.onArticlePress{[weak self] idx in
+      guard let self = self else { return }
+      self.showArticle(index: idx)
+      self.slider?.close()
+    }
     contentTable?.onSectionPress { [weak self] sectionIndex in
       guard let self = self else { return }
       if sectionIndex < self.sections.count {
