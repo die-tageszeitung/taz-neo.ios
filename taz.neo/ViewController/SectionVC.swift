@@ -181,7 +181,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if UIApplication.shared.applicationState != .active { return }
       self?.linkPressed(from: from, to: to)
     }
-    Notification.receive("BookmarkChanged") { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       if let art = msg.sender as? StoredArticle {
         guard let name = art.html?.name.nonPublic() else { return }
         let js = """

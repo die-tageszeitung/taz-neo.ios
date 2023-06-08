@@ -40,6 +40,8 @@ public struct Const {
     static let expiredAccountDateChanged = "NotificationName.expiredAccountDateChanged"
     static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
     static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
+    static let bookmarkChanged = "Const.NotificationNames.bookmarkChanged"
+    
   } // Filename
   
   /// Various color values
@@ -384,6 +386,10 @@ public struct Const {
                                     left: Const.Size.DefaultPadding,
                                     bottom: 0,
                                     right: -Const.Size.DefaultPadding)
+    static let NegDefault = UIEdgeInsets(top: 0,
+                                    left: -Const.Size.DefaultPadding,
+                                    bottom: 0,
+                                    right: Const.Size.DefaultPadding)
   }
   
   /// Adjusted Sizes for tiny Displays (iPhone 5s/SE1, iPod 7G)

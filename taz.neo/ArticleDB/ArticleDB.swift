@@ -875,7 +875,7 @@ public final class StoredArticle: Article, StoredObject {
       let old = pr.hasBookmark
       setBookmark(newValue)
       if old != newValue {
-        Notification.send("BookmarkChanged", content: sections, sender: self)
+        Notification.send(Const.NotificationNames.bookmarkChanged, content: sections, sender: self)
       }
     }
   }

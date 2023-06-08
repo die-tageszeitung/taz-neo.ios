@@ -133,7 +133,7 @@ open class ArticleVC: ContentVC {
       self?.navigationController?.popViewController(animated: false)
       self?.adelegate?.closeIssue()
     }
-    Notification.receive("BookmarkChanged") { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,

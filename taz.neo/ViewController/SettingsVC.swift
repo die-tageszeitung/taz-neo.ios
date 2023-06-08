@@ -225,7 +225,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                   initialValue: bookmarksListTeaserEnabled,
                   onChange: {[weak self] newValue in
                     self?.bookmarksListTeaserEnabled = newValue
-                    Notification.send("BookmarkChanged")
+                    Notification.send(Const.NotificationNames.bookmarkChanged)
                   })
     
   lazy var tabbarInSectionCellALPHA: XSettingsCell

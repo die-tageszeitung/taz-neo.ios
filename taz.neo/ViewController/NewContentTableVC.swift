@@ -51,7 +51,7 @@ extension NewContentTableVC {
                             forCellReuseIdentifier: Self.CellIdentifier)
     self.tableView.register(ContentTableHeaderFooterView.self,
                             forHeaderFooterViewReuseIdentifier: Self.SectionHeaderIdentifier)
-    
+    self.tableView.backgroundColor = Const.SetColor.CTBackground.color
     self.tableView.rowHeight = UITableView.automaticDimension
     self.tableView.estimatedRowHeight = 100.0
     if #available(iOS 15.0, *) {
@@ -63,21 +63,17 @@ extension NewContentTableVC {
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     self.widthConstraint?.constant = size.width
-    
-//    updateWidth(size.width)
   }
   
-  open override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-
-//    widthConstraint = self.tableView.pinWidth(self.view.frame.size.width)
-//    updateWidth(self.view.frame.size.width)
+  public override func viewDidAppear(_ animated: Bool) {
+    #warning("toDo extend background, prevent overflow cells")
+//    if let tvsv = self.tableView.superview {
+//      //10...to align to taz Logo top
+//      pin(self.tableView, toSafe: tvsv).top.constant = 10.0
+//    }
+//    self.tableView.contentInset = UIEdgeInsets(top: 70, left: 0, bottom: 0, right: 0)
+    super.viewDidAppear(animated)
   }
-
-//  func updateWidth(_ width:CGFloat) {
-//    widthConstraint?.constant
-//    topGradient.isHidden = UIDevice.current.orientation.isLandscape && Device.isIphone
-//  }
 }
 
 ///actions
@@ -238,7 +234,7 @@ extension NewContentTableVC {
                                     for: indexPath) as? NewContentTableVcCell
     ?? NewContentTableVcCell()
     cell.article = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row)
-    cell.customImageView.image = cell.article?.images?.first?.image(dir: issue?.dir)
+    cell.customImageView.image = cell.article?.images?.first?.image(dir: issue?.dir)?.invertedIfNeeded
     return cell
   }
 }
@@ -292,6 +288,7 @@ fileprivate class NewContentTableVcHeader: UIView {
     self.addSubview(bottomLabel)
     
     imageView.shadow()
+    imageView.layer.shadowColor = Const.SetColor.CTArticle.color.cgColor
     imageView.contentMode = .scaleAspectFit
     
     topLabel.contentFont()
@@ -312,25 +309,32 @@ fileprivate class NewContentTableVcHeader: UIView {
 
 fileprivate  class NewContentTableVcCell: UITableViewCell {
   
+  var articleIdentifier: String?
+  
+  let starFill = UIImage(named: "star-fill")?.withTintColor(Const.Colors.iconButtonInactive,
+                                               renderingMode: .alwaysOriginal)
+  let star = UIImage(named: "star")?.withTintColor(Const.Colors.iconButtonInactive,
+                                               renderingMode: .alwaysOriginal)
+  
   var article: Article? {
     didSet {
-      var attributedString
+      articleIdentifier = article?.html?.name
+      let attributedString
       = NSMutableAttributedString(string: article?.authors() ?? "")
       let range = NSRange(location: 0, length: attributedString.length)
       
-      let boldFont = Const.Fonts.titleFont(size: Const.Size.SmallerFontSize)
+      let boldFont = Const.Fonts.titleFont(size: 13.5)
       attributedString.addAttribute(.font, value: boldFont, range: range)
-      attributedString.addAttribute(.foregroundColor, value: Const.SetColor.CTDate.color, range: range)
       attributedString.addAttribute(.backgroundColor, value: UIColor.clear, range: range)
       
 
       if let rd = article?.readingDuration {
-        var timeString
+        let timeString
         = NSMutableAttributedString(string: " \(rd)min")
         let trange = NSRange(location: 0, length: timeString.length)
-        let thinFont = Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)
+        let thinFont = Const.Fonts.contentFont(size: 12.0)
         timeString.addAttribute(.font, value: thinFont, range: trange)
-        timeString.addAttribute(.foregroundColor, value: Const.SetColor.CTDate.color, range: trange)
+        timeString.addAttribute(.foregroundColor, value: Const.Colors.iconButtonInactive, range: trange)
         timeString.addAttribute(.backgroundColor, value: UIColor.clear, range: trange)
         attributedString.append(timeString)
       }
@@ -339,7 +343,7 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
       titleLabel.text = article?.title
       customTextLabel.text = article?.teaser
       
-      bookmarkButton.image = UIImage(named: "star")
+      bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
     }
   }
   
@@ -350,7 +354,6 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   let bottomLabel = UILabel()
   let dottedLine = DottedLineView()
   
-  
   public override func prepareForReuse() {
     customImageView.image = nil
     article = nil
@@ -358,10 +361,14 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   
   lazy var content: UIView = {
     let v = UIView()
+    
+    let rightSpacer = UIView.verticalSpacer
+    
     v.addSubview(titleLabel)
     v.addSubview(customTextLabel)
     v.addSubview(bottomLabel)
     v.addSubview(customImageView)
+    v.addSubview(rightSpacer)
     v.addSubview(bookmarkButton)
     
     titleLabel.numberOfLines = 2
@@ -370,21 +377,23 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     
     titleLabel.boldContentFont()
     customTextLabel.contentFont()
-    bottomLabel.boldContentFont(size: Const.Size.SmallerFontSize)
+    bottomLabel.boldContentFont(size: 13.5)
     
     let imgWidth = 60.0
     customImageView.pinSize(CGSize(width: imgWidth, height: imgWidth))
     customImageView.contentMode = .scaleAspectFill
     customImageView.clipsToBounds = true
     
-    pin(titleLabel.top, to: v.top)
+    pin(titleLabel.top, to: v.top, priority: .required)
     pin(titleLabel.left, to: v.left)
     pin(titleLabel.right, to: v.right, dist: -(imgWidth + 10))
     
     pin(customTextLabel.top, to: titleLabel.bottom, dist: 4.0)
     pin(customTextLabel.left, to: v.left)
     pin(customTextLabel.right, to: v.right, dist: -(imgWidth + 10))
+    customTextLabel.setContentHuggingPriority(.defaultLow, for: .vertical)//the spacer!
     
+    pin(rightSpacer.right, to: v.right)
     pin(bottomLabel.top, to: customTextLabel.bottom, dist: 8.0)
     pin(bottomLabel.left, to: v.left)
     pin(bottomLabel.right, to: v.right, dist: -(imgWidth + 10))
@@ -393,11 +402,16 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     pin(customImageView.top, to: v.top)
     pin(customImageView.right, to: v.right)
     
-    bookmarkButton.pinSize(CGSize(width: 30, height: 30))
-    pin(bookmarkButton.top, to: customImageView.bottom, dist: 10, priority: .fittingSizeLevel)
+    bookmarkButton.pinSize(CGSize(width: 26, height: 26))
+    pin(rightSpacer.top, to: customImageView.bottom)
+    pin(bookmarkButton.top, to: rightSpacer.bottom, dist: 10)
     pin(bookmarkButton.right, to: v.right)
     pin(bookmarkButton.bottom, to: v.bottom)
- 
+    
+    bookmarkButton.onTapping {[weak self] _ in
+      self?.article?.hasBookmark.toggle()
+    }
+    
     return v
   }()
   
@@ -410,15 +424,13 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     pin(dottedLine.left, to: self.contentView.left, dist: Const.ASize.DefaultPadding)
     pin(dottedLine.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding)
     pin(dottedLine.top, to: self.contentView.top)
-    
-    content.addBorder(.red)
-    titleLabel.addBorder(.blue)
-    customTextLabel.addBorder(.purple)
-    bottomLabel.addBorder(.cyan)
-    contentView.addBorder(.green)
-    customImageView.addBorder(.yellow)
-    
     pin(content, to: contentView, dist: Const.Size.DefaultPadding)
+    
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+      guard let art = msg.sender as? StoredArticle,
+            art.html?.name == self?.articleIdentifier else { return }
+      self?.bookmarkButton.image = art.hasBookmark ? self?.starFill : self?.star
+    }
   }
 
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -446,7 +458,9 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
   
   override func setup(){
     super.setup()
-    self.addBorder(Const.SetColor.HText.color, only: .top)
+    self.addBorderView(Const.Colors.iconButtonInactive,
+                       edge: .top,
+                       insets: Const.Insets.Default)
     dottedLine.isHorizontal = false
     self.contentView.addSubview(dottedLine)
     pin(dottedLine.top, to: self.contentView.top, dist: 3.0, priority: .fittingSizeLevel)
@@ -455,5 +469,34 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     dottedLine.pinWidth(Const.Size.DottedLineHeight/2)
     dottedLine.fillColor = Const.SetColor.HText.color
     dottedLine.strokeColor = Const.SetColor.HText.color
+  }
+}
+
+
+extension UIImage {
+  
+  var invertedIfNeeded: UIImage {
+    if self.size.width > 200 || self.size.height > 200 { return self }
+    if !Defaults.darkMode { return self }
+    return inverted
+  }
+  
+  var inverted: UIImage {
+    guard let cgImage = cgImage else { return self }
+    let ciSourceImage = CIImage(cgImage: cgImage)
+    let ciFilter = CIFilter(name: "CIColorInvert")
+    ciFilter?.setValue(ciSourceImage, forKey: kCIInputImageKey)
+    guard let ciResultImage
+            = ciFilter?.value(forKey: kCIOutputImageKey) as? CIImage
+    else{ return self }
+    return UIImage(ciImage: ciResultImage)
+  }
+}
+
+extension UIView {
+  static var verticalSpacer: UIView {
+    let v = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10))
+    v.setContentHuggingPriority(.defaultLow, for: .vertical)
+    return v
   }
 }
