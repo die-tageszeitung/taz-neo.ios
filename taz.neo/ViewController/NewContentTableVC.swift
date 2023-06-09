@@ -31,15 +31,11 @@ public class NewContentTableVC: UITableViewController {
   }}
   
   var feeder:Feeder?
-  var image:UIImage? {
-    didSet {
-            (self.tableView.tableHeaderView as? NewContentTableVcHeader)?.image = image
-    }
-  }
+  var image:UIImage? { didSet { header.image = image }}
   var issue:Issue? {
     didSet {
       if issue?.date == oldValue?.date { return }
-      (self.tableView.tableHeaderView as? NewContentTableVcHeader)?.issue = issue
+      header.issue = issue
       tableView.reloadData()
     }
   }
@@ -52,9 +48,25 @@ public class NewContentTableVC: UITableViewController {
   fileprivate var articlePressedClosure: ((Article)->())?
   fileprivate var imagePressedClosure: (()->())?
   
-  lazy var topView: UIView = {
-    let v = UIView()
-    return v
+  fileprivate lazy var header: NewContentTableVcHeader = {
+    let h = NewContentTableVcHeader(frame: CGRect(x: 0,
+                                                  y: 0,
+                                                  width: UIScreen.shortSide,
+                                                  height: 300))
+    h.bottomLabel.onTapping {[weak self] _ in
+      if self?.header.bottomLabel.text == self?.header.closeText {
+        self?.header.bottomLabel.text = self?.header.openText
+        self?.collapseAll()
+      }else {
+        self?.header.bottomLabel.text = self?.header.closeText
+        self?.expandAll()
+      }
+    }
+    h.imageView.onTapping {[weak self] _ in
+      self?.imagePressedClosure?()
+    }
+    h.pinHeight(300.0)
+    return h
   }()
   
   public override func viewWillLayoutSubviews() {
@@ -63,15 +75,14 @@ public class NewContentTableVC: UITableViewController {
   }
   
   func setupTopView(){
-    if topView.superview == nil {
-      self.view.addSubview(topView)
-      pin(topView, toSafe: self.view, exclude: .bottom).top?.constant = -70
-      topView.pinHeight(80.0)
-      topView.backgroundColor = Const.SetColor.CTBackground.color
-      self.tableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
-      self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 54, left: 0, bottom: 0, right: 0)
+    if header.superview == nil {
+      self.view.addSubview(header)
+      pin(header, toSafe: self.view, exclude: .bottom).top?.constant = -70
+      header.backgroundColor = Const.SetColor.CTBackground.color
+      self.tableView.contentInset = UIEdgeInsets(top: 230, left: 0, bottom: 0, right: 0)
+      self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 230, left: 0, bottom: 0, right: 0)
     }
-    self.view.bringSubviewToFront(topView)
+    self.view.bringSubviewToFront(header)
   }
 }
   
@@ -115,9 +126,7 @@ extension NewContentTableVC {
   }
 }
 
-///handle expanded/collapsed
 extension NewContentTableVC {
-  
   func setupHeader(){
     let header = NewContentTableVcHeader(frame: CGRect(x: 0,
                                                        y: 0,
@@ -133,8 +142,12 @@ extension NewContentTableVC {
       }
     }
     header.pinHeight(250.0)
-    self.tableView.tableHeaderView = header
   }
+}
+
+///handle expanded/collapsed
+extension NewContentTableVC {
+  
   
   func collapse(section: Int){
     
@@ -291,7 +304,19 @@ extension NewContentTableVC {
 }
 
 
-fileprivate class NewContentTableVcHeader: UIView {
+fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
+  func applyStyles() {
+    self.backgroundColor = Const.SetColor.CTBackground.color
+    self.imageView.layer.shadowOpacity
+    = Defaults.darkMode
+    ? Const.Shadow.Dark.Opacity
+    : Const.Shadow.Light.Opacity
+    self.imageView.layer.shadowColor
+    = Defaults.darkMode
+    ? UIColor.white.cgColor
+    : UIColor.black.cgColor
+    
+  }
   
   let closeText = "alle ressorts schliessen"
   let openText = "alle ressorts öffnen"
@@ -338,9 +363,8 @@ fileprivate class NewContentTableVcHeader: UIView {
     self.addSubview(topLabel)
     self.addSubview(bottomLabel)
     
-    imageView.shadow()
-    imageView.layer.shadowColor = Const.SetColor.CTArticle.color.cgColor
     imageView.contentMode = .scaleAspectFit
+    imageView.shadow()
     
     topLabel.contentFont()
     bottomLabel.contentFont()
@@ -348,13 +372,15 @@ fileprivate class NewContentTableVcHeader: UIView {
     bottomLabel.text = openText
     topLabel.numberOfLines = 0
     
-    pin(imageView, to: self, dist: Const.Size.DefaultPadding, exclude: .right)
+    pin(imageView, to: self, dist: Const.Size.DefaultPadding, exclude: .right).top?.constant = Const.Size.DefaultPadding + 66
     pin(topLabel.left, to: imageView.right, dist: 10)
     pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
     pin(topLabel.top, to: imageView.top)
     pin(bottomLabel.left, to: imageView.right, dist: 10)
     pin(bottomLabel.bottom, to: imageView.bottom)
     pin(bottomLabel.right, to: self.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
+    
+    registerForStyleUpdates()
   }
 }
 
