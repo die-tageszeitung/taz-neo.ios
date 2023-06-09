@@ -62,7 +62,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
         "\(self.index?.description ?? "[undefined]")" )
       if let curr = currentWebView { curr.scrollToTop() }
       self.index = index
-    }    
+    }
   }
   
   private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true) {
@@ -161,6 +161,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self.slider?.close()
       self.articleVC?.slider?.close()
       self.articleVC?.navigationController?.popViewController(animated: true)
+      self.contentTable?.artIndex = nil
       self.displaySection(index: sectionIndex)
     }
     contentTable?.onImagePress { [weak self] in
@@ -265,6 +266,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     articleVC?.invalidateLayoutNeededOnViewWillAppear = true
   }
   
+  open override var index: Int? {
+    get { super.index }
+    set { super.index = newValue; contentTable?.sectIndex = newValue }
+  }
   
   override public func viewDidLoad() {
     super.viewDidLoad()

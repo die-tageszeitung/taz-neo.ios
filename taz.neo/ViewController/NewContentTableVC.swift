@@ -21,11 +21,13 @@ public class NewContentTableVC: UITableViewController {
   
   var artIndex: Int? { didSet {
     if oldValue == artIndex { return }
-    updateHighlight()
+    guard let r = artIndex, let s = sectIndex else { return }
+    self.tableView.selectRow(at: IndexPath(row: r, section: s), animated: false, scrollPosition: .top)
   }}
   var sectIndex: Int? { didSet {
     if oldValue == sectIndex { return }
-    updateHighlight()
+    guard let s = sectIndex else { return }
+    expand(section: s)
   }}
   
   var feeder:Feeder?
@@ -60,20 +62,14 @@ public class NewContentTableVC: UITableViewController {
     setupTopView()
   }
   
-  func updateHighlight(){
-    if artIndex == nil {
-      
-    }
-    print("slidershow: sect: \(sectIndex) art:\(artIndex)")
-  }
-  
   func setupTopView(){
     if topView.superview == nil {
       self.view.addSubview(topView)
-      pin(topView, toSafe: self.view, exclude: .bottom).top?.constant = -30
-      topView.pinHeight(40.0)
+      pin(topView, toSafe: self.view, exclude: .bottom).top?.constant = -70
+      topView.pinHeight(80.0)
       topView.backgroundColor = Const.SetColor.CTBackground.color
       self.tableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+      self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 54, left: 0, bottom: 0, right: 0)
     }
     self.view.bringSubviewToFront(topView)
   }
@@ -99,16 +95,6 @@ extension NewContentTableVC {
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     self.widthConstraint?.constant = size.width
-  }
-  
-  public override func viewDidAppear(_ animated: Bool) {
-    #warning("toDo extend background, prevent overflow cells")
-//    if let tvsv = self.tableView.superview {
-//      //10...to align to taz Logo top
-//      pin(self.tableView, toSafe: tvsv).top.constant = 10.0
-//    }
-//    self.tableView.contentInset = UIEdgeInsets(top: 70, left: 0, bottom: 0, right: 0)
-    super.viewDidAppear(animated)
   }
 }
 
@@ -155,7 +141,18 @@ extension NewContentTableVC {
   }
   
   func expand(section: Int){
+    if expandedSections.contains(section) { return }
+    let cellCount
+    = issue?.sections?.valueAt(section)?.articles?.count ?? 0
+    let changedIdx = (0..<cellCount).map { i in
+      return IndexPath(item: i, section: section)
+    }
+    guard changedIdx.count > 0 else { return }
     
+    tableView.performBatchUpdates {[weak self] in
+      self?.expandedSections.append(section)
+      self?.tableView.insertRows(at: changedIdx, with: .automatic)
+    }
   }
   
   
@@ -258,8 +255,12 @@ extension NewContentTableVC {
     return header
   }
   
+  public override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+    guard let h = view as? ContentTableHeaderFooterView else { return }
+    h.active = section == sectIndex && artIndex == nil
+  }
+  
   public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    tableView.deselectRow(at: indexPath, animated: true)
     guard let art = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row) else {
       log("Article you tapped not found for section: \(indexPath.section), row: \(indexPath.row)")
       return
@@ -276,7 +277,16 @@ extension NewContentTableVC {
     ?? NewContentTableVcCell()
     cell.article = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row)
     cell.customImageView.image = cell.article?.images?.first?.image(dir: issue?.dir)?.invertedIfNeeded
+    
+
+    
     return cell
+  }
+  
+  public override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    if indexPath.section == sectIndex && indexPath.row == artIndex {
+           self.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .top)
+       }
   }
 }
 
@@ -400,6 +410,32 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     article = nil
   }
   
+  override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+    super.setHighlighted(highlighted, animated: animated)
+    let color
+    = highlighted
+    ? Const.SetColor.CIColor.color
+    : Const.SetColor.ios(.label).color
+    
+    titleLabel.textColor = color
+    customTextLabel.textColor = color
+  }
+  
+  override func setSelected(_ selected: Bool, animated: Bool) {
+    super.setSelected(selected, animated: animated)
+    let color
+    = selected
+    ? Const.SetColor.CIColor.color
+    : Const.SetColor.ios(.label).color
+    
+    titleLabel.textColor = color
+    customTextLabel.textColor = color
+    bottomLabel.textColor = color
+    dottedLine.fillColor = color
+    dottedLine.strokeColor = color
+    bookmarkButton.tintColor = color
+  }
+  
   lazy var content: UIView = {
     let v = UIView()
     
@@ -466,7 +502,7 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     pin(dottedLine.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding)
     pin(dottedLine.top, to: self.contentView.top)
     pin(content, to: contentView, dist: Const.Size.DefaultPadding)
-    
+    selectionStyle = .none
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let art = msg.sender as? StoredArticle,
             art.html?.name == self?.articleIdentifier else { return }
