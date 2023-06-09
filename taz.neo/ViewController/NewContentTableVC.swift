@@ -34,10 +34,14 @@ public class NewContentTableVC: UITableViewController {
       self.tableView.reloadRows(at: reloadInexPath, with: .fade)
     }
   }
-  
+  #warning("ToDo")
+//see:https://stackoverflow.com/questions/44887775/reload-only-one-section-header-in-uitableview
   func setActive(row: Int?, section: Int?){
     if let row = row, let sect = section {
-      sectIndex = nil
+      if let oldSect = sectIndex {
+        sectIndex = nil
+        _ = tableView(tableView, viewForHeaderInSection: oldSect)
+      }
       activeItem = IndexPath(row: row, section: sect)
     }
     else if let sect = section {
@@ -283,12 +287,8 @@ extension NewContentTableVC {
       self?.log("You tapped header with tdx: \(header.tag)")
       header.collapsed = self?.toggle(section: header.tag) ?? true
     }
+    header.active = section == sectIndex
     return header
-  }
-  
-  public override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
-    guard let h = view as? ContentTableHeaderFooterView else { return }
-    h.active = section == sectIndex
   }
   
   public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
