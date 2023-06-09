@@ -31,8 +31,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if let lidx = lastIndex, secIndex != lidx {
         displaySection(index: secIndex)
       }
-      contentTable?.sectIndex = secIndex
-      articleVC?.contentTable?.sectIndex = secIndex
+      contentTable?.setActive(row: nil, section: secIndex)
       lastIndex = secIndex
     }
   }
@@ -161,8 +160,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self.slider?.close()
       self.articleVC?.slider?.close()
       self.articleVC?.navigationController?.popViewController(animated: true)
-      self.contentTable?.artIndex = nil
       self.displaySection(index: sectionIndex)
+      contentTable?.setActive(row: nil, section: sectionIndex)
     }
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")
@@ -223,7 +222,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   // Return nearest section index containing given Article
-  func article2index(art: Article) -> Int {
+  public func article2index(art: Article) -> Int {
     if let fileName = art.html?.fileName,
         let sects = article2sectionHtml[fileName] {
       if let s = section, let fn = s.html?.fileName, sects.contains(fn) { return index! }
@@ -268,7 +267,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   open override var index: Int? {
     get { super.index }
-    set { super.index = newValue; contentTable?.sectIndex = newValue }
+    set {
+      super.index = newValue;
+      contentTable?.setActive(row: nil, section: newValue)
+    }
   }
   
   override public func viewDidLoad() {

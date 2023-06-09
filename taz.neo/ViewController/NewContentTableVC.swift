@@ -19,16 +19,41 @@ public class NewContentTableVC: UITableViewController {
   fileprivate static let CellIdentifier = "NewContentTableVcCell"
   fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
   
-  var artIndex: Int? { didSet {
-    if oldValue == artIndex { return }
-    guard let r = artIndex, let s = sectIndex else { return }
-    self.tableView.selectRow(at: IndexPath(row: r, section: s), animated: false, scrollPosition: .top)
-  }}
-  var sectIndex: Int? { didSet {
-    if oldValue == sectIndex { return }
-    guard let s = sectIndex else { return }
-    expand(section: s)
-  }}
+  var activeItem:IndexPath? {
+    didSet {
+      if activeItem == oldValue { return }
+      var reloadInexPath:[IndexPath] = []
+      if let activeItem = activeItem {
+        expandedSections = [activeItem.section]
+        reloadInexPath.append(activeItem)
+      }
+      if let old = oldValue {
+        reloadInexPath.append(old)
+      }
+      if reloadInexPath.count == 0 { return }
+      self.tableView.reloadRows(at: reloadInexPath, with: .fade)
+    }
+  }
+  
+  func setActive(row: Int?, section: Int?){
+    if let row = row, let sect = section {
+      sectIndex = nil
+      activeItem = IndexPath(row: row, section: sect)
+    }
+    else if let sect = section {
+      sectIndex = section
+      collapseAll(expect: sect)
+      activeItem = nil
+      tableView.scrollToRow(at: IndexPath(row: 0, section: sect), at: .top, animated: false)
+    }
+    else {
+      sectIndex = nil
+      activeItem = nil
+      collapseAll()
+    }
+  }
+  
+  private var sectIndex: Int?
   
   var feeder:Feeder?
   var image:UIImage? { didSet { header.image = image }}
@@ -40,7 +65,13 @@ public class NewContentTableVC: UITableViewController {
     }
   }
   var largestTextWidth = 300.0
-  var expandedSections: [Int] = []
+  var expandedSections: [Int] = [] {
+    didSet {
+      header.bottomLabel.text = expandedSections.isEmpty
+      ? header.openText
+      : header.closeText
+    }
+  }
   
   var widthConstraint:NSLayoutConstraint?
   
@@ -52,7 +83,7 @@ public class NewContentTableVC: UITableViewController {
     let h = NewContentTableVcHeader(frame: CGRect(x: 0,
                                                   y: 0,
                                                   width: UIScreen.shortSide,
-                                                  height: 300))
+                                                  height: 280))
     h.bottomLabel.onTapping {[weak self] _ in
       if self?.header.bottomLabel.text == self?.header.closeText {
         self?.header.bottomLabel.text = self?.header.openText
@@ -65,27 +96,33 @@ public class NewContentTableVC: UITableViewController {
     h.imageView.onTapping {[weak self] _ in
       self?.imagePressedClosure?()
     }
-    h.pinHeight(300.0)
+    h.pinHeight(280.0)
     return h
   }()
   
   public override func viewWillLayoutSubviews() {
     super.viewWillLayoutSubviews()
-    setupTopView()
+    setupHeader()
   }
   
-  func setupTopView(){
+  func setupHeader(){
     if header.superview == nil {
       self.view.addSubview(header)
       pin(header, toSafe: self.view, exclude: .bottom).top?.constant = -70
-      header.backgroundColor = Const.SetColor.CTBackground.color
-      self.tableView.contentInset = UIEdgeInsets(top: 230, left: 0, bottom: 0, right: 0)
-      self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 230, left: 0, bottom: 0, right: 0)
+      self.tableView.contentInset = UIEdgeInsets(top: 210, left: 0, bottom: 0, right: 0)
+      self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 210, left: 0, bottom: 0, right: 0)
     }
     self.view.bringSubviewToFront(header)
   }
 }
   
+extension NewContentTableVC: UIStyleChangeDelegate{
+  public func applyStyles() {
+    self.tableView.backgroundColor = Const.SetColor.CTBackground.color
+    self.tableView.reloadData()
+  }
+}
+
 ///lifecycle
 extension NewContentTableVC {
   public override func viewDidLoad() {
@@ -94,13 +131,12 @@ extension NewContentTableVC {
                             forCellReuseIdentifier: Self.CellIdentifier)
     self.tableView.register(ContentTableHeaderFooterView.self,
                             forHeaderFooterViewReuseIdentifier: Self.SectionHeaderIdentifier)
-    self.tableView.backgroundColor = Const.SetColor.CTBackground.color
     self.tableView.rowHeight = UITableView.automaticDimension
     self.tableView.estimatedRowHeight = 100.0
     if #available(iOS 15.0, *) {
       self.tableView.sectionHeaderTopPadding = 0
     }
-    setupHeader()
+    registerForStyleUpdates()
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -123,25 +159,6 @@ extension NewContentTableVC {
   /// Define closure to call when the image has been tapped
   public func onImagePress(closure: @escaping ()->()) {
     imagePressedClosure = closure
-  }
-}
-
-extension NewContentTableVC {
-  func setupHeader(){
-    let header = NewContentTableVcHeader(frame: CGRect(x: 0,
-                                                       y: 0,
-                                                       width: UIScreen.shortSide,
-                                                       height: 250))
-    header.bottomLabel.onTapping {[weak self] _ in
-      if header.bottomLabel.text == header.closeText {
-        header.bottomLabel.text = header.openText
-        self?.collapseAll()
-      }else {
-        header.bottomLabel.text = header.closeText
-        self?.expandAll()
-      }
-    }
-    header.pinHeight(250.0)
   }
 }
 
@@ -238,7 +255,6 @@ extension NewContentTableVC {
     if let ressort = issue?.sections?.valueAt(section) {
       header.label.text = ressort.title
       header.chevron.isHidden = ressort.type == .advertisement
-      header.collapsed = true
       header.dottedLine.isHidden = ressort.type == .advertisement
     } else if section == issue?.sections?.count ?? 0 {
       header.label.text = issue?.imprint?.title ?? "Impressum"
@@ -250,6 +266,8 @@ extension NewContentTableVC {
       header.chevron.isHidden = true
       header.dottedLine.isHidden = true
     }
+    
+    header.collapsed = !expandedSections.contains(section)
 
     header.tag = section
     
@@ -270,7 +288,7 @@ extension NewContentTableVC {
   
   public override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
     guard let h = view as? ContentTableHeaderFooterView else { return }
-    h.active = section == sectIndex && artIndex == nil
+    h.active = section == sectIndex
   }
   
   public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -279,7 +297,6 @@ extension NewContentTableVC {
       return
     }
     articlePressedClosure?(art)
-    log("you tapped: \(art.title)")
   }
   
   public override func tableView(_ tableView: UITableView,
@@ -290,16 +307,8 @@ extension NewContentTableVC {
     ?? NewContentTableVcCell()
     cell.article = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row)
     cell.customImageView.image = cell.article?.images?.first?.image(dir: issue?.dir)?.invertedIfNeeded
-    
-
-    
+    cell.active = indexPath == activeItem
     return cell
-  }
-  
-  public override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-    if indexPath.section == sectIndex && indexPath.row == artIndex {
-           self.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .top)
-       }
   }
 }
 
@@ -315,7 +324,7 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     = Defaults.darkMode
     ? UIColor.white.cgColor
     : UIColor.black.cgColor
-    
+    bottomLabel.textColor = Const.SetColor.taz(.textIconGray).color
   }
   
   let closeText = "alle ressorts schliessen"
@@ -367,7 +376,7 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     imageView.shadow()
     
     topLabel.contentFont()
-    bottomLabel.contentFont()
+    bottomLabel.contentFont(size: Const.Size.MiniPageNumberFontSize)
     
     bottomLabel.text = openText
     topLabel.numberOfLines = 0
@@ -375,9 +384,9 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     pin(imageView, to: self, dist: Const.Size.DefaultPadding, exclude: .right).top?.constant = Const.Size.DefaultPadding + 66
     pin(topLabel.left, to: imageView.right, dist: 10)
     pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
-    pin(topLabel.top, to: imageView.top)
+    pin(topLabel.top, to: imageView.top, dist: -3)
     pin(bottomLabel.left, to: imageView.right, dist: 10)
-    pin(bottomLabel.bottom, to: imageView.bottom)
+    pin(bottomLabel.bottom, to: imageView.bottom, dist: 3)
     pin(bottomLabel.right, to: self.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
     
     registerForStyleUpdates()
@@ -388,40 +397,56 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   
   var articleIdentifier: String?
   
-  let starFill = UIImage(named: "star-fill")?.withTintColor(Const.Colors.iconButtonInactive,
-                                               renderingMode: .alwaysOriginal)
-  let star = UIImage(named: "star")?.withTintColor(Const.Colors.iconButtonInactive,
-                                               renderingMode: .alwaysOriginal)
+  let starFill = UIImage(named: "star-fill")
+  let star = UIImage(named: "star")
   
-  var article: Article? {
-    didSet {
-      articleIdentifier = article?.html?.name
-      let attributedString
-      = NSMutableAttributedString(string: article?.authors() ?? "")
-      let range = NSRange(location: 0, length: attributedString.length)
-      
-      let boldFont = Const.Fonts.titleFont(size: 13.5)
-      attributedString.addAttribute(.font, value: boldFont, range: range)
-      attributedString.addAttribute(.backgroundColor, value: UIColor.clear, range: range)
-      
+  var article: Article? { didSet {  updateStyles()  }  }
+  
+  func updateStyles(){
+    titleLabel.textColor = Const.SetColor.HText.color
+    customTextLabel.textColor = Const.SetColor.HText.color
+    bookmarkButton.tintColor = Const.SetColor.HText.color
+    bottomLabel.textColor = Const.SetColor.HText.color
+    dottedLine.fillColor = Const.SetColor.HText.color
+    dottedLine.strokeColor = Const.SetColor.HText.color
+    
+    articleIdentifier = article?.html?.name
+    let attributedString
+    = NSMutableAttributedString(string: article?.authors() ?? "")
+    let range = NSRange(location: 0, length: attributedString.length)
+    
+    let boldFont = Const.Fonts.titleFont(size: 13.5)
+    attributedString.addAttribute(.font, value: boldFont, range: range)
+    attributedString.addAttribute(.backgroundColor, value: UIColor.clear, range: range)
+    
 
-      if let rd = article?.readingDuration {
-        let timeString
-        = NSMutableAttributedString(string: " \(rd)min")
-        let trange = NSRange(location: 0, length: timeString.length)
-        let thinFont = Const.Fonts.contentFont(size: 12.0)
-        timeString.addAttribute(.font, value: thinFont, range: trange)
-        timeString.addAttribute(.foregroundColor, value: Const.Colors.iconButtonInactive, range: trange)
-        timeString.addAttribute(.backgroundColor, value: UIColor.clear, range: trange)
-        attributedString.append(timeString)
-      }
-      bottomLabel.attributedText = attributedString
-      
-      titleLabel.text = article?.title
-      customTextLabel.text = article?.teaser
-      
-      bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
+    if let rd = article?.readingDuration {
+      let timeString
+      = NSMutableAttributedString(string: " \(rd)min")
+      let trange = NSRange(location: 0, length: timeString.length)
+      let thinFont = Const.Fonts.contentFont(size: 12.0)
+      timeString.addAttribute(.font, value: thinFont, range: trange)
+      timeString.addAttribute(.foregroundColor, value: Const.Colors.iconButtonInactive, range: trange)
+      timeString.addAttribute(.backgroundColor, value: UIColor.clear, range: trange)
+      attributedString.append(timeString)
     }
+    bottomLabel.attributedText = attributedString
+    
+    titleLabel.text = article?.title
+    customTextLabel.text = article?.teaser
+    
+    bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
+    bookmarkButton.tintColor = Const.Colors.iconButtonInactive
+    setActiveColorsIfNeeded()
+  }
+  
+  func setActiveColorsIfNeeded(){
+    if active == false {return }
+    let color = Const.SetColor.CIColor.color
+    titleLabel.textColor = color
+    customTextLabel.textColor = color
+    bookmarkButton.tintColor = color
+    bottomLabel.textColor = color
   }
   
   let customImageView = UIImageView()
@@ -436,31 +461,29 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     article = nil
   }
   
-  override func setHighlighted(_ highlighted: Bool, animated: Bool) {
-    super.setHighlighted(highlighted, animated: animated)
-    let color
-    = highlighted
-    ? Const.SetColor.CIColor.color
-    : Const.SetColor.ios(.label).color
-    
-    titleLabel.textColor = color
-    customTextLabel.textColor = color
+  var active: Bool = false {
+    didSet {
+      if oldValue == active { return }
+      if oldValue == true { updateStyles() }
+      setActiveColorsIfNeeded()
+    }
   }
   
-  override func setSelected(_ selected: Bool, animated: Bool) {
-    super.setSelected(selected, animated: animated)
-    let color
-    = selected
-    ? Const.SetColor.CIColor.color
-    : Const.SetColor.ios(.label).color
-    
-    titleLabel.textColor = color
-    customTextLabel.textColor = color
-    bottomLabel.textColor = color
-    dottedLine.fillColor = color
-    dottedLine.strokeColor = color
-    bookmarkButton.tintColor = color
-  }
+//  override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+//    super.setHighlighted(highlighted, animated: animated)
+//    let color
+//    = highlighted
+//    ? Const.SetColor.CIColor.color
+//    : Const.SetColor.ios(.label).color
+//
+//    titleLabel.textColor = color
+//    customTextLabel.textColor = color
+//  }
+  
+//  override func setSelected(_ selected: Bool, animated: Bool) {
+//    super.setSelected(selected, animated: animated)
+//    active = selected
+//  }
   
   lazy var content: UIView = {
     let v = UIView()
@@ -521,9 +544,7 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   func setup(){
     self.contentView.addSubview(content)
     self.contentView.addSubview(dottedLine)
-    dottedLine.pinHeight(Const.Size.DottedLineHeight)
-    dottedLine.fillColor = Const.SetColor.HText.color
-    dottedLine.strokeColor = Const.SetColor.HText.color
+    dottedLine.pinHeight(Const.Size.DottedLineHeight*0.7)
     pin(dottedLine.left, to: self.contentView.left, dist: Const.ASize.DefaultPadding)
     pin(dottedLine.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding)
     pin(dottedLine.top, to: self.contentView.top)
@@ -569,7 +590,7 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     pin(dottedLine.top, to: self.contentView.top, dist: 3.0, priority: .fittingSizeLevel)
     pin(dottedLine.bottom, to: self.contentView.bottom, dist: -3.0, priority: .fittingSizeLevel)
     pin(dottedLine.right, to: self.chevron.left, dist: -5.0)
-    dottedLine.pinWidth(Const.Size.DottedLineHeight/2)
+    dottedLine.pinWidth(Const.Size.DottedLineHeight*0.7)
     dottedLine.fillColor = Const.SetColor.HText.color
     dottedLine.strokeColor = Const.SetColor.HText.color
   }

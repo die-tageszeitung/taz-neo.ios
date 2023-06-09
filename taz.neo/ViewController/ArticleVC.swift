@@ -14,10 +14,15 @@ public protocol ArticleVCdelegate: IssueInfo {
   var section: Section? { get }
   var sections: [Section] { get }
   var article: Article? { get set }
+  func article2index(art: Article) -> Int
   var article2section: [String:[Section]] { get }
   func displaySection(index: Int)
   func linkPressed(from: URL?, to: URL?)
   func closeIssue()
+}
+
+public extension ArticleVCdelegate {
+  func article2index(art: Article) -> Int { return -1}
 }
 
 /// The Article view controller managing a collection of Article pages
@@ -239,7 +244,8 @@ open class ArticleVC: ContentVC {
           else {
             header.pageNumber = "\(i+1)/\(articles.count)"
           }
-          contentTable?.artIndex = i
+          contentTable?.setActive(row: i,
+                                  section: adelegate?.article2index(art: art))
         }
       }
       else if art.title != nil,
@@ -297,6 +303,7 @@ open class ArticleVC: ContentVC {
       self.collectionView?.fixScrollPosition()
       self.collectionView?.showAnimated()
     }
+    (delegate as? SectionVC)?.slider?.updateSlider()
     super.viewDidAppear(animated)
     onShare { [weak self] _ in
       guard let self = self else { return }
