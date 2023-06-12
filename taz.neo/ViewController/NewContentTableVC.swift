@@ -25,8 +25,7 @@ public class NewContentTableVC: UITableViewController {
   ///for ArticleVC the highlighted Cell
   var activeItem:IndexPath? {
     didSet {
-      guard activeItem != oldValue,
-      let activeItem = activeItem else { return }
+      guard let activeItem = activeItem else { return }
         expandedSections = [activeItem.section]
     }
   }
@@ -144,7 +143,13 @@ extension NewContentTableVC {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    if activeItem == nil, let sectIndex = sectIndex, tableView(self.tableView, numberOfRowsInSection: sectIndex) == 0 {
+    if let activeItem = activeItem {
+      tableView.scrollToRow(at: activeItem, at: .top, animated: false)
+    }
+    else if let sectIndex = sectIndex, tableView(self.tableView, numberOfRowsInSection: sectIndex) > 0 {
+      tableView.scrollToRow(at: IndexPath(row: 0, section: sectIndex), at: .top, animated: false)
+    }
+    else if let sectIndex = sectIndex {
       ///Fix Layout Bug: issue > regular section open menu swipe > anzeige open menu ==> menu wrongly layouted, nothing helped
       /// similar: https://stackoverflow.com/questions/14995573/dequeued-uitableviewcell-has-incorrect-layout-until-scroll-using-autolayout
       onMainAfter { [weak self] in

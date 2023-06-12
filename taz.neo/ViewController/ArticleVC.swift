@@ -296,7 +296,7 @@ open class ArticleVC: ContentVC {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
     }
-    if !(self.parent is BookmarkNC) {
+    if !(self.parent is BookmarkNC) && self.contentTable == nil {
       self.contentTable = NewContentTableVC(style: .plain)
     }
     super.viewWillAppear(animated)
