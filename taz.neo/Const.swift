@@ -41,6 +41,7 @@ public struct Const {
     static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
     static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
     static let bookmarkChanged = "Const.NotificationNames.bookmarkChanged"
+    static let gotoIssue = "Const.NotificationNames.gotoIssue"
     
   } // Filename
   

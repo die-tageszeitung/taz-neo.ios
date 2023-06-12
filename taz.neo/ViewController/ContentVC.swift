@@ -357,6 +357,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
+    self.bridge?.addfunc("gotoIssue") { [weak self] jscall in
+      guard let self = self else { return NSNull() }
+      if let args = jscall.args, args.count > 0,
+         let tiSince1970S = args.first as? String,
+         let tiSince1970 = Double(tiSince1970S) {
+            let ti = TimeInterval(floatLiteral: tiSince1970)
+            let date = Date(timeIntervalSince1970: ti)
+        Notification.send(Const.NotificationNames.gotoIssue, content: date, sender: self)
+      }
+      return NSNull()
+    }
     self.bridge?.addfunc("toast") { [weak self] jscall in
       guard let _ = self else { return NSNull() }
       if let args = jscall.args, args.count > 0,
@@ -401,6 +412,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     };
     tazApi.shareArticle = function (artName) {
       tazApi.call("shareArticle", undefined, artName);
+    };
+    tazApi.gotoIssue = function (issueDate) {
+      tazApi.call("gotoIssue", undefined, issueDate);
     };
     tazApi.toast = function(msg, duration, callback) {
       tazApi.call("toast", callback, msg, duration);

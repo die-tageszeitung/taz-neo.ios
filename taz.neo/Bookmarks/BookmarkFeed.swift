@@ -144,7 +144,7 @@ public class BookmarkFeed: Feed, DoesLog {
       let dateText = issue.validityDateText(timeZone: GqlFeeder.tz,
                                             leadingText: "wochentaz, ")
       var html = """
-      <section id="\(date.timeIntervalSince1970)">
+      <section id="\(date.timeIntervalSince1970)" class="issue">
         <header>
           <img class="moment" src="\(momentPath ?? "")">
           <h1>\(dateText)</h1>
