@@ -31,7 +31,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if let lidx = lastIndex, secIndex != lidx {
         displaySection(index: secIndex)
       }
-      contentTable?.setActive(row: nil, section: secIndex)
+//      contentTable?.setActive(row: nil, section: secIndex)
       lastIndex = secIndex
     }
   }

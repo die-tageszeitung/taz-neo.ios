@@ -19,28 +19,39 @@ public class NewContentTableVC: UITableViewController {
   fileprivate static let CellIdentifier = "NewContentTableVcCell"
   fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
   
+  var active: Bool { self.view.superview != nil }
+  
+  var previousArticle:IndexPath?//Item
+  var previousSection:Int?//Header
+  { didSet { print(">>> previousSection set to \(previousSection) old: \(oldValue)")}}
+  
   var activeItem:IndexPath? {
     didSet {
       if activeItem == oldValue { return }
-      var reloadInexPath:[IndexPath] = []
+      var reloadIndexPath:[IndexPath] = []
       if let activeItem = activeItem {
         expandedSections = [activeItem.section]
-        reloadInexPath.append(activeItem)
+        reloadIndexPath.append(activeItem)
       }
       if let old = oldValue {
-        reloadInexPath.append(old)
+        if previousArticle == nil { previousArticle = old }///in close state
+        reloadIndexPath.append(old)//refresh in open state
       }
-      if reloadInexPath.count == 0 { return }
-      self.tableView.reloadRows(at: reloadInexPath, with: .fade)
+      if reloadIndexPath.count == 0 { return }
+      ///prevent articlevs setup set index if still not loaded
+      active ? self.tableView.reloadRows(at: reloadIndexPath, with: .fade) : nil
     }
   }
   #warning("ToDo")
 //see:https://stackoverflow.com/questions/44887775/reload-only-one-section-header-in-uitableview
   func setActive(row: Int?, section: Int?){
+    print(">>> setActive: row:\(row) section: \(section)")
     if let row = row, let sect = section {
       if let oldSect = sectIndex {
+        ///disable highlight of section header
+        ///
+        if previousSection == nil { previousSection = sectIndex }
         sectIndex = nil
-        _ = tableView(tableView, viewForHeaderInSection: oldSect)
       }
       activeItem = IndexPath(row: row, section: sect)
     }
@@ -48,9 +59,10 @@ public class NewContentTableVC: UITableViewController {
       sectIndex = section
       collapseAll(expect: sect)
       activeItem = nil
-      tableView.scrollToRow(at: IndexPath(row: 0, section: sect), at: .top, animated: false)
+      active ? tableView.scrollToRow(at: IndexPath(row: 0, section: sect), at: .top, animated: false) : nil
     }
     else {
+      if previousSection == nil { previousSection = sectIndex }
       sectIndex = nil
       activeItem = nil
       collapseAll()
@@ -58,6 +70,7 @@ public class NewContentTableVC: UITableViewController {
   }
   
   private var sectIndex: Int?
+  { didSet { print(">>> sectIndex set to \(sectIndex) old: \(oldValue)")}}
   
   var feeder:Feeder?
   var image:UIImage? { didSet { header.image = image }}
@@ -143,6 +156,28 @@ extension NewContentTableVC {
     registerForStyleUpdates()
   }
   
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    print(">>> viewWillAppear: sectIndex:\(sectIndex) previousSection: \(previousSection)")
+    guard let activeItem = activeItem else { return }
+    //set enabled/disabled cells
+    if let previousArticle = previousArticle {
+      active ? self.tableView.reloadRows(at: [activeItem, previousArticle], with: .fade) : nil
+      self.previousArticle = nil
+    }
+    else {
+      active ? self.tableView.reloadRows(at: [activeItem], with: .fade) : nil
+    }
+    _ = tableView(tableView, viewForHeaderInSection: activeItem.section)
+//    if let previousSection = previousSection {
+//      _ = tableView(tableView, viewForHeaderInSection: previousSection)
+//
+//      self.previousSection = nil
+//    }
+    ///set active item in viewport
+    active ? tableView.scrollToRow(at: activeItem, at: .top, animated: false) : nil
+  }
+  
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     self.widthConstraint?.constant = size.width
@@ -224,8 +259,8 @@ extension NewContentTableVC {
     else {
       expandedSections = []
     }
-    tableView.reloadSections(IndexSet(allSectionIndicies),
-                             with: .none)
+    active ? tableView.reloadSections(IndexSet(allSectionIndicies),
+                                      with: .none) : nil
   }
   
   func expandAll(){
@@ -250,6 +285,11 @@ extension NewContentTableVC {
   
   public override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
     return 38.5
+  }
+  
+  public override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+    guard let header = view as? ContentTableHeaderFooterView else { return}
+    print(">>> display sect header: \(header.label.text) active: \(header.active)")
   }
   
   public override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -288,6 +328,7 @@ extension NewContentTableVC {
       header.collapsed = self?.toggle(section: header.tag) ?? true
     }
     header.active = section == sectIndex
+    print(">>> reload sect header: \(header.label.text) active: \(header.active)")
     return header
   }
   
@@ -469,22 +510,6 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     }
   }
   
-//  override func setHighlighted(_ highlighted: Bool, animated: Bool) {
-//    super.setHighlighted(highlighted, animated: animated)
-//    let color
-//    = highlighted
-//    ? Const.SetColor.CIColor.color
-//    : Const.SetColor.ios(.label).color
-//
-//    titleLabel.textColor = color
-//    customTextLabel.textColor = color
-//  }
-  
-//  override func setSelected(_ selected: Bool, animated: Bool) {
-//    super.setSelected(selected, animated: animated)
-//    active = selected
-//  }
-  
   lazy var content: UIView = {
     let v = UIView()
     
@@ -577,6 +602,9 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
       = active
       ? Const.SetColor.CIColor.color
       : Const.SetColor.ios(.label).color
+      if active == false && oldValue == true {
+        contentView.layoutSubviews()
+      }
     }
   }
   
