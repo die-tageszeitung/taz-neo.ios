@@ -1376,8 +1376,10 @@ public final class StoredSection: Section, StoredObject {
   }
   
   public var path: String {
+    #warning("DoDo 1.0.0 Crash Cnt#: 1")
     guard let path = (html as? StoredFileEntry)?.path
     else { fatalError("FileEntry.path is undefined") }
+    ///empty on start see frame in carousell, open issue login ...slider opened, but why?
     return path
   }
   
