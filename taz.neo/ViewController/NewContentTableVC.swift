@@ -123,6 +123,7 @@ extension NewContentTableVC {
     self.tableView.register(ContentTableHeaderFooterView.self,
                             forHeaderFooterViewReuseIdentifier: Self.SectionHeaderIdentifier)
     self.tableView.rowHeight = UITableView.automaticDimension
+    self.tableView.separatorStyle = .none
     self.tableView.estimatedRowHeight = 100.0
     if #available(iOS 15.0, *) {
       self.tableView.sectionHeaderTopPadding = 0
