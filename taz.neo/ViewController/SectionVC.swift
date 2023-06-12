@@ -31,7 +31,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if let lidx = lastIndex, secIndex != lidx {
         displaySection(index: secIndex)
       }
-//      contentTable?.setActive(row: nil, section: secIndex)
       lastIndex = secIndex
     }
   }
@@ -142,34 +141,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
-    contentTable?.onArticlePress{[weak self] article in
-      guard let self = self else { return }
-      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
-      self.linkPressed(from: nil, to: url)
-      self.slider?.close()
-      self.articleVC?.slider?.close()
-    }
-    contentTable?.onSectionPress { [weak self] sectionIndex in
-      guard let self = self else { return }
-      if sectionIndex < self.sections.count {
-        self.debug("*** Action: Section \(sectionIndex) (\(self.sections[sectionIndex])) in Slider pressed")
-      }
-      else {
-        self.debug("*** Action: \"Impressum\" in Slider pressed")
-      }
-      self.slider?.close()
-      self.articleVC?.slider?.close()
-      self.articleVC?.navigationController?.popViewController(animated: true)
-      self.displaySection(index: sectionIndex)
-      contentTable?.setActive(row: nil, section: sectionIndex)
-    }
-    contentTable?.onImagePress { [weak self] in
-      self?.debug("*** Action: Moment in Slider pressed")
-      self?.slider?.close()
-      self?.closeIssue()
-    }
     onDisplay { [weak self] (secIndex, oview) in
       guard let self = self else { return }
+      self.contentTable?.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex)")
       self.setHeader(secIndex: secIndex)
       if self.isVisibleVC { 
@@ -179,7 +153,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
     super.showImageGallery = false
     articleVC = ArticleVC(feederContext: feederContext)
-    articleVC?.contentTable = self.contentTable
     articleVC?.delegate = self
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
@@ -265,16 +238,38 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     articleVC?.invalidateLayoutNeededOnViewWillAppear = true
   }
   
-  open override var index: Int? {
-    get { super.index }
-    set {
-      super.index = newValue;
-      contentTable?.setActive(row: nil, section: newValue)
+  public override func setupSlider() {
+    super.setupSlider()
+    contentTable?.onArticlePress{[weak self] article in
+      guard let self = self else { return }
+      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+      self.linkPressed(from: nil, to: url)
+      self.slider?.close()
+      self.articleVC?.slider?.close()
+    }
+    contentTable?.onSectionPress { [weak self] sectionIndex in
+      guard let self = self else { return }
+      if sectionIndex < self.sections.count {
+        self.debug("*** Action: Section \(sectionIndex) (\(self.sections[sectionIndex])) in Slider pressed")
+      }
+      else {
+        self.debug("*** Action: \"Impressum\" in Slider pressed")
+      }
+      self.slider?.close()
+      self.articleVC?.slider?.close()
+      self.articleVC?.navigationController?.popViewController(animated: true)
+      self.displaySection(index: sectionIndex)
+    }
+    contentTable?.onImagePress { [weak self] in
+      self?.debug("*** Action: Moment in Slider pressed")
+      self?.slider?.close()
+      self?.closeIssue()
     }
   }
   
   override public func viewDidLoad() {
     super.viewDidLoad()
+    contentTable = NewContentTableVC(style: .plain)
     self.showImageGallery = false
     self.index = initialSection ?? 0
     
@@ -325,7 +320,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     initialSection = atSection
     initialArticle = atArticle
     super.init(feederContext: feederContext)
-    contentTable = NewContentTableVC(style: .plain)
     let sec: String = (atSection == nil) ? "nil" : "\(atSection!)"
     let art: String = (atArticle == nil) ? "nil" : "\(atArticle!)"
     debug("new SectionVC: section=\(sec), article=\(art)")

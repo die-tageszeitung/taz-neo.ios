@@ -19,12 +19,6 @@ public class NewContentTableVC: UITableViewController {
   fileprivate static let CellIdentifier = "NewContentTableVcCell"
   fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
   
-  var active: Bool { self.view.superview != nil }
-  
-  var previousArticle:IndexPath?//Item
-  var previousSection:Int?//Header
-  { didSet { print(">>> previousSection set to \(previousSection) old: \(oldValue)")}}
-  
   var activeItem:IndexPath? {
     didSet {
       if activeItem == oldValue { return }
@@ -34,23 +28,18 @@ public class NewContentTableVC: UITableViewController {
         reloadIndexPath.append(activeItem)
       }
       if let old = oldValue {
-        if previousArticle == nil { previousArticle = old }///in close state
         reloadIndexPath.append(old)//refresh in open state
       }
       if reloadIndexPath.count == 0 { return }
       ///prevent articlevs setup set index if still not loaded
-      active ? self.tableView.reloadRows(at: reloadIndexPath, with: .fade) : nil
     }
   }
-  #warning("ToDo")
-//see:https://stackoverflow.com/questions/44887775/reload-only-one-section-header-in-uitableview
   func setActive(row: Int?, section: Int?){
     print(">>> setActive: row:\(row) section: \(section)")
     if let row = row, let sect = section {
       if let oldSect = sectIndex {
         ///disable highlight of section header
         ///
-        if previousSection == nil { previousSection = sectIndex }
         sectIndex = nil
       }
       activeItem = IndexPath(row: row, section: sect)
@@ -59,10 +48,8 @@ public class NewContentTableVC: UITableViewController {
       sectIndex = section
       collapseAll(expect: sect)
       activeItem = nil
-      active ? tableView.scrollToRow(at: IndexPath(row: 0, section: sect), at: .top, animated: false) : nil
     }
     else {
-      if previousSection == nil { previousSection = sectIndex }
       sectIndex = nil
       activeItem = nil
       collapseAll()
@@ -158,24 +145,26 @@ extension NewContentTableVC {
   
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    print(">>> viewWillAppear: sectIndex:\(sectIndex) previousSection: \(previousSection)")
-    guard let activeItem = activeItem else { return }
-    //set enabled/disabled cells
-    if let previousArticle = previousArticle {
-      active ? self.tableView.reloadRows(at: [activeItem, previousArticle], with: .fade) : nil
-      self.previousArticle = nil
+    tableView.reloadData()
+    if let activeItem = activeItem {
+      tableView.scrollToRow(at: activeItem, at: .top, animated: false)
     }
-    else {
-      active ? self.tableView.reloadRows(at: [activeItem], with: .fade) : nil
+    else if let sectIndex = sectIndex, tableView(self.tableView, numberOfRowsInSection: sectIndex) > 0 {
+      tableView.scrollToRow(at: IndexPath(row: 0, section: sectIndex), at: .top, animated: false)
     }
-    _ = tableView(tableView, viewForHeaderInSection: activeItem.section)
-//    if let previousSection = previousSection {
-//      _ = tableView(tableView, viewForHeaderInSection: previousSection)
-//
-//      self.previousSection = nil
-//    }
-    ///set active item in viewport
-    active ? tableView.scrollToRow(at: activeItem, at: .top, animated: false) : nil
+  }
+  
+  public override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    if activeItem == nil, let sectIndex = sectIndex, tableView(self.tableView, numberOfRowsInSection: sectIndex) == 0 {
+      ///Fix Layout Bug: issue > regular section open menu swipe > anzeige open menu ==> menu wrongly layouted, nothing helped
+      /// similar: https://stackoverflow.com/questions/14995573/dequeued-uitableviewcell-has-incorrect-layout-until-scroll-using-autolayout
+      onMainAfter { [weak self] in
+        //self?.tableView.scrollRectToVisible(CGRect(x: 10, y: 100, width: 10, height: 10), animated: true)//did not work
+        self?.tableView.setContentOffset(CGPoint(x: 0, y: 0), animated: false)
+        self?.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: sectIndex), at: .top, animated: false)
+      }
+    }
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -259,8 +248,8 @@ extension NewContentTableVC {
     else {
       expandedSections = []
     }
-    active ? tableView.reloadSections(IndexSet(allSectionIndicies),
-                                      with: .none) : nil
+    tableView.reloadSections(IndexSet(allSectionIndicies),
+                                      with: .none)
   }
   
   func expandAll(){

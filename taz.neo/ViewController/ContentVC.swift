@@ -92,13 +92,22 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
-  public var contentTable: NewContentTableVC?
+  public var contentTable: NewContentTableVC? {
+    didSet {
+      guard let contentTable = contentTable else { return }
+      contentTable.feeder = feeder
+      contentTable.issue = issue
+      contentTable.image = feeder.momentImage(issue: issue)
+      slider = ButtonSlider(slider: contentTable, into: self)
+      setupSlider()
+    }
+  }
   public var contents: [Content] = []
   public var feeder: Feeder { delegate.feeder }
   public var issue: Issue { delegate.issue }
   public var feed: Feed { issue.feed }
   public var dloader: Downloader { delegate.dloader }
-  lazy var slider:ButtonSlider? = ButtonSlider(slider: contentTable!, into: self)
+  var slider:ButtonSlider?
   /// Whether to show all content images in a gallery
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
@@ -603,7 +612,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
-    if let sections = issue.sections, sections.count > 1 { setupSlider() }
     
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.show(show: false, animated: true)}
@@ -699,9 +707,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func setup(contents: [Content], isLargeHeader: Bool) {
     setContents(contents)
     self.isLargeHeader = isLargeHeader
-    self.contentTable!.feeder = feeder
-    self.contentTable!.issue = issue
-    self.contentTable!.image = feeder.momentImage(issue: issue)
     self.baseDir = feeder.baseDir.path
     onBack { [weak self] _ in
       self?.debug("*** Action: <Back> pressed")

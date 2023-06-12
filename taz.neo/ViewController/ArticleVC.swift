@@ -117,33 +117,7 @@ open class ArticleVC: ContentVC {
     if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
     }
-    
     super.setup(contents: articles, isLargeHeader: false)
-//    contentTable?.onArticlePress{[weak self] article in
-//      guard let self = self else { return }
-//      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
-//      self.adelegate?.linkPressed(from: nil, to: url)
-//      self.slider?.close()
-//    }
-//    contentTable?.onSectionPress { [weak self] sectionIndex in
-//      guard let self = self, let adelegate = self.adelegate else { return }
-//      if sectionIndex >= adelegate.sections.count {
-//        self.debug("*** Action: Impressum pressed")
-//      }
-//      else {
-//        self.debug("*** Action: Section \(sectionIndex) " +
-//          "(delegate.sections[sectionIndex])) in Slider pressed")
-//      }
-//      self.adelegate?.displaySection(index: sectionIndex)
-//      self.slider?.close()
-//      self.navigationController?.popViewController(animated: false)
-//    }
-//    contentTable?.onImagePress { [weak self] in
-//      self?.debug("*** Action: Moment in Slider pressed")
-//      self?.slider?.close()
-//      self?.navigationController?.popViewController(animated: false)
-//      self?.adelegate?.closeIssue()
-//    }
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
@@ -289,6 +263,40 @@ open class ArticleVC: ContentVC {
     }
   }
   
+  public override func setupSlider() {
+    super.setupSlider()
+    contentTable?.onArticlePress{[weak self] article in
+      guard let self = self else { return }
+      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+      self.adelegate?.linkPressed(from: nil, to: url)
+      self.slider?.close()
+    }
+    contentTable?.onSectionPress { [weak self] sectionIndex in
+      guard let self = self, let adelegate = self.adelegate else { return }
+      if sectionIndex >= adelegate.sections.count {
+        self.debug("*** Action: Impressum pressed")
+      }
+      else {
+        self.debug("*** Action: Section \(sectionIndex) " +
+          "(delegate.sections[sectionIndex])) in Slider pressed")
+      }
+      self.adelegate?.displaySection(index: sectionIndex)
+      self.slider?.close()
+      self.navigationController?.popViewController(animated: false)
+    }
+    contentTable?.onImagePress { [weak self] in
+      self?.debug("*** Action: Moment in Slider pressed")
+      self?.slider?.close()
+      self?.navigationController?.popViewController(animated: false)
+      self?.adelegate?.closeIssue()
+    }
+  }
+  
+  public override func viewDidLoad() {
+    super.viewDidLoad()
+    self.contentTable = NewContentTableVC(style: .plain)
+  }
+  
   public override func viewWillAppear(_ animated: Bool) {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
@@ -303,7 +311,6 @@ open class ArticleVC: ContentVC {
       self.collectionView?.fixScrollPosition()
       self.collectionView?.showAnimated()
     }
-    (delegate as? SectionVC)?.slider?.updateSlider()
     super.viewDidAppear(animated)
     onShare { [weak self] _ in
       guard let self = self else { return }
@@ -326,8 +333,7 @@ open class ArticleVC: ContentVC {
   }
   
   public override func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(animated)
-    (delegate as? SectionVC)?.slider?.updateSlider()
+    super.viewWillDisappear(animated)  
     let player = ArticlePlayer.singleton
     if player.isPlaying() { async { player.stop() } }
   }
