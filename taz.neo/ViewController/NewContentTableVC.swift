@@ -19,29 +19,20 @@ public class NewContentTableVC: UITableViewController {
   fileprivate static let CellIdentifier = "NewContentTableVcCell"
   fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
   
+  
+  ///for SectionVc the highlighted SectionHeader
+  private var sectIndex: Int?
+  ///for ArticleVC the highlighted Cell
   var activeItem:IndexPath? {
     didSet {
-      if activeItem == oldValue { return }
-      var reloadIndexPath:[IndexPath] = []
-      if let activeItem = activeItem {
+      guard activeItem != oldValue,
+      let activeItem = activeItem else { return }
         expandedSections = [activeItem.section]
-        reloadIndexPath.append(activeItem)
-      }
-      if let old = oldValue {
-        reloadIndexPath.append(old)//refresh in open state
-      }
-      if reloadIndexPath.count == 0 { return }
-      ///prevent articlevs setup set index if still not loaded
     }
   }
+  
   func setActive(row: Int?, section: Int?){
-    print(">>> setActive: row:\(row) section: \(section)")
     if let row = row, let sect = section {
-      if let oldSect = sectIndex {
-        ///disable highlight of section header
-        ///
-        sectIndex = nil
-      }
       activeItem = IndexPath(row: row, section: sect)
     }
     else if let sect = section {
@@ -56,9 +47,6 @@ public class NewContentTableVC: UITableViewController {
     }
   }
   
-  private var sectIndex: Int?
-  { didSet { print(">>> sectIndex set to \(sectIndex) old: \(oldValue)")}}
-  
   var feeder:Feeder?
   var image:UIImage? { didSet { header.image = image }}
   var issue:Issue? {
@@ -68,7 +56,7 @@ public class NewContentTableVC: UITableViewController {
       tableView.reloadData()
     }
   }
-  var largestTextWidth = 300.0
+  
   var expandedSections: [Int] = [] {
     didSet {
       header.bottomLabel.text = expandedSections.isEmpty
@@ -86,7 +74,7 @@ public class NewContentTableVC: UITableViewController {
   fileprivate lazy var header: NewContentTableVcHeader = {
     let h = NewContentTableVcHeader(frame: CGRect(x: 0,
                                                   y: 0,
-                                                  width: UIScreen.shortSide,
+                                                  width: Const.Size.ContentSliderMaxWidth,
                                                   height: 280))
     h.bottomLabel.onTapping {[weak self] _ in
       if self?.header.bottomLabel.text == self?.header.closeText {
@@ -167,10 +155,10 @@ extension NewContentTableVC {
     }
   }
   
-  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    super.viewWillTransition(to: size, with: coordinator)
-    self.widthConstraint?.constant = size.width
-  }
+//  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+//    super.viewWillTransition(to: size, with: coordinator)
+//    self.widthConstraint?.constant = size.width
+//  }
 }
 
 ///actions
@@ -276,11 +264,6 @@ extension NewContentTableVC {
     return 38.5
   }
   
-  public override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
-    guard let header = view as? ContentTableHeaderFooterView else { return}
-    print(">>> display sect header: \(header.label.text) active: \(header.active)")
-  }
-  
   public override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
     guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: Self.SectionHeaderIdentifier)
             as? ContentTableHeaderFooterView else { return nil}
@@ -294,7 +277,6 @@ extension NewContentTableVC {
       header.chevron.isHidden = true
       header.dottedLine.isHidden = true
     } else {
-      log("a section with no title and not imprint")
       header.label.text = nil
       header.chevron.isHidden = true
       header.dottedLine.isHidden = true
@@ -306,18 +288,15 @@ extension NewContentTableVC {
     
     header.onTapping { [weak self] _ in
       self?.sectionPressedClosure?(header.tag)
-      self?.log("You tapped header with tdx: \(header.tag)")
       header.active = true
       header.collapsed = false
       self?.collapseAll(expect: header.tag)
     }
     
     header.chevron.onTapping { [weak self] _ in
-      self?.log("You tapped header with tdx: \(header.tag)")
       header.collapsed = self?.toggle(section: header.tag) ?? true
     }
     header.active = section == sectIndex
-    print(">>> reload sect header: \(header.label.text) active: \(header.active)")
     return header
   }
   
@@ -336,7 +315,7 @@ extension NewContentTableVC {
                                     for: indexPath) as? NewContentTableVcCell
     ?? NewContentTableVcCell()
     cell.article = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row)
-    cell.customImageView.image = cell.article?.images?.first?.image(dir: issue?.dir)?.invertedIfNeeded
+    cell.image = cell.article?.images?.first?.image(dir: issue?.dir)?.invertedIfNeeded
     cell.active = indexPath == activeItem
     return cell
   }
@@ -425,6 +404,8 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
 
 fileprivate  class NewContentTableVcCell: UITableViewCell {
   
+  var imageHeightConstraint: NSLayoutConstraint?
+  
   var articleIdentifier: String?
   
   let starFill = UIImage(named: "star-fill")
@@ -479,7 +460,14 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     bottomLabel.textColor = color
   }
   
-  let customImageView = UIImageView()
+  var image: UIImage? {
+    didSet {
+      customImageView.image = image
+      imageHeightConstraint?.isActive = image != nil
+    }
+  }
+  
+  private let customImageView = UIImageView()
   let bookmarkButton = UIImageView()
   let titleLabel = UILabel()
   let customTextLabel = UILabel()
@@ -520,7 +508,7 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     bottomLabel.boldContentFont(size: 13.5)
     
     let imgWidth = 60.0
-    customImageView.pinSize(CGSize(width: imgWidth, height: imgWidth))
+    imageHeightConstraint = customImageView.pinSize(CGSize(width: imgWidth, height: imgWidth)).height
     customImageView.contentMode = .scaleAspectFill
     customImageView.clipsToBounds = true
     

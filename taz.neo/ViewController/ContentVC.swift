@@ -81,6 +81,30 @@ extension String {
  A ContentVC is a view controller that displays an array of Articles or Sections 
  in a collection of WebViews
  */
+
+class MyButtonSlider:ButtonSlider{
+  var ocoverage: CGFloat? {
+    didSet {
+      guard let ocoverage = ocoverage else { return }
+      shiftRatio = ocoverage < Const.Size.ContentSliderMaxWidth ? 0.7 : 0.1
+      resetConstraints()
+    }
+  }
+  override var coverage: CGFloat {
+    get { return ocoverage ?? super.coverage }
+    set { super.coverage = newValue }
+  }
+  override func slide(toOpen: Bool, animated: Bool = true) {
+    if toOpen == true, let ocoverage = ocoverage, ocoverage < Const.Size.ContentSliderMaxWidth {
+      shiftRatio = 0.7
+    }
+    else if toOpen == false && shiftRatio != 0.1 {
+      shiftRatio = 0.1
+    }
+    super.slide(toOpen: toOpen, animated: animated)
+  }
+}
+
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   /// CSS Margins for Articles and Sections
@@ -98,7 +122,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       contentTable.feeder = feeder
       contentTable.issue = issue
       contentTable.image = feeder.momentImage(issue: issue)
-      slider = ButtonSlider(slider: contentTable, into: self)
+      slider = MyButtonSlider(slider: contentTable, into: self)
       setupSlider()
     }
   }
@@ -628,12 +652,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     registerForStyleUpdates()
   }
   
-  public func setupSlider() {
+  func updateSliderWidth(newParentWidth: CGFloat? = nil){
     if let ct = contentTable {
-      let twidth = ct.largestTextWidth
-      slider?.maxCoverage = twidth + 3*16.0
+      let maxWidth = Const.Size.ContentSliderMaxWidth
+      (slider as? MyButtonSlider)?.ocoverage = min(maxWidth, (newParentWidth ?? maxWidth + 18) - 18.0 )
     }
-    
+  }
+  
+  public func setupSlider() {
+    updateSliderWidth()
     slider?.image = UIImage.init(named: "logo")
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
@@ -661,6 +688,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
+    updateSliderWidth(newParentWidth: size.width)
     onMain(after: 1.0) {[weak self] in
       let newCoverage = 338 + UIWindow.verticalInsets
       if self?.settingsBottomSheet?.coverage == newCoverage { return }//no rotate
@@ -672,7 +700,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       })
     }
   }
-  
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)

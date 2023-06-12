@@ -375,6 +375,8 @@ public struct Const {
     static let TinyPadding = CGFloat(5.0)
     static let ContentTableFontSize = CGFloat(22.0)
     static let ContentTableRowHeight = CGFloat(30.0)
+    
+    static let ContentSliderMaxWidth = 420.0
   }
   
   struct Insets {

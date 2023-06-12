@@ -291,15 +291,13 @@ open class ArticleVC: ContentVC {
       self?.adelegate?.closeIssue()
     }
   }
-  
-  public override func viewDidLoad() {
-    super.viewDidLoad()
-    self.contentTable = NewContentTableVC(style: .plain)
-  }
-  
+    
   public override func viewWillAppear(_ animated: Bool) {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
+    }
+    if !(self.parent is BookmarkNC) {
+      self.contentTable = NewContentTableVC(style: .plain)
     }
     super.viewWillAppear(animated)
   }
