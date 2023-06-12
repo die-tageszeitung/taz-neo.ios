@@ -248,13 +248,13 @@ class IssueOverviewService: NSObject, DoesLog {
           newIssues.append(StoredIssue.persist(object: issue))
         }
         self.log("Finished load Issues for: \(date.short) DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
-        ArticleDB.save()
         for si in newIssues {
           self.updateIssue(issue: si)
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: si.date,
                             sender: self)
         }
+        ArticleDB.save()
       }
       self.removeFromLoading(sCurrentLoadingDates)
     }
