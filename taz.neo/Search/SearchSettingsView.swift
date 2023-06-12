@@ -399,10 +399,15 @@ class TazCell: UITableViewCell, UIStyleChangeDelegate {
 // MARK: *** UIComponents ***
 /// A custom table view cell with TextInput
 class TazHeaderFooterView: UITableViewHeaderFooterView {
-  var label: UILabel = UILabel().boldContentFont().labelColor()
+  var label: UILabel = UILabel()
   let chevron = UIImageView(image: UIImage(named: "chevron-up"))
   
+  var topDist = 8.0
+  var bottomDist = 10.0
+  var fontSize = Const.Size.DefaultFontSize
+  
   func setup(){
+    label.boldContentFont(size: fontSize).labelColor()
     self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
     self.contentView.addSubview(label)
     self.contentView.addSubview(chevron)
@@ -411,10 +416,10 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
     pin(chevron.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding)
     chevron.centerY(dist: -2)
 
-    pin(label.top, to: self.contentView.top, dist: 8)
+    pin(label.top, to: self.contentView.top, dist: topDist)
     pin(label.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
     pin(label.right, to: chevron.right, dist: -Const.Size.DefaultPadding, priority: .defaultLow)
-    pin(label.bottom, to: self.contentView.bottom, dist: -10, priority: .defaultLow)
+    pin(label.bottom, to: self.contentView.bottom, dist: -bottomDist, priority: .defaultLow)
     self.contentView.layoutMargins.top = 0.0
     self.contentView.layoutMargins.left = Const.Size.DefaultPadding
     self.contentView.layoutMargins.right = Const.Size.DefaultPadding

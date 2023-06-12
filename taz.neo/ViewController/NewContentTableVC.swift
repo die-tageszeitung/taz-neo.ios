@@ -591,6 +591,9 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
   }
   
   override func setup(){
+    topDist = 10.0
+    bottomDist = 11.0
+    fontSize = 18.0
     super.setup()
     self.addBorderView(Const.Colors.iconButtonInactive,
                        edge: .top,
