@@ -85,7 +85,7 @@ extension String {
 class MyButtonSlider:ButtonSlider{
   var ocoverage: CGFloat? {
     didSet {
-      guard let ocoverage = ocoverage else { return }
+      guard let ocoverage = ocoverage, isOpen else { return }
       shiftRatio = ocoverage < Const.Size.ContentSliderMaxWidth ? 0.7 : 0.1
       resetConstraints()
     }
@@ -653,14 +653,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func updateSliderWidth(newParentWidth: CGFloat? = nil){
-    if let ct = contentTable {
-      let maxWidth = Const.Size.ContentSliderMaxWidth
-      (slider as? MyButtonSlider)?.ocoverage = min(maxWidth, (newParentWidth ?? maxWidth + 18) - 18.0 )
-    }
+    guard contentTable != nil else { return }
+    let maxWidth = Const.Size.ContentSliderMaxWidth
+    (slider as? MyButtonSlider)?.ocoverage
+    = min(maxWidth, (newParentWidth ?? maxWidth + 18) - 18.0 )
   }
   
   public func setupSlider() {
-    updateSliderWidth()
+    updateSliderWidth(newParentWidth: UIScreen.shortSide)
     slider?.image = UIImage.init(named: "logo")
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
