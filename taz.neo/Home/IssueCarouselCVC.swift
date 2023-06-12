@@ -233,6 +233,13 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     
     return cell
   }
+
+  var loadingMoment: MomentView? {
+    didSet {
+      loadingMoment?.isActivity = true
+      oldValue?.isActivity = false
+    }
+  }
   
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,
@@ -241,11 +248,14 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
       error("Issue not available try later")
       return
     }
+    loadingMoment = (collectionView.cellForItem(at: indexPath) as? IssueCollectionViewCell)?.momentView
+    downloadButton.indicator.downloadState = .waiting
     (parent as? OpenIssueDelegate)?.openIssue(issue)
   }
   
   public override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
+    loadingMoment = nil
   }
   
   public init(service: IssueOverviewService) {
