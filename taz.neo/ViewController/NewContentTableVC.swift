@@ -601,8 +601,8 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
                        insets: Const.Insets.Default)
     dottedLine.isHorizontal = false
     self.contentView.addSubview(dottedLine)
-    pin(dottedLine.top, to: self.contentView.top, dist: 3.0, priority: .fittingSizeLevel)
-    pin(dottedLine.bottom, to: self.contentView.bottom, dist: -3.0, priority: .fittingSizeLevel)
+    pin(dottedLine.top, to: self.contentView.top, dist: 5.0, priority: .fittingSizeLevel)
+    pin(dottedLine.bottom, to: self.contentView.bottom, dist: -5.0, priority: .fittingSizeLevel)
     pin(dottedLine.right, to: self.chevron.left, dist: -5.0)
     dottedLine.pinWidth(Const.Size.DottedLineHeight*0.7)
     dottedLine.fillColor = Const.SetColor.HText.color
