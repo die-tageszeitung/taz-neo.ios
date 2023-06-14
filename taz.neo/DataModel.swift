@@ -305,6 +305,8 @@ public extension Resources {
 public protocol Author: ToString {
   /// Complete name
   var name: String? { get }
+  /// Server side author ID
+  var serverId: Int? { get }
   /// Photo of author
   var photo: ImageEntry? { get }
 } // Author

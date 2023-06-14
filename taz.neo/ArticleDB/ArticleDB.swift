@@ -751,7 +751,18 @@ public final class StoredAuthor: Author, StoredObject {
   public static var entity = "Author"
   public var pr: PersistentAuthor // persistent record
   public var name: String? { pr.name }
-  public var photo: ImageEntry? { 
+  
+  public var serverId: Int? {
+    get { return pr.serverId != 0 ? Int(pr.serverId) : nil }
+    set {
+      if let id = newValue {
+        pr.serverId = Int64(id)
+      }
+      else { pr.serverId = 0 }
+    }
+  }
+  
+  public var photo: ImageEntry? {
     if let p = pr.photo { return StoredImageEntry(persistent: p) }
     else { return nil }
   }
@@ -761,6 +772,7 @@ public final class StoredAuthor: Author, StoredObject {
   /// Overwrite the persistent values
   public func update(from object: Author) {
     pr.name = object.name
+    self.serverId = object.serverId
     if let photo = object.photo {
       let imageEntry = StoredImageEntry.persist(object: photo)
       pr.photo = imageEntry.pr
@@ -794,14 +806,6 @@ public final class StoredAuthor: Author, StoredObject {
     if tmp.count < 1 { return nil }
     else { return tmp[0] }
   }
-  
-  /// Return all Authors of an Article
-  public static func authorsOfArticle(article: StoredArticle) -> [StoredAuthor] {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "%@ IN articles", article.pr)
-    return get(request: request)
-  }
-  
 } // StoredAuthor
 
 /// also: PersistentSection, PersistentArticle
@@ -904,7 +908,10 @@ public final class StoredArticle: Article, StoredObject {
   }
   
   public var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
-  public var authors: [Author]? { StoredAuthor.authorsOfArticle(article: self) }
+  public var authors: [Author]? {
+    return (pr.authors?.array as? [PersistentAuthor])?
+    .map{StoredAuthor(persistent: $0)}
+  }
   public var pageNames: [String]? { nil }
   public var sections: [StoredSection] {
     var ret: [StoredSection] = []

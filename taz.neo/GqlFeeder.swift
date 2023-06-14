@@ -264,11 +264,12 @@ class GqlResources: Resources, GQLObject {
 class GqlAuthor: Author, GQLObject {
   /// Name of author
   var name: String?
+  var serverId: Int?
   /// Photo (if any)
   var image: GqlImage?
   var photo: ImageEntry? { return image }
   
-  static var fields = "name image: imageAuthor { \(GqlImage.fields) }"
+  static var fields = "name serverId: id image: imageAuthor { \(GqlImage.fields) }"
 }
 
 /// One Article of an Issue
