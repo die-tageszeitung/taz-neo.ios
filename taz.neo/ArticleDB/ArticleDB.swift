@@ -997,7 +997,7 @@ public final class StoredArticle: Article, StoredObject {
         pr.addToAuthors(sau.pr)
       }
       // Remove unneeded authors
-      for au in authors as! [StoredAuthor] {
+      for au in authors as? [StoredAuthor] ?? [] {
         if !aus.contains(where: { $0.name == au.name }) {
           pr.removeFromAuthors(au.pr)
         }
