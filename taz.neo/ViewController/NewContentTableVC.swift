@@ -203,7 +203,7 @@ extension NewContentTableVC {
     
     tableView.performBatchUpdates {[weak self] in
       self?.expandedSections.append(section)
-      self?.tableView.insertRows(at: changedIdx, with: .automatic)
+      self?.tableView.insertRows(at: changedIdx, with: .bottom)
     }
   }
   
@@ -224,13 +224,13 @@ extension NewContentTableVC {
     if let idx = expandedSections.firstIndex(of: section) {
       tableView.performBatchUpdates {
         expandedSections.remove(at: idx)
-        tableView.deleteRows(at: changedIdx, with: .automatic)
+        tableView.deleteRows(at: changedIdx, with: .top)
       }
       return true
     }
     tableView.performBatchUpdates {
       expandedSections.append(section)
-      tableView.insertRows(at: changedIdx, with: .automatic)
+      tableView.insertRows(at: changedIdx, with: .bottom)
     }
     return false
   }
@@ -249,7 +249,7 @@ extension NewContentTableVC {
   func expandAll(){
     expandedSections = allSectionIndicies
     tableView.reloadSections(IndexSet(expandedSections),
-                             with: .automatic)
+                             with: .bottom)
   }
   
   var allSectionIndicies: [Int] { return Array(0...(issue?.sections?.count ?? 0))}
