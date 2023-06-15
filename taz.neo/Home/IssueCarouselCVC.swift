@@ -72,10 +72,10 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     v.addSubview(downloadButton)
     v.addSubview(dateLabel)
     statusWrapperWidthConstraint = v.pinWidth(0)
-    dateLabel.contentFont().white()
+    dateLabel.contentFont().textColor = Const.Colors.iconButtonInactive
     dateLabel.textAlignment = .center
-    pin(downloadButton, to: v, exclude: .left)
-    downloadButton.color = .white
+    pin(downloadButton, to: v, exclude: .left).top?.constant = -8.0
+    downloadButton.color = Const.Colors.iconButtonInactive
     pin(dateLabel.left, to: v.left, dist: 25, priority: .defaultLow)
     pin(dateLabel.right, to: v.right, dist: -25, priority: .defaultLow)
     v.pinHeight(28)
@@ -327,7 +327,7 @@ extension IssueCarouselCVC {
     ///Warning: using maxinset! due top inset is wrong after rotation because its called from viewWillTransition
     let  offset = 0.5*( size.height
              - UIWindow.maxInset
-             - layout.maxScale*layout.itemSize.height) - 10
+             - layout.maxScale*layout.itemSize.height) - 20
 //    print("dist is: -0,5* (\(size.height)   -   \(UIWindow.topInset)   -   \(layout.maxScale*layout.itemSize.height))=\(statusWrapperBottomConstraint?.constant ?? 0)\n  0.5 * ( size.height - UIWindow.safeInsets.top - HomeTVC.defaultHeight - layout.maxScale*layout.itemSize.height)")
     
     topStatusButtonConstraint?.constant = offset
