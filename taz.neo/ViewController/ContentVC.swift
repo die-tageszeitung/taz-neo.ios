@@ -722,7 +722,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   override public func viewWillDisappear(_ animated: Bool) {
-    slider?.hideLeftBackground()
     super.viewWillDisappear(animated)
     if let svc = self.navigationController?.viewControllers.last as? SectionVC {
       //cannot use updateLayout due strange side effects

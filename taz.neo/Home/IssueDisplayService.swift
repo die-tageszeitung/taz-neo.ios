@@ -115,6 +115,13 @@ extension IssueDisplayService {
   
   func showIssue(pushDelegate: PushIssueDelegate){
     let issue = self.sissue
+    
+    if issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0 {
+      debug("Issue: \(issue.date.short ?? "-") has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
+      debug("This may fail!")
+    }
+      
+    
     feederContext.openedIssue = issue //remember opened issue to not delete if
     debug("*** Action: Entering \(issue.feed.name)-" +
           "\(issue.date.isoDate(tz: feederContext.storedFeeder.timeZone))")
