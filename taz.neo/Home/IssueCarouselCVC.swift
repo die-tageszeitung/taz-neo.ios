@@ -97,6 +97,11 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
 
   var service: IssueOverviewService
   
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    self.downloadButton.layoutSubviews()
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     // Uncomment the following line to preserve selection between presentations
