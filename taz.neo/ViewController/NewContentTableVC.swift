@@ -18,6 +18,7 @@ public class NewContentTableVC: UITableViewController {
   
   fileprivate static let CellIdentifier = "NewContentTableVcCell"
   fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
+  fileprivate static let SectionFooterIdentifier = "ContentTableFooterSeperatorView"
   
   
   ///for SectionVc the highlighted SectionHeader
@@ -100,8 +101,12 @@ public class NewContentTableVC: UITableViewController {
     if header.superview == nil {
       self.view.addSubview(header)
       pin(header, toSafe: self.view, exclude: .bottom).top?.constant = -70
-      self.tableView.contentInset = UIEdgeInsets(top: 210, left: 0, bottom: 0, right: 0)
+
       self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 210, left: 0, bottom: 0, right: 0)
+      ///disable sticky footer seperator
+      let dummyViewHeight = CGFloat(40)
+      self.tableView.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: self.tableView.bounds.size.width, height: dummyViewHeight))
+      self.tableView.contentInset = UIEdgeInsets(top: 210, left: 0, bottom: -dummyViewHeight, right: 0)
     }
     self.view.bringSubviewToFront(header)
   }
@@ -122,9 +127,12 @@ extension NewContentTableVC {
                             forCellReuseIdentifier: Self.CellIdentifier)
     self.tableView.register(ContentTableHeaderFooterView.self,
                             forHeaderFooterViewReuseIdentifier: Self.SectionHeaderIdentifier)
+    self.tableView.register(ContentTableFooterView.self,
+                            forHeaderFooterViewReuseIdentifier: Self.SectionFooterIdentifier)
     self.tableView.rowHeight = UITableView.automaticDimension
     self.tableView.separatorStyle = .none
     self.tableView.estimatedRowHeight = 100.0
+    
     if #available(iOS 15.0, *) {
       self.tableView.sectionHeaderTopPadding = 0
     }
@@ -307,6 +315,19 @@ extension NewContentTableVC {
     }
     header.active = section == sectIndex
     return header
+  }
+  
+  public override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+    return 1.0
+  }
+  
+  public override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+    return tableView.dequeueReusableHeaderFooterView(withIdentifier: Self.SectionFooterIdentifier)
+  }
+  
+  public override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
+    if section < (issue?.sections?.count ?? 0) { return }
+    (view as? ContentTableFooterView)?.seperator.isHidden = true
   }
   
   public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -581,6 +602,41 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   }
 }
 
+fileprivate class ContentTableFooterView: UITableViewHeaderFooterView, UIStyleChangeDelegate{
+  
+  var seperator = UIView(frame: CGRect(x: 0, y: 0, width: 1000, height: 0.7))
+  
+  func setup(){
+    self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    self.contentView.addSubview(seperator)
+    pin(seperator.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
+    pin(seperator.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding)
+    pin(seperator.top, to: self.contentView.top)
+    seperator.pinHeight(0.7)
+    registerForStyleUpdates()
+  }
+  
+  override func prepareForReuse() {
+    seperator.isHidden = false
+  }
+  
+  func applyStyles() {
+    self.contentView.backgroundColor = Const.SetColor.HBackground.color
+    seperator.backgroundColor = Const.SetColor.HText.color
+  }
+  
+  override init(reuseIdentifier: String?) {
+    super.init(reuseIdentifier: reuseIdentifier)
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
+  }
+}
+  
+  
 fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
   
   let dottedLine = DottedLineView()
