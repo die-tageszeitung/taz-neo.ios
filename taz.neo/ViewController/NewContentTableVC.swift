@@ -454,18 +454,20 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     dottedLine.strokeColor = Const.SetColor.HText.color
     
     articleIdentifier = article?.html?.name
-    let attributedString
-    = NSMutableAttributedString(string: article?.authors() ?? "")
+    var autors = article?.authors() ?? ""
+    if autors.length > 0 {
+      autors.append(" ")
+    }
+    let attributedString = NSMutableAttributedString(string: autors)
     let range = NSRange(location: 0, length: attributedString.length)
     
     let boldFont = Const.Fonts.titleFont(size: 13.5)
     attributedString.addAttribute(.font, value: boldFont, range: range)
     attributedString.addAttribute(.backgroundColor, value: UIColor.clear, range: range)
-    
 
     if let rd = article?.readingDuration {
       let timeString
-      = NSMutableAttributedString(string: " \(rd)min")
+      = NSMutableAttributedString(string: "\(rd)min")
       let trange = NSRange(location: 0, length: timeString.length)
       let thinFont = Const.Fonts.contentFont(size: 12.0)
       timeString.addAttribute(.font, value: thinFont, range: trange)
