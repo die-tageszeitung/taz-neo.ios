@@ -190,6 +190,8 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     set { pr.storageType = newValue.rawValue }
   }
   public var moTime: Date {
+    ///optional unwrap fixed crash occoured everytime on open an issue which had corupt data
+//    get { pr.moTime ?? Date(timeIntervalSince1970: 0) }
     get { pr.moTime! }
     set { pr.moTime = newValue }
   }
@@ -1895,6 +1897,7 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Remove oldest Issues and keep the newest ones
   public static func reduceOldest(feed: StoredFeed, keep: Int) {
+    Log.log("Delete Issues: \(feed) keep: \(keep)")
     let issues = firstLoaded(feed: feed)
     if issues.count > keep {
       var n = issues.count
@@ -1981,6 +1984,7 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Deletes data that is not needed for overview
   public func reduceToOverview() {
+    Log.log("Delete Issue: \(self.date.short)")
     guard StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
     else { return }
     // Remove files not needed for overview

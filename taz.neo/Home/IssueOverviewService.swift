@@ -143,10 +143,10 @@ class IssueOverviewService: NSObject, DoesLog {
       return .notStarted
     }
     if issue.isDownloading { return .process }
-    print("issue for \(index) date: \(d.date) is either not started or done")
-    return feederContext.needsUpdate(issue: issue, toShowPdf: isFacsimile)
-    ? .notStarted
-    : .done
+    
+    let needUpdate = feederContext.needsUpdate(issue: issue, toShowPdf: isFacsimile)
+    log("issue for \(index) date: \(d.date) is \(needUpdate ? "notStarted" : "done")")
+    return needUpdate ? .notStarted : .done
   }
   
   func issue(at date: Date) -> StoredIssue? {
@@ -155,7 +155,13 @@ class IssueOverviewService: NSObject, DoesLog {
   
   func issue(at index: Int) -> StoredIssue? {
     guard let date = publicationDates.valueAt(index) else { return nil }
-    return issue(at: date.date)
+    let issue = issue(at: date.date)
+    if let issue = issue, (issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0) {
+      debug("Issue: \(issue.date.short) has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
+      debug("Issue isComplete: \(issue.isComplete), isReduced: \(issue.isReduced) isOvwComplete: \(issue.isOvwComplete) isDownloading: \(issue.isDownloading) isOverview: \(issue.isOverview)")
+      debug("This may fail!")
+    }
+    return issue
   }
   
   func issue(at date: String) -> StoredIssue? {
@@ -438,42 +444,36 @@ class IssueOverviewService: NSObject, DoesLog {
     return true
   }
     
+  func updateIssues(){
+    issues =
+    (feed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
+      $0[$1.date.issueKey] = $1
+    } ?? [:]
+  }
+    
   /// Initialize with FeederContext
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
     self.feed = feederContext.defaultFeed
     self.publicationDates = feed.publicationDates ?? []
     
-    issues = StoredIssue.issuesInFeed(feed: feed).reduce(into: [String: StoredIssue]()) {
+    issues =
+    (feed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1
-    }
+    } ?? [:]
     super.init()
     
     ///Update downloaded Issue Reference
     Notification.receive("issue"){ [weak self] notif in
-      guard let issue = notif.object as? StoredIssue else { return }
-      print("update issue after download for: \(issue.date.issueKey)")
-      self?.updateIssue(issue: issue)
+      self?.updateIssues()
     }
     ///Update downloaded Issue Reference
     Notification.receive("issueStructure"){ [weak self] notif in
-      guard let error = notif.error as? DownloadError else { return }
-      self?.handleDownloadError(error: error)
+      self?.updateIssues()
     }
     
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
-      #warning("ToDo resume latest loadPreviewStack...send online")
-      self?.debug("LoadingDates: \(self?.loadingDates)")
-      self?.debug("loadPreviewsStack: \(self?.loadPreviewsStack)")
-      self?.debug("feeder is reachable")
-//      for i in self?.loadFaildPreviews ?? [] {
-//        self?.apiLoadMomentImages(for: i, isPdf: self?.isFacsimile ?? false)
-//      }
-      if let ll = self?.lastLoadFailed {
-        ///TODO!!!
-        #warning("todo check!")
-        self?.apiLoadPreview(for: ll.date, count: ll.count)
-      }
+      self?.updateIssues()
     }
     
     Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
