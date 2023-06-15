@@ -144,9 +144,6 @@ extension NewContentTableVC {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    log("Issue: \(issue?.date.short ?? "-") has \(issue?.sections?.count ?? 0) Ressorts and \(issue?.allArticles.count ?? 0) articles.")
-    //  Issue: 25.2.2022 has 0 Ressorts and 0 articles.
-    
     if let activeItem = activeItem {
       tableView.scrollToRow(at: activeItem, at: .top, animated: false)
     }
@@ -203,11 +200,10 @@ extension NewContentTableVC {
       return IndexPath(item: i, section: section)
     }
     guard changedIdx.count > 0 else { return }
-    tableView.reloadData()
-    return
+    
     tableView.performBatchUpdates {[weak self] in
       self?.expandedSections.append(section)
-      self?.tableView.insertRows(at: changedIdx, with: .none)
+      self?.tableView.insertRows(at: changedIdx, with: .bottom)
     }
   }
   
@@ -222,21 +218,19 @@ extension NewContentTableVC {
     let changedIdx = (0..<cellCount).map { i in
       return IndexPath(item: i, section: section)
     }
-    tableView.reloadData()
-    return true;
+    
     guard changedIdx.count > 0 else { return false }
-    guard self.tableView.superview != nil else { return false }
     
     if let idx = expandedSections.firstIndex(of: section) {
       tableView.performBatchUpdates {
         expandedSections.remove(at: idx)
-        tableView.deleteRows(at: changedIdx, with: .none)
+        tableView.deleteRows(at: changedIdx, with: .top)
       }
       return true
     }
     tableView.performBatchUpdates {
       expandedSections.append(section)
-      tableView.insertRows(at: changedIdx, with: .none)
+      tableView.insertRows(at: changedIdx, with: .bottom)
     }
     return false
   }
@@ -248,22 +242,14 @@ extension NewContentTableVC {
     else {
       expandedSections = []
     }
-    tableView.reloadData()
-    return
-    
-    ;
-    guard self.tableView.superview != nil else { return }
     tableView.reloadSections(IndexSet(allSectionIndicies),
                                       with: .none)
   }
   
   func expandAll(){
     expandedSections = allSectionIndicies
-    tableView.reloadData()
-    return
-    guard self.tableView.superview != nil else { return }
     tableView.reloadSections(IndexSet(expandedSections),
-                             with: .none)
+                             with: .bottom)
   }
   
   var allSectionIndicies: [Int] { return Array(0...(issue?.sections?.count ?? 0))}
@@ -337,9 +323,6 @@ extension NewContentTableVC {
     cell.article = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row)
     cell.image = cell.article?.images?.first?.image(dir: issue?.dir)?.invertedIfNeeded
     cell.active = indexPath == activeItem
-    if tableView.numberOfRows(inSection: indexPath.section) >= indexPath.row {
-      cell.bottomBorder?.isHidden = false
-    }
     return cell
   }
 }
@@ -445,7 +428,6 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     bottomLabel.textColor = Const.SetColor.HText.color
     dottedLine.fillColor = Const.SetColor.HText.color
     dottedLine.strokeColor = Const.SetColor.HText.color
-    bottomBorder?.backgroundColor = Const.SetColor.CTDate.color
     
     articleIdentifier = article?.html?.name
     let attributedString
@@ -499,12 +481,10 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   let customTextLabel = UILabel()
   let bottomLabel = UILabel()
   let dottedLine = DottedLineView()
-  var bottomBorder: UIView?
   
   public override func prepareForReuse() {
     customImageView.image = nil
     article = nil
-    bottomBorder?.isHidden = true
   }
   
   var active: Bool = false {
@@ -526,11 +506,6 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     v.addSubview(customImageView)
     v.addSubview(rightSpacer)
     v.addSubview(bookmarkButton)
-    
-    bottomBorder = v.addBorderView(Const.SetColor.CTDate.color, 0.7,
-                                   edge: .bottom,
-                                   insets: .zero)
-    bottomBorder?.isHidden = true
     
     titleLabel.numberOfLines = 2
     customTextLabel.numberOfLines = 3
@@ -626,6 +601,9 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     dottedLine.offset = 1.7
     chevronYOffset = 2.0
     super.setup()
+    self.addBorderView(Const.Colors.iconButtonInactive,
+                       edge: .top,
+                       insets: Const.Insets.Default)
     dottedLine.isHorizontal = false
     self.contentView.addSubview(dottedLine)
     pin(dottedLine.top, to: self.contentView.top, dist: 15.0, priority: .fittingSizeLevel)
