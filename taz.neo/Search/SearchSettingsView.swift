@@ -457,14 +457,16 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
     super.init(coder: coder)
     setup()
   }
-}
-
-extension TazHeaderFooterView:UIStyleChangeDelegate{
-  func applyStyles() {
+  
+  func setColors(){
     self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
     chevron.tintColor = Const.SetColor.ios(.secondaryLabel).color
     label.textColor = Const.SetColor.ios(.label).color
   }
+}
+
+extension TazHeaderFooterView:UIStyleChangeDelegate{
+  func applyStyles() {setColors() }
 }
 
 class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
