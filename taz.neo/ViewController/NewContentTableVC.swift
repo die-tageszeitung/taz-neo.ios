@@ -186,12 +186,6 @@ extension NewContentTableVC {
 
 ///handle expanded/collapsed
 extension NewContentTableVC {
-  
-  
-  func collapse(section: Int){
-    
-  }
-  
   func expand(section: Int){
     if expandedSections.contains(section) { return }
     let cellCount
