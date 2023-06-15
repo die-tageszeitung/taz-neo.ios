@@ -278,7 +278,7 @@ extension NewContentTableVC {
   }
   
   public override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-    return 47.0
+    return 45.0
   }
   
   public override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -609,8 +609,8 @@ fileprivate class ContentTableFooterView: UITableViewHeaderFooterView, UIStyleCh
   func setup(){
     self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
     self.contentView.addSubview(seperator)
-    pin(seperator.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
-    pin(seperator.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding)
+    pin(seperator.left, to: self.contentView.left, dist: Const.Size.DefaultPadding, priority: .fittingSizeLevel)
+    pin(seperator.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
     pin(seperator.top, to: self.contentView.top)
     seperator.pinHeight(0.7)
     registerForStyleUpdates()
@@ -654,8 +654,6 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
   }
   
   override func setup(){
-    topDist = 13.0
-    bottomDist = 14.0
     fontSize = 20.0
     dottedLine.offset = 1.7
     chevronYOffset = 2.0
