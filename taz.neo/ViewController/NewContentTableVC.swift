@@ -200,20 +200,21 @@ extension NewContentTableVC {
       return IndexPath(item: i, section: section)
     }
     guard changedIdx.count > 0 else { return }
-    
-    tableView.performBatchUpdates {[weak self] in
-      self?.expandedSections.append(section)
-      self?.tableView.insertRows(at: changedIdx, with: .bottom)
-    }
+    ///Only handle UI Changes if still loaded and ready for reload & changes
+    let tv = self.tableView.superview != nil ? tableView : nil
+    tv?.beginUpdates()
+    self.expandedSections.append(section)
+    tv?.insertRows(at: changedIdx, with: .bottom)
+    tv?.endUpdates()
   }
-  
   
   /// expand/colapse section
   /// - Parameter section: section to toggle
   /// - Returns: true if section is **colapsed**
   func toggle(section: Int) -> Bool {
-    let cellCount
-    = issue?.sections?.valueAt(section)?.articles?.count ?? 0
+    ///Only handle UI Changes if still loaded and ready for reload & changes
+    let tv = self.tableView.superview != nil ? tableView : nil
+    let cellCount = issue?.sections?.valueAt(section)?.articles?.count ?? 0
     
     let changedIdx = (0..<cellCount).map { i in
       return IndexPath(item: i, section: section)
@@ -221,35 +222,43 @@ extension NewContentTableVC {
     
     guard changedIdx.count > 0 else { return false }
     
+    tv?.beginUpdates()
+    
     if let idx = expandedSections.firstIndex(of: section) {
-      tableView.performBatchUpdates {
         expandedSections.remove(at: idx)
-        tableView.deleteRows(at: changedIdx, with: .top)
-      }
+      tv?.deleteRows(at: changedIdx, with: .top)
+      tv?.endUpdates()
       return true
     }
-    tableView.performBatchUpdates {
       expandedSections.append(section)
-      tableView.insertRows(at: changedIdx, with: .bottom)
-    }
+    tv?.insertRows(at: changedIdx, with: .bottom)
+    tv?.endUpdates()
     return false
   }
   
   func collapseAll(expect: Int? = nil){
+    ///Only handle UI Changes if still loaded and ready for reload & changes
+    let tv = self.tableView.superview != nil ? tableView : nil
+    tv?.beginUpdates()
     if let expect = expect {
       expandedSections = [expect]
     }
     else {
       expandedSections = []
     }
-    tableView.reloadSections(IndexSet(allSectionIndicies),
-                                      with: .none)
+    tv?.reloadSections(IndexSet(allSectionIndicies),
+                                      with: .top)
+    tv?.endUpdates()
   }
   
   func expandAll(){
+    ///Only handle UI Changes if still loaded and ready for reload & changes
+    let tv = self.tableView.superview != nil ? tableView : nil
+    tv?.beginUpdates()
     expandedSections = allSectionIndicies
-    tableView.reloadSections(IndexSet(expandedSections),
+    tv?.reloadSections(IndexSet(expandedSections),
                              with: .bottom)
+    tv?.endUpdates()
   }
   
   var allSectionIndicies: [Int] { return Array(0...(issue?.sections?.count ?? 0))}
