@@ -227,12 +227,12 @@ extension NewContentTableVC {
     tv?.beginUpdates()
     
     if let idx = expandedSections.firstIndex(of: section) {
-        expandedSections.remove(at: idx)
+      expandedSections.remove(at: idx)
       tv?.deleteRows(at: changedIdx, with: .top)
       tv?.endUpdates()
       return true
     }
-      expandedSections.append(section)
+    expandedSections.append(section)
     tv?.insertRows(at: changedIdx, with: .bottom)
     tv?.endUpdates()
     return false
@@ -660,9 +660,6 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     dottedLine.offset = 1.7
     chevronYOffset = 2.0
     super.setup()
-    self.addBorderView(Const.Colors.iconButtonInactive,
-                       edge: .top,
-                       insets: Const.Insets.Default)
     dottedLine.isHorizontal = false
     self.contentView.addSubview(dottedLine)
     pin(dottedLine.top, to: self.contentView.top, dist: 15.0, priority: .fittingSizeLevel)
