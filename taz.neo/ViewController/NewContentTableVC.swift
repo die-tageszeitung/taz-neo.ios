@@ -109,7 +109,7 @@ public class NewContentTableVC: UITableViewController {
   
 extension NewContentTableVC: UIStyleChangeDelegate{
   public func applyStyles() {
-    self.tableView.backgroundColor = Const.SetColor.CTBackground.color
+    self.tableView.backgroundColor = Const.SetColor.HBackground.color
     self.tableView.reloadData()
   }
 }
@@ -267,7 +267,7 @@ extension NewContentTableVC {
   }
   
   public override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-    return 38.5
+    return 47.0
   }
   
   public override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -330,16 +330,14 @@ extension NewContentTableVC {
 
 fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
   func applyStyles() {
-    self.backgroundColor = Const.SetColor.CTBackground.color
+    self.backgroundColor = Const.SetColor.HBackground.color
     self.imageView.layer.shadowOpacity
     = Defaults.darkMode
     ? Const.Shadow.Dark.Opacity
     : Const.Shadow.Light.Opacity
-    self.imageView.layer.shadowColor
-    = Defaults.darkMode
-    ? UIColor.white.cgColor
-    : UIColor.black.cgColor
+    self.imageView.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
     bottomLabel.textColor = Const.SetColor.taz(.textIconGray).color
+    bottomBorder?.backgroundColor = Const.SetColor.CTDate.color
   }
   
   let closeText = "alle ressorts schliessen"
@@ -363,6 +361,7 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
   var imageView = UIImageView()
   var topLabel = UILabel()
   var bottomLabel = UILabel()
+  var bottomBorder: UIView?
   
   var imageAspectConstraint: NSLayoutConstraint?
   
@@ -391,7 +390,8 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     imageView.shadow()
     
     topLabel.contentFont()
-    bottomLabel.contentFont(size: Const.Size.MiniPageNumberFontSize)
+    bottomLabel.contentFont(size: Const.Size.SmallerFontSize)
+    bottomLabel.textAlignment = .right
     
     bottomLabel.text = openText
     topLabel.numberOfLines = 0
@@ -400,10 +400,12 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     pin(topLabel.left, to: imageView.right, dist: 10)
     pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
     pin(topLabel.top, to: imageView.top, dist: -3)
-    pin(bottomLabel.left, to: imageView.right, dist: 10)
+    pin(bottomLabel.left, to: imageView.right, dist: 10, priority: .fittingSizeLevel)
     pin(bottomLabel.bottom, to: imageView.bottom, dist: 3)
-    pin(bottomLabel.right, to: self.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
-    
+    pin(bottomLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
+    bottomBorder = self.addBorderView(Const.SetColor.CTDate.color, 0.7,
+                                      edge: .bottom,
+                                      insets: Const.Insets.Default)
     registerForStyleUpdates()
   }
 }
@@ -522,7 +524,7 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     pin(titleLabel.left, to: v.left)
     pin(titleLabel.right, to: v.right, dist: -(imgWidth + 10))
     
-    pin(customTextLabel.top, to: titleLabel.bottom, dist: 4.0)
+    pin(customTextLabel.top, to: titleLabel.bottom)
     pin(customTextLabel.left, to: v.left)
     pin(customTextLabel.right, to: v.right, dist: -(imgWidth + 10))
     customTextLabel.setContentHuggingPriority(.defaultLow, for: .vertical)//the spacer!
@@ -550,6 +552,7 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   }()
   
   func setup(){
+    dottedLine.offset = 1.7
     self.contentView.addSubview(content)
     self.contentView.addSubview(dottedLine)
     dottedLine.pinHeight(Const.Size.DottedLineHeight*0.7)
@@ -592,19 +595,21 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
   }
   
   override func setup(){
-    topDist = 10.0
-    bottomDist = 11.0
-    fontSize = 18.0
+    topDist = 13.0
+    bottomDist = 14.0
+    fontSize = 20.0
+    dottedLine.offset = 1.7
+    chevronYOffset = 2.0
     super.setup()
     self.addBorderView(Const.Colors.iconButtonInactive,
                        edge: .top,
                        insets: Const.Insets.Default)
     dottedLine.isHorizontal = false
     self.contentView.addSubview(dottedLine)
-    pin(dottedLine.top, to: self.contentView.top, dist: 5.0, priority: .fittingSizeLevel)
-    pin(dottedLine.bottom, to: self.contentView.bottom, dist: -5.0, priority: .fittingSizeLevel)
-    pin(dottedLine.right, to: self.chevron.left, dist: -5.0)
-    dottedLine.pinWidth(Const.Size.DottedLineHeight*0.7)
+    pin(dottedLine.top, to: self.contentView.top, dist: 15.0, priority: .fittingSizeLevel)
+    pin(dottedLine.bottom, to: self.contentView.bottom, dist: -6.0, priority: .fittingSizeLevel)
+    pin(dottedLine.right, to: self.chevron.left, dist: -8.0)
+    dottedLine.pinWidth(Const.Size.DottedLineHeight*0.6)
     dottedLine.fillColor = Const.SetColor.HText.color
     dottedLine.strokeColor = Const.SetColor.HText.color
   }

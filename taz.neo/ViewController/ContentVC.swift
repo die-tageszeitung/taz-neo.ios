@@ -670,7 +670,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     guard contentTable != nil else { return }
     let maxWidth = Const.Size.ContentSliderMaxWidth
     (slider as? MyButtonSlider)?.ocoverage
-    = min(maxWidth, (newParentWidth ?? maxWidth + 18) - 18.0 )
+    = min(maxWidth, (newParentWidth ?? maxWidth + 28.0) - 28.0 )
   }
   
   public func setupSlider() {

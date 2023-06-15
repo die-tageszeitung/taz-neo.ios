@@ -405,6 +405,7 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
   var topDist = 8.0
   var bottomDist = 10.0
   var fontSize = Const.Size.DefaultFontSize
+  var chevronYOffset = -2.0
   
   func setup(){
     label.boldContentFont(size: fontSize).labelColor()
@@ -414,7 +415,7 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
     chevron.tintColor = Const.SetColor.ios(.secondaryLabel).color
     chevron.pinSize(CGSize(width: 24, height: 24))
     pin(chevron.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding)
-    chevron.centerY(dist: -2)
+    chevron.centerY(dist: chevronYOffset)
 
     pin(label.top, to: self.contentView.top, dist: topDist)
     pin(label.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
