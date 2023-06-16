@@ -251,7 +251,15 @@ class IssueOverviewService: NSObject, DoesLog {
       if let issues = res.value() {
         let start = Date()
         for issue in issues {
-          newIssues.append(StoredIssue.persist(object: issue))
+          let si = StoredIssue.get(date: issue.date, inFeed: feed)
+          if let sIssue = si.first {
+            newIssues.append(sIssue)
+
+          }
+          else {
+            let sIssue = StoredIssue.persist(object: issue)
+            newIssues.append(sIssue)
+          }
         }
         self.log("Finished load Issues for: \(date.short) DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
         for si in newIssues {
