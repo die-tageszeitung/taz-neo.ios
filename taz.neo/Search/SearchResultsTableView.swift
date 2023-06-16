@@ -113,7 +113,19 @@ extension SearchResultsTableView: UITableViewDelegate {
     handleScrolling?(beginDragOffset - scrollView.contentOffset.y, false)
   }
   
-  
+  func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    guard let issueDate = searchItem?.searchHitList?.valueAt(indexPath.row)?.date else { return nil }
+    if issueDate < TazAppEnvironment.sharedInstance.feederContext?.defaultFeed.firstIssue ?? Date() { return nil }
+    let openIssueAction = UIContextualAction(style: .normal, title: "Ausgabe\nanzeigen", handler: {[weak self] (_, _, completionHandler) in
+      Notification.send(Const.NotificationNames.gotoIssue, content: issueDate, sender: self)
+      completionHandler(true)
+    }
+          )
+    // Show Current Cloud Upload Status
+    openIssueAction.backgroundColor = .black
+    let swipeConfiguration = UISwipeActionsConfiguration(actions: [openIssueAction])
+    return swipeConfiguration
+  } // end func leadingSwipeActionsConfigurationForRowAt
 }
 // MARK: - UITableViewDataSource -
 extension SearchResultsTableView: UITableViewDataSource {
