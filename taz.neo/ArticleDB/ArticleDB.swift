@@ -1151,6 +1151,24 @@ public final class StoredFrame: Frame, StoredObject {
     return nil
   }
   
+  public static func get1(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
+    
+    let epsilon: Float = 0.0001
+    
+    for storedFrame in relatedPage.frames ?? [] {
+      if storedFrame.x1 - object.x1 > epsilon { continue }
+      if storedFrame.x2 - object.x2 > epsilon { continue }
+      if storedFrame.y1 - object.y1 > epsilon { continue }
+      if storedFrame.y2 - object.y2 > epsilon { continue }
+      if (storedFrame as? StoredFrame)?.pr.page != relatedPage.pr {
+        Log.log("Warning unexpected found frame on another page")
+        continue
+      }
+      return storedFrame as? StoredFrame
+    }
+    return nil
+  }
+  
   /// Overwrite the persistent values
   public func update(from object: Frame) {
     self.link = object.link
