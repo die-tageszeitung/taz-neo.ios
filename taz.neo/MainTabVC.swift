@@ -44,15 +44,14 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       self?.selectedIndex = 0
       (self?.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
       guard let date = notif.content as? Date,
-            let issueCarouselCtrl
-              = ((self?.selectedViewController as? UINavigationController)?
-                .viewControllers.first as? HomeTVC)?.carouselController else { return }
-      
-      let idx = issueCarouselCtrl.service.nextIndex(for: date)
+            let home = ((self?.selectedViewController as? UINavigationController)?
+                .viewControllers.first as? HomeTVC) else { return }
+      home.scroll(up: true)
+      let idx = home.carouselController.service.nextIndex(for: date)
       ///todo reactivate smallJump but with better logic e.g. not load beetwen items!
       var smallJump = false
-      if let i = issueCarouselCtrl.centerIndex, i.distance(to: idx) < 50 { smallJump = true }
-      issueCarouselCtrl.scrollTo(idx, animated: smallJump, fromJumpToDate: true)
+      if let i = home.carouselController.centerIndex, i.distance(to: idx) < 50 { smallJump = true }
+      home.carouselController.scrollTo(idx, animated: smallJump, fromJumpToDate: true)
     }
     
   } // viewDidLoad
