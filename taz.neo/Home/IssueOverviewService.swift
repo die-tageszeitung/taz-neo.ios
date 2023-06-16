@@ -160,6 +160,12 @@ class IssueOverviewService: NSObject, DoesLog {
       debug("Issue: \(issue.date.short) has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
       debug("Issue isComplete: \(issue.isComplete), isReduced: \(issue.isReduced) isOvwComplete: \(issue.isOvwComplete) isDownloading: \(issue.isDownloading) isOverview: \(issue.isOverview)")
       debug("This may fail!")
+    } else {
+      //update Issue
+      feederContext.getOvwIssues(feed: feed,
+                                 count: 1,
+                                 fromDate: date.date,
+                                 isAutomatically: false)
     }
     return issue
   }
@@ -477,6 +483,10 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     ///Update downloaded Issue Reference
     Notification.receive("issueStructure"){ [weak self] notif in
+      self?.updateIssues()
+    }
+    
+    Notification.receive("issueOverview") { [weak self] notif in
       self?.updateIssues()
     }
     
