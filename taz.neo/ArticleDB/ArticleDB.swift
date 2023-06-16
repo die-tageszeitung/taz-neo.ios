@@ -1133,7 +1133,7 @@ public final class StoredFrame: Frame, StoredObject {
     return nil
   }
   
-  public static func get(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
+  public static func getOld(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
     let epsilon: Float = 0.0001
     let request = fetchRequest
     let p1 = NSPredicate(format: "abs(x1 - %f) < %f", object.x1, epsilon)
@@ -1151,7 +1151,7 @@ public final class StoredFrame: Frame, StoredObject {
     return nil
   }
   
-  public static func get1(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
+  public static func get(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
     
     let epsilon: Float = 0.0001
     
