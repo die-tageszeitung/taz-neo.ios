@@ -94,6 +94,11 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   
   
   lazy var statusHeader = FetchNewStatusHeader()
+  var visibleCellsCount: Int = 6
+  
+  func evaluateVisibleCellsCount(){
+    visibleCellsCount = max(collectionView.visibleCells.count + 2, 6)
+  }
 
   var service: IssueOverviewService
   
@@ -218,7 +223,8 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     preventApiLoadUntilIndex = nil
     
     guard let cell = cell as? IssueCollectionViewCell,
-          let data = service.cellData(for: indexPath.row) else { return cell }
+          let data = service.cellData(for: indexPath.row,
+                                      maxPreviewLoadCount: visibleCellsCount) else { return cell }
     cell.publicationDate = data.date
     cell.issue = data.issue
     cell.image = data.image

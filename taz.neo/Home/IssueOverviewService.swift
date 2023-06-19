@@ -93,13 +93,13 @@ class IssueOverviewService: NSObject, DoesLog {
   /// start download for image if no image available
   /// - Parameter index: index for requested cell
   /// - Returns: cell data if any with date, issue if locally available, image if locally available
-  func cellData(for index: Int) -> IssueCellData? {
+  func cellData(for index: Int, maxPreviewLoadCount: Int) -> IssueCellData? {
     guard let publicationDate = date(at: index) else {
       error("No Entry for: \(index), This should not be requested")
       return nil
     }
     guard let issue = issue(at: publicationDate.date) else {
-      apiLoadIssueOverview(for: publicationDate.date, count: 6)
+      apiLoadIssueOverview(for: publicationDate.date, count: maxPreviewLoadCount)
       log("request preview for: \(index) date: \(publicationDate.date.short)")
       return IssueCellData(date: publicationDate, issue: nil, image: nil)
     }

@@ -26,6 +26,11 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
   /// size of the issue items
   lazy var cellSize: CGSize = CGSize(width: 20, height: 20)
 
+  var visibleCellsCount: Int = 6
+  
+  func evaluateVisibleCellsCount(){
+    visibleCellsCount = max(collectionView.visibleCells.count, 6)
+  }
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -64,7 +69,8 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
       withReuseIdentifier: Self.reuseCellId,
       for: indexPath)
     guard let cell = cell as? IssueTilesCvcCell,
-          let data = service.cellData(for: indexPath.row) else { return cell }
+          let data = service.cellData(for: indexPath.row,
+                                      maxPreviewLoadCount: visibleCellsCount) else { return cell }
     cell.publicationDate = data.date
     cell.issue = data.issue
     cell.image = data.image

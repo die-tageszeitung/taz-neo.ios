@@ -127,6 +127,7 @@ class HomeTVC: UITableViewController {
     super.viewDidAppear(animated)
     togglePdfButton.showAnimated()
     showPdfInfoIfNeeded()
+    updateVisibleCellsCount()
   }
   
   var nextHorizontalSizeClass:UIUserInterfaceSizeClass?
@@ -140,6 +141,11 @@ class HomeTVC: UITableViewController {
     super.viewWillTransition(to: size, with: coordinator)
     updateCarouselSize(size: size, horizontalSizeClass: nextHorizontalSizeClass)
     nextHorizontalSizeClass = nil
+  }
+  
+  func updateVisibleCellsCount() {
+    carouselController.evaluateVisibleCellsCount()
+    tilesController.evaluateVisibleCellsCount()
   }
   
   // MARK: - Table view data source
@@ -346,6 +352,9 @@ extension HomeTVC {
     carouselController
       .updateCarouselSize(size,
                           horizontalSizeClass: horizontalSizeClass)
+    onMainAfter {[weak self] in
+      self?.updateVisibleCellsCount()
+    }
   }
   
   fileprivate func setupTilesControllerCell() {
