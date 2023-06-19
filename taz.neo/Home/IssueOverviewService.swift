@@ -99,7 +99,7 @@ class IssueOverviewService: NSObject, DoesLog {
       return nil
     }
     guard let issue = issue(at: publicationDate.date) else {
-      apiLoadPreview(for: publicationDate.date, count: 6)
+      apiLoadIssueOverview(for: publicationDate.date, count: 6)
       log("request preview for: \(index) date: \(publicationDate.date.short)")
       return IssueCellData(date: publicationDate, issue: nil, image: nil)
     }
@@ -191,12 +191,13 @@ class IssueOverviewService: NSObject, DoesLog {
   ///e.g. called on jump to date + ipad need to load date +/- 5 issues
   ///or on scrolling need to load date + 5..10 issues
   ///           5 or 10 5= more stocking because next laod needed //// 10 increased loading time **wrong beause images are loaded asyc in another thread!**
-  func apiLoadPreview(for date: Date, count: Int) {
+  func apiLoadIssueOverview(for date: Date, count: Int) {
     
     if loadingDates.contains(where: { return $0==date.issueKey}) {
       debug("Already loading: \(date.issueKey), skip loading")
       return
     }
+    
     let availableIssues = issues.map({ $0.value.date.issueKey })
     var currentLoadingDates: [Date] = []
     
@@ -204,38 +205,48 @@ class IssueOverviewService: NSObject, DoesLog {
     var end:Date?
     
     ///set the optimized request, do not load dates twice
-    for i in -count/2...count/2 {//-3,-2,-1,0,1,2,3
-      var d = date
-      d.addDays(-i)
-      if availableIssues.contains(d.issueKey)
-      || loadingDates.contains(d.issueKey) {
-        if start != nil {
-          end = d
-          break
-        }
-        continue
-      } else if start == nil {
-        start = d
+    for i in -count/2...0 {//-3,-2,-1,0,1,2,3
+      
+      if i == 0 {
+        if start == nil { start = date }
+        if end == nil { end = date }
+        break
       }
+      
+      var fd = date
+      fd.addDays(i)
+      if start != nil
+          && !(availableIssues.contains(fd.issueKey) || loadingDates.contains(fd.issueKey)){
+        start = fd
+      }
+      
+      var td = date
+      td.addDays(-i)
+      if end != nil
+          && !(availableIssues.contains(td.issueKey) || loadingDates.contains(td.issueKey)){
+        end = fd
+      }
+      
+      if start != nil && end != nil { break }
+    }
+
+    guard let start = start, let end = end else { error("Logic error");return }///LogicError
+    
+    var i = 0
+    while true {
+      var d = start
+      d.addDays(i)
       currentLoadingDates.append(d)
+      i += 1
+      if d == end { break }
     }
-    
-    var count = count
-    if let start = start, let end = end {
-      let days = start.timeIntervalSince(end)/(3600*24)
-      count = max(1, Int(days))
-    }
-    else if start == nil {
-      log("no need to load")
-      return
-    }
-    
+     
     let sCurrentLoadingDates = currentLoadingDates.map{$0.issueKey}
     addToLoading(sCurrentLoadingDates)
     
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: start,
-                                        count: count,
+                                        count: i,
                                         isOverview: true,
                                         returnOnMain: true) {[weak self] res in
       guard let self = self else { return }
