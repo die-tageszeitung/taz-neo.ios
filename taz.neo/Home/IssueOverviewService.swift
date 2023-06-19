@@ -65,8 +65,6 @@ extension Date {
     
     return "\(leadingText ?? "")\(from) – \(to)"
   }
-  
-  
 }
 
 class IssueOverviewService: NSObject, DoesLog {
@@ -268,13 +266,10 @@ class IssueOverviewService: NSObject, DoesLog {
           }
         }
         self.log("Finished load Issues for: \(date.short) DB Update duration: \(Date().timeIntervalSince(start))s on Main?: \(Thread.isMain)")
-        for si in newIssues {
-          self.updateIssue(issue: si)
-          Notification.send(Const.NotificationNames.issueUpdate,
-                            content: si.date,
-                            sender: self)
-        }
         ArticleDB.save()
+        for si in newIssues {
+          self.updateIssue(issue: si, loadImageIfNeeded: true, notify: true)
+        }
       }
       self.removeFromLoading(sCurrentLoadingDates)
     }
@@ -348,6 +343,9 @@ class IssueOverviewService: NSObject, DoesLog {
             self?.debug("something went wrong: downloaded file did not exist!")
             self?.loadFaildPreviews.append(issue)
           }
+          if err == nil {
+            ArticleDB.save()
+          }
           Notification.send(Const.NotificationNames.issueUpdate,
                             content: issue.date,
                             sender: self)
@@ -363,7 +361,14 @@ class IssueOverviewService: NSObject, DoesLog {
                                                   usePdfAlternative: false)
   }
   
-  func updateIssue(issue:StoredIssue){
+  func updateIssue(issue:StoredIssue, loadImageIfNeeded: Bool, notify: Bool){
+    if self.storedImage(issue: issue, isPdf: isFacsimile) == nil {
+      apiLoadMomentImages(for: issue, isPdf: isFacsimile)
+    } else {
+      Notification.send(Const.NotificationNames.issueUpdate,
+                        content: issue.date,
+                        sender: self)
+    }
     self.issues[issue.date.issueKey] = issue
   }
   
