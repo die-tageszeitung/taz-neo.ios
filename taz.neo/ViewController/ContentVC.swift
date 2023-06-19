@@ -138,6 +138,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var toolBarConstraint: NSLayoutConstraint?
   public var backButton = Button<ImageView>()
   public var playButton = Button<ImageView>()
+  public var playButtonContextMenu: ContextMenu?
   public var bookmarkButton = Button<ImageView>()
   private var playClosure: ((ContentVC)->())?
   private var bookmarkClosure: ((ContentVC)->())?
@@ -539,7 +540,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.bookmarkClosure?(self)
     }
-    playButton.onPress { [weak self] _ in
+    
+    playButtonContextMenu
+    = ContextMenu(view: self.playButton.buttonView)
+    
+    self.playButton.buttonView.onTapping { [weak self] _ in
       guard let self = self else { return }
       self.playClosure?(self)
     }
