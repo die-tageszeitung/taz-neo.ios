@@ -181,10 +181,11 @@ function setupButtons() {
       shareArticle(event.target);
     });
   }
-  for (let b of document.getElementsByClassName("issue")) {
+  
+  for (let b of document.querySelectorAll('header.issue')) {
     b.addEventListener("click", (event) => {
       event.preventDefault();
-      gotoIssue(event.target.closest(".issue"));
+      gotoIssue(event.target.closest(".issue").parentElement);
     });
   }
 }
