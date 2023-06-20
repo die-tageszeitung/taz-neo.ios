@@ -221,11 +221,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
             margin-left: \(-maxWidth/2)px;
             position: absolute;
             left: 50%;
-          }
-        div.VerzeichnisInfo,
-        div.VerzeichnisArtikel{
-          margin-left: 0;
-          margin-right: 0;
         }
       }
     """
