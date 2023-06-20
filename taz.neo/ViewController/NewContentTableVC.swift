@@ -278,7 +278,7 @@ extension NewContentTableVC {
   }
   
   public override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-    return 45.0
+    return 41.0//WTF Figma says its 45.0, due Footer Seperators, we have nearly 45//in UIMeaurement its 41+2*footerseperators
   }
   
   public override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -657,13 +657,14 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
   
   override func setup(){
     fontSize = 20.0
-    dottedLine.offset = 1.7
+    dottedLine.offset = 1.55
     chevronYOffset = 2.0
     super.setup()
     dottedLine.isHorizontal = false
     self.contentView.addSubview(dottedLine)
-    pin(dottedLine.top, to: self.contentView.top, dist: 15.0, priority: .fittingSizeLevel)
-    pin(dottedLine.bottom, to: self.contentView.bottom, dist: -6.0, priority: .fittingSizeLevel)
+    dottedLine.clipsToBounds = true
+    pin(dottedLine.top, to: self.contentView.top, dist: 9.5, priority: .fittingSizeLevel)
+    pin(dottedLine.bottom, to: self.contentView.bottom, dist: -5.5, priority: .fittingSizeLevel)
     pin(dottedLine.right, to: self.chevron.left, dist: -8.0)
     dottedLine.pinWidth(Const.Size.DottedLineHeight*0.6)
     dottedLine.fillColor = Const.SetColor.HText.color
