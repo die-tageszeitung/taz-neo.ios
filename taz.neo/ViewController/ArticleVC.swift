@@ -114,20 +114,20 @@ open class ArticleVC: ContentVC {
   }
   
   func setup() {
-    playButtonContextMenu?.smoothPreviewForImage = true
+    playButtonContextMenu.smoothPreviewForImage = true
     
-    playButtonContextMenu?.addMenuItem(title: "Jetzt abspielen",
+    playButtonContextMenu.addMenuItem(title: "Jetzt abspielen",
                                        icon: "play.fill",
                                        group: 0) {[weak self]  (_) in
       print("Choosen Jetzt abspielen")
     }
-    playButtonContextMenu?.addMenuItem(title: "Als nächstes wiedergeben",
+    playButtonContextMenu.addMenuItem(title: "Als nächstes wiedergeben",
                                        icon: "text.line.first.and.arrowtriangle.forward",
                                        group: 1) {[weak self]  (_) in
       print("Choosen Als nächstes wiedergeben")
       ///text.line.first.and.arrowtriangle.forward
     }
-    playButtonContextMenu?.addMenuItem(title: "Zuletzt wiedergeben",
+    playButtonContextMenu.addMenuItem(title: "Zuletzt wiedergeben",
                                        icon: "text.line.last.and.arrowtriangle.forward",
                                        group: 1) {[weak self]  (_) in
       print("Choosen Zuletzt wiedergeben")
@@ -161,14 +161,14 @@ open class ArticleVC: ContentVC {
       let player = ArticlePlayer.singleton
       if art.canPlayAudio {
         self.playButton.buttonView.name = "audio"
-        self.onPlay { [weak self] _ in
-          guard let self = self else { return }
-          if let title = self.header.title ?? art.title {
-            art.toggleAudio(issue: self.issue, sectionName: title )
-          }
-          if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
-          else { self.playButton.buttonView.name = "audio" }
-        }
+//        self.onPlay { [weak self] _ in
+//          guard let self = self else { return }
+//          if let title = self.header.title ?? art.title {
+//            art.toggleAudio(issue: self.issue, sectionName: title )
+//          }
+//          if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
+//          else { self.playButton.buttonView.name = "audio" }
+//        }
       }
       else { self.onPlay(closure: nil) }
       player.onEnd { [weak self] err in
