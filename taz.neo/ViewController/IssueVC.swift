@@ -259,7 +259,6 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     guard let index = givenIndex ?? self.safeIndex else { return }
     #warning("@R: handle offline, show auth popup")
     func openIssue() {
-      ArticlePlayer.singleton.baseUrl = issue.baseUrl
       self.openedIssue = issues[index]
       //call it later if Offline Alert Presented
       if OfflineAlert.enqueueCallbackIfPresented(closure: { openIssue() }) { return }

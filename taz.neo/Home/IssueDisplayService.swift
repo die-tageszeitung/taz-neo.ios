@@ -37,8 +37,7 @@ extension IssueDisplayService {
                          atArticle: Int? = nil,
                          atPage: Int? = nil,
                          pushDelegate: PushIssueDelegate) {
-    ArticlePlayer.singleton.baseUrl = issue.baseUrl
-#warning("DO prevent multiple pushes!")
+    #warning("DO prevent multiple pushes!")
     //prevent multiple pushes!
     //      if self.navigationController?.topViewController != self { return }
     let authenticatePDF = { [weak self] in

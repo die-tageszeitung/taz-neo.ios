@@ -47,15 +47,27 @@ extension IssueCollectionViewActions {
       ccvc.scrollFromLeftToRight = !ccvc.scrollFromLeftToRight
     }
     
+
+
+    
+
+    
     var actions: [UIAction] =  [mainAction, shareAction]
     
     if self is IssueCarouselCVC {
       actions.append(invertRotation)
     }
+    
+    let defaultMenu = UIMenu(title: "",
+                             options: .displayInline,
+                             children: actions)
+    let playMenu = ArticlePlayer.singleton.contextMenu(for: issue)
         
     return UIContextMenuConfiguration(identifier: nil,
                                       previewProvider: nil){ _ -> UIMenu? in
-      return UIMenu(title: "", children: actions)
+      return UIMenu(title: "", children: [defaultMenu, playMenu])
+      //    without header there is no scrolling on iPhone 12 mini
+      //      return UIMenu(title: "taz vom \(issue.date.short)", children: [defaultMenu, playMenu])
     }
   }
 }

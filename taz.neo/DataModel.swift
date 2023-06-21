@@ -476,11 +476,14 @@ public extension Article {
   func toString() -> String { "\(hasBookmark ? "Bookmarked " : "")Article \((self as Content).toString())" }
   
   /// Returns true if this Article can be played
-  var canPlayAudio: Bool { ArticlePlayer.singleton.canPlay(art: self) }
+  ///
+  var canPlayAudio: Bool { return false/*ArticlePlayer.singleton.canPlay(art: self)*/ }
+#warning("ToDO")
   
   /// Start/stop audio play if available
   func toggleAudio(issue: Issue, sectionName: String) {
-    ArticlePlayer.singleton.toggle(issue: issue, art: self, sectionName: sectionName)
+//    ArticlePlayer.singleton.toggle(self)
+#warning("ToDO")
   }
   
   // By default Articles don't have bookmarks

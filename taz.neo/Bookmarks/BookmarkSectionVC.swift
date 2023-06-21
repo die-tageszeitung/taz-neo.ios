@@ -31,10 +31,6 @@ open class BookmarkSectionVC: SectionVC {
         """
         wv.jsexec(js)
       }
-      
-      if let baseUrl = article?.primaryIssue?.baseUrl {
-        ArticlePlayer.singleton.baseUrl = baseUrl
-      }
     }
   }
   

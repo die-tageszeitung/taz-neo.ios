@@ -29,7 +29,6 @@ class SearchResultArticleVc : ArticleVC {
     {
       header.title = hit.sectionTitle ?? ""
       header.subTitle = "Ausgabe \(hit.date.short)"
-      ArticlePlayer.singleton.baseUrl = hit.baseUrl
       searchHitDate = hit.date
     } else {
       searchHitDate = nil
