@@ -464,7 +464,7 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   
   func setActiveColorsIfNeeded(){
     if active == false {return }
-    let color = Const.SetColor.CIColor.color
+    let color = Const.Colors.appIconGrey
     titleLabel.textColor = color
     customTextLabel.textColor = color
     bookmarkButton.tintColor = color
@@ -624,7 +624,7 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     didSet {
       label.textColor
       = active
-      ? Const.SetColor.CIColor.color
+      ? Const.Colors.appIconGrey
       : Const.SetColor.ios(.label).color
       if active == false && oldValue == true {
         contentView.layoutSubviews()
