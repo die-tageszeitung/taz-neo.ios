@@ -76,6 +76,8 @@ public extension Date {
     }
   }
   
+  var dbIssueRepresentation:String{ filename }
+  
   var filename:String{
     get{
       let dateFormatterGet = DateFormatter()

@@ -25,7 +25,7 @@ public class ContentTableVC: UIViewController, UIGestureRecognizerDelegate,
   static var CellHeight = Const.Size.ContentTableRowHeight
   
   /// Returns width of largest text in content table
-  public var largestTextWidth: CGFloat {
+  public var maxWidth: CGFloat {
     ContentTableVC.LargestText.size(font: ContentTableVC.TextFont).width
   }
   

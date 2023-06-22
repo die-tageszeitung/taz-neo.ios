@@ -17,7 +17,7 @@ extension UIApplication {
       case .active:
         return "active"
       case .background:
-        return "active"
+        return "background"
       case .inactive:
         return "inactive"
       default:
@@ -110,7 +110,7 @@ public extension App {
       case .SEARCH_CONTEXTMENU:
         return isAlpha //Only in Alpha Versions
       case .AUTODOWNLOAD:
-        return isAlpha //Only in Alpha Versions
+        return true || (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") || isAlpha //Only in Alpha Versions or taz Accounts
     }
   }
 }

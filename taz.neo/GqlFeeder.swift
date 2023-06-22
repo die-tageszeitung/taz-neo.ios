@@ -8,6 +8,27 @@
 import UIKit
 import NorthLib
 
+/// **IDEAS/THOUGHTS ABOUT PUBLICATION DATES**
+/// PUBLICATION DATES is used on Home to show Issues
+/// at least the date is available, may the Image is not available
+///
+/// WHEN ADD ONE OR UPDATE LIST?
+/// - on App Start
+///    - old seperate Request update.... FeederContext > connect FeederReady > update...
+///    - new within init gqlfeeder
+///         - saves 1 Request
+///         - update fetch check for new Issues seperatly > reduces request/response sizes
+///         - **TODO** IMPLEMENT > TEST
+/// - pull to refresh
+///         - update PubDates
+///         - **TODO** REFACTOR > TEST
+/// - receive Push "newIssue"
+///         - download given Issue and update List or add ONE!
+///         - **TODO** IMPLEMENT > TEST
+/// - on migration from 0.9.12 > 1.0.0 if started offline! **MUST HAVE**
+///         -  ADD ALL KNOWN IN DB ISSUE DATES
+///         - **TODO** IMPLEMENT > TEST
+
 /// A protocol defining methods to use by GraphQL objects
 protocol GQLObject: Decodable, ToString {
   /// A String listing the GraphQL field names of an GraphQL object
@@ -51,7 +72,7 @@ struct GqlAuthInfo: GQLObject {
   }  
 } // GqlAuthInfo
 
-/// A GqlAuthInfo describes an GqlAuthStatus with an optional message
+/// A GqlCustomerInfo describes an customer
 struct GqlCustomerInfo: GQLObject {
   /// Authentication status
   var authInfo:  GqlAuthInfo
@@ -71,7 +92,7 @@ struct GqlCustomerInfo: GQLObject {
     if let msg = sampleType { ret += "sampleType: (\(msg))" }
     return ret
   }
-} // GqlAuthInfo
+} // GqlCustomerInfo
 
 /// Customer Type
 enum GqlCustomerType: String, CodableEnum {
@@ -243,11 +264,12 @@ class GqlResources: Resources, GQLObject {
 class GqlAuthor: Author, GQLObject {
   /// Name of author
   var name: String?
+  var serverId: Int?
   /// Photo (if any)
   var image: GqlImage?
   var photo: ImageEntry? { return image }
   
-  static var fields = "name image: imageAuthor { \(GqlImage.fields) }"
+  static var fields = "name serverId: id image: imageAuthor { \(GqlImage.fields) }"
 }
 
 /// One Article of an Issue
@@ -394,6 +416,97 @@ class GqlMoment: Moment, GQLObject {
   """
 } // GqlMoment
 
+///
+class GqlPublicationDate: PublicationDate, GQLObject {
+  
+  var feed: Feed?
+  
+  var sDate: String
+  var date: Date {
+      return UsTime(iso: sDate, tz: GqlFeeder.tz).date
+  }
+  static var fields: String {
+    var startArg = ""
+    if let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
+      startArg = """
+                 (start:"\(last.isoDate(tz: GqlFeeder.tz))")
+                 """
+    }
+    return "gqlPublicationDates:publicationDates\(startArg)"
+  }
+  
+  var sValidityDate: String?
+  var validityDate: Date?
+  
+  enum CodingKeys: String, CodingKey {
+    case sDate
+    case sValidityDate
+  }
+  
+  func toString() -> String {
+    guard let vd = validityDate else {
+      return "date: \(date.short)"
+    }
+    return "date: \(date.short) - \(vd.short)"
+  }
+  
+  required init(from sDate: String, feed: Feed) {
+    self.sDate = sDate
+    self.feed = feed
+  }
+  
+  required init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    sDate = try container.decode(String.self, forKey: .sDate)
+  }
+  
+}// GqlPublicationDate
+
+class GqlValidityDate: GQLObject {
+  var sDate: String
+  var date: Date {
+    return UsTime(iso: sDate, tz: GqlFeeder.tz).date
+  }
+  var sValidityDate: String?
+  var validityDate: Date? {
+    guard let d = sValidityDate else { return nil }
+    return UsTime(iso: d, tz: GqlFeeder.tz).date
+  }
+  
+  static var fields: String {
+    var startArg = ""
+    if let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
+      startArg = """
+                 (start:"\(last.isoDate(tz: GqlFeeder.tz))")
+                 """
+    }
+    return """
+           gqlValidityDates:validityDates\(startArg){
+             sDate: date
+             sValidityDate: validityDate
+          }
+          """
+  }
+  
+  enum CodingKeys: String, CodingKey {
+    case sDate
+    case sValidityDate
+  }
+  
+  func toString() -> String {
+    guard let vd = validityDate else {
+      return "date: \(date.short)"
+    }
+    return "date: \(date.short) - \(vd.short)"
+  }
+  
+  required init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    sDate = try container.decode(String.self, forKey: .sDate)
+    sValidityDate = try container.decodeIfPresent(String.self, forKey: .sValidityDate)
+  }
+}// GqlValidityDate
+
 /// One Issue of a Feed
 class GqlIssue: Issue, GQLObject {
   var realFeed: Feed?
@@ -522,8 +635,10 @@ class GqlIssue: Issue, GQLObject {
   """
 } // GqlIssue
 
+
+
 /// A Feed of publication issues and articles
-class GqlFeed: Feed, GQLObject {  
+class GqlFeed: Feed, GQLObject {
   var gqlFeeder: GqlFeeder!
   /// The Feeder offering this Feed
   var feeder: Feeder { gqlFeeder }
@@ -546,9 +661,10 @@ class GqlFeed: Feed, GQLObject {
   /// The Issues requested of this Feed
   var gqlIssues: [GqlIssue]?
   var issues: [Issue]? { return gqlIssues }
-  
+  var publicationDates: [PublicationDate]?
+
   enum CodingKeys: String, CodingKey {
-    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues
+    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues, gqlValidityDates, gqlPublicationDates
   }
 
   required init(from decoder: Decoder) throws {
@@ -561,14 +677,37 @@ class GqlFeed: Feed, GQLObject {
     sFirstIssue = try container.decode(String.self, forKey: .sFirstIssue)
     sFirstSearchableIssue = try container.decode(String.self, forKey: .sFirstSearchableIssue)
     gqlIssues = try container.decodeIfPresent([GqlIssue].self, forKey: .gqlIssues)
+    
+    
+    ///Encode gqlPublicationDates and gqlValidityDates and generate PublicationDates for persist in DB
+    let gqlPublicationDates
+    = try container.decodeIfPresent([String].self, forKey: .gqlPublicationDates)
+    let gqlValidityDates
+    = try container.decodeIfPresent([GqlValidityDate].self, forKey: .gqlValidityDates)
+    publicationDates = []
+    
+    for gpd in gqlPublicationDates ?? [] {
+      let pd = GqlPublicationDate(from: gpd, feed: self)
+      if let gvd = gqlValidityDates?.first(where: { $0.sDate == gpd }){
+        pd.validityDate = gvd.validityDate
+      }
+      publicationDates?.append(pd)
+    }
   }
   
-  static var fields = """
-      name cycle momentRatio issueCnt
-      sLastIssue: issueMaxDate
-      sFirstIssue: issueMinDate
-      sFirstSearchableIssue: issueMinSearchDate
-    """
+  
+  static var fields: String {
+      get {
+        return """
+          name cycle momentRatio issueCnt
+          sLastIssue: issueMaxDate
+          sFirstIssue: issueMinDate
+          sFirstSearchableIssue: issueMinSearchDate
+          \(GqlPublicationDate.fields)
+          \(GqlValidityDate.fields)
+        """
+      }
+  }
 } // class GqlFeed
 
 /// GqlAppInfo stores data regarding the running App as provided by the server
@@ -618,13 +757,17 @@ class GqlFeederStatus: GQLObject {
   /// Feeds this Feeder provides
   var feeds: [GqlFeed]
   
-  static var fields = """
-  authInfo{\(GqlAuthInfo.fields)}
-  resourceVersion
-  resourceBaseUrl
-  globalBaseUrl
-  feeds: feedList { \(GqlFeed.fields) }
-  """
+  static var fields: String {
+      get {
+          return """
+            authInfo{\(GqlAuthInfo.fields)}
+            resourceVersion
+            resourceBaseUrl
+            globalBaseUrl
+            feeds: feedList { \(GqlFeed.fields) }
+          """
+      }
+  }
   
   func toString() -> String {
     var ret = """
@@ -746,7 +889,9 @@ open class GqlFeeder: Feeder, DoesLog {
         closure(ret)
       }
     }
-    
+    #warning("PI: is it required to do this request everytime?")
+    ///...on net status change? Prio: low
+    ///Pi: PerformanceImprovement Idea
     GqlAppInfo.query(feeder: self) { [weak self] res in
       guard let self else { return }
       if let mv = res.value() {
@@ -935,7 +1080,7 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = """
       feederStatus: product {
         \(GqlFeederStatus.fields)
-      }
+    }
     """
     gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self) { (res) in
       var ret: Result<GqlFeederStatus,Error>
@@ -949,10 +1094,81 @@ open class GqlFeeder: Feeder, DoesLog {
       closure(ret)
     }
   }
+  
+  var latestIssue: Date?
+  
+//  var publicationDatesParam: String {
+//    guard let latestIssue = latestIssue else {
+//      return """
+//        publicationDates
+//        validityDate{date, validityDate}
+//        """
+//    }
+//    return """
+//      publicationDates(start: \"\(latestIssue.isoDate(tz: GqlFeeder.tz))\")
+//      validityDate{date, validityDate}
+//      """
+//  }
+  #warning("TODO UPDATE ON PULL TO REFRESH COMES LATER")
+  /*
+  // Update PublicationDates
+  public func publicationDates(feed: Feed,
+                               fromDate: Date?,
+                               closure: @escaping(Result<PublicationDates,Error>)->()) {
+    struct PublicationDatesRequest: Decodable {
+      var authInfo: GqlAuthInfo
+      var publicationDates: [GqlPublicationDates]
+      static func request(feed: Feed, date: Date?) -> String {
+        var dateArg = """
+                        publicationDates
+                        validityDate
+                    """
+        if let date = date {
+          dateArg = """
+                    publicationDates(start: \"\(date.isoDate(tz: GqlFeeder.tz))\")
+                    validityDate
+                    """
+        }
+        return """
+        publicationDatesRequest: product {
+          authInfo { \(GqlAuthInfo.fields) }
+            publicationDates: feedList(name:"\(feed.name)") {
+            name
+            cycle
+            \(dateArg)
+          }
+        }
+        """
+      }
+    }
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected"))); return
+    }
+    
+    let request = PublicationDatesRequest.request(feed: feed,
+                                                  date: fromDate)
+    gqlSession.query(graphql: request, type: [String:PublicationDatesRequest].self) {[weak self] (res) in
+      guard let self = self else { return }
+      switch res {
+        case .success(let dict):
+          let response = dict["publicationDatesRequest"]
+          if let pubDates = response?.publicationDates,
+             pubDates.count == 1,
+             let pubDObj = pubDates.first {
+            closure(.success(pubDObj))
+            return
+          }
+        case .failure(let err):
+          closure(.failure(err))
+      }
+      closure( .failure(self.error(DefaultError(message: "unexpected"))))
+    }
+  }
+  */
  
   // Get Issues
   public func issues(feed: Feed, date: Date? = nil, key: String? = nil,
-    count: Int = 20, isOverview: Bool = false, isPages: Bool = false,
+                     count: Int = 20, isOverview: Bool = false, isPages: Bool = false, returnOnMain: Bool = true, 
     closure: @escaping(Result<[Issue],Error>)->()) { 
     struct FeedRequest: Decodable {
       var authInfo: GqlAuthInfo
@@ -987,7 +1203,7 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
                                       count: count, isOverview: isOverview)
     gqlSession.query(graphql: request,
-      type: [String:FeedRequest].self) {[weak self]  (res) in
+      type: [String:FeedRequest].self, returnOnMain: returnOnMain) {[weak self]  (res) in
       guard let self = self else { return }
       var ret: Result<[Issue],Error>? = nil
       switch res {

@@ -68,7 +68,7 @@ class BookmarkNC: NavigationController {
       self.sectionVC.delegate = self///trigger SectionVC.setup()
     }
     
-    Notification.receive("BookmarkChanged") { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       // regenerate all bookmark sections
       guard let emptyRoot = self?.placeholderVC,
             let self = self else { return }

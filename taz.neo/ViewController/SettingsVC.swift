@@ -46,6 +46,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
   
+  @Default("articleFromPdf")
+  public var articleFromPdf: Bool
+  
   var initialTextNotificationSetting: Bool?
   
   var data:TableData = TableData(sectionContent: [])
@@ -182,6 +185,11 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   ///darstellung
   lazy var textSizeSettingsCell: XSettingsCell
   = XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting())
+  lazy var articleFromPdfCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Im Pdf Artikelansicht",
+                  detailText: "Artikelansicht ein-/ausschalten",
+                  initialValue: articleFromPdf,
+                  onChange: {[weak self] newValue in self?.articleFromPdf = newValue })
   lazy var darkmodeSettingsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nachtmodus",
                   initialValue: Defaults.darkMode,
@@ -217,7 +225,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                   initialValue: bookmarksListTeaserEnabled,
                   onChange: {[weak self] newValue in
                     self?.bookmarksListTeaserEnabled = newValue
-                    Notification.send("BookmarkChanged")
+                    Notification.send(Const.NotificationNames.bookmarkChanged)
                   })
     
   lazy var tabbarInSectionCellALPHA: XSettingsCell
@@ -285,6 +293,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
     initialTextNotificationSetting = isTextNotification
+    $articleFromPdf.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.articleFromPdfCell.customAccessoryView as? UISwitch)?.isOn = self.articleFromPdf
+    }
   }
   
   open override func viewWillAppear(_ animated: Bool) {
@@ -653,6 +665,7 @@ extension SettingsVC {
       ("darstellung", false,
        [
         textSizeSettingsCell,
+        articleFromPdfCell,
         darkmodeSettingsCell
        ]
       ),
@@ -700,7 +713,7 @@ extension SettingsVC {
       } ) )
     }
     
-    alert.presentAt(self.view)
+    alert.presentAt(self.logoutCell)
   }
   
   func showAccountDeletionAlert(status:GqlCancellationStatus, wasForce: Bool = false){
@@ -753,7 +766,7 @@ extension SettingsVC {
       alert.addAction( UIAlertAction.init( title: "OK", style: .cancel) { _ in } )
     }
     
-    alert.presentAt(self.view)
+    alert.presentAt(self.deleteAccountCell)
   }
   
   func requestAccountDeletion(_ force: Bool = false){
@@ -793,7 +806,7 @@ extension SettingsVC {
       }
     } ) )
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
-    alert.presentAt(self.view)
+    alert.presentAt(self.deleteIssuesCell)
   }
   
   func requestDatabaseDelete(){
@@ -806,7 +819,7 @@ extension SettingsVC {
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
-    alert.presentAt(self.view)
+    alert.presentAt(self.deleteDatabaseCell)
   }
   
   func requestResetApp(){
@@ -824,7 +837,7 @@ extension SettingsVC {
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
-    alert.presentAt(self.view)
+    alert.presentAt(self.resetAppCell)
   }
   
   func showPrivacy(){
@@ -900,7 +913,7 @@ class XSettingsCell:UITableViewCell {
   var longTapHandler:(()->())?
   private var toggleHandler: ((Bool)->())?
   
-  private(set) var customAccessoryView:UIView?
+  fileprivate(set) var customAccessoryView:UIView?
   
   override var accessoryView: UIView? {
     set { self.customAccessoryView = newValue }

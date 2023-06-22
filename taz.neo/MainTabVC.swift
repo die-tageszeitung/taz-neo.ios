@@ -39,6 +39,21 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
       self?.authenticationSucceededCheckReload()
     }
+    
+    Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in
+      self?.selectedIndex = 0
+      (self?.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
+      guard let date = notif.content as? Date,
+            let home = ((self?.selectedViewController as? UINavigationController)?
+                .viewControllers.first as? HomeTVC) else { return }
+      home.scroll(up: true)
+      let idx = home.carouselController.service.nextIndex(for: date)
+      ///todo reactivate smallJump but with better logic e.g. not load beetwen items!
+      var smallJump = false
+      if let i = home.carouselController.centerIndex, i.distance(to: idx) < 50 { smallJump = true }
+      home.carouselController.scrollTo(idx, animated: smallJump, fromJumpToDate: true)
+    }
+    
   } // viewDidLoad
   
   func setupTabbar() {
@@ -47,7 +62,14 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     self.tabBar.isTranslucent = false
     self.tabBar.tintColor = .white
     
-    let home = IssueVC(feederContext: feederContext)
+    var home:UIViewController
+    if false {
+      home = IssueVC(feederContext: feederContext)
+    }
+    else {
+      let service = IssueOverviewService(feederContext: feederContext)
+      home = HomeTVC(service: service, feederContext: feederContext)
+    }
     home.title = "Home"
     home.tabBarItem.image = UIImage(named: "home")
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
@@ -112,6 +134,10 @@ extension MainTabVC {
        selectedNc?.topViewController != home {
       reloadTarget = home
     }
+    else if let home = selectedNc?.viewControllers.first as? HomeTVC,
+       selectedNc?.topViewController != home {
+      reloadTarget = home
+    }
     else if let search = selectedNc?.viewControllers.first as? SearchController,
             selectedNc?.topViewController != search {
       reloadTarget = search
@@ -148,8 +174,7 @@ extension MainTabVC {
     Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
     }
-    
-    Notification.receiveOnce("feederUneachable") { _ in
+    Notification.receiveOnce(Const.NotificationNames.feederUnreachable) { _ in
       /// popToRootViewController is no more needed here due its done by reloadTarget.reloadOpened
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
       Toast.show(Localized("error"))
@@ -168,6 +193,11 @@ extension MainTabVC : UITabBarControllerDelegate {
        let issueVC = firstVc as? IssueVcWithBottomTiles //IssueVC also works
     {
       issueVC.onHome()
+    }
+    else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
+       let home = firstVc as? HomeTVC
+    {
+      home.onHome()
     }
     else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
        let searchController = firstVc as? SearchController //IssueVC also works

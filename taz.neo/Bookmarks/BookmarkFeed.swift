@@ -12,7 +12,6 @@ import NorthLib
 
 /// A Feed of bookmarked Articles
 public class BookmarkFeed: Feed, DoesLog {
-  
   @Default("bookmarksListTeaserEnabled")
   var bookmarksListTeaserEnabled: Bool
   
@@ -24,6 +23,7 @@ public class BookmarkFeed: Feed, DoesLog {
   public var lastIssue: Date
   public var firstIssue: Date
   public var issues: [Issue]?
+  public var publicationDates: [PublicationDate]?
   public var dir: Dir { Dir("\(feeder.baseDir.path)/bookmarks") }
   /// total number of bookmarks
   public var count: Int = 0
@@ -145,7 +145,7 @@ public class BookmarkFeed: Feed, DoesLog {
                                             leadingText: "wochentaz, ")
       var html = """
       <section id="\(date.timeIntervalSince1970)">
-        <header>
+        <header class="issue">
           <img class="moment" src="\(momentPath ?? "")">
           <h1>\(dateText)</h1>
         </header>\n

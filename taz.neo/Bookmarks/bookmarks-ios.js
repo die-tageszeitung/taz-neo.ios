@@ -163,6 +163,10 @@ function shareArticle(elem) {
   tazApi.shareArticle(art.id + ".html");
 }
 
+function gotoIssue(elem) {
+  tazApi.gotoIssue(elem.id);
+}
+
 /* Set up click functions for share and bookmark icons */
 function setupButtons() {
   for (let b of document.getElementsByClassName("bookmark")) {
@@ -175,6 +179,13 @@ function setupButtons() {
     b.addEventListener("click", (event) => {
       event.preventDefault();
       shareArticle(event.target);
+    });
+  }
+  
+  for (let b of document.querySelectorAll('header.issue')) {
+    b.addEventListener("click", (event) => {
+      event.preventDefault();
+      gotoIssue(event.target.closest(".issue").parentElement);
     });
   }
 }

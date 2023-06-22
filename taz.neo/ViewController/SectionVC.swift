@@ -60,7 +60,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
         "\(self.index?.description ?? "[undefined]")" )
       if let curr = currentWebView { curr.scrollToTop() }
       self.index = index
-    }    
+    }
   }
   
   private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true) {
@@ -121,7 +121,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
           error("No application or no permission for: \(to.absoluteString)")
         }
       }
-
     }
   }
   
@@ -142,24 +141,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
-    contentTable?.onSectionPress { [weak self] sectionIndex in
-      guard let self = self else { return }
-      if sectionIndex < self.sections.count {
-        self.debug("*** Action: Section \(sectionIndex) (\(self.sections[sectionIndex])) in Slider pressed")
-      }
-      else {
-        self.debug("*** Action: \"Impressum\" in Slider pressed")
-      }
-      self.slider?.close()
-      self.displaySection(index: sectionIndex)
-    }
-    contentTable?.onImagePress { [weak self] in
-      self?.debug("*** Action: Moment in Slider pressed")
-      self?.slider?.close()
-      self?.closeIssue()
-    }
     onDisplay { [weak self] (secIndex, oview) in
       guard let self = self else { return }
+      self.contentTable?.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex)")
       self.setHeader(secIndex: secIndex)
       if self.isVisibleVC { 
@@ -181,7 +165,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if UIApplication.shared.applicationState != .active { return }
       self?.linkPressed(from: from, to: to)
     }
-    Notification.receive("BookmarkChanged") { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       if let art = msg.sender as? StoredArticle {
         guard let name = art.html?.name.nonPublic() else { return }
         let js = """
@@ -211,7 +195,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   // Return nearest section index containing given Article
-  func article2index(art: Article) -> Int {
+  public func article2index(art: Article) -> Int {
     if let fileName = art.html?.fileName,
         let sects = article2sectionHtml[fileName] {
       if let s = section, let fn = s.html?.fileName, sects.contains(fn) { return index! }
@@ -254,9 +238,40 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     articleVC?.invalidateLayoutNeededOnViewWillAppear = true
   }
   
+  public override func setupSlider() {
+    super.setupSlider()
+    contentTable?.onArticlePress{[weak self] article in
+      guard let self = self else { return }
+      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+      self.linkPressed(from: nil, to: url)
+      self.slider?.close()
+      self.articleVC?.slider?.close()
+    }
+    contentTable?.onSectionPress { [weak self] sectionIndex in
+      guard let self = self else { return }
+      if sectionIndex < self.sections.count {
+        self.debug("*** Action: Section \(sectionIndex) (\(self.sections[sectionIndex])) in Slider pressed")
+      }
+      else {
+        self.debug("*** Action: \"Impressum\" in Slider pressed")
+      }
+      self.slider?.close()
+      self.articleVC?.slider?.close()
+      self.articleVC?.navigationController?.popViewController(animated: true)
+      self.displaySection(index: sectionIndex)
+    }
+    contentTable?.onImagePress { [weak self] in
+      self?.debug("*** Action: Moment in Slider pressed")
+      self?.slider?.close()
+      self?.closeIssue()
+    }
+  }
   
   override public func viewDidLoad() {
     super.viewDidLoad()
+    if !(self is BookmarkSectionVC){
+      contentTable = NewContentTableVC(style: .plain)
+    }
     self.showImageGallery = false
     self.index = initialSection ?? 0
     

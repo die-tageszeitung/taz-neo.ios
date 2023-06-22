@@ -73,7 +73,14 @@ open class FeedbackComposer : DoesLog{
     
     let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel) { _ in finishClosure(false) }
     
-    Alert.message(title: "Rückmeldung", message: "Möchten Sie einen Fehler melden oder uns Feedback geben?", actions: [feedbackAction, errorReportAction, cancelAction])
+    
+    
+    var actions = [feedbackAction, errorReportAction, cancelAction]
+    if Device.isSimulator {
+      actions.append(contentsOf: UIAlertAction.developerPushActions(callback: finishClosure))
+    }
+    
+    Alert.message(title: "Rückmeldung", message: "Möchten Sie einen Fehler melden oder uns Feedback geben?", actions: actions)
   }
   
   public static func send(type: FeedbackType,

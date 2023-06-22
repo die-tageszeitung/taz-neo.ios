@@ -10,8 +10,6 @@ import Foundation
 import NorthLib
 import PDFKit
 
-
-
 protocol PdfDownloadDelegate {
   func downloadPdf(_ page:Page, finishedCallback: @escaping ((Bool)->()))
 }
@@ -21,7 +19,7 @@ protocol PdfDownloadDelegate {
 /// - usually they have only 1 Page
 public class ZoomedPdfPageImage: ZoomedPdfImage {
   public override var pageType : PdfPageType {
-    get {
+    get { 
       switch pageReference?.type {
       case .double:
         return . double
@@ -582,6 +580,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   // MARK: - viewDidDisappear
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
+    slider?.button.hideAnimated()
     slider?.close()
   }
   
@@ -685,6 +684,13 @@ class ArticleVcWithPdfInSlider : ArticleVC {
       self.slider = ButtonSlider(slider: sContent, into: self)
     }
     super.setupSlider()
+  }
+  
+  
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    slider?.button.hideAnimated()
+    slider?.close()
   }
   
   override func viewWillAppear(_ animated: Bool) {

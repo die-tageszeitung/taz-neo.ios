@@ -15,6 +15,8 @@ public class ArticleDB: Database {
   /// There is only one article DB in the app
   public static var singleton: ArticleDB!
   
+  let dbQueue = DispatchQueue(label: "database-queue")
+  
   /// Initialize with name of database, open it and call the passed closure
   @discardableResult
   public init(name: String, closure: @escaping (Error?)->()) { 
@@ -27,7 +29,7 @@ public class ArticleDB: Database {
   }    
   
   /// The managed object context
-  public static var context: NSManagedObjectContext { return singleton.context! } 
+  public static var context: NSManagedObjectContext { return singleton.context! }
   
   /// Save the singleton's context
   public static func save() { singleton.save() }
@@ -188,6 +190,8 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     set { pr.storageType = newValue.rawValue }
   }
   public var moTime: Date {
+    ///optional unwrap fixed crash occoured everytime on open an issue which had corupt data
+//    get { pr.moTime ?? Date(timeIntervalSince1970: 0) }
     get { pr.moTime! }
     set { pr.moTime = newValue }
   }
@@ -749,7 +753,18 @@ public final class StoredAuthor: Author, StoredObject {
   public static var entity = "Author"
   public var pr: PersistentAuthor // persistent record
   public var name: String? { pr.name }
-  public var photo: ImageEntry? { 
+  
+  public var serverId: Int? {
+    get { return pr.serverId != 0 ? Int(pr.serverId) : nil }
+    set {
+      if let id = newValue {
+        pr.serverId = Int64(id)
+      }
+      else { pr.serverId = 0 }
+    }
+  }
+  
+  public var photo: ImageEntry? {
     if let p = pr.photo { return StoredImageEntry(persistent: p) }
     else { return nil }
   }
@@ -759,6 +774,7 @@ public final class StoredAuthor: Author, StoredObject {
   /// Overwrite the persistent values
   public func update(from object: Author) {
     pr.name = object.name
+    self.serverId = object.serverId
     if let photo = object.photo {
       let imageEntry = StoredImageEntry.persist(object: photo)
       pr.photo = imageEntry.pr
@@ -792,14 +808,6 @@ public final class StoredAuthor: Author, StoredObject {
     if tmp.count < 1 { return nil }
     else { return tmp[0] }
   }
-  
-  /// Return all Authors of an Article
-  public static func authorsOfArticle(article: StoredArticle) -> [StoredAuthor] {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "%@ IN articles", article.pr)
-    return get(request: request)
-  }
-  
 } // StoredAuthor
 
 /// also: PersistentSection, PersistentArticle
@@ -873,7 +881,7 @@ public final class StoredArticle: Article, StoredObject {
       let old = pr.hasBookmark
       setBookmark(newValue)
       if old != newValue {
-        Notification.send("BookmarkChanged", content: sections, sender: self)
+        Notification.send(Const.NotificationNames.bookmarkChanged, content: sections, sender: self)
       }
     }
   }
@@ -902,7 +910,10 @@ public final class StoredArticle: Article, StoredObject {
   }
   
   public var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
-  public var authors: [Author]? { StoredAuthor.authorsOfArticle(article: self) }
+  public var authors: [Author]? {
+    return (pr.authors?.array as? [PersistentAuthor])?
+    .map{StoredAuthor(persistent: $0)}
+  }
   public var pageNames: [String]? { nil }
   public var sections: [StoredSection] {
     var ret: [StoredSection] = []
@@ -995,7 +1006,7 @@ public final class StoredArticle: Article, StoredObject {
         pr.addToAuthors(sau.pr)
       }
       // Remove unneeded authors
-      for au in authors as! [StoredAuthor] {
+      for au in authors as? [StoredAuthor] ?? [] {
         if !aus.contains(where: { $0.name == au.name }) {
           pr.removeFromAuthors(au.pr)
         }
@@ -1122,7 +1133,7 @@ public final class StoredFrame: Frame, StoredObject {
     return nil
   }
   
-  public static func get(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
+  public static func getOld(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
     let epsilon: Float = 0.0001
     let request = fetchRequest
     let p1 = NSPredicate(format: "abs(x1 - %f) < %f", object.x1, epsilon)
@@ -1137,6 +1148,24 @@ public final class StoredFrame: Frame, StoredObject {
       if relatedPage.pr == sf.pr.page { return sf}
     }
 
+    return nil
+  }
+  
+  public static func get(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
+    
+    let epsilon: Float = 0.0001
+    
+    for storedFrame in relatedPage.frames ?? [] {
+      if storedFrame.x1 - object.x1 > epsilon { continue }
+      if storedFrame.x2 - object.x2 > epsilon { continue }
+      if storedFrame.y1 - object.y1 > epsilon { continue }
+      if storedFrame.y2 - object.y2 > epsilon { continue }
+      if (storedFrame as? StoredFrame)?.pr.page != relatedPage.pr {
+        Log.log("Warning unexpected found frame on another page")
+        continue
+      }
+      return storedFrame as? StoredFrame
+    }
     return nil
   }
   
@@ -1216,7 +1245,9 @@ public final class StoredPage: Page, StoredObject {
       let jpgPath = File.prefname(pdfPath) + ".jpg"
       if File(pdfPath).exists {
         if !File(jpgPath).exists {
-          let img = UIImage.pdf(File(pdfPath).data)
+          ///ensure facsimile images for home are not bigger than the images from Backend
+          ///saved storage before: Image was 700-900KB now: 200-400KB
+          let img = UIImage.pdf(File(pdfPath).data, width: 660, useHeight: false)
           img?.save(to: jpgPath)
           return true
         }
@@ -1372,8 +1403,10 @@ public final class StoredSection: Section, StoredObject {
   }
   
   public var path: String {
+    #warning("DoDo 1.0.0 Crash Cnt#: 1")
     guard let path = (html as? StoredFileEntry)?.path
     else { fatalError("FileEntry.path is undefined") }
+    ///empty on start see frame in carousell, open issue login ...slider opened, but why?
     return path
   }
   
@@ -1466,7 +1499,99 @@ public final class StoredSection: Section, StoredObject {
 
 } // StoredSection
 
+extension PersistentPublicationDate: PersistentObject {}
+
+extension StoredPublicationDate: Equatable {
+  static public func ==(lhs: StoredPublicationDate, rhs: StoredPublicationDate) -> Bool {
+    return lhs.date == rhs.date
+  }
+}
+
+/// A stored PublicationDate
+public final class StoredPublicationDate: PublicationDate, StoredObject {
+  
+  public static var entity = "PublicationDate"
+  public var pr: PersistentPublicationDate // persistent record
+  
+  public var feed: Feed?
+  
+  public var date: Date {
+    get { return pr.date! }
+    set { pr.date = newValue }
+  }
+  public var validityDate: Date? {
+    get { return pr.validityDate }
+    set { pr.validityDate = newValue }
+  }
+  
+  public static func persist(publicationDates: [PublicationDate],
+                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+    var ret:[StoredPublicationDate] = []
+    let allPr = Self.getAll(inFeed: feed)
+    
+    for pubDate in publicationDates {
+      let storedRecord: StoredPublicationDate
+      = allPr.first(where: { $0.date == pubDate.date }) ?? new()
+      storedRecord.update(from: pubDate)
+      storedRecord.feed = feed
+      ret.append(storedRecord)
+      feed.pr.addToPublicationDates(storedRecord.pr)
+    }
+    return ret
+  }
+  
+  /// Return stored record with given name
+  public static func get(date: Date, inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+    let nsdate = NSDate(timeIntervalSinceReferenceDate:
+                        date.timeIntervalSinceReferenceDate)
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)",
+                                    nsdate, feed.pr)
+    return get(request: request)
+  }
+  
+  /// Return stored record with given name
+  public static func getAll(inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "(feed = %@)", feed.pr)
+    return get(request: request)
+  }
+  
+  public static func get(object: PublicationDate, inFeed feed: StoredFeed) -> StoredPublicationDate? {
+    return get(date: object.date, inFeed: feed).first
+  }
+
+  public static func get(object: PublicationDate) -> StoredPublicationDate? {
+    if let feed = object.feed,
+       let sfeed = StoredFeed.get(object: feed) {
+      return get(object: object, inFeed: sfeed)
+    }
+    else { return nil }
+  }
+  
+  /// Return an array of Issues in a Feed
+  public static func publicationDatesInFeed(feed: StoredFeed, count: Int = -1)
+    -> [StoredPublicationDate] {
+    let request = fetchRequest
+      request.predicate = NSPredicate(format: "feed = %@", feed.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+    if count > 0 { request.fetchLimit = count }
+    return get(request: request)
+  }
+  
+  public required init(persistent: PersistentPublicationDate) { self.pr = persistent }
+
+  /// Overwrite the persistent values
+  public func update(from object: PublicationDate) {
+    self.feed = object.feed
+    self.date = object.date
+    self.validityDate = object.validityDate
+  }
+  
+} //StoredPublicationDate
+
 extension PersistentIssue: PersistentObject {}
+
 
 
 extension StoredIssue: Equatable {
@@ -1585,7 +1710,9 @@ public final class StoredIssue: Issue, StoredObject {
 
   public var sections: [Section]? { StoredSection.sectionsInIssue(issue: self) }
   public var pages: [Page]? { StoredPage.pagesInIssue(issue: self) }
-  public var isDownloading: Bool = false
+  public var isDownloading: Bool = false {
+    willSet {}
+  }
 
   public required init(persistent: PersistentIssue) { self.pr = persistent }
 
@@ -1788,6 +1915,7 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Remove oldest Issues and keep the newest ones
   public static func reduceOldest(feed: StoredFeed, keep: Int) {
+    Log.log("Delete Issues: \(feed) keep: \(keep)")
     let issues = firstLoaded(feed: feed)
     if issues.count > keep {
       var n = issues.count
@@ -1808,7 +1936,7 @@ public final class StoredIssue: Issue, StoredObject {
                                   keepDownloaded: Int,
                                   keepPreviews: Int = 30,
                                   deleteOrphanFolders:Bool = false) {
-    
+    Log.log("keepDownloaded: \(keepDownloaded) keepPreviews: \(keepPreviews) deleteOrphanFolders: \(deleteOrphanFolders)")
     let lastCompleeteIssues:[StoredIssue]
     = keepDownloaded == 0
     ? []
@@ -1827,11 +1955,14 @@ public final class StoredIssue: Issue, StoredObject {
       return;
     }
     
-    for issue in allIssues[keep...] {
-      if lastCompleeteIssues.contains(issue) { continue }
-      if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
-      Log.log("reduceToOverview for issue: \(issue.date.short)")
-      issue.reduceToOverview()
+    if keep <= allIssues.count {
+      for issue in allIssues[keep...] {
+        if lastCompleeteIssues.contains(issue) { continue }
+        if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
+        Log.log("reduceToOverview for issue: \(issue.date.short)")
+        issue.delete()
+        issue.reduceToOverview()
+      }
     }
          
     guard deleteOrphanFolders else { return }
@@ -1845,6 +1976,13 @@ public final class StoredIssue: Issue, StoredObject {
     }
     
     for issue in reduceableIssues {
+      if issue.pr.feed == nil {
+        Log.log("PREVENTED CRASH")
+        if App.isAlpha {
+          Toast.show("Chrash verhindert!\nDetails im log, bitte an Entwickler senden!\n𝛼")
+        }
+        continue
+      }
       let dir = feed.feeder.issueDir(issue: issue)
       if dir.exists { knownDirs.append(dir.path)}
     }
@@ -1864,6 +2002,7 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Deletes data that is not needed for overview
   public func reduceToOverview() {
+    Log.log("Delete Issue: \(self.date.short)")
     guard StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
     else { return }
     // Remove files not needed for overview
@@ -1955,12 +2094,34 @@ public final class StoredFeed: Feed, StoredObject {
   public var storedIssues: [StoredIssue] { StoredIssue.issuesInFeed(feed: self) }
   public var issues: [Issue]? { storedIssues }
   
+  
+  public var storedPublicationDates: [StoredPublicationDate] {
+    let dates = StoredPublicationDate.publicationDatesInFeed(feed: self)
+    if !dates.isEmpty { return dates }
+    return publicationDatesFromStoredIssues()
+  }
+  
+  private func publicationDatesFromStoredIssues() -> [StoredPublicationDate] {
+    var dates: [PublicationDate] = []
+    for issue in storedIssues {
+      let date = GqlPublicationDate(from: issue.date.dbIssueRepresentation, feed: self)
+      date.validityDate = issue.validityDate
+      dates.append(date)
+    }
+    guard let issue = issues?.first else { return [] }
+    let sDates
+    = StoredPublicationDate.persist(publicationDates: dates, inFeed: self)
+    ArticleDB.save()
+    return sDates
+  }
+  
+  public var publicationDates: [PublicationDate]? { storedPublicationDates }
+  
   public required init(persistent: PersistentFeed) { self.pr = persistent }
 
   /// Overwrite the persistent values
   public func update(from object: Feed) {
     self.name = object.name
-    self.feeder = object.feeder
     self.feeder = object.feeder
     self.cycle = object.cycle
     self.type = object.type
@@ -1984,6 +2145,27 @@ public final class StoredFeed: Feed, StoredObject {
         }
       }
     }
+    if let pubDates = object.publicationDates {
+      let start = Date()
+      let storedPubDates = StoredPublicationDate.persist(publicationDates: pubDates, inFeed: self)
+      for spd in storedPubDates {
+        pr.addToPublicationDates(spd.pr)
+      }
+      
+#warning("not removing wrong publicationDates!")
+      /// Remove publicationDates no longer needed e.g. wrongly delivered by temporary api error
+      /// **is not possible due we request only the newest ones
+//      for pd in self.publicationDates as! [StoredPublicationDate] {
+//        if !pubDates.contains(where: { $0.date == pd.date }) {
+//          pr.removeFromPublicationDates(pd.pr)
+//        }
+//      }
+      ///Saving 3770 PublicationDates took 13.26183307170868s on iPhone 7 initially in Debugging!
+      ///  Saving 3770 PublicationDates took 5.203890919685364s on iPhone 7 initially in Debugging! after StoredPublicationDate.feed removed db requests
+      ///    Saving 3770 PublicationDates took 5.487667918205261s
+      log("Saving \(pubDates.count) PublicationDates took \(abs(start.timeIntervalSinceNow))s")
+    }
+    
   }
   
   /// Return stored Issue with given name in Feeder
@@ -2015,6 +2197,19 @@ public final class StoredFeed: Feed, StoredObject {
   }
 
 } // StoredFeed
+
+extension StoredFeed {
+  public var lastPublicationDate: Date? {
+    guard let publicationDates = pr.publicationDates as? Set<PersistentPublicationDate> else {
+      return nil
+    }
+    return publicationDates.max { a, b in
+      guard let apd = a.date,
+            let bpd = b.date else { return false }
+      return apd < bpd
+    }?.date
+  }
+}
 
 extension PersistentFeeder: PersistentObject {}
 

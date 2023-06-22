@@ -11,7 +11,7 @@ import NorthLib
 public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// The Feeder providing data (from delegate)
-  public var gqlFeeder: GqlFeeder { return feederContext.gqlFeeder }  
+  public var gqlFeeder: GqlFeeder { return feederContext.gqlFeeder }
   /// The Feed to display
   public var feed: Feed { return feederContext.defaultFeed }
   /// Selected Issue to display
@@ -57,7 +57,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   /// Is Issue Download in progress?
   public var isDownloading: Bool = false
   /// Issue Moments to download
-  public var issueMoments: [Issue]? 
+  public var issueMoments: [Issue]?
   
   /// Scroll direction (from config defaults)
   @Default("carouselScrollFromLeft")
@@ -82,7 +82,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Reset list of Issues and carousel
   private func reset() {
-    issues = [] 
+    issues = []
     issueCarousel.reset()
     self.collectionView.reloadData()
   }
@@ -159,7 +159,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     }
     index = idx
   }
-  
+  #warning("@r adopt this to pass download error!")
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
     self.debug("Err: \(error?.description ?? "-")")
@@ -207,7 +207,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   private func provideOverview() {
     let n = issues.count
     if n > 0 {
-      if (n - index) < 6 { 
+      if (n - index) < 6 {
         var last = issues.last!.date
         last.addDays(-1)
         feederContext.getOvwIssues(feed: feed, count: 10, fromDate: last, isAutomatically: false)
@@ -233,7 +233,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       if err != nil { self?.debug("Section \(section.html?.name ?? "-") DL Errors: last = \(err!)") }
       else { self?.debug("Section \(section.html?.name ?? "-") DL complete") }
       closure(err)
-    }   
+    }
   }
   
   /// Setup SectionVC and push it onto the VC stack
@@ -254,9 +254,10 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   }
   
   /// Show Issue at a given index, download if necessary
-  func showIssue(index givenIndex: Int? = nil, atSection: Int? = nil, 
+  func showIssue(index givenIndex: Int? = nil, atSection: Int? = nil,
                          atArticle: Int? = nil) {
     guard let index = givenIndex ?? self.safeIndex else { return }
+    #warning("@R: handle offline, show auth popup")
     func openIssue() {
       ArticlePlayer.singleton.baseUrl = issue.baseUrl
       self.openedIssue = issues[index]
@@ -309,7 +310,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
         }
       }
       else {
-        self.pushSectionVC(feederContext: feederContext, atSection: atSection, 
+        self.pushSectionVC(feederContext: feederContext, atSection: atSection,
                            atArticle: atArticle)
       }
     }
@@ -345,11 +346,11 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       issueCarousel.setActivity(idx: index, isActivity: true)
       Notification.receiveOnce("issueStructure", from: sissue) { [weak self] notif in
         guard let self = self else { return }
-        guard notif.error == nil else { 
+        guard notif.error == nil else {
           self.handleDownloadError(error: notif.error!)
           if issue.status.watchable && self.isFacsimile { openIssue() }
           self.issueCarousel.setActivity(idx: index, isActivity: false)
-          return 
+          return
         }
         self.downloadSection(section: sissue.sections![0]) { [weak self] err in
           guard let self = self else { return }
@@ -363,7 +364,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           openIssue()
           Notification.receiveOnce("issue", from: sissue) { [weak self] notif in
             guard let self = self else { return }
-            if let err = notif.error { 
+            if let err = notif.error {
               self.handleDownloadError(error: err)
               self.error("Issue \(sissue.date.isoDate()) DL Errors: last = \(err)")
             }
@@ -375,7 +376,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
           }
         }
       }
-      self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile, isAutomatically: false)        
+      self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile, isAutomatically: false)
     }
   }
   
@@ -397,7 +398,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.lastIndex = idx
     }
     else { self.issueCarousel.pureText = sdate }
-  } 
+  }
   
   func exportMoment(issue: Issue) {
     if let fn = feeder.momentImageName(issue: issue, isCredited: true) {
@@ -424,7 +425,7 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     if let issue = issue as? StoredIssue {
       let bookmarked = StoredArticle.bookmarkedArticlesInIssue(issue: issue)
       if bookmarked.count > 0 {
-        let actions = UIAlertController.init( title: "Ausgabe löschen", 
+        let actions = UIAlertController.init( title: "Ausgabe löschen",
           message: "Diese Ausgabe enthält Lesezeichen. Soll sie wirklich " +
                    "gelöscht werden?",
           preferredStyle:  .actionSheet )
@@ -567,24 +568,24 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
     issueCarousel.onTap { [weak self] idx in
       guard let self = self, idx < self.issues.count else { return }
       let issue = self.issues[idx]
-      self.showIssue(index: idx, atSection: issue.lastSection, 
+      self.showIssue(index: idx, atSection: issue.lastSection,
                      atArticle: issue.lastArticle)
     }
     issueCarousel.onLabelTap { [weak self] idx in
       self?.showDatePicker()
     }
-    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") { 
+    issueCarousel.addMenuItem(title: "Bild Teilen", icon: "square.and.arrow.up") {
       [weak self] arg in
       guard let self = self, let idx = arg as? Int else { return }
       self.exportMoment(issue: self.issues[idx])
     }
-    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") { 
+    issueCarousel.addMenuItem(title: "Ausgabe löschen", icon: "trash") {
       [weak self] arg in
       guard let self = self, let idx = arg as? Int else { return }
       self.deleteIssue(issue: self.issues[idx])
     }
     var scrollChange = false
-    issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") { 
+    issueCarousel.addMenuItem(title: "Scrollrichtung umkehren", icon: "repeat") {
       [weak self] arg in
       guard let self = self else { return }
       self.issueCarousel.carousel.scrollFromLeftToRight =
@@ -624,13 +625,13 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
       self.debug("on display: \(idx) / \(self.issues.count)")
       if self.issues.count - idx <= 1 {
         if self.feederContext.isConnected == false {
-          Notification.send("checkForNewIssues",
-                            content: StatusHeader.status.offline,
+          Notification.send(Const.NotificationNames.checkForNewIssues,
+                            content: FetchNewStatusHeader.status.offline,
                             error: nil,
                             sender: self.feederContext)
         } else {
-          Notification.send("checkForNewIssues",
-                            content: StatusHeader.status.fetchMoreIssues,
+          Notification.send(Const.NotificationNames.checkForNewIssues,
+                            content: FetchNewStatusHeader.status.fetchMoreIssues,
                             error: nil,
                             sender: self.feederContext)
         }
@@ -712,7 +713,8 @@ public class IssueVC: IssueVcWithBottomTiles, IssueInfo {
   
   /// Check for new issues only if not in archive mode
   public func checkForNewIssues() {
-    if !isArchiveMode { feederContext.manuelCheckForNewIssues(feed: feed, isAutomatically: false) }
+    #warning("deprecated class")
+//    if !isArchiveMode { feederContext.checkForNewIssues(feed: feed, isAutomatically: false) }
   }
   
   func invalidateCarouselLayout() {

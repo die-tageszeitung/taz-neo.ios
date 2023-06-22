@@ -10,7 +10,7 @@ import NorthLib
 
 /**
  An IssueCarousel displays the "Moments" (ie. images) of Issues in a
- carousel. 
+ carousel.
  */
 public class IssueCarousel: UIView {
   
@@ -106,7 +106,7 @@ public class IssueCarousel: UIView {
     self.issues = []
     setup()
     carousel.count = 0
-    self.index = 0    
+    self.index = 0
   }
   
   /// Get activity indicator of issue

@@ -81,6 +81,30 @@ extension String {
  A ContentVC is a view controller that displays an array of Articles or Sections 
  in a collection of WebViews
  */
+
+class MyButtonSlider:ButtonSlider{
+  var ocoverage: CGFloat? {
+    didSet {
+      guard let ocoverage = ocoverage, isOpen else { return }
+      shiftRatio = ocoverage < Const.Size.ContentSliderMaxWidth ? 0.7 : 0.1
+      resetConstraints()
+    }
+  }
+  override var coverage: CGFloat {
+    get { return ocoverage ?? super.coverage }
+    set { super.coverage = newValue }
+  }
+  override func slide(toOpen: Bool, animated: Bool = true) {
+    if toOpen == true, let ocoverage = ocoverage, ocoverage < Const.Size.ContentSliderMaxWidth {
+      shiftRatio = 0.7
+    }
+    else if toOpen == false && shiftRatio != 0.1 {
+      shiftRatio = 0.1
+    }
+    super.slide(toOpen: toOpen, animated: animated)
+  }
+}
+
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   /// CSS Margins for Articles and Sections
@@ -92,19 +116,31 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
-  public var contentTable: ContentTableVC?
+  public var contentTable: NewContentTableVC? {
+    didSet {
+      guard let contentTable = contentTable else { return }
+      contentTable.feeder = feeder
+      contentTable.issue = issue
+      contentTable.image = feeder.momentImage(issue: issue)
+      slider = MyButtonSlider(slider: contentTable, into: self)
+      setupSlider()
+    }
+  }
   public var contents: [Content] = []
   public var feeder: Feeder { delegate.feeder }
   public var issue: Issue { delegate.issue }
   public var feed: Feed { issue.feed }
   public var dloader: Downloader { delegate.dloader }
-  lazy var slider:ButtonSlider? = ButtonSlider(slider: contentTable!, into: self)
+  var slider:ButtonSlider?
   /// Whether to show all content images in a gallery
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
   private var toolBarConstraint: NSLayoutConstraint?
   public var backButton = Button<ImageView>()
   public var playButton = Button<ImageView>()
+  public lazy var playButtonContextMenu: ContextMenu
+  = ContextMenu(view: playButton.buttonView)
+  
   public var bookmarkButton = Button<ImageView>()
   private var playClosure: ((ContentVC)->())?
   private var bookmarkClosure: ((ContentVC)->())?
@@ -143,7 +179,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider = nil
   }
 
-  public func resetIssueList() { delegate.resetIssueList() }  
+  public func resetIssueList() {
+    #warning("ToDo delegate.resetIssueList")
+//    delegate.resetIssueList()
+  }
 
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat? = nil,
@@ -184,11 +223,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
             margin-left: \(-maxWidth/2)px;
             position: absolute;
             left: 50%;
-          }
-        div.VerzeichnisInfo,
-        div.VerzeichnisArtikel{
-          margin-left: 0;
-          margin-right: 0;
         }
       }
     """
@@ -321,6 +355,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
+    self.bridge?.addfunc("gotoIssue") { [weak self] jscall in
+      guard let self = self else { return NSNull() }
+      if let args = jscall.args, args.count > 0,
+         let tiSince1970S = args.first as? String,
+         let tiSince1970 = Double(tiSince1970S) {
+            let ti = TimeInterval(floatLiteral: tiSince1970)
+            let date = Date(timeIntervalSince1970: ti)
+        Notification.send(Const.NotificationNames.gotoIssue, content: date, sender: self)
+      }
+      return NSNull()
+    }
     self.bridge?.addfunc("toast") { [weak self] jscall in
       guard let _ = self else { return NSNull() }
       if let args = jscall.args, args.count > 0,
@@ -365,6 +410,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     };
     tazApi.shareArticle = function (artName) {
       tazApi.call("shareArticle", undefined, artName);
+    };
+    tazApi.gotoIssue = function (issueDate) {
+      tazApi.call("gotoIssue", undefined, issueDate);
     };
     tazApi.toast = function(msg, duration, callback) {
       tazApi.call("toast", callback, msg, duration);
@@ -426,7 +474,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
 
     
-    /*onPlay{ [weak self] _ in
+    onPlay{ [weak self] _ in
       /**
           Issues: on external Control no update
           on currentWebView change not respect current state
@@ -453,7 +501,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       } else {
         self.playButton.buttonView.color = Const.Colors.iOSDark.secondaryLabel
         
-        let trackTitle:String = "taz \(self.issue.date.short) \(self.header.miniTitle ?? "")"
+        let trackTitle:String = "taz \(self.issue.date.short) \(self.header.title ?? "") \(self.header.subTitle ?? "")"
         var albumTitle = "Artikel"
         if let content = self.contents.valueAt(self.index ?? 0),
            let contentTitle = content.title{
@@ -463,7 +511,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
           self?.playButton.buttonView.name = "audio"
         }
       }
-    }*/
+    }
   }
   
 //  open override func onPageChange(){
@@ -489,7 +537,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.bookmarkClosure?(self)
     }
-    playButton.onPress { [weak self] _ in
+    
+    self.playButton.buttonView.onTapping { [weak self] _ in
       guard let self = self else { return }
       self.playClosure?(self)
     }
@@ -600,7 +649,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
-    if let sections = issue.sections, sections.count > 1 { setupSlider() }
     
     whenScrolled { [weak self] ratio in
       if (ratio < 0) { self?.toolBar.show(show: false, animated: true)}
@@ -617,12 +665,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     registerForStyleUpdates()
   }
   
+  func updateSliderWidth(newParentWidth: CGFloat? = nil){
+    guard contentTable != nil else { return }
+    let maxWidth = Const.Size.ContentSliderMaxWidth
+    (slider as? MyButtonSlider)?.ocoverage
+    = min(maxWidth, (newParentWidth ?? maxWidth + 28.0) - 28.0 )
+  }
+  
   public func setupSlider() {
-    if let ct = contentTable {
-      let twidth = ct.largestTextWidth
-      slider?.maxCoverage = twidth + 3*16.0
-    }
-    
+    updateSliderWidth(newParentWidth: UIScreen.shortSide)
     slider?.image = UIImage.init(named: "logo")
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
@@ -650,6 +701,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
+    updateSliderWidth(newParentWidth: size.width)
     onMain(after: 1.0) {[weak self] in
       let newCoverage = 338 + UIWindow.verticalInsets
       if self?.settingsBottomSheet?.coverage == newCoverage { return }//no rotate
@@ -662,7 +714,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
   }
   
-  
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
@@ -670,7 +721,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   override public func viewWillDisappear(_ animated: Bool) {
-    slider?.hideLeftBackground()
     super.viewWillDisappear(animated)
     if let svc = self.navigationController?.viewControllers.last as? SectionVC {
       //cannot use updateLayout due strange side effects
@@ -687,6 +737,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
+    #warning("move this to get rid of UITableViewAlertForLayoutOutsideViewHierarchy  (SymbolicBreakpoint) Error")
     slider?.close()
     self.settingsBottomSheet?.close()
     if let overlay = imageOverlay { overlay.close(animated: false) }
@@ -695,9 +746,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func setup(contents: [Content], isLargeHeader: Bool) {
     setContents(contents)
     self.isLargeHeader = isLargeHeader
-    self.contentTable!.feeder = feeder
-    self.contentTable!.issue = issue
-    self.contentTable!.image = feeder.momentImage(issue: issue)
     self.baseDir = feeder.baseDir.path
     onBack { [weak self] _ in
       self?.debug("*** Action: <Back> pressed")
@@ -712,7 +760,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
  
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
-    self.contentTable = ContentTableVC.loadFromNib()
     super.init()
     hidesBottomBarWhenPushed = true
   }  

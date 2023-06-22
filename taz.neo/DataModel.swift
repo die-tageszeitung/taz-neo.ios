@@ -305,6 +305,8 @@ public extension Resources {
 public protocol Author: ToString {
   /// Complete name
   var name: String? { get }
+  /// Server side author ID
+  var serverId: Int? { get }
   /// Photo of author
   var photo: ImageEntry? { get }
 } // Author
@@ -750,6 +752,39 @@ public enum IssueStatus: String, CodableEnum {
 
 public extension IssueStatus {
   var watchable : Bool { return self != .unknown}
+  var downloaded : Bool {
+    return self == .regular || self == .demo
+  }
+}
+
+/// PublicationDate
+public protocol PublicationDate: ToString, AnyObject {
+  /// Publication date
+  var date: Date { get }
+  /// validity date for week issue
+  var validityDate: Date? { get }
+  /// Reference to Feed providing this Issue
+  var feed: Feed? { get set }
+}
+
+public extension PublicationDate {
+  func toString() -> String {
+    if let v = validityDate {
+      return "\(self.date.short) - \(v.short)"
+    }
+    return (self.date.short)
+  }
+  
+  func validityDateText(timeZone:String,
+                        short:Bool = false,
+                        shorter:Bool = false,
+                        leadingText: String? = "woche, ") -> String {
+    return date.validityDateText(validityDate: validityDate,
+                                 timeZone: GqlFeeder.tz,
+                                 short: short,
+                                 shorter: shorter,
+                                 leadingText: leadingText)
+  }
 }
 
 /// One Issue of a Feed
@@ -806,24 +841,11 @@ public extension Issue {
                         short:Bool = false,
                         shorter:Bool = false,
                         leadingText: String? = "woche, ") -> String {
-    guard let endDate = validityDate, isWeekend else {
-      return shorter ? date.shorter
-      : short ? date.short
-      : date.gLowerDate(tz: timeZone)
-    }
-    
-    let mSwitch = endDate.components().month != date.components().month
-    
-    let dfFrom = DateFormatter()
-    dfFrom.dateFormat = mSwitch ? "d.M." : "d."
-    
-    let dfTo = DateFormatter()
-    dfTo.dateFormat = shorter ? "d.M.yy" : "d.M.yyyy"
-    
-    let from = dfFrom.string(from: date)
-    let to = dfTo.string(from: endDate)
-    
-    return "\(leadingText ?? "")\(from) – \(to)"
+    return date.validityDateText(validityDate: validityDate,
+                                 timeZone: timeZone,
+                                 short: short,
+                                 shorter: shorter,
+                                 leadingText: leadingText)
   }
   
   func toString() -> String {
@@ -1047,6 +1069,7 @@ public protocol Feed: ToString {
   /// Number of issues available
   var issueCnt: Int { get }
   /// Date of last issue available (newest)
+  #warning("WHERE FROM?? USING PUB DATES!!")
   var lastIssue: Date { get }
   /// Date of issue last read
   var lastIssueRead: Date? { get }
@@ -1058,6 +1081,8 @@ public protocol Feed: ToString {
   var firstSearchableIssue: Date? { get }
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
+  /// publicationDates this Feed
+  var publicationDates: [PublicationDate]? { get }
   /// Directory where all feed specific data is stored
   var dir: Dir { get }
 } // Feed
@@ -1174,18 +1199,23 @@ extension Feeder {
   }
   
   /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
-  public func momentImageName(issue: Issue, isCredited: Bool = false,
-                              isPdf: Bool = false)
+  public func momentImageName(issue: Issue,
+                              isCredited: Bool = false,
+                              isPdf: Bool = false,
+                              usePdfAlternative: Bool = true)
     -> String? {
     var file: FileEntry?
-    if isPdf { file = issue.moment.facsimile }
+    if isPdf {
+      file = issue.moment.facsimile
+    }
     else {
       file = issue.moment.animatedGif
       if isCredited, let highres = issue.moment.creditedHighres {
         file = highres
       }
     }
-    if file == nil { file = issue.moment.highres }
+    let loadHighres = !isPdf || usePdfAlternative
+    if file == nil && loadHighres { file = issue.moment.highres }
     if let img = file {
       return "\(issueDir(issue: issue).path)/\(img.fileName)"
     }
@@ -1221,27 +1251,21 @@ extension Feeder {
   }
 
   /// Returns the "Moment" Image as Gif-Animation or in highest resolution
-  public func momentImage(issue: Issue, isCredited: Bool = false,
-                          isPdf: Bool = false) -> UIImage? {
-    var img:UIImage?
-        
-    if let fn = momentImageName(issue: issue, isCredited: isCredited,
-                                isPdf: isPdf) {
+  public func momentImage(issue: Issue,
+                          isCredited: Bool = false,
+                          isPdf: Bool = false,
+                          usePdfAlternative: Bool = true) -> UIImage? {
+    if let fn = momentImageName(issue: issue,
+                                isCredited: isCredited,
+                                isPdf: isPdf,
+                                usePdfAlternative: usePdfAlternative) {
       if File.extname(fn) == "gif" {
-        img = UIImage.animatedGif(File(fn).data)
+        return UIImage.animatedGif(File(fn).data)
       }
       else {
-        img = UIImage(contentsOfFile: fn)
+        return UIImage(contentsOfFile: fn)
       }
     }
-    
-    if img != nil { return img }
-    
-    if let sissue = issue as? StoredIssue, sissue.isOvwComplete == false {
-      return UIImage(named: "demo-moment-frame")
-    }
-    //Currently: do not return demo frame for issue.isOverview items, otherwise home, bottom area did not work
-    //issue would be: frame stays, no refresh with real moment
     return nil
   }
 
@@ -1266,6 +1290,8 @@ public enum NotificationType: String, CodableEnum {
   /// new subscription info available
   case subscription = "subscription(subscriptionPoll)" 
   /// new issue available
-  case newIssue     = "newIssue(aboPoll)"    
+  case newIssue = "newIssue(aboPoll)"
+  case textNotificationAlert = "textNotificationAlert"
+  case textNotificationToast = "textNotificationToast"
   case unknown      = "unknown"   /// decoded from unknown string
 } // NotificationType

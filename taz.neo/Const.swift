@@ -28,6 +28,11 @@ public struct Const {
   /// and here: static let articleLoaded = NSNotification.Name("NotificationName.articleLoaded")
   struct NotificationNames {
     /// Some resource filenames
+    static let checkForNewIssues = "NotificationName.checkForNewIssues"
+    static let publicationDatesChanged = "NotificationName.publicationDatesChanged"
+    static let feederReachable = "NotificationName.feederReachable"
+    static let feederUnreachable = "NotificationName.feederUnreachable"
+    static let issueUpdate = "NotificationName.issueUpdate"
     static let articleLoaded = "NotificationName.articleLoaded"
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
     static let viewSizeTransition = "NotificationName.viewSizeTransition"
@@ -35,6 +40,9 @@ public struct Const {
     static let expiredAccountDateChanged = "NotificationName.expiredAccountDateChanged"
     static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
     static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
+    static let bookmarkChanged = "Const.NotificationNames.bookmarkChanged"
+    static let gotoIssue = "Const.NotificationNames.gotoIssue"
+    
   } // Filename
   
   /// Various color values
@@ -368,6 +376,8 @@ public struct Const {
     static let TinyPadding = CGFloat(5.0)
     static let ContentTableFontSize = CGFloat(22.0)
     static let ContentTableRowHeight = CGFloat(30.0)
+    
+    static let ContentSliderMaxWidth = 420.0
   }
   
   struct Insets {
@@ -379,6 +389,10 @@ public struct Const {
                                     left: Const.Size.DefaultPadding,
                                     bottom: 0,
                                     right: -Const.Size.DefaultPadding)
+    static let NegDefault = UIEdgeInsets(top: 0,
+                                    left: -Const.Size.DefaultPadding,
+                                    bottom: 0,
+                                    right: Const.Size.DefaultPadding)
   }
   
   /// Adjusted Sizes for tiny Displays (iPhone 5s/SE1, iPod 7G)

@@ -18,6 +18,7 @@ class SearchResultArticleVc : ArticleVC {
   var navigationBarHiddenRestoration:Bool?
   var maxResults:Int = 0
   var searchClosure: (()->())?
+  var searchHitDate: Date?
   
   override func setHeader(artIndex: Int) {
     super.setHeader(artIndex: artIndex)
@@ -29,6 +30,9 @@ class SearchResultArticleVc : ArticleVC {
       header.title = hit.sectionTitle ?? ""
       header.subTitle = "Ausgabe \(hit.date.short)"
       ArticlePlayer.singleton.baseUrl = hit.baseUrl
+      searchHitDate = hit.date
+    } else {
+      searchHitDate = nil
     }
     
     header.pageNumber = "\(artIndex+1) von \(maxResults)"
@@ -77,6 +81,14 @@ class SearchResultArticleVc : ArticleVC {
       }
     }
     header.titletype = .search
+    header.subTitleLabel.onTapping { [weak self] _ in
+      guard let date = self?.searchHitDate else { return }
+      if date < self?.feed.firstIssue ?? Date() {
+        Toast.show("Die Ausgabe vom \(date.short) ist leider nicht im Archiv verfügbar.")
+        return
+      }
+      Notification.send(Const.NotificationNames.gotoIssue, content: date, sender: self)
+    }
   }
 }
 

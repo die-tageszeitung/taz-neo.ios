@@ -113,9 +113,16 @@ extension Authenticator {
     if requestKeychainPassword == false,
        let id = did, id.length > 0,
        let token = dtoken, token.length > 0 {
+      Log.log("INFO :: USE DEFAULTS")
       return (id: id, password: nil, token: token)
     }
-
+    else if requestKeychainPassword == false {
+      Log.log("CANNOT USE DEFAULTS: ID Length:\(did?.length ?? 0) token length: \(dtoken?.length ?? 0)")
+    }
+    ///Probably Error only appears for not Logged In Users
+    ///
+    
+    Log.log("WARNING ACCESS KEYCHAIN :: requestKeychainPassword: \(requestKeychainPassword)")
     let kc = Keychain.singleton
     let kid = kc["id"]
     let ktoken = kc["token"]

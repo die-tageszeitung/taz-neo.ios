@@ -14,10 +14,15 @@ public protocol ArticleVCdelegate: IssueInfo {
   var section: Section? { get }
   var sections: [Section] { get }
   var article: Article? { get set }
+  func article2index(art: Article) -> Int
   var article2section: [String:[Section]] { get }
   func displaySection(index: Int)
   func linkPressed(from: URL?, to: URL?)
   func closeIssue()
+}
+
+public extension ArticleVCdelegate {
+  func article2index(art: Article) -> Int { return -1}
 }
 
 /// The Article view controller managing a collection of Article pages
@@ -109,31 +114,30 @@ open class ArticleVC: ContentVC {
   }
   
   func setup() {
+    playButtonContextMenu.smoothPreviewForImage = true
+    
+    playButtonContextMenu.addMenuItem(title: "Jetzt abspielen",
+                                       icon: "play.fill",
+                                       group: 0) {[weak self]  (_) in
+      print("Choosen Jetzt abspielen")
+    }
+    playButtonContextMenu.addMenuItem(title: "Als nächstes wiedergeben",
+                                       icon: "text.line.first.and.arrowtriangle.forward",
+                                       group: 1) {[weak self]  (_) in
+      print("Choosen Als nächstes wiedergeben")
+      ///text.line.first.and.arrowtriangle.forward
+    }
+    playButtonContextMenu.addMenuItem(title: "Zuletzt wiedergeben",
+                                       icon: "text.line.last.and.arrowtriangle.forward",
+                                       group: 1) {[weak self]  (_) in
+      print("Choosen Zuletzt wiedergeben")
+    }
+
     if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
     }
-    
     super.setup(contents: articles, isLargeHeader: false)
-    contentTable?.onSectionPress { [weak self] sectionIndex in
-      guard let self = self, let adelegate = self.adelegate else { return }
-      if sectionIndex >= adelegate.sections.count {
-        self.debug("*** Action: Impressum pressed")
-      }
-      else {
-        self.debug("*** Action: Section \(sectionIndex) " +
-          "(delegate.sections[sectionIndex])) in Slider pressed")
-      }
-      self.adelegate?.displaySection(index: sectionIndex)
-      self.slider?.close()
-      self.navigationController?.popViewController(animated: false)
-    }
-    contentTable?.onImagePress { [weak self] in
-      self?.debug("*** Action: Moment in Slider pressed")
-      self?.slider?.close()
-      self?.navigationController?.popViewController(animated: false)
-      self?.adelegate?.closeIssue()
-    }
-    Notification.receive("BookmarkChanged") { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,
@@ -155,7 +159,6 @@ open class ArticleVC: ContentVC {
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
       let player = ArticlePlayer.singleton
-      if player.isPlaying() { async { player.stop() } }
       if art.canPlayAudio {
         self.playButton.buttonView.name = "audio"
         self.onPlay { [weak self] _ in
@@ -207,7 +210,7 @@ open class ArticleVC: ContentVC {
     }
     header.titletype = .article
   }
-    
+
   // Define Header elements
   #warning("ToDo: Refactor get HeaderField with Protocol! (ArticleVC, SectionVC...)")
   func setHeader(artIndex: Int) {
@@ -233,7 +236,9 @@ open class ArticleVC: ContentVC {
           else {
             header.pageNumber = "\(i+1)/\(articles.count)"
           }
-        }        
+          contentTable?.setActive(row: i,
+                                  section: adelegate?.article2index(art: art))
+        }
       }
       else if art.title != nil,
               art.html?.isEqualTo(adelegate?.issue.imprint?.html) ?? false,
@@ -276,9 +281,41 @@ open class ArticleVC: ContentVC {
     }
   }
   
+  public override func setupSlider() {
+    super.setupSlider()
+    contentTable?.onArticlePress{[weak self] article in
+      guard let self = self else { return }
+      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+      self.adelegate?.linkPressed(from: nil, to: url)
+      self.slider?.close()
+    }
+    contentTable?.onSectionPress { [weak self] sectionIndex in
+      guard let self = self, let adelegate = self.adelegate else { return }
+      if sectionIndex >= adelegate.sections.count {
+        self.debug("*** Action: Impressum pressed")
+      }
+      else {
+        self.debug("*** Action: Section \(sectionIndex) " +
+          "(delegate.sections[sectionIndex])) in Slider pressed")
+      }
+      self.adelegate?.displaySection(index: sectionIndex)
+      self.slider?.close()
+      self.navigationController?.popViewController(animated: false)
+    }
+    contentTable?.onImagePress { [weak self] in
+      self?.debug("*** Action: Moment in Slider pressed")
+      self?.slider?.close()
+      self?.navigationController?.popViewController(animated: false)
+      self?.adelegate?.closeIssue()
+    }
+  }
+    
   public override func viewWillAppear(_ animated: Bool) {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
+    }
+    if !(self.parent is BookmarkNC) && self.contentTable == nil {
+      self.contentTable = NewContentTableVC(style: .plain)
     }
     super.viewWillAppear(animated)
   }
@@ -309,12 +346,6 @@ open class ArticleVC: ContentVC {
       let suche = UIMenuItem(title: "Suche", action: #selector(search))
       UIMenuController.shared.menuItems = [suche]
     }
-  }
-  
-  public override func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(animated)  
-    let player = ArticlePlayer.singleton
-    if player.isPlaying() { async { player.stop() } }
   }
   
   public override func viewDidDisappear(_ animated: Bool) {

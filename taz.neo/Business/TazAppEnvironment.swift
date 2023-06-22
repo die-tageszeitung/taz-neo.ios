@@ -82,7 +82,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   var showAnimations = false
   lazy var consoleLogger = Log.Logger()
-  lazy var viewLogger = Log.ViewLogger()
   lazy var fileLogger = Log.FileLogger()
   var feederContext: FeederContext?
   let net = NetAvailability()
@@ -167,6 +166,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     let lastStarted = dfl["lastStarted"]!.usTime
     debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
     logKeychain(msg: "initial")
+    logSystemEvents()
     let now = UsTime.now
     self.showAnimations = (nStarted < 2) || (now.sec - lastStarted.sec) > oneWeek
     IssueVC.showAnimations = self.showAnimations
@@ -190,7 +190,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   func goingForeground() {
     isForeground = true
-    debug("Entering foreground")
+    debug("Entering foreground is connected?: \(feederContext?.isConnected)")
   }
   
   func appWillTerminate() {
@@ -203,6 +203,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   }
   
   func deleteData() {
+    Defaults.latestPublicationDate = nil
     for f in Dir.appSupport.scan() {
       debug("remove: \(f)")
       File(f).remove()
@@ -331,6 +332,26 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     debug("\(intro)\(str)")
   }
   
+  func logSystemEvents() {
+    
+    NotificationCenter.default.addObserver(forName: NSNotification.Name.NSProcessInfoPowerStateDidChange,
+                                           object: nil,
+                                           queue: nil,
+                                           using: { [weak self] _ in
+      self?.log("isLowPowerModeEnabled: \(ProcessInfo.processInfo.isLowPowerModeEnabled)")
+    })
+    
+    NotificationCenter.default.addObserver(forName: UIApplication.backgroundRefreshStatusDidChangeNotification,
+                                           object: nil,
+                                           queue: nil,
+                                           using: { [weak self] _ in
+      self?.log("backgroundRefreshStatus: \(UIApplication.shared.backgroundRefreshStatus)")
+    })
+    
+    self.log("isLowPowerModeEnabled: \(ProcessInfo.processInfo.isLowPowerModeEnabled)")
+    self.log("backgroundRefreshStatus: \(UIApplication.shared.backgroundRefreshStatus)")
+  }
+  
   func showIntro(closure: @escaping ()->()) {
     Notification.receiveOnce("resourcesReady") { [weak self] _ in
       guard let self = self else { return }
@@ -411,6 +432,8 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     actions.append(Alert.action("Abo-Verknüpfung löschen") {[weak self] _ in self?.unlinkSubscriptionId() })
     actions.append(Alert.action("Abo-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
     actions.append(Alert.action("Download-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
+    if App.isAlpha { actions.append(contentsOf: UIAlertAction.developerPushActions(callback: { _ in })) }
+    
     let sMin = Alert.action("Simuliere höhere Minimalversion") { _ in
       dfl["simulateFailedMinVersion"] = "true"
       Alert.confirm(title: "Beenden",
@@ -427,6 +450,12 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       }
     }
     actions.append(sCheck)
+    
+    ///Simulate App Termination by System not forced by user
+    ///may wait some minutes to test backgroud data update by push
+    if (DefaultAuthenticator.getUserData().id ?? "") == "ringo.mueller@taz.de" {
+      actions.append(Alert.action("App beenden") {_ in exit(0)})
+    }
     
     let title = App.appInfo + "\n" + App.authInfo(with: feederContext)
     Alert.actionSheet(title: title,

@@ -14,7 +14,7 @@ public class MomentView: UIView, Touchable {
   
   /// The ImageView
   public var imageView: UIImageView = UIImageView()
-  
+    
   // Aspect ratio constraint
   private var aspectRatioConstraint: NSLayoutConstraint? = nil
   
