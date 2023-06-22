@@ -277,6 +277,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
   
+  @Default("doubleTapToZoomPdf")
+  public var doubleTapToZoomPdf: Bool
+  
   @Default("fullPdfOnPageSwitch")
   public var fullPdfOnPageSwitch: Bool
  
@@ -289,7 +292,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         guard let self = self else { return }
         self.articleFromPdf = !self.articleFromPdf
         self.updateMenuItems()
-       })]
+       }),
+      ("Zoom per Doppel Tap",
+       doubleTapToZoomPdf ? "checkmark" : "",
+       { [weak self] _ in
+        guard let self = self else { return }
+        self.doubleTapToZoomPdf = !self.doubleTapToZoomPdf
+        self.updateMenuItems()
+       })
+    ]
     
     if App.isAlpha {
       self.menuItems.insert((title: "Zoom 1:1 (⍺)",

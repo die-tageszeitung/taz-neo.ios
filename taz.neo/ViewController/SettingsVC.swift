@@ -49,6 +49,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
   
+  @Default("doubleTapToZoomPdf")
+  public var doubleTapToZoomPdf: Bool
+  
   var initialTextNotificationSetting: Bool?
   
   var data:TableData = TableData(sectionContent: [])
@@ -186,10 +189,15 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var textSizeSettingsCell: XSettingsCell
   = XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting())
   lazy var articleFromPdfCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Im Pdf Artikelansicht",
-                  detailText: "Artikelansicht ein-/ausschalten",
+  = XSettingsCell(toggleWithText: "Einfacher Tap",
+                  detailText: "öffnen der mobil optimierten Artikelansicht",
                   initialValue: articleFromPdf,
                   onChange: {[weak self] newValue in self?.articleFromPdf = newValue })
+  lazy var doubleTapToZoomPdfCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Doppel Tap",
+                  detailText: "Zoom in PDF",
+                  initialValue: doubleTapToZoomPdf,
+                  onChange: {[weak self] newValue in self?.doubleTapToZoomPdf = newValue })
   lazy var darkmodeSettingsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nachtmodus",
                   initialValue: Defaults.darkMode,
@@ -296,6 +304,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     $articleFromPdf.onChange{[weak self] _ in
       guard let self = self else { return }
       (self.articleFromPdfCell.customAccessoryView as? UISwitch)?.isOn = self.articleFromPdf
+    }
+    $doubleTapToZoomPdf.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.doubleTapToZoomPdfCell.customAccessoryView as? UISwitch)?.isOn = self.doubleTapToZoomPdf
     }
   }
   
@@ -665,8 +677,13 @@ extension SettingsVC {
       ("darstellung", false,
        [
         textSizeSettingsCell,
-        articleFromPdfCell,
         darkmodeSettingsCell
+       ]
+      ),
+      ("steuerung in der Zeitungsansicht", false,
+       [
+        articleFromPdfCell,
+        doubleTapToZoomPdfCell
        ]
       ),
       ("hilfe", false,

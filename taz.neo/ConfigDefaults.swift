@@ -42,6 +42,8 @@ public let ConfigDefaults = Defaults.Values([
   "isFacsimile" : "false",
   // Tap in PDF open ArticleView
   "articleFromPdf" : "true",
+  // double Tap in PDF zoom in/out
+  "doubleTapToZoomPdf" : "true",
   // show/hide Toolbar in PDF View at page switch
   "showToolbarOnPageSwitch" : "true",
   // display full PDF Page on Page switch in Landscape
