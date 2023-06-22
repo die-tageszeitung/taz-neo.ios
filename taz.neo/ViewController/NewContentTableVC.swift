@@ -282,6 +282,7 @@ extension NewContentTableVC {
     
     header.onTapping { [weak self] _ in
       self?.sectionPressedClosure?(header.tag)
+      header.active = true
       header.collapsed = false
       self?.collapseAll(expect: header.tag)
     }
@@ -289,6 +290,7 @@ extension NewContentTableVC {
     header.chevron.onTapping { [weak self] _ in
       header.collapsed = self?.toggle(section: header.tag) ?? true
     }
+    header.active = section == sectIndex
     return header
   }
   
@@ -439,12 +441,6 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     let boldFont = Const.Fonts.titleFont(size: 13.5)
     attributedString.addAttribute(.font, value: boldFont, range: range)
     attributedString.addAttribute(.backgroundColor, value: UIColor.clear, range: range)
-    
-    if active && attributedString.length > 1 {
-      attributedString.addAttribute(.underlineStyle,
-                                    value: NSUnderlineStyle.single.rawValue,
-                                    range: NSRange(location: 0, length: attributedString.length-1))
-    }
 
     if let rd = article?.readingDuration {
       let timeString
@@ -461,25 +457,18 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     titleLabel.text = article?.title
     customTextLabel.text = article?.teaser
     
-    if active, let title = article?.title {
-      let attributedString = NSMutableAttributedString(string: title)
-      let range = NSRange(location: 0, length: title.length)
-      attributedString.addAttribute(.underlineStyle,
-                                    value: NSUnderlineStyle.single.rawValue,
-                                    range: range)
-      titleLabel.attributedText = attributedString
-    }
-    
-    if active, let teaser = article?.teaser {
-      let attributedString = NSMutableAttributedString(string: teaser)
-      let range = NSRange(location: 0, length: teaser.length)
-      attributedString.addAttribute(.underlineStyle,
-                                    value: NSUnderlineStyle.single.rawValue,
-                                    range: range)
-      customTextLabel.attributedText = attributedString
-    }
     bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
     bookmarkButton.tintColor = Const.Colors.appIconGrey
+    setActiveColorsIfNeeded()
+  }
+  
+  func setActiveColorsIfNeeded(){
+    if active == false {return }
+    let color = Const.SetColor.CIColor.color
+    titleLabel.textColor = color
+    customTextLabel.textColor = color
+    bookmarkButton.tintColor = color
+    bottomLabel.textColor = color
   }
   
   var image: UIImage? {
@@ -504,7 +493,8 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   var active: Bool = false {
     didSet {
       if oldValue == active { return }
-      updateStyles()
+      if oldValue == true { updateStyles() }
+      setActiveColorsIfNeeded()
     }
   }
   
@@ -627,7 +617,20 @@ fileprivate class ContentTableFooterView: UITableViewHeaderFooterView, UIStyleCh
   
   
 fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
+  
   let dottedLine = DottedLineView()
+  
+  var active: Bool = false {
+    didSet {
+      label.textColor
+      = active
+      ? Const.SetColor.CIColor.color
+      : Const.SetColor.ios(.label).color
+      if active == false && oldValue == true {
+        contentView.layoutSubviews()
+      }
+    }
+  }
   
   override func setup(){
     fontSize = 20.0
