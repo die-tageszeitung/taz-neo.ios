@@ -404,8 +404,8 @@ extension HomeTVC {
     let imageButton = Button<ImageView>()
     imageButton.pinSize(CGSize(width: 50, height: 50))
     imageButton.buttonView.hinset = 0.18
-    imageButton.buttonView.color = Const.Colors.iconButtonInactive
-    imageButton.buttonView.activeColor = Const.Colors.iconButtonActive
+    imageButton.buttonView.color = Const.Colors.appIconGrey
+    imageButton.buttonView.activeColor = Const.Colors.appIconGreyActive
     imageButton.accessibilityLabel = "Ansicht umschalten"
     imageButton.isAccessibilityElement = true
     imageButton.onPress(closure: onPDF(sender:))
@@ -420,14 +420,14 @@ extension HomeTVC {
     login.accessibilityLabel = "Anmelden"
     login.isAccessibilityElement = true
     login.contentFont()
-    login.textColor = Const.Colors.iconButtonInactive
+    login.textColor = Const.Colors.appIconGrey
     login.text = "Anmelden"
     
     let arrow
     = UIImageView(image: UIImage(name: "arrow.right")?
-      .withTintColor(Const.Colors.iconButtonInactive,
+      .withTintColor(Const.Colors.appIconGrey,
                      renderingMode: .alwaysOriginal))
-    arrow.tintColor = Const.Colors.iconButtonInactive
+    arrow.tintColor = Const.Colors.appIconGrey
     
     let wrapper = UIView()
     wrapper.addSubview(login)

@@ -58,9 +58,8 @@ public struct Const {
     static let darkSeparator: UIColor = UIColor.rgb(0x545458)
     static let darkPrimaryText: UIColor =  UIColor.rgb(0xffffff)
     static let darkSecondaryText: UIColor = UIColor.rgb(0xebebf5)
-    static let appIconGrey: UIColor = darkSecondaryText //UIColor.rgb(0x9c9c9c)
-    static let iconButtonInactive: UIColor = UIColor.rgb(0x9c9c9c)
-    static let iconButtonActive: UIColor = appIconGrey
+    static let appIconGrey: UIColor = UIColor.rgb(0x9c9c9c)
+    static let appIconGreyActive: UIColor = darkSecondaryText
     
     static let foundTextHighlight: UIColor = UIColor.rgb(0xffff88)
     static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)

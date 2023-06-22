@@ -448,7 +448,7 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
       let trange = NSRange(location: 0, length: timeString.length)
       let thinFont = Const.Fonts.contentFont(size: 12.0)
       timeString.addAttribute(.font, value: thinFont, range: trange)
-      timeString.addAttribute(.foregroundColor, value: Const.Colors.iconButtonInactive, range: trange)
+      timeString.addAttribute(.foregroundColor, value: Const.Colors.appIconGrey, range: trange)
       timeString.addAttribute(.backgroundColor, value: UIColor.clear, range: trange)
       attributedString.append(timeString)
     }
@@ -458,13 +458,13 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     customTextLabel.text = article?.teaser
     
     bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
-    bookmarkButton.tintColor = Const.Colors.iconButtonInactive
+    bookmarkButton.tintColor = Const.Colors.appIconGrey
     setActiveColorsIfNeeded()
   }
   
   func setActiveColorsIfNeeded(){
     if active == false {return }
-    let color = Const.SetColor.CIColor.color
+    let color = Const.Colors.appIconGrey
     titleLabel.textColor = color
     customTextLabel.textColor = color
     bookmarkButton.tintColor = color
@@ -624,7 +624,7 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     didSet {
       label.textColor
       = active
-      ? Const.SetColor.CIColor.color
+      ? Const.Colors.appIconGrey
       : Const.SetColor.ios(.label).color
       if active == false && oldValue == true {
         contentView.layoutSubviews()
