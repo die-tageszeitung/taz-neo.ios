@@ -873,7 +873,7 @@ extension SettingsVC {
   }
   
   func openFaq(){
-    guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
+    guard let url = Const.Urls.faqUrl else { return }
     UIApplication.shared.open(url, options: [:], completionHandler: nil)
   }
   

@@ -11,6 +11,19 @@ import NorthLib
 /// Some Constants
 public struct Const {
   
+  struct Urls {
+    ///former
+    //static let faqUrl = URL(string: "https://blogs.taz.de/app-faq/")
+    ///new foreward url's
+    ///Source Mail Ralf 3.5.23
+    /// dl.taz.de/faq && https://dl.monde-diplomatique.de/faq
+    static let faqUrl = tazFaqUrl
+    static let tazFaqUrl
+    = URL(string: "https://dl.taz.de/faq")
+    static let lmdFaqUrl
+    = URL(string: "https://dl.monde-diplomatique.de/faq")
+  }
+  
   /// Filenames
   struct Filename {
     /// Some resource filenames
