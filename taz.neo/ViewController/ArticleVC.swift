@@ -114,24 +114,24 @@ open class ArticleVC: ContentVC {
   }
   
   func setup() {
-    playButtonContextMenu.smoothPreviewForImage = true
-    
-    playButtonContextMenu.addMenuItem(title: "Jetzt abspielen",
-                                       icon: "play.fill",
-                                       group: 0) {[weak self]  (_) in
-      print("Choosen Jetzt abspielen")
-    }
-    playButtonContextMenu.addMenuItem(title: "Als nächstes wiedergeben",
-                                       icon: "text.line.first.and.arrowtriangle.forward",
-                                       group: 1) {[weak self]  (_) in
-      print("Choosen Als nächstes wiedergeben")
-      ///text.line.first.and.arrowtriangle.forward
-    }
-    playButtonContextMenu.addMenuItem(title: "Zuletzt wiedergeben",
-                                       icon: "text.line.last.and.arrowtriangle.forward",
-                                       group: 1) {[weak self]  (_) in
-      print("Choosen Zuletzt wiedergeben")
-    }
+//    playButtonContextMenu.smoothPreviewForImage = true
+//    
+//    playButtonContextMenu.addMenuItem(title: "Jetzt abspielen",
+//                                       icon: "play.fill",
+//                                       group: 0) {[weak self]  (_) in
+//      print("Choosen Jetzt abspielen")
+//    }
+//    playButtonContextMenu.addMenuItem(title: "Als nächstes wiedergeben",
+//                                       icon: "text.line.first.and.arrowtriangle.forward",
+//                                       group: 1) {[weak self]  (_) in
+//      print("Choosen Als nächstes wiedergeben")
+//      ///text.line.first.and.arrowtriangle.forward
+//    }
+//    playButtonContextMenu.addMenuItem(title: "Zuletzt wiedergeben",
+//                                       icon: "text.line.last.and.arrowtriangle.forward",
+//                                       group: 1) {[weak self]  (_) in
+//      print("Choosen Zuletzt wiedergeben")
+//    }
 
     if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
@@ -159,6 +159,7 @@ open class ArticleVC: ContentVC {
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
       let player = ArticlePlayer.singleton
+      if player.isPlaying() { async { player.stop() } }
       if art.canPlayAudio {
         self.playButton.buttonView.name = "audio"
         self.onPlay { [weak self] _ in
@@ -346,6 +347,12 @@ open class ArticleVC: ContentVC {
       let suche = UIMenuItem(title: "Suche", action: #selector(search))
       UIMenuController.shared.menuItems = [suche]
     }
+  }
+  
+  public override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)  
+    let player = ArticlePlayer.singleton
+    if player.isPlaying() { async { player.stop() } }
   }
   
   public override func viewDidDisappear(_ animated: Bool) {

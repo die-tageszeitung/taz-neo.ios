@@ -138,8 +138,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var toolBarConstraint: NSLayoutConstraint?
   public var backButton = Button<ImageView>()
   public var playButton = Button<ImageView>()
-  public lazy var playButtonContextMenu: ContextMenu
-  = ContextMenu(view: playButton.buttonView)
+//  public lazy var playButtonContextMenu: ContextMenu
+//  = ContextMenu(view: playButton.buttonView)
   
   public var bookmarkButton = Button<ImageView>()
   private var playClosure: ((ContentVC)->())?

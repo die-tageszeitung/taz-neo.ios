@@ -83,7 +83,7 @@ class ArticlePlayer: DoesLog {
       aplayer.image = nil
       userInterface.image = nil
     }
-    userInterface.show()
+//    userInterface.show()
     aplayer.play()
   }
   
