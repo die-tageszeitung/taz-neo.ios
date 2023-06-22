@@ -152,27 +152,8 @@ extension NewContentTableVC {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    if let activeItem = activeItem {
-      tableView.scrollToRow(at: activeItem, at: .top, animated: false)
-    }
-    else if let sectIndex = sectIndex, tableView(self.tableView, numberOfRowsInSection: sectIndex) > 0 {
-      tableView.scrollToRow(at: IndexPath(row: 0, section: sectIndex), at: .top, animated: false)
-    }
-    else if let sectIndex = sectIndex {
-      ///Fix Layout Bug: issue > regular section open menu swipe > anzeige open menu ==> menu wrongly layouted, nothing helped
-      /// similar: https://stackoverflow.com/questions/14995573/dequeued-uitableviewcell-has-incorrect-layout-until-scroll-using-autolayout
-      onMainAfter { [weak self] in
-        //self?.tableView.scrollRectToVisible(CGRect(x: 10, y: 100, width: 10, height: 10), animated: true)//did not work
-        self?.tableView.setContentOffset(CGPoint(x: 0, y: 0), animated: false)
-        self?.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: sectIndex), at: .top, animated: false)
-      }
-    }
+    scrollToActive()
   }
-  
-//  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-//    super.viewWillTransition(to: size, with: coordinator)
-//    self.widthConstraint?.constant = size.width
-//  }
 }
 
 ///actions
@@ -194,73 +175,69 @@ extension NewContentTableVC {
 
 ///handle expanded/collapsed
 extension NewContentTableVC {
+  
+  func scrollToActive(){
+    ///prevent crash on scroll to closed cell
+    let canScroll = expandedSections.contains(activeItem?.section ?? -1)
+    
+    if canScroll, let activeItem = activeItem {
+      tableView.scrollToRow(at: activeItem, at: .top, animated: false)
+    }
+    else if canScroll, let sectIndex = sectIndex, tableView(self.tableView, numberOfRowsInSection: sectIndex) > 0 {
+      tableView.scrollToRow(at: IndexPath(row: 0, section: sectIndex), at: .top, animated: false)
+    }
+    else if let sectIndex = sectIndex {
+      ///Fix Layout Bug: issue > regular section open menu swipe > anzeige open menu ==> menu wrongly layouted, nothing helped
+      /// similar: https://stackoverflow.com/questions/14995573/dequeued-uitableviewcell-has-incorrect-layout-until-scroll-using-autolayout
+      onMainAfter { [weak self] in
+        //self?.tableView.scrollRectToVisible(CGRect(x: 10, y: 100, width: 10, height: 10), animated: true)//did not work
+        self?.tableView.setContentOffset(CGPoint(x: 0, y: 0), animated: false)
+        self?.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: sectIndex), at: .top, animated: false)
+      }
+    }
+  }
+  
+  func reload() {
+    ///Only handle UI Changes if still loaded and ready for reload & changes
+    if self.tableView.superview == nil { return }
+    self.tableView.reloadData()
+    scrollToActive()
+  }
+  
   func expand(section: Int){
     if expandedSections.contains(section) { return }
-    let cellCount
-    = issue?.sections?.valueAt(section)?.articles?.count ?? 0
-    let changedIdx = (0..<cellCount).map { i in
-      return IndexPath(item: i, section: section)
-    }
-    guard changedIdx.count > 0 else { return }
-    ///Only handle UI Changes if still loaded and ready for reload & changes
-    let tv = self.tableView.superview != nil ? tableView : nil
-    tv?.beginUpdates()
     self.expandedSections.append(section)
-    tv?.insertRows(at: changedIdx, with: .bottom)
-    tv?.endUpdates()
+    reload()
   }
   
   /// expand/colapse section
   /// - Parameter section: section to toggle
   /// - Returns: true if section is **colapsed**
   func toggle(section: Int) -> Bool {
-    ///Only handle UI Changes if still loaded and ready for reload & changes
-    let tv = self.tableView.superview != nil ? tableView : nil
-    let cellCount = issue?.sections?.valueAt(section)?.articles?.count ?? 0
-    
-    let changedIdx = (0..<cellCount).map { i in
-      return IndexPath(item: i, section: section)
-    }
-    
-    guard changedIdx.count > 0 else { return false }
-    
-    tv?.beginUpdates()
-    
     if let idx = expandedSections.firstIndex(of: section) {
       expandedSections.remove(at: idx)
-      tv?.deleteRows(at: changedIdx, with: .top)
-      tv?.endUpdates()
+      reload()
       return true
     }
     expandedSections.append(section)
-    tv?.insertRows(at: changedIdx, with: .bottom)
-    tv?.endUpdates()
+    reload()
     return false
   }
   
   func collapseAll(expect: Int? = nil){
-    ///Only handle UI Changes if still loaded and ready for reload & changes
-    let tv = self.tableView.superview != nil ? tableView : nil
-    tv?.beginUpdates()
     if let expect = expect {
       expandedSections = [expect]
     }
     else {
       expandedSections = []
     }
-    tv?.reloadSections(IndexSet(allSectionIndicies),
-                                      with: .top)
-    tv?.endUpdates()
+    reload()
   }
   
   func expandAll(){
-    ///Only handle UI Changes if still loaded and ready for reload & changes
-    let tv = self.tableView.superview != nil ? tableView : nil
-    tv?.beginUpdates()
     expandedSections = allSectionIndicies
-    tv?.reloadSections(IndexSet(expandedSections),
-                             with: .bottom)
-    tv?.endUpdates()
+    let idxSet = IndexSet(expandedSections)
+    reload()
   }
   
   var allSectionIndicies: [Int] { return Array(0...(issue?.sections?.count ?? 0))}
