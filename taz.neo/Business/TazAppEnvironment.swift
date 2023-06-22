@@ -169,9 +169,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     logSystemEvents()
     let now = UsTime.now
     self.showAnimations = (nStarted < 2) || (now.sec - lastStarted.sec) > oneWeek
-    IssueVC.showAnimations = self.showAnimations
     SectionVC.showAnimations = self.showAnimations
-    ContentTableVC.showAnimations = self.showAnimations
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
     if !dataPolicyAccepted {
@@ -658,7 +656,6 @@ extension TazAppEnvironment {
       }
       Defaults.currentServer = shortcutServer
       onMainAfter(3) {
-        /// Too many handlers deinit on IssueVC did not work, recives issueOverview and more and crashes
         exit(0)
 //        self?.setup()
       }

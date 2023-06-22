@@ -78,7 +78,7 @@ extension FormsController {
         return "Zurück zur Ausgabe"
       case _ as SettingsVC:
         return "Zurück zu den Einstellungen"
-      case _ as IssueVC://Currently due Settings are presented modal
+      case _ as HomeTVC://Currently due Settings are presented modal
         return "Zurück zu den Einstellungen"
       default:
         return "Zurück"
