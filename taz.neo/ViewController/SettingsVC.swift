@@ -1204,51 +1204,6 @@ class CustomHStack: UIStackView {
 }
 
 // MARK: -
-class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
-  
-  private let titleLabel = Label().titleFont(size: Const.Size.TitleFontSize)
-  private let line = DottedLineView()
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    applyStyles()
-  }
-  
-  private func setup() {
-    self.addSubview(titleLabel)
-    self.addSubview(line)
-    
-    pin(titleLabel.top, to: self.topGuide(), dist: 15)
-    
-    pin(titleLabel.left, to: self.left, dist: Const.ASize.DefaultPadding)
-    pin(titleLabel.right, to: self.right, dist: -Const.ASize.DefaultPadding)
-    
-    pin(line, to: self, dist: Const.ASize.DefaultPadding,exclude: .top)
-    line.pinHeight(Const.Size.DottedLineHeight)
-    pin(line.top, to: titleLabel.bottom, dist: Const.Size.TinyPadding)
-    pinWidth(UIWindow.size.width)
-  }
-  
-  public func applyStyles() {
-    self.backgroundColor = .clear
-    titleLabel.textColor = Const.SetColor.HText.color
-    line.fillColor = Const.SetColor.HText.color
-    line.strokeColor = Const.SetColor.HText.color
-    line.layoutSubviews()
-  }
-  
-  init(_ title: String) {
-    titleLabel.text = title
-    super.init(frame: .zero)
-    setup()
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-}
-
-// MARK: -
 class SectionHeader: UIView {
   
   let label = UILabel()
