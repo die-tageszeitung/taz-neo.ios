@@ -538,6 +538,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       self.bookmarkClosure?(self)
     }
     
+    playButtonContextMenu
+    = ContextMenu(view: self.playButton.buttonView)
+    
     self.playButton.buttonView.onTapping { [weak self] _ in
       guard let self = self else { return }
       self.playClosure?(self)

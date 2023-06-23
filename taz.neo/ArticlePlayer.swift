@@ -19,6 +19,9 @@ class ArticlePlayer: DoesLog {
   var aplayer: AudioPlayer
   var aPlayerPlayed = false
   
+  public func onEnd(closure: ((Error?)->())?) { _onEnd = closure }
+  private var _onEnd: ((Error?)->())?
+  
   var nextArticles: [Article] = [] {
     didSet {
       if aPlayerPlayed == false { return }
@@ -75,7 +78,8 @@ class ArticlePlayer: DoesLog {
       self?.userInterface.totalSeconds = item.asset.duration.seconds
       self?.userInterface.currentSeconds = item.currentTime().seconds
     }
-    aplayer.onEnd { [weak self] _ in
+    aplayer.onEnd { [weak self] err in
+      self?._onEnd?(err)
       self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
     }
     
@@ -159,9 +163,10 @@ class ArticlePlayer: DoesLog {
     if _singleton == nil { _singleton = ArticlePlayer() }
     return _singleton!
   }
-  
-  /// Define closure to call when playing has been finished
-  private func onEnd(closure: ((Error?)->())?) { aplayer.onEnd(closure: closure) }
+    
+  func canPlay(_ art: Article?) -> Bool {
+    return url(art) != nil
+  }
   
   private func url(_ art: Article?) -> String? {
     guard let article = art,
@@ -189,7 +194,7 @@ class ArticlePlayer: DoesLog {
   }
   
   /// Checks whether the passed Article is currently being played
-  private func isPlaying(_ article: Article? = nil) -> Bool {
+  func isPlaying(_ article: Article? = nil) -> Bool {
     guard aplayer.isPlaying else { return false }
     if let art = article {
       guard let url = url(art) else { return false }

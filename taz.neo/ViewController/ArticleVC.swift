@@ -166,20 +166,17 @@ open class ArticleVC: ContentVC {
           if let title = self.header.title ?? art.title {
             art.toggleAudio(issue: self.issue, sectionName: title )
           }
-          #warning("ToDo")
-//          if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
-//          else { self.playButton.buttonView.name = "audio" }
+          if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
+          else { self.playButton.buttonView.name = "audio" }
         }
       }
       else { self.onPlay(closure: nil) }
-#warning("ToDo")
-//      player.onEnd { [weak self] err in
-//        self?.playButton.buttonView.name = "audio"
-//        guard let err = err else { return }
-//        //Offline Error: err._userInfo?.value(forKey: "NSUnderlyingError") as? NSError)?.code == -1020
-//        self?.debug("Failed to play with error: \(err)")
-//        Toast.show("Die Vorlesefunktion konnte nicht gestartet werden.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.")
-//      }
+      player.onEnd { [weak self] err in
+        self?.playButton.buttonView.name = "audio"
+        guard let err = err else { return }
+        self?.debug("Failed to play with error: \(err)")
+        Toast.show("Die Vorlesefunktion konnte nicht gestartet werden.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.")
+      }
       self.onBookmark { [weak self] _ in
         guard let self = self else { return }
         self.toggleBookmark(art: art as? StoredArticle)
