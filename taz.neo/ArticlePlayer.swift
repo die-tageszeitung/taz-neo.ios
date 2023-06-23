@@ -59,15 +59,10 @@ class ArticlePlayer: DoesLog {
       
       if aplayer.file != nil {
         userInterface.show()
-        #warning("UNCOMMENT")
-//        if !wasPaused { aplayer.play() }
+        if !wasPaused { aplayer.play() }
         aPlayerPlayed = true
         self.userInterface.slider.value = 0.0
-        aplayer.onTimer { [weak self] in
-          guard let item = self?.aplayer.currentItem else { return }
-          self?.userInterface.slider.value
-          = Float(item.currentTime().seconds / item.asset.duration.seconds)
-        }
+  
       }
       userInterface.isPlaying = aplayer.isPlaying
     }
@@ -75,9 +70,28 @@ class ArticlePlayer: DoesLog {
   
   private init() {
     aplayer = AudioPlayer()
+    aplayer.onTimer { [weak self] in
+      guard let item = self?.aplayer.currentItem else { return }
+      self?.userInterface.totalSeconds = item.asset.duration.seconds
+      self?.userInterface.currentSeconds = item.currentTime().seconds
+    }
+    aplayer.onEnd { [weak self] _ in
+      self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
+    }
+    
+    userInterface.slider.addTarget(self,
+                                   action: #selector(sliderChanged),
+                                   for: .valueChanged)
 //    aplayer.setupRemoteCommands = false//use custom ones here!
   }
   
+  @objc private func sliderChanged(sender: Any) {
+    #warning("todo")
+//    aplayer.player?.pause()
+    print("slider changed: \(sender) value\(userInterface.slider.value)")
+  }
+                                   
+                                   
   private static var _singleton: ArticlePlayer? = nil
   private lazy var userInterface: ArticlePlayerUI = {
     let v =  ArticlePlayerUI()
@@ -218,7 +232,24 @@ class ArticlePlayer: DoesLog {
     currentArticle = nil
   }
   
-  public func play(issue:Issue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
+  public func play(issue:StoredIssue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
+    
+    let feederContext = TazAppEnvironment.sharedInstance.feederContext
+    
+    if feederContext?.needsUpdate(issue: issue) ?? true {
+      let msg = enqueueType == .replaceCurrent
+      ? "Die Wiedergabe wird nach Download der Ausgabe gestartet."
+      : "Die Wiedergabeliste wird nach Download der Ausgabe ergänzt."
+      Toast.show(msg)
+      Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+        self?.play(issue: issue,
+                   startFromArticle: startFromArticle,
+                   enqueueType: enqueueType)
+      }
+      feederContext?.getCompleteIssue(issue: issue,
+                                      isPages: false,
+                                      isAutomatically: false)
+    }
     var arts:[Article] = issue.allArticles
     if let startFromArticle = startFromArticle {
       arts = Array(arts.drop { art in
@@ -243,7 +274,7 @@ class ArticlePlayer: DoesLog {
 
 
 extension ArticlePlayer {
-  func contextMenu(for issue:Issue) -> UIMenu {
+  func contextMenu(for issue:StoredIssue) -> UIMenu {
     ///some of the icons are only available iOS 16+
     let playImgName = "play.fill"
     let nextImgName = "text.line.first.and.arrowtriangle.forward"

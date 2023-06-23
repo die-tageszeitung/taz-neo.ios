@@ -12,6 +12,23 @@ import NorthLib
 enum ArticlePlayerUIStates { case mini, maxi, tracklist}
 
 class ArticlePlayerUI: UIView {
+  
+  var currentSeconds: Double? {
+    didSet {
+      if oldValue ?? 0.0 > currentSeconds ?? 0.0 {progressCircle.reset()}
+      ///expect 60s als default, every 60s there is one round/graph fill ...like the default clock
+      let total = (totalSeconds ?? 60) > 0 ? (totalSeconds ?? 60.0) : 60.0
+      let current = currentSeconds ?? 0.0
+      let percent = min(1.0, current/total)
+      slider.value = Float(percent)
+      progressCircle.progress = Float(percent)
+      self.elapsedTimeLabel.text = TimeInterval(current).minuteSecondsString
+      let remaining = total-current
+      self.remainingTimeLabel.text = "-\(TimeInterval(remaining).minuteSecondsString ?? "")"
+    }
+  }
+  var totalSeconds: Double?
+  
   // MARK: - Closures
   private var backClosure: (()->())?
   private var forwardClosure: (()->())?
@@ -115,22 +132,22 @@ class ArticlePlayerUI: UIView {
   lazy var toggleButton: Button<ImageView> = {
     let btn = Button<ImageView>()
     btn.onPress { [weak self] _ in self?.toggleClosure?() }
-    btn.pinSize(CGSize(width: 36, height: 36))
+    toggleSizeConstrains = btn.pinSize(CGSize(width: 30, height: 30))
     btn.activeColor = .white
-    btn.hinset = 0.2//20%
+    btn.hinset = 0.17
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "pause"
+    btn.buttonView.symbol = "pause.fill"
     
     btn.layer.addSublayer(progressCircle)
     progressCircle.color = Const.Colors.appIconGreyActive
     progressCircle.hideStopIcon = true
-    progressCircle.frame = CGRect(x: 0, y: 0, width: 35, height: 35)
+    progressCircle.frame = CGRect(x: -3, y: -3, width: 36, height: 36)
     return btn
   }()
   
   var isPlaying: Bool = false {
     didSet {
-      toggleButton.buttonView.symbol = isPlaying ? "pause" : "play"
+      toggleButton.buttonView.symbol = isPlaying ? "pause.fill" : "play.fill"
     }
   }
   
@@ -146,7 +163,7 @@ BULLET LIST BUTTON MISSING
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "backward"
+    btn.buttonView.symbol = "backward.fill"
     //btn.buttonView.symbol = "gobackward.15"
     return btn
   }()
@@ -170,7 +187,7 @@ BULLET LIST BUTTON MISSING
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "forward"
+    btn.buttonView.symbol = "forward.fill"
     //btn.buttonView.symbol = "goforward.15"
     return btn
   }()
@@ -215,6 +232,8 @@ BULLET LIST BUTTON MISSING
                         bottom: NSLayoutConstraint,
                         left: NSLayoutConstraint,
                         right: NSLayoutConstraint)?
+  var toggleSizeConstrains: (width: NSLayoutConstraint,
+                             height: NSLayoutConstraint)?
   
   var authorLabelBottomConstraint_Mini: NSLayoutConstraint?
   var authorLabelTopConstraint_Maxi: NSLayoutConstraint?
@@ -403,6 +422,8 @@ BULLET LIST BUTTON MISSING
         imageConstrains?.top.isActive = true
         imageConstrains?.left.isActive = true
         imageConstrains?.bottom.isActive = true
+        toggleSizeConstrains?.height.constant = 30
+        toggleSizeConstrains?.width.constant = 30
         
         titleLabel.numberOfLines = 1
         authorLabel.numberOfLines = 1
@@ -428,6 +449,9 @@ BULLET LIST BUTTON MISSING
         imageConstrains?.top.isActive = true
         imageConstrains?.left.isActive = true
         imageConstrains?.right.isActive = true
+        
+        toggleSizeConstrains?.height.constant = 36
+        toggleSizeConstrains?.width.constant = 36
         
         authorLabelTopConstraint_Maxi?.isActive = true
         imageAspectConstraint_Maxi?.isActive = true
