@@ -9,29 +9,10 @@
 import UIKit
 import NorthLib
 
+enum ArticlePlayerUIStates { case mini, maxi, tracklist}
+
 class ArticlePlayerUI: UIView {
-  
-  var image: UIImage? {
-    didSet {
-      bgImageView.image = image
-      imageView.image = image
-      if image == nil {
-        imageAspectConstraint?.isActive = false
-        imageWidthConstraint?.isActive = true
-        imageLeftConstraint?.constant = 0.0
-      }
-      else {
-        imageWidthConstraint?.isActive = false
-        imageAspectConstraint?.isActive = false
-//        imageAspectConstraint = imageView.pinAspect(ratio: 1.0)
-        imageLeftConstraint?.constant = Const.Size.DefaultPadding
-      }
-      UIView.animate(withDuration: 0.3) {[weak self] in
-        self?.layoutIfNeeded()
-      }
-    }
-  }
-  
+  // MARK: - Closures
   private var backClosure: (()->())?
   private var forwardClosure: (()->())?
   private var toggleClosure: (()->())?
@@ -51,6 +32,18 @@ class ArticlePlayerUI: UIView {
   
   func onClose(closure: @escaping ()->()){
     closeClosure = closure
+  }
+  
+  // MARK: - external accessible components
+  
+  // MARK: - Image/ImageView
+  var image: UIImage? {
+    didSet {
+      if image == oldValue { return }
+      bgImageView.image = image
+      imageView.image = image
+      updateUI()
+    }
   }
   
   private lazy var imageView: UIImageView = {
@@ -91,6 +84,8 @@ class ArticlePlayerUI: UIView {
       self?.removeFromSuperview()
       self?.closeClosure?()
     }
+    btn.pinSize(CGSize(width: 36, height: 36))
+    btn.hinset = 0.1//20%
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
     btn.buttonView.symbol = "xmark"
@@ -122,16 +117,28 @@ class ArticlePlayerUI: UIView {
     btn.onPress { [weak self] _ in self?.toggleClosure?() }
     btn.pinSize(CGSize(width: 36, height: 36))
     btn.activeColor = .white
+    btn.hinset = 0.2//20%
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "pause.fill"
+    btn.buttonView.symbol = "pause"
+    
+    btn.layer.addSublayer(progressCircle)
+    progressCircle.color = Const.Colors.appIconGreyActive
+    progressCircle.hideStopIcon = true
+    progressCircle.frame = CGRect(x: 0, y: 0, width: 35, height: 35)
     return btn
   }()
   
   var isPlaying: Bool = false {
     didSet {
-      toggleButton.buttonView.symbol = isPlaying ? "pause.fill" : "play.fill"
+      toggleButton.buttonView.symbol = isPlaying ? "pause" : "play"
     }
   }
+  
+  /**
+BULLET LIST BUTTON MISSING
+   list.bullet   mit 5px padding corner radius ca 5px if list open
+   */
+
   
   lazy var backButton: Button<ImageView> = {
     let btn = Button<ImageView>()
@@ -139,7 +146,7 @@ class ArticlePlayerUI: UIView {
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "backward.fill"
+    btn.buttonView.symbol = "backward"
     //btn.buttonView.symbol = "gobackward.15"
     return btn
   }()
@@ -163,10 +170,22 @@ class ArticlePlayerUI: UIView {
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "forward.fill"
+    btn.buttonView.symbol = "forward"
     //btn.buttonView.symbol = "goforward.15"
     return btn
   }()
+  
+  lazy var progressCircle = ProgressCircle()
+  
+  func updateWidth(width:CGFloat){
+    let w = min(350, width - 2*Const.Size.DefaultPadding)
+    if widthConstraint == nil {
+      widthConstraint = self.pinWidth(w)
+    }
+    else {
+      widthConstraint?.constant = w
+    }
+  }
   
   func show(){
     if self.superview != nil {
@@ -177,86 +196,42 @@ class ArticlePlayerUI: UIView {
       error("No Key Window")
       return
     }
+    self.updateWidth(width: window.bounds.size.width)
     window.addSubview(self)
     pin(self.right, to: window.rightGuide(), dist: -Const.Size.DefaultPadding)
     pin(self.bottom, to: window.bottomGuide(), dist: -60.0)
+    updateUI()
   }
   
   
-  func minimize(){
-    ///ignore if min not needed
-  }
+  func minimize(){ state = .mini }
   
-  func maximize(){
-    ///ignore if max
-    print("maximize...")
-  }
+  func maximize(){ state = .maxi }
   
-  func setup2(){
-    self.addSubview(bgImageView)
-    self.addSubview(imageView)
-    self.addSubview(titleLabel)
-    self.addSubview(authorLabel)
-    self.addSubview(closeButton)
-    self.addSubview(minimizeButton)
-    self.addSubview(slider)
-    self.addSubview(imageView)
-    self.addSubview(toggleButton)
-    
-    slider.isHidden = true
-    minimizeButton.isHidden = true
-    
-    self.layer.cornerRadius = 5.0 //max: 13.0
-    
-    pin(bgImageView, to: imageView)
-    
-    let cSet = pin(imageView, to: self, dist: Const.Size.DefaultPadding, exclude: .right)
-    imageLeftConstraint = cSet.left
-    
-    imageWidthConstraint = imageView.pinWidth(1)
-    imageWidthConstraint?.isActive = false
-    
-    imageAspectConstraint = imageView.pinAspect(ratio: 0.0, pinWidth: true)
-    imageView.contentMode = .scaleAspectFill
-    
-    pin(titleLabel.top, to: imageView.top, dist: -1.0)
-    pin(authorLabel.bottom, to: imageView.bottom)
-    
-    pin(titleLabel.left, to: imageView.right, dist: Const.Size.DefaultPadding)
-    pin(authorLabel.left, to: imageView.right, dist: Const.Size.DefaultPadding)
-    
-    pin(closeButton, to: self, dist: 14.0, exclude: .left)
-    closeButton.pinAspect(ratio: 1.0)
-    
-    pin(toggleButton.centerY, to: closeButton.centerY)
-    pin(toggleButton.right, to: closeButton.left, dist: -22.0)
-    
-    pin(titleLabel.right, to: toggleButton.left, dist: -22.0)
-    pin(authorLabel.right, to: toggleButton.left, dist: -22.0)
-    
-    titleLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-    authorLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-    
-    self.backgroundColor = Const.Colors.darkSecondaryBG
-    self.pinHeight(50)
-    widthConstraint = self.pinWidth(200)
-    self.updateWidth()
-    
-    Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
-      guard let newSize = notification.content as? CGSize else { return }
-      self?.updateWidth(width: newSize.width)
-    }
-    
-    /**
-     backward.fill
-     forward.fill
-     
-     list.bullet   mit 5px padding corner radius ca 5px if list open
-     
-     
-     */
-    
-  }
+  var heightConstraint: NSLayoutConstraint?
+  var widthConstraint: NSLayoutConstraint?//Only for viewSizeTransition not for state changes!
+  
+  var imageConstrains: (top: NSLayoutConstraint,
+                        bottom: NSLayoutConstraint,
+                        left: NSLayoutConstraint,
+                        right: NSLayoutConstraint)?
+  
+  var authorLabelBottomConstraint_Mini: NSLayoutConstraint?
+  var authorLabelTopConstraint_Maxi: NSLayoutConstraint?
+  var closeButtonLeftConstraint_Mini: NSLayoutConstraint?
+  var imageAspectConstraint_Maxi: NSLayoutConstraint?
+  var imageAspectConstraint_Mini: NSLayoutConstraint?
+  var titleLabelLeftConstraint_Maxi: NSLayoutConstraint?
+  var titleLabelLeftConstraint_Mini: NSLayoutConstraint?
+  var titleLabelRightConstraint_Maxi: NSLayoutConstraint?
+  var titleLabelRightConstraint_Mini: NSLayoutConstraint?
+  var titleLabelTopConstraint_Maxi: NSLayoutConstraint?
+  var titleLabelTopConstraint_Mini: NSLayoutConstraint?
+  var toggleButtonBottomConstraint_Maxi: NSLayoutConstraint?
+  var toggleButtonTopConstraint_Maxi: NSLayoutConstraint?
+  var toggleButtonXConstraint_Maxi: NSLayoutConstraint?
+  var toggleButtonYConstraint_Mini: NSLayoutConstraint?
+
   
   func setup(){
     self.addSubview(bgImageView)
@@ -269,37 +244,60 @@ class ArticlePlayerUI: UIView {
     self.addSubview(slider)
     self.addSubview(remainingTimeLabel)
     self.addSubview(elapsedTimeLabel)
-    self.addSubview(imageView)
     self.addSubview(toggleButton)
     self.addSubview(backButton)
     self.addSubview(forwardButton)
     
-    self.layer.cornerRadius = 13.0
+    //Mini Player Base UI
+    pin(bgImageView, to: imageView)
+    imageConstrains = pin(imageView, to: self, dist: Const.Size.DefaultPadding)
     
-    let padding = Const.Size.DefaultPadding
+    imageConstrains?.top.isActive = false
+    imageConstrains?.left.isActive = false
+    imageConstrains?.right.isActive = false
+    imageConstrains?.bottom.isActive = false
+                
+    imageAspectConstraint_Mini = imageView.pinAspect(ratio: 1.0)
+    imageAspectConstraint_Mini?.isActive = false
+    imageAspectConstraint_Maxi = imageView.pinAspect(ratio: 1.5, pinWidth: false)
+    imageAspectConstraint_Maxi?.isActive = false
     
+    bgImageView.contentMode = .scaleToFill
+    pin(bgImageView, to: imageView)
+    pin(blurredEffectView, to: imageView)
+
+    titleLabelTopConstraint_Mini = pin(titleLabel.top, to: imageView.top, dist: -1.0)
+    authorLabelBottomConstraint_Mini = pin(authorLabel.bottom, to: imageView.bottom)
+    titleLabelLeftConstraint_Mini = pin(titleLabel.left, to: imageView.right, dist:10.0)
+    titleLabelRightConstraint_Mini = pin(titleLabel.right, to: toggleButton.left, dist: -22.0, priority: .defaultLow)
+    
+    titleLabelTopConstraint_Mini?.isActive = false
+    authorLabelBottomConstraint_Mini?.isActive = false
+    titleLabelLeftConstraint_Mini?.isActive = false
+    titleLabelRightConstraint_Mini?.isActive = false
+    
+    pin(authorLabel.left, to: titleLabel.left)
+    pin(authorLabel.right, to: titleLabel.right)
+
+    titleLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+    authorLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+
+    toggleButtonYConstraint_Mini = pin(toggleButton.centerY, to: self.centerY)
+    closeButtonLeftConstraint_Mini = pin(closeButton.left, to: toggleButton.right, dist: 10.0)
+    closeButtonLeftConstraint_Mini?.isActive = false
+    
+    pin(closeButton.centerY, to: toggleButton.centerY)
+    pin(closeButton.right, to: self.right, dist: -10.0)
+    
+    //Maxi Player Base UI
     pin(minimizeButton.top, to: self.top, dist: 1.0)
     pin(minimizeButton.right, to: self.right, dist: -padding + 8.0)
     
-    pin(imageView.left, to: self.left, dist: padding)
-    pin(imageView.right, to: self.right, dist: -padding)
-    pin(imageView.top, to: minimizeButton.bottom, dist: 1.0)
+    titleLabelLeftConstraint_Maxi = pin(titleLabel.left, to: self.left, dist: padding)
+    titleLabelRightConstraint_Maxi = pin(titleLabel.right, to: self.right, dist: -padding)
+    titleLabelTopConstraint_Maxi = pin(titleLabel.top, to: imageView.bottom, dist: padding)
 
-    //Aspect and hight is critical e.g. tv tower vs panorama
-    imageView.pinAspect(ratio: 1.5, pinWidth: false)
-    imageView.contentMode = .scaleAspectFit
-    bgImageView.contentMode = .scaleToFill
-    
-    pin(bgImageView, to: imageView)
-    pin(blurredEffectView, to: imageView)
-    
-    pin(titleLabel.left, to: self.left, dist: padding)
-    pin(titleLabel.right, to: self.right, dist: -padding)
-    pin(titleLabel.top, to: imageView.bottom, dist: padding)
-
-    pin(authorLabel.left, to: self.left, dist: padding)
-    pin(authorLabel.right, to: self.right, dist: -padding)
-    pin(authorLabel.top, to: titleLabel.bottom, dist: 2.0)
+    authorLabelTopConstraint_Maxi = pin(authorLabel.top, to: titleLabel.bottom, dist: 2.0)
     
     pin(slider.left, to: self.left, dist: padding)
     pin(slider.right, to: self.right, dist: -padding)
@@ -316,9 +314,12 @@ class ArticlePlayerUI: UIView {
     elapsedTimeLabel.text = "2:30"
     remainingTimeLabel.text = "-2:30"
     
-    toggleButton.centerX()
-    pin(toggleButton.top, to: slider.bottom, dist: padding + 5.0)
-    pin(toggleButton.bottom, to: self.bottom, dist: -padding)
+    toggleButtonXConstraint_Maxi = toggleButton.centerX()
+    toggleButtonXConstraint_Maxi?.isActive = false
+    toggleButtonTopConstraint_Maxi = pin(toggleButton.top, to: slider.bottom, dist: padding + 5.0)
+    toggleButtonTopConstraint_Maxi?.isActive = false
+    toggleButtonBottomConstraint_Maxi = pin(toggleButton.bottom, to: self.bottom, dist: -padding)
+    toggleButtonBottomConstraint_Maxi?.isActive = false
 
     pin(backButton.right, to: toggleButton.left, dist: -30.0)
     pin(forwardButton.left, to: toggleButton.right, dist: 30.0)
@@ -327,33 +328,16 @@ class ArticlePlayerUI: UIView {
     pin(forwardButton.centerY, to: toggleButton.centerY)
     
     self.backgroundColor = Const.Colors.darkSecondaryBG
-    widthConstraint = self.pinWidth(200)
-    self.updateWidth()
+    
+    heightConstraint = self.pinHeight(50)
+    heightConstraint?.isActive = false
     
     Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
       guard let newSize = notification.content as? CGSize else { return }
       self?.updateWidth(width: newSize.width)
     }
-    
-    /**
+  }
 
-     
-     list.bullet   mit 5px padding corner radius ca 5px if list open
-     
-     
-     */
-    
-  }
-  
-  
-  var widthConstraint: NSLayoutConstraint?
-  var imageWidthConstraint: NSLayoutConstraint?
-  var imageLeftConstraint: NSLayoutConstraint?
-  var imageAspectConstraint: NSLayoutConstraint?
-  
-  func updateWidth(width:CGFloat = UIWindow.keyWindow?.bounds.size.width ?? UIScreen.shortSide){
-    widthConstraint?.constant = min(300, width - 2*Const.Size.DefaultPadding)
-  }
   
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -362,6 +346,123 @@ class ArticlePlayerUI: UIView {
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+  
+  var state:ArticlePlayerUIStates = .mini {
+    didSet { if oldValue != state {  updateUI() } }
+  }
+  
+  let padding = Const.Size.DefaultPadding
+  let miniPadding = 10.0
+  
+  private func updateUI(){
+    if self.superview == nil { return }
+    authorLabelBottomConstraint_Mini?.isActive = false
+    authorLabelTopConstraint_Maxi?.isActive = false
+    closeButtonLeftConstraint_Mini?.isActive = false
+    imageAspectConstraint_Maxi?.isActive = false
+    imageAspectConstraint_Mini?.isActive = false
+    titleLabelLeftConstraint_Maxi?.isActive = false
+    titleLabelLeftConstraint_Mini?.isActive = false
+    titleLabelRightConstraint_Maxi?.isActive = false
+    titleLabelRightConstraint_Mini?.isActive = false
+    titleLabelTopConstraint_Maxi?.isActive = false
+    titleLabelTopConstraint_Mini?.isActive = false
+    toggleButtonBottomConstraint_Maxi?.isActive = false
+    toggleButtonTopConstraint_Maxi?.isActive = false
+    toggleButtonXConstraint_Maxi?.isActive = false
+    toggleButtonYConstraint_Mini?.isActive = false
+    heightConstraint?.isActive = false
+    imageConstrains?.top.isActive = false
+    imageConstrains?.left.isActive = false
+    imageConstrains?.bottom.isActive = false
+    imageConstrains?.right.isActive = false
+    
+    bgImageView.isHidden = true
+    blurredEffectView.isHidden = true
+    closeButton.isHidden = true
+    minimizeButton.isHidden = true
+    slider.isHidden = true
+    remainingTimeLabel.isHidden = true
+    elapsedTimeLabel.isHidden = true
+    backButton.isHidden = true
+    forwardButton.isHidden = true
+    
+    progressCircle.isHidden = true
+    
+    imageConstrains?.left.constant = Const.Size.DefaultPadding
+    
+    switch state {
+      case .mini:
+        if image == nil { imageConstrains?.left.constant = 0}
+        self.layer.cornerRadius = 5.0
+        imageView.contentMode = .scaleAspectFill
+        imageConstrains?.top.constant = miniPadding
+        imageConstrains?.left.constant = miniPadding
+        imageConstrains?.bottom.constant = -miniPadding
+        imageConstrains?.top.isActive = true
+        imageConstrains?.left.isActive = true
+        imageConstrains?.bottom.isActive = true
+        
+        titleLabel.numberOfLines = 1
+        authorLabel.numberOfLines = 1
+        
+        titleLabel.boldContentFont(size: 13)
+        authorLabel.contentFont(size: 12)
+        
+        authorLabelBottomConstraint_Mini?.isActive = true
+        closeButtonLeftConstraint_Mini?.isActive = true
+        imageAspectConstraint_Mini?.isActive = true
+        titleLabelLeftConstraint_Mini?.isActive = true
+        titleLabelRightConstraint_Mini?.isActive = true
+        titleLabelTopConstraint_Mini?.isActive = true
+        toggleButtonYConstraint_Mini?.isActive = true
+        heightConstraint?.isActive = true
+        
+        progressCircle.isHidden = false
+        closeButton.isHidden = false
+      case .maxi:
+        imageConstrains?.top.constant = 38.0
+        imageConstrains?.left.constant = padding
+        imageConstrains?.right.constant = -padding
+        imageConstrains?.top.isActive = true
+        imageConstrains?.left.isActive = true
+        imageConstrains?.right.isActive = true
+        
+        authorLabelTopConstraint_Maxi?.isActive = true
+        imageAspectConstraint_Maxi?.isActive = true
+        titleLabelLeftConstraint_Maxi?.isActive = true
+        titleLabelRightConstraint_Maxi?.isActive = true
+        titleLabelTopConstraint_Maxi?.isActive = true
+        toggleButtonBottomConstraint_Maxi?.isActive = true
+        toggleButtonTopConstraint_Maxi?.isActive = true
+        toggleButtonXConstraint_Maxi?.isActive = true
+        
+        titleLabel.numberOfLines = 0
+        authorLabel.numberOfLines = 0
+        
+        titleLabel.boldContentFont()
+        authorLabel.contentFont(size: Const.Size.SmallerFontSize)
+        
+        bgImageView.isHidden = false
+        blurredEffectView.isHidden = false
+        slider.isHidden = false
+        minimizeButton.isHidden = false
+        remainingTimeLabel.isHidden = false
+        elapsedTimeLabel.isHidden = false
+        backButton.isHidden = false
+        forwardButton.isHidden = false
+        self.layer.cornerRadius = 13.0
+        imageView.contentMode = .scaleAspectFit
+      case .tracklist:
+        slider.isHidden = false
+        minimizeButton.isHidden = false
+        self.layer.cornerRadius = 13.0
+    }
+    
+    UIView.animate(withDuration: 0.3) {[weak self] in
+      self?.layoutIfNeeded()
+    }
   }
 }
 

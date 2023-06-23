@@ -59,7 +59,8 @@ class ArticlePlayer: DoesLog {
       
       if aplayer.file != nil {
         userInterface.show()
-        if !wasPaused { aplayer.play() }
+        #warning("UNCOMMENT")
+//        if !wasPaused { aplayer.play() }
         aPlayerPlayed = true
         self.userInterface.slider.value = 0.0
         aplayer.onTimer { [weak self] in
