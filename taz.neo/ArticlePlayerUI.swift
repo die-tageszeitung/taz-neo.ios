@@ -13,6 +13,7 @@ class ArticlePlayerUI: UIView {
   
   var image: UIImage? {
     didSet {
+      bgImageView.image = image
       imageView.image = image
       if image == nil {
         imageAspectConstraint?.isActive = false
@@ -22,7 +23,7 @@ class ArticlePlayerUI: UIView {
       else {
         imageWidthConstraint?.isActive = false
         imageAspectConstraint?.isActive = false
-        imageAspectConstraint = imageView.pinAspect(ratio: 1.0)
+//        imageAspectConstraint = imageView.pinAspect(ratio: 1.0)
         imageLeftConstraint?.constant = Const.Size.DefaultPadding
       }
       UIView.animate(withDuration: 0.3) {[weak self] in
@@ -59,19 +60,30 @@ class ArticlePlayerUI: UIView {
     return v
   }()
   
+  private lazy var bgImageView: UIImageView = UIImageView()
+  private let blurredEffectView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
+  
   lazy var titleLabel: UILabel = {
     let lbl = UILabel()
-    lbl.boldContentFont(size: 13).white()
+    lbl.numberOfLines = 0
+    lbl.boldContentFont().white()
     lbl.onTapping(closure: { [weak self] _ in self?.maximize() })
     return lbl
   }()
   
   lazy var authorLabel: UILabel = {
     let lbl = UILabel()
-    lbl.contentFont(size: 12).white()
+    lbl.contentFont(size: Const.Size.SmallerFontSize).white()
+    lbl.numberOfLines = 0
     lbl.onTapping(closure: { [weak self] _ in self?.maximize() })
     return lbl
   }()
+  
+  lazy var elapsedTimeLabel: UILabel
+  = UILabel().contentFont(size: 9.0).white()
+  
+  lazy var remainingTimeLabel: UILabel
+  = UILabel().contentFont(size: 9.0).white()
   
   lazy var closeButton: Button<ImageView> = {
     let btn = Button<ImageView>()
@@ -98,7 +110,7 @@ class ArticlePlayerUI: UIView {
   lazy var minimizeButton: Button<ImageView> = {
     let btn = Button<ImageView>()
     btn.onPress { [weak self] _ in self?.minimize() }
-    btn.pinSize(CGSize(width: 35, height: 35))
+    btn.pinSize(CGSize(width: 38, height: 38))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
     btn.buttonView.symbol = "chevron.down"
@@ -181,6 +193,7 @@ class ArticlePlayerUI: UIView {
   }
   
   func setup2(){
+    self.addSubview(bgImageView)
     self.addSubview(imageView)
     self.addSubview(titleLabel)
     self.addSubview(authorLabel)
@@ -195,7 +208,9 @@ class ArticlePlayerUI: UIView {
     
     self.layer.cornerRadius = 5.0 //max: 13.0
     
-    let cSet = pin(imageView, to: self, dist: 10.0, exclude: .right)
+    pin(bgImageView, to: imageView)
+    
+    let cSet = pin(imageView, to: self, dist: Const.Size.DefaultPadding, exclude: .right)
     imageLeftConstraint = cSet.left
     
     imageWidthConstraint = imageView.pinWidth(1)
@@ -207,8 +222,8 @@ class ArticlePlayerUI: UIView {
     pin(titleLabel.top, to: imageView.top, dist: -1.0)
     pin(authorLabel.bottom, to: imageView.bottom)
     
-    pin(titleLabel.left, to: imageView.right, dist: 10.0)
-    pin(authorLabel.left, to: imageView.right, dist: 10.0)
+    pin(titleLabel.left, to: imageView.right, dist: Const.Size.DefaultPadding)
+    pin(authorLabel.left, to: imageView.right, dist: Const.Size.DefaultPadding)
     
     pin(closeButton, to: self, dist: 14.0, exclude: .left)
     closeButton.pinAspect(ratio: 1.0)
@@ -244,12 +259,16 @@ class ArticlePlayerUI: UIView {
   }
   
   func setup(){
+    self.addSubview(bgImageView)
+    self.addSubview(blurredEffectView)
     self.addSubview(imageView)
     self.addSubview(titleLabel)
     self.addSubview(authorLabel)
     self.addSubview(closeButton)
     self.addSubview(minimizeButton)
     self.addSubview(slider)
+    self.addSubview(remainingTimeLabel)
+    self.addSubview(elapsedTimeLabel)
     self.addSubview(imageView)
     self.addSubview(toggleButton)
     self.addSubview(backButton)
@@ -257,32 +276,49 @@ class ArticlePlayerUI: UIView {
     
     self.layer.cornerRadius = 13.0
     
-    pin(minimizeButton.top, to: self.top, dist: 10.0)
-    pin(minimizeButton.right, to: self.right, dist: -10.0)
+    let padding = Const.Size.DefaultPadding
     
-    pin(imageView.left, to: self.left, dist: 10.0)
-    pin(imageView.right, to: self.right, dist: -10.0)
-    pin(imageView.top, to: minimizeButton.bottom, dist: 10.0)
+    pin(minimizeButton.top, to: self.top, dist: 1.0)
+    pin(minimizeButton.right, to: self.right, dist: -padding + 8.0)
+    
+    pin(imageView.left, to: self.left, dist: padding)
+    pin(imageView.right, to: self.right, dist: -padding)
+    pin(imageView.top, to: minimizeButton.bottom, dist: 1.0)
 
     //Aspect and hight is critical e.g. tv tower vs panorama
-    imageView.pinAspect(ratio: 0.75)
+    imageView.pinAspect(ratio: 1.5, pinWidth: false)
     imageView.contentMode = .scaleAspectFit
+    bgImageView.contentMode = .scaleToFill
     
-    pin(titleLabel.left, to: self.left, dist: 10.0)
-    pin(titleLabel.right, to: self.right, dist: -10.0)
-    pin(titleLabel.top, to: imageView.bottom, dist: 10.0)
+    pin(bgImageView, to: imageView)
+    pin(blurredEffectView, to: imageView)
+    
+    pin(titleLabel.left, to: self.left, dist: padding)
+    pin(titleLabel.right, to: self.right, dist: -padding)
+    pin(titleLabel.top, to: imageView.bottom, dist: padding)
 
-    pin(authorLabel.left, to: self.left, dist: 10.0)
-    pin(authorLabel.right, to: self.right, dist: -10.0)
-    pin(authorLabel.top, to: titleLabel.bottom, dist: 10.0)
+    pin(authorLabel.left, to: self.left, dist: padding)
+    pin(authorLabel.right, to: self.right, dist: -padding)
+    pin(authorLabel.top, to: titleLabel.bottom, dist: 2.0)
     
-    pin(slider.left, to: self.left, dist: 10.0)
-    pin(slider.right, to: self.right, dist: -10.0)
-    pin(slider.top, to: authorLabel.bottom, dist: 10.0)
+    pin(slider.left, to: self.left, dist: padding)
+    pin(slider.right, to: self.right, dist: -padding)
+    pin(slider.top, to: authorLabel.bottom, dist: padding)
+    
+    pin(elapsedTimeLabel.top, to: slider.bottom, dist: 4.0)
+    pin(remainingTimeLabel.top, to: slider.bottom, dist: 4.0)
+    pin(elapsedTimeLabel.left, to: self.left, dist: padding)
+    pin(remainingTimeLabel.right, to: self.right, dist: -padding)
+    pin(remainingTimeLabel.left, to: elapsedTimeLabel.right, dist: padding, priority: .defaultLow)
+    
+    remainingTimeLabel.textAlignment = .right
+    
+    elapsedTimeLabel.text = "2:30"
+    remainingTimeLabel.text = "-2:30"
     
     toggleButton.centerX()
-    pin(toggleButton.top, to: slider.bottom, dist: 10.0)
-    pin(toggleButton.bottom, to: self.bottom, dist: -10.0)
+    pin(toggleButton.top, to: slider.bottom, dist: padding + 5.0)
+    pin(toggleButton.bottom, to: self.bottom, dist: -padding)
 
     pin(backButton.right, to: toggleButton.left, dist: -30.0)
     pin(forwardButton.left, to: toggleButton.right, dist: 30.0)
