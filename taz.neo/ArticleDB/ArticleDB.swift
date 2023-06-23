@@ -1614,8 +1614,17 @@ public final class StoredIssue: Issue, StoredObject {
       }
     }
   }
+  public var safeDate: Date? { pr.date }
   public var date: Date {
     get { return pr.date! }
+    ///In case of multiple crashes in different situations may use the following or refactor all to use optional date
+    ///crash seeams to appeared on DemoIssue > FullIssue after login, also after app-restart in new home
+    /*
+     get {
+      if let d = pr.date { return d }
+      error("Prevent Crash Bug!")
+      return Date(timeIntervalSince1970: 0)
+    }*/
     set { pr.date = newValue }
   }
   public var validityDate: Date? {
