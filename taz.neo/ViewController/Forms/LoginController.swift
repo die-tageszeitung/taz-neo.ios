@@ -84,7 +84,9 @@ class LoginController: FormsController {
                                   auth: auth))
   }
   func handleWhereIsTheAboId() {
-    Alert.message(title:"", message:Localized("fragment_login_help"))
+    let faqAction = self.ui.openFaqAction()
+    Alert.message(title:"",
+                  message:Localized("fragment_login_help"), additionalActions: [faqAction])
   }
   
   // MARK: queryAuthToken

@@ -62,14 +62,8 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     self.tabBar.isTranslucent = false
     self.tabBar.tintColor = .white
     
-    var home:UIViewController
-    if false {
-      home = IssueVC(feederContext: feederContext)
-    }
-    else {
-      let service = IssueOverviewService(feederContext: feederContext)
-      home = HomeTVC(service: service, feederContext: feederContext)
-    }
+    let service = IssueOverviewService(feederContext: feederContext)
+    let home = HomeTVC(service: service, feederContext: feederContext)
     home.title = "Home"
     home.tabBarItem.image = UIImage(named: "home")
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
@@ -130,11 +124,7 @@ extension MainTabVC {
     let selectedNc = selectedViewController as? UINavigationController
     var reloadTarget: ReloadAfterAuthChanged?
     
-    if let home = selectedNc?.viewControllers.first as? IssueVC,
-       selectedNc?.topViewController != home {
-      reloadTarget = home
-    }
-    else if let home = selectedNc?.viewControllers.first as? HomeTVC,
+    if let home = selectedNc?.viewControllers.first as? HomeTVC,
        selectedNc?.topViewController != home {
       reloadTarget = home
     }
@@ -190,17 +180,12 @@ extension MainTabVC : UITabBarControllerDelegate {
     if tabBarController.selectedViewController != viewController { return true }
     
     if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
-       let issueVC = firstVc as? IssueVcWithBottomTiles //IssueVC also works
-    {
-      issueVC.onHome()
-    }
-    else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
        let home = firstVc as? HomeTVC
     {
       home.onHome()
     }
     else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
-       let searchController = firstVc as? SearchController //IssueVC also works
+       let searchController = firstVc as? SearchController
     {
       _ = searchController.restoreInitialState()
     }

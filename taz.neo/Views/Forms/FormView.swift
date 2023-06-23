@@ -102,7 +102,7 @@ public class FormView: UIView {
 extension FormView {
   func openFaqAction() -> UIAlertAction {
     return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
-      guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
+      guard let url = Const.Urls.faqUrl else { return }
       UIApplication.shared.open(url, options: [:], completionHandler: nil)
     }
   }

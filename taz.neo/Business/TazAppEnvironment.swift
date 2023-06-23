@@ -169,9 +169,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     logSystemEvents()
     let now = UsTime.now
     self.showAnimations = (nStarted < 2) || (now.sec - lastStarted.sec) > oneWeek
-    IssueVC.showAnimations = self.showAnimations
     SectionVC.showAnimations = self.showAnimations
-    ContentTableVC.showAnimations = self.showAnimations
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
     if !dataPolicyAccepted {
@@ -632,7 +630,7 @@ extension TazAppEnvironment {
   func doServerSwitch(to shortcutServer: Shortcuts) {
     let oldRoot =  self.rootViewController
     
-    let intermediateVc = StartupVc()
+    let intermediateVc = StartupVC()
     intermediateVc.text = "Bitte warten!\nWechsle zu:\n\(shortcutServer.title)\nDie App wird gleich beendet und muss manuell neu gestartet werden!"
     self.rootViewController = intermediateVc
     
@@ -658,7 +656,6 @@ extension TazAppEnvironment {
       }
       Defaults.currentServer = shortcutServer
       onMainAfter(3) {
-        /// Too many handlers deinit on IssueVC did not work, recives issueOverview and more and crashes
         exit(0)
 //        self?.setup()
       }
@@ -783,36 +780,5 @@ enum Shortcuts{
                                      localizedSubtitle: active ? "aktiv" : nil,
                                      icon: active ? UIApplicationShortcutIcon(type: .confirmation) : nil)
     }
-  }
-}
-
-
-class StartupVc : UIViewController {
-  public var text: String = "Starte..." {
-    didSet {
-      label.text = text
-    }
-  }
-  
-  let label = UILabel()
-  
-  override func viewDidLoad() {
-    label.numberOfLines = -1
-    label.text = text
-    label.contentFont().center()
-    label.textColor = .white
-    
-    let ai = UIActivityIndicatorView()
-    self.view.addSubview(label)
-    self.view.addSubview(ai)
-    
-    pin(label.left, to: self.view.leftGuide(isMargin: true), dist: 10)
-    pin(label.right, to: self.view.rightGuide(isMargin: true), dist: 10)
-    label.centerY()
-    
-    ai.centerX()
-    pin(label.top, to: ai.bottom, dist: 10)
-    
-    ai.startAnimating()
   }
 }

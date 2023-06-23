@@ -347,7 +347,7 @@ class UserInterface: UIView {
       self?.closeClosure?()
     }
     btn.activeColor = .white
-    btn.color = Const.Colors.iconButtonInactive
+    btn.color = Const.Colors.appIconGrey
     btn.buttonView.symbol = "xmark"
     return btn
   }()
@@ -367,7 +367,7 @@ class UserInterface: UIView {
     btn.onPress { [weak self] _ in self?.minimize() }
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
-    btn.color = Const.Colors.iconButtonInactive
+    btn.color = Const.Colors.appIconGrey
     btn.buttonView.symbol = "chevron.down"
     return btn
   }()
@@ -377,7 +377,7 @@ class UserInterface: UIView {
     btn.onPress { [weak self] _ in self?.toggleClosure?() }
     btn.pinSize(CGSize(width: 36, height: 36))
     btn.activeColor = .white
-    btn.color = Const.Colors.iconButtonInactive
+    btn.color = Const.Colors.appIconGrey
     btn.buttonView.symbol = "pause.fill"
     return btn
   }()
@@ -393,7 +393,7 @@ class UserInterface: UIView {
     btn.onPress { [weak self] _ in self?.backClosure?() }
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
-    btn.color = Const.Colors.iconButtonInactive
+    btn.color = Const.Colors.appIconGrey
     btn.buttonView.symbol = "backward.fill"
     //btn.buttonView.symbol = "gobackward.15"
     return btn
@@ -417,7 +417,7 @@ class UserInterface: UIView {
     btn.onPress { [weak self] _ in self?.forwardClosure?() }
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
-    btn.color = Const.Colors.iconButtonInactive
+    btn.color = Const.Colors.appIconGrey
     btn.buttonView.symbol = "forward.fill"
     //btn.buttonView.symbol = "goforward.15"
     return btn

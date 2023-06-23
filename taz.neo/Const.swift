@@ -11,6 +11,19 @@ import NorthLib
 /// Some Constants
 public struct Const {
   
+  struct Urls {
+    ///former
+    //static let faqUrl = URL(string: "https://blogs.taz.de/app-faq/")
+    ///new foreward url's
+    ///Source Mail Ralf 3.5.23
+    /// dl.taz.de/faq && https://dl.monde-diplomatique.de/faq
+    static let faqUrl = tazFaqUrl
+    static let tazFaqUrl
+    = URL(string: "https://dl.taz.de/faq")
+    static let lmdFaqUrl
+    = URL(string: "https://dl.monde-diplomatique.de/faq")
+  }
+  
   /// Filenames
   struct Filename {
     /// Some resource filenames
@@ -58,9 +71,8 @@ public struct Const {
     static let darkSeparator: UIColor = UIColor.rgb(0x545458)
     static let darkPrimaryText: UIColor =  UIColor.rgb(0xffffff)
     static let darkSecondaryText: UIColor = UIColor.rgb(0xebebf5)
-    static let appIconGrey: UIColor = darkSecondaryText //UIColor.rgb(0x9c9c9c)
-    static let iconButtonInactive: UIColor = UIColor.rgb(0x9c9c9c)
-    static let iconButtonActive: UIColor = appIconGrey
+    static let appIconGrey: UIColor = UIColor.rgb(0x9c9c9c)
+    static let appIconGreyActive: UIColor = darkSecondaryText
     
     static let foundTextHighlight: UIColor = UIColor.rgb(0xffff88)
     static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)

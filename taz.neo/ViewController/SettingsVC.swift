@@ -49,6 +49,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
   
+  @Default("doubleTapToZoomPdf")
+  public var doubleTapToZoomPdf: Bool
+  
   var initialTextNotificationSetting: Bool?
   
   var data:TableData = TableData(sectionContent: [])
@@ -186,10 +189,15 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var textSizeSettingsCell: XSettingsCell
   = XSettingsCell(text: "Textgröße (Inhalte)", accessoryView: TextSizeSetting())
   lazy var articleFromPdfCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Im Pdf Artikelansicht",
-                  detailText: "Artikelansicht ein-/ausschalten",
+  = XSettingsCell(toggleWithText: "Einfacher Tap",
+                  detailText: "öffnen der mobil optimierten Artikelansicht",
                   initialValue: articleFromPdf,
                   onChange: {[weak self] newValue in self?.articleFromPdf = newValue })
+  lazy var doubleTapToZoomPdfCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Doppel Tap",
+                  detailText: "Zoom in PDF",
+                  initialValue: doubleTapToZoomPdf,
+                  onChange: {[weak self] newValue in self?.doubleTapToZoomPdf = newValue })
   lazy var darkmodeSettingsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nachtmodus",
                   initialValue: Defaults.darkMode,
@@ -296,6 +304,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     $articleFromPdf.onChange{[weak self] _ in
       guard let self = self else { return }
       (self.articleFromPdfCell.customAccessoryView as? UISwitch)?.isOn = self.articleFromPdf
+    }
+    $doubleTapToZoomPdf.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.doubleTapToZoomPdfCell.customAccessoryView as? UISwitch)?.isOn = self.doubleTapToZoomPdf
     }
   }
   
@@ -665,8 +677,13 @@ extension SettingsVC {
       ("darstellung", false,
        [
         textSizeSettingsCell,
-        articleFromPdfCell,
         darkmodeSettingsCell
+       ]
+      ),
+      ("steuerung in der Zeitungsansicht", false,
+       [
+        articleFromPdfCell,
+        doubleTapToZoomPdfCell
        ]
       ),
       ("hilfe", false,
@@ -873,7 +890,7 @@ extension SettingsVC {
   }
   
   func openFaq(){
-    guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
+    guard let url = Const.Urls.faqUrl else { return }
     UIApplication.shared.open(url, options: [:], completionHandler: nil)
   }
   
@@ -1201,51 +1218,6 @@ class CustomHStack: UIStackView {
   }
   
   func setup(){}
-}
-
-// MARK: -
-class SimpleHeaderView: UIView,  UIStyleChangeDelegate{
-  
-  private let titleLabel = Label().titleFont(size: Const.Size.TitleFontSize)
-  private let line = DottedLineView()
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    applyStyles()
-  }
-  
-  private func setup() {
-    self.addSubview(titleLabel)
-    self.addSubview(line)
-    
-    pin(titleLabel.top, to: self.topGuide(), dist: 15)
-    
-    pin(titleLabel.left, to: self.left, dist: Const.ASize.DefaultPadding)
-    pin(titleLabel.right, to: self.right, dist: -Const.ASize.DefaultPadding)
-    
-    pin(line, to: self, dist: Const.ASize.DefaultPadding,exclude: .top)
-    line.pinHeight(Const.Size.DottedLineHeight)
-    pin(line.top, to: titleLabel.bottom, dist: Const.Size.TinyPadding)
-    pinWidth(UIWindow.size.width)
-  }
-  
-  public func applyStyles() {
-    self.backgroundColor = .clear
-    titleLabel.textColor = Const.SetColor.HText.color
-    line.fillColor = Const.SetColor.HText.color
-    line.strokeColor = Const.SetColor.HText.color
-    line.layoutSubviews()
-  }
-  
-  init(_ title: String) {
-    titleLabel.text = title
-    super.init(frame: .zero)
-    setup()
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
 }
 
 // MARK: -

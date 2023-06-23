@@ -99,7 +99,8 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     
     Notification.receive("issueProgress", closure: {   [weak self] notif in
       guard let self = self else { return }
-      if (notif.object as? Issue)?.date != self.issue?.date { return }
+      guard let safeDate = self.issue?.safeDate else { return }
+      if (notif.object as? Issue)?.date != safeDate { return }
       if let (loaded,total) = notif.content as? (Int64,Int64) {
         let percent = Float(loaded)/Float(total)
         if percent > 0.05 {
