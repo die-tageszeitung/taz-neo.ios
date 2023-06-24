@@ -140,7 +140,7 @@ class ArticlePlayerUI: UIView {
     
     btn.layer.addSublayer(progressCircle)
     progressCircle.color = Const.Colors.appIconGreyActive
-    progressCircle.hideStopIcon = true
+    progressCircle.isDownloadButtonItem = false
     progressCircle.frame = CGRect(x: -3, y: -3, width: 36, height: 36)
     return btn
   }()
