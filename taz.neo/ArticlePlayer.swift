@@ -256,10 +256,9 @@ class ArticlePlayer: DoesLog {
                                       isAutomatically: false)
     }
     var arts:[Article] = issue.allArticles
-    if let startFromArticle = startFromArticle {
-      arts = Array(arts.drop { art in
-        art.isEqualTo(otherArticle: startFromArticle)
-      })
+    if let idx = issue.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: startFromArticle!) }),
+    idx < arts.count {
+      arts = Array(arts[idx...])
     }
     arts.removeAll{ $0.audio?.fileName == nil }
     
