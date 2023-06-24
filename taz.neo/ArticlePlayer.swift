@@ -31,7 +31,9 @@ class ArticlePlayer: DoesLog {
   var lastArticles: [Article] = [] {
     didSet {
       if aPlayerPlayed == false { return }
-      commandCenter.previousTrackCommand.isEnabled = lastArticles.count > 0
+      if lastArticles.isEmpty { return }
+      commandCenter.previousTrackCommand.isEnabled = true
+      userInterface.backButton.isEnabled = true
     }
   }
   var currentArticle: Article? {
@@ -62,6 +64,7 @@ class ArticlePlayer: DoesLog {
       
       if aplayer.file != nil {
         userInterface.show()
+        _ = commandCenter//setup if needed
         if !wasPaused { aplayer.play() }
         aPlayerPlayed = true
         self.userInterface.slider.value = 0.0
@@ -77,6 +80,10 @@ class ArticlePlayer: DoesLog {
       guard let item = self?.aplayer.currentItem else { return }
       self?.userInterface.totalSeconds = item.asset.duration.seconds
       self?.userInterface.currentSeconds = item.currentTime().seconds
+      
+      if self?.userInterface.currentSeconds ?? 0.0 > 5.0 {
+        self?.commandCenter.previousTrackCommand.isEnabled = true
+      }
     }
     aplayer.onEnd { [weak self] err in
       self?._onEnd?(err)
@@ -112,28 +119,17 @@ class ArticlePlayer: DoesLog {
     let cc = MPRemoteCommandCenter.shared()
     cc.previousTrackCommand.removeTarget(nil)
     cc.nextTrackCommand.removeTarget(nil)
-    cc.pauseCommand.removeTarget(nil)
-    cc.playCommand.removeTarget(nil)
-    cc.changePlaybackPositionCommand.removeTarget(nil)
-    
-    cc.pauseCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      print("pause")
-      return .success
-    }
     
     cc.seekForwardCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      print("seekForwardCommand at \(self?.aplayer.currentTime)")
+      self?.log("seekForwardCommand at \(self?.aplayer.currentTime)")
       return .success
     }
     
     cc.seekBackwardCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      print("seekBackwardCommand at \(self?.aplayer.currentTime)")
+      self?.log("seekBackwardCommand at \(self?.aplayer.currentTime)")
       return .success
     }
-    cc.playCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      print("PLAY")
-      return .success
-    }
+
     cc.previousTrackCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
       self?.playPrev()
       return .success
@@ -142,14 +138,7 @@ class ArticlePlayer: DoesLog {
       self?.playNext()
       return .success
     }
-    cc.changePlaybackPositionCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      let pos = (event as! MPChangePlaybackPositionCommandEvent).positionTime
-      self?.aplayer.currentTime = CMTime(seconds: pos, preferredTimescale: 600)
-      return .success
-    }
     
-    cc.playCommand.isEnabled = true
-    cc.pauseCommand.isEnabled = true
     /**
      cc.skipBackwardCommand.isEnabled = false
      cc.skipForwardCommand.isEnabled = false
@@ -235,6 +224,8 @@ class ArticlePlayer: DoesLog {
     lastArticles = []
     aplayer.close()
     currentArticle = nil
+    commandCenter.previousTrackCommand.isEnabled = false
+    commandCenter.nextTrackCommand.isEnabled = false
   }
   
   public func play(issue:StoredIssue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
