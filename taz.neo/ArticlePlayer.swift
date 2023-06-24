@@ -256,7 +256,8 @@ class ArticlePlayer: DoesLog {
                                       isAutomatically: false)
     }
     var arts:[Article] = issue.allArticles
-    if let idx = issue.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: startFromArticle!) }),
+    if let startFromArticle = startFromArticle,
+      let idx = issue.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: startFromArticle) }),
     idx < arts.count {
       arts = Array(arts[idx...])
     }
