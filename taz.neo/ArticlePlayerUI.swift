@@ -12,11 +12,7 @@ import NorthLib
 enum ArticlePlayerUIStates { case mini, maxi, tracklist}
 
 class ArticlePlayerUI: UIView {
-    
-  override func didMoveToSuperview() {
-    super.didMoveToSuperview()
-  }
-  
+      
   var acticeTargetView: UIView? {
     didSet {
       if self.superview == nil { return }
@@ -27,7 +23,6 @@ class ArticlePlayerUI: UIView {
       } else {
         addAndShow(animated: true)
       }
-      
     }
   }
     
