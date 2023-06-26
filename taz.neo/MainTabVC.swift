@@ -69,7 +69,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let homeNc = NavigationController(rootViewController: home)
-    homeNc.delegate = self
     homeNc.onPopViewController(closure: popViewControllerClosure)
     homeNc.isNavigationBarHidden = true
     
@@ -86,7 +85,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let searchNc = NavigationController(rootViewController: search)
-    searchNc.delegate = self
     searchNc.onPopViewController(closure: popViewControllerClosure)
     searchNc.isNavigationBarHidden = true
     
@@ -206,21 +204,4 @@ extension MainTabVC : UITabBarControllerDelegate {
 
 public protocol ReloadAfterAuthChanged {
   func reloadOpened()
-}
-
-extension MainTabVC: UINavigationControllerDelegate {
-  func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
-    ArticlePlayer.singleton.acticeTargetView
-        = (viewController as? PlayerAnchorProvider)?.acticeTargetView
-  }
-}
-
-protocol PlayerAnchorProvider where Self: UIViewController {
-  var acticeTargetView: UIView? { get }
-}
-
-extension PlayerAnchorProvider {
-  var offset: CGFloat{
-    return 10.0
-   }
 }

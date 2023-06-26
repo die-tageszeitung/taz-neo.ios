@@ -12,15 +12,7 @@ import NorthLib
 enum ArticlePlayerUIStates { case mini, maxi, tracklist}
 
 class ArticlePlayerUI: UIView {
-  
-  override func willMove(toSuperview newSuperview: UIView?) {
-    super.willMove(toSuperview: newSuperview)
-    if newSuperview == nil {
-      bottomConstraint?.constant += 100
-      self.superview?.layoutIfNeeded()
-    }
-  }
-  
+    
   override func didMoveToSuperview() {
     super.didMoveToSuperview()
   }
@@ -28,23 +20,23 @@ class ArticlePlayerUI: UIView {
   var acticeTargetView: UIView? {
     didSet {
       if self.superview == nil { return }
-      addAndShow(animated: true, oldValue: oldValue)
+      if acticeTargetView == oldValue { return }
+      if acticeTargetView == nil {
+        self.removeFromSuperview()
+        onMainAfter {[weak self] in self?.addAndShow(animated: true) }
+      } else {
+        addAndShow(animated: true)
+      }
+      
     }
   }
-  
+    
   var bottomConstraint: NSLayoutConstraint?
   
-  private func addAndShow(animated:Bool, oldValue: UIView? = nil){
+  private func addAndShow(animated:Bool){
     guard let targetSv
             = acticeTargetView?.superview
             ?? UIWindow.keyWindow else { return }
-
-    if targetSv == oldValue { return }
-    
-    bottomConstraint?.constant += 100
-    bottomConstraint?.isActive = false
-    self.superview?.layoutIfNeeded()
-    
     self.removeFromSuperview()
     if let acticeTargetView = acticeTargetView {
       targetSv.insertSubview(self, belowSubview: acticeTargetView)
@@ -71,8 +63,7 @@ class ArticlePlayerUI: UIView {
     acticeTargetView
     = (((TazAppEnvironment.sharedInstance.rootViewController as? MainTabVC)?
       .selectedViewController as? UINavigationController)?
-      .visibleViewController as? PlayerAnchorProvider)?
-      .acticeTargetView 
+      .visibleViewController as? ContentVC)?.toolBar
     addAndShow(animated: false)
     updateUI()
   }
