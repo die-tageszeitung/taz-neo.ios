@@ -103,21 +103,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     setNeedsStatusBarAppearanceUpdate()
   }
   
-  override var viewControllers: [UIViewController]? {
-    didSet {
-      print("qqq: tab controller set")
-    }
-  }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    print("qqq: viewDidAppear tab controller set")
-  }
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    print("qqq: viewWillAppear tab controller set")
-  }
-  
   override var preferredStatusBarStyle: UIStatusBarStyle {
     return Defaults.darkMode ?  .lightContent : .default
   }
@@ -223,47 +208,15 @@ public protocol ReloadAfterAuthChanged {
   func reloadOpened()
 }
 
-//class TazNavigationController: NavigationController{
-//  override var viewControllers: [UIViewController]{
-//    didSet {
-//      print("qqq: TazNavigationController viewControllers tab controller set")
-//    }
-//  }
-//
-//  override func pushViewController(_ viewController: UIViewController, animated: Bool) {
-//    super.pushViewController(viewController, animated: animated)
-//    print("qqq: TazNavigationController pushViewController")
-//  }
-//
-//  override func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)? = nil) {
-//    super.present(viewControllerToPresent, animated: flag, completion: completion)
-//    print("qqq: TazNavigationController viewControllerToPresent")
-//
-//  }
-//
-//  override func viewDidAppear(_ animated: Bool) {
-//    super.viewDidAppear(animated)
-//    print("qqq: TazNavigationController viewDidAppear")
-//  }
-//
-//  override func viewWillAppear(_ animated: Bool) {
-//    super.viewWillAppear(animated)
-//    print("qqq: TazNavigationController viewWillAppear")
-//  }
-//
-//}
-
 extension MainTabVC: UINavigationControllerDelegate {
   func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
-    print("qqq: NavigationController willShow \(viewController)")
-    ArticlePlayer.singleton.bottomAnchor
-        = (viewController as? PlayerAnchorProvider)?.bottomAnchor
+    ArticlePlayer.singleton.acticeTargetView
+        = (viewController as? PlayerAnchorProvider)?.acticeTargetView
   }
 }
 
 protocol PlayerAnchorProvider where Self: UIViewController {
-  var bottomAnchor: LayoutAnchorY { get }
-  var offset: CGFloat { get }
+  var acticeTargetView: UIView? { get }
 }
 
 extension PlayerAnchorProvider {

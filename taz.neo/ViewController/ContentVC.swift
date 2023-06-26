@@ -773,6 +773,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 }
 
 extension ContentVC: PlayerAnchorProvider {
+  var acticeTargetView: UIView? {
+    toolBar
+  }
+  
   var bottomAnchor: LayoutAnchorY {
     return toolBar.top
    }

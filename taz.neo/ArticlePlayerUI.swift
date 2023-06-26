@@ -13,24 +13,68 @@ enum ArticlePlayerUIStates { case mini, maxi, tracklist}
 
 class ArticlePlayerUI: UIView {
   
-  var targetBottomAnchor: LayoutAnchorY? {
-    didSet {
-      guard self.superview != nil else { return }
-      
-      if let oldValue = oldValue {
-        self.bottom.anchor.constraint(equalTo: oldValue.anchor,
-                                      constant: 10).isActive = false
-      }
-      guard let targetBottomAnchor = targetBottomAnchor else { return }
-      guard targetBottomAnchor.view.window == self.superview else { return }
-      self.translatesAutoresizingMaskIntoConstraints = false
-      let constr = self.bottom.anchor.constraint(equalTo: targetBottomAnchor.anchor,
-                                    constant: 10)
-      constr.isActive = true
-      UIView.animate(withDuration: 0.5) {[weak self] in
-        self?.superview?.layoutIfNeeded()
-      }
+  override func willMove(toSuperview newSuperview: UIView?) {
+    super.willMove(toSuperview: newSuperview)
+    if newSuperview == nil {
+      bottomConstraint?.constant += 100
+      self.superview?.layoutIfNeeded()
     }
+  }
+  
+  override func didMoveToSuperview() {
+    super.didMoveToSuperview()
+  }
+  
+  var acticeTargetView: UIView? {
+    didSet {
+      if self.superview == nil { return }
+      addAndShow(animated: true, oldValue: oldValue)
+    }
+  }
+  
+  var bottomConstraint: NSLayoutConstraint?
+  
+  private func addAndShow(animated:Bool, oldValue: UIView? = nil){
+    guard let targetSv
+            = acticeTargetView?.superview
+            ?? UIWindow.keyWindow else { return }
+
+    if targetSv == oldValue { return }
+    
+    bottomConstraint?.constant += 100
+    bottomConstraint?.isActive = false
+    self.superview?.layoutIfNeeded()
+    
+    self.removeFromSuperview()
+    if let acticeTargetView = acticeTargetView {
+      targetSv.insertSubview(self, belowSubview: acticeTargetView)
+      bottomConstraint = pin(self.bottom, to: acticeTargetView.top, dist:  -10.0)
+    }
+    else {
+      targetSv.addSubview(self)
+      bottomConstraint = pin(self.bottom, to: targetSv.bottomGuide(), dist:  -60.0)
+    }
+    pin(self.right, to: targetSv.rightGuide(), dist: -Const.Size.DefaultPadding)
+    self.updateWidth(width: targetSv.bounds.size.width)
+    if animated == false  { return }
+    UIView.animate(withDuration: 0.6) {
+      targetSv.layoutIfNeeded()
+    }
+  }
+  
+  func show(){
+    if self.superview != nil {
+      error("already displayed")
+      return
+    }
+    
+    acticeTargetView
+    = (((TazAppEnvironment.sharedInstance.rootViewController as? MainTabVC)?
+      .selectedViewController as? UINavigationController)?
+      .visibleViewController as? PlayerAnchorProvider)?
+      .acticeTargetView 
+    addAndShow(animated: false)
+    updateUI()
   }
   
   var currentSeconds: Double? {
@@ -223,23 +267,6 @@ BULLET LIST BUTTON MISSING
       widthConstraint?.constant = w
     }
   }
-  
-  func show(){
-    if self.superview != nil {
-      error("already displayed")
-      return
-    }
-    guard let window = UIWindow.keyWindow else {
-      error("No Key Window")
-      return
-    }
-    self.updateWidth(width: window.bounds.size.width)
-    window.addSubview(self)
-    pin(self.right, to: window.rightGuide(), dist: -Const.Size.DefaultPadding)
-    pin(self.bottom, to: window.bottomGuide(), dist: -50.0, priority: .defaultHigh)
-    updateUI()
-  }
-  
   
   func minimize(){ state = .mini }
   

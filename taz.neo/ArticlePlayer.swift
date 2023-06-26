@@ -19,8 +19,8 @@ class ArticlePlayer: DoesLog {
   var aplayer: AudioPlayer
   var aPlayerPlayed = false
   
-  var bottomAnchor: LayoutAnchorY? {
-    didSet { userInterface.targetBottomAnchor = bottomAnchor }}
+  var acticeTargetView: UIView? {
+    didSet { userInterface.acticeTargetView = acticeTargetView }}
   
   public func onEnd(closure: ((Error?)->())?) { _onEnd = closure }
   private var _onEnd: ((Error?)->())?
