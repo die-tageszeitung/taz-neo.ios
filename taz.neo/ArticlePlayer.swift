@@ -19,6 +19,9 @@ class ArticlePlayer: DoesLog {
   var aplayer: AudioPlayer
   var aPlayerPlayed = false
   
+  var bottomAnchor: LayoutAnchorY? {
+    didSet { userInterface.targetBottomAnchor = bottomAnchor }}
+  
   public func onEnd(closure: ((Error?)->())?) { _onEnd = closure }
   private var _onEnd: ((Error?)->())?
   
@@ -104,7 +107,7 @@ class ArticlePlayer: DoesLog {
                                    
                                    
   private static var _singleton: ArticlePlayer? = nil
-  private lazy var userInterface: ArticlePlayerUI = {
+  public private(set) lazy var userInterface: ArticlePlayerUI = {
     let v =  ArticlePlayerUI()
     v.onToggle {[weak self] in self?.toggle() }
     v.onClose{[weak self] in self?.close() }

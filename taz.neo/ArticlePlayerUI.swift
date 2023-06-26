@@ -13,6 +13,26 @@ enum ArticlePlayerUIStates { case mini, maxi, tracklist}
 
 class ArticlePlayerUI: UIView {
   
+  var targetBottomAnchor: LayoutAnchorY? {
+    didSet {
+      guard self.superview != nil else { return }
+      
+      if let oldValue = oldValue {
+        self.bottom.anchor.constraint(equalTo: oldValue.anchor,
+                                      constant: 10).isActive = false
+      }
+      guard let targetBottomAnchor = targetBottomAnchor else { return }
+      guard targetBottomAnchor.view.window == self.superview else { return }
+      self.translatesAutoresizingMaskIntoConstraints = false
+      let constr = self.bottom.anchor.constraint(equalTo: targetBottomAnchor.anchor,
+                                    constant: 10)
+      constr.isActive = true
+      UIView.animate(withDuration: 0.5) {[weak self] in
+        self?.superview?.layoutIfNeeded()
+      }
+    }
+  }
+  
   var currentSeconds: Double? {
     didSet {
       if oldValue ?? 0.0 > currentSeconds ?? 0.0 {progressCircle.reset()}
@@ -216,7 +236,7 @@ BULLET LIST BUTTON MISSING
     self.updateWidth(width: window.bounds.size.width)
     window.addSubview(self)
     pin(self.right, to: window.rightGuide(), dist: -Const.Size.DefaultPadding)
-    pin(self.bottom, to: window.bottomGuide(), dist: -60.0)
+    pin(self.bottom, to: window.bottomGuide(), dist: -50.0, priority: .defaultHigh)
     updateUI()
   }
   

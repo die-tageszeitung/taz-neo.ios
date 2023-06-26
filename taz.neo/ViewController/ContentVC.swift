@@ -771,3 +771,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     fatalError("init(coder:) has not been implemented")
   }
 }
+
+extension ContentVC: PlayerAnchorProvider {
+  var bottomAnchor: LayoutAnchorY {
+    return toolBar.top
+   }
+}
