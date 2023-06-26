@@ -19,6 +19,19 @@ class ArticlePlayer: DoesLog {
   var aplayer: AudioPlayer
   var aPlayerPlayed = false
   
+  func updatePlaying(){ isPlaying =  aplayer.isPlaying }
+  
+  var isPlaying: Bool = false {
+    didSet {
+      if oldValue == isPlaying { return }
+      userInterface.isPlaying = isPlaying
+      Notification.send(Const.NotificationNames.audioPlaybackStateChanged,
+                        content: isPlaying,
+                        error: nil,
+                        sender: self)
+    }
+  }
+  
   var acticeTargetView: UIView? {
     didSet { userInterface.acticeTargetView = acticeTargetView }}
   
@@ -71,9 +84,8 @@ class ArticlePlayer: DoesLog {
         if !wasPaused { aplayer.play() }
         aPlayerPlayed = true
         self.userInterface.slider.value = 0.0
-  
       }
-      userInterface.isPlaying = aplayer.isPlaying
+      updatePlaying()
     }
   }
   
@@ -91,6 +103,7 @@ class ArticlePlayer: DoesLog {
     aplayer.onEnd { [weak self] err in
       self?._onEnd?(err)
       self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
+      self?.updatePlaying()
     }
     
     userInterface.slider.addTarget(self,
@@ -107,7 +120,7 @@ class ArticlePlayer: DoesLog {
                                    
                                    
   private static var _singleton: ArticlePlayer? = nil
-  public private(set) lazy var userInterface: ArticlePlayerUI = {
+  private lazy var userInterface: ArticlePlayerUI = {
     let v =  ArticlePlayerUI()
     v.onToggle {[weak self] in self?.toggle() }
     v.onClose{[weak self] in self?.close() }
@@ -198,19 +211,19 @@ class ArticlePlayer: DoesLog {
   /// Pauses the current Article play
   private func pause() {
     aplayer.stop()
-    userInterface.isPlaying = aplayer.isPlaying
+    updatePlaying()
   }
   
   /// Starts the current Article (after pause())
   private func start() {
     aplayer.play()
-    userInterface.isPlaying = aplayer.isPlaying
+    updatePlaying()
   }
   
   /// Toggles start()/pause()
   private func toggle() {
     aplayer.toggle()
-    userInterface.isPlaying = aplayer.isPlaying
+    updatePlaying()
   }
   
   
@@ -249,6 +262,14 @@ class ArticlePlayer: DoesLog {
                                       isPages: false,
                                       isAutomatically: false)
     }
+    playIssue(issue, startFromArticle: startFromArticle, enqueueType: enqueueType)
+  }
+  
+  public func play(issue:BookmarkIssue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
+    playIssue(issue, startFromArticle: startFromArticle, enqueueType: enqueueType)
+  }
+  
+  private func playIssue(_ issue:Issue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
     var arts:[Article] = issue.allArticles
     if let startFromArticle = startFromArticle,
       let idx = issue.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: startFromArticle) }),
@@ -274,6 +295,38 @@ class ArticlePlayer: DoesLog {
 
 extension ArticlePlayer {
   func contextMenu(for issue:StoredIssue) -> UIMenu {
+    ///some of the icons are only available iOS 16+
+    let playImgName = "play.fill"
+    let nextImgName = "text.line.first.and.arrowtriangle.forward"
+    let lastImgName = "text.line.last.and.arrowtriangle.forward"
+    //next and last icons may need to be added to custom assets
+    let playImg = UIImage(name: playImgName) ?? UIImage(named: playImgName)
+    let nextImg = UIImage(name: nextImgName) ?? UIImage(named: nextImgName)
+    let lastImg = UIImage(name: lastImgName) ?? UIImage(named: lastImgName)
+    
+    let playAllNow = UIAction(title: "Wiedergabe",
+                              image: playImg) {[weak self] _ in
+      self?.play(issue: issue, startFromArticle: nil, enqueueType: .replaceCurrent)
+    }
+    let enqueueNext = UIAction(title: "Als nächstes wiedergeben",
+                               image: nextImg){[weak self] _ in
+      self?.play(issue: issue, startFromArticle: nil, enqueueType: .enqueueNext)
+    }
+    
+    let enqueueLast = UIAction(title: "Zuletzt wiedergeben",
+                               image: lastImg) {[weak self] _ in
+      self?.play(issue: issue, startFromArticle: nil, enqueueType: .enqueueNext)
+    }
+    return  UIMenu(title: "",
+                   options: .displayInline,
+                   children:[playAllNow, enqueueNext, enqueueLast])
+    //    without header there is no scrolling
+    //    return  UIMenu(title: "Vorlesefunktion",
+    //                   options: .displayInline,
+    //                   children:[playAllNow, enqueueNext, enqueueLast])
+  }
+  
+  func contextMenu(for issue:BookmarkIssue) -> UIMenu {
     ///some of the icons are only available iOS 16+
     let playImgName = "play.fill"
     let nextImgName = "text.line.first.and.arrowtriangle.forward"

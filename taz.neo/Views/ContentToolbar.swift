@@ -79,9 +79,7 @@ open class ContentToolbar: UIView {
     if self.heightConstraint?.constant == newHeight { return }
     UIView.animate(withDuration: 0.5) { [weak self] in
       self?.heightConstraint?.constant = newHeight
-//      self?.window?.subviews.first?.layoutIfNeeded()
       self?.superview?.layoutIfNeeded()
-      ArticlePlayer.singleton.userInterface.superview?.layoutIfNeeded()
     }
   }
   

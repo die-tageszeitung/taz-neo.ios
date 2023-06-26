@@ -47,11 +47,6 @@ extension IssueCollectionViewActions {
       ccvc.scrollFromLeftToRight = !ccvc.scrollFromLeftToRight
     }
     
-
-
-    
-
-    
     var actions: [UIAction] =  [mainAction, shareAction]
     
     if self is IssueCarouselCVC {

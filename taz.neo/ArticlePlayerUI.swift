@@ -17,6 +17,7 @@ class ArticlePlayerUI: UIView {
     didSet {
       if self.superview == nil { return }
       if acticeTargetView == oldValue { return }
+      minimize()
       if acticeTargetView == nil {
         self.removeFromSuperview()
         onMainAfter {[weak self] in self?.addAndShow(animated: true) }
@@ -33,7 +34,7 @@ class ArticlePlayerUI: UIView {
             = acticeTargetView?.superview
             ?? UIWindow.keyWindow else { return }
     self.removeFromSuperview()
-    if let acticeTargetView = acticeTargetView {
+    if let acticeTargetView = acticeTargetView, targetSv == acticeTargetView.superview {
       targetSv.insertSubview(self, belowSubview: acticeTargetView)
       bottomConstraint = pin(self.bottom, to: acticeTargetView.top, dist:  -10.0)
     }
