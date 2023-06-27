@@ -77,7 +77,7 @@ class ArticlePlayer: DoesLog {
       let img: UIImage? = currentArticle?.image ?? currentArticle?.primaryIssue?.image
       aplayer.addLogo = currentArticle?.image != nil
       aplayer.image = img
-      userInterface.image = img
+      userInterface.image = currentArticle?.image
       
       if aplayer.file != nil {
         userInterface.show()

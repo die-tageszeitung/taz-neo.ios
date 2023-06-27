@@ -28,6 +28,53 @@ class ArticlePlayerUI: UIView {
   }
     
   var bottomConstraint: NSLayoutConstraint?
+  var rightConstraint: NSLayoutConstraint?
+  
+  
+  func updateWidth(doLayout: Bool = true){
+    
+    let noGap = traitCollection.horizontalSizeClass == .compact && state == .maxi
+    
+    let w
+    = noGap
+    ? viewSize.width
+    : min(375, viewSize.width - 2*Const.Size.DefaultPadding)
+    if widthConstraint == nil {
+      widthConstraint = self.pinWidth(w)
+    }
+    else {
+      widthConstraint?.constant = w
+    }
+    
+    rightConstraint?.constant
+    = noGap
+    ? 0
+    : -Const.Size.DefaultPadding
+    if acticeTargetView != nil {
+      ///probably tollbar
+      bottomConstraint?.constant = noGap ? 5.0 : -10//5 to hide round corners
+    }
+    else {
+      //probably tabbar => pinned to window
+      bottomConstraint?.constant = noGap ? 5.0 : -60
+    }
+
+    if doLayout { self.superview?.layoutIfNeeded() }
+  }
+  
+  var viewSize: CGSize = .zero {
+    didSet {
+      if oldValue.width == viewSize.width { return }
+      updateWidth()
+    }
+  }
+  
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    if self.traitCollection.horizontalSizeClass != previousTraitCollection?.horizontalSizeClass {
+      updateWidth()
+    }
+  }
   
   private func addAndShow(animated:Bool){
     guard let targetSv
@@ -42,8 +89,9 @@ class ArticlePlayerUI: UIView {
       targetSv.addSubview(self)
       bottomConstraint = pin(self.bottom, to: targetSv.bottomGuide(), dist:  -60.0)
     }
-    pin(self.right, to: targetSv.rightGuide(), dist: -Const.Size.DefaultPadding)
-    self.updateWidth(width: targetSv.bounds.size.width)
+    rightConstraint = pin(self.right, to: targetSv.rightGuide(), dist: -Const.Size.DefaultPadding)
+    viewSize = targetSv.frame.size
+    self.updateWidth()
     if animated == false  { return }
     UIView.animate(withDuration: 0.6) {
       targetSv.layoutIfNeeded()
@@ -187,7 +235,7 @@ class ArticlePlayerUI: UIView {
     btn.activeColor = .white
     btn.hinset = 0.17
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "pause.fill"
+    btn.buttonView.symbol = "pause"
     
     btn.layer.addSublayer(progressCircle)
     progressCircle.color = Const.Colors.appIconGreyActive
@@ -198,7 +246,7 @@ class ArticlePlayerUI: UIView {
   
   var isPlaying: Bool = false {
     didSet {
-      toggleButton.buttonView.symbol = isPlaying ? "pause.fill" : "play.fill"
+      toggleButton.buttonView.symbol = isPlaying ? "pause" : "play"
     }
   }
   
@@ -214,7 +262,7 @@ BULLET LIST BUTTON MISSING
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "backward.fill"
+    btn.buttonView.symbol = "backward"
     //btn.buttonView.symbol = "gobackward.15"
     return btn
   }()
@@ -238,22 +286,12 @@ BULLET LIST BUTTON MISSING
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "forward.fill"
+    btn.buttonView.symbol = "forward"
     //btn.buttonView.symbol = "goforward.15"
     return btn
   }()
   
   lazy var progressCircle = ProgressCircle()
-  
-  func updateWidth(width:CGFloat){
-    let w = min(350, width - 2*Const.Size.DefaultPadding)
-    if widthConstraint == nil {
-      widthConstraint = self.pinWidth(w)
-    }
-    else {
-      widthConstraint?.constant = w
-    }
-  }
   
   func minimize(){ state = .mini }
   
@@ -384,10 +422,10 @@ BULLET LIST BUTTON MISSING
     
     heightConstraint = self.pinHeight(50)
     heightConstraint?.isActive = false
-    
+
     Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
       guard let newSize = notification.content as? CGSize else { return }
-      self?.updateWidth(width: newSize.width)
+      self?.viewSize = newSize
     }
   }
 
@@ -517,7 +555,7 @@ BULLET LIST BUTTON MISSING
         minimizeButton.isHidden = false
         self.layer.cornerRadius = 13.0
     }
-    
+    updateWidth(doLayout: false)
     UIView.animate(withDuration: 0.3) {[weak self] in
       self?.layoutIfNeeded()
     }
