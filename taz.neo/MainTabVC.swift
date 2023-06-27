@@ -40,6 +40,15 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       self?.authenticationSucceededCheckReload()
     }
     
+    Notification.receive(Const.NotificationNames.searchSelectedText) { [weak self] notif in
+      guard let searchString = notif.content as? String,
+      let searchCtrl
+              = ((self?.viewControllers?.valueAt(2) as? UINavigationController)?
+        .viewControllers.first as? SearchController) else { return }
+      self?.selectedIndex = 2
+      searchCtrl.searchFor(searchString: searchString)
+    }
+    
     Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in
       self?.selectedIndex = 0
       (self?.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)

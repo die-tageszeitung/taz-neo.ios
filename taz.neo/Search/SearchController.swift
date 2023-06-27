@@ -19,6 +19,12 @@ class SearchController: UIViewController {
   
   private var articleVC:SearchResultArticleVc
   
+  func searchFor(searchString: String){
+    header.searchTextField.text = searchString
+    self.searchItem.reset()
+    self.search(false)
+  }
+  
   var searchItem:SearchItem {
     didSet {
       updateArticleVcIfNeeded()

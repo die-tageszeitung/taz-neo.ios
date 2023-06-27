@@ -362,8 +362,14 @@ extension ArticleVC {
       guard let self = self else {return}
       if let e = err { self.log(e.description)}
       //#warning("ToDo: 0.9.4+ Implement Search")
-      if let txt = selectedText { print("You selected: \(txt)")}
-      else { print("no text selection detected")}
+      guard let txt = selectedText as? String, txt.length > 3 else {
+        log("No valid Selection for Search: \(selectedText)")
+        return
+      }
+      Notification.send(Const.NotificationNames.searchSelectedText,
+                        content: txt,
+                        error: nil,
+                        sender: self)
     })
   }
 }
