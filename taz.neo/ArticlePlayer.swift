@@ -69,7 +69,7 @@ class ArticlePlayer: DoesLog {
       if let authors = currentArticle?.authors, !authors.isEmpty {
         var names: [String] = []
         for a in authors { if let n = a.name { names += n } }
-        authorsString = names.joined(separator: ", ")
+        authorsString = "von " + names.joined(separator: ", ")
       }
       aplayer.artist = authorsString
       userInterface.authorLabel.text = authorsString
