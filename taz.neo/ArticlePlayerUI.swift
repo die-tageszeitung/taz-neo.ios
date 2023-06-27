@@ -46,13 +46,17 @@ class ArticlePlayerUI: UIView {
       widthConstraint?.constant = w
     }
     
+    if noGap {
+      self.layer.cornerRadius = 0.0
+    }
+    
     rightConstraint?.constant
     = noGap
     ? 0
     : -Const.Size.DefaultPadding
     if acticeTargetView != nil {
       ///probably tollbar
-      bottomConstraint?.constant = noGap ? 5.0 : -10//5 to hide round corners
+      bottomConstraint?.constant = noGap ? -0.5 : -10
     }
     else {
       //probably tabbar => pinned to window
@@ -200,19 +204,20 @@ class ArticlePlayerUI: UIView {
       self?.removeFromSuperview()
       self?.closeClosure?()
     }
-    btn.pinSize(CGSize(width: 36, height: 36))
+    btn.pinSize(CGSize(width: 38, height: 38))
     btn.hinset = 0.1//20%
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "xmark"
+    btn.buttonView.name = "close"
     return btn
   }()
   
   lazy var slider: UISlider = {
     let slider = UISlider()
-    let thumb = UIImage.circle(diam: 8.0, color: .white)
+    let thumb = UIImage.circle(diam: 12.0, color: .white)
+    let thumbH = UIImage.circle(diam: 12.0, color: .lightGray)
     slider.setThumbImage(thumb, for: .normal)
-    slider.setThumbImage(thumb, for: .highlighted)
+    slider.setThumbImage(thumbH, for: .highlighted)
     slider.minimumTrackTintColor = .white
     return slider
   }()
@@ -233,9 +238,9 @@ class ArticlePlayerUI: UIView {
     btn.onPress { [weak self] _ in self?.toggleClosure?() }
     toggleSizeConstrains = btn.pinSize(CGSize(width: 30, height: 30))
     btn.activeColor = .white
-    btn.hinset = 0.17
+//    btn.hinset = 0.17
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "pause"
+    btn.buttonView.name = "pause"
     
     btn.layer.addSublayer(progressCircle)
     progressCircle.color = Const.Colors.appIconGreyActive
@@ -246,7 +251,7 @@ class ArticlePlayerUI: UIView {
   
   var isPlaying: Bool = false {
     didSet {
-      toggleButton.buttonView.symbol = isPlaying ? "pause" : "play"
+      toggleButton.buttonView.name = isPlaying ? "pause" : "play"
     }
   }
   
@@ -254,7 +259,6 @@ class ArticlePlayerUI: UIView {
 BULLET LIST BUTTON MISSING
    list.bullet   mit 5px padding corner radius ca 5px if list open
    */
-
   
   lazy var backButton: Button<ImageView> = {
     let btn = Button<ImageView>()
@@ -299,6 +303,9 @@ BULLET LIST BUTTON MISSING
   
   var heightConstraint: NSLayoutConstraint?
   var widthConstraint: NSLayoutConstraint?//Only for viewSizeTransition not for state changes!
+
+  var imageSizeConstrains: (width: NSLayoutConstraint,
+                            height: NSLayoutConstraint)?
   
   var imageConstrains: (top: NSLayoutConstraint,
                         bottom: NSLayoutConstraint,
@@ -347,6 +354,9 @@ BULLET LIST BUTTON MISSING
     imageConstrains?.left.isActive = false
     imageConstrains?.right.isActive = false
     imageConstrains?.bottom.isActive = false
+    imageSizeConstrains = imageView.pinSize(CGSize(width: 1, height: 1))
+    imageSizeConstrains?.height.isActive = false
+    imageSizeConstrains?.width.isActive = false
                 
     imageAspectConstraint_Mini = imageView.pinAspect(ratio: 1.0)
     imageAspectConstraint_Mini?.isActive = false
@@ -374,11 +384,11 @@ BULLET LIST BUTTON MISSING
     authorLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
 
     toggleButtonYConstraint_Mini = pin(toggleButton.centerY, to: self.centerY)
-    closeButtonLeftConstraint_Mini = pin(closeButton.left, to: toggleButton.right, dist: 10.0)
+    closeButtonLeftConstraint_Mini = pin(closeButton.left, to: toggleButton.right, dist: 13.0)
     closeButtonLeftConstraint_Mini?.isActive = false
     
     pin(closeButton.centerY, to: toggleButton.centerY)
-    pin(closeButton.right, to: self.right, dist: -10.0)
+    pin(closeButton.right, to: self.right, dist: -8.0)
     
     //Maxi Player Base UI
     pin(minimizeButton.top, to: self.top, dist: 1.0)
@@ -401,9 +411,6 @@ BULLET LIST BUTTON MISSING
     pin(remainingTimeLabel.left, to: elapsedTimeLabel.right, dist: padding, priority: .defaultLow)
     
     remainingTimeLabel.textAlignment = .right
-    
-    elapsedTimeLabel.text = "2:30"
-    remainingTimeLabel.text = "-2:30"
     
     toggleButtonXConstraint_Maxi = toggleButton.centerX()
     toggleButtonXConstraint_Maxi?.isActive = false
@@ -468,6 +475,8 @@ BULLET LIST BUTTON MISSING
     imageConstrains?.left.isActive = false
     imageConstrains?.bottom.isActive = false
     imageConstrains?.right.isActive = false
+    imageSizeConstrains?.height.isActive = false
+    imageSizeConstrains?.width.isActive = false
     
     bgImageView.isHidden = true
     blurredEffectView.isHidden = true
@@ -485,11 +494,17 @@ BULLET LIST BUTTON MISSING
     
     switch state {
       case .mini:
-        if image == nil { imageConstrains?.left.constant = 0}
+        if image == nil {
+          imageConstrains?.left.constant = 0
+          imageSizeConstrains?.width.isActive = true
+        }
+        else {
+          imageConstrains?.left.constant = miniPadding
+          imageAspectConstraint_Mini?.isActive = true
+        }
         self.layer.cornerRadius = 5.0
         imageView.contentMode = .scaleAspectFill
         imageConstrains?.top.constant = miniPadding
-        imageConstrains?.left.constant = miniPadding
         imageConstrains?.bottom.constant = -miniPadding
         imageConstrains?.top.isActive = true
         imageConstrains?.left.isActive = true
@@ -505,7 +520,6 @@ BULLET LIST BUTTON MISSING
         
         authorLabelBottomConstraint_Mini?.isActive = true
         closeButtonLeftConstraint_Mini?.isActive = true
-        imageAspectConstraint_Mini?.isActive = true
         titleLabelLeftConstraint_Mini?.isActive = true
         titleLabelRightConstraint_Mini?.isActive = true
         titleLabelTopConstraint_Mini?.isActive = true
@@ -521,12 +535,18 @@ BULLET LIST BUTTON MISSING
         imageConstrains?.top.isActive = true
         imageConstrains?.left.isActive = true
         imageConstrains?.right.isActive = true
+        if image == nil {
+          imageSizeConstrains?.height.isActive = true
+        } else {
+          imageAspectConstraint_Maxi?.isActive = true
+          bgImageView.isHidden = false
+          blurredEffectView.isHidden = false
+        }
         
-        toggleSizeConstrains?.height.constant = 36
-        toggleSizeConstrains?.width.constant = 36
+        toggleSizeConstrains?.height.constant = 52
+        toggleSizeConstrains?.width.constant = 52
         
         authorLabelTopConstraint_Maxi?.isActive = true
-        imageAspectConstraint_Maxi?.isActive = true
         titleLabelLeftConstraint_Maxi?.isActive = true
         titleLabelRightConstraint_Maxi?.isActive = true
         titleLabelTopConstraint_Maxi?.isActive = true
@@ -540,8 +560,6 @@ BULLET LIST BUTTON MISSING
         titleLabel.boldContentFont()
         authorLabel.contentFont(size: Const.Size.SmallerFontSize)
         
-        bgImageView.isHidden = false
-        blurredEffectView.isHidden = false
         slider.isHidden = false
         minimizeButton.isHidden = false
         remainingTimeLabel.isHidden = false
