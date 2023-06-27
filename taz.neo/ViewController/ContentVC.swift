@@ -649,6 +649,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     writeTazApiCss()
     writeTazApiJs()
     self.view.addSubview(header)
+    self.collectionView?.showsHorizontalScrollIndicator = false
     pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
