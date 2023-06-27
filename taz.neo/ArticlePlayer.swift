@@ -115,9 +115,9 @@ class ArticlePlayer: DoesLog {
   }
   
   @objc private func sliderChanged(sender: Any) {
-    #warning("todo")
-//    aplayer.player?.pause()
-    print("slider changed: \(sender) value\(userInterface.slider.value)")
+    guard let item = self.aplayer.currentItem else { return }
+    let pos:Double = item.asset.duration.seconds * Double(userInterface.slider.value)
+    aplayer.currentTime = CMTime(seconds: pos, preferredTimescale: 600)
   }
                                    
                                    
