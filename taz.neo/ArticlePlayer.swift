@@ -75,6 +75,7 @@ class ArticlePlayer: DoesLog {
       userInterface.authorLabel.text = authorsString
       
       let img: UIImage? = currentArticle?.image ?? currentArticle?.primaryIssue?.image
+      aplayer.addLogo = currentArticle?.image != nil
       aplayer.image = img
       userInterface.image = img
       
@@ -91,6 +92,7 @@ class ArticlePlayer: DoesLog {
   
   private init() {
     aplayer = AudioPlayer()
+    aplayer.logoToAdd = UIImage(named: "AppIcon60x60")
     aplayer.onTimer { [weak self] in
       guard let item = self?.aplayer.currentItem else { return }
       self?.userInterface.totalSeconds = item.asset.duration.seconds
