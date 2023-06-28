@@ -51,6 +51,7 @@ class ArticlePlayer: DoesLog {
       aplayer.title = currentArticle?.title
       userInterface.titleLabel.text = currentArticle?.title
       
+      ///album not shown on iOS 16, Phone in Lock Screen, CommandCenter, CommandCenter Extended Player
       aplayer.album = currentArticle?.sectionTitle
       ?? "taz vom: \(currentArticle?.primaryIssue?.validityDateText(timeZone: GqlFeeder.tz) ?? "-")"
       
@@ -59,7 +60,17 @@ class ArticlePlayer: DoesLog {
       if let authors = currentArticle?.authors, !authors.isEmpty {
         var names: [String] = []
         for a in authors { if let n = a.name { names += n } }
-        authorsString = "von " + names.joined(separator: ", ")
+        authorsString = "von " + names.joined(separator: ", ") + ""
+      }
+      
+      if let i = currentArticle?.primaryIssue {
+        let issueString = "\(i.isWeekend ? "wochentaz" : "taz") vom \(i.date.short)"
+        if authorsString == nil {
+          authorsString = issueString
+        }
+        else {
+          authorsString = "\(authorsString ?? "") (\(issueString)"
+        }
       }
       aplayer.artist = authorsString
       userInterface.authorLabel.text = authorsString
