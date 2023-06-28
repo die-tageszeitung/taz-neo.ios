@@ -35,6 +35,7 @@ extension NewContentTableVC {
   func toggle(section: Int) -> Bool {
     ///Only handle UI Changes if still loaded and ready for reload & changes
     let tv = self.tableView.superview != nil ? tableView : nil
+    tv?.superview?.doLayout()
     let cellCount = issue?.sections?.valueAt(section)?.articles?.count ?? 0
     
     let changedIdx = (0..<cellCount).map { i in
@@ -42,18 +43,27 @@ extension NewContentTableVC {
     }
     
     guard changedIdx.count > 0 else { return false }
-    
+    let visibleRect = CGRect(origin: tv?.contentOffset ?? .zero, size: .zero)
+//    print("visibleRect: \(visibleRect)")
     tv?.beginUpdates()
     
     if let idx = expandedSections.firstIndex(of: section) {
       expandedSections.remove(at: idx)
       tv?.deleteRows(at: changedIdx, with: .top)
       tv?.endUpdates()
+//      tv?.scrollToRow(at: IndexPath(row: NSNotFound, section: section), at: .top, animated: true)
+//      [NSIndexPath indexPathForRow:NSNotFound inSection:section]
+      tv?.scrollRectToVisible(visibleRect, animated: true)
+//      onMain { tv?.scrollRectToVisible(visibleRect, animated: true) }
       return true
     }
     expandedSections.append(section)
     tv?.insertRows(at: changedIdx, with: .bottom)
     tv?.endUpdates()
+//    tv?.scrollRectToVisible(visibleRect, animated: true)
+//    onMain { tv?.scrollRectToVisible(visibleRect, animated: true) }
+
+    tv?.scrollToRow(at: IndexPath(row: 0, section: section), at: .top, animated: true)
     return false
   }
   
@@ -110,13 +120,13 @@ extension NewContentTableVC {
 /// tableHedaer = moment + date
 /// section Header = section title + chevron > or ^
 /// cell as Article Preview (like in serach or bookmarks
-public class NewContentTableVC: UITableViewController {
+public class NewContentTableVC: UIViewController {
   
   fileprivate static let CellIdentifier = "NewContentTableVcCell"
   fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
   fileprivate static let SectionFooterIdentifier = "ContentTableFooterSeperatorView"
   
-  
+  private var tableView = UITableView(frame: .zero, style: .plain)
   ///for SectionVc the highlighted SectionHeader
   private var sectIndex: Int?
   ///for ArticleVC the highlighted Cell
@@ -149,7 +159,7 @@ public class NewContentTableVC: UITableViewController {
     didSet {
       if issue?.date == oldValue?.date { return }
       header.issue = issue
-      tableView.reloadData()
+      if tableView.superview != nil { tableView.reloadData() }
     }
   }
   
@@ -171,7 +181,7 @@ public class NewContentTableVC: UITableViewController {
     let h = NewContentTableVcHeader(frame: CGRect(x: 0,
                                                   y: 0,
                                                   width: Const.Size.ContentSliderMaxWidth,
-                                                  height: 280))
+                                                  height: 260))
     h.bottomLabel.onTapping {[weak self] _ in
       if self?.header.bottomLabel.text == self?.header.closeText {
         self?.header.bottomLabel.text = self?.header.openText
@@ -184,34 +194,19 @@ public class NewContentTableVC: UITableViewController {
     h.imageView.onTapping {[weak self] _ in
       self?.imagePressedClosure?()
     }
-    h.pinHeight(280.0)
+    h.pinHeight(260.0)
     return h
   }()
   
   public override func viewWillLayoutSubviews() {
     super.viewWillLayoutSubviews()
-    setupHeader()
-  }
-  
-  func setupHeader(){
-    if header.superview == nil {
-      self.view.addSubview(header)
-      pin(header, toSafe: self.view, exclude: .bottom).top?.constant = -70
-
-      self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 210, left: 0, bottom: 0, right: 0)
-      ///disable sticky footer seperator
-      let dummyViewHeight = CGFloat(40)
-      self.tableView.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: self.tableView.bounds.size.width, height: dummyViewHeight))
-      self.tableView.contentInset = UIEdgeInsets(top: 210, left: 0, bottom: -dummyViewHeight, right: 0)
-    }
-    self.view.bringSubviewToFront(header)
   }
 }
   
 extension NewContentTableVC: UIStyleChangeDelegate{
   public func applyStyles() {
     self.tableView.backgroundColor = Const.SetColor.HBackground.color
-    self.tableView.reloadData()
+    if tableView.superview != nil { self.tableView.reloadData() }
   }
 }
 
@@ -219,6 +214,9 @@ extension NewContentTableVC: UIStyleChangeDelegate{
 extension NewContentTableVC {
   public override func viewDidLoad() {
     super.viewDidLoad()
+
+    tableView.dataSource = self
+    tableView.delegate = self
     self.tableView.register(NewContentTableVcCell.self,
                             forCellReuseIdentifier: Self.CellIdentifier)
     self.tableView.register(ContentTableHeaderFooterView.self,
@@ -233,10 +231,18 @@ extension NewContentTableVC {
       self.tableView.sectionHeaderTopPadding = 0
     }
     registerForStyleUpdates()
+    
+    self.view.addSubview(header)
+    self.view.addSubview(tableView)
+    
+    pin(header, to: self.view, exclude: .bottom)
+    pin(tableView, toSafe: self.view, exclude: .top)
+    pin(tableView.top, to: header.bottom)
   }
   
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    
     tableView.reloadData()
     if let activeItem = activeItem {
       tableView.scrollToRow(at: activeItem, at: .top, animated: false)
@@ -264,22 +270,22 @@ extension NewContentTableVC {
   }
 }
 
-extension NewContentTableVC {
-  public override func numberOfSections(in tableView: UITableView) -> Int {
+extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
+  public func numberOfSections(in tableView: UITableView) -> Int {
     let imprintCount = issue?.imprint == nil ? 0 : 1
     return (issue?.sections?.count ?? 0) + imprintCount
   }
   
-  public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+  public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     if expandedSections.contains(section) == false { return 0 }
     return issue?.sections?.valueAt(section)?.articles?.count ?? 0
   }
   
-  public override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+  public func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
     return 41.0//WTF Figma says its 45.0, due Footer Seperators, we have nearly 45//in UIMeaurement its 41+2*footerseperators
   }
   
-  public override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+  public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
     guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: Self.SectionHeaderIdentifier)
             as? ContentTableHeaderFooterView else { return nil}
     
@@ -315,20 +321,20 @@ extension NewContentTableVC {
     return header
   }
   
-  public override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+  public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
     return 1.0
   }
   
-  public override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+  public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     return tableView.dequeueReusableHeaderFooterView(withIdentifier: Self.SectionFooterIdentifier)
   }
   
-  public override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
+  public func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
     if section < (issue?.sections?.count ?? 0) { return }
     (view as? ContentTableFooterView)?.seperator.isHidden = true
   }
   
-  public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+  public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     guard let art = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row) else {
       log("Article you tapped not found for section: \(indexPath.section), row: \(indexPath.row)")
       return
@@ -336,7 +342,7 @@ extension NewContentTableVC {
     articlePressedClosure?(art)
   }
   
-  public override func tableView(_ tableView: UITableView,
+  public func tableView(_ tableView: UITableView,
                                  cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell
     = tableView.dequeueReusableCell(withIdentifier: Self.CellIdentifier,
@@ -418,7 +424,7 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     bottomLabel.text = openText
     topLabel.numberOfLines = 0
     
-    pin(imageView, to: self, dist: Const.Size.DefaultPadding, exclude: .right).top?.constant = Const.Size.DefaultPadding + 66
+    pin(imageView, to: self, dist: Const.Size.DefaultPadding, exclude: .right).top?.constant = Const.Size.DefaultPadding + 45 //= 60.0
     pin(topLabel.left, to: imageView.right, dist: 10)
     pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
     pin(topLabel.top, to: imageView.top, dist: -3)
@@ -434,7 +440,8 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
 
 fileprivate  class NewContentTableVcCell: UITableViewCell {
   
-  var imageHeightConstraint: NSLayoutConstraint?
+  var imageZeroHeightConstraint: NSLayoutConstraint?
+  var imageDefaultHeightConstraint: NSLayoutConstraint?
   
   var articleIdentifier: String?
   
@@ -494,8 +501,16 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   
   var image: UIImage? {
     didSet {
+      imageZeroHeightConstraint?.isActive = false
+      imageDefaultHeightConstraint?.isActive = false
       customImageView.image = image
-      imageHeightConstraint?.isActive = image != nil
+      
+      if image == nil {
+        imageZeroHeightConstraint?.isActive = true
+      }
+      else {
+        imageDefaultHeightConstraint?.isActive = true
+      }
     }
   }
   
@@ -522,51 +537,84 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   lazy var content: UIView = {
     let v = UIView()
     
-    let rightSpacer = UIView.verticalSpacer
-    
+    let rightCenterVerticalSpacer =  UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10))
+
     v.addSubview(titleLabel)
     v.addSubview(customTextLabel)
     v.addSubview(bottomLabel)
+    
+//    titleLabel.addBorder(.red)
+//    customTextLabel.addBorder(.yellow)
+//    bottomLabel.addBorder(.green)
+    
+    rightCenterVerticalSpacer.pinWidth(10.0)
+    rightCenterVerticalSpacer.pinHeight(10.0, priority: .fittingSizeLevel)
+    
+//    customImageView.addBorder(.red)
+//    rightCenterVerticalSpacer.addBorder(.yellow)
+//    bookmarkButton.addBorder(.green)
+    
     v.addSubview(customImageView)
-    v.addSubview(rightSpacer)
+    v.addSubview(rightCenterVerticalSpacer)
     v.addSubview(bookmarkButton)
     
     titleLabel.numberOfLines = 2
     customTextLabel.numberOfLines = 3
     bottomLabel.numberOfLines = 0
-    
+        
     titleLabel.boldContentFont()
     customTextLabel.contentFont()
     bottomLabel.boldContentFont(size: 13.5)
     
     let imgWidth = 60.0
-    imageHeightConstraint = customImageView.pinSize(CGSize(width: imgWidth, height: imgWidth)).height
+    imageZeroHeightConstraint = customImageView.pinHeight(1.0)
+    imageZeroHeightConstraint?.isActive = false
+    imageDefaultHeightConstraint = customImageView.pinSize(CGSize(width: imgWidth, height: imgWidth), priority: .defaultHigh).height
+    imageDefaultHeightConstraint?.isActive = false
+    
     customImageView.contentMode = .scaleAspectFill
     customImageView.clipsToBounds = true
     
-    pin(titleLabel.top, to: v.top, priority: .required)
+    ///TOP 2 BOTTOM LEFT
+    pin(titleLabel.top, to: v.top)
+    pin(customTextLabel.top, to: titleLabel.bottom)
+    pin(bottomLabel.top, to: customTextLabel.bottom, dist: 8.0)
+    pin(bottomLabel.bottom, to: v.bottom)
+    ///----------------------------------------
+    titleLabel.setContentHuggingPriority(.defaultHigh, for: .vertical)
+    customTextLabel.setContentHuggingPriority(.defaultHigh, for: .vertical)
+    bottomLabel.setContentHuggingPriority(.defaultLow, for: .vertical)
+    
+    titleLabel.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
+    customTextLabel.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
+    bottomLabel.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
+    
+    ///TOP 2 BOTTOM Right
+    pin(customImageView.top, to: v.top)
+    pin(rightCenterVerticalSpacer.top, to: customImageView.bottom, dist: 10.0)
+    pin(bookmarkButton.top, to: rightCenterVerticalSpacer.bottom)
+    pin(bookmarkButton.bottom, to: v.bottom)
+    ///----------------------------------------
+    customImageView.setContentCompressionResistancePriority(.fittingSizeLevel, for: .vertical)
+    customImageView.setContentHuggingPriority(.fittingSizeLevel, for: .vertical)
+    rightCenterVerticalSpacer.setContentHuggingPriority(.defaultLow, for: .vertical)
+    rightCenterVerticalSpacer.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+    
+    ///Left 2 Right
     pin(titleLabel.left, to: v.left)
     pin(titleLabel.right, to: v.right, dist: -(imgWidth + 10))
     
-    pin(customTextLabel.top, to: titleLabel.bottom)
     pin(customTextLabel.left, to: v.left)
     pin(customTextLabel.right, to: v.right, dist: -(imgWidth + 10))
-    customTextLabel.setContentHuggingPriority(.defaultLow, for: .vertical)//the spacer!
     
-    pin(rightSpacer.right, to: v.right)
-    pin(bottomLabel.top, to: customTextLabel.bottom, dist: 8.0)
     pin(bottomLabel.left, to: v.left)
     pin(bottomLabel.right, to: v.right, dist: -(imgWidth + 10))
-    pin(bottomLabel.bottom, to: v.bottom)
     
-    pin(customImageView.top, to: v.top)
     pin(customImageView.right, to: v.right)
+    pin(rightCenterVerticalSpacer.right, to: v.right)
     
     bookmarkButton.pinSize(CGSize(width: 26, height: 26))
-    pin(rightSpacer.top, to: customImageView.bottom)
-    pin(bookmarkButton.top, to: rightSpacer.bottom, dist: 10)
     pin(bookmarkButton.right, to: v.right)
-    pin(bookmarkButton.bottom, to: v.bottom)
     
     bookmarkButton.onTapping {[weak self] _ in
       self?.article?.hasBookmark.toggle()
@@ -580,8 +628,8 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     self.contentView.addSubview(content)
     self.contentView.addSubview(dottedLine)
     dottedLine.pinHeight(Const.Size.DottedLineHeight*0.7)
-    pin(dottedLine.left, to: self.contentView.left, dist: Const.ASize.DefaultPadding)
-    pin(dottedLine.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding)
+    pin(dottedLine.left, to: self.contentView.left, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
+    pin(dottedLine.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
     pin(dottedLine.top, to: self.contentView.top)
     pin(content, to: contentView, dist: Const.Size.DefaultPadding)
     selectionStyle = .none
@@ -660,6 +708,7 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     super.setup()
     dottedLine.isHorizontal = false
     self.contentView.addSubview(dottedLine)
+    
     dottedLine.clipsToBounds = true
     pin(dottedLine.top, to: self.contentView.top, dist: 9.5, priority: .fittingSizeLevel)
     pin(dottedLine.bottom, to: self.contentView.bottom, dist: -5.5, priority: .fittingSizeLevel)
@@ -669,6 +718,8 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     dottedLine.strokeColor = Const.SetColor.HText.color
     chevron.activeColor = .lightGray
     chevron.color = Const.SetColor.HText.color
+    
+    label.setContentHuggingPriority(.defaultLow, for: .horizontal)
   }
   
   override func setColors() {

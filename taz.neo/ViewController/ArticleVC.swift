@@ -314,7 +314,7 @@ open class ArticleVC: ContentVC {
       self.collectionView?.isHidden = true
     }
     if !(self.parent is BookmarkNC) && self.contentTable == nil {
-      self.contentTable = NewContentTableVC(style: .plain)
+      self.contentTable = NewContentTableVC()
     }
     super.viewWillAppear(animated)
   }
