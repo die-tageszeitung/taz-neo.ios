@@ -255,7 +255,7 @@ BULLET LIST BUTTON MISSING
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "backward"
+    btn.buttonView.name = "backward"
     return btn
   }()
   
@@ -277,7 +277,7 @@ BULLET LIST BUTTON MISSING
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "forward"
+    btn.buttonView.name = "forward"
     return btn
   }()
   
