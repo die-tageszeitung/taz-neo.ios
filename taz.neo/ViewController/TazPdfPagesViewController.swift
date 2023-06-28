@@ -483,6 +483,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       thumbCtrl.collectionView.contentInset = insets
     }
     updateSlidersWidth()
+    slider?.button.isHidden = false
     self.updateMenuItems()
   }
   
