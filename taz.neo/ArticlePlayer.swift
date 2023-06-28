@@ -29,6 +29,8 @@ class ArticlePlayer: DoesLog {
                         content: isPlaying,
                         error: nil,
                         sender: self)
+      commandCenter.seekForwardCommand.isEnabled = isPlaying
+      commandCenter.seekBackwardCommand.isEnabled = isPlaying
     }
   }
   
@@ -38,24 +40,12 @@ class ArticlePlayer: DoesLog {
   public func onEnd(closure: ((Error?)->())?) { _onEnd = closure }
   private var _onEnd: ((Error?)->())?
   
-  var nextArticles: [Article] = [] {
-    didSet {
-      if aPlayerPlayed == false { return }
-      commandCenter.nextTrackCommand.isEnabled = nextArticles.count > 0
-    }
-  }
-  var lastArticles: [Article] = [] {
-    didSet {
-      if aPlayerPlayed == false { return }
-      if lastArticles.isEmpty { return }
-      commandCenter.previousTrackCommand.isEnabled = true
-      userInterface.backButton.isEnabled = true
-    }
-  }
+  var nextArticles: [Article] = []
+  var lastArticles: [Article] = []
+  
   var currentArticle: Article? {
     didSet {
       let wasPaused = !aplayer.isPlaying && aplayer.file != nil
-      #warning("may set state after no one is available anymore")
       aplayer.file = url(currentArticle)
       
       aplayer.title = currentArticle?.title
@@ -97,21 +87,35 @@ class ArticlePlayer: DoesLog {
       guard let item = self?.aplayer.currentItem else { return }
       self?.userInterface.totalSeconds = item.asset.duration.seconds
       self?.userInterface.currentSeconds = item.currentTime().seconds
-      
-      if self?.userInterface.currentSeconds ?? 0.0 > 5.0 {
-        self?.commandCenter.previousTrackCommand.isEnabled = true
-      }
     }
     aplayer.onEnd { [weak self] err in
       self?._onEnd?(err)
       self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
+      self?.playNext()
       self?.updatePlaying()
     }
     
     userInterface.slider.addTarget(self,
                                    action: #selector(sliderChanged),
                                    for: .valueChanged)
-//    aplayer.setupRemoteCommands = false//use custom ones here!
+    userInterface.forwardButton.addTarget(self,
+                                   action: #selector(forwardButtonTouchDownAction),
+                                   for: .touchDown)
+    userInterface.forwardButton.addTarget(self,
+                                   action: #selector(forwardButtonTouchUpInsideAction),
+                                   for: .touchUpInside)
+    userInterface.forwardButton.addTarget(self,
+                                   action: #selector(forwardButtonTouchOutsideInsideAction),
+                                   for: .touchUpOutside)
+    userInterface.backButton.addTarget(self,
+                                   action: #selector(backwardButtonTouchDownAction),
+                                   for: .touchDown)
+    userInterface.backButton.addTarget(self,
+                                   action: #selector(backwardButtonTouchUpInsideAction),
+                                   for: .touchUpInside)
+    userInterface.backButton.addTarget(self,
+                                   action: #selector(backwardButtonTouchOutsideInsideAction),
+                                   for: .touchUpOutside)
   }
   
   @objc private func sliderChanged(sender: Any) {
@@ -119,15 +123,62 @@ class ArticlePlayer: DoesLog {
     let pos:Double = item.asset.duration.seconds * Double(userInterface.slider.value)
     aplayer.currentTime = CMTime(seconds: pos, preferredTimescale: 600)
   }
-                                   
+  
+  var touchDownActive = false
+  
+  @objc private func  forwardButtonTouchDownAction(sender: Any) {
+    touchDownActive = true
+    onThreadAfter(0.5) {[weak self] in
+      guard self?.touchDownActive == true else { return }
+      self?.seekForeward()
+    }
+  }
+  @objc private func forwardButtonTouchUpInsideAction(sender: Any) {
+    seeking ? seekForeward() :  playNext()
+    touchDownActive = false
+  }
+  @objc private func forwardButtonTouchOutsideInsideAction(sender: Any) {
+    seeking ? seekForeward() : nil
+    touchDownActive = false
+  }
+  
+  @objc private func backwardButtonTouchDownAction(sender: Any) {
+    touchDownActive = true
+    onThreadAfter(0.5) {[weak self] in
+      guard self?.touchDownActive == true else { return }
+      self?.seekBackward()
+    }
+  }
+  @objc private func backwardButtonTouchUpInsideAction(sender: Any) {
+    seeking ? seekBackward() :  playPrev()
+    touchDownActive = false
+  }
+  @objc private func backwardButtonTouchOutsideInsideAction(sender: Any) {
+    seeking ? seekBackward() : nil
+    touchDownActive = false
+  }
+  
+  ///No way to do something like this!
+//  @objc private func forwardButtonAction(sender: Any?, forEvent event: UIEvent?) {
+//    switch (seeking, event) {
+//      case let (true, event) where event == UIControl.Event.touchCancel):
+//        seekForeward()
+////      case true, .touchUpInside:
+////        seekForeward()
+////      case false, .touchDown:
+////        seekForeward()
+////      case _, .touchUpInside:
+////        playNext()
+//      default:
+//        print("true")
+//    }
+//  }
                                    
   private static var _singleton: ArticlePlayer? = nil
   private lazy var userInterface: ArticlePlayerUI = {
     let v =  ArticlePlayerUI()
     v.onToggle {[weak self] in self?.toggle() }
     v.onClose{[weak self] in self?.close() }
-    v.onForward{[weak self] in self?.playNext() }
-    v.onBack{[weak self] in self?.playPrev() }
     return v
   }()
   
@@ -137,17 +188,14 @@ class ArticlePlayer: DoesLog {
     let cc = MPRemoteCommandCenter.shared()
     cc.previousTrackCommand.removeTarget(nil)
     cc.nextTrackCommand.removeTarget(nil)
-    
     cc.seekForwardCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      self?.log("seekForwardCommand at \(self?.aplayer.currentTime)")
+      self?.seekForeward()
       return .success
     }
-    
     cc.seekBackwardCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      self?.log("seekBackwardCommand at \(self?.aplayer.currentTime)")
+      self?.seekBackward()
       return .success
     }
-
     cc.previousTrackCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
       self?.playPrev()
       return .success
@@ -156,13 +204,47 @@ class ArticlePlayer: DoesLog {
       self?.playNext()
       return .success
     }
-    
-    /**
-     cc.skipBackwardCommand.isEnabled = false
-     cc.skipForwardCommand.isEnabled = false
-     */
     return cc
   }()
+  
+  var seeking = false
+  
+  func seekForeward() {
+    if seeking == true {
+      aplayer.player?.rate = 1.0
+      seeking = false
+      return
+    }
+    
+    aplayer.player?.rate = 2.0
+    seeking = true
+    onThreadAfter(2.0) {[weak self] in
+      guard self?.seeking == true else { return }
+      self?.aplayer.player?.rate = 4.0
+    }
+    onThreadAfter(4.0) {[weak self] in
+      guard self?.seeking == true else { return }
+      self?.aplayer.player?.rate = 10.0
+    }
+  }
+  
+  func seekBackward() {
+    if seeking == true {
+      aplayer.player?.rate = 1.0
+      seeking = false
+    }
+    
+    aplayer.player?.rate = -2.0
+    seeking = true
+    onThreadAfter(2.0) {[weak self] in
+      guard self?.seeking == true else { return }
+      self?.aplayer.player?.rate = -4.0
+    }
+    onThreadAfter(4.0) {[weak self] in
+      guard self?.seeking == true else { return }
+      self?.aplayer.player?.rate = -10.0
+    }
+  }
   
   
   /// There is only one ArticlePlayer per app
@@ -187,6 +269,12 @@ class ArticlePlayer: DoesLog {
   func deleteHistory(){ lastArticles = []   }
   
   func playNext() {
+    if nextArticles.count == 0 {
+      //no next do not destroy ui
+      self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
+      pause()
+      return
+    }
     if let currentArticle = currentArticle {
       lastArticles.append(currentArticle)
     }
@@ -194,6 +282,17 @@ class ArticlePlayer: DoesLog {
   }
   
   func playPrev() {
+    if self.aplayer.currentTime.seconds > 5.0 {
+      //restart current
+      self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
+      return
+    }
+    if lastArticles.count == 0 {
+      //no prev do not destroy ui
+      self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
+      pause()
+      return
+    }
     if let currentArticle = currentArticle {
       nextArticles.insert(currentArticle, at: 0)
     }

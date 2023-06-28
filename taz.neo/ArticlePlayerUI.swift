@@ -133,19 +133,9 @@ class ArticlePlayerUI: UIView {
   var totalSeconds: Double?
   
   // MARK: - Closures
-  private var backClosure: (()->())?
-  private var forwardClosure: (()->())?
   private var toggleClosure: (()->())?
   private var closeClosure: (()->())?
-  
-  func onBack(closure: @escaping ()->()) {
-    backClosure = closure
-  }
-  
-  func onForward(closure: @escaping ()->()){
-    forwardClosure = closure
-  }
-  
+    
   func onToggle(closure: @escaping ()->()){
     toggleClosure = closure
   }
@@ -262,12 +252,10 @@ BULLET LIST BUTTON MISSING
   
   lazy var backButton: Button<ImageView> = {
     let btn = Button<ImageView>()
-    btn.onPress { [weak self] _ in self?.backClosure?() }
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
     btn.buttonView.symbol = "backward"
-    //btn.buttonView.symbol = "gobackward.15"
     return btn
   }()
   
@@ -286,12 +274,10 @@ BULLET LIST BUTTON MISSING
   
   lazy var forwardButton: Button<ImageView> = {
     let btn = Button<ImageView>()
-    btn.onPress { [weak self] _ in self?.forwardClosure?() }
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
     btn.buttonView.symbol = "forward"
-    //btn.buttonView.symbol = "goforward.15"
     return btn
   }()
   
