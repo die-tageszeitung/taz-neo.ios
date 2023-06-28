@@ -150,7 +150,7 @@ class ArticlePlayerUI: UIView {
   var image: UIImage? {
     didSet {
       if image == oldValue { return }
-      bgImageView.image = image
+      bgImageView.image = image?.withRenderingMode(.alwaysTemplate).blurred
       imageView.image = image
       updateUI()
     }
@@ -352,6 +352,7 @@ BULLET LIST BUTTON MISSING
     bgImageView.contentMode = .scaleToFill
     pin(bgImageView, to: imageView)
     pin(blurredEffectView, to: imageView)
+    blurredEffectView.alpha = 0.8
 
     titleLabelTopConstraint_Mini = pin(titleLabel.top, to: imageView.top, dist: -1.0)
     authorLabelBottomConstraint_Mini = pin(authorLabel.bottom, to: imageView.bottom)
@@ -566,3 +567,14 @@ BULLET LIST BUTTON MISSING
   }
 }
 
+extension UIImage {
+  var blurred:UIImage {
+    var ciImage: CIImage? = self.ciImage
+    if ciImage == nil,
+       let cgImage = self.cgImage {
+      ciImage = CIImage(cgImage: cgImage)
+    }
+    guard let ciImage = ciImage else { return self }
+    return UIImage(ciImage: ciImage.applyingGaussianBlur(sigma: 7.0))
+  }
+}
