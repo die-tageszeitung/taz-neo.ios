@@ -41,6 +41,8 @@ class HomeTVC: UITableViewController {
   var feederContext:FeederContext
   var issueOverviewService: IssueOverviewService
   
+  /// offset for snapping between top area (IssueCarousel) and Bottom Area (tile view)
+  var scrollSnapHeight : CGFloat { get { return UIScreen.main.bounds.size.height }}
   override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent}
   //  var service: DataService
   
@@ -226,40 +228,62 @@ extension HomeTVC {
     return wasUp
   }
   
-  override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-    verifyUp()
+  open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    ///Not call super, it will crash if optional different scrollDelegate not set
+    if decelerate { return }
+    snapScrollViewIfNeeded(scrollView)
   }
   
-  open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    snapCell()
+  open override func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+    snapScrollViewIfNeeded(scrollView, targetContentOffset: targetContentOffset.pointee)
   }
   
   open override func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
-    snapCell()
+    snapScrollViewIfNeeded(scrollView)
   }
+    
+  open override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    snapScrollViewIfNeeded(scrollView)
+  }
+  
+  open override func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+    wasUp = scrollView.contentOffset.y < 200.0
+  }
+}
 
-  func snapCell() {
-    if wasUp && self.tableView.contentOffset.y > self.view.frame.size.height*0.15 {
-      ///focus issue from caroussel to tiles 
-      if let idx = self.carouselController.centerIndex {
-        self.tilesController.collectionView.scrollToItem(at: IndexPath(row: idx, section: 0),
-                        at: .centeredVertically,
-                        animated: false)
+// MARK: - Scroll Extensions
+extension HomeTVC {
+  ///Implementation of the scroll Snapping simplified, the 20% trigger can be implemented within Refactoring after Integration
+  func snapScrollViewIfNeeded(_ scrollView: UIScrollView, targetContentOffset:CGPoint? = nil) {
+    
+    let targetOffset = targetContentOffset != nil
+    ? targetContentOffset!.y
+    : scrollView.contentOffset.y
+    
+    if wasUp {
+      if targetOffset < 0.1 * scrollSnapHeight {
+        scroll(up: true)
       }
-      scroll(up: false)
-    } else if !wasUp && self.tableView.contentOffset.y > self.view.frame.size.height*0.85 {
-      scroll(up: false)
+      else {
+        scroll(up: false)
+      }
     }
     else {
-      scroll(up: true)
+      if targetOffset < 0.8 * scrollSnapHeight {
+        scroll(up: true)
+      }
+      else if targetOffset < 1.1 * scrollSnapHeight {
+        scroll(up: false)
+      }
     }
   }
   
-  func scroll(up:Bool){
+  func scroll(up:Bool, animated:Bool=true){
     self.tableView.scrollToRow(at:  IndexPath(row: up ? 0 : 1, section: 0),
                                at: .top,
-                               animated: true)
+                               animated: animated)
   }
+
 }
 
 // MARK: - PDF App View Switching
