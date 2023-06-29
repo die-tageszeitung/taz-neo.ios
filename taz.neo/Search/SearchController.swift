@@ -19,6 +19,12 @@ class SearchController: UIViewController {
   
   private var articleVC:SearchResultArticleVc
   
+  func searchFor(searchString: String){
+    header.searchTextField.text = searchString
+    self.searchItem.reset()
+    self.search(false)
+  }
+  
   var searchItem:SearchItem {
     didSet {
       updateArticleVcIfNeeded()
@@ -270,6 +276,7 @@ extension SearchController {
 
   private func search(_ sendDismissNotofication:Bool = false) {
     var searchSettings = self.searchSettingsView.data.settings
+    header.searchTextField.text = header.searchTextField.text?.trim ?? ""
     searchSettings.text = header.searchTextField.text
     if searchSettings.searchTermTooShort {
       header.setStatusLabel(text: "Bitte Suchbegriff eingeben!",

@@ -115,6 +115,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     // Register cell classes
     self.collectionView!.register(IssueCollectionViewCell.self,
                                   forCellWithReuseIdentifier: Self.reuseCellId)
+    self.collectionView.showsHorizontalScrollIndicator = false
     self.collectionView.backgroundColor = .black
     
     if scrollFromLeftToRight {

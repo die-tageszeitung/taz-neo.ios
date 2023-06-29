@@ -444,7 +444,8 @@ extension SettingsVC {
     header.collapsed = self.extendedSettingsCollapsed
     header.onTapping { [weak self] _ in
       guard let self = self else { return }
-      guard section == 5 else { return }
+      ///WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
+      guard section == 6 else { return }
       guard let sectionData = self.data.sectionData(for: section) else { return }
       guard sectionData.collapseable else { return }
       self.extendedSettingsCollapsed = !self.extendedSettingsCollapsed
@@ -671,6 +672,7 @@ extension SettingsVC {
   
   //Prototype Cells
   func currentSectionContent() -> [tSectionContent] {
+    ///**WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
     return [
       ("konto", false, accountSettingsCells),
       ("ausgabenverwaltung", false, issueSettingsCells),
@@ -701,6 +703,7 @@ extension SettingsVC {
         revokeCell
        ]
       ),
+      ///WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
       ("erweitert", true,
        extendedSettingsCollapsed ? [] : extendedSettingsCells
       )

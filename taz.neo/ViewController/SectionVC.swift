@@ -63,6 +63,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
   }
   
+  func showArticle(_ article: Article, animated: Bool = true) {
+    guard let i = article.index else { return }
+    showArticle(index: i, animated: animated)
+  }
+  
   private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true) {
     if let avc = articleVC {
       if let url = url { avc.gotoUrl(url: url) }
@@ -270,7 +275,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   override public func viewDidLoad() {
     super.viewDidLoad()
     if !(self is BookmarkSectionVC){
-      contentTable = NewContentTableVC(style: .plain)
+      contentTable = NewContentTableVC()
     }
     self.showImageGallery = false
     self.index = initialSection ?? 0

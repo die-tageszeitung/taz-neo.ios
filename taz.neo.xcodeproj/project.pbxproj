@@ -72,6 +72,7 @@
 		77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA74642892836600D1039B /* SubscriptionFormView.swift */; };
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77E5E1BC292D772200611148 /* Javascript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E5E1BB292D772200611148 /* Javascript.swift */; };
+		77FABFA22A4DD56500FB9EB1 /* ArticlePlayerUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */; };
 		94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94487DAB274BCCE10066BCD0 /* AppHelper.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
 		AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
@@ -196,6 +197,7 @@
 		77F0D1342742B4E900D3A432 /* addLocalResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addLocalResources.sh; sourceTree = "<group>"; };
 		77F0D1372742B4E900D3A432 /* downloadBundledResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = downloadBundledResources.sh; sourceTree = "<group>"; };
 		77F0D1392742B58400D3A432 /* LastBuildNumber.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = LastBuildNumber.rb; sourceTree = "<group>"; };
+		77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticlePlayerUI.swift; sourceTree = "<group>"; };
 		94487DAB274BCCE10066BCD0 /* AppHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelper.swift; sourceTree = "<group>"; };
 		948E40CD2745447500D32CFE /* post-checkout-prototype.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "post-checkout-prototype.sh"; sourceTree = "<group>"; };
 		948E40CE274544BE00D32CFE /* refreshEnvironment.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = refreshEnvironment.sh; sourceTree = "<group>"; };
@@ -485,6 +487,7 @@
 				0015B73624DD86B30037A8D6 /* SimpleAuthenticator.swift */,
 				AEBAF58E219ACFAC00566205 /* AppDelegate.swift */,
 				AE4C4FEE26A04EBD006079C8 /* ArticlePlayer.swift */,
+				77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */,
 				AEC7D46C249A598B008630FB /* FeederContext.swift */,
 				AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */,
 				AEAABADD24641BFA001BE414 /* Const.swift */,
@@ -711,6 +714,7 @@
 				4D3131F2289159FE0087EE1B /* SubscriptionFormController.swift in Sources */,
 				AEC7D467249920DF008630FB /* OverlayTest.swift in Sources */,
 				7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */,
+				77FABFA22A4DD56500FB9EB1 /* ArticlePlayerUI.swift in Sources */,
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
 				AE34778F283681490022316C /* ArticleDB.xcdatamodeld in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,

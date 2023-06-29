@@ -37,8 +37,7 @@ extension IssueDisplayService {
                          atArticle: Int? = nil,
                          atPage: Int? = nil,
                          pushDelegate: PushIssueDelegate) {
-    ArticlePlayer.singleton.baseUrl = issue.baseUrl
-#warning("DO prevent multiple pushes!")
+    #warning("DO prevent multiple pushes!")
     //prevent multiple pushes!
     //      if self.navigationController?.topViewController != self { return }
     let authenticatePDF = { [weak self] in
@@ -113,7 +112,7 @@ extension IssueDisplayService {
   }
   
   
-  func showIssue(pushDelegate: PushIssueDelegate){
+  func showIssue(pushDelegate: PushIssueDelegate, at targetArticle: Article? = nil){
     let issue = self.sissue
     
     if issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0 {
@@ -135,7 +134,7 @@ extension IssueDisplayService {
                                     toShowPdf: isFacsimile) else {
       openIssue(issue: issue,
                 atSection: issue.lastSection,
-                atArticle: issue.lastArticle,
+                atArticle: targetArticle?.index ?? issue.lastArticle,
                 atPage: issue.lastPage,
                 pushDelegate: pushDelegate)
       return
@@ -158,7 +157,7 @@ extension IssueDisplayService {
         if issue.status.watchable && self.isFacsimile {
           self.openIssue(issue: issue,
                     atSection: issue.lastSection,
-                    atArticle: issue.lastArticle,
+                    atArticle: targetArticle?.index ?? issue.lastArticle,
                     atPage: issue.lastPage,
                     pushDelegate: pushDelegate) }
 //        self.issueCarousel.setActivity(idx: index, isActivity: false)
@@ -172,14 +171,14 @@ extension IssueDisplayService {
           self.handleDownloadError(error: err)
           if issue.status.watchable && self.isFacsimile { self.openIssue(issue: issue,
                                                                     atSection: issue.lastSection,
-                                                                    atArticle: issue.lastArticle,
+                                                                    atArticle: targetArticle?.index ?? issue.lastArticle,
                                                                     atPage: issue.lastPage,
                                                                     pushDelegate: pushDelegate)  }
           return
         }
         self.openIssue(issue: issue,
                   atSection: issue.lastSection,
-                  atArticle: issue.lastArticle,
+                  atArticle: targetArticle?.index ?? issue.lastArticle,
                   atPage: issue.lastPage,
                   pushDelegate: pushDelegate)
         Notification.receiveOnce("issue", from: issue) { [weak self] notif in
@@ -243,4 +242,11 @@ extension IssueDisplayService {
 //    self.isDownloading = false
   }
 
+}
+
+extension Article {
+  var index: Int? {
+    return self.primaryIssue?.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: self) })
+  }
+  
 }

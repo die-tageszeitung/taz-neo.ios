@@ -26,7 +26,11 @@ public extension ArticleVCdelegate {
 }
 
 /// The Article view controller managing a collection of Article pages
-open class ArticleVC: ContentVC {
+open class ArticleVC: ContentVC, ContextMenuItemPrivider {
+  public var menu: MenuActions?{
+    return article?.contextMenu()
+  }
+  
   
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
@@ -87,7 +91,8 @@ open class ArticleVC: ContentVC {
   }
   
   func displayBookmark(art: Article) {
-    bookmarkButton.isHidden = art.html?.isEqualTo(delegate.issue.imprint?.html) ?? false
+    ///use safe access due a crash on play article, from issue, pdf, bookmarks, foreward, backward, serach result, issue,...
+    bookmarkButton.isHidden = art.html?.isEqualTo(adelegate?.issue.imprint?.html) ?? false
     
     if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
     else { self.bookmarkButton.buttonView.name = "star" }
@@ -113,26 +118,22 @@ open class ArticleVC: ContentVC {
     art.hasBookmark.toggle()
   }
   
+  func updateAudioButton(isPlaying: Bool?){
+    ///setup > onDisplay > art.canPlayAudio > self.onPlay(closure: nil) > setArticle**(Play)**Bar
+    self.playButton.buttonView.name
+    = isPlaying ?? ArticlePlayer.singleton.isPlaying
+    ? "audio-active"
+    : "audio"
+  }
+  
+  var playButtonContextMenu: ContextMenu?
+  
   func setup() {
-//    playButtonContextMenu.smoothPreviewForImage = true
-//    
-//    playButtonContextMenu.addMenuItem(title: "Jetzt abspielen",
-//                                       icon: "play.fill",
-//                                       group: 0) {[weak self]  (_) in
-//      print("Choosen Jetzt abspielen")
-//    }
-//    playButtonContextMenu.addMenuItem(title: "Als nächstes wiedergeben",
-//                                       icon: "text.line.first.and.arrowtriangle.forward",
-//                                       group: 1) {[weak self]  (_) in
-//      print("Choosen Als nächstes wiedergeben")
-//      ///text.line.first.and.arrowtriangle.forward
-//    }
-//    playButtonContextMenu.addMenuItem(title: "Zuletzt wiedergeben",
-//                                       icon: "text.line.last.and.arrowtriangle.forward",
-//                                       group: 1) {[weak self]  (_) in
-//      print("Choosen Zuletzt wiedergeben")
-//    }
-
+    playButtonContextMenu
+    = ContextMenu(view: playButton.buttonView,
+                  smoothPreviewForImage: true)
+    playButtonContextMenu?.itemPrivider = self
+    
     if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
     }
@@ -145,6 +146,9 @@ open class ArticleVC: ContentVC {
          self.displayBookmark(art: art)
       }
     }
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] msg in
+      self?.updateAudioButton(isPlaying: msg.content as? Bool)
+    }
     onDisplay { [weak self] (idx, oview) in
       guard let self = self else { return }
       guard let art = self.articles.valueAt(idx) else {
@@ -152,6 +156,7 @@ open class ArticleVC: ContentVC {
         log("fail to access artikel at index: \(idx)  when only \(self.articles.count) exist")
         return
       }
+
       if self.smartBackFromArticle {
         self.adelegate?.article = art
       }
@@ -159,23 +164,19 @@ open class ArticleVC: ContentVC {
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
       let player = ArticlePlayer.singleton
-      if player.isPlaying() { async { player.stop() } }
       if art.canPlayAudio {
-        self.playButton.buttonView.name = "audio"
+        updateAudioButton(isPlaying: nil)
         self.onPlay { [weak self] _ in
           guard let self = self else { return }
           if let title = self.header.title ?? art.title {
             art.toggleAudio(issue: self.issue, sectionName: title )
           }
-          if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
-          else { self.playButton.buttonView.name = "audio" }
         }
       }
       else { self.onPlay(closure: nil) }
       player.onEnd { [weak self] err in
         self?.playButton.buttonView.name = "audio"
         guard let err = err else { return }
-        //Offline Error: err._userInfo?.value(forKey: "NSUnderlyingError") as? NSError)?.code == -1020
         self?.debug("Failed to play with error: \(err)")
         Toast.show("Die Vorlesefunktion konnte nicht gestartet werden.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.")
       }
@@ -316,7 +317,7 @@ open class ArticleVC: ContentVC {
       self.collectionView?.isHidden = true
     }
     if !(self.parent is BookmarkNC) && self.contentTable == nil {
-      self.contentTable = NewContentTableVC(style: .plain)
+      self.contentTable = NewContentTableVC()
     }
     super.viewWillAppear(animated)
   }
@@ -349,12 +350,6 @@ open class ArticleVC: ContentVC {
     }
   }
   
-  public override func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(animated)  
-    let player = ArticlePlayer.singleton
-    if player.isPlaying() { async { player.stop() } }
-  }
-  
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     if App.isAvailable(.SEARCH_CONTEXTMENU) {
@@ -370,8 +365,14 @@ extension ArticleVC {
       guard let self = self else {return}
       if let e = err { self.log(e.description)}
       //#warning("ToDo: 0.9.4+ Implement Search")
-      if let txt = selectedText { print("You selected: \(txt)")}
-      else { print("no text selection detected")}
+      guard let txt = selectedText as? String, txt.length > 3 else {
+        log("No valid Selection for Search: \(selectedText)")
+        return
+      }
+      Notification.send(Const.NotificationNames.searchSelectedText,
+                        content: txt,
+                        error: nil,
+                        sender: self)
     })
   }
 }

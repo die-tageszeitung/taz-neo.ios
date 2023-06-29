@@ -6,29 +6,270 @@
 //  Copyright © 2021 Norbert Thies. All rights reserved.
 //
 
-import UIKit
 import NorthLib
+import MediaPlayer
+
+
+enum PlayerEnqueueType { case replaceCurrent, enqueueNext, enqueueLast}
 
 /// The ArticlePlayer plays one or more Articles as audio streams
 class ArticlePlayer: DoesLog {
   
   /// The audio player
-  public var aplayer: AudioPlayer
+  var aplayer: AudioPlayer
+  var aPlayerPlayed = false
   
-  /// The base URL to stream audio files from
-  public var baseUrl: String?
+  func updatePlaying(){ isPlaying =  aplayer.isPlaying }
+  
+  var isPlaying: Bool = false {
+    didSet {
+      if oldValue == isPlaying { return }
+      userInterface.isPlaying = isPlaying
+      Notification.send(Const.NotificationNames.audioPlaybackStateChanged,
+                        content: isPlaying,
+                        error: nil,
+                        sender: self)
+      commandCenter.seekForwardCommand.isEnabled = isPlaying
+      commandCenter.seekBackwardCommand.isEnabled = isPlaying
+    }
+  }
+  
+  var acticeTargetView: UIView? {
+    didSet { userInterface.acticeTargetView = acticeTargetView }}
+  
+  public func onEnd(closure: ((Error?)->())?) { _onEnd = closure }
+  private var _onEnd: ((Error?)->())?
+  
+  var nextArticles: [Article] = []
+  var lastArticles: [Article] = []
+  
+  var currentArticle: Article? {
+    didSet {
+      let wasPaused = !aplayer.isPlaying && aplayer.file != nil
+      aplayer.file = url(currentArticle)
+      
+      aplayer.title = currentArticle?.title
+      userInterface.titleLabel.text = currentArticle?.title
+      
+      ///album not shown on iOS 16, Phone in Lock Screen, CommandCenter, CommandCenter Extended Player
+      aplayer.album = currentArticle?.sectionTitle
+      ?? "taz vom: \(currentArticle?.primaryIssue?.validityDateText(timeZone: GqlFeeder.tz) ?? "-")"
+      
+      var authorsString: String? ///von Max Muster
+      var issueString: String?///taz vom 1.2.2021
+      
+      if let authors = currentArticle?.authors, !authors.isEmpty {
+        var names: [String] = []
+        for a in authors { if let n = a.name { names += n } }
+        authorsString = "von " + names.joined(separator: ", ") + ""
+      }
+      
+      if let i = currentArticle?.primaryIssue {
+        issueString = "\(i.isWeekend ? "wochentaz" : "taz") vom \(i.date.short)"
+      }
+      
+      if let authorsString = authorsString, let issueString = issueString {
+        aplayer.artist = "\(authorsString) (\(issueString))"//von Max Muster (taz vom 29.6.2023)
+        userInterface.authorLabel.text = authorsString //von Max Muster
+      }
+      else if let authorsString = authorsString {//von Max Muster
+        aplayer.artist = authorsString
+        userInterface.authorLabel.text = authorsString
+      }
+      else if let issueString = issueString {
+        aplayer.artist = issueString//taz vom 1.2.2021
+        userInterface.authorLabel.text = nil//empty
+      }
+      else {
+        aplayer.artist = nil
+        userInterface.authorLabel.text = nil
+      }
+      
+      let img: UIImage? = currentArticle?.image ?? currentArticle?.primaryIssue?.image
+      aplayer.addLogo = currentArticle?.image != nil
+      aplayer.image = img
+      userInterface.image = currentArticle?.image
+      
+      if aplayer.file != nil {
+        userInterface.show()
+        _ = commandCenter//setup if needed
+        if !wasPaused { aplayer.play() }
+        aPlayerPlayed = true
+        self.userInterface.slider.value = 0.0
+      }
+      updatePlaying()
+    }
+  }
   
   private init() {
     aplayer = AudioPlayer()
+    aplayer.logoToAdd = UIImage(named: "AppIcon60x60")
+    aplayer.onTimer { [weak self] in
+      guard let item = self?.aplayer.currentItem else { return }
+      self?.userInterface.totalSeconds = item.asset.duration.seconds
+      self?.userInterface.currentSeconds = item.currentTime().seconds
+    }
+    aplayer.onEnd { [weak self] err in
+      self?._onEnd?(err)
+      self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
+      let resume = self?.nextArticles.isEmpty == false
+      self?.playNext()
+      //ensure play next
+      if resume { self?.aplayer.play()}
+      self?.updatePlaying()
+    }
+    
+    userInterface.slider.addTarget(self,
+                                   action: #selector(sliderChanged),
+                                   for: .valueChanged)
+    userInterface.forwardButton.addTarget(self,
+                                   action: #selector(forwardButtonTouchDownAction),
+                                   for: .touchDown)
+    userInterface.forwardButton.addTarget(self,
+                                   action: #selector(forwardButtonTouchUpInsideAction),
+                                   for: .touchUpInside)
+    userInterface.forwardButton.addTarget(self,
+                                   action: #selector(forwardButtonTouchOutsideInsideAction),
+                                   for: .touchUpOutside)
+    userInterface.backButton.addTarget(self,
+                                   action: #selector(backwardButtonTouchDownAction),
+                                   for: .touchDown)
+    userInterface.backButton.addTarget(self,
+                                   action: #selector(backwardButtonTouchUpInsideAction),
+                                   for: .touchUpInside)
+    userInterface.backButton.addTarget(self,
+                                   action: #selector(backwardButtonTouchOutsideInsideAction),
+                                   for: .touchUpOutside)
   }
   
+  @objc private func sliderChanged(sender: Any) {
+    guard let item = self.aplayer.currentItem else { return }
+    let pos:Double = item.asset.duration.seconds * Double(userInterface.slider.value)
+    aplayer.currentTime = CMTime(seconds: pos, preferredTimescale: 600)
+  }
+  
+  var touchDownActive = false
+  
+  @objc private func  forwardButtonTouchDownAction(sender: Any) {
+    touchDownActive = true
+    onThreadAfter(0.5) {[weak self] in
+      guard self?.touchDownActive == true else { return }
+      self?.seekForeward()
+    }
+  }
+  @objc private func forwardButtonTouchUpInsideAction(sender: Any) {
+    seeking ? seekForeward() :  playNext()
+    touchDownActive = false
+  }
+  @objc private func forwardButtonTouchOutsideInsideAction(sender: Any) {
+    seeking ? seekForeward() : nil
+    touchDownActive = false
+  }
+  
+  @objc private func backwardButtonTouchDownAction(sender: Any) {
+    touchDownActive = true
+    onThreadAfter(0.5) {[weak self] in
+      guard self?.touchDownActive == true else { return }
+      self?.seekBackward()
+    }
+  }
+  @objc private func backwardButtonTouchUpInsideAction(sender: Any) {
+    seeking ? seekBackward() :  playPrev()
+    touchDownActive = false
+  }
+  @objc private func backwardButtonTouchOutsideInsideAction(sender: Any) {
+    seeking ? seekBackward() : nil
+    touchDownActive = false
+  }
+  
+  ///No way to do something like this!
+//  @objc private func forwardButtonAction(sender: Any?, forEvent event: UIEvent?) {
+//    switch (seeking, event) {
+//      case let (true, event) where event == UIControl.Event.touchCancel):
+//        seekForeward()
+////      case true, .touchUpInside:
+////        seekForeward()
+////      case false, .touchDown:
+////        seekForeward()
+////      case _, .touchUpInside:
+////        playNext()
+//      default:
+//        print("true")
+//    }
+//  }
+                                   
   private static var _singleton: ArticlePlayer? = nil
-  private lazy var userInterface: UserInterface = {
-    let v =  UserInterface()
+  private lazy var userInterface: ArticlePlayerUI = {
+    let v =  ArticlePlayerUI()
     v.onToggle {[weak self] in self?.toggle() }
-    v.onClose{[weak self] in self?.stop(); v.removeFromSuperview() }
+    v.onClose{[weak self] in self?.close() }
+    v.onMaxiItemTap{[weak self] in self?.gotoCurrentArticleInIssue() }
     return v
   }()
+  
+  ///iOs Lock Screen (CarPlay, Widgets) Media Controlls
+  private lazy var commandCenter: MPRemoteCommandCenter = {
+    UIApplication.shared.beginReceivingRemoteControlEvents()
+    let cc = MPRemoteCommandCenter.shared()
+    cc.previousTrackCommand.removeTarget(nil)
+    cc.nextTrackCommand.removeTarget(nil)
+    cc.seekForwardCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
+      self?.seekForeward()
+      return .success
+    }
+    cc.seekBackwardCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
+      self?.seekBackward()
+      return .success
+    }
+    cc.previousTrackCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
+      self?.playPrev()
+      return .success
+    }
+    cc.nextTrackCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
+      self?.playNext()
+      return .success
+    }
+    return cc
+  }()
+  
+  var seeking = false
+  
+  func seekForeward() {
+    if seeking == true {
+      aplayer.player?.rate = 1.0
+      seeking = false
+      return
+    }
+    
+    aplayer.player?.rate = 2.0
+    seeking = true
+    onThreadAfter(2.0) {[weak self] in
+      guard self?.seeking == true else { return }
+      self?.aplayer.player?.rate = 4.0
+    }
+    onThreadAfter(4.0) {[weak self] in
+      guard self?.seeking == true else { return }
+      self?.aplayer.player?.rate = 10.0
+    }
+  }
+  
+  func seekBackward() {
+    if seeking == true {
+      aplayer.player?.rate = 1.0
+      seeking = false
+    }
+    
+    aplayer.player?.rate = -2.0
+    seeking = true
+    onThreadAfter(2.0) {[weak self] in
+      guard self?.seeking == true else { return }
+      self?.aplayer.player?.rate = -4.0
+    }
+    onThreadAfter(4.0) {[weak self] in
+      guard self?.seeking == true else { return }
+      self?.aplayer.player?.rate = -10.0
+    }
+  }
   
   
   /// There is only one ArticlePlayer per app
@@ -36,61 +277,58 @@ class ArticlePlayer: DoesLog {
     if _singleton == nil { _singleton = ArticlePlayer() }
     return _singleton!
   }
-  
-  /// Define closure to call when playing has been finished
-  public func onEnd(closure: ((Error?)->())?) { aplayer.onEnd(closure: closure) }
-  
-  /// Returns true if the passed Article can be played
-  /// currently only Articles referencing audio files can be played
-  public func canPlay(art: Article) -> Bool { art.audio != nil }
-  
-  private func url(_ art: Article) -> String? {
-    guard let baseUrl = self.baseUrl, canPlay(art: art) else { return nil }
-    return "\(baseUrl)/\(art.audio!.fileName)"
+    
+  func canPlay(_ art: Article?) -> Bool {
+    return url(art) != nil
   }
   
-    /// Plays the passed Article
-  public func play(issue: Issue, art: Article, sectionName: String) {
-    guard let url = url(art) else { return }
-    aplayer.file = url
-    if let title = art.title {
-      aplayer.title = title
-      userInterface.titleLabel.text = title
+  private func url(_ art: Article?) -> String? {
+    guard let article = art,
+          let baseUrl
+            = (article as? SearchArticle)?.originalIssueBaseURL
+            ?? article.primaryIssue?.baseUrl,
+          let afn = article.audio?.fileName else { return nil }
+    return "\(baseUrl)/\(afn)"
+  }
+  
+  func deleteHistory(){ lastArticles = []   }
+  
+  func playNext() {
+    if nextArticles.count == 0 {
+      //no next do not destroy ui
+      self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
+      pause()
+      return
     }
-    aplayer.album = sectionName
-    if let authors = art.authors, !authors.isEmpty {
-      var names: [String] = []
-      for a in authors { if let n = a.name { names += n } }
-      aplayer.artist = names.joined(separator: ", ")
-      userInterface.authorLabel.text = names.joined(separator: ", ")
+    if let currentArticle = currentArticle {
+      lastArticles.append(currentArticle)
     }
-    if let images = art.images, !images.isEmpty, 
-       let fn = images.first?.fileName {
-      let dir = issue.feed.feeder.issueDir(issue: issue).path
-      debug("issue.date: \(issue.date), issueDir: \(dir)")
-      let path = "\(dir)/\(fn)"
-      let img = UIImage(contentsOfFile: path)
-      if img == nil { 
-        error("Can't load image \(path)") 
-        let file = File(path)
-        if file.exists { log("File exists, size: \(file.size)") }
-        else { log("File doesn't exist") }
-      }
-      aplayer.image = img
-      userInterface.image = img
+    ///warning replace current article remembers pause e.g. paused & skip through the playlist should not start
+    currentArticle = nextArticles.pop()
+  }
+  
+  func playPrev() {
+    if self.aplayer.currentTime.seconds > 5.0 {
+      //restart current
+      self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
+      return
     }
-    else {
-      aplayer.image = nil
-      userInterface.image = nil
+    if lastArticles.count == 0 {
+      //no prev do not destroy ui
+      self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
+      pause()
+      return
     }
-//    userInterface.show()
-    aplayer.play()
+    if let currentArticle = currentArticle {
+      nextArticles.insert(currentArticle, at: 0)
+    }
+    currentArticle = lastArticles.popLast()
   }
   
   /// Checks whether the passed Article is currently being played
-  public func isPlaying(art: Article? = nil) -> Bool {
+  func isPlaying(_ article: Article? = nil) -> Bool {
     guard aplayer.isPlaying else { return false }
-    if let art = art {
+    if let art = article {
       guard let url = url(art) else { return false }
       return url == aplayer.file
     }
@@ -98,233 +336,177 @@ class ArticlePlayer: DoesLog {
   }
   
   /// Pauses the current Article play
-  public func pause() { aplayer.stop() }
+  private func pause() {
+    aplayer.stop()
+    updatePlaying()
+  }
   
   /// Starts the current Article (after pause())
-  public func start() { aplayer.play() }
+  private func start() {
+    aplayer.play()
+    updatePlaying()
+  }
   
   /// Toggles start()/pause()
-  public func toggle() { aplayer.toggle() }
-  
-  /// This toggle starts playing of the passed Article if this Article is not
-  /// currently being played. If it is playing, it uses the simple toggle().
-  public func toggle(issue: Issue, art: Article, sectionName: String) {
-    if isPlaying(art: art) { toggle() }
-    else { play(issue: issue, art: art, sectionName: sectionName) }
+  private func toggle() {
+    aplayer.toggle()
+    updatePlaying()
   }
   
+  /// Toggles start()/pause()
+  private func gotoCurrentArticleInIssue() {
+    guard let currentArticle = currentArticle else { return }
+    Notification.send(Const.NotificationNames.gotoArticleInIssue, content: currentArticle, sender: self)
+  }
   /// Stop the currently being played article
-  public func stop() { aplayer.close() }
+  private func close() {
+    nextArticles = []
+    lastArticles = []
+    aplayer.close()
+    currentArticle = nil
+    commandCenter.previousTrackCommand.isEnabled = false
+    commandCenter.nextTrackCommand.isEnabled = false
+  }
   
+  public func play(issue:Issue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
+    
+    let feederContext = TazAppEnvironment.sharedInstance.feederContext
+    
+    if let storedIssue = issue as? StoredIssue,
+       feederContext?.needsUpdate(issue: issue) ?? true {
+      let msg = enqueueType == .replaceCurrent
+      ? "Die Wiedergabe wird nach Download der Ausgabe gestartet."
+      : "Die Wiedergabeliste wird nach Download der Ausgabe ergänzt."
+      Toast.show(msg)
+      Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+        self?.play(issue: issue,
+                   startFromArticle: startFromArticle,
+                   enqueueType: enqueueType)
+      }
+      feederContext?.getCompleteIssue(issue: storedIssue,
+                                      isPages: false,
+                                      isAutomatically: false)
+    }
+    
+    var arts:[Article] = issue.allArticles
+    if let startFromArticle = startFromArticle,
+      let idx = issue.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: startFromArticle) }),
+    idx < arts.count {
+      arts = Array(arts[idx...])
+    }
+    arts.removeAll{ $0.audio?.fileName == nil }
+    
+    switch enqueueType {
+      case .enqueueLast:
+        nextArticles.append(contentsOf: arts)
+        isPlaying ? nil : playNext()
+      case .enqueueNext:
+        nextArticles.insert(contentsOf: arts, at: 0)
+        isPlaying ? nil : playNext()
+      case .replaceCurrent:
+        nextArticles = arts
+        playNext()
+    }
+  }
 } // ArticlePlayer
 
-class UserInterface: UIView {
-  
-  var image: UIImage? {
-    didSet {
-      imageView.image = image
-      if image == nil {
-        imageAspectConstraint?.isActive = false
-        imageWidthConstraint?.isActive = true
-        imageLeftConstraint?.constant = 0.0
-      }
-      else {
-        imageWidthConstraint?.isActive = false
-        imageAspectConstraint?.isActive = false
-        imageAspectConstraint = imageView.pinAspect(ratio: 1.0)
-        imageLeftConstraint?.constant = Const.Size.DefaultPadding
-      }
-      UIView.animate(withDuration: 0.3) {[weak self] in
-        self?.layoutIfNeeded()
-      }
-    }
-  }
-  
-  private var backClosure: (()->())?
-  private var forwardClosure: (()->())?
-  private var toggleClosure: (()->())?
-  private var closeClosure: (()->())?
-  
-  public func onBack(closure: @escaping ()->()) {
-    backClosure = closure
-  }
-  
-  public func onForward(closure: @escaping ()->()){
-    forwardClosure = closure
-  }
-  
-  public func onToggle(closure: @escaping ()->()){
-    toggleClosure = closure
-  }
-    
-  public func onClose(closure: @escaping ()->()){
-    closeClosure = closure
-  }
-  
-  private lazy var imageView: UIImageView = {
-    let v = UIImageView()
-    v.clipsToBounds = true
-    return v
-  }()
 
-  lazy var titleLabel: UILabel = {
-    let lbl = UILabel()
-    lbl.boldContentFont(size: 13).white()
-    return lbl
-  }()
-  
-  lazy var authorLabel: UILabel = {
-    let lbl = UILabel()
-    lbl.contentFont(size: 12).white()
-    return lbl
-  }()
-  
-  lazy var closeButton: Button<ImageView> = {
-    let btn = Button<ImageView>()
-    btn.onPress { [weak self] _ in self?.closeClosure?() }
-//    backButton.pinSize(CGSize(width: 35, height: 35))
-    btn.activeColor = .white
-    btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "xmark"
-    return btn
-  }()
-  
-  lazy var slider: UISlider = {
-    let slider = UISlider()
-    return slider
-  }()
 
-  
-  lazy var minimizeButton: Button<ImageView> = {
-    let btn = Button<ImageView>()
-    btn.onPress { [weak self] _ in self?.minimize() }
-    btn.pinSize(CGSize(width: 35, height: 35))
-    btn.activeColor = .white
-    btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "chevron.down"
-    return btn
-  }()
-  
-  lazy var toggleButton: Button<ImageView> = {
-    let btn = Button<ImageView>()
-    btn.onPress { [weak self] _ in self?.toggleClosure?() }
-    btn.pinSize(CGSize(width: 20, height: 20))
-    btn.activeColor = .white
-    btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "pause.fill"
-    return btn
-  }()
-  
-  lazy var backButton: Button<ImageView> = {
-    let btn = Button<ImageView>()
-    btn.onPress { [weak self] _ in self?.backClosure?() }
-    btn.pinSize(CGSize(width: 35, height: 35))
-    btn.activeColor = .white
-    btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "gobackward.15"
-    return btn
-  }()
-  
-  lazy var forwardButton: Button<ImageView> = {
-    let btn = Button<ImageView>()
-    btn.onPress { [weak self] _ in self?.forwardClosure?() }
-    btn.pinSize(CGSize(width: 35, height: 35))
-    btn.activeColor = .white
-    btn.color = Const.Colors.appIconGrey
-    btn.buttonView.symbol = "goforward.15"
-    return btn
-  }()
-  
-  func show(){
-    if self.superview != nil {
-      error("already displayed")
-      return
-    }
-    guard let window = UIWindow.keyWindow else {
-      error("No Key Window")
-      return
-    }
-    window.addSubview(self)
-    pin(self.right, to: window.rightGuide(), dist: -Const.Size.DefaultPadding)
-    pin(self.bottom, to: window.bottomGuide(), dist: -60.0)
-  }
-  
-  func minimize(){
+extension Article {
+  func contextMenu() -> MenuActions? {
+    guard let issue = self.primaryIssue  else { return nil }
+    let menu = MenuActions()
+    menu.addMenuItem(title: "Wiedergabe",
+             icon: "play.fill",
+             closure: {_ in
+      ArticlePlayer.singleton.play(issue: issue,
+                 startFromArticle: self,
+                 enqueueType: .replaceCurrent)
+    })
     
-  }
-  
-  func maximize(){
+    menu.addMenuItem(title: "Als nächstes wiedergeben",
+             icon: "text.line.first.and.arrowtriangle.forward",
+             closure: {_ in
+      ArticlePlayer.singleton.play(issue: issue,
+                 startFromArticle: self,
+                 enqueueType: .enqueueNext)
+    })
     
+    menu.addMenuItem(title: "Zuletzt wiedergeben",
+             icon: "text.line.last.and.arrowtriangle.forward",
+             closure: {_ in
+      ArticlePlayer.singleton.play(issue: issue,
+                 startFromArticle: self,
+                 enqueueType: .enqueueNext)
+    })
+    return menu
   }
-  
-  func setup(){
-    self.addSubview(imageView)
-    self.addSubview(titleLabel)
-    self.addSubview(authorLabel)
-    self.addSubview(closeButton)
-    self.addSubview(minimizeButton)
-    self.addSubview(slider)
-    self.addSubview(imageView)
-    self.addSubview(toggleButton)
-    
-    slider.isHidden = true
-    minimizeButton.isHidden = true
+}
 
-    self.layer.cornerRadius = 5.0 //max: 13.0
-    
-    let cSet = pin(imageView, to: self, dist: 10.0, exclude: .right)
-    imageLeftConstraint = cSet.left
-    
-    imageWidthConstraint = imageView.pinWidth(1)
-    imageWidthConstraint?.isActive = false
-    
-    imageAspectConstraint = imageView.pinAspect(ratio: 1.0)
-    imageView.contentMode = .scaleAspectFill
-    
-    pin(titleLabel.top, to: imageView.top, dist: -1.0)
-    pin(authorLabel.bottom, to: imageView.bottom)
-    
-    pin(titleLabel.left, to: imageView.right, dist: 10.0)
-    pin(authorLabel.left, to: imageView.right, dist: 10.0)
-    
-    pin(closeButton, to: self, dist: 14.0, exclude: .left)
-    closeButton.pinAspect(ratio: 1.0)
-    
-    pin(toggleButton.centerY, to: closeButton.centerY)
-    pin(toggleButton.right, to: closeButton.left, dist: -22.0)
-    
-    pin(titleLabel.right, to: toggleButton.left, dist: -22.0)
-    pin(authorLabel.right, to: toggleButton.left, dist: -22.0)
-    
-    titleLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-    authorLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-    
-    self.backgroundColor = Const.Colors.darkSecondaryBG
-    self.pinHeight(50)
-    widthConstraint = self.pinWidth(200)
-    self.updateWidth()
+extension BookmarkIssue {
+  func contextMenu(group: Int) -> MenuActions {
+    return _contextMenu(group:group)
+  }
+}
 
-    Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
-      guard let newSize = notification.content as? CGSize else { return }
-      self?.updateWidth(width: newSize.width)
+extension StoredIssue {
+  func contextMenu(group: Int) -> MenuActions {
+    return _contextMenu(group:group)
+  }
+}
+extension Issue {
+  func _contextMenu(group: Int) -> MenuActions {
+    
+    let menu = MenuActions()
+    
+    menu.addMenuItem(title: "Wiedergabe",
+                     icon: "play.fill",
+                     group: group,
+                     closure: {_ in
+      ArticlePlayer.singleton.play(issue: self,
+                                        startFromArticle: nil,
+                                        enqueueType: .replaceCurrent)
+    })
+    if ArticlePlayer.singleton.isPlaying == false && ArticlePlayer.singleton.nextArticles.count == 0 {
+      return menu
     }
+    menu.addMenuItem(title: "Als nächstes wiedergeben",
+                     icon: "text.line.first.and.arrowtriangle.forward",
+                     group: group,
+                     closure: {_ in
+      ArticlePlayer.singleton.play(issue: self,
+                                        startFromArticle: nil,
+                                        enqueueType: .enqueueNext)
+    })
+    
+    menu.addMenuItem(title: "Zuletzt wiedergeben",
+                     icon: "text.line.last.and.arrowtriangle.forward",
+                     group: group,
+                     closure: {_ in
+      ArticlePlayer.singleton.play(issue: self,
+                                        startFromArticle: nil,
+                                        enqueueType: .enqueueNext)
+    })
+    return menu
   }
-  
-  var widthConstraint: NSLayoutConstraint?
-  var imageWidthConstraint: NSLayoutConstraint?
-  var imageLeftConstraint: NSLayoutConstraint?
-  var imageAspectConstraint: NSLayoutConstraint?
-  
-  func updateWidth(width:CGFloat = UIWindow.keyWindow?.bounds.size.width ?? UIScreen.shortSide){
-    widthConstraint?.constant = min(300, width - 2*Const.Size.DefaultPadding)
+}
+
+
+// MARK: - Helper
+fileprivate extension Article {
+  var image:UIImage? {
+    guard let fn = images?.first?.fileName else { return nil }
+    let path = "\(self.dir.path)/\(fn)"
+    return UIImage(contentsOfFile: path)
   }
-  
-  override init(frame: CGRect) {
-    super.init(frame: frame)
-    setup()
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
+}
+
+fileprivate extension Issue {
+  var image:UIImage? {
+    guard let momentImageUrl
+            = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.smallMomentImageName(issue: self)
+    else { return nil }
+    return UIImage(contentsOfFile: momentImageUrl)
+    
   }
 }

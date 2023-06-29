@@ -114,6 +114,12 @@ public class BookmarkFeed: Feed, DoesLog {
   /// Get the inner HTML of an article
   public func getInnerHtml(art: StoredArticle) -> String {
     let title = art.title ?? art.html?.name ?? ""
+    let shareIcon
+    = art.onlineLink == nil
+    ? ""
+    : """
+        <img class="share" src="resources/Share.svg">
+      """
     let teaser = bookmarksListTeaserEnabled
     ? "<p>\((art.teaser ?? "").xmlEscaped())</p>"
     : ""
@@ -127,7 +133,7 @@ public class BookmarkFeed: Feed, DoesLog {
       <div class = "foot">
         \(getAuthors(art: art))
         <div class="icons">
-          <img class="share" src="resources/Share.svg">
+          \(shareIcon)
           <img class="bookmark" src="resources/StarFilled.svg">
         </div>
       </div>

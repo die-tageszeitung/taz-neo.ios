@@ -662,6 +662,22 @@ extension TazAppEnvironment {
     }
   }
   
+  func playBookmarks(){
+    guard let feeder = feederContext?.storedFeeder else { return }
+    let bookmarkFeed = BookmarkFeed.allBookmarks(feeder: feeder)
+    guard let bi = (bookmarkFeed.issues ?? []).first as? BookmarkIssue else { return }
+    ArticlePlayer.singleton.play(issue: bi,
+                                 startFromArticle: nil,
+                                 enqueueType: .replaceCurrent)
+  }
+  
+  func playLatestIssue(){
+    guard let si = feederContext?.getLatestStoredIssue() else { return }
+    ArticlePlayer.singleton.play(issue: si,
+                                 startFromArticle: nil,
+                                 enqueueType: .replaceCurrent)
+  }
+  
   /// app icon shortcut action handler
   /// - Parameter shortcutItem: selected shortcut item
   func handleShortcutItem(_ shortcutItem: UIApplicationShortcutItem) {
@@ -672,6 +688,22 @@ extension TazAppEnvironment {
         handleServerSwitch(to: Shortcuts.testServer)
       case Shortcuts.lmdServer.type:
         handleServerSwitch(to: Shortcuts.lmdServer)
+      case Shortcuts.playBookmarks.type:
+        if UIApplication.shared.applicationState == .active {
+          playBookmarks()
+          return
+        }
+        onMainAfter(0.3) { [weak self] in
+          self?.playBookmarks()
+        }
+      case Shortcuts.playLatestIssue.type:
+        if UIApplication.shared.applicationState == .active {
+          playLatestIssue()
+          return
+        }
+        onMainAfter(1.3) { [weak self] in
+          self?.playLatestIssue()
+        }
       case "AppInformation":
         break;
       default:
@@ -733,23 +765,22 @@ extension Defaults{
 enum Shortcuts{
   
   static func currentItems() -> [UIApplicationShortcutItem]{
-    // No Server Switch for Release App
-    if App.isRelease {
-      return []
-      // return [Shortcuts.logging.shortcutItem()] //deactivated logging ui for release
-    }
-    var itms:[UIApplicationShortcutItem] = [
-      // Shortcuts.feedback.shortcutItem(.mail),
-      // Shortcuts.logging.shortcutItem(wantsLogging ? .confirmation : nil)
-    ]
+    var itms:[UIApplicationShortcutItem]
+    = [Shortcuts.playLatestIssue.shortcutItem]
     
+    if let sf = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder ,
+       BookmarkFeed.allBookmarks(feeder: sf).issues?.first?.allArticles.count ?? 0 > 0 {
+      itms.append(Shortcuts.playBookmarks.shortcutItem)
+    }
+    // No Server Switch for Release App
+    if App.isRelease { return itms }
     itms.append(Shortcuts.liveServer.shortcutItem)
-    itms.append(Shortcuts.testServer.shortcutItem)
     itms.append(Shortcuts.lmdServer.shortcutItem)
+    itms.append(Shortcuts.testServer.shortcutItem)
     return itms
   }
   
-  case liveServer, testServer, lmdServer, feedback
+  case liveServer, testServer, lmdServer, feedback, playBookmarks, playLatestIssue
   
   /// Identifier for shortcut item
   var type:String{
@@ -758,6 +789,8 @@ enum Shortcuts{
       case .testServer: return "shortcutItemTestServer"
       case .lmdServer: return "shortcutItemLMdServer"
       case .feedback: return "shortcutItemFeedback"
+      case .playBookmarks: return "shortcutItemBookmarks"
+      case .playLatestIssue: return "shortcutItemLatestIssue"
     }
   }
   
@@ -768,17 +801,26 @@ enum Shortcuts{
       case .testServer: return "Test Server"
       case .lmdServer: return "LMd Server"
       case .feedback: return "Feedback"
+      case .playBookmarks: return "Leseliste abspielen"
+      case .playLatestIssue: return "Aktuelle Ausgabe abspielen"
     }
   }
 
   /// ShortcutItem generation Helper for app icon context menu
   var shortcutItem:UIApplicationShortcutItem { get {
     let active = Defaults.currentServer == self
+    var icon:UIApplicationShortcutIcon?
+    switch self {
+      case .playBookmarks, .playLatestIssue:
+        icon = UIApplicationShortcutIcon(type: .audio)
+      default:
+        icon = active ? UIApplicationShortcutIcon(type: .confirmation) : nil
+    }
     
     return UIApplicationShortcutItem(type: self.type,
                                      localizedTitle: self.title,
                                      localizedSubtitle: active ? "aktiv" : nil,
-                                     icon: active ? UIApplicationShortcutIcon(type: .confirmation) : nil)
+                                     icon: icon)
     }
   }
 }

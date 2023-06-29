@@ -138,8 +138,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var toolBarConstraint: NSLayoutConstraint?
   public var backButton = Button<ImageView>()
   public var playButton = Button<ImageView>()
-//  public lazy var playButtonContextMenu: ContextMenu
-//  = ContextMenu(view: playButton.buttonView)
   
   public var bookmarkButton = Button<ImageView>()
   private var playClosure: ((ContentVC)->())?
@@ -646,6 +644,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     writeTazApiCss()
     writeTazApiJs()
     self.view.addSubview(header)
+    self.collectionView?.showsHorizontalScrollIndicator = false
     pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
@@ -718,10 +717,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
+    ArticlePlayer.singleton.acticeTargetView = toolBar
   }
   
   override public func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
+    ArticlePlayer.singleton.acticeTargetView = nil
     if let svc = self.navigationController?.viewControllers.last as? SectionVC {
       //cannot use updateLayout due strange side effects
       if let sidx = svc.index {
