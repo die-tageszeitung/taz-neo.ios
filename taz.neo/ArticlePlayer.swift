@@ -69,7 +69,7 @@ class ArticlePlayer: DoesLog {
           authorsString = issueString
         }
         else {
-          authorsString = "\(authorsString ?? "") (\(issueString)"
+          authorsString = "\(authorsString ?? "") (\(issueString))"
         }
       }
       aplayer.artist = authorsString
