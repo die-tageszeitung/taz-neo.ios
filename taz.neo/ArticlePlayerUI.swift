@@ -54,7 +54,7 @@ class ArticlePlayerUI: UIView {
     = noGap
     ? 0
     : -Const.Size.DefaultPadding
-    if acticeTargetView != nil {
+    if acticeTargetView != nil && acticeTargetView?.superview != nil {
       ///probably tollbar
       bottomConstraint?.constant = noGap ? -0.5 : -10
     }
