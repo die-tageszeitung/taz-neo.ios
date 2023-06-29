@@ -481,11 +481,19 @@ public extension Article {
   
   /// Start/stop audio play if available
   func toggleAudio(issue: Issue, sectionName: String) {
-    guard let issue = issue as? StoredIssue else {
-      Log.debug("cannot play article")
-      return
+    if let issue = issue as? BookmarkIssue {
+      ArticlePlayer.singleton.play(issue: issue,
+                                   startFromArticle: self,
+                                   enqueueType: .replaceCurrent)
     }
-    ArticlePlayer.singleton.play(issue: issue, startFromArticle: self, enqueueType: .replaceCurrent)
+    else if let issue = issue as? StoredIssue {
+      ArticlePlayer.singleton.play(issue: issue,
+                                   startFromArticle: self,
+                                   enqueueType: .replaceCurrent)
+    }
+    else {
+      Log.debug("cannot play article")
+    }
   }
   
   // By default Articles don't have bookmarks
