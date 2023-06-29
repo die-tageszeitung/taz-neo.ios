@@ -135,6 +135,7 @@ class ArticlePlayerUI: UIView {
   // MARK: - Closures
   private var toggleClosure: (()->())?
   private var closeClosure: (()->())?
+  private var maxiItemTapClosure: (()->())?
     
   func onToggle(closure: @escaping ()->()){
     toggleClosure = closure
@@ -142,6 +143,10 @@ class ArticlePlayerUI: UIView {
   
   func onClose(closure: @escaping ()->()){
     closeClosure = closure
+  }
+  
+  func onMaxiItemTap(closure: @escaping ()->()){
+    maxiItemTapClosure = closure
   }
   
   // MARK: - external accessible components
@@ -285,7 +290,15 @@ BULLET LIST BUTTON MISSING
   
   func minimize(){ state = .mini }
   
-  func maximize(){ state = .maxi }
+  func maximize(){
+    if state == .maxi {
+      state = .mini
+      maxiItemTapClosure?()
+    }
+    else {
+      state = .maxi
+    }
+  }
   
   var heightConstraint: NSLayoutConstraint?
   var widthConstraint: NSLayoutConstraint?//Only for viewSizeTransition not for state changes!

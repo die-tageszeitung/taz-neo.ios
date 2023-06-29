@@ -63,6 +63,35 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       home.carouselController.scrollTo(idx, animated: smallJump, fromJumpToDate: true)
     }
     
+    Notification.receive(Const.NotificationNames.gotoArticleInIssue) { [weak self] notif in
+      self?.selectedIndex = 0
+      guard let article = notif.content as? Article,
+            let issue = article.primaryIssue as? StoredIssue,
+            let home = ((self?.selectedViewController as? UINavigationController)?
+                .viewControllers.first as? HomeTVC) else { return }
+      /*
+       
+       (self?.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
+       
+      home.scroll(up: true)
+      let idx = home.carouselController.service.nextIndex(for: date)
+      ///todo reactivate smallJump but with better logic e.g. not load beetwen items!
+      var smallJump = false
+      if let i = home.carouselController.centerIndex, i.distance(to: idx) < 50 { smallJump = true }
+      home.carouselController.scrollTo(idx, animated: smallJump, fromJumpToDate: true)
+       */
+      
+      if let sectVc = home.navigationController?.viewControllers.valueAt(1) as? SectionVC,
+      let sectIssue = sectVc.issue as? StoredIssue,
+          issue == sectIssue {
+        sectVc.showArticle(article, animated: true)
+      }
+      else {
+        home.navigationController?.popToRootViewController(animated: false)
+        home.openIssue(issue, at: article)
+      }
+    }
+    
   } // viewDidLoad
   
   func setupTabbar() {

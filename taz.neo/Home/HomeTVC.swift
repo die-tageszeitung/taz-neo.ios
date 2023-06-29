@@ -12,7 +12,11 @@ import NorthLib
 /// Protocol to handle Open and Display an Issue
 protocol OpenIssueDelegate {
   /// open a Issue
-  func openIssue(_ issue:StoredIssue)
+  func openIssue(_ issue:StoredIssue, at article: Article?)
+}
+extension OpenIssueDelegate {
+  /// open a Issue
+  func openIssue(_ issue:StoredIssue){ openIssue(issue, at: nil)}
 }
 
 /// Protocol to handle Open and Display an Issue
@@ -338,7 +342,7 @@ extension HomeTVC {
 }
 
 extension HomeTVC: OpenIssueDelegate {
-  func openIssue(_ issue: StoredIssue) {
+  func openIssue(_ issue: StoredIssue, at article: Article?) {
     ///How to prevent multiple open?
     ///already pushed => no problem
     ///3 downloads in Progress => first downloaded? n/ last clicked?
@@ -353,7 +357,7 @@ extension HomeTVC: OpenIssueDelegate {
     let issueInfo = IssueDisplayService(feederContext: feederContext,
                                     issue: issue)
     loadingIssueInfos.append(issueInfo)
-    issueInfo.showIssue(pushDelegate: self)
+    issueInfo.showIssue(pushDelegate: self, at: article)
   }
 }
 

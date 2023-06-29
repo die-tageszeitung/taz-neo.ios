@@ -55,7 +55,8 @@ class ArticlePlayer: DoesLog {
       aplayer.album = currentArticle?.sectionTitle
       ?? "taz vom: \(currentArticle?.primaryIssue?.validityDateText(timeZone: GqlFeeder.tz) ?? "-")"
       
-      var authorsString: String?
+      var authorsString: String? ///von Max Muster
+      var issueString: String?///taz vom 1.2.2021
       
       if let authors = currentArticle?.authors, !authors.isEmpty {
         var names: [String] = []
@@ -65,15 +66,24 @@ class ArticlePlayer: DoesLog {
       
       if let i = currentArticle?.primaryIssue {
         let issueString = "\(i.isWeekend ? "wochentaz" : "taz") vom \(i.date.short)"
-        if authorsString == nil {
-          authorsString = issueString
-        }
-        else {
-          authorsString = "\(authorsString ?? "") (\(issueString))"
-        }
       }
-      aplayer.artist = authorsString
-      userInterface.authorLabel.text = authorsString
+      
+      if let authorsString = authorsString, let issueString = issueString {
+        aplayer.artist = "\(authorsString) (\(issueString))"//von Max Muster (taz vom 29.6.2023)
+        userInterface.authorLabel.text = authorsString //von Max Muster
+      }
+      else if let authorsString = authorsString {//von Max Muster
+        aplayer.artist = authorsString
+        userInterface.authorLabel.text = authorsString
+      }
+      else if let issueString = issueString {
+        aplayer.artist = issueString//taz vom 1.2.2021
+        userInterface.authorLabel.text = nil//empty
+      }
+      else {
+        aplayer.artist = nil
+        userInterface.authorLabel.text = nil
+      }
       
       let img: UIImage? = currentArticle?.image ?? currentArticle?.primaryIssue?.image
       aplayer.addLogo = currentArticle?.image != nil
@@ -102,7 +112,10 @@ class ArticlePlayer: DoesLog {
     aplayer.onEnd { [weak self] err in
       self?._onEnd?(err)
       self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
+      let resume = self?.nextArticles.isEmpty == false
       self?.playNext()
+      //ensure play next
+      if resume { self?.aplayer.play()}
       self?.updatePlaying()
     }
     
@@ -190,6 +203,7 @@ class ArticlePlayer: DoesLog {
     let v =  ArticlePlayerUI()
     v.onToggle {[weak self] in self?.toggle() }
     v.onClose{[weak self] in self?.close() }
+    v.onMaxiItemTap{[weak self] in self?.gotoCurrentArticleInIssue() }
     return v
   }()
   
@@ -289,6 +303,7 @@ class ArticlePlayer: DoesLog {
     if let currentArticle = currentArticle {
       lastArticles.append(currentArticle)
     }
+    ///warning replace current article remembers pause e.g. paused & skip through the playlist should not start
     currentArticle = nextArticles.pop()
   }
   
@@ -336,6 +351,12 @@ class ArticlePlayer: DoesLog {
   private func toggle() {
     aplayer.toggle()
     updatePlaying()
+  }
+  
+  /// Toggles start()/pause()
+  private func gotoCurrentArticleInIssue() {
+    guard let currentArticle = currentArticle else { return }
+    Notification.send(Const.NotificationNames.gotoArticleInIssue, content: currentArticle, sender: self)
   }
   
   
