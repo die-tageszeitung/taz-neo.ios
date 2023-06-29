@@ -26,7 +26,11 @@ public extension ArticleVCdelegate {
 }
 
 /// The Article view controller managing a collection of Article pages
-open class ArticleVC: ContentVC {
+open class ArticleVC: ContentVC, ContextMenuItemPrivider {
+  public var menu: MenuActions?{
+    return article?.contextMenu()
+  }
+  
   
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
@@ -114,26 +118,22 @@ open class ArticleVC: ContentVC {
     art.hasBookmark.toggle()
   }
   
+  func updateAudioButton(isPlaying: Bool?){
+    ///setup > onDisplay > art.canPlayAudio > self.onPlay(closure: nil) > setArticle**(Play)**Bar
+    self.playButton.buttonView.name
+    = isPlaying ?? ArticlePlayer.singleton.isPlaying
+    ? "audio-active"
+    : "audio"
+  }
+  
+  var playButtonContextMenu: ContextMenu?
+  
   func setup() {
-    playButtonContextMenu.smoothPreviewForImage = true
+    playButtonContextMenu
+    = ContextMenu(view: playButton.buttonView,
+                  smoothPreviewForImage: true)
+    playButtonContextMenu?.itemPrivider = self
     
-    playButtonContextMenu.addMenuItem(title: "Jetzt abspielen",
-                                       icon: "play.fill",
-                                       group: 0) {[weak self]  (_) in
-      print("Choosen Jetzt abspielen")
-    }
-    playButtonContextMenu.addMenuItem(title: "Als nächstes wiedergeben",
-                                       icon: "text.line.first.and.arrowtriangle.forward",
-                                       group: 1) {[weak self]  (_) in
-      print("Choosen Als nächstes wiedergeben")
-      ///text.line.first.and.arrowtriangle.forward
-    }
-    playButtonContextMenu.addMenuItem(title: "Zuletzt wiedergeben",
-                                       icon: "text.line.last.and.arrowtriangle.forward",
-                                       group: 1) {[weak self]  (_) in
-      print("Choosen Zuletzt wiedergeben")
-    }
-
     if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
     }
@@ -146,6 +146,9 @@ open class ArticleVC: ContentVC {
          self.displayBookmark(art: art)
       }
     }
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] msg in
+      self?.updateAudioButton(isPlaying: msg.content as? Bool)
+    }
     onDisplay { [weak self] (idx, oview) in
       guard let self = self else { return }
       guard let art = self.articles.valueAt(idx) else {
@@ -153,6 +156,7 @@ open class ArticleVC: ContentVC {
         log("fail to access artikel at index: \(idx)  when only \(self.articles.count) exist")
         return
       }
+
       if self.smartBackFromArticle {
         self.adelegate?.article = art
       }
@@ -161,14 +165,12 @@ open class ArticleVC: ContentVC {
       self.issue.lastArticle = idx
       let player = ArticlePlayer.singleton
       if art.canPlayAudio {
-        self.playButton.buttonView.name = "audio"
+        updateAudioButton(isPlaying: nil)
         self.onPlay { [weak self] _ in
           guard let self = self else { return }
           if let title = self.header.title ?? art.title {
             art.toggleAudio(issue: self.issue, sectionName: title )
           }
-          if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
-          else { self.playButton.buttonView.name = "audio" }
         }
       }
       else { self.onPlay(closure: nil) }

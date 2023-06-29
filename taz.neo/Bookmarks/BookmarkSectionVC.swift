@@ -12,18 +12,21 @@ import NorthLib
 /**
  * A simple subclass of SectionVC with som additional flavours for bookmark handling.
  */
-open class BookmarkSectionVC: SectionVC {
+open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
+  public var menu: MenuActions? {
+    return issue._contextMenu(group: 0)
+  }
   
-  lazy var headerPlayButton: Button<ImageView> = {
+  var headerPlayButtonContextMenu: ContextMenu?
+  
+  private lazy var headerPlayButton: Button<ImageView> = {
     let btn = Button<ImageView>()
-    btn.onPress { [weak self] _ in
+    btn.onTapping { [weak self] _ in
       guard let sissue = self?.delegate.issue as? BookmarkIssue else { return }
       ArticlePlayer.singleton.play(issue: sissue,
-                                   startFromArticle: sissue.allArticles.first,
+                                   startFromArticle: nil,
                                    enqueueType: .replaceCurrent)
     }
-    let interaction = UIContextMenuInteraction(delegate: self)
-    btn.addInteraction(interaction)
     btn.pinSize(CGSize(width: 36, height: 36))
     btn.hinset = 0.1//20%
     btn.color = Const.Colors.appIconGrey
@@ -35,6 +38,9 @@ open class BookmarkSectionVC: SectionVC {
     self.header.addSubview(headerPlayButton)
     pin(headerPlayButton.right, to: self.header.right, dist: -10)
     headerPlayButton.centerY()
+    
+    headerPlayButtonContextMenu = ContextMenu(view: headerPlayButton.buttonView)
+    headerPlayButtonContextMenu?.itemPrivider = self
     
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] msg in
       if let isPlaying = msg.content as? Bool {
@@ -80,16 +86,4 @@ open class BookmarkSectionVC: SectionVC {
     super.reload()
   }
   
-}
-
-extension BookmarkSectionVC: UIContextMenuInteractionDelegate {
-  /// UIContextMenuInteraction for Header Play Button
-  public func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-    guard let sissue = self.delegate.issue as? BookmarkIssue else { return nil }
-    let playMenu = ArticlePlayer.singleton.contextMenu(for: sissue)
-    return UIContextMenuConfiguration(identifier: nil,
-                                      previewProvider: nil){ _ -> UIMenu? in
-      return UIMenu(title: "", children: [playMenu])
-    }
-  }
 }

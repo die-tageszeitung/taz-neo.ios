@@ -65,7 +65,7 @@ class ArticlePlayer: DoesLog {
       }
       
       if let i = currentArticle?.primaryIssue {
-        let issueString = "\(i.isWeekend ? "wochentaz" : "taz") vom \(i.date.short)"
+        issueString = "\(i.isWeekend ? "wochentaz" : "taz") vom \(i.date.short)"
       }
       
       if let authorsString = authorsString, let issueString = issueString {
@@ -285,8 +285,8 @@ class ArticlePlayer: DoesLog {
   private func url(_ art: Article?) -> String? {
     guard let article = art,
           let baseUrl
-            = article.primaryIssue?.baseUrl
-            ?? (article as? SearchArticle)?.originalIssueBaseURL,
+            = (article as? SearchArticle)?.originalIssueBaseURL
+            ?? article.primaryIssue?.baseUrl,
           let afn = article.audio?.fileName else { return nil }
     return "\(baseUrl)/\(afn)"
   }
@@ -358,15 +358,6 @@ class ArticlePlayer: DoesLog {
     guard let currentArticle = currentArticle else { return }
     Notification.send(Const.NotificationNames.gotoArticleInIssue, content: currentArticle, sender: self)
   }
-  
-  
-//  /// This toggle starts playing of the passed Article if this Article is not
-//  /// currently being played. If it is playing, it uses the simple toggle().
-//  private func toggle(_ article: Article) {
-//    if isPlaying(article) { toggle() }
-//    else { play(article) }
-//  }
-  
   /// Stop the currently being played article
   private func close() {
     nextArticles = []
@@ -377,11 +368,12 @@ class ArticlePlayer: DoesLog {
     commandCenter.nextTrackCommand.isEnabled = false
   }
   
-  public func play(issue:StoredIssue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
+  public func play(issue:Issue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
     
     let feederContext = TazAppEnvironment.sharedInstance.feederContext
     
-    if feederContext?.needsUpdate(issue: issue) ?? true {
+    if let storedIssue = issue as? StoredIssue,
+       feederContext?.needsUpdate(issue: issue) ?? true {
       let msg = enqueueType == .replaceCurrent
       ? "Die Wiedergabe wird nach Download der Ausgabe gestartet."
       : "Die Wiedergabeliste wird nach Download der Ausgabe ergänzt."
@@ -391,18 +383,11 @@ class ArticlePlayer: DoesLog {
                    startFromArticle: startFromArticle,
                    enqueueType: enqueueType)
       }
-      feederContext?.getCompleteIssue(issue: issue,
+      feederContext?.getCompleteIssue(issue: storedIssue,
                                       isPages: false,
                                       isAutomatically: false)
     }
-    playIssue(issue, startFromArticle: startFromArticle, enqueueType: enqueueType)
-  }
-  
-  public func play(issue:BookmarkIssue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
-    playIssue(issue, startFromArticle: startFromArticle, enqueueType: enqueueType)
-  }
-  
-  private func playIssue(_ issue:Issue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
+    
     var arts:[Article] = issue.allArticles
     if let startFromArticle = startFromArticle,
       let idx = issue.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: startFromArticle) }),
@@ -414,83 +399,98 @@ class ArticlePlayer: DoesLog {
     switch enqueueType {
       case .enqueueLast:
         nextArticles.append(contentsOf: arts)
+        isPlaying ? nil : playNext()
       case .enqueueNext:
         nextArticles.insert(contentsOf: arts, at: 0)
+        isPlaying ? nil : playNext()
       case .replaceCurrent:
         nextArticles = arts
         playNext()
     }
   }
-  
-  
 } // ArticlePlayer
 
 
-extension ArticlePlayer {
-  func contextMenu(for issue:StoredIssue) -> UIMenu {
-    ///some of the icons are only available iOS 16+
-    let playImgName = "play.fill"
-    let nextImgName = "text.line.first.and.arrowtriangle.forward"
-    let lastImgName = "text.line.last.and.arrowtriangle.forward"
-    //next and last icons may need to be added to custom assets
-    let playImg = UIImage(name: playImgName) ?? UIImage(named: playImgName)
-    let nextImg = UIImage(name: nextImgName) ?? UIImage(named: nextImgName)
-    let lastImg = UIImage(name: lastImgName) ?? UIImage(named: lastImgName)
+
+extension Article {
+  func contextMenu() -> MenuActions? {
+    guard let issue = self.primaryIssue  else { return nil }
+    let menu = MenuActions()
+    menu.addMenuItem(title: "Wiedergabe",
+             icon: "play.fill",
+             closure: {_ in
+      ArticlePlayer.singleton.play(issue: issue,
+                 startFromArticle: self,
+                 enqueueType: .replaceCurrent)
+    })
     
-    let playAllNow = UIAction(title: "Wiedergabe",
-                              image: playImg) {[weak self] _ in
-      self?.play(issue: issue, startFromArticle: nil, enqueueType: .replaceCurrent)
-    }
-    let enqueueNext = UIAction(title: "Als nächstes wiedergeben",
-                               image: nextImg){[weak self] _ in
-      self?.play(issue: issue, startFromArticle: nil, enqueueType: .enqueueNext)
-    }
+    menu.addMenuItem(title: "Als nächstes wiedergeben",
+             icon: "text.line.first.and.arrowtriangle.forward",
+             closure: {_ in
+      ArticlePlayer.singleton.play(issue: issue,
+                 startFromArticle: self,
+                 enqueueType: .enqueueNext)
+    })
     
-    let enqueueLast = UIAction(title: "Zuletzt wiedergeben",
-                               image: lastImg) {[weak self] _ in
-      self?.play(issue: issue, startFromArticle: nil, enqueueType: .enqueueNext)
-    }
-    return  UIMenu(title: "",
-                   options: .displayInline,
-                   children:[playAllNow, enqueueNext, enqueueLast])
-    //    without header there is no scrolling
-    //    return  UIMenu(title: "Vorlesefunktion",
-    //                   options: .displayInline,
-    //                   children:[playAllNow, enqueueNext, enqueueLast])
-  }
-  
-  func contextMenu(for issue:BookmarkIssue) -> UIMenu {
-    ///some of the icons are only available iOS 16+
-    let playImgName = "play.fill"
-    let nextImgName = "text.line.first.and.arrowtriangle.forward"
-    let lastImgName = "text.line.last.and.arrowtriangle.forward"
-    //next and last icons may need to be added to custom assets
-    let playImg = UIImage(name: playImgName) ?? UIImage(named: playImgName)
-    let nextImg = UIImage(name: nextImgName) ?? UIImage(named: nextImgName)
-    let lastImg = UIImage(name: lastImgName) ?? UIImage(named: lastImgName)
-    
-    let playAllNow = UIAction(title: "Wiedergabe",
-                              image: playImg) {[weak self] _ in
-      self?.play(issue: issue, startFromArticle: nil, enqueueType: .replaceCurrent)
-    }
-    let enqueueNext = UIAction(title: "Als nächstes wiedergeben",
-                               image: nextImg){[weak self] _ in
-      self?.play(issue: issue, startFromArticle: nil, enqueueType: .enqueueNext)
-    }
-    
-    let enqueueLast = UIAction(title: "Zuletzt wiedergeben",
-                               image: lastImg) {[weak self] _ in
-      self?.play(issue: issue, startFromArticle: nil, enqueueType: .enqueueNext)
-    }
-    return  UIMenu(title: "",
-                   options: .displayInline,
-                   children:[playAllNow, enqueueNext, enqueueLast])
-    //    without header there is no scrolling
-    //    return  UIMenu(title: "Vorlesefunktion",
-    //                   options: .displayInline,
-    //                   children:[playAllNow, enqueueNext, enqueueLast])
+    menu.addMenuItem(title: "Zuletzt wiedergeben",
+             icon: "text.line.last.and.arrowtriangle.forward",
+             closure: {_ in
+      ArticlePlayer.singleton.play(issue: issue,
+                 startFromArticle: self,
+                 enqueueType: .enqueueNext)
+    })
+    return menu
   }
 }
+
+extension BookmarkIssue {
+  func contextMenu(group: Int) -> MenuActions {
+    return _contextMenu(group:group)
+  }
+}
+
+extension StoredIssue {
+  func contextMenu(group: Int) -> MenuActions {
+    return _contextMenu(group:group)
+  }
+}
+extension Issue {
+  func _contextMenu(group: Int) -> MenuActions {
+    
+    let menu = MenuActions()
+    
+    menu.addMenuItem(title: "Wiedergabe",
+                     icon: "play.fill",
+                     group: group,
+                     closure: {_ in
+      ArticlePlayer.singleton.play(issue: self,
+                                        startFromArticle: nil,
+                                        enqueueType: .replaceCurrent)
+    })
+    if ArticlePlayer.singleton.isPlaying == false && ArticlePlayer.singleton.nextArticles.count == 0 {
+      return menu
+    }
+    menu.addMenuItem(title: "Als nächstes wiedergeben",
+                     icon: "text.line.first.and.arrowtriangle.forward",
+                     group: group,
+                     closure: {_ in
+      ArticlePlayer.singleton.play(issue: self,
+                                        startFromArticle: nil,
+                                        enqueueType: .enqueueNext)
+    })
+    
+    menu.addMenuItem(title: "Zuletzt wiedergeben",
+                     icon: "text.line.last.and.arrowtriangle.forward",
+                     group: group,
+                     closure: {_ in
+      ArticlePlayer.singleton.play(issue: self,
+                                        startFromArticle: nil,
+                                        enqueueType: .enqueueNext)
+    })
+    return menu
+  }
+}
+
 
 // MARK: - Helper
 fileprivate extension Article {
