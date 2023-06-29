@@ -87,7 +87,8 @@ open class ArticleVC: ContentVC {
   }
   
   func displayBookmark(art: Article) {
-    bookmarkButton.isHidden = art.html?.isEqualTo(delegate.issue.imprint?.html) ?? false
+    ///use safe access due a crash on play article, from issue, pdf, bookmarks, foreward, backward, serach result, issue,...
+    bookmarkButton.isHidden = art.html?.isEqualTo(adelegate?.issue.imprint?.html) ?? false
     
     if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
     else { self.bookmarkButton.buttonView.name = "star" }
