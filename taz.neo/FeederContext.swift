@@ -829,6 +829,7 @@ open class FeederContext: DoesLog {
       case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
         fallthrough
       case .changedAccount: text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
+        debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == self.gqlFeeder.authToken)")
         TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true)
       case .unexpectedResponse:
         Alert.message(title: "Fehler",
