@@ -420,7 +420,11 @@ open class FeederContext: DoesLog {
   /// Start Polling if necessary
   public func setupPolling() {
     authenticator.whenPollingRequired { self.startPolling() }
-    if let peStr = Defaults.singleton["pollEnd"] {
+    if let peStr = Defaults.singleton["pollEnd"]  {
+      if self.isAuthenticated {
+        endPolling()
+        return
+      }
       let pe = Int64(peStr)
       if pe! <= UsTime.now.sec { endPolling() }
       else {
@@ -442,6 +446,11 @@ open class FeederContext: DoesLog {
   /// Ask Authenticator to poll server for authentication,
   /// send 
   func doPolling(_ fetchCompletionHandler: FetchCompletionHandler? = nil) {
+    ///prevent login with another acount
+    if authenticator.feeder.authToken?.isEmpty == false {
+      log("still logged in, prevent login with another acount")
+      return
+    }
     authenticator.pollSubscription { [weak self] doContinue in
       ///No matter if continue or not, iusually activate account takes more than 30s
       ///so its necessary to call push fetchCompletionHandler after first attempt
@@ -455,6 +464,9 @@ open class FeederContext: DoesLog {
   
   /// Terminate polling
   public func endPolling() {
+    if pollingTimer != nil {
+      log("stop active polling")
+    }
     self.pollingTimer?.invalidate()
     self.pollEnd = nil
     Defaults.singleton["pollEnd"] = nil
@@ -530,6 +542,9 @@ open class FeederContext: DoesLog {
   /// Authenticator will send Const.NotificationNames.authenticationSucceeded Notification if successful
   public func authenticate() {
     authenticator.authenticate(with: nil)
+    Notification.receiveOnce(Const.NotificationNames.authenticationSucceeded) {[weak self] _ in
+      self?.endPolling()
+    }
   }
   
   public func updateAuthIfNeeded() {
@@ -545,7 +560,15 @@ open class FeederContext: DoesLog {
   private func connect() {
     gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
       guard let self else { return }
-      if let _ = res.value() {
+      
+      if let feeder = res.value() {
+        if let gqlFeeder = feeder as? GqlFeeder,
+           gqlFeeder.status?.authInfo.status == .valid
+            || gqlFeeder.status?.authInfo.status == .expired
+        {
+          log("valid auth stop polling if any")
+          self.endPolling()
+        }
         if self.simulateFailedMinVersion {
           self.minVersion = Version("135.0.0")
           self.minVersionOK = false
@@ -829,7 +852,8 @@ open class FeederContext: DoesLog {
       case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
         fallthrough
       case .changedAccount: text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
-        debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == self.gqlFeeder.authToken)")
+        debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == self.gqlFeeder.authToken) 4ses: \(self.gqlFeeder.gqlSession?.authToken == self.gqlFeeder.authToken)")
+        
         TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true)
       case .unexpectedResponse:
         Alert.message(title: "Fehler",
