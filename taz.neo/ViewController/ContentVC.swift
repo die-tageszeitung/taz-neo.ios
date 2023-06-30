@@ -82,28 +82,7 @@ extension String {
  in a collection of WebViews
  */
 
-class MyButtonSlider:ButtonSlider{
-  var ocoverage: CGFloat? {
-    didSet {
-      guard let ocoverage = ocoverage, isOpen else { return }
-      shiftRatio = ocoverage < Const.Size.ContentSliderMaxWidth ? 0.7 : 0.1
-      resetConstraints()
-    }
-  }
-  override var coverage: CGFloat {
-    get { return ocoverage ?? super.coverage }
-    set { super.coverage = newValue }
-  }
-  override func slide(toOpen: Bool, animated: Bool = true) {
-    if toOpen == true, let ocoverage = ocoverage, ocoverage < Const.Size.ContentSliderMaxWidth {
-      shiftRatio = 0.7
-    }
-    else if toOpen == false && shiftRatio != 0.1 {
-      shiftRatio = 0.1
-    }
-    super.slide(toOpen: toOpen, animated: animated)
-  }
-}
+
 
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
