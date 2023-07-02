@@ -400,12 +400,7 @@ class TazCell: UITableViewCell, UIStyleChangeDelegate {
 /// A custom table view cell with TextInput
 class TazHeaderFooterView: UITableViewHeaderFooterView {
   var label: UILabel = UILabel()
-  
-  lazy var chevron: Button<ImageView> = {
-    let btn = Button<ImageView>()
-    btn.buttonView.name = "chevron-up"
-    return btn
-  }()
+  let chevron = UIImageView(image: UIImage(named: "chevron-up"))
   
   var topDist = 8.0
   var bottomDist = 10.0
@@ -417,10 +412,8 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
     self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
     self.contentView.addSubview(label)
     self.contentView.addSubview(chevron)
-    chevron.activeColor = .lightGray
-    chevron.color = Const.SetColor.HText.color
-    chevron.pinSize(CGSize(width: 36, height: 36))
-    chevron.hinset = 0.16
+    chevron.tintColor = Const.SetColor.ios(.secondaryLabel).color
+    chevron.pinSize(CGSize(width: 24, height: 24))
     pin(chevron.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding)
     chevron.centerY(dist: chevronYOffset)
 
