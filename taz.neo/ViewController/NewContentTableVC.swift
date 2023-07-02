@@ -716,15 +716,18 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     dottedLine.pinWidth(Const.Size.DottedLineHeight*0.6)
     dottedLine.fillColor = Const.SetColor.HText.color
     dottedLine.strokeColor = Const.SetColor.HText.color
-    chevron.activeColor = .lightGray
-    chevron.color = Const.SetColor.HText.color
-    
+//    chevron.activeColor = .lightGray
+//    chevron.color = Const.SetColor.HText.color
+    chevron.tintColor = Const.SetColor.HText.color
+
     label.setContentHuggingPriority(.defaultLow, for: .horizontal)
   }
   
   override func setColors() {
     super.setColors()
-    chevron.color = Const.SetColor.HText.color
+    chevron.tintColor = Const.SetColor.HText.color
+
+//    chevron.color = Const.SetColor.HText.color
   }
 }
 
