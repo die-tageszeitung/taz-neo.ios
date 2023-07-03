@@ -401,6 +401,7 @@ class TazCell: UITableViewCell, UIStyleChangeDelegate {
 class TazHeaderFooterView: UITableViewHeaderFooterView {
   var label: UILabel = UILabel()
   let chevron = UIImageView(image: UIImage(named: "chevron-up"))
+  let chevronTapArea = UIView()
   
   var topDist = 8.0
   var bottomDist = 10.0
@@ -412,11 +413,17 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
     self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
     self.contentView.addSubview(label)
     self.contentView.addSubview(chevron)
+    self.contentView.addSubview(chevronTapArea)
     chevron.tintColor = Const.SetColor.ios(.secondaryLabel).color
     chevron.pinSize(CGSize(width: 24, height: 24))
     pin(chevron.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding)
     chevron.centerY(dist: chevronYOffset)
-
+    
+    pin(chevronTapArea.top, to: self.contentView.top)
+    pin(chevronTapArea.right, to: self.contentView.right)
+    pin(chevronTapArea.bottom, to: self.contentView.bottom)
+    pin(chevronTapArea.left, to: chevron.left, dist: -15)
+    
     pin(label.top, to: self.contentView.top, dist: topDist)
     pin(label.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
     pin(label.right, to: chevron.right, dist: -Const.Size.DefaultPadding, priority: .defaultLow)

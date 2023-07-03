@@ -314,7 +314,7 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
       self?.collapseAll(expect: header.tag)
     }
     
-    header.chevron.onTapping { [weak self] _ in
+    header.chevronTapArea.onTapping { [weak self] _ in
       header.collapsed = self?.toggle(section: header.tag) ?? true
     }
     header.active = section == sectIndex
