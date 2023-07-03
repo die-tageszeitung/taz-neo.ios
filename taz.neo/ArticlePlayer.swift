@@ -118,6 +118,10 @@ class ArticlePlayer: DoesLog {
       if resume { self?.aplayer.play()}
       self?.updatePlaying()
     }
+    aplayer.onStateChange {[weak self] in
+      ///handle  commandcenter: play, pause, stop, togglePlayPause firs too early so handle py own callback
+      self?.updatePlaying()
+    }
     
     userInterface.slider.addTarget(self,
                                    action: #selector(sliderChanged),
