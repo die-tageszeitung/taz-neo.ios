@@ -103,6 +103,7 @@ class ArticlePlayer: DoesLog {
   
   private init() {
     aplayer = AudioPlayer()
+    aplayer.resetNowPlayingInfo = false
     aplayer.logoToAdd = UIImage(named: "AppIcon60x60")
     aplayer.onTimer { [weak self] in
       guard let item = self?.aplayer.currentItem else { return }
@@ -156,13 +157,13 @@ class ArticlePlayer: DoesLog {
   
   @objc private func  forwardButtonTouchDownAction(sender: Any) {
     touchDownActive = true
-    onThreadAfter(0.5) {[weak self] in
+    onMainAfter(0.5) {[weak self] in
       guard self?.touchDownActive == true else { return }
       self?.seekForeward()
     }
   }
   @objc private func forwardButtonTouchUpInsideAction(sender: Any) {
-    seeking ? seekForeward() :  playNext()
+    seeking ? stopSeeking() :  playNext()
     touchDownActive = false
   }
   @objc private func forwardButtonTouchOutsideInsideAction(sender: Any) {
@@ -172,13 +173,13 @@ class ArticlePlayer: DoesLog {
   
   @objc private func backwardButtonTouchDownAction(sender: Any) {
     touchDownActive = true
-    onThreadAfter(0.5) {[weak self] in
+    onMainAfter(0.5) {[weak self] in
       guard self?.touchDownActive == true else { return }
       self?.seekBackward()
     }
   }
   @objc private func backwardButtonTouchUpInsideAction(sender: Any) {
-    seeking ? seekBackward() :  playPrev()
+    seeking ? stopSeeking() :  playPrev()
     touchDownActive = false
   }
   @objc private func backwardButtonTouchOutsideInsideAction(sender: Any) {
@@ -238,20 +239,23 @@ class ArticlePlayer: DoesLog {
   
   var seeking = false
   
+  func stopSeeking() {
+    aplayer.player?.rate = 1.0
+    seeking = false
+  }
+  
   func seekForeward() {
     if seeking == true {
-      aplayer.player?.rate = 1.0
-      seeking = false
+      stopSeeking()
       return
     }
-    
     aplayer.player?.rate = 2.0
     seeking = true
-    onThreadAfter(2.0) {[weak self] in
+    onMainAfter(1.3) {[weak self] in
       guard self?.seeking == true else { return }
       self?.aplayer.player?.rate = 4.0
     }
-    onThreadAfter(4.0) {[weak self] in
+    onMainAfter(2.2) {[weak self] in
       guard self?.seeking == true else { return }
       self?.aplayer.player?.rate = 10.0
     }
@@ -259,22 +263,20 @@ class ArticlePlayer: DoesLog {
   
   func seekBackward() {
     if seeking == true {
-      aplayer.player?.rate = 1.0
-      seeking = false
+      stopSeeking()
+      return
     }
-    
     aplayer.player?.rate = -2.0
     seeking = true
-    onThreadAfter(2.0) {[weak self] in
+    onMainAfter(1.3) {[weak self] in
       guard self?.seeking == true else { return }
       self?.aplayer.player?.rate = -4.0
     }
-    onThreadAfter(4.0) {[weak self] in
+    onMainAfter(2.2) {[weak self] in
       guard self?.seeking == true else { return }
       self?.aplayer.player?.rate = -10.0
     }
   }
-  
   
   /// There is only one ArticlePlayer per app
   public static var singleton: ArticlePlayer {
@@ -370,6 +372,7 @@ class ArticlePlayer: DoesLog {
     currentArticle = nil
     commandCenter.previousTrackCommand.isEnabled = false
     commandCenter.nextTrackCommand.isEnabled = false
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
   }
   
   public func play(issue:Issue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
