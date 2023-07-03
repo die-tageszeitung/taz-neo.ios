@@ -1982,7 +1982,6 @@ public final class StoredIssue: Issue, StoredObject {
         if lastCompleeteIssues.contains(issue) { continue }
         if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
         Log.log("reduceToOverview for issue: \(issue.date.short)")
-        issue.delete()
         issue.reduceToOverview()
       }
     }
@@ -1998,6 +1997,7 @@ public final class StoredIssue: Issue, StoredObject {
     }
     
     for issue in reduceableIssues {
+      ///Probably not needed anymore found error above
       if issue.pr.feed == nil {
         Log.log("PREVENTED CRASH")
         if App.isAlpha {
