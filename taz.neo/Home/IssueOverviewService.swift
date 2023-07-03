@@ -441,6 +441,10 @@ class IssueOverviewService: NSObject, DoesLog {
       return false
     }
     
+    if insertIp.count + movedIp.count + usedOld.count > 10 {
+      collectionView.reloadData()
+      return true
+    }
     
     let offset
     = verticalCv

@@ -1527,16 +1527,29 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   public static func persist(publicationDates: [PublicationDate],
                              inFeed feed: StoredFeed) -> [StoredPublicationDate] {
     var ret:[StoredPublicationDate] = []
+//    ret.reserveCapacity(publicationDates.count + 1)
     let allPr = Self.getAll(inFeed: feed)
+    
+    var dbItems:[String:StoredPublicationDate] = [:]
+//    dbItems.reserveCapacity(publicationDates.count + 1)
+    
+    for prPubDate in allPr {
+      dbItems[prPubDate.date.short] = prPubDate
+    }
     
     for pubDate in publicationDates {
       let storedRecord: StoredPublicationDate
-      = allPr.first(where: { $0.date == pubDate.date }) ?? new()
+      = dbItems[pubDate.date.short] ?? new()
       storedRecord.update(from: pubDate)
       storedRecord.feed = feed
-      ret.append(storedRecord)
       feed.pr.addToPublicationDates(storedRecord.pr)
+      ret.append(storedRecord)
     }
+    //    @NSManaged public func addToPublicationDates(_ values: NSSet)
+    //    @objc(addPublicationDatesObject:)
+    //   @NSManaged public func addToPublicationDates(_ value: PersistentPublicationDate)
+//    let pd:NSSet = NSSet(array: ret.map{$0.pr})
+//    feed.pr.addToPublicationDates(pd)
     return ret
   }
   
@@ -1583,7 +1596,7 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
 
   /// Overwrite the persistent values
   public func update(from object: PublicationDate) {
-    self.feed = object.feed
+    self.feed = object.feed ///in or out?
     self.date = object.date
     self.validityDate = object.validityDate
   }

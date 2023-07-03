@@ -74,6 +74,7 @@ open class FeederContext: DoesLog {
       /// ...actually FeederContext needs a big refactoring mybe with a bundled initial issue
       /// to get rid of all the patches
       latestPublicationDate =  (storedFeeder.feeds.first as? StoredFeed)?.lastPublicationDate
+      updatePublicationDatesIfNeeded(for: nil)
     }
   }
   /// The default Feed to show
@@ -556,6 +557,37 @@ open class FeederContext: DoesLog {
     }
   }
   
+  func updatePublicationDatesIfNeeded(for feed: Feed?){
+    guard let storedFeeder = storedFeeder else {
+      log("storedFeeder not initialized yet!")
+      return
+    }
+    guard let feed = feed ?? storedFeeder.feeds.first else { return }
+    guard let pubDates = storedFeeder.feeds.first?.publicationDates else { return }
+    
+    let first = pubDates.last?.date.startOfDay == feed.firstIssue.startOfDay
+    let last = pubDates.first?.date.startOfDay == feed.lastIssue.startOfDay
+    let count = pubDates.count == feed.issueCnt
+    
+    if first && last && count {
+      log("All data matching, no new issue or missing old issue")
+      return
+    }
+    
+    let logString = """
+        Missing some issues: Match pubDates data == feed data
+          firstIssue (\(first)): \(pubDates.last?.date.short ?? "-") == \(feed.firstIssue.short)
+          lastIssue (\(last)): \(pubDates.first?.date.short ?? "-") == \(feed.lastIssue.short)
+          count (\(count)): \(pubDates.count) == \(feed.issueCnt)
+    """
+    
+    log(logString)
+    log("Update all publication Dates")
+    
+    latestPublicationDate = nil
+    checkNetwork()
+  }
+  
   /// Connect to Feeder and send "feederReady" Notification
   private func connect() {
     gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
@@ -569,6 +601,8 @@ open class FeederContext: DoesLog {
           log("valid auth stop polling if any")
           self.endPolling()
         }
+        ///on init storedFeeder not available yet ...on rreconnect probably available
+        updatePublicationDatesIfNeeded(for: gqlFeeder.status?.feeds.first)
         if self.simulateFailedMinVersion {
           self.minVersion = Version("135.0.0")
           self.minVersionOK = false
