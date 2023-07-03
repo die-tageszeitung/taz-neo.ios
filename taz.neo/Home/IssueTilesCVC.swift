@@ -71,6 +71,9 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
     guard let cell = cell as? IssueTilesCvcCell,
           let data = service.cellData(for: indexPath.row,
                                       maxPreviewLoadCount: visibleCellsCount) else { return cell }
+    if let removeFromLoadDate = cell.previousIncompleeteLoadIssueDate {
+      service.removeFromLoad(date: removeFromLoadDate)
+    }
     cell.publicationDate = data.date
     cell.issue = data.issue
     cell.image = data.image

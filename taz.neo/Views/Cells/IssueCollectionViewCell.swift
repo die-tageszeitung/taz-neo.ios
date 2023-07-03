@@ -16,6 +16,8 @@ class IssueCollectionViewCell: UICollectionViewCell {
   var cvBottomConstraint: NSLayoutConstraint?
 
   final var issue: StoredIssue? { didSet { didUpdateIssue()}}
+  var previousIncompleeteLoadIssueDate: Date?
+  
   final var publicationDate: PublicationDate?{ didSet { didUpdateDate()}}
   var image: UIImage? {
     didSet {
@@ -31,6 +33,9 @@ class IssueCollectionViewCell: UICollectionViewCell {
   func didUpdateIssue(){}
   
   public override func prepareForReuse() {
+    if image == nil {
+      previousIncompleeteLoadIssueDate = issue?.date
+    }
     image = nil
     issue = nil
     publicationDate = nil

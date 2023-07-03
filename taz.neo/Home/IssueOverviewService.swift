@@ -186,6 +186,10 @@ class IssueOverviewService: NSObject, DoesLog {
   var isCheckingForNewIssues = false
   var lastUpdateCheck = Date()///set to init time to simplify; on online app start auto check is done and on reconnect
   
+  func removeFromLoad(date: Date){
+    additionallyRemoveFromLoading.append(date.issueKey)
+    loadFaildPreviews.removeAll(where: { $0.date.issueKey == date.issueKey })
+  }
   
   ///Optimized load previews
   ///e.g. called on jump to date + ipad need to load date +/- 5 issues
@@ -291,13 +295,30 @@ class IssueOverviewService: NSObject, DoesLog {
     return feederContext.needsUpdate(issue: sIssue,toShowPdf: isFacsimile)
   }
   
+  var additionallyRemoveFromLoading: [String] = []
   func removeFromLoading(_ dates: [String]){
+    var datesToRemove:[String] = dates
+    if additionallyRemoveFromLoading.count > 0 {
+      datesToRemove.append(contentsOf: additionallyRemoveFromLoading)
+      additionallyRemoveFromLoading = []
+    }
+    
     loadingDates
-    = loadingDates.enumerated().filter { !dates.contains($0.element) }.map { $0.element }
+    = loadingDates.enumerated().filter { !datesToRemove.contains($0.element) }.map { $0.element }
   }
   
   func addToLoading(_ dates: [String]){
     loadingDates.append(contentsOf: dates)
+  }
+  
+  func continueFaildPreviewLoad(){
+    if loadFaildPreviews.count == 0 { return }
+    log("continue load for: \(loadFaildPreviews.count) failed preview loads")
+    let issuesToLoad = loadFaildPreviews
+    loadFaildPreviews = []
+    for issue in issuesToLoad {
+      apiLoadMomentImages(for: issue, isPdf: isFacsimile)
+    }
   }
   
   func apiLoadMomentImages(for issue: StoredIssue, isPdf: Bool) {
@@ -354,13 +375,13 @@ class IssueOverviewService: NSObject, DoesLog {
             self?.debug("something went wrong: downloaded file did not exist!")
             self?.loadFaildPreviews.append(issue)
           }
-          if err == nil {
+          if img != nil && err == nil {
             issue.isOvwComplete = true
             ArticleDB.save()
+            Notification.send(Const.NotificationNames.issueUpdate,
+                              content: issue.date,
+                              sender: self)
           }
-          Notification.send(Const.NotificationNames.issueUpdate,
-                            content: issue.date,
-                            sender: self)
           self?.loadPreviewsGroup.leave()
           self?.loadPreviewsSemaphore.signal()
         }
@@ -513,6 +534,7 @@ class IssueOverviewService: NSObject, DoesLog {
     
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
       self?.updateIssues()
+      self?.continueFaildPreviewLoad()
     }
     
     Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
