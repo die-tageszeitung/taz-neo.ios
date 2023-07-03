@@ -355,6 +355,7 @@ class IssueOverviewService: NSObject, DoesLog {
             self?.loadFaildPreviews.append(issue)
           }
           if err == nil {
+            issue.isOvwComplete = true
             ArticleDB.save()
           }
           Notification.send(Const.NotificationNames.issueUpdate,
