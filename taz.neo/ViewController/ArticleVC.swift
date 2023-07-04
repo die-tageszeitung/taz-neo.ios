@@ -311,6 +311,14 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self?.adelegate?.closeIssue()
     }
   }
+  
+  open override func releaseOnDisappear(){
+    contentTable = nil
+    articles = []
+    playButtonContextMenu?.itemPrivider = nil
+    self.playButtonContextMenu = nil
+    super.releaseOnDisappear()
+  }
     
   public override func viewWillAppear(_ animated: Bool) {
     if self.invalidateLayoutNeededOnViewWillAppear {

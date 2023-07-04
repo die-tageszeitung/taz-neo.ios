@@ -133,11 +133,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     self.navigationController?.popViewController(animated: false)
   }
   
-  override func relaese(){
-    super.relaese()
-    articleVC?.relaese()
-  }
-  
   func setup() {
     guard let delegate = self.delegate else { return }
     self.sections = delegate.issue.sections ?? []
@@ -319,6 +314,17 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
         }
       }
     }
+  }
+  
+  public override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    if self.navigationController == nil { releaseOnDisappear() }
+  }
+  ///Declaration 'releaseOnDisappear()' cannot override more than one superclass declaration
+  open override func releaseOnDisappear() {
+    articleVC?.releaseOnDisappear()
+    articleVC = nil
+    super.releaseOnDisappear()
   }
    
   /// Initialize with FeederContext

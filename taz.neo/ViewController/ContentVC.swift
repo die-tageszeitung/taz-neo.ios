@@ -149,8 +149,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     return ContentVC._tazApiJs!
   }
   
-  func relaese(){
-    super.release()
+  open override func releaseOnDisappear(){
     //Circular reference with: onImagePress, onSectionPress
     settingsBottomSheet = nil
     slider = nil

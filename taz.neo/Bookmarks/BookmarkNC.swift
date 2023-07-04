@@ -147,7 +147,7 @@ extension BookmarkNC: ReloadAfterAuthChanged {
       } else if let idx = lastIndex {
         self.bookmarkFeed
         = BookmarkFeed.allBookmarks(feeder: self.feeder)
-        self.sectionVC.relaese()
+        self.sectionVC.releaseOnDisappear()
         self.sectionVC
         = createSectionVC(openArticleAtIndex: idx)
         self.viewControllers[0] = self.sectionVC
