@@ -672,7 +672,12 @@ extension TazAppEnvironment {
   }
   
   func playLatestIssue(){
-    guard let si = feederContext?.getLatestStoredIssue() else { return }
+    guard let feederContext = feederContext,
+          feederContext.defaultFeed != nil,
+          let si = feederContext.getLatestStoredIssue() else {
+      LocalNotifications.notifyOfflineListenNotPossible()
+      return
+    }
     ArticlePlayer.singleton.play(issue: si,
                                  startFromArticle: nil,
                                  enqueueType: .replaceCurrent)

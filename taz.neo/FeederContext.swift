@@ -286,6 +286,7 @@ open class FeederContext: DoesLog {
     self.debug("Feeder now reachable")
     self.dloader = Downloader(feeder: feeder as! GqlFeeder)
     notify(Const.NotificationNames.feederReachable)
+    LocalNotifications.removeOfflineListenNotPossibleNotifications()
   }
   
   /// Feeder is not reachable
@@ -908,8 +909,8 @@ open class FeederContext: DoesLog {
   
   /// GET IS BULLSHIT DUE IT NOT RETURNS A ISSUE!
   /// - Parameters:
-  ///   - feed: <#feed description#>
-  ///   - count: <#count description#>
+  ///   - feed: feed description
+  ///   - count: count description
   public func getStoredOvwIssues(feed: Feed, count: Int = 10){
     let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
     if let sf0 = sfs.first {
@@ -1339,6 +1340,21 @@ extension PushNotification.Payload {
       debug("data.body is: \(body)")
       return body
     }
+  }
+}
+
+extension LocalNotifications {
+  static let tazAppOfflineListenNotPossibleIdentifier = "tazAppOfflineListenNotPossible"
+  static func notifyOfflineListenNotPossible(){
+    Self.notify(title: "Sie müssen online sein, um die Vorlesefunktion zu nutzen!",
+                              message: "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+                              notificationIdentifier: tazAppOfflineListenNotPossibleIdentifier)
+  }
+  static func removeOfflineListenNotPossibleNotifications(){
+    UNUserNotificationCenter.current()
+      .removePendingNotificationRequests(withIdentifiers:[tazAppOfflineListenNotPossibleIdentifier])
+    UNUserNotificationCenter.current()
+      .removeDeliveredNotifications(withIdentifiers:[tazAppOfflineListenNotPossibleIdentifier])
   }
 }
 
