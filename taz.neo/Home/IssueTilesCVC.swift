@@ -100,6 +100,13 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
       error("Issue not available try later")
       return
     }
+    for case let cell as IssueTilesCvcCell in collectionView.visibleCells {
+      if cell.issue != issue { continue }
+      if cell.button.indicator.downloadState == .notStarted {
+        cell.button.indicator.downloadState = .waiting
+      }
+      break
+    }
     (parent as? OpenIssueDelegate)?.openIssue(issue)
   }
   

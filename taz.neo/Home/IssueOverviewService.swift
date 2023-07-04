@@ -158,12 +158,10 @@ class IssueOverviewService: NSObject, DoesLog {
       debug("Issue: \(issue.date.short) has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
       debug("Issue isComplete: \(issue.isComplete), isReduced: \(issue.isReduced) isOvwComplete: \(issue.isOvwComplete) isDownloading: \(issue.isDownloading) isOverview: \(issue.isOverview)")
       debug("This may fail!")
+      apiLoadIssueOverview(for: date.date, count: 1)
     } else {
       //update Issue
-      feederContext.getOvwIssues(feed: feed,
-                                 count: 1,
-                                 fromDate: date.date,
-                                 isAutomatically: false)
+      apiLoadIssueOverview(for: date.date, count: 1)
     }
     return issue
   }

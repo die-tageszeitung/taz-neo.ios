@@ -15,7 +15,12 @@ class IssueCollectionViewCell: UICollectionViewCell {
   
   var cvBottomConstraint: NSLayoutConstraint?
 
-  final var issue: StoredIssue? { didSet { didUpdateIssue()}}
+  final var issue: StoredIssue? {
+    didSet {
+      if oldValue == issue { return }
+      didUpdateIssue()
+    }
+  }
   var previousIncompleeteLoadIssueDate: Date?
   
   final var publicationDate: PublicationDate?{ didSet { didUpdateDate()}}
