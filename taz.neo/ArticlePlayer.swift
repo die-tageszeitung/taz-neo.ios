@@ -104,6 +104,7 @@ class ArticlePlayer: DoesLog {
   private init() {
     aplayer = AudioPlayer()
     aplayer.resetNowPlayingInfo = false
+    aplayer.setupCloseRemoteCommands = false
     aplayer.logoToAdd = UIImage(named: "AppIcon60x60")
     aplayer.onTimer { [weak self] in
       guard let item = self?.aplayer.currentItem else { return }
