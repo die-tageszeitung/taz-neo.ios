@@ -163,7 +163,11 @@ extension IssueDisplayService {
 //        self.issueCarousel.setActivity(idx: index, isActivity: false)
         return
       }
-      self.downloadSection(issue: issue, section: issue.sections![0]) { [weak self] err in
+      guard let sect0 = issue.sections?.first else {
+        self.handleDownloadError(error: DefaultError(message: "data not available yet"))
+        return
+      }
+      self.downloadSection(issue: issue, section: sect0) { [weak self] err in
         guard let self = self else { return }
 //        self.statusHeader.currentStatus = .none
 //        self.isDownloading = false
