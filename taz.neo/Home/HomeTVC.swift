@@ -190,7 +190,16 @@ class HomeTVC: UITableViewController {
     self.addChild(tilesController)
     ///Handle new issues
     Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
+      guard self?.view.superview != nil else { return }
       self?.carouselController.statusHeader.currentStatus = .loadPreview
+      if ((self?.navigationController?.parent as? UITabBarController)?
+        .selectedViewController as? UINavigationController)?
+        .viewControllers.last != self {
+        _ = service.reloadPublicationDates(refresh: nil, verticalCv: true)
+        self?.tilesController.collectionView.reloadData()
+        self?.carouselController.collectionView.reloadData()
+        return
+      }
 
       guard let service = self?.issueOverviewService,
             let self = self else { return }

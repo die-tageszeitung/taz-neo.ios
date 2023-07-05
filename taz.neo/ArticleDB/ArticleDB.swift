@@ -1526,6 +1526,7 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   
   public static func persist(publicationDates: [PublicationDate],
                              inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+    var start = Date()
     var ret:[StoredPublicationDate] = []
 //    ret.reserveCapacity(publicationDates.count + 1)
     let allPr = Self.getAll(inFeed: feed)
@@ -1550,6 +1551,7 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
     //   @NSManaged public func addToPublicationDates(_ value: PersistentPublicationDate)
 //    let pd:NSSet = NSSet(array: ret.map{$0.pr})
 //    feed.pr.addToPublicationDates(pd)
+    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
     return ret
   }
   

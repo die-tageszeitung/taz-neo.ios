@@ -182,7 +182,8 @@ class IssueOverviewService: NSObject, DoesLog {
   var loadingDates: [String] = []
   var loadFaildPreviews: [StoredIssue] = []
   var isCheckingForNewIssues = false
-  var lastUpdateCheck = Date()///set to init time to simplify; on online app start auto check is done and on reconnect
+  var lastUpdateCheck = Date().addingTimeInterval(-checkOnResumeEvery)///set to init time to simplify; on online app start auto check is done and on reconnect
+  static let checkOnResumeEvery:TimeInterval = 5*60
   
   func removeFromLoad(date: Date){
     additionallyRemoveFromLoading.append(date.issueKey)
@@ -409,9 +410,19 @@ class IssueOverviewService: NSObject, DoesLog {
   ///   - collectionView: cv to reload animated
   ///   - verticalCv: is vertical (tiles) or horizointal (carousel)
   /// - Returns: true if new issues available and reload, false if not
-  func reloadPublicationDates(refresh collectionView: UICollectionView,
+  func reloadPublicationDates(refresh collectionView: UICollectionView?,
                               verticalCv: Bool) -> Bool {
     guard let newPubDates = feed.publicationDates else { return false }
+    
+    guard let collectionView = collectionView else {
+      ///Skip Reload if home is still not presended
+      if newPubDates.count > self.publicationDates.count {
+        self.publicationDates = newPubDates
+      }
+      return false
+    }
+    
+    
     debug("before: \(publicationDates.count) after: \(newPubDates.count)")
   
     if publicationDates.count != newPubDates.count {
@@ -420,6 +431,13 @@ class IssueOverviewService: NSObject, DoesLog {
                         error: nil,
                         sender: self)
     }
+    
+    if abs(newPubDates.count - publicationDates.count) > 10 {
+      publicationDates = newPubDates
+      collectionView.reloadData()
+      return true
+    }
+    
     ///Warning Work with Issue Keys not with PublicationDates for performance reasons
     ///insert/update 4 of 3770 Publication Datees took < 50s in Debugging on intel mac
     ///with String Keys only 4s
@@ -461,10 +479,14 @@ class IssueOverviewService: NSObject, DoesLog {
       return false
     }
     
-    if insertIp.count + movedIp.count + usedOld.count > 10 {
-      collectionView.reloadData()
-      return true
-    }
+//    if insertIp.count + movedIp.count + usedOld.count > 10 {
+//    if insertIp.count + usedOld.count > 10 {
+//      ///sledge hammer option, probably not needed due just 1 insert at index 2?
+//      ///better compare counts?
+//      publicationDates = newPubDates
+//      collectionView.reloadData()
+//      return true
+//    }
     
     let offset
     = verticalCv
@@ -560,8 +582,8 @@ extension IssueOverviewService {
       return
     }
     
-    ///only check every 5 Minutes on app resume
-    if !force &&  Date().timeIntervalSince(lastUpdateCheck) < 5*60 {
+    //only check every 5 Minutes on app resume
+    if !force &&  Date().timeIntervalSince(lastUpdateCheck) < Self.checkOnResumeEvery {
       log("no need to check for new Issue due last auto check was just now")
       return
     }
@@ -625,7 +647,8 @@ extension IssueOverviewService {
       let oldCnt = feed.publicationDates?.count ?? 0
       _ = StoredPublicationDate.persist(publicationDates: gqlPubDates, inFeed: sFeed)
       let newCnt = feed.publicationDates?.count ?? 0
-      if oldCnt == newCnt {
+      let selfCnt = self.publicationDates.count
+      if oldCnt == newCnt && newCnt == selfCnt {
         Notification.send(Const.NotificationNames.checkForNewIssues,
                           content: FetchNewStatusHeader.status.none,
                           error: nil,

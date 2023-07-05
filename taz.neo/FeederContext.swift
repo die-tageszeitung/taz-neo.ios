@@ -659,6 +659,8 @@ open class FeederContext: DoesLog {
     self.name = name
     self.url = url
     self.feedName = feedName
+    //#warning("REMOVE THE FOLLOWING LINE!!! just for Debugging DB is Days -2")
+    //self.latestPublicationDate = nil//Date().addingTimeInterval(-200*24*3600) ?? Defaults.latestPublicationDate
     self.latestPublicationDate = Defaults.latestPublicationDate
     self.netAvailability = NetAvailability(host: host)
     if self.simulateNewVersion || simulateFailedMinVersion {
