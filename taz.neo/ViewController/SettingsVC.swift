@@ -150,14 +150,14 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     switch (isTextNotification, systemNotificationsEnabled) {
       case (true, true):
         detailText
-        = NSMutableAttributedString(string: "\ntaz Mitteilungen sind immer eine gute Wahl. Sie werden zum Bescheidwisser und verpassen keine Ausgabe.")
+        = NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
       case (true, false):
         detailText
         = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen  deaktiviert. Diese müssen aktiviert sein, um Mitteilungen zu erhalten.")
         detailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 30, length: 20))
       case (false, true):
         detailText
-        = NSMutableAttributedString(string: "\nMit Mitteilungen sind Sie immer informiert, wann die neue taz kommt. kein Spam, kein unötiges Bling bling. Nur gute Ware")
+        = NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
       case (false, false):
         detailText
         = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen ebenfalls zu aktivieren.")
