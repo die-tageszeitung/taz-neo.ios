@@ -97,7 +97,16 @@ extension NewContentTableVC {
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     if let activeItem = activeItem {
-      tableView.scrollToRow(at: activeItem, at: .top, animated: false)
+      //Crash on: (M1830 2023-07-05 16:33:43) NewContentTableVC.viewDidAppear(_:) Info:
+      //scroll to 8(Optional(19))-0 issue: 5.7.2023 Optional(19) openSections: [8]
+      #warning("remove logging before Release")
+      log("scroll to \(activeItem.section)(\(issue?.sections?.count))-\(activeItem.row) issue: \(issue?.date.short ?? "-") \(issue?.sections?.count) openSections: \(expandedSections)")
+      if activeItem.row == 0 {
+        self.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: activeItem.section), at: .top, animated: false)
+      }
+      else {
+        tableView.scrollToRow(at: activeItem, at: .top, animated: false)
+      }
     }
     else if let sectIndex = sectIndex, tableView(self.tableView, numberOfRowsInSection: sectIndex) > 0 {
       tableView.scrollToRow(at: IndexPath(row: 0, section: sectIndex), at: .top, animated: false)
