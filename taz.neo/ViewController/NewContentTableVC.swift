@@ -236,7 +236,7 @@ extension NewContentTableVC {
     self.view.addSubview(tableView)
     
     pin(header, to: self.view, exclude: .bottom)
-    pin(tableView, toSafe: self.view, exclude: .top)
+    pin(tableView, to: self.view, exclude: .top)
     pin(tableView.top, to: header.bottom)
   }
   
