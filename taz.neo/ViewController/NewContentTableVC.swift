@@ -93,35 +93,6 @@ extension NewContentTableVC {
   }
   
   var allSectionIndicies: [Int] { return Array(0...(issue?.sections?.count ?? 0))}
-  
-  public override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    if let activeItem = activeItem {
-      //Crash on: (M1830 2023-07-05 16:33:43) NewContentTableVC.viewDidAppear(_:) Info:
-      //scroll to 8(Optional(19))-0 issue: 5.7.2023 Optional(19) openSections: [8]
-      #warning("remove logging before Release")
-      log("scroll to \(activeItem.section)(\(issue?.sections?.count))-\(activeItem.row) issue: \(issue?.date.short ?? "-") \(issue?.sections?.count) openSections: \(expandedSections)")
-      if activeItem.row == 0 {
-        self.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: activeItem.section), at: .top, animated: false)
-      }
-      else {
-        tableView.scrollToRow(at: activeItem, at: .top, animated: false)
-      }
-    }
-    else if let sectIndex = sectIndex, tableView(self.tableView, numberOfRowsInSection: sectIndex) > 0 {
-      tableView.scrollToRow(at: IndexPath(row: 0, section: sectIndex), at: .top, animated: false)
-    }
-    else if let sectIndex = sectIndex {
-      ///Fix Layout Bug: issue > regular section open menu swipe > anzeige open menu ==> menu wrongly layouted, nothing helped
-      /// similar: https://stackoverflow.com/questions/14995573/dequeued-uitableviewcell-has-incorrect-layout-until-scroll-using-autolayout
-      onMainAfter { [weak self] in
-        //self?.tableView.scrollRectToVisible(CGRect(x: 10, y: 100, width: 10, height: 10), animated: true)//did not work
-        self?.tableView.setContentOffset(CGPoint(x: 0, y: 0), animated: false)
-        self?.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: sectIndex), at: .top, animated: false)
-      }
-    }
-  }
-  
 }
 
 
@@ -251,13 +222,29 @@ extension NewContentTableVC {
   
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    
     tableView.reloadData()
-    if let activeItem = activeItem {
+  }
+  
+  public override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    if let activeItem = activeItem,
+       expandedSections.contains(activeItem.section) {
       tableView.scrollToRow(at: activeItem, at: .top, animated: false)
+    }
+    else if let activeItem = activeItem {
+      tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: activeItem.section), at: .top, animated: false)
     }
     else if let sectIndex = sectIndex, tableView(self.tableView, numberOfRowsInSection: sectIndex) > 0 {
       tableView.scrollToRow(at: IndexPath(row: 0, section: sectIndex), at: .top, animated: false)
+    }
+    else if let sectIndex = sectIndex {
+      ///Fix Layout Bug: issue > regular section open menu swipe > anzeige open menu ==> menu wrongly layouted, nothing helped
+      /// similar: https://stackoverflow.com/questions/14995573/dequeued-uitableviewcell-has-incorrect-layout-until-scroll-using-autolayout
+      onMainAfter { [weak self] in
+        //self?.tableView.scrollRectToVisible(CGRect(x: 10, y: 100, width: 10, height: 10), animated: true)//did not work
+        self?.tableView.setContentOffset(CGPoint(x: 0, y: 0), animated: false)
+        self?.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: sectIndex), at: .top, animated: false)
+      }
     }
   }
 }
