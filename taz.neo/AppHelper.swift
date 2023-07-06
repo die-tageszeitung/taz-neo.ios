@@ -110,7 +110,7 @@ public extension App {
       case .SEARCH_CONTEXTMENU:
         return isAlpha //Only in Alpha Versions
       case .AUTODOWNLOAD:
-        return true || (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") || isAlpha //Only in Alpha Versions or taz Accounts
+        return (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") || isAlpha //Only in Alpha Versions or taz Accounts
     }
   }
 }
