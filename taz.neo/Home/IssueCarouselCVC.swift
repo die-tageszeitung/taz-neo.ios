@@ -261,7 +261,10 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
       return
     }
     loadingMoment = (collectionView.cellForItem(at: indexPath) as? IssueCollectionViewCell)?.momentView
-    downloadButton.indicator.downloadState = .waiting
+    
+    if self.service.issueDownloadState(at: indexPath.row) == .notStarted {
+      downloadButton.indicator.downloadState = .waiting
+    }
     (parent as? OpenIssueDelegate)?.openIssue(issue)
   }
   
