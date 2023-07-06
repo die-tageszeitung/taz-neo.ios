@@ -147,10 +147,7 @@ extension IssueDisplayService {
     //      issueCarousel.index = index
     //      issueCarousel.setActivity(idx: index, isActivity: true)
     Notification.receiveOnce("issueStructure", from: issue) { [weak self] notif in
-      guard let self = self else {
-        Log.debug("i'am gone!")
-        return
-      }
+      guard let self = self else { return }
       let issue = self.sissue
       if let err = notif.error {
         self.handleDownloadError(error: err)
@@ -160,7 +157,6 @@ extension IssueDisplayService {
                     atArticle: targetArticle?.index ?? issue.lastArticle,
                     atPage: issue.lastPage,
                     pushDelegate: pushDelegate) }
-//        self.issueCarousel.setActivity(idx: index, isActivity: false)
         return
       }
       guard let sect0 = issue.sections?.first else {
@@ -169,8 +165,6 @@ extension IssueDisplayService {
       }
       self.downloadSection(issue: issue, section: sect0) { [weak self] err in
         guard let self = self else { return }
-//        self.statusHeader.currentStatus = .none
-//        self.isDownloading = false
         guard err == nil else {
           self.handleDownloadError(error: err)
           if issue.status.watchable && self.isFacsimile { self.openIssue(issue: issue,
