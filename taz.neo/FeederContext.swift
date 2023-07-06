@@ -74,7 +74,9 @@ open class FeederContext: DoesLog {
       /// ...actually FeederContext needs a big refactoring mybe with a bundled initial issue
       /// to get rid of all the patches
       latestPublicationDate =  (storedFeeder.feeds.first as? StoredFeed)?.lastPublicationDate
-      updatePublicationDatesIfNeeded(for: nil)
+      if oldValue == nil {
+        updatePublicationDatesIfNeeded(for: nil)
+      }
     }
   }
   /// The default Feed to show
