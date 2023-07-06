@@ -104,7 +104,9 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
       if let (loaded,total) = notif.content as? (Int64,Int64) {
         let percent = Float(loaded)/Float(total)
         if percent > 0.05 {
-          self.button.indicator.downloadState = .process
+          if percent != 1.0 {
+            self.button.indicator.downloadState = .process
+          }
           self.button.indicator.percent = percent
         }
         else {

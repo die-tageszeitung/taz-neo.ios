@@ -390,7 +390,9 @@ extension IssueCarouselCVC {
       if let (loaded,total) = notif.content as? (Int64,Int64) {
         let percent = Float(loaded)/Float(total)
         if percent > 0.05 {
-          self?.downloadButton.indicator.downloadState = .process
+          if percent != 1.0 {
+            self?.downloadButton.indicator.downloadState = .process
+          }
           self?.downloadButton.indicator.percent = percent
         }
       }
