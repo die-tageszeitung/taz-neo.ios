@@ -1178,7 +1178,9 @@ open class FeederContext: DoesLog {
           }
           issue.update(from: dissue)
           ArticleDB.save()
-          Notification.send("issueStructure", result: .success(issue), sender: issue)
+          Notification.receiveOnce("resourcesReady") { _ in
+            Notification.send("issueStructure", result: .success(issue), sender: issue)
+          }
           self.downloadIssue(issue: issue, isComplete: true, isAutomatically: isAutomatically)
         }
         else if let err = res.error() {
