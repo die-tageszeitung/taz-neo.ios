@@ -307,9 +307,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     if SectionVC.showAnimations && issue.sections?.count ?? 0 > 1 {
       SectionVC.showAnimations = false
       delay(seconds: 1.5) {
-        self.slider?.open() { _ in
-          delay(seconds: 1.5) {
-            self.slider?.close()
+        self.slider?.open() {_ in
+          delay(seconds: 1.5) {[weak self] in
+            self?.slider?.close()
           }
         }
       }
