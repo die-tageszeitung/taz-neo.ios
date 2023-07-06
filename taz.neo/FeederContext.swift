@@ -959,7 +959,7 @@ open class FeederContext: DoesLog {
       fetchCompletionHandler?(.noData)
       return
     }
-    
+    #warning("TODO: ADD APPLICATION BACKGROUND FETCH RÖDLER")
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       self.gqlFeeder.issues(feed: sFeed,
