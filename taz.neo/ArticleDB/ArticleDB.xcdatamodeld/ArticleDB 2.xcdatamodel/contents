@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22F66" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="2">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22F82" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="2">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="hasBookmark" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -181,6 +181,9 @@
         <attribute name="date" attributeType="Date" usesScalarValueType="NO" customClassName="[Date]"/>
         <attribute name="validityDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="feed" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Feed" inverseName="publicationDates" inverseEntity="Feed"/>
+        <fetchIndex name="Index">
+            <fetchIndexElement property="date" type="Binary" order="ascending"/>
+        </fetchIndex>
     </entity>
     <entity name="Remark" representedClassName="PersistentRemark" syncable="YES" codeGenerationType="class">
         <attribute name="startXpath" attributeType="String"/>
