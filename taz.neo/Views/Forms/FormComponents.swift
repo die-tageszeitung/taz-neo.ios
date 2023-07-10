@@ -428,6 +428,7 @@ extension TazTextField{
   @objc public func textFieldEditingDidEnd(_ textField: UITextField) {
     //textField.text = textField.text?.trim //work not good "123 456" => "123"
     //push (e.g.) pw forgott child let end too late
+    //may use trimed in future in case if required
     UIView.animate(seconds: 0.3) { [weak self] in
       self?.border.backgroundColor = Const.SetColor.ForegroundHeavy.color
       self?.topLabel.textColor = Const.SetColor.ForegroundHeavy.color

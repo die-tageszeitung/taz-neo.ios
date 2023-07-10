@@ -53,7 +53,7 @@ class LoginController: FormsController {
       }
     }
     else {
-      self.ui.idInput.text = self.ui.idInput.text?.trim
+      self.ui.idInput.text = self.ui.idInput.text?.trimed
       self.queryAuthToken(tazId: (self.ui.idInput.text ?? ""),tazIdPass: self.ui.passInput.text ?? "")
     }
   }
@@ -61,10 +61,10 @@ class LoginController: FormsController {
   @IBAction func handleTrial(_ sender: UIButton) {
     let ctrl = TrialSubscriptionController(self.auth)
     // Prefill register Form with current Input if idInput contains a valid E-Mail
-    if (self.ui.idInput.text ?? "").trim.isValidEmail() {
-      ctrl.ui.mailInput.text = self.ui.idInput.text?.trim
-      ctrl.ui.passInput.text = self.ui.passInput.text?.trim
-      ctrl.ui.pass2Input.text = self.ui.passInput.text?.trim
+    if (self.ui.idInput.text ?? "").trimed.isValidEmail() {
+      ctrl.ui.mailInput.text = self.ui.idInput.text?.trimed
+      ctrl.ui.passInput.text = self.ui.passInput.text?.trimed
+      ctrl.ui.pass2Input.text = self.ui.passInput.text?.trimed
     }
     modalFromBottom(ctrl)
   }
@@ -80,7 +80,7 @@ class LoginController: FormsController {
   }
   
   func handlePwForgot() {
-    modalFromBottom(PwForgottController(id: ui.idInput.text?.trim,
+    modalFromBottom(PwForgottController(id: ui.idInput.text?.trimed,
                                   auth: auth))
   }
   func handleWhereIsTheAboId() {
