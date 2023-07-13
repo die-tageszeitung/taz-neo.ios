@@ -129,7 +129,7 @@ extension Padded.Button{
                     title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
                     color: UIColor = Const.SetColor.CIColor.color,
                     textColor: UIColor = .white,
-                    height: CGFloat = 40,
+                    height: CGFloat = 34,
                     paddingTop: CGFloat = DefaultPadding,
                     paddingBottom: CGFloat = DefaultPadding,
                     target: Any? = nil,
@@ -150,6 +150,7 @@ extension Padded.Button{
       self.addTarget(target, action: action, for: .touchUpInside)
     }
     
+    self.pinHeight(height)
     
     switch type {
       case .outline:
@@ -167,7 +168,6 @@ extension Padded.Button{
         self.addBorder(Const.SetColor.CTDate.color, 1.5)
         self.setTitleColor(Const.SetColor.CTDate.color, for: .normal)
         self.titleLabel?.font = Const.Fonts.boldContentFont
-        self.pinHeight(height)
         self.layer.cornerRadius = height/2
       case .normal: fallthrough
       default:
