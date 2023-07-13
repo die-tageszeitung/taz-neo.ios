@@ -276,7 +276,7 @@ extension SearchController {
 
   private func search(_ sendDismissNotofication:Bool = false) {
     var searchSettings = self.searchSettingsView.data.settings
-    header.searchTextField.text = header.searchTextField.text?.trim ?? ""
+    header.searchTextField.text = header.searchTextField.text?.trimed ?? ""
     searchSettings.text = header.searchTextField.text
     if searchSettings.searchTermTooShort {
       header.setStatusLabel(text: "Bitte Suchbegriff eingeben!",

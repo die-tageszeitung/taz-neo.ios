@@ -129,7 +129,7 @@ extension Padded.Button{
                     title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
                     color: UIColor = Const.SetColor.CIColor.color,
                     textColor: UIColor = .white,
-                    height: CGFloat = 40,
+                    height: CGFloat = 34,
                     paddingTop: CGFloat = DefaultPadding,
                     paddingBottom: CGFloat = DefaultPadding,
                     target: Any? = nil,
@@ -150,6 +150,7 @@ extension Padded.Button{
       self.addTarget(target, action: action, for: .touchUpInside)
     }
     
+    self.pinHeight(height)
     
     switch type {
       case .outline:
@@ -167,7 +168,6 @@ extension Padded.Button{
         self.addBorder(Const.SetColor.CTDate.color, 1.5)
         self.setTitleColor(Const.SetColor.CTDate.color, for: .normal)
         self.titleLabel?.font = Const.Fonts.boldContentFont
-        self.pinHeight(height)
         self.layer.cornerRadius = height/2
       case .normal: fallthrough
       default:
@@ -428,6 +428,7 @@ extension TazTextField{
   @objc public func textFieldEditingDidEnd(_ textField: UITextField) {
     //textField.text = textField.text?.trim //work not good "123 456" => "123"
     //push (e.g.) pw forgott child let end too late
+    //may use trimed in future in case if required
     UIView.animate(seconds: 0.3) { [weak self] in
       self?.border.backgroundColor = Const.SetColor.ForegroundHeavy.color
       self?.topLabel.textColor = Const.SetColor.ForegroundHeavy.color

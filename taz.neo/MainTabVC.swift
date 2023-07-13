@@ -85,10 +85,12 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       let sectIssue = sectVc.issue as? StoredIssue,
           issue == sectIssue {
         sectVc.showArticle(article, animated: true)
+        home.togglePdfButton.isHidden = true
       }
       else {
         home.navigationController?.popToRootViewController(animated: false)
         home.openIssue(issue, at: article)
+        home.togglePdfButton.isHidden = true
       }
     }
     

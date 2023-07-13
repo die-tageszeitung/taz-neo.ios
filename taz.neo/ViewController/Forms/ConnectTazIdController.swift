@@ -204,7 +204,7 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
   }
   
   @IBAction func handlePwForgot(_ sender: UIButton) {
-    let ctrl = PwForgottController(id: ui.mailInput.text?.trim, auth: auth)
+    let ctrl = PwForgottController(id: ui.mailInput.text?.trimed, auth: auth)
     //Change to SubscriptionReset
     ctrl.ui.idInput.keyboardType = .numberPad
     ctrl.ui.idInput.placeholder = Localized("login_subscription_hint")
@@ -327,7 +327,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
   }
   
   @IBAction func handlePwForgot(_ sender: UIButton) {
-    let ctrl = PwForgottController(id: ui.mailInput.text?.trim, auth: auth)
+    let ctrl = PwForgottController(id: ui.mailInput.text?.trimed, auth: auth)
     //Change to SubscriptionReset
     ctrl.ui.idInput.keyboardType = .emailAddress
     ctrl.ui.idInput.autocapitalizationType = .none
