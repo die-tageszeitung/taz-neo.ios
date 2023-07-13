@@ -244,6 +244,7 @@ public class InfoToast : UIView {
     label.textAlignment = .left
     label.numberOfLines = 0
     label.text = title
+    label.textColor = .black
     return label
   }()
   
@@ -252,6 +253,7 @@ public class InfoToast : UIView {
     label.contentFont().textAlignment = .left
     label.numberOfLines = 0
     label.text = text
+    label.textColor = .black
     return label
   }()
   
