@@ -147,6 +147,12 @@ class HomeTVC: UITableViewController {
     super.viewWillTransition(to: size, with: coordinator)
     updateCarouselSize(size: size, horizontalSizeClass: nextHorizontalSizeClass)
     nextHorizontalSizeClass = nil
+    self.verifyUp()
+    coordinator.animate(alongsideTransition: nil, completion: {[weak self] _ in
+      guard let self = self else { return }
+      self.scroll(up: self.wasUp)
+    })
+
   }
   
   func updateVisibleCellsCount() {
