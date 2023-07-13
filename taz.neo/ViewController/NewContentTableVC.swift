@@ -286,7 +286,7 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
             as? ContentTableHeaderFooterView else { return nil}
     
     if let ressort = issue?.sections?.valueAt(section) {
-      header.label.text = ressort.title
+      header.label.text = ressort.name
       header.chevron.isHidden = ressort.type == .advertisement
       header.dottedLine.isHidden = ressort.type == .advertisement
     } else if section == issue?.sections?.count ?? 0 {
