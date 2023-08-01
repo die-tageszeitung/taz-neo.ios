@@ -319,7 +319,8 @@ open class FeederContext: DoesLog {
       //        }
       //      }
       
-      self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
+      self.gqlFeeder = GqlFeeder(title: name, url: url, closure: { _ in  })
+      /*{ [weak self] res in
         guard let self = self else { return }
         if let feeder = res.value() {
           if let gqlFeeder = feeder as? GqlFeeder,
@@ -333,7 +334,7 @@ open class FeederContext: DoesLog {
           self.feederReachable(feeder: feeder)
         }
         else { self.feederUnreachable() }
-      }
+      }*/
       ///Fix timing Bug, Demo Issue Downloaded, and probably login form shown
       if let storedAuth = SimpleAuthenticator.getUserData().token, self.gqlFeeder.authToken == nil {
         self.gqlFeeder.authToken = storedAuth
@@ -593,7 +594,11 @@ open class FeederContext: DoesLog {
   
   /// Connect to Feeder and send "feederReady" Notification
   private func connect() {
-    gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
+    self.gqlFeeder = GqlFeeder(title: name, url: url, closure: { _ in })
+    authenticator = DefaultAuthenticator(feeder: gqlFeeder)
+    self.feederStatus(isOnline: false)
+    
+    gqlFeeder.checkVersionInfoOnInitially { [weak self] res in
       guard let self else { return }
       
       if let feeder = res.value() {
@@ -604,8 +609,9 @@ open class FeederContext: DoesLog {
           log("valid auth stop polling if any")
           self.endPolling()
         }
+        
         ///on init storedFeeder not available yet ...on rreconnect probably available
-        updatePublicationDatesIfNeeded(for: gqlFeeder.status?.feeds.first)
+//        updatePublicationDatesIfNeeded(for: gqlFeeder.status?.feeds.first)
         if self.simulateFailedMinVersion {
           self.minVersion = Version("135.0.0")
           self.minVersionOK = false
@@ -625,7 +631,40 @@ open class FeederContext: DoesLog {
         self.feederStatus(isOnline: false)
       }
     }
-    authenticator = DefaultAuthenticator(feeder: gqlFeeder)
+    
+    gqlFeeder.checkStatusInitially{ [weak self] res in
+      guard let self else { return }
+      
+      if let feeder = res.value() {
+        if let gqlFeeder = feeder as? GqlFeeder,
+           gqlFeeder.status?.authInfo.status == .valid
+            || gqlFeeder.status?.authInfo.status == .expired
+        {
+          log("valid auth stop polling if any")
+          self.endPolling()
+        }
+        
+        ///on init storedFeeder not available yet ...on rreconnect probably available
+//        updatePublicationDatesIfNeeded(for: gqlFeeder.status?.feeds.first)
+        if self.simulateFailedMinVersion {
+          self.minVersion = Version("135.0.0")
+          self.minVersionOK = false
+        }
+        else { self.minVersionOK = true }
+        self.feederStatus(isOnline: true)
+      }
+      else {
+        if let err = res.error() as? FeederError {
+          if case .minVersionRequired(let smv) = err {
+            self.minVersion = Version(smv)
+            self.debug("App Min Version \(smv) failed")
+            self.minVersionOK = false
+          }
+          else { self.minVersionOK = true }
+        }
+        self.feederStatus(isOnline: false)
+      }
+    }
   }
 
   /// openDB opens the Article database and sends a "DBReady" notification  

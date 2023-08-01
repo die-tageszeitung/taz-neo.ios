@@ -865,31 +865,36 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   
   /// Initilialize with name/title and URL of GraphQL server
-  required public init(title: String, url: String,
-    closure: @escaping(Result<Feeder,Error>)->()) {
+  required public init(title: String,
+                       url: String,
+                       closure: @escaping(Result<Feeder,Error>)->()) {
     self.baseUrl = url
     self.title = title
     let (_,_,token) = SimpleAuthenticator.getUserData()
     self.gqlSession = GraphQlSession(url, authToken: token)
-    
-    func getStatus() {
-      feederStatus { [weak self] (res) in
-        guard let self = self else { return }
-        self.debug("feederStatus->res \(res)")
-        var ret: Result<Feeder,Error>
-        switch res {
-        case .success(let st):   
-          ret = .success(self)
-          self.status = st
-          self.lastUpdated = Date()
-        case .failure(let err):  
-          ret = .failure(err)
-        }
-        self.lastUpdated = UsTime.now.date
-        closure(ret)
+    closure(.success(self))
+  }
+  
+  func checkStatusInitially(_ closure: @escaping(Result<Feeder,Error>)->()) {
+    feederStatus { [weak self] (res) in
+      guard let self = self else { return }
+      self.debug("feederStatus->res \(res)")
+      var ret: Result<Feeder,Error>
+      switch res {
+      case .success(let st):
+        ret = .success(self)
+        self.status = st
+        self.lastUpdated = Date()
+      case .failure(let err):
+        ret = .failure(err)
       }
+      self.lastUpdated = UsTime.now.date
+      closure(ret)
     }
-    #warning("PI: is it required to do this request everytime?")
+  }
+
+  func checkVersionInfoOnInitially(closure: @escaping(Result<Feeder,Error>)->()) {
+#warning("PI: is it required to do this request everytime?")
     ///...on net status change? Prio: low
     ///Pi: PerformanceImprovement Idea
     GqlAppInfo.query(feeder: self) { [weak self] res in
@@ -898,17 +903,17 @@ open class GqlFeeder: Feeder, DoesLog {
         if let mvs = mv.minVersion {
           let minVersion = Version(mvs)
           self.debug("Version check: current(\(App.version), server(mvs)")
-          if App.version < minVersion { 
+          if App.version < minVersion {
             closure(.failure(FeederError.minVersionRequired(mvs)))
             return
           }
-        } 
+        }
         else { self.debug("Server doesn't return minVersion") }
       }
       else { self.error("Can't get minimal App version from server") }
-      getStatus()
     }
   }
+  
   
   /// Close gqlSession and release resources
   public func release() {
