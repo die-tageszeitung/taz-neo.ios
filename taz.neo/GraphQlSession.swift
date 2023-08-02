@@ -128,8 +128,13 @@ open class GraphQlSession: HttpSession {
     return result
   }
   
-  public func request<T>(requestType: String, graphql: String, type: T.Type,
-                         fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>)->())
+  public func request<T>(requestType: String,
+                         graphql: String,
+                         type: T.Type,
+                         fromData: Data? = nil,
+                         returnOnMain: Bool = true,
+                         timeInterval: TimeInterval? = nil,
+                         closure: @escaping(Result<T,Error>)->())
     where T: Decodable {
     guard let url = self.url else { return }
     if let data = fromData {
@@ -138,8 +143,8 @@ open class GraphQlSession: HttpSession {
     else {
       let quoted = "\(requestType) {\(graphql)}".quote()
       let str = "{ \"query\": \(quoted) }"
-      debug("Sending: \(requestType) {\n\(graphql)\n}")
-      post(url, data: str.data(using: .utf8)!, returnOnMain: returnOnMain) { [weak self] res in
+        debug("Sending: \(requestType) {\n\(graphql)\n}")
+      post(url, data: str.data(using: .utf8)!, returnOnMain: returnOnMain, timeInterval: timeInterval) { [weak self] res in
         guard let self = self else { return }
         if case let .success(data) = res {
           closure(self.requestResult(data: data, graphql: graphql, type: type))
@@ -151,10 +156,19 @@ open class GraphQlSession: HttpSession {
     }
   }
   
-  public func query<T>(graphql: String, type: T.Type,
-                       fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>)->())
+  public func query<T>(graphql: String,
+                       type: T.Type,
+                       fromData: Data? = nil,
+                       returnOnMain: Bool = true,
+                       timeInterval: TimeInterval? = nil,
+                       closure: @escaping(Result<T,Error>)->())
     where T: Decodable { 
-      request(requestType: "query", graphql: graphql, type: type, fromData: fromData, returnOnMain: returnOnMain,
+      request(requestType: "query",
+              graphql: graphql,
+              type: type,
+              fromData: fromData,
+              returnOnMain: returnOnMain,
+              timeInterval: timeInterval,
               closure: closure)
   }
   

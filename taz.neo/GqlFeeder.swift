@@ -731,7 +731,7 @@ class GqlAppInfo: GQLObject {
       closure(.failure(Log.error("No GraphQl Session")))
       return
     }
-    session.query(graphql: request, type: [String:GqlAppInfo].self) { res in
+    session.query(graphql: request, type: [String:GqlAppInfo].self, timeInterval: 7.0) { res in
       var ret: Result<GqlAppInfo,Error>
       switch res {
       case .success(let str): 
@@ -1082,7 +1082,9 @@ open class GqlFeeder: Feeder, DoesLog {
         \(GqlFeederStatus.fields)
     }
     """
-    gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self) { (res) in
+    gqlSession.query(graphql: request,
+                     type: [String:GqlFeederStatus].self,
+                     timeInterval: 7.0) { (res) in
       var ret: Result<GqlFeederStatus,Error>
       switch res {
       case .success(let fs):   
