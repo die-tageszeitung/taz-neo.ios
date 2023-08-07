@@ -669,14 +669,7 @@ extension IssueOverviewService {
   func handleDownloadError(error: Error?) {
     self.debug("Err: \(error?.description ?? "-")")
     func showDownloadErrorAlert() {
-      let message = """
-                    Beim Laden der Ausgabe ist ein Fehler aufgetreten.
-                    Bitte versuchen Sie es zu einem späteren Zeitpunkt
-                    noch einmal.
-                    Sie können bereits heruntergeladene Ausgaben auch
-                    ohne Internet-Zugriff lesen.
-                    """
-      OfflineAlert.message(title: "Warnung", message: message)
+      OfflineAlert.show(type: .issueDownload)
     }
     #warning("1st ok next at download handle error!!")
     if let err = error as? FeederError {

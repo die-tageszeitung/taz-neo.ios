@@ -792,6 +792,8 @@ class GqlFeederStatus: GQLObject {
  operations with the taz/lmd GraphQL server.
  */
 open class GqlFeeder: Feeder, DoesLog {
+  
+  public private(set) var isUpdating:Bool = false
 
   /// Time zone Feeder lives in ;-(
   public static var tz = "Europe/Berlin"
@@ -865,48 +867,31 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   
   /// Initilialize with name/title and URL of GraphQL server
-  required public init(title: String, url: String,
-    closure: @escaping(Result<Feeder,Error>)->()) {
+  required public init(title: String,
+                       url: String,
+                       token: String?) {
     self.baseUrl = url
     self.title = title
-    let (_,_,token) = SimpleAuthenticator.getUserData()
     self.gqlSession = GraphQlSession(url, authToken: token)
-    
-    func getStatus() {
-      feederStatus { [weak self] (res) in
-        guard let self = self else { return }
-        self.debug("feederStatus->res \(res)")
-        var ret: Result<Feeder,Error>
-        switch res {
-        case .success(let st):   
-          ret = .success(self)
-          self.status = st
-          self.lastUpdated = Date()
-        case .failure(let err):  
-          ret = .failure(err)
-        }
-        self.lastUpdated = UsTime.now.date
-        closure(ret)
+  }
+  
+  //ToDo: Ensure this is just done once not on every net status Change
+  public func updateStatus(closure: @escaping(Result<Feeder,Error>)->()){
+    isUpdating = true
+    feederStatus { [weak self] (res) in
+      guard let self = self else { return }
+      self.debug("feederStatus->res \(res)")
+      var ret: Result<Feeder,Error>
+      switch res {
+      case .success(let st):
+        ret = .success(self)
+        self.status = st
+      case .failure(let err):
+        ret = .failure(err)
       }
-    }
-    #warning("PI: is it required to do this request everytime?")
-    ///...on net status change? Prio: low
-    ///Pi: PerformanceImprovement Idea
-    GqlAppInfo.query(feeder: self) { [weak self] res in
-      guard let self else { return }
-      if let mv = res.value() {
-        if let mvs = mv.minVersion {
-          let minVersion = Version(mvs)
-          self.debug("Version check: current(\(App.version), server(mvs)")
-          if App.version < minVersion { 
-            closure(.failure(FeederError.minVersionRequired(mvs)))
-            return
-          }
-        } 
-        else { self.debug("Server doesn't return minVersion") }
-      }
-      else { self.error("Can't get minimal App version from server") }
-      getStatus()
+      self.lastUpdated =  Date()
+      closure(ret)
+      self.isUpdating = false
     }
   }
   

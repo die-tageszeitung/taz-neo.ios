@@ -9,6 +9,26 @@ import UIKit
 import NorthLib
 
 /**
+ - GqlFeeder => Downloader
+    - Start Download after offline start then online
+ - online start use Stored...(if any) then connect
+ 
+ Fehler
+ - REGRESSION new installation recheck, mehrfaches update des Feeders 1 reicht
+ - DONE kein Onboarding wird angezeigt
+ - nicht verbunden verschwindet nicht: offline start, online download, login, karussell!
+ 
+ Check
+ - update publicationDates
+ - version checks
+ - update set auth
+      * on login
+      * setup poll/push
+ 
+ */
+
+
+/**
  A FeederContext manages one Feeder, its GraphQL interface to the backing
  server and its persistent data.
  
@@ -64,18 +84,47 @@ open class FeederContext: DoesLog {
   /// The token for remote notifications
   public var pushToken: String?
   /// The GraphQL Feeder (from server)
-  public var gqlFeeder: GqlFeeder!
-  /// The stored Feeder (from DB)
-  public var storedFeeder: StoredFeeder! {
+  public var gqlFeeder: GqlFeeder!{
     didSet {
+      guard gqlFeeder != nil else { return }///required currently on reset
+      self.dloader = Downloader(feeder: gqlFeeder)
+      if authenticator == nil {
+        authenticator = DefaultAuthenticator(feeder: gqlFeeder)
+      } else {
+        authenticator.feeder = gqlFeeder
+      }
+    }
+  }
+  /// The stored Feeder (from DB)
+  public private(set) var storedFeeder: StoredFeeder! {
+    didSet {
+      if self.gqlFeeder == nil {
+        self.gqlFeeder = GqlFeeder(title: name,
+                                   url: url,
+                                   token: DefaultAuthenticator.token)
+        updateFeeder()
+      }
+      
+      guard storedFeeder != nil else { return }
       /// used due  a chicken or the egg causality dilemma
       /// if i start online no db is on startup available to read the data, but we dont want to load all dates if just a few are needed
       /// other challenges: initial start, migration from 0.9.x, online/offline start, switch daily/weekly
       /// ...actually FeederContext needs a big refactoring mybe with a bundled initial issue
       /// to get rid of all the patches
-      latestPublicationDate =  (storedFeeder.feeds.first as? StoredFeed)?.lastPublicationDate
       if oldValue == nil {
+        checkAppUpdate()
         updatePublicationDatesIfNeeded(for: nil)
+        cleanupOldIssues()
+        defaultFeed = storedFeeder.feeds.first as? StoredFeed
+        //Alternative:
+        //defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder).first
+        notify("feederReady")
+        return
+      }
+      
+      if oldValue?.feeds.first?.publicationDates?.count
+      != self.storedFeeder?.feeds.first?.publicationDates?.count {
+        Notification.send(Const.NotificationNames.publicationDatesChanged)
       }
     }
   }
@@ -92,18 +141,8 @@ open class FeederContext: DoesLog {
     }
   }
   
-  
-  /**
-   [...]
-   SCNetworkReachability and  NWPathMonitor
-   is not perfect; it can result in both false positives (saying that something is reachable when it’s not) and false negatives (saying that something is unreachable when it is). It also suffers from TOCTTOU issues.
-   [...]
-   Source: https://developer.apple.com/forums/thread/105822
-   Written by: Quinn “The Eskimo!”   Apple Developer Relations, Developer Technical Support, Core OS/Hardware
-    => this is maybe the problem within our: Issue not appears, download not work issues
-   */
-  /// netAvailability is used to check for network access to the Feeder
-  public var netAvailability: NetAvailability
+  ///Helper to handle Network changes
+  private var netAvailability: ExtendedNetAvailability
   @Default("useMobile")
   public var useMobile: Bool
   
@@ -123,39 +162,14 @@ open class FeederContext: DoesLog {
   var simulateNewVersion: Bool
   
   var netStatusVerification = Date()
-  
+  @available(*, deprecated, message: "use date from db instead")
   var latestPublicationDate:Date? {
     didSet {
       Defaults.latestPublicationDate = latestPublicationDate
     }
   }
-  
-  /// isConnected returns true if the Feeder is available
-  public var isConnected: Bool { 
-    var isCon: Bool
-    if netAvailability.isAvailable {
-      if netAvailability.isMobile {
-        isCon = useMobile
-      } 
-      else { isCon = true }
-    }
-    else { isCon = false }
-    
-    //every 60 seconds check if NetAvailability really work
-    if !isCon,
-       netStatusVerification.timeIntervalSinceNow < -10,
-        let host = URL(string: self.url)?.host,
-        NetAvailability(host: host).isAvailable {
-      netStatusVerification = Date()
-      log("Seams we need to update NetAvailability")
-      updateNetAvailabilityObserver()
-      
-    }
-    
-    return isCon
-  }
-  /// Has the Feeder been initialized yet
-  public var isReady = false
+  ///Shortcut
+  var isConnected: Bool { netAvailability.isConnected }
   
   /// Has minVersion been met?
   public var minVersionOK = true
@@ -193,35 +207,8 @@ open class FeederContext: DoesLog {
   private func notify<Type>(_ name: String, result: Result<Type,Error>) {
     Notification.send(name, result: result, sender: self)
   }
-  
-  /// Present an alert indicating there is no connection to the Feeder
-  public func noConnection(to: String? = nil, isExit: Bool = false,
-                           closure: (()->())? = nil) {
-    var sname: String? = nil
-    if storedFeeder != nil { sname = storedFeeder.title }
-    if let name = to ?? sname {
-      let title = isExit ? "Fehler" : "Warnung"
-      var msg = """
-        Ich kann den \(name)-Server nicht erreichen, möglicherweise
-        besteht keine Verbindung zum Internet. Oder Sie haben der App
-        die Verwendung mobiler Daten nicht gestattet.
-        """
-      if isExit {
-        msg += """
-          \nBitte versuchen Sie es zu einem späteren Zeitpunkt
-          noch einmal.
-          """
-      }
-      else {
-        msg += """
-          \nSie können allerdings bereits heruntergeladene Ausgaben auch
-          ohne Internet-Zugriff lesen.
-          """        
-      }
-      OfflineAlert.message(title: title, message: msg, closure: closure)
-    }
-  }
-  
+
+  ///Force update called if minVersionOK false after init
   private func enforceUpdate(closure: (()->())? = nil) {
     let id = bundleID
     guard let store = try? StoreApp(id) else { 
@@ -297,16 +284,9 @@ open class FeederContext: DoesLog {
     notify(Const.NotificationNames.feederUnreachable)
   }
   
-  private func updateNetAvailabilityObserver() {
-    guard let host = URL(string: self.url)?.host else {
-      log("cannot update NetAvailabilityObserver for URL Host: \(url)")
-      return
-    }
-    self.netAvailability = NetAvailability(host: host)
-    self.netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
-  }
-  
-  /// Network status has changed 
+  /// Network status has changed
+  ///
+  #warning("TODO may remove?")
   private func checkNetwork() {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     if isConnected {
@@ -319,21 +299,21 @@ open class FeederContext: DoesLog {
       //        }
       //      }
       
-      self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
-        guard let self = self else { return }
-        if let feeder = res.value() {
-          if let gqlFeeder = feeder as? GqlFeeder,
-             let storedAuth = SimpleAuthenticator.getUserData().token {
-            gqlFeeder.authToken = storedAuth
-          }
-          if let gqlFeeder = feeder as? GqlFeeder {
-            //Update Feeder with PublicationDates
-            self.persist(gqlFeeder: gqlFeeder)
-          }
-          self.feederReachable(feeder: feeder)
-        }
-        else { self.feederUnreachable() }
-      }
+//      self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
+//        guard let self = self else { return }
+//        if let feeder = res.value() {
+//          if let gqlFeeder = feeder as? GqlFeeder,
+//             let storedAuth = SimpleAuthenticator.getUserData().token {
+//            gqlFeeder.authToken = storedAuth
+//          }
+//          if let gqlFeeder = feeder as? GqlFeeder {
+//            //Update Feeder with PublicationDates
+//            self.persist(gqlFeeder: gqlFeeder)
+//          }
+//          self.feederReachable(feeder: feeder)
+//        }
+//        else { self.feederUnreachable() }
+//      }
       ///Fix timing Bug, Demo Issue Downloaded, and probably login form shown
       if let storedAuth = SimpleAuthenticator.getUserData().token, self.gqlFeeder.authToken == nil {
         self.gqlFeeder.authToken = storedAuth
@@ -342,30 +322,12 @@ open class FeederContext: DoesLog {
     else { self.feederUnreachable() }
   }
   
-  private func persist(gqlFeeder:GqlFeeder){
-    let oldCnt
-    = storedFeeder == nil ///WARNING DO NOT REMOVE THE CHECK OTHERWISE APP WILL CRASH on init
-    ? 0 ///unfortunately refactor storedFeeder to be an optional is an enormous undertaking
-    : self.storedFeeder?.feeds.first?.publicationDates?.count
-    self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
-    let newCnt = self.storedFeeder?.feeds.first?.publicationDates?.count
-    if oldCnt == newCnt { return }
-    Notification.send(Const.NotificationNames.publicationDatesChanged)
-  }
   
-  /// Feeder is initialized, set up other objects
-  private func feederReady() {
-    self.dloader = Downloader(feeder: gqlFeeder)
-    netAvailability.onChange { [weak self] _ in self?.checkNetwork() }
-    guard let storedFeeder = storedFeeder else {
-      log("storedFeeder not initialized yet!")
-      return
-    }
-    defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder)[0]
-    isReady = true
-    cleanupOldIssues()
-    notify("feederReady")            
-  }
+  /// Persist gqlFeeder depreciated! use one liner!
+  /// - Parameter gqlFeeder: feeder to persist
+//  private func persist(gqlFeeder:GqlFeeder){
+//    self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
+//  }
   
   /// Do we need reinitialization?
   func needsReInit() -> Bool {
@@ -378,40 +340,79 @@ open class FeederContext: DoesLog {
   }
   
   /// React to the feeder being online or not
-  private func feederStatus(isOnline: Bool) {
-    debug("isOnline: \(isOnline)")
-    if isOnline {
-      guard minVersionOK else {
-        enforceUpdate()
-        return
-      }
-      if needsReInit() { 
-        TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin) 
-      }
-      else {
-        self.persist(gqlFeeder: self.gqlFeeder)
-        feederReady()
-        check4Update()
+  /// initial behaviour moved to var storedFeeder:
+//  private func feederStatus(isOnline: Bool) {
+//    debug("isOnline: \(isOnline)")
+//    if isOnline {
+//      guard minVersionOK else {
+//        enforceUpdate()
+//        return
+//      }
+//
+//      else {
+//        self.persist(gqlFeeder: self.gqlFeeder)
+//        feederReady()
+//        check4Update()
+//      }
+//    }
+//    else {
+//      let feeders = StoredFeeder.get(name: name)
+//      if feeders.count == 1 {
+//        self.storedFeeder = feeders[0]
+//        self.noConnection(to: name, isExit: false) {  [weak self] in
+//          self?.feederReady()
+//        }
+//      }
+//      else {
+//        //NEVER EXIT APP Programatically!!
+//        self.noConnection(to: name, isExit: true) {   [weak self] in
+//          guard let self = self else { exit(0) }
+//          /// Try to connect if network is available now e.g. User has seen Popup No Connection
+//          /// User activated MobileData/WLAN, press OK => Retry not App Exit
+//          #warning("not implemented yet")
+////          if self.netAvailability.isAvailable { self.connect() }
+////          else { exit(0) }
+//        }
+//      }
+//    }
+//  }
+  
+  private func checkAppUpdate(){
+    guard minVersionOK else {
+      enforceUpdate()
+      return
+    }
+    if needsReInit() {
+      TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin)
+    }
+  }
+  
+  private func updateFeeder(){
+    if gqlFeeder.isUpdating { return }
+    gqlFeeder.updateStatus {[weak self] res in
+      guard let self = self else { return }
+      switch res {
+        case .success:
+          self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
+          if self.netAvailability.wasConnected == false {
+            self.netAvailability.recheck()
+          }
+        case .failure:
+          if self.storedFeeder == nil {
+            OfflineAlert.show(type: .initial){[weak self] in
+              self?.netAvailability.recheck()
+              self?.updateFeeder()
+            }
+          } else if self.netAvailability.wasConnected {
+            self.netAvailability.recheck()
+            self.notifyNetStatusChanged(isConnected: false)
+          }
       }
     }
-    else {
-      let feeders = StoredFeeder.get(name: name)
-      if feeders.count == 1 {
-        self.storedFeeder = feeders[0]
-        self.noConnection(to: name, isExit: false) {  [weak self] in
-          self?.feederReady()
-        }
-      }
-      else {
-        self.noConnection(to: name, isExit: true) {   [weak self] in
-          guard let self = self else { exit(0) }
-          /// Try to connect if network is available now e.g. User has seen Popup No Connection
-          /// User activated MobileData/WLAN, press OK => Retry not App Exit
-          if self.netAvailability.isAvailable { self.connect() }
-          else { exit(0) }
-        }
-      }
-    }
+  }
+  
+  private func getPersistedStoredFeeder() -> StoredFeeder? {
+    StoredFeeder.get(name: name).first
   }
   
   private var pollingTimer: Timer?
@@ -592,47 +593,64 @@ open class FeederContext: DoesLog {
   }
   
   /// Connect to Feeder and send "feederReady" Notification
-  private func connect() {
-    gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
-      guard let self else { return }
-      
-      if let feeder = res.value() {
-        if let gqlFeeder = feeder as? GqlFeeder,
-           gqlFeeder.status?.authInfo.status == .valid
-            || gqlFeeder.status?.authInfo.status == .expired
-        {
-          log("valid auth stop polling if any")
-          self.endPolling()
-        }
-        ///on init storedFeeder not available yet ...on rreconnect probably available
-        updatePublicationDatesIfNeeded(for: gqlFeeder.status?.feeds.first)
-        if self.simulateFailedMinVersion {
-          self.minVersion = Version("135.0.0")
-          self.minVersionOK = false
-        }
-        else { self.minVersionOK = true }
-        self.feederStatus(isOnline: true)
-      }
-      else {
-        if let err = res.error() as? FeederError {
-          if case .minVersionRequired(let smv) = err {
-            self.minVersion = Version(smv)
-            self.debug("App Min Version \(smv) failed")
-            self.minVersionOK = false
-          }
-          else { self.minVersionOK = true }
-        }
-        self.feederStatus(isOnline: false)
-      }
+  /// ÜBERARBEITE DEFAULT START ISL STOREDFEEDER OPEN
+//  private func connect() {
+//    gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
+//      guard let self else { return }
+//
+//      if let feeder = res.value() {
+//        if let gqlFeeder = feeder as? GqlFeeder,
+//           gqlFeeder.status?.authInfo.status == .valid
+//            || gqlFeeder.status?.authInfo.status == .expired
+//        {
+//          log("valid auth stop polling if any")
+//          self.endPolling()
+//        }
+//        ///on init storedFeeder not available yet ...on rreconnect probably available
+//        updatePublicationDatesIfNeeded(for: gqlFeeder.status?.feeds.first)
+//        if self.simulateFailedMinVersion {
+//          self.minVersion = Version("135.0.0")
+//          self.minVersionOK = false
+//        }
+//        else { self.minVersionOK = true }
+//        self.feederStatus(isOnline: true)
+//      }
+//      else {
+//        if let err = res.error() as? FeederError {
+//          if case .minVersionRequired(let smv) = err {
+//            self.minVersion = Version(smv)
+//            self.debug("App Min Version \(smv) failed")
+//            self.minVersionOK = false
+//          }
+//          else { self.minVersionOK = true }
+//        }
+//        self.feederStatus(isOnline: false)
+//      }
+//    }
+//    authenticator = DefaultAuthenticator(feeder: gqlFeeder)
+//  }
+  
+  private func netStatusChanged(isConnected:Bool){
+    isConnected ? updateFeeder() : notifyNetStatusChanged(isConnected: false)
+  }
+  
+  private func notifyNetStatusChanged(isConnected:Bool){
+    if isConnected {
+      self.debug("Feeder now reachable")
+      notify(Const.NotificationNames.feederReachable)
     }
-    authenticator = DefaultAuthenticator(feeder: gqlFeeder)
+    else {
+      self.debug("Feeder now unreachable")
+      notify(Const.NotificationNames.feederUnreachable)
+    }
   }
 
   /// openDB opens the Article database and sends a "DBReady" notification  
   private func openDB(name: String) {
     guard ArticleDB.singleton == nil else { return }
     ArticleDB(name: name) { [weak self] _ in
-      self?.notify("DBReady") 
+      guard let self = self else { return }
+      self.storedFeeder = StoredFeeder.get(name: self.name).first
     }
   }
   
@@ -664,17 +682,22 @@ open class FeederContext: DoesLog {
     //#warning("REMOVE THE FOLLOWING LINE!!! just for Debugging DB is Days -2")
     //self.latestPublicationDate = nil//Date().addingTimeInterval(-200*24*3600) ?? Defaults.latestPublicationDate
     self.latestPublicationDate = Defaults.latestPublicationDate
-    self.netAvailability = NetAvailability(host: host)
+    self.netAvailability = ExtendedNetAvailability(url: url)
+    
+    self.netAvailability.onChange{[weak self] connected in self?.netStatusChanged(isConnected:connected)
+    }
+      
     if self.simulateNewVersion || simulateFailedMinVersion {
       self.bundleID = "de.taz.taz.2"
     }
     if self.simulateNewVersion {
       self.currentVersion = Version("0.5.0")      
     }
-    Notification.receive("DBReady") { [weak self] _ in
-      self?.debug("DB Ready")
-      self?.connect()
-    }
+    ///Bad Code?
+    ///force update from API User clicks update, update not started e.g. due not Internet, user wants to read taz app app crashes without a notification!
+    ///Crash or not? => Not to crash NEVER! @see: https://developer.apple.com/forums/thread/63795
+    ///So Refactor: Alert User only Button is the Store Button (is still bad behaviour, hopefully never needed)
+    #warning("todo change")
     Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
       guard let self else { return }
       if !self.minVersionOK { 
@@ -770,7 +793,8 @@ open class FeederContext: DoesLog {
     if !isConnected {
       //Skip Offline Start Deathlock //TODO TEST either notify("resourcesReady"); or:
       isUpdatingResources = false
-      noConnection()
+      #warning("TODO")
+//      noConnection()
       return
     }
     // update from server needed
@@ -1199,7 +1223,8 @@ open class FeederContext: DoesLog {
       }
     }
     else {
-      noConnection();
+      #warning("ToDO AddRetry here its easily possible!")
+      OfflineAlert.show(type: .issueDownload)
       let res : Result<Any, Error>
         = .failure(DownloadError(message: "no connection", handled: true))
       Notification.send("issueStructure", result: res, sender: issue)
@@ -1300,7 +1325,9 @@ open class FeederContext: DoesLog {
         if isComplete { self.downloadCompleteIssue(issue: issue, isAutomatically: isAutomatically) }
         else { self.downloadPartialIssue(issue: issue) }
       }
-      else { self.noConnection() }
+      else {
+        OfflineAlert.show(type: .issueDownload)
+      }
     }
     updateResources(toVersion: issue.minResourceVersion)
   }
@@ -1515,3 +1542,81 @@ extension UIAlertAction {
   }
 }
 
+class ExtendedNetAvailability {
+  /**
+   [...]
+   SCNetworkReachability and  NWPathMonitor
+   is not perfect; it can result in both false positives (saying that something is reachable when it’s not) and false negatives (saying that something is unreachable when it is). It also suffers from TOCTTOU issues.
+   [...]
+   Source: https://developer.apple.com/forums/thread/105822
+   Written by: Quinn “The Eskimo!”   Apple Developer Relations, Developer Technical Support, Core OS/Hardware
+    => this is maybe the problem within our: Issue not appears, download not work issues
+   */
+  /// netAvailability is used to check for network access to the Feeder
+  public var netAvailability: NetAvailability? {
+    didSet {
+      oldValue?.onChange{ _ in }
+      netAvailability?.onChange{[weak self] _ in
+        guard let self = self else { return }
+        self._onChangeClosure?(self.isConnected)
+      }
+    }
+  }
+  
+  var _onChangeClosure: ((Bool)->())? = nil
+  
+  /// Defines the closure to call when a network change has happened
+  public func onChange(_ closure: ((Bool)->())?) {
+    _onChangeClosure = closure
+  }
+  
+  var netStatusVerification = Date()
+  
+  
+  var isMobile: Bool { netAvailability?.isMobile ?? false }
+  
+  /// Factory Method to create NetAvailability Instances for isConnected check and verification
+  private func createNetAvailability() -> NetAvailability? {
+    guard let host = URL(string: self.url)?.host else { return nil }
+    return NetAvailability(host: host)
+  }
+  
+  public var url: String {
+    didSet {
+      netStatusVerification = Date()
+      self.netAvailability = createNetAvailability()
+    }
+  }
+  
+  /// Defines the closure to call when a network change has happened
+  public func recheck() {
+    netStatusVerification = Date()
+    if createNetAvailability()?.isAvailable != wasConnected {
+      self.netAvailability = createNetAvailability()
+    }
+  }
+  
+  public init(url: String) {
+    self.url = url
+  }
+  
+  private(set) var wasConnected = false
+
+  public var isConnected: Bool {
+    if netAvailability == nil { netAvailability = createNetAvailability() }
+    
+    guard let netAvailability = netAvailability else { return false }
+    
+    let connected = netAvailability.isAvailable
+    let recheckDuration = Device.isSimulator ? 10.0 : 5*60.0
+    
+    if abs(netStatusVerification.timeIntervalSinceNow) > recheckDuration {
+      #warning("TODO: test ensure verification works")
+      recheck()
+    }
+    
+    if wasConnected == connected { return connected }
+    wasConnected = connected
+    return connected
+  }
+}

@@ -119,8 +119,17 @@ extension DefaultAuthenticator : AuthMediator{
 
 public class DefaultAuthenticator: Authenticator {
   
+  public static var token: String? {
+    return SimpleAuthenticator.getUserData().token
+  }
+  
   /// Ref to feeder providing Data
-  public var feeder: GqlFeeder
+  public var feeder: GqlFeeder {
+    didSet {
+      guard let token = Self.token else { return }
+      feeder.authToken = token
+    }
+  }
   
   private var _resultSuccessText:String?
   fileprivate var resultSuccessText:String {

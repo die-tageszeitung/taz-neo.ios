@@ -1138,9 +1138,6 @@ public protocol Feeder: ToString, AnyObject {
   /// Directory where all Feeder specific data is stored
   var dir: Dir { get }
   
-  /// Initilialize with name/title and URL of server
-  init(title: String, url: String, closure: @escaping(Result<Feeder,Error>)->())
-  
   /// Request authentication token from GraphQL server
   func authenticate(account: String, password: String,
                     closure: @escaping(Result<String,Error>)->())

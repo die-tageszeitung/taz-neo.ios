@@ -9,6 +9,8 @@
 import UIKit
 import NorthLib
 
+enum OfflineAlertType { case initial, issueDownload }
+
 class OfflineAlert {
   static let sharedInstance = OfflineAlert()
   
@@ -23,18 +25,22 @@ class OfflineAlert {
     if oldValue != title { needsUpdate = true }
   }}
   
+  var actionButtonTitle : String? { didSet {
+    if oldValue != actionButtonTitle { needsUpdate = true }
+  }}
+  
   var closures : [(()->())] = []
   
   lazy var alert:AlertController = {
-    let okButton = UIAlertAction(title: "OK", style: .cancel) {   [weak self] _ in
-      self?.okPressed()
+    let actionButton = UIAlertAction(title: actionButtonTitle, style: .cancel) {   [weak self] _ in
+      self?.buttonPressed()
     }
     let a = AlertController(title: nil, message: nil, preferredStyle: .alert)
-    a.addAction(okButton)
+    a.addAction(actionButton)
     return a
   }()
   
-  func okPressed(){
+  func buttonPressed(){
     while closures.count > 0 {
       let closure = closures.popLast()
       closure?()
@@ -56,10 +62,33 @@ class OfflineAlert {
     }
   }
   
-  static func message(title: String? = nil, message: String, closure: (()->())? = nil) {
-    sharedInstance.title = title
-    sharedInstance.message = message
-    if let c = closure { sharedInstance.closures.append(c)}
+  static func show(type: OfflineAlertType, closure: (()->())? = nil) {
+    var name = "\(TazAppEnvironment.sharedInstance.feederContext?.name ?? "")"
+    if name.length > 1 { name = "\(name)-"}
+    switch type {
+      case .initial:
+        sharedInstance.title = "Fehler"
+        sharedInstance.actionButtonTitle = "Erneut versuchen"
+        sharedInstance.message = """
+        Ich kann den \(name)Server nicht erreichen, möglicherweise
+        besteht keine Verbindung zum Internet. Oder Sie haben der App
+        die Verwendung mobiler Daten nicht gestattet.
+        Bitte versuchen Sie es zu einem späteren Zeitpunkt
+        noch einmal.
+        """
+        if let c = closure { sharedInstance.closures = [c]}
+      case .issueDownload:
+        sharedInstance.title = "Warnung"
+        sharedInstance.actionButtonTitle = "OK"
+        sharedInstance.message = """
+        Beim Laden der Ausgabe ist ein Fehler aufgetreten.
+        Bitte versuchen Sie es zu einem späteren Zeitpunkt
+        noch einmal.
+        Sie können bereits heruntergeladene Ausgaben auch
+        ohne Internet-Zugriff lesen.
+        """
+        if let c = closure { sharedInstance.closures.append(c)}
+    }
     sharedInstance.updateIfNeeded()
   }
   
