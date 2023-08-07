@@ -68,30 +68,7 @@ public let ConfigDefaults = Defaults.Values([
 extension Defaults {
   ///Provide getter only
   public static var isTextNotification:Bool { Defaults.singleton["isTextNotification"]!.bool }
-  
-  /*getter/setter
-  @Default("isTextNotification")
-  static var isTextNotification: Bool
-  */
-  
-  ///Helper to get current server from user defaults
-  static var latestPublicationDate : Date? {
-    get {
-      if let curr = Defaults.singleton["latestPublicationDate"] {
-        return Date.fromString(curr)
-      }
-      return nil
-    }
-    set {
-      if let date = newValue {
-        Defaults.singleton["latestPublicationDate"] = Date.toString(date)
-      }
-      else {
-        Defaults.singleton["latestPublicationDate"] = nil
-      }
-    }
-  }
-  
+
   ///Helper to get current server from user defaults
   static var expiredAccountDate : Date? {
     get {

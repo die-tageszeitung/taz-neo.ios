@@ -821,7 +821,6 @@ extension SettingsVC {
       StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, deleteOrphanFolders: true)
       onMainAfter { [weak self] in
         self?.refreshAndReload()
-        TazAppEnvironment.sharedInstance.feederContext?.resume()
         Notification.send("reloadIssues")
       }
     } ) )

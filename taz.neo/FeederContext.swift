@@ -141,8 +141,11 @@ open class FeederContext: DoesLog {
     }
   }
   
+  var pollingTimer: Timer?
+  var pollEnd: Int64?
+  
   ///Helper to handle Network changes
-  private var netAvailability: ExtendedNetAvailability
+  private(set) var netAvailability: ExtendedNetAvailability
   @Default("useMobile")
   public var useMobile: Bool
   
@@ -161,12 +164,9 @@ open class FeederContext: DoesLog {
   @Default("simulateNewVersion")
   var simulateNewVersion: Bool
   
-  var netStatusVerification = Date()
-  @available(*, deprecated, message: "use date from db instead")
   var latestPublicationDate:Date? {
-    didSet {
-      Defaults.latestPublicationDate = latestPublicationDate
-    }
+    guard defaultFeed != nil else { return nil }
+    return defaultFeed.lastIssue
   }
   ///Shortcut
   var isConnected: Bool { netAvailability.isConnected }
@@ -182,16 +182,9 @@ open class FeederContext: DoesLog {
   
   /// Server required minimal App version
   public var minVersion: Version?
-
-  
-//  public private(set) var enqueuedDownlod:[Issue] = [] {
-//    didSet {
-//      print("Currently Downloading: \(enqueuedDownlod.map{$0.date.gDate()})")
-//    }
-//  }
   
   /// Are we updating resources
-  private var isUpdatingResources = false
+  var isUpdatingResources = false
   
   /// Are we authenticated with the server?
   public var isAuthenticated: Bool { gqlFeeder.isAuthenticated }
@@ -199,12 +192,12 @@ open class FeederContext: DoesLog {
   /// notify sends a Notification to all objects listening to the passed
   /// String 'name'. The receiver closure gets the sending FeederContext
   /// as 'sender' argument.
-  private func notify(_ name: String, content: Any? = nil) {
+  func notify(_ name: String, content: Any? = nil) {
     Notification.send(name, content: content, sender: self)
   }
   
   /// This notify sends a Result<Type,Error>
-  private func notify<Type>(_ name: String, result: Result<Type,Error>) {
+  func notify<Type>(_ name: String, result: Result<Type,Error>) {
     Notification.send(name, result: result, sender: self)
   }
 
@@ -269,66 +262,7 @@ open class FeederContext: DoesLog {
       }
     }
   }
-  
-  /// Feeder is now reachable
-  private func feederReachable(feeder: Feeder) {
-    self.debug("Feeder now reachable")
-    self.dloader = Downloader(feeder: feeder as! GqlFeeder)
-    notify(Const.NotificationNames.feederReachable)
-    LocalNotifications.removeOfflineListenNotPossibleNotifications()
-  }
-  
-  /// Feeder is not reachable
-  private func feederUnreachable() {
-    self.debug("Feeder now unreachable")
-    notify(Const.NotificationNames.feederUnreachable)
-  }
-  
-  /// Network status has changed
-  ///
-  #warning("TODO may remove?")
-  private func checkNetwork() {
-    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
-    if isConnected {
-      //#warning("ToDo: 0.9.4 loock for logs&errors after 0.9.3 release")
-      /// To discuss: idea to reset previous feeder's gqlSession's URLSession to get rid of download errors
-      /// e.g. if the session exists over 3h...
-      //      if let oldFeeder = self.gqlFeeder {
-      //        oldFeeder.gqlSession?.session.reset {   [weak self] in
-      //          self?.log("Old Session Resetted!!")
-      //        }
-      //      }
-      
-//      self.gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
-//        guard let self = self else { return }
-//        if let feeder = res.value() {
-//          if let gqlFeeder = feeder as? GqlFeeder,
-//             let storedAuth = SimpleAuthenticator.getUserData().token {
-//            gqlFeeder.authToken = storedAuth
-//          }
-//          if let gqlFeeder = feeder as? GqlFeeder {
-//            //Update Feeder with PublicationDates
-//            self.persist(gqlFeeder: gqlFeeder)
-//          }
-//          self.feederReachable(feeder: feeder)
-//        }
-//        else { self.feederUnreachable() }
-//      }
-      ///Fix timing Bug, Demo Issue Downloaded, and probably login form shown
-      if let storedAuth = SimpleAuthenticator.getUserData().token, self.gqlFeeder.authToken == nil {
-        self.gqlFeeder.authToken = storedAuth
-      }
-    }
-    else { self.feederUnreachable() }
-  }
-  
-  
-  /// Persist gqlFeeder depreciated! use one liner!
-  /// - Parameter gqlFeeder: feeder to persist
-//  private func persist(gqlFeeder:GqlFeeder){
-//    self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
-//  }
-  
+
   /// Do we need reinitialization?
   func needsReInit() -> Bool {
     if let storedFeeder = self.storedFeeder,
@@ -338,44 +272,6 @@ open class FeederContext: DoesLog {
     }
     return false
   }
-  
-  /// React to the feeder being online or not
-  /// initial behaviour moved to var storedFeeder:
-//  private func feederStatus(isOnline: Bool) {
-//    debug("isOnline: \(isOnline)")
-//    if isOnline {
-//      guard minVersionOK else {
-//        enforceUpdate()
-//        return
-//      }
-//
-//      else {
-//        self.persist(gqlFeeder: self.gqlFeeder)
-//        feederReady()
-//        check4Update()
-//      }
-//    }
-//    else {
-//      let feeders = StoredFeeder.get(name: name)
-//      if feeders.count == 1 {
-//        self.storedFeeder = feeders[0]
-//        self.noConnection(to: name, isExit: false) {  [weak self] in
-//          self?.feederReady()
-//        }
-//      }
-//      else {
-//        //NEVER EXIT APP Programatically!!
-//        self.noConnection(to: name, isExit: true) {   [weak self] in
-//          guard let self = self else { exit(0) }
-//          /// Try to connect if network is available now e.g. User has seen Popup No Connection
-//          /// User activated MobileData/WLAN, press OK => Retry not App Exit
-//          #warning("not implemented yet")
-////          if self.netAvailability.isAvailable { self.connect() }
-////          else { exit(0) }
-//        }
-//      }
-//    }
-//  }
   
   private func checkAppUpdate(){
     guard minVersionOK else {
@@ -411,136 +307,12 @@ open class FeederContext: DoesLog {
     }
   }
   
-  private func getPersistedStoredFeeder() -> StoredFeeder? {
-    StoredFeeder.get(name: name).first
-  }
-  
-  private var pollingTimer: Timer?
-  private var pollEnd: Int64?
-  
-  public func resume() {
-    self.checkNetwork()
-  }
-  
-  /// Start Polling if necessary
-  public func setupPolling() {
-    authenticator.whenPollingRequired { self.startPolling() }
-    if let peStr = Defaults.singleton["pollEnd"]  {
-      if self.isAuthenticated {
-        endPolling()
-        return
-      }
-      let pe = Int64(peStr)
-      if pe! <= UsTime.now.sec { endPolling() }
-      else {
-        pollEnd = pe
-        self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
-          repeats: true) { _ in self.doPolling() }        
-      }
-    }
-  }
-  
   /// Method called by Authenticator to start polling timer
-  private func startPolling() {
+  func startPolling() {
     self.pollEnd = UsTime.now.sec + PollTimeout
     Defaults.singleton["pollEnd"] = "\(pollEnd!)"
     self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0, 
       repeats: true) { _ in self.doPolling() }
-  }
-  
-  /// Ask Authenticator to poll server for authentication,
-  /// send 
-  func doPolling(_ fetchCompletionHandler: FetchCompletionHandler? = nil) {
-    ///prevent login with another acount
-    if authenticator.feeder.authToken?.isEmpty == false {
-      log("still logged in, prevent login with another acount")
-      return
-    }
-    authenticator.pollSubscription { [weak self] doContinue in
-      ///No matter if continue or not, iusually activate account takes more than 30s
-      ///so its necessary to call push fetchCompletionHandler after first attempt
-      fetchCompletionHandler?(.noData)
-      guard let self = self else { return }
-      guard let pollEnd = self.pollEnd else { self.endPolling(); return }
-      if doContinue { if UsTime.now.sec > pollEnd { self.endPolling() } }
-      else { self.endPolling() }
-    }
-  }
-  
-  /// Terminate polling
-  public func endPolling() {
-    if pollingTimer != nil {
-      log("stop active polling")
-    }
-    self.pollingTimer?.invalidate()
-    self.pollEnd = nil
-    Defaults.singleton["pollEnd"] = nil
-  }
-
-  /// Ask for push token and report it to server
-  public func setupRemoteNotifications(force: Bool? = false) {
-    let nd = UIApplication.shared.delegate as! AppDelegate
-    let dfl = Defaults.singleton
-    let oldToken = dfl["pushToken"] ?? Defaults.lastKnownPushToken
-    Defaults.lastKnownPushToken = oldToken
-    pushToken = oldToken
-    nd.onReceivePush { [weak self] (pn, payload, completion) in
-      self?.processPushNotification(pn: pn, payload: payload, fetchCompletionHandler: completion)
-    }
-    nd.permitPush {[weak self] pn in
-      guard let self = self else { return }
-      if pn.isPermitted { 
-        self.debug("Push permission granted") 
-        self.pushToken = pn.deviceId
-        Defaults.lastKnownPushToken = self.pushToken
-      }
-      else { 
-        self.debug("No push permission") 
-        self.pushToken = nil
-      }
-      dfl["pushToken"] = self.pushToken
-     
-      //not send request if no change and not force happens eg. on every App Start
-      if force == false && oldToken == self.pushToken { return }
-      // if force ensure not to send old token if oldToken == newToken
-      let oldToken = (force == true && oldToken == self.pushToken) ? nil : oldToken
-            
-      let isTextNotification = dfl["isTextNotification"]!.bool
-      
-      self.gqlFeeder.notification(pushToken: self.pushToken, oldToken: oldToken,
-                                  isTextNotification: isTextNotification) { [weak self] res in
-        if let err = res.error() { self?.error(err) }
-        else {
-          Defaults.lastKnownPushToken = self?.pushToken
-          self?.debug("Updated PushToken")
-        }
-      }
-    }
-  }
-  
-  func processPushNotification(pn: PushNotification, payload: PushNotification.Payload, fetchCompletionHandler: FetchCompletionHandler?){
-    log("Processing: \(payload) AppState: \(UIApplication.shared.stateDescription)")
-    switch payload.notificationType {
-      case .subscription:
-        log("check subscription status")
-        doPolling(fetchCompletionHandler)
-      case .newIssue:
-        handleNewIssuePush(fetchCompletionHandler)
-      case .textNotificationAlert:
-        #warning("may comes in double if real PN!")
-        if UIApplication.shared.applicationState == .active {
-          LocalNotifications.notify(payload: payload)
-        }
-        fetchCompletionHandler?(.noData)
-      case .textNotificationToast:
-        if UIApplication.shared.applicationState == .active,
-           let msg = payload.textNotificationMessage {
-          Toast.show(msg)
-        }
-        fetchCompletionHandler?(.noData)
-      default:
-        fetchCompletionHandler?(.noData)
-    }
   }
   
   /// Request authentication from Authenticator
@@ -587,48 +359,7 @@ open class FeederContext: DoesLog {
     
     log(logString)
     log("Update all publication Dates")
-    
-    latestPublicationDate = nil
-    checkNetwork()
   }
-  
-  /// Connect to Feeder and send "feederReady" Notification
-  /// ÜBERARBEITE DEFAULT START ISL STOREDFEEDER OPEN
-//  private func connect() {
-//    gqlFeeder = GqlFeeder(title: name, url: url) { [weak self] res in
-//      guard let self else { return }
-//
-//      if let feeder = res.value() {
-//        if let gqlFeeder = feeder as? GqlFeeder,
-//           gqlFeeder.status?.authInfo.status == .valid
-//            || gqlFeeder.status?.authInfo.status == .expired
-//        {
-//          log("valid auth stop polling if any")
-//          self.endPolling()
-//        }
-//        ///on init storedFeeder not available yet ...on rreconnect probably available
-//        updatePublicationDatesIfNeeded(for: gqlFeeder.status?.feeds.first)
-//        if self.simulateFailedMinVersion {
-//          self.minVersion = Version("135.0.0")
-//          self.minVersionOK = false
-//        }
-//        else { self.minVersionOK = true }
-//        self.feederStatus(isOnline: true)
-//      }
-//      else {
-//        if let err = res.error() as? FeederError {
-//          if case .minVersionRequired(let smv) = err {
-//            self.minVersion = Version(smv)
-//            self.debug("App Min Version \(smv) failed")
-//            self.minVersionOK = false
-//          }
-//          else { self.minVersionOK = true }
-//        }
-//        self.feederStatus(isOnline: false)
-//      }
-//    }
-//    authenticator = DefaultAuthenticator(feeder: gqlFeeder)
-//  }
   
   private func netStatusChanged(isConnected:Bool){
     isConnected ? updateFeeder() : notifyNetStatusChanged(isConnected: false)
@@ -667,7 +398,6 @@ open class FeederContext: DoesLog {
     guard ArticleDB.singleton != nil else { return }
     let name = ArticleDB.singleton.name
     closeDB()
-    Defaults.latestPublicationDate = nil
     ArticleDB.dbRemove(name: name)
     openDB(name: name)
   }
@@ -680,8 +410,6 @@ open class FeederContext: DoesLog {
     self.url = url
     self.feedName = feedName
     //#warning("REMOVE THE FOLLOWING LINE!!! just for Debugging DB is Days -2")
-    //self.latestPublicationDate = nil//Date().addingTimeInterval(-200*24*3600) ?? Defaults.latestPublicationDate
-    self.latestPublicationDate = Defaults.latestPublicationDate
     self.netAvailability = ExtendedNetAvailability(url: url)
     
     self.netAvailability.onChange{[weak self] connected in self?.netStatusChanged(isConnected:connected)
@@ -727,143 +455,6 @@ open class FeederContext: DoesLog {
       }
       onRelease()
     }
-  }
-  
-  private func loadBundledResources(setVersion: Int? = nil) {
-    if case let bundledResources = BundledResources(),
-            let result = bundledResources.resourcesPayload.value(),
-            let res = result["resources"],
-            bundledResources.bundledFiles.count > 0 {
-      if let v = setVersion { res.resourceVersion = v }
-      let success = persistBundledResources(bundledResources: bundledResources,
-                                             resData: res)
-      if success == true {
-        ArticleDB.save()
-        log("Bundled Resources version \(res.resourceVersion) successfully loaded")
-      }
-    }
-  }
-  
-  /// Load resources from server with optional cache directory
-  private func loadResources(res: Resources, fromCacheDir: String? = nil) {
-    let previous = StoredResources.latest()
-    let resources = StoredResources.persist(object: res)
-    self.dloader.createDirs()
-    var onProgress: ((Int64,Int64)->())? = { (bytesLoaded,totalBytes) in
-      self.notify("resourcesProgress", content: (bytesLoaded,totalBytes))
-    }
-    if fromCacheDir != nil { onProgress = nil }
-    resources.isDownloading = true
-    self.dloader.downloadPayload(payload: resources.payload as! StoredPayload,
-                                 fromCacheDir: fromCacheDir,
-                                 onProgress: onProgress) { err in
-      resources.isDownloading = false
-      if err == nil {
-        let source: String = fromCacheDir ?? "server"
-        self.debug("Resources version \(resources.resourceVersion) loaded from \(source)")
-        self.notify("resourcesReady")
-        /// Delete unneeded old resources
-        if let prev = previous, prev.resourceVersion < resources.resourceVersion {
-          prev.delete()
-        }
-        ArticleDB.save()
-      }
-      self.isUpdatingResources = false
-    }
-  }
-  
-  /// Downloads resources if necessary
-  public func updateResources(toVersion: Int = -1) {
-    guard !isUpdatingResources else { return }
-    guard let storedFeeder = storedFeeder else {
-      log("storedFeeder not initialized yet!")
-      return
-    }
-    isUpdatingResources = true
-    let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
-    if StoredResources.latest() == nil { loadBundledResources(/*setVersion: 1*/) }
-    if let latest = StoredResources.latest() {
-      if latest.resourceVersion >= version, latest.isComplete {
-        isUpdatingResources = false
-        debug("No need to read resources version \(latest.resourceVersion)")
-        notify("resourcesReady");
-        return
-      }
-    }
-    if !isConnected {
-      //Skip Offline Start Deathlock //TODO TEST either notify("resourcesReady"); or:
-      isUpdatingResources = false
-      #warning("TODO")
-//      noConnection()
-      return
-    }
-    // update from server needed
-    gqlFeeder.resources { [weak self] result in
-      guard let self = self, let res = result.value() else { return }
-      self.loadResources(res: res)
-    }
-  }
-  
-  /// persist helper function for updateResources
-  /// - Parameters:
-  ///   - bundledResources: the resources (with files) to persist
-  ///   - resData: the GqlResources data object to persist
-  /// - Returns: true if succeed
-  private func persistBundledResources(bundledResources: BundledResources,
-                                        resData : GqlResources) -> Bool {
-    //Use Bundled Resources!
-    resData.setPayload(feeder: self.gqlFeeder)
-    let resources = StoredResources.persist(object: resData)
-    self.dloader.createDirs()
-    resources.isDownloading = true
-    var success = true
-    
-    if bundledResources.bundledFiles.count != resData.files.count {
-      log("WARNING: Something is Wrong maybe need to download additional Files!")
-      success = false
-    }
-    
-    var bundledResourceFiles : [File] = []
-    
-    for fileUrl in bundledResources.bundledFiles {
-      let file = File(fileUrl)
-      if file.exists {
-        bundledResourceFiles.append(file)
-      }
-    }
-    
-    let globalFiles = resources.payload.files.filter {
-      $0.storageType != .global
-    }
-    
-    for globalFile in globalFiles {
-      let bundledFiles = bundledResourceFiles.filter{ $0.basename == globalFile.name }
-      if bundledFiles.count > 1 { log("Warning found multiple matching Files!")}
-      guard let bundledFile = bundledFiles.first else {
-        log("Warning not found matching File!")
-        success = false
-        continue
-      }
-      
-      /// File Creation Dates did not Match! bundledFile.mTime != globalFile.moTime
-      if bundledFile.exists,
-         bundledFile.size == globalFile.size {
-        let targetPath = self.gqlFeeder.resourcesDir.path + "/" + globalFile.name
-        bundledFile.copy(to: targetPath)
-        let destFile = File(targetPath)
-        if destFile.exists { destFile.mTime = globalFile.moTime }
-        debug("File \(bundledFile.basename) moved... exist in resdir? : \(globalFile.existsIgnoringTime(inDir: self.gqlFeeder.resourcesDir.path))")
-      } else {
-        log("* Warning: File \(bundledFile.basename) may not exist (\(bundledFile.exists)), mtime, size is wrong  \(bundledFile.size) !=? \(globalFile.size)")
-        success = false
-      }
-    }
-    resources.isDownloading = false
-    if success == false {
-      log("* Warning: There was an error due persisting Bundled Ressources ....delete them.")
-      resources.delete()
-    }
-    return success
   }
   
   func updateSubscriptionStatus(closure: @escaping (Bool)->()) {
@@ -957,196 +548,6 @@ open class FeederContext: DoesLog {
     return StoredIssue.issuesInFeed(feed: sf0, count: 1).first
   }
   
-  
-  /// Get/Download latestIssue requested by PushNotification
-  /// - Parameter fetchCompletionHandler: handler to be called on end
-  ///
-  /// Not using zipped download due if download breaks all received data is gone
-  public func handleNewIssuePush(_ fetchCompletionHandler: FetchCompletionHandler?) {
-    ///Challange: on receive push usually a download happen and then a newData is needed (no matter if full download or just overviewDownload)
-    ///in case of full download the newData send is simple
-    ///But how to implement the partialDownloadForNewData?
-    ///When is the last issue downloaded? e.g. last App Issue Download 1.1. today 14.1. missing ~10 Issues
-    ///some strange things happen due no download still happen but now i have internet and receive the PN in active Mackground Mode
-    ///if we send remoteNotificationFetchCompleete newData too early the System killy all Download Processes and wen miss data
-    ///if wen send it too late the automatic .failed is told the system
-    ///can we check that there are still downloads?
-    
-    if App.isAvailable(.AUTODOWNLOAD) == false {
-      log("Currently not handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
-      fetchCompletionHandler?(.noData)
-      return
-    }
-    log("Handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
-    
-    guard let storedFeeder = storedFeeder,
-          let sFeed = StoredFeed.get(name: self.defaultFeed.name, inFeeder: storedFeeder).first else {
-      self.error("Expected to have a stored feed, but did not found one.")
-      fetchCompletionHandler?(.noData)
-      return
-    }
-    #warning("TODO: ADD APPLICATION BACKGROUND FETCH RÖDLER")
-    Notification.receiveOnce("resourcesReady") { [weak self] err in
-      guard let self = self else { return }
-      self.gqlFeeder.issues(feed: sFeed,
-                            count: 1,
-                            isOverview: false,
-                            isPages: self.autoloadPdf) { res in
-        if let issues = res.value() {//Fetch result got an 'latest' Issue
-          guard issues.count == 1 else {
-            self.error("Expected to find 1 issue found: \(issues.count)")
-            fetchCompletionHandler?(.failed)
-            return
-          }
-          guard let issue = issues.first else { return }
-          
-          let si = StoredIssue.get(date: issue.date, inFeed: sFeed)
-          #warning("did not overwrite existing issue")
-          ///in 03/2023 due an server/editorial error the next day issue was published round 3:00 pm, was revoked but server logs said 5-10 People got this issue **HOW TO HANDLE THIS IN FUTURE?**
-          ///
-          ///
-          self.log("got issue from \(issue.date.short) from server with status: \(issue.status) got issue in db with status: \(si.first?.status.localizedDescription ?? "- no Issue in DB -") dbIssue isComplete: \(si.first?.isComplete ?? false)")
-          
-          
-          /* Possible states for both
-                case regular = "regular"          /// authenticated Issue access
-                case demo    = "demo"             /// demo Issue
-                case locked  = "locked"           /// no access
-                case reduced = "reduced(public)"  /// available for everybody/incomplete articles
-                case unknown = "unknown"          /// decoded from unknown string
-          */
-          
-          var persist = false
-          
-          ///ensure no full issue (demo/regular) is overwritten with reduced
-          if issue.status == .regular {
-            self.log("persist server version due its a regular one")//probably overwrite old local one
-            persist = true
-          }///update with the new one
-          else if (si.first?.status == .regular || si.first?.status == .demo) == false {
-            self.log("there is no full issue locally so overwrite it with the new one from server")
-            persist = true
-          }
-          
-          #warning("got issue from 30.3.2023 from server with status: regular got issue in db with status: regular dbIssue isComplete: false")
-          ///Discussion: overwrite regular overview with regular full is ok!
-          
-          if persist {
-            StoredIssue.persist(object: issue)
-            ArticleDB.save()
-          }
-          
-          guard let sissue = StoredIssue.issuesInFeed(feed: sFeed,
-                                                      count: 1,
-                                                      fromDate: issue.date).first else {
-            self.error("Expected to find downloaded issue (\(issue.date.short) in db.")
-            fetchCompletionHandler?(.failed)
-            return
-          }
-          
-          if self.autoloadOnlyInWLAN, self.netAvailability.isMobile {
-            self.log("Prevent compleete Download in celluar for: \(sissue.date.short), just load overview")
-            LocalNotifications.notifyNewIssue(issue: sissue, feeder: self.gqlFeeder)
-            fetchCompletionHandler?(.newData)
-            return
-          }
-          self.log("Download Compleete Issue: \(sissue.date.short)")
-          
-          self.dloader.createIssueDir(issue: issue)
-          Notification.receive("issue"){ notif in
-            ///ensure the issue download comes from here!
-            guard let downloaded = notif.object as? Issue else { return }
-            guard downloaded.date.short == issue.date.short else { return }
-            LocalNotifications.notifyNewIssue(issue: sissue, feeder: self.gqlFeeder)
-            #warning("KILL SWITCH due 2nd call on receive issue!")
-            fetchCompletionHandler?(.newData)//2nd Time Call!
-          }
-          self.downloadCompleteIssue(issue: sissue, isAutomatically: true)
-        }
-        else if let err = res.error() as? FeederError {
-          self.error("There was an error: \(err)")
-          let res: Result<Issue,Error> = .failure(err)
-          self.notify("issueOverview", result: res)
-          fetchCompletionHandler?(.failed)
-        }
-        else {
-          self.error("Did not found a issue")
-          let res: Result<Issue,Error> = .failure(Log.error("Did not found a issue"))
-          self.notify("issueOverview", result: res)
-          fetchCompletionHandler?(.noData)
-        }
-      }
-    }
-    updateResources()
-  }
-  
-  /**
-   Get Overview Issues from Feed
-   
-   If we are online, 'count' Issue overviews are requested from the server.
-   Otherwise 'count' Issues from the DB are returned. The returned Issues are always 
-   StoredIssues.
-   */
-  public func getOvwIssues(feed: Feed, count: Int, fromDate: Date? = nil, isAutomatically: Bool) {
-    log("feed: \(feed.name) count: \(count) fromDate: \(fromDate?.short ?? "-")")
-    guard let storedFeeder = storedFeeder else {
-      log("storedFeeder not initialized yet!")
-      return
-    }
-    let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
-    guard sfs.count > 0 else { return }
-    let sfeed = sfs[0]
-    let sicount = sfeed.issues?.count ?? 0
-    guard sicount < sfeed.issueCnt else { return }
-    Notification.receiveOnce("resourcesReady") { [weak self] err in
-      guard let self = self else { return }
-      if self.isConnected {
-        self.gqlFeeder.issues(feed: sfeed, date: fromDate, count: min(count, 20),
-                              isOverview: true) { res in
-          if let issues = res.value() {
-            for issue in issues {
-              let si = StoredIssue.get(date: issue.date, inFeed: sfeed)
-              if si.count < 1 { StoredIssue.persist(object: issue) }
-              //#warning("ToDo 0.9.4+: Missing Update of an stored Issue")
-              ///in old app timestamps are compared!
-              ///What if Overview new MoTime but compleete Issue is in DB and User is in Issue to read!!
-              /// if si.first?.moTime != issue.moTime ...
-              /// an update may result in a crash
-            }
-            ArticleDB.save()
-            let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
-                                                   fromDate: fromDate)
-            for issue in sissues { self.downloadIssue(issue: issue, isAutomatically: isAutomatically) }
-          }
-          else {
-            if let err = res.error() as? FeederError {
-              self.handleFeederError(err) { 
-                self.getOvwIssues(feed: feed, count: count, fromDate: fromDate, isAutomatically: isAutomatically)
-              }
-            }
-            else { 
-              let res: Result<Issue,Error> = .failure(res.error()!)
-              self.notify("issueOverview", result: res)
-            }
-            return
-          }
-        }
-      }
-      else {
-        let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count, 
-                                               fromDate: fromDate)
-        for issue in sissues {
-          if issue.isOvwComplete {
-            self.notify("issueOverview", result: .success(issue))
-          }
-          else {
-            self.downloadIssue(issue: issue, isAutomatically: isAutomatically)
-          }
-        }
-      }
-    }
-    updateResources()
-  }
 
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: Issue) -> Bool {
@@ -1167,99 +568,7 @@ open class FeederContext: DoesLog {
     return needsUpdate
   }
   
-  /**
-   Get an Issue from Server or local DB
-   
-   This method retrieves a complete Issue (ie downloaded Issue with complete structural
-   data) from the database. If necessary all files are downloaded from the server.
-   */
-  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false, isAutomatically: Bool) {
-    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
-    if issue.isDownloading {
-      Notification.receiveOnce("issue", from: issue) { [weak self] notif in
-        self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically)
-      }
-      return
-    }
-    let loadPages = isPages || autoloadPdf
-    guard needsUpdate(issue: issue, toShowPdf: loadPages) else {
-      Notification.send("issue", result: .success(issue), sender: issue)
-      return      
-    }
-    if self.isConnected {
-      gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
-                       isPages: loadPages) { res in
-        if let issues = res.value(), issues.count == 1 {
-          let dissue = issues[0]
-          Notification.send("gqlIssue", result: .success(dissue), sender: issue)
-          if issue.date != dissue.date {
-            self.error("Cannot Update issue \(issue.date.short)/\(issue.isWeekend ? "weekend" : "weekday") with issue \(dissue.date.short)/\(dissue.isWeekend ? "weekend" : "weekday") feeders cycle: \(self.gqlFeeder.feeds.first?.cycle.toString() ?? "-")")
-            let unexpectedResult : Result<[Issue], Error>
-              = .failure(DownloadError(message: "Weekend Login cannot load weekday issues", handled: true))
-            Notification.send("issueStructure", result: unexpectedResult, sender: issue)
-            TazAppEnvironment.sharedInstance.resetApp(.wrongCycleDownloadError)
-            return
-          }
-          issue.update(from: dissue)
-          ArticleDB.save()
-          Notification.receiveOnce("resourcesReady") { _ in
-            Notification.send("issueStructure", result: .success(issue), sender: issue)
-          }
-          self.downloadIssue(issue: issue, isComplete: true, isAutomatically: isAutomatically)
-        }
-        else if let err = res.error() {
-          let errorResult : Result<[Issue], Error>
-            = .failure(DownloadError(handled: false, enclosedError: err))
-          Notification.send("issueStructure",
-                            result: errorResult,
-                            sender: issue)
-        }
-        else {
-          //prevent ui deadlock
-          let unexpectedResult : Result<[Issue], Error>
-            = .failure(DownloadError(message: "Unexpected Behaviour", handled: false))
-          Notification.send("issueStructure", result: unexpectedResult, sender: issue)
-        }
-      }
-    }
-    else {
-      #warning("ToDO AddRetry here its easily possible!")
-      OfflineAlert.show(type: .issueDownload)
-      let res : Result<Any, Error>
-        = .failure(DownloadError(message: "no connection", handled: true))
-      Notification.send("issueStructure", result: res, sender: issue)
-    }
-  }
-  
-  /// Tell server we are starting to download
-  func markStartDownload(feed: Feed, issue: Issue, isAutomatically: Bool, closure: @escaping (String?, UsTime)->()) {
-    let isPush = pushToken != nil
-    debug("Sending start of download to server")
-    self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush, pushToken: self.pushToken, isAutomatically: isAutomatically) { res in
-      closure(res.value(), UsTime.now)
-    }
-  }
-  
-  /// Tell server we stopped downloading
-  func markStopDownload(dlId: String?, tstart: UsTime) {
-    if let dlId = dlId {
-      let nsec = UsTime.now.timeInterval - tstart.timeInterval
-      debug("Sending stop of download to server")
-      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec){_ in}
-    }
-  }
-  
-  func didDownload(_ issue: Issue){
-    guard issue.date == self.defaultFeed.lastIssue else { return }
-    guard let momentPublicationDate = issue.moment.files.first?.moTime else { return }
-    ///momentPublicationDate is in UTC timeIntervalSinceNow calculates also with utc, so timeZone calculation needed!
-    //is called multiple times!
-    //debug("New Issue:\n  issue Date: \(issue.date)\n  defaultFeed.lastIssue: \(self.defaultFeed.lastIssue)\n  defaultFeed.lastUpdated: \(self.defaultFeed.lastUpdated)\n  defaultFeed.lastIssueRead: \(self.defaultFeed.lastIssueRead)")
-    NotificationBusiness
-      .sharedInstance
-      .showPopupIfNeeded(newIssueAvailableSince: -momentPublicationDate.timeIntervalSinceNow)
-    
-  }
+ 
   
   func cleanupOldIssues(){
     if self.dloader.isDownloading { return }
@@ -1269,166 +578,7 @@ open class FeederContext: DoesLog {
                              keepDownloaded: persistedIssuesCount,
                              deleteOrphanFolders: true)
   }
-  
-  /// Download partial Payload of Issue
-  private func downloadPartialIssue(issue: StoredIssue) {
-    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate: \(issue.date.short)")
-    self.dloader.downloadPayload(payload: issue.payload as! StoredPayload, atEnd: { [weak self] err in
-      var res: Result<StoredIssue,Error>
-      if err == nil {
-        issue.isOvwComplete = true
-        res = .success(issue)
-        ArticleDB.save()
-        self?.didDownload(issue)
-      }
-      else { res = .failure(err!) }
-      Notification.send("issueOverview", result: res, sender: issue)
-    })
-  }
-
-  /// Download complete Payload of Issue
-  private func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
-//    enqueuedDownlod.append(issue)
-    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
-    markStartDownload(feed: issue.feed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
-      issue.isDownloading = true
-      self.dloader.downloadPayload(payload: issue.payload as! StoredPayload, 
-        onProgress: { (bytesLoaded,totalBytes) in
-          Notification.send("issueProgress", content: (bytesLoaded,totalBytes),
-                            sender: issue)
-        }) {[weak self] err in
-        issue.isDownloading = false
-        var res: Result<StoredIssue,Error>
-        if err == nil { 
-          res = .success(issue) 
-          issue.isComplete = true
-          ArticleDB.save()
-          self?.didDownload(issue)
-          //inform DownloadStatusButton: download finished
-          Notification.send("issueProgress", content: (Int64(1),Int64(1)), sender: issue)
-        }
-        else { res = .failure(err!) }
-        self?.markStopDownload(dlId: dlId, tstart: tstart)
-//        self.enqueuedDownlod.removeAll{ $0.date == issue.date}
-        Notification.send("issue", result: res, sender: issue)
-      }
-    }
-  }
-  
-  /// Download Issue files and resources if necessary
-  private func downloadIssue(issue: StoredIssue, isComplete: Bool = false, isAutomatically: Bool) {
-    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)\(Defaults.expiredAccount ? " Expired!" : "") isComplete: \(isComplete) issueDate: \(issue.date.short)")
-    Notification.receiveOnce("resourcesReady") { [weak self] err in
-      guard let self = self else { return }
-      self.dloader.createIssueDir(issue: issue)
-      if self.isConnected { 
-        if isComplete { self.downloadCompleteIssue(issue: issue, isAutomatically: isAutomatically) }
-        else { self.downloadPartialIssue(issue: issue) }
-      }
-      else {
-        OfflineAlert.show(type: .issueDownload)
-      }
-    }
-    updateResources(toVersion: issue.minResourceVersion)
-  }
-
 } // FeederContext
-
-
-extension PushNotification.Payload {
-  public var notificationType: NotificationType? {
-    get {
-      guard let data = self.custom["data"] as? [AnyHashable:Any] else { return nil }
-      for case let (key, value) as (String, String) in data {
-        if key == "perform" && value == "subscriptionPoll" {
-          return NotificationType.subscription
-        }
-        else if key == "refresh" && value == "aboPoll" {
-          return NotificationType.newIssue
-        }
-        else if key == "type" && value == "alert" {
-          return NotificationType.textNotificationAlert
-        }
-        else if key == "type" && value == "toast" {
-          return NotificationType.textNotificationToast
-        }
-      }
-      return nil
-    }
-  }
-  
-  public var textNotificationMessage: String? {
-    get {
-      guard let data = self.custom["data"] as? [AnyHashable:Any] else { return nil }
-      debug("found data: \(data)")
-      guard data["type"] as? String == "alert" ||
-              data["type"] as? String == "toast" else {
-        debug("value for data.type is: \(data["type"] ?? "-")")
-        return nil
-      }
-      guard let body = data["body"] as? String else {
-        debug("no value for data.body")
-        return nil
-      }
-      debug("data.body is: \(body)")
-      return body
-    }
-  }
-}
-
-extension LocalNotifications {
-  static let tazAppOfflineListenNotPossibleIdentifier = "tazAppOfflineListenNotPossible"
-  static func notifyOfflineListenNotPossible(){
-    Self.notify(title: "Sie müssen online sein, um die Vorlesefunktion zu nutzen!",
-                              message: "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
-                              notificationIdentifier: tazAppOfflineListenNotPossibleIdentifier)
-  }
-  static func removeOfflineListenNotPossibleNotifications(){
-    UNUserNotificationCenter.current()
-      .removePendingNotificationRequests(withIdentifiers:[tazAppOfflineListenNotPossibleIdentifier])
-    UNUserNotificationCenter.current()
-      .removeDeliveredNotifications(withIdentifiers:[tazAppOfflineListenNotPossibleIdentifier])
-  }
-}
-
-fileprivate extension LocalNotifications {
-  static func notify(payload: PushNotification.Payload){
-    guard let message = payload.standard?.alert?.body else {
-      Log.debug("no standard payload found, not notify localy")
-      return
-    }
-    Self.notify(title: payload.standard?.alert?.title, message:message)
-  }
-  
-  //Helper to trigger local Notification if App is in Background
-  static func notifyNewIssue(issue:StoredIssue, feeder:Feeder){
-    var attachmentURL:URL?
-    if let filepath = feeder.smallMomentImageName(issue: issue) {
-      Log.log("Found Moment Image in: \(filepath)")
-      attachmentURL =  URL(fileURLWithPath: filepath)
-    }
-    else {
-      Log.debug("Not Found Moment Image for: \(issue.date)")
-    }
-    
-    var subtitle: String?
-    var message = "Jetzt lesen!"
-    
-    if let firstArticle = issue.sections?.first?.articles?.first,
-       let aTitle = firstArticle.title,
-       let aTeaser = firstArticle.teaser {
-      subtitle = "Lesen Sie heute: \(aTitle)"
-      message = aTeaser
-    }
-    Self.notify(title: "Die taz vom \(issue.date.short) ist verfügbar.",
-                subtitle: subtitle,
-                message: message,
-                badge: UIApplication.shared.applicationIconBadgeNumber + 1,
-                attachmentURL: attachmentURL)
-    
-  }
-}
-
 
 fileprivate extension StoreApp {
   
@@ -1480,143 +630,5 @@ fileprivate extension Defaults {
   }
 }
 
-extension UIAlertAction {
-  static func developerPushActions(callback: @escaping (Bool) -> ()?) -> [UIAlertAction] {
-    let newIssue:UIAlertAction = UIAlertAction(title: "Simulator: NewIssuePush",
-                                                 style: .default){_ in
-      let payload:[AnyHashable : Any] = [
-        "aps":[
-          "content-available" : 1,
-          "sound": nil],
-        "data":[
-          "refresh": "aboPoll"
-        ]
-      ]
-      TazAppEnvironment.sharedInstance.feederContext?.processPushNotification(pn: PushNotification(),
-                                                                              payload: PushNotification.Payload(payload),
-                                                                              fetchCompletionHandler: nil)
-      callback(false)
-    }
 
-    let textPushAlert:UIAlertAction = UIAlertAction(title: "Simulator: TextPush Alert",
-                                                    style: .default){_ in
-      let payload:[AnyHashable : Any] = [
-        "aps":[
-          "alert":[
-            "title": "2 Test",
-            "body": "Hallo dies ist ein zweiter Test"],
-          "sound": "default"],
-        "data":[
-          "type": "alert",
-          "title": " ",
-          "body": "<h1>Testüberschrift</h1><h2>Subhead</h2><p><b>Hallo</b> <i>dies <del>ist</del> ein <mark>zweiter</mark></i><br/><u>Test!</u></p>\n"
-        ]
-      ]
-      TazAppEnvironment.sharedInstance.feederContext?.processPushNotification(pn: PushNotification(),
-                                                                              payload: PushNotification.Payload(payload),
-                                                                              fetchCompletionHandler: nil)
-      callback(false)
-    }
 
-    let textPushToast:UIAlertAction = UIAlertAction(title: "Simulator: TextPush Toast",
-                                                    style: .default){_ in
-      let payload:[AnyHashable : Any] = [
-        "aps":[
-          "alert":[
-            "title": "2 Test",
-            "body": "Hallo dies ist ein zweiter Test"],
-          "sound": "default"],
-        "data":[
-          "type": "toast",
-          "title": " ",
-          "body": "<h1>Testüberschrift</h1><h2>Subhead</h2><p><b>Hallo</b> <i>dies <del>ist</del> ein <mark>zweiter</mark></i><br/><u>Test!</u></p>\n"
-        ]
-      ]
-      TazAppEnvironment.sharedInstance.feederContext?.processPushNotification(pn: PushNotification(),
-                                                                              payload: PushNotification.Payload(payload),
-                                                                              fetchCompletionHandler: nil)
-      callback(false)
-    }
-
-    return [newIssue, textPushAlert, textPushToast]
-  }
-}
-
-class ExtendedNetAvailability {
-  /**
-   [...]
-   SCNetworkReachability and  NWPathMonitor
-   is not perfect; it can result in both false positives (saying that something is reachable when it’s not) and false negatives (saying that something is unreachable when it is). It also suffers from TOCTTOU issues.
-   [...]
-   Source: https://developer.apple.com/forums/thread/105822
-   Written by: Quinn “The Eskimo!”   Apple Developer Relations, Developer Technical Support, Core OS/Hardware
-    => this is maybe the problem within our: Issue not appears, download not work issues
-   */
-  /// netAvailability is used to check for network access to the Feeder
-  public var netAvailability: NetAvailability? {
-    didSet {
-      oldValue?.onChange{ _ in }
-      netAvailability?.onChange{[weak self] _ in
-        guard let self = self else { return }
-        self._onChangeClosure?(self.isConnected)
-      }
-    }
-  }
-  
-  var _onChangeClosure: ((Bool)->())? = nil
-  
-  /// Defines the closure to call when a network change has happened
-  public func onChange(_ closure: ((Bool)->())?) {
-    _onChangeClosure = closure
-  }
-  
-  var netStatusVerification = Date()
-  
-  
-  var isMobile: Bool { netAvailability?.isMobile ?? false }
-  
-  /// Factory Method to create NetAvailability Instances for isConnected check and verification
-  private func createNetAvailability() -> NetAvailability? {
-    guard let host = URL(string: self.url)?.host else { return nil }
-    return NetAvailability(host: host)
-  }
-  
-  public var url: String {
-    didSet {
-      netStatusVerification = Date()
-      self.netAvailability = createNetAvailability()
-    }
-  }
-  
-  /// Defines the closure to call when a network change has happened
-  public func recheck() {
-    netStatusVerification = Date()
-    if createNetAvailability()?.isAvailable != wasConnected {
-      self.netAvailability = createNetAvailability()
-    }
-  }
-  
-  public init(url: String) {
-    self.url = url
-  }
-  
-  private(set) var wasConnected = false
-
-  public var isConnected: Bool {
-    if netAvailability == nil { netAvailability = createNetAvailability() }
-    
-    guard let netAvailability = netAvailability else { return false }
-    
-    let connected = netAvailability.isAvailable
-    let recheckDuration = Device.isSimulator ? 10.0 : 5*60.0
-    
-    if abs(netStatusVerification.timeIntervalSinceNow) > recheckDuration {
-      #warning("TODO: test ensure verification works")
-      recheck()
-    }
-    
-    if wasConnected == connected { return connected }
-    wasConnected = connected
-    return connected
-  }
-}

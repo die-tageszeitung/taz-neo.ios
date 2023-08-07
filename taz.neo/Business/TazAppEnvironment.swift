@@ -201,7 +201,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   }
   
   func deleteData() {
-    Defaults.latestPublicationDate = nil
     for f in Dir.appSupport.scan() {
       debug("remove: \(f)")
       File(f).remove()
