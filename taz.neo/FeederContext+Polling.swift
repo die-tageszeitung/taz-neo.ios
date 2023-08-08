@@ -31,6 +31,13 @@ extension FeederContext {
     }
   }
   
+  /// Method called by Authenticator to start polling timer
+  func startPolling() {
+    self.pollEnd = UsTime.now.sec + PollTimeout
+    Defaults.singleton["pollEnd"] = "\(pollEnd!)"
+    self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 60.0,
+      repeats: true) { _ in self.doPolling() }
+  }
   
   /// Terminate polling
   public func endPolling() {

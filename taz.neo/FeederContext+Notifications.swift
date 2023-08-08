@@ -1,5 +1,5 @@
 //
-//  FeederContext+PushNotifications.swift
+//  FeederContext+Notifications.swift
 //  taz.neo
 //
 //  Created by Ringo Müller on 07.08.23.
@@ -10,9 +10,24 @@ import Foundation
 import NorthLib
 import UIKit
 
-
+// MARK: - Messaging, NotificationCenter
 extension FeederContext {
   
+  /// notify sends a Notification to all objects listening to the passed
+  /// String 'name'. The receiver closure gets the sending FeederContext
+  /// as 'sender' argument.
+  func notify(_ name: String, content: Any? = nil) {
+    Notification.send(name, content: content, sender: self)
+  }
+  
+  /// This notify sends a Result<Type,Error>
+  func notify<Type>(_ name: String, result: Result<Type,Error>) {
+    Notification.send(name, result: result, sender: self)
+  }
+}
+  
+// MARK: - RemoteNotifications (Push)
+extension FeederContext {
   
   /// Ask for push token and report it to server
   public func setupRemoteNotifications(force: Bool? = false) {
@@ -80,9 +95,6 @@ extension FeederContext {
         fetchCompletionHandler?(.noData)
     }
   }
-  
-  
-  
   
   /// Get/Download latestIssue requested by PushNotification
   /// - Parameter fetchCompletionHandler: handler to be called on end
@@ -207,6 +219,7 @@ extension FeederContext {
   }
 }
 
+// MARK: - LocalNotifications (User Notifications)
 fileprivate extension LocalNotifications {
   static func notify(payload: PushNotification.Payload){
     guard let message = payload.standard?.alert?.body else {

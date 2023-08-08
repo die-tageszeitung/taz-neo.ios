@@ -895,6 +895,25 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
   
+  //ToDo: Ensure this is just done once not on every net status Change
+  public func checkMinVersion(closure: @escaping(Result<Feeder,Error>)->()){
+    GqlAppInfo.query(feeder: self) { [weak self] res in
+      guard let self else { return }
+      if let mv = res.value() {
+        if let mvs = mv.minVersion {
+          let minVersion = Version(mvs)
+          self.debug("Version check: current(\(App.version), server(mvs)")
+          if App.version < minVersion {
+            closure(.failure(FeederError.minVersionRequired(mvs)))
+            return
+          }
+        }
+        else { self.debug("Server doesn't return minVersion") }
+      }
+      else { self.error("Can't get minimal App version from server") }
+    }
+  }
+  
   /// Close gqlSession and release resources
   public func release() {
     gqlSession?.release()
