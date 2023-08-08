@@ -39,15 +39,15 @@ extension FeederContext {
       Ausgaben zu laden, ist mindestens die Version \(minVersion)
       erforderlich. Möchten Sie jetzt eine neue Version laden?
     """
-    Alert.confirm(title: "Update erforderlich", message: msg) { [weak self] doUpdate in
+    Alert.message(title: "Update erforderlich", message: msg){[weak self] in
       guard let self else { return }
       if self.simulateFailedMinVersion {
         Defaults.singleton["simulateFailedMinVersion"] = "false"
       }
-      if doUpdate {
-        store.openInAppStore { closure?() }
-      }
-      else { exit(0) }
+      store.openInAppStore { closure?() }
+      #warning("exit(0) not allowed")
+      ///either not connect app or update issues == offline from now on or force update Store
+      ///@see: https://developer.apple.com/forums/thread/63795
     }
   }
   
