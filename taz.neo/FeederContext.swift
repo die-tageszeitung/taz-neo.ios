@@ -157,7 +157,7 @@ open class FeederContext: DoesLog {
   }
   
   /// Bundle ID to use for App store retrieval
-  public var bundleID = "de.taz.taz.2" //App.bundleIdentifier
+  public var bundleID = App.bundleIdentifier
   
   /// Overwrite for current App version
   public var currentVersion = App.version
