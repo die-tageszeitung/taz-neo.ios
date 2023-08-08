@@ -70,7 +70,6 @@ extension FeederContext {
     }
   }
   
-  
   func processPushNotification(pn: PushNotification, payload: PushNotification.Payload, fetchCompletionHandler: FetchCompletionHandler?){
     log("Processing: \(payload) AppState: \(UIApplication.shared.stateDescription)")
     switch payload.notificationType {
@@ -199,7 +198,13 @@ extension FeederContext {
             #warning("KILL SWITCH due 2nd call on receive issue!")
             fetchCompletionHandler?(.newData)//2nd Time Call!
           }
-          self.downloadCompleteIssue(issue: sissue, isAutomatically: true)
+          
+          if self.autoloadNewIssues {
+            self.downloadCompleteIssue(issue: sissue, isAutomatically: true)
+          }
+          else {
+            fetchCompletionHandler?(.newData)//2nd Time Call!
+          }
         }
         else if let err = res.error() as? FeederError {
           self.error("There was an error: \(err)")
