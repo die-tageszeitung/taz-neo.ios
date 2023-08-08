@@ -376,7 +376,7 @@ extension IssueCarouselCVC {
       if self?.service.isCheckingForNewIssues ?? false { return }
       self?.statusHeader.currentStatus = .fetchNewIssues
       URLCache.shared.removeAllCachedResponses()
-      self?.service.checkForNewIssues(force: true)
+      self?.service.checkForNewIssues()
     }
   }
 }

@@ -68,7 +68,7 @@ open class FeederContext: DoesLog {
   public var openedIssue: Issue? {
     didSet {
       if let openedIssue = openedIssue,
-         openedIssue.date == getLatestStoredIssue()?.date {
+         openedIssue.date.issueKey == getLatestStoredIssue()?.date.issueKey {
         UIApplication.shared.applicationIconBadgeNumber = 0
       }
     }
@@ -101,31 +101,8 @@ open class FeederContext: DoesLog {
   /// The stored Feeder (from DB)
   public private(set) var storedFeeder: StoredFeeder! {
     didSet {
-      if self.gqlFeeder == nil {
-        self.gqlFeeder = GqlFeeder(title: name,
-                                   url: url,
-                                   token: DefaultAuthenticator.token)
-        updateFeeder()
-      }
-      
-      guard storedFeeder != nil else { return }
-      /// used due  a chicken or the egg causality dilemma
-      /// if i start online no db is on startup available to read the data, but we dont want to load all dates if just a few are needed
-      /// other challenges: initial start, migration from 0.9.x, online/offline start, switch daily/weekly
-      /// ...actually FeederContext needs a big refactoring mybe with a bundled initial issue
-      /// to get rid of all the patches
-      if oldValue == nil {
-        checkAppUpdate()
-        updatePublicationDatesIfNeeded(for: nil)
-        cleanupOldIssues()
-        defaultFeed = storedFeeder.feeds.first as? StoredFeed
-        //Alternative:
-        //defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder).first
-        notify("feederReady")
-        return
-      }
-      
-      if oldValue?.feeds.first?.publicationDates?.count
+      guard let oldValue = oldValue else { return }
+      if oldValue.feeds.first?.publicationDates?.count
       != self.storedFeeder?.feeds.first?.publicationDates?.count {
         Notification.send(Const.NotificationNames.publicationDatesChanged)
       }
@@ -173,10 +150,14 @@ open class FeederContext: DoesLog {
   var isConnected: Bool { netAvailability.isConnected }
   
   /// Has minVersion been met?
-  public var minVersionOK = true
+  public var minVersionOK = true {
+    didSet {
+      if minVersionOK == false { enforceUpdate() }
+    }
+  }
   
   /// Bundle ID to use for App store retrieval
-  public var bundleID = App.bundleIdentifier
+  public var bundleID = "de.taz.taz.2" //App.bundleIdentifier
   
   /// Overwrite for current App version
   public var currentVersion = App.version
@@ -200,27 +181,86 @@ open class FeederContext: DoesLog {
     return false
   }
   
+  //CHALLANGE
+  /// init - update just call update once even if initial init
+  private func initFeeder(){
+    if self.gqlFeeder == nil {
+      self.gqlFeeder = GqlFeeder(title: name,
+                                 url: url,
+                                 token: DefaultAuthenticator.token)
+    }
+    
+    let needUpdate = self.storedFeeder == nil
+    
+    if needUpdate {
+      self.storedFeeder = StoredFeeder.get(name: self.name).first
+    }
+
+    ///Handle initial App Start
+    if storedFeeder == nil {
+      if netAvailability.isConnected == false {
+        OfflineAlert.show(type: .initial){[weak self] in
+          self?.netAvailability.recheck()
+          self?.initFeeder()
+        }
+        ///No feeder update possible if offline
+        return
+      }
+      
+      updateFeeder()
+      return
+    }
+    
+    checkAppUpdate()
+    updatePublicationDatesIfNeeded(for: nil)
+    cleanupOldIssues()
+    defaultFeed = storedFeeder.feeds.first as? StoredFeed
+    //Alternative:
+    //defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder).first
+    notify("feederReady")
+    
+    if needUpdate {
+      updateFeeder()
+    }
+  }
+  
+  func checkForNewIssues(){
+    if netAvailability.isConnected == false {
+      netAvailability.recheck()
+//      Notification.send(Const.NotificationNames.checkForNewIssues,
+//                        content: FetchNewStatusHeader.status.offline,
+//                        error: nil,
+//                        sender: self)
+      self.notifyNetStatus(isConnected: false)
+    }
+    else {
+        updateFeeder()
+    }
+  }
+  
   private func updateFeeder(){
     if gqlFeeder.isUpdating { return }
+    Notification.send(Const.NotificationNames.checkForNewIssues,
+                      content: FetchNewStatusHeader.status.fetchNewIssues,
+                      error: nil,
+                      sender: self)
     gqlFeeder.updateStatus {[weak self] res in
       guard let self = self else { return }
+      let needInit = self.storedFeeder == nil
       switch res {
         case .success:
           self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
           if self.netAvailability.wasConnected == false {
             self.netAvailability.recheck()
           }
+          self.notifyNetStatus(isConnected: true)
         case .failure:
-          if self.storedFeeder == nil {
-            OfflineAlert.show(type: .initial){[weak self] in
-              self?.netAvailability.recheck()
-              self?.updateFeeder()
-            }
-          } else if self.netAvailability.wasConnected {
+          if self.netAvailability.wasConnected == true {
             self.netAvailability.recheck()
-            self.notifyNetStatusChanged(isConnected: false)
           }
+          self.notifyNetStatus(isConnected: false)
       }
+      if needInit { initFeeder() }
     }
   }
   
@@ -268,13 +308,16 @@ open class FeederContext: DoesLog {
     
     log(logString)
     log("Update all publication Dates")
+    #warning("exit")
+    exit(42)
   }
   
   private func netStatusChanged(isConnected:Bool){
-    isConnected ? updateFeeder() : notifyNetStatusChanged(isConnected: false)
+    log("XXX NET STATUS CHANGED isConnected: \(isConnected)")
+    isConnected ? updateFeeder() : notifyNetStatus(isConnected: false)
   }
   
-  private func notifyNetStatusChanged(isConnected:Bool){
+  private func notifyNetStatus(isConnected:Bool){
     if isConnected {
       self.debug("Feeder now reachable")
       notify(Const.NotificationNames.feederReachable)
@@ -289,8 +332,7 @@ open class FeederContext: DoesLog {
   private func openDB(name: String) {
     guard ArticleDB.singleton == nil else { return }
     ArticleDB(name: name) { [weak self] _ in
-      guard let self = self else { return }
-      self.storedFeeder = StoredFeeder.get(name: self.name).first
+      self?.initFeeder()
     }
   }
   
@@ -303,13 +345,14 @@ open class FeederContext: DoesLog {
   }
   
   /// resetDB removes the Article database and uses openDB to reopen a new version
-  private func resetDB() {
-    guard ArticleDB.singleton != nil else { return }
-    let name = ArticleDB.singleton.name
-    closeDB()
-    ArticleDB.dbRemove(name: name)
-    openDB(name: name)
-  }
+  /// NOT USED CURRENTLY SO DISABLED!
+//  private func resetDB() {
+//    guard ArticleDB.singleton != nil else { return }
+//    let name = ArticleDB.singleton.name
+//    closeDB()
+//    ArticleDB.dbRemove(name: name)
+//    openDB(name: name)
+//  }
     
   /// init sends a "feederReady" Notification when the feeder context has
   /// been set up
@@ -336,15 +379,22 @@ open class FeederContext: DoesLog {
     ///So Refactor: Alert User only Button is the Store Button (is still bad behaviour, hopefully never needed)
     #warning("todo change")
     Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
-      guard let self else { return }
-      if !self.minVersionOK { 
-        onMain(after: 1.0) {
-          self.log("Exit due to minimal version not met")
-          exit(0)
-        }
-      }
+      self?.handleEnterForeground()
     }
     openDB(name: name)
+  }
+
+  ///used in VersionCheck, Check NetworkConnection, Update PublicationDates
+  func handleEnterForeground(){
+    if self.minVersionOK == false {
+      enforceUpdate()//Do Nothing More
+    }
+    else if netAvailability.isConnected == false {
+      netAvailability.recheck()
+    }
+    else {
+      updateFeeder()
+    }
   }
   
   /// release closes the Database and removes all feeder specific content
@@ -434,27 +484,12 @@ open class FeederContext: DoesLog {
     })
   }
   
-  
-  /// GET IS BULLSHIT DUE IT NOT RETURNS A ISSUE!
-  /// - Parameters:
-  ///   - feed: feed description
-  ///   - count: count description
-  public func getStoredOvwIssues(feed: Feed, count: Int = 10){
-    let sfs = StoredFeed.get(name: feed.name, inFeeder: storedFeeder)
-    if let sf0 = sfs.first {
-      let sissues = StoredIssue.issuesInFeed(feed: sf0, count: 10)
-      for issue in sissues {
-        if issue.isOvwComplete {
-          self.notify("issueOverview", result: .success(issue))
-        }
-      }
-    }
-  }
-  
   public func getLatestStoredIssue() -> StoredIssue? {
-    let sfs = StoredFeed.get(name: defaultFeed.name, inFeeder: storedFeeder)
-    guard let sf0 = sfs.first else {error("sfs.first not found"); return nil }
-    return StoredIssue.issuesInFeed(feed: sf0, count: 1).first
+    guard defaultFeed != nil else {
+      error("Stored Feed not found");
+      return nil
+    }
+    return StoredIssue.issuesInFeed(feed: defaultFeed, count: 1).first
   }
   
   /// Returns true if the Issue needs to be updated

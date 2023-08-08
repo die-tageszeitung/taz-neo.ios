@@ -12,6 +12,7 @@ import NorthLib
 
 /**
  Motivation: Helper to load Data from Server uses FeederContext
+ outsources FeederContext helper to get rid of the EierLegendeWollMilchSau
   
  Bug: leere ausgaben:
  
@@ -556,10 +557,6 @@ class IssueOverviewService: NSObject, DoesLog {
       self?.updateIssues()
       self?.continueFaildPreviewLoad()
     }
-    
-    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
-      self?.checkForNewIssues(force: false)
-    }
   }
   
   private var lc = LoadCoordinator()
@@ -571,95 +568,8 @@ extension IssueOverviewService {
   /// check for new issues from pull to refresh (force == true)
   /// and app will enter foreground
   /// - Parameter force: ensure check
-  func checkForNewIssues(force: Bool) {
-    if force == false && isCheckingForNewIssues {
-      return
-    }
-    
-    ///only check after 5pm  on app resume (usually new issue comes after 6pm)
-    if !force && Date().timeIntervalSince(feederContext.latestPublicationDate?.startOfDay ?? Date()) < 3600*18 {
-      log("no need to check for new Issue due latest issue is from today, its too early")
-      return
-    }
-    
-    //only check every 5 Minutes on app resume
-    if !force &&  Date().timeIntervalSince(lastUpdateCheck) < Self.checkOnResumeEvery {
-      log("no need to check for new Issue due last auto check was just now")
-      return
-    }
-    
-    guard feederContext.isConnected else {
-      Notification.send(Const.NotificationNames.checkForNewIssues,
-                        content: FetchNewStatusHeader.status.offline,
-                        error: nil,
-                        sender: self)
-      return
-    }
-    
-    if !force {
-      ///update status Header
-      Notification.send(Const.NotificationNames.checkForNewIssues,
-                        content: FetchNewStatusHeader.status.fetchNewIssues,
-                        error: nil,
-                        sender: self)
-    }
-    
-    isCheckingForNewIssues = true
-    
-    updatePublicationDates(feed: feederContext.defaultFeed)
-  }
-    
-  /// check api for new publicationDates (Issues)
-  /// ensure feeder is connected otherwise request will fail
-  /// - Parameter feed: feed to update
-  public func updatePublicationDates(feed: Feed) {
-    log("update")
-
-    feederContext.gqlFeeder.feederStatus { [weak self] result in
-      
-      self?.isCheckingForNewIssues = false
-      
-      if let err = result.error() {
-        self?.debug(err.description)
-        let status = self?.feederContext.isConnected == false
-        ? FetchNewStatusHeader.status.offline
-        : FetchNewStatusHeader.status.downloadError
-        Notification.send(Const.NotificationNames.checkForNewIssues, content: status, error: nil, sender: self)
-        return
-      }
-      
-      self?.lastUpdateCheck = Date()
-      
-      guard let gqlFeederStatus = result.value(),
-            let self = self,
-            let sFeed = self.feederContext.storedFeeder?.feeds[0] as? StoredFeed,
-            let gqlFeed = gqlFeederStatus.feeds.first,
-            let gqlPubDates = gqlFeed.publicationDates,
-            gqlPubDates.count > 0 else {
-        ///usually we have 1 date due request with todays and latest date return todys date again
-        self?.debug("no new data")
-        Notification.send(Const.NotificationNames.checkForNewIssues,
-                          content: FetchNewStatusHeader.status.none,
-                          error: nil,
-                          sender: self)
-        return
-      }
-      let oldCnt = feed.publicationDates?.count ?? 0
-      _ = StoredPublicationDate.persist(publicationDates: gqlPubDates, inFeed: sFeed)
-      let newCnt = feed.publicationDates?.count ?? 0
-      let selfCnt = self.publicationDates.count
-      if oldCnt == newCnt && newCnt == selfCnt {
-        Notification.send(Const.NotificationNames.checkForNewIssues,
-                          content: FetchNewStatusHeader.status.none,
-                          error: nil,
-                          sender: self)
-        return
-      }
-      ArticleDB.save()
-      log("persist: \(newCnt - oldCnt) publicationDates")
-      Notification.send(Const.NotificationNames.checkForNewIssues, content: FetchNewStatusHeader.status.loadPreview, error: nil, sender: self)
-      Notification.send(Const.NotificationNames.publicationDatesChanged)
-    }
+  func checkForNewIssues() {
+    feederContext.checkForNewIssues()
   }
 }
 
