@@ -41,11 +41,14 @@ class OfflineAlert {
   }()
   
   func buttonPressed(){
-    while closures.count > 0 {
-      let closure = closures.popLast()
+    var oldClosures = closures
+    closures = []
+    needsUpdate = true //prepare for reuse
+
+    while oldClosures.count > 0 {
+      let closure = oldClosures.popLast()
       closure?()
     }
-    needsUpdate = true //prepare for reuse
   }
   
   func updateIfNeeded(){
