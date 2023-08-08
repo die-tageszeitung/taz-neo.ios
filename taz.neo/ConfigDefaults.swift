@@ -32,8 +32,6 @@ public let ConfigDefaults = Defaults.Values([
   "colorMode" : "light",
   // Carousel scroll from left to right
   "carouselScrollFromLeft" : "false",
-  // Use mobile networks
-  "useMobile" : "true",
   // Automtically download new issues
   "autoDownload" : "true",
   // Allow automatic download over mobile networks

@@ -149,8 +149,6 @@ open class FeederContext: DoesLog {
   
   ///Helper to handle Network changes
   private(set) var netAvailability: ExtendedNetAvailability
-  @Default("useMobile")
-  public var useMobile: Bool
   
   @Default("autoloadOnlyInWLAN")
   var autoloadOnlyInWLAN: Bool
