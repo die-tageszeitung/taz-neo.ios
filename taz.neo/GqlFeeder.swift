@@ -425,15 +425,20 @@ class GqlPublicationDate: PublicationDate, GQLObject {
   var date: Date {
       return UsTime(iso: sDate, tz: GqlFeeder.tz).date
   }
-  static var fields: String {
+  static var fields: String { Self.fields() }
+  
+  static func fields(loadAllPublicationDates: Bool = false) -> String {
     var startArg = ""
-    if let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
+    if loadAllPublicationDates == false,
+        let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
       startArg = """
                  (start:"\(last.isoDate(tz: GqlFeeder.tz))")
                  """
     }
     return "gqlPublicationDates:publicationDates\(startArg)"
   }
+  
+  
   
   var sValidityDate: String?
   var validityDate: Date?
@@ -694,19 +699,17 @@ class GqlFeed: Feed, GQLObject {
       publicationDates?.append(pd)
     }
   }
+  static var fields: String { Self.fields() }
   
-  
-  static var fields: String {
-      get {
+  static func fields(loadAllPublicationDates: Bool = false) -> String {
         return """
           name cycle momentRatio issueCnt
           sLastIssue: issueMaxDate
           sFirstIssue: issueMinDate
           sFirstSearchableIssue: issueMinSearchDate
-          \(GqlPublicationDate.fields)
+          \(GqlPublicationDate.fields(loadAllPublicationDates:loadAllPublicationDates))
           \(GqlValidityDate.fields)
         """
-      }
   }
 } // class GqlFeed
 
@@ -757,16 +760,15 @@ class GqlFeederStatus: GQLObject {
   /// Feeds this Feeder provides
   var feeds: [GqlFeed]
   
-  static var fields: String {
-      get {
-          return """
-            authInfo{\(GqlAuthInfo.fields)}
-            resourceVersion
-            resourceBaseUrl
-            globalBaseUrl
-            feeds: feedList { \(GqlFeed.fields) }
-          """
-      }
+  static var fields: String { Self.fields() }
+  static func fields(loadAllPublicationDates: Bool = false) -> String {
+    return """
+      authInfo{\(GqlAuthInfo.fields)}
+      resourceVersion
+      resourceBaseUrl
+      globalBaseUrl
+      feeds: feedList { \(GqlFeed.fields(loadAllPublicationDates: loadAllPublicationDates)) }
+    """
   }
   
   func toString() -> String {
@@ -876,9 +878,9 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   
   //ToDo: Ensure this is just done once not on every net status Change
-  public func updateStatus(closure: @escaping(Result<Feeder,Error>)->()){
+  public func updateStatus(loadAllPublicationDates:Bool = false, closure: @escaping(Result<Feeder,Error>)->()){
     isUpdating = true
-    feederStatus { [weak self] (res) in
+    feederStatus(loadAllPublicationDates:loadAllPublicationDates) { [weak self] (res) in
       guard let self = self else { return }
       self.debug("feederStatus->res \(res)")
       var ret: Result<Feeder,Error>
@@ -1077,13 +1079,13 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   // Get GqlFeederStatus
-  func feederStatus(closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
+  func feederStatus(loadAllPublicationDates:Bool = false,loadAllPublicationDates closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
       feederStatus: product {
-        \(GqlFeederStatus.fields)
+        \(GqlFeederStatus.fields(loadAllPublicationDates:loadAllPublicationDates))
     }
     """
     gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self) { (res) in
