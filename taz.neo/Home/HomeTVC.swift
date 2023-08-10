@@ -180,7 +180,6 @@ class HomeTVC: UITableViewController {
     return indexPath.row == 0 ? carouselControllerCell : tilesControllerCell
   }
   
-  
   public init(service: IssueOverviewService, feederContext: FeederContext) {
     carouselController = IssueCarouselCVC(service: service)
     tilesController = IssueTilesCVC(service: service)
@@ -196,17 +195,15 @@ class HomeTVC: UITableViewController {
     self.addChild(tilesController)
     ///Handle new issues
     Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
-      guard self?.view.superview != nil else { return }
-      self?.carouselController.statusHeader.currentStatus = .loadPreview
-      if ((self?.navigationController?.parent as? UITabBarController)?
-        .selectedViewController as? UINavigationController)?
-        .viewControllers.last != self {
+      if self?.view.superview == nil {
         _ = service.reloadPublicationDates(refresh: nil, verticalCv: true)
-        self?.tilesController.collectionView.reloadData()
+        ///Old Data, Offline, In Issue, Online => Update => Back to Home: this fixes home in wired state
         self?.carouselController.collectionView.reloadData()
+        self?.tilesController.collectionView.reloadData()
+        self?.carouselController.updateDate()
         return
       }
-
+      self?.carouselController.statusHeader.currentStatus = .loadPreview
       guard let service = self?.issueOverviewService,
             let self = self else { return }
       let up = self.verifyUp()
@@ -219,7 +216,10 @@ class HomeTVC: UITableViewController {
       guard service.reloadPublicationDates(refresh: targetCv,
                                            verticalCv: !up) else { return }
       //refresh the other collection view controller
-      if up { self.tilesController.collectionView.reloadData() }
+      if up {
+        self.tilesController.collectionView.reloadData()
+        self.carouselController.updateDate()
+      }
       else { self.carouselController.collectionView.reloadData() }
     }
     ///Handle reachability changes: show offline status

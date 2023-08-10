@@ -28,6 +28,12 @@ import NorthLib
       * on login
       * setup poll/push
  
+ TODO:
+ - handle fetch new issue header for issuecarousell
+ - **DO:**test migration from 0.9.x store
+ - test new issue push
+ 
+ 
  */
 
 
@@ -99,15 +105,8 @@ open class FeederContext: DoesLog {
     }
   }
   /// The stored Feeder (from DB)
-  public private(set) var storedFeeder: StoredFeeder! {
-    didSet {
-      guard let oldValue = oldValue else { return }
-      if oldValue.feeds.first?.publicationDates?.count
-      != self.storedFeeder?.feeds.first?.publicationDates?.count {
-        Notification.send(Const.NotificationNames.publicationDatesChanged)
-      }
-    }
-  }
+  public private(set) var storedFeeder: StoredFeeder!
+  
   /// The default Feed to show
   public var defaultFeed: StoredFeed!
   /// The Downloader to use 
@@ -212,7 +211,7 @@ open class FeederContext: DoesLog {
     }
     
     checkAppUpdate()
-    updatePublicationDatesIfNeeded(for: nil)
+    let loadAll = needLoadAllPublicationDates()
     cleanupOldIssues()
     defaultFeed = storedFeeder.feeds.first as? StoredFeed
     //Alternative:
@@ -220,7 +219,7 @@ open class FeederContext: DoesLog {
     notify("feederReady")
     
     if needUpdate {
-      updateFeeder()
+      updateFeeder(loadAllPublicationDates: loadAll)
     }
   }
   
@@ -238,26 +237,31 @@ open class FeederContext: DoesLog {
     }
   }
   
-  private func updateFeeder(){
-    if gqlFeeder.isUpdating { return }
+  private func updateFeeder(loadAllPublicationDates:Bool = false){
+    if loadAllPublicationDates == false && gqlFeeder.isUpdating { return }
     Notification.send(Const.NotificationNames.checkForNewIssues,
                       content: FetchNewStatusHeader.status.fetchNewIssues,
                       error: nil,
                       sender: self)
-    gqlFeeder.updateStatus {[weak self] res in
+    gqlFeeder.updateStatus(loadAllPublicationDates: loadAllPublicationDates) {
+      [weak self] res in
       guard let self = self else { return }
       let needInit = self.storedFeeder == nil
       switch res {
+        ///no need to eval res.value due its updated:  self!.gqlFeeder === res.value()
         case .success:
+          ///remember old data due on set storedFeeder  old reference is overwritten
+          let publicationDatesChanged
+          = self.gqlFeeder?.feeds.first?.publicationDates?.count != 1
+          && self.storedFeeder.feeds.first?.publicationDates?.count
+          != self.gqlFeeder?.feeds.first?.publicationDates?.count
           self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
-          if self.netAvailability.wasConnected == false {
-            self.netAvailability.recheck()
+          if publicationDatesChanged {
+            ArticleDB.save()
+            Notification.send(Const.NotificationNames.publicationDatesChanged)
           }
           self.notifyNetStatus(isConnected: true)
         case .failure:
-          if self.netAvailability.wasConnected == true {
-            self.netAvailability.recheck()
-          }
           self.notifyNetStatus(isConnected: false)
       }
       if needInit { initFeeder() }
@@ -282,13 +286,13 @@ open class FeederContext: DoesLog {
     }
   }
   
-  func updatePublicationDatesIfNeeded(for feed: Feed?){
+  func needLoadAllPublicationDates() -> Bool{
     guard let storedFeeder = storedFeeder else {
       log("storedFeeder not initialized yet!")
-      return
+      return true
     }
-    guard let feed = feed ?? storedFeeder.feeds.first else { return }
-    guard let pubDates = storedFeeder.feeds.first?.publicationDates else { return }
+    guard let feed = storedFeeder.feeds.first else { return true}
+    guard let pubDates = storedFeeder.feeds.first?.publicationDates else { return true}
     
     let first = pubDates.last?.date.startOfDay == feed.firstIssue.startOfDay
     let last = pubDates.first?.date.startOfDay == feed.lastIssue.startOfDay
@@ -296,7 +300,7 @@ open class FeederContext: DoesLog {
     
     if first && last && count {
       log("All data matching, no new issue or missing old issue")
-      return
+      return false
     }
     
     let logString = """
@@ -309,7 +313,7 @@ open class FeederContext: DoesLog {
     log(logString)
     log("Update all publication Dates")
     #warning("exit")
-    exit(42)
+    return true
   }
   
   private func netStatusChanged(isConnected:Bool){
@@ -325,6 +329,10 @@ open class FeederContext: DoesLog {
     else {
       self.debug("Feeder now unreachable")
       notify(Const.NotificationNames.feederUnreachable)
+    }
+    
+    if self.netAvailability.wasConnected != isConnected {
+      self.netAvailability.recheck()
     }
   }
 

@@ -198,6 +198,11 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
       dateLabel.setText(txt)
     }
   }
+  
+  public func updateDate(){
+    guard let i = self.centerIndex else { return }
+    updateBottomWrapper(for: i)
+  }
     
   // MARK: UICollectionViewDataSource
   
