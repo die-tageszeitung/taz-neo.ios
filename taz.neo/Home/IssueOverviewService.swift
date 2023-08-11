@@ -101,7 +101,7 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     guard let issue = issue(at: publicationDate.date) else {
       apiLoadIssueOverview(for: publicationDate.date, count: maxPreviewLoadCount)
-      log("request preview for: \(index) date: \(publicationDate.date.short)")
+      log("request preview for: \(index) date: \(publicationDate.date.short) count: \(maxPreviewLoadCount)")
       return IssueCellData(date: publicationDate, issue: nil, image: nil)
     }
     let img = self.storedImage(issue: issue, isPdf: isFacsimile)
@@ -196,8 +196,13 @@ class IssueOverviewService: NSObject, DoesLog {
   ///or on scrolling need to load date + 5..10 issues
   ///           5 or 10 5= more stocking because next laod needed //// 10 increased loading time **wrong beause images are loaded asyc in another thread!**
   func apiLoadIssueOverview(for date: Date, count: Int) {
+    ///still loading or already loaded
+    func contains(date:Date, availableIssues:[String]? = nil) -> Bool {
+      return availableIssues?.contains(date.issueKey) ?? false
+          || loadingDates.contains(date.issueKey)
+    }
     
-    if loadingDates.contains(where: { return $0==date.issueKey}) {
+    if contains(date: date) {
       debug("Already loading: \(date.issueKey), skip loading")
       return
     }
@@ -205,36 +210,19 @@ class IssueOverviewService: NSObject, DoesLog {
     let availableIssues = issues.map({ $0.value.date.issueKey })
     var currentLoadingDates: [Date] = []
     
-    var start:Date?
-    var end:Date?
+    ///calculate the optimized request, do not load dates twice
+    var start:Date = date
+    var end:Date = date
     
-    ///set the optimized request, do not load dates twice
-    for i in -count/2...0 {//-3,-2,-1,0,1,2,3
-      
-      if i == 0 {
-        if start == nil { start = date }
-        if end == nil { end = date }
-        break
-      }
-      
-      var fd = date
-      fd.addDays(i)
-      if start != nil
-          && !(availableIssues.contains(fd.issueKey) || loadingDates.contains(fd.issueKey)){
-        start = fd
-      }
-      
-      var td = date
-      td.addDays(-i)
-      if end != nil
-          && !(availableIssues.contains(td.issueKey) || loadingDates.contains(td.issueKey)){
-        end = fd
-      }
-      
-      if start != nil && end != nil { break }
+    for i in -count/2...0 {
+      start.addDays(i)
+      if contains(date: start, availableIssues: availableIssues) == false { break }
     }
-
-    guard let start = start, let end = end else { error("Logic error");return }///LogicError
+    
+    for i in -count/2...0 {
+      end.addDays(-i)///go from +3, +2, +1, +0
+      if contains(date: end, availableIssues: availableIssues) == false { break }
+    }
     
     var i = 0
     while true {
@@ -249,13 +237,13 @@ class IssueOverviewService: NSObject, DoesLog {
     addToLoading(sCurrentLoadingDates)
     
     self.feederContext.gqlFeeder.issues(feed: feed,
-                                        date: start,
+                                        date: end,
                                         count: i,
                                         isOverview: true,
                                         returnOnMain: true) {[weak self] res in
       guard let self = self else { return }
       var newIssues: [StoredIssue] = []
-      self.debug("Finished load Issues for: \(date.short), count: \(count)")
+      self.debug("Finished load Issues for: \(end.short), count: \(count)")
       
       if let err = res.error() as? FeederError {
         self.handleDownloadError(error: err)
