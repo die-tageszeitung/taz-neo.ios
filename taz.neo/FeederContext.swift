@@ -252,7 +252,8 @@ open class FeederContext: DoesLog {
         case .success:
           ///remember old data due on set storedFeeder  old reference is overwritten
           let publicationDatesChanged
-          = self.gqlFeeder?.feeds.first?.publicationDates?.count != 1
+          = self.storedFeeder != nil
+          && self.gqlFeeder?.feeds.first?.publicationDates?.count != 1
           && self.storedFeeder.feeds.first?.publicationDates?.count
           != self.gqlFeeder?.feeds.first?.publicationDates?.count
           self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
