@@ -557,7 +557,7 @@ extension IssueOverviewService {
   /// and app will enter foreground
   /// - Parameter force: ensure check
   func checkForNewIssues() {
-    feederContext.checkForNewIssues()
+    feederContext.checkForNewIssues(force: true)
   }
 }
 

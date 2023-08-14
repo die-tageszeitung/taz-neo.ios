@@ -223,9 +223,9 @@ open class FeederContext: DoesLog {
     }
   }
   
-  func checkForNewIssues(){
-    if netAvailability.isConnected == false {
-      netAvailability.recheck()
+  func checkForNewIssues(force: Bool = false){
+    if force || netAvailability.isConnected == false {
+      netAvailability.recheck(force: force)
 //      Notification.send(Const.NotificationNames.checkForNewIssues,
 //                        content: FetchNewStatusHeader.status.offline,
 //                        error: nil,
