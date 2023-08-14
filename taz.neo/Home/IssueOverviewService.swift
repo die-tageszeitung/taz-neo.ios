@@ -34,8 +34,6 @@ import NorthLib
 /// for issueImageLoaded Notification
 /// loader to prevent e.g. switch to PDF load finished for app view, worng image set to cell
 typealias IssueCellData = (date: PublicationDate, issue:StoredIssue?, image: UIImage?)
-typealias EnqueuedMomentLoad = (issue: StoredIssue, files: [FileEntry], isPdf: Bool)
-typealias FailedLoad = (date: Date, count: Int)
 typealias IndexPathMoved = (from: IndexPath, to: IndexPath)
 
 /// using Dates short String Representation for store and find issues for same date, ignore time
@@ -72,13 +70,6 @@ class IssueOverviewService: NSObject, DoesLog {
   
   @Default("isFacsimile")
   public var isFacsimile: Bool
-  
-  let loadPreviewsQueue = DispatchQueue(label: "apiLoadPreviewQueue",qos: .userInitiated)
-  let loadPreviewsGroup = DispatchGroup()
-  let loadPreviewsLock = NSLock()
-  var loadPreviewsStack: [EnqueuedMomentLoad] = []
-  let loadPreviewsSemaphore = DispatchSemaphore(value: 3)
-  var lastLoadFailed: FailedLoad?
   
   internal var feederContext: FeederContext
   var feed: StoredFeed
@@ -250,7 +241,6 @@ class IssueOverviewService: NSObject, DoesLog {
       } else if let err = res.error() as? URLError {
         ///offline
         self.debug("failed to load \(err)")
-        self.lastLoadFailed = FailedLoad(date, count)
       } else if let err = res.error(){
         self.debug("failed to load \(err)")
         ///unknown
@@ -322,58 +312,28 @@ class IssueOverviewService: NSObject, DoesLog {
     
     for f in files {
       if f.exists(inDir: dir.path) {
-        debug("something went wrong: file exists, need no Download. File: \(f.name) in \(dir.path)")
+        debug("file exists, need no Download. File: \(f.name) in \(dir.path)")
       }
     }
     
-    loadPreviewsQueue.async(group: loadPreviewsGroup) { [weak self] in
-      guard let self = self else { return }
-      let load = EnqueuedMomentLoad(issue: issue, files: files, isPdf: isPdf)
-      self.loadPreviewsLock.with { [weak self] in  self?.loadPreviewsStack.push(load) }
-      
-      self.debug("enqueue download \(files.count) Issue files for \(issue.date.issueKey)")
-      self.loadPreviewsGroup.enter()
-      self.loadPreviewsSemaphore.wait()
-      
-      let next = self.loadPreviewsStack.last
-      self.loadPreviewsLock.with { [weak self] in
-        _ = self?.loadPreviewsStack.popLast()
-      }
-      /*
-      WARNING: Go offline, scroll to unknown issues, go online the issues stay in Stack and wount be downloaded!
-      
-      */
-      
-      guard let next = next else {
-        self.loadPreviewsGroup.leave()
-        self.loadPreviewsSemaphore.signal()
-        return
-      }
-      
-      let issue = next.issue
-      let isPdf = next.isPdf
-      let files = next.files
-      
-      self.debug("do download \(files.count) Issue files for \(issue.date.issueKey)")
-      self.feederContext.dloader
-        .downloadIssueFiles(issue: issue, files: files) {[weak self] err in
-          self?.debug("done download \(files.count) Issue files for \(issue.date.issueKey)")
-          let img = self?.storedImage(issue: issue, isPdf: isPdf)
-          if img == nil {
-            self?.debug("something went wrong: downloaded file did not exist!")
-            self?.loadFaildPreviews.append(issue)
-          }
-          if img != nil && err == nil {
-            issue.isOvwComplete = true
-            ArticleDB.save()
-            Notification.send(Const.NotificationNames.issueUpdate,
-                              content: issue.date,
-                              sender: self)
-          }
-          self?.loadPreviewsGroup.leave()
-          self?.loadPreviewsSemaphore.signal()
+    self.debug("do download \(files.count) Issue files for \(issue.date.issueKey)")
+    self.feederContext.dloader
+      .downloadIssueFiles(issue: issue, files: files) {[weak self] err in
+        self?.debug("done download \(files.count) Issue files for \(issue.date.issueKey)")
+        let img = self?.storedImage(issue: issue, isPdf: isPdf)
+        if img == nil {
+          self?.debug("something went wrong: downloaded file did not exist!")
+          self?.loadFaildPreviews.append(issue)
         }
-    }
+        if img != nil && err == nil {
+          issue.isOvwComplete = true
+          ArticleDB.save()
+          Notification.send(Const.NotificationNames.issueUpdate,
+                            content: issue.date,
+                            sender: self)
+        }
+      }
+    
   }
   
   func storedImage(issue: StoredIssue, isPdf: Bool) -> UIImage? {
