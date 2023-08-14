@@ -200,7 +200,7 @@ class HomeTVC: UITableViewController {
         ///Old Data, Offline, In Issue, Online => Update => Back to Home: this fixes home in wired state
         self?.carouselController.collectionView.reloadData()
         self?.tilesController.collectionView.reloadData()
-        self?.carouselController.updateDate()
+        onMainAfter {[weak self] in self?.carouselController.updateDate() }
         return
       }
       self?.carouselController.statusHeader.currentStatus = .loadPreview
