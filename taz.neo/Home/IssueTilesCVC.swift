@@ -22,6 +22,11 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
   
   var service: IssueOverviewService
 
+  var isActive = true {
+    didSet {
+      self.collectionView.reloadData()
+    }
+  }
   
   /// size of the issue items
   lazy var cellSize: CGSize = CGSize(width: 20, height: 20)
@@ -55,12 +60,12 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
   // MARK: UICollectionViewDataSource
   
   override func numberOfSections(in collectionView: UICollectionView) -> Int {
-    return 1
+    return isActive ? 1 : 0
   }
   
   
   override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return service.publicationDates.count
+    return isActive ? service.publicationDates.count : 0
   }
   
   

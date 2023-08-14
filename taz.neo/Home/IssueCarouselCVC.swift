@@ -228,9 +228,12 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     }
     preventApiLoadUntilIndex = nil
     
+    ///On open Overlay/Scroll a collectionViewCell Update is Called, prevent large data load
+    let count = overlay == nil ? visibleCellsCount : 1
+    
     guard let cell = cell as? IssueCollectionViewCell,
           let data = service.cellData(for: indexPath.row,
-                                      maxPreviewLoadCount: visibleCellsCount) else { return cell }
+                                      maxPreviewLoadCount: count) else { return cell }
     cell.publicationDate = data.date
     cell.issue = data.issue
     cell.image = data.image
@@ -484,6 +487,7 @@ extension IssueCarouselCVC {
     }
     overlay?.onClose(closure: {  [weak self] in
       self?.overlay = nil
+      (self?.parent as? HomeTVC)?.tilesController.isActive = true
       self?.pickerCtrl = nil
     })
     
@@ -491,5 +495,6 @@ extension IssueCarouselCVC {
 //    pickerCtrl.bottomOffset = issueCarousel.labelTopConstraintConstant + 50
     
     overlay?.openAnimated(fromView: bottomItemsWrapper, toView: pickerCtrl.content)
+    (self.parent as? HomeTVC)?.tilesController.isActive = false
   }
 }
