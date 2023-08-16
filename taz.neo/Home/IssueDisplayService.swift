@@ -193,7 +193,15 @@ extension IssueDisplayService {
         }
       }
     }
+    if issue.status.watchable {
+      self.openIssue(issue: issue,
+                atSection: issue.lastSection,
+                atArticle: targetArticle?.index ?? issue.lastArticle,
+                atPage: issue.lastPage,
+                pushDelegate: pushDelegate)
+    }
     self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile, isAutomatically: false)
+    
   }
   
   /// Download one section
