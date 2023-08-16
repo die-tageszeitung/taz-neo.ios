@@ -35,6 +35,14 @@ public class ContentUrl: WebViewUrl, DoesLog {
         errorCount = 0
         $whenAvailable.notify(sender: self)
       }
+      else if errorCount > 5,
+        TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
+        _waitingView?.bottomText = "\(errorCount) Ladefehler...\nBitte überprüfen Sie Ihre Internetverbindung."
+        Notification.receiveOnce(Const.NotificationNames.feederReachable)  { [weak self] _ in
+          guard let self = self else { return }
+          self.loadClosure(self)
+        }
+      }
       else {
         errorCount += 1
         _waitingView?.bottomText = "\(errorCount) Ladefehler..."
@@ -682,6 +690,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       self?.debug("*** Action: <Home> pressed")
       self?.resetIssueList()
       self?.navigationController?.popToRootViewController(animated: true)
+    }
+    Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+      self?.urls.forEach({[weak self] url in
+        if url.isAvailable == false {
+          self?.log("Recheck if still loaded for: \(url)")}
+      })
     }
   }
  

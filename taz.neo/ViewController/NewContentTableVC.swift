@@ -227,6 +227,12 @@ extension NewContentTableVC {
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    guard self.issue?.sections?.count ?? 0 > 0 else {
+      Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+        self?.tableView.reloadData()
+      }      
+      return
+    }
     if let activeItem = activeItem,
        expandedSections.contains(activeItem.section) {
       tableView.scrollToRow(at: activeItem, at: .top, animated: false)
