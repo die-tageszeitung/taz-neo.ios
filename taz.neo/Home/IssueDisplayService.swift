@@ -42,7 +42,7 @@ extension IssueDisplayService {
     //      if self.navigationController?.topViewController != self { return }
     let authenticatePDF = { [weak self] in
       guard let self = self else { return }
-      if self.feederContext.isAuthenticated {
+      if self.feederContext.isAuthenticated && self.feederContext.gqlFeeder.isExpiredAccount {
         //shows expired form
         self.feederContext.authenticate()
         return
