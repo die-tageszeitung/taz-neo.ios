@@ -193,7 +193,7 @@ extension IssueDisplayService {
         }
       }
     }
-    if issue.status.watchable {
+    if issue.status.watchable && issue.sections?.isEmpty == false {
       self.openIssue(issue: issue,
                 atSection: issue.lastSection,
                 atArticle: targetArticle?.index ?? issue.lastArticle,
@@ -201,7 +201,6 @@ extension IssueDisplayService {
                 pushDelegate: pushDelegate)
     }
     self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile, isAutomatically: false)
-    
   }
   
   /// Download one section
