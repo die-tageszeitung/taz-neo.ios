@@ -1194,6 +1194,8 @@ extension Feeder {
   
   /// Returns true if successfully authenticated
   public var isAuthenticated: Bool { return authToken != nil }
+  /// Returns true if login/account is expired
+  public var isExpiredAccount: Bool { return Defaults.expiredAccount }
   
   /// Returns directory where all feed specific data is stored
   public func feedDir(_ feed: String) -> Dir { return Dir(dir: baseDir.path, fname: feed) }

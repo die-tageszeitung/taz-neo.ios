@@ -42,7 +42,7 @@ extension IssueDisplayService {
     //      if self.navigationController?.topViewController != self { return }
     let authenticatePDF = { [weak self] in
       guard let self = self else { return }
-      if self.feederContext.isAuthenticated {
+      if self.feederContext.isAuthenticated && self.feederContext.gqlFeeder.isExpiredAccount {
         //shows expired form
         self.feederContext.authenticate()
         return
@@ -192,6 +192,13 @@ extension IssueDisplayService {
 //          self.issueCarousel.setActivity(idx: index, isActivity: false)
         }
       }
+    }
+    if issue.status.watchable && issue.sections?.isEmpty == false {
+      self.openIssue(issue: issue,
+                atSection: issue.lastSection,
+                atArticle: targetArticle?.index ?? issue.lastArticle,
+                atPage: issue.lastPage,
+                pushDelegate: pushDelegate)
     }
     self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile, isAutomatically: false)
   }

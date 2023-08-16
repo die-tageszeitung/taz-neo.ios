@@ -35,6 +35,14 @@ public class ContentUrl: WebViewUrl, DoesLog {
         errorCount = 0
         $whenAvailable.notify(sender: self)
       }
+      else if errorCount > 5,
+        TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
+        _waitingView?.bottomText = "\(errorCount) Ladefehler...\nBitte überprüfen Sie Ihre Internetverbindung."
+        Notification.receiveOnce(Const.NotificationNames.feederReachable)  { [weak self] _ in
+          guard let self = self else { return }
+          self.loadClosure(self)
+        }
+      }
       else {
         errorCount += 1
         _waitingView?.bottomText = "\(errorCount) Ladefehler..."
@@ -45,6 +53,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
       }
     }
   }
+  
   
   @Callback
   public var whenAvailable: Callback<Void>.Store
@@ -448,52 +457,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       
       self.textSettingsVC.updateButtonValuesOnOpen()
     }
-
-    
-    onPlay{ [weak self] _ in
-      /**
-          Issues: on external Control no update
-          on currentWebView change not respect current state
-       => ToDO's
-          -  callback is single and here
-          - enqueue speak content
-       
-        HowTo Play, Stop, Pause???
-       - play if nothing or paused
-       - stop if index != currentIndex AND Playing => No enqueue is not possible
-       ???
-       Solutions: Long Tap, Extra Menu with prev & next??
-       
-       */
-      guard let self = self else { return }
-      
-      if SpeechSynthesizer.sharedInstance.isPaused {
-        self.playButton.buttonView.color = .white
-        SpeechSynthesizer.sharedInstance.continueSpeaking()
-      }
-      else if SpeechSynthesizer.sharedInstance.isSpeaking {
-        self.playButton.buttonView.color = Const.Colors.ciColor
-        SpeechSynthesizer.sharedInstance.pauseSpeaking(at: .word)
-      } else {
-        self.playButton.buttonView.color = Const.Colors.iOSDark.secondaryLabel
-        
-        let trackTitle:String = "taz \(self.issue.date.short) \(self.header.title ?? "") \(self.header.subTitle ?? "")"
-        var albumTitle = "Artikel"
-        if let content = self.contents.valueAt(self.index ?? 0),
-           let contentTitle = content.title{
-          albumTitle = contentTitle
-        }
-        self.currentWebView?.speakHtmlContent(albumTitle: albumTitle, trackTitle: trackTitle){ [weak self] in
-          self?.playButton.buttonView.name = "audio"
-        }
-      }
-    }
   }
-  
-//  open override func onPageChange(){
-//    SpeechSynthesizer.sharedInstance.stopSpeaking(at: .word)
-//    self.playButton.buttonView.name = "audio"
-//  }
   
   @objc func backButtonLongPress(_ sender: UIGestureRecognizer) {
     self.navigationController?.popToRootViewController(animated: true)
@@ -545,15 +509,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     playButton.buttonView.name = "audio"
     homeButton.buttonView.name = "home"
 
-    //.vinset = 0.4 -0.4 do nothing
-    //.hinset = -0.4  ..enlarge enorm!  0.4...scales down enorm
-    //Adjusting the baseline incereases the icon too much
-    
-    // shareButton.buttonView.hinset = -0.07
-    // textSettingsButton.buttonView.hinset = -0.15
-    // textSettingsButton.buttonView.layoutMargins change would be ignored in layout subviews
     if self.isMember(of: SearchResultArticleVc.self) == false {
-      #warning("No Bookmark Button For Serach Result Articles")
+      #warning("No Bookmark Button For Search Result Articles")
       toolBar.addArticleButton(bookmarkButton, direction: .center)
       toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     }
@@ -562,7 +519,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     toolBar.addArticlePlayButton(playButton, direction: .center)
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(textSettingsButton, direction: .right)
-//    toolBar.addButton(homeButton, direction: .right)
     toolBar.applyDefaultTazSyle()
     toolBar.pinTo(self.view)
     
@@ -734,6 +690,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       self?.debug("*** Action: <Home> pressed")
       self?.resetIssueList()
       self?.navigationController?.popToRootViewController(animated: true)
+    }
+    Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+      self?.urls.forEach({[weak self] url in
+        if url.isAvailable == false {
+          self?.log("Recheck if still loaded for: \(url)")}
+      })
     }
   }
  

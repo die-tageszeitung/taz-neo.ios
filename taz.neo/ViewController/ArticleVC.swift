@@ -184,7 +184,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         guard let self = self else { return }
         self.toggleBookmark(art: art as? StoredArticle)
       }
-      if art.primaryIssue?.isReduced ?? false {
+      if art.primaryIssue?.isReduced == true
+          && feederContext.isAuthenticated == false {
         self.atEndOfContent() { [weak self] isAtEnd in
           if isAtEnd { self?.feederContext.authenticate() }
         }
