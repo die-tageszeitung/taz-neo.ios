@@ -505,6 +505,15 @@ class IssueOverviewService: NSObject, DoesLog {
       self?.updateIssues()
       self?.continueFaildPreviewLoad()
     }
+    
+    Notification.receive(Const.NotificationNames.issueMomentRequired) {[weak self] notif in
+      if let issue = notif.content as? StoredIssue {
+        self?.apiLoadMomentImages(for: issue, isPdf: self?.isFacsimile ?? false)
+      }
+      else {
+        self?.continueFaildPreviewLoad()
+      }
+    }
   }
   
   private var lc = LoadCoordinator()

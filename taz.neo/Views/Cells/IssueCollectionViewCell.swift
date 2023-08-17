@@ -10,6 +10,10 @@ import UIKit
 import NorthLib
 
 class IssueCollectionViewCell: UICollectionViewCell {
+  
+  var requestImageRepeatCount = 0
+  let requestImageMaxRepeatCount = 5
+  let requestImageDelay = 5.0
  
   let momentView = MomentView()
   
@@ -35,7 +39,19 @@ class IssueCollectionViewCell: UICollectionViewCell {
   }
 
   func didUpdateDate(){}
-  func didUpdateIssue(){}
+  func didUpdateIssue(){
+    requestImageRepeatCount = 0
+    setupRequestImageAgain()
+  }
+  
+  func setupRequestImageAgain(){
+    if image != nil { return }
+    if requestImageRepeatCount >= requestImageMaxRepeatCount { return }
+    requestImageRepeatCount += 1
+    onThreadAfter(Double(requestImageRepeatCount)*requestImageDelay) {[weak self] in
+      Notification.send(Const.NotificationNames.issueMomentRequired, content: self?.issue)
+    }
+  }
   
   public override func prepareForReuse() {
     if image == nil {
