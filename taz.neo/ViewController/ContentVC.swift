@@ -23,8 +23,10 @@ public class ContentUrl: WebViewUrl, DoesLog {
       guard !_isAvailable else { return true }
       let path = content.dir.path
       for f in content.files {
-        if !f.fileNameExists(inDir: path) 
-          { self.loadClosure(self); return false }
+        if !f.fileNameExists(inDir: path) {
+          self.loadClosure(self)
+          return false
+        }
       }
       _isAvailable = true
       return true
@@ -141,6 +143,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   var settingsBottomSheet: BottomSheet?
   private var textSettingsVC = TextSettingsVC()
+  
+  private var issueObserver: Notification.Observer?
   
   public var header = HeaderView()
   public var isLargeHeader = false
@@ -670,12 +674,20 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
   }
   
+  open override func needsReload(webView: WebView) -> Bool {
+    return webView.waitingView != nil
+  }
+  
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     #warning("move this to get rid of UITableViewAlertForLayoutOutsideViewHierarchy  (SymbolicBreakpoint) Error")
     slider?.close()
     self.settingsBottomSheet?.close()
     if let overlay = imageOverlay { overlay.close(animated: false) }
+    if let io = issueObserver {
+      Notification.remove(observer: io)
+    }
+    Notification.remove(observer: self)
   }
   
   public func setup(contents: [Content], isLargeHeader: Bool) {
@@ -691,11 +703,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       self?.resetIssueList()
       self?.navigationController?.popToRootViewController(animated: true)
     }
-    Notification.receiveOnce("issue", from: issue) { [weak self] notif in
-      self?.urls.forEach({[weak self] url in
-        if url.isAvailable == false {
-          self?.log("Recheck if still loaded for: \(url)")}
-      })
+    if let io = issueObserver {
+      Notification.remove(observer: io)
+    }
+    
+    issueObserver = Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+      self?.reloadAllWebViews()
     }
   }
  

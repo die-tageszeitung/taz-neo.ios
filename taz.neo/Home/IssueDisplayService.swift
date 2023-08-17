@@ -150,7 +150,6 @@ extension IssueDisplayService {
       guard let self = self else { return }
       let issue = self.sissue
       if let err = notif.error {
-        self.handleDownloadError(error: err)
         if issue.status.watchable && self.isFacsimile {
           self.openIssue(issue: issue,
                     atSection: issue.lastSection,
@@ -166,7 +165,6 @@ extension IssueDisplayService {
       self.downloadSection(issue: issue, section: sect0) { [weak self] err in
         guard let self = self else { return }
         guard err == nil else {
-          self.handleDownloadError(error: err)
           if issue.status.watchable && self.isFacsimile { self.openIssue(issue: issue,
                                                                     atSection: issue.lastSection,
                                                                     atArticle: targetArticle?.index ?? issue.lastArticle,
