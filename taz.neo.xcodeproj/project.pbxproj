@@ -391,13 +391,6 @@
 			path = Helper;
 			sourceTree = "<group>";
 		};
-		77CB2D1E2A8148D400021804 /* New Group */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "New Group";
-			sourceTree = "<group>";
-		};
 		77D0DAE825E8FDD100C9CB59 /* Cells */ = {
 			isa = PBXGroup;
 			children = (
@@ -508,7 +501,6 @@
 		AEBAF566219ACD1900566205 /* taz.neo */ = {
 			isa = PBXGroup;
 			children = (
-				77CB2D1E2A8148D400021804 /* New Group */,
 				77CB2D1D2A8148C800021804 /* Helper */,
 				4D308EEB283405A900529592 /* MainTabVC.swift */,
 				4D308ED4283404C700529592 /* GqlFeederSearch.swift */,
