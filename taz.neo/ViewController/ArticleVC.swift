@@ -353,17 +353,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       }
     }
     
-    if App.isAvailable(.SEARCH_CONTEXTMENU) {
-      let suche = UIMenuItem(title: "Suche", action: #selector(search))
-      UIMenuController.shared.menuItems = [suche]
-    }
+    let suche = UIMenuItem(title: "Suche", action: #selector(search))
+    UIMenuController.shared.menuItems = [suche]
   }
   
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
-    if App.isAvailable(.SEARCH_CONTEXTMENU) {
-      UIMenuController.shared.menuItems = nil
-    }
+    UIMenuController.shared.menuItems = nil
   }
 } // ArticleVC
 
