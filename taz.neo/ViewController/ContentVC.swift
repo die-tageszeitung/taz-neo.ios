@@ -145,6 +145,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var textSettingsVC = TextSettingsVC()
   
   private var issueObserver: Notification.Observer?
+  private var reloadLoaded: Bool = false
   
   public var header = HeaderView()
   public var isLargeHeader = false
@@ -627,8 +628,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
     slider?.button.shadow()
-    writeTazApiCss {
-      super.reloadAllWebViews()
+    writeTazApiCss {[weak self] in
+      self?.reloadLoaded = true
+      self?.reloadAllWebViews()
+      self?.reloadLoaded = false
     }
   }
   
@@ -675,7 +678,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   open override func needsReload(webView: WebView) -> Bool {
-    return webView.waitingView != nil
+    return reloadLoaded || webView.waitingView != nil
   }
   
   override public func viewDidDisappear(_ animated: Bool) {
