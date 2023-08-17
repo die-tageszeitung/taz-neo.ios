@@ -180,6 +180,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
     Notification.receiveOnce("issue", from: issue) { [weak self] notif in
       guard let nIssue = notif.content as? Issue else { return }
+      guard self?.delegate != nil && self?.delegate.issue != nil else { return }
       guard nIssue.date.issueKey == self?.issue.date.issueKey else { return }
       if nIssue.sections?.count == self?.issue.sections?.count
       && nIssue.allArticles.count == self?.issue.allArticles.count { return }

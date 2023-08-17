@@ -568,7 +568,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.contents = contents
     let curls: [ContentUrl] = contents.map { cnt in
       ContentUrl(content: cnt) { [weak self] curl in
-        guard let self = self else { return }
+        guard let self = self,
+              self.delegate != nil,
+              self.delegate.feederContext.dloader != nil
+        else { return }
+        ///Fatal error: Unexpectedly found nil while implicitly unwrapping an Optional value
+        ///=> ensure dloader is not nil, cannot use "extension IssueInfo" dloader its not an force unwraped...
         self.dloader.downloadIssueData(issue: self.issue, files: curl.content.files) { err in
           curl.isAvailable = err == nil
         }
