@@ -48,7 +48,7 @@ class IssueCollectionViewCell: UICollectionViewCell {
     if image != nil { return }
     if requestImageRepeatCount >= requestImageMaxRepeatCount { return }
     requestImageRepeatCount += 1
-    onThreadAfter(Double(requestImageRepeatCount)*requestImageDelay) {[weak self] in
+    onMainAfter(Double(requestImageRepeatCount)*requestImageDelay) {[weak self] in
       Notification.send(Const.NotificationNames.issueMomentRequired, content: self?.issue)
     }
   }
