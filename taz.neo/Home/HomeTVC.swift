@@ -12,11 +12,13 @@ import NorthLib
 /// Protocol to handle Open and Display an Issue
 protocol OpenIssueDelegate {
   /// open a Issue
-  func openIssue(_ issue:StoredIssue, at article: Article?)
+  func openIssue(_ issue:StoredIssue, at article: Article?, isReloadOpened: Bool)
 }
 extension OpenIssueDelegate {
   /// open a Issue
-  func openIssue(_ issue:StoredIssue){ openIssue(issue, at: nil)}
+  func openIssue(_ issue:StoredIssue, isReloadOpened: Bool = false){
+    openIssue(issue, at: nil,  isReloadOpened: isReloadOpened)
+  }
 }
 
 /// Protocol to handle Open and Display an Issue
@@ -357,7 +359,7 @@ extension HomeTVC {
 }
 
 extension HomeTVC: OpenIssueDelegate {
-  func openIssue(_ issue: StoredIssue, at article: Article?) {
+  func openIssue(_ issue: StoredIssue, at article: Article?, isReloadOpened: Bool = false) {
     ///How to prevent multiple open?
     ///already pushed => no problem
     ///3 downloads in Progress => first downloaded? n/ last clicked?
@@ -372,7 +374,7 @@ extension HomeTVC: OpenIssueDelegate {
     let issueInfo = IssueDisplayService(feederContext: feederContext,
                                     issue: issue)
     loadingIssueInfos.append(issueInfo)
-    issueInfo.showIssue(pushDelegate: self, at: article)
+    issueInfo.showIssue(pushDelegate: self, at: article, isReloadOpened: isReloadOpened)
   }
 }
 
@@ -534,12 +536,12 @@ extension HomeTVC: ReloadAfterAuthChanged {
     guard let selectedIssue = self.issueInfo?.issue as? StoredIssue else { return }
     if selectedIssue.isDownloading == false {
       navigationController?.popToRootViewController(animated: false)
-      self.openIssue(selectedIssue)
+      self.openIssue(selectedIssue, isReloadOpened: true)
       return
     }
     Notification.receiveOnce("issue", from: selectedIssue) { [weak self] notif in
       self?.navigationController?.popToRootViewController(animated: false)
-      self?.openIssue(selectedIssue)
+      self?.openIssue(selectedIssue, isReloadOpened: true)
     }
   }
 }

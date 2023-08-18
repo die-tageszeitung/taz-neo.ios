@@ -112,7 +112,7 @@ extension IssueDisplayService {
   }
   
   
-  func showIssue(pushDelegate: PushIssueDelegate, at targetArticle: Article? = nil){
+  func showIssue(pushDelegate: PushIssueDelegate, at targetArticle: Article? = nil, isReloadOpened: Bool = false){
     let issue = self.sissue
     
     if issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0 {
@@ -191,7 +191,9 @@ extension IssueDisplayService {
         }
       }
     }
-    if issue.status.watchable && issue.sections?.isEmpty == false {
+    if issue.status.watchable
+        && issue.sections?.isEmpty == false
+        && isReloadOpened == false {
       self.openIssue(issue: issue,
                 atSection: issue.lastSection,
                 atArticle: targetArticle?.index ?? issue.lastArticle,
