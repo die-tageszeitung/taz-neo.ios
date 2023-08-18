@@ -91,6 +91,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   }
   
   func displayBookmark(art: Article) {
+    if (self.delegate as? ContentVC)?.delegate == nil { return }
     ///use safe access due a crash on play article, from issue, pdf, bookmarks, foreward, backward, serach result, issue,...
     bookmarkButton.isHidden = art.html?.isEqualTo(adelegate?.issue.imprint?.html) ?? false
     

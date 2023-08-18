@@ -21,6 +21,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
   public var isAvailable: Bool {
     get {
       guard !_isAvailable else { return true }
+      if content.html == nil { return false }
       let path = content.dir.path
       for f in content.files {
         if !f.fileNameExists(inDir: path) {
@@ -68,6 +69,17 @@ public class ContentUrl: WebViewUrl, DoesLog {
     view.topText = content.title ?? ""
     view.bottomText = "wird geladen..."
     _waitingView = view
+    view.onTapping { [weak self] _ in
+      guard let self = self,
+            self.content.html != nil else { return }
+      self.loadClosure(self)
+    }
+    onMainAfter(30.0) {[weak self] in
+      guard let self = self,
+            self.content.html != nil else { return }
+      self.log("started autoload again! (no crash)")
+      self.loadClosure(self)
+    }
     return view
   }
   
@@ -544,7 +556,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   /// Insert new content at (before) index
   public func insertContent(content: Content, at idx: Int) {
     let curl = ContentUrl(content: content) { [weak self] curl in
-      guard let self = self else { return }
+      guard let self = self,
+      self.delegate != nil else { return }
       self.dloader.downloadIssueData(issue: self.issue, files: curl.content.files) { err in
         curl.isAvailable = err == nil
       }
@@ -566,15 +579,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   /// Define new contents
   public func setContents(_ contents: [Content]) {
     self.contents = contents
+    ///On wild clicking (enter leave issues, download...)  prev guard not worked, so using local vars
+    ///Previous check vars in dloader callback to fix:
+    ///Fatal error: Unexpectedly found nil while implicitly unwrapping an Optional value
+    ///=> ensure dloader is not nil, cannot use "extension IssueInfo" dloader its not an force unwraped...
+    if self.delegate == nil ||
+        self.delegate.feederContext.dloader == nil { return }
+    let selfSafeIssue = self.delegate.issue
+    let selfSafeDloader = self.dloader
+    
     let curls: [ContentUrl] = contents.map { cnt in
-      ContentUrl(content: cnt) { [weak self] curl in
-        guard let self = self,
-              self.delegate != nil,
-              self.delegate.feederContext.dloader != nil
-        else { return }
-        ///Fatal error: Unexpectedly found nil while implicitly unwrapping an Optional value
-        ///=> ensure dloader is not nil, cannot use "extension IssueInfo" dloader its not an force unwraped...
-        self.dloader.downloadIssueData(issue: self.issue, files: curl.content.files) { err in
+      ContentUrl(content: cnt) { curl in
+        selfSafeDloader.downloadIssueData(issue: selfSafeIssue,
+                                          files: curl.content.files) { err in
           curl.isAvailable = err == nil
         }
       }
