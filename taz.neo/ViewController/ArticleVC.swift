@@ -46,7 +46,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   
   public var articles: [Article] = []
   public var article: Article? { 
-    if let i = index { return articles[i] }
+    if let i = index { return articles.valueAt(i) }
     return nil
   }
   
