@@ -56,43 +56,43 @@ class TextSettingsVC: UIViewController {
     self.textSettings.day.buttonView.isActivated = !Defaults.darkMode
   }
   
+  private func setSize(_ s: Int) {
+    textSettings.textSize = s
+    articleTextSize = s
+    Notification.send(globalStylesChangedNotification)
+  }
+  private func setPercentageWidth(_ w: Int) {
+    //#warning("ToDo 0.9.4: use Helper.swift Defaults.articleTextSize functions @see Settings")
+    textSettings.articleColumnPercentageWidth = w
+    articleColumnPercentageWidth = w
+    Notification.send(globalStylesChangedNotification)
+  }
+  
   private func setupButtons() {
-    func setSize(_ s: Int) {
-      textSettings.textSize = s
-      articleTextSize = s
-      Notification.send(globalStylesChangedNotification)
-    }
-    func setPercentageWidth(_ w: Int) {
-      //#warning("ToDo 0.9.4: use Helper.swift Defaults.articleTextSize functions @see Settings")
-      textSettings.articleColumnPercentageWidth = w
-      articleColumnPercentageWidth = w
-      Notification.send(globalStylesChangedNotification)
-    }
-        
     textSettings.textSize = articleTextSize
     textSettings.smallA.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleTextSize > 30 { setSize(self.articleTextSize-10) }
+      if self.articleTextSize > 30 { self.setSize(self.articleTextSize-10) }
     }
     textSettings.largeA.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleTextSize < 200 { setSize(self.articleTextSize+10) }
+      if self.articleTextSize < 200 { self.setSize(self.articleTextSize+10) }
     }
     textSettings.percent.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleTextSize != 100 { setSize(100) }
+      if self.articleTextSize != 100 { self.setSize(100) }
     }
     
     textSettings.articleColumnPercentageWidth = articleColumnPercentageWidth
     textSettings.decreaseWith.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleColumnPercentageWidth > 50 { setPercentageWidth(self.articleColumnPercentageWidth-5) }
+      if self.articleColumnPercentageWidth > 50 { self.setPercentageWidth(self.articleColumnPercentageWidth-5) }
     }
     textSettings.increaseWith.onPress { [weak self] _ in
       guard let self = self else { return }
       if self.articleColumnPercentageWidth < max(100, Int(UIWindow.size.width/61)*10) {
         //61 to have a side padding
-        setPercentageWidth(self.articleColumnPercentageWidth+5) }
+        self.setPercentageWidth(self.articleColumnPercentageWidth+5) }
     }
     
     textSettings.textAlignLeft.onPress { [weak self] _ in
@@ -115,7 +115,7 @@ class TextSettingsVC: UIViewController {
     
     textSettings.defaultWidth.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleColumnPercentageWidth != 100 { setPercentageWidth(100) }
+      if self.articleColumnPercentageWidth != 100 { self.setPercentageWidth(100) }
     }
    
     textSettings.day.onPress { [weak self] _ in
