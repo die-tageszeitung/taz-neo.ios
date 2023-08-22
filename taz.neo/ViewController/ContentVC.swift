@@ -74,9 +74,9 @@ public class ContentUrl: WebViewUrl, DoesLog {
             self.content.html != nil else { return }
       self.loadClosure(self)
     }
-    onMainAfter(30.0) {[weak self] in
+    onMainAfter(25.0) {[weak self] in
       guard let self = self,
-            self.content.html != nil else { return }
+            self.content.html == nil else { return }
       self.log("started autoload again! (no crash)")
       self.loadClosure(self)
     }
