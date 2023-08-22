@@ -309,15 +309,17 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
 
     header.tag = section
     
-    header.onTapping { [weak self] _ in
-      self?.sectionPressedClosure?(header.tag)
-      header.active = true
-      header.collapsed = false
-      self?.collapseAll(expect: header.tag)
+    header.onTapping { [weak self] gr in
+      guard let _header = gr.view as? ContentTableHeaderFooterView else { return }
+      self?.sectionPressedClosure?(_header.tag)
+      _header.active = true
+      _header.collapsed = false
+      self?.collapseAll(expect: _header.tag)
     }
     
-    header.chevronTapArea.onTapping { [weak self] _ in
-      header.collapsed = self?.toggle(section: header.tag) ?? true
+    header.chevronTapArea.onTapping {  [weak self] gr in
+      guard let _header = gr.view as? ContentTableHeaderFooterView else { return }
+      _header.collapsed = self?.toggle(section: _header.tag) ?? true
     }
     header.active = section == sectIndex
     return header
