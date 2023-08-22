@@ -179,6 +179,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     //Circular reference with: onImagePress, onSectionPress
     settingsBottomSheet = nil
     slider = nil
+    super.releaseOnDisappear()
   }
 
   public func resetIssueList() {

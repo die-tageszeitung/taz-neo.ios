@@ -131,6 +131,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   public func closeIssue() {
     self.navigationController?.popViewController(animated: false)
+    self.articleVC?.releaseOnDisappear()
+    self.releaseOnDisappear()
   }
   
   func setup() {
@@ -324,9 +326,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
   }
   
-  public override func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    if self.navigationController == nil { releaseOnDisappear() }
+  open override func didMove(toParent parent: UIViewController?) {
+    super.didMove(toParent: parent)
+    if parent == nil { releaseOnDisappear() }
   }
   ///Declaration 'releaseOnDisappear()' cannot override more than one superclass declaration
   open override func releaseOnDisappear() {
