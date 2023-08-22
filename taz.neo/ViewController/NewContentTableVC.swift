@@ -318,7 +318,10 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     }
     
     header.chevronTapArea.onTapping {  [weak self] gr in
-      guard let _header = gr.view as? ContentTableHeaderFooterView else { return }
+      ///fixes memory leak
+      ///ugly but working first superview is _UITableViewHeaderFooterContentView due chevronTapArea is added to contentView
+      ///on refactor my just pass closure/handler
+      guard let _header = gr.view?.superview?.superview as? ContentTableHeaderFooterView else { return }
       _header.collapsed = self?.toggle(section: _header.tag) ?? true
     }
     header.active = section == sectIndex
