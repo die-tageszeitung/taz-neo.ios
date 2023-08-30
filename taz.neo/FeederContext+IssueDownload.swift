@@ -67,6 +67,7 @@ extension FeederContext {
       else {
         let sissues = StoredIssue.issuesInFeed(feed: sfeed, count: count,
                                                fromDate: fromDate)
+        #warning("IS THIS STILL NEEDED?")
         for issue in sissues {
           if issue.isOvwComplete {
             self.notify("issueOverview", result: .success(issue))

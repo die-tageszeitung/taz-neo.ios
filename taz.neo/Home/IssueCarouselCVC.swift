@@ -144,6 +144,10 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     
 
   override func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+//    onMainAfter(velocity.x/10) {[weak self] in
+//
+//      self?.service.isScrolling = false
+//    }
     if let handler = pullToLoadMoreHandler,
        scrollView.contentOffset.x < -1.3*self.collectionView.contentInset.left {
       handler()
@@ -214,29 +218,28 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     return service.publicationDates.count
   }
   
+  override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+//    log(">>>> didEndDisplaying \(cell.hash)")
+    guard let cell = cell as? IssueCollectionViewCell,
+          let data = cell.data else { return }
+    cell.data = nil
+    service.removeFromLoadFromRemote(date: data.date.date)
+  }
+  
+  override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+//    log(">>>> willDisplay \(cell.hash)")
+    guard let cell = cell as? IssueCollectionViewCell,
+          let data = service.cellData(for: indexPath.row) else { return }
+    cell.data = data
+  }
+  
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(
       withReuseIdentifier: Self.reuseCellId,
       for: indexPath)
-    if let i = preventApiLoadUntilIndex,
-       i != indexPath.row,
-       let cell = cell as? IssueCollectionViewCell{
-      ///Jump to date called prevent all intermediate API Calls, return empty cell,
-      ///just set the date for update the cell within a notification
-      cell.publicationDate = service.date(at: indexPath.row)
+    guard let cell = cell as? IssueCollectionViewCell else {
       return cell
     }
-    preventApiLoadUntilIndex = nil
-    
-    ///On open Overlay/Scroll a collectionViewCell Update is Called, prevent large data load
-    let count = overlay == nil ? visibleCellsCount : 1
-    
-    guard let cell = cell as? IssueCollectionViewCell,
-          let data = service.cellData(for: indexPath.row,
-                                      maxPreviewLoadCount: count) else { return cell }
-    cell.publicationDate = data.date
-    cell.issue = data.issue
-    cell.image = data.image
     
     if scrollFromLeftToRight {
       cell.contentView.transform = CGAffineTransform(rotationAngle: -CGFloat.pi)
@@ -250,7 +253,6 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
       cell.momentView.addInteraction(menuInteraction)
       cell.backgroundColor = .black
     }
-    
     return cell
   }
 
@@ -264,12 +266,12 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,
                                       didSelectItemAt indexPath: IndexPath) {
-    guard let issue = self.service.issue(at: indexPath.row) else {
+    guard let issue = self.service.cellData(for: indexPath.row)?.issue else {
       error("Issue not available try later")
       return
     }
     loadingMoment = (collectionView.cellForItem(at: indexPath) as? IssueCollectionViewCell)?.momentView
-    
+
     if self.service.issueDownloadState(at: indexPath.row) == .notStarted {
       downloadButton.indicator.downloadState = .waiting
     }
@@ -303,16 +305,8 @@ extension IssueCarouselCVC {
     for ip in vips {
       _ = self.collectionView.cellForItem(at: ip)
     }
-    //is faster tested with iPadOS 16.2 iPad Pro 2 Simulators same
-    // Data/environment; code change if false,... Lamdscape
-    // reconfigure feels ~1/3 faster
-    // @see: https://swiftsenpai.com/development/cells-reload-improvements-ios-15/
-    if #available(iOS 15.0, *) {
-      self.collectionView.reconfigureItems(at: vips)
-    } else {
-      UIView.performWithoutAnimation {
-        self.collectionView.reloadItems(at: vips)
-      }
+    UIView.performWithoutAnimation {
+      self.collectionView.reloadItems(at: vips)
     }
   }
 }
@@ -381,7 +375,6 @@ extension IssueCarouselCVC {
       }
     }
     self.pullToLoadMoreHandler = {   [weak self] in
-      if self?.service.isCheckingForNewIssues ?? false { return }
       self?.statusHeader.currentStatus = .fetchNewIssues
       URLCache.shared.removeAllCachedResponses()
       self?.service.checkForNewIssues()

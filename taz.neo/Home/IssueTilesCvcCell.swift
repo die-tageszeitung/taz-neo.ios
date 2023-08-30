@@ -29,22 +29,16 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     if !Device.isIpad { return }
     updateTraitCollection(traitCollection)
   }
+  
+  override func update() {
+    super.update()
+    updateLabel()
+    updateDownloadButton()
+  }
 
-  override func didUpdateDate() {
-    super.didUpdateDate()
-    updateLabel()
-    updateDownloadButton()
-  }
-  
-  override func didUpdateIssue() {
-    super.didUpdateIssue()
-    updateLabel()
-    updateDownloadButton()
-  }
-  
   func updateLabel(){
-    guard let issue = issue else {
-      button.label.text = publicationDate?.validityDateText(timeZone: GqlFeeder.tz,
+    guard let issue = data?.issue else {
+      button.label.text = data?.date.validityDateText(timeZone: GqlFeeder.tz,
                                                             short: true,
                                                             shorter: shorter,
                                                             leadingText: "")
@@ -56,13 +50,12 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
                              shorter: shorter,
                              leadingText: "")
   }
-  
+
   func updateDownloadButton(){
-    guard let issue = issue else {
+    guard let issue = data?.issue else {
       button.indicator.downloadState = .waiting
       return
     }
-    
     momentView.isActivity = issue.isDownloading
   }
   
@@ -81,7 +74,8 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
   
   override func setup(){
     super.setup()
-    contentView.layer.borderWidth = 0.0
+    emptyView.layer.borderWidth = 0.6
+    emptyView.layer.cornerRadius = 4.0
     cvBottomConstraint?.isActive = false
     updateTraitCollection(traitCollection)
     
@@ -99,7 +93,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     
     Notification.receive("issueProgress", closure: {   [weak self] notif in
       guard let self = self else { return }
-      guard let safeDate = self.issue?.safeDate else { return }
+      guard let safeDate = self.data?.issue?.safeDate else { return }
       if (notif.object as? Issue)?.date != safeDate { return }
       if let (loaded,total) = notif.content as? (Int64,Int64) {
         let percent = Float(loaded)/Float(total)

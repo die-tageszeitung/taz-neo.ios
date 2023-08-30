@@ -20,7 +20,7 @@ extension IssueCollectionViewActions {
       return nil
     }
 
-    guard let issue = service.issue(at: indexPath.row) else {
+    guard let issue = self.service.cellData(for: indexPath.row)?.issue else {
       return nil
     }
     
@@ -48,10 +48,12 @@ extension IssueCollectionViewActions {
       self?.service.exportMoment(issue: issue)
     }
     
-    actions.addMenuItem(title: "Scrollrichtung umkehren",
-                        icon: "repeat") {[weak self] _ in
-      guard let ccvc = self as? IssueCarouselCVC else { return }
-      ccvc.scrollFromLeftToRight = !ccvc.scrollFromLeftToRight
+    if self.isKind(of: IssueCarouselCVC.self) {
+      actions.addMenuItem(title: "Scrollrichtung umkehren",
+                          icon: "repeat") {[weak self] _ in
+        guard let ccvc = self as? IssueCarouselCVC else { return }
+        ccvc.scrollFromLeftToRight = !ccvc.scrollFromLeftToRight
+      }
     }
     
     actions.actions.append(contentsOf: issue.contextMenu(group: 1).actions)

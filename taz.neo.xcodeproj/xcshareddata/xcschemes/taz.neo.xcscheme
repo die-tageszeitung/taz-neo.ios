@@ -15,7 +15,7 @@
                   <BuildableReference
                      BuildableIdentifier = "primary"
                      BlueprintIdentifier = "AEBAF563219ACD1900566205"
-                     BuildableName = "die tageszeitung.app"
+                     BuildableName = "taz.alpha.app"
                      BlueprintName = "taz.neo"
                      ReferencedContainer = "container:taz.neo.xcodeproj">
                   </BuildableReference>
@@ -33,7 +33,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AEBAF563219ACD1900566205"
-               BuildableName = "die tageszeitung.app"
+               BuildableName = "taz.alpha.app"
                BlueprintName = "taz.neo"
                ReferencedContainer = "container:taz.neo.xcodeproj">
             </BuildableReference>
@@ -49,7 +49,7 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -63,7 +63,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEBAF563219ACD1900566205"
-            BuildableName = "die tageszeitung.app"
+            BuildableName = "taz.alpha.app"
             BlueprintName = "taz.neo"
             ReferencedContainer = "container:taz.neo.xcodeproj">
          </BuildableReference>
@@ -80,7 +80,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEBAF563219ACD1900566205"
-            BuildableName = "die tageszeitung.app"
+            BuildableName = "taz.alpha.app"
             BlueprintName = "taz.neo"
             ReferencedContainer = "container:taz.neo.xcodeproj">
          </BuildableReference>

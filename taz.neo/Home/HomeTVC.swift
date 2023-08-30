@@ -136,6 +136,7 @@ class HomeTVC: UITableViewController {
     togglePdfButton.showAnimated()
     showPdfInfoIfNeeded()
     updateVisibleCellsCount()
+//    carouselController.service.isScrolling = false
   }
   
   var nextHorizontalSizeClass:UIUserInterfaceSizeClass?

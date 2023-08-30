@@ -191,6 +191,8 @@ public final class StoredFileEntry: FileEntry, StoredObject {
   }
   public var moTime: Date {
     ///optional unwrap fixed crash occoured everytime on open an issue which had corupt data
+    ///Crash Count in Debug: 2
+    ///last Time: Logout, open PDF, (was not loaded, App data was loaded)
 //    get { pr.moTime ?? Date(timeIntervalSince1970: 0) }
     get { pr.moTime! }
     set { pr.moTime = newValue }

@@ -70,19 +70,11 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
   
   
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueReusableCell(
-      withReuseIdentifier: Self.reuseCellId,
-      for: indexPath)
-    guard let cell = cell as? IssueTilesCvcCell,
-          let data = service.cellData(for: indexPath.row,
-                                      maxPreviewLoadCount: visibleCellsCount) else { return cell }
-    if let removeFromLoadDate = cell.previousIncompleeteLoadIssueDate {
-      service.removeFromLoad(date: removeFromLoadDate)
-    }
-    cell.publicationDate = data.date
-    cell.issue = data.issue
-    cell.image = data.image
-    cell.button.indicator.downloadState = service.issueDownloadState(at: indexPath.row)
+    let cell
+    = collectionView.dequeueReusableCell( withReuseIdentifier: Self.reuseCellId,
+                                          for: indexPath)
+    guard let cell = cell as? IssueTilesCvcCell else { return cell }
+    
     cell.button.onTapping { [weak self] _ in
       if self?.service.download(issueAtIndex: indexPath.row) != nil {
         cell.button.indicator.downloadState = .waiting
@@ -94,19 +86,34 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
       cell.addInteraction(menuInteraction)
       cell.backgroundColor = .black
     }
-    
     return cell
+  }
+  
+  override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+//    log(">>>> didEndDisplaying \(cell.hash)")
+    guard let cell = cell as? IssueTilesCvcCell,
+          let data = cell.data else { return }
+    cell.data = nil
+    service.removeFromLoadFromRemote(date: data.date.date)
+  }
+  
+  override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+    guard let cell = cell as? IssueTilesCvcCell,
+          let data = service.cellData(for: indexPath.row) else { return }
+    cell.data = data
+    cell.button.indicator.downloadState = service.issueDownloadState(at: indexPath.row)
   }
   
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,
                                       didSelectItemAt indexPath: IndexPath) {
-    guard let issue = self.service.issue(at: indexPath.row) else {
+    guard let issue = self.service.cellData(for: indexPath.row)?.issue else {
       error("Issue not available try later")
       return
     }
+    
     for case let cell as IssueTilesCvcCell in collectionView.visibleCells {
-      if cell.issue != issue { continue }
+      if cell.data?.issue != issue { continue }
       if cell.button.indicator.downloadState == .notStarted {
         cell.button.indicator.downloadState = .waiting
       }
@@ -155,16 +162,8 @@ extension IssueTilesCVC {
     for ip in vips {
       _ = self.collectionView.cellForItem(at: ip)
     }
-    //is faster tested with iPadOS 16.2 iPad Pro 2 Simulators same
-    // Data/environment; code change if false,... Lamdscape
-    // reconfigure feels ~1/3 faster
-    // @see: https://swiftsenpai.com/development/cells-reload-improvements-ios-15/
-    if #available(iOS 15.0, *) {
-      self.collectionView.reconfigureItems(at: vips)
-    } else {
-      UIView.performWithoutAnimation {
-        self.collectionView.reloadItems(at: vips)
-      }
+    UIView.performWithoutAnimation {
+      self.collectionView.reloadItems(at: vips)
     }
   }
 }
