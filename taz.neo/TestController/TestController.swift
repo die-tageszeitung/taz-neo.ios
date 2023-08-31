@@ -89,8 +89,9 @@ class TestController: PageCollectionVC {
       }
       else { self.error("Invalid Notification") }
     }
-    self.feederContext.getOvwIssues(feed: self.feed, count: 1, 
-                                    fromDate: self.testDate, isAutomatically: false)
+    #warning("removed unused!")
+//    self.feederContext.getOvwIssues(feed: self.feed, count: 1,
+//                                    fromDate: self.testDate, isAutomatically: false)
   }
   
   // Load single overview issue of data 2020-09-14 and overwrite it with demo issue 
@@ -126,8 +127,9 @@ class TestController: PageCollectionVC {
       }
       self.feederContext.authenticate()
     }
-    self.feederContext.getOvwIssues(feed: self.feed, count: 1, 
-                                    fromDate: self.testDate, isAutomatically: false)
+    #warning("removed unused")
+//    self.feederContext.getOvwIssues(feed: self.feed, count: 1,
+//                                    fromDate: self.testDate, isAutomatically: false)
   }
 
   override public var preferredStatusBarStyle: UIStatusBarStyle { .default }

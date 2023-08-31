@@ -359,17 +359,16 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       introVC.htmlDataPolicy = feeder?.dataPolicy
       introVC.htmlIntro = feeder?.welcomeSlides
       Notification.receiveOnce("dataPolicyAccepted") { notif in
-//        self?.popViewController(animated: false)
         let kc = Keychain.singleton
         kc["dataPolicyAccepted"] = "true"
         closure()
       }
       self.rootViewController = introVC
-      
-      onMainAfter(0.3) { [weak self] in
-        guard let self = self, let fc = self.feederContext else { return }
-        fc.getOvwIssues(feed: fc.defaultFeed, count: 4, isAutomatically: false)
-      }
+      #warning("TO DO ON FRIDAY LOAD THE FIRST x ISSUES")
+//      onMainAfter(0.3) { [weak self] in
+//        guard let self = self, let fc = self.feederContext else { return }
+//        fc.getOvwIssues(feed: fc.defaultFeed, count: 4, isAutomatically: false)
+//      }
     }
     feederContext?.updateResources(toVersion: -1)
   }
