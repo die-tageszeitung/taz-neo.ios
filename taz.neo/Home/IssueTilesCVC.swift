@@ -62,21 +62,12 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
     return isActive ? service.publicationDates.count : 0
   }
   
-  ///Refactor to enqueue load issue/image and remove from load all in cellForItemAt
-  ///because end display is called after willDisplay on PDF/mobile switch
-  ///so not loaded PDF Moments have been removed imaditly
-  ///
-  ///NEXT CHALLANGE, maybe the same
-  ///on switch TO MOBILE
-  ///cell x xx PDF           => 2.2.2012 MOBILE
-  ///cell 2.2.2012 PDF => x.x.MOBILE ==> REMOVED FROM LOAD >  X X X XX X
-  ///...should be fixed with the p/m flay on key!
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell
     = collectionView.dequeueReusableCell( withReuseIdentifier: Self.reuseCellId,
                                           for: indexPath)
     guard let cell = cell as? IssueTilesCvcCell else { return cell }
-        
+    ///only add functions once
     if cell.interactions.isEmpty {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
       cell.addInteraction(menuInteraction)
@@ -93,7 +84,6 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
   }
   
   override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-//    log(">>>> didEndDisplaying \(cell.hash)")
     guard let cell = cell as? IssueTilesCvcCell,
           let data = cell.data else { return }
     cell.data = nil
@@ -104,7 +94,6 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
     guard let cell = cell as? IssueTilesCvcCell,
           let data = service.cellData(for: indexPath.row) else { return }
     cell.data = data
-    cell.button.indicator.downloadState = service.issueDownloadState(at: indexPath.row)
   }
   
   // MARK: > Cell Click/Select

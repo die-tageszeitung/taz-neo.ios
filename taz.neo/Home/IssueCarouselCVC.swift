@@ -146,10 +146,6 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     
 
   override func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-//    onMainAfter(velocity.x/10) {[weak self] in
-//
-//      self?.service.isScrolling = false
-//    }
     if let handler = pullToLoadMoreHandler,
        scrollView.contentOffset.x < -1.3*self.collectionView.contentInset.left {
       handler()
@@ -162,14 +158,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     updateBottomWrapper(for: i)
   }
      
-  ///Stop fix offset IS VERRY SLOW HERE for manuell stops
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-    ///Problem scrolle oder springe (und ggf scrolle) DONE
-    ///komme an index wo nur das Datum aber nicht das issue bekannt ist
-    ///kein issue => zeige download wolke TODO
-    ///issue zeige zustand und richtiges datum (wochentaz) TODO
-    ///...
-    ///war kein issue da..kommt dann rein...refresh date TODO
     bottomItemsWrapper.isUserInteractionEnabled = true
     guard let centerIndex else { return }
     updateBottomWrapper(for: centerIndex)
@@ -190,16 +179,12 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   }
   
   func updateBottomWrapper(for cidx: Int, force: Bool = false){
-    guard let publicationDate = service.date(at: cidx) else { return }
-    let issue = service.issue(at: publicationDate.date)
-    let txt = issue?.validityDateText(timeZone: GqlFeeder.tz,
-                                      short: true) ?? publicationDate.date.short
-    let newKey = publicationDate.date.issueKey
+    guard let data = service.cellData(for: cidx) else { return }
+    
+    let txt = data.date.validityDateText(timeZone: GqlFeeder.tz, short: true)
+    let newKey = data.date.date.issueKey
     if force || newKey != centerIssueDateKey {
-      let state = service.issueDownloadState(at: cidx)
-      print("changed from: \(centerIssueDateKey ?? "-") to \(newKey) state: \(state)")
-      //set to waiting if in progress due we dont know current percentage!
-      downloadButton.indicator.downloadState = state == .process ? .waiting : state
+      downloadButton.indicator.downloadState = data.downloadState
       centerIssueDateKey = newKey
       dateLabel.setText(txt)
     }
@@ -221,7 +206,6 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   }
   
   override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-//    log(">>>> didEndDisplaying \(cell.hash)")
     guard let cell = cell as? IssueCollectionViewCell,
           let data = cell.data else { return }
     cell.data = nil
@@ -229,7 +213,6 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   }
   
   override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-//    log(">>>> willDisplay \(cell.hash)")
     guard let cell = cell as? IssueCollectionViewCell,
           let data = service.cellData(for: indexPath.row) else { return }
     cell.data = data
@@ -268,13 +251,14 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,
                                       didSelectItemAt indexPath: IndexPath) {
-    guard let issue = self.service.cellData(for: indexPath.row)?.issue else {
+    guard let data = self.service.cellData(for: indexPath.row),
+          let issue = data.issue else {
       error("Issue not available try later")
       return
     }
     loadingMoment = (collectionView.cellForItem(at: indexPath) as? IssueCollectionViewCell)?.momentView
 
-    if self.service.issueDownloadState(at: indexPath.row) == .notStarted {
+    if data.downloadState == .notStarted {
       downloadButton.indicator.downloadState = .waiting
     }
     (parent as? OpenIssueDelegate)?.openIssue(issue)
@@ -348,7 +332,6 @@ extension IssueCarouselCVC {
              - UIWindow.maxInset
              - layout.maxScale*layout.itemSize.height) - 20
 //    print("dist is: -0,5* (\(size.height)   -   \(UIWindow.topInset)   -   \(layout.maxScale*layout.itemSize.height))=\(statusWrapperBottomConstraint?.constant ?? 0)\n  0.5 * ( size.height - UIWindow.safeInsets.top - HomeTVC.defaultHeight - layout.maxScale*layout.itemSize.height)")
-    
     topStatusButtonConstraint?.constant = offset
     statusWrapperBottomConstraint?.constant = -offset
     statusWrapperWidthConstraint?.constant = cw*layout.maxScale
@@ -445,11 +428,7 @@ extension IssueCarouselCVC {
 }
 
 extension IssueCarouselCVC {
-  func showDatePicker(){
-    #warning("setup dates and more")
-//    let fromDate = feed.firstIssue
-//    let toDate = feed.lastIssue
-    
+  func showDatePicker(){    
     if pickerCtrl == nil {
       let selected = service.date(at: centerIndex ?? 0)?.date
       pickerCtrl = DatePickerController(minimumDate: service.firstIssueDate,
@@ -464,11 +443,6 @@ extension IssueCarouselCVC {
       overlay?.enablePinchAndPan = false
       overlay?.maxAlpha = 0.9
     }
-        
-//    pickerCtrl.doneHandler = {
-//      self.overlay?.close(animated: true)
-//      self.provideOverview(at: pickerCtrl.selectedDate)
-//    }
     
     pickerCtrl.doneHandler = {[weak self] in
       guard let self else { return }
@@ -485,10 +459,7 @@ extension IssueCarouselCVC {
       (self?.parent as? HomeTVC)?.tilesController.isActive = true
       self?.pickerCtrl = nil
     })
-    
-    //Update labelButton Offset
-//    pickerCtrl.bottomOffset = issueCarousel.labelTopConstraintConstant + 50
-    
+
     overlay?.openAnimated(fromView: bottomItemsWrapper, toView: pickerCtrl.content)
     (self.parent as? HomeTVC)?.tilesController.isActive = false
   }

@@ -9,31 +9,11 @@
 import UIKit
 import NorthLib
 
-
-/**
- Motivation: Helper to load Data from Server uses FeederContext
- outsources FeederContext helper to get rid of the EierLegendeWollMilchSau
-  
- Bug: leere ausgaben:
- 
- #Async Download Images Problematik
- * Wenn Ich eine CVCell habe deren Image ich nicht kenne:
-      ** CVC hält Issue Referenz
-      ** Task/Async Download des Images
-      ** Downloader Success => Notification
-      ** ** Haben alle Zellen listener? Auf iPad Pro 12" können das 30 Zellen sein
-      ** ** ständiges hinzufügen/entfernen von Listener bringt auch nichts
- 
- finish callback?
- 
- TODO REFACTOR
- */
-
-//schneller switch PDF - Moment? >> muss verhindern, dass in App Ansicht PDF Moment gezeigt wird!
-
-/// for issueImageLoaded Notification
-/// loader to prevent e.g. switch to PDF load finished for app view, worng image set to cell
-typealias IssueCellData = (key: String, date: PublicationDate, issue:StoredIssue?, image: UIImage?)
+typealias IssueCellData = (key: String,
+                           date: PublicationDate,
+                           issue:StoredIssue?,
+                           image: UIImage?,
+                           downloadState: DownloadStatusIndicatorState)
 typealias IndexPathMoved = (from: IndexPath, to: IndexPath)
 
 /// using Dates short String Representation for store and find issues for same date, ignore time
@@ -71,7 +51,6 @@ class IssueOverviewService: NSObject, DoesLog {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
-  
   internal var feederContext: FeederContext
   var feed: StoredFeed
   var timer: Timer?
@@ -87,13 +66,12 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   private var issues: [String:StoredIssue]
-  
   private var requestedRemoteItems: [String:Date] = [:]
   private var loadingIssues:[String:Date] = [:]
   
   /// cell data to display issue cell in caroussel or tiles
-  /// start download for issuePreview if no data available
-  /// start download for image if no image available
+  /// enqueue download for issuePreview if no data available
+  /// enqueue download for image if no image available
   /// - Parameter index: index for requested cell
   /// - Returns: cell data if any with date, issue if locally available, image if locally available
   func cellData(for index: Int) -> IssueCellData? {
@@ -101,7 +79,6 @@ class IssueOverviewService: NSObject, DoesLog {
       error("No Entry for: \(index), This should not be requested")
       return nil
     }
-    print(">> request cell data for \(publicationDate.date.issueKey)")
     let issue = issue(at: publicationDate.date)
     var img: UIImage?
     let key = publicationDate.date.issueKey + isFacsimile.mode
@@ -114,40 +91,31 @@ class IssueOverviewService: NSObject, DoesLog {
       skipNextTimer = true
       addToLoadFromRemote(key:key, date: publicationDate.date)
     }
-        
+    
     return IssueCellData(key: key,
                          date: publicationDate,
                          issue: issue,
-                         image: img)
+                         image: img,
+                         downloadState: downloadState(for: issue)
+    )
   }
   
   func addToLoadFromRemote(key: String, date: Date) {
-//    if requestedRemoteItems[date.issueKey+mode] != nil { return }
-    print("Add issue to load for: \(date.issueKey)")
     self.requestedRemoteItems[key] = date
   }
-  /// Habe daten, umschalten, alle removed, hole zell daten requeste 21.6.P
-  /// end display andere zelle...die den 21.6. im alten zustand hatte ...habe jetzt aber FACSIMILE IST JETZT M
   
-  @discardableResult
   /// removed a date from current loading items
   /// - Parameter date: date to remove
-  /// - Returns: bool if removed, false if already removed (used to notify cells)
   func removeFromLoadFromRemote(key: String) {
-    print(">>x> removeFromLoadFromRemote: \(key)")
     self.requestedRemoteItems[key] = nil
   }
-  
-  func checkLoad2(){
-    if skipNextTimer == false {
-      loadMissingIfPossible()
+    
+  private func loadMissingItems(){
+    if skipNextTimer == true {
+      skipNextTimer  = false
+      return
     }
-    skipNextTimer  = false
-  }
-  
-  private func loadMissingIfPossible(){
     guard self.requestedRemoteItems.count > 0 else { return }
-    print(">> load missing #1: \(self.requestedRemoteItems.keys)")
     var missingIssues:[Date] = []
     for (key, date) in self.requestedRemoteItems {
       if let issue = self.issue(at: date) {
@@ -177,7 +145,6 @@ class IssueOverviewService: NSObject, DoesLog {
       self.log("not downloading issue from: \(date.issueKey)")
       return nil
     }
-
     feederContext.getCompleteIssue(issue: issue,
                                    isPages: self.isFacsimile,
                                    isAutomatically: false)
@@ -192,44 +159,18 @@ class IssueOverviewService: NSObject, DoesLog {
     return publicationDates.firstIndex(where: { $0.date <= date }) ?? 0
   }
   
-  func issueDownloadState(at index: Int) -> DownloadStatusIndicatorState {
-    guard let d = date(at: index) else {
-      print("no date for \(index)")
-      return .notStarted
-    }
-    guard let issue = issue(at: d.date) else {
-      print("no issue for \(index) date: \(d.date)")
-      return .notStarted
-    }
+  func downloadState(for issue: StoredIssue?) -> DownloadStatusIndicatorState {
+    guard let issue = issue else { return .waiting}
     if issue.isDownloading { return .process }
     
     let needUpdate = feederContext.needsUpdate(issue: issue, toShowPdf: isFacsimile)
-    log("issue for \(index) date: \(d.date) is \(needUpdate ? "notStarted" : "done")")
     return needUpdate ? .notStarted : .done
   }
   
-  func issue(at date: String) -> StoredIssue? {
-    return issues[date]
-  }
-  
-  func image(for issue: StoredIssue) -> UIImage? {
-    let img = self.storedImage(issue: issue, isPdf: isFacsimile)
-    if img == nil {
-      apiLoadMomentImages(for: issue, isPdf: isFacsimile)
-    }
-    return img
-  }
-
-  var lastUpdateCheck = Date().addingTimeInterval(-checkOnResumeEvery)///set to init time to simplify; on online app start auto check is done and on reconnect
-  static let checkOnResumeEvery:TimeInterval = 5*60
-  
-  
-  
-  ///Optimized load previews
-  ///e.g. called on jump to date + ipad need to load date +/- 5 issues
-  ///or on scrolling need to load date + 5..10 issues
-  ///           5 or 10 5= more stocking because next laod needed //// 10 increased loading time **wrong beause images are loaded asyc in another thread!**
-  ///           **ATTENTION** LIMIT IS CURRENTLY 40!
+  /// Load Issue Data for DB and also loads Images if still required
+  /// - Parameters:
+  ///   - date: newest date to request from API
+  ///   - count: additionally count of issues
   func apiLoadIssueOverview(for date: Date, count: Int) {
     var count = count
     if count < 1 { count = 1 }
@@ -284,7 +225,10 @@ class IssueOverviewService: NSObject, DoesLog {
     }
   }
   
-  //STEP 2
+  /// helper to load moment image/pdf for given issue
+  /// - Parameters:
+  ///   - issue: load files for this issue
+  ///   - isPdf: load pdf facsimile or moment
   func apiLoadMomentImages(for issue: StoredIssue, isPdf: Bool) {
     debug("load for: \(issue.date.issueKey)")
     let dir = issue.dir
@@ -357,7 +301,8 @@ class IssueOverviewService: NSObject, DoesLog {
     let data = IssueCellData(key: key,
                              date: pDate,
                              issue: issue,
-                             image: img)
+                             image: img,
+                             downloadState: downloadState(for: issue))
     Notification.send(Const.NotificationNames.issueUpdate,
                       content: data)
   }
@@ -515,24 +460,12 @@ class IssueOverviewService: NSObject, DoesLog {
     
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
       self?.updateIssues()
-//      self?.continueFaildPreviewLoad()
-    }
-    
-    Notification.receive(Const.NotificationNames.issueMomentRequired) {[weak self] notif in
-      if let issue = notif.content as? StoredIssue {
-        self?.apiLoadMomentImages(for: issue, isPdf: self?.isFacsimile ?? false)
-      }
-      else {
-//        self?.continueFaildPreviewLoad()
-      }
     }
     
     self.timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: {[weak self] _ in
-      self?.checkLoad2()
+      self?.loadMissingItems()
      })
   }
-  
-  private var lc = LoadCoordinator()
 }
 
 // MARK: - extension Check for New PublicationDates (Issues)
@@ -546,7 +479,6 @@ extension IssueOverviewService {
   }
 }
 
-
 extension IssueOverviewService {
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
@@ -554,7 +486,6 @@ extension IssueOverviewService {
     func showDownloadErrorAlert() {
       OfflineAlert.show(type: .issueDownload)
     }
-    #warning("1st ok next at download handle error!!")
     if let err = error as? FeederError {
       feederContext.handleFeederError(err){}
     }
@@ -587,33 +518,6 @@ extension IssueOverviewService {
       dialogue.present(item: file.url, subject: name)
     }
   }
-}
-
-/// A Helper to select next loads
-fileprivate class LoadCoordinator: NSObject, DoesLog {
-  fileprivate var loadingDates: [String] = []
-  fileprivate var nextDates: [Date] = []
-  
-  var next: Date? {
-    reduceNextIfNeeded()
-    return nextDates.popLast()
-  }
-  
-  ///Theory: fast scrolling in List for 3 years, prevent load of 200 Issues, only load 30 most relevant issues
-  func reduceNextIfNeeded(){
-    if nextDates.count < 30 { return }
-    nextDates = nextDates[nextDates.endIndex - 20 ..< nextDates.endIndex].sorted()
-  }
-}
-
-fileprivate extension NSLock {
-
-    @discardableResult
-    func with<T>(_ block: () throws -> T) rethrows -> T {
-        lock()
-        defer { unlock() }
-        return try block()
-    }
 }
 
 fileprivate extension Bool {
