@@ -165,13 +165,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     scrollTo(centerIndex)
   }
   
-  func scrollTo(_ index: Int, animated:Bool = true, fromJumpToDate: Bool = false){
-    if fromJumpToDate,
-        let layout = self.collectionView.collectionViewLayout as? CarouselFlowLayout {
-      let visibleCellCount
-      = min(5, self.view.frame.size.width/(layout.itemSize.width*1.3 + 1))
-      preventApiLoadUntilIndex = index - Int(visibleCellCount/2)
-    }
+  func scrollTo(_ index: Int, animated:Bool = true){
     updateBottomWrapper(for: index)
     self.collectionView.scrollToItem(at: IndexPath(row: index, section: 0),
                                      at: .centeredHorizontally,
@@ -454,10 +448,7 @@ extension IssueCarouselCVC {
       guard let self else { return }
       let date = pickerCtrl.selectedDate
       let idx = self.service.nextIndex(for: date)
-      ///todo reactivate smallJump but with better logic e.g. not load beetwen items!
-      var smallJump = false
-      if let i = self.centerIndex, i.distance(to: idx) < 50 { smallJump = true }
-      self.scrollTo(idx, animated: smallJump, fromJumpToDate: true)
+      self.scrollTo(idx, animated: true)
       self.overlay?.close(animated: true)
     }
     overlay?.onClose(closure: {  [weak self] in
