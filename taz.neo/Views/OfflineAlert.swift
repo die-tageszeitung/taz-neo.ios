@@ -17,6 +17,7 @@ class OfflineAlert {
   private init(){}
   
   var needsUpdate : Bool = false
+  var presented : Bool = false
   
   var title : String? { didSet {
     if oldValue != title { needsUpdate = true }
@@ -37,6 +38,9 @@ class OfflineAlert {
     }
     let a = AlertController(title: nil, message: nil, preferredStyle: .alert)
     a.addAction(actionButton)
+    a.onDisappear {[weak self] in
+      self?.presented = false
+    }
     return a
   }()
   
@@ -53,15 +57,26 @@ class OfflineAlert {
   
   func updateIfNeeded(){
     if needsUpdate == false { return }
-    onMain {   [weak self]  in
+    ensureMain { [weak self]  in
       guard let self = self else { return }
       self.alert.title = self.title
       self.alert.message = self.message
       
-      if self.alert.presentingViewController == nil {
-        UIViewController.top()?.present(self.alert, animated: true, completion: nil)
+      if self.presented == false,
+         self.alert.presentingViewController == nil,
+         let target = UIViewController.top()
+      {
+        self.presented = true
+        target.present(self.alert,
+                       animated: true,
+                       completion: nil)
+        self.needsUpdate = false
+        return
       }
-      self.needsUpdate = false
+      onMainAfter(2.0) {[weak self] in
+        self?.presented = self?.alert.presentingViewController != nil
+        self?.updateIfNeeded()
+      }
     }
   }
   
@@ -94,18 +109,4 @@ class OfflineAlert {
     }
     sharedInstance.updateIfNeeded()
   }
-  
-  /// enqueues callback to presented Alert
-  /// - Parameter closure: closure to add to callback handlers
-  /// - Returns: true if presented and closure added, otherwise false
-  static func enqueueCallbackIfPresented(closure: (()->())? = nil) -> Bool {
-    if sharedInstance.alert.presentingViewController != nil,
-       let c = closure {
-      sharedInstance.closures.append(c)
-      return true
-    }
-    return false
-  }
-  
-  
 }

@@ -85,7 +85,9 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     }
     downloadButton.onTapping { [weak self] _ in
       if self?.downloadButton.indicator.downloadState == .done { return }
-      if let issue = self?.service.download(issueAtIndex: self?.centerIndex){
+      guard let idx = self?.centerIndex,
+            let data = self?.service.cellData(for: idx) else { return }
+      if let issue = data.issue {
         self?.downloadButton.indicator.downloadState = .waiting
       }
     }
@@ -223,7 +225,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     guard let cell = cell as? IssueCollectionViewCell,
           let data = cell.data else { return }
     cell.data = nil
-    service.removeFromLoadFromRemote(date: data.date.date)
+    service.removeFromLoadFromRemote(key: data.key)
   }
   
   override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {

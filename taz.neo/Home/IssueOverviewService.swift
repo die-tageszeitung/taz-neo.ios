@@ -33,7 +33,7 @@ import NorthLib
 
 /// for issueImageLoaded Notification
 /// loader to prevent e.g. switch to PDF load finished for app view, worng image set to cell
-typealias IssueCellData = (date: PublicationDate, issue:StoredIssue?, image: UIImage?)
+typealias IssueCellData = (key: String, date: PublicationDate, issue:StoredIssue?, image: UIImage?)
 typealias IndexPathMoved = (from: IndexPath, to: IndexPath)
 
 /// using Dates short String Representation for store and find issues for same date, ignore time
@@ -67,9 +67,10 @@ extension Date {
 }
 
 class IssueOverviewService: NSObject, DoesLog {
-    
+  
   @Default("isFacsimile")
   public var isFacsimile: Bool
+  
   
   internal var feederContext: FeederContext
   var feed: StoredFeed
@@ -89,9 +90,6 @@ class IssueOverviewService: NSObject, DoesLog {
   
   private var requestedRemoteItems: [String:Date] = [:]
   private var loadingIssues:[String:Date] = [:]
-  private var loadingImages:[String:Date] = [:]
-  private var requestedItemsSyncQueue
-  = DispatchQueue(label: "IssueOverviewService.LoadingItems")
   
   /// cell data to display issue cell in caroussel or tiles
   /// start download for issuePreview if no data available
@@ -106,6 +104,7 @@ class IssueOverviewService: NSObject, DoesLog {
     print(">> request cell data for \(publicationDate.date.issueKey)")
     let issue = issue(at: publicationDate.date)
     var img: UIImage?
+    let key = publicationDate.date.issueKey + isFacsimile.mode
     
     if let issue = issue {
       img = self.storedImage(issue: issue, isPdf: isFacsimile)
@@ -113,38 +112,30 @@ class IssueOverviewService: NSObject, DoesLog {
 
     if issue == nil || img == nil {
       skipNextTimer = true
-      addToLoadFromRemote(date: publicationDate.date)
+      addToLoadFromRemote(key:key, date: publicationDate.date)
     }
         
-    return IssueCellData(date: publicationDate, issue: issue, image: img)
+    return IssueCellData(key: key,
+                         date: publicationDate,
+                         issue: issue,
+                         image: img)
   }
   
-  func addToLoadFromRemote(date: Date) {
-    if requestedRemoteItems[date.issueKey] != nil { return }
+  func addToLoadFromRemote(key: String, date: Date) {
+//    if requestedRemoteItems[date.issueKey+mode] != nil { return }
     print("Add issue to load for: \(date.issueKey)")
-    requestedItemsSyncQueue.async { [weak self] in
-      self?.requestedRemoteItems[date.issueKey] = date
-    }
+    self.requestedRemoteItems[key] = date
   }
-  
+  /// Habe daten, umschalten, alle removed, hole zell daten requeste 21.6.P
+  /// end display andere zelle...die den 21.6. im alten zustand hatte ...habe jetzt aber FACSIMILE IST JETZT M
   
   @discardableResult
   /// removed a date from current loading items
   /// - Parameter date: date to remove
   /// - Returns: bool if removed, false if already removed (used to notify cells)
-  func removeFromLoadFromRemote(date: Date, verifyImageAvailable: Bool = false) -> Bool {
-    if requestedRemoteItems[date.issueKey] == nil { return false }
-    print(">>x> removeFromLoadFromRemote: \(date.issueKey) onlyIfIssuea: \(verifyImageAvailable)")
-    if verifyImageAvailable,
-       let issue = issue(at: date),
-       self.storedImage(issue: issue, isPdf: isFacsimile) == nil {
-      print(">>x> NOT removed FromLoadFromRemote: \(date.issueKey) due issue is there but no image")
-      return false
-    }
-    requestedItemsSyncQueue.async { [weak self] in
-      self?.requestedRemoteItems[date.issueKey] = nil
-    }
-    return true
+  func removeFromLoadFromRemote(key: String) {
+    print(">>x> removeFromLoadFromRemote: \(key)")
+    self.requestedRemoteItems[key] = nil
   }
   
   func checkLoad2(){
@@ -156,31 +147,22 @@ class IssueOverviewService: NSObject, DoesLog {
   
   private func loadMissingIfPossible(){
     guard self.requestedRemoteItems.count > 0 else { return }
-    requestedItemsSyncQueue.async { [weak self] in
-      print(">> load missing #1: \(self?.requestedRemoteItems.keys)")
-      let dates = self?.requestedRemoteItems.values.sorted()
-      var missingIssues:[Date] = []
-      for date in dates ?? [] {
-        if let issue = self?.issue(at: date) {
-          self?.updateIssue(issue: issue)
-        } else if self?.loadingIssues[date.issueKey] == nil {
-          missingIssues.append(date)
-        }
+    print(">> load missing #1: \(self.requestedRemoteItems.keys)")
+    var missingIssues:[Date] = []
+    for (key, date) in self.requestedRemoteItems {
+      if let issue = self.issue(at: date) {
+        self.updateIssue(issue: issue, isPdf: key.suffix(1) == "P")
+      } else if self.loadingIssues[date.issueKey] == nil {
+        missingIssues.append(date)
       }
-      guard let oldest = missingIssues.first,
-            let newest = missingIssues.last else { return }
-      ///ignoring public holidays and sundays, need to add 1 to load itself or the next one
-      let days = 1 + (newest.timeIntervalSinceReferenceDate - oldest.timeIntervalSinceReferenceDate)/(3600*24)
-      onThread {[weak self] in
-        self?.apiLoadIssueOverview(for: newest, count: Int(days.nextUp))
-      }
-      
     }
-  }
-  
-  private func issue(at index: Int) -> StoredIssue? {
-    guard let publicationDate = date(at: index) else { return nil }
-    return issue(at: publicationDate.date)
+    guard let oldest = missingIssues.first,
+          let newest = missingIssues.last else { return }
+    ///ignoring public holidays and sundays, need to add 1 to load itself or the next one
+    let days = 1 + (newest.timeIntervalSinceReferenceDate - oldest.timeIntervalSinceReferenceDate)/(3600*24)
+    onThread {[weak self] in
+      self?.apiLoadIssueOverview(for: newest, count: Int(days.nextUp))
+    }
   }
   
   private func hasDownloadableContent(issue: Issue) -> Bool {
@@ -189,11 +171,10 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   @discardableResult
-  func download(issueAtIndex: Int?) -> StoredIssue? {
-    guard let idx = issueAtIndex,
-          let issue = issue(at: idx),
+  func download(issueAt date: Date) -> StoredIssue? {
+    guard let issue = issue(at: date),
           hasDownloadableContent(issue: issue) else {
-      self.log("not downloading for idx: \(issueAtIndex ?? -1)")
+      self.log("not downloading issue from: \(date.issueKey)")
       return nil
     }
 
@@ -253,11 +234,9 @@ class IssueOverviewService: NSObject, DoesLog {
     var count = count
     if count < 1 { count = 1 }
     else if count >= 10 { count = 10 }//API Limit is currently 20
-    print(">> load issues from: \(date.issueKey) count: \(count)")
-    
     var d = date
     var lds:[String] = []
-    for i in 0...count {
+    for _ in 0...count {
       d.addDays(1)
       lds.append(d.issueKey)
       loadingIssues[d.issueKey] = d
@@ -296,15 +275,12 @@ class IssueOverviewService: NSObject, DoesLog {
           loadedDates.append(issue.date)
         }
         ArticleDB.save()
-        #warning("20 issues may take a long time!")
-        self.log("Finished load&persist Issues for: \(date.issueKey) count: \(count) DB Update duration: \(Date().timeIntervalSince(start))s")
+        self.debug("Finished load&persist Issues for: \(date.issueKey) count: \(count) DB Update duration: \(Date().timeIntervalSince(start))s")
         for si in newIssues {
-          self.updateIssue(issue: si)
+          self.updateIssue(issue: si, isPdf: isFacsimile)
         }
       }
-      requestedItemsSyncQueue.async { [weak self] in
-        for sdate in lds { self?.loadingIssues[sdate] = nil }
-      }
+      for sdate in lds { self.loadingIssues[sdate] = nil }
     }
   }
   
@@ -320,13 +296,20 @@ class IssueOverviewService: NSObject, DoesLog {
     else if !isPdf, issue.moment.carouselFiles.count > 0 {
       files = issue.moment.carouselFiles
     }
-    
+    let key = issue.date.issueKey + isPdf.mode
     var dlFiles: [FileEntry] = []
     for f in files { if f.exists(inDir: dir.path) == false { dlFiles.append(f)}}
     
+    
+    if dlFiles.count == 0 && isPdf {
+      ///It seams on last Execution there was missing the convert from PDF to jpg, do it now
+      (issue.pages?.first as? StoredPage)?.facsimile = nil
+      _ = (issue.pages?.first as? StoredPage)?.facsimile
+    }
+    
     if dlFiles.count == 0 {
       self.debug("no file to download for Issue \(issue.date.issueKey)")
-      self.notifyIssueOwvAvailable(issue: issue)
+      self.notifyIssueOwvAvailable(issue: issue, key: key)
       return
     }
     self.debug("do download \(dlFiles.count) Issue files for \(issue.date.issueKey)")
@@ -335,7 +318,7 @@ class IssueOverviewService: NSObject, DoesLog {
         self?.debug("done download \(files.count) Issue files for \(issue.date.issueKey) 7XßC3")
         let img = self?.storedImage(issue: issue, isPdf: isPdf)
         if img != nil && err == nil {
-          self?.notifyIssueOwvAvailable(issue: issue)
+          self?.notifyIssueOwvAvailable(issue: issue, key: key)
         }
         else {
           var msg = "something went wrong:"
@@ -353,39 +336,31 @@ class IssueOverviewService: NSObject, DoesLog {
                                                   usePdfAlternative: false)
   }
   
-  #warning("MY REFACTOR")
-  func updateIssue(issue:StoredIssue){
-    if Thread.isMainThread == false {
-      onMain {[weak self] in self?.updateIssue(issue: issue) }
-      return
-    }
-    if self.storedImage(issue: issue, isPdf: isFacsimile) == nil {
-      apiLoadMomentImages(for: issue, isPdf: isFacsimile)
+  func updateIssue(issue:StoredIssue, isPdf: Bool){
+    if self.storedImage(issue: issue, isPdf: isPdf) == nil {
+      apiLoadMomentImages(for: issue, isPdf: isPdf)
     } else {
-      notifyIssueOwvAvailable(issue: issue)
+      notifyIssueOwvAvailable(issue: issue, key: issue.date.issueKey + isFacsimile.mode)
     }
     self.issues[issue.date.issueKey] = issue
   }
   
-  func notifyIssueOwvAvailable(issue:StoredIssue){
-    if removeFromLoadFromRemote(date: issue.date, verifyImageAvailable: true) {
-      guard let pDate = publicationDates.first(where: { $0.date == issue.date }) else {
-        error("Not found the given Publication Date. This Should not happen!")
-        return
-      }
-      ///notify only if still  requested
-      let img = self.storedImage(issue: issue, isPdf: isFacsimile)
-     
-      let data = IssueCellData(date: pDate,
-                               issue: issue,
-                               image: img)
-      ensureMain {
-        Notification.send(Const.NotificationNames.issueUpdate,
-                          content: data)
-      }
+  func notifyIssueOwvAvailable(issue:StoredIssue, key: String){
+    removeFromLoadFromRemote(key:key)
+    guard let pDate = publicationDates.first(where: { $0.date == issue.date }) else {
+      error("Not found the given Publication Date. This Should not happen!")
+      return
     }
+    ///notify only if still  requested
+    let img = self.storedImage(issue: issue, isPdf: isFacsimile)
+    
+    let data = IssueCellData(key: key,
+                             date: pDate,
+                             issue: issue,
+                             image: img)
+    Notification.send(Const.NotificationNames.issueUpdate,
+                      content: data)
   }
-  
   
   /// refresh data model, reloads active collectionView
   /// - Parameters:
@@ -512,6 +487,19 @@ class IssueOverviewService: NSObject, DoesLog {
     } ?? [:]
     super.init()
     
+    $isFacsimile.onChange {[weak self] _ in
+      guard let mode = self?.isFacsimile.mode,
+            let keys = self?.requestedRemoteItems.keys,
+            keys.count > 0 else { return }
+      onMain {[weak self] in
+        for key in keys {
+          if key.suffix(1) != mode {
+            self?.requestedRemoteItems[key] = nil
+          }
+        }
+      }
+    }
+    
     ///Update downloaded Issue Reference
     Notification.receive("issue"){ [weak self] notif in
       self?.updateIssues()
@@ -626,4 +614,8 @@ fileprivate extension NSLock {
         defer { unlock() }
         return try block()
     }
+}
+
+fileprivate extension Bool {
+  var mode:String { self ? "P" : "M"}
 }

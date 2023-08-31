@@ -38,8 +38,7 @@ extension IssueCollectionViewActions {
     } else {
       actions.addMenuItem(title: "Ausgabe laden",
                           icon: "download") {[weak self] _ in
-        self?.service.download(issueAtIndex: indexPath.row)
-        //MAY REFRESH!!!
+        self?.service.download(issueAt: issue.date)
       }
     }
     
