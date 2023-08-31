@@ -11,6 +11,7 @@ import UIKit
 class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
   var feederContext: FeederContext
+  var service: IssueOverviewService
   
   private var popViewControllerClosure: ((UIViewController)->(Bool))
   = { vc in return !(vc is IntroVC) }
@@ -87,7 +88,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     self.tabBar.isTranslucent = false
     self.tabBar.tintColor = .white
     
-    let service = IssueOverviewService(feederContext: feederContext)
     let home = HomeTVC(service: service, feederContext: feederContext)
     home.title = "Home"
     home.tabBarItem.image = UIImage(named: "home")
@@ -130,8 +130,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     return Defaults.darkMode ?  .lightContent : .default
   }
   
-  required init(feederContext: FeederContext) {
+  required init(feederContext: FeederContext, service: IssueOverviewService) {
     self.feederContext = feederContext
+    self.service = service
     super.init(nibName: nil, bundle: nil)
     delegate = self
   }

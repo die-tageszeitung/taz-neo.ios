@@ -84,6 +84,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   lazy var consoleLogger = Log.Logger()
   lazy var fileLogger = Log.FileLogger()
   var feederContext: FeederContext?
+  var service: IssueOverviewService?
   let net = NetAvailability()
   
   var authenticator: Authenticator? { return feederContext?.authenticator }
@@ -364,11 +365,13 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
         closure()
       }
       self.rootViewController = introVC
-      #warning("TO DO ON FRIDAY LOAD THE FIRST x ISSUES")
-//      onMainAfter(0.3) { [weak self] in
-//        guard let self = self, let fc = self.feederContext else { return }
-//        fc.getOvwIssues(feed: fc.defaultFeed, count: 4, isAutomatically: false)
-//      }
+      onMainAfter(0.3) { [weak self] in
+        guard let self = self,
+                let fc = self.feederContext else { return }
+        self.service = IssueOverviewService(feederContext: fc)
+        _ = self.service?.cellData(for: 0)
+        _ = self.service?.cellData(for: 3)
+      }
     }
     feederContext?.updateResources(toVersion: -1)
   }
@@ -378,7 +381,9 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       log("FeaderContextNot ready!")
       return
     }
-    self.rootViewController = MainTabVC(feederContext: feederContext)
+    self.rootViewController = MainTabVC(feederContext: feederContext,
+                                        service: service
+                                        ?? IssueOverviewService(feederContext: feederContext))
     feederContext.setupRemoteNotifications()
   }
   
