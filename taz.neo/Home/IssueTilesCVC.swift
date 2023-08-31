@@ -31,12 +31,6 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
   /// size of the issue items
   lazy var cellSize: CGSize = CGSize(width: 20, height: 20)
 
-  var visibleCellsCount: Int = 6
-  
-  func evaluateVisibleCellsCount(){
-    visibleCellsCount = max(collectionView.visibleCells.count, 6)
-  }
-  
   override func viewDidLoad() {
     super.viewDidLoad()
     collectionView?.backgroundColor = .black
@@ -68,39 +62,47 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
     return isActive ? service.publicationDates.count : 0
   }
   
-  
+  ///Refactor to enqueue load issue/image and remove from load all in cellForItemAt
+  ///because end display is called after willDisplay on PDF/mobile switch
+  ///so not loaded PDF Moments have been removed imaditly
+  ///
+  ///NEXT CHALLANGE, maybe the same
+  ///on switch TO MOBILE
+  ///cell x xx PDF           => 2.2.2012 MOBILE
+  ///cell 2.2.2012 PDF => x.x.MOBILE ==> REMOVED FROM LOAD >  X X X XX X
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell
     = collectionView.dequeueReusableCell( withReuseIdentifier: Self.reuseCellId,
                                           for: indexPath)
     guard let cell = cell as? IssueTilesCvcCell else { return cell }
-    
-    cell.button.onTapping { [weak self] _ in
-      if self?.service.download(issueAtIndex: indexPath.row) != nil {
-        cell.button.indicator.downloadState = .waiting
-      }
+    var old = "-"
+    if let date = cell.data?.date.date {
+      old = date.issueKey
+      service.removeFromLoadFromRemote(date: date)
     }
-    
+    cell.data = service.cellData(for: indexPath.row)///set even if nil to apply new value
+    print(">>x> exchange cell \(old) new: \(cell.data?.date.date.issueKey ?? "-") cellHash: \(cell.hash)")
+    ///Init once
     if cell.interactions.isEmpty {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
       cell.addInteraction(menuInteraction)
       cell.backgroundColor = .black
+      #warning("CHECK IF CORRECT CELL LOADED MOVED CODE TO HERE MAYBE WRONG")
+      cell.button.onTapping { [weak self] _ in
+        if self?.service.download(issueAtIndex: indexPath.row) != nil {
+          cell.button.indicator.downloadState = .waiting
+        }
+      }
     }
     return cell
   }
   
   override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-//    log(">>>> didEndDisplaying \(cell.hash)")
-    guard let cell = cell as? IssueTilesCvcCell,
-          let data = cell.data else { return }
-    cell.data = nil
-    service.removeFromLoadFromRemote(date: data.date.date)
+    print(">>x> end display cell for date: \((cell as? IssueTilesCvcCell)?.data?.date.date.issueKey ?? "-") cellHash: \(cell.hash)")
   }
-  
+
   override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-    guard let cell = cell as? IssueTilesCvcCell,
-          let data = service.cellData(for: indexPath.row) else { return }
-    cell.data = data
+    guard let cell = cell as? IssueTilesCvcCell else { return }
     cell.button.indicator.downloadState = service.issueDownloadState(at: indexPath.row)
   }
   

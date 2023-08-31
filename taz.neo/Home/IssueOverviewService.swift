@@ -132,8 +132,15 @@ class IssueOverviewService: NSObject, DoesLog {
   /// removed a date from current loading items
   /// - Parameter date: date to remove
   /// - Returns: bool if removed, false if already removed (used to notify cells)
-  func removeFromLoadFromRemote(date: Date) -> Bool {
+  func removeFromLoadFromRemote(date: Date, verifyImageAvailable: Bool = false) -> Bool {
     if requestedRemoteItems[date.issueKey] == nil { return false }
+    print(">>x> removeFromLoadFromRemote: \(date.issueKey) onlyIfIssuea: \(verifyImageAvailable)")
+    if verifyImageAvailable,
+       let issue = issue(at: date),
+       self.storedImage(issue: issue, isPdf: isFacsimile) == nil {
+      print(">>x> NOT removed FromLoadFromRemote: \(date.issueKey) due issue is there but no image")
+      return false
+    }
     requestedItemsSyncQueue.async { [weak self] in
       self?.requestedRemoteItems[date.issueKey] = nil
     }
@@ -147,7 +154,6 @@ class IssueOverviewService: NSObject, DoesLog {
     skipNextTimer  = false
   }
   
-
   private func loadMissingIfPossible(){
     guard self.requestedRemoteItems.count > 0 else { return }
     requestedItemsSyncQueue.async { [weak self] in
@@ -362,7 +368,7 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func notifyIssueOwvAvailable(issue:StoredIssue){
-    if removeFromLoadFromRemote(date: issue.date) {
+    if removeFromLoadFromRemote(date: issue.date, verifyImageAvailable: true) {
       guard let pDate = publicationDates.first(where: { $0.date == issue.date }) else {
         error("Not found the given Publication Date. This Should not happen!")
         return

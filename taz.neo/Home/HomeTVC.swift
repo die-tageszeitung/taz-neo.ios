@@ -135,8 +135,6 @@ class HomeTVC: UITableViewController {
     super.viewDidAppear(animated)
     togglePdfButton.showAnimated()
     showPdfInfoIfNeeded()
-    updateVisibleCellsCount()
-//    carouselController.service.isScrolling = false
   }
   
   var nextHorizontalSizeClass:UIUserInterfaceSizeClass?
@@ -157,12 +155,6 @@ class HomeTVC: UITableViewController {
     })
 
   }
-  
-  func updateVisibleCellsCount() {
-    carouselController.evaluateVisibleCellsCount()
-    tilesController.evaluateVisibleCellsCount()
-  }
-  
   // MARK: - Table view data source
   
   override func numberOfSections(in tableView: UITableView) -> Int {
@@ -391,7 +383,6 @@ extension HomeTVC: PushIssueDelegate {
   }
 }
 
-
 // MARK: - Subview Setup/Configuration
 extension HomeTVC {
   
@@ -401,9 +392,6 @@ extension HomeTVC {
     carouselController
       .updateCarouselSize(size,
                           horizontalSizeClass: horizontalSizeClass)
-    onMainAfter {[weak self] in
-      self?.updateVisibleCellsCount()
-    }
   }
   
   fileprivate func setupTilesControllerCell() {

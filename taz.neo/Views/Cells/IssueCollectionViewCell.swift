@@ -71,16 +71,16 @@ class IssueCollectionViewCell: UICollectionViewCell {
 //    }
 //  }
   
-  public override func prepareForReuse() {
-    data = nil
-//    print("prepareForReuse old publicationDate: \(publicationDate) (issue update for:) self: \(self.hash)")
-//    if image == nil {
-//      previousIncompleeteLoadIssueDate = issue?.date
-//    }
-//    image = nil
-//    issue = nil
-//    publicationDate = nil
-  }
+//  public override func prepareForReuse() {
+//    data = nil
+////    print("prepareForReuse old publicationDate: \(publicationDate) (issue update for:) self: \(self.hash)")
+////    if image == nil {
+////      previousIncompleeteLoadIssueDate = issue?.date
+////    }
+////    image = nil
+////    issue = nil
+////    publicationDate = nil
+//  }
   
   func setup(){
     contentView.addSubview(emptyView)
