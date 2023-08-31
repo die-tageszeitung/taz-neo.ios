@@ -277,6 +277,12 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     layout.minimumInteritemSpacing = 1000000.0
     
     super.init(collectionViewLayout: layout)
+    
+    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
+        guard let nData = notification.content as? IssueCellData,
+              nData.date.date.issueKey == self?.centerIssueDateKey else { return }
+      self?.downloadButton.indicator.downloadState = nData.downloadState
+      }
   }
   
   required init?(coder: NSCoder) {
