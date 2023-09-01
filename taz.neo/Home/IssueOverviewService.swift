@@ -112,11 +112,9 @@ class IssueOverviewService: NSObject, DoesLog {
   }
     
   private func loadMissingItems(){
-    if skipNextTimer == true {
-      skipNextTimer  = false
-      return
-    }
+    if skipNextTimer == true { skipNextTimer  = false; return }
     guard self.requestedRemoteItems.count > 0 else { return }
+    if feederContext.isConnected == false { return }
     var missingIssues:[Date] = []
     for (key, date) in self.requestedRemoteItems {
       if let issue = self.issue(at: date) {
