@@ -366,7 +366,7 @@ open class FeederContext: DoesLog {
   /// init sends a "feederReady" Notification when the feeder context has
   /// been set up
   public init?(name: String, url: String, feed feedName: String) {
-    guard let host = URL(string: url)?.host else { return nil }
+    if URL(string: url)?.host == nil { return nil }
     self.name = name
     self.url = url
     self.feedName = feedName
@@ -383,7 +383,7 @@ open class FeederContext: DoesLog {
       self.currentVersion = Version("0.5.0")      
     }
     ///Bad Code?
-    ///force update from API User clicks update, update not started e.g. due not Internet, user wants to read taz app app crashes without a notification!
+    ///force update from API: User clicks update, update not started e.g. due not Internet, user wants to read taz app app crashes without a notification!
     ///Crash or not? => Not to crash NEVER! @see: https://developer.apple.com/forums/thread/63795
     ///So Refactor: Alert User only Button is the Store Button (is still bad behaviour, hopefully never needed)
     #warning("todo change")
