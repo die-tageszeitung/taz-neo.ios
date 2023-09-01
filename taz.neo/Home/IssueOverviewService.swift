@@ -8,6 +8,7 @@
 
 import UIKit
 import NorthLib
+import Foundation
 
 typealias IssueCellData = (key: String,
                            date: PublicationDate,
@@ -462,7 +463,9 @@ class IssueOverviewService: NSObject, DoesLog {
       self?.updateIssues()
     }
     
-    self.timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: {[weak self] _ in
+    let params = Device.speedParameter
+    
+    self.timer = Timer.scheduledTimer(withTimeInterval: params.waitDuration, repeats: true, block: {[weak self] _ in
       self?.loadMissingItems()
      })
   }
@@ -522,4 +525,46 @@ extension IssueOverviewService {
 
 fileprivate extension Bool {
   var mode:String { self ? "P" : "M"}
+}
+
+typealias DeviceSpeedParameter = (waitDuration: Double, parallelRequests: Int)
+
+fileprivate extension Device {
+  //iPhone SE 1 Requested Speed Level: 2,  2 CPUs, 2013 MB RAM, is in *Normal* Power Mode (waitDuration: 0.9, parallelRequests: 3)
+  //iPhone 7    Requested Speed Level: 2,  2 CPUs, 2000 MB RAM, is in *Normal* Power Mode (waitDuration: 0.9, parallelRequests: 3)
+  //iPhone 7    Requested Speed Level: 1,  2 CPUs, 2000 MB RAM, is in *Low* Power Mode (waitDuration: 1.0, parallelRequests: 2)
+  //iPhone 11   Requested Speed Level: 6,  6 CPUs, 3851 MB RAM, is in *Normal* Power Mode (waitDuration: 0.6, parallelRequests: 4)
+  
+  /// Return Parameters for optimized Remote Requests for IssueOverview Service
+  /// Not so many parallel requests on slow devices, and not so often
+  static var speedParameter: DeviceSpeedParameter {
+    switch (Self.isIpad, Self.speedLevel){
+      case (_, 1): return (0.8, 2)
+      case (_, 2): return (0.6, 3)
+      case (_, 3): return (0.4, 4)
+      case (_, _): return (0.2, 4)
+    }
+  }
+  
+  /// evaluates speed level of current device from 1...6
+  private static var speedLevel: Int {
+    var level = 1
+    let _cpuCount = Self.cpuCount
+    let _ramMB = Self.ramMB
+    let _lowPower = Self.lowPower
+    
+    if _cpuCount > 5 { level += 2 }
+    else if _cpuCount > 3 { level += 1 }
+    //1..3
+    if _ramMB > 3500 { level += 2 }
+    else if _ramMB > 2500 { level += 1 }
+    //1..5
+    if _lowPower == false { level += 1 }
+    //1..6
+    //print("Requested Speed Level: \(level),  \(_cpuCount) CPUs, \(_ramMB) MB RAM, is in \(_lowPower ? "*Low*" : "*Normal*") Power Mode")
+    return level
+  }
+  private static var cpuCount: Int { ProcessInfo.processInfo.processorCount }
+  private static var ramMB: UInt64 { ProcessInfo.processInfo.physicalMemory/(1024*1024) }
+  private static var lowPower: Bool { ProcessInfo.processInfo.isLowPowerModeEnabled == true }
 }
