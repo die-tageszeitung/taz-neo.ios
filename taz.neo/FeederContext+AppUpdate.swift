@@ -12,7 +12,20 @@ import NorthLib
 // MARK: - Update Checks, Helper
 extension FeederContext {
   
+  /* CASES
+   Startup, connected => required new version
+   Startup, offline, use app, online => required new Version, so its ok not to block the app in case of online start
+   minVersionOK is not persisted (should not be in this implementation!), so delayed check is default
+   */
   func checkAppUpdate(){
+    if self.simulateFailedMinVersion {
+      onMainAfter(5.0) {
+        self.minVersion = Version("142.0.0")
+        self.minVersionOK = false
+      }
+      return
+    }
+    
     guard minVersionOK else {
       enforceUpdate()
       return
@@ -20,6 +33,7 @@ extension FeederContext {
     if needsReInit() {
       TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin)
     }
+    check4Update()
   }
   
   ///Force update called if minVersionOK false after init
@@ -45,13 +59,16 @@ extension FeederContext {
         Defaults.singleton["simulateFailedMinVersion"] = "false"
       }
       store.openInAppStore { closure?() }
-      #warning("exit(0) not allowed")
-      ///either not connect app or update issues == offline from now on or force update Store
-      ///@see: https://developer.apple.com/forums/thread/63795
+      /*Discussion former solution 2 Buttons Store & Abbrechen
+       Abbrechen exit the App, but this is forbidden!
+       @see https://developer.apple.com/forums/thread/63795
+      
+       refactored: only one button in alert: Store Button
+       */
     }
   }
   
-  func Xcheck4Update() {
+  func check4Update() {
     async { [weak self] in
       guard let self else { return }
       let id = self.bundleID
@@ -61,7 +78,7 @@ extension FeederContext {
         return
       }
       self.debug("Version check: \(version) current, \(store.version) store")
-      if store.needUpdate() {
+      if store.needUpdate(simulate: self.simulateNewVersion) {
         let msg = """
         Sie haben momentan die Version \(self.currentVersion) installiert.
         Es liegt eine neue Version \(store.version) mit folgenden Änderungen vor:
@@ -86,11 +103,11 @@ extension FeederContext {
 }
 
 fileprivate extension StoreApp {
-  
+    
   ///check if App Update Popup should be shown
-  func needUpdate() -> Bool {
+  func needUpdate(simulate: Bool = false) -> Bool {
     ///ensure store version is higher then running version
-    guard self.version > App.version else { return false }
+    guard simulate || self.version > App.version else { return false }
     
     ///ensure store version is the same like the delayed one otherwise delay the store version
     ///to e.g. current version 0.20.0 delayed 0.20.1 has critical bug 0.20.2 is in phased release
@@ -101,11 +118,12 @@ fileprivate extension StoreApp {
       Defaults.newStoreVersionFoundDate = Date()
       return false
     }
+    let delay:Double = simulate ? 60 : 3600*24*20 //60s or 20 days?
     
     ///ensure update popup for **NON AUTOMATIC UPDATE USERS only** comes et first after
     /// x days 20 = 60s*60min*24h*20d* = 3600*24*20  ::: Test 2 Minutes == 60*2*
     guard let versionFoundDate = Defaults.newStoreVersionFoundDate,
-          abs(versionFoundDate.timeIntervalSinceNow) > 3600*24*20 else {
+          abs(versionFoundDate.timeIntervalSinceNow) > delay else {
       return false
     }
     ///update is needed

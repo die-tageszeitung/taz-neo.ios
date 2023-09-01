@@ -210,17 +210,18 @@ open class FeederContext: DoesLog {
       return
     }
     
-    checkAppUpdate()
     let loadAll = needLoadAllPublicationDates()
     cleanupOldIssues()
     defaultFeed = storedFeeder.feeds.first as? StoredFeed
     //Alternative:
     //defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder).first
     notify("feederReady")
-    
+    checkAppUpdate()
     if needUpdate {
       updateFeeder(loadAllPublicationDates: loadAll)
     }
+    
+
   }
   
   func checkForNewIssues(force: Bool = false){
@@ -263,6 +264,14 @@ open class FeederContext: DoesLog {
           }
           self.notifyNetStatus(isConnected: true)
         case .failure:
+          if let err = res.error() as? FeederError {
+            if case .minVersionRequired(let smv) = err {
+              self.minVersion = Version(smv)
+              self.debug("App Min Version \(smv) failed")
+              self.minVersionOK = false
+            }
+            else { self.minVersionOK = true }
+          }
           self.notifyNetStatus(isConnected: false)
       }
       if needInit { initFeeder() }
@@ -313,12 +322,11 @@ open class FeederContext: DoesLog {
     
     log(logString)
     log("Update all publication Dates")
-    #warning("exit")
     return true
   }
   
   private func netStatusChanged(isConnected:Bool){
-    log("XXX NET STATUS CHANGED isConnected: \(isConnected)")
+    debug("NET STATUS CHANGED isConnected: \(isConnected)")
     isConnected ? updateFeeder() : notifyNetStatus(isConnected: false)
   }
   
@@ -370,7 +378,6 @@ open class FeederContext: DoesLog {
     self.name = name
     self.url = url
     self.feedName = feedName
-    //#warning("REMOVE THE FOLLOWING LINE!!! just for Debugging DB is Days -2")
     self.netAvailability = ExtendedNetAvailability(url: url)
     
     self.netAvailability.onChange{[weak self] connected in self?.netStatusChanged(isConnected:connected)
@@ -382,11 +389,7 @@ open class FeederContext: DoesLog {
     if self.simulateNewVersion {
       self.currentVersion = Version("0.5.0")      
     }
-    ///Bad Code?
-    ///force update from API: User clicks update, update not started e.g. due not Internet, user wants to read taz app app crashes without a notification!
-    ///Crash or not? => Not to crash NEVER! @see: https://developer.apple.com/forums/thread/63795
-    ///So Refactor: Alert User only Button is the Store Button (is still bad behaviour, hopefully never needed)
-    #warning("todo change")
+
     Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
       self?.handleEnterForeground()
     }
@@ -396,7 +399,7 @@ open class FeederContext: DoesLog {
   ///used in VersionCheck, Check NetworkConnection, Update PublicationDates
   func handleEnterForeground(){
     if self.minVersionOK == false {
-      enforceUpdate()//Do Nothing More
+      enforceUpdate()
     }
     else if netAvailability.isConnected == false {
       netAvailability.recheck()
