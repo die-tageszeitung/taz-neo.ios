@@ -60,6 +60,8 @@ public let ConfigDefaults = Defaults.Values([
   "bookmarksListTeaserEnabled" : "true",
   "smartBackFromArticle" : "true",
   "tabbarInSection" : "false",
+  "simulateFailedMinVersion" : "false",
+  "simulateNewVersion" : "false",
 ])
 
 
