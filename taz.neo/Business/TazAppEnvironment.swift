@@ -60,7 +60,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   var shouldShowNotifications = true
   
   public private(set) lazy var rootViewController : UIViewController = {
-    // Startup Splash Screen?!
+    // Startup Splash Screen!
     return Spinner()
   }()  {
     didSet {
