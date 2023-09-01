@@ -145,9 +145,7 @@ public class NewContentTableVC: UIViewController {
   
   var expandedSections: [Int] = [] {
     didSet {
-      header.bottomLabel.text = expandedSections.isEmpty
-      ? header.openText
-      : header.closeText
+      header.collapsed = expandedSections.isEmpty
     }
   }
   
@@ -161,20 +159,33 @@ public class NewContentTableVC: UIViewController {
     let h = NewContentTableVcHeader(frame: CGRect(x: 0,
                                                   y: 0,
                                                   width: Const.Size.ContentSliderMaxWidth,
-                                                  height: 260))
-    h.bottomLabel.onTapping {[weak self] _ in
-      if self?.header.bottomLabel.text == self?.header.closeText {
-        self?.header.bottomLabel.text = self?.header.openText
-        self?.collapseAll()
-      }else {
-        self?.header.bottomLabel.text = self?.header.closeText
-        self?.expandAll()
+                                                  height: 240))
+    h.collapseIcon.onTapping {[weak self] _ in
+      guard let self = self else { return }
+      if self.header.collapsed {
+        self.expandAll()
+        self.header.collapsed = false
       }
+      else {
+        self.collapseAll()
+        self.header.collapsed = true
+      }
+    }
+    h.listenLabel.onTapping {[weak self] _ in
+      guard let issue = self?.issue else { return }
+      ArticlePlayer.singleton.play(issue: issue,
+                 startFromArticle: nil,
+                 enqueueType: .replaceCurrent)
+      self?.header.listenIconActive = true
     }
     h.imageView.onTapping {[weak self] _ in
       self?.imagePressedClosure?()
     }
-    h.pinHeight(260.0)
+    h.pinHeight(240)
+    
+    h.listenIconActive =
+    ArticlePlayer.singleton.currentArticle?.primaryIssue?.date.issueKey
+    == self.issue?.date.issueKey
     return h
   }()
   
@@ -371,12 +382,15 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     ? Const.Shadow.Dark.Opacity
     : Const.Shadow.Light.Opacity
     self.imageView.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
-    bottomLabel.textColor = Const.SetColor.taz(.textIconGray).color
+    listenLabel.textColor = Const.SetColor.CTDate.color
     bottomBorder?.backgroundColor = Const.SetColor.CTDate.color
+    collapseIcon.image
+    = UIImage(named:"chevron-doubleup")?
+      .withRenderingMode(.alwaysOriginal)
+      .withTintColor(Const.SetColor.CTDate.color)
+    updateListenIcon()
   }
   
-  let closeText = "alle ressorts schliessen"
-  let openText = "alle ressorts öffnen"
   
   var issue: Issue? {
     didSet {
@@ -395,7 +409,9 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
   
   var imageView = UIImageView()
   var topLabel = UILabel()
-  var bottomLabel = UILabel()
+  var listenLabel = UILabel()
+  var listenIcon = UIImageView()
+  var collapseIcon =  UIImageView()
   var bottomBorder: UIView?
   
   var imageAspectConstraint: NSLayoutConstraint?
@@ -403,6 +419,36 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
   override func didMoveToSuperview() {
     if imageView.superview == nil { setup() }
     super.didMoveToSuperview()
+  }
+  
+  func updateListenIcon(){
+    /*ArticlePlayer.singleton.isPlaying*/
+    listenIcon.image
+    = UIImage(named: listenIconActive ?  "audio-active" : "audio")?
+      .withRenderingMode(.alwaysOriginal)
+      .withTintColor(Const.SetColor.CTDate.color)
+  }
+  
+  var listenIconActive: Bool = false { didSet { updateListenIcon() }}
+  
+  var collapsed: Bool = false {
+    didSet {
+      if oldValue == collapsed { return }
+      UIView.animateKeyframes(withDuration: 0.5, delay: 0.0, animations: {
+        UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.5) { [weak self] in
+          guard let self = self else { return }
+          self.collapseIcon.transform = CGAffineTransform(rotationAngle: 0)
+        }
+        
+        UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5) { [weak self] in
+          self?.rotateChevron()
+        }
+      })
+    }
+  }
+  
+  func rotateChevron(){
+    collapseIcon.transform = CGAffineTransform(rotationAngle: self.collapsed ? CGFloat.pi : CGFloat.pi*2)
   }
   
   func updateImage(){
@@ -416,32 +462,54 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     }
   }
   
+
+  
   func setup(){
     self.addSubview(imageView)
     self.addSubview(topLabel)
-    self.addSubview(bottomLabel)
+    self.addSubview(listenLabel)
+    self.addSubview(listenIcon)
+    self.addSubview(collapseIcon)
     
+    listenIcon.contentMode = .scaleAspectFit
     imageView.contentMode = .scaleAspectFit
     imageView.shadow()
     
     topLabel.contentFont()
-    bottomLabel.contentFont(size: Const.Size.SmallerFontSize)
-    bottomLabel.textAlignment = .right
+    listenLabel.contentFont(size: Const.Size.SmallerFontSize)
+    listenLabel.textAlignment = .left
     
-    bottomLabel.text = openText
+    listenIcon.image = UIImage(named: "audio")?.withRenderingMode(.alwaysOriginal)
+    listenLabel.text = "ausgabe hören"
     topLabel.numberOfLines = 0
     
-    pin(imageView, to: self, dist: Const.Size.DefaultPadding, exclude: .right).top?.constant = Const.Size.DefaultPadding + 45 //= 60.0
+    pin(imageView.left, to: self.left, dist: Const.Size.DefaultPadding)
+    pin(imageView.top, to: self.top, dist: Const.Size.DefaultPadding + 45)
+    pin(imageView.bottom, to: self.bottom, dist: -52)
+    
     pin(topLabel.left, to: imageView.right, dist: 10)
     pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
     pin(topLabel.top, to: imageView.top, dist: -3)
-    pin(bottomLabel.left, to: imageView.right, dist: 10, priority: .fittingSizeLevel)
-    pin(bottomLabel.bottom, to: imageView.bottom, dist: 3)
-    pin(bottomLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
+    pin(listenIcon.left, to: imageView.left, dist: 0, priority: .fittingSizeLevel)
+    
+    listenIcon.pinSize(CGSize(width: 24, height: 24))
+    
+    collapseIcon.pinSize(CGSize(width: 24, height: 24))
+    
+    pin(collapseIcon.right, to: self.right, dist: -Const.Size.DefaultPadding)
+    
+    pin(listenIcon.bottom, to: self.bottom, dist: -10.0)
+    pin(listenLabel.bottom, to: self.bottom, dist: -13.0)
+    pin(collapseIcon.bottom, to: self.bottom, dist: -10.0)
+    
+    pin(listenLabel.left, to: listenIcon.right, dist: 5, priority: .fittingSizeLevel)
+    
     bottomBorder = self.addBorderView(Const.SetColor.CTDate.color, 0.7,
                                       edge: .bottom,
                                       insets: Const.Insets.Default)
     registerForStyleUpdates()
+    rotateChevron()
+    topLabel.textColor = Const.Colors.appIconGrey
   }
 }
 
