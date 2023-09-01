@@ -2057,9 +2057,10 @@ public final class StoredIssue: Issue, StoredObject {
   
   
   /// Deletes data that is not needed for overview
-  public func reduceToOverview() {
+  public func reduceToOverview(force: Bool = false) {
     Log.log("Delete Issue: \(self.date.short)")
-    guard StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
+    guard force ||
+            StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
     else { return }
     // Remove files not needed for overview
     storedPayload?.reduceToOverview()

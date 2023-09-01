@@ -14,6 +14,23 @@ protocol IssueCollectionViewActions: UIContextMenuInteractionDelegate where Self
 }
 
 extension IssueCollectionViewActions {
+  
+  func requestDeleteIssueWithBookmarksIfNeeded(issue: StoredIssue) {
+    let bookmarksCount = StoredArticle.bookmarkedArticlesInIssue(issue: issue).count
+    if bookmarksCount == 0 { return }
+    
+    Alert.confirm(title: "Achtung!", message: "Die Ausgabe vom \(issue.date.short) enthält \(bookmarksCount) Lesezeichen. Soll die Ausgabe mit Lesezeichen gelöscht werden?", okText: "Löschen") {[weak self] delete in
+      issue.reduceToOverview(force: delete)
+      self?.updateCarouselDownloadButton()
+    }
+  }
+  
+  func updateCarouselDownloadButton(){
+    guard let ccvc = self as? IssueCarouselCVC else { return }
+    ccvc.downloadButton.indicator.downloadState
+    = self.service.cellData(for: ccvc.centerIndex ?? 0)?.downloadState
+  }
+  
   func _contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
     let loc = interaction.location(in: collectionView)
     guard let indexPath = self.collectionView.indexPathForItem(at: loc) else {
@@ -29,16 +46,19 @@ extension IssueCollectionViewActions {
     if issue.isComplete {
       actions.addMenuItem(title: "Ausgabe löschen",
                           icon: "trash") {[weak self] _ in
+        self?.requestDeleteIssueWithBookmarksIfNeeded(issue: issue)
+        /// reduceToOverview without force will exit
         issue.reduceToOverview()
         self?.collectionView.reloadItems(at: [indexPath])
-        guard let ccvc = self as? IssueCarouselCVC,
-              ccvc.centerIndex == indexPath.row else { return }
-        ccvc.downloadButton.indicator.downloadState = .notStarted
+        self?.updateCarouselDownloadButton()
       }
     } else {
       actions.addMenuItem(title: "Ausgabe laden",
                           icon: "download") {[weak self] _ in
         self?.service.download(issueAt: issue.date)
+        guard let ccvc = self as? IssueCarouselCVC,
+              ccvc.centerIndex == indexPath.row else { return }
+        ccvc.downloadButton.indicator.downloadState = .waiting
       }
     }
     
