@@ -481,6 +481,12 @@ extension UILabel {
   }
   
   @discardableResult
+  internal func color(_ color: UIColor) -> UILabel {
+    self.textColor = color
+    return self
+  }
+
+  @discardableResult
   internal func color(_ color: Const.SetColor) -> UILabel {
     self.textColor = color.color
     return self

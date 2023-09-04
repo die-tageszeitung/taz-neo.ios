@@ -38,7 +38,7 @@ class ArticlePlayerUI: UIView {
     let w
     = noGap
     ? viewSize.width
-    : min(375, viewSize.width - 2*Const.Size.DefaultPadding)
+    : min(375, viewSize.width - 2*miniPadding)
     if widthConstraint == nil {
       widthConstraint = self.pinWidth(w)
     }
@@ -46,14 +46,14 @@ class ArticlePlayerUI: UIView {
       widthConstraint?.constant = w
     }
     
-    if noGap {
-      self.layer.cornerRadius = 0.0
-    }
+//    if noGap {
+//      self.layer.cornerRadius = 0.0
+//    }
     
     rightConstraint?.constant
     = noGap
     ? 0
-    : -Const.Size.DefaultPadding
+    : -miniPadding
     if acticeTargetView != nil && acticeTargetView?.superview != nil {
       ///probably tollbar
       bottomConstraint?.constant = noGap ? -0.5 : -10
@@ -93,7 +93,7 @@ class ArticlePlayerUI: UIView {
       targetSv.addSubview(self)
       bottomConstraint = pin(self.bottom, to: targetSv.bottomGuide(), dist:  -60.0)
     }
-    rightConstraint = pin(self.right, to: targetSv.rightGuide(), dist: -Const.Size.DefaultPadding)
+    rightConstraint = pin(self.right, to: targetSv.rightGuide(), dist: -miniPadding)
     viewSize = targetSv.frame.size
     self.updateWidth()
     if animated == false  { return }
@@ -188,10 +188,10 @@ class ArticlePlayerUI: UIView {
   }()
   
   lazy var elapsedTimeLabel: UILabel
-  = UILabel().contentFont(size: 9.0).white()
+  = UILabel().contentFont(size: 9.0).color(Const.Colors.appIconGrey)
   
   lazy var remainingTimeLabel: UILabel
-  = UILabel().contentFont(size: 9.0).white()
+  = UILabel().contentFont(size: 9.0).color(Const.Colors.appIconGrey)
   
   lazy var closeButton: Button<ImageView> = {
     let btn = Button<ImageView>()
@@ -394,14 +394,14 @@ BULLET LIST BUTTON MISSING
     pin(minimizeButton.top, to: self.top, dist: 1.0)
     pin(minimizeButton.right, to: self.right, dist: -padding + 8.0)
     
-    titleLabelLeftConstraint_Maxi = pin(titleLabel.left, to: self.left, dist: padding)
-    titleLabelRightConstraint_Maxi = pin(titleLabel.right, to: self.right, dist: -padding)
-    titleLabelTopConstraint_Maxi = pin(titleLabel.top, to: imageView.bottom, dist: padding)
+    titleLabelLeftConstraint_Maxi = pin(titleLabel.left, to: self.left, dist: maxiPadding)
+    titleLabelRightConstraint_Maxi = pin(titleLabel.right, to: self.right, dist: -maxiPadding)
+    titleLabelTopConstraint_Maxi = pin(titleLabel.top, to: imageView.bottom, dist: maxiPadding)
 
     authorLabelTopConstraint_Maxi = pin(authorLabel.top, to: titleLabel.bottom, dist: 2.0)
     
-    pin(slider.left, to: self.left, dist: padding)
-    pin(slider.right, to: self.right, dist: -padding)
+    pin(slider.left, to: self.left, dist: maxiPadding)
+    pin(slider.right, to: self.right, dist: -maxiPadding)
     pin(slider.top, to: authorLabel.bottom, dist: padding)
     
     pin(elapsedTimeLabel.top, to: slider.bottom, dist: 4.0)
@@ -427,6 +427,11 @@ BULLET LIST BUTTON MISSING
     
     self.backgroundColor = Const.Colors.darkSecondaryBG
     
+    self.layer.shadowOpacity = 0.60
+    self.layer.shadowOffset = CGSize(width: 2, height: 2)
+    self.layer.shadowRadius = 5
+    self.layer.shadowColor = UIColor.black.cgColor
+    
     heightConstraint = self.pinHeight(50)
     heightConstraint?.isActive = false
 
@@ -451,7 +456,8 @@ BULLET LIST BUTTON MISSING
   }
   
   let padding = Const.Size.DefaultPadding
-  let miniPadding = 10.0
+  let miniPadding = 9.0
+  let maxiPadding = 18.0
   
   private func updateUI(){
     if self.superview == nil { return }
@@ -516,7 +522,7 @@ BULLET LIST BUTTON MISSING
         authorLabel.numberOfLines = 1
         
         titleLabel.boldContentFont(size: 13)
-        authorLabel.contentFont(size: 12)
+        authorLabel.contentFont(size: 13)
         
         authorLabelBottomConstraint_Mini?.isActive = true
         closeButtonLeftConstraint_Mini?.isActive = true
@@ -530,8 +536,8 @@ BULLET LIST BUTTON MISSING
         closeButton.isHidden = false
       case .maxi:
         imageConstrains?.top.constant = 38.0
-        imageConstrains?.left.constant = padding
-        imageConstrains?.right.constant = -padding
+        imageConstrains?.left.constant = maxiPadding
+        imageConstrains?.right.constant = -maxiPadding
         imageConstrains?.top.isActive = true
         imageConstrains?.left.isActive = true
         imageConstrains?.right.isActive = true
@@ -557,8 +563,8 @@ BULLET LIST BUTTON MISSING
         titleLabel.numberOfLines = 0
         authorLabel.numberOfLines = 0
         
-        titleLabel.boldContentFont()
-        authorLabel.contentFont(size: Const.Size.SmallerFontSize)
+        titleLabel.boldContentFont(size: 18.0)
+        authorLabel.contentFont(size: 12.0)
         
         slider.isHidden = false
         minimizeButton.isHidden = false
