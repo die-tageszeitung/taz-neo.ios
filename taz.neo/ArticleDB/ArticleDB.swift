@@ -2015,8 +2015,9 @@ public final class StoredIssue: Issue, StoredObject {
       for issue in allIssues[keep...] {
         if lastCompleeteIssues.contains(issue) { continue }
         if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
-        Log.log("reduceToOverview for issue: \(issue.date.short)")
-        issue.reduceToOverview()
+        if issue.reduceToOverview() {
+          Log.log("reduced to Overview for issue: \(issue.date.short)")
+        }
       }
     }
          
@@ -2047,33 +2048,38 @@ public final class StoredIssue: Issue, StoredObject {
     
     for path in allSubdirs {
       if knownDirs.contains(path) {
-        Log.log("DO NOT delete folder at: \(path)")
+        Log.debug("DO NOT delete folder at: \(path)")
         continue
       }
-      Log.log("delete folder at: \(path)")
+      Log.debug("delete folder at: \(path)")
       Dir(path).remove()
     }
   }
   
   
   /// Deletes data that is not needed for overview
-  public func reduceToOverview(force: Bool = false) {
-    Log.log("Delete Issue: \(self.date.short)")
+  /// - Parameter force: delete also issues with bookmarks
+  /// - Returns: true if content deletes, false if already overview version
+  public func reduceToOverview(force: Bool = false) -> Bool {
+    Log.debug("Delete Issue: \(self.date.short)")
     guard force ||
             StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
-    else { return }
+    else { return false }
     // Remove files not needed for overview
     storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them
+    var hasChanges = false
     if let secs = sections {
       for section in secs as! [StoredSection] {
         section.delete()
+        hasChanges = true
       }
     }
     let p1 = pageOneFacsimile
     for case let p as StoredPage in pages ?? [] {
       if p.pdf?.fileName == p1?.fileName { continue }
       p.delete()
+      hasChanges = true
     }
     
     (imprint as? StoredArticle)?.delete()
@@ -2087,6 +2093,7 @@ public final class StoredIssue: Issue, StoredObject {
     //lastPage = nil //May delete also last Page?
     //Cannot be restored in current UI Flow and DataModel settup
     ArticleDB.save()
+    return hasChanges
   }
   
 } // StoredIssue
