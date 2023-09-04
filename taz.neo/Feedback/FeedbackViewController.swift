@@ -589,8 +589,8 @@ extension Log.FileLogger {
     
     let secondLastLog = File(Log.FileLogger.secondLastLogfile)
     if secondLastLog.exists,
-       let lString = String(data:lastLog.data, encoding: .utf8) {
-      let created = lastLog.cTime.dateAndTime
+       let lString = String(data:secondLastLog.data, encoding: .utf8) {
+      let created = secondLastLog.cTime.dateAndTime
       log += "\n###################################"
       log += "\n     2nd L A S T - E X E C U T I O N"
       log += "\n     \(created)"
