@@ -569,8 +569,14 @@ public extension Section {
   }
   
   /// Title - either extendedTitle (if available) or name
-  var title: String? { return extendedTitle ?? name }
-  
+  var title: String? { return extendedTitle ?? safeName }
+  ///safe acces to pr.name
+  var safeName: String? {
+    if let stSec = self as? StoredSection {
+      return stSec.pr.name
+    }
+    return name
+  }
 } // extension Section
 
 /**
