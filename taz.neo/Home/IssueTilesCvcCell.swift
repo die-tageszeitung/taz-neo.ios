@@ -54,7 +54,6 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
   func updateDownloadButton(){
     guard let data = data else { return }
     button.indicator.downloadState = data.downloadState
-    momentView.isActivity = data.issue?.isDownloading ?? false
   }
   
   func updateTraitCollection(_ traitCollection: UITraitCollection){
