@@ -1969,19 +1969,20 @@ public final class StoredIssue: Issue, StoredObject {
     return nil
   }
   
-  /// Remove oldest Issues and keep the newest ones
-  public static func reduceOldest(feed: StoredFeed, keep: Int) {
-    Log.log("Delete Issues: \(feed) keep: \(keep)")
-    let issues = firstLoaded(feed: feed)
-    if issues.count > keep {
-      var n = issues.count
-      for issue in issues {
-        if n <= keep { break }
-        issue.reduceToOverview()
-        n -= 1
-      }
-    }
-  }
+  #warning("reduceOldest ...is no more needed currently may delete!")
+//  /// Remove oldest Issues and keep the newest ones
+//  public static func reduceOldest(feed: StoredFeed, keep: Int) {
+//    Log.log("Delete Issues: \(feed) keep: \(keep)")
+//    let issues = firstLoaded(feed: feed)
+//    if issues.count > keep {
+//      var n = issues.count
+//      for issue in issues {
+//        if n <= keep { break }
+//        issue.reduceToOverview()
+//        n -= 1
+//      }
+//    }
+//  }
   
   /// Remove old Issues and keep newest
   /// - Parameters:
