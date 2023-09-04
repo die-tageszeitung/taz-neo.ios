@@ -91,9 +91,11 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   }
   
   func displayBookmark(art: Article) {
-    if (self.delegate as? ContentVC)?.delegate == nil { return }
-    ///use safe access due a crash on play article, from issue, pdf, bookmarks, foreward, backward, serach result, issue,...
-    bookmarkButton.isHidden = art.html?.isEqualTo(adelegate?.issue.imprint?.html) ?? false
+    var bbHidden = true
+    if let aDel = adelegate {
+      bbHidden = art.html?.isEqualTo(aDel.issue.imprint?.html) ?? false
+    }
+    bookmarkButton.isHidden = bbHidden
     
     if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
     else { self.bookmarkButton.buttonView.name = "star" }
