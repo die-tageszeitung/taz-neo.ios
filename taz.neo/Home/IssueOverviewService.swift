@@ -67,8 +67,15 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   private var issues: [String:StoredIssue]
+  ///in hard tests due massive parallel write and read (timer, scrolling on Home, whatever) the app crashed with a own async DispatchQueue
+  ///thats why this is moved to main thread now, since then no more chrashes
   private var requestedRemoteItems: [String:Date] = [:]
   private var loadingIssues:[String:Date] = [:]
+  ///loading issue images can happen on any thread (hopefully)
+  ///but needs to sync (no async) with its queue (the theory)
+  private var loadingIssueImages:[String] = []
+  private var requestedloadingIssueImagesSyncQueue
+  = DispatchQueue(label: "IssueOverviewService.requestedloadingIssueImagesSyncQueue")
   
   /// cell data to display issue cell in caroussel or tiles
   /// enqueue download for issuePreview if no data available
@@ -82,7 +89,7 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     let issue = issue(at: publicationDate.date)
     var img: UIImage?
-    let key = publicationDate.date.issueKey + isFacsimile.mode
+    let key = publicationDate.date.key(pdf: isFacsimile)
     
     if let issue = issue {
       img = self.storedImage(issue: issue, isPdf: isFacsimile)
@@ -223,12 +230,19 @@ class IssueOverviewService: NSObject, DoesLog {
       for sdate in lds { self.loadingIssues[sdate] = nil }
     }
   }
-  
+    
   /// helper to load moment image/pdf for given issue
   /// - Parameters:
   ///   - issue: load files for this issue
   ///   - isPdf: load pdf facsimile or moment
   func apiLoadMomentImages(for issue: StoredIssue, isPdf: Bool) {
+    let key = issue.key(pdf: isPdf)
+    if loadingIssueImages.contains(key) { return }
+    
+    //wait here for a moment if needed!
+    requestedloadingIssueImagesSyncQueue.sync { [weak self] in
+      self?.loadingIssueImages.append(key)
+    }
     debug("load for: \(issue.date.issueKey)")
     let dir = issue.dir
     var files: [FileEntry] = []
@@ -239,7 +253,6 @@ class IssueOverviewService: NSObject, DoesLog {
     else if !isPdf, issue.moment.carouselFiles.count > 0 {
       files = issue.moment.carouselFiles
     }
-    let key = issue.date.issueKey + isPdf.mode
     var dlFiles: [FileEntry] = []
     for f in files { if f.exists(inDir: dir.path) == false { dlFiles.append(f)}}
     
@@ -253,6 +266,9 @@ class IssueOverviewService: NSObject, DoesLog {
     if dlFiles.count == 0 {
       self.debug("no file to download for Issue \(issue.date.issueKey)")
       self.notifyIssueOwvAvailable(issue: issue, key: key)
+      self.requestedloadingIssueImagesSyncQueue.sync { [weak self] in
+        self?.loadingIssueImages.removeAll{$0 == key}
+      }
       return
     }
     self.debug("do download \(dlFiles.count) Issue files for \(issue.date.issueKey)")
@@ -270,6 +286,11 @@ class IssueOverviewService: NSObject, DoesLog {
           msg += " for: \(issue.date.issueKey) 7XßC3"
           self?.log(msg)
         }
+        ///if everything works as expected this is the place to remove, in case of errors
+        ///otherwise remove must be done before succes notification send...or debug again
+        self?.requestedloadingIssueImagesSyncQueue.sync { [weak self] in
+          self?.loadingIssueImages.removeAll{$0 == key}
+        }
       }
   }
   
@@ -283,7 +304,7 @@ class IssueOverviewService: NSObject, DoesLog {
     if self.storedImage(issue: issue, isPdf: isPdf) == nil {
       apiLoadMomentImages(for: issue, isPdf: isPdf)
     } else {
-      notifyIssueOwvAvailable(issue: issue, key: issue.date.issueKey + isFacsimile.mode)
+      notifyIssueOwvAvailable(issue: issue, key: issue.key(pdf: isFacsimile))
     }
     self.issues[issue.date.issueKey] = issue
   }
@@ -523,6 +544,18 @@ extension IssueOverviewService {
 
 fileprivate extension Bool {
   var mode:String { self ? "P" : "M"}
+}
+
+fileprivate extension Issue {
+  func key(pdf:Bool)->String{
+    return self.date.key(pdf: pdf)
+  }
+}
+
+fileprivate extension Date {
+  func key(pdf:Bool)->String{
+    return self.issueKey + pdf.mode
+  }
 }
 
 typealias DeviceSpeedParameter = (waitDuration: Double, parallelRequests: Int)
