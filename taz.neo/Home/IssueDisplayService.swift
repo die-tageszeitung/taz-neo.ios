@@ -220,10 +220,10 @@ extension IssueDisplayService {
     }
     
     if let err = error as? FeederError {
-      feederContext.handleFeederError(err){}
+      err.handle()
     }
     else if let err = error as? DownloadError, let err2 = err.enclosedError as? FeederError {
-      feederContext.handleFeederError(err2){}
+      err2.handle()
     }
     else if let err = error as? DownloadError {
       if err.handled == false {  showDownloadErrorAlert() }

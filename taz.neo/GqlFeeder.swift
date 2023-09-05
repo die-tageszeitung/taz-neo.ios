@@ -880,16 +880,18 @@ open class GqlFeeder: Feeder, DoesLog {
   //ToDo: Ensure this is just done once not on every net status Change
   public func updateStatus(loadAllPublicationDates:Bool = false, closure: @escaping(Result<Feeder,Error>)->()){
     isUpdating = true
+    let wasAuthenticated: Bool = authToken != nil
     feederStatus(loadAllPublicationDates:loadAllPublicationDates) { [weak self] (res) in
       guard let self = self else { return }
       self.debug("feederStatus->res \(res)")
       var ret: Result<Feeder,Error>
       switch res {
-      case .success(let st):
-        ret = .success(self)
-        self.status = st
-      case .failure(let err):
-        ret = .failure(err)
+        case .success(let st):
+          self.checkResponse(authInfo: st.authInfo, wasAuthenticated: wasAuthenticated)
+          ret = .success(self)
+          self.status = st
+        case .failure(let err):
+          ret = .failure(err)
       }
       self.lastUpdated =  Date()
       closure(ret)
@@ -1214,36 +1216,16 @@ open class GqlFeeder: Feeder, DoesLog {
       var ret: Result<[Issue],Error>? = nil
       switch res {
       case .success(let frq):  
-        let req = frq["feedRequest"]!
-        if wasAuthenticated {
-          if req.authInfo.status == .valid
-             && Defaults.expiredAccountDate != nil { //account not expired anymore
-            TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
-            TazAppEnvironment.sharedInstance.feederContext?.clearExpiredAccountFeederError()
-            Alert.message(message: "Ihr Abo ist wieder aktiv!")
-            Defaults.expiredAccountDate = nil
-            Notification.send(Const.NotificationNames.authenticationSucceeded)
-          }
-          else if req.authInfo.status == .expired
-                  && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {
-            ret = .failure(FeederError.expiredAccount(req.authInfo.message))
-            TazAppEnvironment.sharedInstance.expiredAccountInfoShown = true
-          }
-          else if req.authInfo.status != .expired
-                    && req.authInfo.status != .valid {
-            self.log("Invalid Auth Status: \(req.authInfo.status) for FeedRequest. WasAuth:\(wasAuthenticated) SessionAuth: \(gqlSession.authToken?.length ?? 0 > 10)")
-            ret = .failure(FeederError.changedAccount(req.authInfo.message))
-          }
-        }
-        if ret == nil { 
-          if let issues = req.feeds[0].issues, issues.count > 0 {
-            for issue in issues { 
-              issue.feed = feed 
+        guard let frqResponse = frq["feedRequest"] else { return }
+          self.checkResponse(authInfo: frqResponse.authInfo, wasAuthenticated: wasAuthenticated)
+          if let issues = frqResponse.feeds[0].issues, issues.count > 0 {
+            for issue in issues {
+              issue.feed = feed
               (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages)
               if let sections = issue.sections as? [GqlSection] {
                 for section in sections {
                   section.primaryIssue = issue
-                  if let articles = section.articles as? [GqlArticle] { 
+                  if let articles = section.articles as? [GqlArticle] {
                     for article in articles {
                       article.primaryIssue = issue
                     }
@@ -1251,13 +1233,12 @@ open class GqlFeeder: Feeder, DoesLog {
                 }
               }
             }
-            ret = .success(issues) 
+            ret = .success(issues)
           }
           else {
             ret = .failure(FeederError.unexpectedResponse(
               "Server didn't return issues"))
           }
-        }
       case .failure(let err):
         ret = .failure(err)
       }
@@ -1410,3 +1391,91 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
 } // GqlFeeder
+
+extension GqlFeeder {
+  
+  
+  /// Checks Auth Status
+  /// - Parameters:
+  ///   - authInfo: response authInfo
+  ///   - wasAuthenticated: request was auth
+  func checkResponse(authInfo: GqlAuthInfo,
+                     wasAuthenticated: Bool) {
+    ///Do not handle unauth requests!
+    guard wasAuthenticated else { return }
+    
+    var err: FeederError? = nil
+    if authInfo.status == .valid
+        && Defaults.expiredAccountDate != nil { //account not expired anymore
+      TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
+      TazAppEnvironment.sharedInstance.feederContext?.clearExpiredAccountFeederError()
+      Alert.message(message: "Ihr Abo ist wieder aktiv!")
+      Defaults.expiredAccountDate = nil
+      Notification.send(Const.NotificationNames.authenticationSucceeded)
+    }
+    else if authInfo.status == .expired
+              && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {
+      err = FeederError.expiredAccount(authInfo.message)
+      TazAppEnvironment.sharedInstance.expiredAccountInfoShown = true
+    }
+    else if authInfo.status != .expired
+              && authInfo.status != .valid {
+      self.log("Invalid Auth Status: \(authInfo.status) for FeedRequest. WasAuth:\(wasAuthenticated) SessionAuth: \(gqlSession?.authToken?.length ?? 0 > 10)")
+      err = FeederError.changedAccount(authInfo.message)
+    }
+    err?.handle()
+  }
+}
+
+extension FeederError {
+  /// Feeder has flagged an error
+  func handle() {
+    let currentFeederErrorReason
+    = TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
+    //prevent multiple appeariance of the same alert
+    if let curr = currentFeederErrorReason, curr === self {
+      ///not refactor and add closures to alert cause in case of later changes/programming errors may
+      ///lot of similar closure calls added and may result in other errors e.g. multiple times of calling getOwvIssue...
+      Log.log("Closure not added"); return
+    }
+    Log.debug("handleFeederError for: \(self)")
+    TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
+    = self
+    var text = ""
+    switch self {
+      case .expiredAccount:
+        text = "Ihr Abonnement ist am \(self.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        if Defaults.expiredAccountDate != nil {
+          return //dont show popup on each start
+        }
+        if Defaults.expiredAccountDate == nil {
+          Defaults.expiredAccountDate =  self.expiredAccountDate ?? Date()
+        }
+        TazAppEnvironment.sharedInstance.feederContext?.updateSubscriptionStatus { _ in
+          TazAppEnvironment.sharedInstance.feederContext?.authenticator.authenticate(with: nil)
+        }
+        return; //Prevent default Popup
+      case .invalidAccount:
+        text = "Ihre Kundendaten sind nicht korrekt."
+        fallthrough
+      case .changedAccount:
+        let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder
+        text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
+        Log.debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == gqlFeeder?.authToken) 4ses: \(gqlFeeder?.gqlSession?.authToken == gqlFeeder?.authToken)")
+        
+        TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true)
+      case .unexpectedResponse:
+        Alert.message(title: "Fehler",
+                      message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
+          exit(0)
+        }
+      case .minVersionRequired: break
+    }
+    Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: {
+      ///Do not authenticate here because its not needed here e.g.
+      /// expired account due probeabo, user may not want to auth again
+      /// additionally it makes more problems currently e.g. Overlay may appear and not disappear
+      TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason = nil
+    })
+  }
+}

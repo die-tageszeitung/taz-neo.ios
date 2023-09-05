@@ -449,53 +449,6 @@ open class FeederContext: DoesLog {
     }
   }
   
-  /// Feeder has flagged an error
-  func handleFeederError(_ err: FeederError, closure: @escaping ()->()) {
-    //prevent multiple appeariance of the same alert
-    if let curr = currentFeederErrorReason, curr === err {
-      ///not refactor and add closures to alert cause in case of later changes/programming errors may
-      ///lot of similar closure calls added and may result in other errors e.g. multiple times of calling getOwvIssue...
-      log("Closure not added"); return
-    }
-    debug("handleFeederError for: \(err)")
-    currentFeederErrorReason = err
-    var text = ""
-    switch err {
-      case .expiredAccount: text = "Ihr Abonnement ist am \(err.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
-        if Defaults.expiredAccountDate != nil {
-          closure()
-          return //dont show popup on each start
-        }
-        if Defaults.expiredAccountDate == nil {
-          Defaults.expiredAccountDate =  err.expiredAccountDate ?? Date()
-        }
-        updateSubscriptionStatus { _ in
-          self.authenticator.authenticate(with: nil)
-        }
-        closure()
-        return; //Prevent default Popup
-      case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
-        fallthrough
-      case .changedAccount: text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
-        debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == self.gqlFeeder.authToken) 4ses: \(self.gqlFeeder.gqlSession?.authToken == self.gqlFeeder.authToken)")
-        
-        TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true)
-      case .unexpectedResponse:
-        Alert.message(title: "Fehler",
-                      message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
-          exit(0)
-        }
-      case.minVersionRequired: break
-    }
-    Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: { [weak self] in
-      ///Do not authenticate here because its not needed here e.g.
-      /// expired account due probeabo, user may not want to auth again
-      /// additionally it makes more problems currently e.g. Overlay may appear and not disappear
-      self?.currentFeederErrorReason = nil
-      closure()
-    })
-  }
-  
   public func getLatestStoredIssue() -> StoredIssue? {
     guard defaultFeed != nil else {
       error("Stored Feed not found");

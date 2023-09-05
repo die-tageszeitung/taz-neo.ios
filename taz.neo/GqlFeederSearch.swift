@@ -413,36 +413,13 @@ extension GqlFeeder {
       searchItem.searching = false
       switch res {
         case .success(let searchResponseWrapper):
-          #warning("Do not handle unauth error currently!")
-//          if let authError
-//              = self.handleResponseAuthInfo(wasAuthenticated,
-//                                            searchResponseWrapper.search.authInfo){
-//            closure(.failure(authError))
-//            return
-//          }
+          self.checkResponse(authInfo: searchResponseWrapper.search.authInfo,
+                             wasAuthenticated: wasAuthenticated)
           searchItem.lastResponse = searchResponseWrapper
           closure(.success(searchItem))
         case .failure(let err):
           closure(.failure(err))
       }
     }
-  }
-  
-  
-  /// Checks Auth Status
-  /// - Parameters:
-  ///   - wasAuthenticated: Request auth
-  ///   - authStatus: Response AuthStatus
-  /// - Returns: Error if auth expired or changed
-  func handleResponseAuthInfo(_ wasAuthenticated:Bool, _ authInfo: GqlAuthInfo) -> Error? {
-    if wasAuthenticated {
-      if authInfo.status == .expired {
-        return FeederError.expiredAccount(authInfo.message)
-      }
-      else if authInfo.status != .valid {
-        return FeederError.changedAccount(authInfo.message)
-      }
-    }
-    return nil
   }
 }
