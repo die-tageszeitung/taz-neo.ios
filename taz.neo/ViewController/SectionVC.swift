@@ -224,6 +224,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     let content = contents.valueAt(secIndex)
     
     if let section = content as? Section {
+      ///@Refactor: Thread 1: Fatal error: Unexpectedly found nil while unwrapping an Optional value
+      ///StoredSection.type.getter
+      ///Particular Download? => STOP?=> Account unexpired => Tap on Issue => Crash
       self.slider?.collapsedButton = section.type == .advertisement
       
       if section.type == .advertisement {
