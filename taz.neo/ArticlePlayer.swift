@@ -31,6 +31,10 @@ class ArticlePlayer: DoesLog {
                         sender: self)
       commandCenter.seekForwardCommand.isEnabled = isPlaying
       commandCenter.seekBackwardCommand.isEnabled = isPlaying
+      //Must be enabled otherwise button is disabled, this happen on close!
+      commandCenter.previousTrackCommand.isEnabled = isPlaying
+      commandCenter.nextTrackCommand.isEnabled = isPlaying
+      commandCenter.playCommand.isEnabled = true
     }
   }
   
@@ -373,6 +377,7 @@ class ArticlePlayer: DoesLog {
     currentArticle = nil
     commandCenter.previousTrackCommand.isEnabled = false
     commandCenter.nextTrackCommand.isEnabled = false
+    commandCenter.playCommand.isEnabled = false
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
   }
   
