@@ -46,9 +46,9 @@ class ArticlePlayerUI: UIView {
       widthConstraint?.constant = w
     }
     
-//    if noGap {
-//      self.layer.cornerRadius = 0.0
-//    }
+    if noGap {
+      self.layer.cornerRadius = 0.0
+    }
     
     rightConstraint?.constant
     = noGap
