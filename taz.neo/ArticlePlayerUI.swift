@@ -426,8 +426,7 @@ BULLET LIST BUTTON MISSING
     pin(forwardButton.centerY, to: toggleButton.centerY)
     
     self.backgroundColor = Const.Colors.darkSecondaryBG
-    
-    self.layer.shadowOpacity = 0.60
+    self.layer.shadowOpacity = 0.40
     self.layer.shadowOffset = CGSize(width: 2, height: 2)
     self.layer.shadowRadius = 5
     self.layer.shadowColor = UIColor.black.cgColor
