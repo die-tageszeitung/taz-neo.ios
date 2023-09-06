@@ -520,18 +520,15 @@ extension HomeTVC {
 
 extension HomeTVC: ReloadAfterAuthChanged {
   public func reloadOpened(){
-    ///welches ist die aktuell geöffnete ausgabe?
-    ///scrolle zu dieser ausgabe im karussel bzw times brauche ich nicht, die bleiben
-    ///download wolke muss sich aber aktualisieren! besonders in tiles TEST!
     guard let selectedIssue = self.issueInfo?.issue as? StoredIssue else { return }
+    navigationController?.popToRootViewController(animated: false)
     if selectedIssue.isDownloading == false {
-      navigationController?.popToRootViewController(animated: false)
       self.openIssue(selectedIssue, isReloadOpened: true)
       return
-    }
-    Notification.receiveOnce("issue", from: selectedIssue) { [weak self] notif in
-      self?.navigationController?.popToRootViewController(animated: false)
-      self?.openIssue(selectedIssue, isReloadOpened: true)
+    } else {
+      Notification.receiveOnce("issue", from: selectedIssue) { [weak self] notif in
+        self?.openIssue(selectedIssue, isReloadOpened: true)
+      }
     }
   }
 }

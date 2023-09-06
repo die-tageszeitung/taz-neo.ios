@@ -50,6 +50,7 @@ public class WaitingAppOverlay {
       
       if let title = titleMessage {
         let label = UILabel(title).titleFont().white().center()
+        label.numberOfLines = 2
         layer.addSubview(label)
         pin(label.bottom, to: layer.centerY, dist: -30)
         pin(label.left, to: layer.left, dist: 10)

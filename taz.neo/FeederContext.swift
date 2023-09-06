@@ -280,8 +280,8 @@ open class FeederContext: DoesLog {
   
   /// Request authentication from Authenticator
   /// Authenticator will send Const.NotificationNames.authenticationSucceeded Notification if successful
-  public func authenticate() {
-    authenticator.authenticate(with: nil)
+  public func authenticate(with targetVC:UIViewController? = nil) {
+    authenticator.authenticate(with: targetVC)
     Notification.receiveOnce(Const.NotificationNames.authenticationSucceeded) {[weak self] _ in
       self?.endPolling()
     }

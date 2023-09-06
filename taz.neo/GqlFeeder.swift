@@ -1409,9 +1409,9 @@ extension GqlFeeder {
         && Defaults.expiredAccountDate != nil { //account not expired anymore
       TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
       TazAppEnvironment.sharedInstance.feederContext?.clearExpiredAccountFeederError()
-      Alert.message(message: "Ihr Abo ist wieder aktiv!")
       Defaults.expiredAccountDate = nil
-      Notification.send(Const.NotificationNames.authenticationSucceeded)
+      Notification.send(Const.NotificationNames.authenticationSucceeded,
+                        content: "Ihr Abo ist wieder aktiv!")
     }
     else if authInfo.status == .expired
               && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {

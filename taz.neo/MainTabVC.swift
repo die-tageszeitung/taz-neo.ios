@@ -38,7 +38,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     self.navigationController?.isNavigationBarHidden = true
     registerForStyleUpdates()
     Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
-      self?.authenticationSucceededCheckReload()
+      self?.authenticationSucceededCheckReload(alertMessage: (notif.content as? String))
     }
     
     Notification.receive(Const.NotificationNames.searchSelectedText) { [weak self] notif in
@@ -144,7 +144,8 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
 extension MainTabVC {
   /// Check whether it's necessary to reload the current Issue
-  public func authenticationSucceededCheckReload() {
+  /// - Parameter alertMessage: optional alert message e.g. shown if reactivated subscription
+  public func authenticationSucceededCheckReload(alertMessage: String? = nil) {
     feederContext.updateAuthIfNeeded()
     
     let selectedNc = selectedViewController as? UINavigationController
@@ -171,7 +172,12 @@ extension MainTabVC {
       }
     }
               
-    guard let reloadTarget = reloadTarget else { return }
+    guard let reloadTarget = reloadTarget else {
+      if let alertMessage = alertMessage {
+        Alert.message(message: alertMessage)
+      }
+      return
+    }
     if Defaults.expiredAccount {
       //DemoIssue only will be exchanged with DemoIssue
       log("not refresh if expired account")
@@ -183,13 +189,15 @@ extension MainTabVC {
     WaitingAppOverlay.show(alpha: 1.0,
                            backbround: snap,
                            showSpinner: true,
-                           titleMessage: "Aktualisiere Daten",
+                           titleMessage: "\(alertMessage ?? "")\nAktualisiere Daten",
                            bottomMessage: "Bitte haben Sie einen Moment Geduld!",
                            dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
-    
-    Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
-      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+    if !(reloadTarget is BookmarkNC) {
+      Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
+        Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+      }
     }
+  
     Notification.receiveOnce(Const.NotificationNames.feederUnreachable) { _ in
       /// popToRootViewController is no more needed here due its done by reloadTarget.reloadOpened
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)

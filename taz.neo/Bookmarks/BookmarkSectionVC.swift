@@ -77,6 +77,7 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
         """
         wv.jsexec(js)
       }
+      (self.delegate as? BookmarkNC)?.reloadIfNeeded(article: article)
     }
   }
   
