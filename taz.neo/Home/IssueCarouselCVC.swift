@@ -89,6 +89,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
             let data = self?.service.cellData(for: idx) else { return }
       if let issue = data.issue {
         self?.downloadButton.indicator.downloadState = .waiting
+        self?.service.download(issueAt: data.date.date)
       }
     }
     return v
