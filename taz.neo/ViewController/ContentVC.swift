@@ -496,6 +496,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       self.bookmarkClosure?(self)
     }
     
+//    bookmarkButton.onLongPress { [weak self] _ in
+//      guard let self = self else { return }
+//      Toast.show("bookmarkButton Long Tap", .alert)
+//    }
+    
     self.playButton.buttonView.onTapping { [weak self] _ in
       guard let self = self else { return }
       self.playClosure?(self)
