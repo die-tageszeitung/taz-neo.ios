@@ -32,7 +32,7 @@ class OfflineAlert {
   
   var closures : [(()->())] = []
   
-  lazy var alert:AlertController = {
+  private var newAlert: AlertController {
     let actionButton = UIAlertAction(title: actionButtonTitle, style: .cancel) {   [weak self] _ in
       self?.buttonPressed()
     }
@@ -42,7 +42,9 @@ class OfflineAlert {
       self?.presented = false
     }
     return a
-  }()
+  }
+  
+  lazy var alert:AlertController = {   return newAlert }()
   
   func buttonPressed(){
     var oldClosures = closures
@@ -59,6 +61,11 @@ class OfflineAlert {
     if needsUpdate == false { return }
     ensureMain { [weak self]  in
       guard let self = self else { return }
+      ///Recreate new Alert Instance due Actions (==Buttons) are imutable
+      if self.alert.actions.first?.title != self.actionButtonTitle {
+        self.alert = newAlert
+      }
+      
       self.alert.title = self.title
       self.alert.message = self.message
       
