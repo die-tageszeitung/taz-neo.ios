@@ -1158,10 +1158,10 @@ public final class StoredFrame: Frame, StoredObject {
     let epsilon: Float = 0.0001
     
     for storedFrame in relatedPage.frames ?? [] {
-      if storedFrame.x1 - object.x1 > epsilon { continue }
-      if storedFrame.x2 - object.x2 > epsilon { continue }
-      if storedFrame.y1 - object.y1 > epsilon { continue }
-      if storedFrame.y2 - object.y2 > epsilon { continue }
+      if abs(storedFrame.x1 - object.x1) > epsilon { continue }
+      if abs(storedFrame.x2 - object.x2) > epsilon { continue }
+      if abs(storedFrame.y1 - object.y1) > epsilon { continue }
+      if abs(storedFrame.y2 - object.y2) > epsilon { continue }
       if (storedFrame as? StoredFrame)?.pr.page != relatedPage.pr {
         Log.log("Warning unexpected found frame on another page")
         continue
@@ -1305,6 +1305,11 @@ public final class StoredPage: Page, StoredObject {
         }
       }
     }
+//    if let sourceCount = object.frames?.count,
+//       let selfCount = self.frames?.count,
+//       sourceCount != selfCount {
+//      log("Wrong count of Frames saved. Source: \(sourceCount) != \(selfCount) saved.")
+//    }
   }
   
   /// Return stored record with given name
