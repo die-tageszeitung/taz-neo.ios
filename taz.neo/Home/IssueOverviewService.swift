@@ -592,10 +592,9 @@ fileprivate extension Device {
   /// Not so many parallel requests on slow devices, and not so often
   static var speedParameter: DeviceSpeedParameter {
     switch (Self.isIpad, Self.speedLevel){
-      case (_, 1): return (0.8, 2)
-      case (_, 2): return (0.6, 3)
-      case (_, 3): return (0.4, 4)
-      case (_, _): return (0.2, 4)
+      case (_, 1): return (0.4, 2)
+      case (_, 2): return (0.3, 3)
+      case (_, _): return (0.15, 4)
     }
   }
   
