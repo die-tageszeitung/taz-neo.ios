@@ -70,7 +70,7 @@ class IssueOverviewService: NSObject, DoesLog {
   ///in hard tests due massive parallel write and read (timer, scrolling on Home, whatever) the app crashed with a own async DispatchQueue
   ///thats why this is moved to main thread now, since then no more chrashes
   private var requestedRemoteItems: [String:Date] = [:]
-  private var loadingIssues:[String:Date] = [:]
+  private var loadingIssueData:[String:Date] = [:]
   ///loading issue images can happen on any thread (hopefully)
   ///but needs to sync (no async) with its queue (the theory)
   private var loadingIssueImages:[String] = []
@@ -121,19 +121,36 @@ class IssueOverviewService: NSObject, DoesLog {
   private func loadMissingItems(){
     if skipNextTimer == true { skipNextTimer  = false; return }
     guard self.requestedRemoteItems.count > 0 else { return }
-    if feederContext.isConnected == false { return }
+    var connected = false
+    DispatchQueue.main.sync {
+      connected = feederContext.isConnected
+    }
+    if connected == false { return }
     var missingIssues:[Date] = []
     for (key, date) in self.requestedRemoteItems {
       if let issue = self.issue(at: date) {
         self.updateIssue(issue: issue, isPdf: key.suffix(1) == "P")
-      } else if self.loadingIssues[date.issueKey] == nil {
+      } else if self.loadingIssueData[date.issueKey] == nil {
         missingIssues.append(date)
       }
     }
+    missingIssues = missingIssues.sorted()
     guard let oldest = missingIssues.first,
           let newest = missingIssues.last else { return }
     ///ignoring public holidays and sundays, need to add 1 to load itself or the next one
     let days = 1 + (newest.timeIntervalSinceReferenceDate - oldest.timeIntervalSinceReferenceDate)/(3600*24)
+    /**
+     
+     Herausforderungen
+     
+     aus Beobachtung kommen in kurzem Intervall 2x
+     self?.apiLoadIssueOverview(for: 13.5., count: 7)
+     self?.apiLoadIssueOverview(for: 13.5., count: 14) ...z.B: diese werden auch beide eingereiht weil nicht gesynced! => kann ich beheben, indem ich loadingIssues auf eine sync queue setze
+     loadingIssueDataSyncQueue.sync { [weak self] in
+       self?.loadingIssueImages.append(key)
+     }
+     
+     */
     onThread {[weak self] in
       self?.apiLoadIssueOverview(for: newest, count: Int(days.nextUp))
     }
@@ -178,17 +195,18 @@ class IssueOverviewService: NSObject, DoesLog {
   ///   - date: newest date to request from API
   ///   - count: additionally count of issues
   func apiLoadIssueOverview(for date: Date, count: Int) {
+    if self.loadingIssueData[date.issueKey] != nil { return }
     var count = count
     if count < 1 { count = 1 }
     else if count >= 10 { count = 10 }//API Limit is currently 20
     var d = date
     var lds:[String] = []
     for _ in 0...count {
-      d.addDays(1)
       lds.append(d.issueKey)
-      loadingIssues[d.issueKey] = d
+      loadingIssueData[d.issueKey] = d
+      d.addDays(1)
     }
-        
+    debug("apiLoadIssueOverview date: \(date.issueKey) count: \(count)")
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: date,
                                         count: count,
@@ -227,7 +245,7 @@ class IssueOverviewService: NSObject, DoesLog {
           self.updateIssue(issue: si, isPdf: isFacsimile)
         }
       }
-      for sdate in lds { self.loadingIssues[sdate] = nil }
+      for sdate in lds { self.loadingIssueData[sdate] = nil }
     }
   }
     
@@ -323,8 +341,8 @@ class IssueOverviewService: NSObject, DoesLog {
                              issue: issue,
                              image: img,
                              downloadState: downloadState(for: issue))
-    Notification.send(Const.NotificationNames.issueUpdate,
-                      content: data)
+    onMain{Notification.send(Const.NotificationNames.issueUpdate,
+                        content: data)}
   }
   
   /// refresh data model, reloads active collectionView
@@ -482,11 +500,15 @@ class IssueOverviewService: NSObject, DoesLog {
       self?.updateIssues()
     }
     
-    let params = Device.speedParameter
-    
-    self.timer = Timer.scheduledTimer(withTimeInterval: params.waitDuration, repeats: true, block: {[weak self] _ in
-      self?.loadMissingItems()
-     })
+    onThread {[weak self] in
+      let params = Device.speedParameter
+      self?.timer = Timer.scheduledTimer(withTimeInterval: params.waitDuration,
+                                        repeats: true,
+                                        block: {[weak self] _ in
+        self?.loadMissingItems()
+      })
+      RunLoop.current.run()
+    }
   }
 }
 
@@ -598,4 +620,18 @@ fileprivate extension Device {
   private static var cpuCount: Int { ProcessInfo.processInfo.processorCount }
   private static var ramMB: UInt64 { ProcessInfo.processInfo.physicalMemory/(1024*1024) }
   private static var lowPower: Bool { ProcessInfo.processInfo.isLowPowerModeEnabled == true }
+}
+
+
+fileprivate extension PublicationCycle {
+  var multiplicator: Int {
+    switch self {
+      case .daily: return 1;
+      case .weekly: return 7;
+      case .monthly: return 30;
+      case .yearly: return 365;
+      case .quarterly: return 91;
+      case .unknown: return 1;
+    }
+  }
 }
