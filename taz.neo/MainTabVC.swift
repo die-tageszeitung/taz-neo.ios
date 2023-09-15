@@ -13,9 +13,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   var feederContext: FeederContext
   var service: IssueOverviewService
   
-  private var popViewControllerClosure: ((UIViewController)->(Bool))
-  = { vc in return !(vc is IntroVC) }
-  
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     Notification.send(Const.NotificationNames.viewSizeTransition,
@@ -94,11 +91,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let homeNc = NavigationController(rootViewController: home)
-    homeNc.onPopViewController(closure: popViewControllerClosure)
     homeNc.isNavigationBarHidden = true
     
     let bookmarksNc = BookmarkNC(feederContext: feederContext)
-    bookmarksNc.onPopViewController(closure: popViewControllerClosure)
     bookmarksNc.title = "Leseliste"
     bookmarksNc.tabBarItem.image = UIImage(named: "star")
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
@@ -110,7 +105,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let searchNc = NavigationController(rootViewController: search)
-    searchNc.onPopViewController(closure: popViewControllerClosure)
     searchNc.isNavigationBarHidden = true
     
     let settings = SettingsVC(feederContext: feederContext)
