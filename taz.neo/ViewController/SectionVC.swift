@@ -28,7 +28,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     didSet {
       guard let art = article else { return }
       let secIndex = article2index(art: art)
-      if let lidx = lastIndex, secIndex != lidx {
+      if secIndex != lastIndex {
         displaySection(index: secIndex)
       }
       lastIndex = secIndex
