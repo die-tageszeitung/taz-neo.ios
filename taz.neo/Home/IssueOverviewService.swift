@@ -186,10 +186,15 @@ class IssueOverviewService: NSObject, DoesLog {
     var d = date
     var lds:[String] = []
     for _ in 0...count*feederContext.defaultFeed.cycle.multiplicator {
+      if loadingIssueData[d.issueKey] != nil { break }//prevent load same issue multiple times
       lds.append(d.issueKey)
       loadingIssueData[d.issueKey] = d
       d.addDays(1)
     }
+    
+    if lds.count == 0 { return }//prevent multiple times enqueued same item 
+    
+    count = max(1, lds.count/feederContext.defaultFeed.cycle.multiplicator)//prevent load same issue multiple times
     
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: date,
