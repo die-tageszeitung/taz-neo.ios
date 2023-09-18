@@ -145,7 +145,7 @@ public class NewContentTableVC: UIViewController {
   
   var expandedSections: [Int] = [] {
     didSet {
-      header.collapsed = expandedSections.isEmpty
+      header.collapsed = expandedSections.count != (issue?.sections?.count ?? 999) + 1
     }
   }
   
