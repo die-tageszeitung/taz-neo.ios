@@ -105,6 +105,11 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
           self.button.indicator.percent = 0.0
         }
       }
+      else if let dlState = notif.content as? DownloadStatusIndicatorState {
+        onMainAfter {[weak self] in
+          self?.button.indicator.downloadState = dlState
+        }
+      }
     })
   }
 }

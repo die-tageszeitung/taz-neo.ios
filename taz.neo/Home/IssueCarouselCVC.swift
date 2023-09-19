@@ -383,6 +383,11 @@ extension IssueCarouselCVC {
           self?.downloadButton.indicator.percent = percent
         }
       }
+      else if let dlState = notif.content as? DownloadStatusIndicatorState {
+        onMainAfter {[weak self] in
+          self?.downloadButton.indicator.downloadState = dlState
+        }
+      }
     })
   }
 }
