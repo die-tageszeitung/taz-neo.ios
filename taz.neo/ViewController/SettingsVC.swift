@@ -43,6 +43,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   
+  @Default("autoHideToolbar")
+  var autoHideToolbar: Bool
+
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
   
@@ -250,6 +253,14 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                   initialValue: smartBackFromArticle,
                   onChange: {[weak self] newValue in
                     self?.smartBackFromArticle = newValue
+                  })
+  
+  lazy var hideToolbarCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Toolbar ausblenden",
+                  detailText: "Automatisches ausblenden der Toolbar in Artikel- und Zeitungsansicht.\nAchtung: bei aktiver Vorlesefunktion oder Demo Inhalten blendet die Toolbar ebenfalls nicht aus.",
+                  initialValue: autoHideToolbar,
+                  onChange: {[weak self] newValue in
+                    self?.autoHideToolbar = newValue
                   })
   
   lazy var memoryUsageCell: XSettingsCell
@@ -662,6 +673,10 @@ extension SettingsVC {
       deleteDatabaseCell,
       resetAppCell
     ]
+    
+    if Device.isIphone {
+      cells.insert(hideToolbarCell, at: 0)
+    }
     
     if App.isAlpha {
       cells.append(contentChangeSettingCellALPHA)

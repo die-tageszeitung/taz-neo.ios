@@ -18,6 +18,10 @@ class ArticlePlayer: DoesLog {
   @Default("playbackRate")
   public var playbackRate: Double
   
+  public var isOpen: Bool {
+    userInterface.superview != nil
+  }
+  
   /// The audio player
   var aplayer: AudioPlayer
   var aPlayerPlayed = false

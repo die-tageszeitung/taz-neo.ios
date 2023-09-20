@@ -108,6 +108,22 @@ extension String {
 
 
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
+  
+  @Default("autoHideToolbar")
+  var autoHideToolbar: Bool
+  
+  private var hideOnScroll: Bool {
+    if UIScreen.isIpadRegularSize {
+      return false
+    }
+    if autoHideToolbar == false {
+      return false
+    }
+    if ArticlePlayer.singleton.isOpen {
+      return false
+    }
+    return true
+  }
 
   /// CSS Margins for Articles and Sections
   public class var topMargin: CGFloat { return 40 }
@@ -617,7 +633,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     setupToolbar()
     
     whenScrolled { [weak self] ratio in
-      if (ratio < 0) { self?.toolBar.show(show: false, animated: true)}
+      if (ratio < 0) {
+        if self?.hideOnScroll == false { return }
+        self?.toolBar.show(show: false, animated: true)}
       else { self?.toolBar.show(show:true, animated: true)}
     }
     onDisplay {[weak self]_, _  in

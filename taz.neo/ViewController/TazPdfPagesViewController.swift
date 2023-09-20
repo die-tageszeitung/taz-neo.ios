@@ -215,6 +215,25 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
 open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, UIStyleChangeDelegate{
   
+  @Default("autoHideToolbar")
+  var autoHideToolbar: Bool
+  
+  private var hideOnScroll: Bool {
+    if UIScreen.isIpadRegularSize {
+      return false
+    }
+    if autoHideToolbar == false {
+      return false
+    }
+    if ArticlePlayer.singleton.isOpen {
+      return false
+    }
+    if issue.status == .reduced {
+      return false
+    }
+    return true
+  }
+  
   public var section: Section?
   
   public var sections: [Section]
@@ -532,6 +551,10 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       }
 
       ziv.whenZoomed {   [weak self] zoomedIn in
+        if self?.hideOnScroll == false {
+          self?.toolBar.show(show:true, animated: true)
+          return
+        }
         self?.toolBar.show(show:!zoomedIn, animated: true)
       }
       self?.toolBar.show(show:true, animated: true)
@@ -667,7 +690,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
     
     self.whenScrolled(minRatio: 0.01) { [weak self] ratio in
-      if ratio < 0 { self?.toolBar.show(show:false, animated: true)}
+      if ratio < 0 {
+        if self?.hideOnScroll == false { return }
+        self?.toolBar.show(show:false, animated: true)}
       else { self?.toolBar.show(show:true, animated: true)}
     }
   }
