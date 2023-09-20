@@ -12,6 +12,11 @@ import NorthLib
 enum ArticlePlayerUIStates { case mini, maxi, tracklist}
 
 class ArticlePlayerUI: UIView {
+  
+  @Default("playbackRate")
+  public var playbackRate: Double
+  
+  var rateMenuItms: [menuAction] = []
       
   var acticeTargetView: UIView? {
     didSet {
@@ -181,10 +186,56 @@ class ArticlePlayerUI: UIView {
   
   lazy var authorLabel: UILabel = {
     let lbl = UILabel()
-    lbl.contentFont(size: Const.Size.SmallerFontSize).white()
+    lbl.contentFont().white()
     lbl.numberOfLines = 0
     lbl.onTapping(closure: { [weak self] _ in self?.maximize() })
     return lbl
+  }()
+  
+  func setRate(_ rate: Double){
+    rateMenuItms = rateMenuItms.map{
+        var itm = $0
+      if $0.title == "\(rate)" {
+          itm.icon = "checkmark"
+        }
+      else {
+        itm.icon = nil
+      }
+        return itm
+    }
+  
+    let menu = MenuActions()
+    menu.actions = rateMenuItms
+
+    if #available(iOS 14.0, *) {
+      rateButton.menu = menu.contextMenu
+    }
+    playbackRate = rate
+    rateButton.setTitle("\(rate)x", for: .normal)
+  }
+  
+  lazy var rateButton: UIButton = {
+    let btn = UIButton()
+    btn.titleLabel?.contentFont()
+    btn.setTitleColor(Const.Colors.appIconGrey, for: .normal)
+    if #available(iOS 14.0, *) {
+      btn.showsMenuAsPrimaryAction = true
+    }
+    
+    let values: [Double] = [0.5, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 2.0]
+    var itms: [menuAction] = []
+    for val in values {
+      itms += (title: "\(val)",
+               icon: nil,
+               group: 0,
+               closure: {[weak self] _ in self?.setRate(val)})
+    }
+    rateMenuItms = itms
+    btn.contentEdgeInsets = .zero
+    if #available(iOS 14.0, *) {
+      btn.iosHigher14?.showsMenuAsPrimaryAction = true
+    }
+    return btn
   }()
   
   lazy var elapsedTimeLabel: UILabel
@@ -336,6 +387,7 @@ BULLET LIST BUTTON MISSING
     self.addSubview(imageView)
     self.addSubview(titleLabel)
     self.addSubview(authorLabel)
+    self.addSubview(rateButton)
     self.addSubview(closeButton)
     self.addSubview(minimizeButton)
     self.addSubview(slider)
@@ -344,6 +396,8 @@ BULLET LIST BUTTON MISSING
     self.addSubview(toggleButton)
     self.addSubview(backButton)
     self.addSubview(forwardButton)
+    
+    setRate(playbackRate)
     
     //Mini Player Base UI
     pin(bgImageView, to: imageView)
@@ -378,7 +432,8 @@ BULLET LIST BUTTON MISSING
     titleLabelRightConstraint_Mini?.isActive = false
     
     pin(authorLabel.left, to: titleLabel.left)
-    pin(authorLabel.right, to: titleLabel.right)
+    pin(rateButton.right, to: titleLabel.right)
+    pin(authorLabel.right, to: titleLabel.right, dist: -15.0 )
 
     titleLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
     authorLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
@@ -399,6 +454,7 @@ BULLET LIST BUTTON MISSING
     titleLabelTopConstraint_Maxi = pin(titleLabel.top, to: imageView.bottom, dist: maxiPadding)
 
     authorLabelTopConstraint_Maxi = pin(authorLabel.top, to: titleLabel.bottom, dist: 2.0)
+    pin(rateButton.bottom, to: authorLabel.bottom, dist: 6.0)
     
     pin(slider.left, to: self.left, dist: maxiPadding)
     pin(slider.right, to: self.right, dist: -maxiPadding)
@@ -484,6 +540,7 @@ BULLET LIST BUTTON MISSING
     imageSizeConstrains?.width.isActive = false
     
     bgImageView.isHidden = true
+    rateButton.isHidden = true
     blurredEffectView.isHidden = true
     closeButton.isHidden = true
     minimizeButton.isHidden = true
@@ -563,8 +620,10 @@ BULLET LIST BUTTON MISSING
         authorLabel.numberOfLines = 0
         
         titleLabel.boldContentFont(size: 18.0)
-        authorLabel.contentFont(size: 12.0)
-        
+        authorLabel.contentFont(size: 17.0)
+        ///ContextMenu is only available for iOS 14, no fallback in Player due nearly no users on iOS 13
+        ///active Devices iOS 13.x 1 of 2.000 in last 30 Days opt in => 0.05%
+        if #available(iOS 14.0, *) { rateButton.isHidden = false }
         slider.isHidden = false
         minimizeButton.isHidden = false
         remainingTimeLabel.isHidden = false

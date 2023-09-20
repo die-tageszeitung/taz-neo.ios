@@ -15,6 +15,9 @@ enum PlayerEnqueueType { case replaceCurrent, enqueueNext, enqueueLast}
 /// The ArticlePlayer plays one or more Articles as audio streams
 class ArticlePlayer: DoesLog {
   
+  @Default("playbackRate")
+  public var playbackRate: Double
+  
   /// The audio player
   var aplayer: AudioPlayer
   var aPlayerPlayed = false
@@ -150,6 +153,9 @@ class ArticlePlayer: DoesLog {
     userInterface.backButton.addTarget(self,
                                    action: #selector(backwardButtonTouchOutsideInsideAction),
                                    for: .touchUpOutside)
+    $playbackRate.onChange{[weak self] newValue in
+      self?.aplayer.player?.rate = Float(newValue)
+    }
   }
   
   @objc private func sliderChanged(sender: Any) {
@@ -245,7 +251,7 @@ class ArticlePlayer: DoesLog {
   var seeking = false
   
   func stopSeeking() {
-    aplayer.player?.rate = 1.0
+    aplayer.player?.rate = Float(playbackRate)
     seeking = false
   }
   
