@@ -17,24 +17,6 @@ class ArticlePlayerUI: UIView {
   public var playbackRate: Double
   
   var rateMenuItms: [menuAction] = []
-      
-  var acticeTargetView: UIView? {
-    didSet {
-      if self.superview == nil { return }
-      if acticeTargetView == oldValue { return }
-      minimize()
-      if acticeTargetView == nil {
-        self.removeFromSuperview()
-        onMainAfter {[weak self] in self?.addAndShow(animated: true) }
-      } else {
-        addAndShow(animated: true)
-      }
-    }
-  }
-    
-  var bottomConstraint: NSLayoutConstraint?
-  var rightConstraint: NSLayoutConstraint?
-  
   
   func updateWidth(doLayout: Bool = true){
     
@@ -50,24 +32,11 @@ class ArticlePlayerUI: UIView {
     else {
       widthConstraint?.constant = w
     }
-    
-    if noGap {
-      self.layer.cornerRadius = 0.0
-    }
-    
     rightConstraint?.constant
     = noGap
     ? 0
     : -miniPadding
-    if acticeTargetView != nil && acticeTargetView?.superview != nil {
-      ///probably tollbar
-      bottomConstraint?.constant = noGap ? -0.5 : -10
-    }
-    else {
-      //probably tabbar => pinned to window
-      bottomConstraint?.constant = noGap ? 5.0 : -60
-    }
-
+    
     if doLayout { self.superview?.layoutIfNeeded() }
   }
   
@@ -85,39 +54,20 @@ class ArticlePlayerUI: UIView {
     }
   }
   
-  private func addAndShow(animated:Bool){
-    guard let targetSv
-            = acticeTargetView?.superview
-            ?? UIWindow.keyWindow else { return }
-    self.removeFromSuperview()
-    if let acticeTargetView = acticeTargetView, targetSv == acticeTargetView.superview {
-      targetSv.insertSubview(self, belowSubview: acticeTargetView)
-      bottomConstraint = pin(self.bottom, to: acticeTargetView.top, dist:  -10.0)
-    }
-    else {
-      targetSv.addSubview(self)
-      bottomConstraint = pin(self.bottom, to: targetSv.bottomGuide(), dist:  -60.0)
-    }
-    rightConstraint = pin(self.right, to: targetSv.rightGuide(), dist: -miniPadding)
-    viewSize = targetSv.frame.size
-    self.updateWidth()
-    if animated == false  { return }
-    UIView.animate(withDuration: 0.6) {
-      targetSv.layoutIfNeeded()
-    }
+  private func addAndShow(){
+    guard self.superview == nil else { return }
+    guard let view
+            = (TazAppEnvironment.sharedInstance.rootViewController
+               as? UITabBarController)?.view  else { return }
+    view.addSubview(self)
+    bottomConstraint = pin(self.bottom, to: view.bottom, dist: -55.0)
+    rightConstraint = pin(self.right, to: view.rightGuide(), dist: -miniPadding)
+    viewSize = view.frame.size
   }
   
   func show(){
-    if self.superview != nil {
-      error("already displayed")
-      return
-    }
-    
-    acticeTargetView
-    = (((TazAppEnvironment.sharedInstance.rootViewController as? MainTabVC)?
-      .selectedViewController as? UINavigationController)?
-      .visibleViewController as? ContentVC)?.toolBar
-    addAndShow(animated: false)
+    if self.superview != nil { return }
+    addAndShow()
     updateUI()
   }
   
@@ -379,6 +329,9 @@ BULLET LIST BUTTON MISSING
   var toggleButtonTopConstraint_Maxi: NSLayoutConstraint?
   var toggleButtonXConstraint_Maxi: NSLayoutConstraint?
   var toggleButtonYConstraint_Mini: NSLayoutConstraint?
+  
+  var rightConstraint: NSLayoutConstraint?
+  var bottomConstraint: NSLayoutConstraint?
 
   
   func setup(){
@@ -638,6 +591,8 @@ BULLET LIST BUTTON MISSING
         self.layer.cornerRadius = 13.0
     }
     updateWidth(doLayout: false)
+    ///problem jump of whole component layout if needed on all, if still stay in maxi player a layout
+    ///of all componnets above slider in one wrapper can help
     UIView.animate(withDuration: 0.3) {[weak self] in
       self?.layoutIfNeeded()
     }

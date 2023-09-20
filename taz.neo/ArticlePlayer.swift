@@ -45,9 +45,6 @@ class ArticlePlayer: DoesLog {
     }
   }
   
-  var acticeTargetView: UIView? {
-    didSet { userInterface.acticeTargetView = acticeTargetView }}
-  
   public func onEnd(closure: ((Error?)->())?) { _onEnd = closure }
   private var _onEnd: ((Error?)->())?
   

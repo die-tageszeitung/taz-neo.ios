@@ -704,12 +704,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
-    ArticlePlayer.singleton.acticeTargetView = toolBar
   }
   
   override public func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
-    ArticlePlayer.singleton.acticeTargetView = nil
     if let svc = self.navigationController?.viewControllers.last as? SectionVC {
       //cannot use updateLayout due strange side effects
       if let sidx = svc.index {
