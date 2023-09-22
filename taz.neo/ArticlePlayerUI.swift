@@ -68,7 +68,7 @@ class ArticlePlayerUI: UIView {
   func show(){
     if self.superview != nil { return }
     addAndShow()
-    updateUI()
+    updateLayout()
   }
   
   var currentSeconds: Double? {
@@ -112,7 +112,6 @@ class ArticlePlayerUI: UIView {
       if image == oldValue { return }
       bgImageView.image = image?.withRenderingMode(.alwaysTemplate).blurred
       imageView.image = image
-      updateUI()
     }
   }
   
@@ -130,17 +129,19 @@ class ArticlePlayerUI: UIView {
     let lbl = UILabel()
     lbl.numberOfLines = 0
     lbl.boldContentFont().white()
-    lbl.onTapping(closure: { [weak self] _ in self?.maximize() })
     return lbl
   }()
-  
+    
   lazy var authorLabel: UILabel = {
     let lbl = UILabel()
     lbl.contentFont().white()
     lbl.numberOfLines = 0
-    lbl.onTapping(closure: { [weak self] _ in self?.maximize() })
     return lbl
   }()
+  
+  func updateUI(){
+    updateLayout()
+  }
   
   func setRate(_ rate: Double){
     rateMenuItms = rateMenuItms.map{
@@ -289,13 +290,12 @@ BULLET LIST BUTTON MISSING
   
   lazy var progressCircle = ProgressCircle()
   
-  let wrapper = UIView()
+  private let wrapper = CustomWrapper()
   
   func minimize(){ state = .mini }
   
   func maximize(){
     if state == .maxi {
-      state = .mini
       maxiItemTapClosure?()
     }
     else {
@@ -321,7 +321,9 @@ BULLET LIST BUTTON MISSING
                         right: NSLayoutConstraint)?///mini 104 else maxiPadding
   var toggleSizeConstrains: (width: NSLayoutConstraint,///mini 30 maxi 52
                             height: NSLayoutConstraint)?///
+  var titleLabelRightConstraint: NSLayoutConstraint?///maxi+NoAuthor -15 else 0
   var authorLabelRightConstraint: NSLayoutConstraint?///maxi -15 else 0
+  var authorLabelBottomConstraint: NSLayoutConstraint?///maxi+NoAuthor: -4 else 0
   var titleLabelLeftConstraint: NSLayoutConstraint?///mini+image: 32+padding else 0
   var titleLabelTopConstraint_Maxi: NSLayoutConstraint?///active only in maxi
   var titleLabelTopConstraint_Mini: NSLayoutConstraint?///active only in mini
@@ -347,26 +349,8 @@ BULLET LIST BUTTON MISSING
     self.addSubview(backButton)
     self.addSubview(forwardButton)
     self.addSubview(wrapper)
-    
-    log("bgImageView: \(bgImageView)")
-    log("blurredEffectView: \(blurredEffectView)")
-    log("imageView: \(imageView)")
-    log("titleLabel: \(titleLabel)")
-    log("authorLabel: \(authorLabel)")
-    log("rateButton: \(rateButton)")
-    log("closeButton: \(closeButton)")
-    log("minimizeButton: \(minimizeButton)")
-    log("slider: \(slider)")
-    log("remainingTimeLabel: \(remainingTimeLabel)")
-    log("elapsedTimeLabel: \(elapsedTimeLabel)")
-    log("toggleButton: \(toggleButton)")
-    log("backButton: \(backButton)")
-    log("forwardButton: \(forwardButton)")
-    log("wrapper: \(wrapper)")
-    log("self: \(self)")
-    
+    wrapper.onTapping(closure: { [weak self] _ in self?.maximize() })
     setRate(playbackRate)
-    
     //Mini Player Base UI
     pin(bgImageView, to: imageView)
     imageConstrains = pin(imageView, to: wrapper)
@@ -388,10 +372,10 @@ BULLET LIST BUTTON MISSING
     pin(authorLabel.left, to: titleLabel.left)
     titleLabelLeftConstraint = pin(titleLabel.left, to: wrapper.left)
     
-    pin(titleLabel.right, to: wrapper.right)
     pin(rateButton.right, to: wrapper.right)
+    titleLabelRightConstraint = pin(titleLabel.right, to: wrapper.right)
     authorLabelRightConstraint = pin(authorLabel.right, to: wrapper.right)
-    pin(authorLabel.bottom, to: wrapper.bottom)
+    authorLabelBottomConstraint = pin(authorLabel.bottom, to: wrapper.bottom)
     
     titleLabelTopConstraint_Mini = pin(titleLabel.top, to: imageView.top, dist: -1.0)
     titleLabelTopConstraint_Mini?.isActive = false
@@ -399,7 +383,7 @@ BULLET LIST BUTTON MISSING
     titleLabelTopConstraint_Maxi?.isActive = false
     
     pin(authorLabel.top, to: titleLabel.bottom, dist: 2.0)
-    pin(rateButton.bottom, to: wrapper.bottom, dist: -6.0)
+    pin(rateButton.bottom, to: wrapper.bottom, dist: 6.0)
   
     titleLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
     authorLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
@@ -409,7 +393,7 @@ BULLET LIST BUTTON MISSING
     toggleButtonXConstraint_Maxi = toggleButton.centerX()
     toggleButtonXConstraint_Maxi?.isActive = false
     
-    toggleButtonRightConstraint_Mini =  pin(toggleButton.right, to: self.right, dist: -28.0)
+    toggleButtonRightConstraint_Mini =  pin(toggleButton.right, to: self.right, dist: -60.0)
     toggleButtonRightConstraint_Mini?.isActive = false
     
     toggleButtonTopConstraint_Maxi = pin(toggleButton.top, to: slider.bottom, dist: padding + 5.0)
@@ -419,10 +403,6 @@ BULLET LIST BUTTON MISSING
     closeButton.centerY()
     
     wrapperConstrains = pin(wrapper, to: self)
-    wrapperConstrains?.bottom.priority = .defaultLow
-    wrapper.pinHeight(50.0, priority: .defaultLow)
-    wrapper.setContentCompressionResistancePriority(.required, for: .vertical)
-    wrapper.setContentHuggingPriority(.fittingSizeLevel, for: .vertical)
     
     pin(minimizeButton.top, to: self.top, dist: 1.0)
     pin(minimizeButton.right, to: self.right, dist: -padding + 8.0)
@@ -450,13 +430,12 @@ BULLET LIST BUTTON MISSING
     self.layer.shadowOffset = CGSize(width: 2, height: 2)
     self.layer.shadowRadius = 5
     self.layer.shadowColor = UIColor.black.cgColor
-    
+    updateLayout()
     Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
       guard let newSize = notification.content as? CGSize else { return }
       self?.viewSize = newSize
     }
   }
-
   
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -468,14 +447,14 @@ BULLET LIST BUTTON MISSING
   }
   
   var state:ArticlePlayerUIStates = .mini {
-    didSet { if oldValue != state {  updateUI() } }
+    didSet { if oldValue != state {  updateLayout() } }
   }
   
   let padding = Const.Size.DefaultPadding
   let miniPadding = 9.0
   let maxiPadding = 18.0
   
-  private func updateUI(){
+  private func updateLayout(){
     if self.superview == nil { return }
     
     switch state {
@@ -512,11 +491,12 @@ BULLET LIST BUTTON MISSING
         wrapperConstrains?.top.constant = miniPadding ///mini defaultPadding else 38.0
         wrapperConstrains?.bottom.constant = -miniPadding ///mini defaultPadding else 68.0?
         wrapperConstrains?.left.constant = miniPadding///mini defaultPadding else maxiPadding
-        wrapperConstrains?.right.constant = -104///mini 104 else maxiPadding
+        wrapperConstrains?.right.constant = -101///mini 101 else maxiPadding
         
         toggleSizeConstrains?.width.constant = 30///mini 30 maxi 52
         toggleSizeConstrains?.height.constant = 30///mini 30 maxi 52
 
+        titleLabelRightConstraint?.constant = 0
         authorLabelRightConstraint?.constant = 0///maxi -15 else 0
         titleLabelLeftConstraint?.constant = image == nil ? 0 : 32 + padding///mini+image: 32+padding else 0
 
@@ -533,15 +513,23 @@ BULLET LIST BUTTON MISSING
         
         titleLabel.boldContentFont(size: 13)
         authorLabel.contentFont(size: 13)
-        
+        authorLabelBottomConstraint?.constant = 0
       case .maxi:
+        authorLabelBottomConstraint?.constant
+        = authorLabel.text?.length ?? 0 == 0 ? 4.0 : 0.0
         imageConstrains?.bottom.isActive = false ///mini only
         titleLabelTopConstraint_Mini?.isActive = false///active only in mini
         toggleButtonYConstraint_Mini?.isActive = false///active only in mini
         toggleButtonRightConstraint_Mini?.isActive = false///active only in mini
-        imageAspectConstraint_Maxi?.isActive = image != nil
+        if image == nil {
+          imageAspectConstraint_Maxi?.isActive = false
+          imageSizeConstrains_Mini?.height.isActive = true
+        }
+        else {
+          imageSizeConstrains_Mini?.height.isActive = false
+          imageAspectConstraint_Maxi?.isActive = true
+        }
         imageSizeConstrains_Mini?.width.isActive = false
-        imageSizeConstrains_Mini?.height.isActive = image == nil
  
         ///ContextMenu is only available for iOS 14, no fallback in Player due nearly no users on iOS 13
         ///active Devices iOS 13.x 1 of 2.000 in last 30 Days opt in => 0.05%
@@ -577,6 +565,8 @@ BULLET LIST BUTTON MISSING
         toggleSizeConstrains?.height.constant = 52///mini 30 maxi 52
 
         authorLabelRightConstraint?.constant = -15///maxi -15 else 0
+        titleLabelRightConstraint?.constant
+        = authorLabel.text?.length ?? 0 == 0 ? -15.0 : 0
         titleLabelLeftConstraint?.constant = 0///mini+image: 32+padding else 0
                 
         self.layer.cornerRadius = 13.0
@@ -590,8 +580,6 @@ BULLET LIST BUTTON MISSING
         wrapperConstrains?.bottom.isActive = true
     }
     updateWidth(doLayout: false)
-    ///problem jump of whole component layout if needed on all, if still stay in maxi player a layout
-    ///of all componnets above slider in one wrapper can help
     UIView.animate(withDuration: 0.3) {[weak self] in
       self?.wrapper.layoutIfNeeded()
     }
@@ -607,5 +595,16 @@ extension UIImage {
     }
     guard let ciImage = ciImage else { return self }
     return UIImage(ciImage: ciImage.applyingGaussianBlur(sigma: 7.0))
+  }
+}
+
+
+/// Helper to animate from bottom of a viel not from center
+/// helps here to not jump the whole view
+fileprivate class CustomWrapper: UIView {
+  override func layoutSubviews() {
+    self.layer.anchorPoint = CGPoint(x: 0.5, y: 1.0)
+    super.layoutSubviews()
+    self.layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
   }
 }

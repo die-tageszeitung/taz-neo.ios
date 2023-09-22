@@ -105,6 +105,7 @@ class ArticlePlayer: DoesLog {
         aPlayerPlayed = true
         self.userInterface.slider.value = 0.0
       }
+      userInterface.updateUI()
       updatePlaying()
     }
   }
@@ -199,22 +200,6 @@ class ArticlePlayer: DoesLog {
     touchDownActive = false
   }
   
-  ///No way to do something like this!
-//  @objc private func forwardButtonAction(sender: Any?, forEvent event: UIEvent?) {
-//    switch (seeking, event) {
-//      case let (true, event) where event == UIControl.Event.touchCancel):
-//        seekForeward()
-////      case true, .touchUpInside:
-////        seekForeward()
-////      case false, .touchDown:
-////        seekForeward()
-////      case _, .touchUpInside:
-////        playNext()
-//      default:
-//        print("true")
-//    }
-//  }
-                                   
   private static var _singleton: ArticlePlayer? = nil
   private lazy var userInterface: ArticlePlayerUI = {
     let v =  ArticlePlayerUI()
