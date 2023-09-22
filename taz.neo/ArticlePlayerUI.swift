@@ -38,6 +38,7 @@ class ArticlePlayerUI: UIView {
     : -miniPadding
     
     if doLayout { self.superview?.layoutIfNeeded() }
+    fixBottomPosition()
   }
   
   var viewSize: CGSize = .zero {
@@ -60,7 +61,7 @@ class ArticlePlayerUI: UIView {
             = (TazAppEnvironment.sharedInstance.rootViewController
                as? UITabBarController)?.view  else { return }
     view.addSubview(self)
-    parentBottomConstraint = pin(self.bottom, to: view.bottom, dist: -90.0)
+    parentBottomConstraint = pin(self.bottom, to: view.bottomGuide(), dist: -64.0)
     parentRightConstraint = pin(self.right, to: view.rightGuide(), dist: -miniPadding)
     viewSize = view.frame.size
   }
@@ -431,7 +432,7 @@ BULLET LIST BUTTON MISSING
     self.layer.shadowOffset = CGSize(width: 2, height: 2)
     self.layer.shadowRadius = 5
     self.layer.shadowColor = UIColor.black.cgColor
-    updateLayout()
+    
     Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
       guard let newSize = notification.content as? CGSize else { return }
       self?.viewSize = newSize
@@ -448,19 +449,30 @@ BULLET LIST BUTTON MISSING
   }
   
   var state:ArticlePlayerUIStates = .mini {
-    didSet { if oldValue != state {  updateLayout(stateChange: true) } }
+    didSet { if oldValue != state {
+      self.bringToFront()
+      updateLayout(stateChange: true) }
+    }
   }
   
   let padding = Const.Size.DefaultPadding
   let miniPadding = 9.0
   let maxiPadding = 18.0
   
+  func fixBottomPosition(){
+    if self.state == .mini || traitCollection.horizontalSizeClass != .compact {
+      parentBottomConstraint?.constant = -64.0
+    }
+    else {
+      parentBottomConstraint?.constant = 0.0 + UIWindow.safeInsets.bottom
+    }
+  }
+  
   private func updateLayout(stateChange: Bool = false){
     if self.superview == nil { return }
-    
+    fixBottomPosition()
     switch state {
       case .mini:
-        parentBottomConstraint?.constant = -90.0
         rateButton.isHidden = true
         closeButton.isHidden = false
         minimizeButton.isHidden = true
@@ -489,7 +501,6 @@ BULLET LIST BUTTON MISSING
         imageConstrains?.bottom.isActive = true ///mini only
         imageConstrains?.right.isActive = false///maxi only
 
-        
         wrapperConstrains?.top.constant = miniPadding ///mini defaultPadding else 38.0
         wrapperConstrains?.bottom.constant = -miniPadding ///mini defaultPadding else 68.0?
         wrapperConstrains?.left.constant = miniPadding///mini defaultPadding else maxiPadding
@@ -517,7 +528,6 @@ BULLET LIST BUTTON MISSING
         authorLabel.contentFont(size: 13)
         authorLabelBottomConstraint?.constant = 0
       case .maxi:
-        parentBottomConstraint?.constant = 0.0
         authorLabelBottomConstraint?.constant
         = authorLabel.text?.length ?? 0 == 0 ? 4.0 : 0.0
         imageConstrains?.bottom.isActive = false ///mini only
