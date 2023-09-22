@@ -373,7 +373,10 @@ class ArticlePlayer: DoesLog {
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
   }
   
-  public func play(issue:Issue, startFromArticle: Article?, enqueueType: PlayerEnqueueType){
+  public func play(issue:Issue,
+                   startFromArticle: Article?,
+                   enqueueType: PlayerEnqueueType,
+                   loadIssueIfNeeded: Bool = true){
     
     let feederContext = TazAppEnvironment.sharedInstance.feederContext
     
@@ -382,15 +385,20 @@ class ArticlePlayer: DoesLog {
       let msg = enqueueType == .replaceCurrent
       ? "Die Wiedergabe wird nach Download der Ausgabe gestartet."
       : "Die Wiedergabeliste wird nach Download der Ausgabe ergänzt."
-      Toast.show(msg)
-      Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+      if loadIssueIfNeeded {
+        Toast.show(msg)
+      }
+      Notification.receiveOnce("issueStructure", from: issue) { [weak self] notif in
         self?.play(issue: issue,
                    startFromArticle: startFromArticle,
-                   enqueueType: enqueueType)
+                   enqueueType: enqueueType,
+                   loadIssueIfNeeded: false)
       }
-      feederContext?.getCompleteIssue(issue: storedIssue,
-                                      isPages: false,
-                                      isAutomatically: false)
+      if loadIssueIfNeeded {
+        feederContext?.getCompleteIssue(issue: storedIssue,
+                                        isPages: false,
+                                        isAutomatically: false)
+      }
     }
     
     var arts:[Article] = issue.allArticles
