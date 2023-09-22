@@ -32,7 +32,7 @@ class ArticlePlayerUI: UIView {
     else {
       widthConstraint?.constant = w
     }
-    rightConstraint?.constant
+    parentRightConstraint?.constant
     = noGap
     ? 0
     : -miniPadding
@@ -60,8 +60,8 @@ class ArticlePlayerUI: UIView {
             = (TazAppEnvironment.sharedInstance.rootViewController
                as? UITabBarController)?.view  else { return }
     view.addSubview(self)
-    pin(self.bottom, to: view.bottom, dist: -55.0)
-    rightConstraint = pin(self.right, to: view.rightGuide(), dist: -miniPadding)
+    parentBottomConstraint = pin(self.bottom, to: view.bottom, dist: -90.0)
+    parentRightConstraint = pin(self.right, to: view.rightGuide(), dist: -miniPadding)
     viewSize = view.frame.size
   }
   
@@ -303,7 +303,8 @@ BULLET LIST BUTTON MISSING
     }
   }
   
-  var rightConstraint: NSLayoutConstraint?//Global not for state changes!
+  var parentRightConstraint: NSLayoutConstraint?//Global not for state changes!
+  var parentBottomConstraint: NSLayoutConstraint?//Global not for state changes!
   
   var widthConstraint: NSLayoutConstraint?//Only for viewSizeTransition not for state changes!
 
@@ -447,18 +448,19 @@ BULLET LIST BUTTON MISSING
   }
   
   var state:ArticlePlayerUIStates = .mini {
-    didSet { if oldValue != state {  updateLayout() } }
+    didSet { if oldValue != state {  updateLayout(stateChange: true) } }
   }
   
   let padding = Const.Size.DefaultPadding
   let miniPadding = 9.0
   let maxiPadding = 18.0
   
-  private func updateLayout(){
+  private func updateLayout(stateChange: Bool = false){
     if self.superview == nil { return }
     
     switch state {
       case .mini:
+        parentBottomConstraint?.constant = -90.0
         rateButton.isHidden = true
         closeButton.isHidden = false
         minimizeButton.isHidden = true
@@ -515,6 +517,7 @@ BULLET LIST BUTTON MISSING
         authorLabel.contentFont(size: 13)
         authorLabelBottomConstraint?.constant = 0
       case .maxi:
+        parentBottomConstraint?.constant = 0.0
         authorLabelBottomConstraint?.constant
         = authorLabel.text?.length ?? 0 == 0 ? 4.0 : 0.0
         imageConstrains?.bottom.isActive = false ///mini only
@@ -537,6 +540,12 @@ BULLET LIST BUTTON MISSING
         closeButton.isHidden = true
         minimizeButton.isHidden = false
         slider.isHidden = false
+        if stateChange {
+          remainingTimeLabel.alpha = 0.0
+            elapsedTimeLabel.alpha = 0.0
+            backButton.alpha = 0.0
+            forwardButton.alpha = 0.0
+        }
         remainingTimeLabel.isHidden = false
         elapsedTimeLabel.isHidden = false
         backButton.isHidden = false
@@ -557,7 +566,7 @@ BULLET LIST BUTTON MISSING
         imageConstrains?.right.isActive = true///maxi only
         
         wrapperConstrains?.top.constant = 38.0 ///mini defaultPadding else 38.0
-        wrapperConstrains?.bottom.constant = -98.0 ///mini defaultPadding else 68.0?
+        wrapperConstrains?.bottom.constant = -130//-98.0 ///mini defaultPadding else 68.0?
         wrapperConstrains?.left.constant = maxiPadding///mini defaultPadding else maxiPadding
         wrapperConstrains?.right.constant = -maxiPadding///mini 104 else maxiPadding
         
@@ -580,8 +589,31 @@ BULLET LIST BUTTON MISSING
         wrapperConstrains?.bottom.isActive = true
     }
     updateWidth(doLayout: false)
-    UIView.animate(withDuration: 0.3) {[weak self] in
-      self?.wrapper.layoutIfNeeded()
+    if stateChange {
+      UIView.animateKeyframes(withDuration: 0.4, delay: 0, animations: {[weak self] in
+        UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.1) {
+          self?.wrapper.alpha = 0.0
+          self?.toggleButton.alpha = 0.0
+        }
+        UIView.addKeyframe(withRelativeStartTime: 0.2, relativeDuration: 0.6) {
+          self?.layoutIfNeeded()
+        }
+        UIView.addKeyframe(withRelativeStartTime: 0.6, relativeDuration: 0.4) {
+          self?.wrapper.alpha = 1.0
+          self?.toggleButton.alpha = 1.0
+          if stateChange == true {
+            self?.remainingTimeLabel.alpha = 1.0
+            self?.elapsedTimeLabel.alpha = 1.0
+            self?.backButton.alpha = 1.0
+            self?.forwardButton.alpha = 1.0
+          }
+        }
+      })
+    }
+    else {
+      UIView.animate(withDuration: 0.3) {[weak self] in
+        self?.wrapper.layoutIfNeeded()
+      }
     }
   }
 }
