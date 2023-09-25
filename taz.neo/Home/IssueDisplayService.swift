@@ -139,7 +139,7 @@ extension IssueDisplayService {
                 pushDelegate: pushDelegate)
       if feederContext.isAuthenticated,
          feederContext.gqlFeeder.isExpiredAccount == false,
-        (issue.allArticles.map{$0.audioItem}.compactMap{ $0 }).isEmpty {
+         issue.needUpdateAudio == true {
         self.feederContext.getCompleteIssue(issue: sissue, isPages: false, isAutomatically: false, force: true)
       }
       return

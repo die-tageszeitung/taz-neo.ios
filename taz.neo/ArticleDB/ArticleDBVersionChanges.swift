@@ -35,6 +35,15 @@ public extension ArticleDB {
             }
           }
         }
+      }
+    }
+  }
+  private func merge2to3() {
+    for feeder in StoredFeeder.all() {
+      for feed in StoredFeed.feedsOfFeeder(feeder: feeder) {
+        for issue in StoredIssue.issuesInFeed(feed: feed) {
+          issue.needUpdateAudio = true
+        }
       } 
     }
   }
@@ -43,6 +52,7 @@ public extension ArticleDB {
   func mergeVersions() {
     if oldModelVersion == 0 { initializeDB() }
     if oldModelVersion < 2 && newModelVersion >= 2 { merge1to2() }
+    if oldModelVersion < 3 && newModelVersion >= 3 { merge2to3() }
   }
   
 }

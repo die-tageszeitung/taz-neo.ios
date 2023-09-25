@@ -1848,6 +1848,10 @@ public final class StoredIssue: Issue, StoredObject {
     get { return pr.isOvwComplete }
     set { pr.isOvwComplete = newValue }
   }
+  public var needUpdateAudio: Bool {
+    get { return pr.needUpdateAudio }
+    set { pr.needUpdateAudio = newValue }
+  }
   public var storedPayload: StoredPayload? {
     if let ppl = pr.payload { return StoredPayload(persistent: ppl) }
     else { return nil }

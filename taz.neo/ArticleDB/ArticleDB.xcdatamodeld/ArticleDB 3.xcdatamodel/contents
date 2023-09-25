@@ -140,6 +140,7 @@
         <attribute name="lastSection" optional="YES" attributeType="Integer 32" defaultValueString="-1" usesScalarValueType="YES"/>
         <attribute name="minResourceVersion" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="moTime" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="needUpdateAudio" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="status" attributeType="String"/>
         <attribute name="validityDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="zipName" optional="YES" attributeType="String"/>
