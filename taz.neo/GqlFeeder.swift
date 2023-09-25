@@ -294,7 +294,7 @@ class GqlArticle: Article, GQLObject {
   var articleHtml: GqlFile
   var html: FileEntry? { return articleHtml }
   var gqlAudio: GqlAudio?
-  var audio: Audio?{ return gqlAudio }
+  var audioItem: Audio?{ return gqlAudio }
   /// Article title
   var title: String?
   /// Article teaser
@@ -338,7 +338,7 @@ class GqlSection: Section, GQLObject {
   var sectionHtml: GqlFile
   var html: FileEntry? { return sectionHtml }
   var gqlAudio: GqlAudio?
-  var audio: Audio?{ return gqlAudio }
+  var audioItem: Audio?{ return gqlAudio }
   /// Name of section
   var name: String
   /// Optional title (not to display in table of contents)

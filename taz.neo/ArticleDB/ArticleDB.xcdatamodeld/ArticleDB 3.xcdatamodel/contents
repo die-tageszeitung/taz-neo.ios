@@ -19,10 +19,10 @@
         </fetchIndex>
     </entity>
     <entity name="Audio" representedClassName="PersistentAudio" syncable="YES" codeGenerationType="class">
-        <attribute name="breaks" optional="YES" attributeType="Transformable" customClassName="[Float]"/>
+        <attribute name="breaks" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="[Float]"/>
         <attribute name="duration" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="speaker" optional="YES" attributeType="String"/>
-        <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="audio" inverseEntity="Content"/>
+        <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="audioItem" inverseEntity="Content"/>
         <relationship name="file" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="audio" inverseEntity="FileEntry"/>
     </entity>
     <entity name="Author" representedClassName="PersistentAuthor" syncable="YES" codeGenerationType="class">
@@ -42,7 +42,7 @@
         <attribute name="sectionTitle" optional="YES" attributeType="String"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
-        <relationship name="audio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Audio" inverseName="content" inverseEntity="Audio"/>
+        <relationship name="audioItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Audio" inverseName="content" inverseEntity="Audio"/>
         <relationship name="html" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="content" inverseEntity="FileEntry"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="imageContent" inverseEntity="ImageEntry"/>
     </entity>

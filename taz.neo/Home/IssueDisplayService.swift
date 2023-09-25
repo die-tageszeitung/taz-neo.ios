@@ -137,6 +137,11 @@ extension IssueDisplayService {
                 atArticle: targetArticle?.index ?? issue.lastArticle,
                 atPage: issue.lastPage,
                 pushDelegate: pushDelegate)
+      if feederContext.isAuthenticated,
+         feederContext.gqlFeeder.isExpiredAccount == false,
+        (issue.allArticles.map{$0.audioItem}.compactMap{ $0 }).isEmpty {
+        self.feederContext.getCompleteIssue(issue: sissue, isPages: false, isAutomatically: false, force: true)
+      }
       return
     }
     //      if isDownloading {

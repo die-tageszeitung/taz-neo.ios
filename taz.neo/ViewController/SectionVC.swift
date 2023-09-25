@@ -89,7 +89,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     if let idx = index,
       let section = contents.valueAt(idx) as? Section,
        section.type == .podcast,
-       section.audio != nil {
+       section.audioItem != nil {
       ArticlePlayer.singleton.play(sectionAudio: section)
       return
     }

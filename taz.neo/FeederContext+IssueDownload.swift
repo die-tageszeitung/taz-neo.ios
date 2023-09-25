@@ -63,7 +63,7 @@ extension FeederContext {
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
-  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false, isAutomatically: Bool) {
+  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false, isAutomatically: Bool, force: Bool = false) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
@@ -72,7 +72,7 @@ extension FeederContext {
       return
     }
     let loadPages = isPages || autoloadPdf
-    guard needsUpdate(issue: issue, toShowPdf: loadPages) else {
+    guard needsUpdate(issue: issue, toShowPdf: loadPages) || force == true else {
       Notification.send("issue", result: .success(issue), sender: issue)
       return
     }

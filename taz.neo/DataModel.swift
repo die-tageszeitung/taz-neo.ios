@@ -352,7 +352,7 @@ public protocol Content {
   /// List of images used in content
   var images: [ImageEntry]? { get }
   
-  var audio: Audio? { get }
+  var audioItem: Audio? { get }
   /// List of authors (if applicable)
   var authors: [Author]? { get }
   /// Issue where Content data is stored

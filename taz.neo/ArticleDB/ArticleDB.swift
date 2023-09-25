@@ -899,18 +899,18 @@ extension PersistentContent: PersistentObject {
 public final class StoredArticle: Article, StoredObject {
   public static var entity = "Article"
   public var pr: PersistentArticle // persistent record
-  public var audio: Audio? {
+  public var audioItem: Audio? {
     get {
-      guard let audio = pr.audio else { return nil }
+      guard let audio = pr.audioItem else { return nil }
       return StoredAudio(persistent: audio)
     }
     set {
       guard let newValue = newValue else {
-        pr.audio = nil
+        pr.audioItem = nil
         return
       }
-      pr.audio = StoredAudio.persist(object: newValue).pr
-      pr.audio?.content = pr
+      pr.audioItem = StoredAudio.persist(object: newValue).pr
+      pr.audioItem?.content = pr
     }
   }
   public var text: String? {
@@ -1048,7 +1048,7 @@ public final class StoredArticle: Article, StoredObject {
     }
     self.title = object.title
     self.html = object.html
-    self.audio = object.audio
+    self.audioItem = object.audioItem
     self.onlineLink = object.onlineLink
     self.teaser = object.teaser
     self.serverId = object.serverId
@@ -1420,17 +1420,17 @@ public final class StoredPage: Page, StoredObject {
 public final class StoredSection: Section, StoredObject {
   public static var entity = "Section"
   public var pr: PersistentSection // persistent record
-  public var audio: Audio? {
+  public var audioItem: Audio? {
     get {
-      guard let audio = pr.audio else { return nil }
+      guard let audio = pr.audioItem else { return nil }
       return StoredAudio(persistent: audio)
     }
     set {
       guard let newValue = newValue else {
-        pr.audio = nil
+        pr.audioItem = nil
         return
       }
-      pr.audio = StoredAudio.persist(object: newValue).pr
+      pr.audioItem = StoredAudio.persist(object: newValue).pr
     }
   }
   public var text: String? {
@@ -1528,7 +1528,7 @@ public final class StoredSection: Section, StoredObject {
     self.extendedTitle = object.extendedTitle
     self.type = object.type
     self.html = object.html
-    self.audio = object.audio
+    self.audioItem = object.audioItem
     self.navButton = object.navButton
     if let imgs = object.images {
       var order: Int32 = 0

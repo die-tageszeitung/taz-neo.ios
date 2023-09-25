@@ -124,7 +124,7 @@ class ArticlePlayer: DoesLog {
       }
       
       userInterface.skipToAudioBreaks
-      = currentContent?.audio?.breaks?.isEmpty == false
+      = currentContent?.audioItem?.breaks?.isEmpty == false
       
       let articleImage = currentContent?.contentImage
       let issueImage = currentContent?.contentImage
@@ -249,7 +249,7 @@ class ArticlePlayer: DoesLog {
   
   @objc private func  skipBackwardButtonTouchUpInsideAction(sender: Any) {
     var seconds: Double = 0.0
-    if let breaks = currentContent?.audio?.breaks, breaks.count > 0 {
+    if let breaks = currentContent?.audioItem?.breaks, breaks.count > 0 {
       let cs = self.aplayer.currentTime.seconds//current seconds
       for b in breaks {
         if Double(b)+0.8 > cs { break }
@@ -266,7 +266,7 @@ class ArticlePlayer: DoesLog {
   
   @objc private func  skipForewardButtonTouchUpInsideAction(sender: Any) {
     var seconds: Double = 0.0
-    if let breaks = currentContent?.audio?.breaks, breaks.count > 0 {
+    if let breaks = currentContent?.audioItem?.breaks, breaks.count > 0 {
       let cs = self.aplayer.currentTime.seconds//current seconds
       for b in breaks {
         seconds = Double(b)
@@ -369,12 +369,12 @@ class ArticlePlayer: DoesLog {
     if let article = content as? Article,
        let baseUrl = (article as? SearchArticle)?.originalIssueBaseURL
                      ?? article.primaryIssue?.baseUrl,
-       let afn = article.audio?.file?.fileName {
+       let afn = article.audioItem?.file?.fileName {
       return "\(baseUrl)/\(afn)"
     }
     if let section = content as? Section,
        let baseUrl = section.primaryIssue?.baseUrl,
-       let afn = section.audio?.file?.fileName {
+       let afn = section.audioItem?.file?.fileName {
       return "\(baseUrl)/\(afn)"
     }
     return nil
@@ -498,7 +498,7 @@ class ArticlePlayer: DoesLog {
     idx < arts.count {
       arts = Array(arts[idx...])
     }
-    arts.removeAll{ $0.audio?.file?.fileName == nil }
+    arts.removeAll{ $0.audioItem?.file?.fileName == nil }
     
     switch enqueueType {
       case .enqueueLast:
