@@ -575,13 +575,12 @@ class ArticlePlayerUI: UIView {
         bgImageView.isHidden = image == nil
         blurredEffectView.isHidden = image == nil
         
+        imageConstrains?.bottom.isActive = true ///mini only
+        imageConstrains?.right.isActive = false///maxi only
+        
         imageSizeConstrains_Mini?.width.isActive = true
         imageSizeConstrains_Mini?.height.isActive = true
         imageSizeConstrains_Mini?.height.constant = 32.0
-        
-
-        imageConstrains?.bottom.isActive = true ///mini only
-        imageConstrains?.right.isActive = false///maxi only
 
         wrapperConstrains?.top.constant = miniPadding ///mini defaultPadding else 38.0
         wrapperConstrains?.bottom.constant = -miniPadding ///mini defaultPadding else 68.0?
