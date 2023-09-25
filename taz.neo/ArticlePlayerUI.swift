@@ -64,6 +64,7 @@ class ArticlePlayerUI: UIView {
             = (TazAppEnvironment.sharedInstance.rootViewController
                as? UITabBarController)?.view  else { return }
     view.addSubview(self)
+    self.isHidden = true
     parentBottomConstraint = pin(self.bottom, to: view.bottomGuide(), dist: -64.0)
     parentRightConstraint = pin(self.right, to: view.rightGuide(), dist: -miniPadding)
     viewSize = view.frame.size
@@ -72,7 +73,6 @@ class ArticlePlayerUI: UIView {
   func show(){
     if self.superview != nil { return }
     addAndShow()
-    updateLayout()
   }
   
   var currentSeconds: Double? {
@@ -715,7 +715,17 @@ class ArticlePlayerUI: UIView {
     }
     else {
       UIView.animate(withDuration: 0.3) {[weak self] in
-        self?.wrapper.layoutIfNeeded()
+        if self?.isHidden ==  true {
+          self?.setNeedsLayout()
+          self?.layoutIfNeeded()
+        }
+        else {
+          self?.wrapper.layoutIfNeeded()
+        }
+      }completion: {[weak self] _ in
+        if self?.isHidden == true {
+          self?.showAnimated()
+        }
       }
     }
   }
