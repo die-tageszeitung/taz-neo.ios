@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22F82" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="2">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22G90" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="3">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="hasBookmark" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -7,7 +7,6 @@
         <attribute name="readingDuration" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="serverId" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="teaser" optional="YES" attributeType="String"/>
-        <relationship name="audio" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="articleAudio" inverseEntity="FileEntry"/>
         <relationship name="authors" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Author" inverseName="articles" inverseEntity="Author"/>
         <relationship name="descriptors" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Descriptor" inverseName="articles" inverseEntity="Descriptor"/>
         <relationship name="frames" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Frame" inverseName="article" inverseEntity="Frame"/>
@@ -18,6 +17,13 @@
         <fetchIndex name="Index">
             <fetchIndexElement property="hasBookmark" type="Binary" order="ascending"/>
         </fetchIndex>
+    </entity>
+    <entity name="Audio" representedClassName="PersistentAudio" syncable="YES" codeGenerationType="class">
+        <attribute name="breaks" optional="YES" attributeType="Transformable" customClassName="[Float]"/>
+        <attribute name="duration" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="speaker" optional="YES" attributeType="String"/>
+        <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="audio" inverseEntity="Content"/>
+        <relationship name="file" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="audio" inverseEntity="FileEntry"/>
     </entity>
     <entity name="Author" representedClassName="PersistentAuthor" syncable="YES" codeGenerationType="class">
         <attribute name="name" attributeType="String"/>
@@ -36,6 +42,7 @@
         <attribute name="sectionTitle" optional="YES" attributeType="String"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
+        <relationship name="audio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Audio" inverseName="content" inverseEntity="Audio"/>
         <relationship name="html" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="content" inverseEntity="FileEntry"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="imageContent" inverseEntity="ImageEntry"/>
     </entity>
@@ -86,7 +93,7 @@
         <attribute name="storageType" attributeType="String"/>
         <attribute name="storedSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="subdir" optional="YES" attributeType="String"/>
-        <relationship name="articleAudio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Article" inverseName="audio" inverseEntity="Article"/>
+        <relationship name="audio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Audio" inverseName="file" inverseEntity="Audio"/>
         <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="html" inverseEntity="Content"/>
         <relationship name="image" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="file" inverseEntity="ImageEntry"/>
         <relationship name="momentAnimated" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Moment" inverseName="animation" inverseEntity="Moment"/>

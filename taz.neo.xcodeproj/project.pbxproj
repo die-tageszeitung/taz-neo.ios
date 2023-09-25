@@ -192,6 +192,7 @@
 		776E59C429ED25A3001D5C5B /* dot-day.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "dot-day.svg"; sourceTree = "<group>"; };
 		776E59C529ED25A3001D5C5B /* dot-night.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "dot-night.svg"; sourceTree = "<group>"; };
 		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
+		77770EC62AC2161A00511841 /* ArticleDB 3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "ArticleDB 3.xcdatamodel"; sourceTree = "<group>"; };
 		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
@@ -1178,10 +1179,11 @@
 		AE34778C283681490022316C /* ArticleDB.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				77770EC62AC2161A00511841 /* ArticleDB 3.xcdatamodel */,
 				AE34778D283681490022316C /* ArticleDB 2.xcdatamodel */,
 				AE34778E283681490022316C /* ArticleDB.xcdatamodel */,
 			);
-			currentVersion = AE34778D283681490022316C /* ArticleDB 2.xcdatamodel */;
+			currentVersion = 77770EC62AC2161A00511841 /* ArticleDB 3.xcdatamodel */;
 			path = ArticleDB.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
