@@ -63,6 +63,7 @@ public let ConfigDefaults = Defaults.Values([
   "tabbarInSection" : "false",
   "simulateFailedMinVersion" : "false",
   "simulateNewVersion" : "false",
+  "autoPlayNext" : "true",
   "playbackRate": "1.0",
 ])
 

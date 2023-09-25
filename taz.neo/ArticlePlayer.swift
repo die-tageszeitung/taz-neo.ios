@@ -18,6 +18,9 @@ class ArticlePlayer: DoesLog {
   @Default("playbackRate")
   public var playbackRate: Double
   
+  @Default("autoPlayNext")
+  var autoPlayNext: Bool
+  
   public var isOpen: Bool {
     userInterface.superview != nil
   }
@@ -131,9 +134,16 @@ class ArticlePlayer: DoesLog {
       self?._onEnd?(err)
       self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
       let resume = self?.nextContent.isEmpty == false
-      self?.playNext()
-      //ensure play next
-      if resume { self?.aplayer.play()}
+      if self?.autoPlayNext == true {
+        self?.playNext()
+        //ensure play next
+        if resume { self?.aplayer.play()}
+      }
+      else {
+        self?.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
+        self?.userInterface.currentSeconds = 0.0
+        self?.pause()
+      }
       self?.updatePlaying()
     }
     aplayer.onStateChange {[weak self] in
@@ -162,6 +172,12 @@ class ArticlePlayer: DoesLog {
     userInterface.backButton.addTarget(self,
                                    action: #selector(backwardButtonTouchOutsideInsideAction),
                                    for: .touchUpOutside)
+    userInterface.skipBackwardButton.addTarget(self,
+                                   action: #selector(skipBackwardButtonTouchUpInsideAction),
+                                   for: .touchUpInside)
+    userInterface.skipForwardButton.addTarget(self,
+                                   action: #selector(skipForewardButtonTouchUpInsideAction),
+                                   for: .touchUpInside)
     $playbackRate.onChange{[weak self] newValue in
       self?.aplayer.player?.rate = Float(newValue)
     }
@@ -205,6 +221,18 @@ class ArticlePlayer: DoesLog {
   @objc private func backwardButtonTouchOutsideInsideAction(sender: Any) {
     seeking ? seekBackward() : nil
     touchDownActive = false
+  }
+  
+  @objc private func  skipBackwardButtonTouchUpInsideAction(sender: Any) {
+    let seconds = max(0.0, self.aplayer.currentTime.seconds - 15.0)
+    self.aplayer.currentTime = CMTime(seconds: seconds, preferredTimescale: 600)
+  }
+  
+  @objc private func  skipForewardButtonTouchUpInsideAction(sender: Any) {
+    let seconds
+    = min(self.aplayer.currentItem?.duration.seconds ?? 0.0,
+          self.aplayer.currentTime.seconds + 15.0)
+    self.aplayer.currentTime = CMTime(seconds: seconds, preferredTimescale: 600)
   }
   
   private static var _singleton: ArticlePlayer? = nil

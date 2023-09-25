@@ -15,6 +15,9 @@ class ArticlePlayerUI: UIView {
   
   @Default("playbackRate")
   public var playbackRate: Double
+    
+  @Default("autoPlayNext")
+  var autoPlayNext: Bool
   
   var rateMenuItms: [menuAction] = []
   
@@ -92,7 +95,7 @@ class ArticlePlayerUI: UIView {
   private var toggleClosure: (()->())?
   private var closeClosure: (()->())?
   private var maxiItemTapClosure: (()->())?
-    
+  
   func onToggle(closure: @escaping ()->()){
     toggleClosure = closure
   }
@@ -132,7 +135,7 @@ class ArticlePlayerUI: UIView {
     lbl.boldContentFont().white()
     return lbl
   }()
-    
+  
   lazy var authorLabel: UILabel = {
     let lbl = UILabel()
     lbl.contentFont().white()
@@ -146,19 +149,19 @@ class ArticlePlayerUI: UIView {
   
   func setRate(_ rate: Double){
     rateMenuItms = rateMenuItms.map{
-        var itm = $0
+      var itm = $0
       if $0.title == "\(rate)" {
-          itm.icon = "checkmark"
-        }
+        itm.icon = "checkmark"
+      }
       else {
         itm.icon = nil
       }
-        return itm
+      return itm
     }
-  
+    
     let menu = MenuActions()
     menu.actions = rateMenuItms
-
+    
     if #available(iOS 14.0, *) {
       rateButton.menu = menu.contextMenu
     }
@@ -236,7 +239,7 @@ class ArticlePlayerUI: UIView {
     btn.onPress { [weak self] _ in self?.toggleClosure?() }
     toggleSizeConstrains = btn.pinSize(CGSize(width: 30, height: 30))
     btn.activeColor = .white
-//    btn.hinset = 0.17
+    //    btn.hinset = 0.17
     btn.color = Const.Colors.appIconGrey
     btn.buttonView.name = "pause"
     
@@ -254,7 +257,7 @@ class ArticlePlayerUI: UIView {
   }
   
   /**
-BULLET LIST BUTTON MISSING
+   BULLET LIST BUTTON MISSING
    list.bullet   mit 5px padding corner radius ca 5px if list open
    */
   
@@ -288,6 +291,67 @@ BULLET LIST BUTTON MISSING
     btn.buttonView.name = "forward"
     return btn
   }()
+  
+  var skipBackButtonEnabled = true {
+    didSet {
+      skipBackwardButton.isEnabled = skipBackButtonEnabled
+      skipBackwardButton.alpha = skipBackButtonEnabled ? 1.0 : 0.5
+    }
+  }
+  var skipFrwardButtonEnabled = true {
+    didSet {
+      skipForwardButton.isEnabled = skipFrwardButtonEnabled
+      skipForwardButton.alpha = skipFrwardButtonEnabled ? 1.0 : 0.5
+    }
+  }
+  
+  var skipToAudioBreaks: Bool = false {
+    didSet {
+      if oldValue == skipToAudioBreaks { return }
+      skipForwardButton.buttonView.name = skipToAudioBreaks ? "goforward" : "goforward.15"
+      skipBackwardButton.buttonView.name = skipToAudioBreaks ? "gobackward" : "gobackward.15"
+    }
+  }
+  
+  lazy var skipForwardButton: Button<ImageView> = {
+    let btn = Button<ImageView>()
+    btn.pinSize(CGSize(width: 35, height: 35))
+    btn.hinset = 0.05
+    btn.activeColor = .white
+    btn.color = Const.Colors.appIconGrey
+    btn.buttonView.name = "goforward.15"
+    return btn
+  }()
+  
+  lazy var skipBackwardButton: Button<ImageView> = {
+    let btn = Button<ImageView>()
+    btn.pinSize(CGSize(width: 35, height: 35))
+    btn.hinset = 0.05
+    btn.activeColor = .white
+    btn.color = Const.Colors.appIconGrey
+    btn.buttonView.name = "gobackward.15"
+    return btn
+  }()
+  
+  lazy var playNextLabel: UILabel = {
+    let lbl =  UILabel()
+    lbl.contentFont().color(Const.Colors.appIconGrey)
+    lbl.text = "Nächsten Artikel abspielen"
+    return lbl
+  }()
+  
+  lazy var playNextSwitch = {
+    let sw = UISwitch()
+    sw.isOn = autoPlayNext
+    sw.addTarget(self,
+                 action: #selector(handlePlayNextSwitch(sender:)),
+                 for: .valueChanged)
+    return sw
+  }()
+  
+  @objc public func handlePlayNextSwitch(sender: UISwitch) {
+    autoPlayNext = sender.isOn
+  }
   
   lazy var progressCircle = ProgressCircle()
   
@@ -350,6 +414,10 @@ BULLET LIST BUTTON MISSING
     self.addSubview(toggleButton)
     self.addSubview(backButton)
     self.addSubview(forwardButton)
+    self.addSubview(skipForwardButton)
+    self.addSubview(skipBackwardButton)
+    self.addSubview(playNextLabel)
+    self.addSubview(playNextSwitch)
     self.addSubview(wrapper)
     wrapper.onTapping(closure: { [weak self] _ in self?.maximize() })
     setRate(playbackRate)
@@ -420,12 +488,22 @@ BULLET LIST BUTTON MISSING
     pin(remainingTimeLabel.left, to: elapsedTimeLabel.right, dist: padding, priority: .defaultLow)
     
     remainingTimeLabel.textAlignment = .right
+    
+    pin(playNextLabel.left, to: self.left, dist: maxiPadding)
+    pin(playNextSwitch.right, to: self.right, dist: -maxiPadding)
+    pin(playNextSwitch.top, to: toggleButton.bottom, dist: maxiPadding + 5.0)
+    pin(playNextLabel.top, to: toggleButton.bottom, dist: maxiPadding + 7.0)
 
-    pin(backButton.right, to: toggleButton.left, dist: -30.0)
-    pin(forwardButton.left, to: toggleButton.right, dist: 30.0)
+    pin(backButton.right, to: toggleButton.left, dist: -90.0)
+    pin(forwardButton.left, to: toggleButton.right, dist: 90.0)
+    
+    pin(skipBackwardButton.right, to: toggleButton.left, dist: -30.0)
+    pin(skipForwardButton.left, to: toggleButton.right, dist: 30.0)
     
     pin(backButton.centerY, to: toggleButton.centerY)
     pin(forwardButton.centerY, to: toggleButton.centerY)
+    pin(skipBackwardButton.centerY, to: toggleButton.centerY)
+    pin(skipForwardButton.centerY, to: toggleButton.centerY)
     
     self.backgroundColor = Const.Colors.darkSecondaryBG
     self.layer.shadowOpacity = 0.40
@@ -481,6 +559,10 @@ BULLET LIST BUTTON MISSING
         elapsedTimeLabel.isHidden = true
         backButton.isHidden = true
         forwardButton.isHidden = true
+        skipForwardButton.isHidden = true
+        skipBackwardButton.isHidden = true
+        playNextLabel.isHidden = true
+        playNextSwitch.isHidden = true
         progressCircle.isHidden = false
         
         toggleButtonTopConstraint_Maxi?.isActive = false///active only in maxi
@@ -552,14 +634,22 @@ BULLET LIST BUTTON MISSING
         slider.isHidden = false
         if stateChange {
           remainingTimeLabel.alpha = 0.0
-            elapsedTimeLabel.alpha = 0.0
-            backButton.alpha = 0.0
-            forwardButton.alpha = 0.0
+          elapsedTimeLabel.alpha = 0.0
+          backButton.alpha = 0.0
+          forwardButton.alpha = 0.0
+          skipForwardButton.alpha = 0.0
+          skipBackwardButton.alpha = 0.0
+          playNextLabel.alpha = 0.0
+          playNextSwitch.alpha = 0.0
         }
         remainingTimeLabel.isHidden = false
         elapsedTimeLabel.isHidden = false
         backButton.isHidden = false
         forwardButton.isHidden = false
+        skipForwardButton.isHidden = false
+        skipBackwardButton.isHidden = false
+        playNextLabel.isHidden = false
+        playNextSwitch.isHidden = false
         progressCircle.isHidden = true
         
         toggleButtonTopConstraint_Maxi?.isActive = true///active only in maxi
@@ -576,7 +666,7 @@ BULLET LIST BUTTON MISSING
         imageConstrains?.right.isActive = true///maxi only
         
         wrapperConstrains?.top.constant = 38.0 ///mini defaultPadding else 38.0
-        wrapperConstrains?.bottom.constant = -130//-98.0 ///mini defaultPadding else 68.0?
+        wrapperConstrains?.bottom.constant = -180//-98.0 ///mini defaultPadding else 68.0?
         wrapperConstrains?.left.constant = maxiPadding///mini defaultPadding else maxiPadding
         wrapperConstrains?.right.constant = -maxiPadding///mini 104 else maxiPadding
         
@@ -616,6 +706,10 @@ BULLET LIST BUTTON MISSING
             self?.elapsedTimeLabel.alpha = 1.0
             self?.backButton.alpha = 1.0
             self?.forwardButton.alpha = 1.0
+            self?.skipForwardButton.alpha = 1.0
+            self?.skipBackwardButton.alpha = 1.0
+            self?.playNextLabel.alpha = 1.0
+            self?.playNextSwitch.alpha = 1.0
           }
         }
       })
