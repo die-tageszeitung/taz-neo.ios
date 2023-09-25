@@ -121,10 +121,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     art.hasBookmark.toggle()
   }
   
-  func updateAudioButton(isPlaying: Bool?){
-    ///setup > onDisplay > art.canPlayAudio > self.onPlay(closure: nil) > setArticle**(Play)**Bar
+  func updateAudioButton(){
     self.playButton.buttonView.name
-    = isPlaying ?? ArticlePlayer.singleton.isPlaying
+    = ArticlePlayer.singleton.isPlaying
+    && ArticlePlayer.singleton.currentContent?.html?.sha256 == self.article?.html?.sha256
     ? "audio-active"
     : "audio"
   }
@@ -149,8 +149,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
          self.displayBookmark(art: art)
       }
     }
-    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] msg in
-      self?.updateAudioButton(isPlaying: msg.content as? Bool)
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+      self?.updateAudioButton()
     }
     onDisplay { [weak self] (idx, oview) in
       guard let self = self else { return }
@@ -168,7 +168,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self.issue.lastArticle = idx
       let player = ArticlePlayer.singleton
       if art.canPlayAudio {
-        updateAudioButton(isPlaying: nil)
+        updateAudioButton()
         self.onPlay { [weak self] _ in
           guard let self = self else { return }
           if let title = self.header.title ?? art.title {

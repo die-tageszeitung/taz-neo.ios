@@ -182,9 +182,9 @@ public class NewContentTableVC: UIViewController {
       self?.imagePressedClosure?()
     }
     h.pinHeight(240)
-    
+      
     h.listenIconActive =
-    ArticlePlayer.singleton.currentArticle?.primaryIssue?.date.issueKey
+    ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey
     == self.issue?.date.issueKey
     return h
   }()
@@ -229,6 +229,12 @@ extension NewContentTableVC {
     pin(header, to: self.view, exclude: .bottom)
     pin(tableView, to: self.view, exclude: .top)
     pin(tableView.top, to: header.bottom)
+    
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+      self?.header.listenIconActive =
+      ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey
+      == self?.issue?.date.issueKey
+    }
   }
   
   public override func viewWillAppear(_ animated: Bool) {

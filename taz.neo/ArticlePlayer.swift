@@ -30,10 +30,16 @@ class ArticlePlayer: DoesLog {
   
   var isPlaying: Bool = false {
     didSet {
-      if oldValue == isPlaying { return }
+      if oldValue == isPlaying {
+        Notification.send(Const.NotificationNames.audioPlaybackStateChanged,
+                          content: nil,
+                          error: nil,
+                          sender: self)
+        return
+      }
       userInterface.isPlaying = isPlaying
       Notification.send(Const.NotificationNames.audioPlaybackStateChanged,
-                        content: isPlaying,
+                        content: nil,
                         error: nil,
                         sender: self)
       commandCenter.seekForwardCommand.isEnabled = isPlaying
@@ -48,31 +54,31 @@ class ArticlePlayer: DoesLog {
   public func onEnd(closure: ((Error?)->())?) { _onEnd = closure }
   private var _onEnd: ((Error?)->())?
   
-  var nextArticles: [Article] = []
-  var lastArticles: [Article] = []
+  var nextContent: [Content] = []
+  var lastContent: [Content] = []
   
-  var currentArticle: Article? {
+  var currentContent: Content? {
     didSet {
       let wasPaused = !aplayer.isPlaying && aplayer.file != nil
-      aplayer.file = url(currentArticle)
+      aplayer.file = url(currentContent)
       
-      aplayer.title = currentArticle?.title
-      userInterface.titleLabel.text = currentArticle?.title
+      aplayer.title = currentContent?.title
+      userInterface.titleLabel.text = currentContent?.title
       
       ///album not shown on iOS 16, Phone in Lock Screen, CommandCenter, CommandCenter Extended Player
-      aplayer.album = currentArticle?.sectionTitle
-      ?? "taz vom: \(currentArticle?.primaryIssue?.validityDateText(timeZone: GqlFeeder.tz) ?? "-")"
+      aplayer.album = currentContent?.sectionTitle
+      ?? "taz vom: \(currentContent?.primaryIssue?.validityDateText(timeZone: GqlFeeder.tz) ?? "-")"
       
       var authorsString: String? ///von Max Muster
       var issueString: String?///taz vom 1.2.2021
       
-      if let authors = currentArticle?.authors, !authors.isEmpty {
+      if let authors = currentContent?.authors, !authors.isEmpty {
         var names: [String] = []
         for a in authors { if let n = a.name { names += n } }
         authorsString = "von " + names.joined(separator: ", ") + ""
       }
       
-      if let i = currentArticle?.primaryIssue {
+      if let i = currentContent?.primaryIssue {
         issueString = "\(i.isWeekend ? "wochentaz" : "taz") vom \(i.date.short)"
       }
       
@@ -93,10 +99,11 @@ class ArticlePlayer: DoesLog {
         userInterface.authorLabel.text = nil
       }
       
-      let img: UIImage? = currentArticle?.image ?? currentArticle?.primaryIssue?.image
-      aplayer.addLogo = currentArticle?.image != nil
-      aplayer.image = img
-      userInterface.image = currentArticle?.image
+      let articleImage = currentContent?.articleImage
+      let issueImage = currentContent?.articleImage
+      aplayer.addLogo = articleImage != nil
+      aplayer.image = articleImage ?? issueImage
+      userInterface.image = articleImage
       
       if aplayer.file != nil {
         userInterface.show()
@@ -123,7 +130,7 @@ class ArticlePlayer: DoesLog {
     aplayer.onEnd { [weak self] err in
       self?._onEnd?(err)
       self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
-      let resume = self?.nextArticles.isEmpty == false
+      let resume = self?.nextContent.isEmpty == false
       self?.playNext()
       //ensure play next
       if resume { self?.aplayer.play()}
@@ -285,29 +292,34 @@ class ArticlePlayer: DoesLog {
     return url(art) != nil
   }
   
-  private func url(_ art: Article?) -> String? {
-    guard let article = art,
-          let baseUrl
-            = (article as? SearchArticle)?.originalIssueBaseURL
-            ?? article.primaryIssue?.baseUrl,
-          let afn = article.audio?.fileName else { return nil }
-    return "\(baseUrl)/\(afn)"
+  private func url(_ content: Content?) -> String? {
+    if let article = content as? Article,
+       let baseUrl = (article as? SearchArticle)?.originalIssueBaseURL
+                     ?? article.primaryIssue?.baseUrl,
+       let afn = article.audio?.fileName {
+      return "\(baseUrl)/\(afn)"
+    }
+    return nil
   }
   
-  func deleteHistory(){ lastArticles = []   }
+  func deleteHistory(){ lastContent = []   }
   
   func playNext() {
-    if nextArticles.count == 0 {
+    if nextContent.count == 0 {
       //no next do not destroy ui
       self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
+      userInterface.currentSeconds = 0.0
       pause()
+      if let issue = (currentContent as? Article)?.primaryIssue {
+        self.play(issue: issue, startFromArticle: nil, enqueueType: .replaceCurrent)
+      }
       return
     }
-    if let currentArticle = currentArticle {
-      lastArticles.append(currentArticle)
+    if let currentArticle = currentContent {
+      lastContent.append(currentArticle)
     }
     ///warning replace current article remembers pause e.g. paused & skip through the playlist should not start
-    currentArticle = nextArticles.pop()
+    currentContent = nextContent.pop()
   }
   
   func playPrev() {
@@ -316,16 +328,16 @@ class ArticlePlayer: DoesLog {
       self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
       return
     }
-    if lastArticles.count == 0 {
+    if lastContent.count == 0 {
       //no prev do not destroy ui
       self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
       pause()
       return
     }
-    if let currentArticle = currentArticle {
-      nextArticles.insert(currentArticle, at: 0)
+    if let currentArticle = currentContent {
+      nextContent.insert(currentArticle, at: 0)
     }
-    currentArticle = lastArticles.popLast()
+    currentContent = lastContent.popLast()
   }
   
   /// Checks whether the passed Article is currently being played
@@ -358,15 +370,15 @@ class ArticlePlayer: DoesLog {
   
   /// Toggles start()/pause()
   private func gotoCurrentArticleInIssue() {
-    guard let currentArticle = currentArticle else { return }
+    guard let currentArticle = currentContent else { return }
     Notification.send(Const.NotificationNames.gotoArticleInIssue, content: currentArticle, sender: self)
   }
   /// Stop the currently being played article
   private func close() {
-    nextArticles = []
-    lastArticles = []
+    nextContent = []
+    lastContent = []
     aplayer.close()
-    currentArticle = nil
+    currentContent = nil
     commandCenter.previousTrackCommand.isEnabled = false
     commandCenter.nextTrackCommand.isEnabled = false
     commandCenter.playCommand.isEnabled = false
@@ -411,13 +423,13 @@ class ArticlePlayer: DoesLog {
     
     switch enqueueType {
       case .enqueueLast:
-        nextArticles.append(contentsOf: arts)
+        nextContent.append(contentsOf: arts)
         isPlaying ? nil : playNext()
       case .enqueueNext:
-        nextArticles.insert(contentsOf: arts, at: 0)
+        nextContent.insert(contentsOf: arts, at: 0)
         isPlaying ? nil : playNext()
       case .replaceCurrent:
-        nextArticles = arts
+        nextContent = arts
         playNext()
     }
   }
@@ -480,7 +492,7 @@ extension Issue {
                                         startFromArticle: nil,
                                         enqueueType: .replaceCurrent)
     })
-    if ArticlePlayer.singleton.isPlaying == false && ArticlePlayer.singleton.nextArticles.count == 0 {
+    if ArticlePlayer.singleton.isPlaying == false && ArticlePlayer.singleton.nextContent.count == 0 {
       return menu
     }
     menu.addMenuItem(title: "Als nächstes wiedergeben",
@@ -521,5 +533,19 @@ fileprivate extension Issue {
     else { return nil }
     return UIImage(contentsOfFile: momentImageUrl)
     
+  }
+}
+
+fileprivate extension Content{
+  var articleImage:UIImage? { (self as? Article)?.image }
+  
+  var issueImage:UIImage? {
+    if let art = self as? Article {
+      return art.primaryIssue?.image
+    }
+    if let sect = self as? Section {
+      return sect.primaryIssue?.image
+    }
+    return nil
   }
 }
