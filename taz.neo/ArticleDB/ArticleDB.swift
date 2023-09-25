@@ -747,6 +747,75 @@ public final class StoredResources: Resources, StoredObject {
   
 } // StoredResources
 
+extension PersistentAudio: PersistentObject {}
+
+/// A stored Author
+public final class StoredAudio: Audio, StoredObject {
+  public static var entity = "Audio"
+  public var pr: PersistentAudio // persistent record
+  
+  public var file: FileEntry? {
+    get {
+      guard let file = pr.file else { return nil }
+      return StoredFileEntry(persistent: file) }
+    set {
+      if let fe = newValue {
+        pr.file = StoredFileEntry.persist(object: fe).pr
+        pr.file?.audio = pr
+      }
+      else { pr.file = nil }
+    }
+  }
+
+  public var duration: Float?{
+    get { return pr.duration }
+    set { pr.duration = newValue ?? 0.0 }
+  }
+    
+  public var speaker: AudioSpeaker? {
+    get {
+      guard let s = pr.speaker else { return nil }
+      return AudioSpeaker(s)
+    }
+    set {
+      pr.speaker = newValue?.rawValue
+    }
+  }
+  
+  public var breaks: [Float]?{
+    get { return pr.breaks }
+    set { pr.breaks = newValue }
+  }
+  
+  public required init(persistent: PersistentAudio) {
+    self.pr = persistent
+  }
+  
+  /// Overwrite the persistent values
+  public func update(from object: Audio) {
+    self.file = object.file
+    self.duration = object.duration
+    self.speaker = object.speaker
+    self.breaks = object.breaks
+  }
+  
+  /// Return stored record with given name
+  public static func get(file: String) -> [StoredAudio] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "file.name = %@", file)
+    return get(request: request)
+  }
+  
+  public static func get(object: Audio) -> StoredAudio? {
+    guard let audioFileName = object.file?.name else { return nil }
+    let tmp = get(file: audioFileName)
+    if tmp.count > 0 { return tmp[0] }
+    else { return nil }
+  }
+  
+} // StoredAudio
+
+
 extension PersistentAuthor: PersistentObject {}
 
 /// A stored Author
@@ -828,9 +897,22 @@ extension PersistentContent: PersistentObject {
 
 /// A stored Article
 public final class StoredArticle: Article, StoredObject {
-  
   public static var entity = "Article"
   public var pr: PersistentArticle // persistent record
+  public var audio: Audio? {
+    get {
+      guard let audio = pr.audio else { return nil }
+      return StoredAudio(persistent: audio)
+    }
+    set {
+      guard let newValue = newValue else {
+        pr.audio = nil
+        return
+      }
+      pr.audio = StoredAudio.persist(object: newValue).pr
+      pr.audio?.content = pr
+    }
+  }
   public var text: String? {
     get { return pr.text }
     set { pr.text = newValue }
@@ -850,19 +932,6 @@ public final class StoredArticle: Article, StoredObject {
       }
       pr.html = StoredFileEntry.persist(object: newValue).pr 
       pr.html!.content = pr
-    }
-  }
-  public var audio: FileEntry? {
-    get { 
-      if let pau = pr.audio { return StoredFileEntry(persistent: pau) }
-      else { return nil } 
-    }
-    set { 
-      if let au = newValue { 
-        pr.audio = StoredFileEntry.persist(object: au).pr
-        pr.audio?.articleAudio = pr
-      }
-      else { pr.audio = nil }      
     }
   }
   public var lastArticlePosition: Int {
@@ -1349,9 +1418,21 @@ public final class StoredPage: Page, StoredObject {
 
 /// A stored Section
 public final class StoredSection: Section, StoredObject {
-  
   public static var entity = "Section"
   public var pr: PersistentSection // persistent record
+  public var audio: Audio? {
+    get {
+      guard let audio = pr.audio else { return nil }
+      return StoredAudio(persistent: audio)
+    }
+    set {
+      guard let newValue = newValue else {
+        pr.audio = nil
+        return
+      }
+      pr.audio = StoredAudio.persist(object: newValue).pr
+    }
+  }
   public var text: String? {
     get { return pr.text }
     set { pr.text = newValue }
@@ -1401,7 +1482,10 @@ public final class StoredSection: Section, StoredObject {
       else { pr.navButton = nil }      
     }
   }
-  public var primaryIssue: Issue? { StoredIssue(persistent: pr.issue!) }
+  public var primaryIssue: Issue? {
+    guard let pIssue = pr.issue else { return nil }
+    return StoredIssue(persistent: pIssue)
+  }
   
   public var dir: Dir {
     guard let sdir = (html as? StoredFileEntry)?.dir
@@ -1444,6 +1528,7 @@ public final class StoredSection: Section, StoredObject {
     self.extendedTitle = object.extendedTitle
     self.type = object.type
     self.html = object.html
+    self.audio = object.audio
     self.navButton = object.navButton
     if let imgs = object.images {
       var order: Int32 = 0

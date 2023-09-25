@@ -123,6 +123,16 @@ struct GqlAuthToken: GQLObject {
   }  
 } // GqlAuthToken
 
+/// GqlFile as defined by server
+class GqlAudio: Audio, GQLObject {
+  var gqlFile: GqlFile?
+  var file: FileEntry? { return gqlFile }
+  var duration: Float?
+  var speaker: AudioSpeaker?
+  var breaks: [Float]?
+  static var fields =  "playtime duration speaker breaks gqlFile: file {\(GqlFile.fields)}"
+} // GqlAudio
+
 
 /// GqlFile as defined by server
 class GqlFile: FileEntry, GQLObject {
@@ -283,9 +293,8 @@ class GqlArticle: Article, GQLObject {
   /// File storing article HTML
   var articleHtml: GqlFile
   var html: FileEntry? { return articleHtml }
-  /// File storing article MP3 (if any)
-  var audioFile: GqlFile?
-  var audio: FileEntry? { return audioFile }
+  var gqlAudio: GqlAudio?
+  var audio: Audio?{ return gqlAudio }
   /// Article title
   var title: String?
   /// Article teaser
@@ -305,7 +314,7 @@ class GqlArticle: Article, GQLObject {
 
   static var fields = """
   articleHtml { \(GqlFile.fields) }
-  audioFile { \(GqlFile.fields) }
+  gqlAudio: audio { \(GqlAudio.fields) }
   title
   teaser
   onlineLink
@@ -328,6 +337,8 @@ class GqlSection: Section, GQLObject {
   /// File storing section HTML
   var sectionHtml: GqlFile
   var html: FileEntry? { return sectionHtml }
+  var gqlAudio: GqlAudio?
+  var audio: Audio?{ return gqlAudio }
   /// Name of section
   var name: String
   /// Optional title (not to display in table of contents)
@@ -351,6 +362,7 @@ class GqlSection: Section, GQLObject {
   name: title
   extendedTitle
   type
+  gqlAudio: podcast { \(GqlAudio.fields) }
   sectionNavButton: navButton { \(GqlImage.fields) }
   articleList { \(GqlArticle.fields) }
   imageList { \(GqlImage.fields) }
@@ -437,8 +449,6 @@ class GqlPublicationDate: PublicationDate, GQLObject {
     }
     return "gqlPublicationDates:publicationDates\(startArg)"
   }
-  
-  
   
   var sValidityDate: String?
   var validityDate: Date?

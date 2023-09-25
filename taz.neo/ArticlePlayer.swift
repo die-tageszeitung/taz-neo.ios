@@ -60,8 +60,29 @@ class ArticlePlayer: DoesLog {
   var nextContent: [Content] = []
   var lastContent: [Content] = []
   
+  private var blockPlayNext = false
+  
+  private func cleanup(){
+    blockPlayNext = true
+    Alert.message(title: "Ausgabe gelöscht",
+                  message: "Die zur aktuellen Wiedergabe gehörende Ausgabe wurde gelöscht.\nDie Wiedergabeliste wird überprüft und nicht mehr abspielbare Elemente werden gelöscht.") {[weak self] in
+      self?.doCleanup()
+    }
+  }
+  
+  private func doCleanup(){
+    lastContent.removeAll{ $0.primaryIssue == nil }
+    nextContent.removeAll{ $0.primaryIssue == nil }
+    blockPlayNext = false
+    playNext()
+  }
+  
   var currentContent: Content? {
     didSet {
+      if let cc = currentContent, cc.primaryIssue == nil {
+        cleanup()
+        return
+      }
       let wasPaused = !aplayer.isPlaying && aplayer.file != nil
       aplayer.file = url(currentContent)
       
@@ -102,8 +123,11 @@ class ArticlePlayer: DoesLog {
         userInterface.authorLabel.text = nil
       }
       
-      let articleImage = currentContent?.articleImage
-      let issueImage = currentContent?.articleImage
+      userInterface.skipToAudioBreaks
+      = currentContent?.audio?.breaks?.isEmpty == false
+      
+      let articleImage = currentContent?.contentImage
+      let issueImage = currentContent?.contentImage
       aplayer.addLogo = articleImage != nil
       aplayer.image = articleImage ?? issueImage
       userInterface.image = articleImage
@@ -224,14 +248,35 @@ class ArticlePlayer: DoesLog {
   }
   
   @objc private func  skipBackwardButtonTouchUpInsideAction(sender: Any) {
-    let seconds = max(0.0, self.aplayer.currentTime.seconds - 15.0)
+    var seconds: Double = 0.0
+    if let breaks = currentContent?.audio?.breaks, breaks.count > 0 {
+      let cs = self.aplayer.currentTime.seconds//current seconds
+      for b in breaks {
+        if Double(b)+0.8 > cs { break }
+        seconds = Double(b)
+      }
+    }
+    else {
+      seconds = max(0.0, self.aplayer.currentTime.seconds - 15.0)
+    }
     self.aplayer.currentTime = CMTime(seconds: seconds, preferredTimescale: 600)
   }
   
+  
+  
   @objc private func  skipForewardButtonTouchUpInsideAction(sender: Any) {
-    let seconds
-    = min(self.aplayer.currentItem?.duration.seconds ?? 0.0,
-          self.aplayer.currentTime.seconds + 15.0)
+    var seconds: Double = 0.0
+    if let breaks = currentContent?.audio?.breaks, breaks.count > 0 {
+      let cs = self.aplayer.currentTime.seconds//current seconds
+      for b in breaks {
+        seconds = Double(b)
+        if seconds > cs { break }
+      }
+    }
+    else {
+      seconds = min(self.aplayer.currentItem?.duration.seconds ?? 0.0,
+                    self.aplayer.currentTime.seconds + 15.0)
+    }
     self.aplayer.currentTime = CMTime(seconds: seconds, preferredTimescale: 600)
   }
   
@@ -324,7 +369,12 @@ class ArticlePlayer: DoesLog {
     if let article = content as? Article,
        let baseUrl = (article as? SearchArticle)?.originalIssueBaseURL
                      ?? article.primaryIssue?.baseUrl,
-       let afn = article.audio?.fileName {
+       let afn = article.audio?.file?.fileName {
+      return "\(baseUrl)/\(afn)"
+    }
+    if let section = content as? Section,
+       let baseUrl = section.primaryIssue?.baseUrl,
+       let afn = section.audio?.file?.fileName {
       return "\(baseUrl)/\(afn)"
     }
     return nil
@@ -333,6 +383,7 @@ class ArticlePlayer: DoesLog {
   func deleteHistory(){ lastContent = []   }
   
   func playNext() {
+    if blockPlayNext { return }
     if nextContent.count == 0 {
       //no next do not destroy ui
       self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
@@ -447,7 +498,7 @@ class ArticlePlayer: DoesLog {
     idx < arts.count {
       arts = Array(arts[idx...])
     }
-    arts.removeAll{ $0.audio?.fileName == nil }
+    arts.removeAll{ $0.audio?.file?.fileName == nil }
     
     switch enqueueType {
       case .enqueueLast:
@@ -461,6 +512,12 @@ class ArticlePlayer: DoesLog {
         playNext()
     }
   }
+  
+  public func play(sectionAudio:Section){
+    nextContent = [sectionAudio]
+    playNext()
+  }
+  
 } // ArticlePlayer
 
 
@@ -547,7 +604,15 @@ extension Issue {
 
 // MARK: - Helper
 fileprivate extension Article {
-  var image:UIImage? {
+  var firstImage:UIImage? {
+    guard let fn = images?.first?.fileName else { return nil }
+    let path = "\(self.dir.path)/\(fn)"
+    return UIImage(contentsOfFile: path)
+  }
+}
+
+fileprivate extension Section {
+  var firstImage:UIImage? {
     guard let fn = images?.first?.fileName else { return nil }
     let path = "\(self.dir.path)/\(fn)"
     return UIImage(contentsOfFile: path)
@@ -565,7 +630,9 @@ fileprivate extension Issue {
 }
 
 fileprivate extension Content{
-  var articleImage:UIImage? { (self as? Article)?.image }
+  var contentImage:UIImage? {
+    return (self as? Article)?.firstImage ?? (self as? Section)?.firstImage
+  }
   
   var issueImage:UIImage? {
     if let art = self as? Article {

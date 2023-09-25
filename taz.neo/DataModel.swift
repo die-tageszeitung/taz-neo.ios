@@ -318,6 +318,30 @@ public extension Author {
 }
 
 /**
+ The audio of content
+ */
+public protocol Audio: ToString {
+  var file: FileEntry? { get }
+  var duration: Float? { get }
+  var speaker: AudioSpeaker? { get }
+  var breaks: [Float]? { get }
+} // Audio
+
+public extension Audio {
+  func toString() -> String {
+    return "audio: \(file?.name ?? "unknown") breaks: \(breaks?.count) duration: \(duration) speaker: \(speaker))"
+  }
+}
+
+public enum AudioSpeaker: String, CodableEnum {
+  case human = "human"
+  case machineMale = "machineMale"
+  case machineFemale = "machineFemale"
+  case podcast = "podcast"
+  case unknown = "unknown"
+} // IssueStatus
+
+/**
  Some HTML content (eg. Article or Section)
  */
 public protocol Content {
@@ -327,6 +351,8 @@ public protocol Content {
   var title: String? { get }
   /// List of images used in content
   var images: [ImageEntry]? { get }
+  
+  var audio: Audio? { get }
   /// List of authors (if applicable)
   var authors: [Author]? { get }
   /// Issue where Content data is stored
@@ -455,8 +481,6 @@ public extension Content {
  An Article
  */
 public protocol Article: Content, ToString {
-  /// File storing audio data
-  var audio: FileEntry? { get }
   /// Teaser of article
   var teaser: String? { get }
   /// Link to online version
@@ -513,7 +537,8 @@ public extension Article {
 public enum SectionType: String, CodableEnum {  
   case articles = "articles"  /// a list of articles
   case advertisement = "advertisement" /// advertisement no article
-  case text     = "text"      /// a single HTML text (eg. imprint)
+  case text = "text"      /// a single HTML text (eg. imprint)
+  case podcast = "podcast"      /// podcast
   case unknown  = "unknown"   /// decoded from unknown string
 } // SectionType
 

@@ -278,6 +278,7 @@ public class BookmarkIssue: Issue {
 
 /// A Section of bookmarked Articles
 public class BookmarkSection: Section {
+  public var audio: Audio?
   public var name: String
   public var extendedTitle: String? { name }
   public var type: SectionType { .articles }

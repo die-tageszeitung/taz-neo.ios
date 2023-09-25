@@ -86,6 +86,13 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   public func linkPressed(from: URL?, to: URL?) {
     guard let to = to else { return }
+    if let idx = index,
+      let section = contents.valueAt(idx) as? Section,
+       section.type == .podcast,
+       section.audio != nil {
+      ArticlePlayer.singleton.play(sectionAudio: section)
+      return
+    }
     let fn = to.lastPathComponent
     let top = navigationController?.topViewController
     debug("*** Action: Link pressed from: \(from?.lastPathComponent ?? "[undefined]") to: \(fn)")
