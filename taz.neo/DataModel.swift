@@ -339,7 +339,7 @@ public enum AudioSpeaker: String, CodableEnum {
   case machineFemale = "machineFemale"
   case podcast = "podcast"
   case unknown = "unknown"
-} // IssueStatus
+} // AudioSpeaker
 
 /**
  Some HTML content (eg. Article or Section)
