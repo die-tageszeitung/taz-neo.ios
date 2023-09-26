@@ -84,12 +84,19 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
   }
   
-  public func linkPressed(from: URL?, to: URL?) {
-    guard let to = to else { return }
-    if let idx = index,
-      let section = contents.valueAt(idx) as? Section,
+  func sectionIfAudio(atIndex: Int?) -> Section?{
+    if let idx = atIndex,
+       let section = contents.valueAt(idx) as? Section,
        section.type == .podcast,
        section.audioItem != nil {
+      return section
+    }
+    return nil
+  }
+  
+  public func linkPressed(from: URL?, to: URL?) {
+    guard let to = to else { return }
+    if let section = sectionIfAudio(atIndex: index) {
       ArticlePlayer.singleton.play(sectionAudio: section)
       return
     }
@@ -142,6 +149,20 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     self.releaseOnDisappear()
   }
   
+  func updatePlayButton(){
+    if let section = sectionIfAudio(atIndex: index) {
+      self.playButton.isHidden = false
+      self.onPlay { [weak self] _ in
+        ArticlePlayer.singleton.play(sectionAudio: section)
+        self?.playButton.buttonView.name = "audio-active"
+      }
+    }
+    else {
+      self.playButton.isHidden = true
+      self.onPlay(closure: nil)
+    }
+  }
+  
   func setup() {
     guard let delegate = self.delegate else { return }
     self.sections = delegate.issue.sections ?? []
@@ -155,6 +176,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self.contentTable?.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex)")
       self.setHeader(secIndex: secIndex)
+      self.updatePlayButton()
       if self.isVisibleVC { 
         self.issue.lastSection = self.index
         self.issue.lastArticle = nil 
@@ -195,6 +217,17 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       && nIssue.allArticles.count == self?.issue.allArticles.count { return }
       self?.setup()
     }
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+      self?.updateAudioButton()
+    }
+  }
+  
+  func updateAudioButton(){
+    self.playButton.buttonView.name
+    = ArticlePlayer.singleton.isPlaying
+    && ArticlePlayer.singleton.currentContent?.html?.sha256 == self.sectionIfAudio(atIndex: index)?.html?.sha256
+    ? "audio-active"
+    : "audio"
   }
   
   /// Delete Article from ArticleVC

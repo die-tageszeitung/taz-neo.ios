@@ -469,6 +469,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   public func onPlay(closure: ((ContentVC)->())?) {
     playClosure = closure
+    if self is SectionVC { return }
     if closure == nil { toolBar.setArticleBar() }
     else { toolBar.setArticlePlayBar() }
   }
@@ -555,7 +556,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticlePlayButton(Toolbar.Spacer(), direction: .center)
-    toolBar.addArticlePlayButton(playButton, direction: .center)
+    toolBar.addButton(playButton, direction: .center)
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(textSettingsButton, direction: .right)
     toolBar.applyDefaultTazSyle()
