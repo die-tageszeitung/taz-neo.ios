@@ -274,25 +274,13 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     authenticator?.unlinkSubscriptionId()
   }
   
-  func deleteUserData(logoutFromServer: Bool = false) {
+  func deleteUserData(logoutFromServer: Bool = false, resetAppState: Bool) {
     SimpleAuthenticator.deleteUserData(logoutFromServer: logoutFromServer)
     Defaults.expiredAccountDate = nil
-    if logoutFromServer == false {
+    if resetAppState == true {
       let dfl = Defaults.singleton
       dfl["isTextNotification"] = "true"
-      dfl["nStarted"] = "0"
-      dfl["lastStarted"] = "0"
-      dfl["installationId"] = nil
-      dfl["pushToken"] = nil
-      
-      dfl["bottomTilesLastShown"] = nil
-      dfl["bottomTilesShown"] = nil
-      dfl["showBottomTilesAnimation"] = nil
-      dfl["bottomTilesAnimationLastShown"] = nil
-      
-      Defaults.notificationsActivationPopupRejectedTemporaryDate = nil
-      Defaults.notificationsActivationPopupRejectedDate = nil
-      Defaults.lastKnownPushToken = nil
+      Defaults.deleteAppStateDefaults()
     }
     feederContext?.gqlFeeder.authToken = nil
     feederContext?.endPolling()

@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -70,6 +70,8 @@
 		779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779EF0CF2A03A16200D6A626 /* InfoToaster.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
 		77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77AB6B042A02653000C42712 /* NotificationsView.swift */; };
+		77B993D62AC406DE00C7D832 /* AppEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D52AC406DE00C7D832 /* AppEvents.swift */; };
+		77B993D82AC406F900C7D832 /* Rating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D72AC406F900C7D832 /* Rating.swift */; };
 		77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA74642892836600D1039B /* SubscriptionFormView.swift */; };
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77CB2D202A8148EA00021804 /* UIAlertAction+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CB2D1F2A8148EA00021804 /* UIAlertAction+Extension.swift */; };
@@ -200,6 +202,8 @@
 		779EF0CF2A03A16200D6A626 /* InfoToaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToaster.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
 		77AB6B042A02653000C42712 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
+		77B993D52AC406DE00C7D832 /* AppEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEvents.swift; sourceTree = "<group>"; };
+		77B993D72AC406F900C7D832 /* Rating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rating.swift; sourceTree = "<group>"; };
 		77BA74642892836600D1039B /* SubscriptionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormView.swift; sourceTree = "<group>"; };
 		77C00CFB25DA9A4A00964861 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDownAnimationView.swift; sourceTree = "<group>"; };
@@ -378,6 +382,8 @@
 				4D308ED9283404D400529592 /* TazAppEnvironment.swift */,
 				777048AA27B3B077007164A0 /* NotificationBusiness.swift */,
 				77E5E1BB292D772200611148 /* Javascript.swift */,
+				77B993D52AC406DE00C7D832 /* AppEvents.swift */,
+				77B993D72AC406F900C7D832 /* Rating.swift */,
 			);
 			path = Business;
 			sourceTree = "<group>";
@@ -752,6 +758,7 @@
 				77FABFA22A4DD56500FB9EB1 /* ArticlePlayerUI.swift in Sources */,
 				77CB2D202A8148EA00021804 /* UIAlertAction+Extension.swift in Sources */,
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
+				77B993D82AC406F900C7D832 /* Rating.swift in Sources */,
 				AE34778F283681490022316C /* ArticleDB.xcdatamodeld in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
@@ -796,6 +803,7 @@
 				773E3DA32A2F683E00222EE5 /* NewContentTableVC.swift in Sources */,
 				7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */,
 				774BBAFB2A821DAC0017039D /* FeederContext+AppUpdate.swift in Sources */,
+				77B993D62AC406DE00C7D832 /* AppEvents.swift in Sources */,
 				00E3D2A924E68F5500AE075A /* PwForgottView.swift in Sources */,
 				77CB2D222A814A3100021804 /* FeederContext+IssueDownload.swift in Sources */,
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,

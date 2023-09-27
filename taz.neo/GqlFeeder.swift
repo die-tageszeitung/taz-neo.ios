@@ -1473,7 +1473,8 @@ extension FeederError {
         text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
         Log.debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == gqlFeeder?.authToken) 4ses: \(gqlFeeder?.gqlSession?.authToken == gqlFeeder?.authToken)")
         
-        TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true)
+        TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true,
+                                                        resetAppState: false)
       case .unexpectedResponse:
         Alert.message(title: "Fehler",
                       message: "Es gab ein Problem bei der Kommunikation mit dem Server") {

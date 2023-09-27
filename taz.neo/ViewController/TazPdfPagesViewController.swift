@@ -471,6 +471,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     setupToolbar()
     setupSlider(sliderContent: thumbnailController)
     registerForStyleUpdates()
+    Rating.issueOpened()
   }
   
   // MARK: - setupSlider

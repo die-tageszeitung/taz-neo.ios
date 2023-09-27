@@ -339,6 +339,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     scrollViewWillBeginDragging{[weak self] offset in
       self?.header.scrollViewWillBeginDragging(offset)
     }
+    Rating.issueOpened()
   }
   
   public override func viewWillAppear(_ animated: Bool) {

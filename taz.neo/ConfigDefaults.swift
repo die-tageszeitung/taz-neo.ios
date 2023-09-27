@@ -149,4 +149,25 @@ extension Defaults {
     guard let d = expiredAccountDate else { return nil }
     return "Abo abgelaufen am: \(d.gDate())"
   }
+  
+  static func deleteAppStateDefaults(){
+    let dfl = Defaults.singleton
+    dfl["nStarted"] = "0"
+    dfl["lastStarted"] = "0"
+    dfl["installationId"] = nil
+    dfl["pushToken"] = nil
+    
+    dfl["bottomTilesLastShown"] = nil
+    dfl["bottomTilesShown"] = nil
+    dfl["showBottomTilesAnimation"] = nil
+    dfl["bottomTilesAnimationLastShown"] = nil
+    
+    dfl["ratingCount"] = nil
+    dfl["ratingRequestedForVersion"] = nil
+    dfl["ratingRequestedDate"] = nil
+    
+    Defaults.notificationsActivationPopupRejectedTemporaryDate = nil
+    Defaults.notificationsActivationPopupRejectedDate = nil
+    Defaults.lastKnownPushToken = nil
+  }
 }

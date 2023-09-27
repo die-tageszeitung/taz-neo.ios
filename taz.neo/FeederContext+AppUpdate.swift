@@ -78,6 +78,12 @@ extension FeederContext {
         return
       }
       self.debug("Version check: \(version) current, \(store.version) store")
+      
+      if store.version < version {
+        ///set Rating Waiting Days to 1 for RC Testing
+        Rating.sharedInstance.waitingDays = 1
+      }
+      
       if store.needUpdate(simulate: self.simulateNewVersion) {
         let msg = """
         Sie haben momentan die Version \(self.currentVersion) installiert.

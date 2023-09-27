@@ -392,6 +392,10 @@ class ArticlePlayer: DoesLog {
       if let issue = (currentContent as? Article)?.primaryIssue {
         self.play(issue: issue, startFromArticle: nil, enqueueType: .replaceCurrent)
       }
+      Notification.send(Const.NotificationNames.audioPlaybackFinished,
+                        content: nil,
+                        error: nil,
+                        sender: self)
       return
     }
     if let currentArticle = currentContent {

@@ -55,6 +55,7 @@ public struct Const {
     static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
     static let bookmarkChanged = "Const.NotificationNames.bookmarkChanged"
     static let audioPlaybackStateChanged = "Const.NotificationNames.audioPlaybackStateChanged"
+    static let audioPlaybackFinished = "Const.NotificationNames.audioPlaybackFinished"
     static let gotoIssue = "Const.NotificationNames.gotoIssue"
     static let gotoArticleInIssue = "Const.NotificationNames.gotoArticleInIssue"
     static let searchSelectedText = "Const.NotificationNames.searchSelectedText"

@@ -734,7 +734,7 @@ extension SettingsVC {
                                         preferredStyle:  .alert )
     alert.addAction( UIAlertAction.init( title: "Ja, abmelden", style: .destructive,
                                          handler: { [weak self] _ in
-      TazAppEnvironment.sharedInstance.deleteUserData()
+      TazAppEnvironment.sharedInstance.deleteUserData(resetAppState: false)
       self?.refreshAndReload()
     } ) )
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
@@ -863,7 +863,7 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Zurücksetzen", style: .destructive,
                                          handler: { _ in
-      TazAppEnvironment.sharedInstance.deleteUserData()
+      TazAppEnvironment.sharedInstance.deleteUserData(resetAppState: true)
       Defaults.singleton.setDefaults(values: ConfigDefaults,
                                      isNotify: false,
                                      forceWrite: true)

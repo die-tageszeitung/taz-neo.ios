@@ -136,6 +136,7 @@ class HomeTVC: UITableViewController {
     togglePdfButton.showAnimated()
     showPdfInfoIfNeeded()
     scroll(up: wasUp)
+    Rating.homeAppeared()
   }
   
   var nextHorizontalSizeClass:UIUserInterfaceSizeClass?
