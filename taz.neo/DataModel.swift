@@ -325,12 +325,16 @@ public protocol Audio: ToString {
   var duration: Float? { get }
   var speaker: AudioSpeaker? { get }
   var breaks: [Float]? { get }
+  var content: Content? { get }
+  var page: Page? { get }
 } // Audio
 
 public extension Audio {
   func toString() -> String {
     return "audio: \(file?.name ?? "unknown") breaks: \(breaks?.count) duration: \(duration) speaker: \(speaker))"
   }
+  var content: Content? { return nil }
+  var page: Page? { return nil }
 }
 
 public enum AudioSpeaker: String, CodableEnum {
@@ -351,7 +355,7 @@ public protocol Content {
   var title: String? { get }
   /// List of images used in content
   var images: [ImageEntry]? { get }
-  
+  ///audio item (podcast, tts)
   var audioItem: Audio? { get }
   /// List of authors (if applicable)
   var authors: [Author]? { get }
@@ -650,6 +654,8 @@ public protocol Page: ToString {
   var pdf: FileEntry? { get }
   /// Facsimile of page PDF (eg. Jpeg)
   var facsimile: ImageEntry? { get }
+  ///podcast audio item
+  var audioItem: Audio? { get }
   /// Page title (if any)
   var title: String? { get }
   /// Page number (or some String numbering the page in some way)

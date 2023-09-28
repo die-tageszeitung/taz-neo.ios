@@ -556,7 +556,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticlePlayButton(Toolbar.Spacer(), direction: .center)
-    toolBar.addButton(playButton, direction: .center)
+    if self is SectionVC {
+      toolBar.addButton(playButton, direction: .center)
+    }
+    else {
+      toolBar.addArticlePlayButton(playButton, direction: .center)
+    }
     toolBar.addButton(backButton, direction: .left)
     toolBar.addButton(textSettingsButton, direction: .right)
     toolBar.applyDefaultTazSyle()

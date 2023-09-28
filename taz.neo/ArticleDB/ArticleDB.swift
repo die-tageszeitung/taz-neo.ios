@@ -787,6 +787,21 @@ public final class StoredAudio: Audio, StoredObject {
     set { pr.breaks = newValue }
   }
   
+  public var content: Content?{
+    if let pArticle = pr.content as? PersistentArticle {
+      return StoredArticle(persistent: pArticle)
+    }
+    if let pSection = pr.content as? PersistentSection {
+      return StoredSection(persistent: pSection)
+    }
+    return nil
+  }
+  
+  public var page: Page?{
+    guard let pPage = pr.page else { return nil }
+    return StoredPage(persistent: pPage)
+  }
+  
   public required init(persistent: PersistentAudio) {
     self.pr = persistent
   }
@@ -1302,6 +1317,20 @@ public final class StoredPage: Page, StoredObject {
       else { pr.facsimile = nil }
     }
   }
+  public var audioItem: Audio? {
+    get {
+      guard let audio = pr.audioItem else { return nil }
+      return StoredAudio(persistent: audio)
+    }
+    set {
+      guard let newValue = newValue else {
+        pr.audioItem = nil
+        return
+      }
+      pr.audioItem = StoredAudio.persist(object: newValue).pr
+      pr.audioItem?.page = pr
+    }
+  }
   public var type: PageType {
     get { return PageType(pr.type!)! }
     set { pr.type = newValue.representation }
@@ -1349,6 +1378,7 @@ public final class StoredPage: Page, StoredObject {
     self.title = object.title
     self.pdf = object.pdf
     self.facsimile = object.facsimile
+    self.audioItem = object.audioItem
     self.type = object.type
     self.pagina = object.pagina
     self.pr.frames = nil

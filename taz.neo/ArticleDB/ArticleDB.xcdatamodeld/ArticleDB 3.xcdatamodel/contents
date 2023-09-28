@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22G90" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="3">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22222" systemVersion="22G90" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="3">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="hasBookmark" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastArticlePosition" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
@@ -24,6 +24,7 @@
         <attribute name="speaker" optional="YES" attributeType="String"/>
         <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="audioItem" inverseEntity="Content"/>
         <relationship name="file" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FileEntry" inverseName="audio" inverseEntity="FileEntry"/>
+        <relationship name="page" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Page" inverseName="audioItem" inverseEntity="Page"/>
     </entity>
     <entity name="Author" representedClassName="PersistentAuthor" syncable="YES" codeGenerationType="class">
         <attribute name="name" attributeType="String"/>
@@ -167,6 +168,7 @@
         <attribute name="pagina" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="type" attributeType="String"/>
+        <relationship name="audioItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Audio" inverseName="page" inverseEntity="Audio"/>
         <relationship name="facsimile" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="page" inverseEntity="ImageEntry"/>
         <relationship name="frames" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Frame" inverseName="page" inverseEntity="Frame"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="pages" inverseEntity="Issue"/>

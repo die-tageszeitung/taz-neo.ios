@@ -397,6 +397,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.onTap { [weak self] (oimg, x, y) in
       guard let self = self else { return }
       
+      if let section = (oimg as? ZoomedPdfPageImage)?.pageReference?.sectionAudio {
+        ArticlePlayer.singleton.play(sectionAudio: section)
+        return
+      }
+      
       if self.feederContext.isAuthenticated == false || Defaults.expiredAccount {
         self.feederContext.authenticate()
         return
@@ -472,6 +477,14 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     setupSlider(sliderContent: thumbnailController)
     registerForStyleUpdates()
     Rating.issueOpened()
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+      self?.audioButton?.buttonView.name
+      = ArticlePlayer.singleton.isPlaying
+      && ArticlePlayer.singleton.currentContent?.html?.sha256 ==
+      self?.sectionAudio()?.html?.sha256
+      ? "audio-active"
+      : "audio"
+    }
   }
   
   // MARK: - setupSlider
@@ -534,6 +547,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   open override func setupViewProvider(){
     super.setupViewProvider()
     onDisplay { [weak self] (idx, optionalView) in
+      let sectionAudio = self?.sectionAudio()
+      self?.toolBar.setToolbar(sectionAudio == nil ? 0 : 1)
+      
       guard let ziv = optionalView as? ZoomedImageView,
             let pdfImg = ziv.optionalImage as? ZoomedPdfImageSpec else { return }
       ziv.menu.menu = self?.menuItems ?? []
@@ -633,6 +649,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
   
   private var shareButton: Button<ImageView>?
+  private var audioButton: Button<ImageView>?
   
   // MARK: - setupToolbar
   func setupToolbar() {
@@ -658,14 +675,25 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                        subject: "taz vom \(self.issue.date.short) Seite \(page)")
     }
     
+    let onPlay:((ButtonControl)->()) = { [weak self] _ in
+      guard let self = self,
+            let i = self.index,
+            let pi = self.pdfModel?.item(atIndex:i) as? ZoomedPdfPageImage,
+            let sectionAudio = pi.pageReference?.sectionAudio
+      else { return }
+      ArticlePlayer.singleton.play(sectionAudio: sectionAudio)
+    }
+    
     //the buttons and alignments
     _ = toolBar.addImageButton(name: "home",
                                onPress: onHome,
                                direction: .right,
+                               atToolbars: [0,1],
                                accessibilityLabel: "Übersicht")
     _ = toolBar.addImageButton(name: "chevron-left",
                                onPress: onHome,
                                direction: .left,
+                               atToolbars: [0,1],
                                accessibilityLabel: "Zurück",
                                width: 35,
                                height: 40,
@@ -674,7 +702,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     shareButton = toolBar.addImageButton(name: "share",
                                onPress: onShare,
                                direction: .center,
+                               atToolbars: [0,1],
                                accessibilityLabel: "Teilen")
+    toolBar.addSpacer(.center, atToolbars: [1])
+    audioButton = toolBar.addImageButton(name: "audio",
+                               onPress: onPlay,
+                               direction: .center,
+                                         atToolbars: [1],
+                               accessibilityLabel: "Wiedergabe")
+
     
     //the toolbar setup itself
     toolBar.applyDefaultTazSyle()
@@ -778,5 +814,20 @@ class PdfButtonSlider: ButtonSlider {
       _coverage = newValue
       resetConstraints()
     }
+  }
+}
+
+fileprivate extension Page {
+  var sectionAudio: Section? { audioItem?.content as? Section }
+}
+
+fileprivate extension TazPdfPagesViewController {
+  func sectionAudio(_ index: Int? = nil) -> Section? {
+    if let idx = index ?? self.index,
+       let page = (self.pdfModel?.item(atIndex:idx)
+                   as? ZoomedPdfPageImage)?.pageReference {
+      return page.sectionAudio
+    }
+    return nil
   }
 }

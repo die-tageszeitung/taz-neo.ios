@@ -83,8 +83,15 @@ open class ContentToolbar: UIView {
     }
   }
   
-  public func addButton(_ button: ButtonControl, direction: Toolbar.Direction) {
-    toolbar.addButton(button, direction: direction)
+  public func addButton(_ button: ButtonControl, direction: Toolbar.Direction, atToolbars: [Int]? = nil) {
+    if let toolbars = atToolbars, toolbars.count > 0 {
+      for toolbarIndex in toolbars {
+        toolbar.addButton(button, direction: direction, at: toolbarIndex)
+      }
+    }
+    else {
+      toolbar.addButton(button, direction: direction)
+    }
   }
   
   public func addArticleButton(_ button: ButtonControl, direction: Toolbar.Direction) {
@@ -103,6 +110,7 @@ open class ContentToolbar: UIView {
   func setArticlePlayBar() { toolbar.bar = 2 }
   func setArticleBar() { toolbar.bar = 1 }
   func setSectionBar() { toolbar.bar = 0 }
+  func setToolbar(_ barIndex:Int) { toolbar.bar = barIndex }
   
   public func setButtonColor(_ color: UIColor) { toolbar.setButtonColor(color) }
   
@@ -120,14 +128,15 @@ open class ContentToolbar: UIView {
 
 // MARK: - Helper for ContentToolbar
 extension ContentToolbar {
-  func addSpacer(_ direction:Toolbar.Direction) {
+  func addSpacer(_ direction:Toolbar.Direction, atToolbars: [Int]? = nil) {
     let button = Toolbar.Spacer()
-    self.addButton(button, direction: direction)
+    self.addButton(button, direction: direction, atToolbars: atToolbars)
   }
   
   func addImageButton(name:String,
                       onPress:@escaping ((ButtonControl)->()),
                       direction: Toolbar.Direction,
+                      atToolbars: [Int]? = nil,
                       symbol:String? = nil,
                       accessibilityLabel:String? = nil,
                       isBistable: Bool = true,
@@ -155,7 +164,7 @@ extension ContentToolbar {
       button.accessibilityLabel = al
     }
     
-    self.addButton(button, direction: direction)
+    self.addButton(button, direction: direction, atToolbars:atToolbars)
     button.onPress(closure: onPress)
     return button
   }

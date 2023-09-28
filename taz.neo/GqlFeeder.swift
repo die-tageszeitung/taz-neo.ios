@@ -390,6 +390,8 @@ class GqlPage: Page, GQLObject {
   var pdf: FileEntry? { return pagePdf }
   /// Facsimile if first page
   var gqlFacsimile: GqlImage?
+  var gqlAudio: GqlAudio?
+  var audioItem: Audio?{ return gqlAudio }
   var facsimile: ImageEntry? { return gqlFacsimile }
   /// Page title (if any)
   var title: String?
@@ -404,6 +406,7 @@ class GqlPage: Page, GQLObject {
   static var fields = """
   pagePdf { \(GqlFile.fields) }
   gqlFacsimile: facsimile { \(GqlImage.fields) }
+  gqlAudio: podcast { \(GqlAudio.fields) }
   title
   pagina
   type
