@@ -70,8 +70,9 @@
 		779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779EF0CF2A03A16200D6A626 /* InfoToaster.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
 		77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77AB6B042A02653000C42712 /* NotificationsView.swift */; };
-		77B993D62AC406DE00C7D832 /* AppEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D52AC406DE00C7D832 /* AppEvents.swift */; };
 		77B993D82AC406F900C7D832 /* Rating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D72AC406F900C7D832 /* Rating.swift */; };
+		77B993DA2AC4706600C7D832 /* Usage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D92AC4706600C7D832 /* Usage.swift */; };
+		77B993DD2AC47F6400C7D832 /* MatomoTracker in Frameworks */ = {isa = PBXBuildFile; productRef = 77B993DC2AC47F6400C7D832 /* MatomoTracker */; };
 		77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA74642892836600D1039B /* SubscriptionFormView.swift */; };
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77CB2D202A8148EA00021804 /* UIAlertAction+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CB2D1F2A8148EA00021804 /* UIAlertAction+Extension.swift */; };
@@ -202,8 +203,8 @@
 		779EF0CF2A03A16200D6A626 /* InfoToaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToaster.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
 		77AB6B042A02653000C42712 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
-		77B993D52AC406DE00C7D832 /* AppEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEvents.swift; sourceTree = "<group>"; };
 		77B993D72AC406F900C7D832 /* Rating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rating.swift; sourceTree = "<group>"; };
+		77B993D92AC4706600C7D832 /* Usage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Usage.swift; sourceTree = "<group>"; };
 		77BA74642892836600D1039B /* SubscriptionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormView.swift; sourceTree = "<group>"; };
 		77C00CFB25DA9A4A00964861 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDownAnimationView.swift; sourceTree = "<group>"; };
@@ -290,6 +291,7 @@
 			files = (
 				AE0EC3FD26C1399300EDDF04 /* libc++.tbd in Frameworks */,
 				AECD1A8E282CFDF0007E00EE /* NorthLib in Frameworks */,
+				77B993DD2AC47F6400C7D832 /* MatomoTracker in Frameworks */,
 				AE0EC40026C139A200EDDF04 /* libz.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -382,8 +384,8 @@
 				4D308ED9283404D400529592 /* TazAppEnvironment.swift */,
 				777048AA27B3B077007164A0 /* NotificationBusiness.swift */,
 				77E5E1BB292D772200611148 /* Javascript.swift */,
-				77B993D52AC406DE00C7D832 /* AppEvents.swift */,
 				77B993D72AC406F900C7D832 /* Rating.swift */,
+				77B993D92AC4706600C7D832 /* Usage.swift */,
 			);
 			path = Business;
 			sourceTree = "<group>";
@@ -624,6 +626,7 @@
 			name = taz.neo;
 			packageProductDependencies = (
 				AECD1A8D282CFDF0007E00EE /* NorthLib */,
+				77B993DC2AC47F6400C7D832 /* MatomoTracker */,
 			);
 			productName = taz.neo;
 			productReference = AEBAF564219ACD1900566205 /* die tageszeitung.app */;
@@ -657,6 +660,7 @@
 			mainGroup = AEBAF55B219ACD1900566205;
 			packageReferences = (
 				AECD1A8C282CFDF0007E00EE /* XCRemoteSwiftPackageReference "NorthLib" */,
+				77B993DB2AC47F6400C7D832 /* XCRemoteSwiftPackageReference "matomo-sdk-ios" */,
 			);
 			productRefGroup = AEBAF565219ACD1900566205 /* Products */;
 			projectDirPath = "";
@@ -742,6 +746,7 @@
 				AEAABADE24641BFA001BE414 /* Const.swift in Sources */,
 				77E5E1BC292D772200611148 /* Javascript.swift in Sources */,
 				AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */,
+				77B993DA2AC4706600C7D832 /* Usage.swift in Sources */,
 				773500B02A1C0A7C00678647 /* IssueTilesCvcCell.swift in Sources */,
 				7715969525CC605D00508DE8 /* DeviceData.swift in Sources */,
 				77CB2D282A814B6100021804 /* FeederContext+ResourcesUpdate.swift in Sources */,
@@ -803,7 +808,6 @@
 				773E3DA32A2F683E00222EE5 /* NewContentTableVC.swift in Sources */,
 				7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */,
 				774BBAFB2A821DAC0017039D /* FeederContext+AppUpdate.swift in Sources */,
-				77B993D62AC406DE00C7D832 /* AppEvents.swift in Sources */,
 				00E3D2A924E68F5500AE075A /* PwForgottView.swift in Sources */,
 				77CB2D222A814A3100021804 /* FeederContext+IssueDownload.swift in Sources */,
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,
@@ -1165,6 +1169,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		77B993DB2AC47F6400C7D832 /* XCRemoteSwiftPackageReference "matomo-sdk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/matomo-org/matomo-sdk-ios.git";
+			requirement = {
+				branch = develop;
+				kind = branch;
+			};
+		};
 		AECD1A8C282CFDF0007E00EE /* XCRemoteSwiftPackageReference "NorthLib" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/die-tageszeitung/NorthLib.git";
@@ -1176,6 +1188,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		77B993DC2AC47F6400C7D832 /* MatomoTracker */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 77B993DB2AC47F6400C7D832 /* XCRemoteSwiftPackageReference "matomo-sdk-ios" */;
+			productName = MatomoTracker;
+		};
 		AECD1A8D282CFDF0007E00EE /* NorthLib */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = AECD1A8C282CFDF0007E00EE /* XCRemoteSwiftPackageReference "NorthLib" */;

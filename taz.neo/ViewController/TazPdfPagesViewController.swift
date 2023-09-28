@@ -211,6 +211,15 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   }
 }
 
+
+extension TazPdfPagesViewController: TrackScreenViewController {
+  public var path:String {
+  $onViewDidLoad
+  $onViewDidLoad
+    return "/issue/taz/2023-06-14/pdf/3"
+  }
+}
+
 // MARK: - TazPdfPagesViewController
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
 open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, UIStyleChangeDelegate{
