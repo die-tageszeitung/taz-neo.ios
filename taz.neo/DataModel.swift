@@ -431,6 +431,10 @@ public extension Content {
     if let auths = authors, auths.count > 0 {
       for au in auths { if let p = au.photo { ret += p } }
     }
+    #warning("Uncomment to enable audio file download")
+//    if let audioFile = audioItem?.file {
+//      ret += audioFile
+//    }
     return ret
   }
 
