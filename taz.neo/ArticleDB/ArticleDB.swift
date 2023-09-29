@@ -751,6 +751,7 @@ extension PersistentAudio: PersistentObject {}
 
 /// A stored Author
 public final class StoredAudio: Audio, StoredObject {
+  #warning("If Download implemented: ")
   public static var entity = "Audio"
   public var pr: PersistentAudio // persistent record
   
@@ -817,6 +818,7 @@ public final class StoredAudio: Audio, StoredObject {
   /// Return stored record with given name
   public static func get(file: String) -> [StoredAudio] {
     let request = fetchRequest
+    #warning("Test if relation correct")
     request.predicate = NSPredicate(format: "file.name = %@", file)
     return get(request: request)
   }
@@ -908,6 +910,21 @@ extension PersistentContent: PersistentObject {
       }
     }
   }
+  
+}
+
+extension PersistentArticle {
+#warning("TODO if last audio gone")
+  public override func prepareForDeletion() {}
+}
+extension PersistentSection {
+#warning("TODO if last audio gone")
+  public override func prepareForDeletion() {}
+}
+extension PersistentPage: PersistentObject {
+#warning("TODO if last audio gone")
+  public override func prepareForDeletion() {}
+  
 }
 
 /// A stored Article
@@ -1273,8 +1290,6 @@ public final class StoredFrame: Frame, StoredObject {
   }
 
 } // StoredFrame
-
-extension PersistentPage: PersistentObject {}
 
 /// A stored Page
 public final class StoredPage: Page, StoredObject {
