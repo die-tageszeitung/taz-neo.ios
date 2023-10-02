@@ -571,7 +571,17 @@ class GqlIssue: Issue, GQLObject {
   var sections: [Section]? { return sectionList }
   /// List of PDF pages (if any)
   var pageList : [GqlPage]?
-  var pages: [Page]? { return pageList }
+  var pages: [Page]? {
+    if isOverview,
+       let titlePage = pageList?.first(where: {$0.pagina == "1"}),
+       titlePage.title == "Seite 1" {
+        return [titlePage] as? [Page]
+    }
+    return pageList
+  }
+  
+  var isOverview: Bool = false
+  
   var _isDownloading: Bool? = nil
   var isDownloading: Bool {
     get { if _isDownloading != nil { return _isDownloading! } else { return false } }
@@ -1234,6 +1244,9 @@ open class GqlFeeder: Feeder, DoesLog {
           if let issues = frqResponse.feeds[0].issues, issues.count > 0 {
             for issue in issues {
               issue.feed = feed
+              if isOverview {
+                (issue as? GqlIssue)?.isOverview = true
+              }
               (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages)
               if let sections = issue.sections as? [GqlSection] {
                 for section in sections {

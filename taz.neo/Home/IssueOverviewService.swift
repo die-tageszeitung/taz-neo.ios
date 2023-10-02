@@ -223,6 +223,7 @@ class IssueOverviewService: NSObject, DoesLog {
             newIssues.append(sIssue)
           }
           else {
+            (issue as? GqlIssue)?.isOverview = true
             let sIssue = StoredIssue.persist(object: issue)
             newIssues.append(sIssue)
           }
