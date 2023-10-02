@@ -25,6 +25,18 @@ public extension ArticleVCdelegate {
   func article2index(art: Article) -> Int { return -1}
 }
 
+
+//protocol NotifReciver {
+//  
+//}
+//
+//protocol NotifReciverVC where {
+//  
+//}
+//
+//extension <
+
+
 /// The Article view controller managing a collection of Article pages
 open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   public var menu: MenuActions?{
@@ -141,7 +153,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self.articles = arts
     }
     super.setup(contents: articles, isLargeHeader: false)
-    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+    let observer = Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,

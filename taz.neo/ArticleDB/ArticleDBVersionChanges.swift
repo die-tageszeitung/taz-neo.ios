@@ -53,6 +53,7 @@ public extension ArticleDB {
     if oldModelVersion == 0 { initializeDB() }
     if oldModelVersion < 2 && newModelVersion >= 2 { merge1to2() }
     if oldModelVersion < 3 && newModelVersion >= 3 { merge2to3() }
+    ///For future migrations ... In case of audio => audioEntry do manual sheme migration THIS IS NOT HERE
   }
   
 }
