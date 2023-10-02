@@ -788,19 +788,23 @@ public final class StoredAudio: Audio, StoredObject {
     set { pr.breaks = newValue }
   }
   
-  public var content: Content?{
-    if let pArticle = pr.content as? PersistentArticle {
-      return StoredArticle(persistent: pArticle)
+  public var content: [Content]{
+    var ret:[Content] = []
+    for pArticle in pr.content?.allObjects as? [PersistentArticle] ?? [] {
+      ret.append(StoredArticle(persistent: pArticle))
     }
-    if let pSection = pr.content as? PersistentSection {
-      return StoredSection(persistent: pSection)
+    for pSection in pr.content?.allObjects as? [PersistentSection] ?? [] {
+      ret.append(StoredSection(persistent: pSection))
     }
-    return nil
+    return ret
   }
   
-  public var page: Page?{
-    guard let pPage = pr.page else { return nil }
-    return StoredPage(persistent: pPage)
+  public var page: [Page]{
+    var ret:[Page] = []
+    for pPage in pr.page?.allObjects as? [PersistentPage] ?? [] {
+      ret.append(StoredPage(persistent: pPage))
+    }
+    return ret
   }
   
   public required init(persistent: PersistentAudio) {
@@ -913,18 +917,39 @@ extension PersistentContent: PersistentObject {
   
 }
 
+extension PersistentAudio {
+  var referencesCount:Int {
+    return content?.count ?? 0 + (page?.count ?? 0)
+  }
+}
+
 extension PersistentArticle {
-#warning("TODO if last audio gone")
-  public override func prepareForDeletion() {}
+  public override func prepareForDeletion() {
+    if audioItem?.referencesCount == 1 {
+      debug("Delete AutioItem due last Reference")
+      audioItem?.delete()
+    }
+    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
+  }
 }
 extension PersistentSection {
-#warning("TODO if last audio gone")
-  public override func prepareForDeletion() {}
+  public override func prepareForDeletion() {
+    if audioItem?.referencesCount == 1 {
+      debug("Delete AutioItem due last Reference")
+      audioItem?.delete()
+    }
+    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
+  }
 }
+
 extension PersistentPage: PersistentObject {
-#warning("TODO if last audio gone")
-  public override func prepareForDeletion() {}
-  
+  public override func prepareForDeletion() {
+    if audioItem?.referencesCount == 1 {
+      debug("Delete AutioItem due last Reference")
+      audioItem?.delete()
+    }
+    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
+  }
 }
 
 /// A stored Article
@@ -942,7 +967,7 @@ public final class StoredArticle: Article, StoredObject {
         return
       }
       pr.audioItem = StoredAudio.persist(object: newValue).pr
-      pr.audioItem?.content = pr
+      pr.audioItem?.addToContent(self.pr)
     }
   }
   public var text: String? {
@@ -1344,7 +1369,7 @@ public final class StoredPage: Page, StoredObject {
         return
       }
       pr.audioItem = StoredAudio.persist(object: newValue).pr
-      pr.audioItem?.page = pr
+      pr.audioItem?.addToPage(self.pr)
     }
   }
   public var type: PageType {
@@ -1477,6 +1502,7 @@ public final class StoredSection: Section, StoredObject {
         return
       }
       pr.audioItem = StoredAudio.persist(object: newValue).pr
+      pr.audioItem?.addToContent(self.pr)
     }
   }
   public var text: String? {

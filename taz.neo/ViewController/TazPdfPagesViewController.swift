@@ -672,10 +672,19 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       let cp = File(url).copy(to:tempUrl, isOverwrite: true)
       let tmpFile = File(dir: NSTemporaryDirectory(), fname: filename).url
       
+      var onlineLink: String?
+      
+      if pi.pageReference?.sectionAudio != nil,
+         pi.pageReference?.frames?.count == 1 {
+        onlineLink = pi.pageReference?.frames?.first?.link
+      }
+      
       let dialogue = ExportDialogue<Any>()
       dialogue.present(item: tmpFile,
                        view: self.shareButton ?? self.toolBar,
-                       subject: "taz vom \(self.issue.date.short) Seite \(page)")
+                       subject: "taz vom \(self.issue.date.short) Seite \(page)",
+                       onlineLink: onlineLink
+      )
     }
     
     let onPlay:((ButtonControl)->()) = { [weak self] _ in
@@ -821,7 +830,16 @@ class PdfButtonSlider: ButtonSlider {
 }
 
 fileprivate extension Page {
-  var sectionAudio: Section? { audioItem?.content as? Section }
+  var sectionAudio: Section? {
+    for case let sect as PersistentSection in (self.audioItem as? StoredAudio)?.pr.content ?? [] {
+      if let stPage = self as? StoredPage,
+         sect.issue?.date?.issueKey
+          ==  stPage.pr.issue?.date?.issueKey {
+        return StoredSection(persistent: sect)
+      }
+    }
+    return nil
+  }
 }
 
 fileprivate extension TazPdfPagesViewController {
