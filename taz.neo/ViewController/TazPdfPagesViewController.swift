@@ -212,11 +212,10 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
 }
 
 
-extension TazPdfPagesViewController: TrackScreenViewController {
-  public var path:String {
-  $onViewDidLoad
-  $onViewDidLoad
-    return "/issue/taz/2023-06-14/pdf/3"
+extension TazPdfPagesViewController: UsageTracker {  
+  public var path:[String] {
+    let idx = page()?.pagina ?? "\((index ?? -2) + 1)"
+    return ["issue", self.feederContext.feedName, self.issue.date.ISO8601, "pdf", "\(idx)"]
   }
 }
 
@@ -558,7 +557,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     onDisplay { [weak self] (idx, optionalView) in
       let sectionAudio = self?.sectionAudio()
       self?.toolBar.setToolbar(sectionAudio == nil ? 0 : 1)
-      
+      self?.trackScreen()
       guard let ziv = optionalView as? ZoomedImageView,
             let pdfImg = ziv.optionalImage as? ZoomedPdfImageSpec else { return }
       ziv.menu.menu = self?.menuItems ?? []
@@ -831,12 +830,14 @@ fileprivate extension Page {
 }
 
 fileprivate extension TazPdfPagesViewController {
-  func sectionAudio(_ index: Int? = nil) -> Section? {
-    if let idx = index ?? self.index,
-       let page = (self.pdfModel?.item(atIndex:idx)
-                   as? ZoomedPdfPageImage)?.pageReference {
-      return page.sectionAudio
+  func page(_ index: Int? = nil) -> Page?{
+    if let idx = index ?? self.index {
+      return (self.pdfModel?.item(atIndex:idx)
+              as? ZoomedPdfPageImage)?.pageReference
     }
     return nil
+  }
+  func sectionAudio(_ index: Int? = nil) -> Section? {
+    return page(index)?.sectionAudio
   }
 }

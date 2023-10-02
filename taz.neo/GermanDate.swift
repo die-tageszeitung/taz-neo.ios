@@ -77,8 +77,10 @@ public extension Date {
   }
   
   var dbIssueRepresentation:String{ filename }
+
+  var filename:String{ ISO8601 }
   
-  var filename:String{
+  var ISO8601:String{
     get{
       let dateFormatterGet = DateFormatter()
       dateFormatterGet.dateFormat = "yyyy-MM-dd"

@@ -298,8 +298,24 @@ extension HomeTVC {
     self.tableView.scrollToRow(at:  IndexPath(row: up ? 0 : 1, section: 0),
                                at: .top,
                                animated: animated)
+    trackScreen()
   }
 
+}
+
+extension HomeTVC: UsageTracker {
+  public var path:[String] {
+    
+    
+    /home/coverflow/mobile
+    /home/coverflow/pdf
+    /home/archive/mobile
+    /home/archive/pdf
+
+    
+    let idx = page()?.pagina ?? "\((index ?? -2) + 1)"
+    return ["home", self.feederContext.feedName, self.issue.date.ISO8601, "pdf", "\(idx)"]
+  }
 }
 
 // MARK: - PDF App View Switching
