@@ -29,7 +29,7 @@ class FetchNewStatusHeader: UIView {
           case .loadIssue:
             return "Lade Ausgabe"
           case .offline:
-            return "Nicht verbunden"
+            return "Keine Internetverbindung"
           case .downloadError:
             return "Fehler beim Laden der Daten"
           case .online: fallthrough;
@@ -44,11 +44,10 @@ class FetchNewStatusHeader: UIView {
         switch self {
           case .downloadError:
             return UIColor.red.withAlphaComponent(0.7)
-          case .offline:
-            return Const.Colors.iOSDark.tertiaryLabel
+          case .offline: fallthrough;
           case .online: fallthrough;
           default:
-            return Const.Colors.iOSDark.secondaryLabel
+            return Const.Colors.appIconGrey
         }
       }
     }

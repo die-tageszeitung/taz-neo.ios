@@ -231,7 +231,7 @@ open class FeederContext: DoesLog {
 //                        content: FetchNewStatusHeader.status.offline,
 //                        error: nil,
 //                        sender: self)
-      self.notifyNetStatus(isConnected: false)
+      self.notifyNetStatus(isConnected: netAvailability.isConnected)
     }
     else {
         updateFeeder()
