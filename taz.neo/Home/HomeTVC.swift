@@ -27,8 +27,10 @@ protocol PushIssueDelegate {
   func push(_ viewController:UIViewController, issueInfo: IssueDisplayService)
 }
 
-class HomeTVC: UITableViewController {
-  
+class HomeTVC: UsageTVC {
+  public override var path:[String] {
+    ["home", wasUp ? "coverflow" : "archive" , isFacsimile ? "pdf" : "mobile"]
+  }
   /// should show PDF Info Toast on startup (from config defaults)
   @Default("showPdfInfoToast")
   public var showPdfInfoToast: Bool
@@ -305,10 +307,6 @@ extension HomeTVC {
                                animated: animated)
   }
 
-}
-
-extension HomeTVC: UsageTracker {
-  public var path:[String] { ["home", wasUp ? "coverflow" : "archive" , isFacsimile ? "pdf" : "mobile"] }
 }
 
 // MARK: - PDF App View Switching

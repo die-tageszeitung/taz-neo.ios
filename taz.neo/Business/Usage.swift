@@ -9,6 +9,7 @@
 import Foundation
 import NorthLib
 import MatomoTracker
+import UIKit
 
 class Usage: NSObject, DoesLog{
   let canTrack: Bool = App.isAlpha
@@ -29,7 +30,7 @@ fileprivate extension Usage {
   
   func trackScreen(_ path: [String], url: URL? = nil){
     if canTrack == false { return }
-    log(path.joined(separator: "/"))
+    print("trackScreen: " + path.joined(separator: "/"))
     matomoTracker.track(view: path, url: url)
   }
 }
@@ -41,7 +42,29 @@ public protocol UsageTracker {
 }
 extension UsageTracker {
   public func trackEvent(){ Usage.sharedInstance.trackEvent() }
-  public func trackScreen(){ Usage.sharedInstance.trackScreen(path,
-                                                              url: trackingUrl)}
+  public func trackScreen(){ 
+    if path.count == 0 {
+      Log.debug("Current Class did not implement path correctly")
+      return
+    }
+    Usage.sharedInstance.trackScreen(path, url: trackingUrl)}
   public var trackingUrl:URL? { nil }
+}
+//Swizzling is bad
+/// By default a view controller is pushed onto the navigation stack
+
+public class UsageVC: UIViewController, UsageTracker {
+  public var path:[String]{ get { return []}}
+  public override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    trackScreen()
+  }
+}
+
+public class UsageTVC: UITableViewController, UsageTracker {
+  public var path:[String]{ get { return []}}
+  public override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    trackScreen()
+  }
 }
