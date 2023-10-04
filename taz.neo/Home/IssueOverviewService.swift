@@ -146,7 +146,7 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   @discardableResult
-  func download(issueAt date: Date) -> StoredIssue? {
+  func download(issueAt date: Date, withAudio: Bool) -> StoredIssue? {
     guard let issue = issue(at: date),
           hasDownloadableContent(issue: issue) else {
       self.log("not downloading issue from: \(date.issueKey)")
@@ -154,7 +154,8 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     feederContext.getCompleteIssue(issue: issue,
                                    isPages: self.isFacsimile,
-                                   isAutomatically: false)
+                                   isAutomatically: false, 
+                                   withAudio: withAudio)
     return issue
   }
   
@@ -223,6 +224,7 @@ class IssueOverviewService: NSObject, DoesLog {
             newIssues.append(sIssue)
           }
           else {
+            (issue as? GqlIssue)?.isOverview = true
             let sIssue = StoredIssue.persist(object: issue)
             newIssues.append(sIssue)
           }

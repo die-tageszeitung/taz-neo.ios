@@ -366,6 +366,9 @@ class ArticlePlayer: DoesLog {
   }
   
   private func url(_ content: Content?) -> String? {
+    if let localFile = content?.localAudioPathIfExist {
+      return localFile
+    }
     if let article = content as? Article,
        let baseUrl = (article as? SearchArticle)?.originalIssueBaseURL
                      ?? article.primaryIssue?.baseUrl,

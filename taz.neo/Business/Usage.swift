@@ -29,6 +29,7 @@ fileprivate extension Usage {
   
   func trackScreen(_ path: [String], url: URL? = nil){
     if canTrack == false { return }
+    log(path.joined(separator: "/"))
     matomoTracker.track(view: path, url: url)
   }
 }

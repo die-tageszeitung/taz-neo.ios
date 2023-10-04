@@ -437,6 +437,14 @@ public extension Content {
 //    }
     return ret
   }
+  
+  /// Section files plus all Article files in this section
+  var audioFiles: [FileEntry] {
+    if let audioFile =  audioItem?.file {
+      return [audioFile]
+    }
+    return []
+  }
 
   /// Only high res photos
   var photos: [ImageEntry] {
@@ -589,6 +597,20 @@ public extension Section {
     }
     return ret
   }
+    
+  var audioItems: [Audio] {
+    var ret: [Audio] = []
+    if let audio = audioItem {
+      ret.append(audio)
+    }
+    for art in articles ?? [] {
+      if let audio =  art.audioItem {
+        ret.append(audio)
+      }
+    }
+    return ret
+  }
+  
   
   /// articleHtml returns an array of filenames with article HTML
   var articleHtml: [String] {
@@ -1002,6 +1024,22 @@ public extension Issue {
     return ret
   }
   
+  /// Content files
+  var audioFiles: [FileEntry] {
+    return audioItems.compactMap{ $0.file }
+  }
+  
+  var audioItems: [Audio] {
+    var ret: [Audio] = []
+    for sect in sections ?? [] {
+      let sAudioItems = sect.audioItems
+      if sAudioItems.count > 0 {
+        ret.append(contentsOf: sAudioItems)
+      }
+    }
+    return ret
+  }
+  
   /// Overview files
   var overviewFiles: [FileEntry] {
     var ret = moment.files
@@ -1017,10 +1055,13 @@ public extension Issue {
   }
     
   /// Returns files and facsimiles if isPages == true
-  func files(isPages: Bool = false) -> [FileEntry] {
+  func files(isPages: Bool = false, withAudio: Bool = false) -> [FileEntry] {
     var ret = files
     if isPages {
       if let facs = facsimiles { ret.append(contentsOf: facs) }
+    }
+    if withAudio {
+      ret.append(contentsOf: audioFiles)
     }
     return ret
   }

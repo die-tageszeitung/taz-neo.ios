@@ -63,7 +63,11 @@ extension FeederContext {
    This method retrieves a complete Issue (ie downloaded Issue with complete structural
    data) from the database. If necessary all files are downloaded from the server.
    */
-  public func getCompleteIssue(issue: StoredIssue, isPages: Bool = false, isAutomatically: Bool, force: Bool = false) {
+  public func getCompleteIssue(issue: StoredIssue, 
+                               isPages: Bool = false,
+                               isAutomatically: Bool,
+                               force: Bool = false,
+                               withAudio: Bool = false) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
@@ -77,8 +81,11 @@ extension FeederContext {
       return
     }
     if self.isConnected {
-      gqlFeeder.issues(feed: issue.feed, date: issue.date, count: 1,
-                       isPages: loadPages) { res in
+      gqlFeeder.issues(feed: issue.feed, 
+                       date: issue.date,
+                       count: 1,
+                       isPages: loadPages, 
+                       withAudio: withAudio) { res in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           #warning("Not needed, not used currently")
@@ -92,6 +99,7 @@ extension FeederContext {
             return
           }
           issue.update(from: dissue)
+          issue.isAudioComplete = withAudio && res.error() == nil
           ArticleDB.save()
           Notification.receiveOnce("resourcesReady") { _ in
             Notification.send("issueStructure", result: .success(issue), sender: issue)
