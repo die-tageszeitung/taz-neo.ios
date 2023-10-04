@@ -1920,6 +1920,10 @@ public final class StoredIssue: Issue, StoredObject {
     get { return pr.isOvwComplete }
     set { pr.isOvwComplete = newValue }
   }
+  public var isAudioComplete: Bool {
+    get { return pr.isAudioComplete }
+    set { pr.isAudioComplete = newValue }
+  }
   public var needUpdateAudio: Bool {
     get { return pr.needUpdateAudio }
     set { pr.needUpdateAudio = newValue }
@@ -2223,7 +2227,7 @@ public final class StoredIssue: Issue, StoredObject {
     }
   }
   
-  
+  @discardableResult
   /// Deletes data that is not needed for overview
   /// - Parameter force: delete also issues with bookmarks
   /// - Returns: true if content deletes, false if already overview version
@@ -2254,6 +2258,7 @@ public final class StoredIssue: Issue, StoredObject {
       isComplete = false
       isOvwComplete = true
     }
+    self.isAudioComplete = false
     self.lastPage = nil
     self.lastArticle = nil
     self.lastSection = nil

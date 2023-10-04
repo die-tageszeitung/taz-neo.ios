@@ -75,7 +75,7 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
       
       cell.button.onTapping { [weak self] _ in
         if let date = cell.data?.date.date,
-          self?.service.download(issueAt: date) != nil {
+          self?.service.download(issueAt: date, withAudio: false) != nil {
           cell.button.indicator.downloadState = .waiting
         }
       }

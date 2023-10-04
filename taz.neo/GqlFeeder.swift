@@ -208,11 +208,14 @@ class GqlPayload: Payload {
   }
   
   /// Initialize Payload from Issue
-  init(feeder: GqlFeeder, issue: GqlIssue, isPages: Bool = false) {
+  init(feeder: GqlFeeder,
+       issue: GqlIssue,
+       isPages: Bool = false,
+       withAudio: Bool = false) {
     localDir = feeder.issueDir(issue: issue).path
     remoteBaseUrl = issue.baseUrl
     remoteZipName = issue.zipName
-    files = issue.files(isPages: isPages)
+    files = issue.files(isPages: isPages, withAudio: withAudio)
     self.issue = issue
   }
   
@@ -637,8 +640,8 @@ class GqlIssue: Issue, GQLObject {
     pageList = try container.decodeIfPresent([GqlPage].self, forKey: .pageList)
   }
   
-  func setPayload(feeder: GqlFeeder, isPages: Bool = false) {
-    self.gqlPayload = GqlPayload(feeder: feeder, issue: self, isPages: isPages)
+  func setPayload(feeder: GqlFeeder, isPages: Bool = false, withAudio: Bool = false) {
+    self.gqlPayload = GqlPayload(feeder: feeder, issue: self, isPages: isPages, withAudio: withAudio)
   }
 
   static var ovwFields = """
@@ -1198,9 +1201,15 @@ open class GqlFeeder: Feeder, DoesLog {
   */
  
   // Get Issues
-  public func issues(feed: Feed, date: Date? = nil, key: String? = nil,
-                     count: Int = 20, isOverview: Bool = false, isPages: Bool = false, returnOnMain: Bool = true, 
-    closure: @escaping(Result<[Issue],Error>)->()) { 
+  public func issues(feed: Feed, 
+                     date: Date? = nil,
+                     key: String? = nil,
+                     count: Int = 20, 
+                     isOverview: Bool = false,
+                     isPages: Bool = false,
+                     withAudio: Bool = false,
+                     returnOnMain: Bool = true,
+    closure: @escaping(Result<[Issue],Error>)->()) {
     struct FeedRequest: Decodable {
       var authInfo: GqlAuthInfo
       var feeds: [GqlFeed]
@@ -1247,7 +1256,7 @@ open class GqlFeeder: Feeder, DoesLog {
               if isOverview {
                 (issue as? GqlIssue)?.isOverview = true
               }
-              (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages)
+              (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages, withAudio: withAudio)
               if let sections = issue.sections as? [GqlSection] {
                 for section in sections {
                   section.primaryIssue = issue
