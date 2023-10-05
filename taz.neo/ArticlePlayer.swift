@@ -25,6 +25,9 @@ class ArticlePlayer: DoesLog {
     userInterface.superview != nil
   }
   
+  var disclaimerUrlFemale: String?
+  var disclaimerUrlMale: String?
+  
   /// The audio player
   var aplayer: AudioPlayer
   var aPlayerPlayed = false
@@ -144,6 +147,32 @@ class ArticlePlayer: DoesLog {
     }
   }
   
+  private var isDisclaimer: Bool {
+    return  aplayer.file == disclaimerUrlFemale
+    || aplayer.file == disclaimerUrlMale
+  }
+  
+  private func playDisclaimer(){
+    if isDisclaimer {
+      self.pause()
+      let cc = currentContent
+      currentContent = cc
+      self.pause()
+      return
+    }
+    userInterface.slider.value = 0.0
+    aplayer.file = disclaimerUrlFemale
+    aplayer.image = UIImage(named: "AppIcon60x60")
+    userInterface.image = UIImage(named: "AppIcon60x60")
+    aplayer.addLogo = false
+    userInterface.titleLabel.text = "Hinweis"
+    aplayer.artist = "vertonung@taz.de"
+    userInterface.authorLabel.text = "vertonung@taz.de"
+    aplayer.play()
+    userInterface.updateUI()
+    updatePlaying()
+  }
+  
   private init() {
     aplayer = AudioPlayer()
     aplayer.resetNowPlayingInfo = false
@@ -158,15 +187,17 @@ class ArticlePlayer: DoesLog {
       self?._onEnd?(err)
       self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
       let resume = self?.nextContent.isEmpty == false
-      if self?.autoPlayNext == true {
+      if self?.autoPlayNext == true && self?.isDisclaimer == false {
         self?.playNext()
         //ensure play next
         if resume { self?.aplayer.play()}
+        else { self?.playDisclaimer() }
       }
       else {
         self?.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
         self?.userInterface.currentSeconds = 0.0
         self?.pause()
+        self?.playDisclaimer()
       }
       self?.updatePlaying()
     }
@@ -204,6 +235,15 @@ class ArticlePlayer: DoesLog {
                                    for: .touchUpInside)
     $playbackRate.onChange{[weak self] newValue in
       self?.aplayer.player?.rate = Float(newValue)
+    }
+    
+    if let resources = StoredResources.latest() {
+      disclaimerUrlFemale
+      = resources.payload.files.first(where: {$0.name == "femaleNote.mp3" })?
+        .resourcesAudioUrl
+      disclaimerUrlMale
+      = resources.payload.files.first(where: {$0.name == "maleNote.mp3" })?
+        .resourcesAudioUrl
     }
   }
   
@@ -649,5 +689,24 @@ fileprivate extension Content{
       return sect.primaryIssue?.image
     }
     return nil
+  }
+  
+  var localAudioPathIfExist:String?{
+    guard let fileName = self.audioItem?.file?.name else { return nil }
+    let localFilePath = self.dir.path + "/" + fileName
+    let file = File(localFilePath)
+    if file.exists {
+      return localFilePath
+    }
+    return nil
+  }
+}
+
+
+fileprivate extension FileEntry {
+  var resourcesAudioUrl: String? {
+    guard self.storageType == .resource else { return nil }
+    guard let resDir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.resourcesDir else { return nil }
+    return resDir.path + "/" + self.name
   }
 }
