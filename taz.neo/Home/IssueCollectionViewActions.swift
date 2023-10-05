@@ -99,15 +99,3 @@ extension IssueCollectionViewActions {
     }
   }
 }
-
-extension Content{
-  var localAudioPathIfExist:String?{
-    guard let fileName = self.audioItem?.file?.name else { return nil }
-    let localFilePath = self.dir.path + "/" + fileName
-    let file = File(localFilePath)
-    if file.exists {
-      return localFilePath
-    }
-    return nil
-  }
-}
