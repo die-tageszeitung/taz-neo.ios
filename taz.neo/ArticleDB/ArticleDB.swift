@@ -751,7 +751,6 @@ extension PersistentAudio: PersistentObject {}
 
 /// A stored Author
 public final class StoredAudio: Audio, StoredObject {
-  #warning("If Download implemented: ")
   public static var entity = "Audio"
   public var pr: PersistentAudio // persistent record
   
@@ -999,6 +998,15 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.onlineLink }
     set { pr.onlineLink = newValue }
   }
+  public var artikelType: ArtikelType? {
+    get {
+      guard let type = pr.artikelType else { return nil }
+      return ArtikelType(type)
+    }
+    set {
+      pr.artikelType = newValue?.rawValue
+    }
+  }
   public var teaser: String? {
     get { return pr.teaser }
     set { pr.teaser = newValue }
@@ -1107,6 +1115,7 @@ public final class StoredArticle: Article, StoredObject {
     self.html = object.html
     self.audioItem = object.audioItem
     self.onlineLink = object.onlineLink
+    self.artikelType = object.artikelType
     self.teaser = object.teaser
     self.serverId = object.serverId
     self.readingDuration = object.readingDuration

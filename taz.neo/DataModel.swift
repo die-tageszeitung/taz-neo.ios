@@ -493,6 +493,27 @@ public extension Content {
 
 } // Content
 
+public enum ArtikelType: String, CodableEnum {
+  case comment = "comment" //Kommentar
+  case interview = "interview" //Interview
+  case report = "report" //TAZ-Bericht
+  case documentation = "documentation" //Dokumentation
+  case portrait = "portrait" //Portrait
+  case readersLetter = "readersLetter" //LeserInnenbrief
+  case agency = "agency" //Agenturmelduing
+  case abstract = "abstract" //Abstract (nur vor Mitte 2015)
+  case tom = "tom" //Tom
+  case cartoon = "cartoon" //Kari
+  case puzzle = "puzzle" //(Kreuzwort)Rätsel
+  case register = "register" //Verzeichnis
+  case imprint = "imprint" //Impressum
+  case artLMd = "artLMd" //LMd Kunst
+  case cartoonLMd = "cartoonLMd" //LMd Comic
+  case cartoonBremen = "cartoonBremen" //Kari Bremen
+  case publisherHistory = "publisherHistory" //Verlag: Geschichte
+  case unknown = "unknown"
+} // ArtikelType
+
 /**
  An Article
  */
@@ -505,6 +526,8 @@ public protocol Article: Content, ToString {
   var hasBookmark: Bool { get set }
   /// List of PDF page (-file) names containing this article
   var pageNames: [String]? { get }
+  /// Teaser of article
+  var artikelType: ArtikelType? { get }
   /// Server side article ID
   var serverId: Int? { get }
   /// Aprox. reading duration in minutes
@@ -513,7 +536,7 @@ public protocol Article: Content, ToString {
 
 public extension Article {
   
-  func toString() -> String { "\(hasBookmark ? "Bookmarked " : "")Article \((self as Content).toString())" }
+  func toString() -> String { "\(hasBookmark ? "Bookmarked " : "")Article \((self as Content).toString()) artType: \(artikelType?.toString() ?? "-")" }
   
   /// Returns true if this Article can be played
   ///
