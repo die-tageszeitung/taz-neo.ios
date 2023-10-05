@@ -493,7 +493,7 @@ public extension Content {
 
 } // Content
 
-public enum ArtikelType: String, CodableEnum {
+public enum ArticleType: String, CodableEnum {
   case comment = "comment" //Kommentar
   case interview = "interview" //Interview
   case report = "report" //TAZ-Bericht
@@ -512,7 +512,7 @@ public enum ArtikelType: String, CodableEnum {
   case cartoonBremen = "cartoonBremen" //Kari Bremen
   case publisherHistory = "publisherHistory" //Verlag: Geschichte
   case unknown = "unknown"
-} // ArtikelType
+} // ArticleType
 
 /**
  An Article
@@ -527,7 +527,7 @@ public protocol Article: Content, ToString {
   /// List of PDF page (-file) names containing this article
   var pageNames: [String]? { get }
   /// Teaser of article
-  var artikelType: ArtikelType? { get }
+  var articleType: ArticleType? { get }
   /// Server side article ID
   var serverId: Int? { get }
   /// Aprox. reading duration in minutes
@@ -536,7 +536,7 @@ public protocol Article: Content, ToString {
 
 public extension Article {
   
-  func toString() -> String { "\(hasBookmark ? "Bookmarked " : "")Article \((self as Content).toString()) artType: \(artikelType?.toString() ?? "-")" }
+  func toString() -> String { "\(hasBookmark ? "Bookmarked " : "")Article \((self as Content).toString()) artType: \(articleType?.toString() ?? "-")" }
   
   /// Returns true if this Article can be played
   ///

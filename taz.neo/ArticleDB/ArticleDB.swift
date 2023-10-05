@@ -998,13 +998,13 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.onlineLink }
     set { pr.onlineLink = newValue }
   }
-  public var artikelType: ArtikelType? {
+  public var articleType: ArticleType? {
     get {
-      guard let type = pr.artikelType else { return nil }
-      return ArtikelType(type)
+      guard let type = pr.articleType else { return nil }
+      return ArticleType(type)
     }
     set {
-      pr.artikelType = newValue?.rawValue
+      pr.articleType = newValue?.rawValue
     }
   }
   public var teaser: String? {
@@ -1115,7 +1115,7 @@ public final class StoredArticle: Article, StoredObject {
     self.html = object.html
     self.audioItem = object.audioItem
     self.onlineLink = object.onlineLink
-    self.artikelType = object.artikelType
+    self.articleType = object.articleType
     self.teaser = object.teaser
     self.serverId = object.serverId
     self.readingDuration = object.readingDuration

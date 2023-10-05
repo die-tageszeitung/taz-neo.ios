@@ -302,7 +302,7 @@ class GqlArticle: Article, GQLObject {
   var title: String?
   /// Article teaser
   var teaser: String?
-  var artikelType: ArtikelType?
+  var articleType: ArticleType?
   /// Link to online version of this article
   var onlineLink: String?
   /// List of PDF page (-file) names containing this article
@@ -322,7 +322,7 @@ class GqlArticle: Article, GQLObject {
   title
   teaser
   onlineLink
-  artikelType
+  articleType
   pageNames: pageNameList
   serverId: mediaSyncId
   readingDuration: readMinutes
