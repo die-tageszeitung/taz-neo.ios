@@ -15,6 +15,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   
+  open var sectionPath:[String]? {
+    guard let section = section,
+          let sectFileName = section.html?.name else { return nil}
+    return ["issue", self.feederContext.feedName, self.issue.date.ISO8601, "section", sectFileName]
+  }
+  
   private var articleVC: ArticleVC?
   private var lastIndex: Int?
   public var sections: [Section] = []
@@ -409,3 +415,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
 } // SectionVC
 
 
+extension SectionVC: UsageTracker {
+  public var path:[String]? {sectionPath}
+}

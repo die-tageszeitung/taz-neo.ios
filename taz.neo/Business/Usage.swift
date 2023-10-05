@@ -12,7 +12,9 @@ import MatomoTracker
 import UIKit
 
 class Usage: NSObject, DoesLog{
-  let canTrack: Bool = App.isAlpha
+  
+  @Default("usageTrackingAllowed")
+  fileprivate var usageTrackingAllowed: Bool
   
   let matomoTracker = MatomoTracker(siteId: "116", baseURL: URL(string: "https://gazpacho.taz.de/matomo.php")!)
   
@@ -38,15 +40,20 @@ class Usage: NSObject, DoesLog{
   
   override init() {
     super.init()
+
     Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
       self?.doTrackCurrentScreen()
+    }
+    
+    $usageTrackingAllowed.onChange{[weak self] _ in
+      self?.matomoTracker.isOptedOut = self?.usageTrackingAllowed != true
     }
   }
 }
 
 fileprivate extension Usage {
   func trackEvent(){
-    if canTrack == false { return }
+    if usageTrackingAllowed == false { return }
   }
   
   func trackScreen(_ path: [String]?, url: URL? = nil){
@@ -56,7 +63,7 @@ fileprivate extension Usage {
   }
   
   private func doTrackCurrentScreen(){
-    if canTrack == false { return }
+    if usageTrackingAllowed == false { return }
     var url = ""
     if let s = currentScreenUrl?.absoluteString{
       url = " url: \(s)"

@@ -169,5 +169,7 @@ extension Defaults {
     Defaults.notificationsActivationPopupRejectedTemporaryDate = nil
     Defaults.notificationsActivationPopupRejectedDate = nil
     Defaults.lastKnownPushToken = nil
+    
+    dfl["usageTrackingAllowed"] = nil
   }
 }

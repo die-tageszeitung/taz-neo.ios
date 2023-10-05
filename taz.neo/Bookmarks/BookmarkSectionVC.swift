@@ -13,6 +13,9 @@ import NorthLib
  * A simple subclass of SectionVC with som additional flavours for bookmark handling.
  */
 open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
+  
+  override public var sectionPath:[String]? { return ["bookmarks", "list"]}
+  
   public var menu: MenuActions? {
     return issue._contextMenu(group: 0)
   }
@@ -87,8 +90,4 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
     super.reload()
   }
   
-}
-
-extension BookmarkSectionVC: UsageTracker {
-  public var path:[String]? { ["bookmarks", "list"]}
 }

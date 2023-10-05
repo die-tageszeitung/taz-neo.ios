@@ -37,6 +37,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("isTextNotification")
   var isTextNotification: Bool
   
+  @Default("usageTrackingAllowed")
+  var usageTrackingAllowed: Bool
+  
   @Default("bookmarksListTeaserEnabled")
   var bookmarksListTeaserEnabled: Bool
   
@@ -229,6 +232,15 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var revokeCell: XSettingsCell
   = XSettingsCell(text: "Widerruf",
                   tapHandler: {[weak self] in self?.showRevocation()} )
+  
+  lazy var usageCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Nutzungsdaten senden",
+                  detailText: "anonym und sicher",
+                  initialValue: usageTrackingAllowed,
+                  onChange: {[weak self] newValue in
+                    self?.usageTrackingAllowed = newValue
+                  })
+  
   ///erweitert
   lazy var bookmarksTeaserCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Leseliste Anrisstext",
@@ -716,7 +728,8 @@ extension SettingsVC {
        [
         termsCell,
         privacyCell,
-        revokeCell
+        revokeCell,
+        usageCell
        ]
       ),
       ///WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
