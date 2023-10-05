@@ -11,6 +11,22 @@ import NorthLib
 import MatomoTracker
 import UIKit
 
+public enum EventAction: String, CodableEnum {
+  case downloaded,
+       ApplicationMinimize = "Application Minimize",
+       Login
+}
+  
+public enum EventCategory: String, CodableEnum {
+  case Application,
+       System,
+       AppMode,
+       AuthenticationStatus = "Authentication Status",
+       User,
+       SubscriptionStatus = "Subscription Status"
+} // ArticleType
+
+
 class Usage: NSObject, DoesLog{
   
   @Default("usageTrackingAllowed")
@@ -41,6 +57,10 @@ class Usage: NSObject, DoesLog{
   override init() {
     super.init()
 
+    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+      self?.trackEvent(.System, .ApplicationMinimize)
+    }
+    
     Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
       self?.doTrackCurrentScreen()
     }
@@ -52,8 +72,13 @@ class Usage: NSObject, DoesLog{
 }
 
 fileprivate extension Usage {
-  func trackEvent(){
+  func trackEvent(_ category: EventCategory, _ action: EventAction){
     if usageTrackingAllowed == false { return }
+    self.matomoTracker.track(eventWithCategory: category.toString(), 
+                             action: action.toString(),
+                             name: nil,
+                             number: nil,
+                             url: currentScreenUrl)
   }
   
   func trackScreen(_ path: [String]?, url: URL? = nil){
@@ -75,18 +100,12 @@ fileprivate extension Usage {
 
 
 extension Usage: UINavigationControllerDelegate {
-  //on bookmark and search didshow will appeared twice
-//  public func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
-//    
-//  }
-  
+
   func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
-//    print("willShow trackScreen::\(viewController) navctrl: \(navigationController)")
     guard let usageVc = viewController as? UsageTracker else {
       debug("NOT trackScreen:: current visible vc: \(viewController) is not prepared for tracking!")
       return
     }
-    #warning("This is probably a Memory LEAK!!")
     if let pcvc = usageVc as? PageCollectionVC {
       lastPageCollectionVC = pcvc
     }
