@@ -121,7 +121,8 @@ public protocol UsageTracker where Self: UIViewController {
 extension UsageTracker {
   public var trackingUrl:URL? { return nil }
   public var trackingScreenOnAppear:Bool  { return true }
-  public func trackEvent(){ Usage.sharedInstance.trackEvent() }
+//  public func trackEvent(){ 
+//    Usage.sharedInstance.trackEvent() }
   public func trackScreen(){
     if path == nil || path?.count ?? 0 == 0 {
       Log.debug("Current Class did not implement path correctly")
