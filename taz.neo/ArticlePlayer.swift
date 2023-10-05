@@ -160,8 +160,16 @@ class ArticlePlayer: DoesLog {
       self.pause()
       return
     }
+    var disclaimer: String?
+    if currentContent?.audioItem?.speaker == .machineFemale {
+      disclaimer = disclaimerUrlMale ?? disclaimerUrlFemale
+    }
+    else if currentContent?.audioItem?.speaker == .machineMale {
+      disclaimer = disclaimerUrlFemale ?? disclaimerUrlMale
+    }
+    if disclaimer == nil { return }
     userInterface.slider.value = 0.0
-    aplayer.file = disclaimerUrlFemale
+    aplayer.file = disclaimer
     aplayer.image = UIImage(named: "AppIcon60x60")
     userInterface.image = UIImage(named: "AppIcon60x60")
     aplayer.addLogo = false
