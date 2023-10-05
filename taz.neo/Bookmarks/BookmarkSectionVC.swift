@@ -88,3 +88,7 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
   }
   
 }
+
+extension BookmarkSectionVC: UsageTracker {
+  public var path:[String]? { ["bookmarks", "list"]}
+}

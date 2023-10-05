@@ -366,6 +366,22 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   }
 } // ArticleVC
 
+extension ArticleVC: UsageTracker {
+  public var trackingUrl:URL? {
+    guard let link = article?.onlineLink else { return nil}
+      return URL(string: link)
+  }
+  
+  public var path:[String]? {
+    guard let article = article,
+          let artFileName = article.html?.name else { return nil}
+    let sectionFileName
+    = adelegate?.article2section[artFileName]?.first?.html?.name
+    ?? "-"
+    return ["issue", self.feederContext.feedName, self.issue.date.ISO8601, "section", sectionFileName, "article", "\(artFileName)|\(article.serverId ?? 0)"]
+  }
+}
+
 //MARK: - Context Menu Actions
 extension ArticleVC {
   @objc func search() {

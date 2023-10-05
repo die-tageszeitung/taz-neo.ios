@@ -336,6 +336,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   open override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     checkNotifications()
+    trackScreen()
   }
     
   required public init(feederContext: FeederContext) {
@@ -724,6 +725,10 @@ extension SettingsVC {
       )
     ]
   }
+}
+
+extension SettingsVC: UsageTracker {
+  public var path:[String]? { ["settings"]}
 }
 
 // MARK: - Handler/Actions

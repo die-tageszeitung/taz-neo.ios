@@ -27,10 +27,14 @@ protocol PushIssueDelegate {
   func push(_ viewController:UIViewController, issueInfo: IssueDisplayService)
 }
 
-class HomeTVC: UsageTVC {
-  public override var path:[String] {
+extension HomeTVC: UsageTracker {
+  public var path:[String]? {
     ["home", wasUp ? "coverflow" : "archive" , isFacsimile ? "pdf" : "mobile"]
   }
+}
+
+class HomeTVC: UITableViewController {
+
   /// should show PDF Info Toast on startup (from config defaults)
   @Default("showPdfInfoToast")
   public var showPdfInfoToast: Bool

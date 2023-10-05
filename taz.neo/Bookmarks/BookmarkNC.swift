@@ -23,6 +23,10 @@ fileprivate class PlaceholderVC: UIViewController{
   }
 }
 
+extension PlaceholderVC: UsageTracker {
+  public var path:[String]? { ["bookmarks", "empty"]}
+}
+
 class BookmarkNC: NavigationController {
   private var placeholderVC = PlaceholderVC()
   

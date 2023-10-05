@@ -213,10 +213,11 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
 
 
 extension TazPdfPagesViewController: UsageTracker {  
-  public var path:[String] {
+  public var path:[String]? {
     let idx = page()?.pagina ?? "\((index ?? -2) + 1)"
     return ["issue", self.feederContext.feedName, self.issue.date.ISO8601, "pdf", "\(idx)"]
   }
+  public var trackingScreenOnAppear: Bool { false }
 }
 
 // MARK: - TazPdfPagesViewController

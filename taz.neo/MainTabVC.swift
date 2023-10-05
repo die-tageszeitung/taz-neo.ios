@@ -115,6 +115,18 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     self.selectedIndex = 0
   }
   
+  override var viewControllers: [UIViewController]? {
+    didSet {
+      setupTracking()
+    }
+  }
+  
+  func setupTracking(){
+    for case let nc as UINavigationController in viewControllers ?? [] {
+      nc.delegate = Usage.sharedInstance
+    }
+  }
+  
   func applyStyles() {
     self.view.backgroundColor = .clear
     setNeedsStatusBarAppearanceUpdate()
