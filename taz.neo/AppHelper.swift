@@ -55,6 +55,13 @@ public extension NSObject{
 
 
 public extension App {
+  static var environmentString:String {
+    if isRelease { return "release" }
+    if isAlpha { return "alpha" }
+    if isBeta { return "beta" }
+    return "unknown"
+  }
+  
   /// Is the alpha App
   static var isAlpha: Bool = {
     return bundleIdentifier == BuildConst.tazBundleIdentifierAlpha

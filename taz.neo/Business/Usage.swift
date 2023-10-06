@@ -173,6 +173,9 @@ public enum uEvt: Equatable {
 
 class Usage: NSObject, DoesLog{
   
+  @Default("usageTrackingCurrentVersion")
+  var usageTrackingCurrentVersion: String
+  
   @Default("usageTrackingAllowed")
   fileprivate var usageTrackingAllowed: Bool
   
@@ -241,6 +244,12 @@ class Usage: NSObject, DoesLog{
   
   override init() {
     super.init()
+    if usageTrackingCurrentVersion != App.bundleVersion {
+      usageTrackingCurrentVersion = App.bundleVersion
+      var urlString = "http://ios.\(App.bundleIdentifier)/\(usageTrackingCurrentVersion)"
+      trackEvent(uEvt.application(.downloaded), eventUrlString: urlString)
+    }
+    
     trackAuthStatus()
     trackSubscriptionStatusIfNeeded(isChange: false)
     Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
@@ -263,19 +272,23 @@ class Usage: NSObject, DoesLog{
 }
 
 fileprivate extension Usage {
-  func trackEvent(_ uevt: uEvt){
+  func trackEvent(_ uevt: uEvt, eventUrlString: String? = nil){
     if usageTrackingAllowed == false { return }
     let event = uevt.usageEvent
-    var url = ""
-    if let s = currentScreenUrl?.absoluteString{
-      url = " on url: \(s)"
+    var eventUrl: URL?
+    if let eventUrlString = eventUrlString {
+      eventUrl = URL(string: eventUrlString)
     }
-    print("track::Event with Category: \"\(event.category)\" and Action: \"\(event.action)\"\(url)")
+    var urlInfo = ""
+    if let s = currentScreenUrl?.absoluteString{
+      urlInfo = " on url: \(s)"
+    }
+    print("track::Event with Category: \"\(event.category)\" and Action: \"\(event.action)\" \(eventUrlString ?? urlInfo)")
     self.matomoTracker.track(eventWithCategory: event.category,
                              action: event.action,
                              name: nil,
                              number: nil,
-                             url: currentScreenUrl)
+                             url: eventUrl ?? currentScreenUrl)
     if uevt.usageEvent.category == uEvt.Categories.user.rawValue {
       startNewSession()
     }
