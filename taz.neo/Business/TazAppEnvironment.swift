@@ -310,6 +310,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self.debug(fctx.storedFeeder.toString())
       if isStartup { self.startup() }
       else { self.showHome() }
+      _ = Usage.sharedInstance//init usage, setup Tracking
     }
     feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
   }
@@ -354,7 +355,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     Notification.receiveOnce("resourcesReady") { [weak self] _ in
       guard let self = self else { return }
       self.debug("Showing Intro")
-      let introVC = IntroVC()
+      let introVC = TazIntroVC()
       let feeder = self.feederContext?.storedFeeder
       introVC.webView.toggleBottomButton = false
       introVC.htmlDataPolicy = feeder?.dataPolicy

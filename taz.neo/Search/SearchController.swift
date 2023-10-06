@@ -135,7 +135,7 @@ class SearchController: UIViewController {
         self?.log("search Help not found")
         return
       }
-      let introVC = IntroVC()
+      let introVC = TazIntroVC()
       introVC.htmlIntro = url.absoluteString
       introVC.topOffset = 40
       let intro = file

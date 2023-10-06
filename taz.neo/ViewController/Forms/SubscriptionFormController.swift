@@ -22,7 +22,22 @@ import NorthLib
  b) without first and/or Lastname
  
  */
-class SubscriptionFormController : FormsController {
+class SubscriptionFormController : FormsController, UsageTracker {
+  
+  var path: [String]? {
+    switch ui.formType {
+      case .expiredDigiPrint:
+        return ["subscription", "trial_elapsed"]
+      case .expiredDigiSubscription:
+        return ["subscription", "trial_elapsed"]
+      case .print2Digi:
+        return ["subscription", "switch"]
+      case .printPlusDigi:
+        return ["subscription", "extend"]
+      case .trialSubscription:
+        return ["subscription", "personal_data_form"]
+    }
+}
   
   var onMissingNameRequested:(()->())?
   

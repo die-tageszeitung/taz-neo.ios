@@ -11,7 +11,8 @@ import MessageUI
 import NorthLib
 
 // MARK: - PwForgottController
-class PwForgottController: FormsController {
+class PwForgottController: FormsController, UsageTracker {
+  var path: [String]? { ["forgot_password"] }
   
   private var contentView = PwForgottView()
   override var ui : PwForgottView { get { return contentView }}

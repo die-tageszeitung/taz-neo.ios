@@ -10,7 +10,9 @@ import NorthLib
 // MARK: - LoginCtrl
 /// Presents Login Form and Functionallity
 /// ChildViews/Controller are pushed modaly
-class LoginController: FormsController {
+class LoginController: FormsController, UsageTracker {
+  
+  var path: [String]? { ["login"] }
   
   private var contentView = LoginView()
   override var ui : LoginView { get { return contentView }}

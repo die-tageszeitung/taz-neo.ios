@@ -930,7 +930,7 @@ extension SettingsVC {
   }
   
   func showLocalHtml(from urlString:String, scrollEnabled: Bool){
-    let introVC = IntroVC()
+    let introVC = TazIntroVC()
     introVC.htmlIntro = urlString
     introVC.topOffset = 40
     let intro = File(urlString)

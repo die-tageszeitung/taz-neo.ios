@@ -30,6 +30,13 @@ public extension FeedbackType {
       case .fatalError: return "Fatal Error!"
     }
   }
+  var trackingIdentifier: String {
+    switch self {
+      case .feedback: return "feedback"
+      case .error: return "error_report"
+      case .fatalError: return "fatal_error"
+    }
+  }
 }
 
 open class FeedbackComposer : DoesLog{
@@ -160,6 +167,7 @@ open class FeedbackComposer : DoesLog{
       feedbackBottomSheet = nil//Important the memory leak!
     })
     feedbackBottomSheet?.open()
+    Usage.trackScreen(path: [type.trackingIdentifier])
   }
 }
 

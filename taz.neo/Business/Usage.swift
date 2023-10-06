@@ -354,7 +354,18 @@ extension UsageTracker {
 }
 
 extension Usage {
-  public static func track(_ uevt: uEvt){
-    ensureBackground{ Usage.sharedInstance.trackEvent(uevt) }
+  public static func track(_ uevt: uEvt, eventUrlString: String? = nil){
+    ensureBackground{ Usage.sharedInstance.trackEvent(uevt, eventUrlString: eventUrlString) }
+  }
+  public static func trackScreen(path: [String]?){
+    ensureBackground{ Usage.sharedInstance.trackScreen(path) }
+  }
+}
+
+class TazIntroVC: IntroVC, UsageTracker {
+  var path:[String]? { return ["webview", self.webView.webView.url?.lastPathComponent ?? "-" ]}
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    trackScreen()
   }
 }

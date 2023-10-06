@@ -361,7 +361,7 @@ extension FormsController: UITextViewDelegate {
     }
     
     if let localResource = localResource, localResource.exists {
-      let introVC = IntroVC()
+      let introVC = TazIntroVC()
       introVC.topOffset = Const.Dist.margin
       introVC.isModalInPresentation = true
       introVC.webView.webView.load(url: localResource.url)
