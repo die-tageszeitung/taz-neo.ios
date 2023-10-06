@@ -263,11 +263,15 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   }
   
   static var hasValidAuth: Bool { Self.sharedInstance.hasValidAuth }
+  static var isAuthenticated: Bool { Self.sharedInstance.isAuthenticated }
   
-  var hasValidAuth: Bool {
+  var isAuthenticated: Bool {
     feederContext?.isAuthenticated
     ?? (DefaultAuthenticator.getUserData().token != nil)
-    && Defaults.expiredAccount == false
+  }
+  
+  var hasValidAuth: Bool {
+    isAuthenticated && Defaults.expiredAccount == false
   }
 
   func unlinkSubscriptionId() {

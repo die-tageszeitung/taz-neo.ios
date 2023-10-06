@@ -125,6 +125,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 //    if Usage.sharedInstance.usageTrackingAllowed == false { return }
     for case let nc as UINavigationController in viewControllers ?? [] {
       nc.delegate = Usage.sharedInstance
+      (nc as? NavigationController)?.navigationDelegate = Usage.sharedInstance
     }
   }
   

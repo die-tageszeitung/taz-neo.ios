@@ -317,6 +317,8 @@ extension HomeTVC {
 extension HomeTVC {
   func onPDF(sender:Any){
     self.isFacsimile = !self.isFacsimile
+    let evt = self.isFacsimile ? uEvt.appMode(.SwitchToPDFMode) : uEvt.appMode(.SwitchToMobileMode)
+    trackEvent(evt)
     
     if let imageButton = sender as? Button<ImageView> {
       imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
