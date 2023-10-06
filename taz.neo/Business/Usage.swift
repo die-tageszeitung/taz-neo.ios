@@ -12,7 +12,7 @@ import MatomoTracker
 import UIKit
 
 //Usage Event
-public enum uEvt {
+public enum uEvt: Equatable {
   case application(Application)
   public enum Application: String, CodableEnum {
     case downloaded
@@ -99,24 +99,67 @@ public enum uEvt {
          EnableAutoPlayNext = "Enable Auto Play Next",
          DisableAutoPlayNext = "Disable Auto Play Next"
   }
+  public typealias UsageEvent = (category: String, action: String)
   var usageEvent: UsageEvent {
     switch self {
-      case .application(let value): return ("Application", value.rawValue)
-      case .system(let value): return ("System", value.rawValue)
-      case .appMode(let value): return ("AppMode", value.rawValue)
-      case .authenticationStatus(let value): return ("Authentication Status", value.rawValue)
-      case .user(let value):return ("User", value.rawValue)
-      case .dialog(let value): return ("Dialog", value.rawValue)
-      case .subscriptionStatus(let value): return ("Subscription Status", value.rawValue)
-      case .subscription(let value): return ("Subscription", value.rawValue)
-      case .bookmarks(let value): return ("Bookmarks", value.rawValue)
-      case .share(let value): return ("Share", value.rawValue)
-      case .drawer(let value): return ("Drawer", value.rawValue)
-      case .audioPlayer(let value): return ("Audio Player", value.rawValue)
+      case .application(let value): 
+        return (Categories.application.rawValue,
+                value.rawValue)
+      case .system(let value): 
+        return (Categories.system.rawValue,
+                value.rawValue)
+      case .appMode(let value):
+        return (Categories.appMode.rawValue,
+                value.rawValue)
+      case .authenticationStatus(let value):
+        return (Categories.authenticationStatus.rawValue,
+                value.rawValue)
+      case .user(let value):
+        return (Categories.user.rawValue,
+                value.rawValue)
+      case .dialog(let value):
+        return (Categories.dialog.rawValue,
+                value.rawValue)
+      case .subscriptionStatus(let value):
+        return (Categories.subscriptionStatus.rawValue,
+                value.rawValue)
+      case .subscription(let value):
+        return (Categories.subscription.rawValue,
+                value.rawValue)
+      case .bookmarks(let value):
+        return (Categories.bookmarks.rawValue,
+                value.rawValue)
+      case .share(let value):
+        return (Categories.share.rawValue,
+                value.rawValue)
+      case .drawer(let value):
+        return (Categories.drawer.rawValue,
+                value.rawValue)
+      case .audioPlayer(let value):
+        return (Categories.audioPlayer.rawValue,
+                value.rawValue)
     }
   }
-  public typealias UsageEvent = (Category: String, Action: String)
+  var category: String { self.usageEvent.category }
+  var action: String { self.usageEvent.action }
+  public enum Categories: String, CodableEnum {
+    case application = "Application"
+    case system = "System"
+    case appMode = "AppMode"
+    case authenticationStatus = "Authentication Status"
+    case user = "User"
+    case dialog = "Dialog"
+    case subscriptionStatus = "Subscription Status"
+    case subscription = "Subscription"
+    case bookmarks = "Bookmarks"
+    case share = "Share"
+    case drawer = "Drawer"
+    case audioPlayer = "Audio Player"
+  }
   /** HOW TO EXTRACT Category/Action
+   ...unfortunatly: Enum with raw type cannot have cases with arguments
+   and: Enum case cannot have a raw value if the enum does not have a raw type
+   -- so using; usageEvent
    public extension CodableEnum {  var root: Self { return self }}
    public extension EventKeys { var root2: Self { return self }}
    let key = EventKeys.audioPlayer(.Close)
@@ -158,6 +201,7 @@ class Usage: NSObject, DoesLog{
   var enterBackground: Date?
   
   func startNewSession(){
+    print("track::NEW SESSIONSTART")
     matomoTracker.startNewSession()
     trackAuthStatus()
     trackSubscriptionStatusIfNeeded(isChange: false)
@@ -197,6 +241,8 @@ class Usage: NSObject, DoesLog{
   
   override init() {
     super.init()
+    trackAuthStatus()
+    trackSubscriptionStatusIfNeeded(isChange: false)
     Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
       self?.goingBackground()
     }
@@ -206,11 +252,6 @@ class Usage: NSObject, DoesLog{
     Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
       self?.appWillTerminate()
     }
-//    Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
-//      self?.trackEvent(uEvt.user(.Login))
-//      self?.startNewSession()
-//      self?.trackEvent(uEvt.authenticationStatus(.Authenticated))
-//    }
     Notification.receive(Const.NotificationNames.expiredAccountDateChanged) {[weak self]  _ in
       self?.trackSubscriptionStatusIfNeeded(isChange: true)
     }
@@ -229,12 +270,15 @@ fileprivate extension Usage {
     if let s = currentScreenUrl?.absoluteString{
       url = " on url: \(s)"
     }
-    print("trackEvent with Category: \"\(event.Category)\" and Action: \"\(event.Action)\"\(url)")
-    self.matomoTracker.track(eventWithCategory: event.Category,
-                             action: event.Action,
+    print("track::Event with Category: \"\(event.category)\" and Action: \"\(event.action)\"\(url)")
+    self.matomoTracker.track(eventWithCategory: event.category,
+                             action: event.action,
                              name: nil,
                              number: nil,
                              url: currentScreenUrl)
+    if uevt.usageEvent.category == uEvt.Categories.user.rawValue {
+      startNewSession()
+    }
   }
   
   func trackScreen(_ path: [String]?, url: URL? = nil){
@@ -249,7 +293,7 @@ fileprivate extension Usage {
     if let s = currentScreenUrl?.absoluteString{
       url = " url: \(s)"
     }
-    print("trackScreen: " + (currentScreen ?? []).joined(separator: "/") + url)
+    print("track::Screen: " + (currentScreen ?? []).joined(separator: "/") + url)
     matomoTracker.track(view: currentScreen ?? [], url: currentScreenUrl)
   }
 }

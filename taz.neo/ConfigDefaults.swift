@@ -81,6 +81,7 @@ extension Defaults {
       return nil
     }
     set {
+      if expiredAccountDate == newValue { return }
       if let date = newValue {
         Defaults.singleton["expiredAccountDate"] = Date.toString(date)
       }
