@@ -110,6 +110,7 @@ extension FormView {
   @objc public func showRegisterTips(_ textField: UITextField) {
      Alert.message(title: Localized("register_tips_button"),
                   message: Localized("register_tips_text"), additionalActions:[openFaqAction()])
+    Usage.track(uEvt.dialog(.SubscriptionHelp))
   }
   
   @objc public func showLoginTips(_ textField: UITextField) {

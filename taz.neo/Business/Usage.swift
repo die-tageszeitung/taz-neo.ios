@@ -343,6 +343,10 @@ extension UsageTracker {
     ensureBackground{ Usage.sharedInstance.trackEvent(uevt) }
   }
   public func trackScreen(){
+    if let sfvc = self as? SubscriptionFormController,
+       sfvc.ui.formType == .expiredDigiPrint || sfvc.ui.formType == .expiredDigiSubscription {
+         self.trackEvent(uEvt.dialog(.SubscriptionElapsed))
+       }
     if path == nil || path?.count ?? 0 == 0 {
       Log.debug("Current Class did not implement path correctly")
       return

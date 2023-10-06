@@ -89,6 +89,7 @@ class LoginController: FormsController, UsageTracker {
     let faqAction = self.ui.openFaqAction()
     Alert.message(title:"",
                   message:Localized("fragment_login_help"), additionalActions: [faqAction])
+    Usage.track(uEvt.dialog(.LoginHelp))
   }
   
   // MARK: queryAuthToken

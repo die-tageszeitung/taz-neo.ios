@@ -23,7 +23,6 @@ import NorthLib
  
  */
 class SubscriptionFormController : FormsController, UsageTracker {
-  
   var path: [String]? {
     switch ui.formType {
       case .expiredDigiPrint:
