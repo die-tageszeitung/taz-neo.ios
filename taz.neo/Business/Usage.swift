@@ -75,6 +75,7 @@ public enum uEvt: Equatable {
   public enum Share: String, CodableEnum {
     case ShareArticle = "Share Article",
          ShareSearchHit = "Share Search Hit",
+         FaksimilelePage = "Faksimilele Page",
          IssueMoment = "Issue Moment"}
   case drawer(Drawer)
   public enum Drawer: String, CodableEnum {
@@ -264,6 +265,14 @@ class Usage: NSObject, DoesLog{
     Notification.receive(Const.NotificationNames.expiredAccountDateChanged) {[weak self]  _ in
       self?.trackSubscriptionStatusIfNeeded(isChange: true)
     }
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+      guard let art = msg.sender as? StoredArticle else { return }
+      let evt = art.hasBookmark
+      ? uEvt.bookmarks(.AddArticle)
+      : uEvt.bookmarks(.RemoveArticle)
+      let url = art.html?.name.isEmpty == false ? "article/\(art.html?.name ?? "-")|\(art.serverId ?? -1)" : nil
+      self?.trackEvent(evt, eventUrlString: url)
+    }
     
     $usageTrackingAllowed.onChange{[weak self] _ in
       self?.matomoTracker.isOptedOut = self?.usageTrackingAllowed != true
@@ -272,7 +281,7 @@ class Usage: NSObject, DoesLog{
 }
 
 fileprivate extension Usage {
-  func trackEvent(_ uevt: uEvt, eventUrlString: String? = nil){
+  func trackEvent(_ uevt: uEvt, actionName: String? = nil, eventUrlString: String? = nil){
     if usageTrackingAllowed == false { return }
     let event = uevt.usageEvent
     var eventUrl: URL?
@@ -286,7 +295,7 @@ fileprivate extension Usage {
     print("track::Event with Category: \"\(event.category)\" and Action: \"\(event.action)\" \(eventUrlString ?? urlInfo)")
     self.matomoTracker.track(eventWithCategory: event.category,
                              action: event.action,
-                             name: nil,
+                             name: actionName,
                              number: nil,
                              url: eventUrl ?? currentScreenUrl)
     if uevt.usageEvent.category == uEvt.Categories.user.rawValue {

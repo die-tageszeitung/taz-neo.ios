@@ -192,6 +192,7 @@ public class DefaultAuthenticator: Authenticator {
                                  token: token)
               self.feeder.authToken = token
               Self.deleteTempUserData()
+              Usage.track(uEvt.subscription(.TrialConfirmed))
               /// Present Result to User, if Login shown!
               if let loginFormVc = self.firstPresentedAuthController as? FormsController {
                 ///Fix User dismissed modal Login, nort be able to send notification due this just come in dismiss callback

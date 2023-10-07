@@ -353,6 +353,16 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           self?.feederContext.authenticate()
         })
       } else {
+        var url: String?
+        if let art = self.article, let name = art.html?.name {
+          url = "article/\(name)|\(art.serverId ?? -1)"
+        }
+        if self.issue is SearchResultIssue {
+          Usage.track(uEvt.share(.ShareSearchHit), eventUrlString: self.article?.onlineLink)
+        }
+        else {
+          Usage.track(uEvt.share(.ShareArticle), eventUrlString: url)
+        }
         ArticleVC.exportArticle(article: self.article, artvc: self, from: self.shareButton)
       }
     }

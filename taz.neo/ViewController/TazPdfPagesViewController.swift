@@ -439,6 +439,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                                                sliderContent: childThumbnailController)
       articleVC.delegate = self
       childThumbnailController.clickCallback = { [weak self] (_, pdfModel) in
+        Usage.track(uEvt.drawer(.Tap))
         if let newIndex = pdfModel?.index {
           self?.collectionView?.index = newIndex
         }
@@ -682,6 +683,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       dialogue.present(item: tmpFile,
                        view: self.shareButton ?? self.toolBar,
                        subject: "taz vom \(self.issue.date.short) Seite \(page)")
+      let eventUrl = "/issue/\(issue.feed.name)/\(issue.date.ISO8601)/pdf/\(page)"
+      Usage.track(uEvt.share(.FaksimilelePage), eventUrlString: eventUrl)
     }
     
     let onPlay:((ButtonControl)->()) = { [weak self] _ in

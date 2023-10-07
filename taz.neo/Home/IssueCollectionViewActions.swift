@@ -81,6 +81,8 @@ extension IssueCollectionViewActions {
     actions.addMenuItem(title: "Bild Teilen",
                         icon: "share") {[weak self] _ in
       self?.service.exportMoment(issue: issue, sourceView: self?.view)
+      let url = "/issue/\(issue.feed.name)/\(issue.date.ISO8601)"
+      Usage.track(uEvt.share(.IssueMoment), eventUrlString: url)
     }
     
     if self.isKind(of: IssueCarouselCVC.self) {

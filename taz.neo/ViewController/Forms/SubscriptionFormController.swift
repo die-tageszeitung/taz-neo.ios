@@ -57,6 +57,7 @@ class SubscriptionFormController : FormsController, UsageTracker {
     if let errormessage = ui.validate() {
       Toast.show(errormessage, .alert)
       ui.blocked = false
+      Usage.track(uEvt.subscription(.InquiryFormValidationError))
       return
     }
     
@@ -83,8 +84,16 @@ class SubscriptionFormController : FormsController, UsageTracker {
           self?.showResultWith(message: "Ihre Anfrage wurde an unser Serviceteam übermittelt. Für weitere Fragen erreichen Sie unser Service-Team unter: fragen@taz.de",
                               backButtonTitle: "Schließen",
                               dismissType: .allReal)
+          Usage.track(uEvt.subscription(.InquirySubmitted))
           self?.log("Success: \(msg)")
         case .failure(let err):
+          if (err as NSError).domain == NSURLErrorDomain {
+            Usage.track(uEvt.subscription(.InquiryNetworkError))
+          }
+          else {
+            Usage.track(uEvt.subscription(.InquiryServerError), eventUrlString: err.description.replacingOccurrences(of: " ", with: "/"))
+          }
+          
           if let fe = err as? SubscriptionFormDataError, let msg = fe.associatedValue {
             Toast.show("<b>Fehler beim senden</b></br>\(msg)", .alert)
           }
