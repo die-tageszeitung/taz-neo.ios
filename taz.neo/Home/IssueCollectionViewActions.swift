@@ -92,7 +92,7 @@ extension IssueCollectionViewActions {
     }
     
     actions.actions.append(contentsOf: issue.contextMenu(group: 1).actions)
-        
+    Usage.track(uEvt.dialog(.IssueActions))
     return UIContextMenuConfiguration(identifier: nil,
                                       previewProvider: nil){ _ -> UIMenu? in
       return actions.contextMenu

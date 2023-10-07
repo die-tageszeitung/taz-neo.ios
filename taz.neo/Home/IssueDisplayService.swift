@@ -53,6 +53,7 @@ extension IssueDisplayService {
       }
       let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
       let msg = "Um das ePaper zu lesen, müssen Sie sich anmelden."
+      Usage.track(uEvt.dialog(.PDFModeLoginHint))
       Alert.message(title: "Fehler", message: msg, actions: [loginAction, cancelAction])
     }
     

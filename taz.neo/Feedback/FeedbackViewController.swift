@@ -337,7 +337,7 @@ public class FeedbackViewController : UIViewController{
     if MFMailComposeViewController.canSendMail() {
       actions.insert(mailAction, at: 1)
     }
-    
+    Usage.track(uEvt.dialog(.ConnectionError))
     Alert.message(title: "Erneut versuchen?",
                       message: "Der Report konnte nicht gesendet werden!\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.\nSollte das Problem weiter bestehen, senden Sie uns bitte eine E-Mail an:\n \(Localized("digiabo_email"))",
                       actions: actions, presentationController: self)

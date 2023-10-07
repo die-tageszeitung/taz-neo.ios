@@ -533,6 +533,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     textSettingsButton.onPress { [weak self] _ in
       guard let self = self else { return }
       self.textSettingsClosure?(self)
+      Usage.track(uEvt.dialog(.TextSettings))
     }
     backButton.pinSize(CGSize(width: 35, height: 40))
     shareButton.pinSize(CGSize(width: 30, height: 30))

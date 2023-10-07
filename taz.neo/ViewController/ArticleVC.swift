@@ -346,6 +346,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       guard let self = self else { return }
       self.debug("*** Action: Share Article")
       if (self.article?.onlineLink ?? "").isEmpty {
+        Usage.track(uEvt.dialog(.SharingNotPossible))
         Alert.actionSheet(message: self.needValidAboToShareText,
                           actions: UIAlertAction.init( title: self.feederContext.isAuthenticated ? "Weitere Informationen" : "Anmelden",
                                                        style: .default ){ [weak self] _ in

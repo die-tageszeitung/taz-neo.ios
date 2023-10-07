@@ -498,6 +498,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
        topVc.presentedViewController != nil {
       topVc.dismiss(animated: false)
     }
+    Usage.track(uEvt.dialog(.FatalError))
     Alert.confirm(title: "Interner Fehler",
                   message: "Es liegt ein schwerwiegender interner Fehler vor, möchten Sie uns " +
                            "darüber mit einer Nachricht informieren?\n" +

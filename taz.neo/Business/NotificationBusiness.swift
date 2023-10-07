@@ -126,5 +126,6 @@ extension NotificationBusiness {
       self?.showingNotificationsPopup = false
     }
     toast.show()
+    Usage.track(uEvt.dialog(.AllowNotificationsInfo))
   }
 }

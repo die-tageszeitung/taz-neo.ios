@@ -529,6 +529,7 @@ extension HomeTVC {
         self?.showPdfInfoToast = false
         self?.carouselController.showScrollDownAnimationIfNeeded()
       }
+      Usage.track(uEvt.dialog(.PDFModeSwitchHint))
     }
   }
 }

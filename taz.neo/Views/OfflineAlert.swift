@@ -102,6 +102,7 @@ class OfflineAlert {
         noch einmal.
         """
         if let c = closure { sharedInstance.closures = [c]}
+        Usage.track(uEvt.dialog(.ConnectionError))
       case .issueDownload:
         sharedInstance.title = "Warnung"
         sharedInstance.actionButtonTitle = "OK"
@@ -113,6 +114,7 @@ class OfflineAlert {
         ohne Internet-Zugriff lesen.
         """
         if let c = closure { sharedInstance.closures.append(c)}
+        Usage.track(uEvt.dialog(.IssueDownloadError))
     }
     sharedInstance.updateIfNeeded()
   }
