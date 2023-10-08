@@ -684,7 +684,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                        view: self.shareButton ?? self.toolBar,
                        subject: "taz vom \(self.issue.date.short) Seite \(page)")
       let eventUrl = "/issue/\(issue.feed.name)/\(issue.date.ISO8601)/pdf/\(page)"
-      Usage.track(uEvt.share(.FaksimilelePage), eventUrlString: eventUrl)
+      Usage.track(uEvt.share(.FaksimilelePage), actionName: eventUrl)
     }
     
     let onPlay:((ButtonControl)->()) = { [weak self] _ in

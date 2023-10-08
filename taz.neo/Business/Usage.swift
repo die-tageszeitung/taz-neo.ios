@@ -270,8 +270,8 @@ class Usage: NSObject, DoesLog{
       let evt = art.hasBookmark
       ? uEvt.bookmarks(.AddArticle)
       : uEvt.bookmarks(.RemoveArticle)
-      let url = art.html?.name.isEmpty == false ? "article/\(art.html?.name ?? "-")|\(art.serverId ?? -1)" : nil
-      self?.trackEvent(evt, eventUrlString: url)
+      let name = art.html?.name.isEmpty == false ? "article/\(art.html?.name ?? "-")|\(art.serverId ?? -1)" : nil
+      self?.trackEvent(evt, actionName: name)
     }
     
     $usageTrackingAllowed.onChange{[weak self] _ in
@@ -285,14 +285,15 @@ fileprivate extension Usage {
     if usageTrackingAllowed == false { return }
     let event = uevt.usageEvent
     var eventUrl: URL?
-    if let eventUrlString = eventUrlString {
+    if event.category == uEvt.Categories.dialog.rawValue {
+      eventUrl = currentScreenUrl
+    }
+    else if let eventUrlString = eventUrlString {
       eventUrl = URL(string: eventUrlString)
     }
-    var urlInfo = ""
-    if let s = currentScreenUrl?.absoluteString{
-      urlInfo = " on url: \(s)"
-    }
-    print("track::Event with Category: \"\(event.category)\" and Action: \"\(event.action)\" \(eventUrlString ?? urlInfo)")
+    let actionNameInfo = actionName?.length ?? 0 > 0 ? " name: \(actionName ?? "")" : ""
+    let urlInfo = eventUrl != nil ? " url: \(eventUrl?.absoluteString ?? "")" : ""
+    print("track::Event with Category: \"\(event.category)\", Action: \"\(event.action)\"\(actionNameInfo)\(urlInfo)")
     self.matomoTracker.track(eventWithCategory: event.category,
                              action: event.action,
                              name: actionName,
@@ -367,8 +368,8 @@ extension UsageTracker {
 }
 
 extension Usage {
-  public static func track(_ uevt: uEvt, eventUrlString: String? = nil){
-    ensureBackground{ Usage.sharedInstance.trackEvent(uevt, eventUrlString: eventUrlString) }
+  public static func track(_ uevt: uEvt, actionName: String? = nil, eventUrlString: String? = nil){
+    ensureBackground{ Usage.sharedInstance.trackEvent(uevt, actionName: actionName, eventUrlString: eventUrlString) }
   }
   public static func trackScreen(path: [String]?){
     ensureBackground{ Usage.sharedInstance.trackScreen(path) }

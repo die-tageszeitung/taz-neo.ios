@@ -358,10 +358,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           url = "article/\(name)|\(art.serverId ?? -1)"
         }
         if self.issue is SearchResultIssue {
-          Usage.track(uEvt.share(.ShareSearchHit), eventUrlString: self.article?.onlineLink)
+          Usage.track(uEvt.share(.ShareSearchHit), actionName: self.article?.onlineLink)
         }
         else {
-          Usage.track(uEvt.share(.ShareArticle), eventUrlString: url)
+          Usage.track(uEvt.share(.ShareArticle), actionName: url)
         }
         ArticleVC.exportArticle(article: self.article, artvc: self, from: self.shareButton)
       }

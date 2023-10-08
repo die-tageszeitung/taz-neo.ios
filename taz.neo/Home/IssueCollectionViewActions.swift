@@ -82,7 +82,7 @@ extension IssueCollectionViewActions {
                         icon: "share") {[weak self] _ in
       self?.service.exportMoment(issue: issue, sourceView: self?.view)
       let url = "/issue/\(issue.feed.name)/\(issue.date.ISO8601)"
-      Usage.track(uEvt.share(.IssueMoment), eventUrlString: url)
+      Usage.track(uEvt.share(.IssueMoment), actionName: url)
     }
     
     if self.isKind(of: IssueCarouselCVC.self) {
