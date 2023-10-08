@@ -170,6 +170,7 @@ public class NewContentTableVC: UIViewController {
         self.collapseAll()
         self.header.collapsed = true
       }
+      Usage.track(uEvt.drawer(.Toggle), actionName: uEvt.ActionName.drawerToggleNames(.ToggleAllSections))
     }
     h.listenLabel.onTapping {[weak self] _ in
       guard let issue = self?.issue else { return }
@@ -177,8 +178,10 @@ public class NewContentTableVC: UIViewController {
                  startFromArticle: nil,
                  enqueueType: .replaceCurrent)
       self?.header.listenIconActive = true
+      Usage.track(uEvt.drawer(.Tap), actionName: uEvt.ActionName.drawerTapNames(.TapPlayIssue))
     }
     h.imageView.onTapping {[weak self] _ in
+      Usage.track(uEvt.drawer(.Tap), actionName: uEvt.ActionName.drawerTapNames(.TapMoment))
       self?.imagePressedClosure?()
     }
     h.pinHeight(240)
@@ -326,12 +329,18 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
 
     header.tag = section
     
+    let tapTargetActionName: uEvt.ActionName
+    = section == issue?.sections?.count ?? 0
+    ? uEvt.ActionName.drawerTapNames(.TapImprint)
+    : uEvt.ActionName.drawerTapNames(.TapSection)
+    
     header.onTapping { [weak self] gr in
       guard let _header = gr.view as? ContentTableHeaderFooterView else { return }
       self?.sectionPressedClosure?(_header.tag)
       _header.active = true
       _header.collapsed = false
       self?.collapseAll(expect: _header.tag)
+      Usage.track(uEvt.drawer(.Tap), actionName: tapTargetActionName)
     }
     
     header.chevronTapArea.onTapping {  [weak self] gr in
@@ -340,6 +349,7 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
       ///on refactor my just pass closure/handler
       guard let _header = gr.view?.superview?.superview as? ContentTableHeaderFooterView else { return }
       _header.collapsed = self?.toggle(section: _header.tag) ?? true
+      Usage.track(uEvt.drawer(.Toggle), actionName: uEvt.ActionName.drawerToggleNames(.ToggleSection))
     }
     header.active = section == sectIndex
     return header
@@ -363,6 +373,7 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
       log("Article you tapped not found for section: \(indexPath.section), row: \(indexPath.row)")
       return
     }
+    Usage.track(uEvt.drawer(.Tap), actionName: uEvt.ActionName.drawerTapNames(.TapArticle))
     articlePressedClosure?(art)
   }
   
@@ -698,6 +709,7 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     pin(bookmarkButton.right, to: v.right)
     
     bookmarkButton.onTapping {[weak self] _ in
+      Usage.track(uEvt.drawer(.Tap), actionName: uEvt.ActionName.drawerTapNames(.TapBookmark))
       self?.article?.hasBookmark.toggle()
     }
     

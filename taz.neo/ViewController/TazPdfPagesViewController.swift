@@ -476,6 +476,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let newIndex = pdfModel?.index else { return }
       self.collectionView?.index = newIndex
       self.slider?.close()
+      Usage.track(uEvt.drawer(.Tap), actionName: uEvt.ActionName.drawerTapNames(.TapPage))
     }
     
     onDisplay { [weak self]  (idx, oview) in
@@ -684,7 +685,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                        view: self.shareButton ?? self.toolBar,
                        subject: "taz vom \(self.issue.date.short) Seite \(page)")
       let eventUrl = "/issue/\(issue.feed.name)/\(issue.date.ISO8601)/pdf/\(page)"
-      Usage.track(uEvt.share(.FaksimilelePage), actionName: eventUrl)
+      Usage.track(uEvt.share(.FaksimilelePage), eventUrlString: eventUrl)
     }
     
     let onPlay:((ButtonControl)->()) = { [weak self] _ in

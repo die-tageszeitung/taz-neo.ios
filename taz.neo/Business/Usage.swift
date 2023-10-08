@@ -157,6 +157,37 @@ public enum uEvt: Equatable {
     case drawer = "Drawer"
     case audioPlayer = "Audio Player"
   }
+  public enum ActionName {
+    case drawerOpenNames(OpenNames)
+    public enum OpenNames: String, CodableEnum {
+      case Unknown = "Unknown"
+    }
+    case drawerTapNames(TapNames)
+    public enum TapNames: String, CodableEnum {
+      case TapPage = "Tap Page",
+           TapSection = "Tap Section",
+           TapArticle = "Tap Article",
+           TapImprint = "Tap Imprint",
+           TapMoment = "Tap Moment",
+           TapBookmark = "Tap Bookmark",
+           TapPlayIssue = "Tap Play Issue"
+    }
+    case drawerToggleNames(ToggleNames)
+    public enum ToggleNames: String, CodableEnum {
+      case ToggleSection = "Toggle Section",
+           ToggleAllSections = "Toggle all Sections"
+    }
+    var rawValue: String {
+      switch self {
+        case .drawerOpenNames(let value):
+          return value.rawValue
+        case .drawerToggleNames(let value):
+          return value.rawValue
+        case .drawerTapNames(let value):
+          return value.rawValue
+      }
+    }
+  }
   /** HOW TO EXTRACT Category/Action
    ...unfortunatly: Enum with raw type cannot have cases with arguments
    and: Enum case cannot have a raw value if the enum does not have a raw type
@@ -271,7 +302,7 @@ class Usage: NSObject, DoesLog{
       ? uEvt.bookmarks(.AddArticle)
       : uEvt.bookmarks(.RemoveArticle)
       let name = art.html?.name.isEmpty == false ? "article/\(art.html?.name ?? "-")|\(art.serverId ?? -1)" : nil
-      self?.trackEvent(evt, actionName: name)
+      self?.trackEvent(evt, eventUrlString: name)
     }
     
     $usageTrackingAllowed.onChange{[weak self] _ in
@@ -281,7 +312,7 @@ class Usage: NSObject, DoesLog{
 }
 
 fileprivate extension Usage {
-  func trackEvent(_ uevt: uEvt, actionName: String? = nil, eventUrlString: String? = nil){
+  func trackEvent(_ uevt: uEvt, actionName: uEvt.ActionName? = nil, eventUrlString: String? = nil){
     if usageTrackingAllowed == false { return }
     let event = uevt.usageEvent
     var eventUrl: URL?
@@ -291,12 +322,12 @@ fileprivate extension Usage {
     else if let eventUrlString = eventUrlString {
       eventUrl = URL(string: eventUrlString)
     }
-    let actionNameInfo = actionName?.length ?? 0 > 0 ? " name: \(actionName ?? "")" : ""
+    let actionNameInfo = actionName != nil ? " name: \(actionName?.rawValue ?? "")" : ""
     let urlInfo = eventUrl != nil ? " url: \(eventUrl?.absoluteString ?? "")" : ""
     print("track::Event with Category: \"\(event.category)\", Action: \"\(event.action)\"\(actionNameInfo)\(urlInfo)")
     self.matomoTracker.track(eventWithCategory: event.category,
                              action: event.action,
-                             name: actionName,
+                             name: actionName?.rawValue,
                              number: nil,
                              url: eventUrl ?? currentScreenUrl)
     if uevt.usageEvent.category == uEvt.Categories.user.rawValue {
@@ -368,7 +399,7 @@ extension UsageTracker {
 }
 
 extension Usage {
-  public static func track(_ uevt: uEvt, actionName: String? = nil, eventUrlString: String? = nil){
+  public static func track(_ uevt: uEvt, actionName: uEvt.ActionName? = nil, eventUrlString: String? = nil){
     ensureBackground{ Usage.sharedInstance.trackEvent(uevt, actionName: actionName, eventUrlString: eventUrlString) }
   }
   public static func trackScreen(path: [String]?){

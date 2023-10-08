@@ -671,6 +671,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     header.leftConstraint?.constant = 8 + (slider?.visibleButtonWidth ?? 0.0)
     ///enable shadow for sliderView
     slider?.sliderView.clipsToBounds = false
+    slider?.onOpen{ _ in
+      Usage.track(uEvt.drawer(.Open), actionName: uEvt.ActionName.drawerOpenNames(.Unknown))
+    }
   }
   
   public func applyStyles() {
