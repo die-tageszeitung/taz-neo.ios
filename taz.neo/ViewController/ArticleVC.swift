@@ -346,22 +346,18 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       guard let self = self else { return }
       self.debug("*** Action: Share Article")
       if (self.article?.onlineLink ?? "").isEmpty {
-        Usage.track(uEvt.dialog(.SharingNotPossible))
+        Usage.track(Usage.event.dialog.SharingNotPossible)
         Alert.actionSheet(message: self.needValidAboToShareText,
                           actions: UIAlertAction.init( title: self.feederContext.isAuthenticated ? "Weitere Informationen" : "Anmelden",
                                                        style: .default ){ [weak self] _ in
           self?.feederContext.authenticate()
         })
       } else {
-        var url: String?
-        if let art = self.article, let name = art.html?.name {
-          url = "article/\(name)|\(art.serverId ?? -1)"
-        }
         if self.issue is SearchResultIssue {
-          Usage.track(uEvt.share(.ShareSearchHit), eventUrlString: self.article?.onlineLink)
+          Usage.xtrack.share.searchHit(content: self.article)
         }
         else {
-          Usage.track(uEvt.share(.ShareArticle), eventUrlString: url)
+          Usage.xtrack.share.article(content: self.article)
         }
         ArticleVC.exportArticle(article: self.article, artvc: self, from: self.shareButton)
       }
@@ -376,22 +372,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     UIMenuController.shared.menuItems = nil
   }
 } // ArticleVC
-
-extension ArticleVC: UsageTracker {
-  public var trackingUrl:URL? {
-    guard let link = article?.onlineLink else { return nil}
-      return URL(string: link)
-  }
-  
-  public var path:[String]? {
-    guard let article = article,
-          let artFileName = article.html?.name else { return nil}
-    let sectionFileName
-    = adelegate?.article2section[artFileName]?.first?.html?.name
-    ?? "-"
-    return ["issue", self.feederContext.feedName, self.issue.date.ISO8601, "section", sectionFileName, "article", "\(artFileName)|\(article.serverId ?? 0)"]
-  }
-}
 
 //MARK: - Context Menu Actions
 extension ArticleVC {

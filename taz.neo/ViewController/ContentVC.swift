@@ -533,7 +533,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     textSettingsButton.onPress { [weak self] _ in
       guard let self = self else { return }
       self.textSettingsClosure?(self)
-      Usage.track(uEvt.dialog(.TextSettings))
+      Usage.track(Usage.event.dialog.TextSettings)
     }
     backButton.pinSize(CGSize(width: 35, height: 40))
     shareButton.pinSize(CGSize(width: 30, height: 30))
@@ -672,7 +672,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     ///enable shadow for sliderView
     slider?.sliderView.clipsToBounds = false
     slider?.onOpen{ _ in
-      Usage.track(uEvt.drawer(.Open), actionName: uEvt.ActionName.drawerOpenNames(.Unknown))
+      Usage.track(Usage.event.drawer.action_open.Open)
     }
   }
   

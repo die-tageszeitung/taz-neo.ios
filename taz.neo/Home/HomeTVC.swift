@@ -27,9 +27,14 @@ protocol PushIssueDelegate {
   func push(_ viewController:UIViewController, issueInfo: IssueDisplayService)
 }
 
-extension HomeTVC: UsageTracker {
-  public var path:[String]? {
-    ["home", wasUp ? "coverflow" : "archive" , isFacsimile ? "pdf" : "mobile"]
+extension HomeTVC: DefaultScreenTracking {
+  public var defaultScreen: Usage.DefaultScreen? {
+    switch (wasUp, isFacsimile) {
+      case (true, true): return .CoverflowPDF
+      case (true, false): return .CoverflowMobile
+      case (false, true): return .ArchivePDF
+      case (false, false): return .ArchiveMobile
+    }
   }
 }
 
@@ -89,12 +94,7 @@ class HomeTVC: UITableViewController {
   
   var carouselController: IssueCarouselCVC
   var tilesController: IssueTilesCVC
-  var wasUp = true {
-    didSet {
-      if oldValue == wasUp { return }
-      trackScreen()
-    }
-  }
+  var wasUp = true { didSet { if oldValue != wasUp { trackScreen() }}}
   
   var carouselControllerCell: UITableViewCell
   var tilesControllerCell: UITableViewCell
@@ -317,8 +317,7 @@ extension HomeTVC {
 extension HomeTVC {
   func onPDF(sender:Any){
     self.isFacsimile = !self.isFacsimile
-    let evt = self.isFacsimile ? uEvt.appMode(.SwitchToPDFMode) : uEvt.appMode(.SwitchToMobileMode)
-    trackEvent(evt)
+    Usage.track(self.isFacsimile ? Usage.event.appMode.SwitchToPDFMode : Usage.event.appMode.SwitchToMobileMode)
     
     if let imageButton = sender as? Button<ImageView> {
       imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
@@ -529,7 +528,7 @@ extension HomeTVC {
         self?.showPdfInfoToast = false
         self?.carouselController.showScrollDownAnimationIfNeeded()
       }
-      Usage.track(uEvt.dialog(.PDFModeSwitchHint))
+      Usage.track(Usage.event.dialog.PDFModeSwitchHint)
     }
   }
 }

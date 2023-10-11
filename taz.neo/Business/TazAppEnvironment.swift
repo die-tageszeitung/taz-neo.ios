@@ -310,7 +310,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self.debug(fctx.storedFeeder.toString())
       if isStartup { self.startup() }
       else { self.showHome() }
-      _ = Usage.sharedInstance//init usage, setup Tracking
+      _ = Usage.shared//init usage, setup Tracking
     }
     feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
   }
@@ -498,7 +498,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
        topVc.presentedViewController != nil {
       topVc.dismiss(animated: false)
     }
-    Usage.track(uEvt.dialog(.FatalError))
+    Usage.track(Usage.event.dialog.FatalError)
     Alert.confirm(title: "Interner Fehler",
                   message: "Es liegt ein schwerwiegender interner Fehler vor, möchten Sie uns " +
                            "darüber mit einer Nachricht informieren?\n" +

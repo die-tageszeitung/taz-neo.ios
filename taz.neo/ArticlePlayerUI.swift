@@ -147,7 +147,7 @@ class ArticlePlayerUI: UIView {
     updateLayout()
   }
   
-  func setRate(_ rate: Double){
+  func setRate(_ rate: Double, isInitial: Bool = false){
     rateMenuItms = rateMenuItms.map{
       var itm = $0
       if $0.title == "\(rate)" {
@@ -167,6 +167,9 @@ class ArticlePlayerUI: UIView {
     }
     playbackRate = rate
     rateButton.setTitle("\(rate)x", for: .normal)
+    isInitial
+    ? Usage.xtrack.audio.setInitialPlaySpeed(ratio: rate)
+    : Usage.xtrack.audio.changePlaySpeed(ratio: rate)
   }
   
   lazy var rateButton: UIButton = {
@@ -292,28 +295,28 @@ class ArticlePlayerUI: UIView {
     return btn
   }()
   
-  var skipBackButtonEnabled = true {
+  var seekBackButtonEnabled = true {
     didSet {
-      skipBackwardButton.isEnabled = skipBackButtonEnabled
-      skipBackwardButton.alpha = skipBackButtonEnabled ? 1.0 : 0.5
+      seekBackwardButton.isEnabled = seekBackButtonEnabled
+      seekBackwardButton.alpha = seekBackButtonEnabled ? 1.0 : 0.5
     }
   }
-  var skipFrwardButtonEnabled = true {
+  var seekFrwardButtonEnabled = true {
     didSet {
-      skipForwardButton.isEnabled = skipFrwardButtonEnabled
-      skipForwardButton.alpha = skipFrwardButtonEnabled ? 1.0 : 0.5
+      seekForwardButton.isEnabled = seekFrwardButtonEnabled
+      seekForwardButton.alpha = seekFrwardButtonEnabled ? 1.0 : 0.5
     }
   }
   
   var skipToAudioBreaks: Bool = false {
     didSet {
       if oldValue == skipToAudioBreaks { return }
-      skipForwardButton.buttonView.name = skipToAudioBreaks ? "goforward" : "goforward.15"
-      skipBackwardButton.buttonView.name = skipToAudioBreaks ? "gobackward" : "gobackward.15"
+      seekForwardButton.buttonView.name = skipToAudioBreaks ? "goforward" : "goforward.15"
+      seekBackwardButton.buttonView.name = skipToAudioBreaks ? "gobackward" : "gobackward.15"
     }
   }
   
-  lazy var skipForwardButton: Button<ImageView> = {
+  lazy var seekForwardButton: Button<ImageView> = {
     let btn = Button<ImageView>()
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.hinset = 0.05
@@ -323,7 +326,7 @@ class ArticlePlayerUI: UIView {
     return btn
   }()
   
-  lazy var skipBackwardButton: Button<ImageView> = {
+  lazy var seekBackwardButton: Button<ImageView> = {
     let btn = Button<ImageView>()
     btn.pinSize(CGSize(width: 35, height: 35))
     btn.hinset = 0.05
@@ -357,7 +360,10 @@ class ArticlePlayerUI: UIView {
   
   private let wrapper = CustomWrapper()
   
-  func minimize(){ state = .mini }
+  func minimize(){
+    Usage.xtrack.audio.minimize()
+    state = .mini
+  }
   
   func maximize(){
     if state == .maxi {
@@ -365,6 +371,7 @@ class ArticlePlayerUI: UIView {
     }
     else {
       state = .maxi
+      Usage.xtrack.audio.maximize()
     }
   }
   
@@ -414,13 +421,13 @@ class ArticlePlayerUI: UIView {
     self.addSubview(toggleButton)
     self.addSubview(backButton)
     self.addSubview(forwardButton)
-    self.addSubview(skipForwardButton)
-    self.addSubview(skipBackwardButton)
+    self.addSubview(seekForwardButton)
+    self.addSubview(seekBackwardButton)
     self.addSubview(playNextLabel)
     self.addSubview(playNextSwitch)
     self.addSubview(wrapper)
     wrapper.onTapping(closure: { [weak self] _ in self?.maximize() })
-    setRate(playbackRate)
+    setRate(playbackRate, isInitial: true)
     //Mini Player Base UI
     pin(bgImageView, to: imageView)
     imageConstrains = pin(imageView, to: wrapper)
@@ -497,13 +504,13 @@ class ArticlePlayerUI: UIView {
     pin(backButton.right, to: toggleButton.left, dist: -90.0)
     pin(forwardButton.left, to: toggleButton.right, dist: 90.0)
     
-    pin(skipBackwardButton.right, to: toggleButton.left, dist: -30.0)
-    pin(skipForwardButton.left, to: toggleButton.right, dist: 30.0)
+    pin(seekBackwardButton.right, to: toggleButton.left, dist: -30.0)
+    pin(seekForwardButton.left, to: toggleButton.right, dist: 30.0)
     
     pin(backButton.centerY, to: toggleButton.centerY)
     pin(forwardButton.centerY, to: toggleButton.centerY)
-    pin(skipBackwardButton.centerY, to: toggleButton.centerY)
-    pin(skipForwardButton.centerY, to: toggleButton.centerY)
+    pin(seekBackwardButton.centerY, to: toggleButton.centerY)
+    pin(seekForwardButton.centerY, to: toggleButton.centerY)
     
     self.backgroundColor = Const.Colors.darkSecondaryBG
     self.layer.shadowOpacity = 0.40
@@ -559,8 +566,8 @@ class ArticlePlayerUI: UIView {
         elapsedTimeLabel.isHidden = true
         backButton.isHidden = true
         forwardButton.isHidden = true
-        skipForwardButton.isHidden = true
-        skipBackwardButton.isHidden = true
+        seekForwardButton.isHidden = true
+        seekBackwardButton.isHidden = true
         playNextLabel.isHidden = true
         playNextSwitch.isHidden = true
         progressCircle.isHidden = false
@@ -636,8 +643,8 @@ class ArticlePlayerUI: UIView {
           elapsedTimeLabel.alpha = 0.0
           backButton.alpha = 0.0
           forwardButton.alpha = 0.0
-          skipForwardButton.alpha = 0.0
-          skipBackwardButton.alpha = 0.0
+          seekForwardButton.alpha = 0.0
+          seekBackwardButton.alpha = 0.0
           playNextLabel.alpha = 0.0
           playNextSwitch.alpha = 0.0
         }
@@ -645,8 +652,8 @@ class ArticlePlayerUI: UIView {
         elapsedTimeLabel.isHidden = false
         backButton.isHidden = false
         forwardButton.isHidden = false
-        skipForwardButton.isHidden = false
-        skipBackwardButton.isHidden = false
+        seekForwardButton.isHidden = false
+        seekBackwardButton.isHidden = false
         playNextLabel.isHidden = false
         playNextSwitch.isHidden = false
         progressCircle.isHidden = true
@@ -705,8 +712,8 @@ class ArticlePlayerUI: UIView {
             self?.elapsedTimeLabel.alpha = 1.0
             self?.backButton.alpha = 1.0
             self?.forwardButton.alpha = 1.0
-            self?.skipForwardButton.alpha = 1.0
-            self?.skipBackwardButton.alpha = 1.0
+            self?.seekForwardButton.alpha = 1.0
+            self?.seekBackwardButton.alpha = 1.0
             self?.playNextLabel.alpha = 1.0
             self?.playNextSwitch.alpha = 1.0
           }

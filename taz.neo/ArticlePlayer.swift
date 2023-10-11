@@ -86,6 +86,7 @@ class ArticlePlayer: DoesLog {
         cleanup()
         return
       }
+      Usage.xtrack.audio.play(content: currentContent)
       let wasPaused = !aplayer.isPlaying && aplayer.file != nil
       aplayer.file = url(currentContent)
       
@@ -235,11 +236,11 @@ class ArticlePlayer: DoesLog {
     userInterface.backButton.addTarget(self,
                                    action: #selector(backwardButtonTouchOutsideInsideAction),
                                    for: .touchUpOutside)
-    userInterface.skipBackwardButton.addTarget(self,
-                                   action: #selector(skipBackwardButtonTouchUpInsideAction),
+    userInterface.seekBackwardButton.addTarget(self,
+                                   action: #selector(seekBackwardButtonTouchUpInsideAction),
                                    for: .touchUpInside)
-    userInterface.skipForwardButton.addTarget(self,
-                                   action: #selector(skipForewardButtonTouchUpInsideAction),
+    userInterface.seekForwardButton.addTarget(self,
+                                   action: #selector(seekForewardButtonTouchUpInsideAction),
                                    for: .touchUpInside)
     $playbackRate.onChange{[weak self] newValue in
       self?.aplayer.player?.rate = Float(newValue)
@@ -295,9 +296,10 @@ class ArticlePlayer: DoesLog {
     touchDownActive = false
   }
   
-  @objc private func  skipBackwardButtonTouchUpInsideAction(sender: Any) {
+  @objc private func  seekBackwardButtonTouchUpInsideAction(sender: Any) {
     var seconds: Double = 0.0
     if let breaks = currentContent?.audioItem?.breaks, breaks.count > 0 {
+      Usage.xtrack.audio.seek(direction: .backward, source: .nextBreak)
       let cs = self.aplayer.currentTime.seconds//current seconds
       for b in breaks {
         if Double(b)+0.8 > cs { break }
@@ -305,6 +307,7 @@ class ArticlePlayer: DoesLog {
       }
     }
     else {
+      Usage.xtrack.audio.seek(direction: .backward, source: .fifteenSeconds)
       seconds = max(0.0, self.aplayer.currentTime.seconds - 15.0)
     }
     self.aplayer.currentTime = CMTime(seconds: seconds, preferredTimescale: 600)
@@ -312,9 +315,10 @@ class ArticlePlayer: DoesLog {
   
   
   
-  @objc private func  skipForewardButtonTouchUpInsideAction(sender: Any) {
+  @objc private func  seekForewardButtonTouchUpInsideAction(sender: Any) {
     var seconds: Double = 0.0
     if let breaks = currentContent?.audioItem?.breaks, breaks.count > 0 {
+      Usage.xtrack.audio.seek(direction: .forward, source: .nextBreak)
       let cs = self.aplayer.currentTime.seconds//current seconds
       for b in breaks {
         seconds = Double(b)
@@ -322,6 +326,7 @@ class ArticlePlayer: DoesLog {
       }
     }
     else {
+      Usage.xtrack.audio.seek(direction: .forward, source: .fifteenSeconds)
       seconds = min(self.aplayer.currentItem?.duration.seconds ?? 0.0,
                     self.aplayer.currentTime.seconds + 15.0)
     }
@@ -333,7 +338,9 @@ class ArticlePlayer: DoesLog {
     let v =  ArticlePlayerUI()
     v.onToggle {[weak self] in self?.toggle() }
     v.onClose{[weak self] in self?.close() }
-    v.onMaxiItemTap{[weak self] in self?.gotoCurrentArticleInIssue() }
+    v.onMaxiItemTap{[weak self] in
+      Usage.xtrack.audio.openArticle(content: self?.currentContent)
+      self?.gotoCurrentArticleInIssue()}
     return v
   }()
   
@@ -344,11 +351,11 @@ class ArticlePlayer: DoesLog {
     cc.previousTrackCommand.removeTarget(nil)
     cc.nextTrackCommand.removeTarget(nil)
     cc.seekForwardCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      self?.seekForeward()
+      self?.seekForeward(fromSystemControl: true)
       return .success
     }
     cc.seekBackwardCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      self?.seekBackward()
+      self?.seekBackward(fromSystemControl: true)
       return .success
     }
     cc.previousTrackCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
@@ -364,12 +371,21 @@ class ArticlePlayer: DoesLog {
   
   var seeking = false
   
-  func stopSeeking() {
+  func stopSeeking(fromSystemControl sys: Bool = false) {
+    if aplayer.player?.rate ?? 0 < 0 {
+      Usage.xtrack.audio.seek(direction: .backward, 
+                             source: sys ? .skipButtonSystem : .skipButtonAppUI)
+    }
+    else {
+      Usage.xtrack.audio.seek(direction: .forward, 
+                             source: sys ? .skipButtonSystem : .skipButtonAppUI)
+    }
+    
     aplayer.player?.rate = Float(playbackRate)
     seeking = false
   }
   
-  func seekForeward() {
+  func seekForeward(fromSystemControl: Bool = false) {
     if seeking == true {
       stopSeeking()
       return
@@ -386,7 +402,7 @@ class ArticlePlayer: DoesLog {
     }
   }
   
-  func seekBackward() {
+  func seekBackward(fromSystemControl: Bool = false) {
     if seeking == true {
       stopSeeking()
       return
@@ -517,6 +533,7 @@ class ArticlePlayer: DoesLog {
     commandCenter.nextTrackCommand.isEnabled = false
     commandCenter.playCommand.isEnabled = false
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    Usage.xtrack.audio.close()
   }
   
   public func play(issue:Issue,

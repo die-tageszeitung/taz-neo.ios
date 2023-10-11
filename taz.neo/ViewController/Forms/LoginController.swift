@@ -10,9 +10,7 @@ import NorthLib
 // MARK: - LoginCtrl
 /// Presents Login Form and Functionallity
 /// ChildViews/Controller are pushed modaly
-class LoginController: FormsController, UsageTracker {
-  
-  var path: [String]? { ["login"] }
+class LoginController: FormsController {
   
   private var contentView = LoginView()
   override var ui : LoginView { get { return contentView }}
@@ -89,7 +87,7 @@ class LoginController: FormsController, UsageTracker {
     let faqAction = self.ui.openFaqAction()
     Alert.message(title:"",
                   message:Localized("fragment_login_help"), additionalActions: [faqAction])
-    Usage.track(uEvt.dialog(.LoginHelp))
+    Usage.track(Usage.event.dialog.LoginHelp)
   }
   
   // MARK: queryAuthToken

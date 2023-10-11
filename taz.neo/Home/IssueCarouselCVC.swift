@@ -82,7 +82,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     
     dateLabel.onTapping {[weak self] _ in
       self?.showDatePicker()
-      Usage.track(uEvt.dialog(.IssueDatePicker))
+      Usage.track(Usage.event.dialog.IssueDatePicker)
     }
     downloadButton.onTapping { [weak self] _ in
       if self?.downloadButton.indicator.downloadState == .done { return }

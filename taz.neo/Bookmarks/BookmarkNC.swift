@@ -23,8 +23,8 @@ fileprivate class PlaceholderVC: UIViewController{
   }
 }
 
-extension PlaceholderVC: UsageTracker {
-  public var path:[String]? { ["bookmarks", "empty"]}
+extension PlaceholderVC: DefaultScreenTracking {
+  public var defaultScreen: Usage.DefaultScreen? { .BookmarksEmpty }
 }
 
 class BookmarkNC: NavigationController {

@@ -22,22 +22,7 @@ import NorthLib
  b) without first and/or Lastname
  
  */
-class SubscriptionFormController : FormsController, UsageTracker {
-  var path: [String]? {
-    switch ui.formType {
-      case .expiredDigiPrint:
-        return ["subscription", "trial_elapsed"]
-      case .expiredDigiSubscription:
-        return ["subscription", "trial_elapsed"]
-      case .print2Digi:
-        return ["subscription", "switch"]
-      case .printPlusDigi:
-        return ["subscription", "extend"]
-      case .trialSubscription:
-        return ["subscription", "personal_data_form"]
-    }
-}
-  
+class SubscriptionFormController : FormsController {
   var onMissingNameRequested:(()->())?
   
   private var contentView:SubscriptionFormView
@@ -57,7 +42,7 @@ class SubscriptionFormController : FormsController, UsageTracker {
     if let errormessage = ui.validate() {
       Toast.show(errormessage, .alert)
       ui.blocked = false
-      Usage.track(uEvt.subscription(.InquiryFormValidationError))
+      Usage.track(Usage.event.subscription.InquiryFormValidationError)
       return
     }
     
@@ -84,14 +69,14 @@ class SubscriptionFormController : FormsController, UsageTracker {
           self?.showResultWith(message: "Ihre Anfrage wurde an unser Serviceteam übermittelt. Für weitere Fragen erreichen Sie unser Service-Team unter: fragen@taz.de",
                               backButtonTitle: "Schließen",
                               dismissType: .allReal)
-          Usage.track(uEvt.subscription(.InquirySubmitted))
+          Usage.track(Usage.event.subscription.InquirySubmitted)
           self?.log("Success: \(msg)")
         case .failure(let err):
           if (err as NSError).domain == NSURLErrorDomain {
-            Usage.track(uEvt.subscription(.InquiryNetworkError))
+            Usage.track(Usage.event.subscription.InquiryNetworkError, name: err.description)
           }
           else {
-            Usage.track(uEvt.subscription(.InquiryServerError), eventUrlString: err.description.replacingOccurrences(of: " ", with: "/"))
+            Usage.track(Usage.event.subscription.InquiryServerError, name: err.description)
           }
           
           if let fe = err as? SubscriptionFormDataError, let msg = fe.associatedValue {

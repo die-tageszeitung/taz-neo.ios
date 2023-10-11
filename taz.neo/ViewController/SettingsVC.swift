@@ -740,10 +740,6 @@ extension SettingsVC {
   }
 }
 
-extension SettingsVC: UsageTracker {
-  public var path:[String]? { ["settings"]}
-}
-
 // MARK: - Handler/Actions
 extension SettingsVC {
   func requestLogout(){

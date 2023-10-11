@@ -103,7 +103,7 @@ extension Authenticator {
     kc["password"] = password
     TazAppEnvironment.checkcDevMenu()
     TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
-    Usage.track(uEvt.user(.Login))
+    Usage.track(Usage.event.user.Login)
   }
   
   public static func getUserData(requestKeychainPassword: Bool = false) -> (id: String?, password: String?, token: String?) {
@@ -141,7 +141,7 @@ extension Authenticator {
     let dfl = Defaults.singleton
     let kc = Keychain.singleton
     
-    Usage.track(uEvt.user(.Logout))
+    Usage.track(Usage.event.user.Logout)
     
     if properties.count == 0 {
       kc["token"] = nil

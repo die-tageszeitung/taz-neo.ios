@@ -211,15 +211,6 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   }
 }
 
-
-extension TazPdfPagesViewController: UsageTracker {  
-  public var path:[String]? {
-    let idx = page()?.pagina ?? "\((index ?? -2) + 1)"
-    return ["issue", self.feederContext.feedName, self.issue.date.ISO8601, "pdf", "\(idx)"]
-  }
-  public var trackingScreenOnAppear: Bool { false }
-}
-
 // MARK: - TazPdfPagesViewController
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
 open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, UIStyleChangeDelegate{
@@ -439,7 +430,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                                                sliderContent: childThumbnailController)
       articleVC.delegate = self
       childThumbnailController.clickCallback = { [weak self] (_, pdfModel) in
-        Usage.track(uEvt.drawer(.Tap))
+        Usage.track(Usage.event.drawer.action_tap.Page)
         if let newIndex = pdfModel?.index {
           self?.collectionView?.index = newIndex
         }
@@ -476,7 +467,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let newIndex = pdfModel?.index else { return }
       self.collectionView?.index = newIndex
       self.slider?.close()
-      Usage.track(uEvt.drawer(.Tap), actionName: uEvt.ActionName.drawerTapNames(.TapPage))
+      Usage.track(Usage.event.drawer.action_tap.Page)
     }
     
     onDisplay { [weak self]  (idx, oview) in
@@ -684,8 +675,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       dialogue.present(item: tmpFile,
                        view: self.shareButton ?? self.toolBar,
                        subject: "taz vom \(self.issue.date.short) Seite \(page)")
-      let eventUrl = "/issue/\(issue.feed.name)/\(issue.date.ISO8601)/pdf/\(page)"
-      Usage.track(uEvt.share(.FaksimilelePage), eventUrlString: eventUrl)
+     Usage.xtrack.share.faksimilelePage(issue: issue, pagina: page)
     }
     
     let onPlay:((ButtonControl)->()) = { [weak self] _ in
@@ -748,6 +738,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
 }
 
+extension TazPdfPagesViewController: ScreenTracking {
+  private var pagina: String { page()?.pagina ?? "\((index ?? -2) + 1)"}
+  public var screenUrl: URL? {
+    return URL(string: "/issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/pdf/\(pagina)")
+  }
+  
+  public var screenTitle: String? {  return "PDF Page: \(pagina)"}
+  public var trackingScreenOnAppear: Bool { false }
+}
 
 // MARK: - Class ArticleVcWithPdfInSlider
 class ArticleVcWithPdfInSlider : ArticleVC {

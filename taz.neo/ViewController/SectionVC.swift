@@ -413,8 +413,3 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
 
 } // SectionVC
-
-
-extension SectionVC: UsageTracker {
-  public var path:[String]? {sectionPath}
-}

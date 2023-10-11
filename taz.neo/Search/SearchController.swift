@@ -392,10 +392,6 @@ extension SearchController : UITextFieldDelegate {
   }
 }
 
-extension SearchController: UsageTracker {
-  public var path:[String]? { ["search"]}
-}
-
 // MARK: - ArticleVCdelegate -
 extension SearchController: ArticleVCdelegate {
   public var issue: Issue {
