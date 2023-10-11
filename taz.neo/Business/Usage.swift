@@ -431,22 +431,22 @@ extension Usage {
       static func article(content: Content?){
         let evt = Usage.event.share.Article
         trackEvent(category: evt.category,
-                          action: evt.action,
-                          name: content?.trackingPath,
-                          dimensions: content?.customDimensions)
+                   action: evt.action,
+                   name: content?.trackingPath,
+                   dimensions: content?.customDimensions)
       }
       static func searchHit(content: Content?){
         let evt = Usage.event.share.SearchHit
         trackEvent(category: evt.category,
-                          action: evt.action,
-                          name: content?.trackingPath,
-                          dimensions: content?.customDimensions)
+                   action: evt.action,
+                   name: content?.trackingPath,
+                   dimensions: content?.customDimensions)
       }
       static func faksimilelePage(issue: Issue, pagina: String){
         let evt = Usage.event.share.SearchHit
         trackEvent(category: evt.category,
-                          action: evt.action,
-                          name: issue.trackingNamePathId+"/pdf/\(pagina)")
+                   action: evt.action,
+                   name: issue.trackingNamePathId+"/pdf/\(pagina)")
       }
       static func issueMoment(_ issue: Issue){
         let evt = Usage.event.share.SearchHit
@@ -459,60 +459,62 @@ extension Usage {
       static func play(content: Content?){
         let evt = Usage.event.audio.PlayArticle
         trackEvent(category: evt.category,
-                          action: evt.action,
-                          name: content?.trackingPath,
-                          dimensions: content?.customDimensions)
+                   action: evt.action,
+                   name: content?.trackingPath,
+                   dimensions: content?.customDimensions)
       }
       static func changePlaySpeed(ratio: Double){
         let evt = Usage.event.audio.ChangePlaySpeed
         trackEvent(category: evt.category,
-                          action: evt.action,
-                          name: "\(ratio)")
+                   action: evt.action,
+                   name: "\(ratio)")
       }
       static func setInitialPlaySpeed(ratio: Double){
         let evt = Usage.event.audio.InitialPlaySpeed
         trackEvent(category: evt.category,
-                          action: evt.action,
-                          name: "\(ratio)")
+                   action: evt.action,
+                   name: "\(ratio)")
       }
       static func maximize(){
         let evt = Usage.event.audio.Maximize
         trackEvent(category: evt.category,
-                          action: evt.action)
+                   action: evt.action)
       }
       static func minimize(){
         let evt = Usage.event.audio.Minimize
         trackEvent(category: evt.category,
-                          action: evt.action)
+                   action: evt.action)
       }
       static func openArticle(content: Content?){
         let evt = Usage.event.audio.OpenArticle
         trackEvent(category: evt.category,
-                          action: evt.action,
-                          name: content?.trackingPath,
-                          dimensions: content?.customDimensions)
+                   action: evt.action,
+                   name: content?.trackingPath,
+                   dimensions: content?.customDimensions)
       }
       static func close(){
         let evt = Usage.event.audio.Close
         trackEvent(category: evt.category,
-                          action: evt.action)
+                   action: evt.action)
       }
       struct skip {
-        static func Next(){
+        static func Next(origin: buttonOrigin){
           let evt = Usage.event.audio.SkipNext
           trackEvent(category: evt.category,
-                            action: evt.action)
+                     action: evt.action, 
+                     name: origin.rawValue)
         }
-        static func Previous(){
+        static func Previous(origin: buttonOrigin = .appUi){
           let evt = Usage.event.audio.SkipPrevious
           trackEvent(category: evt.category,
-                            action: evt.action)
+                     action: evt.action,
+                     name: origin.rawValue)
         }
       }
       static func seek(direction: seekOption.direction, source: seekOption.source){
         trackEvent(category: direction.Action.category,
-                          action: direction.Action.rawValue,
-                          name: source.rawValue)
+                   action: direction.Action.rawValue,
+                   name: source.rawValue)
       }
       struct seekOption {
         enum direction { 
@@ -527,30 +529,43 @@ extension Usage {
         enum source: String, CodableEnum {
           case fifteenSeconds = "15 Seconds",
                nextBreak = "Break",
-               skipButtonAppUI = "Skip Button Down: AppUI",
+               skipButtonAppUI = "Skip Button Down: app-ui",
                skipButtonSystem = "Skip Button Down: SystemControl"
+        }
+      }
+      enum buttonOrigin: String, CodableEnum {
+        case appUi = "Button Origin: app-ui", 
+             systemControl = "Button Origin: SystemControl"
+        var seekSource: Usage.xtrack.audio.seekOption.source {
+          switch self {
+            case .appUi: return .skipButtonAppUI
+            case .systemControl: return .skipButtonSystem
+          }
         }
       }
       static func seekToposition(){
         let evt = Usage.event.audio.SeekPosition
         trackEvent(category: evt.category,
-                          action: evt.action)
+                   action: evt.action)
       }
-      static func resume(){
+      static func resume(origin: buttonOrigin = .appUi){
         let evt = Usage.event.audio.Resume
         trackEvent(category: evt.category,
-                          action: evt.action)
+                   action: evt.action,
+                   name: origin.rawValue)
       }
-      static func pause(){
+      static func pause(origin: buttonOrigin = .appUi){
         let evt = Usage.event.audio.Pause
         trackEvent(category: evt.category,
-                          action: evt.action)
+                   action: evt.action,
+                   name: origin.rawValue)
       }
-      static func autoPlayNext(enable: Bool){
+      static func autoPlayNext(enable: Bool, initial: Bool){
         let evt = enable ? Usage.event.audio.EnableAutoPlayNext
         : Usage.event.audio.DisableAutoPlayNext
         trackEvent(category: evt.category,
-                          action: evt.action)
+                   action: evt.action,
+                   name: initial ? "initial setting" : "change")
       }
     }
   }

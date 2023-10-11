@@ -354,6 +354,7 @@ class ArticlePlayerUI: UIView {
   
   @objc public func handlePlayNextSwitch(sender: UISwitch) {
     autoPlayNext = sender.isOn
+    Usage.xtrack.audio.autoPlayNext(enable: autoPlayNext, initial: false)
   }
   
   lazy var progressCircle = ProgressCircle()

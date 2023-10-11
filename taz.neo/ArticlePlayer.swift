@@ -184,6 +184,7 @@ class ArticlePlayer: DoesLog {
   
   private init() {
     aplayer = AudioPlayer()
+    Usage.xtrack.audio.autoPlayNext(enable: autoPlayNext, initial: true)
     aplayer.resetNowPlayingInfo = false
     aplayer.setupCloseRemoteCommands = false
     aplayer.logoToAdd = UIImage(named: "AppIcon60x60")
@@ -218,6 +219,13 @@ class ArticlePlayer: DoesLog {
     userInterface.slider.addTarget(self,
                                    action: #selector(sliderChanged),
                                    for: .valueChanged)
+    //No: editingDidEnd
+    userInterface.slider.addTarget(self,
+                                   action: #selector(sliderChangedEnd),
+                                   for: .touchUpInside)
+    userInterface.slider.addTarget(self,
+                                   action: #selector(sliderChangedEnd),
+                                   for: .touchUpOutside)
     userInterface.forwardButton.addTarget(self,
                                    action: #selector(forwardButtonTouchDownAction),
                                    for: .touchDown)
@@ -261,6 +269,9 @@ class ArticlePlayer: DoesLog {
     let pos:Double = item.asset.duration.seconds * Double(userInterface.slider.value)
     aplayer.currentTime = CMTime(seconds: pos, preferredTimescale: 600)
   }
+  @objc private func sliderChangedEnd(sender: Any) {
+    Usage.xtrack.audio.seekToposition()
+  }
   
   var touchDownActive = false
   
@@ -272,7 +283,7 @@ class ArticlePlayer: DoesLog {
     }
   }
   @objc private func forwardButtonTouchUpInsideAction(sender: Any) {
-    seeking ? stopSeeking() :  playNext()
+    seeking ? stopSeeking() :  playNext(origin: .appUi)
     touchDownActive = false
   }
   @objc private func forwardButtonTouchOutsideInsideAction(sender: Any) {
@@ -288,7 +299,7 @@ class ArticlePlayer: DoesLog {
     }
   }
   @objc private func backwardButtonTouchUpInsideAction(sender: Any) {
-    seeking ? stopSeeking() :  playPrev()
+    seeking ? stopSeeking() :  playPrev(origin: .appUi)
     touchDownActive = false
   }
   @objc private func backwardButtonTouchOutsideInsideAction(sender: Any) {
@@ -336,7 +347,7 @@ class ArticlePlayer: DoesLog {
   private static var _singleton: ArticlePlayer? = nil
   private lazy var userInterface: ArticlePlayerUI = {
     let v =  ArticlePlayerUI()
-    v.onToggle {[weak self] in self?.toggle() }
+    v.onToggle {[weak self] in self?.toggle(origin:.appUi) }
     v.onClose{[weak self] in self?.close() }
     v.onMaxiItemTap{[weak self] in
       Usage.xtrack.audio.openArticle(content: self?.currentContent)
@@ -351,19 +362,19 @@ class ArticlePlayer: DoesLog {
     cc.previousTrackCommand.removeTarget(nil)
     cc.nextTrackCommand.removeTarget(nil)
     cc.seekForwardCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      self?.seekForeward(fromSystemControl: true)
+      self?.seekForeward(origin: .systemControl)
       return .success
     }
     cc.seekBackwardCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      self?.seekBackward(fromSystemControl: true)
+      self?.seekBackward(origin: .systemControl)
       return .success
     }
     cc.previousTrackCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      self?.playPrev()
+      self?.playPrev(origin: .systemControl)
       return .success
     }
     cc.nextTrackCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-      self?.playNext()
+      self?.playNext(origin: .systemControl)
       return .success
     }
     return cc
@@ -371,21 +382,21 @@ class ArticlePlayer: DoesLog {
   
   var seeking = false
   
-  func stopSeeking(fromSystemControl sys: Bool = false) {
+  func stopSeeking(origin: Usage.xtrack.audio.buttonOrigin? = nil) {
     if aplayer.player?.rate ?? 0 < 0 {
       Usage.xtrack.audio.seek(direction: .backward, 
-                             source: sys ? .skipButtonSystem : .skipButtonAppUI)
+                             source: origin?.seekSource ?? .skipButtonAppUI)
     }
     else {
       Usage.xtrack.audio.seek(direction: .forward, 
-                             source: sys ? .skipButtonSystem : .skipButtonAppUI)
+                              source: origin?.seekSource ?? .skipButtonAppUI)
     }
     
     aplayer.player?.rate = Float(playbackRate)
     seeking = false
   }
   
-  func seekForeward(fromSystemControl: Bool = false) {
+  func seekForeward(origin: Usage.xtrack.audio.buttonOrigin? = nil) {
     if seeking == true {
       stopSeeking()
       return
@@ -402,7 +413,7 @@ class ArticlePlayer: DoesLog {
     }
   }
   
-  func seekBackward(fromSystemControl: Bool = false) {
+  func seekBackward(origin: Usage.xtrack.audio.buttonOrigin? = nil) {
     if seeking == true {
       stopSeeking()
       return
@@ -449,8 +460,11 @@ class ArticlePlayer: DoesLog {
   
   func deleteHistory(){ lastContent = []   }
   
-  func playNext() {
+  func playNext(origin: Usage.xtrack.audio.buttonOrigin? = nil) {
     if blockPlayNext { return }
+    if let origin = origin {
+      Usage.xtrack.audio.skip.Next(origin: origin)
+    }
     if nextContent.count == 0 {
       //no next do not destroy ui
       self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
@@ -472,7 +486,10 @@ class ArticlePlayer: DoesLog {
     currentContent = nextContent.pop()
   }
   
-  func playPrev() {
+  func playPrev(origin: Usage.xtrack.audio.buttonOrigin?) {
+    if let origin = origin {
+      Usage.xtrack.audio.skip.Previous(origin: origin)
+    }
     if self.aplayer.currentTime.seconds > 5.0 {
       //restart current
       self.aplayer.currentTime = CMTime(seconds: 0.0, preferredTimescale: 600)
@@ -513,7 +530,10 @@ class ArticlePlayer: DoesLog {
   }
   
   /// Toggles start()/pause()
-  private func toggle() {
+  private func toggle(origin: Usage.xtrack.audio.buttonOrigin) {
+    isPlaying
+    ? Usage.xtrack.audio.pause(origin: origin)
+    : Usage.xtrack.audio.resume(origin: origin)
     aplayer.toggle()
     updatePlaying()
   }
