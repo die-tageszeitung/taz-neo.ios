@@ -153,7 +153,6 @@ class FormsResultController: UIViewController {
     set{
       log("not implemented")
     }
- 
   }
   
   override func viewWillAppear(_ animated: Bool) {

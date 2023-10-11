@@ -27,17 +27,6 @@ protocol PushIssueDelegate {
   func push(_ viewController:UIViewController, issueInfo: IssueDisplayService)
 }
 
-extension HomeTVC: DefaultScreenTracking {
-  public var defaultScreen: Usage.DefaultScreen? {
-    switch (wasUp, isFacsimile) {
-      case (true, true): return .CoverflowPDF
-      case (true, false): return .CoverflowMobile
-      case (false, true): return .ArchivePDF
-      case (false, false): return .ArchiveMobile
-    }
-  }
-}
-
 class HomeTVC: UITableViewController {
 
   /// should show PDF Info Toast on startup (from config defaults)

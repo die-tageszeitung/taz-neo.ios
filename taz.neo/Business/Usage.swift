@@ -66,7 +66,7 @@ public class Usage: NSObject, DoesLog{
     }
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let art = msg.sender as? StoredArticle else { return }
-      self?.trackEvent(art.hasBookmark ? event.bookmarks.RemoveArticle : event.bookmarks.AddArticle)
+      self?.trackEvent(art.hasBookmark ? event.bookmarks.AddArticle : event.bookmarks.RemoveArticle)
     }
     
     $usageTrackingAllowed.onChange{[weak self] _ in
@@ -75,6 +75,7 @@ public class Usage: NSObject, DoesLog{
   }
 }
 
+// MARK: - fileprivate Global Events
 fileprivate extension Usage {
   func startNewSession(){
     debug("track::NEW SESSIONSTART")
@@ -101,7 +102,7 @@ fileprivate extension Usage {
   }
 }
 
-
+// MARK: - fileprivate Tracking Helper
 fileprivate extension Usage {
   func trackSubscriptionStatusIfNeeded(isChange: Bool) {
     if Defaults.expiredAccount {
@@ -115,13 +116,12 @@ fileprivate extension Usage {
   func trackInstallationIfNeeded() {
     if usageTrackingCurrentVersion != App.bundleVersion {
       usageTrackingCurrentVersion = App.bundleVersion
-      let url = URL(string: "http://ios.\(App.bundleIdentifier)/\(usageTrackingCurrentVersion)")
       let downloadEvent = Self.event.application.downloaded
       self.matomoTracker.track(eventWithCategory: downloadEvent.category,
                                action: downloadEvent.action,
                                name: nil,
                                number: nil,
-                               url: url)
+                               url:  URL(path: usageTrackingCurrentVersion))
     }
   }
   
@@ -221,17 +221,18 @@ extension Usage {
   }
 }
 
+// MARK: - extension NavigationDelegate: magic tracking on VC Dismiss
 extension Usage: NavigationDelegate {
   public func popViewController(){
     Usage.track(Usage.event.system.NavigationBack)
   }
 }
 
+// MARK: - extension UINavigationControllerDelegate: magic tracking on VC show
 extension Usage: UINavigationControllerDelegate {
-
   public func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
     guard let usageVc = viewController as? ScreenTracking else {
-      debug("NOT trackScreen:: current visible vc: \(viewController) is not prepared for tracking!")
+      debug("track::NOT track Screen: current visible vc: \(viewController) is not prepared for tracking!")
       return
     }
     if let pcvc = usageVc as? PageCollectionVC {
@@ -241,6 +242,7 @@ extension Usage: UINavigationControllerDelegate {
   }
 }
 
+// MARK: Tracking Consts :: Screens and Events
 extension Usage {
    public enum DefaultScreen: String, CodableEnum {
     case CoverflowMobile = "Coverflow Mobile",
@@ -261,8 +263,12 @@ extension Usage {
          SubscriptionTrialElapsedInfo = "Subscription Trial Elapsed Info",
          SubscriptionElapsedInfo = "Subscription Elapsed Info",
          SubscriptionAccountLoginCreate = "Subscription Account Login/Create",
+         Terms = "Terms",
          DataPolicy = "Data Policy",
-         ForgotPassword = "Forgot Password"
+         Revocation = "Revocation",
+         WelcomeSlides = "Welcome Slides",
+         ForgotPassword = "Forgot Password",
+         SearchHelp = "SearchHelp"
     var url: URL? {
       switch self {
         case .CoverflowMobile: return URL(string: "/home/coverflow/mobile")
@@ -284,7 +290,11 @@ extension Usage {
         case .SubscriptionElapsedInfo: return URL(string: "/subscription/elapsed")
         case .SubscriptionAccountLoginCreate: return URL(string: "/subscription/account_login")
         case .DataPolicy: return URL(string: "/data_policy")
+        case .Terms: return URL(string: "/terms")
+        case .Revocation: return URL(string: "/revocation")
+        case .WelcomeSlides: return URL(string: "/welcome_slides")
         case .ForgotPassword: return URL(string: "/forgot_password")
+        case .SearchHelp: return URL(string: "/search/help")
       }
     }
     var title: String? { return self.rawValue }
@@ -328,10 +338,10 @@ extension Usage {
       case AddArticle = "Add Article",
            RemoveArticle = "Remove Article"
     }
-    enum coachmark: String, TrackingEvent {
-      var category: String { "Coachmark" }
-      case slider = "Slider"
-    }
+//    enum coachmark: String, TrackingEvent {
+//      var category: String { "Coachmark" }
+//      case slider = "Slider"
+//    }
     enum dialog: String, TrackingEvent {
       var category: String { "Dialog" }
       case LoginHelp = "Login Help",
@@ -407,14 +417,14 @@ extension Usage {
   }
 }
 
-protocol TrackingEvent: CodableEnum {
-  var category: String { get }
-}
+// MARK: Enum Helper for Events
+protocol TrackingEvent: CodableEnum { var category: String { get } }
 extension TrackingEvent {
   var action: String { rawValue }
   var finishSession:Bool { return self is Usage.event.user }
 }
 
+// MARK: Tracking Helper for complex Tracking Events
 extension Usage {
   struct xtrack {
     struct share {
@@ -546,17 +556,7 @@ extension Usage {
   }
 }
 
-// MARK: - Default Screen Tracking
-public typealias UrlPath = [String]
-extension UrlPath { var url:URL? { URL(string: self.joined(separator: "/")) }}
-
-public protocol ScreenTracking where Self: UIViewController {
-//  var defaultScreen: Usage.DefaultScreen? { get }
-  var screenUrl:URL? { get }
-  var screenTitle:String? { get }
-  var customDimension: [CustomDimension]? { get }
-}
-
+// MARK: - Screen Tracking with ViewController magic
 protocol DefaultScreenTracking: ScreenTracking where Self: UIViewController {
   var defaultScreen: Usage.DefaultScreen? { get }
 }
@@ -566,13 +566,15 @@ extension DefaultScreenTracking {
   public var screenTitle:String? { defaultScreen?.title }
 }
 
+public protocol ScreenTracking where Self: UIViewController {
+  var screenUrl:URL? { get }
+  var screenTitle:String? { get }
+  var customDimension: [CustomDimension]? { get }
+}
+
 public extension ScreenTracking {
   var customDimension: [CustomDimension]? { nil }//Default Implementation
   func trackScreen(){
-    if let sfvc = self as? SubscriptionFormController,
-       sfvc.ui.formType == .expiredDigiPrint || sfvc.ui.formType == .expiredDigiSubscription {
-      Usage.track(Usage.event.dialog.SubscriptionElapsed)
-    }
     guard let screenUrl = screenUrl else {
       debug("track::Current Class did not implement screenUrl correctly")
       return
@@ -585,59 +587,79 @@ public extension ScreenTracking {
   }
 }
 
-// MARK: - Default Screen Tracking
+// MARK: -
 
-extension LoginController: DefaultScreenTracking {
-  public var defaultScreen: Usage.DefaultScreen? { .Login }
-}
-
-extension PwForgottController: DefaultScreenTracking {
-  public var defaultScreen: Usage.DefaultScreen? { .ForgotPassword }
-}
-
-fileprivate extension SubscriptionFormDataType {
-  var defaultScreen: Usage.DefaultScreen {
-    switch self {
-      case .expiredDigiPrint: return .SubscriptionElapsedInfo
-      case .expiredDigiSubscription: return .SubscriptionTrialElapsedInfo
-      case .print2Digi: return .SubscriptionSwitchToDigiabo
-      case .printPlusDigi: return .SubscriptionExtendWithDigiabo
-      case .trialSubscription: return .SubscriptionAccountLoginCreate
+// MARK: - Screen Tracking for Individuell Controller
+extension HomeTVC: DefaultScreenTracking {
+  public var defaultScreen: Usage.DefaultScreen? {
+    switch (wasUp, isFacsimile) {
+      case (true, true): return .CoverflowPDF
+      case (true, false): return .CoverflowMobile
+      case (false, true): return .ArchivePDF
+      case (false, false): return .ArchiveMobile
     }
   }
 }
 
-extension SubscriptionFormController: DefaultScreenTracking {
-  public var defaultScreen: Usage.DefaultScreen? { ui.formType.defaultScreen }
-}
-
-
-
+// MARK: ...SearchController
 extension SearchController: DefaultScreenTracking {
   public var defaultScreen: Usage.DefaultScreen? { .Search }
 }
-
+// MARK: ...SettingsVC
 extension SettingsVC: DefaultScreenTracking {
   public var defaultScreen: Usage.DefaultScreen? { .Settings }
 }
 
+//TazPdfPagesViewController
 
-// MARK: - Individual Screen Tracking
-class TazIntroVC: IntroVC, ScreenTracking {
-  public var screenUrl:URL? { nil }
-  public var screenTitle:String? { nil }
-  var urlPath:[String]? { return ["webview", self.webView.webView.url?.lastPathComponent ?? "-" ]}
+// MARK: ...for FormsController
+extension FormsResultController: DefaultScreenTracking {
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    trackScreen()
+  }
+  
+  public var defaultScreen: Usage.DefaultScreen? {
+    switch self {
+    case let sfc as SubscriptionFormController:
+        return sfc.ui.formType.defaultScreen
+      case is LoginController: return .Login
+      case is PwForgottController: return .ForgotPassword
+      case is TrialSubscriptionController: return .SubscriptionAccountLoginCreate
+      default:return nil
+    }
+  }
+}
+
+
+// MARK: ...for MetaPages / TazIntroVC
+class TazIntroVC: IntroVC, DefaultScreenTracking {
+  var defaultScreen: Usage.DefaultScreen? {
+    guard let html = self.webView.webView.url?.lastPathComponent else { return nil }
+    switch html {
+      case Const.Filename.dataPolicy: return .DataPolicy
+      case Const.Filename.terms: return .Terms
+      case Const.Filename.revocation: return .Revocation
+      case Const.Filename.welcomeSlides: return .WelcomeSlides
+      case "searchHelp.html": return .SearchHelp
+      default: return nil
+    }
+  }
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     trackScreen()
   }
 }
 
-
-//extension SectionVC: ScreenTracking {
-//  public var urlPath:[String]? {sectionPath}
-//}
-
+extension SectionVC: ScreenTracking {
+  public var screenUrl:URL? {
+    guard let trackingPath = section?.trackingPath else { return nil }
+    return URL(path: "issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/\(trackingPath)")
+  }
+  public var screenTitle:String? {
+    section?.title
+  }
+}
 
 extension ArticleVC: ScreenTracking {
   public var screenUrl:URL? {
@@ -647,13 +669,20 @@ extension ArticleVC: ScreenTracking {
     let sectionFileName = adelegate?.article2section[artFileName]?.first?.html?.name
     else { return nil }
     return URL(path: "issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/section/\(sectionFileName)/\(artPath)",
-               params: article.serverId)
+               id: article.serverId)
   }
   public var screenTitle:String? {
     article?.title
   }
 }
 
+// MARK: -
+
+// MARK: - Helper
+
+// MARK: -
+
+// MARK: ...Content
 extension Content{
   var customDimensions: [CustomDimension]? {
     guard let art = self as? Article else { return nil }
@@ -675,40 +704,38 @@ extension Content{
   }
 }
 
-extension ArticleType {
+// MARK: ...for Forms Controller
+fileprivate extension SubscriptionFormDataType {
+  var defaultScreen: Usage.DefaultScreen {
+    switch self {
+      case .expiredDigiPrint: return .SubscriptionElapsedInfo//not tested currently
+      case .expiredDigiSubscription: return .SubscriptionTrialElapsedInfo
+      case .print2Digi: return .SubscriptionSwitchToDigiabo
+      case .printPlusDigi: return .SubscriptionExtendWithDigiabo
+      case .trialSubscription: return .SubscriptionAccountLoginCreate//unused here!
+    }
+  }
+}
+
+// MARK: ...Article.ArticleType
+fileprivate extension ArticleType {
   var customDimension: [CustomDimension] {[CustomDimension(index: 0, value: self.rawValue)] }
 }
 
+// MARK: ...Issue
 fileprivate extension Issue {
   var trackingNamePathId: String { "/issue/\(self.feed.name)/\(self.date.ISO8601)" }
 }
-
+// MARK: ...URL
 extension URL {
-  public init?(path: String, params: Int?){
-    let str = params == nil ? path : "\(path)?id=\(params ?? -1)"
-    self.init(pathParams: str)
-  }
-  public init?(path: String, params: String?){
-    let str = params == nil ? path : "\(path)?id=\(params ?? "")"
-    self.init(pathParams: str)
-  }
-  private init?(pathParams: String){
-    self.init(string:"\(AppDomain.id)/\(pathParams)")
-    //self.init(string:"\(AppDomain.id)/\(pathParams.addingPe/*rcentEncoding(withAllowedCharacters:.urlUserAllowed) ?? "")")*/
+  /// Creates app url with given path params
+  /// - Parameters:
+  ///   - path: relative path
+  ///   - params: additional params
+  public init?(path: String, id: Int? = nil){
+    let str = id == nil ? path : "\(path)?id=\(id ?? -1)"
+    self.init(string:"\(AppDomain.id)/\(str)")
   }
 }
-
-fileprivate struct AppDomain {
-  static let id = "http://app.taz.de"
-//  static let id = Self.createAppId
-//  private static var createAppId:String {
-//    #if DEBUG
-//      return "app://ios-app-debug2.taz.de"
-//    #else
-//    if App.isRelease { return "app://ios-app.taz.de"}
-//    if App.isAlpha { return "app://ios-app-alpha.taz.de"}
-//    if App.isBeta { return "app://ios-app-beta.taz.de"}
-//    return "app://ios-app-beta.taz.de"
-//    #endif
-//  }
-}
+// MARK: ...URL/Host
+fileprivate struct AppDomain { static let id = "http://app.taz.de" }
