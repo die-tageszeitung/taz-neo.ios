@@ -69,6 +69,10 @@ extension FeederContext {
                                force: Bool = false,
                                withAudio: Bool = false) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
+    Usage.track(isAutomatically ? Usage.event.issue.autoDownload : Usage.event.issue.download,
+                name: issue.date.ISO8601,
+                dimensions: Usage.event.issue.downloadDim(pdf: isPages,
+                                                           audio: withAudio))
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
         self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically)

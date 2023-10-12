@@ -131,14 +131,17 @@ fileprivate extension Usage {
     : trackEvent(Usage.event.authenticationStatus.Anonymous)
   }
   
-  func trackEvent(_ event: any TrackingEvent, name: String? = nil){
+  func trackEvent(_ event: any TrackingEvent,
+                  name: String? = nil,
+                  dimensions: [CustomDimension]? = nil){
     trackEvent(category: event.category,
                action: event.action,
                name: name,
+               dimensions: dimensions,
                finishSession: event.finishSession)
   }
   
-  func trackEvent(category: String,
+  private func trackEvent(category: String,
                           action: String,
                           name: String? = nil,
                           dimensions: [CustomDimension]? = nil,
@@ -188,10 +191,12 @@ fileprivate extension Usage {
 
 // MARK: - Tracking Public Accessors
 extension Usage {
-  static func track(_ event: any TrackingEvent, name: String? = nil){
+  static func track(_ event: any TrackingEvent, 
+                    name: String? = nil,
+                    dimensions: [CustomDimension]? = nil){
     if shared.usageTrackingAllowed == false { return }
     ensureBackground {
-      Usage.shared.trackEvent(event, name: name)
+      Usage.shared.trackEvent(event, name: name, dimensions: dimensions)
     }
   }
   
@@ -383,6 +388,26 @@ extension Usage {
              AllSections = "Toggle all Sections"
       }
     }
+    enum issue: String, TrackingEvent {
+      var category: String { "Issue" }
+      case download = "Download",
+           autoDownload = "Auto Download",
+           delete = "Delete"
+      static func downloadDim(pdf: Bool, audio: Bool) -> [CustomDimension]? {
+        var info: String = ""
+        if pdf { info += "+PDF" }
+        if audio { info += "+Audio" }
+        if info.length == 0 { return nil }
+        return [CustomDimension(index: 3, value: info)]
+      }
+    }
+    enum search: String, TrackingEvent {
+      var category: String { "Search" }
+      case filterOpen = "Filter Open"
+      case filterClose = "Filter Close"
+      case filterSearch = "Filter Search"
+      case keyboardSearch = "Keyboard Search"
+    }
     enum share: String, TrackingEvent {
       var name: String { "Share" }
       var category: String { "Share" }
@@ -413,6 +438,10 @@ extension Usage {
       var category: String { "User" }
       case Login = "Login",
            Logout = "Logout"
+    }
+    enum various: String, TrackingEvent {
+      var category: String { "Various" }
+      case ImageGalery = "Image Galery"
     }
   }
 }
@@ -703,7 +732,7 @@ extension Content{
     guard let art = self as? Article else { return nil }
     var dim = art.articleType?.customDimension ?? []
     if let ol = art.onlineLink {
-      dim.append(CustomDimension(index: 1, value: ol))
+      dim.append(CustomDimension(index: 2, value: ol))
     }
     return dim
   }
@@ -734,7 +763,7 @@ fileprivate extension SubscriptionFormDataType {
 
 // MARK: ...Article.ArticleType
 fileprivate extension ArticleType {
-  var customDimension: [CustomDimension] {[CustomDimension(index: 0, value: self.rawValue)] }
+  var customDimension: [CustomDimension] {[CustomDimension(index: 1, value: self.rawValue)] }
 }
 
 // MARK: ...Issue

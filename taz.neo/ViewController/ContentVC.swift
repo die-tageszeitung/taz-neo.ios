@@ -301,6 +301,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
                                    showImageGallery: self.showImageGallery)
         self.imageOverlay = Overlay(overlay:imgVC , into: self)
         self.imageOverlay?.maxAlpha = 0.9
+        Usage.track(Usage.event.various.ImageGalery,
+                    name: "open",
+                    dimensions: current.customDimensions)
         self.imageOverlay?.open(animated: true, fromBottom: true)
         // Inform Application to re-evaluate Orientation for current ViewController
         NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,

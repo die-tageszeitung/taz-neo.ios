@@ -49,6 +49,8 @@ extension IssueCollectionViewActions {
         self?.requestDeleteIssueWithBookmarksIfNeeded(issue: issue)
         /// reduceToOverview without force will exit
         issue.reduceToOverview()
+        Usage.track(Usage.event.issue.delete,
+                    name: issue.date.ISO8601)
         self?.collectionView.reloadItems(at: [indexPath])
         self?.updateCarouselDownloadButton()
       }

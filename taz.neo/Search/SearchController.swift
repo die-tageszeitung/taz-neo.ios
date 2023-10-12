@@ -347,6 +347,7 @@ extension SearchController {
   }
   
   @objc func handleSearchButton(){
+    Usage.track(Usage.event.search.filterSearch)
     searchSettingsView.toggle(toVisible: false)
     checkFilter()
     search()
@@ -381,6 +382,7 @@ extension SearchController{
 extension SearchController : UITextFieldDelegate {
   
   func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+    Usage.track(Usage.event.search.keyboardSearch)
     search()
     checkFilter()
     return true

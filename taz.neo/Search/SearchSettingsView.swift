@@ -86,8 +86,9 @@ class SearchSettingsView: UITableView {
   func toggle(toVisible: Bool? = nil){
     let currentOffset = self.topConstraint?.constant ?? 1
     let toVisible = toVisible ?? (currentOffset != 0)
-
+   
     if toVisible == true {
+      Usage.track(Usage.event.search.filterOpen)
       UIView.animate(seconds: 0.3) { [weak self] in
         self?.topConstraint?.constant = 0
         self?.bottomConstraint?.constant = 0
@@ -96,6 +97,9 @@ class SearchSettingsView: UITableView {
         self?.topBackground.isHidden = false
       }
       return
+    }
+    else {
+      Usage.track(Usage.event.search.filterClose)
     }
     data.authorInpulCell.textField.resignFirstResponder()
     data.titleInpulCell.textField.resignFirstResponder()
