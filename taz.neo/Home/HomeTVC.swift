@@ -77,10 +77,6 @@ class HomeTVC: UITableViewController {
     * con: no experiance now, no time, 2023's implementation seam to work an is maintainable
    */
   // MARK: - UI Components / Vars
-  
-  var pickerCtrl : DatePickerController?
-  var overlay : Overlay?
-  
   var carouselController: IssueCarouselCVC
   var tilesController: IssueTilesCVC
   var wasUp = true { didSet { if oldValue != wasUp { trackScreen() }}}
