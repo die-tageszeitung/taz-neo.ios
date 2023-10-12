@@ -326,6 +326,7 @@ extension HomeTVC {
 // MARK: - Tab Home handling
 extension HomeTVC {
   func onHome(){
+    if self.carouselController.pickerCtrl != nil { return }
     if verifyUp() {
       self.carouselController.preventApiLoadUntilIndex = 0
       self.tilesController.collectionView
