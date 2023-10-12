@@ -21,6 +21,7 @@
 /* translation from Android */
 "login_password_hint" = "Passwort";
 
+"close_window" = "Fenster Schließen";
 
 /* translation from Android */
 "article_read_onreadon" = "Wir möchten Ihnen den Zugang zu unseren digitalen Produkten erleichtern und stellen deshalb unser Anmeldeverfahren in einem zweistufigen Verfahren um. Geben Sie bitte zunächst Ihre bisherige Abo-ID und Passwort ein. In einem zweiten Schritt werden Sie gebeten sich mit einer gültigen E-Mail-Adresse und einem selbst gewählten Passwort anzumelden. Fertig! Sie können sich ab jetzt mit Ihrer E-Mail-Adresse anmelden.";
@@ -157,6 +158,8 @@
 
 /* translation from Android */
 "fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/welcomeTerms.html'>AGB</a> sowie die Hinweise zum <a href='https://taz.de/welcomeRevocation.html'>Widerruf</a> und <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutz</a>.";
+
+"fragment_tracking_privacy_info" = "Hier finden Sie unsere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
 
 /* translation from Android */
 "something_went_wrong_try_later" = "Etwas unerwartetes ist passiert. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut.";

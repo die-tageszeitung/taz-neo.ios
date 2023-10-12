@@ -130,6 +130,7 @@ class HomeTVC: UITableViewController {
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     togglePdfButton.showAnimated()
+    showRequestTrackingIfNeeded()
     showPdfInfoIfNeeded()
     scroll(up: wasUp)
     Rating.homeAppeared()
@@ -480,11 +481,53 @@ extension HomeTVC {
     return wrapper
   }
 }
-
+// MARK: - ShowPDF Info Toast
+extension HomeTVC {
+  func showRequestTrackingIfNeeded() {
+    if Defaults.usageTrackingAllowed != nil { return }
+    guard let image = UIImage(named: "BundledResources/UsagePopover.png")else {
+      log("Bundled UsagePopover.png not found!")
+      return
+    }
+    NewInfoToast.showWith(image: image,
+                          title: "Eine noch bessere taz App? Sie haben es in der Hand",
+                          text: "Anonyme Nutzungsdaten helfen uns, noch besser zu werden. Wir wissen natürlich: Wer Daten will, muss freundlich sein – deshalb behandeln wir diese mit größtmöglicher Sorgfalt und absolut vertraulich. Ihre Einwilligung zur Nutzung kann zudem jederzeit widerrufen werden.",
+                          button1Text: "Ja, ich helfe mit",
+                          button2Text: "Nein, keine Daten senden",
+                          button1Handler: { Defaults.usageTrackingAllowed = true },
+                          button2Handler: { Defaults.usageTrackingAllowed = false },
+                          dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
+  }
+  
+  func showDataPolicyModal(){
+    let localResource = File(feederContext.gqlFeeder.dataPolicy)
+    guard localResource.exists else {log("dataPolicy not found");  return }
+    
+    let introVC = TazIntroVC()
+    introVC.topOffset = Const.Dist.margin
+    introVC.isModalInPresentation = true
+    introVC.webView.webView.load(url: localResource.url)
+    self.modalPresentationStyle = .fullScreen
+    introVC.modalPresentationStyle = .fullScreen
+    introVC.webView.webView.scrollDelegate.atEndOfContent {_ in }
+    introVC.webView.onX {_ in
+      introVC.dismiss(animated: true, completion: nil)
+    }
+    self.present(introVC, animated: true) {
+      //Overwrite Default in: IntroVC viewDidLoad
+      introVC.webView.buttonLabel.text = nil
+      //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
+      guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
+      bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
+      bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
+    }
+  }
+}
 
 // MARK: - ShowPDF Info Toast
 extension HomeTVC {
   func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
+    if Defaults.usageTrackingAllowed == nil { return }
     if showPdfInfoToast == false {
       self.carouselController.showScrollDownAnimationIfNeeded()
       return

@@ -69,6 +69,7 @@
 		779DE96126FA3D790056187B /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779DE96026FA3D790056187B /* SettingsVC.swift */; };
 		779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779EF0CF2A03A16200D6A626 /* InfoToaster.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
+		77A63BDF2AD8271A0047DF5A /* NewInfoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A63BDE2AD8271A0047DF5A /* NewInfoToast.swift */; };
 		77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77AB6B042A02653000C42712 /* NotificationsView.swift */; };
 		77B993D82AC406F900C7D832 /* Rating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D72AC406F900C7D832 /* Rating.swift */; };
 		77B993DA2AC4706600C7D832 /* Usage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D92AC4706600C7D832 /* Usage.swift */; };
@@ -202,6 +203,7 @@
 		779DE96026FA3D790056187B /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
 		779EF0CF2A03A16200D6A626 /* InfoToaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToaster.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
+		77A63BDE2AD8271A0047DF5A /* NewInfoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewInfoToast.swift; sourceTree = "<group>"; };
 		77AB6B042A02653000C42712 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
 		77B993D72AC406F900C7D832 /* Rating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rating.swift; sourceTree = "<group>"; };
 		77B993D92AC4706600C7D832 /* Usage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Usage.swift; sourceTree = "<group>"; };
@@ -423,6 +425,7 @@
 				AEF2DF34244766E400D1482D /* MomentView.swift */,
 				77A214C325D2B68F00A7C41B /* AppOverlay.swift */,
 				773D564126145E8500B42FEF /* InfoToast.swift */,
+				77A63BDE2AD8271A0047DF5A /* NewInfoToast.swift */,
 				7708DF65262896D10031C702 /* OfflineAlert.swift */,
 				770544702637FE3D0051F12C /* ContentToolbar.swift */,
 				77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */,
@@ -776,6 +779,7 @@
 				4D308EEC283405A900529592 /* MainTabVC.swift in Sources */,
 				4D308EEA2834057200529592 /* SearchController.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
+				77A63BDF2AD8271A0047DF5A /* NewInfoToast.swift in Sources */,
 				4D308EEE283405D900529592 /* PlaceholderView.swift in Sources */,
 				773500B22A1C0A7C00678647 /* HomeTVC.swift in Sources */,
 				77ECD87A2A814C1F00DFBBB6 /* FeederContext+Polling.swift in Sources */,
