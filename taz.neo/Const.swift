@@ -537,6 +537,12 @@ extension UILabel {
     self.textAlignment = .center
     return self
   }
+
+  @discardableResult
+  func centerText() -> UILabel {
+    self.textAlignment = .center
+    return self
+  }
   
   @discardableResult
   func align(_ side: NSTextAlignment) -> UILabel {
