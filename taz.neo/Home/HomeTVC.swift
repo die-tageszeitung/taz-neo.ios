@@ -81,6 +81,15 @@ class HomeTVC: UITableViewController {
   var tilesController: IssueTilesCVC
   var wasUp = true { didSet { if oldValue != wasUp { trackScreen() }}}
   
+  var isAccessibilityMode: Bool = false {
+    didSet {
+      if oldValue == isAccessibilityMode { return }
+      accessibilityControlls.isHidden = !isAccessibilityMode
+      scroll(up: true)
+      tableView.reloadData()
+    }
+  }
+  
   var carouselControllerCell: UITableViewCell
   var tilesControllerCell: UITableViewCell
   
@@ -92,7 +101,68 @@ class HomeTVC: UITableViewController {
     return createLoginButton()
   }()
   
+  var accessibilityPlayHelper: UILabel = UILabel()
+  var accessibilityOlderHelper = UIImageView()
+  var accessibilityNewerHelper = UIImageView()
   
+  lazy var accessibilityControlls: UIView = {
+    accessibilityPlayHelper.onTapping {[weak self] _ in
+      guard let idx = self?.carouselController.centerIndex,
+            let issue = self?.issueOverviewService.cellData(for: idx)?.issue else { return }
+      ArticlePlayer.singleton.play(issue: issue,
+                                   startFromArticle: nil,
+                                   enqueueType: .replaceCurrent)
+    }
+    accessibilityPlayHelper.numberOfLines = 2
+    accessibilityPlayHelper.boldContentFont().color(.white).centerText()
+    //--
+    accessibilityOlderHelper.onTapping {[weak self] _ in
+      guard let idx = self?.carouselController.centerIndex else { return }
+      self?.carouselController.scrollTo(idx+1, animated: false)
+    }
+    accessibilityOlderHelper.accessibilityLabel = "Ausgabe zurück"
+    accessibilityOlderHelper.isAccessibilityElement = true
+    accessibilityOlderHelper.image = UIImage(named: "forward")
+    accessibilityOlderHelper.image?.accessibilityTraits = .none
+    accessibilityOlderHelper.tintColor = .white
+    //--
+    accessibilityNewerHelper.onTapping {[weak self] _ in
+      guard let idx = self?.carouselController.centerIndex else { return }
+      if idx == 0 { return }
+      self?.carouselController.scrollTo(idx-1, animated: false)
+    }
+    accessibilityNewerHelper.accessibilityLabel = "Ausgabe vor"
+    accessibilityNewerHelper.isAccessibilityElement = true
+    accessibilityNewerHelper.image = UIImage(named: "backward")
+    accessibilityNewerHelper.image?.accessibilityTraits = .none
+    accessibilityNewerHelper.tintColor = .white
+    //--
+    let accessibilityInfoLabel = UILabel(frame: CGRect(x: 5, y: 50, width: 10, height: 4))
+    accessibilityInfoLabel.text = "Voiceover Hilfsschaltflächen aktiviert\nVoiceover deaktivieren\num diese zu deaktivieren"
+    //--
+    accessibilityInfoLabel.contentFont().color(.white).centerText()
+    accessibilityInfoLabel.numberOfLines = 3
+    accessibilityInfoLabel.isAccessibilityElement = false
+    //--
+    let wrapper = UIView()
+    wrapper.addSubview(accessibilityPlayHelper)
+    wrapper.addSubview(accessibilityOlderHelper)
+    wrapper.addSubview(accessibilityNewerHelper)
+    wrapper.addSubview(accessibilityInfoLabel)
+    //--
+    pin(accessibilityOlderHelper.right, to: wrapper.right)
+    pin(accessibilityNewerHelper.left, to: wrapper.left)
+    accessibilityPlayHelper.centerX()
+    pin(accessibilityPlayHelper.bottom, to: wrapper.bottom)
+    pin(accessibilityOlderHelper.bottom, to: wrapper.bottom)
+    pin(accessibilityNewerHelper.bottom, to: wrapper.bottom)
+    pin(accessibilityInfoLabel, to: wrapper, exclude: .bottom)
+    pin(accessibilityPlayHelper.top, to: accessibilityInfoLabel.bottom, dist: 10)
+    //--
+    wrapper.isHidden = true
+    return wrapper
+  }()
+ 
   var btnLeftConstraint: NSLayoutConstraint?
   
   // MARK: - Custom Components
@@ -109,12 +179,25 @@ class HomeTVC: UITableViewController {
     self.tableView.separatorColor = .clear
     self.tableView.separatorStyle = .none
     self.tableView.allowsSelection = false///seams that it was at first seperator and then selection!
+    Notification.receive(UIAccessibility.voiceOverStatusDidChangeNotification){   [weak self] _ in
+      self?.updateAccessibillityHelper()
+    }
     
+    carouselController.issueSelectionChangeDelegate = self
     setupCarouselControllerCell()
     setupTilesControllerCell()
+    tilesControllerCell.isAccessibilityElement = false
     setupTogglePdfButton()
     setupDateButton()
-  }
+    
+    togglePdfButton.isAccessibilityElement = false
+    carouselController.dateLabel.isAccessibilityElement = false
+    carouselControllerCell.isAccessibilityElement = false
+    carouselController.collectionView.isAccessibilityElement = false
+    tilesControllerCell.isAccessibilityElement = false
+    tilesControllerCell.contentView.isAccessibilityElement = false
+    tilesController.collectionView.isAccessibilityElement = false
+   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -134,6 +217,12 @@ class HomeTVC: UITableViewController {
     showPdfInfoIfNeeded()
     scroll(up: wasUp)
     Rating.homeAppeared()
+  }
+  
+ @objc private func updateAccessibillityHelper(){
+   isAccessibilityMode
+    = loginButton.superview == nil
+    && UIAccessibility.isVoiceOverRunning
   }
   
   var nextHorizontalSizeClass:UIUserInterfaceSizeClass?
@@ -163,7 +252,7 @@ class HomeTVC: UITableViewController {
   
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     // #warning Incomplete implementation, return the number of rows
-    return 2
+    return isAccessibilityMode ? 1 : 2
   }
   
   override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -228,6 +317,19 @@ class HomeTVC: UITableViewController {
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+protocol IssueSelectionChangeDelegate {
+  /// Register Handler for Current Object
+  /// Will call applyStyles() on register @see extension UIStyleChangeDelegate
+  func setCurrent(cellData: IssueCellData, idx: Int)
+}
+
+
+extension HomeTVC: IssueSelectionChangeDelegate {
+  func  setCurrent(cellData: IssueCellData, idx: Int) {
+    accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) abspielen"
   }
 }
 
@@ -402,6 +504,7 @@ extension HomeTVC {
   }
   
   fileprivate func setupCarouselControllerCell() {
+    carouselController.view.isAccessibilityElement = false
     carouselControllerCell.contentView.addSubview(carouselController.view)
     pin(carouselController.view, toSafe: carouselControllerCell).bottom.constant = -UIWindow.topInset
     carouselControllerCell.backgroundColor = .clear
@@ -413,16 +516,22 @@ extension HomeTVC {
       onMainAfter {[weak self] in self?.updateLoginButton() }
     }
     updateLoginButton()
+    carouselControllerCell.contentView.addSubview(accessibilityControlls)
+    pin(accessibilityControlls.left, to: carouselControllerCell.contentView.left, dist: 12.0)
+    pin(accessibilityControlls.right, to: carouselControllerCell.contentView.right, dist: -12.0)
+    pin(accessibilityControlls.topGuide(), to: carouselControllerCell.contentView.top)
   }
   
   fileprivate func updateLoginButton(){
     if self.feederContext.isAuthenticated {
       loginButton.removeFromSuperview()
+      updateAccessibillityHelper()
       return
     }
     carouselControllerCell.contentView.addSubview(loginButton)
     pin(loginButton.right, to: carouselControllerCell.contentView.rightGuide())
     pin(loginButton.top, to: carouselControllerCell.contentView.topGuide(), dist: 20)
+    updateAccessibillityHelper()
   }
   
   fileprivate func setupTogglePdfButton(){

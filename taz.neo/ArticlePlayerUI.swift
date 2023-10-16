@@ -213,6 +213,8 @@ class ArticlePlayerUI: UIView {
     btn.activeColor = .white
     btn.color = Const.Colors.appIconGrey
     btn.buttonView.name = "close"
+    btn.isAccessibilityElement = true
+    btn.accessibilityLabel = "Wiedergabe beenden"
     return btn
   }()
   
@@ -246,6 +248,9 @@ class ArticlePlayerUI: UIView {
     btn.color = Const.Colors.appIconGrey
     btn.buttonView.name = "pause"
     
+    btn.isAccessibilityElement = true
+    btn.accessibilityLabel = "Abspielen"
+    
     btn.layer.addSublayer(progressCircle)
     progressCircle.color = Const.Colors.appIconGreyActive
     progressCircle.isDownloadButtonItem = false
@@ -256,6 +261,7 @@ class ArticlePlayerUI: UIView {
   var isPlaying: Bool = false {
     didSet {
       toggleButton.buttonView.name = isPlaying ? "pause" : "play"
+      toggleButton.accessibilityLabel = isPlaying ? "Pause" : "Abspielen"
     }
   }
   

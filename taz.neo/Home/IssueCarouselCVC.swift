@@ -39,6 +39,8 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     }
   }
   
+  public var issueSelectionChangeDelegate: IssueSelectionChangeDelegate?
+  
   private var topStatusButtonConstraint:NSLayoutConstraint?
   private var statusWrapperBottomConstraint: NSLayoutConstraint?
   private var statusWrapperWidthConstraint:NSLayoutConstraint?
@@ -63,6 +65,10 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   
   let downloadButton = DownloadStatusButton()
   let dateLabel = CrossfadeLabel()
+  
+  override func accessibilityElementCount() -> Int {
+    return service.publicationDates.count
+  }
   
   var pickerCtrl : DatePickerController?
   var overlay : Overlay?
@@ -176,7 +182,8 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   
   func updateBottomWrapper(for cidx: Int, force: Bool = false){
     guard let data = service.cellData(for: cidx) else { return }
-    
+    issueSelectionChangeDelegate?.setCurrent(cellData: data,
+                                             idx: cidx)
     let txt = data.date.validityDateText(timeZone: GqlFeeder.tz, short: true)
     let newKey = data.date.date.issueKey
     if force || newKey != centerIssueDateKey {
