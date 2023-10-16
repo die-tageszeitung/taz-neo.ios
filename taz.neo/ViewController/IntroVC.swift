@@ -49,6 +49,7 @@ class IntroVC: UIViewController {
     webView.buttonLabel.textColor = .white
     webView.buttonLabel.font = UIFont.boldSystemFont(ofSize: 18)
     webView.buttonLabel.text = "Akzeptieren"
+    webView.buttonLabel.label.accessibilityLabel = "Datenschutzerklärung akzeptieren und schließen"
     webView.buttonLabel.clipsToBounds = true
     webView.buttonLabel.layer.cornerRadius = 5
     webView.xButton.tazX()
