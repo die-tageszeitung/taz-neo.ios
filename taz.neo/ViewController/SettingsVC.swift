@@ -58,6 +58,12 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("doubleTapToZoomPdf")
   public var doubleTapToZoomPdf: Bool
   
+  @Default("edgeTapToNavigate")
+  public var edgeTapToNavigate: Bool
+  
+  @Default("edgeTapToNavigateVisible")
+  public var edgeTapToNavigateVisible: Bool
+  
   var initialTextNotificationSetting: Bool?
   
   var data:TableData = TableData(sectionContent: [])
@@ -242,6 +248,16 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                   })
   
   ///erweitert
+  lazy var edgeTapToNavigateCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Navigation mit Tap",
+                  detailText: "Tap am Rand einer Seite oder eines Artikels um zu scrollen oder zum nächsten Element zu gelangen.",
+                  initialValue: edgeTapToNavigate,
+                  onChange: {[weak self] newValue in self?.edgeTapToNavigate = newValue })
+  lazy var edgeTapToNavigateVisibleCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Navigation mit Tap sichtbar",
+                  detailText: "Tapbereich sichtbar",
+                  initialValue: edgeTapToNavigateVisible,
+                  onChange: {[weak self] newValue in self?.edgeTapToNavigateVisible = newValue })
   lazy var bookmarksTeaserCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Leseliste Anrisstext",
                   detailText: "Zeige Anrisstext in Leseliste",
@@ -680,6 +696,8 @@ extension SettingsVC {
   
   var extendedSettingsCells:[XSettingsCell] {
     var cells =  [
+      edgeTapToNavigateCell,
+      edgeTapToNavigateVisibleCell,
       bookmarksTeaserCell,
       smartBackFromArticleCell,
       memoryUsageCell,

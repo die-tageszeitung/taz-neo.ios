@@ -487,6 +487,22 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       ? "audio-active"
       : "audio"
     }
+    
+    onRightTap {[weak self] in
+      guard let ziv = self?.currentView as? ZoomedImageView else {
+        return false
+      }
+      return ziv.scrollToTopRight(animated: true)
+    }
+    
+    onLeftTap {[weak self] in
+      guard let ziv = self?.currentView as? ZoomedImageView else {
+        return false
+      }
+      ziv.scrollToTopLeft(animated: true)
+      print("handle left tap")
+      return true
+    }
   }
   
   // MARK: - setupSlider
