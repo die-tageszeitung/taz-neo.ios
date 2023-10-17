@@ -654,6 +654,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         self?.toolBar.show(show:true, animated: true)
         self?.header.show(show: true, animated: true)
       }
+      
+      if self?.hideOnScroll == false {
+        self?.additionalSafeAreaInsets
+        = UIEdgeInsets(top: 0,
+                       left: 0,
+                       bottom: UIWindow.bottomInset + 30,
+                       right: 0)
+      }
     }
     displayUrls()
     registerForStyleUpdates()
