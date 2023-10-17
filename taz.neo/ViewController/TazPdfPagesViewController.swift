@@ -492,18 +492,47 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let ziv = self?.currentView as? ZoomedImageView else {
         return false
       }
-      return ziv.scrollToTopRight(animated: true)
+      ///If zoomed in, zoom out
+      if ziv.scrollView.zoomScale - 0.1 > self?.afterPageLayoutDoneZoomFactor ?? 0 {
+        UIView.animate(withDuration: 0.1) {[weak self] in
+          self?.applyPageLayout(ziv)
+        }
+        return true
+      }
+      ///if scrollable to right, scroll to right
+      if ziv.scrollView.contentOffset.x + ziv.scrollView.frame.size.width + 2
+         < ziv.scrollView.contentSize.width {
+        ziv.scrollView.setContentOffset(CGPoint(x: ziv.scrollView.contentSize.width -  ziv.scrollView.frame.size.width,
+                                                y: ziv.scrollView.contentOffset.y), animated: true)
+        return true
+      }
+      //handle index change
+      return false
     }
-    
+
     onLeftTap {[weak self] in
       guard let ziv = self?.currentView as? ZoomedImageView else {
         return false
       }
-      ziv.scrollToTopLeft(animated: true)
-      print("handle left tap")
-      return true
+      ///If zoomed in, zoom out
+      if ziv.scrollView.zoomScale - 0.1 > self?.afterPageLayoutDoneZoomFactor ?? 0 {
+        UIView.animate(withDuration: 0.1) {[weak self] in
+          self?.applyPageLayout(ziv)
+        }
+        return true
+      }
+      ///if scrollable to right, scroll to left
+      if ziv.scrollView.contentOffset.x - 2 > 0 {
+        ziv.scrollView.setContentOffset(CGPoint(x: 0,
+                                                y: ziv.scrollView.contentOffset.y), animated: true)
+        return true
+      }
+      //handle index change
+      return false
     }
   }
+  
+  private var afterPageLayoutDoneZoomFactor: CGFloat = 0.0
   
   // MARK: - setupSlider
   func setupSlider(sliderContent:UIViewController){
@@ -623,7 +652,10 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       //Landscape && !fullPage Setting && single Page => fitWidth
       ziv.zoomToFitWidth()
     }
-    ziv.scrollToTopLeft()
+    ziv.scrollToTopLeft()///otherwise page is centered also horizontally @see Portrait && Doublepage
+    
+    afterPageLayoutDoneZoomFactor = ziv.scrollView.zoomScale
+    ///afterPageLayoutDoneZoomFactor
   }
   
   public override func handleRenderFinished(_ success:Bool, _ ziv:ZoomedImageView){
