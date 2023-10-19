@@ -180,8 +180,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       player.onEnd { [weak self] err in
         self?.playButton.buttonView.name = "audio"
         guard let err = err else { return }
-        self?.debug("Failed to play with error: \(err)")
-        Toast.show("Die Vorlesefunktion konnte nicht gestartet werden.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.")
       }
       self.onBookmark { [weak self] _ in
         guard let self = self else { return }

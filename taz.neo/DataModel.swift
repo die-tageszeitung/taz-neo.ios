@@ -544,7 +544,10 @@ public extension Article {
   
   /// Start/stop audio play if available
   func toggleAudio(issue: Issue, sectionName: String) {
-    if let issue = issue as? BookmarkIssue {
+    if ArticlePlayer.singleton.currentContent?.html?.sha256 == self.html?.sha256 && self.html?.sha256 != nil {
+      ArticlePlayer.singleton.toggle(origin: .appUi)
+    }
+    else if let issue = issue as? BookmarkIssue {
       ArticlePlayer.singleton.play(issue: issue,
                                    startFromArticle: self,
                                    enqueueType: .replaceCurrent)

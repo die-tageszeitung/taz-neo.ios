@@ -181,6 +181,34 @@ class ArticlePlayer: DoesLog {
     userInterface.updateUI()
     updatePlaying()
   }
+
+  private var playbackFailed: Bool = false {
+    didSet {
+      if oldValue == playbackFailed { return }
+      self.userInterface.isErrorState = playbackFailed
+      if playbackFailed {
+        self.userInterface.progressCircle.reset()
+        self.userInterface.progressCircle.waiting = true
+        self.isPlaying = false
+      }
+      else {
+        self.userInterface.progressCircle.waiting = false
+        self.userInterface.currentSeconds = aplayer.currentTime.seconds
+      }
+    }
+  }
+  
+  func feederReachable(){
+    ///Change did not affect player
+    if playbackFailed == false { return }
+    playbackFailed = false
+  }
+  
+  func goingForeground(){
+    if playbackFailed == false { return }
+    self.userInterface.progressCircle.reset()
+    self.userInterface.progressCircle.waiting = true
+  }
   
   private init() {
     aplayer = AudioPlayer()
@@ -193,8 +221,25 @@ class ArticlePlayer: DoesLog {
       self?.userInterface.totalSeconds = item.asset.duration.seconds
       self?.userInterface.currentSeconds = item.currentTime().seconds
     }
+    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+      self?.goingForeground()
+    }
+    ///Handle reachability changes: show offline status
+    Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
+      self?.feederReachable()
+    }
+    
+    aplayer.onStatusChange {[weak self] status in
+      self?.playbackFailed = status != .readyToPlay
+    }//Play Button?
     aplayer.onEnd { [weak self] err in
       self?._onEnd?(err)
+      if err != nil {
+        Toast.show("Die Vorlesefunktion konnte nicht gestartet werden.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.")
+        self?.isPlaying = false
+        self?.userInterface.isPlaying = false
+        return
+      }
       self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
       let resume = self?.nextContent.isEmpty == false
       if self?.autoPlayNext == true && self?.isDisclaimer == false {
@@ -530,7 +575,7 @@ class ArticlePlayer: DoesLog {
   }
   
   /// Toggles start()/pause()
-  private func toggle(origin: Usage.xtrack.audio.buttonOrigin) {
+  func toggle(origin: Usage.xtrack.audio.buttonOrigin) {
     isPlaying
     ? Usage.xtrack.audio.pause(origin: origin)
     : Usage.xtrack.audio.resume(origin: origin)
@@ -601,6 +646,7 @@ class ArticlePlayer: DoesLog {
         isPlaying ? nil : playNext()
       case .replaceCurrent:
         nextContent = arts
+        isPlaying ? nil : aplayer.close()
         playNext()
     }
   }
@@ -611,8 +657,6 @@ class ArticlePlayer: DoesLog {
   }
   
 } // ArticlePlayer
-
-
 
 extension Article {
   func contextMenu() -> MenuActions? {

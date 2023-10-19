@@ -74,9 +74,12 @@ class ArticlePlayerUI: UIView {
     if self.superview != nil { return }
     addAndShow()
   }
+    
+  var isErrorState: Bool = false
   
   var currentSeconds: Double? {
     didSet {
+      if isErrorState || currentSeconds?.isNaN == true { return }
       if oldValue ?? 0.0 > currentSeconds ?? 0.0 {progressCircle.reset()}
       ///expect 60s als default, every 60s there is one round/graph fill ...like the default clock
       let total = (totalSeconds ?? 60) > 0 ? (totalSeconds ?? 60.0) : 60.0
@@ -207,6 +210,7 @@ class ArticlePlayerUI: UIView {
     btn.onPress { [weak self] _ in
       self?.removeFromSuperview()
       self?.closeClosure?()
+      self?.isErrorState = false
     }
     btn.pinSize(CGSize(width: 38, height: 38))
     btn.hinset = 0.1//20%
