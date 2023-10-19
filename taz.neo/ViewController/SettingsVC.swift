@@ -249,13 +249,13 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   ///erweitert
   lazy var edgeTapToNavigateCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Navigation mit Tap",
-                  detailText: "Tap am Rand einer Seite oder eines Artikels um zu scrollen oder zum nächsten Element zu gelangen.",
+  = XSettingsCell(toggleWithText: "Navigation durch Tap",
+                  detailText: "Tap am unteren Rand einer Seite oder eines Artikels um zu scrollen oder zum nächsten Element zu gelangen.",
                   initialValue: edgeTapToNavigate,
                   onChange: {[weak self] newValue in self?.edgeTapToNavigate = newValue })
   lazy var edgeTapToNavigateVisibleCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Navigation mit Tap sichtbar",
-                  detailText: "Tapbereich sichtbar",
+  = XSettingsCell(toggleWithText: "Tapbereich sichtbar",
+                  detailText: "Tapbereich für \"Navigation durch Tap\" sichtbar",
                   initialValue: edgeTapToNavigateVisible,
                   onChange: {[weak self] newValue in self?.edgeTapToNavigateVisible = newValue })
   lazy var bookmarksTeaserCell: XSettingsCell
