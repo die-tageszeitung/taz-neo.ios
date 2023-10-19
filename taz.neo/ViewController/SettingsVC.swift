@@ -667,9 +667,13 @@ extension SettingsVC {
     var cells =
     [
       isAuthenticated ? logoutCell : loginCell,
-      resetPasswordCell,
       manageAccountCell
     ]
+    if isAuthenticated,
+       SimpleAuthenticator.getUserData().id?.isValidEmail() == true,
+       SimpleAuthenticator.getUserData().id?.hasSuffix("@taz.de") == false {
+      cells.insert(resetPasswordCell, at: 1)
+    }
     if showDeleteAccountCell {
       cells.append(deleteAccountCell)
     }
