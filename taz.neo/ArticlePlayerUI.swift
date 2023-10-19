@@ -75,7 +75,13 @@ class ArticlePlayerUI: UIView {
     addAndShow()
   }
     
-  var isErrorState: Bool = false
+  var isErrorState: Bool = false {
+    didSet {
+      if oldValue == isErrorState { return }
+      activityIndicator.isHidden = isErrorState == false && state == .mini
+      isErrorState ? activityIndicator.startAnimating() : activityIndicator.stopAnimating()
+    }
+  }
   
   var currentSeconds: Double? {
     didSet {
@@ -197,6 +203,12 @@ class ArticlePlayerUI: UIView {
       btn.iosHigher14?.showsMenuAsPrimaryAction = true
     }
     return btn
+  }()
+
+  lazy var activityIndicator: UIActivityIndicatorView = {
+    let v = UIActivityIndicatorView()
+    v.color = .white
+    return v
   }()
   
   lazy var elapsedTimeLabel: UILabel
@@ -427,6 +439,7 @@ class ArticlePlayerUI: UIView {
     self.addSubview(closeButton)
     self.addSubview(minimizeButton)
     self.addSubview(slider)
+    self.addSubview(activityIndicator)
     self.addSubview(remainingTimeLabel)
     self.addSubview(elapsedTimeLabel)
     self.addSubview(toggleButton)
@@ -498,6 +511,9 @@ class ArticlePlayerUI: UIView {
     pin(slider.left, to: self.left, dist: maxiPadding)
     pin(slider.right, to: self.right, dist: -maxiPadding)
     pin(slider.top, to: wrapper.bottom, dist: padding)
+    
+    pin(activityIndicator.centerX, to: slider.centerX)
+    pin(activityIndicator.centerY, to: slider.centerY)
     
     pin(elapsedTimeLabel.top, to: slider.bottom, dist: 4.0)
     pin(remainingTimeLabel.top, to: slider.bottom, dist: 4.0)
@@ -582,6 +598,7 @@ class ArticlePlayerUI: UIView {
         playNextLabel.isHidden = true
         playNextSwitch.isHidden = true
         progressCircle.isHidden = false
+        activityIndicator.isHidden = true
         
         toggleButtonTopConstraint_Maxi?.isActive = false///active only in maxi
         toggleButtonBottomConstraint_Maxi?.isActive = false///active only in maxi
@@ -668,6 +685,7 @@ class ArticlePlayerUI: UIView {
         playNextLabel.isHidden = false
         playNextSwitch.isHidden = false
         progressCircle.isHidden = true
+        activityIndicator.isHidden = !isErrorState
         
         toggleButtonTopConstraint_Maxi?.isActive = true///active only in maxi
         toggleButtonBottomConstraint_Maxi?.isActive = true///active only in maxi
