@@ -691,10 +691,6 @@ class TazIntroVC: IntroVC, DefaultScreenTracking {
   }
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    webView.xButton.accessibilityLabel = Localized("close_window")
-    webView.xButton.isAccessibilityElement = true
-    webView.accessibilityElements
-    = [webView.xButton, webView.webView, webView.buttonLabel]
     trackScreen()
   }
 }

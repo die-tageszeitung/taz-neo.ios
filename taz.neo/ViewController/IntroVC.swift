@@ -59,11 +59,18 @@ class IntroVC: UIViewController {
       let intro = File(htmlIntro)
       if dataPolicy.exists && intro.exists {
         webView.webView.load(url: dataPolicy.url)
+        webView.xButton.isAccessibilityElement = false
+        webView.accessibilityElements
+        = [webView.buttonLabel, webView.webView]
         webView.onTap { [weak self] _ in
           guard let self = self else { return }
           self.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
           self.webView.webView.scrollView.isScrollEnabled = false
           self.webView.buttonLabel.text = nil
+          webView.xButton.accessibilityLabel = Localized("close_window")
+          webView.xButton.isAccessibilityElement = true
+          webView.accessibilityElements
+          = [webView.xButton, webView.webView, webView.buttonLabel]
           self.webView.webView.load(url: intro.url)
           self.webView.onX { _ in
             Notification.send("dataPolicyAccepted") 
