@@ -41,7 +41,6 @@ open class HeaderView: UIView,  Touchable {
         case .bigLeft:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = true
-          borderView?.isHidden = true
           titleLeftConstraint?.constant = 3.0
           titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -55,7 +54,6 @@ open class HeaderView: UIView,  Touchable {
         case .article:
           pageNumberLabel.isHidden = false
           subTitleLabel.isHidden = true
-          borderView?.isHidden = true
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -63,12 +61,12 @@ open class HeaderView: UIView,  Touchable {
           pageNumberLabel.textAlignment = .right
           subTitleLabel.textAlignment = .right
           titleFontSizeDefault = Const.Size.DefaultFontSize
-          titleTopIndentL = Const.Size.DefaultPadding
-          titleBottomIndentL = -0.5
+          titleTopIndentL = Const.Size.DefaultPadding + 7.5
+          titleBottomIndentL = titleBottomIndentS
+          titleBottomSpaceL = 3
         case .section:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = false
-          borderView?.isHidden = false
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -77,23 +75,25 @@ open class HeaderView: UIView,  Touchable {
           subTitleLabel.textAlignment = .right
           titleFontSizeDefault = Const.Size.TitleFontSize
           titleTopIndentL = Const.Size.DefaultPadding - 2
-          titleBottomIndentL = -31
+          titleBottomIndentL = -35
+          titleBottomSpaceS = 2
+          titleBottomSpaceL = -1
         case .section0:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = false
-          borderView?.isHidden = false
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
           titleLabel.textAlignment = .right
           pageNumberLabel.textAlignment = .right
           titleFontSizeDefault = Const.Size.LargeTitleFontSize
-          titleTopIndentL = Const.Size.DefaultPadding - 11.0
-          titleBottomIndentL = -31
+          titleTopIndentL = 4
+          titleBottomIndentL = -35
+          titleBottomSpaceS = 4
+          titleBottomSpaceL = -6
         case .search:
           pageNumberLabel.isHidden = false
           subTitleLabel.isHidden = false
-          borderView?.isHidden = false
           titleLeftConstraint?.constant = 8.0
           titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -111,7 +111,7 @@ open class HeaderView: UIView,  Touchable {
   
   private var titleFontSizeDefault: CGFloat = Const.Size.TitleFontSize
   //FontSize * 1.17 == LabelHeight with our Font
-  private var titleFontSizeMini: CGFloat = 12.0
+  private var titleFontSizeMini: CGFloat = 13.0
   private let subTitleFontSizeDefault: CGFloat = Const.Size.DefaultFontSize//16
   private var subTitleFontSizeMini: CGFloat = 12.0
   
@@ -120,7 +120,6 @@ open class HeaderView: UIView,  Touchable {
   var line = DottedLineView()
   var subTitleLabel = Label()
   var pageNumberLabel = HidingLabel()
-  var borderView:UIView?
 
   private var titleTopConstraint: NSLayoutConstraint?
   private var titleBottomConstraint: NSLayoutConstraint?
@@ -132,11 +131,13 @@ open class HeaderView: UIView,  Touchable {
   
   var lastRatio: CGFloat?
   
-  let sidePadding = 11.0
-  var titleTopIndentL: CGFloat = Const.Size.DefaultPadding
+  let sidePadding = 18.0
+  var titleTopIndentL: CGFloat = 12
   var titleBottomIndentL: CGFloat = -18//-18 or if subtitle set: -16*1.17-12 = -31
   let titleBottomIndentS = -DottedLineView.DottedLineDefaultHeight/2
-  let titleTopIndentS = 2.0
+  var titleBottomSpaceS = 0.0
+  var titleBottomSpaceL = 0.0
+  let titleTopIndentS: CGFloat = 6.5
     
   public var tapRecognizer = TapRecognizer()
     
@@ -185,7 +186,7 @@ open class HeaderView: UIView,  Touchable {
     
     titlePageNumberLabelBottomConstraint =
     pin(pageNumberLabel.bottom, to: titleLabel.bottom, dist: 0)
-    leftConstraint = pin(pageNumberLabel.left, to: self.left, dist:8)
+    leftConstraint = pin(pageNumberLabel.left, to: self.left, dist:sidePadding)
     
     titleLeftConstraint = pin(titleLabel.left, to: pageNumberLabel.right, dist: 8)
     pin(titleLabel.right, to: self.right, dist: -sidePadding)
@@ -197,7 +198,6 @@ open class HeaderView: UIView,  Touchable {
     
     pin(subTitleLabel.left, to: self.left, dist:sidePadding)
     pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
-    borderView = self.addBorderView(.opaqueSeparator, 0.5, edge: .bottom)
   }
   
   open override func layoutSubviews() {
@@ -238,9 +238,10 @@ extension HeaderView {
   
   private func didScrolling(offsetDelta:CGFloat, end: Bool){
     if titletype == .bigLeft { return }
-    
-    let isMaxi = self.titleTopConstraint?.constant ?? 0.0 >= titleTopIndentL
-    let isMini = self.titleTopConstraint?.constant ?? 0.0 <= titleTopIndentS
+    let miniPadding = titletype == .section0 ? 2.6 : 0.0
+     
+    let isMaxi = lastRatio == 0.0
+    let isMini = lastRatio == 1.0
     
     if offsetDelta > 0 && isMaxi { return }
     if offsetDelta < 0 && isMini { return }
@@ -282,8 +283,20 @@ extension HeaderView {
     let alpha = 1 - ratio // maxi 1...0 mini
     let titleTopIndentConst
     = alpha*(titleTopIndentL - titleTopIndentS) + titleTopIndentS
+    let titleBottomSpace = titleBottomSpaceS + titleBottomSpaceL*alpha
     let titleBottomIndentConst
-    = alpha*(titleBottomIndentL - titleBottomIndentS) + titleBottomIndentS
+    = alpha*(titleBottomIndentL - titleBottomIndentS) - titleBottomSpace + titleBottomIndentS
+    
+    /**
+     ARTICLE SHOULD:
+
+     titleLineDistConstraint?.constant = 4
+     titleBottomConstraint?.constant = titleBottomIndentS - 4 = -1.2 - 4 = -5.2
+     
+     
+     titleLineDistConstraint
+     */
+    
     
     let titleFontSize
     = alpha*(titleFontSizeDefault - titleFontSizeMini) + titleFontSizeMini
@@ -295,18 +308,15 @@ extension HeaderView {
       self?.subTitleLabel.contentFont(size: labelsFontSize)
       self?.titleTopConstraint?.constant = titleTopIndentConst
       self?.titleBottomConstraint?.constant = titleBottomIndentConst
-      
+      self?.titleLineDistConstraint?.constant = titleBottomSpace
       if ratio <= 0.5 {
         let a = 1 - 2*ratio
         self?.subTitleLabel.alpha = a
-        self?.borderView?.alpha = a
       }
       else {
         self?.subTitleLabel.alpha = 0.0
-        self?.borderView?.alpha = 0.0
       }
       if self?.titletype == .search {
-        self?.borderView?.alpha = 1.0
       }
     }
     animated
