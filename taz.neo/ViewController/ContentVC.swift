@@ -634,7 +634,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   // MARK: - viewDidLoad
   override public func viewDidLoad() {
     super.viewDidLoad()
-//    ruler.backgroundColor = Const.Colors.ciColor
     writeTazApiCss()
     writeTazApiJs()
     self.view.addSubview(header)
