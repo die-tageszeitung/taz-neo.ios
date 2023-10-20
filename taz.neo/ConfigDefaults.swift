@@ -66,7 +66,7 @@ public let ConfigDefaults = Defaults.Values([
   "autoPlayNext" : "true",
   "playbackRate": "1.0",
   "edgeTapToNavigate" : "false",
-  "edgeTapToNavigateVisible" : "true",
+  "edgeTapToNavigateVisible" : "false",
 ])
 
 
