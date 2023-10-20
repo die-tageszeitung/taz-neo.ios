@@ -200,6 +200,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
           so this is currently the most effective solution
        **/
       if UIApplication.shared.applicationState != .active { return }
+      if self?.navigationController?.topViewController != self {
+        self?.log("WARNING :: Prevent double tap on open issue to schow article and then pop to section")
+        return
+      }
       self?.linkPressed(from: from, to: to)
     }
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
