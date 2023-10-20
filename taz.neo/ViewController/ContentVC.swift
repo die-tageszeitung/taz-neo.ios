@@ -630,9 +630,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     self.urls = curls
   }
+  override public var addtionalBarHeight: CGFloat{
+    header.frame.size.height + toolBar.frame.size.height
+  }
+  override public var textLineHeight: CGFloat {
+    //Custom FontScale/100 * defaultFontSize*lineightFactor
+    CGFloat(Defaults.articleTextSize.articleTextSize/100*Int(Const.Size.DefaultFontSize*1.6))
+  }
   
   // MARK: - viewDidLoad
   override public func viewDidLoad() {
+    leftTapBottomDist = hideOnScroll ? 20 : -20
     super.viewDidLoad()
     writeTazApiCss()
     writeTazApiJs()
