@@ -252,7 +252,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   = XSettingsCell(toggleWithText: "Navigation durch Tap",
                   detailText: "Tap am unteren Rand einer Seite oder eines Artikels um zu scrollen oder zum nächsten Element zu gelangen.",
                   initialValue: edgeTapToNavigate,
-                  onChange: {[weak self] newValue in self?.edgeTapToNavigate = newValue })
+                  onChange: {[weak self] newValue in self?.edgeTapToNavigate = newValue
+    (self?.edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = newValue
+  })
   lazy var edgeTapToNavigateVisibleCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Tapbereich sichtbar",
                   detailText: "Tapbereich für \"Navigation durch Tap\" sichtbar",
@@ -699,6 +701,7 @@ extension SettingsVC {
   }
   
   var extendedSettingsCells:[XSettingsCell] {
+    (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
       edgeTapToNavigateCell,
       edgeTapToNavigateVisibleCell,
