@@ -37,6 +37,8 @@ class HomeTVC: UITableViewController {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  private var dataPolicyToast: NewInfoToast?
+  
   #warning("Refactor ContentVC should hold it's IssueInfo Reference")
   ///Needed because ContentVC did not has a strong reference to its IssueInfo Object
   ///if not using this both vars
@@ -598,14 +600,19 @@ extension HomeTVC {
       log("Bundled UsagePopover.png not found!")
       return
     }
-    NewInfoToast.showWith(image: image,
-                          title: "Eine noch bessere taz App? Sie haben es in der Hand",
-                          text: "Anonyme Nutzungsdaten helfen uns, noch besser zu werden. Wir wissen natürlich: Wer Daten will, muss freundlich sein – deshalb behandeln wir diese mit größtmöglicher Sorgfalt und absolut vertraulich. Ihre Einwilligung zur Nutzung kann zudem jederzeit widerrufen werden.",
-                          button1Text: "Ja, ich helfe mit",
-                          button2Text: "Nein, keine Daten senden",
-                          button1Handler: { Defaults.usageTrackingAllowed = true },
-                          button2Handler: { Defaults.usageTrackingAllowed = false },
-                          dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
+    var fromBottom = false
+    if dataPolicyToast == nil {
+      fromBottom = true
+      dataPolicyToast = NewInfoToast.showWith(image: image,
+                            title: "Eine noch bessere taz App? Sie haben es in der Hand",
+                            text: "Anonyme Nutzungsdaten helfen uns, noch besser zu werden. Wir wissen natürlich: Wer Daten will, muss freundlich sein – deshalb behandeln wir diese mit größtmöglicher Sorgfalt und absolut vertraulich. Ihre Einwilligung zur Nutzung kann zudem jederzeit widerrufen werden.",
+                            button1Text: "Ja, ich helfe mit",
+                            button2Text: "Nein, keine Daten senden",
+                            button1Handler: { Defaults.usageTrackingAllowed = true },
+                            button2Handler: { Defaults.usageTrackingAllowed = false },
+                            dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
+    }
+    dataPolicyToast?.show(fromBottom: fromBottom)
   }
   
   func showDataPolicyModal(){

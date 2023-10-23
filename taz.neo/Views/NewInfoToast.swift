@@ -28,42 +28,15 @@ public class NewInfoToast : UIView {
                               button2Text:String,
                               button1Handler : @escaping (()->()),
                               button2Handler : @escaping (()->()),
-                              dataPolicyHandler : @escaping (()->())) {
-    onMain {
-      guard let delegate = UIApplication.shared.delegate,
-            let window = delegate.window as? UIWindow else {  return }
-      let toast = NewInfoToast(image : image,
-                               title :title,
-                               text : text,
-                               button1Text:button1Text,
-                               button2Text:button2Text,
-                               button1Handler : button1Handler,
-                               button2Handler : button2Handler,
-                               dataPolicyHandler : dataPolicyHandler)
-      func showAnimated(){
-        UIView.animate(withDuration: 0.9,
-                       delay: 0,
-                       usingSpringWithDamping: 0.6,
-                       initialSpringVelocity: 0.8,
-                       options: UIView.AnimationOptions.curveEaseInOut,
-                       animations: {
-                        toast.shadeView.alpha = 1.0
-                        toast.scrollViewYConstraint?.constant = 0
-                        toast.layoutIfNeeded()
-                       }, completion: { (_) in
-                        if toast.isTopmost == false {
-                          window.bringSubviewToFront(toast)
-                        }
-                       })
-      }
-      toast.shadeView.alpha = 0.0
-      toast.isHidden = true
-      window.addSubview(toast)
-      toast.scrollViewYConstraint?.constant = window.frame.size.height
-      toast.layoutIfNeeded()
-      toast.isHidden = false
-      showAnimated()
-    }
+                              dataPolicyHandler : @escaping (()->())) -> NewInfoToast {
+    return NewInfoToast(image : image,
+                             title :title,
+                             text : text,
+                             button1Text:button1Text,
+                             button2Text:button2Text,
+                             button1Handler : button1Handler,
+                             button2Handler : button2Handler,
+                             dataPolicyHandler : dataPolicyHandler)
   }
 
   // MARK: - Constants / Default Environment
@@ -203,6 +176,39 @@ public class NewInfoToast : UIView {
     }
   }
   
+  func show(fromBottom:Bool = false){
+    if Thread.isMainThread == false {
+      onMain {[weak self] in self?.show()}
+      return
+    }
+    guard let delegate = UIApplication.shared.delegate,
+          let window = delegate.window as? UIWindow else {  return }
+    
+    self.shadeView.alpha = 0.0
+    self.isHidden = true
+    window.addSubview(self)
+    if fromBottom {
+      self.scrollViewYConstraint?.constant = window.frame.size.height
+    }
+    self.layoutIfNeeded()
+    self.isHidden = false
+    UIView.animate(withDuration: 0.9,
+                   delay: 0,
+                   usingSpringWithDamping: 0.6,
+                   initialSpringVelocity: 0.8,
+                   options: UIView.AnimationOptions.curveEaseInOut,
+                   animations: {[weak self] in
+      self?.shadeView.alpha = 1.0
+      self?.scrollViewYConstraint?.constant = 0
+      self?.layoutIfNeeded()
+    }, completion: {[weak self](_) in
+      guard let self = self else { return }
+      if self.isTopmost == false {
+        window.bringSubviewToFront(self)
+      }
+    })
+  }
+  
   func dismiss(){
     UIView.animate(withDuration: 0.7,
                    delay: 0,
@@ -299,6 +305,6 @@ public class NewInfoToast : UIView {
 extension NewInfoToast: UITextViewDelegate {
   public func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
     dataPolicyHandler()
-      return false
+    return false
   }
 }
