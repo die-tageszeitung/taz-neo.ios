@@ -640,7 +640,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   // MARK: - viewDidLoad
   override public func viewDidLoad() {
-    leftTapBottomDist = hideOnScroll ? 20 : -20
+    if self is BookmarkSectionVC == false {
+      leftTapBottomDist = hideOnScroll ? -20 : 20
+    }
     super.viewDidLoad()
     writeTazApiCss()
     writeTazApiJs()

@@ -37,30 +37,44 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
   }()
   
   public override func viewDidLoad() {
+    leftTapBottomMargin = false
     super.viewDidLoad()
     self.header.addSubview(headerPlayButton)
     pin(headerPlayButton.right, to: self.header.right, dist: -10)
     headerPlayButton.centerY()
-    
+    headerPlayButton.activeColor = Const.SetColor.CTDate.color
     headerPlayButtonContextMenu = ContextMenu(view: headerPlayButton.buttonView)
     headerPlayButtonContextMenu?.itemPrivider = self
-    
-    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] msg in
-      if let isPlaying = msg.content as? Bool {
-        self?.headerPlayButton.buttonView.name
-        = isPlaying
-        ? "audio-active"
-        : "audio"
-      }}
+  }
+  
+  override func updateAudioButton(){
+    self.headerPlayButton.buttonView.name
+    = ArticlePlayer.singleton.isPlaying
+    && (ArticlePlayer.singleton.currentContent as? Article)?.hasBookmark == true
+    ? "audio-active"
+    : "audio"
+  }
+  
+  func updateTapOnEdge(show: Bool? = nil){
+    let ctH = self.currentWebView?.scrollView.contentSize.height
+    if show == nil && (ctH ?? 0.0) == 0.0 { return }
+    let show = show ?? ((ctH ?? 0.0) * 0.8  > UIWindow.size.height)
+    ///topInset looks strange, something is wrong but the result/placement is over multiple devices the best currently
+    ///maybe re-think sectionVC with Tabbar insets and pin
+    leftTapBottomDist = (show ?  88 - UIWindow.topInset : 220)
   }
   
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    headerPlayButton.activeColor = Const.SetColor.CTDate.color
     headerPlayButton.buttonView.name
     = ArticlePlayer.singleton.isPlaying
     ? "audio-active"
     : "audio"
+  }
+  
+  public override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    updateTapOnEdge()
   }
   
   // We don't have a toolbar
