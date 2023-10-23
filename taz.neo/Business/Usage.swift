@@ -19,7 +19,7 @@ public class Usage: NSObject, DoesLog{
   @Default("usageTrackingAllowed")
   fileprivate var usageTrackingAllowed: Bool
   
-  fileprivate let matomoTracker = MatomoTracker(siteId: "116",
+  fileprivate lazy var matomoTracker = MatomoTracker(siteId: "116",
                                     baseURL: URL(string: "https://gazpacho.taz.de/matomo.php")!)
   
   static let shared = Usage()
@@ -78,6 +78,7 @@ public class Usage: NSObject, DoesLog{
 // MARK: - fileprivate Global Events
 fileprivate extension Usage {
   func startNewSession(){
+    if usageTrackingAllowed != true { return }
     debug("track::NEW SESSIONSTART")
     matomoTracker.startNewSession()
     trackAuthStatus()
@@ -93,11 +94,13 @@ fileprivate extension Usage {
   }
   
   func goingBackground() {
+    if usageTrackingAllowed != true { return }
     trackEvent(event.system.ApplicationMinimize)
     enterBackground = Date()
     matomoTracker.dispatch()
   }
   func appWillTerminate() {
+    if usageTrackingAllowed != true { return }
     matomoTracker.dispatch()
   }
 }
@@ -114,6 +117,7 @@ fileprivate extension Usage {
   }
   
   func trackInstallationIfNeeded() {
+    if usageTrackingAllowed != true { return }
     if usageTrackingCurrentVersion != App.bundleVersion {
       usageTrackingCurrentVersion = App.bundleVersion
       let downloadEvent = Self.event.application.downloaded
@@ -146,6 +150,7 @@ fileprivate extension Usage {
                           name: String? = nil,
                           dimensions: [CustomDimension]? = nil,
                           finishSession:Bool = false){
+    if usageTrackingAllowed != true { return }
     var info = ""
     if let name = name { info += " name: \(name)"}
     if dimensions?.isEmpty == false { info += " customDimensions: [" }
@@ -219,7 +224,7 @@ extension Usage {
   
   // MARK: Internal Screen Tracking
   private func trackCurrentScreen(){
-    if usageTrackingAllowed == false { return }
+    if usageTrackingAllowed != true { return }
     guard let currentScreenTitle = currentScreenTitle else  { return }
     debug("track::Screen: \(currentScreenTitle) url: \(currentScreenUrl?.absoluteString ?? "-")")
     matomoTracker.track(view: [currentScreenTitle], url: currentScreenUrl)
