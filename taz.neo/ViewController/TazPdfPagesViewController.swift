@@ -501,15 +501,17 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       }
       ///if scrollable to right, scroll to right
       if ziv.scrollView.contentOffset.x + ziv.scrollView.frame.size.width + 2
-         < ziv.scrollView.contentSize.width {
-        ziv.scrollView.setContentOffset(CGPoint(x: ziv.scrollView.contentSize.width -  ziv.scrollView.frame.size.width,
-                                                y: ziv.scrollView.contentOffset.y), animated: true)
+          < ziv.scrollView.contentSize.width {
+        ziv.scrollView.setContentOffset(CGPoint(x: ziv.scrollView.contentSize.width - ziv.scrollView.frame.size.width,
+                                                y: ziv.scrollView.contentOffset.y),
+                                        animated: true)
+        ziv.scrollView.flashScrollIndicators()
         return true
       }
       //handle index change
       return false
     }
-
+    
     onLeftTap {[weak self] in
       guard let ziv = self?.currentView as? ZoomedImageView else {
         return false
@@ -524,7 +526,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       ///if scrollable to right, scroll to left
       if ziv.scrollView.contentOffset.x - 2 > 0 {
         ziv.scrollView.setContentOffset(CGPoint(x: 0,
-                                                y: ziv.scrollView.contentOffset.y), animated: true)
+                                                y: ziv.scrollView.contentOffset.y),
+                                        animated: true)
+        ziv.scrollView.flashScrollIndicators()
         return true
       }
       //handle index change
