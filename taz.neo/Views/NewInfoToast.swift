@@ -21,6 +21,7 @@ public class NewInfoToast : UIView {
   ///   - hasCloseX: should top right close x be displayed
   ///   - autoDisappearAfter: TODO Automatic disappear after Timeout in seconds
   ///   - dismissHandler: handler to be called after toast dismissed
+  ///   **WARNING** latest adjustments for Matomo Opt In Popover and iPhone SE1
   public static func showWith(image : UIImage,
                               title : String?,
                               text : String?,
@@ -40,9 +41,9 @@ public class NewInfoToast : UIView {
   }
 
   // MARK: - Constants / Default Environment
-  private let maxWidth:CGFloat = 360
-  private let maxHeight:CGFloat = 420
-  private let linePadding:CGFloat = 15
+  private let maxWidth:CGFloat = 430
+  private let maxHeight:CGFloat = 650
+  private var linePadding:CGFloat = UIWindow.size.height < 580 ? 10 : 15
   private let sidePadding:CGFloat = 20
   
   private var image : UIImage
@@ -61,6 +62,8 @@ public class NewInfoToast : UIView {
   private var contentWidthConstraint : NSLayoutConstraint?
   private var widthConstraint : NSLayoutConstraint?
   private var heightConstraint : NSLayoutConstraint?
+  private var imageHeightConstraint : NSLayoutConstraint?
+  private var adjustSmallDevice = UIWindow.size.height < 580
   
   // MARK: - Lifecycle
   
@@ -94,17 +97,15 @@ public class NewInfoToast : UIView {
   
   func setupIfNeeded(){
     if container.superview != nil { return }
-    
     self.addSubview(shadeView)
     pin(shadeView, to: self)
     
     ///Layout Components
     var pinTopAnchor:LayoutAnchorY = container.topGuide()
-    
     container.addSubview(imageView)
     pin(imageView.right, to: container.rightGuide(), dist:0)
-    pin(imageView.left, to: container.leftGuide(), dist: 20)
-    pin(imageView.top, to: pinTopAnchor, dist: -5)
+    pin(imageView.left, to: container.leftGuide(), dist: 0)
+    pin(imageView.top, to: pinTopAnchor, dist: -10)
     pinTopAnchor = imageView.bottom
     
     if (title != nil) {
@@ -112,6 +113,7 @@ public class NewInfoToast : UIView {
       pin(titleLabel.right, to: container.rightGuide(), dist: -sidePadding)
       pin(titleLabel.left, to: container.leftGuide(), dist: sidePadding)
       pin(titleLabel.top, to: pinTopAnchor, dist: linePadding)
+      
       pinTopAnchor = titleLabel.bottom
     }
     
@@ -138,23 +140,30 @@ public class NewInfoToast : UIView {
     container.addSubview(privacyText)
     pin(privacyText.right, to: container.rightGuide(), dist: -sidePadding)
     pin(privacyText.left, to: container.leftGuide(), dist: sidePadding)
-    pin(privacyText.top, to: pinTopAnchor, dist: linePadding)
+    pin(privacyText.top, to: pinTopAnchor, dist: adjustSmallDevice ? 0 : linePadding)
     pinTopAnchor = privacyText.bottom
     
     pin(pinTopAnchor, to: container.bottomGuide(), dist: -sidePadding)
     
     ///Container, ScrollView and global Layout
     var scrollViewSize = UIWindow.size
+    
+    if adjustSmallDevice {
+      titleLabel.font = Const.Fonts.titleFont(size: Const.Size.ContentTableFontSize * 0.8)
+      textLabel.contentFont(size: Const.Size.DefaultFontSize * 0.9)
+      privacyText.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize * 0.9)
+      privacyText.layoutMargins = .zero
+      imageView.pinHeight(200)
+    }
+    imageView.pinHeight(adjustSmallDevice ? 200 : 270)
       
     if scrollViewSize.width > maxWidth { scrollViewSize.width = maxWidth }
     if scrollViewSize.height > maxHeight { scrollViewSize.height = maxHeight }
-    
+    scrollView.isScrollEnabled = true
     scrollView.addSubview(container)
     contentWidthConstraint = container.pinWidth(scrollViewSize.width)
     scrollViewWidthConstraint = scrollView.pinWidth(scrollViewSize.width)
-    pin(container, to: scrollView)
-    scrollView.centerY()
-    scrollViewHeightConstraint = pin(scrollView.height, to: container.height)
+    scrollViewHeightConstraint = scrollView.pinHeight(scrollViewSize.height)
     
     (widthConstraint, heightConstraint) = self.pinSize(UIWindow.size)
     
@@ -176,6 +185,11 @@ public class NewInfoToast : UIView {
     }
   }
   
+  public override func layoutSubviews() {
+    super.layoutSubviews()
+    self.scrollView.contentSize = container.frame.size
+  }
+  
   func show(fromBottom:Bool = false){
     if Thread.isMainThread == false {
       onMain {[weak self] in self?.show()}
@@ -192,6 +206,13 @@ public class NewInfoToast : UIView {
     }
     self.layoutIfNeeded()
     self.isHidden = false
+    
+    var yTarget = 0.0
+    let offset = scrollView.frame.size.height - UIWindow.size.height
+    if adjustSmallDevice, offset < 0, offset > -50 {
+      yTarget = -offset
+    }
+    
     UIView.animate(withDuration: 0.9,
                    delay: 0,
                    usingSpringWithDamping: 0.6,
@@ -199,7 +220,7 @@ public class NewInfoToast : UIView {
                    options: UIView.AnimationOptions.curveEaseInOut,
                    animations: {[weak self] in
       self?.shadeView.alpha = 1.0
-      self?.scrollViewYConstraint?.constant = 0
+      self?.scrollViewYConstraint?.constant = yTarget
       self?.layoutIfNeeded()
     }, completion: {[weak self](_) in
       guard let self = self else { return }
@@ -244,7 +265,6 @@ public class NewInfoToast : UIView {
   lazy var imageView: UIImageView  = {
     var view = UIImageView()
     view.image = image
-    view.pinHeight(270)
     return view
   }()
   
