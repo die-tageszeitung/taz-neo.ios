@@ -205,7 +205,6 @@ open class FeederContext: DoesLog {
         ///No feeder update possible if offline
         return
       }
-      
       updateFeeder()
       return
     }
