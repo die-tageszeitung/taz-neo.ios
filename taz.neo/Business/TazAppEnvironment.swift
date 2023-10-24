@@ -179,6 +179,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     else {
       showHome()
     }
+    feederContext?.updateResources(toVersion: -1)
   }
   
   func goingBackground() {
@@ -374,7 +375,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
         _ = self.service?.cellData(for: 3)
       }
     }
-    feederContext?.updateResources(toVersion: -1)
   }
   
   func showHome() {
