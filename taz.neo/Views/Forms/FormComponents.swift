@@ -123,7 +123,7 @@ extension Padded.Label{
 // MARK: - taz UIButton
 extension Padded.Button{
   
-  enum tazButtonType { case normal, outline, label, newBlackOutline}
+  enum tazButtonType { case normal, outline, label, newBlackOutline, newBlackOutlineBright}
   
   convenience init( type: tazButtonType = .normal,
                     title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
@@ -167,6 +167,13 @@ extension Padded.Button{
         self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
         self.addBorder(Const.SetColor.CTDate.color, 1.5)
         self.setTitleColor(Const.SetColor.CTDate.color, for: .normal)
+        self.titleLabel?.font = Const.Fonts.boldContentFont
+        self.layer.cornerRadius = height/2
+      case .newBlackOutlineBright:
+        self.backgroundColor = .clear
+        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
+        self.addBorder(Const.SetColor.CTDate.brightColor, 1.5)
+        self.setTitleColor(Const.SetColor.CTDate.brightColor, for: .normal)
         self.titleLabel?.font = Const.Fonts.boldContentFont
         self.layer.cornerRadius = height/2
       case .normal: fallthrough

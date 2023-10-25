@@ -220,6 +220,12 @@ public struct Const {
       }
     }
     
+    var brightColor : UIColor {
+      get{
+        return colors(name: self).light
+      }
+    }
+    
     fileprivate typealias ColorSet = ( light: UIColor, dark: UIColor?, lightHigh: UIColor?, darkHigh: UIColor?)
     
     fileprivate func colors(name: SetColor) -> ColorSet {

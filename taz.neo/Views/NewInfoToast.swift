@@ -292,7 +292,7 @@ public class NewInfoToast : UIView {
     dismiss()
   }
   
-  lazy var button1 = Padded.Button(type: .newBlackOutline,
+  lazy var button1 = Padded.Button(type: .newBlackOutlineBright,
                                 title: button1Text,
                                    target: self,
                                    action: #selector(handleButton1Action))
@@ -302,7 +302,7 @@ public class NewInfoToast : UIView {
     dismiss()
   }
   
-  lazy var button2 = Padded.Button(type: .newBlackOutline,
+  lazy var button2 = Padded.Button(type: .newBlackOutlineBright,
                                 title: button2Text,
                                    target: self,
                                    action: #selector(handleButton2Action))
@@ -311,9 +311,9 @@ public class NewInfoToast : UIView {
     let view = CustomTextView()
     view.isEditable = false
     view.attributedText = Localized("fragment_tracking_privacy_info").htmlAttributed
-    view.linkTextAttributes = [.foregroundColor : Const.SetColor.HText.color, .underlineColor: Const.SetColor.HText.color]
+    view.linkTextAttributes = [.foregroundColor : Const.SetColor.HText.brightColor, .underlineColor: Const.SetColor.HText.brightColor]
     view.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
-    view.textColor = Const.SetColor.HText.color
+    view.textColor = Const.SetColor.HText.brightColor
     view.textAlignment = .center
     view.delegate = self ///FormsController cares
     return view
