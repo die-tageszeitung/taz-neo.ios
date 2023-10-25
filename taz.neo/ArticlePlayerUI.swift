@@ -775,7 +775,11 @@ extension UIImage {
       ciImage = CIImage(cgImage: cgImage)
     }
     guard let ciImage = ciImage else { return self }
-    return UIImage(ciImage: ciImage.applyingGaussianBlur(sigma: 7.0))
+    let img = UIImage(ciImage: ciImage.applyingGaussianBlur(sigma: 7.0))
+    //GaussianBlur moves also pixel so simply cut them off
+    return UIGraphicsImageRenderer(size: CGSize(width: img.size.width - 7, height: img.size.height - 7)).image { _ in
+      img.draw(at: CGPoint(x: 0, y: 7))
+    }
   }
 }
 
