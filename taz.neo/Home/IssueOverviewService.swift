@@ -140,15 +140,16 @@ class IssueOverviewService: NSObject, DoesLog {
     }
   }
   
-  private func hasDownloadableContent(issue: Issue) -> Bool {
+  private func hasDownloadableContent(issue: Issue, withAudio: Bool) -> Bool {
     guard let sIssue = issue as? StoredIssue else { return true }
+    if sIssue.isAudioComplete == false && withAudio == true { return true }
     return feederContext.needsUpdate(issue: sIssue,toShowPdf: isFacsimile)
   }
   
   @discardableResult
   func download(issueAt date: Date, withAudio: Bool) -> StoredIssue? {
     guard let issue = issue(at: date),
-          hasDownloadableContent(issue: issue) else {
+          hasDownloadableContent(issue: issue, withAudio: withAudio) else {
       self.log("not downloading issue from: \(date.issueKey)")
       return nil
     }

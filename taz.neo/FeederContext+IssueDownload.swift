@@ -80,6 +80,7 @@ extension FeederContext {
       return
     }
     let loadPages = isPages || autoloadPdf
+    let force = force || withAudio && issue.isAudioComplete == false
     guard needsUpdate(issue: issue, toShowPdf: loadPages) || force == true else {
       Notification.send("issue", result: .success(issue), sender: issue)
       return
