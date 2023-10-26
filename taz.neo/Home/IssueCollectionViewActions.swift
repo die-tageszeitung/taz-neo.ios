@@ -56,7 +56,8 @@ extension IssueCollectionViewActions {
       }
       if issue.isAudioComplete == false {
         actions.addMenuItem(title: "Audioinhalte laden",
-                            icon: "download") {[weak self] _ in
+                            icon: "download",
+                            enabled: issue.isDownloading == false) {[weak self] _ in
           self?.service.download(issueAt: issue.date, withAudio: true)
           guard let ccvc = self as? IssueCarouselCVC,
                 ccvc.centerIndex == indexPath.row else { return }
@@ -65,14 +66,16 @@ extension IssueCollectionViewActions {
       }
     } else {
       actions.addMenuItem(title: "Ausgabe laden",
-                          icon: "download") {[weak self] _ in
+                          icon: "download",
+                          enabled: issue.isDownloading == false) {[weak self] _ in
         self?.service.download(issueAt: issue.date, withAudio: false)
         guard let ccvc = self as? IssueCarouselCVC,
               ccvc.centerIndex == indexPath.row else { return }
         ccvc.downloadButton.indicator.downloadState = .waiting
       }
       actions.addMenuItem(title: "Ausgabe mit Audio laden",
-                          icon: "download") {[weak self] _ in
+                          icon: "download",
+                          enabled: issue.isDownloading == false) {[weak self] _ in
         self?.service.download(issueAt: issue.date, withAudio: true)
         guard let ccvc = self as? IssueCarouselCVC,
               ccvc.centerIndex == indexPath.row else { return }

@@ -195,6 +195,7 @@ class ArticlePlayerUI: UIView {
       itms += (title: "\(val)",
                icon: nil,
                group: 0,
+               enabled: true,
                closure: {[weak self] _ in self?.setRate(val)})
     }
     rateMenuItms = itms
