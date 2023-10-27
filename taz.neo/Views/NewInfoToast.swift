@@ -42,7 +42,7 @@ public class NewInfoToast : UIView {
 
   // MARK: - Constants / Default Environment
   private let maxWidth:CGFloat = 430
-  private let maxHeight:CGFloat = 650
+  private let maxHeight:CGFloat = 670
   private var linePadding:CGFloat = UIWindow.size.height < 580 ? 10 : 15
   private let sidePadding:CGFloat = 20
   
