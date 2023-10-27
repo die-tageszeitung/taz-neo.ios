@@ -82,6 +82,7 @@ extension FeederContext {
       if store.version < version {
         ///set Rating Waiting Days to 1 for RC Testing
         Rating.sharedInstance.waitingDays = 1
+        self.lastAppPreviewVersion = version.toString()
       }
       
       if store.needUpdate(simulate: self.simulateNewVersion) {

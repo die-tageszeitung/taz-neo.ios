@@ -102,6 +102,11 @@ extension Authenticator {
     kc["id"] = id
     kc["password"] = password
     TazAppEnvironment.checkcDevMenu()
+    if id.hasSuffix("@taz.de") {
+      kc["tazAccountLogin"] = Date().short
+      TazAppEnvironment.sharedInstance.tazAccountLoginCount += 1
+    }
+    
     TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
     Usage.track(Usage.event.user.Login)
   }

@@ -19,6 +19,15 @@ public class Usage: NSObject, DoesLog{
   @Default("usageTrackingAllowed")
   fileprivate var usageTrackingAllowed: Bool
   
+  @Default("internGoalTracked")
+  fileprivate var internGoalTracked: Bool
+  
+  @Key("usageTrackingAcceptanceTesting")
+  fileprivate var usageTrackingAcceptanceTesting: Bool
+  
+  @Key("lastAppPreviewVersion")
+  var lastAppPreviewVersion: String
+  
   fileprivate lazy var matomoTracker = MatomoTracker(siteId: "116",
                                     baseURL: URL(string: "https://gazpacho.taz.de/matomo.php")!)
   
@@ -30,24 +39,24 @@ public class Usage: NSObject, DoesLog{
   
   
   ///use to remove onDisplay handler
-  fileprivate var lastPageCollectionVConDosplayClosureKey:String?
+  fileprivate var lastPageCollectionVConDisplayClosureKey:String?
   ///remember last PageCollectionVC, to handle onDisplay change due swipe
   fileprivate var lastPageCollectionVC:PageCollectionVC? {
     didSet {
-      if let key = lastPageCollectionVConDosplayClosureKey {
+      if let key = lastPageCollectionVConDisplayClosureKey {
         oldValue?.removeOnDisplay(forKey: key)
-        lastPageCollectionVConDosplayClosureKey = nil
+        lastPageCollectionVConDisplayClosureKey = nil
       }
-      lastPageCollectionVConDosplayClosureKey
-      = lastPageCollectionVC?.onDisplay(closure: { [weak self] _, _ in
+      lastPageCollectionVConDisplayClosureKey
+      = lastPageCollectionVC?.onDisplay(closure: { [weak self] idx, _ in
         guard let usageVc = self?.lastPageCollectionVC as? ScreenTracking else { return }
         usageVc.trackScreen()
       })
     }
   }
   
-  override init() {
-    super.init()
+  func setup(){
+    if Defaults.usageTrackingAllowed != true { return }
     trackInstallationIfNeeded()
     trackAuthStatus()
     trackSubscriptionStatusIfNeeded(isChange: false)
@@ -72,6 +81,11 @@ public class Usage: NSObject, DoesLog{
     $usageTrackingAllowed.onChange{[weak self] _ in
       self?.matomoTracker.isOptedOut = self?.usageTrackingAllowed != true
     }
+  }
+  
+  override init() {
+    super.init()
+    setup()
   }
 }
 
@@ -129,7 +143,40 @@ fileprivate extension Usage {
     }
   }
   
+  func trackGoal(_ goal: TrackingGoal){
+    log("track::Goal with ID: \"\(goal.goalId)\", revenue: \"\(goal.value)")
+    self.matomoTracker.trackGoal(id: goal.goalId, revenue: goal.value)
+  }
+  
+  func checkGoals(){
+    if usageTrackingAcceptanceTesting == true {
+      ///Track AK Testing everytime to test also App Installs and combinations, comes from keychain!
+      trackGoal(goals.testing.acceptanceTesting)
+    }
+    ///Just track this once per App Installation
+    if internGoalTracked == true { return }
+    
+    var taz = false
+    
+    if SimpleAuthenticator.getUserData().id?.hasSuffix("@taz.de") == true { taz = true }
+    else if Keychain.singleton["tazAccountLogin"] != nil{ taz = true  }
+    let alphaAccess = lastAppPreviewVersion.isEmpty == false
+    switch (taz, alphaAccess) {
+      case (true, true): 
+        trackGoal(goals.intern.tazAndpreviewApp)
+        internGoalTracked = true
+      case (true, false):
+        trackGoal(goals.intern.taz)
+        internGoalTracked = true
+      case (false, true):
+        trackGoal(goals.intern.previewApp)
+        internGoalTracked = true
+      default: break
+    }
+  }
+  
   func trackAuthStatus() {
+    checkGoals()
     TazAppEnvironment.isAuthenticated
     ? trackEvent(Usage.event.authenticationStatus.Authenticated)
     : trackEvent(Usage.event.authenticationStatus.Anonymous)
@@ -309,6 +356,29 @@ extension Usage {
     }
     var title: String? { return self.rawValue }
   }
+  public struct goals {
+    enum intern: Int, TrackingGoal {
+      var goalId: Int { 1 }//Defined in Backend!
+      case taz, previewApp, tazAndpreviewApp
+      var value: Float {
+        switch self {
+          case .taz: return 0.10
+          case .previewApp: return 0.20
+          case .tazAndpreviewApp: return 0.30
+        }
+      }
+    }
+    enum testing: Int, TrackingGoal {
+      var goalId: Int { 2 }//Defined in Backend!
+      case acceptanceTesting
+      var value: Float {
+        switch self {
+          case .acceptanceTesting: return 0.01
+        }
+      }
+    }
+  }
+
   public struct event {
     enum application: String, TrackingEvent {
       var category: String { "Application" }
@@ -456,6 +526,12 @@ protocol TrackingEvent: CodableEnum { var category: String { get } }
 extension TrackingEvent {
   var action: String { rawValue }
   var finishSession:Bool { return self is Usage.event.user }
+}
+
+// MARK: Enum Helper for Goals
+protocol TrackingGoal {
+  var goalId: Int { get }
+  var value: Float { get }
 }
 
 // MARK: Tracking Helper for complex Tracking Events

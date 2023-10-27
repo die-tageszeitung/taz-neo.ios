@@ -608,7 +608,7 @@ extension HomeTVC {
                             text: "Anonyme Nutzungsdaten helfen uns, noch besser zu werden. Wir wissen natürlich: Wer Daten will, muss freundlich sein – deshalb behandeln wir diese mit größtmöglicher Sorgfalt und absolut vertraulich. Ihre Einwilligung zur Nutzung kann zudem jederzeit widerrufen werden.",
                             button1Text: "Ja, ich helfe mit",
                             button2Text: "Nein, keine Daten senden",
-                            button1Handler: { Defaults.usageTrackingAllowed = true },
+                            button1Handler: { Defaults.usageTrackingAllowed = true; Usage.shared.setup() },
                             button2Handler: { Defaults.usageTrackingAllowed = false },
                             dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
     }

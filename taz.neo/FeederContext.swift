@@ -141,6 +141,10 @@ open class FeederContext: DoesLog {
   @Default("simulateNewVersion")
   var simulateNewVersion: Bool
   
+  ///empty if none
+  @Key("lastAppPreviewVersion")
+  var lastAppPreviewVersion: String
+  
   var latestPublicationDate:Date? {
     guard defaultFeed != nil else { return nil }
     return defaultFeed.lastIssue

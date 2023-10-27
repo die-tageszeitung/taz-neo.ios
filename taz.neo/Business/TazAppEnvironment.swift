@@ -103,6 +103,12 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   @Key("dataPolicyAccepted")
   public var dataPolicyAccepted: Bool
   
+  @Key("tazAccountLoginCount")
+  public var tazAccountLoginCount: Int
+  
+  @Key("usageTrackingAcceptanceTesting")
+  fileprivate var usageTrackingAcceptanceTesting: Bool
+  
   public private(set) var isErrorReporting = false
   private var isForeground = false
   
@@ -431,11 +437,15 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     var actions: [UIAlertAction] = []
     let dfl = Defaults.singleton
     
+    let akActive = self.usageTrackingAcceptanceTesting ? "Aktiv" : "Inaktiv"
+    
     actions.append(Alert.action("Abo-Verknüpfung löschen") {[weak self] _ in self?.unlinkSubscriptionId() })
     actions.append(Alert.action("Abo-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
     actions.append(Alert.action("Download-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
+    actions.append(Alert.action("Tracking AK Test: \(akActive)") {[weak self] _ in
+      guard let self = self else { return }
+      self.usageTrackingAcceptanceTesting = !self.usageTrackingAcceptanceTesting})
     if App.isAlpha { actions.append(contentsOf: UIAlertAction.developerPushActions(callback: { _ in })) }
-    
     let sMin = Alert.action("Simuliere höhere Minimalversion") { _ in
       dfl["simulateFailedMinVersion"] = "true"
       Alert.confirm(title: "Beenden",
