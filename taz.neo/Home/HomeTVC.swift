@@ -530,9 +530,10 @@ extension HomeTVC {
       updateAccessibillityHelper()
       return
     }
+    let topPadding = UIWindow.keyWindow?.screen.bounds.height ?? 601 > 600 ? 20.0 : 5.0
     carouselControllerCell.contentView.addSubview(loginButton)
     pin(loginButton.right, to: carouselControllerCell.contentView.rightGuide())
-    pin(loginButton.top, to: carouselControllerCell.contentView.topGuide(), dist: 20)
+    pin(loginButton.top, to: carouselControllerCell.contentView.topGuide(), dist: topPadding)
     updateAccessibillityHelper()
   }
   
