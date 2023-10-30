@@ -45,7 +45,8 @@ extension IssueCollectionViewActions {
     
     if issue.isComplete {
       actions.addMenuItem(title: "Ausgabe löschen",
-                          icon: "trash") {[weak self] _ in
+                          icon: "trash",
+                          enabled: issue.isDownloading == false) {[weak self] _ in
         self?.requestDeleteIssueWithBookmarksIfNeeded(issue: issue)
         /// reduceToOverview without force will exit
         issue.reduceToOverview()
