@@ -78,8 +78,8 @@ class ArticlePlayerUI: UIView {
   var isErrorState: Bool = false {
     didSet {
       if oldValue == isErrorState { return }
-      activityIndicator.isHidden = isErrorState == false && state == .mini
       isErrorState ? activityIndicator.startAnimating() : activityIndicator.stopAnimating()
+      activityIndicator.isHidden = !isErrorState || state == .mini
     }
   }
   
