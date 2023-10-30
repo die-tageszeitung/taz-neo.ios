@@ -617,6 +617,10 @@ class ArticlePlayer: DoesLog {
         Toast.show(msg)
       }
       Notification.receiveOnce("issueStructure", from: issue) { [weak self] notif in
+        guard notif.userInfo?["error"] == nil else {
+          Toast.show(Localized("error"))
+          return
+        }
         self?.play(issue: issue,
                    startFromArticle: startFromArticle,
                    enqueueType: enqueueType,
