@@ -47,6 +47,10 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
     headerPlayButtonContextMenu?.itemPrivider = self
   }
   
+  ///Prevent release and destroy webview functionality e.g.
+  ///remove last bookmark, restore it destroyed Bookmark List
+  open override func releaseOnDisappear() {}//Overwrite and do nothing here!
+  
   override func updateAudioButton(){
     self.headerPlayButton.buttonView.name
     = ArticlePlayer.singleton.isPlaying
