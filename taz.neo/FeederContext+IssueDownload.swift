@@ -75,7 +75,7 @@ extension FeederContext {
                                                            audio: withAudio))
     if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
-        self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically)
+        self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically, force: force, withAudio: withAudio)
       }
       return
     }
