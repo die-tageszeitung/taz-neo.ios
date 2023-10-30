@@ -2239,9 +2239,17 @@ public final class StoredIssue: Issue, StoredObject {
   @discardableResult
   /// Deletes data that is not needed for overview
   /// - Parameter force: delete also issues with bookmarks
-  /// - Returns: true if content deletes, false if already overview version
+  /// - Returns: true if content deletes, false if already overview version OR currently downloading
   public func reduceToOverview(force: Bool = false) -> Bool {
-    Log.debug("Delete Issue: \(self.date.short)")
+    if isDownloading {
+      ///WARNING May not catch all states, due isDownloading is set if Downloader.downloading files;
+      ///not in first Step: get Structure Data @REFACTORING
+      Log.log("Delete Issue: \(self.date.short) while downloading")
+      return false
+    }
+    else {
+      Log.debug("Delete Issue: \(self.date.short)")
+    }
     guard force ||
             StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
     else { return false }
