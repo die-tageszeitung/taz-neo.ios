@@ -601,19 +601,15 @@ class ArticlePlayer: DoesLog {
     Usage.xtrack.audio.close()
   }
   
-  public func play(issue:Issue?,
+  public func play(issue:Issue,
                    startFromArticle: Article?,
                    enqueueType: PlayerEnqueueType,
                    loadIssueIfNeeded: Bool = true){
     
     let feederContext = TazAppEnvironment.sharedInstance.feederContext
     
-    guard let _issue = issue ?? startFromArticle?.primaryIssue else {
-      return
-    }
-    
     if let storedIssue = issue as? StoredIssue,
-       feederContext?.needsUpdate(issue: _issue) ?? true {
+       feederContext?.needsUpdate(issue: issue) ?? true {
       let msg = enqueueType == .replaceCurrent
       ? "Die Wiedergabe wird nach Download der Ausgabe gestartet."
       : "Die Wiedergabeliste wird nach Download der Ausgabe ergänzt."
@@ -637,13 +633,9 @@ class ArticlePlayer: DoesLog {
       }
     }
     
-    var arts:[Article] = _issue.allArticles
-    
-    if issue == nil, let startFromArticle = startFromArticle {
-      arts = [startFromArticle]
-    }
-    else if let startFromArticle = startFromArticle,
-      let idx = _issue.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: startFromArticle) }),
+    var arts:[Article] = issue.allArticles
+    if let startFromArticle = startFromArticle,
+      let idx = issue.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: startFromArticle) }),
     idx < arts.count {
       arts = Array(arts[idx...])
     }
@@ -681,24 +673,8 @@ extension Article {
                  startFromArticle: self,
                  enqueueType: .replaceCurrent)
     })
-
-    menu.addMenuItem(title: "Diesen Artikel als nächsten",
-             icon: "text.line.first.and.arrowtriangle.forward",
-             closure: {_ in
-      ArticlePlayer.singleton.play(issue: nil,
-                 startFromArticle: self,
-                 enqueueType: .enqueueNext)
-    })
     
-    menu.addMenuItem(title: "Diesen Artikel anfügen",
-             icon: "text.line.last.and.arrowtriangle.forward",
-             closure: {_ in
-      ArticlePlayer.singleton.play(issue: nil,
-                 startFromArticle: self,
-                 enqueueType: .enqueueNext)
-    })
-    
-    menu.addMenuItem(title: "Alle als nächste",
+    menu.addMenuItem(title: "Als nächstes wiedergeben",
              icon: "text.line.first.and.arrowtriangle.forward",
              closure: {_ in
       ArticlePlayer.singleton.play(issue: issue,
@@ -706,7 +682,7 @@ extension Article {
                  enqueueType: .enqueueNext)
     })
     
-    menu.addMenuItem(title: "Alle zuletzt",
+    menu.addMenuItem(title: "Zuletzt wiedergeben",
              icon: "text.line.last.and.arrowtriangle.forward",
              closure: {_ in
       ArticlePlayer.singleton.play(issue: issue,
