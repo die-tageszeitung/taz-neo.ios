@@ -153,6 +153,7 @@ extension FeederContext {
     }
   }
   
+  ///check is new issue was available since popup should be shown (Step1)
   func didDownload(_ issue: Issue){
     guard issue.date == self.defaultFeed.lastIssue else { return }
     guard let momentPublicationDate = issue.moment.files.first?.moTime else { return }
