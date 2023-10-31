@@ -554,13 +554,13 @@ extension Usage {
                    dimensions: content?.customDimensions)
       }
       static func faksimilelePage(issue: Issue, pagina: String){
-        let evt = Usage.event.share.SearchHit
+        let evt = Usage.event.share.FaksimilelePage
         trackEvent(category: evt.category,
                    action: evt.action,
                    name: issue.trackingNamePathId+"/pdf/\(pagina)")
       }
       static func issueMoment(_ issue: Issue){
-        let evt = Usage.event.share.SearchHit
+        let evt = Usage.event.share.IssueMoment
         trackEvent(category: evt.category,
                    action: evt.action,
                    name: issue.trackingNamePathId)

@@ -87,7 +87,6 @@ extension IssueCollectionViewActions {
     actions.addMenuItem(title: "Bild Teilen",
                         icon: "share") {[weak self] _ in
       self?.service.exportMoment(issue: issue, sourceView: self?.view)
-      Usage.xtrack.share.issueMoment(issue)
     }
     
     if self.isKind(of: IssueCarouselCVC.self) {

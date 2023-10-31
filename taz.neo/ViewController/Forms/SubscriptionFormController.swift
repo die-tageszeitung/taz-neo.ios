@@ -35,6 +35,15 @@ class SubscriptionFormController : FormsController {
     ui.cancelButton.touch(self, action: #selector(handleBack))
   }
   
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    switch contentView.formType {
+      case .expiredDigiPrint, .expiredDigiSubscription:
+        Usage.track(Usage.event.dialog.SubscriptionElapsed)
+      default: break;
+    }
+  }
+  
   // MARK: handleSubmit Action
   @IBAction func handleSubmit(_ sender: UIButton) {
     ui.blocked = true

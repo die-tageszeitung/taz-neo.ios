@@ -548,12 +548,15 @@ extension IssueOverviewService {
 extension IssueOverviewService {
   func exportMoment(issue: Issue, sourceView: UIView?) {
     if let feeder = feederContext.gqlFeeder,
-        let fn = feeder.momentImageName(issue: issue, isCredited: true) {
+        let fn = feeder.momentImageName(issue: issue, isCredited: true, isPdf: isFacsimile) {
       let file = File(fn)
       let ext = file.extname
       let dialogue = ExportDialogue<Any>()
       let name = "\(issue.feed.name)-\(issue.date.isoDate(tz: feeder.timeZone)).\(ext ?? "")"
       dialogue.present(item: file.url, view: sourceView, subject: name)
+      isFacsimile
+      ? Usage.xtrack.share.faksimilelePage(issue: issue, pagina: "1")
+      : Usage.xtrack.share.issueMoment(issue)
     }
   }
 }

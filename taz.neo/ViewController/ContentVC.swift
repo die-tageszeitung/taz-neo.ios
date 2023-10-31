@@ -693,7 +693,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     ///enable shadow for sliderView
     slider?.sliderView.clipsToBounds = false
     slider?.onOpen{ _ in
-      Usage.track(Usage.event.drawer.action_open.Open)
+      Usage.track(Usage.event.drawer.action_open.Open, name: "Logo Tap")
     }
   }
   
