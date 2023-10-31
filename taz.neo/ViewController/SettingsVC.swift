@@ -249,17 +249,23 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   ///erweitert
   lazy var edgeTapToNavigateCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Navigation durch Tap",
-                  detailText: "Tap am unteren Rand einer Seite oder eines Artikels um zu scrollen oder zum nächsten Element zu gelangen.",
+  = XSettingsCell(toggleWithText: "Tap am Rand",
+                  detailText: "Tap am unteren Rand einer Seite oder eines Artikels, um zu scrollen oder zum nächsten Element zu gelangen.",
                   initialValue: edgeTapToNavigate,
-                  onChange: {[weak self] newValue in self?.edgeTapToNavigate = newValue
+                  onChange: {[weak self] newValue in 
+    self?.edgeTapToNavigate = newValue
+    Usage.track(Usage.event.tapEdge.state, name: newValue ? "Ein" : "Aus")
     (self?.edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = newValue
   })
   lazy var edgeTapToNavigateVisibleCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Tapbereich sichtbar",
-                  detailText: "Tapbereich für \"Navigation durch Tap\" sichtbar",
+  = XSettingsCell(toggleWithText: "Tap am Rand sichtbar",
+                  detailText: "Bereich für \"Tap am Rand\" sichtbar",
                   initialValue: edgeTapToNavigateVisible,
-                  onChange: {[weak self] newValue in self?.edgeTapToNavigateVisible = newValue })
+                  onChange: {[weak self] newValue in
+    self?.edgeTapToNavigateVisible = newValue
+    Usage.track(Usage.event.tapEdge.visibility, name: newValue ? "Ein" : "Aus")
+
+  })
   lazy var bookmarksTeaserCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Leseliste Anrisstext",
                   detailText: "Zeige Anrisstext in Leseliste",
@@ -703,8 +709,6 @@ extension SettingsVC {
   var extendedSettingsCells:[XSettingsCell] {
     (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
-      edgeTapToNavigateCell,
-      edgeTapToNavigateVisibleCell,
       bookmarksTeaserCell,
       smartBackFromArticleCell,
       memoryUsageCell,
@@ -732,7 +736,9 @@ extension SettingsVC {
       ("darstellung", false,
        [
         textSizeSettingsCell,
-        darkmodeSettingsCell
+        darkmodeSettingsCell,
+        edgeTapToNavigateCell,
+        edgeTapToNavigateVisibleCell
        ]
       ),
       ("steuerung in der Zeitungsansicht", false,
