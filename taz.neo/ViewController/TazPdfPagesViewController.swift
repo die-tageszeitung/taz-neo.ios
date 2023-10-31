@@ -792,7 +792,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
 extension TazPdfPagesViewController: ScreenTracking {
   private var pagina: String { page()?.pagina ?? "\((index ?? -2) + 1)"}
   public var screenUrl: URL? {
-    return URL(string: "/issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/pdf/\(pagina)")
+    return URL(path: "issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/pdf/\(pagina)")
   }
   
   public var screenTitle: String? {  return "PDF Page: \(pagina)"}

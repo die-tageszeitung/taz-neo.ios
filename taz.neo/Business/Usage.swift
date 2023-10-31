@@ -58,6 +58,7 @@ public class Usage: NSObject, DoesLog{
   func setup(){
     if Defaults.usageTrackingAllowed != true { return }
     trackInstallationIfNeeded()
+    matomoTracker.contentBase = nil
     trackAuthStatus()
     trackSubscriptionStatusIfNeeded(isChange: false)
 
@@ -328,30 +329,30 @@ extension Usage {
          SearchHelp = "SearchHelp"
     var url: URL? {
       switch self {
-        case .CoverflowMobile: return URL(string: "/home/coverflow/mobile")
-        case .CoverflowPDF: return URL(string: "/home/coverflow/pdf")
-        case .ArchiveMobile: return URL(string: "/home/archive/mobile")
-        case .ArchivePDF: return URL(string: "/home/archive/pdf")
-        case .BookmarksList: return URL(string: "/bookmarks/list")
-        case .BookmarksEmpty: return URL(string: "/bookmarks/empty")
-        case .Search: return URL(string: "/search")
-        case .Settings: return URL(string: "/settings")
-        case .ErrorReport: return URL(string: "/error_report")
-        case .FeedbackReport: return URL(string: "/feedback")
-        case .FatalError: return URL(string: "/error_fatal")
-        case .Login: return URL(string: "/login")
-        case .SubscriptionSwitchToDigiabo: return URL(string: "/subscription/switch")
-        case .SubscriptionExtendWithDigiabo: return URL(string: "/subscription/extend")
-        case .SubscriptionTrialInfo: return URL(string: "/subscription/trial_info")
-        case .SubscriptionTrialElapsedInfo: return URL(string: "/subscription/trial_elapsed")
-        case .SubscriptionElapsedInfo: return URL(string: "/subscription/elapsed")
-        case .SubscriptionAccountLoginCreate: return URL(string: "/subscription/account_login")
-        case .DataPolicy: return URL(string: "/data_policy")
-        case .Terms: return URL(string: "/terms")
-        case .Revocation: return URL(string: "/revocation")
-        case .WelcomeSlides: return URL(string: "/welcome_slides")
-        case .ForgotPassword: return URL(string: "/forgot_password")
-        case .SearchHelp: return URL(string: "/search/help")
+        case .CoverflowMobile: return URL(path: "home/coverflow/mobile")
+        case .CoverflowPDF: return URL(path: "home/coverflow/pdf")
+        case .ArchiveMobile: return URL(path: "home/archive/mobile")
+        case .ArchivePDF: return URL(path: "home/archive/pdf")
+        case .BookmarksList: return URL(path: "bookmarks/list")
+        case .BookmarksEmpty: return URL(path: "bookmarks/empty")
+        case .Search: return URL(path: "search")
+        case .Settings: return URL(path: "settings")
+        case .ErrorReport: return URL(path: "error_report")
+        case .FeedbackReport: return URL(path: "feedback")
+        case .FatalError: return URL(path: "error_fatal")
+        case .Login: return URL(path: "login")
+        case .SubscriptionSwitchToDigiabo: return URL(path: "subscription/switch")
+        case .SubscriptionExtendWithDigiabo: return URL(path: "subscription/extend")
+        case .SubscriptionTrialInfo: return URL(path: "subscription/trial_info")
+        case .SubscriptionTrialElapsedInfo: return URL(path: "subscription/trial_elapsed")
+        case .SubscriptionElapsedInfo: return URL(path: "subscription/elapsed")
+        case .SubscriptionAccountLoginCreate: return URL(path: "subscription/account_login")
+        case .DataPolicy: return URL(path: "data_policy")
+        case .Terms: return URL(path: "terms")
+        case .Revocation: return URL(path: "revocation")
+        case .WelcomeSlides: return URL(path: "welcome_slides")
+        case .ForgotPassword: return URL(path: "forgot_password")
+        case .SearchHelp: return URL(path: "search/help")
       }
     }
     var title: String? { return self.rawValue }
@@ -778,11 +779,13 @@ class TazIntroVC: IntroVC, DefaultScreenTracking {
 
 extension SectionVC: ScreenTracking {
   public var screenUrl:URL? {
+    if self is BookmarkSectionVC { return URL(path: "bookmarks/list") }
     guard let trackingPath = section?.trackingPath else { return nil }
     return URL(path: "issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/\(trackingPath)")
   }
   public var screenTitle:String? {
-    section?.title
+    if self is BookmarkSectionVC { return "Bookmarks List" }
+    return section?.title
   }
 }
 
@@ -863,4 +866,4 @@ extension URL {
   }
 }
 // MARK: ...URL/Host
-fileprivate struct AppDomain { static let id = "http://app.taz.de" }
+fileprivate struct AppDomain { static let id = "https://app.taz.de" }
