@@ -511,6 +511,13 @@ extension Usage {
       case ApplicationMinimize = "Application Minimize",
            NavigationBack = "Navigation Back"
     }
+    enum tapEdge: String, TrackingEvent {
+      var category: String { "Tap am Rand" }
+      case state = "Status",
+           visibility = "Sichtbarkeit",
+           foreward = "Vor",
+           backward = "Zurück"
+    }
     enum user: String, TrackingEvent {
       var category: String { "User" }
       case Login = "Login",
