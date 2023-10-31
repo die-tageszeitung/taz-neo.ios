@@ -29,7 +29,7 @@ public class Usage: NSObject, DoesLog{
   var lastAppPreviewVersion: String
   
   ///Live currently 113 iOS Test 116
-  fileprivate lazy var matomoTracker = MatomoTracker(siteId: "113",
+  fileprivate lazy var matomoTracker = MatomoTracker(siteId: Device.isSimulator ? "116" : "113",
                                     baseURL: URL(string: "https://gazpacho.taz.de/matomo.php")!)
   
   static let shared = Usage()
