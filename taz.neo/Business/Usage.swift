@@ -77,7 +77,7 @@ public class Usage: NSObject, DoesLog{
     }
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let art = msg.sender as? StoredArticle else { return }
-      self?.trackEvent(art.hasBookmark ? event.bookmarks.AddArticle : event.bookmarks.RemoveArticle)
+      self?.trackEvent(art.hasBookmark ? event.bookmarks.AddArticle : event.bookmarks.RemoveArticle, name: art.trackingPathWithID)
     }
     
     $usageTrackingAllowed.onChange{[weak self] _ in
@@ -547,19 +547,18 @@ protocol TrackingGoal {
 extension Usage {
   struct xtrack {
     struct share {
-      static func article(content: Content?){
+      static func article(article: Article?){
         let evt = Usage.event.share.Article
         trackEvent(category: evt.category,
                    action: evt.action,
-                   name: content?.trackingPath,
-                   dimensions: content?.customDimensions)
+                   name: article?.trackingPathWithID,
+                   dimensions: article?.customDimensions)
       }
-      static func searchHit(content: Content?){
+      static func searchHit(article: Article?){
         let evt = Usage.event.share.SearchHit
         trackEvent(category: evt.category,
                    action: evt.action,
-                   name: content?.trackingPath,
-                   dimensions: content?.customDimensions)
+                   name: article?.onlineLink)
       }
       static func faksimilelePage(issue: Issue, pagina: String){
         let evt = Usage.event.share.FaksimilelePage
@@ -838,6 +837,17 @@ extension Content{
     }
     return nil
   }
+}
+
+extension Article {
+  var trackingPathWithID: String? {
+    guard let name = self.html?.name else { return nil }
+    if let mediaId = self.serverId {
+      return "article/\(name)?id=\(mediaId)"
+    }
+    return "article/\(name)"
+  }
+  
 }
 
 // MARK: ...for Forms Controller

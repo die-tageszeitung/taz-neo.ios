@@ -44,6 +44,7 @@ class TrialSubscriptionController : FormsController {
     if let errormessage = ui.validate() {
       Toast.show(errormessage, .alert)
       ui.blocked = false
+      Usage.track(Usage.event.subscription.InquiryFormValidationError)
       return
     }
     

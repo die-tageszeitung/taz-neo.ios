@@ -352,10 +352,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         })
       } else {
         if self.issue is SearchResultIssue {
-          Usage.xtrack.share.searchHit(content: self.article)
+          Usage.xtrack.share.searchHit(article: self.article)
         }
         else {
-          Usage.xtrack.share.article(content: self.article)
+          Usage.xtrack.share.article(article: self.article)
         }
         ArticleVC.exportArticle(article: self.article, artvc: self, from: self.shareButton)
       }
