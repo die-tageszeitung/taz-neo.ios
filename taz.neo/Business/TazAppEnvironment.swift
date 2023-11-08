@@ -604,7 +604,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   }
 }
 
-
+#if TAZ
 //App Context Menu helper
 extension TazAppEnvironment {
   
@@ -677,27 +677,6 @@ extension TazAppEnvironment {
     }
   }
   
-  func playBookmarks(){
-    guard let feeder = feederContext?.storedFeeder else { return }
-    let bookmarkFeed = BookmarkFeed.allBookmarks(feeder: feeder)
-    guard let bi = (bookmarkFeed.issues ?? []).first as? BookmarkIssue else { return }
-    ArticlePlayer.singleton.play(issue: bi,
-                                 startFromArticle: nil,
-                                 enqueueType: .replaceCurrent)
-  }
-  
-  func playLatestIssue(){
-    guard let feederContext = feederContext,
-          feederContext.defaultFeed != nil,
-          let si = feederContext.getLatestStoredIssue() else {
-      LocalNotifications.notifyOfflineListenNotPossible()
-      return
-    }
-    ArticlePlayer.singleton.play(issue: si,
-                                 startFromArticle: nil,
-                                 enqueueType: .replaceCurrent)
-  }
-  
   /// app icon shortcut action handler
   /// - Parameter shortcutItem: selected shortcut item
   func handleShortcutItem(_ shortcutItem: UIApplicationShortcutItem) {
@@ -732,6 +711,32 @@ extension TazAppEnvironment {
     }
   }
 }
+#endif // TAZ
+
+// Player extension
+extension TazAppEnvironment {
+  func playBookmarks(){
+    guard let feeder = feederContext?.storedFeeder else { return }
+    let bookmarkFeed = BookmarkFeed.allBookmarks(feeder: feeder)
+    guard let bi = (bookmarkFeed.issues ?? []).first as? BookmarkIssue else { return }
+    ArticlePlayer.singleton.play(issue: bi,
+                                 startFromArticle: nil,
+                                 enqueueType: .replaceCurrent)
+  }
+  
+  func playLatestIssue(){
+    guard let feederContext = feederContext,
+          feederContext.defaultFeed != nil,
+          let si = feederContext.getLatestStoredIssue() else {
+      LocalNotifications.notifyOfflineListenNotPossible()
+      return
+    }
+    ArticlePlayer.singleton.play(issue: si,
+                                 startFromArticle: nil,
+                                 enqueueType: .replaceCurrent)
+  }
+}
+
 extension TazAppEnvironment : UIStyleChangeDelegate {
   func applyStyles() {
     if let img  = UIImage(name:"xmark")?
@@ -742,9 +747,9 @@ extension TazAppEnvironment : UIStyleChangeDelegate {
   }
 }
 
-// Helper
+// Defaults Server Switch extension
 extension Defaults{
-    
+#if TAZ  
   ///Helper to get current server from user defaults
   fileprivate static var currentServer : Shortcuts {
     get {
@@ -777,8 +782,14 @@ extension Defaults{
       }
     }
   }
+#else
+  static var currentFeeder : (name: String, url: String, feed: String) {
+    return (name: "LMd", url: "https://dl.monde-diplomatique.de/appGraphQl", feed: "LMd")
+  }
+#endif // TAZ
 }
 
+#if TAZ
 /// Helper to add App Shortcuts to App-Icon
 /// Warning View Logger did not work untill MainNC -> setupLogging ...   viewLogger is disabled!
 /// @see: Log.append(logger: consoleLogger, /*viewLogger,*/ fileLogger)
@@ -844,3 +855,4 @@ enum Shortcuts{
     }
   }
 }
+#endif // TAZ
