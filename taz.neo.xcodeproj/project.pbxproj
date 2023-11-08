@@ -232,6 +232,8 @@
 		AE5131ED2AFBCADB002289E8 /* dot-day.svg in Resources */ = {isa = PBXBuildFile; fileRef = 776E59C429ED25A3001D5C5B /* dot-day.svg */; };
 		AE5131EE2AFBCADB002289E8 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
 		AE5131EF2AFBCADB002289E8 /* Share.svg in Resources */ = {isa = PBXBuildFile; fileRef = AE1632832848A4C9004CB55E /* Share.svg */; };
+		AE5131FA2AFBE76B002289E8 /* lmd.plist in Resources */ = {isa = PBXBuildFile; fileRef = AE5131F72AFBE76B002289E8 /* lmd.plist */; };
+		AE5131FB2AFBE76B002289E8 /* taz.plist in Resources */ = {isa = PBXBuildFile; fileRef = AE5131F82AFBE76B002289E8 /* taz.plist */; };
 		AE5D9EBD23E1B8160002C3B8 /* GraphQlSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE82262C232A70E000FFBE67 /* GraphQlSession.swift */; };
 		AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE822631232A717E00FFBE67 /* DataModel.swift */; };
 		AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE696F2D23918F9400265FC8 /* GqlFeeder.swift */; };
@@ -377,7 +379,8 @@
 		AE4C4FF826A1ABD9006079C8 /* BookmarkFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkFeed.swift; sourceTree = "<group>"; };
 		AE4F51DA2438C8E800BC9548 /* ArticleDB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleDB.swift; sourceTree = "<group>"; };
 		AE5131F52AFBCADB002289E8 /* Le Monde diplomatique.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Le Monde diplomatique.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		AE5131F62AFBCADB002289E8 /* taz.neo copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "taz.neo copy-Info.plist"; path = "/Users/norbert/Desktop/share/src/taz-neo.ios/taz.neo copy-Info.plist"; sourceTree = "<absolute>"; };
+		AE5131F72AFBE76B002289E8 /* lmd.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = lmd.plist; sourceTree = "<group>"; };
+		AE5131F82AFBE76B002289E8 /* taz.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = taz.plist; sourceTree = "<group>"; };
 		AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloader.swift; sourceTree = "<group>"; };
 		AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GermanDate.swift; sourceTree = "<group>"; };
 		AE5DFACE267E10540035162C /* KeychainTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainTest.swift; sourceTree = "<group>"; };
@@ -396,7 +399,6 @@
 		AEBAF564219ACD1900566205 /* die tageszeitung.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "die tageszeitung.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		AEBAF573219ACD1A00566205 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AEBAF58D219ACFAC00566205 /* TestController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestController.swift; sourceTree = "<group>"; };
 		AEBAF58E219ACFAC00566205 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AEBAF5AB219ACFD900566205 /* ContentVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentVC.swift; sourceTree = "<group>"; };
@@ -640,7 +642,6 @@
 				AEBAF566219ACD1900566205 /* taz.neo */,
 				AEBAF565219ACD1900566205 /* Products */,
 				AE3D47D623030482002FF0A2 /* Frameworks */,
-				AE5131F62AFBCADB002289E8 /* taz.neo copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -698,6 +699,8 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				AE5131F72AFBE76B002289E8 /* lmd.plist */,
+				AE5131F82AFBE76B002289E8 /* taz.plist */,
 				776158192743E8440044516C /* AppIcons */,
 				773D56462614A4DF00B42FEF /* BundledResources */,
 				7745050F25DA80450052E502 /* files */,
@@ -706,7 +709,6 @@
 				AEC7D4C624A5E1D3008630FB /* Scripts */,
 				AED52FCA2492764500CC082E /* Fonts */,
 				AEBAF56E219ACD1A00566205 /* Assets.xcassets */,
-				AEBAF573219ACD1A00566205 /* Info.plist */,
 				AED852A823CDEC8A002F07E8 /* taz.neo.entitlements */,
 				948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */,
 			);
@@ -856,6 +858,7 @@
 				AE5131E92AFBCADB002289E8 /* Trash.svg in Resources */,
 				AE5131EA2AFBCADB002289E8 /* Assets.xcassets in Resources */,
 				AE5131EB2AFBCADB002289E8 /* Star.svg in Resources */,
+				AE5131FA2AFBE76B002289E8 /* lmd.plist in Resources */,
 				AE5131EC2AFBCADB002289E8 /* bookmarks-ios.js in Resources */,
 				AE5131ED2AFBCADB002289E8 /* dot-day.svg in Resources */,
 				AE5131EE2AFBCADB002289E8 /* files in Resources */,
@@ -869,6 +872,7 @@
 			files = (
 				773D56472614A4DF00B42FEF /* BundledResources in Resources */,
 				776E59C729ED25A3001D5C5B /* dot-night.svg in Resources */,
+				AE5131FB2AFBE76B002289E8 /* taz.plist in Resources */,
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
 				AEB935342917E81F000330DA /* StarFilled.svg in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
