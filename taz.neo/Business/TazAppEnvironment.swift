@@ -163,7 +163,8 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
         "\(App.bundleIdentifier)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
         "git-hash: \(BuildConst.hash)\n" +
-        "Path: \(Dir.appSupportPath)")
+        "Path: \(Dir.appSupportPath)\n" +
+        "isTAZ: \(App.isTAZ)")
   }
   
   func startup() {
@@ -856,3 +857,19 @@ enum Shortcuts{
   }
 }
 #endif // TAZ
+
+// App extension to decide whether lmd or taz app is running
+extension App {
+  static private var _isTAZ: Bool?
+  
+  /// Are we running the taz app?
+  static var isTAZ: Bool {
+    if _isTAZ == nil {
+      _isTAZ = !App.bundleIdentifier.hasSuffix("lmd.neo")
+    }
+    return _isTAZ!
+  }
+  
+  /// Are we running the lmd app?
+  static var isLMD: Bool { !isTAZ }
+} // App
