@@ -398,7 +398,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let self = self else { return }
       
       if let section = (oimg as? ZoomedPdfPageImage)?.pageReference?.sectionAudio {
-        ArticlePlayer.singleton.play(sectionAudio: section)
+        section.toggleAudio()
         return
       }
       
@@ -735,7 +735,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
             let pi = self.pdfModel?.item(atIndex:i) as? ZoomedPdfPageImage,
             let sectionAudio = pi.pageReference?.sectionAudio
       else { return }
-      ArticlePlayer.singleton.play(sectionAudio: sectionAudio)
+      sectionAudio.toggleAudio()
     }
     
     //the buttons and alignments
@@ -881,7 +881,7 @@ class PdfButtonSlider: ButtonSlider {
 }
 
 fileprivate extension Page {
-  var sectionAudio: Section? { audioItem?.content as? Section }
+  var sectionAudio: Section? { audioItem?.content?.first as? Section }
 }
 
 fileprivate extension TazPdfPagesViewController {

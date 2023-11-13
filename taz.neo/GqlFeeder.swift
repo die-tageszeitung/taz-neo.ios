@@ -130,6 +130,8 @@ class GqlAudio: Audio, GQLObject {
   var duration: Float?
   var speaker: AudioSpeaker?
   var breaks: [Float]?
+  var content: [Content]? { nil }
+  var page: [Page]? { nil }
   static var fields =  "playtime duration speaker breaks gqlFile: file {\(GqlFile.fields)}"
 } // GqlAudio
 

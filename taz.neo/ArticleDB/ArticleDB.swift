@@ -787,7 +787,7 @@ public final class StoredAudio: Audio, StoredObject {
     set { pr.breaks = newValue }
   }
   
-  public var content: [Content]{
+  public var content: [Content]?{
     var ret:[Content] = []
     for pArticle in pr.content?.allObjects as? [PersistentArticle] ?? [] {
       ret.append(StoredArticle(persistent: pArticle))
@@ -798,7 +798,7 @@ public final class StoredAudio: Audio, StoredObject {
     return ret
   }
   
-  public var page: [Page]{
+  public var page: [Page]?{
     var ret:[Page] = []
     for pPage in pr.page?.allObjects as? [PersistentPage] ?? [] {
       ret.append(StoredPage(persistent: pPage))
