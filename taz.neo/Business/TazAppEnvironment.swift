@@ -186,6 +186,55 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       showHome()
     }
     feederContext?.updateResources(toVersion: -1)
+    onMainAfter(2.0) {
+      Self.requestProcessSaveError()
+    }
+  }
+  
+  static func requestProcessSaveError(){
+    
+    let deleteErroneousIssuesAction = UIAlertAction(title: "Fehlerhafte Ausgaben löschen",
+                                    style: .destructive) { _ in
+    }
+    
+    var sendErrorReport = true
+    
+    let checkboxView = UIView()
+    checkboxView.onTapping { _ in
+      sendErrorReport = !sendErrorReport
+      checkboxView.backgroundColor
+      = sendErrorReport
+      ? .green
+      : .red
+    }
+    checkboxView.addBorder(.blue)
+    checkboxView.pinHeight(40.0)
+    
+    var msg = "Beim speichern der Daten ist ein Fehler aufgetreten.\n"
+    var actions: [UIAlertAction] = []
+    
+    if true {
+      actions.append(deleteErroneousIssuesAction)
+      msg += "\(3) Ausgben sind fehlerhaft und müssen gelöscht werden.\n"
+    }
+    else if true {
+      actions.append(deleteErroneousIssuesAction)
+      msg += "Die Ausgabe vom \("1.1.1111") ist fehlerhaft und muss gelöscht werden.\n"
+    }
+    
+    actions.append(UIAlertAction(title: "Alles löschen",
+                                 style: .destructive) { _ in
+      Log.log("reset db")
+  
+    })
+    actions.append(UIAlertAction(title: "Ingorieren", style: .cancel) { _ in
+      Toast.show("Daten nicht gesichert!", .alert)
+    
+    })
+    
+    msg += "Wird der Fehler nicht behoben, wird diese Meldung beim nächsten Speichern erneut erscheinen.\n\n\n\n"
+    ///lineBreaks for checkboxView
+    Alert.message(title: "Fehler", message: msg, actions: actions, aditionalView: checkboxView)
   }
   
   func goingBackground() {

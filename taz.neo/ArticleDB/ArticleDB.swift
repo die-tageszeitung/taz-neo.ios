@@ -15,6 +15,8 @@ public class ArticleDB: Database {
   /// There is only one article DB in the app
   public static var singleton: ArticleDB!
   
+  fileprivate static var showsSaveAlert = false
+  
   let dbQueue = DispatchQueue(label: "database-queue")
   
   /// Initialize with name of database, open it and call the passed closure
@@ -32,12 +34,126 @@ public class ArticleDB: Database {
   public static var context: NSManagedObjectContext { return singleton.context! }
   
   /// Save the singleton's context
-  public static func save() { singleton.save() }
-  
+  public static func save() {
+    singleton.save() { ctx, err in
+      Self.requestProcessSaveError(ctx: ctx, err: err)
+    }
+    /*singleton.save() { ctx, err in
+      Log.log("There was a error while: \(ctx.updatedObjects.count) updated, \(ctx.insertedObjects.count) inserted, \(ctx.deletedObjects.count) deleted Objects pending for save")
+      Log.error("\(err)")
+      for issue in (err as NSError).dbSaveErrorIssues {
+        issue.delete()
+      }
+      let updatedObjects = Array(ctx.updatedObjects)
+      let deletedObjects = Array(ctx.deletedObjects)
+      let insertedObjects = Array(ctx.insertedObjects)
+      for (idx, obj) in updatedObjects.enumerated() {
+        print("\(idx): \(obj.objectID)")
+//        print("Updated: \(obj) fault?: \(obj.isFault)")
+      }
+      print("===== deletedObjects =======")
+      for (idx, obj) in deletedObjects.enumerated() {
+        print("\(idx): \(obj.objectID)")
+//        print("Deleted: \(obj) fault?: \(obj.isFault)")
+      }
+      print("===== Inserted =======")
+      for (idx, obj) in insertedObjects.enumerated() {
+//        print("Inserted: \(obj) fault?: \(obj.isFault)")
+        print("\(idx): \(obj.objectID)")
+      }
+    }
+    */
+  }
 } // ArticleDB
 
+fileprivate extension ArticleDB {
+  static func sendErrorReport(ctx: NSManagedObjectContext, err: Error){
+    print("ToDo....")
+  }
+  
+  static func requestProcessSaveError(ctx: NSManagedObjectContext, err: Error){
+    guard ArticleDB.showsSaveAlert == false else {
+      Log.log("prevent multiple show save alert")
+      return
+    }
+    ArticleDB.showsSaveAlert = true
+    let errorIssues = (err as NSError).dbSaveErrorIssues
+    
+    let deleteErroneousIssuesAction = UIAlertAction(title: "Fehlerhafte Ausgaben löschen",
+                                    style: .destructive) { _ in
+      for issue in errorIssues {
+        issue.delete()
+      }
+      ArticleDB.showsSaveAlert = false
+      Self.save()
+    }
+    
+    var sendErrorReport = true
+    
+    let checkboxView = UIView()
+    checkboxView.onTapping { _ in
+      sendErrorReport = !sendErrorReport
+      checkboxView.backgroundColor
+      = sendErrorReport
+      ? .green
+      : .red
+    }
+    checkboxView.addBorder(.blue)
+    checkboxView.pinHeight(40.0)
+    
+    var msg = "Beim speichern der Daten ist ein Fehler aufgetreten.\n"
+    var actions: [UIAlertAction] = []
+    
+    if errorIssues.count > 1 {
+      actions.append(deleteErroneousIssuesAction)
+      msg += "\(errorIssues.count) Ausgben sind fehlerhaft und müssen gelöscht werden.\n"
+    }
+    else if errorIssues.count == 1 {
+      actions.append(deleteErroneousIssuesAction)
+      msg += "Die Ausgabe vom \(errorIssues.first?.date?.short ?? "-") ist fehlerhaft und muss gelöscht werden.\n"
+    }
+    
+    actions.append(UIAlertAction(title: "Alles löschen",
+                                 style: .destructive) { _ in
+      Log.log("reset db")
+      Self.singleton.reset { e in
+        Log.log("reset db done error?: \(e ?? "-")")
+        if sendErrorReport { Self.sendErrorReport(ctx: ctx, err: err)}
+        ArticleDB.showsSaveAlert = false
+      }
+    })
+    actions.append(UIAlertAction(title: "Ingorieren", style: .cancel) { _ in
+      Toast.show("Daten nicht gesichert!", .alert)
+      if sendErrorReport { Self.sendErrorReport(ctx: ctx, err: err)}
+      ArticleDB.showsSaveAlert = false
+    })
+    
+    msg += "Wird der Fehler nicht behoben, wird diese Meldung beim nächsten Speichern erneut erscheinen.\n\n\n\n"
+    ///lineBreaks for checkboxView
+    Alert.message(title: "Fehler", message: msg, actions: actions, aditionalView: checkboxView)
+  }
+}
+
+
+fileprivate extension Error {
+  var dbSaveErrorIssues:[PersistentIssue] {
+    var issues: [PersistentIssue] = []
+    for info in (self as NSError).userInfo {
+      for iErr in info.value as? Array<NSError> ?? [] {
+        if let po = iErr.userInfo["NSValidationErrorObject"] as? PersistentObject {
+          issues.append(contentsOf: po.relatedIssues)
+        }
+      }
+    }
+    if issues.count == 0 { return [] }
+    return Array(Set(issues))///Array Unique
+  }
+}
+
 /// A Protocol to extend CoreData objects
-public protocol PersistentObject: NSManagedObject, DoesLog {}
+public protocol PersistentObject: NSManagedObject, DoesLog {
+  var relatedIssues: [PersistentIssue] { get }
+}
 
 public extension PersistentObject {
   /// Get object using its ID
@@ -136,6 +252,10 @@ public extension StoredObject {
 } // StoredObject
 
 extension PersistentFileEntry: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
   
   // Remove file if record is deleted and no other records point to this file
   public override func prepareForDeletion() {
@@ -293,7 +413,27 @@ public final class StoredFileEntry: FileEntry, StoredObject {
   
 } // StoredFileEntry
 
-extension PersistentImageEntry: PersistentObject {}
+extension PersistentImageEntry: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    var issues:Set<PersistentIssue> = Set<PersistentIssue>()
+    for content in imageContent ?? [] {
+      if let sect = content as? PersistentSection {
+        if let issue = sect.issue {
+          issues.insert(issue)
+        }
+      }
+      else if let art = content as? PersistentArticle {
+        for case let issue as PersistentIssue in art.issues ?? [] {
+          issues.insert(issue)
+        }
+      }
+      else {
+        log("some unknown content \(content), currently not implemented")
+      }
+    }
+    return Array(Set(issues))
+  }
+}
 
 /// A stored ImageEntry
 public final class StoredImageEntry: ImageEntry, StoredObject {
@@ -325,10 +465,13 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
   }
   
   /// Initialize with image in existing file
-  public static func new(path: String, resolution: ImageResolution = .normal,
-              type: ImageType = .facsimile,
-              storageType: FileStorageType = .issue) -> StoredImageEntry? {
-    if let fe = StoredFileEntry.new(path: path, storageType: storageType) {
+  public static func new(path: String,
+                         resolution: ImageResolution = .normal,
+                         type: ImageType = .facsimile,
+                         storageType: FileStorageType = .issue,
+                         fileEntry: StoredFileEntry? = nil
+  ) -> StoredImageEntry? {
+    if let fe = fileEntry ?? StoredFileEntry.new(path: path, storageType: storageType) {
       let ie = StoredImageEntry.new()
       ie.pf = fe.pr
       ie.pr.file = ie.pf
@@ -344,8 +487,14 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
   /// Overwrite the persistent values
   public func update(from: ImageEntry) {
     var file: StoredFileEntry
-    if pf == nil { file = StoredFileEntry.get(object: from) ?? StoredFileEntry.new() }
-    else { file = StoredFileEntry(persistent: pf) }
+    if pf == nil {
+      file
+      = StoredFileEntry.get(object: from)
+      ?? StoredFileEntry.new()
+    }
+    else {
+      file = StoredFileEntry(persistent: pf)
+    }
     file.update(from: from)
     pf = file.pr
     pr.resolution = from.resolution.rawValue
@@ -359,12 +508,12 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
   /// Return stored record with given name  
   public static func get(name: String) -> [StoredImageEntry] {
     let files = StoredFileEntry.get(name: name)
-    if files.count > 0 {
-      if let img = files[0].image {
+    if let fe = files.first,
+       let path = fe.path {
+      if let img = fe.image {
         return [img]
       }
-      else {
-        let sr = new()
+      else if let sr = new(path: path, fileEntry: fe) {
         sr.pf = files[0].pr
         return [sr]
       }
@@ -386,7 +535,10 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
   /// Return stored record that matches the name of the passed object
   public static func get(object: ImageEntry) -> StoredImageEntry? {
     let res = get(name: object.name)
-    if res.count > 0 { return res[0] }
+    if res.count > 0 {
+//      print("get IE: \(res[0]) cnt: \(res.count)")
+      return res[0]
+    }
     else { return nil }
   }  
   
@@ -424,7 +576,12 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
   
 } // StoredImageEntry
 
-extension PersistentMoment: PersistentObject {}
+extension PersistentMoment: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+}
 
 /// A stored Moment image
 public final class StoredMoment: Moment, StoredObject {
@@ -463,6 +620,7 @@ public final class StoredMoment: Moment, StoredObject {
     // Add new images
     for img in from.images {
       let se = StoredImageEntry.persist(object: img)
+      print("Moment imageEntry: \(se)")
       se.pr.moment = pr
       pr.addToImages(se.pr)
     }
@@ -475,6 +633,7 @@ public final class StoredMoment: Moment, StoredObject {
     // Add new credited images
     for img in from.creditedImages {
       let se = StoredImageEntry.persist(object: img)
+      print("Credited imageEntry: \(se)")
       se.pr.momentCredit = pr
       pr.addToCreditedImages(se.pr)
     }
@@ -514,7 +673,12 @@ public final class StoredMoment: Moment, StoredObject {
   
 } // Stored Moment
 
-extension PersistentPayload: PersistentObject {}
+extension PersistentPayload: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+}
 
 /// A stored Payload
 public final class StoredPayload: StoredObject, Payload {
@@ -647,7 +811,12 @@ public final class StoredPayload: StoredObject, Payload {
 
 } // StoredPayload
 
-extension PersistentResources: PersistentObject {}
+extension PersistentResources: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+}
 
 
 /// A stored list of resource files
@@ -747,7 +916,12 @@ public final class StoredResources: Resources, StoredObject {
   
 } // StoredResources
 
-extension PersistentAudio: PersistentObject {}
+extension PersistentAudio: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+}
 
 /// A stored Author
 public final class StoredAudio: Audio, StoredObject {
@@ -836,7 +1010,12 @@ public final class StoredAudio: Audio, StoredObject {
 } // StoredAudio
 
 
-extension PersistentAuthor: PersistentObject {}
+extension PersistentAuthor: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+}
 
 /// A stored Author
 public final class StoredAuthor: Author, StoredObject {
@@ -868,6 +1047,7 @@ public final class StoredAuthor: Author, StoredObject {
     self.serverId = object.serverId
     if let photo = object.photo {
       let imageEntry = StoredImageEntry.persist(object: photo)
+//      print("Author imageEntry: \(imageEntry.pr)")
       pr.photo = imageEntry.pr
       imageEntry.pr.author = pr
     }
@@ -903,6 +1083,12 @@ public final class StoredAuthor: Author, StoredObject {
 
 /// also: PersistentSection, PersistentArticle
 extension PersistentContent: PersistentObject {
+  
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+  
   public override func prepareForDeletion() {
     for case let img as PersistentImageEntry in self.images ?? []{
       if img.imageContent?.count == 1,
@@ -942,6 +1128,11 @@ extension PersistentSection {
 }
 
 extension PersistentPage: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+  
   public override func prepareForDeletion() {
     if audioItem?.referencesCount == 1 {
       debug("Delete AutioItem due last Reference")
@@ -1123,6 +1314,7 @@ public final class StoredArticle: Article, StoredObject {
       var order: Int32 = 0
       for img in imgs {
         let imageEntry = StoredImageEntry.persist(object: img)
+//        print("Article imageEntry: \(imageEntry.pr)")
         imageEntry.pr.addToImageContent(pr)
         imageEntry.pr.order = order
         pr.addToImages(imageEntry.pr)
@@ -1217,7 +1409,12 @@ public final class StoredArticle: Article, StoredObject {
 
 } // StoredArticle
 
-extension PersistentFrame: PersistentObject {}
+extension PersistentFrame: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+}
 
 /// A stored Frame
 public final class StoredFrame: Frame, StoredObject {
@@ -1361,6 +1558,7 @@ public final class StoredPage: Page, StoredObject {
     set {
       if let img = newValue {
         pr.facsimile = StoredImageEntry.persist(object: img).pr
+        print("Facsimile imageEntry: \(pr.facsimile)")
         pr.facsimile!.page = pr
       }
       else { pr.facsimile = nil }
@@ -1558,6 +1756,7 @@ public final class StoredSection: Section, StoredObject {
           old.delete()
         }
         pr.navButton = StoredImageEntry.persist(object: button).pr
+//        print("Navbutton imageEntry: \(pr.navButton)")
         pr.navButton?.addToNavSection(pr)
       }
       else { pr.navButton = nil }      
@@ -1575,7 +1774,7 @@ public final class StoredSection: Section, StoredObject {
   }
   
   public var path: String {
-    #warning("DoDo 1.0.0 Crash Cnt#: 1")
+    #warning("DoDo 1.0.0 Crash Cnt#: 2")
     guard let path = (html as? StoredFileEntry)?.path
     else { fatalError("FileEntry.path is undefined") }
     ///empty on start see frame in carousell, open issue login ...slider opened, but why?
@@ -1618,6 +1817,7 @@ public final class StoredSection: Section, StoredObject {
         imageEntry.pr.addToImageContent(pr)
         imageEntry.pr.order = order
         pr.addToImages(imageEntry.pr)
+//        print("Section imageEntry: \(imageEntry.pr)")
         order += 1
       }
       // Remove unneeded images
@@ -1672,7 +1872,12 @@ public final class StoredSection: Section, StoredObject {
 
 } // StoredSection
 
-extension PersistentPublicationDate: PersistentObject {}
+extension PersistentPublicationDate: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+}
 
 extension StoredPublicationDate: Equatable {
   static public func ==(lhs: StoredPublicationDate, rhs: StoredPublicationDate) -> Bool {
@@ -1808,7 +2013,12 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   
 } //StoredPublicationDate
 
-extension PersistentIssue: PersistentObject {}
+extension PersistentIssue: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+}
 
 
 
@@ -2287,7 +2497,12 @@ public final class StoredIssue: Issue, StoredObject {
   
 } // StoredIssue
 
-extension PersistentFeed: PersistentObject {}
+extension PersistentFeed: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+}
 
 /// A stored Feed
 public final class StoredFeed: Feed, StoredObject {
@@ -2464,7 +2679,12 @@ extension StoredFeed {
   }
 }
 
-extension PersistentFeeder: PersistentObject {}
+extension PersistentFeeder: PersistentObject {
+  public var relatedIssues: [PersistentIssue] {
+    log("not implemented")
+    return []
+  }
+}
 
 /// A stored Feeder
 public final class StoredFeeder: Feeder, StoredObject {

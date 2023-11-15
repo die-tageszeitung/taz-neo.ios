@@ -27,10 +27,12 @@ public extension ArticleVCdelegate {
 
 /// The Article view controller managing a collection of Article pages
 open class ArticleVC: ContentVC, ContextMenuItemPrivider {
+  
+  var authenticationRequested = false
+  
   public var menu: MenuActions?{
     return article?.contextMenu()
   }
-  
   
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
@@ -186,7 +188,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       ///     && (feederContext.isAuthenticated == false || Defaults.expiredAccount) bookmarks finally did not refresh
       if art.primaryIssue?.isReduced == true {
         self.atEndOfContent() { [weak self] isAtEnd in
-          if isAtEnd { self?.feederContext.authenticate() }
+          if isAtEnd && self?.authenticationRequested == false {
+            self?.authenticationRequested = true
+            self?.feederContext.authenticate()
+          }
         }
       }
       self.displayBookmark(art: art)///hide bookmarkbutton for imprint!

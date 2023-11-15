@@ -218,6 +218,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   @Default("autoHideToolbar")
   var autoHideToolbar: Bool
   
+  var authenticationRequested = false
+  
   private var hideOnScroll: Bool {
     if UIScreen.isIpadRegularSize {
       return false
@@ -402,7 +404,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         return
       }
       
-      if self.feederContext.isAuthenticated == false || Defaults.expiredAccount {
+      if self.feederContext.isAuthenticated == false && authenticationRequested == false {
+        authenticationRequested = true
         self.feederContext.authenticate()
         return
       }

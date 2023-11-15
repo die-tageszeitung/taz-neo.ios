@@ -43,7 +43,7 @@ extension IssueCollectionViewActions {
     
     let actions = MenuActions()
     
-    if issue.isComplete {
+    if true {
       actions.addMenuItem(title: "Ausgabe löschen",
                           icon: "trash",
                           enabled: issue.isDownloading == false) {[weak self] _ in
