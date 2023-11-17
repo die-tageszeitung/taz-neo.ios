@@ -171,9 +171,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         updateAudioButton()
         self.onPlay { [weak self] _ in
           guard let self = self else { return }
-          if let title = self.header.title ?? art.title {
-            art.toggleAudio(issue: self.issue, sectionName: title )
-          }
+          art.toggleAudio(issue: self.issue)
         }
       }
       else { self.onPlay(closure: nil) }

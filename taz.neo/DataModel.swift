@@ -325,16 +325,14 @@ public protocol Audio: ToString {
   var duration: Float? { get }
   var speaker: AudioSpeaker? { get }
   var breaks: [Float]? { get }
-  var content: Content? { get }
-  var page: Page? { get }
+  var content: [Content]? { get }
+  var page: [Page]? { get }
 } // Audio
 
 public extension Audio {
   func toString() -> String {
-    return "audio: \(file?.name ?? "unknown") breaks: \(breaks?.count) duration: \(duration) speaker: \(speaker))"
+    return "audio: \(file?.name ?? "unknown") breaks: \(breaks?.count ?? -1) duration: \(duration ?? -1) speaker: \(speaker?.toString() ?? "-"))"
   }
-  var content: Content? { return nil }
-  var page: Page? { return nil }
 }
 
 public enum AudioSpeaker: String, CodableEnum {
@@ -543,7 +541,7 @@ public extension Article {
   var canPlayAudio: Bool { ArticlePlayer.singleton.canPlay(self) }
   
   /// Start/stop audio play if available
-  func toggleAudio(issue: Issue, sectionName: String) {
+  func toggleAudio(issue: Issue) {
     if ArticlePlayer.singleton.currentContent?.html?.sha256 == self.html?.sha256 && self.html?.sha256 != nil {
       ArticlePlayer.singleton.toggle(origin: .appUi)
     }
@@ -658,6 +656,16 @@ public extension Section {
     }
     return name
   }
+  
+  func toggleAudio() {
+    if ArticlePlayer.singleton.currentContent?.html?.sha256 == self.html?.sha256 && self.html?.sha256 != nil {
+      ArticlePlayer.singleton.toggle(origin: .appUi)
+    }
+    else {
+      ArticlePlayer.singleton.play(sectionAudio: self)
+    }
+  }
+  
 } // extension Section
 
 /**

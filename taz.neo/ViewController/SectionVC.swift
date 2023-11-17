@@ -158,9 +158,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   func updatePlayButton(){
     if let section = sectionIfAudio(atIndex: index) {
       self.playButton.isHidden = false
-      self.onPlay { [weak self] _ in
-        ArticlePlayer.singleton.play(sectionAudio: section)
-        self?.playButton.buttonView.name = "audio-active"
+      self.onPlay { _ in
+        section.toggleAudio()
       }
     }
     else {
