@@ -686,7 +686,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   public func setupSlider() {
     updateSliderWidth(newParentWidth: UIScreen.shortSide)
-    slider?.image = UIImage.init(named: "logo")
+    let logo = App.isTAZ ? "logo" : "logoLMD"
+    slider?.image = UIImage.init(named: logo)
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
     header.leftConstraint?.constant = 8 + (slider?.visibleButtonWidth ?? 0.0)

@@ -11,7 +11,8 @@ import NorthLib
 /**
  Configuration variables and default values to store in Apple's UserDefaults
  */
-public let ConfigDefaults = Defaults.Values([
+
+private let configValues = [
   // Default Feeder & Server
   "defaultFeeder" : "taz",
   // shall text notifications be displayed on notification screen
@@ -67,8 +68,20 @@ public let ConfigDefaults = Defaults.Values([
   "playbackRate": "1.0",
   "edgeTapToNavigate" : "false",
   "edgeTapToNavigateVisible" : "false",
-])
+]
 
+private let configValuesLMD = [
+  // Use facsimile mode for LMD
+  "isFacsimile" : "true",
+]
+
+#if LMD
+  public let ConfigDefaults = Defaults.Values(configValues.merging(configValuesLMD) {
+    (_,lmd) in lmd
+  })
+#else
+  public let ConfigDefaults = Defaults.Values(configValues)
+#endif
 
 extension Defaults {
   ///Provide getter only

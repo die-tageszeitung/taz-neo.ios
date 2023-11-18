@@ -542,8 +542,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   func setupSlider(sliderContent:UIViewController){
     slider = PdfButtonSlider(slider: sliderContent, into: self)
     guard let slider = slider else { return }
+    let logo = App.isTAZ ? "logo" : "logoLMD"
     slider.sliderView.clipsToBounds = false
-    slider.image = UIImage.init(named: "logo")
+    slider.image = UIImage.init(named: logo)
     slider.image?.accessibilityLabel = "Inhalt"
     slider.buttonAlpha = 1.0
     slider.hideButtonOnClose = true
