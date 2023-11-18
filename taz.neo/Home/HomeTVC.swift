@@ -189,10 +189,11 @@ class HomeTVC: UITableViewController {
     setupCarouselControllerCell()
     setupTilesControllerCell()
     tilesControllerCell.isAccessibilityElement = false
-    setupTogglePdfButton()
     setupDateButton()
-    
-    togglePdfButton.isAccessibilityElement = false
+    #if TAZ
+      setupTogglePdfButton()
+      togglePdfButton.isAccessibilityElement = false
+    #endif    
     carouselController.dateLabel.isAccessibilityElement = false
     carouselControllerCell.isAccessibilityElement = false
     carouselController.collectionView.isAccessibilityElement = false
@@ -208,13 +209,17 @@ class HomeTVC: UITableViewController {
   }
   
   public override func viewWillDisappear(_ animated: Bool) {
-    togglePdfButton.isHidden = true
+    #if TAZ
+      togglePdfButton.isHidden = true
+    #endif
     super.viewWillDisappear(animated)
   }
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    togglePdfButton.showAnimated()
+    #if TAZ
+      togglePdfButton.showAnimated()
+    #endif
     showRequestTrackingIfNeeded()
 //    showPdfInfoIfNeeded()//DEACTIVATED FOR 1.1.0 // In 1.2.0 Coachmarks shloud come DELETE IT!
     scroll(up: wasUp)
