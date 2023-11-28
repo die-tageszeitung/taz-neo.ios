@@ -55,8 +55,6 @@
 		773D564226145E8500B42FEF /* InfoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773D564126145E8500B42FEF /* InfoToast.swift */; };
 		773D56472614A4DF00B42FEF /* BundledResources in Resources */ = {isa = PBXBuildFile; fileRef = 773D56462614A4DF00B42FEF /* BundledResources */; };
 		773E3DA32A2F683E00222EE5 /* NewContentTableVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773E3DA22A2F683E00222EE5 /* NewContentTableVC.swift */; };
-		7745050D25DA801F0052E502 /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = 7745050C25DA801F0052E502 /* resources.json */; };
-		7745051025DA80450052E502 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
 		774BBAFB2A821DAC0017039D /* FeederContext+AppUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774BBAFA2A821DAC0017039D /* FeederContext+AppUpdate.swift */; };
 		774C6F8129CB5BAF001285FB /* KeyboardToolbarForText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
@@ -223,14 +221,12 @@
 		AE5131E42AFBCADB002289E8 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
 		AE5131E52AFBCADB002289E8 /* StarFilled.svg in Resources */ = {isa = PBXBuildFile; fileRef = AEB935322917E81F000330DA /* StarFilled.svg */; };
 		AE5131E62AFBCADB002289E8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF570219ACD1A00566205 /* LaunchScreen.storyboard */; };
-		AE5131E72AFBCADB002289E8 /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = 7745050C25DA801F0052E502 /* resources.json */; };
 		AE5131E82AFBCADB002289E8 /* bookmarks-ios.css in Resources */ = {isa = PBXBuildFile; fileRef = AE1632852848A666004CB55E /* bookmarks-ios.css */; };
 		AE5131E92AFBCADB002289E8 /* Trash.svg in Resources */ = {isa = PBXBuildFile; fileRef = AEF877EC282BC47400FD51CD /* Trash.svg */; };
 		AE5131EA2AFBCADB002289E8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AEBAF56E219ACD1A00566205 /* Assets.xcassets */; };
 		AE5131EB2AFBCADB002289E8 /* Star.svg in Resources */ = {isa = PBXBuildFile; fileRef = AEB935312917E81F000330DA /* Star.svg */; };
 		AE5131EC2AFBCADB002289E8 /* bookmarks-ios.js in Resources */ = {isa = PBXBuildFile; fileRef = AE1632872848A728004CB55E /* bookmarks-ios.js */; };
 		AE5131ED2AFBCADB002289E8 /* dot-day.svg in Resources */ = {isa = PBXBuildFile; fileRef = 776E59C429ED25A3001D5C5B /* dot-day.svg */; };
-		AE5131EE2AFBCADB002289E8 /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7745050F25DA80450052E502 /* files */; };
 		AE5131EF2AFBCADB002289E8 /* Share.svg in Resources */ = {isa = PBXBuildFile; fileRef = AE1632832848A4C9004CB55E /* Share.svg */; };
 		AE5131FA2AFBE76B002289E8 /* lmd.plist in Resources */ = {isa = PBXBuildFile; fileRef = AE5131F72AFBE76B002289E8 /* lmd.plist */; };
 		AE5131FB2AFBE76B002289E8 /* taz.plist in Resources */ = {isa = PBXBuildFile; fileRef = AE5131F82AFBE76B002289E8 /* taz.plist */; };
@@ -253,6 +249,10 @@
 		AEBAF594219ACFAC00566205 /* TestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58D219ACFAC00566205 /* TestController.swift */; };
 		AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58E219ACFAC00566205 /* AppDelegate.swift */; };
 		AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF5AB219ACFD900566205 /* ContentVC.swift */; };
+		AEBCEE2F2B0E22C10038392B /* files in Resources */ = {isa = PBXBuildFile; fileRef = AEBCEE2E2B0E22C10038392B /* files */; };
+		AEBCEE312B0E23060038392B /* files in Resources */ = {isa = PBXBuildFile; fileRef = AEBCEE302B0E23060038392B /* files */; };
+		AEBCEE332B0E237D0038392B /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = AEBCEE322B0E237D0038392B /* resources.json */; };
+		AEBCEE352B0E23980038392B /* resources.json in Resources */ = {isa = PBXBuildFile; fileRef = AEBCEE342B0E23980038392B /* resources.json */; };
 		AEC7D467249920DF008630FB /* OverlayTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE86486F248E274F007096B4 /* OverlayTest.swift */; };
 		AEC7D46D249A598B008630FB /* FeederContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEC7D46C249A598B008630FB /* FeederContext.swift */; };
 		AECCE11823FBD006007C2276 /* ArticleVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4AA2B323F6B01A00EAFE78 /* ArticleVC.swift */; };
@@ -318,8 +318,6 @@
 		773D564126145E8500B42FEF /* InfoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToast.swift; sourceTree = "<group>"; };
 		773D56462614A4DF00B42FEF /* BundledResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResources; sourceTree = "<group>"; };
 		773E3DA22A2F683E00222EE5 /* NewContentTableVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewContentTableVC.swift; sourceTree = "<group>"; };
-		7745050C25DA801F0052E502 /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = resources.json; path = Resources/resources.json; sourceTree = "<group>"; };
-		7745050F25DA80450052E502 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; name = files; path = Resources/files; sourceTree = "<group>"; };
 		774BBAFA2A821DAC0017039D /* FeederContext+AppUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+AppUpdate.swift"; sourceTree = "<group>"; };
 		774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardToolbarForText.swift; sourceTree = "<group>"; };
 		776158192743E8440044516C /* AppIcons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcons; sourceTree = "<group>"; };
@@ -349,7 +347,6 @@
 		77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushNotification.Payload+Extension.swift"; sourceTree = "<group>"; };
 		77ECD87D2A814ED100DFBBB6 /* LocalNotifications+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LocalNotifications+Extension.swift"; sourceTree = "<group>"; };
 		77F0D1342742B4E900D3A432 /* addLocalResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addLocalResources.sh; sourceTree = "<group>"; };
-		77F0D1372742B4E900D3A432 /* downloadBundledResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = downloadBundledResources.sh; sourceTree = "<group>"; };
 		77F0D1392742B58400D3A432 /* LastBuildNumber.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = LastBuildNumber.rb; sourceTree = "<group>"; };
 		77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticlePlayerUI.swift; sourceTree = "<group>"; };
 		94487DAB274BCCE10066BCD0 /* AppHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelper.swift; sourceTree = "<group>"; };
@@ -387,6 +384,7 @@
 		AE696F2D23918F9400265FC8 /* GqlFeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlFeeder.swift; sourceTree = "<group>"; };
 		AE76F9F6245421AC0043F497 /* WebViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewTests.swift; sourceTree = "<group>"; };
 		AE76F9FA245497F80043F497 /* IntroVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroVC.swift; sourceTree = "<group>"; };
+		AE7E3AFC2B0CEDE70060150B /* getResources.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = getResources.rb; sourceTree = "<group>"; };
 		AE82262C232A70E000FFBE67 /* GraphQlSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphQlSession.swift; sourceTree = "<group>"; };
 		AE822631232A717E00FFBE67 /* DataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		AE86486F248E274F007096B4 /* OverlayTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayTest.swift; sourceTree = "<group>"; };
@@ -402,6 +400,10 @@
 		AEBAF58D219ACFAC00566205 /* TestController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestController.swift; sourceTree = "<group>"; };
 		AEBAF58E219ACFAC00566205 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AEBAF5AB219ACFD900566205 /* ContentVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentVC.swift; sourceTree = "<group>"; };
+		AEBCEE2E2B0E22C10038392B /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; path = files; sourceTree = "<group>"; };
+		AEBCEE302B0E23060038392B /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; path = files; sourceTree = "<group>"; };
+		AEBCEE322B0E237D0038392B /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = resources.json; sourceTree = "<group>"; };
+		AEBCEE342B0E23980038392B /* resources.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = resources.json; sourceTree = "<group>"; };
 		AEC7D46C249A598B008630FB /* FeederContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeederContext.swift; sourceTree = "<group>"; };
 		AECAC8FC2440AF1F00D32175 /* CarouselController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselController.swift; sourceTree = "<group>"; };
 		AECCE11D23FBF449007C2276 /* StartupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupView.swift; sourceTree = "<group>"; };
@@ -701,13 +703,12 @@
 		AEBAF587219ACEC700566205 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				AEBCEB712B0DF8750038392B /* Resources */,
 				AEE228B92B06141400D77822 /* Scalable Images */,
 				AE5131F72AFBE76B002289E8 /* lmd.plist */,
 				AE5131F82AFBE76B002289E8 /* taz.plist */,
 				776158192743E8440044516C /* AppIcons */,
 				773D56462614A4DF00B42FEF /* BundledResources */,
-				7745050F25DA80450052E502 /* files */,
-				7745050C25DA801F0052E502 /* resources.json */,
 				080271BE24ADDD36002CD2F7 /* Base.lproj */,
 				AEC7D4C624A5E1D3008630FB /* Scripts */,
 				AED52FCA2492764500CC082E /* Fonts */,
@@ -718,16 +719,59 @@
 			path = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		AEBCEB712B0DF8750038392B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AEBCEE2C2B0E227E0038392B /* taz */,
+				AEBCEE2A2B0E22720038392B /* lmd */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		AEBCEE2A2B0E22720038392B /* lmd */ = {
+			isa = PBXGroup;
+			children = (
+				AEBCEE342B0E23980038392B /* resources.json */,
+				AEBCEE302B0E23060038392B /* files */,
+				AEBCEE2B2B0E22720038392B /* files */,
+			);
+			path = lmd;
+			sourceTree = "<group>";
+		};
+		AEBCEE2B2B0E22720038392B /* files */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = files;
+			sourceTree = "<group>";
+		};
+		AEBCEE2C2B0E227E0038392B /* taz */ = {
+			isa = PBXGroup;
+			children = (
+				AEBCEE322B0E237D0038392B /* resources.json */,
+				AEBCEE2E2B0E22C10038392B /* files */,
+				AEBCEE2D2B0E227E0038392B /* files */,
+			);
+			path = taz;
+			sourceTree = "<group>";
+		};
+		AEBCEE2D2B0E227E0038392B /* files */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = files;
+			sourceTree = "<group>";
+		};
 		AEC7D4C624A5E1D3008630FB /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
 				948E40CE274544BE00D32CFE /* refreshEnvironment.sh */,
 				948E40CD2745447500D32CFE /* post-checkout-prototype.sh */,
 				7738E50C2744596200453CD8 /* genBuildConst.rb */,
+				AE7E3AFC2B0CEDE70060150B /* getResources.rb */,
 				77828D1327444FF500DCD3BE /* BuildConst.swift */,
 				77F0D1392742B58400D3A432 /* LastBuildNumber.rb */,
 				77F0D1342742B4E900D3A432 /* addLocalResources.sh */,
-				77F0D1372742B4E900D3A432 /* downloadBundledResources.sh */,
 			);
 			path = Scripts;
 			sourceTree = "<group>";
@@ -773,11 +817,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AE5131F12AFBCADB002289E8 /* Build configuration list for PBXNativeTarget "lmd.neo" */;
 			buildPhases = (
-				AE51316C2AFBCADB002289E8 /* ShellScript */,
+				AE51316C2AFBCADB002289E8 /* Download Bundled Resources */,
 				AE51316D2AFBCADB002289E8 /* Sources */,
 				AE5131DC2AFBCADB002289E8 /* Frameworks */,
 				AE5131E12AFBCADB002289E8 /* Resources */,
-				AE5131F02AFBCADB002289E8 /* ShellScript */,
+				AE5131F02AFBCADB002289E8 /* Add Optional Fonts */,
 			);
 			buildRules = (
 			);
@@ -796,11 +840,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AEBAF581219ACD1A00566205 /* Build configuration list for PBXNativeTarget "taz.neo" */;
 			buildPhases = (
-				771E2F7125D68A8C00CFA830 /* ShellScript */,
+				771E2F7125D68A8C00CFA830 /* Download Bundled Resources */,
 				AEBAF560219ACD1900566205 /* Sources */,
 				AEBAF561219ACD1900566205 /* Frameworks */,
 				AEBAF562219ACD1900566205 /* Resources */,
-				AEC7D4C324A5DE07008630FB /* ShellScript */,
+				AEC7D4C324A5DE07008630FB /* Add Optional Fonts */,
 			);
 			buildRules = (
 			);
@@ -860,12 +904,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AEBCEE312B0E23060038392B /* files in Resources */,
 				AE5131E22AFBCADB002289E8 /* BundledResources in Resources */,
 				AE5131E32AFBCADB002289E8 /* dot-night.svg in Resources */,
+				AEBCEE352B0E23980038392B /* resources.json in Resources */,
 				AE5131E42AFBCADB002289E8 /* Localizable.strings in Resources */,
 				AE5131E52AFBCADB002289E8 /* StarFilled.svg in Resources */,
 				AE5131E62AFBCADB002289E8 /* LaunchScreen.storyboard in Resources */,
-				AE5131E72AFBCADB002289E8 /* resources.json in Resources */,
 				AE5131E82AFBCADB002289E8 /* bookmarks-ios.css in Resources */,
 				AE5131E92AFBCADB002289E8 /* Trash.svg in Resources */,
 				AE5131EA2AFBCADB002289E8 /* Assets.xcassets in Resources */,
@@ -873,7 +918,6 @@
 				AE5131FA2AFBE76B002289E8 /* lmd.plist in Resources */,
 				AE5131EC2AFBCADB002289E8 /* bookmarks-ios.js in Resources */,
 				AE5131ED2AFBCADB002289E8 /* dot-day.svg in Resources */,
-				AE5131EE2AFBCADB002289E8 /* files in Resources */,
 				AE5131EF2AFBCADB002289E8 /* Share.svg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -882,20 +926,20 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AEBCEE2F2B0E22C10038392B /* files in Resources */,
 				773D56472614A4DF00B42FEF /* BundledResources in Resources */,
 				776E59C729ED25A3001D5C5B /* dot-night.svg in Resources */,
+				AEBCEE332B0E237D0038392B /* resources.json in Resources */,
 				AE5131FB2AFBE76B002289E8 /* taz.plist in Resources */,
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
 				AEB935342917E81F000330DA /* StarFilled.svg in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
-				7745050D25DA801F0052E502 /* resources.json in Resources */,
 				AE1632862848A666004CB55E /* bookmarks-ios.css in Resources */,
 				AEF877ED282BC47400FD51CD /* Trash.svg in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
 				AEB935332917E81F000330DA /* Star.svg in Resources */,
 				AE1632882848A728004CB55E /* bookmarks-ios.js in Resources */,
 				776E59C629ED25A3001D5C5B /* dot-day.svg in Resources */,
-				7745051025DA80450052E502 /* files in Resources */,
 				AE1632842848A4C9004CB55E /* Share.svg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -903,7 +947,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		771E2F7125D68A8C00CFA830 /* ShellScript */ = {
+		771E2F7125D68A8C00CFA830 /* Download Bundled Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -912,16 +956,17 @@
 			);
 			inputPaths = (
 			);
+			name = "Download Bundled Resources";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "source ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/downloadBundledResources.sh\n";
+			shellScript = "ruby ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/getResources.rb \\\n  -du ${SRCROOT}/taz.neo/Supporting\\ Files/Resources taz\n";
 			showEnvVarsInLog = 0;
 		};
-		AE51316C2AFBCADB002289E8 /* ShellScript */ = {
+		AE51316C2AFBCADB002289E8 /* Download Bundled Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -930,16 +975,17 @@
 			);
 			inputPaths = (
 			);
+			name = "Download Bundled Resources";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "source ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/downloadBundledResources.sh\n";
+			shellScript = "ruby ${SRCROOT}/taz.neo/Supporting\\ Files/Scripts/getResources.rb \\\n  -du ${SRCROOT}/taz.neo/Supporting\\ Files/Resources lmd\n";
 			showEnvVarsInLog = 0;
 		};
-		AE5131F02AFBCADB002289E8 /* ShellScript */ = {
+		AE5131F02AFBCADB002289E8 /* Add Optional Fonts */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -950,6 +996,7 @@
 				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk Bold.ttf",
 				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk.ttf",
 			);
+			name = "Add Optional Fonts";
 			outputFileListPaths = (
 			);
 			outputPaths = (
@@ -960,7 +1007,7 @@
 			shellPath = /bin/sh;
 			shellScript = ". $SRCROOT/$PROJECT_NAME/\"Supporting Files\"/Scripts/addLocalResources.sh\n";
 		};
-		AEC7D4C324A5DE07008630FB /* ShellScript */ = {
+		AEC7D4C324A5DE07008630FB /* Add Optional Fonts */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -971,6 +1018,7 @@
 				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk Bold.ttf",
 				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk.ttf",
 			);
+			name = "Add Optional Fonts";
 			outputFileListPaths = (
 			);
 			outputPaths = (
