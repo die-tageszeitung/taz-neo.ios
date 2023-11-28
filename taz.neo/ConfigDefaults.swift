@@ -73,6 +73,7 @@ private let configValues = [
 private let configValuesLMD = [
   // Use facsimile mode for LMD
   "isFacsimile" : "true",
+  "usageTrackingAllowed" : "false",
 ]
 
 #if LMD
