@@ -78,7 +78,7 @@ class GetResources
   
   def usage
     puts(@@Usage)
-    exit(0)
+    exit(2)
   end
   
   # GetResources.new parses the command line arguments and initializes the
@@ -211,7 +211,7 @@ class GetResources
     FileUtils.mkdir_p(files)
     output = `cd '#{files}'; unzip ../resources.zip`
     if $?.exitstatus != 0
-      puts("unzip failed:\n#{output}")
+      raise("unzip failed:\n#{output}")
     end
   end
 
@@ -246,10 +246,12 @@ class GetResources
     if unzipMissing.count > 0
       puts("  the following files are missing in resources.zip:")
       unzipMissing.each { |f| puts("    #{f}") }
+      raise "Unmatched file count"
     end
     if jsonMissing.count > 0
       puts("  the following files are missing in resources.json:")
       jsonMissing.each { |f| puts("    #{f}") }
+      raise "Unmatched file count"
     end
   end
   
@@ -257,7 +259,12 @@ class GetResources
   # if needed
   def update
     if !isAvailable
-      puts("Server #{@uri.host} is not available")
+      msg = "Server #{@uri.host} is not available"
+      if File.exists?(zipFile)
+        puts(msg)
+      else
+        raise msg
+      end
       return 
     end
     local = getLocalVersion
@@ -277,5 +284,13 @@ class GetResources
 
 end  # GetResources
 
-res = GetResources.new
-res.update
+begin
+  res = GetResources.new
+  res.update
+rescue => err
+  puts("error: #{err}")
+  exit(1)
+else
+  exit(0)
+end
+  
