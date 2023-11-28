@@ -44,11 +44,16 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
                                                             leadingText: "")
       return
     }
-    button.label.text
-    = issue.validityDateText(timeZone: GqlFeeder.tz,
-                             short: true,
-                             shorter: shorter,
-                             leadingText: "")
+    if issue.feed.cycle == .monthly {
+      button.label.text = issue.date.gMonthYear(tz: GqlFeeder.tz)
+    }
+    else {
+      button.label.text
+      = issue.validityDateText(timeZone: GqlFeeder.tz,
+                               short: true,
+                               shorter: shorter,
+                               leadingText: "")
+    }
   }
 
   func updateDownloadButton(){

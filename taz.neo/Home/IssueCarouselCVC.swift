@@ -184,7 +184,9 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     guard let data = service.cellData(for: cidx) else { return }
     issueSelectionChangeDelegate?.setCurrent(cellData: data,
                                              idx: cidx)
-    let txt = data.date.validityDateText(timeZone: GqlFeeder.tz, short: true)
+    let isMonthly = service.feed.cycle == .monthly
+    let txt = isMonthly ? data.date.date.gMonthYear(tz: GqlFeeder.tz) :
+                          data.date.validityDateText(timeZone: GqlFeeder.tz, short: true)
     let newKey = data.date.date.issueKey
     if force || newKey != centerIssueDateKey {
       downloadButton.indicator.downloadState = data.downloadState
@@ -445,9 +447,11 @@ extension IssueCarouselCVC {
   func showDatePicker(){    
     if pickerCtrl == nil {
       let selected = service.date(at: centerIndex ?? 0)?.date
+      let isMonthly = service.feed.cycle == .monthly
       pickerCtrl = DatePickerController(minimumDate: service.firstIssueDate,
                                         maximumDate: service.lastIssueDate,
-                                         selectedDate: selected ?? service.firstIssueDate)
+                                        selectedDate: selected ?? service.firstIssueDate,
+                                        isMonthly: isMonthly)
       pickerCtrl?.pickerFont = Const.Fonts.contentFont
     }
     guard let pickerCtrl = pickerCtrl else { return }
