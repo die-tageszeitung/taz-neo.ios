@@ -6,6 +6,15 @@
 //  Copyright © 2020 Norbert Thies. All rights reserved.
 //
 
+
+/**
+ ***REFACTOR URGENTLY NEEDED!!!**
+ - structure/architecture for PDF-Slider-ArticleVC-Slider relation
+ - separate classes in this file!
+ - Refactor Model, we have 3 ZoomedPdfPageImage (ZoomedPdfImage, OptionalImageItem, ZoomedPdfImageSpec), NewPdfModel (PdfModel), IssueInfo
+ - try to find common protocoll or inheritance also for contentTableVC, NewContentTable, LMdSliderContentVC and TazPdfPagesViewController
+ */
+
 import Foundation
 import NorthLib
 import PDFKit
@@ -290,8 +299,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     print("TODO: resetIssueList")
   }
   
-  var thumbnailController : PdfOverviewCollectionVC?
-  var slider:PdfButtonSlider?
+  var sliderContentController : UIViewController?
+  var slider:MyButtonSlider?
   
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
@@ -388,11 +397,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     hidesBottomBarWhenPushed = true
     
-    thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
-    thumbnailController?.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
-    thumbnailController?.cellLabelFont = Const.Fonts.titleFont(size: 12)
-    thumbnailController?.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
-    thumbnailController?.cellLabelLinesCount = 2
+    sliderContentController
+    = App.isLMD
+    ? createLmdSliderChildController(issueInfo: issueInfo)
+    : createTazSliderChildController(pdfModel: pdfModel)
+    
+    (sliderContentController as? LMdSliderContentVC)?.collectionView.tag = 11
     
     self.onTap { [weak self] (oimg, x, y) in
       guard let self = self else { return }
@@ -411,37 +421,50 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
             let path = zpdfi.issueDir?.path else { return }
-        
-      if let url = URL(string: link), UIApplication.shared.canOpenURL(url) {
-        UIApplication.shared.open(url, options: [:], completionHandler: nil)
-        return
-      }
-      else if let pageIdx = pdfModel.pageIndexForLink(link) {
-        self.collectionView?.scrollto(pageIdx,animated: true)
-        return
-      }
-      
-      let childThumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
-      childThumbnailController.cellLabelFont = Const.Fonts.titleFont(size: 12)
-      childThumbnailController.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
-      childThumbnailController.cellLabelLinesCount = 2
-      childThumbnailController.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
-      let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
-                                               sliderContent: childThumbnailController)
-      articleVC.delegate = self
-      childThumbnailController.clickCallback = { [weak self] (_, pdfModel) in
-        Usage.track(Usage.event.drawer.action_tap.Page)
-        if let newIndex = pdfModel?.index {
-          self?.collectionView?.index = newIndex
-        }
-        articleVC.slider?.close(animated: true) { [weak self] _ in
-          self?.navigationController?.popViewController(animated: true)
-        }
-      }
-      articleVC.gotoUrl(path: path, file: link)
-      self.navigationController?.pushViewController(articleVC, animated: true)
-      self.childArticleVC = articleVC
+      self.openArticle(name: link, path: path)
+   
     }
+  }
+  
+  func openArticle(name: String?, path: String?){
+    guard let pdfModel = pdfModel as? NewPdfModel else { return }
+    guard let issueInfo = pdfModel.issueInfo else { return }
+    guard let name = name else { return }
+    guard let path = path else { return }
+    
+    if let url = URL(string: name), UIApplication.shared.canOpenURL(url) {
+      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+      return
+    }
+    else if let pageIdx = pdfModel.pageIndexForLink(name) {
+      self.collectionView?.scrollto(pageIdx,animated: true)
+      return
+    }
+          
+    let articleSliderContentController
+    = App.isLMD
+    ? createLmdSliderChildController(issueInfo: issueInfo)
+    : createTazSliderChildController(pdfModel: pdfModel)
+    
+    (articleSliderContentController as? LMdSliderContentVC)?.collectionView.tag = 22
+    
+    let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
+                                             sliderContent: articleSliderContentController)
+    
+    
+    articleVC.delegate = self
+    (articleSliderContentController as? PdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel) in
+      Usage.track(Usage.event.drawer.action_tap.Page)
+      if let newIndex = pdfModel?.index {
+        self?.collectionView?.index = newIndex
+      }
+      articleVC.slider?.close(animated: true) { [weak self] _ in
+        self?.navigationController?.popViewController(animated: true)
+      }
+    }
+    articleVC.gotoUrl(path: path, file: name)
+    self.navigationController?.pushViewController(articleVC, animated: true)
+    self.childArticleVC = articleVC
   }
   
   public required init?(coder: NSCoder) {
@@ -461,8 +484,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                                                   right: 0)
     
     xButton.isHidden = true
-    guard let thumbnailController = thumbnailController else {return }
-    thumbnailController.clickCallback = { [weak self] (_, pdfModel) in
+    (sliderContentController as? PdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel) in
       guard let self = self else { return }
       guard let newIndex = pdfModel?.index else { return }
       self.collectionView?.index = newIndex
@@ -472,11 +494,14 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     onDisplay { [weak self]  (idx, oview) in
       self?.issue.lastPage = idx
+      self?.updateSlider(index: idx)
       ArticleDB.save()
     }
     
     setupToolbar()
-    setupSlider(sliderContent: thumbnailController)
+    if let sliderContentController = sliderContentController {
+      setupSlider(sliderContent: sliderContentController)
+    }
     registerForStyleUpdates()
     Rating.issueOpened()
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
@@ -540,7 +565,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   
   // MARK: - setupSlider
   func setupSlider(sliderContent:UIViewController){
-    slider = PdfButtonSlider(slider: sliderContent, into: self)
+    slider = MyButtonSlider(slider: sliderContent, into: self)
+    if App.isLMD { slider?.openShiftRatio = 0.95 }
     guard let slider = slider else { return }
     let logo = App.isTAZ ? "logo" : "logoLMD"
     slider.sliderView.clipsToBounds = false
@@ -550,6 +576,17 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     slider.hideButtonOnClose = true
     slider.button.additionalTapOffset = 50
     slider.close()
+  }
+  
+  
+  /// NEEDED?? PAGE CHANGE DIRECTLY?
+  func updateSlider(index: Int){
+    guard let sliderContentVc
+            = sliderContentController
+            as? LMdSliderContentVC
+    else { return }
+    sliderContentVc.currentPage = issue.pages?.valueAt(index)
+    
   }
   
   // MARK: - viewWillAppear
@@ -562,38 +599,32 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.pageControl?.pageIndicatorTintColor = UIColor.white
     self.pageControl?.currentPageIndicatorTintColor = Const.SetColor.CIColor.color
     
-    if let thumbCtrl = self.thumbnailController {
-      var insets = UIWindow.keyWindow?.safeAreaInsets ?? UIEdgeInsets.zero
-      insets.bottom += toolBar.totalHeight
-      thumbCtrl.collectionView.contentInset = insets
-    }
-    updateSlidersWidth()
+    updateSlidersWidth(self.view.frame.size)
     slider?.button.isHidden = false
     self.updateMenuItems()
   }
   
+  open override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+    transitionNextCollection = newCollection
+    super.willTransition(to: newCollection, with: coordinator)
+    ///On size class change this is called before viewWillTransition(to size... remember for calculations
+  }
+  
+  var transitionNextCollection: UITraitCollection?
+  
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
-    updateSlidersWidth(size.width)
+    updateSlidersWidth(size)
     updateMenuItems(updatedSizeIsLandscape: size.width > size.height)
   }
   
-  func updateSlidersWidth(_ newParentWidth : CGFloat? = nil){
-    let sliderWidth = min(UIScreen.main.bounds.size.width,
-                          UIScreen.main.bounds.size.height,
-                          newParentWidth ?? UIScreen.main.bounds.size.width,
-                          500)
-    ///formally lInset = UIWindow.safeInsets.left was added
-    ///but after rotation this is not yet the right value because viewWillTransition is called before
-    ///UIWindow.safeInsets are changed
-    if let slider = self.slider,
-       let newSliderWidth = (sliderWidth - slider.button.frame.size.width) as CGFloat?{
-      slider.coverage = newSliderWidth
-      slider.updateSliderWidthIfNeeded(newSliderWidth)
-
-    }
-    childArticleVC?.updateSlidersWidth(sliderWidth: sliderWidth)
+  func updateSlidersWidth(_ newParentSize : CGSize? = nil){
+    guard sliderContentController != nil else { return }
+    let width = (newParentSize ?? self.view.frame.size).sliderWidth(for: transitionNextCollection?.horizontalSizeClass)
+    transitionNextCollection = nil
+    slider?.ocoverage = width
   }
+  
   
   // MARK: - setupViewProvider
   open override func setupViewProvider(){
@@ -676,8 +707,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         nModel.images = []
       }
       self.pdfModel = nil
-      thumbnailController?.clickCallback = nil
-      thumbnailController = nil
+      sliderContentController = nil
       slider = nil
       self.childArticleVC = nil
     }
@@ -790,6 +820,58 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
 }
 
+// MARK: - Helper for Content slider
+extension TazPdfPagesViewController {
+  func createTazSliderChildController(pdfModel: PdfModel) -> PdfOverviewCollectionVC {
+    let ctrl = PdfOverviewCollectionVC(pdfModel:pdfModel)
+    ctrl.cellLabelFont = Const.Fonts.titleFont(size: 12)
+    ctrl.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
+    ctrl.cellLabelLinesCount = 2
+    ctrl.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
+    return ctrl
+  }
+  
+  #if LMD
+  func createLmdSliderChildController(issueInfo: IssueInfo) -> LMdSliderContentVC {
+    let ctrl = LMdSliderContentVC()
+    ctrl.dataSource
+    = LMdSliderDataModel(feederContext: issueInfo.feederContext,
+                         issue: issueInfo.issue)
+    #warning("USED TO CREATE ART CTRL PAGE PRESS IS WRONGLY CONFIGURED HERE!")
+    ///...but will be overwritten in articleVC
+    ctrl.onPagePress {[weak self] page in
+      self?.slider?.close()
+      
+      if let index = issueInfo.issue.pages?.firstIndex(where: { p in
+        return p.pdf?.name == page.pdf?.name
+      }){
+        self?.collectionView?.index = index
+      }
+      
+    }
+    ctrl.onArticlePress{[weak self] article in
+      self?.slider?.close()
+      if self?.articleFromPdf == false {
+        var pageIndex: Int?
+        let pages:[Page] = self?.issue.pages ?? []
+        for (index, page) in pages.enumerated() {
+          if (article.pageNames ?? []).contains(page.pdf?.name ?? "---") {
+            pageIndex = index
+            break
+          }
+        }
+        if let i = pageIndex {
+          self?.collectionView?.index = i
+        }
+        return
+      }
+      self?.openArticle(name: article.html?.name, path: article.primaryIssue?.dir.path)
+    }
+    return ctrl
+  }
+  #endif
+}
+
 extension TazPdfPagesViewController: ScreenTracking {
   private var pagina: String { page()?.pagina ?? "\((index ?? -2) + 1)"}
   public var screenUrl: URL? {
@@ -814,13 +896,65 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     fatalError("init(coder:) has not been implemented")
   }
   
+  open override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+    transitionNextCollection = newCollection
+    super.willTransition(to: newCollection, with: coordinator)
+    ///On size class change this is called before viewWillTransition(to size... remember for calculations
+  }
+  
+  var transitionNextCollection: UITraitCollection?
+  
+  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    updateSlidersWidth(size)
+  }
+  
+  func updateSlidersWidth(_ newParentSize : CGSize? = nil){
+    guard sliderContent != nil else { return }
+    let width = (newParentSize ?? self.view.frame.size).sliderWidth(for: transitionNextCollection?.horizontalSizeClass)
+    transitionNextCollection = nil
+    (slider as? MyButtonSlider)?.ocoverage = width
+  }
+  
   override func setupSlider() {
     if let sContent = self.sliderContent {
-      self.slider = ButtonSlider(slider: sContent, into: self)
+      slider = MyButtonSlider(slider: sContent, into: self)
+      if App.isLMD { (slider as? MyButtonSlider)?.openShiftRatio = 0.95 }
+      guard let slider = slider else { return }
+      let logo = App.isTAZ ? "logo" : "logoLMD"
+      slider.sliderView.clipsToBounds = false
+      slider.image = UIImage.init(named: logo)
+      slider.image?.accessibilityLabel = "Inhalt"
+      slider.buttonAlpha = 1.0
+      slider.hideButtonOnClose = true
+      slider.button.additionalTapOffset = 50
+      slider.close()
     }
+    
+    if let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC {
+      lmdSliderContentVc.onArticlePress{[weak self] article in
+        self?.collectionView?.index = article.index
+        self?.slider?.close()
+      }
+      lmdSliderContentVc.onPagePress {[weak self] page in
+        self?.slider?.close()
+        
+        if let index = self?.issue.pages?.firstIndex(where: { p in
+          return p.pdf?.name == page.pdf?.name
+        }){
+          (self?.navigationController?.viewControllers.penultimate as? TazPdfPagesViewController)?.collectionView?.index = index
+          self?.navigationController?.popViewController(animated: true)
+        }
+      }
+    }
+    
     super.setupSlider()
   }
   
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    setupSlider()//not called with contentTable set
+  }
   
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
@@ -830,15 +964,9 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    updateSlidersWidth(sliderWidth: self.view.frame.size.width)
-  }
-  
-  func updateSlidersWidth(sliderWidth : CGFloat){
-    let sliderWidth = min(sliderWidth, 500)
-    guard let buttonWidth = slider?.button.frame.size.width,
-            let coverage = (sliderWidth - buttonWidth) as CGFloat? else {  return }
-    slider?.coverage = coverage
-    slider?.updateSliderWidthIfNeeded(coverage)
+    (sliderContent as? LMdSliderContentVC)?.currentArticle = self.article
+    updateSlidersWidth(self.view.frame.size)
+    slider?.button.isHidden = false
   }
   
   override func willMove(toParent parent: UIViewController?) {
@@ -864,23 +992,6 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   }
 }
 
-
-/// Custom Child class to get rid of the slider width bug e.g. in PDF Pages Slider
-/// Bug: Open PDF Rotate 90°, 180°, 90°, wait each animation, now were back open Slider => wrong size due
-/// coverage calculated with iPhone Screen height instead width
-/// Slider coverage calculates with saved coverageration => multiple issues are here
-class PdfButtonSlider: ButtonSlider {
-  var _coverage: CGFloat = UIScreen.main.bounds.size.width
-  
-  override var coverage: CGFloat {
-    get { return _coverage }
-    set {
-      _coverage = newValue
-      resetConstraints()
-    }
-  }
-}
-
 fileprivate extension Page {
   var sectionAudio: Section? { audioItem?.content?.first as? Section }
 }
@@ -895,5 +1006,15 @@ fileprivate extension TazPdfPagesViewController {
   }
   func sectionAudio(_ index: Int? = nil) -> Section? {
     return page(index)?.sectionAudio
+  }
+}
+
+fileprivate extension CGSize {
+  func sliderWidth(for horizontalSizeClass: UIUserInterfaceSizeClass? = nil) -> CGFloat {
+    if horizontalSizeClass ?? UIWindow.keyWindow?.traitCollection.horizontalSizeClass
+        == .compact {
+      return self.width
+    }
+    return min(self.width, Const.Size.ContentSliderMaxWidth)
   }
 }

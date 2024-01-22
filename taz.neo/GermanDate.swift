@@ -75,6 +75,16 @@ public extension Date {
       return dateFormatterGet.string(from: self)
     }
   }
+
+  
+  /// Helper to create date strings with given date format
+  /// - Parameter dateFormat: date format to use
+  /// - Returns: string from date with format
+  func stringWith(dateFormat: String) -> String {
+    let dateFormatterGet = DateFormatter()
+    dateFormatterGet.dateFormat = dateFormat
+    return dateFormatterGet.string(from: self)
+  }
   
   var dbIssueRepresentation:String{ filename }
 

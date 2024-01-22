@@ -1050,7 +1050,10 @@ public final class StoredArticle: Article, StoredObject {
     return (pr.authors?.array as? [PersistentAuthor])?
     .map{StoredAuthor(persistent: $0)}
   }
-  public var pageNames: [String]? { nil }
+  public var pageNames: [String]? {
+    get { return pr.pageNames }
+    set { pr.pageNames = newValue }
+  }
   public var sections: [StoredSection] {
     var ret: [StoredSection] = []
     if let sections = pr.sections {
@@ -1116,6 +1119,7 @@ public final class StoredArticle: Article, StoredObject {
     self.audioItem = object.audioItem
     self.onlineLink = object.onlineLink
     self.articleType = object.articleType
+    self.pageNames = object.pageNames
     self.teaser = object.teaser
     self.serverId = object.serverId
     self.readingDuration = object.readingDuration

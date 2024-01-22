@@ -85,6 +85,13 @@ public struct Const {
     static let darkToolbar = darkSecondaryBG
     static let darkTintColor = darkSecondaryText
     
+    #if LMD
+    struct LMd {
+      static let ci: UIColor =  UIColor.rgb(0x3B88A7)
+      static let bgGrey: UIColor =  UIColor.rgb(0xF0F0ED)
+    }
+    #endif
+    
     struct Light {
       static let CTBackground = UIColor.white
       static let CTSection = ciColor
@@ -331,6 +338,14 @@ public struct Const {
     static var quaTextRegular: String? = UIFont.register(name: "QuaText-Regular", type: "woff", subDir: "files")
     static var quaTextB: String? = UIFont.register(name: "QuaText-Bold", type: "woff", subDir: "files")
     static var quaTextBi: String? = UIFont.register(name: "QuaText-BoldItalic", type: "woff", subDir: "files")
+    static var lmdArnhem: String? = UIFont.register(name: "ArnhemPro-Blond", type: "woff", subDir: "files")
+    static var lmdArnhemItalic: String? = UIFont.register(name: "ArnhemPro-BlondItalic", type: "woff", subDir: "files")
+    static var lmdArnhemBold: String? = UIFont.register(name: "ArnhemPro-Bold", type: "woff", subDir: "files")
+    static var lmdArnhemBoldItalic: String? = UIFont.register(name: "ArnhemPro-BoldItalic", type: "woff", subDir: "files")
+    static var lmdBenton: String? = UIFont.register(name: "BentonSans-Regular", type: "woff", subDir: "files")
+    static var lmdBentonItalic: String? = UIFont.register(name: "BentonSans-Italic", type: "woff", subDir: "files")
+    static var lmdBentonBold: String? = UIFont.register(name: "BentonSans-Bold", type: "woff", subDir: "files")
+    static var lmdBentonBoldItalic: String? = UIFont.register(name: "BentonSans-BoldItalic", type: "woff", subDir: "files")
     /// *WARNING* Cannot use bundled Aktiv Grotesk fonts from Ressources, due just one font variant will be loaded,
     /// Hacky Workaround sleep(1) then load the other Problem is: multiple fonts have same generic font names
     /// from UIFont extension NorthLib -> register(data: Data)
@@ -479,6 +494,42 @@ extension UILabel {
     return self
   }
   
+  /// set lmd  ArnhemPro  font with default font size and return self (for chaining)
+  ///  @todo may respect dark/light mode with param ignore dark/lightMode
+  /// - Returns: self
+  @discardableResult
+  func lmdArnhem(bold:Bool = false, italic: Bool = false, size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
+    switch (bold, italic) {
+      case (false, false):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdArnhem, size: size)
+      case (false, true):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdArnhemItalic, size: size)
+      case (true, false):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdArnhemBold, size: size)
+      case (true, true):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdArnhemBoldItalic, size: size)
+    }
+    return self
+  }
+  
+  /// set lmd  Benton  font with default font size and return self (for chaining)
+  ///  @todo may respect dark/light mode with param ignore dark/lightMode
+  /// - Returns: self
+  @discardableResult
+  func lmdBenton(bold:Bool = false, italic: Bool = false, size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
+    switch (bold, italic) {
+      case (false, false):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdBenton, size: size)
+      case (false, true):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdBentonItalic, size: size)
+      case (true, false):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdBentonBold, size: size)
+      case (true, true):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdBentonBoldItalic, size: size)
+    }
+    return self
+  }
+
   /// set content title font with default font size and return self (for chaining)
   /// - Returns: self
   @discardableResult
