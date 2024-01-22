@@ -543,8 +543,8 @@ class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
     fromPicker.layer.cornerRadius = 12.0
     toPicker.layer.cornerRadius = 8.0
     
-    fromPicker.addBasicShadow()
-    toPicker.addBasicShadow()
+    fromPicker.shadow()
+    toPicker.shadow()
     
     fromPicker.datePickerMode = .date
     toPicker.datePickerMode = .date
