@@ -11,7 +11,7 @@ import NorthUIKit
 
 /// Header for lmd collectionview content table
 class LMdSliderHeader: UIView {
-  private let imageView = UIImageView()
+  let imageView = UIImageView()
   let pageLabel = UILabel()
   let bottomBorder = UIView()
   let contentLabel = UILabel("Inhalt - ",

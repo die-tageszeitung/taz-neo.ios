@@ -402,8 +402,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     ? createLmdSliderChildController(issueInfo: issueInfo)
     : createTazSliderChildController(pdfModel: pdfModel)
     
-    (sliderContentController as? LMdSliderContentVC)?.collectionView.tag = 11
-    
     self.onTap { [weak self] (oimg, x, y) in
       guard let self = self else { return }
       
@@ -446,11 +444,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     ? createLmdSliderChildController(issueInfo: issueInfo)
     : createTazSliderChildController(pdfModel: pdfModel)
     
-    (articleSliderContentController as? LMdSliderContentVC)?.collectionView.tag = 22
-    
     let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
                                              sliderContent: articleSliderContentController)
-    
     
     articleVC.delegate = self
     (articleSliderContentController as? PdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel) in
@@ -463,6 +458,20 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       }
     }
     articleVC.gotoUrl(path: path, file: name)
+    
+    (articleSliderContentController as? LMdSliderContentVC)?.header.imageView.onTapping{[weak self] _ in
+      self?.childArticleVC?.slider?.close()
+      self?.navigationController?.popViewController(animated: true)
+    }
+    (articleSliderContentController as? LMdSliderContentVC)?.header.pageLabel.onTapping{[weak self] _ in
+      self?.childArticleVC?.slider?.close()
+      self?.navigationController?.popViewController(animated: true)
+    }
+    (articleSliderContentController as? LMdSliderContentVC)?.header.issueLabel.onTapping{[weak self] _ in
+      self?.childArticleVC?.slider?.close()
+      self?.navigationController?.popToRootViewController(animated: true)
+    }
+    
     self.navigationController?.pushViewController(articleVC, animated: true)
     self.childArticleVC = articleVC
   }
@@ -576,6 +585,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     slider.hideButtonOnClose = true
     slider.button.additionalTapOffset = 50
     slider.close()
+    (sliderContent as? LMdSliderContentVC)?.header.imageView.onTapping{[weak self] _ in
+      self?.slider?.close()
+    }
+    (sliderContent as? LMdSliderContentVC)?.header.pageLabel.onTapping{[weak self] _ in
+      self?.slider?.close()
+    }
+    (sliderContent as? LMdSliderContentVC)?.header.issueLabel.onTapping{[weak self] _ in
+      self?.navigationController?.popViewController(animated: true)
+    }
   }
   
   func updateSlider(index: Int){
