@@ -56,25 +56,16 @@ class LMdSliderContentVC: UIViewController {
   func updateScrollPosition(){
     guard let pageIndex
             = dataSource?.pageName2pageIndex[currentPage?.pdf?.name ?? ""] else { return }
-    let fixedIndex = max(0, pageIndex - 1)
-    
     guard let layout = collectionView.collectionViewLayout as? LMdSliderCVFlowLayout,
-          let yOffset = layout.offset(forItemAt: IndexPath(item: 0, section: fixedIndex))
+          let yOffset = layout.offset(forItemAt: IndexPath(item: 0, section: pageIndex))
     else { return }
     //prevent scroll last item to top; prevent uggly scroll behaviour
+    
     let yPos = max(0, min(yOffset, collectionView.contentSize.height
-                   - collectionView.frame.size.height)) + 22
-    collectionView.setContentOffset(CGPoint(x: 0, y: yPos),
+                   - collectionView.frame.size.height))
+    let halfSeperatorHeight:CGFloat = pageIndex == 0 ? -10 : 18 //remove section >0 seperator offset
+    collectionView.setContentOffset(CGPoint(x: 0, y: yPos + halfSeperatorHeight),
                                      animated: false)
-  }
-  
-  func updateScrollPosition1(){
-    guard let pageIndex
-        = dataSource?.pageName2pageIndex[currentPage?.pdf?.name ?? ""] else { return }
-    let cell = collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: pageIndex))
-    let point = CGPoint(x: 0,
-                        y: cell.frame.origin.y - 22)
-    collectionView.setContentOffset(point, animated: false)
   }
   
   var currentPage: Page? {
