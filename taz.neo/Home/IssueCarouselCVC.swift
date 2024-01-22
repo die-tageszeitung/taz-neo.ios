@@ -450,8 +450,9 @@ extension IssueCarouselCVC {
       let isMonthly = service.feed.cycle == .monthly
       pickerCtrl = DatePickerController(minimumDate: service.firstIssueDate,
                                         maximumDate: service.lastIssueDate,
-                                        selectedDate: selected ?? service.firstIssueDate,
-                                        isMonthly: isMonthly)
+                                        selectedDate: selected ?? service.firstIssueDate)
+      #warning("NOT USED! Missing LMd NorthLib commit?")
+      //,                                        isMonthly: isMonthly)
       pickerCtrl?.pickerFont = Const.Fonts.contentFont
     }
     guard let pickerCtrl = pickerCtrl else { return }
