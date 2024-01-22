@@ -31,13 +31,13 @@
       "size" : "40x40"
     },
     {
-      "filename" : "LMD-120.png",
+      "filename" : "LMD-120s.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "60x60"
     },
     {
-      "filename" : "LMD-180.png",
+      "filename" : "LMD-180s.png",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "60x60"
@@ -78,19 +78,19 @@
       "size" : "76x76"
     },
     {
-      "filename" : "LMD-152.png",
+      "filename" : "LMD-152s.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "76x76"
     },
     {
-      "filename" : "LMD-167.png",
+      "filename" : "LMD-167s.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "83.5x83.5"
     },
     {
-      "filename" : "LMD-1024.png",
+      "filename" : "LMD-1024s.png",
       "idiom" : "ios-marketing",
       "scale" : "1x",
       "size" : "1024x1024"
