@@ -578,15 +578,14 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     slider.close()
   }
   
-  
-  /// NEEDED?? PAGE CHANGE DIRECTLY?
   func updateSlider(index: Int){
     guard let sliderContentVc
             = sliderContentController
             as? LMdSliderContentVC
     else { return }
-    sliderContentVc.currentPage = issue.pages?.valueAt(index)
-    
+    let page = issue.pages?.valueAt(index)
+    sliderContentVc.currentPage = page
+    (childArticleVC?.sliderContent as? LMdSliderContentVC)?.currentPage = page
   }
   
   // MARK: - viewWillAppear
