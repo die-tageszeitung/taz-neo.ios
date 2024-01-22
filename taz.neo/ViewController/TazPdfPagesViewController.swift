@@ -726,7 +726,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self.pdfModel = nil
       sliderContentController = nil
       slider = nil
-      self.childArticleVC = nil
     }
   }
   
@@ -977,6 +976,10 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     super.viewDidDisappear(animated)
     slider?.button.hideAnimated()
     slider?.close()
+    self.releaseOnDisappear()
+    (self.sliderContent as? LMdSliderContentVC)?.dataSource = nil
+    self.slider = nil
+    self.delegate = nil
   }
   
   override func viewWillAppear(_ animated: Bool) {

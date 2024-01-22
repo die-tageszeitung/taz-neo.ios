@@ -315,6 +315,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   open override func releaseOnDisappear(){
     contentTable = nil
     articles = []
+    delegate = nil
     playButtonContextMenu?.itemPrivider = nil
     self.playButtonContextMenu = nil
     super.releaseOnDisappear()
