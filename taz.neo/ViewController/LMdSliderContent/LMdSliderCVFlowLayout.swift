@@ -76,6 +76,8 @@ class LMdSliderCVFlowLayout: UICollectionViewFlowLayout, DoesLog {
     let rightCellXOffset 
     = leftCellWidth + sectionInset.left + minimumInteritemSpacing
     
+    guard collectionView.numberOfSections > 0 else { return }
+    
     for sect in 0...(collectionView.numberOfSections ) - 1 {
       var max = max(leftYOffset, rightYOffset)
       
