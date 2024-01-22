@@ -45,7 +45,7 @@ class IntroVC: UIViewController {
     pin(webView, to: self.view, exclude: .top)
     webViewTopOffsetConstraint = pin(webView.top, to: self.view.top, dist: topOffset)
     webView.buttonMargin = 26
-    webView.buttonLabel.backgroundColor = Const.Colors.ciColor
+    webView.buttonLabel.backgroundColor = Const.SetColor.CIColor.color
     webView.buttonLabel.textColor = .white
     webView.buttonLabel.font = UIFont.boldSystemFont(ofSize: 18)
     webView.buttonLabel.text = "Akzeptieren"

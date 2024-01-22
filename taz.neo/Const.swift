@@ -261,7 +261,11 @@ public struct Const {
         case .Test://Rainbow: use to test Light/Darkmode with lightHigh & darkHigh
           return (UIColor.red, UIColor.green, UIColor.blue,UIColor.magenta)
         case .CIColor:
+          #if LMD
+          return (Const.Colors.LMd.ci,nil,nil,nil)
+          #else
           return (Const.Colors.ciColor,nil,nil,nil)
+          #endif
         case .ios_opaque(.closeX):
           return (UIColor.rgb(0x5D5E63), UIColor.rgb(0xB8B8C1), nil, nil)
         case .ios_opaque(.closeXcircleBackground):

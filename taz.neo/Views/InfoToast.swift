@@ -224,7 +224,7 @@ public class InfoToast : UIView {
     x.buttonView.isCircle = false
     x.buttonView.circleColor = UIColor.clear
     x.buttonView.color = Const.Colors.iOSLight.secondaryLabel
-    x.buttonView.activeColor = Const.Colors.ciColor
+    x.buttonView.activeColor = Const.SetColor.CIColor.color
     x.buttonView.innerCircleFactor = 0.5
     x.onPress { [weak self] _ in self?.dismiss() }
     return x
@@ -263,7 +263,7 @@ public class InfoToast : UIView {
     btn.onPress { [weak self] _ in self?.dismiss() }
     btn.buttonView.label.textAlignment = .right
     btn.buttonView.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
-    btn.buttonView.color = Const.Colors.ciColor
+    btn.buttonView.color = Const.SetColor.CIColor.color
     btn.buttonView.activeColor = Const.Colors.iOSLight.secondaryLabel
     btn.pinHeight(27)
     return btn
