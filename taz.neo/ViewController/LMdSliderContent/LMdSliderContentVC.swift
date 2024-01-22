@@ -33,7 +33,7 @@ class LMdSliderContentVC: UIViewController {
     cv.register(CvSeperator.self,
                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self ,
                 withReuseIdentifier: Self.SectionSeperatorIdentifier)
-    cv.backgroundColor = Const.Colors.LMd.bgGrey
+    cv.backgroundColor = Const.SetColor.LMd(.background).color
     
     //setup data source
     cv.dataSource = self
@@ -92,6 +92,14 @@ class LMdSliderContentVC: UIViewController {
   fileprivate static let SectionSeperatorIdentifier = "SectionSeperatorIdentifier"
 }
 
+extension LMdSliderContentVC: UIStyleChangeDelegate{
+  public func applyStyles() {
+    self.view.backgroundColor = Const.SetColor.LMd(.background).color
+    self.collectionView.backgroundColor = Const.SetColor.LMd(.background).color
+    if collectionView.superview != nil { self.collectionView.reloadData() }
+  }
+}
+
 extension LMdSliderContentVC {
   /// Define closure to call when a content label has been pressed
   public func onPagePress(closure: @escaping (Page)->()) {
@@ -107,7 +115,7 @@ extension LMdSliderContentVC {
 extension LMdSliderContentVC {
   public override func viewDidLoad() {
     super.viewDidLoad()
-    self.view.backgroundColor = Const.Colors.LMd.bgGrey
+    self.view.backgroundColor = Const.SetColor.LMd(.background).color
     
     //setup ui with fixed header
     self.view.addSubview(header)
@@ -115,6 +123,7 @@ extension LMdSliderContentVC {
     pin(header, toSafe: self.view, exclude: .bottom)
     pin(collectionView, to: self.view, exclude: .top)
     pin(collectionView.top, to: header.bottom)
+    registerForStyleUpdates()
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -123,8 +132,8 @@ extension LMdSliderContentVC {
   }
   
   override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
     updateScrollPosition()
+    super.viewDidAppear(animated)
   }
 }
 

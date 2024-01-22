@@ -58,7 +58,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
       }
       authorLabel.text = ""
       authorLabel.lmdArnhem(italic: true)
-      authorLabel.textColor = .black
+      authorLabel.textColor = Const.SetColor.CTDate.color
       authorLabel.attributedText = attributedString
       
       teaserLabelTopConstraint?.constant
@@ -116,6 +116,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
             art.html?.name == articleIdentifier else { return }
       self?.bookmarkButton.image = art.hasBookmark ? self?.starFill : self?.star
     }
+    registerForStyleUpdates()
   }
   
   override init(frame: CGRect) {
@@ -127,4 +128,12 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
     setup()
   }
   
+}
+
+extension LMdPageArticleCell: UIStyleChangeDelegate{
+  public func applyStyles() {
+    titleLabel.textColor = Const.SetColor.LMd(.text).color
+    teaserLabel.textColor = Const.SetColor.LMd(.text).color
+    authorLabel.textColor = Const.SetColor.LMd(.text).color
+  }
 }

@@ -184,6 +184,11 @@ public struct Const {
       case closeXcircleBackground
       case closeX
     }
+    case LMd(lmd)
+    enum lmd {
+      case background
+      case text
+    }
     case taz(taz_Custom)
     enum taz_Custom {
       case textFieldBackground
@@ -261,6 +266,10 @@ public struct Const {
           return (UIColor.rgb(0x5D5E63), UIColor.rgb(0xB8B8C1), nil, nil)
         case .ios_opaque(.closeXcircleBackground):
           return (UIColor.rgb(0xE9E9EB), UIColor.rgb(0x39393D), nil, nil)
+        case .LMd(.background):
+          return (UIColor.rgb(0xF0F0ED), UIColor.rgb(0x121212), nil, nil)
+        case .LMd(.text):
+          return (UIColor.rgb(0x000000), UIColor.rgb(0xE3E3E3), nil, nil)
         case .ios(.label):
           return (Const.Colors.iOSLight.label, Const.Colors.iOSDark.label, nil, nil)
         case .ios(.secondaryLabel):

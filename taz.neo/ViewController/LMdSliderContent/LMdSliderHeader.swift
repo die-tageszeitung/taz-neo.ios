@@ -58,7 +58,6 @@ class LMdSliderHeader: UIView {
     imageView.shadow()
     imageView.contentMode = .scaleAspectFit
     
-    bottomBorder.backgroundColor = .black
     bottomBorder.pinHeight(0.7)
     pin(bottomBorder.left, to: self.left, dist:  Const.Size.DefaultPadding)
     pin(bottomBorder.right, to: self.right, dist:  -Const.Size.DefaultPadding)
@@ -95,6 +94,7 @@ class LMdSliderHeader: UIView {
                                                           pinWidth: false)
     
     singlePageAspectWidthConstraint?.isActive = false
+    registerForStyleUpdates()
   }
   
   override init(frame: CGRect) {
@@ -104,5 +104,14 @@ class LMdSliderHeader: UIView {
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+extension LMdSliderHeader: UIStyleChangeDelegate{
+  public func applyStyles() {
+    pageLabel.textColor = Const.SetColor.LMd(.text).color
+    contentLabel.textColor = Const.SetColor.LMd(.text).color
+    issueLabel.textColor = Const.SetColor.LMd(.text).color
+    bottomBorder.backgroundColor = Const.SetColor.CTDate.color
   }
 }

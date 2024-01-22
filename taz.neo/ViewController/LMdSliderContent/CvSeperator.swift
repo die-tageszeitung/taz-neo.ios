@@ -18,10 +18,10 @@ class CvSeperator: UICollectionReusableView {
   func setup(){
     self.addSubview(border)
     border.centerY(dist: -3)
-    border.backgroundColor = .black
     border.pinHeight(0.7)
     pin(border.left, to: self.left)
     pin(border.right, to: self.right)
+    registerForStyleUpdates()
   }
   
   override init(frame: CGRect) {
@@ -32,5 +32,11 @@ class CvSeperator: UICollectionReusableView {
   required init?(coder: NSCoder) {
     super.init(coder: coder)
     setup()
+  }
+}
+
+extension CvSeperator: UIStyleChangeDelegate{
+  public func applyStyles() {
+    border.backgroundColor = Const.SetColor.CTDate.color
   }
 }
