@@ -767,12 +767,20 @@ class TData {
     filterCells.forEach{ $0.radioButton.isSelected = $0.filter == settings.filter }
     sortingCells.forEach{ $0.radioButton.isSelected = $0.sorting == settings.sorting }
     ///Title no more used!!
+    #if LMD
+    content = [
+      ("erweiterte suche", [titleInpulCell, authorInpulCell]),
+      ("zeitraum", expandedSection == 1 ? rangeCells : [rangeMoreCell]),
+      ("sortierung", expandedSection == 2 ? sortingCells : [sortingMoreCell])
+    ]
+    #else
     content = [
       ("erweiterte suche", [titleInpulCell, authorInpulCell]),
       ("zeitraum", expandedSection == 1 ? rangeCells : [rangeMoreCell]),
       ("erschienen in", expandedSection == 2 ? filterCells : [filterMoreCell]),
       ("sortierung", expandedSection == 3 ? sortingCells : [sortingMoreCell])
     ]
+    #endif
   }
   
   func createHeaders(){

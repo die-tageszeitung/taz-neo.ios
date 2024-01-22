@@ -80,7 +80,13 @@ public enum SearchRangeOption: String {
   case lastYear = "Letztes Jahr"
   case custom = "Zeitraum festlegen"
   
-  static let allItems : [SearchRangeOption] = [.all, .lastDay, .lastWeek, .lastMonth, .lastYear, .custom]
+  static let allItems : [SearchRangeOption] = {
+  #if LMD
+      return [.all, .lastMonth, .lastYear, .custom]
+  #else
+      return [.all, .lastDay, .lastWeek, .lastMonth, .lastYear, .custom]
+  #endif
+    }()
   
   var textWithDate: String {
     get {
