@@ -102,14 +102,13 @@ public struct Const {
       static let ForegroundLight = UIColor.lightGray
       static let ForegroundHeavy = UIColor.darkGray
       #if LMD
-        static let HomeBackground = UIColor.rgb(0xd9d9d3)
-        static let HomeText = UIColor.rgb(0x1f1f1f)
+        static let HomeBackground = UIColor.rgb(0xd9d9d3) //UIColor.rgb(0xF0F0ED)?
+        static let HomeText = UIColor.rgb(0x1f1f1f)//UIColor.rgb(0x000000)?
       #else
         static let HomeBackground = UIColor.black
         static let HomeText = appIconGrey
       #endif
     }
-    
     struct Dark {
       static let CTBackground = darkSecondaryBG
       static let CTSection = darkSecondaryText
@@ -119,8 +118,13 @@ public struct Const {
       static let HText = darkSecondaryText
       static let ForegroundLight = UIColor.darkGray
       static let ForegroundHeavy = UIColor.lightGray
-      static let HomeBackground = UIColor.black
-      static let HomeText = appIconGrey
+      #if LMD
+        static let HomeBackground = UIColor.rgb(0x121212)
+        static let HomeText = UIColor.rgb(0xE3E3E3)
+      #else
+        static let HomeBackground = UIColor.black
+        static let HomeText = appIconGrey
+      #endif
     }
     
     struct iOSLight {
@@ -194,11 +198,6 @@ public struct Const {
     enum iOS_Opaque {
       case closeXcircleBackground
       case closeX
-    }
-    case LMd(lmd)
-    enum lmd {
-      case background
-      case text
     }
     case taz(taz_Custom)
     enum taz_Custom {
@@ -281,10 +280,6 @@ public struct Const {
           return (UIColor.rgb(0x5D5E63), UIColor.rgb(0xB8B8C1), nil, nil)
         case .ios_opaque(.closeXcircleBackground):
           return (UIColor.rgb(0xE9E9EB), UIColor.rgb(0x39393D), nil, nil)
-        case .LMd(.background):
-          return (UIColor.rgb(0xF0F0ED), UIColor.rgb(0x121212), nil, nil)
-        case .LMd(.text):
-          return (UIColor.rgb(0x000000), UIColor.rgb(0xE3E3E3), nil, nil)
         case .ios(.label):
           return (Const.Colors.iOSLight.label, Const.Colors.iOSDark.label, nil, nil)
         case .ios(.secondaryLabel):

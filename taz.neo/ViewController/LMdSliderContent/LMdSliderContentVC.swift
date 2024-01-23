@@ -33,7 +33,6 @@ class LMdSliderContentVC: UIViewController {
     cv.register(CvSeperator.self,
                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self ,
                 withReuseIdentifier: Self.SectionSeperatorIdentifier)
-    cv.backgroundColor = Const.SetColor.LMd(.background).color
     
     //setup data source
     cv.dataSource = self
@@ -94,8 +93,8 @@ class LMdSliderContentVC: UIViewController {
 
 extension LMdSliderContentVC: UIStyleChangeDelegate{
   public func applyStyles() {
-    self.view.backgroundColor = Const.SetColor.LMd(.background).color
-    self.collectionView.backgroundColor = Const.SetColor.LMd(.background).color
+    self.view.backgroundColor = Const.SetColor.HomeBackground.color
+    self.collectionView.backgroundColor = Const.SetColor.HomeBackground.color
     if collectionView.superview != nil { self.collectionView.reloadData() }
   }
 }
@@ -115,7 +114,7 @@ extension LMdSliderContentVC {
 extension LMdSliderContentVC {
   public override func viewDidLoad() {
     super.viewDidLoad()
-    self.view.backgroundColor = Const.SetColor.LMd(.background).color
+    self.view.backgroundColor = Const.SetColor.HomeBackground.color
     
     //setup ui with fixed header
     self.view.addSubview(header)

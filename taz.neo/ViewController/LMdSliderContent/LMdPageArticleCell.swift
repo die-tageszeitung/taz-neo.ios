@@ -132,8 +132,8 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
 
 extension LMdPageArticleCell: UIStyleChangeDelegate{
   public func applyStyles() {
-    titleLabel.textColor = Const.SetColor.LMd(.text).color
-    teaserLabel.textColor = Const.SetColor.LMd(.text).color
-    authorLabel.textColor = Const.SetColor.LMd(.text).color
+    titleLabel.textColor = Const.SetColor.CTDate.color
+    teaserLabel.textColor = Const.SetColor.CTDate.color
+    authorLabel.textColor = Const.SetColor.CTDate.color
   }
 }

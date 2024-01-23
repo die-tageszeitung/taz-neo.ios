@@ -109,9 +109,9 @@ class LMdSliderHeader: UIView {
 
 extension LMdSliderHeader: UIStyleChangeDelegate{
   public func applyStyles() {
-    pageLabel.textColor = Const.SetColor.LMd(.text).color
-    contentLabel.textColor = Const.SetColor.LMd(.text).color
-    issueLabel.textColor = Const.SetColor.LMd(.text).color
+    pageLabel.textColor = Const.SetColor.CTDate.color
+    contentLabel.textColor = Const.SetColor.CTDate.color
+    issueLabel.textColor = Const.SetColor.CTDate.color
     bottomBorder.backgroundColor = Const.SetColor.CTDate.color
   }
 }

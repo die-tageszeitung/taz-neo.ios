@@ -78,7 +78,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     v.addSubview(downloadButton)
     v.addSubview(dateLabel)
     statusWrapperWidthConstraint = v.pinWidth(0)
-    dateLabel.contentFont().textColor = Const.SetColor.HomeText.color
+    dateLabel.contentFont()
     dateLabel.textAlignment = .center
     pin(downloadButton, to: v, exclude: .left).top?.constant = -8.0
     downloadButton.color = Const.SetColor.HomeText.color
