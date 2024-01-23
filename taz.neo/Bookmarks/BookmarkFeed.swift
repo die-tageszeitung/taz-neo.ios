@@ -86,7 +86,8 @@ public class BookmarkFeed: Feed, DoesLog {
   """
   
   // A dotted line using SVG
-  static var htmlDottedLine = "<div class='dottedline'></div>"
+  //static var htmlDottedLine = "<div class='dottedline'></div>"
+  static var htmlDottedLine = "<hr class='dotted'/>"
   
   func dottedLine(inSection: Bool) -> String {
     return (App.isTAZ ? !inSection : inSection) ?

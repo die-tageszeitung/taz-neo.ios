@@ -113,6 +113,16 @@ body.light .dottedline {
   background-image: url("dot-day.svg");
 }
 
+body.light .dotted {
+  border: none;
+  border-top: 1px dotted black;
+}
+
+body.dark .dotted {
+  border: none;
+  border-top: 1px dotted white;
+}
+
 section {
   padding-top: 4px;
   margin-top: 8px;
