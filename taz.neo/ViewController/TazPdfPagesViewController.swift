@@ -729,6 +729,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
   }
   
+  // MARK: - viewWillDisappear
+  override public func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    slider?.button.hideAnimated()
+    slider?.close()
+  }
+  
   // MARK: - viewDidDisappear
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
@@ -972,10 +979,15 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     setupSlider()//not called with contentTable set
   }
   
-  override func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
     slider?.button.hideAnimated()
     slider?.close()
+  }
+  
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    (slider as? MyButtonSlider)?.hideContentAnimated()
     self.releaseOnDisappear()
     (self.sliderContent as? LMdSliderContentVC)?.dataSource = nil
     self.slider = nil
