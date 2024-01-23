@@ -1439,7 +1439,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.2.0;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DLMD";
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.lmd.neo;
 				PRODUCT_NAME = "Le Monde diplomatique";
@@ -1468,7 +1468,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.2.0;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DLMD";
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.lmd.neo;
 				PRODUCT_NAME = "Le Monde diplomatique";
@@ -1495,7 +1495,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.2.0;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DLMD";
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.lmd.neo;
 				PRODUCT_NAME = "Le Monde diplomatique";
