@@ -773,7 +773,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
             let url = pi.pageReference?.pdfDocument(inIssueDir: self.issue.dir)?.documentURL else { return }
       let filename = "taz_\(self.issue.date.filename)_S-\(page).pdf"
       let tempUrl = NSTemporaryDirectory() + filename
-      let cp = File(url).copy(to:tempUrl, isOverwrite: true)
+      _ = File(url).copy(to:tempUrl, isOverwrite: true)
       let tmpFile = File(dir: NSTemporaryDirectory(), fname: filename).url
       
       let dialogue = ExportDialogue<Any>()
