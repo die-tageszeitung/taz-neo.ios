@@ -322,7 +322,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var header:HeaderView = {
     let v = HeaderView()
     v.titletype = .bigLeft
-    v.title = "einstellungen"
+    v.title = App.isLMD ? "Einstellungen" : "einstellungen"
     return v
   }()
   
