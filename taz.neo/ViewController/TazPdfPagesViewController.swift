@@ -449,6 +449,21 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                                              sliderContent: articleSliderContentController)
     
     articleVC.delegate = self
+    articleVC.gotoUrl(path: path, file: name)
+    #if LMD
+    articleSliderContentController.header.imageView.onTapping{[weak self] _ in
+      self?.childArticleVC?.slider?.close()
+      self?.navigationController?.popViewController(animated: true)
+    }
+    articleSliderContentController.header.pageLabel.onTapping{[weak self] _ in
+      self?.childArticleVC?.slider?.close()
+      self?.navigationController?.popViewController(animated: true)
+    }
+    articleSliderContentController.header.issueLabel.onTapping{[weak self] _ in
+      self?.childArticleVC?.slider?.close()
+      self?.navigationController?.popToRootViewController(animated: true)
+    }
+    #else
     articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
       Usage.track(Usage.event.drawer.action_tap.Page)
       if let newIndex = pdfModel?.index {
@@ -457,20 +472,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       articleVC.slider?.close(animated: true) { [weak self] _ in
         self?.navigationController?.popViewController(animated: true)
       }
-    }
-    articleVC.gotoUrl(path: path, file: name)
-    #if LMD
-    (articleSliderContentController as? LMdSliderContentVC)?.header.imageView.onTapping{[weak self] _ in
-      self?.childArticleVC?.slider?.close()
-      self?.navigationController?.popViewController(animated: true)
-    }
-    (articleSliderContentController as? LMdSliderContentVC)?.header.pageLabel.onTapping{[weak self] _ in
-      self?.childArticleVC?.slider?.close()
-      self?.navigationController?.popViewController(animated: true)
-    }
-    (articleSliderContentController as? LMdSliderContentVC)?.header.issueLabel.onTapping{[weak self] _ in
-      self?.childArticleVC?.slider?.close()
-      self?.navigationController?.popToRootViewController(animated: true)
     }
     #endif
     
