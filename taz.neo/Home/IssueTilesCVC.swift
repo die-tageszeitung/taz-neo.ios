@@ -33,7 +33,7 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    collectionView?.backgroundColor = .black
+    collectionView?.backgroundColor = Const.SetColor.HomeBackground.color
     collectionView?.register(IssueTilesCvcCell.self,
                              forCellWithReuseIdentifier: Self.reuseCellId)
   }
@@ -71,7 +71,7 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
     if cell.interactions.isEmpty {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
       cell.addInteraction(menuInteraction)
-      cell.backgroundColor = .black
+      cell.backgroundColor = Const.SetColor.HomeBackground.color
       
       cell.button.onTapping { [weak self] _ in
         if let date = cell.data?.date.date,

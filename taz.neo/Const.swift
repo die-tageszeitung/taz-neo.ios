@@ -101,6 +101,13 @@ public struct Const {
       static let HText = UIColor.black
       static let ForegroundLight = UIColor.lightGray
       static let ForegroundHeavy = UIColor.darkGray
+      #if LMD
+        static let HomeBackground = UIColor.rgb(0xd9d9d3)
+        static let HomeText = UIColor.rgb(0x1f1f1f)
+      #else
+        static let HomeBackground = UIColor.black
+        static let HomeText = appIconGrey
+      #endif
     }
     
     struct Dark {
@@ -112,6 +119,8 @@ public struct Const {
       static let HText = darkSecondaryText
       static let ForegroundLight = UIColor.darkGray
       static let ForegroundHeavy = UIColor.lightGray
+      static let HomeBackground = UIColor.black
+      static let HomeText = appIconGrey
     }
     
     struct iOSLight {
@@ -176,6 +185,8 @@ public struct Const {
     case ForegroundHeavy
     case CTDate
     case HBackground
+    case HomeBackground
+    case HomeText
     case HText
     case Test
     case CIColor
@@ -331,7 +342,10 @@ public struct Const {
           return (UIColor.rgb(0x565656), UIColor.rgb(0x929292), nil, nil)
         case .taz(.secondaryBackground):
           return (UIColor.rgb(0xDEDEDE), UIColor.rgb(0x323232), nil, nil)
-          
+        case .HomeBackground:
+          return (Const.Colors.Light.HomeBackground, Const.Colors.Dark.HomeBackground,nil,nil)
+        case .HomeText:
+          return (Const.Colors.Light.HomeText, Const.Colors.Dark.HomeText,nil,nil)
       }
     }
   } // SetColors
