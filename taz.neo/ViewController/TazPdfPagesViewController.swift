@@ -359,7 +359,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   public var toolBar = ContentToolbar()
   
   override public var preferredStatusBarStyle: UIStatusBarStyle {
-    return .lightContent
+    return App.isLMD ? .darkContent : .lightContent
   }
   
   // MARK: - init
@@ -384,12 +384,14 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.article2section = issueInfo.issue.article2section
     self.feederContext = issueInfo.feederContext
     self.issue = issueInfo.issue
-    super.init(data: pdfModel)
+    super.init(data: pdfModel, useTopGradient: App.isTAZ)
     
     hidesBottomBarWhenPushed = true
     
     thumbnailController = PdfOverviewCollectionVC(pdfModel:pdfModel)
-    thumbnailController?.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
+    thumbnailController?.collectionView.backgroundColor = 
+      App.isLMD ? Const.SetColor.HomeBackground.color :
+                  Const.Colors.darkSecondaryBG
     thumbnailController?.cellLabelFont = Const.Fonts.titleFont(size: 12)
     thumbnailController?.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
     thumbnailController?.cellLabelLinesCount = 2
@@ -462,6 +464,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     xButton.isHidden = true
     guard let thumbnailController = thumbnailController else {return }
+    self.view.backgroundColor = Const.SetColor.HomeBackground.color
+    self.collectionView?.backgroundColor = Const.SetColor.HomeBackground.color
+
     thumbnailController.clickCallback = { [weak self] (_, pdfModel) in
       guard let self = self else { return }
       guard let newIndex = pdfModel?.index else { return }

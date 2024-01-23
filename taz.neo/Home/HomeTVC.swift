@@ -51,7 +51,8 @@ class HomeTVC: UITableViewController {
   
   /// offset for snapping between top area (IssueCarousel) and Bottom Area (tile view)
   var scrollSnapHeight : CGFloat { get { return UIScreen.main.bounds.size.height }}
-  override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent}
+  override var preferredStatusBarStyle:
+  UIStatusBarStyle { App.isLMD ? .darkContent : .lightContent }
   //  var service: DataService
   
   /**
@@ -174,7 +175,7 @@ class HomeTVC: UITableViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    self.view.backgroundColor = .black
+    self.view.backgroundColor = Const.SetColor.HomeBackground.color
     self.tableView.showsVerticalScrollIndicator = false
     self.tableView.showsHorizontalScrollIndicator = false
     ///on tapping the down arrows on ipad6mini, the seperator appears no matter what i setup here:
