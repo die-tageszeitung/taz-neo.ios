@@ -131,13 +131,7 @@ extension LMdSliderContentVC {
   }
   
   override func viewDidAppear(_ animated: Bool) {
-//    self.collectionView.reloadData()
     updateScrollPosition()
-//    self.collectionView.collectionViewLayout.shouldInvalidateLayout(forBoundsChange: self.collectionView.frame)//destroy layout!
-//    (self.collectionView.collectionViewLayout as? LMdSliderCVFlowLayout)?.evaluateLayout(force: true)//did not destroy layout...did not fix the issue
-
-//    self.collectionView.collectionViewLayout.invalidateLayout()////.none of them is working perfectly
-//    self.collectionView.doLayout()
     super.viewDidAppear(animated)
   }
 }
