@@ -33,15 +33,12 @@ class LMdSliderCVFlowLayout: UICollectionViewFlowLayout, DoesLog {
     ///is not working, returns cell 0-0 for e.g. indexPath 13-0
     ///seams that indexPath item is not set correctly in that call
   }
-  
- //The attributes for the item at the indexPath
- override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-   if cachedAttributes.count == 0 { return super.layoutAttributesForItem(at: indexPath) }
-   return cachedAttributes.valueAt(indexPath.item)
- }
-  
+    
   public override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-    guard cachedAttributes.count > 0 else { return  super.layoutAttributesForElements(in: rect) }
+    guard cachedAttributes.count > 0 else {
+      evaluateLayout(force: true)
+      return nil
+    }
     var attributesArray = [UICollectionViewLayoutAttributes]()
     for attributes in cachedAttributes {
       if attributes.frame.intersects(rect) {
