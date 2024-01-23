@@ -672,11 +672,15 @@ extension SettingsVC {
     _ = logoutCell
     _ = loginCell
     print("isAuthenticated: \(isAuthenticated)")
-    var cells =
-    [
-      isAuthenticated ? logoutCell : loginCell,
-      manageAccountCell
-    ]
+    var cells = [isAuthenticated ? logoutCell : loginCell]
+
+    if App.isLMD {
+      cells.append(notificationsCell)
+      return cells
+    }
+    
+    cells.append(manageAccountCell)
+    
     if isAuthenticated,
        SimpleAuthenticator.getUserData().id?.isValidEmail() == true,
        SimpleAuthenticator.getUserData().id?.hasSuffix("@taz.de") == false {
@@ -701,7 +705,9 @@ extension SettingsVC {
     if autoloadNewIssues && App.isAvailable(.AUTODOWNLOAD) {
       cells.append(wlanCell)
     }
+    #if TAZ
     cells.append(epaperLoadCell)
+    #endif
     cells.append(deleteIssuesCell)
     return cells
   }
@@ -730,6 +736,11 @@ extension SettingsVC {
   //Prototype Cells
   func currentSectionContent() -> [tSectionContent] {
     ///**WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
+    #if TAZ
+    let rechtlichesCells = [termsCell, privacyCell, revokeCell, usageCell]
+    #else
+    let rechtlichesCells = [termsCell, privacyCell, revokeCell]
+    #endif
     return [
       ("konto", false, accountSettingsCells),
       ("ausgabenverwaltung", false, issueSettingsCells),
@@ -755,14 +766,7 @@ extension SettingsVC {
         feedbackCell
        ]
       ),
-      ("rechtliches", false,
-       [
-        termsCell,
-        privacyCell,
-        revokeCell,
-        usageCell
-       ]
-      ),
+      ("rechtliches", false, rechtlichesCells),
       ///WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
       ("erweitert", true,
        extendedSettingsCollapsed ? [] : extendedSettingsCells
