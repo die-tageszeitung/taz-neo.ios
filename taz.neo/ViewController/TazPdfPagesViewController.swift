@@ -393,7 +393,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.article2section = issueInfo.issue.article2section
     self.feederContext = issueInfo.feederContext
     self.issue = issueInfo.issue
-    super.init(data: pdfModel)
+    super.init(data: pdfModel, useTopGradient: App.isTAZ)
     
     hidesBottomBarWhenPushed = true
     
@@ -753,6 +753,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   public func applyStyles() {
     slider?.sliderView.shadow()
     slider?.button.shadow()
+    self.view.backgroundColor = Const.SetColor.HomeBackground.color
+    self.collectionView?.backgroundColor = Const.SetColor.HomeBackground.color
   }
   
   private var shareButton: Button<ImageView>?
