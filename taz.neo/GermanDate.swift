@@ -42,9 +42,10 @@ public extension Date {
   }
   
   /// German month and year <month> <year>
-  func gMonthYear(tz: String?) -> String {
+  func gMonthYear(tz: String?, isNumeric: Bool = false) -> String {
     let dc = components(tz: tz)
-    return "\(Date.gMonthNames[dc.month!]) \(dc.year!)"
+    return isNumeric ? "\(dc.month!)/\(dc.year!)" :
+      "\(Date.gMonthNames[dc.month!]) \(dc.year!)"
   }
   
   /// German month and year in lowercase letters

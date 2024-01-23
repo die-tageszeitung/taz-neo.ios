@@ -1,0 +1,212 @@
+/*
+ *  Stylesheet for lmd bookmarks in iOS
+ */
+
+/* Fonts used */
+/* ArnhemPro Regular */
+@font-face {
+  font-family   : ArnhemPro;
+  src           : url(ArnhemPro-Blond.woff) format("woff");
+  font-style    : normal;
+  font-weight   : normal;
+  font-stretch  : normal;
+}
+/* ArnhemPro Italic */
+@font-face {
+  font-family   : ArnhemPro;
+  src           : url(ArnhemPro-BlondItalic.woff) format("woff");
+  font-style    : italic;
+  font-weight   : normal;
+  font-stretch  : normal;
+}
+/* ArnhemPro Bold */
+@font-face {
+  font-family   : ArnhemPro;
+  src           : url(ArnhemPro-Bold.woff) format("woff");
+  font-style    : normal;
+  font-weight   : bold;
+  font-stretch  : normal;
+}
+/* ArnhemPro Bold Italic */
+@font-face {
+  font-family   : ArnhemPro;
+  src           : url(ArnhemPro-BoldItalic.woff) format("woff");
+  font-style    : italic;
+  font-weight   : bold;
+  font-stretch  : normal;
+}
+
+html {
+  font-family      : ArnhemPro, sans-serif;
+  font-weight      : normal;
+  font-size        : 100%;
+  line-height      : 1.23;
+}
+
+.icons {
+    width: 80px;
+    display: flex;
+    margin-top: -5px;
+    justify-content: right;
+}
+
+* {
+  margin           : 0;
+  padding          : 0;
+}
+
+body {
+  padding: 68px 15px 5px 15px;
+}
+
+section {
+  padding-bottom: 0.1rem;
+}
+
+.light {
+  background-color : #fff;
+  color            : #000;
+}
+
+.dark {
+  background-color : #000;
+  color            : #e3e3e3;
+}
+
+.foot time {
+    color: #9c9c9c;
+    float: left;
+}
+
+header {
+  clear: both;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-bottom: 0.6rem;
+}
+
+.dottedline {
+  height: 1.5px;
+  background-repeat: repeat-x;
+  background-size: contain;
+  margin-top: 4px;
+}
+
+img.moment {
+  float: left;
+  padding-right: 0.6rem;
+  height: 36px;
+}
+
+header h1 {
+  font-size: 0.94rem;
+  font-weight: normal;
+  font-style: italic;
+}
+
+body.dark .dottedline {
+  background-image: url("dot-night.svg");
+}
+
+body.light .dottedline {
+  background-image: url("dot-day.svg");
+}
+
+section {
+  padding-top: 4px;
+  margin-top: 8px;
+}
+
+body section:first-child {
+  border-top: none;
+  padding-top: 0px;
+}
+
+/* No visible links */
+a:link, a:visited, a:hover, a:active, a:focus {
+  text-decoration: none;
+}
+
+article {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: height 0.3s ease-out;
+  height: auto;
+}
+
+body.dark article {
+  border-bottom: 0.7px solid #e3e3e3;
+}
+body.light article {
+  border-bottom: 0.7px solid #1f1f1f;
+}
+
+article h2 {
+  padding-top: 0.88rem;
+  font-size: 0.94rem;
+  font-weight: bold;
+  line-height: 1.26;
+}
+
+article p {
+  font-size: 0.94rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+}
+
+article address {
+    font-size: 0.94rem;
+    font-weight: normal;
+    font-style: italic;
+    float: left;
+    padding-right: 7px;
+    line-height: 1rem;
+}
+
+article time {
+  font-size: 0.71rem;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1rem;
+}
+
+.foot {
+  clear: both;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+  margin-top: 4px;
+}
+
+.author {
+    clear: both;
+    /* display: flex; */
+    /* flex-direction: row; */
+    /* align-items: center; */
+}
+
+.photo {
+  float: right;
+  padding: 1.18rem 0rem 0.6rem 0.6rem;
+  width: 65px;
+  height: 65px;
+  object-fit: cover;
+}
+
+img.share {
+  margin-right: 12px;
+  margin-bottom: -4px;
+  width: 24px;
+}
+
+img.bookmark {
+  width: 26px;
+  margin-top: 1px;
+}
