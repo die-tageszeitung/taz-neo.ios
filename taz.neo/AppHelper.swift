@@ -83,7 +83,8 @@ public extension App {
   
   /// get app info ()
   static var appInfo:String {
-    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : "taz"
+    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : 
+                   App.isLMD ? "LMd" : "taz"
     return "\(appTitle) (v) \(App.version)-\(App.buildNumber)"
   }
   
