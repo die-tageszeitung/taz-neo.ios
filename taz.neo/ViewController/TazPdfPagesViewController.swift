@@ -397,10 +397,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     hidesBottomBarWhenPushed = true
     
-    sliderContentController
-    = App.isLMD
-    ? createLmdSliderChildController(issueInfo: issueInfo)
-    : createTazSliderChildController(pdfModel: pdfModel)
+    #if LMD
+    sliderContentController = createLmdSliderChildController(issueInfo: issueInfo)
+    #else
+    sliderContentController = createTazSliderChildController(pdfModel: pdfModel)
+    #endif
     
     self.onTap { [weak self] (oimg, x, y) in
       guard let self = self else { return }
@@ -438,17 +439,17 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self.collectionView?.scrollto(pageIdx,animated: true)
       return
     }
-          
-    let articleSliderContentController
-    = App.isLMD
-    ? createLmdSliderChildController(issueInfo: issueInfo)
-    : createTazSliderChildController(pdfModel: pdfModel)
-    
+    #if LMD
+    let articleSliderContentController = createLmdSliderChildController(issueInfo: issueInfo)
+    #else
+    let articleSliderContentController = createTazSliderChildController(pdfModel: pdfModel)
+    #endif
+       
     let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
                                              sliderContent: articleSliderContentController)
     
     articleVC.delegate = self
-    (articleSliderContentController as? PdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel) in
+    articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
       Usage.track(Usage.event.drawer.action_tap.Page)
       if let newIndex = pdfModel?.index {
         self?.collectionView?.index = newIndex
@@ -458,7 +459,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       }
     }
     articleVC.gotoUrl(path: path, file: name)
-    
+    #if LMD
     (articleSliderContentController as? LMdSliderContentVC)?.header.imageView.onTapping{[weak self] _ in
       self?.childArticleVC?.slider?.close()
       self?.navigationController?.popViewController(animated: true)
@@ -471,6 +472,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self?.childArticleVC?.slider?.close()
       self?.navigationController?.popToRootViewController(animated: true)
     }
+    #endif
     
     self.navigationController?.pushViewController(articleVC, animated: true)
     self.childArticleVC = articleVC
@@ -585,6 +587,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     slider.hideButtonOnClose = true
     slider.button.additionalTapOffset = 50
     slider.close()
+    #if LMD
     (sliderContent as? LMdSliderContentVC)?.header.imageView.onTapping{[weak self] _ in
       self?.slider?.close()
     }
@@ -594,9 +597,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     (sliderContent as? LMdSliderContentVC)?.header.issueLabel.onTapping{[weak self] _ in
       self?.navigationController?.popViewController(animated: true)
     }
+    #endif
   }
   
   func updateSlider(index: Int){
+    #if LMD
     guard let sliderContentVc
             = sliderContentController
             as? LMdSliderContentVC
@@ -604,6 +609,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     let page = issue.pages?.valueAt(index)
     sliderContentVc.currentPage = page
     (childArticleVC?.sliderContent as? LMdSliderContentVC)?.currentPage = page
+    #endif
   }
   
   // MARK: - viewWillAppear
@@ -955,7 +961,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
       slider.button.additionalTapOffset = 50
       slider.close()
     }
-    
+    #if LMD
     if let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC {
       lmdSliderContentVc.onArticlePress{[weak self] article in
         self?.collectionView?.index = article.index
@@ -972,7 +978,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
         }
       }
     }
-    
+    #endif
     super.setupSlider()
   }
   
@@ -991,14 +997,18 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     super.viewDidDisappear(animated)
     (slider as? MyButtonSlider)?.hideContentAnimated()
     self.releaseOnDisappear()
+    #if LMD
     (self.sliderContent as? LMdSliderContentVC)?.dataSource = nil
+    #endif
     self.slider = nil
     self.delegate = nil
   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    #if LMD
     (sliderContent as? LMdSliderContentVC)?.currentArticle = self.article
+    #endif
     updateSlidersWidth(self.view.frame.size)
     slider?.button.isHidden = false
   }
