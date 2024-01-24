@@ -17,7 +17,11 @@ public struct Const {
     ///new foreward url's
     ///Source Mail Ralf 3.5.23
     /// dl.taz.de/faq && https://dl.monde-diplomatique.de/faq
+    #if LMD
+    static let faqUrl = lmdFaqUrl
+    #else
     static let faqUrl = tazFaqUrl
+    #endif
     static let tazFaqUrl
     = URL(string: "https://dl.taz.de/faq")
     static let lmdFaqUrl

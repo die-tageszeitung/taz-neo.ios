@@ -107,7 +107,11 @@ class ArticlePlayer: DoesLog {
       }
       
       if let i = currentContent?.primaryIssue {
+        #if LMD
+        issueString = "LMd vom \(i.date.short)"
+        #else
         issueString = "\(i.isWeekend ? "wochentaz" : "taz") vom \(i.date.short)"
+        #endif
       }
       
       if let authorsString = authorsString, let issueString = issueString {
