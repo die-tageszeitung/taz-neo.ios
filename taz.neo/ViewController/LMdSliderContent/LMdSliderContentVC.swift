@@ -93,8 +93,8 @@ class LMdSliderContentVC: UIViewController {
 
 extension LMdSliderContentVC: UIStyleChangeDelegate{
   public func applyStyles() {
-    self.view.backgroundColor = Const.SetColor.HomeBackground.color
-    self.collectionView.backgroundColor = Const.SetColor.HomeBackground.color
+    self.view.backgroundColor = Const.SetColor.MenuBackground.color
+    self.collectionView.backgroundColor = Const.SetColor.MenuBackground.color
     if collectionView.superview != nil { self.collectionView.reloadData() }
   }
 }
@@ -114,7 +114,7 @@ extension LMdSliderContentVC {
 extension LMdSliderContentVC {
   public override func viewDidLoad() {
     super.viewDidLoad()
-    self.view.backgroundColor = Const.SetColor.HomeBackground.color
+    self.view.backgroundColor = Const.SetColor.MenuBackground.color
     
     //setup ui with fixed header
     self.view.addSubview(header)

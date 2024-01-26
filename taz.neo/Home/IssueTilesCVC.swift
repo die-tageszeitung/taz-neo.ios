@@ -67,12 +67,11 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
     = collectionView.dequeueReusableCell( withReuseIdentifier: Self.reuseCellId,
                                           for: indexPath)
     guard let cell = cell as? IssueTilesCvcCell else { return cell }
+    cell.backgroundColor = Const.Colors.Light.HomeBackground
     ///only add functions once
     if cell.interactions.isEmpty {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
       cell.addInteraction(menuInteraction)
-      cell.backgroundColor = Const.SetColor.HomeBackground.color
-      
       cell.button.onTapping { [weak self] _ in
         if let date = cell.data?.date.date,
           self?.service.download(issueAt: date, withAudio: false) != nil {

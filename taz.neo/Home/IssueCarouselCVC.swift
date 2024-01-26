@@ -81,7 +81,8 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     dateLabel.contentFont()
     dateLabel.textAlignment = .center
     pin(downloadButton, to: v, exclude: .left).top?.constant = -8.0
-    downloadButton.color = Const.SetColor.HomeText.color
+    downloadButton.color = Const.SetColor.HomeText.dynamicColor
+    dateLabel.textColor = Const.SetColor.HomeText.dynamicColor
     pin(dateLabel.left, to: v.left, dist: 25, priority: .defaultLow)
     pin(dateLabel.right, to: v.right, dist: -25, priority: .defaultLow)
     v.pinHeight(28)

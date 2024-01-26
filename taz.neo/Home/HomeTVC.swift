@@ -95,8 +95,6 @@ class HomeTVC: UITableViewController {
   
   var carouselControllerCell: UITableViewCell
   var tilesControllerCell: UITableViewCell
-  var loginLabel: UILabel?
-  var loginArrow: UIImageView?
   
   lazy var togglePdfButton: Button<ImageView> = {
     return createTogglePdfButton()
@@ -176,6 +174,9 @@ class HomeTVC: UITableViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    
+    self.view.backgroundColor = Const.Colors.Light.HomeBackground
+    carouselController.collectionView.backgroundColor = Const.Colors.Light.HomeBackground
     self.tableView.showsVerticalScrollIndicator = false
     self.tableView.showsHorizontalScrollIndicator = false
     ///on tapping the down arrows on ipad6mini, the seperator appears no matter what i setup here:
@@ -201,7 +202,6 @@ class HomeTVC: UITableViewController {
     tilesControllerCell.isAccessibilityElement = false
     tilesControllerCell.contentView.isAccessibilityElement = false
     tilesController.collectionView.isAccessibilityElement = false
-    registerForStyleUpdates()
    }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -333,17 +333,6 @@ protocol IssueSelectionChangeDelegate {
   /// Register Handler for Current Object
   /// Will call applyStyles() on register @see extension UIStyleChangeDelegate
   func setCurrent(cellData: IssueCellData, idx: Int)
-}
-
-extension HomeTVC: UIStyleChangeDelegate{
-  public func applyStyles() {
-    self.view.backgroundColor = Const.SetColor.HomeBackground.color
-    carouselController.collectionView.backgroundColor = Const.SetColor.HomeBackground.color
-    loginLabel?.textColor = Const.SetColor.HomeText.color
-    loginArrow?.tintColor = Const.SetColor.HomeText.color
-    carouselController.dateLabel.textColor = Const.SetColor.HomeText.color
-    carouselController.downloadButton.color = Const.SetColor.HomeText.color
-  }
 }
 
 
@@ -591,14 +580,12 @@ extension HomeTVC {
     login.contentFont()
     login.textColor = Const.Colors.appIconGrey
     login.text = "Anmelden"
-    loginLabel = login///to handle dark/lightmode changes
     
     let arrow
     = UIImageView(image: UIImage(name: "arrow.right")?
       .withTintColor(Const.Colors.appIconGrey,
-                     renderingMode: .alwaysTemplate))
+                     renderingMode: .alwaysOriginal))
     arrow.tintColor = Const.Colors.appIconGrey
-    loginArrow = arrow
     
     let wrapper = UIView()
     wrapper.addSubview(login)

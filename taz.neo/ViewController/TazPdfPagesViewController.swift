@@ -760,8 +760,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   public func applyStyles() {
     slider?.sliderView.shadow()
     slider?.button.shadow()
-    self.view.backgroundColor = Const.SetColor.HomeBackground.color
-    self.collectionView?.backgroundColor = Const.SetColor.HomeBackground.color
+    self.view.backgroundColor = Const.SetColor.MenuBackground.color
+    self.collectionView?.backgroundColor = Const.SetColor.MenuBackground.color
   }
   
   private var shareButton: Button<ImageView>?
