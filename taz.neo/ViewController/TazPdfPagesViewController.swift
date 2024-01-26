@@ -514,6 +514,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     if let sliderContentController = sliderContentController {
       setupSlider(sliderContent: sliderContentController)
     }
+    self.view.backgroundColor = Const.SetColor.HomeBackground.dynamicColor
+    self.collectionView?.backgroundColor = Const.SetColor.HomeBackground.dynamicColor
     registerForStyleUpdates()
     Rating.issueOpened()
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
@@ -760,8 +762,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   public func applyStyles() {
     slider?.sliderView.shadow()
     slider?.button.shadow()
-    self.view.backgroundColor = Const.SetColor.MenuBackground.color
-    self.collectionView?.backgroundColor = Const.SetColor.MenuBackground.color
   }
   
   private var shareButton: Button<ImageView>?

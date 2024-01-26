@@ -106,10 +106,10 @@ public struct Const {
       static let ForegroundLight = UIColor.lightGray
       static let ForegroundHeavy = UIColor.darkGray
       #if LMD
-        static let HomeBackground = UIColor.rgb(0xd9d9d3)
-        static let HomeText = UIColor.rgb(0x1f1f1f)
-        static let MenuBackground = UIColor.rgb(0xd9d9d3)
-        static let MenuText = UIColor.rgb(0x1f1f1f)
+        static let HomeBackground = UIColor.rgb(0xd9d9d3)//LMD-background-darker
+        static let HomeText = UIColor.rgb(0x1f1f1f)//LMD-offblack
+        static let MenuBackground = UIColor.rgb(0xf0f0ed)//--LMD-background
+        static let MenuText = UIColor.rgb(0x000000)//LMD-black
       #else
         static let HomeBackground = UIColor.black
         static let HomeText = appIconGrey
@@ -128,10 +128,10 @@ public struct Const {
       static let ForegroundLight = UIColor.darkGray
       static let ForegroundHeavy = UIColor.lightGray
       #if LMD
-        static let HomeBackground = UIColor.rgb(0xd9d9d3)
-        static let HomeText = UIColor.rgb(0x1f1f1f)
-        static let MenuBackground = UIColor.rgb(0x121212)
-        static let MenuText = UIColor.rgb(0xe3e3e3)
+        static let HomeBackground = UIColor.rgb(0xd9d9d3)//LMD-background-darker
+        static let HomeText = UIColor.rgb(0x1f1f1f)//LMD-offblack
+        static let MenuBackground = UIColor.rgb(0x121212)//LMD-Android-Dark-Theme-background
+        static let MenuText = UIColor.rgb(0xe3e3e3)//LMD-Logogrey
       #else
         static let HomeBackground = UIColor.black
         static let HomeText = appIconGrey
