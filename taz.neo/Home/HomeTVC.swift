@@ -578,14 +578,14 @@ extension HomeTVC {
     login.accessibilityLabel = "Anmelden"
     login.isAccessibilityElement = true
     login.contentFont()
-    login.textColor = Const.Colors.appIconGrey
+    login.textColor = Const.SetColor.HomeText.dynamicColor
     login.text = "Anmelden"
     
     let arrow
     = UIImageView(image: UIImage(name: "arrow.right")?
       .withTintColor(Const.Colors.appIconGrey,
-                     renderingMode: .alwaysOriginal))
-    arrow.tintColor = Const.Colors.appIconGrey
+                     renderingMode: .alwaysTemplate))
+    arrow.tintColor = Const.SetColor.HomeText.dynamicColor
     
     let wrapper = UIView()
     wrapper.addSubview(login)
