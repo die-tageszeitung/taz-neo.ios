@@ -106,11 +106,16 @@ public struct Const {
       static let ForegroundLight = UIColor.lightGray
       static let ForegroundHeavy = UIColor.darkGray
       #if LMD
-        static let HomeBackground = UIColor.rgb(0xd9d9d3) //UIColor.rgb(0xF0F0ED)?
-        static let HomeText = UIColor.rgb(0x1f1f1f)//UIColor.rgb(0x000000)?
+        static let HomeBackground = UIColor.rgb(0xd9d9d3)
+        static let HomeText = UIColor.rgb(0x1f1f1f)
+        static let MenuBackground = UIColor.rgb(0xd9d9d3)
+        static let MenuText = UIColor.rgb(0x1f1f1f)
       #else
         static let HomeBackground = UIColor.black
         static let HomeText = appIconGrey
+        static let MenuBackground = UIColor.white//Const.SetColor.HBackground.color
+        static let MenuText = UIColor.black//Const.SetColor.HText.color
+
       #endif
     }
     struct Dark {
@@ -123,11 +128,15 @@ public struct Const {
       static let ForegroundLight = UIColor.darkGray
       static let ForegroundHeavy = UIColor.lightGray
       #if LMD
-        static let HomeBackground = UIColor.rgb(0x121212)
-        static let HomeText = UIColor.rgb(0xE3E3E3)
+        static let HomeBackground = UIColor.rgb(0xd9d9d3)
+        static let HomeText = UIColor.rgb(0x1f1f1f)
+        static let MenuBackground = UIColor.rgb(0x121212)
+        static let MenuText = UIColor.rgb(0xe3e3e3)
       #else
         static let HomeBackground = UIColor.black
         static let HomeText = appIconGrey
+        static let MenuBackground = UIColor.black
+        static let MenuText = UIColor.rgb(0xebebf5)//darkSecondaryText
       #endif
     }
     
@@ -195,6 +204,8 @@ public struct Const {
     case HBackground
     case HomeBackground
     case HomeText
+    case MenuBackground
+    case MenuText
     case HText
     case Test
     case CIColor
@@ -243,6 +254,14 @@ public struct Const {
       get{
         let set = colors(name: self)
         return Defaults.darkMode ? set.dark ??  set.light : set.light
+      }
+    }
+    
+    /// using a color that responds to `userInterfaceStyle` trait changes
+    var dynamicColor : UIColor {
+      get{
+        let set = colors(name: self)
+        return UIColor(light: set.light, dark: set.dark ?? set.light)
       }
     }
     
@@ -345,10 +364,13 @@ public struct Const {
           return (Const.Colors.Light.HomeBackground, Const.Colors.Dark.HomeBackground,nil,nil)
         case .HomeText:
           return (Const.Colors.Light.HomeText, Const.Colors.Dark.HomeText,nil,nil)
+        case .MenuBackground:
+          return (Const.Colors.Light.MenuBackground, Const.Colors.Dark.MenuBackground,nil,nil)
+        case .MenuText:
+          return (Const.Colors.Light.MenuText, Const.Colors.Dark.MenuText,nil,nil)
       }
     }
   } // SetColors
-  
   
   /// Various font values
   struct Fonts {
