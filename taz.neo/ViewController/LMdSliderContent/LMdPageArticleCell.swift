@@ -27,17 +27,14 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
     }
   }
   
-  var teaserLabelTopConstraint: NSLayoutConstraint?
-  var authorLabelTopConstraint: NSLayoutConstraint?
-  
   /// Helper to prevent Simultaneous accesses to article, but modification requires exclusive access.
   /// on bookmarking and receive notification
   var articleIdentifier: String?
   
   var article: Article? {
     didSet {
-      titleLabel.text = article?.title
-      teaserLabel.text = article?.teaser
+      titleLabel.attributedText = article?.title?.attributed(lineHeightMultiple: 1.2)
+      teaserLabel.attributedText = article?.teaser?.attributed(lineHeightMultiple: 1.4)
       ///authors & readingDuration
       var autors = article?.authors() ?? ""
       if autors.length > 0 {
@@ -56,15 +53,18 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
         timeString.addAttribute(.backgroundColor, value: UIColor.clear, range: trange)
         attributedString.append(timeString)
       }
+      
+      let style = NSMutableParagraphStyle()
+      style.lineHeightMultiple = 1.4
+      attributedString.addAttribute(NSAttributedString.Key.paragraphStyle, 
+                                    value: style,
+                                    range: NSRange(location: 0,
+                                                   length: attributedString.length))
       authorLabel.text = ""
       authorLabel.lmdArnhem(italic: true)
       authorLabel.textColor = Const.SetColor.CTDate.color
       authorLabel.attributedText = attributedString
       
-      teaserLabelTopConstraint?.constant
-      = teaserLabel.text?.isEmpty ?? true ? 0 : 7
-      authorLabelTopConstraint?.constant
-      = authorLabel.text?.isEmpty ?? true ? 0 : 12
       bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
       bookmarkButton.tintColor = Const.Colors.appIconGrey
       articleIdentifier = article?.html?.name
@@ -84,7 +84,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
     titleLabel.numberOfLines = 0
     teaserLabel.numberOfLines = 0
     authorLabel.numberOfLines = 0
-    titleLabel.lmdBenton(bold: true, size: 14.0)
+    titleLabel.lmdBenton(bold: true)
     teaserLabel.lmdArnhem()
     self.contentView.addSubview(titleLabel)
     self.contentView.addSubview(teaserLabel)
@@ -94,14 +94,18 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
     bookmarkButton.accessibilityLabel = "Lesezeichen"
     pin(bookmarkButton.centerY, to: titleLabel.centerY, dist: -3)
     pin(bookmarkButton.right, to: self.contentView.right)
-    pin(titleLabel.top, to: self.contentView.top)
+    pin(titleLabel.top, to: self.contentView.top, dist: 0.0)
     pin(titleLabel.left, to: self.contentView.left)
     pin(bookmarkButton.left, to: titleLabel.right, dist: 10)
     pin(teaserLabel.left, to: self.contentView.left)
     pin(teaserLabel.right, to: self.contentView.right)
-    teaserLabelTopConstraint = pin(teaserLabel.top, to: titleLabel.bottom)
-    authorLabelTopConstraint = pin(authorLabel.top, to: teaserLabel.bottom)
-    pin(authorLabel, to: self.contentView, exclude: .top)
+    pin(teaserLabel.top, to: titleLabel.bottom)
+    pin(authorLabel.top, to: teaserLabel.bottom)
+    
+    pin(authorLabel.left, to: self.contentView.left)
+    pin(authorLabel.right, to: self.contentView.right)
+    pin(authorLabel.bottom, to: self.contentView.bottom, dist: -1.0)
+    
     if let sv = self.contentView.superview {
       pin(self.contentView, to: sv)
     }
@@ -135,5 +139,19 @@ extension LMdPageArticleCell: UIStyleChangeDelegate{
     titleLabel.textColor = Const.SetColor.CTDate.color
     teaserLabel.textColor = Const.SetColor.CTDate.color
     authorLabel.textColor = Const.SetColor.CTDate.color
+  }
+}
+
+extension String {
+  func attributed(lineHeightMultiple: CGFloat?) -> NSAttributedString? {
+    var attributes:[NSAttributedString.Key : Any] = [:]
+    
+    if let lineHeightMultiple = lineHeightMultiple, lineHeightMultiple > 0.1 {
+      let style = NSMutableParagraphStyle()
+      style.lineHeightMultiple = lineHeightMultiple
+      attributes[NSAttributedString.Key.paragraphStyle] = style
+    }
+    return NSAttributedString(string: self,
+                              attributes: attributes)
   }
 }

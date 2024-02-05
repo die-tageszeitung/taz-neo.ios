@@ -17,7 +17,7 @@ class CvSeperator: UICollectionReusableView {
   
   func setup(){
     self.addSubview(border)
-    border.centerY(dist: -3)
+    border.centerY(dist: 0)
     border.pinHeight(0.7)
     pin(border.left, to: self.left)
     pin(border.right, to: self.right)

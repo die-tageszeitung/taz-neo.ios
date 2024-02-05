@@ -18,8 +18,8 @@ class LMdSliderContentVC: UIViewController {
   lazy var collectionView:UICollectionView = {
     //setup collectionview layout
     let layout = LMdSliderCVFlowLayout()
-    layout.minimumInteritemSpacing = 20.0
-    layout.sectionInset = UIEdgeInsets(top: 15, left: 15, bottom: 10, right: 15)
+    layout.minimumInteritemSpacing = 16.0
+    layout.sectionInset = UIEdgeInsets(top: 16, left: 15, bottom: 10, right: 15)
     layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
     
     let cv = UICollectionView(frame: .zero,

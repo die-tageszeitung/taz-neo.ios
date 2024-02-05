@@ -52,8 +52,8 @@ class LMdSliderHeader: UIView {
     self.addSubview(bottomBorder)
     
     pageLabel.lmdBenton().centerText()
-    contentLabel.lmdArnhem()
-    issueLabel.lmdArnhem(italic: true)
+    contentLabel.lmdArnhem(size: 17.5)
+    issueLabel.lmdArnhem(italic: true, size: 17.5)
     
     imageView.shadow()
     imageView.contentMode = .scaleAspectFit
