@@ -65,7 +65,7 @@ class LMdSliderCVFlowLayout: UICollectionViewFlowLayout, DoesLog {
     var rightYOffset = self.sectionInset.top
     
     let cvWidth = oldBounds?.width ?? collectionView.frame.size.width
-    let leftCellWidth = cvWidth * 0.3
+    let leftCellWidth = cvWidth * Const.Size.LMd.Slider.xLeft
     
     let rightCellWidth
     = cvWidth - leftCellWidth

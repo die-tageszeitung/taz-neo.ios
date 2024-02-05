@@ -463,6 +463,12 @@ public struct Const {
     static let ContentTableRowHeight = CGFloat(30.0)
     
     static let ContentSliderMaxWidth = 420.0
+    struct LMd {
+      struct Slider {
+        static let xLeft = 0.23//left Scale Factor 0.3*SliderWidth
+        //NOT NEEDED static let xRight = 0.77//right Scale Factor 1-xLeft*SliderWidth
+      }
+    }
   }
   
   struct Insets {
