@@ -51,7 +51,7 @@ class LMdSliderHeader: UIView {
     self.addSubview(issueLabel)
     self.addSubview(bottomBorder)
     
-    pageLabel.lmdBenton(size: 13.0).centerText()
+    pageLabel.lmdBenton().centerText()
     contentLabel.lmdArnhem()
     issueLabel.lmdArnhem(italic: true)
     
