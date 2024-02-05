@@ -657,6 +657,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         if self?.hideOnScroll == false { return }
         self?.toolBar.show(show: false, animated: true)}
       else { self?.toolBar.show(show:true, animated: true)}
+      #if LMD
+        self?.slider?.collapsedButton = ratio < 0
+      #endif
     }
     onDisplay {[weak self]_, _  in
       //Note: use this due onPageChange only fires on link @see WebCollectionView
