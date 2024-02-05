@@ -188,6 +188,9 @@ class SearchController: UIViewController {
     self.view.addSubview(resultsTable)
     self.view.addSubview(searchSettingsView)
     self.view.addSubview(header)
+    self.view.onTapping {[weak self] _ in
+      self?.header.searchTextField.resignFirstResponder()
+    }
     centralActivityIndicator.center()
     pin(placeholderView, toSafe: self.view)
     pin(resultsTable, toSafe: self.view, exclude: .top)
