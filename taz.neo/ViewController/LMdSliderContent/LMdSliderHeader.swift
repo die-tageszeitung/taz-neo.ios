@@ -67,7 +67,7 @@ class LMdSliderHeader: UIView {
     pin(imageView.left, to: self.leftGuide(), dist: Const.Size.DefaultPadding)
     
     pin(pageLabel.left, to: self.imageView.left)
-    pageLabel.pinWidth(to: self.width, dist: -30, factor: 0.3)
+    pageLabel.pinWidth(to: self.width, factor: 0.3)
     pin(issueLabel.left, to: contentLabel.right, dist: 0)
     pin(issueLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
     
@@ -78,8 +78,6 @@ class LMdSliderHeader: UIView {
     pin(issueLabel.top, to: imageView.bottom, dist: 10, priority: .fittingSizeLevel)
     
     pin(contentLabel.right, to: issueLabel.left)
-    /// layout.minimumInteritemSpacing == 12.0 + layout.sectionInset.left == 15 + ...right ==  15
-    let dist = 30.0 //0.3*(width-dist)
     panoPageWidthConstraint = imageView.pinWidth(to: self.width,
                                                  factor: 0.6)
     panoPageWidthConstraint?.isActive = false
