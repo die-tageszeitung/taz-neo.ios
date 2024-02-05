@@ -742,14 +742,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   override public func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     slider?.button.hideAnimated()
-    slider?.close()
+    if slider?.isOpen == true { slider?.close() }
   }
   
   // MARK: - viewDidDisappear
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     slider?.button.hideAnimated()
-    slider?.close()
   }
   
   // MARK: - viewDidAppear
