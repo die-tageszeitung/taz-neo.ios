@@ -729,11 +729,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   open override func willMove(toParent parent: UIViewController?) {
     super.willMove(toParent: parent)
     if parent == nil {
+      sliderContentController?.view.isHidden = true
       slider?.button.hideAnimated{[weak self] in
         ///if didMove is done slider is nil so this has no effect
         ///if didMove not happen slider is still there => back canceled
         onMain(after: 0.4){ [weak self] in
           self?.slider?.button.isHidden = false
+          self?.sliderContentController?.view.isHidden = false
         }
       }
       self.slider?.close()
