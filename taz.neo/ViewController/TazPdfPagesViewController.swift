@@ -727,11 +727,17 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
   
   open override func willMove(toParent parent: UIViewController?) {
+    super.willMove(toParent: parent)
     if parent == nil {
-      slider?.button.hideAnimated()
+      slider?.button.hideAnimated{[weak self] in
+        ///if didMove is done slider is nil so this has no effect
+        ///if didMove not happen slider is still there => back canceled
+        onMain(after: 0.4){ [weak self] in
+          self?.slider?.button.isHidden = false
+        }
+      }
       self.slider?.close()
     }
-    super.willMove(toParent: parent)
   }
   
   open override func didMove(toParent parent: UIViewController?) {
@@ -1023,11 +1029,17 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   }
   
   override func willMove(toParent parent: UIViewController?) {
+    super.willMove(toParent: parent)
     if parent == nil {
-      slider?.button.hideAnimated()
+      slider?.button.hideAnimated{[weak self] in
+        ///if didMove is done slider is nil so this has no effect
+        ///if didMove not happen slider is still there => back canceled
+        onMain(after: 0.4){ [weak self] in
+          self?.slider?.button.isHidden = false
+        }
+      }
       self.slider?.close()
     }
-    super.willMove(toParent: parent)
   }
   
   override func didMove(toParent parent: UIViewController?) {
