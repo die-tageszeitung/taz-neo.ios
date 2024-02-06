@@ -120,3 +120,20 @@ extension BuildConst {
   static var tazBundleIdentifierBeta: String { "de.taz.taz.beta" }
   static var tazBundleIdentifierStore: String { "de.taz.taz.2" }
 }
+
+extension NSObject {
+  var selfIfLMd:Self? {
+    #if TAZ
+      return nil
+    #else
+      return self
+    #endif
+  }
+  var selfIfTaz:Self? {
+    #if TAZ
+      return self
+    #else
+      return nil
+    #endif
+  }
+}

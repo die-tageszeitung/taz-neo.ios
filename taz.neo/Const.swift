@@ -81,8 +81,11 @@ public struct Const {
     static let darkSecondaryText: UIColor = UIColor.rgb(0xebebf5)
     static let appIconGrey: UIColor = UIColor.rgb(0x9c9c9c)
     static let appIconGreyActive: UIColor = darkSecondaryText
-    
+    #if LMD
+    static let foundTextHighlight: UIColor = UIColor.rgb(0x71FF01)
+    #else
     static let foundTextHighlight: UIColor = UIColor.rgb(0xffff88)
+    #endif
     static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)
     static let radioGreen: UIColor =  UIColor.rgb(0x2ca400)
     
