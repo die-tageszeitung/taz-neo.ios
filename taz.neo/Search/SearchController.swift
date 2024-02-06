@@ -72,7 +72,9 @@ class SearchController: UIViewController {
           resultsTable.isHidden = false
         case .emptyResult:
           centralActivityIndicator.isHidden = true
-          placeholderView.showAnimated()
+          onMainAfter(1.0){[weak self] in
+            self?.placeholderView.showAnimated()
+          }
           resultsTable.hideAnimated()
       }
     }
@@ -188,8 +190,8 @@ class SearchController: UIViewController {
     self.view.addSubview(resultsTable)
     self.view.addSubview(searchSettingsView)
     self.view.addSubview(header)
-    self.view.onTapping {[weak self] _ in
-      self?.header.searchTextField.resignFirstResponder()
+    placeholderView.onTapping {[weak self] _ in
+        self?.header.searchTextField.resignFirstResponder()
     }
     centralActivityIndicator.center()
     pin(placeholderView, toSafe: self.view)
