@@ -369,7 +369,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   public var toolBar = ContentToolbar()
   
   override public var preferredStatusBarStyle: UIStatusBarStyle {
-    return .lightContent
+    return App.isLMD ? .darkContent : .lightContent
   }
   
   // MARK: - init
