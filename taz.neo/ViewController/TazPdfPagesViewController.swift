@@ -726,6 +726,14 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
   }
   
+  open override func willMove(toParent parent: UIViewController?) {
+    if parent == nil {
+      slider?.button.hideAnimated()
+      self.slider?.close()
+    }
+    super.willMove(toParent: parent)
+  }
+  
   open override func didMove(toParent parent: UIViewController?) {
     super.didMove(toParent: parent)
     if parent == nil {
@@ -738,23 +746,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
   }
   
-  // MARK: - viewWillDisappear
-  override public func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(animated)
-    slider?.button.hideAnimated()
-    if slider?.isOpen == true { slider?.close() }
-  }
-  
-  // MARK: - viewDidDisappear
-  override public func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    slider?.button.hideAnimated()
-  }
-  
   // MARK: - viewDidAppear
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     Notification.send(Const.NotificationNames.articleLoaded)
+    slider?.button.showAnimated()
   }
   
   // MARK: - UIStyleChangeDelegate
@@ -998,7 +994,6 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
-    slider?.button.hideAnimated()
     slider?.close()
   }
   
@@ -1020,11 +1015,16 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     updateHeader()
     #endif
     updateSlidersWidth(self.view.frame.size)
-    slider?.button.isHidden = false
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    slider?.button.showAnimated()
   }
   
   override func willMove(toParent parent: UIViewController?) {
     if parent == nil {
+      slider?.button.hideAnimated()
       self.slider?.close()
     }
     super.willMove(toParent: parent)
