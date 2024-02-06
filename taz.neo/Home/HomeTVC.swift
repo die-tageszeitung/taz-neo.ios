@@ -224,6 +224,7 @@ class HomeTVC: UITableViewController {
     #endif
     showRequestTrackingIfNeeded()
 //    showPdfInfoIfNeeded()//DEACTIVATED FOR 1.1.0 // In 1.2.0 Coachmarks shloud come DELETE IT!
+    self.carouselController.showScrollDownAnimationIfNeeded()
     scroll(up: wasUp)
     Rating.homeAppeared()
   }
