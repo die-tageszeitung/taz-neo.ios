@@ -60,6 +60,7 @@ class SearchResultsTableView:UITableView{
     self.backgroundColor = Const.Colors.opacityBackground
     footer.alpha = 0.0
     self.tableFooterView = footer
+    self.separatorInset = UIEdgeInsets(top: 0, left: Const.Size.DefaultPadding, bottom: 0, right: Const.Size.DefaultPadding)
     
     self.dataSource = self
     self.delegate = self
@@ -232,9 +233,9 @@ class SearchResultsCell: UITableViewCell {
     
     pin(titleLabel.top, to: cellView.top, dist: 15)
     pin(authorLabel.top, to: titleLabel.bottom, dist: App.isTAZ ? 8.0 : 5.0)
-    pin(contentLabel.top, to: authorLabel.bottom, dist: App.isTAZ ? 8.0 : 6.0)
+    pin(contentLabel.top, to: authorLabel.bottom, dist: App.isTAZ ? 8.0 : 8.0)
     pin(dateLabel.top, to: contentLabel.bottom, dist: App.isTAZ ? 8.0 : 12.0)
-    pin(dateLabel.bottom, to: cellView.bottom, dist: -12)
+    pin(dateLabel.bottom, to: cellView.bottom, dist:  App.isTAZ ? -12.0 : -6.0)
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -274,7 +275,7 @@ extension String {
       highlightedAttributes[.foregroundColor] = UIColor.black
       #if LMD
         let style = NSMutableParagraphStyle()
-        style.lineHeightMultiple = 1.2
+        style.lineHeightMultiple = 1.1
         highlightedAttributes[.paragraphStyle] = style
         defaultAttributes[.paragraphStyle] = style
       #endif
