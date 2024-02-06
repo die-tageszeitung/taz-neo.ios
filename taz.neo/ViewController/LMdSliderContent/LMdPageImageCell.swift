@@ -34,6 +34,12 @@ class LMdPageImageCell: UICollectionViewCell, LMdSliderCell {
   
   var page: Page? {
     didSet {
+      if page?.facsimile != nil 
+          && page?.facsimile?.image(dir: issueDir) == nil
+          && page?.facsimile?.fileName.suffix(4) == "webp" {
+        ///throw away the webp facsimiles (which are also not loaded) and create the jpg ones
+        (page as? StoredPage)?.facsimile = nil
+      }
       pageImageView.image = page?.facsimile?.image(dir: issueDir)?.left
       pageLabel.text = "Seite \(page?.pagina ?? "")"
     }
