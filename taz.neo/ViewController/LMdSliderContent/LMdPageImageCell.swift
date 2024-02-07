@@ -34,12 +34,14 @@ class LMdPageImageCell: UICollectionViewCell, LMdSliderCell {
   
   var page: Page? {
     didSet {
-      if page?.facsimile != nil 
+      #warning("deprecated: remove soon, just needed for pre RC3 Installations")
+      if page?.facsimile != nil
           && page?.facsimile?.image(dir: issueDir) == nil
           && page?.facsimile?.fileName.suffix(4) == "webp" {
         ///throw away the webp facsimiles (which are also not loaded) and create the jpg ones
         (page as? StoredPage)?.facsimile = nil
       }
+      /// -end of deprecated
       pageImageView.image = page?.facsimile?.image(dir: issueDir)?.left
       pageLabel.text = "Seite \(page?.pagina ?? "")"
     }
