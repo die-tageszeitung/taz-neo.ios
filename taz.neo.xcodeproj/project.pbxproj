@@ -392,7 +392,7 @@
 		AE4C4FEE26A04EBD006079C8 /* ArticlePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticlePlayer.swift; sourceTree = "<group>"; };
 		AE4C4FF826A1ABD9006079C8 /* BookmarkFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkFeed.swift; sourceTree = "<group>"; };
 		AE4F51DA2438C8E800BC9548 /* ArticleDB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleDB.swift; sourceTree = "<group>"; };
-		AE5131F52AFBCADB002289E8 /* Le Monde diplomatique.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Le Monde diplomatique.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE5131F52AFBCADB002289E8 /* LMd.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LMd.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE5131F72AFBE76B002289E8 /* lmd.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = lmd.plist; sourceTree = "<group>"; };
 		AE5131F82AFBE76B002289E8 /* taz.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = taz.plist; sourceTree = "<group>"; };
 		AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloader.swift; sourceTree = "<group>"; };
@@ -686,7 +686,7 @@
 			isa = PBXGroup;
 			children = (
 				AEBAF564219ACD1900566205 /* taz.alpha.app */,
-				AE5131F52AFBCADB002289E8 /* Le Monde diplomatique.app */,
+				AE5131F52AFBCADB002289E8 /* LMd.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -867,7 +867,7 @@
 				AE51316A2AFBCADB002289E8 /* MatomoTracker */,
 			);
 			productName = taz.neo;
-			productReference = AE5131F52AFBCADB002289E8 /* Le Monde diplomatique.app */;
+			productReference = AE5131F52AFBCADB002289E8 /* LMd.app */;
 			productType = "com.apple.product-type.application";
 		};
 		AEBAF563219ACD1900566205 /* taz.neo */ = {
@@ -1444,7 +1444,7 @@
 				MARKETING_VERSION = 1.2.0;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DLMD";
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.lmd.neo;
-				PRODUCT_NAME = "Le Monde diplomatique";
+				PRODUCT_NAME = LMd;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1473,7 +1473,7 @@
 				MARKETING_VERSION = 1.2.0;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DLMD";
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.lmd.neo;
-				PRODUCT_NAME = "Le Monde diplomatique";
+				PRODUCT_NAME = LMd;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1500,7 +1500,7 @@
 				MARKETING_VERSION = 1.2.0;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DLMD";
 				PRODUCT_BUNDLE_IDENTIFIER = de.taz.lmd.neo;
-				PRODUCT_NAME = "Le Monde diplomatique";
+				PRODUCT_NAME = LMd;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
