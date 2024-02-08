@@ -991,8 +991,10 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   }
   
   private func updateHeader(){
+    #if LMD
     guard let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC else { return }
     header.title = "Seite \(lmdSliderContentVc.currentPage?.pagina ?? "")"
+    #endif
   }
   
   override func viewDidLoad() {
