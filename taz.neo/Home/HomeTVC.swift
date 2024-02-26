@@ -27,6 +27,34 @@ protocol PushIssueDelegate {
   func push(_ viewController:UIViewController, issueInfo: IssueDisplayService)
 }
 
+extension HomeTVC: CoachmarkVC {
+  var viewName: String { Coachmarks.IssueCarousel.typeName }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    guard let item = item as? Coachmarks.IssueCarousel else { return nil }
+    
+    switch item {
+      case .pdfButton:
+        return togglePdfButton
+      case .loading:
+        if carouselController.downloadButton.indicator.downloadState == .notStarted {
+          return carouselController.downloadButton
+        }
+        fallthrough
+      default:
+        return nil
+    }
+  }
+  
+  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
+    guard let item = item as? Coachmarks.IssueCarousel,
+          item == .tiles else { return nil }
+    return (UIImage(named: "cm-scroll")?.withRenderingMode(.alwaysOriginal), [], [])
+    as? (UIImage, [UIView], [CGPoint]) ?? nil
+  }
+}
+
+
 class HomeTVC: UITableViewController {
 
   /// should show PDF Info Toast on startup (from config defaults)
@@ -81,7 +109,12 @@ class HomeTVC: UITableViewController {
   // MARK: - UI Components / Vars
   var carouselController: IssueCarouselCVC
   var tilesController: IssueTilesCVC
-  var wasUp = true { didSet { if oldValue != wasUp { trackScreen() }}}
+  var wasUp = true { 
+    didSet {
+      if oldValue != wasUp { trackScreen() }
+      if wasUp == false { deactivateCoachmark(Coachmarks.IssueCarousel.tiles) }
+    }
+  }
   
   var isAccessibilityMode: Bool = false {
     didSet {
@@ -219,6 +252,7 @@ class HomeTVC: UITableViewController {
 //    showPdfInfoIfNeeded()//DEACTIVATED FOR 1.1.0 // In 1.2.0 Coachmarks shloud come DELETE IT!
     scroll(up: wasUp)
     Rating.homeAppeared()
+    showCoachmarkIfNeeded()
   }
   
  @objc private func updateAccessibillityHelper(){
@@ -408,6 +442,7 @@ extension HomeTVC {
   func onPDF(sender:Any){
     self.isFacsimile = !self.isFacsimile
     Usage.track(self.isFacsimile ? Usage.event.appMode.SwitchToPDFMode : Usage.event.appMode.SwitchToMobileMode)
+    deactivateCoachmark(Coachmarks.IssueCarousel.pdfButton)
     
     if let imageButton = sender as? Button<ImageView> {
       imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"

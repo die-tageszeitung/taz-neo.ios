@@ -67,6 +67,9 @@ public let ConfigDefaults = Defaults.Values([
   "playbackRate": "1.0",
   "edgeTapToNavigate" : "false",
   "edgeTapToNavigateVisible" : "false",
+  "showCoachmarks" : "true",
+  "cmLastPrio": "1",
+  "cmSessionCount": "0",
 ])
 
 

@@ -351,12 +351,12 @@ extension UIDevice {
 }
 
 
-protocol NameDescribable {
+public protocol NameDescribable {
     var typeName: String { get }
     static var typeName: String { get }
 }
 
-extension NameDescribable {
+public extension NameDescribable {
     var typeName: String {
         return String(describing: type(of: self))
     }

@@ -137,7 +137,7 @@ class FetchNewStatusHeader: UIView {
   
   private lazy var activityIndicator = UIActivityIndicatorView()
   
-  private lazy var label : UILabel = UILabel().contentFont().white().center()
+  private lazy var label : UILabel = UILabel().contentFont().white().centerText()
   
   
   func setup(){

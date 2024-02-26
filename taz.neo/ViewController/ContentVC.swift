@@ -537,6 +537,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.textSettingsClosure?(self)
       Usage.track(Usage.event.dialog.TextSettings)
+      CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.font)
     }
     backButton.pinSize(CGSize(width: 35, height: 40))
     shareButton.pinSize(CGSize(width: 30, height: 30))
@@ -641,7 +642,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   // MARK: - viewDidLoad
   override public func viewDidLoad() {
     if self is BookmarkSectionVC == false {
-      leftTapBottomDist = hideOnScroll ? -20 : 20
+      tapButtonsBottomDist = hideOnScroll ? -20 : 20
     }
     super.viewDidLoad()
     writeTazApiCss()

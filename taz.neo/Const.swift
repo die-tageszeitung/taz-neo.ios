@@ -351,6 +351,8 @@ public struct Const {
     static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
     static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
     
+    static var americanTypewriterFontName: String = "AmericanTypewriter"
+    
     static var contentTableFontName = titleFontName
     static var contentTextFont = quaTextRegular
 
@@ -479,6 +481,14 @@ extension UILabel {
     return self
   }
   
+  /// set americanTypewriter font with default font size and return self (for chaining)
+  /// - Returns: self
+  @discardableResult
+  func americanTypewriter(size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
+    self.font = Const.Fonts.font(name: Const.Fonts.americanTypewriterFontName, size: size)
+    return self
+  }
+  
   /// set content title font with default font size and return self (for chaining)
   /// - Returns: self
   @discardableResult
@@ -539,12 +549,6 @@ extension UILabel {
   }
   
   @discardableResult
-  func center() -> UILabel {
-    self.textAlignment = .center
-    return self
-  }
-
-  @discardableResult
   func centerText() -> UILabel {
     self.textAlignment = .center
     return self
@@ -583,9 +587,6 @@ extension UILabel {
 }
 
 enum tazFontType { case title, small, bold, content, contentText }
-
-
-
 
 extension UIButton {
   

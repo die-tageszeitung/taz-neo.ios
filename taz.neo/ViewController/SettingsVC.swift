@@ -52,14 +52,20 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
   
+  @Default("showCoachmarks")
+  var showCoachmarks: Bool
+  
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
   
   @Default("doubleTapToZoomPdf")
   public var doubleTapToZoomPdf: Bool
   
-  @Default("edgeTapToNavigate")
-  public var edgeTapToNavigate: Bool
+  ///Required rename to enable setting and intotruce feature with a coachmark
+  ///if old value was already set to true just a coachmark will be shown
+  ///if old setting was still false; now its true and a coachmark will be shown
+  @Default("edgeTapToNavigate2")
+  public var edgeTapToNavigate2: Bool
   
   @Default("edgeTapToNavigateVisible")
   public var edgeTapToNavigateVisible: Bool
@@ -251,9 +257,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var edgeTapToNavigateCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Tap am Rand",
                   detailText: "Tap am unteren Rand einer Seite oder eines Artikels, um zu scrollen oder zum nächsten Element zu gelangen.",
-                  initialValue: edgeTapToNavigate,
-                  onChange: {[weak self] newValue in 
-    self?.edgeTapToNavigate = newValue
+                  initialValue: edgeTapToNavigate2,
+                  onChange: {[weak self] newValue in
+    self?.edgeTapToNavigate2 = newValue
     Usage.track(Usage.event.tapEdge.state, name: newValue ? "Ein" : "Aus")
     (self?.edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = newValue
   })
@@ -297,6 +303,17 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                   initialValue: autoHideToolbar,
                   onChange: {[weak self] newValue in
                     self?.autoHideToolbar = newValue
+                  })
+  
+  lazy var showCoachmarksCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Coachmarks anzeigen",
+                  initialValue: showCoachmarks,
+                  onChange: {[weak self] newValue in
+                    if self?.showCoachmarks == false && newValue == true {
+                      CoachmarksBusiness.shared.reset()
+                      Toast.show("Re-Aktiviere alle Coachmarks.")
+                    }
+                    self?.showCoachmarks = newValue
                   })
   
   lazy var memoryUsageCell: XSettingsCell
@@ -707,10 +724,11 @@ extension SettingsVC {
   }
   
   var extendedSettingsCells:[XSettingsCell] {
-    (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
+    (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate2
     var cells =  [
       bookmarksTeaserCell,
       smartBackFromArticleCell,
+      showCoachmarksCell,
       memoryUsageCell,
       deleteDatabaseCell,
       resetAppCell

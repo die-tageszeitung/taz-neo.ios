@@ -138,6 +138,7 @@ class ArticlePlayer: DoesLog {
       
       if aplayer.file != nil {
         userInterface.show()
+        CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.audio)
         _ = commandCenter//setup if needed
         if !wasPaused { aplayer.play() }
         aPlayerPlayed = true

@@ -272,6 +272,7 @@ extension NewContentTableVC {
         self?.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: sectIndex), at: .top, animated: false)
       }
     }
+    CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Section.slider)
   }
 }
 

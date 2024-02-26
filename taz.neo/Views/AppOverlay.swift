@@ -44,12 +44,12 @@ public class WaitingAppOverlay {
       if showSpinner {
         let spinner = UIActivityIndicatorView()
         layer.addSubview(spinner)
-        spinner.center()
+        spinner.centerAxis()
         spinner.startAnimating()
       }
       
       if let title = titleMessage {
-        let label = UILabel(title).titleFont().white().center()
+        let label = UILabel(title).titleFont().white().centerText()
         label.numberOfLines = 2
         layer.addSubview(label)
         pin(label.bottom, to: layer.centerY, dist: -30)
@@ -58,7 +58,7 @@ public class WaitingAppOverlay {
       }
       
       if let text = bottomMessage {
-        let label = UILabel(text).contentFont().white().center()
+        let label = UILabel(text).contentFont().white().centerText()
         layer.addSubview(label)
         pin(label.top, to: layer.centerY, dist: 30)
         pin(label.left, to: layer.left, dist: 10)

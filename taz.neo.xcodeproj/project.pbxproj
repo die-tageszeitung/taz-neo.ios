@@ -66,6 +66,7 @@
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
 		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
+		7797F31D2B7CBEEC00634CD9 /* CoachmarksBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7797F31C2B7CBEEC00634CD9 /* CoachmarksBusiness.swift */; };
 		779DE96126FA3D790056187B /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779DE96026FA3D790056187B /* SettingsVC.swift */; };
 		779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779EF0CF2A03A16200D6A626 /* InfoToaster.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
@@ -80,6 +81,7 @@
 		77CB2D222A814A3100021804 /* FeederContext+IssueDownload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CB2D212A814A3100021804 /* FeederContext+IssueDownload.swift */; };
 		77CB2D262A814B1400021804 /* FeederContext+Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CB2D252A814B1400021804 /* FeederContext+Notifications.swift */; };
 		77CB2D282A814B6100021804 /* FeederContext+ResourcesUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CB2D272A814B6100021804 /* FeederContext+ResourcesUpdate.swift */; };
+		77CEE27B2B7F9E9300A6D5E4 /* CoachmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CEE27A2B7F9E9300A6D5E4 /* CoachmarkView.swift */; };
 		77E5E1BC292D772200611148 /* Javascript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E5E1BB292D772200611148 /* Javascript.swift */; };
 		77ECD87A2A814C1F00DFBBB6 /* FeederContext+Polling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD8792A814C1F00DFBBB6 /* FeederContext+Polling.swift */; };
 		77ECD87C2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */; };
@@ -200,6 +202,7 @@
 		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
+		7797F31C2B7CBEEC00634CD9 /* CoachmarksBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachmarksBusiness.swift; sourceTree = "<group>"; };
 		779DE96026FA3D790056187B /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
 		779EF0CF2A03A16200D6A626 /* InfoToaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToaster.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
@@ -214,6 +217,7 @@
 		77CB2D212A814A3100021804 /* FeederContext+IssueDownload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+IssueDownload.swift"; sourceTree = "<group>"; };
 		77CB2D252A814B1400021804 /* FeederContext+Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+Notifications.swift"; sourceTree = "<group>"; };
 		77CB2D272A814B6100021804 /* FeederContext+ResourcesUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+ResourcesUpdate.swift"; sourceTree = "<group>"; };
+		77CEE27A2B7F9E9300A6D5E4 /* CoachmarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachmarkView.swift; sourceTree = "<group>"; };
 		77E5E1BB292D772200611148 /* Javascript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Javascript.swift; sourceTree = "<group>"; };
 		77ECD8792A814C1F00DFBBB6 /* FeederContext+Polling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+Polling.swift"; sourceTree = "<group>"; };
 		77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushNotification.Payload+Extension.swift"; sourceTree = "<group>"; };
@@ -263,7 +267,7 @@
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
 		AEB935312917E81F000330DA /* Star.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Star.svg; sourceTree = "<group>"; };
 		AEB935322917E81F000330DA /* StarFilled.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = StarFilled.svg; sourceTree = "<group>"; };
-		AEBAF564219ACD1900566205 /* die tageszeitung.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "die tageszeitung.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEBAF564219ACD1900566205 /* taz.alpha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.alpha.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AEBAF573219ACD1A00566205 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -388,6 +392,7 @@
 				77E5E1BB292D772200611148 /* Javascript.swift */,
 				77B993D72AC406F900C7D832 /* Rating.swift */,
 				77B993D92AC4706600C7D832 /* Usage.swift */,
+				7797F31C2B7CBEEC00634CD9 /* CoachmarksBusiness.swift */,
 			);
 			path = Business;
 			sourceTree = "<group>";
@@ -431,6 +436,7 @@
 				77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */,
 				77328429274F9F5B00B08535 /* TazCustomized.swift */,
 				779EF0CF2A03A16200D6A626 /* InfoToaster.swift */,
+				77CEE27A2B7F9E9300A6D5E4 /* CoachmarkView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -505,7 +511,7 @@
 		AEBAF565219ACD1900566205 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AEBAF564219ACD1900566205 /* die tageszeitung.app */,
+				AEBAF564219ACD1900566205 /* taz.alpha.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -632,7 +638,7 @@
 				77B993DC2AC47F6400C7D832 /* MatomoTracker */,
 			);
 			productName = taz.neo;
-			productReference = AEBAF564219ACD1900566205 /* die tageszeitung.app */;
+			productReference = AEBAF564219ACD1900566205 /* taz.alpha.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -779,6 +785,7 @@
 				4D308EEC283405A900529592 /* MainTabVC.swift in Sources */,
 				4D308EEA2834057200529592 /* SearchController.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
+				77CEE27B2B7F9E9300A6D5E4 /* CoachmarkView.swift in Sources */,
 				77A63BDF2AD8271A0047DF5A /* NewInfoToast.swift in Sources */,
 				4D308EEE283405D900529592 /* PlaceholderView.swift in Sources */,
 				773500B22A1C0A7C00678647 /* HomeTVC.swift in Sources */,
@@ -818,6 +825,7 @@
 				AE4C4FF926A1ABD9006079C8 /* BookmarkFeed.swift in Sources */,
 				7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */,
 				773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */,
+				7797F31D2B7CBEEC00634CD9 /* CoachmarksBusiness.swift in Sources */,
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */,
 				4D308EF02834061600529592 /* BookmarkNC.swift in Sources */,

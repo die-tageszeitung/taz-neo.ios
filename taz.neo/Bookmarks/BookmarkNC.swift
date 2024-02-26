@@ -13,7 +13,7 @@ fileprivate class PlaceholderVC: UIViewController{
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view
-    = PlaceholderView("Die Leseliste ist leer!",
+    = PlaceholderView("Sie haben noch keine Artikel in Ihrer Leseliste.\n\nSpeichern Sie Artikel zum weiterlesen, hören oder erinnern in Ihrer persönlichen Leseliste. Einfach das Sternchen bei den Artikeln aktivieren.",
                       image: UIImage(named: "star"))
   }
   

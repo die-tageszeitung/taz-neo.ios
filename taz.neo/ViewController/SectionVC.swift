@@ -43,15 +43,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   /// Only change header title according to section title
   public var isStaticHeader = false
   
+  private var displayNotFromSwiping: Bool = false
+  
   private var initialSection: Int?
   private var initialArticle: Int?
   
   public override var delegate: IssueInfo! {
     didSet { if oldValue == nil { self.setup() } }
   }
-  
-  /// Perform slider animations?
-  static var showAnimations = true
 
   /// Is top VC
   public var isVisibleVC: Bool {
@@ -178,6 +177,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     article2sectionHtml = issue.article2sectionHtml
     onDisplay { [weak self] (secIndex, oview) in
       guard let self = self else { return }
+      if self.displayNotFromSwiping {
+        self.deactivateCoachmark(Coachmarks.Section.swipe)
+        self.displayNotFromSwiping = false
+      }
       self.contentTable?.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex)")
       self.setHeader(secIndex: secIndex)
@@ -317,6 +320,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       else {
         self.debug("*** Action: \"Impressum\" in Slider pressed")
       }
+      self.displayNotFromSwiping = true
       self.slider?.close()
       self.articleVC?.slider?.close()
       self.articleVC?.navigationController?.popViewController(animated: true)
@@ -351,12 +355,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     Rating.issueOpened()
   }
   
+  fileprivate var doPreventCoachmark = false
+  
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     if let iart = initialArticle {
+      doPreventCoachmark = true
       articleVC?.view.doLayout()
       self.showArticle(index: iart, animated: false)
-      SectionVC.showAnimations = false
       initialArticle = nil
       self.header.isHidden = true
       self.collectionView?.isHidden = true
@@ -367,16 +373,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.viewDidAppear(animated)
     self.header.isHidden = false
     self.collectionView?.isHidden = false
-    if SectionVC.showAnimations && issue.sections?.count ?? 0 > 1 {
-      SectionVC.showAnimations = false
-      delay(seconds: 1.5) {
-        self.slider?.open() {_ in
-          delay(seconds: 1.5) {[weak self] in
-            self?.slider?.close()
-          }
-        }
-      }
-    }
+    showCoachmarkIfNeeded()
+  }
+  
+  public override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    doPreventCoachmark = false
   }
   
   open override func didMove(toParent parent: UIViewController?) {
@@ -416,3 +418,28 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
 
 } // SectionVC
+
+extension SectionVC: CoachmarkVC {
+  public var viewName: String { Coachmarks.Section.typeName }
+  
+  public var preventCoachmark: Bool { return doPreventCoachmark }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    if let item = item as? Coachmarks.Section {
+      switch item {
+        case .slider:
+          return slider?.button
+        case .swipe:
+          return currentView as? UIView
+      }
+    }
+    return nil
+  }
+  
+  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
+    guard index ?? 0 > 0,
+          let item = item as? Coachmarks.Section,
+          item == .swipe else { return nil }
+    return (UIImage(named: "cm-swipe")?.withRenderingMode(.alwaysOriginal), [], []) as? (UIImage, [UIView], [CGPoint]) ?? nil
+  }
+}

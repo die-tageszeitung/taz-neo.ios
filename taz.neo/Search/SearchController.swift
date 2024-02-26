@@ -104,6 +104,7 @@ class SearchController: UIViewController {
     header.extendedSearchButton.onTapping { [weak self] _ in
       self?.header.setHeader(showMaxi: true)
       self?.searchSettingsView.toggle()
+      self?.deactivateCoachmark(Coachmarks.Search.filter)
       self?.checkFilter()
     }
     header.searchTextField.delegate = self
@@ -162,7 +163,7 @@ class SearchController: UIViewController {
     return v
   }()
   
-  lazy var placeholderView = PlaceholderView("Suche nach Autor*innen, Artikeln, Rubriken oder Themen", image: UIImage(named: "search-magnifier"))
+  lazy var placeholderView = PlaceholderView("Auf die Suche, fertig, los!\n\nOb Autor*innen, konkrete Artikel, Rubriken oder Themen – mit der Suchfunktion geht’s direkt zu den Wunschinhalten.", image: UIImage(named: "search-magnifier"))
   
   lazy var centralActivityIndicator = UIActivityIndicatorView()
     
@@ -174,6 +175,11 @@ class SearchController: UIViewController {
        let idx = hitList.firstIndex(where: { lastArticle.isEqualTo(otherArticle: $0.article)}) {
       resultsTable.scrollToRow(at: IndexPath(row: idx, section:0 ), at: .top, animated: false)
     }
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    showCoachmarkIfNeeded()
   }
   
   override func viewDidLayoutSubviews() {
@@ -188,7 +194,7 @@ class SearchController: UIViewController {
     self.view.addSubview(resultsTable)
     self.view.addSubview(searchSettingsView)
     self.view.addSubview(header)
-    centralActivityIndicator.center()
+    centralActivityIndicator.centerAxis()
     pin(placeholderView, toSafe: self.view)
     pin(resultsTable, toSafe: self.view, exclude: .top)
     pin(resultsTable.top, to: header.bottom)
@@ -492,3 +498,15 @@ fileprivate extension SearchSettings {
   }
 }
 
+extension SearchController: CoachmarkVC {
+  
+   public var viewName: String { Coachmarks.Search.typeName }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    guard let item = item as? Coachmarks.Search else { return nil }
+    switch item {
+      case .filter:
+        return header.extendedSearchButton
+    }
+  }
+}

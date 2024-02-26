@@ -16,7 +16,7 @@ class PlaceholderView: UIView{
     let lbl = UILabel()
     lbl.textAlignment = .center
     lbl.numberOfLines = 0
-    lbl.boldContentFont(size: Const.Size.SubtitleFontSize)
+    lbl.contentFont()
     lbl.textColor =  Const.SetColor.taz(.textFieldClear).color
     return lbl
   }()

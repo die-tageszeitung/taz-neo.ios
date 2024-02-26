@@ -27,7 +27,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self.view.backgroundColor = .black
       let spinner = UIActivityIndicatorView()
       view.addSubview(spinner)
-      spinner.center()
+      spinner.centerAxis()
       spinner.color = .white
       spinner.startAnimating()
       let lb = UILabel()
@@ -80,7 +80,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   public static let sharedInstance = TazAppEnvironment()
   
-  var showAnimations = false
   lazy var consoleLogger = Log.Logger()
   lazy var fileLogger = Log.FileLogger()
   var feederContext: FeederContext?
@@ -175,8 +174,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     logKeychain(msg: "initial")
     logSystemEvents()
     let now = UsTime.now
-    self.showAnimations = (nStarted < 2) || (now.sec - lastStarted.sec) > oneWeek
-    SectionVC.showAnimations = self.showAnimations
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
     if !dataPolicyAccepted {
@@ -196,7 +193,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   func goingForeground() {
     isForeground = true
-    debug("Entering foreground is connected?: \(feederContext?.isConnected)")
+    debug("Entering foreground is connected?: \(feederContext?.isConnected ?? false)")
   }
   
   func appWillTerminate() {

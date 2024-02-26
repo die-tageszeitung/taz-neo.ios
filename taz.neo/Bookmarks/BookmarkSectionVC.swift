@@ -65,7 +65,7 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
     let show = show ?? ((ctH ?? 0.0) * 0.8  > UIWindow.size.height)
     ///topInset looks strange, something is wrong but the result/placement is over multiple devices the best currently
     ///maybe re-think sectionVC with Tabbar insets and pin
-    leftTapBottomDist = (show ?  88 - UIWindow.topInset : 220)
+    tapButtonsBottomDist = (show ?  88 - UIWindow.topInset : 220)
   }
   
   public override func viewWillAppear(_ animated: Bool) {

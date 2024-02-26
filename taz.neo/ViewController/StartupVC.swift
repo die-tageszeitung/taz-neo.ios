@@ -23,7 +23,7 @@ class StartupVC : UIViewController {
   override func viewDidLoad() {
     label.numberOfLines = -1
     label.text = text
-    label.contentFont().center()
+    label.contentFont().centerAxis()
     label.textColor = .white
     
 

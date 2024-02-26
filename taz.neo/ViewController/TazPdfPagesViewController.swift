@@ -384,7 +384,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.article2section = issueInfo.issue.article2section
     self.feederContext = issueInfo.feederContext
     self.issue = issueInfo.issue
-    super.init(data: pdfModel)
+    super.init(data: pdfModel, useTopGradient: false)
     
     hidesBottomBarWhenPushed = true
     
@@ -712,6 +712,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
     
     let onShare:((ButtonControl)->()) = { [weak self] _ in
+      CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.share)
       guard let self = self,
             let i = self.index,
             let pi = self.pdfModel?.item(atIndex:i) as? ZoomedPdfPageImage,

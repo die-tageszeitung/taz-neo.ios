@@ -168,7 +168,7 @@ public class NewInfoToast : UIView {
     (widthConstraint, heightConstraint) = self.pinSize(UIWindow.size)
     
     self.addSubview(scrollView)
-    self.scrollViewYConstraint = scrollView.center().y
+    self.scrollViewYConstraint = scrollView.centerAxis().y
     
     Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
       guard let self = self else { return }
