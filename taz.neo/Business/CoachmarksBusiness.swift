@@ -45,8 +45,7 @@ extension CoachmarkItem {
         Coachmarks.Article.audio.key:
         return 1
       case Coachmarks.Section.swipe.key,
-        Coachmarks.Article.font.key,
-        Coachmarks.Article.tapOnEdge.key:
+        Coachmarks.Article.font.key:
         return 2
       case Coachmarks.IssueCarousel.loading.key:
         return 3
@@ -73,7 +72,7 @@ fileprivate extension String {
 struct Coachmarks {
   enum IssueCarousel: CoachmarkItem, CaseIterable { case pdfButton, loading, tiles}///HomeTVC
   enum Section: CoachmarkItem, CaseIterable { case slider, swipe }///SectionVC
-  enum Article: CoachmarkItem, CaseIterable { case audio, share, font, tapOnEdge}///ArticleVC
+  enum Article: CoachmarkItem, CaseIterable { case audio, share, font}///ArticleVC
   enum Search: CoachmarkItem, CaseIterable { case filter }
   
   static let all : [CoachmarkItem] = [
@@ -82,7 +81,6 @@ struct Coachmarks {
     Coachmarks.Article.audio,
     Coachmarks.Section.swipe,
     Coachmarks.Article.font,
-    Coachmarks.Article.tapOnEdge,//difficult to deactivate on tap
     Coachmarks.IssueCarousel.loading,//no need to deactivate if used cm should be shown
     Coachmarks.Article.share,
     Coachmarks.IssueCarousel.tiles,
@@ -96,7 +94,7 @@ extension Coachmarks.IssueCarousel {
       case .pdfButton:
         return "Wie sieht’s denn hier aus?"
       case .loading:
-        return "Hinter den Wolken ..."
+        return "Ladestatus"
       case .tiles:
         return "All you can read"
     }
@@ -143,8 +141,6 @@ extension Coachmarks.Article {
         return "Teile und herrsche"
       case .font:
         return "Die taz ist unlesbar?"
-      case .tapOnEdge:
-        return "Tap am Rand"
     }
   }
   
@@ -156,8 +152,6 @@ extension Coachmarks.Article {
         return "Der Artikel ist besonders gut? Oder nervt zu Tode? Mit der Share-Funktion kann man Freud wie Leid ganz einfach mit anderen teilen."
       case .font:
         return "Da schafft die individuelle Anpassung der Schriftgröße Abhilfe."
-      case .tapOnEdge:
-        return "Ein kurzer Fingertip statt scrollen und blättern!\nKann in den Einstellungen abgeschaltet werden."
     }
   }
 }

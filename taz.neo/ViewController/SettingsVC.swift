@@ -64,8 +64,8 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   ///Required rename to enable setting and intotruce feature with a coachmark
   ///if old value was already set to true just a coachmark will be shown
   ///if old setting was still false; now its true and a coachmark will be shown
-  @Default("edgeTapToNavigate2")
-  public var edgeTapToNavigate2: Bool
+  @Default("edgeTapToNavigate")
+  public var edgeTapToNavigate: Bool
   
   @Default("edgeTapToNavigateVisible")
   public var edgeTapToNavigateVisible: Bool
@@ -257,9 +257,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var edgeTapToNavigateCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Tap am Rand",
                   detailText: "Tap am unteren Rand einer Seite oder eines Artikels, um zu scrollen oder zum nächsten Element zu gelangen.",
-                  initialValue: edgeTapToNavigate2,
+                  initialValue: edgeTapToNavigate,
                   onChange: {[weak self] newValue in
-    self?.edgeTapToNavigate2 = newValue
+    self?.edgeTapToNavigate = newValue
     Usage.track(Usage.event.tapEdge.state, name: newValue ? "Ein" : "Aus")
     (self?.edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = newValue
   })
@@ -724,7 +724,7 @@ extension SettingsVC {
   }
   
   var extendedSettingsCells:[XSettingsCell] {
-    (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate2
+    (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
       bookmarksTeaserCell,
       smartBackFromArticleCell,

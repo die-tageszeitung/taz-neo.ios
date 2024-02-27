@@ -404,20 +404,6 @@ extension ArticleVC: CoachmarkVC {
         return shareButton.buttonView
       case .font:
         return textSettingsButton.buttonView
-      default:
-        return nil
     }
-  }
-  
-  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
-    guard let item = item as? Coachmarks.Article,
-          item == .tapOnEdge else { return nil }
-    return (UIImage(named: "cm-tap")?.withRenderingMode(.alwaysOriginal),
-            [leftTapEnEdgeButton, rightTapEnEdgeButton],
-            [CGPoint(x: (leftTapEnEdgeButton?.frame.width ?? 0.0)*0.4,
-                     y: (leftTapEnEdgeButton?.frame.height ?? 0.0)*0.3),
-             CGPoint(x: (rightTapEnEdgeButton?.frame.width ?? 0.0)*0.3,
-                      y: (rightTapEnEdgeButton?.frame.height ?? 0.0)*0.3)])
-    as? (UIImage, [UIView], [CGPoint]) ?? nil
   }
 }

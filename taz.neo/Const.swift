@@ -351,7 +351,7 @@ public struct Const {
     static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
     static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
     
-    static var americanTypewriterFontName: String = "AmericanTypewriter"
+    static var americanTypewriterFontName: String = "AmericanTypewriter-CondensedBold"
     
     static var contentTableFontName = titleFontName
     static var contentTextFont = quaTextRegular
