@@ -223,8 +223,8 @@ class CoachmarkView: UIView {
   lazy var textLayer:UIView = {
     let wrapper = UIView()
     
-    titleLabel.americanTypewriter(size: 32).white()
-    subLabel.contentFont().white()
+    titleLabel.americanTypewriter(size: 32).white().centerText()
+    subLabel.contentFont().white().centerText()
     
     wrapper.addSubview(titleLabel)
     wrapper.addSubview(subLabel)
