@@ -38,7 +38,6 @@ class CoachmarkView: UIView {
   let lineMask = CAShapeLayer()///mask for line to not start in targetview or text
   
   var textWidthConstraint: NSLayoutConstraint?
-  var textLayerCenterYConstraint: NSLayoutConstraint?
   
   private let titleLabel = UILabel()
   private let subLabel = UILabel()
@@ -56,7 +55,7 @@ class CoachmarkView: UIView {
     self.addSubview(background)
     pin(background, to: self)
     self.addSubview(textLayer)
-    textLayerCenterYConstraint = textLayer.centerAxis().y
+    textLayer.centerAxis()
     textLayer.transform = CGAffineTransformMakeRotation(-8 * .pi/180);
     textWidthConstraint = textLayer.pinWidth(UIWindow.size.width*0.7)
     self.layer.addSublayer(line)
@@ -180,17 +179,6 @@ class CoachmarkView: UIView {
     }
     
     let tFrame = targetFrame ?? .zero
-    
-    if self.frame.size.height / 2 > tFrame.origin.y + tFrame.size.height + 20  {
-      textLayerCenterYConstraint?.constant = tFrame.origin.y + tFrame.size.height + 140 - self.frame.size.height / 2
-    }
-    else if self.frame.size.height / 2 < tFrame.origin.y {
-      textLayerCenterYConstraint?.constant = tFrame.origin.y - 80 - self.frame.size.height / 2 - textLayer.frame.size.height
-    }
-    else {
-      textLayerCenterYConstraint?.constant = 0
-    }
-    self.doLayout()
     
     let path = CGMutablePath()
     path.addRect(self.bounds)
