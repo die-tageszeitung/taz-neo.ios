@@ -54,28 +54,44 @@ class SearchController: UIViewController {
   
   enum searchState: String {case initial, firstSearch, result, emptyResult}
   
+  var blockedState = false
+  
   private var currentState: searchState = .initial {
     didSet {
-      switch currentState {
-        case .initial:
-          resultsTable.hideAnimated()
-          placeholderView.showAnimated()
-        case .firstSearch:
-          resultsTable.hideAnimated()
-          resultsTable.scrollTop()
-          placeholderView.hideAnimated()
-          centralActivityIndicator.isHidden = false
-          centralActivityIndicator.startAnimating()
-        case .result:
-          centralActivityIndicator.isHidden = false
-          centralActivityIndicator.stopAnimating()
-          resultsTable.isHidden = false
-        case .emptyResult:
-          centralActivityIndicator.isHidden = true
-          placeholderView.showAnimated()
-          resultsTable.hideAnimated()
-      }
+      checkStateChange()
     }
+  }
+  
+  func checkStateChange(){
+    if blockedState == true {
+      onMainAfter{[weak self] in self?.checkStateChange() }
+      return
+    }
+    blockedState = true
+    
+    switch currentState {
+      case .initial:
+        placeholderView.label.text = Localized("search_placeholder_initial")
+        resultsTable.hideAnimated()
+        placeholderView.showAnimated()
+      case .firstSearch:
+        resultsTable.hideAnimated()
+        resultsTable.scrollTop()
+        placeholderView.hideAnimated()
+        centralActivityIndicator.isHidden = false
+        centralActivityIndicator.startAnimating()
+      case .result:
+        centralActivityIndicator.isHidden = false
+        centralActivityIndicator.stopAnimating()
+        resultsTable.isHidden = false
+      case .emptyResult:
+        placeholderView.label.text = Localized("search_placeholder_empty_result")
+        centralActivityIndicator.isHidden = true
+        placeholderView.showAnimated()
+        resultsTable.hideAnimated()
+    }
+    //Animations should be finished
+    onMainAfter(0.6){[weak self] in self?.blockedState = false }
   }
   
   // MARK: *** UIComponents ***
@@ -163,7 +179,9 @@ class SearchController: UIViewController {
     return v
   }()
   
-  lazy var placeholderView = PlaceholderView("Auf die Suche, fertig, los!\n\nOb Autor*innen, konkrete Artikel, Rubriken oder Themen – mit der Suchfunktion geht’s direkt zu den Wunschinhalten.", image: UIImage(named: "search-magnifier"))
+  lazy var placeholderView = PlaceholderView(Localized("search_placeholder_initial"),
+                                             image: UIImage(named: "search-magnifier"))
+
   
   lazy var centralActivityIndicator = UIActivityIndicatorView()
     
