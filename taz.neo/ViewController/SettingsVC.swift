@@ -728,11 +728,14 @@ extension SettingsVC {
     var cells =  [
       bookmarksTeaserCell,
       smartBackFromArticleCell,
-      showCoachmarksCell,
       memoryUsageCell,
       deleteDatabaseCell,
       resetAppCell
     ]
+    
+    if TazAppEnvironment.hasValidAuth {
+      cells.insert(showCoachmarksCell, at: 2)
+    }
     
     if Device.isIphone {
       cells.insert(hideToolbarCell, at: 0)
