@@ -43,6 +43,12 @@ class CoachmarkView: UIView {
   private let subLabel = UILabel()
   
   func setup(){
+    NotificationCenter.default.addObserver(forName: UIAccessibility.voiceOverStatusDidChangeNotification,
+                                           object: nil,
+                                           queue: nil,
+                                           using: { [weak self] _ in
+      self?.closeClosure?()
+    })
     alternativeTargetImageViews = []
     if let at = alternativeTarget {
       for _ in 0...max(0, at.1.count-1)  {
@@ -80,7 +86,9 @@ class CoachmarkView: UIView {
     }
     
     self.addSubview(closeButton)
-    closeButton.accessibilityLabel = "Schließen"
+    ///WARNING NOT WORKING: underlaying view passes accessabillity items
+    ///kiss solution: execute close coachmark on voiceover activation
+    closeButton.accessibilityLabel = "Schliessen"
     if true {//pin to top == conflict with Search Filter
       pin(closeButton.right, to: self.right, dist: -10.0)
       pin(closeButton.top, to: self.topGuide(), dist: 10.0)
@@ -99,9 +107,10 @@ class CoachmarkView: UIView {
     super.didMoveToSuperview()
     guard let sv = superview else {
       targetView = nil//cleanup, remove references
+      NotificationCenter.default.removeObserver(self)
+      self.closeClosure = nil
       return
     }
-    
     pin(self, to: sv)
     onMainAfter {[weak self] in
       self?.updateCustomLayout()
@@ -239,7 +248,7 @@ class CoachmarkView: UIView {
 //    wrapper.addBorder(.red)
 //    titleLabel.addBorder(.green)
 //    subLabel.addBorder(.yellow)
-    
+    wrapper.accessibilityLabel = "Hinweis Schliessen durch tap"
     return wrapper
   }()
   
