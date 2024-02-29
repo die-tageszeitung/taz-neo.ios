@@ -176,12 +176,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     let now = UsTime.now
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
-    if !dataPolicyAccepted {
-      showIntro() { self.showHome() }
-    }
-    else {
-      showHome()
-    }
+    showHome()
     feederContext?.updateResources(toVersion: -1)
   }
   
@@ -353,31 +348,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     
     self.log("isLowPowerModeEnabled: \(ProcessInfo.processInfo.isLowPowerModeEnabled)")
     self.log("backgroundRefreshStatus: \(UIApplication.shared.backgroundRefreshStatus)")
-  }
-  
-  func showIntro(closure: @escaping ()->()) {
-    Notification.receiveOnce("resourcesReady") { [weak self] _ in
-      guard let self = self else { return }
-      self.debug("Showing Intro")
-      let introVC = TazIntroVC()
-      let feeder = self.feederContext?.storedFeeder
-      introVC.webView.toggleBottomButton = false
-      introVC.htmlDataPolicy = feeder?.dataPolicy
-      introVC.htmlIntro = feeder?.welcomeSlides
-      Notification.receiveOnce("dataPolicyAccepted") { notif in
-        let kc = Keychain.singleton
-        kc["dataPolicyAccepted"] = "true"
-        closure()
-      }
-      self.rootViewController = introVC
-      onMainAfter(0.3) { [weak self] in
-        guard let self = self,
-                let fc = self.feederContext else { return }
-        self.service = IssueOverviewService(feederContext: fc)
-        _ = self.service?.cellData(for: 0)
-        _ = self.service?.cellData(for: 3)
-      }
-    }
   }
   
   func showHome() {
