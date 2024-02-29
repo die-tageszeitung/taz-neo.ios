@@ -136,9 +136,9 @@ class HomeTVC: UITableViewController {
     return createLoginButton()
   }()
   
-  var accessibilityPlayHelper: UILabel = UILabel()
-  var accessibilityOlderHelper = UIImageView()
-  var accessibilityNewerHelper = UIImageView()
+  var accessibilityPlayHelper = UILabel()
+  var accessibilityOlderHelper = UILabel()
+  var accessibilityNewerHelper = UILabel()
   
   lazy var accessibilityControlls: UIView = {
     accessibilityPlayHelper.onTapping {[weak self] _ in
@@ -150,27 +150,29 @@ class HomeTVC: UITableViewController {
     }
     accessibilityPlayHelper.numberOfLines = 2
     accessibilityPlayHelper.boldContentFont().color(.white).centerText()
+    accessibilityOlderHelper.numberOfLines = 2
+    accessibilityNewerHelper.numberOfLines = 2
+    accessibilityOlderHelper.textColor = .white
+    accessibilityNewerHelper.textColor = .white
     //--
     accessibilityOlderHelper.onTapping {[weak self] _ in
+      self?.accessibilityNewerHelper.accessibilityLabel = "zu neuerer Ausgabe"
       guard let idx = self?.carouselController.centerIndex else { return }
       self?.carouselController.scrollTo(idx+1, animated: false)
     }
-    accessibilityOlderHelper.accessibilityLabel = "Ausgabe zurück"
-    accessibilityOlderHelper.isAccessibilityElement = true
-    accessibilityOlderHelper.image = UIImage(named: "forward")
-    accessibilityOlderHelper.image?.accessibilityTraits = .none
-    accessibilityOlderHelper.tintColor = .white
+    accessibilityOlderHelper.text = "zu vorheriger\nAusgabe →"
+    accessibilityOlderHelper.accessibilityLabel = "zu vorheriger Ausgabe"
     //--
     accessibilityNewerHelper.onTapping {[weak self] _ in
       guard let idx = self?.carouselController.centerIndex else { return }
-      if idx == 0 { return }
+      if idx == 0 {
+        self?.accessibilityNewerHelper.accessibilityLabel = "keine neuere\nAusgabe vorhanden"
+        return
+      }
       self?.carouselController.scrollTo(idx-1, animated: false)
     }
-    accessibilityNewerHelper.accessibilityLabel = "Ausgabe vor"
-    accessibilityNewerHelper.isAccessibilityElement = true
-    accessibilityNewerHelper.image = UIImage(named: "backward")
-    accessibilityNewerHelper.image?.accessibilityTraits = .none
-    accessibilityNewerHelper.tintColor = .white
+    accessibilityNewerHelper.text = "zu neuerer\n← Ausgabe"
+    accessibilityNewerHelper.accessibilityLabel = "zu neuerer Ausgabe"
     //--
     let accessibilityInfoLabel = UILabel(frame: CGRect(x: 5, y: 50, width: 10, height: 4))
     accessibilityInfoLabel.text = "Voiceover Hilfsschaltflächen aktiviert\nVoiceover deaktivieren\num diese zu deaktivieren"
@@ -256,7 +258,8 @@ class HomeTVC: UITableViewController {
   
  @objc private func updateAccessibillityHelper(){
    isAccessibilityMode
-    = loginButton.superview == nil
+    = self.feederContext.isAuthenticated
+    && Defaults.usageTrackingAllowed != nil
     && UIAccessibility.isVoiceOverRunning
   }
   
@@ -429,7 +432,7 @@ extension HomeTVC {
   }
   
   func scroll(up:Bool, animated:Bool=true){
-    self.tableView.scrollToRow(at:  IndexPath(row: up ? 0 : 1, section: 0),
+    self.tableView.scrollToRow(at:  IndexPath(row: up || isAccessibilityMode ? 0 : 1, section: 0),
                                at: .top,
                                animated: animated)
   }
@@ -648,12 +651,16 @@ extension HomeTVC {
                               button1Text: "Ja, ich helfe mit",
                               button2Text: "Nein, keine Daten senden",
                               button1Handler: { [weak self] in
-        self?.showCoachmarkIfNeeded()
         Defaults.usageTrackingAllowed = true;
-        Usage.shared.setup() },
-                              button2Handler: { [weak self] in
+        Usage.shared.setup()
+        self?.updateAccessibillityHelper()
         self?.showCoachmarkIfNeeded()
-        Defaults.usageTrackingAllowed = false },
+      },
+                              button2Handler: { [weak self] in
+        Defaults.usageTrackingAllowed = false
+        self?.updateAccessibillityHelper()
+        self?.showCoachmarkIfNeeded()
+      },
                               dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
     }
     dataPolicyToast?.show(fromBottom: fromBottom)
