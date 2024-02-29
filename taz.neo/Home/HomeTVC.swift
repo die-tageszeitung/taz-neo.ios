@@ -248,11 +248,10 @@ class HomeTVC: UITableViewController {
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     togglePdfButton.showAnimated()
-    showRequestTrackingIfNeeded()
+    showRequestTrackingIfNeeded()///start also coachmark if needed
 //    showPdfInfoIfNeeded()//DEACTIVATED FOR 1.1.0 // In 1.2.0 Coachmarks shloud come DELETE IT!
     scroll(up: wasUp)
     Rating.homeAppeared()
-    showCoachmarkIfNeeded()
   }
   
  @objc private func updateAccessibillityHelper(){
@@ -631,7 +630,10 @@ extension HomeTVC {
 // MARK: - ShowPDF Info Toast
 extension HomeTVC {
   func showRequestTrackingIfNeeded() {
-    if Defaults.usageTrackingAllowed != nil { return }
+    if Defaults.usageTrackingAllowed != nil {
+      showCoachmarkIfNeeded()
+      return
+    }
     guard let image = UIImage(named: "BundledResources/UsagePopover.png")else {
       log("Bundled UsagePopover.png not found!")
       return
@@ -639,14 +641,20 @@ extension HomeTVC {
     var fromBottom = false
     if dataPolicyToast == nil {
       fromBottom = true
-      dataPolicyToast = NewInfoToast.showWith(image: image,
-                            title: "Eine noch bessere taz App? Sie haben es in der Hand",
-                            text: "Anonyme Nutzungsdaten helfen uns, noch besser zu werden. Wir wissen natürlich: Wer Daten will, muss freundlich sein – deshalb behandeln wir diese mit größtmöglicher Sorgfalt und absolut vertraulich. Ihre Einwilligung zur Nutzung kann zudem jederzeit widerrufen werden.",
-                            button1Text: "Ja, ich helfe mit",
-                            button2Text: "Nein, keine Daten senden",
-                            button1Handler: { Defaults.usageTrackingAllowed = true; Usage.shared.setup() },
-                            button2Handler: { Defaults.usageTrackingAllowed = false },
-                            dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
+      dataPolicyToast 
+      = NewInfoToast.showWith(image: image,
+                              title: "Eine noch bessere taz App? Sie haben es in der Hand",
+                              text: "Anonyme Nutzungsdaten helfen uns, noch besser zu werden. Wir wissen natürlich: Wer Daten will, muss freundlich sein – deshalb behandeln wir diese mit größtmöglicher Sorgfalt und absolut vertraulich. Ihre Einwilligung zur Nutzung kann zudem jederzeit widerrufen werden.",
+                              button1Text: "Ja, ich helfe mit",
+                              button2Text: "Nein, keine Daten senden",
+                              button1Handler: { [weak self] in
+        self?.showCoachmarkIfNeeded()
+        Defaults.usageTrackingAllowed = true;
+        Usage.shared.setup() },
+                              button2Handler: { [weak self] in
+        self?.showCoachmarkIfNeeded()
+        Defaults.usageTrackingAllowed = false },
+                              dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
     }
     dataPolicyToast?.show(fromBottom: fromBottom)
   }
