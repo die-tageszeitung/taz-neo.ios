@@ -152,7 +152,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.updateAudioButton()
     }
-    onDisplay { [weak self] (idx, oview) in
+    onDisplay { [weak self] (idx, _, _) in
       guard let self = self else { return }
       guard let art = self.articles.valueAt(idx) else {
         ///prevent crash on search result login on 2nd or later load more results

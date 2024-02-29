@@ -659,7 +659,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         self?.toolBar.show(show: false, animated: true)}
       else { self?.toolBar.show(show:true, animated: true)}
     }
-    onDisplay {[weak self]_, _  in
+    onDisplay {[weak self]_, _, _  in
       //Note: use this due onPageChange only fires on link @see WebCollectionView
       if self?.showBarsOnContentChange == true {
         self?.toolBar.show(show:true, animated: true)

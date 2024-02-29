@@ -315,9 +315,11 @@ public class CoachmarksBusiness: DoesLog{
   }
   
   func deactivateCoachmark(_ item: CoachmarkItem){
+    if disabledCoachmarks.contains(where: {$0.key == item.key }) == false {
+      disabledCoachmarks.append(item)
+    }
     if availableCoachmarkKeys[item.key] == 0 { return }
     availableCoachmarkKeys[item.key] = 0
-    disabledCoachmarks.append(item)
   }
   
   func setShown(item: CoachmarkItem){

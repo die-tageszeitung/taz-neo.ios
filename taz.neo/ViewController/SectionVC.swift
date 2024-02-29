@@ -43,8 +43,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   /// Only change header title according to section title
   public var isStaticHeader = false
   
-  private var displayNotFromSwiping: Bool = false
-  
   private var initialSection: Int?
   private var initialArticle: Int?
   
@@ -175,14 +173,13 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
-    onDisplay { [weak self] (secIndex, oview) in
+    onDisplay { [weak self] (secIndex, _, isFromScroll) in
       guard let self = self else { return }
-      if self.displayNotFromSwiping {
-        self.deactivateCoachmark(Coachmarks.Section.swipe)
-        self.displayNotFromSwiping = false
-      }
       self.contentTable?.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex)")
+      if isFromScroll {
+        deactivateCoachmark(Coachmarks.Section.swipe)
+      }
       self.setHeader(secIndex: secIndex)
       self.updatePlayButton()
       if self.isVisibleVC { 
@@ -320,7 +317,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       else {
         self.debug("*** Action: \"Impressum\" in Slider pressed")
       }
-      self.displayNotFromSwiping = true
       self.slider?.close()
       self.articleVC?.slider?.close()
       self.articleVC?.navigationController?.popViewController(animated: true)

@@ -97,6 +97,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
       if let issue = data.issue {
         self?.downloadButton.indicator.downloadState = .waiting
         self?.service.download(issueAt: data.date.date, withAudio: false)
+        CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.IssueCarousel.loading)
       }
     }
     return v
