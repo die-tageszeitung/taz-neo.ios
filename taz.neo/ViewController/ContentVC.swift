@@ -410,6 +410,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       Task { try? await self.setDynamicStyles(webView: wv) }
       return NSNull()
     }
+    self.bridge?.addfunc("gotoStart") { [weak self] _ in
+      self?.index = 0
+      Toast.show("Das ist der Anfang!")
+      return NSNull()
+    }
   }
   
   /// Write tazApi.js to resource directory
@@ -442,7 +447,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     tazApi.setDynamicStyles = function() {
       tazApi.call("setDynamicStyles", undefined);
     };
-    
+    tazApi.gotoStart = function() {
+      tazApi.call("gotoStart", undefined);
+    };
     log2bridge(tazApi);\n
     """
     tazApiJs.string = JSBridgeObject.js + "\n\n" + apiJs + "\n"

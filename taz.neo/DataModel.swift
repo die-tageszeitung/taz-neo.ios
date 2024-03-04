@@ -983,7 +983,12 @@ public extension Issue {
         if let arts = sect.articles { ret.append(contentsOf: arts) } 
       }
     }
+    if self is SearchResultIssue { return ret }
+    
     if let imp = imprint { ret += imp }
+    for tom in Tom.toms(issue: self) {
+      ret += tom
+    }
     return ret
   }
   
