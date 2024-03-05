@@ -54,15 +54,24 @@ class Tom {
             overflow: hidden;
             background-color: transparent;
          }
-         img {
-           margin: auto;
-           max-width: 100%;
-           max-height: 94%;
-           transform: translate(-50%, -50%);
-           top: 53%;
-           left: 50%;
-           position: fixed;
+         img {/*landscape/default*/
+          transform: translate(-50%, 0%);
+          left: 50%;
+          bottom: -23%;
+          position: fixed;
+          height: 110%;
+          border: 0.7px solid black;
+          border-radius: 2px;
          }
+        @media (max-aspect-ratio: 0.6) {/*portrait*/
+          img {
+            border: none;
+            width: 100%;
+            height: inherit;
+            bottom: -10%;
+          }
+        }
+      }
       </style>
     </head>
     <body>
@@ -73,6 +82,13 @@ class Tom {
   </html>
   """
   }
+  /**
+  Aspect Ratios:
+   iPad landscape 1.2...1.5     1366/1024 = 1.333
+   iPad hochformat: 0.5...1.2    1024/1366 = 0.74
+   Image Ratio Bild 1.5 => 1.4 ist Schwellwert
+   Ipad Hochformat slideover: 375/1224  = 0.3
+   */
   
   static let tomFiles = ["tom_01", "tom_02", "tom_03", "tom_04", "tom_05", "tom_06", "tom_07", "tom_08", "tom_09", "tom_10", "tom_11", "tom_12"]
   
