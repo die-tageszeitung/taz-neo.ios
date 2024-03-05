@@ -91,7 +91,7 @@ class CoachmarkView: UIView {
     closeButton.accessibilityLabel = "Schliessen"
     if true {//pin to top == conflict with Search Filter
       pin(closeButton.right, to: self.right, dist: -10.0)
-      pin(closeButton.top, to: self.topGuide(), dist: 10.0)
+      pin(closeButton.top, to: self.topGuide(), dist: 55.0)
     }
     else {///pin to textlayer
       pin(closeButton.right, to: textLayer.right, dist: 40.0)
