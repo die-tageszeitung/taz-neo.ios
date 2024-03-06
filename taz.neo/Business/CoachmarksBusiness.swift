@@ -352,6 +352,13 @@ public class CoachmarksBusiness: DoesLog{
   
   func showCoachmark(sender: CoachmarkVC, target: UIView?, item: CoachmarkItem, alternativeTarget: (UIImage, [UIView], [CGPoint])? = nil) {
     guard let window = UIApplication.shared.delegate?.window else { return }
+    //not show coachmark for hidden or not displayed elements
+    if let target = target,
+       let window = UIWindow.keyWindow,
+       target.isHidden == true
+        || target.isDescendant(of: window) == false 
+        || (target as? ButtonView)?.isHiddenInToolbar == true { return }
+    guard target?.isVisible ?? true else { return } //if no targets
     guard currentActiveCMVC == nil else { return }
     currentActiveCMVC = sender
     
