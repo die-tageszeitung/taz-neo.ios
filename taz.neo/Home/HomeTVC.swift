@@ -223,7 +223,6 @@ class HomeTVC: UITableViewController {
     togglePdfButton.isHidden = false
     #endif
     showRequestTrackingIfNeeded()
-//    showPdfInfoIfNeeded()//DEACTIVATED FOR 1.1.0 // In 1.2.0 Coachmarks shloud come DELETE IT!
     self.carouselController.showScrollDownAnimationIfNeeded()
     scroll(up: wasUp)
     Rating.homeAppeared()
@@ -645,44 +644,6 @@ extension HomeTVC {
       guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
       bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
       bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
-    }
-  }
-}
-
-// MARK: - ShowPDF Info Toast
-extension HomeTVC {
-  func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
-    if Defaults.usageTrackingAllowed == nil { return }
-    if showPdfInfoToast == false {
-      self.carouselController.showScrollDownAnimationIfNeeded()
-      return
-    }
-    
-    onThreadAfter(delay) { [weak self] in
-        guard let url = Bundle.main.url(forResource: "lottiePopup",
-                                     withExtension: "html",
-                                        subdirectory: "BundledResources") else {
-          self?.log("Bundled lottie HTML not found!")
-          return
-        }
-      
-        let file = File(url)
-        guard file.exists  else {
-          self?.log("Bundled lottie HTML File not found!")
-          return
-        }
-      
-      InfoToast.showWith(lottieUrl: url,
-                          title: "Entdecken Sie jetzt die Zeitungsansicht",
-                          text: "Hier können Sie zwischen der mobilen und der Ansicht der Zeitungsseiten wechseln",
-                          buttonText: "OK",
-                          hasCloseX: true,
-                          autoDisappearAfter: nil) {   [weak self] in
-        self?.log("PdfInfoToast showen and closed")
-        self?.showPdfInfoToast = false
-        self?.carouselController.showScrollDownAnimationIfNeeded()
-      }
-      Usage.track(Usage.event.dialog.PDFModeSwitchHint)
     }
   }
 }
