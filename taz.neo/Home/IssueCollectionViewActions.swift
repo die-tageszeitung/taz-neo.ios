@@ -74,7 +74,8 @@ extension IssueCollectionViewActions {
       self?.deleteIssue(issue: issue, at: indexPath)
     }
     
-    if issue.isComplete && issue.isAudioComplete == false {
+    if issue.isComplete && issue.isAudioComplete == false && issue.hasAudio
+    {
         actions.addMenuItem(title: "Audioinhalte laden",
                             icon: "download",
                             enabled: issue.isDownloading == false) {[weak self] _ in
@@ -92,6 +93,7 @@ extension IssueCollectionViewActions {
               ccvc.centerIndex == indexPath.row else { return }
         ccvc.downloadButton.indicator.downloadState = .waiting
       }
+      ///issue.audioFiles.count > 0 not possible until download
       actions.addMenuItem(title: "Ausgabe mit Audio laden",
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in

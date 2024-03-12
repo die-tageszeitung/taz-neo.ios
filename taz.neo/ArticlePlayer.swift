@@ -626,6 +626,10 @@ class ArticlePlayer: DoesLog {
           Toast.show(Localized("error"))
           return
         }
+        if issue.audioFiles.count == 0 {
+          Toast.show("Für diese Ausgabe ist leider keine Vorlesefuktion verfügbar!")
+          return
+        }
         self?.play(issue: issue,
                    startFromArticle: startFromArticle,
                    enqueueType: enqueueType,
@@ -710,9 +714,14 @@ extension StoredIssue {
   }
 }
 extension Issue {
+
+  var hasAudio: Bool { get { self.audioFiles.count > 0 }}
+  
   func _contextMenu(group: Int) -> MenuActions {
     
     let menu = MenuActions()
+    
+    if isComplete && hasAudio == false { return menu }
     
     menu.addMenuItem(title: "Wiedergabe",
                      icon: "play.fill",

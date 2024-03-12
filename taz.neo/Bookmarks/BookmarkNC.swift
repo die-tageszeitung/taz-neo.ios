@@ -83,6 +83,7 @@ class BookmarkNC: NavigationController {
         else {
           self.sectionVC.deleteArticle(art)
           if !self.sectionVC.isVisible { self.sectionVC.reload() }
+          self.sectionVC.updateAudioButton()
         }
         if self.bookmarkFeed.count <= 0 {
           self.viewControllers[0] = emptyRoot

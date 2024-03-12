@@ -338,7 +338,13 @@ protocol IssueSelectionChangeDelegate {
 
 extension HomeTVC: IssueSelectionChangeDelegate {
   func  setCurrent(cellData: IssueCellData, idx: Int) {
-    accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) abspielen"
+    if cellData.issue?.audioFiles.count ?? 0 > 0 {
+      accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) abspielen"
+    }
+    else {
+      accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) ohne Audiowiedergabe"
+    }
+    
   }
 }
 

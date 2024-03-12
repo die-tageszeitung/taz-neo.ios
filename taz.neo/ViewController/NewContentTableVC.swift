@@ -412,6 +412,9 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
       topLabel.text
       = "\(issue?.validityDateText(timeZone: GqlFeeder.tz) ?? "")"
         .replacingOccurrences(of: ", ", with: ",\n")
+      let hasAudio = issue?.audioFiles.count ?? 0 > 0
+      listenIcon.isHidden = !hasAudio
+      listenLabel.isHidden = !hasAudio
     }
   }
   

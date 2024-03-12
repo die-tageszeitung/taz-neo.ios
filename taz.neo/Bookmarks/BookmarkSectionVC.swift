@@ -57,6 +57,7 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
     && (ArticlePlayer.singleton.currentContent as? Article)?.hasBookmark == true
     ? "audio-active"
     : "audio"
+    self.headerPlayButton.buttonView.isHidden = !issue.hasAudio
   }
   
   func updateTapOnEdge(show: Bool? = nil){
@@ -70,10 +71,7 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
   
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    headerPlayButton.buttonView.name
-    = ArticlePlayer.singleton.isPlaying
-    ? "audio-active"
-    : "audio"
+    updateAudioButton()
   }
   
   public override func viewDidAppear(_ animated: Bool) {
