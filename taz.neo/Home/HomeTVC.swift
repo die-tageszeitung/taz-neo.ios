@@ -220,7 +220,7 @@ class HomeTVC: UITableViewController {
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     #if TAZ
-      togglePdfButton.showAnimated()
+    togglePdfButton.isHidden = false
     #endif
     showRequestTrackingIfNeeded()
 //    showPdfInfoIfNeeded()//DEACTIVATED FOR 1.1.0 // In 1.2.0 Coachmarks shloud come DELETE IT!
