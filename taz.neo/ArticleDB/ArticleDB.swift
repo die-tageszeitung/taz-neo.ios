@@ -2168,6 +2168,7 @@ public final class StoredIssue: Issue, StoredObject {
 //  }
   
   /// Remove old Issues and keep newest
+  /// uses issue.reduceToOverview instead of issue.delete
   /// - Parameters:
   ///   - feed: feed for Issues
   ///   - keepDownloaded: count of keep full downloaded
