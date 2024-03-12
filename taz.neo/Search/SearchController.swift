@@ -193,7 +193,7 @@ class SearchController: UIViewController {
     placeholderView.onTapping {[weak self] _ in
         self?.header.searchTextField.resignFirstResponder()
     }
-    centralActivityIndicator.center()
+    centralActivityIndicator.centerAxis()
     pin(placeholderView, toSafe: self.view)
     pin(resultsTable, toSafe: self.view, exclude: .top)
     pin(resultsTable.top, to: header.bottom)

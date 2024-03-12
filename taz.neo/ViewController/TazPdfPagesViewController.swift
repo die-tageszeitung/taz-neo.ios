@@ -505,7 +505,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       Usage.track(Usage.event.drawer.action_tap.Page)
     }
     
-    onDisplay { [weak self]  (idx, oview) in
+    onDisplay { [weak self]  (idx, _, _) in
       self?.issue.lastPage = idx
       self?.updateSlider(index: idx)
       ArticleDB.save()
@@ -655,7 +655,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   // MARK: - setupViewProvider
   open override func setupViewProvider(){
     super.setupViewProvider()
-    onDisplay { [weak self] (idx, optionalView) in
+    onDisplay { [weak self] (_, optionalView, _) in
       let sectionAudio = self?.sectionAudio()
       self?.toolBar.setToolbar(sectionAudio == nil ? 0 : 1)
       guard let ziv = optionalView as? ZoomedImageView,

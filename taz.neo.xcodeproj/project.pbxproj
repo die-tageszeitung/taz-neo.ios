@@ -58,6 +58,11 @@
 		773D56472614A4DF00B42FEF /* BundledResources in Resources */ = {isa = PBXBuildFile; fileRef = 773D56462614A4DF00B42FEF /* BundledResources */; };
 		773E3DA32A2F683E00222EE5 /* NewContentTableVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773E3DA22A2F683E00222EE5 /* NewContentTableVC.swift */; };
 		774BBAFB2A821DAC0017039D /* FeederContext+AppUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774BBAFA2A821DAC0017039D /* FeederContext+AppUpdate.swift */; };
+		774C27412BA05A7100835BB9 /* CoachmarksBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27402BA05A7100835BB9 /* CoachmarksBusiness.swift */; };
+		774C27422BA05A7100835BB9 /* CoachmarksBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27402BA05A7100835BB9 /* CoachmarksBusiness.swift */; };
+		774C27442BA05A7C00835BB9 /* Tom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27432BA05A7C00835BB9 /* Tom.swift */; };
+		774C27462BA05BA800835BB9 /* VirtualArticle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27452BA05BA800835BB9 /* VirtualArticle.swift */; };
+		774C27482BA05C4500835BB9 /* CoachmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27472BA05C4500835BB9 /* CoachmarkView.swift */; };
 		774C6F8129CB5BAF001285FB /* KeyboardToolbarForText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7758CCB32B504DAA000B8E30 /* LMdSliderHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB12B504DA5000B8E30 /* LMdSliderHeader.swift */; };
@@ -329,6 +334,10 @@
 		773D56462614A4DF00B42FEF /* BundledResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResources; sourceTree = "<group>"; };
 		773E3DA22A2F683E00222EE5 /* NewContentTableVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewContentTableVC.swift; sourceTree = "<group>"; };
 		774BBAFA2A821DAC0017039D /* FeederContext+AppUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+AppUpdate.swift"; sourceTree = "<group>"; };
+		774C27402BA05A7100835BB9 /* CoachmarksBusiness.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoachmarksBusiness.swift; sourceTree = "<group>"; };
+		774C27432BA05A7C00835BB9 /* Tom.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tom.swift; sourceTree = "<group>"; };
+		774C27452BA05BA800835BB9 /* VirtualArticle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualArticle.swift; sourceTree = "<group>"; };
+		774C27472BA05C4500835BB9 /* CoachmarkView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoachmarkView.swift; sourceTree = "<group>"; };
 		774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardToolbarForText.swift; sourceTree = "<group>"; };
 		7758CCAE2B504CCB000B8E30 /* LMdSliderContentVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderContentVC.swift; sourceTree = "<group>"; };
 		7758CCB12B504DA5000B8E30 /* LMdSliderHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderHeader.swift; sourceTree = "<group>"; };
@@ -562,10 +571,12 @@
 		777048A727B3B057007164A0 /* Business */ = {
 			isa = PBXGroup;
 			children = (
-				4D308ED9283404D400529592 /* TazAppEnvironment.swift */,
-				777048AA27B3B077007164A0 /* NotificationBusiness.swift */,
+				774C27402BA05A7100835BB9 /* CoachmarksBusiness.swift */,
 				77E5E1BB292D772200611148 /* Javascript.swift */,
+				777048AA27B3B077007164A0 /* NotificationBusiness.swift */,
 				77B993D72AC406F900C7D832 /* Rating.swift */,
+				774C27432BA05A7C00835BB9 /* Tom.swift */,
+				4D308ED9283404D400529592 /* TazAppEnvironment.swift */,
 				77B993D92AC4706600C7D832 /* Usage.swift */,
 			);
 			path = Business;
@@ -592,24 +603,25 @@
 		AE0A4D0123F4297500C44625 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				4D308EED283405D900529592 /* PlaceholderView.swift */,
 				77D0DAE825E8FDD100C9CB59 /* Cells */,
-				778F741A25CC61340017E426 /* ViewWithTextView.swift */,
-				778F741525CC60C80017E426 /* ViewWithTextField.swift */,
 				0032A4D724C89E3100284723 /* Forms */,
-				AE0A4D0223F429D800C44625 /* HeaderView.swift */,
-				AE4AA2B723F6BEC400EAFE78 /* LoadingView.swift */,
-				AECCE11D23FBF449007C2276 /* StartupView.swift */,
-				AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */,
-				AEF2DF34244766E400D1482D /* MomentView.swift */,
 				77A214C325D2B68F00A7C41B /* AppOverlay.swift */,
+				770544702637FE3D0051F12C /* ContentToolbar.swift */,
+				774C27472BA05C4500835BB9 /* CoachmarkView.swift */,
+				AE0A4D0223F429D800C44625 /* HeaderView.swift */,
+				AEF2DF2E244709CC00D1482D /* IssueCarousel.swift */,
 				773D564126145E8500B42FEF /* InfoToast.swift */,
+				779EF0CF2A03A16200D6A626 /* InfoToaster.swift */,
+				AE4AA2B723F6BEC400EAFE78 /* LoadingView.swift */,
+				AEF2DF34244766E400D1482D /* MomentView.swift */,
 				77A63BDE2AD8271A0047DF5A /* NewInfoToast.swift */,
 				7708DF65262896D10031C702 /* OfflineAlert.swift */,
-				770544702637FE3D0051F12C /* ContentToolbar.swift */,
+				4D308EED283405D900529592 /* PlaceholderView.swift */,
+				AECCE11D23FBF449007C2276 /* StartupView.swift */,
 				77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */,
 				77328429274F9F5B00B08535 /* TazCustomized.swift */,
-				779EF0CF2A03A16200D6A626 /* InfoToaster.swift */,
+				778F741A25CC61340017E426 /* ViewWithTextView.swift */,
+				778F741525CC60C80017E426 /* ViewWithTextField.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -620,6 +632,7 @@
 				AE34778C283681490022316C /* ArticleDB.xcdatamodeld */,
 				AE4F51DA2438C8E800BC9548 /* ArticleDB.swift */,
 				AEEC9199282E964300F91A2D /* ArticleDBVersionChanges.swift */,
+				774C27452BA05BA800835BB9 /* VirtualArticle.swift */,
 			);
 			path = ArticleDB;
 			sourceTree = "<group>";
@@ -694,41 +707,41 @@
 		AEBAF566219ACD1900566205 /* taz.neo */ = {
 			isa = PBXGroup;
 			children = (
-				77CB2D1D2A8148C800021804 /* Helper */,
-				4D308EEB283405A900529592 /* MainTabVC.swift */,
-				4D308ED4283404C700529592 /* GqlFeederSearch.swift */,
+				AE16422D222FFEF200DF07DE /* ArticleDB */,
+				AED3760B285E1E5D00EFE608 /* Bookmarks */,
 				777048A727B3B057007164A0 /* Business */,
+				77CB2D1D2A8148C800021804 /* Helper */,
 				7715968B25CC605D00508DE8 /* Feedback */,
 				773500A52A1C0A7C00678647 /* Home */,
-				AE822631232A717E00FFBE67 /* DataModel.swift */,
-				0015B73524DD86B30037A8D6 /* Authenticator.swift */,
 				4D308EDE2834054600529592 /* Search */,
+				AEBAF587219ACEC700566205 /* Supporting Files */,
+				AE5D9EC823E307460002C3B8 /* TestController */,
+				AE4AA2AE23F6AD5700EAFE78 /* ViewController */,
+				AE0A4D0123F4297500C44625 /* Views */,
+				AEBAF58E219ACFAC00566205 /* AppDelegate.swift */,
+				94487DAB274BCCE10066BCD0 /* AppHelper.swift */,
+				0015B73524DD86B30037A8D6 /* Authenticator.swift */,
 				0015B73924DD87DA0037A8D6 /* DefaultAuthenticator.swift */,
 				0015B73624DD86B30037A8D6 /* SimpleAuthenticator.swift */,
-				AEBAF58E219ACFAC00566205 /* AppDelegate.swift */,
 				AE4C4FEE26A04EBD006079C8 /* ArticlePlayer.swift */,
 				77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */,
+				AEAABADD24641BFA001BE414 /* Const.swift */,
+				AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */,
+				AE822631232A717E00FFBE67 /* DataModel.swift */,
+				AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */,
 				AEC7D46C249A598B008630FB /* FeederContext.swift */,
 				77CB2D212A814A3100021804 /* FeederContext+IssueDownload.swift */,
 				77CB2D252A814B1400021804 /* FeederContext+Notifications.swift */,
 				77CB2D272A814B6100021804 /* FeederContext+ResourcesUpdate.swift */,
 				77ECD8792A814C1F00DFBBB6 /* FeederContext+Polling.swift */,
 				774BBAFA2A821DAC0017039D /* FeederContext+AppUpdate.swift */,
-				AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */,
-				AEAABADD24641BFA001BE414 /* Const.swift */,
-				AE4AA2AE23F6AD5700EAFE78 /* ViewController */,
+				AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */,
 				AE82262C232A70E000FFBE67 /* GraphQlSession.swift */,
+				4D308ED4283404C700529592 /* GqlFeederSearch.swift */,
 				AE696F2D23918F9400265FC8 /* GqlFeeder.swift */,
 				AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */,
-				AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */,
-				AE5D9EC623E2FD240002C3B8 /* GermanDate.swift */,
-				AED3760B285E1E5D00EFE608 /* Bookmarks */,
-				AE16422D222FFEF200DF07DE /* ArticleDB */,
-				AE0A4D0123F4297500C44625 /* Views */,
-				AE5D9EC823E307460002C3B8 /* TestController */,
-				AEBAF587219ACEC700566205 /* Supporting Files */,
 				C794F23424FED184007168AC /* Helper.swift */,
-				94487DAB274BCCE10066BCD0 /* AppHelper.swift */,
+				4D308EEB283405A900529592 /* MainTabVC.swift */,
 			);
 			path = taz.neo;
 			sourceTree = "<group>";
@@ -1160,6 +1173,7 @@
 				AE5131BF2AFBCADB002289E8 /* MomentView.swift in Sources */,
 				AE5131C02AFBCADB002289E8 /* ScrollDownAnimationView.swift in Sources */,
 				AE5131C12AFBCADB002289E8 /* GraphQlSession.swift in Sources */,
+				774C27422BA05A7100835BB9 /* CoachmarksBusiness.swift in Sources */,
 				AE5131C22AFBCADB002289E8 /* AppOverlay.swift in Sources */,
 				AE5131C32AFBCADB002289E8 /* ViewWithTextView.swift in Sources */,
 				AE5131C42AFBCADB002289E8 /* InfoToast.swift in Sources */,
@@ -1205,6 +1219,7 @@
 				77CB2D282A814B6100021804 /* FeederContext+ResourcesUpdate.swift in Sources */,
 				AE4F51DB2438C8E800BC9548 /* ArticleDB.swift in Sources */,
 				77ECD87E2A814ED100DFBBB6 /* LocalNotifications+Extension.swift in Sources */,
+				774C27482BA05C4500835BB9 /* CoachmarkView.swift in Sources */,
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
 				0015B73724DD86B30037A8D6 /* Authenticator.swift in Sources */,
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
@@ -1263,11 +1278,13 @@
 				7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */,
 				774BBAFB2A821DAC0017039D /* FeederContext+AppUpdate.swift in Sources */,
 				00E3D2A924E68F5500AE075A /* PwForgottView.swift in Sources */,
+				774C27442BA05A7C00835BB9 /* Tom.swift in Sources */,
 				77CB2D222A814A3100021804 /* FeederContext+IssueDownload.swift in Sources */,
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,
 				AE4C4FF926A1ABD9006079C8 /* BookmarkFeed.swift in Sources */,
 				7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */,
 				773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */,
+				774C27412BA05A7100835BB9 /* CoachmarksBusiness.swift in Sources */,
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */,
 				4D308EF02834061600529592 /* BookmarkNC.swift in Sources */,
@@ -1302,6 +1319,7 @@
 				AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */,
 				77ECD87C2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift in Sources */,
 				AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */,
+				774C27462BA05BA800835BB9 /* VirtualArticle.swift in Sources */,
 				AEEC919A282E964300F91A2D /* ArticleDBVersionChanges.swift in Sources */,
 				00E3D2A124E68F1B00AE075A /* ConnectTazIdView.swift in Sources */,
 				08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */,
@@ -1407,7 +1425,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2023111601;
+				CURRENT_PROJECT_VERSION = 2024031201;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
@@ -1416,7 +1434,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.10;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -1638,7 +1656,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2023111601;
+				CURRENT_PROJECT_VERSION = 2024031201;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -1646,7 +1664,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.10;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1664,7 +1682,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2023111601;
+				CURRENT_PROJECT_VERSION = 2024031201;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -1672,7 +1690,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.10;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

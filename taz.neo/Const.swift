@@ -397,6 +397,7 @@ public struct Const {
     static var lmdBentonItalic: String? = UIFont.register(name: "BentonSans-Italic", type: "woff", subDir: "files")
     static var lmdBentonBold: String? = UIFont.register(name: "BentonSans-Bold", type: "woff", subDir: "files")
     static var lmdBentonBoldItalic: String? = UIFont.register(name: "BentonSans-BoldItalic", type: "woff", subDir: "files")
+    static var americanTypewriterFontName: String = "AmericanTypewriter-CondensedBold"
     /// *WARNING* Cannot use bundled Aktiv Grotesk fonts from Ressources, due just one font variant will be loaded,
     /// Hacky Workaround sleep(1) then load the other Problem is: multiple fonts have same generic font names
     /// from UIFont extension NorthLib -> register(data: Data)
@@ -548,6 +549,14 @@ extension UILabel {
   @discardableResult
   func boldContentFont(size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
     self.font = Const.Fonts.titleFont(size: size)
+    return self
+  }
+  
+  /// set americanTypewriter font with default font size and return self (for chaining)
+  /// - Returns: self
+  @discardableResult
+  func americanTypewriter(size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
+    self.font = Const.Fonts.font(name: Const.Fonts.americanTypewriterFontName, size: size)
     return self
   }
   
