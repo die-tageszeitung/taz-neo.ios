@@ -87,7 +87,7 @@
 "back_button" = "Zurück";
 
 /* translation from Android */
-"login_forgot_password_email_sent_header" = "Falls Sie ein bestehendes taz-Konto unter der E-Mail-Adresse haben, wurde Ihnen eine E-Mail zugesandt. Bitte schauen Sie in Ihr Mail-Postfach.\nSollten Sie die E-Mail nicht finden, schauen Sie bitte auch in Ihrem Spam-Ordner nach.\nFür weitere Fragen wenden Sie sich bitte an app@taz.de.";
+"login_forgot_password_email_sent_header" = "Falls Sie ein bestehendes taz-Konto unter der E-Mail-Adresse haben, wurde Ihnen eine E-Mail zugesandt. Bitte schauen Sie in Ihr Mail-Postfach.\n\nSollten Sie die E-Mail nicht finden, schauen Sie bitte auch in Ihrem Spam-Ordner nach.\n\nWenn auch dort nichts eingegangen ist, stimmt die von Ihnen eingegebene E-Mail-Adresse evtl. nicht mit der bei uns für Sie gespeicherten Adresse überein.\n\nFür weitere Fragen wenden Sie sich bitte an app@taz.de.";
 
 /* translation from Android */
 "login_forgot_password_email_sent_back" = "Zurück zur Anmeldung";
