@@ -45,7 +45,11 @@ class SearchHeaderView: UIView {
     tf.clipsToBounds = true
     tf.layer.cornerRadius = Const.Size.NewTextFieldHeight/2
     tf.clipsToBounds = true
+    #if LMD
+    tf.placeholder = "LMd Archiv durchsuchen"
+    #else
     tf.placeholder = "taz Archiv durchsuchen"
+    #endif
     tf.returnKeyType = .search
     return tf
   }()

@@ -76,9 +76,9 @@ public extension KeyboardToolbarForText where Self: UIResponder{
                                       target: self,
                                       action: #selector(textFieldToolbarNextButtonPressed))
     
-    prevButton.tintColor = Const.Colors.ciColor
-    nextButton.tintColor = Const.Colors.ciColor
-    doneButton.tintColor = Const.Colors.ciColor
+    prevButton.tintColor = Const.SetColor.CIColor.color
+    nextButton.tintColor = Const.SetColor.CIColor.color
+    doneButton.tintColor = Const.SetColor.CIColor.color
     
     let flexibleSpaceButton = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
     let fixedSpaceButton = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)

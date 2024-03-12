@@ -54,44 +54,30 @@ class SearchController: UIViewController {
   
   enum searchState: String {case initial, firstSearch, result, emptyResult}
   
-  var blockedState = false
-  
   private var currentState: searchState = .initial {
     didSet {
-      checkStateChange()
+      switch currentState {
+        case .initial:
+          resultsTable.hideAnimated()
+          placeholderView.showAnimated()
+        case .firstSearch:
+          resultsTable.hideAnimated()
+          resultsTable.scrollTop()
+          placeholderView.hideAnimated()
+          centralActivityIndicator.isHidden = false
+          centralActivityIndicator.startAnimating()
+        case .result:
+          centralActivityIndicator.isHidden = false
+          centralActivityIndicator.stopAnimating()
+          resultsTable.isHidden = false
+        case .emptyResult:
+          centralActivityIndicator.isHidden = true
+          onMainAfter(1.0){[weak self] in
+            self?.placeholderView.showAnimated()
+          }
+          resultsTable.hideAnimated()
+      }
     }
-  }
-  
-  func checkStateChange(){
-    if blockedState == true {
-      onMainAfter{[weak self] in self?.checkStateChange() }
-      return
-    }
-    blockedState = true
-    
-    switch currentState {
-      case .initial:
-        placeholderView.label.text = Localized("search_placeholder_initial")
-        resultsTable.hideAnimated()
-        placeholderView.showAnimated()
-      case .firstSearch:
-        resultsTable.hideAnimated()
-        resultsTable.scrollTop()
-        placeholderView.hideAnimated()
-        centralActivityIndicator.isHidden = false
-        centralActivityIndicator.startAnimating()
-      case .result:
-        centralActivityIndicator.isHidden = false
-        centralActivityIndicator.stopAnimating()
-        resultsTable.isHidden = false
-      case .emptyResult:
-        placeholderView.label.text = Localized("search_placeholder_empty_result")
-        centralActivityIndicator.isHidden = true
-        placeholderView.showAnimated()
-        resultsTable.hideAnimated()
-    }
-    //Animations should be finished
-    onMainAfter(0.6){[weak self] in self?.blockedState = false }
   }
   
   // MARK: *** UIComponents ***
@@ -120,7 +106,6 @@ class SearchController: UIViewController {
     header.extendedSearchButton.onTapping { [weak self] _ in
       self?.header.setHeader(showMaxi: true)
       self?.searchSettingsView.toggle()
-      self?.deactivateCoachmark(Coachmarks.Search.filter)
       self?.checkFilter()
     }
     header.searchTextField.delegate = self
@@ -179,9 +164,7 @@ class SearchController: UIViewController {
     return v
   }()
   
-  lazy var placeholderView = PlaceholderView(Localized("search_placeholder_initial"),
-                                             image: UIImage(named: "search-magnifier"))
-
+  lazy var placeholderView = PlaceholderView("Suche nach Autor*innen, Artikeln, Rubriken oder Themen", image: UIImage(named: "search-magnifier"))
   
   lazy var centralActivityIndicator = UIActivityIndicatorView()
     
@@ -193,11 +176,6 @@ class SearchController: UIViewController {
        let idx = hitList.firstIndex(where: { lastArticle.isEqualTo(otherArticle: $0.article)}) {
       resultsTable.scrollToRow(at: IndexPath(row: idx, section:0 ), at: .top, animated: false)
     }
-  }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    showCoachmarkIfNeeded()
   }
   
   override func viewDidLayoutSubviews() {
@@ -212,7 +190,10 @@ class SearchController: UIViewController {
     self.view.addSubview(resultsTable)
     self.view.addSubview(searchSettingsView)
     self.view.addSubview(header)
-    centralActivityIndicator.centerAxis()
+    placeholderView.onTapping {[weak self] _ in
+        self?.header.searchTextField.resignFirstResponder()
+    }
+    centralActivityIndicator.center()
     pin(placeholderView, toSafe: self.view)
     pin(resultsTable, toSafe: self.view, exclude: .top)
     pin(resultsTable.top, to: header.bottom)
@@ -516,15 +497,3 @@ fileprivate extension SearchSettings {
   }
 }
 
-extension SearchController: CoachmarkVC {
-  
-   public var viewName: String { Coachmarks.Search.typeName }
-  
-  public func targetView(for item: CoachmarkItem) -> UIView? {
-    guard let item = item as? Coachmarks.Search else { return nil }
-    switch item {
-      case .filter:
-        return header.extendedSearchButton
-    }
-  }
-}

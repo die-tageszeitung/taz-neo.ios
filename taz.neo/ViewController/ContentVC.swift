@@ -665,6 +665,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         if self?.hideOnScroll == false { return }
         self?.toolBar.show(show: false, animated: true)}
       else { self?.toolBar.show(show:true, animated: true)}
+      #if LMD
+        self?.slider?.collapsedButton = ratio < 0
+      #endif
     }
     onDisplay {[weak self]_, _, _  in
       //Note: use this due onPageChange only fires on link @see WebCollectionView
@@ -694,7 +697,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   public func setupSlider() {
     updateSliderWidth(newParentWidth: UIScreen.shortSide)
-    slider?.image = UIImage.init(named: "logo")
+    let logo = App.isTAZ ? "logo" : "logoLMD"
+    slider?.image = UIImage.init(named: logo)
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
     header.leftConstraint?.constant = 8 + (slider?.visibleButtonWidth ?? 0.0)

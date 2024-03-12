@@ -412,7 +412,6 @@ class GqlPage: Page, GQLObject {
   
   static var fields = """
   pagePdf { \(GqlFile.fields) }
-  gqlFacsimile: facsimile { \(GqlImage.fields) }
   gqlAudio: podcast { \(GqlAudio.fields) }
   title
   pagina

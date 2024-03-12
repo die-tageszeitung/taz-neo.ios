@@ -28,7 +28,10 @@ class SearchResultArticleVc : ArticleVC {
        let hit = searchVc.searchItem.searchHitList?.valueAt(artIndex)
     {
       header.title = hit.sectionTitle ?? ""
-      header.subTitle = "Ausgabe \(hit.date.short)"
+      header.subTitle 
+      = App.isLMD
+      ? "Ausgabe \(hit.date.stringWith(dateFormat: "MMMM YYYY"))"
+      : "Ausgabe \(hit.date.short)"
       searchHitDate = hit.date
     } else {
       searchHitDate = nil

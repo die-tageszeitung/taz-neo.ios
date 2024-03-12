@@ -78,10 +78,11 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     v.addSubview(downloadButton)
     v.addSubview(dateLabel)
     statusWrapperWidthConstraint = v.pinWidth(0)
-    dateLabel.contentFont().textColor = Const.Colors.appIconGrey
+    dateLabel.contentFont()
     dateLabel.textAlignment = .center
     pin(downloadButton, to: v, exclude: .left).top?.constant = -8.0
-    downloadButton.color = Const.Colors.appIconGrey
+    downloadButton.color = Const.SetColor.HomeText.dynamicColor
+    dateLabel.textColor = Const.SetColor.HomeText.dynamicColor
     pin(dateLabel.left, to: v.left, dist: 25, priority: .defaultLow)
     pin(dateLabel.right, to: v.right, dist: -25, priority: .defaultLow)
     v.pinHeight(28)
@@ -127,7 +128,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     self.collectionView!.register(IssueCollectionViewCell.self,
                                   forCellWithReuseIdentifier: Self.reuseCellId)
     self.collectionView.showsHorizontalScrollIndicator = false
-    self.collectionView.backgroundColor = .black
+    self.collectionView.backgroundColor = Const.SetColor.HomeBackground.color
     
     if scrollFromLeftToRight {
       collectionView.transform = CGAffineTransform(rotationAngle: CGFloat.pi)
@@ -185,7 +186,9 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     guard let data = service.cellData(for: cidx) else { return }
     issueSelectionChangeDelegate?.setCurrent(cellData: data,
                                              idx: cidx)
-    let txt = data.date.validityDateText(timeZone: GqlFeeder.tz, short: true)
+    let isMonthly = service.feed.cycle == .monthly
+    let txt = isMonthly ? data.date.date.gMonthYear(tz: GqlFeeder.tz) :
+                          data.date.validityDateText(timeZone: GqlFeeder.tz, short: true)
     let newKey = data.date.date.issueKey
     if force || newKey != centerIssueDateKey {
       downloadButton.indicator.downloadState = data.downloadState
@@ -240,7 +243,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
     if cell.momentView.interactions.isEmpty {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
       cell.momentView.addInteraction(menuInteraction)
-      cell.backgroundColor = .black
+      cell.backgroundColor = Const.SetColor.HomeBackground.color
     }
     return cell
   }
@@ -446,9 +449,11 @@ extension IssueCarouselCVC {
   func showDatePicker(){    
     if pickerCtrl == nil {
       let selected = service.date(at: centerIndex ?? 0)?.date
+      let isMonthly = service.feed.cycle == .monthly
       pickerCtrl = DatePickerController(minimumDate: service.firstIssueDate,
                                         maximumDate: service.lastIssueDate,
-                                         selectedDate: selected ?? service.firstIssueDate)
+                                        selectedDate: selected ?? service.firstIssueDate,
+                                        isMonthly: isMonthly)
       pickerCtrl?.pickerFont = Const.Fonts.contentFont
     }
     guard let pickerCtrl = pickerCtrl else { return }

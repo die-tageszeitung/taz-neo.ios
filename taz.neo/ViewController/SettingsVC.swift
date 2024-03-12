@@ -185,7 +185,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
         = NSMutableAttributedString(string: "\n\n")
     }
     
-    let cell = NotificationsSettingsCell(toggleWithText: "mitteilungen erlauben", detailText: detailText, initialValue: isTextNotification, onChange: {[weak self] newValue in
+    let cell = NotificationsSettingsCell(toggleWithText: "Mitteilungen erlauben".lowerIfTaz, detailText: detailText, initialValue: isTextNotification, onChange: {[weak self] newValue in
       self?.isTextNotification = newValue
       TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
       self?.refreshAndReload()
@@ -336,10 +336,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   /// UI Components
   lazy var footer:Footer = Footer()
   
-  lazy var header:HeaderView = {
-    let v = HeaderView()
+  lazy var header:SettingsHeaderView = {
+    let v = SettingsHeaderView()
     v.titletype = .bigLeft
-    v.title = "einstellungen"
+    v.title = App.isLMD ? "Einstellungen" : "einstellungen"
     return v
   }()
   
@@ -689,11 +689,15 @@ extension SettingsVC {
     _ = logoutCell
     _ = loginCell
     print("isAuthenticated: \(isAuthenticated)")
-    var cells =
-    [
-      isAuthenticated ? logoutCell : loginCell,
-      manageAccountCell
-    ]
+    var cells = [isAuthenticated ? logoutCell : loginCell]
+
+    if App.isLMD {
+      cells.append(notificationsCell)
+      return cells
+    }
+    
+    cells.append(manageAccountCell)
+    
     if isAuthenticated,
        SimpleAuthenticator.getUserData().id?.isValidEmail() == true,
        SimpleAuthenticator.getUserData().id?.hasSuffix("@taz.de") == false {
@@ -718,7 +722,9 @@ extension SettingsVC {
     if autoloadNewIssues && App.isAvailable(.AUTODOWNLOAD) {
       cells.append(wlanCell)
     }
+    #if TAZ
     cells.append(epaperLoadCell)
+    #endif
     cells.append(deleteIssuesCell)
     return cells
   }
@@ -751,10 +757,15 @@ extension SettingsVC {
   //Prototype Cells
   func currentSectionContent() -> [tSectionContent] {
     ///**WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
+    #if TAZ
+    let rechtlichesCells = [termsCell, privacyCell, revokeCell, usageCell]
+    #else
+    let rechtlichesCells = [termsCell, privacyCell, revokeCell]
+    #endif
     return [
-      ("konto", false, accountSettingsCells),
-      ("ausgabenverwaltung", false, issueSettingsCells),
-      ("darstellung", false,
+      ("Konto".lowerIfTaz, false, accountSettingsCells),
+      ("Ausgabenverwaltung".lowerIfTaz, false, issueSettingsCells),
+      ("Darstellung".lowerIfTaz, false,
        [
         textSizeSettingsCell,
         darkmodeSettingsCell,
@@ -762,13 +773,15 @@ extension SettingsVC {
         edgeTapToNavigateVisibleCell
        ]
       ),
-      ("steuerung in der Zeitungsansicht", false,
+      (  App.isTAZ 
+         ? "steuerung in der Zeitungsansicht"
+         : "Steuerung in der Zeitungsansicht", false,
        [
         articleFromPdfCell,
         doubleTapToZoomPdfCell
        ]
       ),
-      ("hilfe", false,
+      ("Hilfe".lowerIfTaz, false,
        [
         onboardingCell,
         faqCell,
@@ -776,16 +789,9 @@ extension SettingsVC {
         feedbackCell
        ]
       ),
-      ("rechtliches", false,
-       [
-        termsCell,
-        privacyCell,
-        revokeCell,
-        usageCell
-       ]
-      ),
+      ("Rechtliches".lowerIfTaz, false, rechtlichesCells),
       ///WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
-      ("erweitert", true,
+      ("Erweitert".lowerIfTaz, true,
        extendedSettingsCollapsed ? [] : extendedSettingsCells
       )
     ]
@@ -1367,5 +1373,15 @@ class SectionHeader: UIView {
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+class SettingsHeaderView: HeaderView {
+  public override var sidePadding: CGFloat { get { return 15.9 }} 
+}
+
+extension String {
+  var lowerIfTaz:String {
+    return App.isTAZ ? self.lowercased() : self
   }
 }

@@ -254,7 +254,7 @@ fileprivate extension LocalNotifications {
       subtitle = "Lesen Sie heute: \(aTitle)"
       message = aTeaser
     }
-    Self.notify(title: "Die taz vom \(issue.date.short) ist verfügbar.",
+    Self.notify(title: "Die Ausgabe vom \(issue.date.short) ist verfügbar.",
                 subtitle: subtitle,
                 message: message,
                 badge: UIApplication.shared.applicationIconBadgeNumber + 1,

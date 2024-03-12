@@ -331,6 +331,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   open override func releaseOnDisappear(){
     contentTable = nil
     articles = []
+    delegate = nil
     playButtonContextMenu?.itemPrivider = nil
     self.playButtonContextMenu = nil
     super.releaseOnDisappear()
@@ -340,7 +341,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
     }
-    if !(self.parent is BookmarkNC) && self.contentTable == nil {
+    if self.parent is BookmarkNC { /*NO CONTENT TABLE*/}
+    else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
+    else if self.contentTable == nil {
       self.contentTable = NewContentTableVC()
     }
     super.viewWillAppear(animated)

@@ -83,7 +83,8 @@ public extension App {
   
   /// get app info ()
   static var appInfo:String {
-    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : "taz"
+    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : 
+                   App.isLMD ? "LMd" : "taz"
     return "\(appTitle) (v) \(App.version)-\(App.buildNumber)"
   }
   
@@ -118,4 +119,21 @@ extension BuildConst {
   static var tazBundleIdentifierAlpha: String { "de.taz.taz.neo" }
   static var tazBundleIdentifierBeta: String { "de.taz.taz.beta" }
   static var tazBundleIdentifierStore: String { "de.taz.taz.2" }
+}
+
+extension NSObject {
+  var selfIfLMd:Self? {
+    #if TAZ
+      return nil
+    #else
+      return self
+    #endif
+  }
+  var selfIfTaz:Self? {
+    #if TAZ
+      return self
+    #else
+      return nil
+    #endif
+  }
 }

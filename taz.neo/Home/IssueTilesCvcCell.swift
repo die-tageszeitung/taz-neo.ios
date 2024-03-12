@@ -44,11 +44,16 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
                                                             leadingText: "")
       return
     }
-    button.label.text
-    = issue.validityDateText(timeZone: GqlFeeder.tz,
-                             short: true,
-                             shorter: shorter,
-                             leadingText: "")
+    if issue.feed.cycle == .monthly {
+      button.label.text = issue.date.gMonthYear(tz: GqlFeeder.tz)
+    }
+    else {
+      button.label.text
+      = issue.validityDateText(timeZone: GqlFeeder.tz,
+                               short: true,
+                               shorter: shorter,
+                               leadingText: "")
+    }
   }
 
   func updateDownloadButton(){
@@ -86,7 +91,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     button.pinHeight(buttonHeight)
     pin(button.topGuide(), to: momentView.bottomGuide(), dist: buttonOffset, priority: .fittingSizeLevel)
     button.label.font = Const.Fonts.contentFont(size: 15.0)
-    button.color = Const.Colors.appIconGrey
+    button.color = Const.SetColor.HomeText.color
     
     Notification.receive("issueProgress", closure: {   [weak self] notif in
       guard let self = self else { return }

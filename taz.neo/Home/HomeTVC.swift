@@ -27,34 +27,6 @@ protocol PushIssueDelegate {
   func push(_ viewController:UIViewController, issueInfo: IssueDisplayService)
 }
 
-extension HomeTVC: CoachmarkVC {
-  var viewName: String { Coachmarks.IssueCarousel.typeName }
-  
-  public func targetView(for item: CoachmarkItem) -> UIView? {
-    guard let item = item as? Coachmarks.IssueCarousel else { return nil }
-    
-    switch item {
-      case .pdfButton:
-        return togglePdfButton
-      case .loading:
-        if carouselController.downloadButton.indicator.downloadState == .notStarted {
-          return carouselController.downloadButton
-        }
-        fallthrough
-      default:
-        return nil
-    }
-  }
-  
-  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
-    guard let item = item as? Coachmarks.IssueCarousel,
-          item == .tiles else { return nil }
-    return (UIImage(named: "cm-scroll")?.withRenderingMode(.alwaysOriginal), [], [])
-    as? (UIImage, [UIView], [CGPoint]) ?? nil
-  }
-}
-
-
 class HomeTVC: UITableViewController {
 
   /// should show PDF Info Toast on startup (from config defaults)
@@ -79,7 +51,8 @@ class HomeTVC: UITableViewController {
   
   /// offset for snapping between top area (IssueCarousel) and Bottom Area (tile view)
   var scrollSnapHeight : CGFloat { get { return UIScreen.main.bounds.size.height }}
-  override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent}
+  override var preferredStatusBarStyle:
+  UIStatusBarStyle { App.isLMD ? .darkContent : .lightContent }
   //  var service: DataService
   
   /**
@@ -109,12 +82,7 @@ class HomeTVC: UITableViewController {
   // MARK: - UI Components / Vars
   var carouselController: IssueCarouselCVC
   var tilesController: IssueTilesCVC
-  var wasUp = true { 
-    didSet {
-      if oldValue != wasUp { trackScreen() }
-      if wasUp == false { deactivateCoachmark(Coachmarks.IssueCarousel.tiles) }
-    }
-  }
+  var wasUp = true { didSet { if oldValue != wasUp { trackScreen() }}}
   
   var isAccessibilityMode: Bool = false {
     didSet {
@@ -136,9 +104,9 @@ class HomeTVC: UITableViewController {
     return createLoginButton()
   }()
   
-  var accessibilityPlayHelper = UILabel()
-  var accessibilityOlderHelper = UILabel()
-  var accessibilityNewerHelper = UILabel()
+  var accessibilityPlayHelper: UILabel = UILabel()
+  var accessibilityOlderHelper = UIImageView()
+  var accessibilityNewerHelper = UIImageView()
   
   lazy var accessibilityControlls: UIView = {
     accessibilityPlayHelper.onTapping {[weak self] _ in
@@ -150,29 +118,27 @@ class HomeTVC: UITableViewController {
     }
     accessibilityPlayHelper.numberOfLines = 2
     accessibilityPlayHelper.boldContentFont().color(.white).centerText()
-    accessibilityOlderHelper.numberOfLines = 2
-    accessibilityNewerHelper.numberOfLines = 2
-    accessibilityOlderHelper.textColor = .white
-    accessibilityNewerHelper.textColor = .white
     //--
     accessibilityOlderHelper.onTapping {[weak self] _ in
-      self?.accessibilityNewerHelper.accessibilityLabel = "zu neuerer Ausgabe"
       guard let idx = self?.carouselController.centerIndex else { return }
       self?.carouselController.scrollTo(idx+1, animated: false)
     }
-    accessibilityOlderHelper.text = "zu vorheriger\nAusgabe →"
-    accessibilityOlderHelper.accessibilityLabel = "zu vorheriger Ausgabe"
+    accessibilityOlderHelper.accessibilityLabel = "Ausgabe zurück"
+    accessibilityOlderHelper.isAccessibilityElement = true
+    accessibilityOlderHelper.image = UIImage(named: "forward")
+    accessibilityOlderHelper.image?.accessibilityTraits = .none
+    accessibilityOlderHelper.tintColor = .white
     //--
     accessibilityNewerHelper.onTapping {[weak self] _ in
       guard let idx = self?.carouselController.centerIndex else { return }
-      if idx == 0 {
-        self?.accessibilityNewerHelper.accessibilityLabel = "keine neuere\nAusgabe vorhanden"
-        return
-      }
+      if idx == 0 { return }
       self?.carouselController.scrollTo(idx-1, animated: false)
     }
-    accessibilityNewerHelper.text = "zu neuerer\n← Ausgabe"
-    accessibilityNewerHelper.accessibilityLabel = "zu neuerer Ausgabe"
+    accessibilityNewerHelper.accessibilityLabel = "Ausgabe vor"
+    accessibilityNewerHelper.isAccessibilityElement = true
+    accessibilityNewerHelper.image = UIImage(named: "backward")
+    accessibilityNewerHelper.image?.accessibilityTraits = .none
+    accessibilityNewerHelper.tintColor = .white
     //--
     let accessibilityInfoLabel = UILabel(frame: CGRect(x: 5, y: 50, width: 10, height: 4))
     accessibilityInfoLabel.text = "Voiceover Hilfsschaltflächen aktiviert\nVoiceover deaktivieren\num diese zu deaktivieren"
@@ -209,7 +175,8 @@ class HomeTVC: UITableViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    self.view.backgroundColor = .black
+    self.view.backgroundColor = Const.Colors.Light.HomeBackground
+    carouselController.collectionView.backgroundColor = Const.Colors.Light.HomeBackground
     self.tableView.showsVerticalScrollIndicator = false
     self.tableView.showsHorizontalScrollIndicator = false
     ///on tapping the down arrows on ipad6mini, the seperator appears no matter what i setup here:
@@ -224,10 +191,11 @@ class HomeTVC: UITableViewController {
     setupCarouselControllerCell()
     setupTilesControllerCell()
     tilesControllerCell.isAccessibilityElement = false
-    setupTogglePdfButton()
     setupDateButton()
-    
-    togglePdfButton.isAccessibilityElement = false
+    #if TAZ
+      setupTogglePdfButton()
+      togglePdfButton.isAccessibilityElement = false
+    #endif    
     carouselController.dateLabel.isAccessibilityElement = false
     carouselControllerCell.isAccessibilityElement = false
     carouselController.collectionView.isAccessibilityElement = false
@@ -243,23 +211,27 @@ class HomeTVC: UITableViewController {
   }
   
   public override func viewWillDisappear(_ animated: Bool) {
-    togglePdfButton.isHidden = true
+    #if TAZ
+      togglePdfButton.isHidden = true
+    #endif
     super.viewWillDisappear(animated)
   }
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    togglePdfButton.isHidden = false
-    showRequestTrackingIfNeeded()///start also coachmark if needed
+    #if TAZ
+      togglePdfButton.showAnimated()
+    #endif
+    showRequestTrackingIfNeeded()
 //    showPdfInfoIfNeeded()//DEACTIVATED FOR 1.1.0 // In 1.2.0 Coachmarks shloud come DELETE IT!
+    self.carouselController.showScrollDownAnimationIfNeeded()
     scroll(up: wasUp)
     Rating.homeAppeared()
   }
   
  @objc private func updateAccessibillityHelper(){
    isAccessibilityMode
-    = self.feederContext.isAuthenticated
-    && Defaults.usageTrackingAllowed != nil
+    = loginButton.superview == nil
     && UIAccessibility.isVoiceOverRunning
   }
   
@@ -432,7 +404,7 @@ extension HomeTVC {
   }
   
   func scroll(up:Bool, animated:Bool=true){
-    self.tableView.scrollToRow(at:  IndexPath(row: up || isAccessibilityMode ? 0 : 1, section: 0),
+    self.tableView.scrollToRow(at:  IndexPath(row: up ? 0 : 1, section: 0),
                                at: .top,
                                animated: animated)
   }
@@ -444,7 +416,6 @@ extension HomeTVC {
   func onPDF(sender:Any){
     self.isFacsimile = !self.isFacsimile
     Usage.track(self.isFacsimile ? Usage.event.appMode.SwitchToPDFMode : Usage.event.appMode.SwitchToMobileMode)
-    deactivateCoachmark(Coachmarks.IssueCarousel.pdfButton)
     
     if let imageButton = sender as? Button<ImageView> {
       imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
@@ -608,14 +579,14 @@ extension HomeTVC {
     login.accessibilityLabel = "Anmelden"
     login.isAccessibilityElement = true
     login.contentFont()
-    login.textColor = Const.Colors.appIconGrey
+    login.textColor = Const.SetColor.HomeText.dynamicColor
     login.text = "Anmelden"
     
     let arrow
     = UIImageView(image: UIImage(name: "arrow.right")?
       .withTintColor(Const.Colors.appIconGrey,
-                     renderingMode: .alwaysOriginal))
-    arrow.tintColor = Const.Colors.appIconGrey
+                     renderingMode: .alwaysTemplate))
+    arrow.tintColor = Const.SetColor.HomeText.dynamicColor
     
     let wrapper = UIView()
     wrapper.addSubview(login)
@@ -633,10 +604,7 @@ extension HomeTVC {
 // MARK: - ShowPDF Info Toast
 extension HomeTVC {
   func showRequestTrackingIfNeeded() {
-    if Defaults.usageTrackingAllowed != nil {
-      showCoachmarkIfNeeded()
-      return
-    }
+    if Defaults.usageTrackingAllowed != nil { return }
     guard let image = UIImage(named: "BundledResources/UsagePopover.png")else {
       log("Bundled UsagePopover.png not found!")
       return
@@ -644,24 +612,14 @@ extension HomeTVC {
     var fromBottom = false
     if dataPolicyToast == nil {
       fromBottom = true
-      dataPolicyToast 
-      = NewInfoToast.showWith(image: image,
-                              title: "Eine noch bessere taz App? Sie haben es in der Hand",
-                              text: "Anonyme Nutzungsdaten helfen uns, noch besser zu werden. Wir wissen natürlich: Wer Daten will, muss freundlich sein – deshalb behandeln wir diese mit größtmöglicher Sorgfalt und absolut vertraulich. Ihre Einwilligung zur Nutzung kann zudem jederzeit widerrufen werden.",
-                              button1Text: "Ja, ich helfe mit",
-                              button2Text: "Nein, keine Daten senden",
-                              button1Handler: { [weak self] in
-        Defaults.usageTrackingAllowed = true;
-        Usage.shared.setup()
-        self?.updateAccessibillityHelper()
-        self?.showCoachmarkIfNeeded()
-      },
-                              button2Handler: { [weak self] in
-        Defaults.usageTrackingAllowed = false
-        self?.updateAccessibillityHelper()
-        self?.showCoachmarkIfNeeded()
-      },
-                              dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
+      dataPolicyToast = NewInfoToast.showWith(image: image,
+                            title: "Eine noch bessere taz App? Sie haben es in der Hand",
+                            text: "Anonyme Nutzungsdaten helfen uns, noch besser zu werden. Wir wissen natürlich: Wer Daten will, muss freundlich sein – deshalb behandeln wir diese mit größtmöglicher Sorgfalt und absolut vertraulich. Ihre Einwilligung zur Nutzung kann zudem jederzeit widerrufen werden.",
+                            button1Text: "Ja, ich helfe mit",
+                            button2Text: "Nein, keine Daten senden",
+                            button1Handler: { Defaults.usageTrackingAllowed = true; Usage.shared.setup() },
+                            button2Handler: { Defaults.usageTrackingAllowed = false },
+                            dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
     }
     dataPolicyToast?.show(fromBottom: fromBottom)
   }

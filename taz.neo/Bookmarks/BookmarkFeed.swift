@@ -39,8 +39,8 @@ public class BookmarkFeed: Feed, DoesLog {
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     // Copy resources to bookmark folder
-    let resources = ["bookmarks-ios.css", "bookmarks-ios.js",
-                     "Star.svg", "StarFilled.svg", "Share.svg", "dot-night.svg", "dot-day.svg"]
+    let resources = ["bookmarks-ios.js", "Star.svg", "StarFilled.svg",
+                     "Share.svg", "dot-night.svg", "dot-day.svg"]
     for f in resources {
       if let path = Bundle.main.path(forResource: f, ofType: nil) {
         let base = File.basename(path)
@@ -48,6 +48,12 @@ public class BookmarkFeed: Feed, DoesLog {
         let dest = "\(dir.path)/resources/\(base)"
         src.copyResource(to: dest)
       }
+    }
+    let css = App.isTAZ ? "bookmarks-taz.css" : "bookmarks-lmd.css"
+    if let path = Bundle.main.path(forResource: css, ofType: nil) {
+      let src = File(path)
+      let dest = "\(dir.path)/resources/bookmarks-ios.css"
+      src.copyResource(to: dest)
     }
   }
   
@@ -78,6 +84,15 @@ public class BookmarkFeed: Feed, DoesLog {
     <title>Bookmarks</title>
   </head>
   """
+  
+  // A dotted line using SVG
+  //static var htmlDottedLine = "<div class='dottedline'></div>"
+  static var htmlDottedLine = "<hr class='dotted'/>"
+  
+  func dottedLine(inSection: Bool) -> String {
+    return (App.isTAZ ? !inSection : inSection) ?
+      BookmarkFeed.htmlDottedLine : "";
+  }
   
   /// Get all authors as String with HTML markup
   public func getAuthors(art: Article) -> String {
@@ -124,7 +139,7 @@ public class BookmarkFeed: Feed, DoesLog {
     ? "<p>\((art.teaser ?? "").xmlEscaped())</p>"
     : ""
     let html = """
-      <div class="dottedline"></div>
+      \(dottedLine(inSection: false))
       <a href="\(art.path)">
         \(getImage(art: art))
         <h2>\(title.xmlEscaped())</h2>
@@ -147,14 +162,16 @@ public class BookmarkFeed: Feed, DoesLog {
        articles.count > 0,
        let issue = articles[0].primaryIssue {
       let momentPath = feeder.smallMomentImageName(issue: issue)
-      let dateText = issue.validityDateText(timeZone: GqlFeeder.tz,
-                                            leadingText: "wochentaz, ")
+      let dateText = App.isLMD ? 
+        "Ausgabe " + issue.date.gMonthYear(tz: GqlFeeder.tz, isNumeric: true) :
+        issue.validityDateText(timeZone: GqlFeeder.tz, leadingText: "wochentaz, ")
       var html = """
       <section id="\(date.timeIntervalSince1970)">
         <header class="issue">
           <img class="moment" src="\(momentPath ?? "")">
           <h1>\(dateText)</h1>
         </header>\n
+        \(dottedLine(inSection: true))
       """
       var order = 1;
       for art in articles {
@@ -234,8 +251,8 @@ public class BookmarkFeed: Feed, DoesLog {
   public static func allBookmarks(feeder: Feeder) -> BookmarkFeed {
     let bm = BookmarkFeed(feeder: feeder)
     let bmIssue = BookmarkIssue(feed: bm)
-    let bmSection = BookmarkSection(name: "leseliste", issue: bmIssue,
-        html: BookmarkFileEntry(feed: bm, name: "allBookmarks.html"))
+    let bmSection = BookmarkSection(name: App.isTAZ ? "leseliste" : "Leseliste", 
+        issue: bmIssue, html: BookmarkFileEntry(feed: bm, name: "allBookmarks.html"))
     bm.issues = [bmIssue]
     bmIssue.sections = [bmSection]
     bm.loadAllBookmarks()

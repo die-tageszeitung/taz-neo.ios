@@ -131,7 +131,7 @@ open class HeaderView: UIView,  Touchable {
   
   var lastRatio: CGFloat?
   
-  let sidePadding = 18.0
+  public private(set) var sidePadding: CGFloat = 18.0
   var titleTopIndentL: CGFloat = 12
   var titleBottomIndentL: CGFloat = -18//-18 or if subtitle set: -16*1.17-12 = -31
   let titleBottomIndentS = -DottedLineView.DottedLineDefaultHeight/2

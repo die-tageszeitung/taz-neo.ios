@@ -131,6 +131,16 @@ public class LoginView : FormView{
   override func createSubviews() -> [UIView] {
     idInput.paddingBottom = Self.miniPadding
     passInput.paddingBottom = Self.miniPadding
+    if App.isLMD {
+      return   [
+        Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").contentFont(size: Const.Size.SubtitleFontSize).align(.left),
+        idInput,
+        whereIsTheAboId,
+        passInput,
+        loginButton]
+    }
+    
+    
     return   [
       Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").contentFont(size: Const.Size.SubtitleFontSize).align(.left),
       idInput,

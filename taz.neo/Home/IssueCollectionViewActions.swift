@@ -15,13 +15,38 @@ protocol IssueCollectionViewActions: UIContextMenuInteractionDelegate where Self
 
 extension IssueCollectionViewActions {
   
-  func requestDeleteIssueWithBookmarksIfNeeded(issue: StoredIssue) {
-    let bookmarksCount = StoredArticle.bookmarkedArticlesInIssue(issue: issue).count
-    if bookmarksCount == 0 { return }
+  func deleteIssue(issue: StoredIssue,
+                   at indexPath: IndexPath,
+                   force: Bool = false,
+                   bookmarksCount:Int? = nil) {
+    if issue.isDownloading {
+      ///WARNING May not catch all states, due isDownloading is set if Downloader.downloading files;
+      ///not in first Step: get Structure Data @REFACTORING
+      Log.log("Delete Issue: \(issue.date.short) while downloading")
+      Toast.show("Bitte warten Sie bis der Download abgeschossen ist!", .alert)
+      return
+    }
+    
+    let bookmarksCount = bookmarksCount ?? StoredArticle.bookmarkedArticlesInIssue(issue: issue).count
+    
+    if force == true
+    || bookmarksCount == 0 {
+      Log.debug("Delete Issue: \(issue.date.short)")
+      Usage.track(Usage.event.issue.delete,
+                  name: issue.date.ISO8601)
+      Notification.send("issueDelete", content: issue.date)
+      issue.delete()
+      self.collectionView.reloadItems(at: [indexPath])
+      self.updateCarouselDownloadButton()
+      return
+    }
     
     Alert.confirm(title: "Achtung!", message: "Die Ausgabe vom \(issue.date.short) enthält \(bookmarksCount) Lesezeichen. Soll die Ausgabe mit Lesezeichen gelöscht werden?", okText: "Löschen") {[weak self] delete in
-      issue.reduceToOverview(force: delete)
-      self?.updateCarouselDownloadButton()
+      guard delete else { return }
+      self?.deleteIssue(issue: issue, 
+                        at: indexPath,
+                        force: true,
+                        bookmarksCount: bookmarksCount)
     }
   }
   
@@ -43,19 +68,13 @@ extension IssueCollectionViewActions {
     
     let actions = MenuActions()
     
-    if issue.isComplete {
-      actions.addMenuItem(title: "Ausgabe löschen",
-                          icon: "trash",
-                          enabled: issue.isDownloading == false) {[weak self] _ in
-        self?.requestDeleteIssueWithBookmarksIfNeeded(issue: issue)
-        /// reduceToOverview without force will exit
-        issue.reduceToOverview()
-        Usage.track(Usage.event.issue.delete,
-                    name: issue.date.ISO8601)
-        self?.collectionView.reloadItems(at: [indexPath])
-        self?.updateCarouselDownloadButton()
-      }
-      if issue.isAudioComplete == false {
+    actions.addMenuItem(title: "Ausgabe löschen",
+                        icon: "trash",
+                        enabled: issue.isDownloading == false) {[weak self] _ in
+      self?.deleteIssue(issue: issue, at: indexPath)
+    }
+    
+    if issue.isComplete && issue.isAudioComplete == false {
         actions.addMenuItem(title: "Audioinhalte laden",
                             icon: "download",
                             enabled: issue.isDownloading == false) {[weak self] _ in
@@ -64,8 +83,7 @@ extension IssueCollectionViewActions {
                 ccvc.centerIndex == indexPath.row else { return }
           ccvc.downloadButton.indicator.downloadState = .waiting
         }
-      }
-    } else {
+    } else if issue.isComplete == false {
       actions.addMenuItem(title: "Ausgabe laden",
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in

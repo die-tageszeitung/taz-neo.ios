@@ -1,6 +1,6 @@
 *.ttf
 .DS_Store
-taz.neo/Supporting Files/Resources/files
+taz.neo/Supporting Files/Resources
 zip_resources_version.json
 ConfigSettings.xcconfig
 BuildConst.swift

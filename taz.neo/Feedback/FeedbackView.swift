@@ -165,8 +165,8 @@ public class FeedbackView : UIView {
     sendButton.pinSize(CGSize(width: 42, height: 42))
     screenshotAttachmentButton.pinHeight(attachmentButtonHeight)
     logAttachmentButton.pinHeight(attachmentButtonHeight)
-    logAttachmentButton.addBasicShadow()
-    screenshotAttachmentButton.addBasicShadow()
+    logAttachmentButton.shadow()
+    screenshotAttachmentButton.shadow()
     pin(screenshotAttachmentButton, to: hStack2, exclude: .right)
     pin(logAttachmentButton, to: hStack2, exclude: .left)
   }
@@ -280,14 +280,5 @@ extension UILabel{
       label.textColor = Const.SetColor.ForegroundLight.color
       return label
     }
-  }
-}
-
-extension UIView{
-  func addBasicShadow(){
-    self.layer.shadowOpacity = 0.25
-    self.layer.shadowOffset = CGSize(width: 2, height: 2)
-    self.layer.shadowRadius = 4
-    self.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
   }
 }

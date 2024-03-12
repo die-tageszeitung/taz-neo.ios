@@ -494,6 +494,11 @@ class IssueOverviewService: NSObject, DoesLog {
       self?.updateIssues()
     }
     
+    Notification.receive("issueDelete") { [weak self] notif in
+      guard let issueDate = notif.content as? Date else { return }
+      self?.issues[issueDate.issueKey] = nil
+    }
+    
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
       self?.updateIssues()
     }

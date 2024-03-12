@@ -83,7 +83,7 @@ class LogoStartupView: UIView, StartupView {
   private func setup() {
     startupLogo = UIImage(named: "StartupLogo")
     imageView = UIImageView(image: startupLogo)
-    backgroundColor = Const.Colors.ciColor
+    backgroundColor = Const.SetColor.CIColor.color
     if let iv = imageView {
       addSubview(iv)
       pin(iv.centerX, to: self.centerX)
