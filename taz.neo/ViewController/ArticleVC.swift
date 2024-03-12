@@ -159,7 +159,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         log("fail to access artikel at index: \(idx)  when only \(self.articles.count) exist")
         return
       }
-      
+      #if TAZ //Tom Stuff
       if art is VirtualArticle {
         bookmarkButton.isHidden = true
         updateAudioButton()
@@ -169,6 +169,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         self.currentWebView?.baseDir = art.baseURL
         return
       }
+      #endif
       textSettingsButton.isHidden = false
 
       if self.smartBackFromArticle {
@@ -228,7 +229,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   // Define Header elements
   #warning("ToDo: Refactor get HeaderField with Protocol! (ArticleVC, SectionVC...)")
   func setHeader(artIndex: Int) {
-    if article is VirtualArticle {//TOM
+    #if TAZ
+    let tazTomVirtualArticle = article is VirtualArticle
+    #else
+    let tazTomVirtualArticle = App.isTAZ ///false, but supress "Will never be executed" warning 2 lines later
+    #endif
+
+    if tazTomVirtualArticle {
       header.title = article?.title
       header.pageNumber = nil
     }

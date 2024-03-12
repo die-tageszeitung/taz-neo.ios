@@ -986,9 +986,11 @@ public extension Issue {
     if self is SearchResultIssue { return ret }
     
     if let imp = imprint { ret += imp }
+    #if TAZ
     for tom in Tom.toms(issue: self) {
       ret += tom
     }
+    #endif
     return ret
   }
   

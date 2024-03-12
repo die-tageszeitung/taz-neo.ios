@@ -75,6 +75,7 @@
 		776E59C629ED25A3001D5C5B /* dot-day.svg in Resources */ = {isa = PBXBuildFile; fileRef = 776E59C429ED25A3001D5C5B /* dot-day.svg */; };
 		776E59C729ED25A3001D5C5B /* dot-night.svg in Resources */ = {isa = PBXBuildFile; fileRef = 776E59C529ED25A3001D5C5B /* dot-night.svg */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
+		77791EB62BA0602200E9C0D9 /* CoachmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27472BA05C4500835BB9 /* CoachmarkView.swift */; };
 		777A49292B5817D6006956B7 /* CvSeperator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777A49282B5817D6006956B7 /* CvSeperator.swift */; };
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
 		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
@@ -1165,6 +1166,7 @@
 				AE5131B82AFBCADB002289E8 /* LoginView.swift in Sources */,
 				AE5131B92AFBCADB002289E8 /* BookmarkNC.swift in Sources */,
 				AE5131BA2AFBCADB002289E8 /* SliderTest.swift in Sources */,
+				77791EB62BA0602200E9C0D9 /* CoachmarkView.swift in Sources */,
 				AE5131BB2AFBCADB002289E8 /* TazAppEnvironment.swift in Sources */,
 				AE5131BC2AFBCADB002289E8 /* SearchHeaderView.swift in Sources */,
 				7758CCBA2B504E4D000B8E30 /* _LMdSliderCell.swift in Sources */,
