@@ -20,6 +20,14 @@ public class FormView: UIView {
   
   let blockingView = BlockingProcessView()
   
+  public var hasUserInput : Bool {
+    for v in views ?? [] {
+      if (v as? TazTextField)?.text?.length ?? 0 > 0 { return true }
+      if (v as? ViewWithTextView)?.text?.length ?? 0 > 0 { return true }
+    }
+    return false
+  }
+  
   public var blocked : Bool = false {
     didSet{
       ensureMain { [weak self] in
@@ -49,6 +57,7 @@ public class FormView: UIView {
     self.subviews.forEach({ $0.removeFromSuperview() })
     self.backgroundColor = Const.SetColor.CTBackground.color
     if views.isEmpty { return }
+    self.views = views
     
     let margin : CGFloat = Const.Size.DefaultPadding
     var previous : UIView?
@@ -57,11 +66,10 @@ public class FormView: UIView {
     
     for v in views {
       
-      if v is UITextField {
+      if v is KeyboardToolbarForText {
         v.tag = tfTags
         tfTags += 1
       }
-      
       //add
       container.addSubview(v)
       //pin
@@ -77,7 +85,7 @@ public class FormView: UIView {
       }
       previous = v
     }
-    pin(previous!.bottom, to: container.bottom, dist: -margin)
+    pin(previous!.bottom, to: container.bottom, dist: -margin - 30.0)
     
     scrollView.addSubview(container)
     NorthLib.pin(container, to: scrollView)
@@ -94,7 +102,7 @@ public class FormView: UIView {
 extension FormView {
   func openFaqAction() -> UIAlertAction {
     return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
-      guard let url = URL(string: "https://blogs.taz.de/app-faq/") else { return }
+      guard let url = Const.Urls.faqUrl else { return }
       UIApplication.shared.open(url, options: [:], completionHandler: nil)
     }
   }
@@ -102,6 +110,7 @@ extension FormView {
   @objc public func showRegisterTips(_ textField: UITextField) {
      Alert.message(title: Localized("register_tips_button"),
                   message: Localized("register_tips_text"), additionalActions:[openFaqAction()])
+    Usage.track(Usage.event.dialog.SubscriptionHelp)
   }
   
   @objc public func showLoginTips(_ textField: UITextField) {
@@ -146,9 +155,10 @@ extension FormView {
   }
   
   @objc func keyboardWillShow(_ notification: Notification) {
+    if UIScreen.isIpadRegularSize { return }
     if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue {
       let keyboardRectangle = keyboardFrame.cgRectValue
-      let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardRectangle.height, right: 0)
+      let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardRectangle.height + 30, right: 0)
       scrollView.contentInset = contentInsets
     }
   }

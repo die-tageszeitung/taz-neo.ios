@@ -106,6 +106,7 @@ extension Padded.Label{
   convenience init(title: String? = nil,
                    font: UIFont = Const.Fonts.contentFont(size: DefaultFontSize),
                    textColor: UIColor = Const.SetColor.CTDate.color,
+                   textAlignment: NSTextAlignment = .left,
                    paddingTop: CGFloat = 8,
                    paddingBottom: CGFloat = 8) {
     self.init()
@@ -115,50 +116,66 @@ extension Padded.Label{
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
     self.numberOfLines = 0
-    self.textAlignment = .center
+    self.textAlignment = textAlignment
   }
 }
 
 // MARK: - taz UIButton
 extension Padded.Button{
   
-  enum tazButtonType { case normal, outline, label }
+  enum tazButtonType { case normal, outline, label, newBlackOutline, newBlackOutlineBright}
   
   convenience init( type: tazButtonType = .normal,
                     title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
                     color: UIColor = Const.SetColor.CIColor.color,
                     textColor: UIColor = .white,
-                    height: CGFloat = 40,
+                    height: CGFloat = 34,
                     paddingTop: CGFloat = DefaultPadding,
                     paddingBottom: CGFloat = DefaultPadding,
                     target: Any? = nil,
                     action: Selector? = nil) {
     self.init()
+    
     if let title = title {
       self.setTitle(title, for: .normal)
     }
     self.backgroundColor = color
-    self.setBackgroundColor(color: color.withAlphaComponent(0.8), forState: .selected)
+    self.setBackgroundColor(color: color.withAlphaComponent(0.8), forState: .highlighted)
     
     self.setTitleColor(textColor, for: .normal)
     self.layer.cornerRadius = 3.0
-    self.pinHeight(height)
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
     if let target = target, let action = action {
       self.addTarget(target, action: action, for: .touchUpInside)
     }
     
+    self.pinHeight(height)
+    
     switch type {
       case .outline:
         self.backgroundColor = .clear
-        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .selected)
+        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
         self.addBorder(Const.SetColor.CIColor.color, 1.0)
         self.setTitleColor(Const.SetColor.CIColor.color, for: .normal)
       case .label:
         self.backgroundColor = .clear
-        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .selected)
+        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
         self.setTitleColor(Const.SetColor.CIColor.color, for: .normal)
+      case .newBlackOutline:
+        self.backgroundColor = .clear
+        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
+        self.addBorder(Const.SetColor.CTDate.color, 1.5)
+        self.setTitleColor(Const.SetColor.CTDate.color, for: .normal)
+        self.titleLabel?.font = Const.Fonts.boldContentFont
+        self.layer.cornerRadius = height/2
+      case .newBlackOutlineBright:
+        self.backgroundColor = .clear
+        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
+        self.addBorder(Const.SetColor.CTDate.brightColor, 1.5)
+        self.setTitleColor(Const.SetColor.CTDate.brightColor, for: .normal)
+        self.titleLabel?.font = Const.Fonts.boldContentFont
+        self.layer.cornerRadius = height/2
       case .normal: fallthrough
       default:
         self.backgroundColor = color
@@ -238,7 +255,8 @@ class RadioButton : UIButton {
 }
 
 // MARK: - TazTextField
-public class TazTextField : Padded.TextField, UITextFieldDelegate{
+public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolbarForText{
+  public var index: Int?
   static let recomendedHeight:CGFloat = 56.0
   private let border = BorderView()
   let topLabel = UILabel()
@@ -381,90 +399,7 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate{
   }
   
   // MARK: > inputToolbar
-  lazy var inputToolbar: UIToolbar = createToolbar()
-}
-
-// MARK: - TazTextField : Toolbar
-extension TazTextField{
-    
-  fileprivate func createToolbar() -> UIToolbar{
-    /// setting toolbar width fixes the h Autolayout issue, unfortunatly not the v one no matter which height
-    let toolbar =  UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0))
-    toolbar.barStyle = .default
-    toolbar.isTranslucent = true
-    toolbar.sizeToFit()
-    
-    /// Info: Issue with Autolayout
-    /// the solution did not solve our problem:
-    /// https://developer.apple.com/forums/thread/121474
-    /// because we use autocorection/password toolbar also
-    /// also the following options did not worked:
-    ///   UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 50))
-    ///   toolbar.setContentCompressionResistancePriority(.fittingSizeLevel, for: .vertical)
-    ///   toolbar.setContentHuggingPriority(.fittingSizeLevel, for: .vertical)
-    ///   toolbar.autoresizesSubviews = false
-    ///   toolbar.translatesAutoresizingMaskIntoConstraints = true/false
-    ///   ....
-    ///   toolbar.sizeToFit()
-    ///   toolbar.pinHeight(toolbar.frame.size.height).priority = .required
-    ///   ....
-    /// Maybe extend: CustomToolbar : UIToolbar and invoke updateConstraints/layoutSubviews
-    /// to reduce constraint priority or set frame/size
-    
-    let doneButton  = UIBarButtonItem(image: UIImage(name: "checkmark")?.withRenderingMode(.alwaysTemplate),
-                                      style: .done,
-                                      target: self,
-                                      action: #selector(textFieldToolbarDoneButtonPressed))
-    
-    let prevButton  = UIBarButtonItem(title: "❮",
-                                      style: .plain,
-                                      target: self,
-                                      action: #selector(textFieldToolbarPrevButtonPressed))
-    
-    
-    let nextButton  = UIBarButtonItem(title: "❯",
-                                      style: .plain,
-                                      target: self,
-                                      action: #selector(textFieldToolbarNextButtonPressed))
-    
-    prevButton.tintColor = Const.Colors.ciColor
-    nextButton.tintColor = Const.Colors.ciColor
-    doneButton.tintColor = Const.Colors.ciColor
-    
-    let flexibleSpaceButton = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-    let fixedSpaceButton = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
-    fixedSpaceButton.width = 30
-    
-    toolbar.setItems([prevButton, fixedSpaceButton, nextButton, flexibleSpaceButton, doneButton], animated: false)
-    toolbar.isUserInteractionEnabled = true
-    
-    return toolbar
-  }
-  
-  @objc func textFieldToolbarDoneButtonPressed(sender: UIBarButtonItem) {
-    self.resignFirstResponder()
-  }
-  
-  @objc func textFieldToolbarPrevButtonPressed(sender: UIBarButtonItem) {
-    if let nextField = self.superview?.viewWithTag(self.tag - 1) as? UITextField {
-      nextField.becomeFirstResponder()
-    } else {
-      self.resignFirstResponder()
-    }
-  }
-  
-  @objc func textFieldToolbarNextButtonPressed(sender: UIBarButtonItem) {
-    nextOrEndEdit()
-  }
-  
-  func nextOrEndEdit(){
-    if let nextField = self.superview?.viewWithTag(self.tag + 1) as? UITextField {
-      nextField.becomeFirstResponder()
-    } else {
-      onResignFirstResponder?()
-      self.resignFirstResponder()
-    }
-  }
+  lazy public var inputToolbar: UIToolbar = createToolbar()
 }
 
 // MARK: - TazTextField : UITextFieldDelegate
@@ -500,6 +435,7 @@ extension TazTextField{
   @objc public func textFieldEditingDidEnd(_ textField: UITextField) {
     //textField.text = textField.text?.trim //work not good "123 456" => "123"
     //push (e.g.) pw forgott child let end too late
+    //may use trimed in future in case if required
     UIView.animate(seconds: 0.3) { [weak self] in
       self?.border.backgroundColor = Const.SetColor.ForegroundHeavy.color
       self?.topLabel.textColor = Const.SetColor.ForegroundHeavy.color

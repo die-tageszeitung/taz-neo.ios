@@ -12,7 +12,6 @@ import NorthLib
 
 /// A Feed of bookmarked Articles
 public class BookmarkFeed: Feed, DoesLog {
-  
   @Default("bookmarksListTeaserEnabled")
   var bookmarksListTeaserEnabled: Bool
   
@@ -24,6 +23,7 @@ public class BookmarkFeed: Feed, DoesLog {
   public var lastIssue: Date
   public var firstIssue: Date
   public var issues: [Issue]?
+  public var publicationDates: [PublicationDate]?
   public var dir: Dir { Dir("\(feeder.baseDir.path)/bookmarks") }
   /// total number of bookmarks
   public var count: Int = 0
@@ -39,15 +39,21 @@ public class BookmarkFeed: Feed, DoesLog {
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     // Copy resources to bookmark folder
-    let resources = ["bookmarks-ios.css", "bookmarks-ios.js",
-                     "Trash.svg", "Share.svg"]
+    let resources = ["bookmarks-ios.js", "Star.svg", "StarFilled.svg",
+                     "Share.svg", "dot-night.svg", "dot-day.svg"]
     for f in resources {
       if let path = Bundle.main.path(forResource: f, ofType: nil) {
         let base = File.basename(path)
         let src = File(path)
         let dest = "\(dir.path)/resources/\(base)"
-        src.copyIfNewer(to: dest)
+        src.copyResource(to: dest)
       }
+    }
+    let css = App.isTAZ ? "bookmarks-taz.css" : "bookmarks-lmd.css"
+    if let path = Bundle.main.path(forResource: css, ofType: nil) {
+      let src = File(path)
+      let dest = "\(dir.path)/resources/bookmarks-ios.css"
+      src.copyResource(to: dest)
     }
   }
   
@@ -79,11 +85,19 @@ public class BookmarkFeed: Feed, DoesLog {
   </head>
   """
   
+  // A dotted line using SVG
+  //static var htmlDottedLine = "<div class='dottedline'></div>"
+  static var htmlDottedLine = "<hr class='dotted'/>"
+  
+  func dottedLine(inSection: Bool) -> String {
+    return (App.isTAZ ? !inSection : inSection) ?
+      BookmarkFeed.htmlDottedLine : "";
+  }
+  
   /// Get all authors as String with HTML markup
   public func getAuthors(art: Article) -> String {
     var ret = ""
-    if let authors = art.authors {
-      guard authors.count > 0 else { return "" }
+    if let authors = art.authors, authors.count > 0 {
       let n = authors.count - 1
       for i in 0...n {
         if let name = authors[i].name {
@@ -91,8 +105,16 @@ public class BookmarkFeed: Feed, DoesLog {
           if i != n { ret += ", " }
         }
       }
+      ret = "<address>\(ret.xmlEscaped())</address>&ensp;"
     }
-    return "<address>\(ret.xmlEscaped())</address>"
+    if let duration = art.readingDuration {
+      ret += "<time>\(duration) min</time>"
+    }
+    return """
+        <div class="author">
+          \(ret)
+        </div>\n
+    """
   }
   
   /// Get image of first picture (if available) with markup
@@ -106,57 +128,89 @@ public class BookmarkFeed: Feed, DoesLog {
   
   /// Get the inner HTML of an article
   public func getInnerHtml(art: StoredArticle) -> String {
-    let title = art.title ?? art.html.name
+    let title = art.title ?? art.html?.name ?? ""
+    let shareIcon
+    = art.onlineLink == nil
+    ? ""
+    : """
+        <img class="share" src="resources/Share.svg">
+      """
     let teaser = bookmarksListTeaserEnabled
     ? "<p>\((art.teaser ?? "").xmlEscaped())</p>"
     : ""
-    let sdate = art.issueDate.gDateString(tz: self.feeder.timeZone)
-    let iso = art.issueDate.isoDate(tz: self.feeder.timeZone)
-    let utime = art.issueDate.timeIntervalSince1970
     let html = """
+      \(dottedLine(inSection: false))
       <a href="\(art.path)">
         \(getImage(art: art))
         <h2>\(title.xmlEscaped())</h2>
         \(teaser)
-        \(getAuthors(art: art))
       </a>
       <div class = "foot">
-        <time utime="\(utime)" datetime="\(iso)">\(sdate)</time>
+        \(getAuthors(art: art))
         <div class="icons">
-          <img class="share" src="resources/Share.svg">
-          <img class="trash" src="resources/Trash.svg">
+          \(shareIcon)
+          <img class="bookmark" src="resources/StarFilled.svg">
         </div>
       </div>
     """
     return html
   }
   
-  /// Generate HTML for given Section
-  public func genHtml(section: BookmarkSection) {
-    if let articles = section.articles as? [StoredArticle] {
+  /// Generate HTML for given HTML Section
+  public func genHtmlSection(date: Date, arts: [Article]) -> String {
+    if let articles = arts as? [StoredArticle],
+       articles.count > 0,
+       let issue = articles[0].primaryIssue {
+      let momentPath = feeder.smallMomentImageName(issue: issue)
+      let dateText = App.isLMD ? 
+        "Ausgabe " + issue.date.gMonthYear(tz: GqlFeeder.tz, isNumeric: true) :
+        issue.validityDateText(timeZone: GqlFeeder.tz, leadingText: "wochentaz, ")
       var html = """
-      \(BookmarkFeed.htmlHeader)
-      <body>
-      <section id="content">\n
+      <section id="\(date.timeIntervalSince1970)">
+        <header class="issue">
+          <img class="moment" src="\(momentPath ?? "")">
+          <h1>\(dateText)</h1>
+        </header>\n
+        \(dottedLine(inSection: true))
       """
       var order = 1;
       for art in articles {
         let issues = art.issues
         if issues.count > 0 {
           html += """
-            <article id="\(File.progname(art.html.name))" style="order:\(order)">
+            <article id="\(File.progname(art.html?.name ?? ""))" style="order:\(order)">
             \(getInnerHtml(art: art))
-            </article>
+            </article>\n
           """
         }
         order += 1
       }
-      html += "</section>\n</body>\n</html>\n"
-      let tmpFile = section.html as! BookmarkFileEntry
-      tmpFile.content = html
+      html += "</section>\n"
+      return html
     }
+    return ""
+  }
+
+  public func genHtmlSections(section: BookmarkSection) -> String {
+    var html = ""
+    for date in section.issueDates! {
+      html += genHtmlSection(date: date, arts: section.groupedArticles![date]!)
+    }
+    return html
   }
   
+  /// Generate HTML for given Section
+  public func genHtml(section: BookmarkSection) {
+    var html = """
+      \(BookmarkFeed.htmlHeader)
+      <body>\n
+      """
+    html += genHtmlSections(section: section)
+    html += "</body>\n</html>\n"
+    let tmpFile = section.html as! BookmarkFileEntry
+    tmpFile.content = html
+  }
+
   /// Generate HTML for all Sections
   public func genAllHtml() {
     if let issues = self.issues {
@@ -179,6 +233,17 @@ public class BookmarkFeed: Feed, DoesLog {
       let allArticles = StoredArticle.bookmarkedArticles()
       count = allArticles.count
       section.articles = allArticles
+      section.groupedArticles = [:]
+      section.issueDates = []
+      for art in allArticles {
+        let sdate = art.issueDate
+        if let _ = section.groupedArticles![sdate] {
+          section.groupedArticles![sdate]!.append(art)
+        }
+        else { section.groupedArticles![sdate] = [art] }
+      }
+      section.issueDates = Array(section.groupedArticles!.keys).sorted
+        { d1, d2 in d1 > d2 }
     }
   }
   
@@ -186,8 +251,8 @@ public class BookmarkFeed: Feed, DoesLog {
   public static func allBookmarks(feeder: Feeder) -> BookmarkFeed {
     let bm = BookmarkFeed(feeder: feeder)
     let bmIssue = BookmarkIssue(feed: bm)
-    let bmSection = BookmarkSection(name: "leseliste", issue: bmIssue,
-        html: BookmarkFileEntry(feed: bm, name: "allBookmarks.html"))
+    let bmSection = BookmarkSection(name: App.isTAZ ? "leseliste" : "Leseliste", 
+        issue: bmIssue, html: BookmarkFileEntry(feed: bm, name: "allBookmarks.html"))
     bm.issues = [bmIssue]
     bmIssue.sections = [bmSection]
     bm.loadAllBookmarks()
@@ -202,6 +267,7 @@ public class BookmarkIssue: Issue {
   public var isComplete: Bool { get { false } set {} }
   public var feed: Feed
   public var date: Date
+  public var validityDate: Date?
   public var moTime: Date
   public var isWeekend: Bool { false }
   public var moment: Moment { DummyMoment() }
@@ -229,12 +295,15 @@ public class BookmarkIssue: Issue {
 
 /// A Section of bookmarked Articles
 public class BookmarkSection: Section {
+  public var audioItem: Audio?
   public var name: String
   public var extendedTitle: String? { name }
   public var type: SectionType { .articles }
   public var articles: [Article]?
+  public var groupedArticles: [Date:[Article]]?
+  public var issueDates: [Date]?
   public var navButton: ImageEntry? { nil }
-  public var html: FileEntry
+  public var html: FileEntry?
   public var images: [ImageEntry]? { nil }
   public var authors: [Author]? { nil }
   public var primaryIssue: Issue?
@@ -285,3 +354,25 @@ public class DummyMoment: Moment {
   public var creditedImages: [ImageEntry] { [] }
   public var animation: [FileEntry] { [] }
 }
+
+/// Small File extension to copy resource files
+extension File {
+  /**
+   copies a file to a destination given by its pathname.
+
+   self is only copied if it is either newer than the destination file
+   (in this case it is an update of a new app version) or the destination
+   file is newer than the source file (in this case it has been copied before
+   but the mtime has not been set to that of the source file).
+   After copying the destination file's mtime is set to that of the source
+   file.
+   */
+  public func copyResource(to: String) {
+    let dest = File(to)
+    if dest.mtime != self.mtime {
+      self.copy(to: to)
+      dest.mtime = self.mtime
+    }
+  }
+}
+

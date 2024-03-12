@@ -118,6 +118,10 @@ public class FeedbackViewController : UIViewController{
     if let img = screenshot, img.size.height > 0, img.size.width > 0 {
       feedbackView.logAttachmentButton.pinWidth(feedbackView.attachmentButtonHeight * img.size.width / img.size.height, priority: .required)
     }
+    else {
+      //not calculated, fast fix just prevent huge log icon
+      feedbackView.logAttachmentButton.pinWidth(feedbackView.attachmentButtonHeight * 0.4, priority: .required)
+    }
     
     self.view.addSubview(feedbackView)
     pin(feedbackView, to:self.view)
@@ -333,7 +337,7 @@ public class FeedbackViewController : UIViewController{
     if MFMailComposeViewController.canSendMail() {
       actions.insert(mailAction, at: 1)
     }
-    
+    Usage.track(Usage.event.dialog.ConnectionError)
     Alert.message(title: "Erneut versuchen?",
                       message: "Der Report konnte nicht gesendet werden!\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.\nSollte das Problem weiter bestehen, senden Sie uns bitte eine E-Mail an:\n \(Localized("digiabo_email"))",
                       actions: actions, presentationController: self)
@@ -418,33 +422,19 @@ public class FeedbackViewController : UIViewController{
   }
   
   lazy var logString: String? = {
-    var log = ""
-    if let data = logData,
-        let lString = String(data:data , encoding: .utf8) {
-      log = lString
-    }
-    else {
-      //Feedback need no Log!
-      return nil
-    }
-    
-    let lastLog = File(Log.FileLogger.lastLogfile)
-    if lastLog.exists,
-       let lString = String(data:lastLog.data, encoding: .utf8) {
+    if let data = logData {
+      let lastLog = File(Log.FileLogger.lastLogfile)
       let created = lastLog.cTime.dateAndTime
-      log += "\n###################################"
-      log += "\n     L A S T - E X E C U T I O N"
-      log += "\n     \(created)"
-      log += "\n###################################\n\n"
-      log += lString
+      return Log.FileLogger.string(data: data, includeOldLog: true)
     }
-    return log
+    //Feedback need no Log!
+    return nil
   }()
   
   func showLog(){
     let logVc = OverlayViewController()
     let logView = SimpleLogView()
-    logView.append(txt: logString ?? "")
+    logView.append(txt: logString ?? "", color: Defaults.darkMode ? .white : .black)
     logVc.view.addSubview(logView)
     pin(logView, to: logVc.view)
     logVc.activateCloseX()
@@ -562,3 +552,52 @@ class OverlayViewController : UIViewController{
     print("deinit OverlayViewController")
   }
 }
+
+
+extension Log.FileLogger {
+  
+  public static var allLog:String? {
+    string(data: File(Log.FileLogger.tmpLogfile).data, includeOldLog: true)
+  }
+  
+  /// Logfile from last execution
+  public static var secondLastLogfile: String = tmpLogfile + ".2old"
+  
+  public static func string(data: Data?, includeOldLog: Bool = false) -> String? {
+    var log = ""
+    if let data = data,
+       let lString = String(data:data , encoding: .utf8) {
+      log = lString
+    }
+    
+    let lastLog = File(Log.FileLogger.lastLogfile)
+    if lastLog.exists,
+       let lString = String(data:lastLog.data, encoding: .utf8) {
+      let created = lastLog.cTime.dateAndTime
+      log += "\n###################################"
+      log += "\n     L A S T - E X E C U T I O N"
+      log += "\n     \(created)"
+      log += "\n###################################\n\n"
+      log += lString
+    }
+    
+    if !(DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
+      return log
+    }
+    
+    //for @taz.de useraccounts add 3 app session logs
+    
+    let secondLastLog = File(Log.FileLogger.secondLastLogfile)
+    if secondLastLog.exists,
+       let lString = String(data:secondLastLog.data, encoding: .utf8) {
+      let created = secondLastLog.cTime.dateAndTime
+      log += "\n###################################"
+      log += "\n     2nd L A S T - E X E C U T I O N"
+      log += "\n     \(created)"
+      log += "\n###################################\n\n"
+      log += lString
+    }
+    return log
+  }
+  
+} // extension Log.FileLogger

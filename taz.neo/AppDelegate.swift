@@ -18,7 +18,6 @@ class AppDelegate: NotifiedDelegate {
     TazAppEnvironment.saveLastLog()
     TazAppEnvironment.setupDefaultStyles()
     self.window = UIWindow(frame: UIScreen.main.bounds)
-
     self.window?.rootViewController = TazAppEnvironment.sharedInstance.rootViewController
 //    self.window?.rootViewController =  TmpTestController()
 //    let res = SearchResultsTVC()
@@ -43,6 +42,7 @@ class AppDelegate: NotifiedDelegate {
     return true
   }
 
+  #if TAZ
   /// Update App Icon Menu
   public func applicationWillResignActive(_ application: UIApplication) {
     application.shortcutItems = Shortcuts.currentItems()
@@ -51,11 +51,13 @@ class AppDelegate: NotifiedDelegate {
   func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
     TazAppEnvironment.sharedInstance.handleShortcutItem(shortcutItem)
   }
+  #endif
   
   // Store background download completion handler
   func application(_ application: UIApplication,
                    handleEventsForBackgroundURLSession identifier: String,
                    completionHandler: @escaping () -> Void) {
+    log("store bg Download compleetion")
     HttpSession.bgCompletionHandlers[identifier] = completionHandler
   }
 

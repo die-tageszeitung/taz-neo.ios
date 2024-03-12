@@ -12,7 +12,6 @@ import NorthLib
 
 // MARK: - PwForgottController
 class PwForgottController: FormsController {
-  
   private var contentView = PwForgottView()
   override var ui : PwForgottView { get { return contentView }}
   var childDismissType:dismissType?
@@ -76,7 +75,7 @@ class PwForgottController: FormsController {
               self.updateParentIfApplyable(id)
               let ctrl = SubscriptionResetSuccessController()
               if let cdt = self.childDismissType { ctrl.dismissType = cdt}
-              self.modalFlip(ctrl)
+              self.modalFromBottom(ctrl)
         }
         //ToDo #901
         case .failure:
@@ -98,7 +97,7 @@ class PwForgottController: FormsController {
               self.updateParentIfApplyable(id)
               let ctrl = PasswordResetRequestedSuccessController()
               if let cdt = self.childDismissType { ctrl.dismissType = cdt}
-              self.modalFlip(ctrl)
+              self.modalFromBottom(ctrl)
             case .invalidMail:
               Toast.show(Localized("error_invalid_email_or_abo_id"))
             case .mailError:
@@ -134,7 +133,6 @@ class PasswordResetRequestedSuccessController: FormsResultController {
     super.init(nibName: nil, bundle: nil)
     self.dismissType = .two
     ui.views =  [
-      TazHeader(),
       Padded.Label(title: Localized("login_forgot_password_email_sent_header"),
               paddingTop: 30,
               paddingBottom: 30
@@ -164,7 +162,6 @@ class SubscriptionResetSuccessController: FormsResultController, MFMailComposeVi
     super.init(nibName: nil, bundle: nil)
     self.dismissType = .two
     ui.views =   [
-      TazHeader(),
       Padded.Label(title: Localized("login_forgot_password_email_sent_header")
       ),
       Padded.Label(title: Localized("subscription_reset_found_link")

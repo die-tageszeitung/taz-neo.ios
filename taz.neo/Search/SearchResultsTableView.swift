@@ -60,6 +60,7 @@ class SearchResultsTableView:UITableView{
     self.backgroundColor = Const.Colors.opacityBackground
     footer.alpha = 0.0
     self.tableFooterView = footer
+    self.separatorInset = UIEdgeInsets(top: 0, left: Const.Size.DefaultPadding, bottom: 0, right: Const.Size.DefaultPadding)
     
     self.dataSource = self
     self.delegate = self
@@ -113,7 +114,19 @@ extension SearchResultsTableView: UITableViewDelegate {
     handleScrolling?(beginDragOffset - scrollView.contentOffset.y, false)
   }
   
-  
+  func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    guard let issueDate = searchItem?.searchHitList?.valueAt(indexPath.row)?.date else { return nil }
+    if issueDate < TazAppEnvironment.sharedInstance.feederContext?.defaultFeed.firstIssue ?? Date() { return nil }
+    let openIssueAction = UIContextualAction(style: .normal, title: "Ausgabe\nanzeigen", handler: {[weak self] (_, _, completionHandler) in
+      Notification.send(Const.NotificationNames.gotoIssue, content: issueDate, sender: self)
+      completionHandler(true)
+    }
+          )
+    // Show Current Cloud Upload Status
+    openIssueAction.backgroundColor = .black
+    let swipeConfiguration = UISwipeActionsConfiguration(actions: [openIssueAction])
+    return swipeConfiguration
+  } // end func leadingSwipeActionsConfigurationForRowAt
 }
 // MARK: - UITableViewDataSource -
 extension SearchResultsTableView: UITableViewDataSource {
@@ -142,9 +155,12 @@ class SearchResultsCell: UITableViewCell {
   private func updateContent(){
     if let content = content {
       titleLabel.text = content.article.title
-      authorLabel.text = content.article.authors()
+      authorLabel.text = content.article.authors()?.prepend("von ")
       contentLabel.attributedText = content.snippet?.attributedFromSnippetString
-      dateLabel.text = content.date.short + " " + (content.sectionTitle ?? "")
+      dateLabel.text 
+      = App.isLMD
+      ? "Ausgabe " + content.date.stringWith(dateFormat: "MM/YYYY")
+      : content.date.short + " " + (content.sectionTitle ?? "")
     }
     else {
       titleLabel.text = ""
@@ -171,6 +187,7 @@ class SearchResultsCell: UITableViewCell {
   
   lazy var dateLabel: UILabel = {
     let label = UILabel("", type: .content)
+    label.selfIfLMd?.lmdArnhem(italic: true)
     label.textAlignment = .left
     label.translatesAutoresizingMaskIntoConstraints = false
     return label
@@ -185,6 +202,7 @@ class SearchResultsCell: UITableViewCell {
   
   lazy var authorLabel: UILabel = {
     let label = UILabel("", type: .content)
+    label.selfIfLMd?.lmdArnhem(italic: true)
     label.textAlignment = .left
     label.translatesAutoresizingMaskIntoConstraints = false
     return label
@@ -214,10 +232,10 @@ class SearchResultsCell: UITableViewCell {
     pin(dateLabel.right, to: cellView.right)
     
     pin(titleLabel.top, to: cellView.top, dist: 15)
-    pin(authorLabel.top, to: titleLabel.bottom, dist: 8)
-    pin(contentLabel.top, to: authorLabel.bottom, dist: 8)
-    pin(dateLabel.top, to: contentLabel.bottom, dist: 8)
-    pin(dateLabel.bottom, to: cellView.bottom, dist: -12)
+    pin(authorLabel.top, to: titleLabel.bottom, dist: App.isTAZ ? 8.0 : 5.0)
+    pin(contentLabel.top, to: authorLabel.bottom, dist: App.isTAZ ? 8.0 : 8.0)
+    pin(dateLabel.top, to: contentLabel.bottom, dist: App.isTAZ ? 8.0 : 12.0)
+    pin(dateLabel.bottom, to: cellView.bottom, dist:  App.isTAZ ? -12.0 : -6.0)
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -251,20 +269,38 @@ extension String {
 
       var components = self.components(separatedBy: openTag)
       
+      var defaultAttributes:[NSAttributedString.Key : Any] = [:]
+      var highlightedAttributes:[NSAttributedString.Key : Any] = [:]
+      highlightedAttributes[.backgroundColor] = Const.Colors.foundTextHighlight
+      highlightedAttributes[.foregroundColor] = UIColor.black
+      #if LMD
+        let style = NSMutableParagraphStyle()
+        style.lineHeightMultiple = 1.1
+        highlightedAttributes[.paragraphStyle] = style
+        defaultAttributes[.paragraphStyle] = style
+      #endif
+
+      
       if !self.starts(with: openTag){
-        ms.append(NSAttributedString(string: components.remove(at: 0)))
+        ms.append(NSAttributedString(string: components.remove(at: 0),
+                                     attributes: defaultAttributes))
       }
       for s in components {
         let highlightedComponents = s.components(separatedBy: closeTag)
         if let txt = highlightedComponents.valueAt(0) {
-          ms.append(NSAttributedString(string: txt, attributes: [.backgroundColor: Const.Colors.foundTextHighlight,
-            .foregroundColor: UIColor.black]))
+          ms.append(NSAttributedString(string: txt, 
+                                       attributes: highlightedAttributes))
         }
         if let txt = highlightedComponents.valueAt(1){
-          ms.append(NSAttributedString(string: txt))
+          ms.append(NSAttributedString(string: txt, 
+                                       attributes: defaultAttributes))
         }
       }
       return ms
     }
+  }
+  
+  func prepend(_ prefix: String) -> String {
+    return "\(prefix)\(self)"
   }
 }

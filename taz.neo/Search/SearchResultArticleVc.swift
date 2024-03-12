@@ -18,6 +18,7 @@ class SearchResultArticleVc : ArticleVC {
   var navigationBarHiddenRestoration:Bool?
   var maxResults:Int = 0
   var searchClosure: (()->())?
+  var searchHitDate: Date?
   
   override func setHeader(artIndex: Int) {
     super.setHeader(artIndex: artIndex)
@@ -27,7 +28,13 @@ class SearchResultArticleVc : ArticleVC {
        let hit = searchVc.searchItem.searchHitList?.valueAt(artIndex)
     {
       header.title = hit.sectionTitle ?? ""
-      header.subTitle = "Ausgabe \(hit.date.short)"
+      header.subTitle 
+      = App.isLMD
+      ? "Ausgabe \(hit.date.stringWith(dateFormat: "MMMM YYYY"))"
+      : "Ausgabe \(hit.date.short)"
+      searchHitDate = hit.date
+    } else {
+      searchHitDate = nil
     }
     
     header.pageNumber = "\(artIndex+1) von \(maxResults)"
@@ -46,7 +53,7 @@ class SearchResultArticleVc : ArticleVC {
           guard let this = self else { return }
           let url = cnt.originalIssueBaseURL ?? cnt.baseURL
           ///Not Download Article HTML use it from SearchHit, it has highlighting for search term
-          let additionalFiles = curl.content.files.filter{ $0.name != cnt.html.name }
+          let additionalFiles = curl.content.files.filter{ $0.name != cnt.html?.name }
           this.dloader.downloadSearchHitFiles(files: additionalFiles, baseUrl: url) { err in
             if err == nil { curl.isAvailable = true }
           }
@@ -76,6 +83,14 @@ class SearchResultArticleVc : ArticleVC {
       }
     }
     header.titletype = .search
+    header.subTitleLabel.onTapping { [weak self] _ in
+      guard let date = self?.searchHitDate else { return }
+      if date < self?.feed.firstIssue ?? Date() {
+        Toast.show("Die Ausgabe vom \(date.short) ist leider nicht im Archiv verfügbar.")
+        return
+      }
+      Notification.send(Const.NotificationNames.gotoIssue, content: date, sender: self)
+    }
   }
 }
 

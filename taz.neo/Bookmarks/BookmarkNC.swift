@@ -13,7 +13,7 @@ fileprivate class PlaceholderVC: UIViewController{
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view
-    = PlaceholderView("Die Leseliste ist leer!",
+    = PlaceholderView("Sie haben noch keine Artikel in Ihrer Leseliste.\n\nSpeichern Sie Artikel zum weiterlesen, hören oder erinnern in Ihrer persönlichen Leseliste. Einfach das Sternchen bei den Artikeln aktivieren.",
                       image: UIImage(named: "star"))
   }
   
@@ -23,12 +23,11 @@ fileprivate class PlaceholderVC: UIViewController{
   }
 }
 
+extension PlaceholderVC: DefaultScreenTracking {
+  public var defaultScreen: Usage.DefaultScreen? { .BookmarksEmpty }
+}
+
 class BookmarkNC: NavigationController {
-  
-  /// Are we in facsimile mode
-  @Default("isFacsimile")
-  public var isFacsimile: Bool
-  
   private var placeholderVC = PlaceholderVC()
   
   public var feederContext: FeederContext
@@ -45,15 +44,22 @@ class BookmarkNC: NavigationController {
                                atSection: nil,
                                atArticle: openArticleAtIndex)
     svc.delegate = self
-    svc.toolBar.hide()
+    svc.toolBar.show(show:false, animated: true)
     svc.isStaticHeader = true
     svc.header.titletype = .bigLeft
-    svc.header.title = "leseliste"
+    svc.header.title = App.isTAZ ? "leseliste" : "Leseliste"
     svc.hidesBottomBarWhenPushed = false
+    svc.updateTapOnEdge(show: issue.allArticles.count > 10)
     return svc
   }
   
   func setup() {
+    Notification.receive(Const.NotificationNames.expiredAccountDateChanged) { [weak self] notif in
+      guard self?.feeder.isAuthenticated ?? false else { return }
+      guard Defaults.expiredAccount == false else { return }
+      self?.reloadOpened()
+    }
+    
     Notification.receive("updatedDemoIssue") { [weak self] notif in
       guard let self = self else { return }
       self.bookmarkFeed
@@ -62,7 +68,7 @@ class BookmarkNC: NavigationController {
       self.sectionVC.delegate = self///trigger SectionVC.setup()
     }
     
-    Notification.receive("BookmarkChanged") { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       // regenerate all bookmark sections
       guard let emptyRoot = self?.placeholderVC,
             let self = self else { return }
@@ -72,6 +78,7 @@ class BookmarkNC: NavigationController {
         if art.hasBookmark {
           self.sectionVC.insertArticle(art)
           self.sectionVC.reload()
+          self.ensureBookmarkListVisibleIfNeeded(animated: false)
         }
         else {
           self.sectionVC.deleteArticle(art)
@@ -81,7 +88,6 @@ class BookmarkNC: NavigationController {
           self.viewControllers[0] = emptyRoot
           self.popToRootViewController(animated: true)
         }
-        self.updateTabbarImage()
       }
       else {
         self.bookmarkFeed.genAllHtml()
@@ -90,18 +96,15 @@ class BookmarkNC: NavigationController {
     }
   }
   
-  func updateTabbarImage(){
-    tabBarItem.image
-    = bookmarkFeed.count == 0
-    ? UIImage(named: "star")
-    : UIImage(named: "star-fill")
+  func ensureBookmarkListVisibleIfNeeded(animated: Bool = true){
+    if bookmarkFeed.count > 0 && self.viewControllers.first != sectionVC  {
+      setViewControllers([sectionVC], animated: animated)
+    }
   }
-  
+   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    if bookmarkFeed.count > 0 && self.viewControllers.first != sectionVC  {
-      setViewControllers([sectionVC], animated: true)
-    }
+    ensureBookmarkListVisibleIfNeeded()
   }
   
   override func viewDidLoad() {
@@ -126,7 +129,11 @@ extension BookmarkNC: IssueInfo {
 
 extension BookmarkNC: ReloadAfterAuthChanged {
   public func reloadOpened(){
-    let lastIndex = (self.viewControllers.last as? ArticleVC)?.index ?? 0
+    
+    guard self.feeder.isAuthenticated else { return }
+    guard Defaults.expiredAccount == false else { return }
+    
+    let lastIndex: Int? = (self.viewControllers.last as? ArticleVC)?.index
     var issuesToDownload:[StoredIssue] = []
     for art in bookmarkFeed.issues?.first?.allArticles ?? [] {
       if let sissue = art.primaryIssue as? StoredIssue,
@@ -139,16 +146,14 @@ extension BookmarkNC: ReloadAfterAuthChanged {
     func downloadNextIfNeeded(){
       if let nextIssue = issuesToDownload.first {
         self.feederContext.getCompleteIssue(issue: nextIssue,
-                                             isPages: isFacsimile,
+                                             isPages: false,
                                              isAutomatically: false)
+      } else if let idx = lastIndex {
+        reopenArticleAtIndex(idx: idx)
       } else {
         self.bookmarkFeed
         = BookmarkFeed.allBookmarks(feeder: self.feeder)
-        self.sectionVC.relaese()
-        self.sectionVC
-        = createSectionVC(openArticleAtIndex: lastIndex)
-        self.viewControllers[0] = self.sectionVC
-        self.popToRootViewController(animated: true)
+        self.sectionVC.reload()
         Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
       }
     }
@@ -162,5 +167,53 @@ extension BookmarkNC: ReloadAfterAuthChanged {
       downloadNextIfNeeded()
     }
     downloadNextIfNeeded()
+  }
+  
+  private func reopenArticleAtIndex(idx: Int?){
+    self.bookmarkFeed
+    = BookmarkFeed.allBookmarks(feeder: self.feeder)
+    self.sectionVC.releaseOnDisappear()
+    self.sectionVC
+    = createSectionVC(openArticleAtIndex: idx)
+    self.viewControllers[0] = self.sectionVC
+    self.popToRootViewController(animated: true)
+    Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+  }
+  
+  public func reloadIfNeeded(article: Article?){
+    guard let article = article,
+          let reloadIssue = article.primaryIssue as? StoredIssue else { return }
+
+    if article.html?.exists(inDir: article.dir.path) == false {
+      loadReload(reloadIssue: reloadIssue)
+    }
+    else if reloadIssue.isReduced && TazAppEnvironment.hasValidAuth {
+      loadReload(reloadIssue: reloadIssue)
+    }
+  }
+  
+  private func loadReload(reloadIssue: StoredIssue){
+    reloadOpened()
+    return
+    
+    let lastIndex: Int? = (self.viewControllers.last as? ArticleVC)?.index
+    let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
+    
+    WaitingAppOverlay.show(alpha: 1.0,
+                           backbround: snap,
+                           showSpinner: true,
+                           titleMessage: "Aktualisiere Daten",
+                           bottomMessage: "Bitte haben Sie einen Moment Geduld!",
+                           dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
+    Notification.receive("issue"){[weak self] notif in
+      ///ensure the issue download comes from here!
+      guard let issue = notif.object as? Issue else { return }
+      guard reloadIssue.date.issueKey == issue.date.issueKey else { return }
+      self?.reopenArticleAtIndex(idx: lastIndex)
+    }
+    popToRootViewController(animated: true)
+    self.feederContext.getCompleteIssue(issue: reloadIssue,
+                                         isPages: false,
+                                         isAutomatically: false)
   }
 }

@@ -30,15 +30,22 @@ public extension FeedbackType {
       case .fatalError: return "Fatal Error!"
     }
   }
+  var trackingScreen: Usage.DefaultScreen {
+    switch self {
+      case .feedback: return .FeedbackReport
+      case .error: return .ErrorReport
+      case .fatalError: return .FatalError
+    }
+  }
 }
 
 open class FeedbackComposer : DoesLog{
   
   public static func showWith(logData: Data? = nil,
+                              screenshot: UIImage? = nil,
                               feederContext: FeederContext?,
                               feedbackType: FeedbackType? = nil,
                               finishClosure: @escaping ((Bool) -> ())) {
-    let screenshot = UIWindow.screenshot
     let deviceData = DeviceData()
     
     let feedbackHandler: (Any?) -> Void = { _ in
@@ -73,7 +80,14 @@ open class FeedbackComposer : DoesLog{
     
     let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel) { _ in finishClosure(false) }
     
-    Alert.message(title: "Rückmeldung", message: "Möchten Sie einen Fehler melden oder uns Feedback geben?", actions: [feedbackAction, errorReportAction, cancelAction])
+    
+    
+    var actions = [feedbackAction, errorReportAction, cancelAction]
+    if Device.isSimulator {
+      actions.append(contentsOf: UIAlertAction.developerPushActions(callback: finishClosure))
+    }
+    
+    Alert.message(title: "Rückmeldung", message: "Möchten Sie einen Fehler melden oder uns Feedback geben?", actions: actions)
   }
   
   public static func send(type: FeedbackType,
@@ -118,6 +132,10 @@ open class FeedbackComposer : DoesLog{
       currentVc.isModalInPresentation = true
       restoreModalityController = currentVc
     }
+    
+    if let tabVC = currentVc.parent as? UITabBarController {
+      currentVc = tabVC
+    }
                                                        
     feedbackBottomSheet = FullscreenBottomSheet(slider: feedbackViewController,
                                               into: currentVc)
@@ -149,6 +167,7 @@ open class FeedbackComposer : DoesLog{
       feedbackBottomSheet = nil//Important the memory leak!
     })
     feedbackBottomSheet?.open()
+    Usage.track(screen: type.trackingScreen)
   }
 }
 

@@ -8,6 +8,27 @@
 import UIKit
 import NorthLib
 
+/// **IDEAS/THOUGHTS ABOUT PUBLICATION DATES**
+/// PUBLICATION DATES is used on Home to show Issues
+/// at least the date is available, may the Image is not available
+///
+/// WHEN ADD ONE OR UPDATE LIST?
+/// - on App Start
+///    - old seperate Request update.... FeederContext > connect FeederReady > update...
+///    - new within init gqlfeeder
+///         - saves 1 Request
+///         - update fetch check for new Issues seperatly > reduces request/response sizes
+///         - **TODO** IMPLEMENT > TEST
+/// - pull to refresh
+///         - update PubDates
+///         - **TODO** REFACTOR > TEST
+/// - receive Push "newIssue"
+///         - download given Issue and update List or add ONE!
+///         - **TODO** IMPLEMENT > TEST
+/// - on migration from 0.9.12 > 1.0.0 if started offline! **MUST HAVE**
+///         -  ADD ALL KNOWN IN DB ISSUE DATES
+///         - **TODO** IMPLEMENT > TEST
+
 /// A protocol defining methods to use by GraphQL objects
 protocol GQLObject: Decodable, ToString {
   /// A String listing the GraphQL field names of an GraphQL object
@@ -37,15 +58,50 @@ struct GqlAuthInfo: GQLObject {
   var status:  GqlAuthStatus
   /// Optional message in case of !valid
   var message: String?
+  /// Is delivery weekly?
+  var oWeekly: Bool?
+  var weekly: Bool { oWeekly ?? false }
   
-  static var fields = "status message"
+  static var fields = "status message oWeekly:loginWeek"
   
   func toString() -> String {
     var ret = status.toString()
     if let msg = message { ret += ": (\(msg))" }
+    ret += ", \(weekly ? "weekly" : "default") delivery"
     return ret
   }  
 } // GqlAuthInfo
+
+/// A GqlCustomerInfo describes an customer
+struct GqlCustomerInfo: GQLObject {
+  /// Authentication status
+  var authInfo:  GqlAuthInfo
+  /// Authentication status
+  var customerType:  GqlCustomerType?
+  /// Optional message in case of !valid
+  var cancellation: String?
+  /// Optional message in case of !valid
+  var sampleType: String?
+  
+  static var fields = "authInfo{\(GqlAuthInfo.fields)} customerType cancellation sampleType"
+  
+  func toString() -> String {
+    var ret = authInfo.toString()
+    if let ct = customerType { ret += ": customerType(\(ct.toString()))" }
+    if let msg = cancellation { ret += "cancellation: (\(msg))" }
+    if let msg = sampleType { ret += "sampleType: (\(msg))" }
+    return ret
+  }
+} // GqlCustomerInfo
+
+/// Customer Type
+enum GqlCustomerType: String, CodableEnum {
+  case digital = "digital"  ///common digi abo
+  case combo = "combo"  ///Kombiabo
+  case sample = "sample" ///Probeabo
+  case deliveryBreaker = "deliveryBreaker"///Lieferunterbrecher
+  case unknown   = "unknown"   /// decoded from unknown or unused string e.g. promo
+} // GqlCustomerType
 
 /// A GqlAuthToken is returned upon an Authentication request
 struct GqlAuthToken: GQLObject {  
@@ -53,8 +109,9 @@ struct GqlAuthToken: GQLObject {
   var token: String?
   /// Authentication info
   var authInfo: GqlAuthInfo
+  var customerType: GqlCustomerType?
   
-  static var fields = "token authInfo{\(GqlAuthInfo.fields)}"
+  static var fields = "token authInfo{\(GqlAuthInfo.fields)} customerType"
   
   func toString() -> String {
     var ret: String
@@ -65,6 +122,18 @@ struct GqlAuthToken: GQLObject {
     return ret
   }  
 } // GqlAuthToken
+
+/// GqlFile as defined by server
+class GqlAudio: Audio, GQLObject {
+  var gqlFile: GqlFile?
+  var file: FileEntry? { return gqlFile }
+  var duration: Float?
+  var speaker: AudioSpeaker?
+  var breaks: [Float]?
+  var content: [Content]? { nil }
+  var page: [Page]? { nil }
+  static var fields =  "playtime duration speaker breaks gqlFile: file {\(GqlFile.fields)}"
+} // GqlAudio
 
 
 /// GqlFile as defined by server
@@ -141,11 +210,14 @@ class GqlPayload: Payload {
   }
   
   /// Initialize Payload from Issue
-  init(feeder: GqlFeeder, issue: GqlIssue, isPages: Bool = false) {
+  init(feeder: GqlFeeder,
+       issue: GqlIssue,
+       isPages: Bool = false,
+       withAudio: Bool = false) {
     localDir = feeder.issueDir(issue: issue).path
     remoteBaseUrl = issue.baseUrl
     remoteZipName = issue.zipName
-    files = issue.files(isPages: isPages)
+    files = issue.files(isPages: isPages, withAudio: withAudio)
     self.issue = issue
   }
   
@@ -207,11 +279,12 @@ class GqlResources: Resources, GQLObject {
 class GqlAuthor: Author, GQLObject {
   /// Name of author
   var name: String?
+  var serverId: Int?
   /// Photo (if any)
   var image: GqlImage?
   var photo: ImageEntry? { return image }
   
-  static var fields = "name image: imageAuthor { \(GqlImage.fields) }"
+  static var fields = "name serverId: id image: imageAuthor { \(GqlImage.fields) }"
 }
 
 /// One Article of an Issue
@@ -224,14 +297,14 @@ class GqlArticle: Article, GQLObject {
   }
   /// File storing article HTML
   var articleHtml: GqlFile
-  var html: FileEntry { return articleHtml }
-  /// File storing article MP3 (if any)
-  var audioFile: GqlFile?
-  var audio: FileEntry? { return audioFile }
+  var html: FileEntry? { return articleHtml }
+  var gqlAudio: GqlAudio?
+  var audioItem: Audio?{ return gqlAudio }
   /// Article title
   var title: String?
   /// Article teaser
   var teaser: String?
+  var articleType: ArticleType?
   /// Link to online version of this article
   var onlineLink: String?
   /// List of PDF page (-file) names containing this article
@@ -242,14 +315,19 @@ class GqlArticle: Article, GQLObject {
   /// List of authors
   var authorList: [GqlAuthor]?
   var authors: [Author]? { return authorList }
+  var serverId: Int?
+  var readingDuration: Int?
 
   static var fields = """
   articleHtml { \(GqlFile.fields) }
-  audioFile { \(GqlFile.fields) }
+  gqlAudio: audio { \(GqlAudio.fields) }
   title
   teaser
   onlineLink
+  articleType
   pageNames: pageNameList
+  serverId: mediaSyncId
+  readingDuration: readMinutes
   imageList { \(GqlImage.fields) }
   authorList { \(GqlAuthor.fields) }
   """  
@@ -265,7 +343,9 @@ class GqlSection: Section, GQLObject {
   }
   /// File storing section HTML
   var sectionHtml: GqlFile
-  var html: FileEntry { return sectionHtml }
+  var html: FileEntry? { return sectionHtml }
+  var gqlAudio: GqlAudio?
+  var audioItem: Audio?{ return gqlAudio }
   /// Name of section
   var name: String
   /// Optional title (not to display in table of contents)
@@ -289,6 +369,7 @@ class GqlSection: Section, GQLObject {
   name: title
   extendedTitle
   type
+  gqlAudio: podcast { \(GqlAudio.fields) }
   sectionNavButton: navButton { \(GqlImage.fields) }
   articleList { \(GqlArticle.fields) }
   imageList { \(GqlImage.fields) }
@@ -316,6 +397,8 @@ class GqlPage: Page, GQLObject {
   var pdf: FileEntry? { return pagePdf }
   /// Facsimile if first page
   var gqlFacsimile: GqlImage?
+  var gqlAudio: GqlAudio?
+  var audioItem: Audio?{ return gqlAudio }
   var facsimile: ImageEntry? { return gqlFacsimile }
   /// Page title (if any)
   var title: String?
@@ -329,7 +412,7 @@ class GqlPage: Page, GQLObject {
   
   static var fields = """
   pagePdf { \(GqlFile.fields) }
-  gqlFacsimile: facsimile { \(GqlImage.fields) }
+  gqlAudio: podcast { \(GqlAudio.fields) }
   title
   pagina
   type
@@ -354,6 +437,100 @@ class GqlMoment: Moment, GQLObject {
   """
 } // GqlMoment
 
+///
+class GqlPublicationDate: PublicationDate, GQLObject {
+  
+  var feed: Feed?
+  
+  var sDate: String
+  var date: Date {
+      return UsTime(iso: sDate, tz: GqlFeeder.tz).date
+  }
+  static var fields: String { Self.fields() }
+  
+  static func fields(loadAllPublicationDates: Bool = false) -> String {
+    var startArg = ""
+    if loadAllPublicationDates == false,
+        let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
+      startArg = """
+                 (start:"\(last.isoDate(tz: GqlFeeder.tz))")
+                 """
+    }
+    return "gqlPublicationDates:publicationDates\(startArg)"
+  }
+  
+  var sValidityDate: String?
+  var validityDate: Date?
+  
+  enum CodingKeys: String, CodingKey {
+    case sDate
+    case sValidityDate
+  }
+  
+  func toString() -> String {
+    guard let vd = validityDate else {
+      return "date: \(date.short)"
+    }
+    return "date: \(date.short) - \(vd.short)"
+  }
+  
+  required init(from sDate: String, feed: Feed) {
+    self.sDate = sDate
+    self.feed = feed
+  }
+  
+  required init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    sDate = try container.decode(String.self, forKey: .sDate)
+  }
+  
+}// GqlPublicationDate
+
+class GqlValidityDate: GQLObject {
+  var sDate: String
+  var date: Date {
+    return UsTime(iso: sDate, tz: GqlFeeder.tz).date
+  }
+  var sValidityDate: String?
+  var validityDate: Date? {
+    guard let d = sValidityDate else { return nil }
+    return UsTime(iso: d, tz: GqlFeeder.tz).date
+  }
+  
+  static var fields: String {
+    var startArg = ""
+    if let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
+      startArg = """
+                 (start:"\(last.isoDate(tz: GqlFeeder.tz))")
+                 """
+    }
+    return """
+           gqlValidityDates:validityDates\(startArg){
+             sDate: date
+             sValidityDate: validityDate
+          }
+          """
+  }
+  
+  enum CodingKeys: String, CodingKey {
+    case sDate
+    case sValidityDate
+  }
+  
+  func toString() -> String {
+    guard let vd = validityDate else {
+      return "date: \(date.short)"
+    }
+    return "date: \(date.short) - \(vd.short)"
+  }
+  
+  required init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    sDate = try container.decode(String.self, forKey: .sDate)
+    sValidityDate = try container.decodeIfPresent(String.self, forKey: .sValidityDate)
+  }
+}// GqlValidityDate
+
 /// One Issue of a Feed
 class GqlIssue: Issue, GQLObject {
   var realFeed: Feed?
@@ -362,6 +539,11 @@ class GqlIssue: Issue, GQLObject {
   /// Issue date
   var sDate: String 
   var date: Date { return UsTime(iso: sDate, tz: GqlFeeder.tz).date }
+  /// date until issue is valid if more then one
+  var sValidityDate: String?
+  var validityDate: Date? {
+    guard let dateString = sValidityDate, dateString.length > 8 else { return nil }
+    return UsTime(iso: dateString, tz: GqlFeeder.tz).date }
   /// Modification time as String of seconds since 1970-01-01 00:00:00 UTC
   var sMoTime: String?
   /// Modification time as Date
@@ -395,7 +577,17 @@ class GqlIssue: Issue, GQLObject {
   var sections: [Section]? { return sectionList }
   /// List of PDF pages (if any)
   var pageList : [GqlPage]?
-  var pages: [Page]? { return pageList }
+  var pages: [Page]? {
+    if isOverview,
+       let titlePage = pageList?.first(where: {$0.pagina == "1"}),
+       titlePage.title == "Seite 1" {
+        return [titlePage] as? [Page]
+    }
+    return pageList
+  }
+  
+  var isOverview: Bool = false
+  
   var _isDownloading: Bool? = nil
   var isDownloading: Bool {
     get { if _isDownloading != nil { return _isDownloading! } else { return false } }
@@ -417,6 +609,7 @@ class GqlIssue: Issue, GQLObject {
   
   enum CodingKeys: String, CodingKey {
     case sDate
+    case sValidityDate
     case sMoTime
     case sIsWeekend
     case gqlMoment
@@ -434,6 +627,7 @@ class GqlIssue: Issue, GQLObject {
   required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     sDate = try container.decode(String.self, forKey: .sDate)
+    sValidityDate = try container.decodeIfPresent(String.self, forKey: .sValidityDate)
     sMoTime = try container.decodeIfPresent(String.self, forKey: .sMoTime)
     sIsWeekend = try container.decodeIfPresent(Bool.self, forKey: .sIsWeekend)
     gqlMoment = try container.decode(GqlMoment.self, forKey: .gqlMoment)
@@ -449,12 +643,13 @@ class GqlIssue: Issue, GQLObject {
     pageList = try container.decodeIfPresent([GqlPage].self, forKey: .pageList)
   }
   
-  func setPayload(feeder: GqlFeeder, isPages: Bool = false) {
-    self.gqlPayload = GqlPayload(feeder: feeder, issue: self, isPages: isPages)
+  func setPayload(feeder: GqlFeeder, isPages: Bool = false, withAudio: Bool = false) {
+    self.gqlPayload = GqlPayload(feeder: feeder, issue: self, isPages: isPages, withAudio: withAudio)
   }
 
   static var ovwFields = """
-  sDate: date 
+  sDate: date
+  sValidityDate: validityDate
   sMoTime: moTime
   sIsWeekend: isWeekend
   gqlMoment: moment { \(GqlMoment.fields) } 
@@ -474,8 +669,10 @@ class GqlIssue: Issue, GQLObject {
   """
 } // GqlIssue
 
+
+
 /// A Feed of publication issues and articles
-class GqlFeed: Feed, GQLObject {  
+class GqlFeed: Feed, GQLObject {
   var gqlFeeder: GqlFeeder!
   /// The Feeder offering this Feed
   var feeder: Feeder { gqlFeeder }
@@ -498,9 +695,10 @@ class GqlFeed: Feed, GQLObject {
   /// The Issues requested of this Feed
   var gqlIssues: [GqlIssue]?
   var issues: [Issue]? { return gqlIssues }
-  
+  var publicationDates: [PublicationDate]?
+
   enum CodingKeys: String, CodingKey {
-    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues
+    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues, gqlValidityDates, gqlPublicationDates
   }
 
   required init(from decoder: Decoder) throws {
@@ -513,15 +711,70 @@ class GqlFeed: Feed, GQLObject {
     sFirstIssue = try container.decode(String.self, forKey: .sFirstIssue)
     sFirstSearchableIssue = try container.decode(String.self, forKey: .sFirstSearchableIssue)
     gqlIssues = try container.decodeIfPresent([GqlIssue].self, forKey: .gqlIssues)
+    
+    
+    ///Encode gqlPublicationDates and gqlValidityDates and generate PublicationDates for persist in DB
+    let gqlPublicationDates
+    = try container.decodeIfPresent([String].self, forKey: .gqlPublicationDates)
+    let gqlValidityDates
+    = try container.decodeIfPresent([GqlValidityDate].self, forKey: .gqlValidityDates)
+    publicationDates = []
+    
+    for gpd in gqlPublicationDates ?? [] {
+      let pd = GqlPublicationDate(from: gpd, feed: self)
+      if let gvd = gqlValidityDates?.first(where: { $0.sDate == gpd }){
+        pd.validityDate = gvd.validityDate
+      }
+      publicationDates?.append(pd)
+    }
+  }
+  static var fields: String { Self.fields() }
+  
+  static func fields(loadAllPublicationDates: Bool = false) -> String {
+        return """
+          name cycle momentRatio issueCnt
+          sLastIssue: issueMaxDate
+          sFirstIssue: issueMinDate
+          sFirstSearchableIssue: issueMinSearchDate
+          \(GqlPublicationDate.fields(loadAllPublicationDates:loadAllPublicationDates))
+          \(GqlValidityDate.fields)
+        """
+  }
+} // class GqlFeed
+
+/// GqlAppInfo stores data regarding the running App as provided by the server
+class GqlAppInfo: GQLObject {
+  /// minimal App version required
+  var minVersion: String?
+  
+  static var fields = "minVersion"
+  
+  func toString() -> String {
+    return "minVersion: \(minVersion ?? "0")"
   }
   
-  static var fields = """
-      name cycle momentRatio issueCnt
-      sLastIssue: issueMaxDate
-      sFirstIssue: issueMinDate
-      sFirstSearchableIssue: issueMinSearchDate
+  public static func query(feeder: GqlFeeder, closure: @escaping(Result<GqlAppInfo,Error>)->()) {
+    let request = """
+      appInfo: app(os: "iOS", type: "native") {
+        \(GqlAppInfo.fields)
+      }
     """
-} // class GqlFeed
+    guard let session = feeder.gqlSession else { 
+      closure(.failure(Log.error("No GraphQl Session")))
+      return
+    }
+    session.query(graphql: request, type: [String:GqlAppInfo].self) { res in
+      var ret: Result<GqlAppInfo,Error>
+      switch res {
+      case .success(let str): 
+        let appInfo = str["appInfo"]!
+        ret = .success(appInfo)
+      case .failure(let err):   ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+}
 
 /// GqlFeederStatus stores some Feeder specific data
 class GqlFeederStatus: GQLObject {  
@@ -536,13 +789,16 @@ class GqlFeederStatus: GQLObject {
   /// Feeds this Feeder provides
   var feeds: [GqlFeed]
   
-  static var fields = """
-  authInfo{\(GqlAuthInfo.fields)}
-  resourceVersion
-  resourceBaseUrl
-  globalBaseUrl
-  feeds: feedList { \(GqlFeed.fields) }
-  """
+  static var fields: String { Self.fields() }
+  static func fields(loadAllPublicationDates: Bool = false) -> String {
+    return """
+      authInfo{\(GqlAuthInfo.fields)}
+      resourceVersion
+      resourceBaseUrl
+      globalBaseUrl
+      feeds: feedList { \(GqlFeed.fields(loadAllPublicationDates: loadAllPublicationDates)) }
+    """
+  }
   
   func toString() -> String {
     var ret = """
@@ -567,6 +823,8 @@ class GqlFeederStatus: GQLObject {
  operations with the taz/lmd GraphQL server.
  */
 open class GqlFeeder: Feeder, DoesLog {
+  
+  public private(set) var isUpdating:Bool = false
 
   /// Time zone Feeder lives in ;-(
   public static var tz = "Europe/Berlin"
@@ -602,6 +860,8 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   /// The GraphQL server delivering the Feeds
   public var gqlSession: GraphQlSession?
+  /// Last weekly status
+  private var wasWeekly = false
   
   let deviceType = "apple"
   lazy var deviceInfoString : String = {
@@ -638,25 +898,66 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   
   /// Initilialize with name/title and URL of GraphQL server
-  required public init(title: String, url: String,
-    closure: @escaping(Result<Feeder,Error>)->()) {
+  required public init(title: String,
+                       url: String,
+                       token: String?) {
     self.baseUrl = url
     self.title = title
-    self.gqlSession = GraphQlSession(url)
-    self.feederStatus { [weak self] (res) in
+    self.gqlSession = GraphQlSession(url, authToken: token)
+  }
+  
+  //ToDo: Ensure this is just done once not on every net status Change
+  public func updateStatus(loadAllPublicationDates:Bool = false, closure: @escaping(Result<Feeder,Error>)->()){
+    isUpdating = true
+    let wasAuthenticated: Bool = authToken != nil
+    feederStatus(loadAllPublicationDates:loadAllPublicationDates) { [weak self] (res) in
       guard let self = self else { return }
+      self.debug("feederStatus->res \(res)")
       var ret: Result<Feeder,Error>
       switch res {
-      case .success(let st):   
-        ret = .success(self)
-        self.status = st
-        self.lastUpdated = Date()
-      case .failure(let err):  
-        ret = .failure(err)
+        case .success(let st):
+          self.checkResponse(authInfo: st.authInfo, wasAuthenticated: wasAuthenticated)
+          ret = .success(self)
+          self.status = st
+        case .failure(let err):
+          ret = .failure(err)
       }
-      self.lastUpdated = UsTime.now.date
+      self.lastUpdated =  Date()
       closure(ret)
+      self.isUpdating = false
     }
+  }
+  
+  //ToDo: Ensure this is just done once not on every net status Change
+  public func checkMinVersion(closure: @escaping(Result<Feeder,Error>)->()){
+    GqlAppInfo.query(feeder: self) { [weak self] res in
+      guard let self else { return }
+      if let mv = res.value() {
+        if let mvs = mv.minVersion {
+          let minVersion = Version(mvs)
+          self.debug("Version check: current(\(App.version), server(mvs)")
+          if App.version < minVersion {
+            closure(.failure(FeederError.minVersionRequired(mvs)))
+            return
+          }
+        }
+        else { self.debug("Server doesn't return minVersion") }
+      }
+      else { self.error("Can't get minimal App version from server") }
+    }
+  }
+  
+  /// Close gqlSession and release resources
+  public func release() {
+    gqlSession?.release()
+    gqlSession = nil
+    status = nil
+  }
+  
+  /// Check whether the delivery status has been changed, returns true if it has
+  public func deliveryChanged() -> Bool {
+    guard let status else { return false }
+    return status.authInfo.weekly != wasWeekly
   }
   
   /**
@@ -687,20 +988,32 @@ open class GqlFeeder: Feeder, DoesLog {
         \(GqlAuthToken.fields)
       }
     """
+    wasWeekly = status?.authInfo.weekly ?? false
     gqlSession.query(graphql: request, type: [String:GqlAuthToken].self) { [weak self] (res) in
       var ret: Result<String,Error>
       switch res {
         case .success(let auth):
           let atoken = auth["authToken"]!
           self?.status?.authInfo = atoken.authInfo
+          if let token = atoken.token {
+            self?.authToken = token
+          }
           switch atoken.authInfo.status {
             case .expired, .unlinked, .invalid, .alreadyLinked, .notValidMail, .unknown:
-              ret = .failure(AuthStatusError(status: atoken.authInfo.status, message: atoken.authInfo.message))
+              if let token = atoken.token {
+                self?.authToken = token
+              }
+              ret = .failure(AuthStatusError(status: atoken.authInfo.status,
+                                             customerType: atoken.customerType,
+                                             message: atoken.authInfo.message,
+                                             token: atoken.token))
+              
             case .valid:
-              self?.authToken = atoken.token!
               ret = .success(atoken.token!)
-        }
-        case .failure(let err):  ret = .failure(err)
+          }
+        case .failure(let err):
+          self?.log("test: \(err)")
+          ret = .failure(err)
       }
       closure(ret)
     }
@@ -797,14 +1110,14 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   // Get GqlFeederStatus
-  func feederStatus(closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
+  func feederStatus(loadAllPublicationDates:Bool = false,loadAllPublicationDates closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
       feederStatus: product {
-        \(GqlFeederStatus.fields)
-      }
+        \(GqlFeederStatus.fields(loadAllPublicationDates:loadAllPublicationDates))
+    }
     """
     gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self) { (res) in
       var ret: Result<GqlFeederStatus,Error>
@@ -818,11 +1131,88 @@ open class GqlFeeder: Feeder, DoesLog {
       closure(ret)
     }
   }
+  
+  var latestIssue: Date?
+  
+//  var publicationDatesParam: String {
+//    guard let latestIssue = latestIssue else {
+//      return """
+//        publicationDates
+//        validityDate{date, validityDate}
+//        """
+//    }
+//    return """
+//      publicationDates(start: \"\(latestIssue.isoDate(tz: GqlFeeder.tz))\")
+//      validityDate{date, validityDate}
+//      """
+//  }
+  #warning("TODO UPDATE ON PULL TO REFRESH COMES LATER")
+  /*
+  // Update PublicationDates
+  public func publicationDates(feed: Feed,
+                               fromDate: Date?,
+                               closure: @escaping(Result<PublicationDates,Error>)->()) {
+    struct PublicationDatesRequest: Decodable {
+      var authInfo: GqlAuthInfo
+      var publicationDates: [GqlPublicationDates]
+      static func request(feed: Feed, date: Date?) -> String {
+        var dateArg = """
+                        publicationDates
+                        validityDate
+                    """
+        if let date = date {
+          dateArg = """
+                    publicationDates(start: \"\(date.isoDate(tz: GqlFeeder.tz))\")
+                    validityDate
+                    """
+        }
+        return """
+        publicationDatesRequest: product {
+          authInfo { \(GqlAuthInfo.fields) }
+            publicationDates: feedList(name:"\(feed.name)") {
+            name
+            cycle
+            \(dateArg)
+          }
+        }
+        """
+      }
+    }
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected"))); return
+    }
+    
+    let request = PublicationDatesRequest.request(feed: feed,
+                                                  date: fromDate)
+    gqlSession.query(graphql: request, type: [String:PublicationDatesRequest].self) {[weak self] (res) in
+      guard let self = self else { return }
+      switch res {
+        case .success(let dict):
+          let response = dict["publicationDatesRequest"]
+          if let pubDates = response?.publicationDates,
+             pubDates.count == 1,
+             let pubDObj = pubDates.first {
+            closure(.success(pubDObj))
+            return
+          }
+        case .failure(let err):
+          closure(.failure(err))
+      }
+      closure( .failure(self.error(DefaultError(message: "unexpected"))))
+    }
+  }
+  */
  
   // Get Issues
-  public func issues(feed: Feed, date: Date? = nil, key: String? = nil,
-    count: Int = 20, isOverview: Bool = false, isPages: Bool = false,
-    closure: @escaping(Result<[Issue],Error>)->()) { 
+  public func issues(feed: Feed, 
+                     date: Date? = nil,
+                     key: String? = nil,
+                     count: Int = 20, 
+                     isOverview: Bool = false,
+                     isPages: Bool = false,
+                     withAudio: Bool = false,
+                     returnOnMain: Bool = true,
+    closure: @escaping(Result<[Issue],Error>)->()) {
     struct FeedRequest: Decodable {
       var authInfo: GqlAuthInfo
       var feeds: [GqlFeed]
@@ -856,39 +1246,24 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
                                       count: count, isOverview: isOverview)
     gqlSession.query(graphql: request,
-      type: [String:FeedRequest].self) {[weak self]  (res) in
+      type: [String:FeedRequest].self, returnOnMain: returnOnMain) {[weak self]  (res) in
       guard let self = self else { return }
       var ret: Result<[Issue],Error>? = nil
       switch res {
       case .success(let frq):  
-        let req = frq["feedRequest"]!
-        if wasAuthenticated {
-          if req.authInfo.status == .valid
-             && Defaults.expiredAccountDate != nil { //account not expired anymore
-            TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
-              Alert.message(message: "Ihr Abo ist wieder aktiv!")
-              Defaults.expiredAccountDate = nil
-          }
-          else if req.authInfo.status == .expired
-                  && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {
-            ret = .failure(FeederError.expiredAccount(req.authInfo.message))
-            TazAppEnvironment.sharedInstance.expiredAccountInfoShown = true
-          }
-          else if req.authInfo.status != .expired
-                    && req.authInfo.status != .valid {
-            self.log("Invalid Auth Status: \(req.authInfo.status) for FeedRequest. WasAuth:\(wasAuthenticated) SessionAuth: \(gqlSession.authToken?.length ?? 0 > 10)")
-            ret = .failure(FeederError.changedAccount(req.authInfo.message))
-          }
-        }
-        if ret == nil { 
-          if let issues = req.feeds[0].issues, issues.count > 0 {
-            for issue in issues { 
-              issue.feed = feed 
-              (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages)
+        guard let frqResponse = frq["feedRequest"] else { return }
+          self.checkResponse(authInfo: frqResponse.authInfo, wasAuthenticated: wasAuthenticated)
+          if let issues = frqResponse.feeds[0].issues, issues.count > 0 {
+            for issue in issues {
+              issue.feed = feed
+              if isOverview {
+                (issue as? GqlIssue)?.isOverview = true
+              }
+              (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages, withAudio: withAudio)
               if let sections = issue.sections as? [GqlSection] {
                 for section in sections {
                   section.primaryIssue = issue
-                  if let articles = section.articles as? [GqlArticle] { 
+                  if let articles = section.articles as? [GqlArticle] {
                     for article in articles {
                       article.primaryIssue = issue
                     }
@@ -896,13 +1271,12 @@ open class GqlFeeder: Feeder, DoesLog {
                 }
               }
             }
-            ret = .success(issues) 
+            ret = .success(issues)
           }
           else {
             ret = .failure(FeederError.unexpectedResponse(
               "Server didn't return issues"))
           }
-        }
       case .failure(let err):
         ret = .failure(err)
       }
@@ -1047,7 +1421,7 @@ open class GqlFeeder: Feeder, DoesLog {
       switch res {
         case .success(let dict):
           //        let status = dict["whatever"]!
-          print("success_ \(dict)")
+          print("success: \(dict)")
           ret = .success(true)
         case .failure(let err):  ret = .failure(err)
       }
@@ -1055,3 +1429,93 @@ open class GqlFeeder: Feeder, DoesLog {
     }
   }
 } // GqlFeeder
+
+extension GqlFeeder {
+  
+  
+  /// Checks Auth Status
+  /// - Parameters:
+  ///   - authInfo: response authInfo
+  ///   - wasAuthenticated: request was auth
+  func checkResponse(authInfo: GqlAuthInfo,
+                     wasAuthenticated: Bool) {
+    ///Do not handle unauth requests!
+    guard wasAuthenticated else { return }
+    
+    var err: FeederError? = nil
+    if authInfo.status == .valid
+        && Defaults.expiredAccountDate != nil { //account not expired anymore
+      TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
+      TazAppEnvironment.sharedInstance.feederContext?.clearExpiredAccountFeederError()
+      Defaults.expiredAccountDate = nil
+      Notification.send(Const.NotificationNames.authenticationSucceeded,
+                        content: "Ihr Abo ist wieder aktiv!")
+      //Usage.track(uEvt.subscriptionStatus(.SubcriptionRenewed))///Is already tracked by expiredAccountDate change
+    }
+    else if authInfo.status == .expired
+              && TazAppEnvironment.sharedInstance.expiredAccountInfoShown == false {
+      err = FeederError.expiredAccount(authInfo.message)
+      TazAppEnvironment.sharedInstance.expiredAccountInfoShown = true
+    }
+    else if authInfo.status != .expired
+              && authInfo.status != .valid {
+      self.log("Invalid Auth Status: \(authInfo.status) for FeedRequest. WasAuth:\(wasAuthenticated) SessionAuth: \(gqlSession?.authToken?.length ?? 0 > 10)")
+      err = FeederError.changedAccount(authInfo.message)
+    }
+    err?.handle()
+  }
+}
+
+extension FeederError {
+  /// Feeder has flagged an error
+  func handle() {
+    let currentFeederErrorReason
+    = TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
+    //prevent multiple appeariance of the same alert
+    if let curr = currentFeederErrorReason, curr === self {
+      ///not refactor and add closures to alert cause in case of later changes/programming errors may
+      ///lot of similar closure calls added and may result in other errors e.g. multiple times of calling getOwvIssue...
+      Log.log("Closure not added"); return
+    }
+    Log.debug("handleFeederError for: \(self)")
+    TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
+    = self
+    var text = ""
+    switch self {
+      case .expiredAccount:
+        text = "Ihr Abonnement ist am \(self.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        if Defaults.expiredAccountDate != nil {
+          return //dont show popup on each start
+        }
+        if Defaults.expiredAccountDate == nil {
+          Defaults.expiredAccountDate =  self.expiredAccountDate ?? Date()
+        }
+        TazAppEnvironment.sharedInstance.feederContext?.updateSubscriptionStatus { _ in
+          TazAppEnvironment.sharedInstance.feederContext?.authenticator.authenticate(with: nil)
+        }
+        return; //Prevent default Popup
+      case .invalidAccount:
+        text = "Ihre Kundendaten sind nicht korrekt."
+        fallthrough
+      case .changedAccount:
+        let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder
+        text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
+        Log.debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == gqlFeeder?.authToken) 4ses: \(gqlFeeder?.gqlSession?.authToken == gqlFeeder?.authToken)")
+        
+        TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true,
+                                                        resetAppState: false)
+      case .unexpectedResponse:
+        Alert.message(title: "Fehler",
+                      message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
+          exit(0)
+        }
+      case .minVersionRequired: break
+    }
+    Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: {
+      ///Do not authenticate here because its not needed here e.g.
+      /// expired account due probeabo, user may not want to auth again
+      /// additionally it makes more problems currently e.g. Overlay may appear and not disappear
+      TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason = nil
+    })
+  }
+}

@@ -95,8 +95,8 @@ echo "src_files: ${src_files}"
 echo "temp_folder: ${temp_folder}"
 echo ""
 
-echo "Create Temp Folder and Folder Structure if needed"
-mkdir -p "${temp_folder}"
+echo "Create Src and Temp Folder and Folder Structure if needed"
+mkdir -p "${temp_folder}" "${src_files}"
 
 # Download if ressources file did not exist or is older than 1 day
 if [[ $(find "$curlVersion_jsonFile" -mtime -1 -print) ]]; then

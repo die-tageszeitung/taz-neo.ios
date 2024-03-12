@@ -60,7 +60,21 @@ open class ContentToolbar: UIView {
     heightConstraint = self.pinHeight(totalHeight)
   }
   
-  public func hide(_ isHide: Bool = true) {
+  func show(show:Bool, animated:Bool){
+    
+    func doShow(show:Bool){
+      let newHeight = show ? self.totalHeight : 0
+      if self.heightConstraint?.constant == newHeight { return }
+      self.heightConstraint?.constant = newHeight
+      self.superview?.layoutIfNeeded()
+    }
+    
+    animated
+    ? UIView.animate(withDuration: 0.5) { doShow(show: show) }
+    : doShow(show: show)
+  }
+  
+  private func hide(_ isHide: Bool = true) {
     let newHeight = isHide == true ? 0 : self.totalHeight
     if self.heightConstraint?.constant == newHeight { return }
     UIView.animate(withDuration: 0.5) { [weak self] in
@@ -69,8 +83,15 @@ open class ContentToolbar: UIView {
     }
   }
   
-  public func addButton(_ button: ButtonControl, direction: Toolbar.Direction) {
-    toolbar.addButton(button, direction: direction)
+  public func addButton(_ button: ButtonControl, direction: Toolbar.Direction, atToolbars: [Int]? = nil) {
+    if let toolbars = atToolbars, toolbars.count > 0 {
+      for toolbarIndex in toolbars {
+        toolbar.addButton(button, direction: direction, at: toolbarIndex)
+      }
+    }
+    else {
+      toolbar.addButton(button, direction: direction)
+    }
   }
   
   public func addArticleButton(_ button: ButtonControl, direction: Toolbar.Direction) {
@@ -89,6 +110,7 @@ open class ContentToolbar: UIView {
   func setArticlePlayBar() { toolbar.bar = 2 }
   func setArticleBar() { toolbar.bar = 1 }
   func setSectionBar() { toolbar.bar = 0 }
+  func setToolbar(_ barIndex:Int) { toolbar.bar = barIndex }
   
   public func setButtonColor(_ color: UIColor) { toolbar.setButtonColor(color) }
   
@@ -106,21 +128,23 @@ open class ContentToolbar: UIView {
 
 // MARK: - Helper for ContentToolbar
 extension ContentToolbar {
-  func addSpacer(_ direction:Toolbar.Direction) {
+  func addSpacer(_ direction:Toolbar.Direction, atToolbars: [Int]? = nil) {
     let button = Toolbar.Spacer()
-    self.addButton(button, direction: direction)
+    self.addButton(button, direction: direction, atToolbars: atToolbars)
   }
   
   func addImageButton(name:String,
                       onPress:@escaping ((ButtonControl)->()),
                       direction: Toolbar.Direction,
+                      atToolbars: [Int]? = nil,
                       symbol:String? = nil,
                       accessibilityLabel:String? = nil,
                       isBistable: Bool = true,
                       width:CGFloat = 30,
                       height:CGFloat = 30,
                       vInset:CGFloat = 0.0,
-                      hInset:CGFloat = 0.0
+                      hInset:CGFloat = 0.0,
+                      contentMode: ContentMode? = nil
                       ) -> Button<ImageView> {
     let button = Button<ImageView>()
     button.pinWidth(width, priority: .defaultHigh)
@@ -131,32 +155,17 @@ extension ContentToolbar {
     button.buttonView.name = name
     button.buttonView.symbol = symbol
     
+    if let cm = contentMode {
+      button.buttonView.imageView.contentMode = cm
+    }
+    
     if let al = accessibilityLabel {
       button.isAccessibilityElement = true
       button.accessibilityLabel = al
     }
     
-    self.addButton(button, direction: direction)
+    self.addButton(button, direction: direction, atToolbars:atToolbars)
     button.onPress(closure: onPress)
     return button
-  }
-}
-
-// MARK: - AnimatedContentToolbar
-/// ContentToolbar with easier constraint animation and changed animation target
-public class AnimatedContentToolbar : ContentToolbar {
-  public override func hide(_ isHide: Bool = true) {
-    if isHide {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.constant = 0
-        self?.superview?.layoutIfNeeded()
-      }
-    }
-    else if self.heightConstraint?.constant != self.totalHeight {
-      UIView.animate(withDuration: 0.5) { [weak self] in
-        self?.heightConstraint?.constant = self!.totalHeight
-        self?.superview?.layoutIfNeeded()
-      }
-    }
   }
 }

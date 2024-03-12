@@ -11,9 +11,7 @@ import UIKit
 class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
   var feederContext: FeederContext
-  
-  private var popViewControllerClosure: ((UIViewController)->(Bool))
-  = { vc in return !(vc is IntroVC) }
+  var service: IssueOverviewService
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
@@ -23,14 +21,62 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
                       sender: nil)
   }
   
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    Notification.send(Const.NotificationNames.traitCollectionDidChange,
+                      content: self.traitCollection,
+                      error: nil,
+                      sender: nil)
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     setupTabbar()
     self.navigationController?.isNavigationBarHidden = true
     registerForStyleUpdates()
-    Notification.receive("authenticationSucceeded") { notif in
-      self.authenticationSucceededCheckReload()
+    Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
+      self?.authenticationSucceededCheckReload(alertMessage: (notif.content as? String))
     }
+    
+    Notification.receive(Const.NotificationNames.searchSelectedText) { [weak self] notif in
+      guard let searchString = notif.content as? String,
+      let searchCtrl
+              = ((self?.viewControllers?.valueAt(2) as? UINavigationController)?
+        .viewControllers.first as? SearchController) else { return }
+      self?.selectedIndex = 2
+      searchCtrl.searchFor(searchString: searchString)
+    }
+    
+    Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in
+      self?.selectedIndex = 0
+      (self?.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
+      guard let date = notif.content as? Date,
+            let home = ((self?.selectedViewController as? UINavigationController)?
+                .viewControllers.first as? HomeTVC) else { return }
+      home.scroll(up: true)
+      let idx = home.carouselController.service.nextIndex(for: date)
+      home.carouselController.scrollTo(idx, animated: true)
+    }
+    
+    Notification.receive(Const.NotificationNames.gotoArticleInIssue) { [weak self] notif in
+      self?.selectedIndex = 0
+      guard let article = notif.content as? Article,
+            let issue = article.primaryIssue as? StoredIssue,
+            let home = ((self?.selectedViewController as? UINavigationController)?
+                .viewControllers.first as? HomeTVC) else { return }
+      if let sectVc = home.navigationController?.viewControllers.valueAt(1) as? SectionVC,
+      let sectIssue = sectVc.issue as? StoredIssue,
+          issue == sectIssue {
+        sectVc.showArticle(article, animated: true)
+        home.togglePdfButton.isHidden = true
+      }
+      else {
+        home.navigationController?.popToRootViewController(animated: false)
+        home.openIssue(issue, at: article)
+        home.togglePdfButton.isHidden = true
+      }
+    }
+    
   } // viewDidLoad
   
   func setupTabbar() {
@@ -39,21 +85,19 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     self.tabBar.isTranslucent = false
     self.tabBar.tintColor = .white
     
-    let home = IssueVC(feederContext: feederContext)
+    let home = HomeTVC(service: service, feederContext: feederContext)
     home.title = "Home"
-    home.updateToolbarHomeIcon()
+    home.tabBarItem.image = UIImage(named: "home")
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let homeNc = NavigationController(rootViewController: home)
-    homeNc.onPopViewController(closure: popViewControllerClosure)
     homeNc.isNavigationBarHidden = true
     
     let bookmarksNc = BookmarkNC(feederContext: feederContext)
-    bookmarksNc.onPopViewController(closure: popViewControllerClosure)
     bookmarksNc.title = "Leseliste"
+    bookmarksNc.tabBarItem.image = UIImage(named: "star")
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     bookmarksNc.isNavigationBarHidden = true
-    bookmarksNc.updateTabbarImage()
     
     let search = SearchController(feederContext: feederContext )
     search.title = "Suche"
@@ -61,7 +105,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     
     let searchNc = NavigationController(rootViewController: search)
-    searchNc.onPopViewController(closure: popViewControllerClosure)
     searchNc.isNavigationBarHidden = true
     
     let settings = SettingsVC(feederContext: feederContext)
@@ -70,6 +113,20 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
     self.viewControllers = [homeNc, bookmarksNc, searchNc, settings]
     self.selectedIndex = 0
+  }
+  
+  override var viewControllers: [UIViewController]? {
+    didSet {
+      setupTracking()
+    }
+  }
+  
+  func setupTracking(){
+//    if Usage.sharedInstance.usageTrackingAllowed == false { return }
+    for case let nc as UINavigationController in viewControllers ?? [] {
+      nc.delegate = Usage.shared
+      (nc as? NavigationController)?.navigationDelegate = Usage.shared
+    }
   }
   
   func applyStyles() {
@@ -81,8 +138,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     return Defaults.darkMode ?  .lightContent : .default
   }
   
-  required init(feederContext: FeederContext) {
+  required init(feederContext: FeederContext, service: IssueOverviewService) {
     self.feederContext = feederContext
+    self.service = service
     super.init(nibName: nil, bundle: nil)
     delegate = self
   }
@@ -94,13 +152,14 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
 extension MainTabVC {
   /// Check whether it's necessary to reload the current Issue
-  public func authenticationSucceededCheckReload() {
+  /// - Parameter alertMessage: optional alert message e.g. shown if reactivated subscription
+  public func authenticationSucceededCheckReload(alertMessage: String? = nil) {
     feederContext.updateAuthIfNeeded()
     
     let selectedNc = selectedViewController as? UINavigationController
     var reloadTarget: ReloadAfterAuthChanged?
     
-    if let home = selectedNc?.viewControllers.first as? IssueVC,
+    if let home = selectedNc?.viewControllers.first as? HomeTVC,
        selectedNc?.topViewController != home {
       reloadTarget = home
     }
@@ -121,23 +180,34 @@ extension MainTabVC {
       }
     }
               
-    guard let reloadTarget = reloadTarget else { return }
+    guard let reloadTarget = reloadTarget else {
+      if let alertMessage = alertMessage {
+        Alert.message(message: alertMessage)
+      }
+      return
+    }
+    if Defaults.expiredAccount {
+      //DemoIssue only will be exchanged with DemoIssue
+      log("not refresh if expired account")
+      return
+    }
     
     let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
     
     WaitingAppOverlay.show(alpha: 1.0,
                            backbround: snap,
                            showSpinner: true,
-                           titleMessage: "Aktualisiere Daten",
+                           titleMessage: "\(alertMessage ?? "")\nAktualisiere Daten",
                            bottomMessage: "Bitte haben Sie einen Moment Geduld!",
                            dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
-    
-    Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
-      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+    if !(reloadTarget is BookmarkNC) {
+      Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
+        Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+      }
     }
-    
-    Notification.receiveOnce("feederUneachable") { [weak self] _ in
-      self?.navigationController!.popToRootViewController(animated: false)
+  
+    Notification.receiveOnce(Const.NotificationNames.feederUnreachable) { _ in
+      /// popToRootViewController is no more needed here due its done by reloadTarget.reloadOpened
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
       Toast.show(Localized("error"))
     }
@@ -152,12 +222,12 @@ extension MainTabVC : UITabBarControllerDelegate {
     if tabBarController.selectedViewController != viewController { return true }
     
     if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
-       let issueVC = firstVc as? IssueVcWithBottomTiles //IssueVC also works
+       let home = firstVc as? HomeTVC
     {
-      issueVC.onHome()
+      home.onHome()
     }
     else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
-       let searchController = firstVc as? SearchController //IssueVC also works
+       let searchController = firstVc as? SearchController
     {
       _ = searchController.restoreInitialState()
     }

@@ -8,12 +8,9 @@
 
 import UIKit
 import NorthLib
+import WebKit
 
 public class LoginView : FormView{
-  
-  @Default("offerTrialSubscription")
-  var offerTrialSubscription: Bool
-  
   var idInput = TazTextField(placeholder: Localized("login_username_hint"),
                              textContentType: .emailAddress,
                              enablesReturnKeyAutomatically: true,
@@ -30,36 +27,140 @@ public class LoginView : FormView{
   var registerButton = Padded.Button(type: .outline,
                                 title: Localized("register_free_button"))
   
-  var passForgottButton = Padded.Button(type: .label,
-                                   title: Localized("login_forgot_password"))
+  var whereIsTheAboId: Padded.View = {
+    let lbl = UILabel()
+    lbl.text = "Hilfe"
+    lbl.contentFont(size: Const.Size.MiniPageNumberFontSize)
+    lbl.textColor = .gray
+    lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
+    let wrapper = Padded.View()
+    wrapper.addSubview(lbl)
+    //Allow label to shink if wrapper shrinks, not alow to grow more than needed
+    pin(lbl, to: wrapper).right.priority = .defaultLow
+    lbl.setContentHuggingPriority(.required, for: .horizontal)
+    lbl.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+    wrapper.paddingBottom = miniPadding
+    wrapper.paddingTop = miniPadding
+    return wrapper
+  }()
+  
+  var passForgottButton: Padded.View = {
+    let lbl = UILabel()
+    lbl.text = Localized("login_forgot_password")
+    lbl.contentFont(size: Const.Size.MiniPageNumberFontSize)
+    lbl.textColor = .gray
+    lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
+    let wrapper = Padded.View()
+    wrapper.addSubview(lbl)
+    //Allow label to shink if wrapper shrinks, not alow to grow more than needed
+    pin(lbl, to: wrapper).right.priority = .defaultLow
+    lbl.setContentHuggingPriority(.required, for: .horizontal)
+    lbl.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+    wrapper.paddingBottom = miniPadding
+    wrapper.paddingTop = miniPadding
+    return wrapper
+  }()
+  
+  var trialSubscriptionButton = Padded.Button(title: Localized("login_trial_subscription_button_text"))
+  var switchButton = Padded.Button(title: Localized("login_switch_print2digi_button_text"))
+  var extendButton = Padded.Button(title: Localized("login_extend_print_with_digi_button_text"))
+    
+  func marketingContainerWidth(button: Padded.Button,
+                               htmlFile:String,
+                               htmlHeight:CGFloat = 150,
+                               fallbackTitle: String?,
+                               fallbackText:String) -> Padded.View{
+    let wrapper = Padded.View()
+    var intro:UIView
+    let trialHtml = File(htmlFile)
+    
+    if false && trialHtml.exists {//deactivated for release
+      let wv = WebView()
+      wv.whenLoaded {_ in
+        wv.evaluateJavaScript("document.body.scrollHeight", completionHandler: { (height, error) in
+          wv.pinHeight((height as! CGFloat) - 15.0)
+        })
+      }
+      wv.load(url: trialHtml.url)
+      wv.isOpaque = false
+      wv.backgroundColor = .clear
+      intro = wv
+    } else {
+      let lbl = UILabel()
+      lbl.text = fallbackText
+      lbl.numberOfLines = 0
+      lbl.textAlignment = .left
+      lbl.contentFont()
+      
+      if let title = fallbackTitle, title.length > 0 {
+        let tl = UILabel()
+        tl.text = title
+        tl.numberOfLines = 0
+        tl.textAlignment = .left
+        tl.contentFont(size: Const.Size.SubtitleFontSize)
+        let wrapper = UIStackView()
+        wrapper.axis = .vertical
+        wrapper.spacing = 6.0
+        wrapper.alignment = .top
+        wrapper.distribution = .fillProportionally
+        wrapper.addArrangedSubview(tl)
+        wrapper.addArrangedSubview(lbl)
+        intro = wrapper
+      }
+      else {
+        intro = lbl
+      }
+    }
+    
+    wrapper.addSubview(intro)
+    wrapper.addSubview(button)
+    
+    pin(intro, to: wrapper, dist: Const.Dist.margin, exclude: .bottom)
+    pin(button, to: wrapper, dist: Const.Dist.margin, exclude: .top)
+    pin(button.top, to: intro.bottom, dist: Const.Dist.margin)
+    
+    wrapper.backgroundColor = Const.SetColor.taz(.secondaryBackground).color
+    wrapper.layer.cornerRadius = 8.0
+    
+    return wrapper
+    
+  }
+  
+  static let miniPadding = 0.0
   
   override func createSubviews() -> [UIView] {
-    if offerTrialSubscription {
-       // Dialog mit Probeabo
+    idInput.paddingBottom = Self.miniPadding
+    passInput.paddingBottom = Self.miniPadding
+    if App.isLMD {
       return   [
-        TazHeader(),
-        Padded.Label(title: Localized("login_required")),
+        Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").contentFont(size: Const.Size.SubtitleFontSize).align(.left),
         idInput,
+        whereIsTheAboId,
         passInput,
-        loginButton,
-        Padded.Label(title: Localized("trial_subscription_title")),
-        registerButton,
-        passForgottButton,
-        loginTipsButton
-      ]
-     }
-     else {
-       // Dialog ohne Probeabo
-      return   [
-        TazHeader(),
-        Padded.Label(title: Localized("login_required")),
-        idInput,
-        passInput,
-        loginButton,
-        passForgottButton,
-        loginTipsButton
-      ]
-     }
+        loginButton]
+    }
+    
+    
+    return   [
+      Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").contentFont(size: Const.Size.SubtitleFontSize).align(.left),
+      idInput,
+      whereIsTheAboId,
+      passInput,
+      passForgottButton,
+      loginButton,
+      marketingContainerWidth(button: trialSubscriptionButton,
+                              htmlFile: Dir.appSupportPath.appending("/taz/resources/trialNOTEXISTFALLBACHTEST.html"),
+                              fallbackTitle: Localized("login_trial_subscription_title"),
+                              fallbackText: Localized("login_trial_subscription_body")),
+      marketingContainerWidth(button: switchButton,
+                              htmlFile: Dir.appSupportPath.appending("/taz/resources/switch1.html"),
+                              fallbackTitle: Localized("login_switch_print2digi_title"),
+                              fallbackText: Localized("login_switch_print2digi_body")),
+      marketingContainerWidth(button: extendButton,
+                              htmlFile: Dir.appSupportPath.appending("/taz/resources/extend1.html"),
+                              fallbackTitle: Localized("login_extend_print_with_digi_title"),
+                              fallbackText: Localized("login_extend_print_with_digi_body"))
+    ]
   }
   
   // MARK: validate()
@@ -101,7 +202,6 @@ public class NotLinkedLoginAboIDView : LoginView {
   override func createSubviews() -> [UIView] {
     loginButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     return   [
-      TazHeader(),
       Padded.Label(title: Localized("connect_abo_id_title")),
       aboIdInput,
       passInput,

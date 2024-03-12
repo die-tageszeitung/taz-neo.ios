@@ -119,8 +119,17 @@ extension DefaultAuthenticator : AuthMediator{
 
 public class DefaultAuthenticator: Authenticator {
   
+  public static var token: String? {
+    return SimpleAuthenticator.getUserData().token
+  }
+  
   /// Ref to feeder providing Data
-  public var feeder: GqlFeeder
+  public var feeder: GqlFeeder {
+    didSet {
+      guard let token = Self.token else { return }
+      feeder.authToken = token
+    }
+  }
   
   private var _resultSuccessText:String?
   fileprivate var resultSuccessText:String {
@@ -137,12 +146,6 @@ public class DefaultAuthenticator: Authenticator {
   
   private var firstPresentedAuthController:UIViewController?
   
-  /// Root view controller to present Forms
-  private lazy var rootVC: UIViewController? = {
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    return appDelegate.window?.rootViewController
-  }()
-  
   /// Closure to call when polling of suscription status is required
   private var performPollingClosure: (()->())?
   /// Define closure to call when polling is necessary
@@ -154,6 +157,19 @@ public class DefaultAuthenticator: Authenticator {
     self.feeder = feeder
     let (_,_,token) = SimpleAuthenticator.getUserData()
     if token != nil { feeder.authToken = token! }
+  }
+  
+  // Returns true if the notification has been sent
+  @discardableResult
+  public func notifySuccess() -> Bool {
+    if feeder.deliveryChanged() { 
+      TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin) 
+      return false
+    }
+    else {
+      Notification.send(Const.NotificationNames.authenticationSucceeded)
+      return true
+    }
   }
   
   //Called if incomming PushNotification comes or Timer fires
@@ -176,21 +192,23 @@ public class DefaultAuthenticator: Authenticator {
                                  token: token)
               self.feeder.authToken = token
               Self.deleteTempUserData()
+              Usage.track(Usage.event.subscription.TrialConfirmed)
               /// Present Result to User, if Login shown!
               if let loginFormVc = self.firstPresentedAuthController as? FormsController {
                 ///Fix User dismissed modal Login, nort be able to send notification due this just come in dismiss callback
                 if loginFormVc.presentingViewController == nil {
                   self.firstPresentedAuthController = nil
-                  Notification.send("authenticationSucceeded")
-                  onMainAfter {//delay otherwise "Aktualisiere Daten hides this!"
-                    Toast.show("Erfolgreich angemeldet!")//like Android!
+                  if self.notifySuccess() {
+                    onMainAfter {//delay otherwise "Aktualisiere Daten hides this!"
+                      Toast.show("Erfolgreich angemeldet!")//like Android!
+                    }
                   }
                   closure(false)//stop polling
                   return;
                 }
                 
                 let dismissFinishedClosure = {
-                  Notification.send("authenticationSucceeded")
+                  self.notifySuccess()
                   closure(false)//stop polling
                 }
                 ///If  already a FormsResultController on top of modal stack use its exchange function
@@ -211,7 +229,7 @@ public class DefaultAuthenticator: Authenticator {
               }
               /// If No Login shown, just execute the callbacks
               else {//No Form displayed anymore directly execute callbacks
-                Notification.send("authenticationSucceeded")
+                self.notifySuccess()
                 closure(false)//stop polling
               }
               return;
@@ -219,7 +237,7 @@ public class DefaultAuthenticator: Authenticator {
               ///happens, if user dies subscriptionId2TazId with existing taz-Id but wrong password
               /// In this case user received the E-Mail for PW Reset,
               _ = self.error(info.status.rawValue)
-              Notification.send("authenticationSucceeded")
+              self.notifySuccess()
               closure(false)//stop polling
               return;
             case .waitForProc: fallthrough
@@ -233,18 +251,41 @@ public class DefaultAuthenticator: Authenticator {
       closure(true)//continue polling in case of errors, wait status or invalid
     }
   }
-    
-  /// Ask user for id/password, check with GraphQL-Server and store in user defaults
+  
   public func authenticate(with targetVC:UIViewController? = nil) {
-    guard let rootVC = targetVC ?? rootVC else { return }
-
-    let registerController = LoginController(self)
     
-    registerController.modalPresentationStyle
+    guard let rootVC
+    = targetVC
+    ??  (TazAppEnvironment.sharedInstance.rootViewController as? UITabBarController)?.selectedViewController
+    ?? UIWindow.rootVC
+    else { return }
+    
+    if self.feeder.isAuthenticated && TazAppEnvironment.sharedInstance.feederContext?.needsReInit() ?? false {
+      TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin)
+      return
+    }
+    
+    var authController:FormsController
+    if self.feeder.isAuthenticated,
+      let expiredDate = Defaults.expiredAccountDate {
+      let formType = Defaults.customerType?.formDataType ?? .expiredDigiSubscription
+      authController = SubscriptionFormController(formType: formType,
+                                                  auth: self,
+                                                  expireDate: expiredDate,
+                                                  customerType: Defaults.customerType)
+    }
+    else {
+      authController = LoginController(self)
+    }
+    
+    authController.modalPresentationStyle
       =  .formSheet
 
-    firstPresentedAuthController = registerController
-    rootVC.present(registerController, animated: true, completion: {
+    firstPresentedAuthController = authController
+    rootVC.present(authController, animated: true, completion: {
+      #warning("ToDo prevent iPad tap on BG to close Login Modals by removing compleetion handlers")
+      //works only in combination with: self.isModalInPresentation = true in FormsController
+      return;
       rootVC.presentationController?.presentedView?.gestureRecognizers?[0].isEnabled = true
       /// Add TapOn Background like in popup presentation
       if Device.isIphone { return }
@@ -257,7 +298,7 @@ public class DefaultAuthenticator: Authenticator {
                 v.onTapping { rec in
                   if TazAppEnvironment.sharedInstance.isErrorReporting { return }
                   v.removeGestureRecognizer(rec)
-                  registerController.dismiss(animated: true)
+                  authController.dismiss(animated: true)
                 }
                 return
               }
@@ -310,12 +351,12 @@ extension UIDevice {
 }
 
 
-protocol NameDescribable {
+public protocol NameDescribable {
     var typeName: String { get }
     static var typeName: String { get }
 }
 
-extension NameDescribable {
+public extension NameDescribable {
     var typeName: String {
         return String(describing: type(of: self))
     }

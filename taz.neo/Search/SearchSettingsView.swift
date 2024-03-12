@@ -55,13 +55,29 @@ class SearchSettingsView: UITableView {
     return btn
   }()
   
+  lazy var helpButton: UILabel = {
+    let lbl = UILabel()
+    lbl.text = "Hilfe"
+    lbl.contentFont(size: Const.Size.MiniPageNumberFontSize)
+    lbl.textColor = .gray
+    lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
+    return lbl
+  }()
+  
   private lazy var searchFooterWrapper: UIView = {
-    let v = searchButton.wrapper(UIEdgeInsets(top: 5, left: Const.Size.DefaultPadding, bottom: -5, right: -Const.Size.DefaultPadding), priority: .defaultHigh)
-    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+10)
+    let v = UIView()
+    v.addSubview(searchButton)
+    v.addSubview(helpButton)
+    
+    pin(searchButton.top, to: v.top, dist: 5.0)
+    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding)
+    pin(searchButton.left, to: v.left, dist: Const.Size.DefaultPadding)
+    
+    pin(helpButton.top, to: searchButton.bottom, dist: Const.Size.DefaultPadding)
+    pin(helpButton.left, to: v.left, dist: Const.Size.DefaultPadding)
+    //No need to close Autolayout due Footer needs Fix Frame foe easier use
+    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+40)
     v.backgroundColor = Const.SetColor.ios(.systemBackground).color
-    v.onTapping { _ in
-      print("tap footer..")
-    }
     return v
   }()
   
@@ -70,8 +86,9 @@ class SearchSettingsView: UITableView {
   func toggle(toVisible: Bool? = nil){
     let currentOffset = self.topConstraint?.constant ?? 1
     let toVisible = toVisible ?? (currentOffset != 0)
-
+   
     if toVisible == true {
+      Usage.track(Usage.event.search.filterOpen)
       UIView.animate(seconds: 0.3) { [weak self] in
         self?.topConstraint?.constant = 0
         self?.bottomConstraint?.constant = 0
@@ -80,6 +97,9 @@ class SearchSettingsView: UITableView {
         self?.topBackground.isHidden = false
       }
       return
+    }
+    else {
+      Usage.track(Usage.event.search.filterClose)
     }
     data.authorInpulCell.textField.resignFirstResponder()
     data.titleInpulCell.textField.resignFirstResponder()
@@ -128,8 +148,6 @@ class SearchSettingsView: UITableView {
       }
       propertyChanged?()
     }
-    #warning("TODO ROW ANIMATION")
-//    tableView.reloadData(); return;
     if (added.count + deleted.count) == 0 {
       reloadData()
       return
@@ -139,11 +157,6 @@ class SearchSettingsView: UITableView {
       if deleted.count > 0 { deleteRows(at: deleted, with: .none) }
       if added.count > 0 { insertRows(at: added, with: .none  ) }
     }
-//    onMainAfter {
-//      [weak self] in
-//        guard let self = self else { return }
-//        self.preferredContentSize = CGSize(width: self.preferredContentSize.width, height: self.tableView.contentSize.height + 50)
-//    }
   }
   
   override func layoutSubviews() {
@@ -390,22 +403,35 @@ class TazCell: UITableViewCell, UIStyleChangeDelegate {
 // MARK: *** UIComponents ***
 /// A custom table view cell with TextInput
 class TazHeaderFooterView: UITableViewHeaderFooterView {
-  var label: UILabel = UILabel().boldContentFont().labelColor()
+  var label: UILabel = UILabel()
   let chevron = UIImageView(image: UIImage(named: "chevron-up"))
+  let chevronTapArea = UIView()
+  
+  var topDist = 8.0
+  var bottomDist = 10.0
+  var fontSize = Const.Size.DefaultFontSize
+  var chevronYOffset = -2.0
   
   func setup(){
+    label.boldContentFont(size: fontSize).labelColor()
     self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
     self.contentView.addSubview(label)
     self.contentView.addSubview(chevron)
+    self.contentView.addSubview(chevronTapArea)
     chevron.tintColor = Const.SetColor.ios(.secondaryLabel).color
     chevron.pinSize(CGSize(width: 24, height: 24))
     pin(chevron.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding)
-    chevron.centerY(dist: -2)
-
-    pin(label.top, to: self.contentView.top, dist: 8)
+    chevron.centerY(dist: chevronYOffset)
+    
+    pin(chevronTapArea.top, to: self.contentView.top)
+    pin(chevronTapArea.right, to: self.contentView.right)
+    pin(chevronTapArea.bottom, to: self.contentView.bottom)
+    pin(chevronTapArea.left, to: chevron.left, dist: -15)
+    
+    pin(label.top, to: self.contentView.top, dist: topDist)
     pin(label.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
     pin(label.right, to: chevron.right, dist: -Const.Size.DefaultPadding, priority: .defaultLow)
-    pin(label.bottom, to: self.contentView.bottom, dist: -10, priority: .defaultLow)
+    pin(label.bottom, to: self.contentView.bottom, dist: -bottomDist, priority: .defaultLow)
     self.contentView.layoutMargins.top = 0.0
     self.contentView.layoutMargins.left = Const.Size.DefaultPadding
     self.contentView.layoutMargins.right = Const.Size.DefaultPadding
@@ -442,14 +468,16 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
     super.init(coder: coder)
     setup()
   }
-}
-
-extension TazHeaderFooterView:UIStyleChangeDelegate{
-  func applyStyles() {
+  
+  func setColors(){
     self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
     chevron.tintColor = Const.SetColor.ios(.secondaryLabel).color
     label.textColor = Const.SetColor.ios(.label).color
   }
+}
+
+extension TazHeaderFooterView:UIStyleChangeDelegate{
+  func applyStyles() {setColors() }
 }
 
 class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
@@ -461,11 +489,45 @@ class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
   public let toCloseLabel = UILabel("Übernehmen")
   
   @objc public func dateChanged(_ sender: UIControl) {
+    if #available(iOS 16, *) {
+      dateChangedWorkaround(sender)
+    }
+    else {
+      dateChangedLegacy(sender)
+    }
+  }
+  
+  func dateChangedLegacy(_ sender: UIControl) {
     if sender == fromPicker {
       toPicker.minimumDate = fromPicker.date
     }
     else if sender == toPicker {
       fromPicker.maximumDate = toPicker.date
+    }
+  }
+  
+  @available(iOS 16, *)
+  /// fixes ios 16 crash Bug if to picker selects lower date then from picker.minimum date
+  /// other fixes are also possible but then ux changes
+  /// ios below 16 handles error itself
+  /// strage other behaviours only when in wheels mode
+  /// this solution seam to work
+  func dateChangedWorkaround(_ sender: UIControl) {
+    if sender == fromPicker {
+      toPicker.preferredDatePickerStyle = .wheels
+      if toPicker.date < fromPicker.date {
+        toPicker.date = fromPicker.date
+      }
+      toPicker.minimumDate = fromPicker.date
+      toPicker.preferredDatePickerStyle = .inline
+    }
+    else if sender == toPicker {
+      fromPicker.preferredDatePickerStyle = .wheels
+      if toPicker.date < fromPicker.date {
+        fromPicker.date = toPicker.date
+      }
+      fromPicker.maximumDate = toPicker.date
+      fromPicker.preferredDatePickerStyle = .inline
     }
   }
   
@@ -481,8 +543,8 @@ class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
     fromPicker.layer.cornerRadius = 12.0
     toPicker.layer.cornerRadius = 8.0
     
-    fromPicker.addBasicShadow()
-    toPicker.addBasicShadow()
+    fromPicker.shadow()
+    toPicker.shadow()
     
     fromPicker.datePickerMode = .date
     toPicker.datePickerMode = .date
@@ -576,7 +638,6 @@ class TData {
   var settings = SearchSettings()
   var expandedSection: Int? {
     didSet {
-      print("set expandedSection to: \(expandedSection) old: \(oldValue)")
       headerViews.enumerated().forEach( { (index,view) in
         //index 0 is header of section 1!
         view.collapsed = index != (expandedSection ?? 0) - 1
@@ -677,9 +738,9 @@ class TData {
   func update(){
     if settings.range.currentOption == .custom {
       rangeMoreCell.label.text
-      = datePickers.fromPicker.date.shortest
+      = datePickers.fromPicker.date.shorter
       + " - "
-      + datePickers.toPicker.date.shortest
+      + datePickers.toPicker.date.shorter
     }
     else {
       rangeMoreCell.label.text = settings.range.currentOption.textWithDate
@@ -706,12 +767,20 @@ class TData {
     filterCells.forEach{ $0.radioButton.isSelected = $0.filter == settings.filter }
     sortingCells.forEach{ $0.radioButton.isSelected = $0.sorting == settings.sorting }
     ///Title no more used!!
+    #if LMD
+    content = [
+      ("erweiterte suche", [titleInpulCell, authorInpulCell]),
+      ("zeitraum", expandedSection == 1 ? rangeCells : [rangeMoreCell]),
+      ("sortierung", expandedSection == 2 ? sortingCells : [sortingMoreCell])
+    ]
+    #else
     content = [
       ("erweiterte suche", [titleInpulCell, authorInpulCell]),
       ("zeitraum", expandedSection == 1 ? rangeCells : [rangeMoreCell]),
       ("erschienen in", expandedSection == 2 ? filterCells : [filterMoreCell]),
       ("sortierung", expandedSection == 3 ? sortingCells : [sortingMoreCell])
     ]
+    #endif
   }
   
   func createHeaders(){

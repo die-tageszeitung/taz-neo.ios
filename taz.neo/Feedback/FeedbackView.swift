@@ -64,10 +64,16 @@ public class FeedbackView : UIView {
   }
   
   private func setup() {
-    self.onTapping { [weak self] (_) in
-      self?.endEditing(false)
-    }
     setupText()
+    
+    self.onTapping { [weak self] (_) in self?.endEditing(false)}
+//    senderMailDescriptionLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    lastInteractionTextView.topLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    lastInteractionTextView.bottomLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    environmentTextView.topLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    environmentTextView.bottomLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    messageTextView.topLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    messageTextView.bottomLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
 
     cancelButton.setTitle("Abbrechen", for: .normal)
     cancelButton.setTitleColor(Const.SetColor.ios(.link).color, for: .normal)
@@ -86,7 +92,7 @@ public class FeedbackView : UIView {
       sendButton.isEnabled = true
     }
     
-    senderMail.delegate = self
+    senderMail.textfield.delegate = self
     senderMail.textfield.keyboardType = .emailAddress
     senderMail.textfield.autocapitalizationType = .none
     senderMail.textfield.textContentType = .emailAddress
@@ -128,17 +134,17 @@ public class FeedbackView : UIView {
     }
     stack.addArrangedSubview(senderMailDescriptionLabel)
     stack.addArrangedSubview(senderMail)
-    senderMail.tag = 0
+    senderMail.tag = 10
     stack.addArrangedSubview(UIView.seperator())
     stack.addArrangedSubview(messageTextView)
-    messageTextView.tag = 1
+    messageTextView.tag = 11
     if type == .error {
       stack.addArrangedSubview(UIView.seperator())
       stack.addArrangedSubview(lastInteractionTextView)
-      lastInteractionTextView.tag = 2
+      lastInteractionTextView.tag = 12
       stack.addArrangedSubview(UIView.seperator())
       stack.addArrangedSubview(environmentTextView)
-      environmentTextView.tag = 3
+      environmentTextView.tag = 13
       stack.addArrangedSubview(UIView.seperator())
       stack.addArrangedSubview(attachmentsLabel)
       stack.addArrangedSubview(hStack2)
@@ -159,14 +165,14 @@ public class FeedbackView : UIView {
     sendButton.pinSize(CGSize(width: 42, height: 42))
     screenshotAttachmentButton.pinHeight(attachmentButtonHeight)
     logAttachmentButton.pinHeight(attachmentButtonHeight)
-    logAttachmentButton.addBasicShadow()
-    screenshotAttachmentButton.addBasicShadow()
+    logAttachmentButton.shadow()
+    screenshotAttachmentButton.shadow()
     pin(screenshotAttachmentButton, to: hStack2, exclude: .right)
     pin(logAttachmentButton, to: hStack2, exclude: .left)
   }
   
   func setupText(){
-    messageTextView.topMessage = "Ihre Nachhricht"
+    messageTextView.topMessage = "Ihre Nachricht"
     lastInteractionTextView.topMessage = "Letzte Interaktion"
     environmentTextView.topMessage = "Zustand"
     
@@ -178,7 +184,7 @@ public class FeedbackView : UIView {
     switch type {
       case .feedback:
         subjectLabel.text = "Feedback"
-        messageTextView.placeholder = "Ihr Feedback."
+        messageTextView.placeholder = "Ihr Feedback.\n \n "
       case .error:
         subjectLabel.text = "Fehler melden"
         messageTextView.placeholder = "Beschreiben Sie ihr Problem bitte hier."
@@ -246,6 +252,12 @@ extension FeedbackView : UITextViewDelegate{
 }
 
 extension FeedbackView : UITextFieldDelegate{
+  
+  public func textFieldDidBeginEditing(_ textField: UITextField) {
+    guard let ti = textField as? KeyboardToolbarForText else { return }
+    textField.inputAccessoryView = ti.inputToolbar
+  }
+  
   public func textFieldDidEndEditing(_ textField: UITextField){
     if textField != senderMail.textfield { return}//only handle this here!
     checkSendButton()
@@ -268,14 +280,5 @@ extension UILabel{
       label.textColor = Const.SetColor.ForegroundLight.color
       return label
     }
-  }
-}
-
-extension UIView{
-  func addBasicShadow(){
-    self.layer.shadowOpacity = 0.25
-    self.layer.shadowOffset = CGSize(width: 2, height: 2)
-    self.layer.shadowRadius = 4
-    self.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
   }
 }

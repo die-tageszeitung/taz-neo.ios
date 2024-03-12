@@ -15,7 +15,6 @@ import NorthLib
 ///   2. on App Start Check if System Settings still Match with In App User Settings
 /// - not using NorthLib's PushNotification due it handle(remote) PushNotifications
 public final class NotificationBusiness: DoesLog {
-  private var didShowNotificationsDisabledWarning = false
   public static let sharedInstance = NotificationBusiness()
   private init(){}
   
@@ -31,44 +30,33 @@ public final class NotificationBusiness: DoesLog {
       return isTextNotification // || autoloadNewIssues
     }
   }
+    
+  var showingNotificationsPopup = false
   
   /// remember async called system setting
-  var systemNotificationsEnabled: Bool = false {
-    didSet {
-      if systemNotificationsEnabled == false
-         && notificationsRequired == true {
-        showNotificationsDisabledWarning()
-      }
-    }
-  }
+  var systemNotificationsEnabled: Bool?
+  ///remember last accessed auth status due its maybe not determinated after new install
+  var systemNotificationsStatus: UNAuthorizationStatus?
   
   /// Check if in app notifications settings are applyable for current setting in ios system settings
   /// - Parameter finished: callback after async check is finished
-  func checkNotificationStatusIfNeeded(finished: (()->())? = nil){
-    if !isTextNotification /*&& !autoloadNewIssues*/ { finished?(); return }
+  func checkNotificationStatus(finished: (()->())? = nil){
     let notifCenter = UNUserNotificationCenter.current()
     notifCenter.getNotificationSettings(
       completionHandler: { [weak self] (settings) in
         guard let self = self else { return }
+        self.systemNotificationsStatus = settings.authorizationStatus
+        if settings.authorizationStatus == .notDetermined {
+          finished?()
+          return;
+        }
+        
         self.systemNotificationsEnabled
-                   = settings.authorizationStatus == .authorized
-                   && settings.notificationCenterSetting == .enabled
-                   && settings.lockScreenSetting == .enabled
+        = settings.authorizationStatus == .provisional
+        || settings.authorizationStatus == .authorized
+            && (settings.notificationCenterSetting == .enabled || settings.lockScreenSetting == .enabled)
         finished?()
       })
-  }
-  
-  /// Helper to show popup, to open system settings
-  func showNotificationsDisabledWarning(){
-    if didShowNotificationsDisabledWarning { return }
-    didShowNotificationsDisabledWarning = true
-    ///Optional subtext:  "Bitte aktivieren Sie Mitteilungen in den Systemeinstellungen.\n\nMitteilungen werden benötigt um den automatischen Download von Ausgaben zu starten.\nSie können Textnachrichten deaktivieren, falls Sie den automatischen Download von Ausgaben möchten aber nicht die Benachrichtigung außerhalb der App erlauben möchten. "
-    Alert.confirm(title: "Bitte erlauben Sie Mitteilungen!",
-                  message: "Mitteilungen sind in den Systemeinstellungen deaktiviert.",
-                  okText: "Einstellungen öffnen") {  [weak self] accept in
-      if accept { self?.openAppInSystemSettings() }
-      self?.didShowNotificationsDisabledWarning = false
-    }
   }
   
   /// Helper to open system settings
@@ -88,22 +76,56 @@ public final class NotificationBusiness: DoesLog {
       self?.openAppInSystemSettings()
     })
   }
-  
-  func updateTextNotificationSettings(){
-    guard let feederContext = TazAppEnvironment.sharedInstance.feederContext else {
-      debug("Fail to update TextNotificationSettings to: \(isTextNotification)")
+}
+
+extension NotificationBusiness {
+  func showPopupIfNeeded(newIssueAvailableSince: TimeInterval){
+    guard !showingNotificationsPopup else { return }
+    
+    if self.systemNotificationsStatus == .notDetermined {
+      onThreadAfter(5.0){[weak self] in
+        self?.checkNotificationStatus{
+          onMain {[weak self] in
+            self?.showPopupIfNeeded(newIssueAvailableSince: newIssueAvailableSince)
+          }
+        }
+      }
+      return;
+    }
+    
+    if self.systemNotificationsEnabled == nil {
+      self.checkNotificationStatus{
+        onMain {[weak self] in
+          self?.showPopupIfNeeded(newIssueAvailableSince: newIssueAvailableSince)
+        }
+      }
+      return;
+    }
+    
+    if self.systemNotificationsEnabled == true {
+      return;
+    }
+    
+    guard TazAppEnvironment.sharedInstance.rootViewController is MainTabVC else {
       return
     }
-    feederContext.gqlFeeder.notification(pushToken: feederContext.pushToken,
-                                         oldToken:  Defaults.lastKnownPushToken ?? feederContext.pushToken,
-                                         isTextNotification: isTextNotification) {[weak self] res in
-      if let err = res.error() {
-        self?.debug("Update pushToken and Notification Settings failed \(err)")
-      }
-      else {
-        self?.debug("Updated pushToken and Notification Settings")
-        Defaults.lastKnownPushToken = feederContext.pushToken
-      }
+    
+    guard Defaults.notificationsActivationPopupRejectedDate == nil else {
+      return
     }
+    
+    if let skippedDate = Defaults.notificationsActivationPopupRejectedTemporaryDate,
+       abs(skippedDate.timeIntervalSinceNow) < 3600*24*10 {
+      return
+    }
+    
+    showingNotificationsPopup = true
+    
+    let toast = NotificationsView(newIssueAvailableSince: newIssueAvailableSince)
+    toast.onDismiss {[weak self] in
+      self?.showingNotificationsPopup = false
+    }
+    toast.show()
+    Usage.track(Usage.event.dialog.AllowNotificationsInfo)
   }
 }

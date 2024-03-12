@@ -86,16 +86,17 @@ public class SimpleAuthenticator: Authenticator {
             case .success(let token): 
               SimpleAuthenticator.storeUserData(id: id, password: password, 
                                                 token: token)
-              Notification.send("authenticationSucceeded")
+              Notification.send(Const.NotificationNames.authenticationSucceeded)
             case .failure(let err):
               if let err = err as? FeederError {
                 var text = ""
                 switch err {
                   case .invalidAccount: text = "Ihre Kundendaten sind nicht korrekt."
-                  case .expiredAccount: text = "Ihr Abo ist abgelaufen."
+                  case .expiredAccount: text = "Ihr Abonnement ist abgelaufen."
                   case .changedAccount: text = "Ihre Kundendaten haben sich geändert."
                   case .unexpectedResponse:                
                     text = "Es gab ein Problem bei der Kommunikation mit dem Server."
+                  case .minVersionRequired: text = "Minimale App-Version nicht vorhanden."
                 }
                 Alert.message(title: "Fehler", message: text)
               }

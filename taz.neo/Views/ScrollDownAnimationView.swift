@@ -96,7 +96,10 @@ fileprivate class ArrowView: UIView {
     arrowLayer.lineWidth = sw
     arrowLayer.lineJoin = .round
     arrowLayer.lineCap = .round
-    arrowLayer.strokeColor = UIColor.white.withAlphaComponent(0.5).cgColor
+    arrowLayer.strokeColor 
+    = App.isLMD
+    ? UIColor.black.withAlphaComponent(0.5).cgColor
+    : UIColor.white.withAlphaComponent(0.5).cgColor
     self.layer.addSublayer(arrowLayer)
   }
   

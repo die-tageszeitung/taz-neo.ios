@@ -14,14 +14,26 @@ public protocol ArticleVCdelegate: IssueInfo {
   var section: Section? { get }
   var sections: [Section] { get }
   var article: Article? { get set }
+  func article2index(art: Article) -> Int
   var article2section: [String:[Section]] { get }
   func displaySection(index: Int)
   func linkPressed(from: URL?, to: URL?)
   func closeIssue()
 }
 
+public extension ArticleVCdelegate {
+  func article2index(art: Article) -> Int { return -1}
+}
+
 /// The Article view controller managing a collection of Article pages
-open class ArticleVC: ContentVC {
+open class ArticleVC: ContentVC, ContextMenuItemPrivider {
+  public var menu: MenuActions?{
+    return article?.contextMenu()
+  }
+  
+  
+  @Default("smartBackFromArticle")
+  var smartBackFromArticle: Bool
     
   var hasValidAbo: Bool {feederContext.isAuthenticated && !Defaults.expiredAccount}
   var needValidAboToShareText: String {
@@ -34,7 +46,7 @@ open class ArticleVC: ContentVC {
   
   public var articles: [Article] = []
   public var article: Article? { 
-    if let i = index { return articles[i] }
+    if let i = index { return articles.valueAt(i) }
     return nil
   }
   
@@ -56,7 +68,9 @@ open class ArticleVC: ContentVC {
   
   /// Remove Article from page collection
   func delete(article: Article) {
-    if let idx = articles.firstIndex(where: { $0.html.name == article.html.name }) {
+    //not delete articles without filename
+    guard let name = article.html?.name, name.length > 0 else { return }
+    if let idx = articles.firstIndex(where: { $0.html?.name == name }) {
       articles.remove(at: idx)
       deleteContent(at: idx)
     }
@@ -64,17 +78,25 @@ open class ArticleVC: ContentVC {
   
   /// Insert Article into page collection
   func insert(article: Article) {
+    //not insert articles without filename
+    guard let name = article.html?.name, name.length > 0 else { return }
     // only insert new Article
-    guard articles.firstIndex(where: { $0.html.name == article.html.name }) == nil
+    guard articles.firstIndex(where: { $0.html?.name == name }) == nil
     else { return }
     let all = delegate.issue.allArticles
-    if let idx = all.firstIndex(where: { $0.html.name == article.html.name }) {
+    if let idx = all.firstIndex(where: { $0.html?.name == name }) {
       articles.insert(article, at: idx)
       insertContent(content: article, at: idx)
     }
   }
   
   func displayBookmark(art: Article) {
+    var bbHidden = true
+    if let aDel = adelegate {
+      bbHidden = art.html?.isEqualTo(aDel.issue.imprint?.html) ?? false
+    }
+    bookmarkButton.isHidden = bbHidden
+    
     if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
     else { self.bookmarkButton.buttonView.name = "star" }
   }
@@ -82,80 +104,106 @@ open class ArticleVC: ContentVC {
   func toggleBookmark(art: StoredArticle?) {
     guard let art = art else { return }
     var msg: String
-    if art.hasBookmark { msg = "Lesezeichen wird entfernt" }
-    else { msg = "Wird in Leseliste aufgenommen" }
-    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)", minDuration: 0)
+    var completion:((Bool)->())? = nil
+    
+    if art.hasBookmark {
+      msg = "Der Artikel wurde aus ihrer Leseliste entfernt.<br/>Löschen rückgängig durch Antippen"
+      completion = { wasTapped in
+        guard wasTapped else { return }
+        art.hasBookmark = true
+        Toast.show("Löschen wurde wiederrufen!")
+      }
+    }
+    else { msg = "Der Artikel wurde in ihrer Leseliste gespeichert." }
+    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)",
+               minDuration: 0,
+               completion: completion)
     art.hasBookmark.toggle()
   }
   
+  func updateAudioButton(){
+    self.playButton.buttonView.name
+    = ArticlePlayer.singleton.isPlaying
+    && ArticlePlayer.singleton.currentContent?.html?.sha256 == self.article?.html?.sha256
+    ? "audio-active"
+    : "audio"
+  }
+  
+  var playButtonContextMenu: ContextMenu?
+  
   func setup() {
+    playButtonContextMenu
+    = ContextMenu(view: playButton.buttonView,
+                  smoothPreviewForImage: true)
+    playButtonContextMenu?.itemPrivider = self
+    
     if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
     }
-    
     super.setup(contents: articles, isLargeHeader: false)
-    contentTable?.onSectionPress { [weak self] sectionIndex in
-      guard let self = self, let adelegate = self.adelegate else { return }
-      if sectionIndex >= adelegate.sections.count {
-        self.debug("*** Action: Impressum pressed")
-      }
-      else {
-        self.debug("*** Action: Section \(sectionIndex) " +
-          "(delegate.sections[sectionIndex])) in Slider pressed")
-      }
-      self.adelegate?.displaySection(index: sectionIndex)
-      self.slider?.close()
-      self.navigationController?.popViewController(animated: false)
-    }
-    contentTable?.onImagePress { [weak self] in
-      self?.debug("*** Action: Moment in Slider pressed")
-      self?.slider?.close()
-      self?.navigationController?.popViewController(animated: false)
-      self?.adelegate?.closeIssue()
-    }
-    Notification.receive("BookmarkChanged") { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
-         self.isVisible,
          let art = self.article,
-         cart.html.name == art.html.name {
+         cart.html?.name == art.html?.name {
          self.displayBookmark(art: art)
       }
     }
-    onDisplay { [weak self] (idx, oview) in
-      if let self = self {
-        let art = self.articles[idx]
-        self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
-        self.setHeader(artIndex: idx)
-        self.issue.lastArticle = idx
-        let player = ArticlePlayer.singleton
-        if player.isPlaying() { async { player.stop() } }
-        if art.canPlayAudio {
-          self.playButton.buttonView.name = "audio"
-          self.onPlay { [weak self] _ in
-            guard let self = self else { return }
-            if let title = self.header.title ?? art.title {
-              art.toggleAudio(issue: self.issue, sectionName: title )
-            }
-            if player.isPlaying() { self.playButton.buttonView.name = "audio-active" }
-            else { self.playButton.buttonView.name = "audio" }
-          }
-        }
-        else { self.onPlay(closure: nil) }
-        self.onBookmark { [weak self] _ in
-          guard let self = self else { return }
-          self.toggleBookmark(art: art as? StoredArticle)
-        }
-        if art.primaryIssue?.isReduced ?? false {
-          #warning("not working reliable on simulator!!")
-          print("add atEndofcontent to: \(art.title)")
-          self.atEndOfContent() { [weak self] isAtEnd in
-            if isAtEnd { self?.feederContext.authenticate() }
-          }
-        }
-        self.displayBookmark(art: art)
-        self.debug("on display: \(idx), article \(art.html.name):\n\(art.title ?? "Unknown Title")")
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+      self?.updateAudioButton()
+    }
+    onDisplay { [weak self] (idx, _, _) in
+      guard let self = self else { return }
+      guard let art = self.articles.valueAt(idx) else {
+        ///prevent crash on search result login on 2nd or later load more results
+        log("fail to access artikel at index: \(idx)  when only \(self.articles.count) exist")
+        return
       }
+      #if TAZ //Tom Stuff
+      if art is VirtualArticle {
+        bookmarkButton.isHidden = true
+        updateAudioButton()
+        shareButton.isHidden = true
+        textSettingsButton.isHidden = true
+        self.setHeader(artIndex: idx)
+        self.currentWebView?.baseDir = art.baseURL
+        return
+      }
+      #endif
+      textSettingsButton.isHidden = false
+
+      if self.smartBackFromArticle {
+        self.adelegate?.article = art
+      }
+      self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
+      self.setHeader(artIndex: idx)
+      self.issue.lastArticle = idx
+      let player = ArticlePlayer.singleton
+      if art.canPlayAudio {
+        updateAudioButton()
+        self.onPlay { [weak self] _ in
+          guard let self = self else { return }
+          art.toggleAudio(issue: self.issue)
+        }
+      }
+      else { self.onPlay(closure: nil) }
+      player.onEnd { [weak self] err in
+        self?.playButton.buttonView.name = "audio"
+        guard let err = err else { return }
+      }
+      self.onBookmark { [weak self] _ in
+        guard let self = self else { return }
+        self.toggleBookmark(art: art as? StoredArticle)
+      }
+      ///     && (feederContext.isAuthenticated == false || Defaults.expiredAccount) bookmarks finally did not refresh
+      if art.primaryIssue?.isReduced == true {
+        self.atEndOfContent() { [weak self] isAtEnd in
+          if isAtEnd { self?.feederContext.authenticate() }
+        }
+      }
+      self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
+      self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
+      showCoachmarkIfNeeded()
     }
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
@@ -177,18 +225,28 @@ open class ArticleVC: ContentVC {
     }
     header.titletype = .article
   }
-    
+
   // Define Header elements
   #warning("ToDo: Refactor get HeaderField with Protocol! (ArticleVC, SectionVC...)")
   func setHeader(artIndex: Int) {
-    if let art = article {
-      if let sections = adelegate?.article2section[art.html.name],
+    #if TAZ
+    let tazTomVirtualArticle = article is VirtualArticle
+    #else
+    let tazTomVirtualArticle = App.isTAZ ///false, but supress "Will never be executed" warning 2 lines later
+    #endif
+
+    if tazTomVirtualArticle {
+      header.title = article?.title
+      header.pageNumber = nil
+    }
+    else if let art = article, let name = art.html?.name {
+      if let sections = adelegate?.article2section[name],
          sections.count > 0 {
         let section = sections[0]
         if let title = section.title, let articles = section.articles {
           var i = 0
           for a in articles {
-            if a.html.name == article?.html.name { break }
+            if a.html?.name == article?.html?.name { break }
             i += 1
           }
           if let st = art.sectionTitle { header.title = st }
@@ -203,7 +261,15 @@ open class ArticleVC: ContentVC {
           else {
             header.pageNumber = "\(i+1)/\(articles.count)"
           }
-        }        
+          contentTable?.setActive(row: i,
+                                  section: adelegate?.article2index(art: art))
+        }
+      }
+      else if art.title != nil,
+              art.html?.isEqualTo(adelegate?.issue.imprint?.html) == true,
+              art.sectionTitle == nil {
+        header.title = art.title
+        header.pageNumber = nil
       }
     }
   }
@@ -215,7 +281,7 @@ open class ArticleVC: ContentVC {
         guard let data = data else { return }
         let dialogue = ExportDialogue<Data>()
         let altText = "\(art.teaser ?? "")\n\(art.onlineLink!)"
-        dialogue.present(item: data, altText: altText, view: button,
+        dialogue.present(item: data, altText: altText, onlineLink: art.onlineLink, view: button,
                          subject: art.title)
       }
     }
@@ -224,41 +290,68 @@ open class ArticleVC: ContentVC {
   // Export/Share article
   public static func exportArticle(article: Article?, artvc: ArticleVC? = nil, 
                                    from button: UIView? = nil) {
-    if let art = article {
-      if let link = art.onlineLink, !link.isEmpty {
-        if let url = URL(string: link) {
-          let actions = UIAlertController.init( title: nil, message: nil,
-            preferredStyle:  .actionSheet )
-          actions.addAction( UIAlertAction.init( title: "Teilen", style: .default,
-            handler: { handler in
-              //previously used PDFEXPORT Compiler Flags
-              if let artvc = artvc, App.isAvailable(.PDFEXPORT), #available(iOS 14, *) {
-                artvc.exportPdf(article: art, from: button)
-              } else {
-                let dialogue = ExportDialogue<Any>()
-                dialogue.present(item: "\(art.teaser ?? "")\n\(art.onlineLink!)",
-                                 view: button, subject: art.title)
-              }
-          } ) )
-          actions.addAction( UIAlertAction.init( title: "Online-Version", style: .default,
-          handler: {
-            (handler: UIAlertAction) in
-            Log.debug("Going to online version: \(link)")
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-          } ) )
-          actions.addAction( UIAlertAction.init( title: "Abbrechen", style: .default,
-          handler: {
-            (handler: UIAlertAction) in
-          } ) )
-          actions.presentAt(button)
-        } 
-      }
-    } 
+    
+    let img = article?.images?.first?.image(dir: artvc?.delegate.issue.dir)
+    
+    if let art = article,
+       let link = art.onlineLink,
+       !link.isEmpty{
+          let dialogue = ExportDialogue<Any>()
+        dialogue.present(item: link,
+                       altText: nil,
+                       onlineLink: link,
+                       view: button,
+                       subject: art.title,
+                       image: img)
+    }
   }
   
+  public override func setupSlider() {
+    super.setupSlider()
+    contentTable?.onArticlePress{[weak self] article in
+      guard let self = self else { return }
+      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+      self.adelegate?.linkPressed(from: nil, to: url)
+      self.slider?.close()
+    }
+    contentTable?.onSectionPress { [weak self] sectionIndex in
+      guard let self = self, let adelegate = self.adelegate else { return }
+      if sectionIndex >= adelegate.sections.count {
+        self.debug("*** Action: Impressum pressed")
+      }
+      else {
+        self.debug("*** Action: Section \(sectionIndex) " +
+          "(delegate.sections[sectionIndex])) in Slider pressed")
+      }
+      self.adelegate?.displaySection(index: sectionIndex)
+      self.slider?.close()
+      self.navigationController?.popViewController(animated: false)
+    }
+    contentTable?.onImagePress { [weak self] in
+      self?.debug("*** Action: Moment in Slider pressed")
+      self?.slider?.close()
+      self?.navigationController?.popViewController(animated: false)
+      self?.adelegate?.closeIssue()
+    }
+  }
+  
+  open override func releaseOnDisappear(){
+    contentTable = nil
+    articles = []
+    delegate = nil
+    playButtonContextMenu?.itemPrivider = nil
+    self.playButtonContextMenu = nil
+    super.releaseOnDisappear()
+  }
+    
   public override func viewWillAppear(_ animated: Bool) {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
+    }
+    if self.parent is BookmarkNC { /*NO CONTENT TABLE*/}
+    else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
+    else if self.contentTable == nil {
+      self.contentTable = NewContentTableVC()
     }
     super.viewWillAppear(animated)
   }
@@ -273,35 +366,33 @@ open class ArticleVC: ContentVC {
     super.viewDidAppear(animated)
     onShare { [weak self] _ in
       guard let self = self else { return }
+      CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.share)
       self.debug("*** Action: Share Article")
       if (self.article?.onlineLink ?? "").isEmpty {
+        Usage.track(Usage.event.dialog.SharingNotPossible)
         Alert.actionSheet(message: self.needValidAboToShareText,
-                          actions: UIAlertAction.init( title: "Anmelden",
+                          actions: UIAlertAction.init( title: self.feederContext.isAuthenticated ? "Weitere Informationen" : "Anmelden",
                                                        style: .default ){ [weak self] _ in
           self?.feederContext.authenticate()
         })
       } else {
+        if self.issue is SearchResultIssue {
+          Usage.xtrack.share.searchHit(article: self.article)
+        }
+        else {
+          Usage.xtrack.share.article(article: self.article)
+        }
         ArticleVC.exportArticle(article: self.article, artvc: self, from: self.shareButton)
       }
     }
     
-    if App.isAvailable(.SEARCH_CONTEXTMENU) {
-      let suche = UIMenuItem(title: "Suche", action: #selector(search))
-      UIMenuController.shared.menuItems = [suche]
-    }
-  }
-  
-  public override func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(animated)  
-    let player = ArticlePlayer.singleton
-    if player.isPlaying() { async { player.stop() } }
+    let suche = UIMenuItem(title: "Suche", action: #selector(search))
+    UIMenuController.shared.menuItems = [suche]
   }
   
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
-    if App.isAvailable(.SEARCH_CONTEXTMENU) {
-      UIMenuController.shared.menuItems = nil
-    }
+    UIMenuController.shared.menuItems = nil
   }
 } // ArticleVC
 
@@ -312,8 +403,32 @@ extension ArticleVC {
       guard let self = self else {return}
       if let e = err { self.log(e.description)}
       //#warning("ToDo: 0.9.4+ Implement Search")
-      if let txt = selectedText { print("You selected: \(txt)")}
-      else { print("no text selection detected")}
+      guard let txt = selectedText as? String, txt.length > 3 else {
+        log("No valid Selection for Search: \(selectedText)")
+        return
+      }
+      Notification.send(Const.NotificationNames.searchSelectedText,
+                        content: txt,
+                        error: nil,
+                        sender: self)
     })
+  }
+}
+
+extension ArticleVC: CoachmarkVC {
+  
+  public var viewName: String { Coachmarks.Article.typeName }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    guard let item = item as? Coachmarks.Article else { return nil }
+    
+    switch item {
+      case .audio:
+        return playButton.buttonView
+      case .share:
+        return shareButton.buttonView
+      case .font:
+        return textSettingsButton.buttonView
+    }
   }
 }

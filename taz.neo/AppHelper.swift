@@ -17,7 +17,7 @@ extension UIApplication {
       case .active:
         return "active"
       case .background:
-        return "active"
+        return "background"
       case .inactive:
         return "inactive"
       default:
@@ -55,12 +55,19 @@ public extension NSObject{
 
 
 public extension App {
+  static var environmentString:String {
+    if isRelease { return "release" }
+    if isAlpha { return "alpha" }
+    if isBeta { return "beta" }
+    return "unknown"
+  }
+  
   /// Is the alpha App
   static var isAlpha: Bool = {
     return bundleIdentifier == BuildConst.tazBundleIdentifierAlpha
   }()
   
-  enum Feature { case  PDFEXPORT, INTERNALBROWSER, SEARCH_CONTEXTMENU, AUTODOWNLOAD, ABOIDLOGIN}
+  enum Feature { case  INTERNALBROWSER, AUTODOWNLOAD, ABOIDLOGIN}
   
   
   /// Is the beta App
@@ -76,7 +83,8 @@ public extension App {
   
   /// get app info ()
   static var appInfo:String {
-    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : "taz"
+    let appTitle = App.isAlpha ? "Alpha" : App.isBeta ? "Beta" : 
+                   App.isLMD ? "LMd" : "taz"
     return "\(appTitle) (v) \(App.version)-\(App.buildNumber)"
   }
   
@@ -98,15 +106,11 @@ public extension App {
   static func isAvailable(_ feature: App.Feature) -> Bool {
     switch feature {
       case .ABOIDLOGIN:
-        return true
+        return true //WARNING Handle expiredSubscription may not work correct!! do not turn off this feature for Release
       case .INTERNALBROWSER:
         return isAlpha //Only in Alpha Versions
-      case .PDFEXPORT:
-        return isAlpha //Only in Alpha Versions
-      case .SEARCH_CONTEXTMENU:
-        return isAlpha //Only in Alpha Versions
       case .AUTODOWNLOAD:
-        return isAlpha //Only in Alpha Versions
+        return (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") || isAlpha //Only in Alpha Versions or taz Accounts
     }
   }
 }
@@ -115,4 +119,21 @@ extension BuildConst {
   static var tazBundleIdentifierAlpha: String { "de.taz.taz.neo" }
   static var tazBundleIdentifierBeta: String { "de.taz.taz.beta" }
   static var tazBundleIdentifierStore: String { "de.taz.taz.2" }
+}
+
+extension NSObject {
+  var selfIfLMd:Self? {
+    #if TAZ
+      return nil
+    #else
+      return self
+    #endif
+  }
+  var selfIfTaz:Self? {
+    #if TAZ
+      return self
+    #else
+      return nil
+    #endif
+  }
 }

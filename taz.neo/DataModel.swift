@@ -17,6 +17,7 @@ public enum FeederError: Error, Equatable {
   case expiredAccount(String?)
   case changedAccount(String?)
   case unexpectedResponse(String?)
+  case minVersionRequired(String)
   
   public var description: String {
     switch self {
@@ -28,6 +29,8 @@ public enum FeederError: Error, Equatable {
       return "Changed Account: \(msg ?? "unknown reason")"
     case .unexpectedResponse(let msg):
       return "Unexpected server response: \(msg ?? "unknown reason")"
+    case .minVersionRequired(let msg):
+      return "Minimal version requirement failed \(msg)"
     }
   }    
   public var errorDescription: String? { return description }
@@ -38,6 +41,7 @@ public enum FeederError: Error, Equatable {
       case .expiredAccount(let msg): return msg
       case .changedAccount(let msg): return msg
       case .unexpectedResponse(let msg): return msg
+      case .minVersionRequired(let msg): return msg
     }
   }
   
@@ -81,7 +85,9 @@ public enum FeederError: Error, Equatable {
 
 struct AuthStatusError: Swift.Error {
   var status:  GqlAuthStatus
+  var customerType:  GqlCustomerType?
   var message: String?
+  var token: String?
 }
 
 struct DefaultError: Swift.Error {
@@ -118,6 +124,18 @@ public protocol FileEntry: DlFile, ToString, DoesLog {
   var size: Int64 { get }
   /// SHA256 of the file's contents
   var sha256: String { get }
+}
+
+extension FileEntry {
+  /// Two FileEntry are equal if sha256, name and filesize is equal and filesize is > 0
+  /// **IGNORING moTime**
+    func isEqualTo(_ other: FileEntry?) -> Bool {
+        guard let otherFileEntry = other as? Self else { return false }
+      return self.size > 0
+      && self.size == otherFileEntry.size
+      && self.name == otherFileEntry.name
+      && self.sha256 == otherFileEntry.sha256
+    }
 }
 
 public extension FileEntry {
@@ -190,7 +208,7 @@ public extension ImageEntry {
   static func highRes(_ fname: String) -> String {
     let prefix = self.prefix(fname)
     let ext = File.extname(fname)
-    return "\(prefix).high.\(ext)"
+    return "\(prefix).high.\(ext ?? "unknown")"
   }
   
   /// The prefix of the filename
@@ -204,6 +222,12 @@ public extension ImageEntry {
     if let alpha = self.alpha { sAlpha = ", alpha=\(alpha)" }
     return "Image \(name) res \(resolution), type \(type) (\(storageType.toString()))\(sAlpha), \(size) bytes, \(UsTime(moTime).toString())\n  SHA256: \(sha256)"
   }
+}
+
+public extension ImageEntry {
+  func image(dir: Dir?) -> UIImage? {
+    guard let path = dir?.path else { return nil }
+    return UIImage(contentsOfFile: "\(path)/\(name)") }
 }
 
 /**
@@ -281,6 +305,8 @@ public extension Resources {
 public protocol Author: ToString {
   /// Complete name
   var name: String? { get }
+  /// Server side author ID
+  var serverId: Int? { get }
   /// Photo of author
   var photo: ImageEntry? { get }
 } // Author
@@ -292,15 +318,43 @@ public extension Author {
 }
 
 /**
+ The audio of content
+ */
+public protocol Audio: ToString {
+  var file: FileEntry? { get }
+  var duration: Float? { get }
+  var speaker: AudioSpeaker? { get }
+  var breaks: [Float]? { get }
+  var content: [Content]? { get }
+  var page: [Page]? { get }
+} // Audio
+
+public extension Audio {
+  func toString() -> String {
+    return "audio: \(file?.name ?? "unknown") breaks: \(breaks?.count ?? -1) duration: \(duration ?? -1) speaker: \(speaker?.toString() ?? "-"))"
+  }
+}
+
+public enum AudioSpeaker: String, CodableEnum {
+  case human = "human"
+  case machineMale = "machineMale"
+  case machineFemale = "machineFemale"
+  case podcast = "podcast"
+  case unknown = "unknown"
+} // AudioSpeaker
+
+/**
  Some HTML content (eg. Article or Section)
  */
 public protocol Content {
   /// File storing content HTML
-  var html: FileEntry { get }
+  var html: FileEntry? { get }
   /// Optional title of content
   var title: String? { get }
   /// List of images used in content
   var images: [ImageEntry]? { get }
+  ///audio item (podcast, tts)
+  var audioItem: Audio? { get }
   /// List of authors (if applicable)
   var authors: [Author]? { get }
   /// Issue where Content data is stored
@@ -325,7 +379,7 @@ public extension Content {
       ret += au[0].toString()
     }
     else { ret += "author unknown" }
-    ret += ")\n  \(html.name)"
+    ret += ")\n  \(html?.name ?? "")"
     return ret
   }
   
@@ -336,8 +390,15 @@ public extension Content {
     return issue.dir 
   }
   
+  #warning("ToDo make path also optional soon")
   /// Absolute pathname of content
-  var path: String { "\(dir.path)/\(html.name)" }
+  var path: String {
+    guard let html = html else {
+      Log.error("html(File) is nil")
+      return ""
+    }
+    return "\(dir.path)/\(html.name)"
+  }
   
   /// Date of Issue encompassing this Content (refering to primaryIssue)
   var defaultIssueDate: Date { 
@@ -360,6 +421,7 @@ public extension Content {
  
   /// All files incl. normal res photos
   var files: [FileEntry] {
+    guard let html = html else { return [] }
     var ret: [FileEntry] = [html]
     if let imgs = images, imgs.count > 0 {
       for img in imgs { if img.resolution == .normal { ret += img } }
@@ -367,7 +429,19 @@ public extension Content {
     if let auths = authors, auths.count > 0 {
       for au in auths { if let p = au.photo { ret += p } }
     }
+    #warning("Uncomment to enable audio file download")
+//    if let audioFile = audioItem?.file {
+//      ret += audioFile
+//    }
     return ret
+  }
+  
+  /// Section files plus all Article files in this section
+  var audioFiles: [FileEntry] {
+    if let audioFile =  audioItem?.file {
+      return [audioFile]
+    }
+    return []
   }
 
   /// Only high res photos
@@ -417,12 +491,31 @@ public extension Content {
 
 } // Content
 
+public enum ArticleType: String, CodableEnum {
+  case comment = "comment" //Kommentar
+  case interview = "interview" //Interview
+  case report = "report" //TAZ-Bericht
+  case documentation = "documentation" //Dokumentation
+  case portrait = "portrait" //Portrait
+  case readersLetter = "readersLetter" //LeserInnenbrief
+  case agency = "agency" //Agenturmelduing
+  case abstract = "abstract" //Abstract (nur vor Mitte 2015)
+  case tom = "tom" //Tom
+  case cartoon = "cartoon" //Kari
+  case puzzle = "puzzle" //(Kreuzwort)Rätsel
+  case register = "register" //Verzeichnis
+  case imprint = "imprint" //Impressum
+  case artLMd = "artLMd" //LMd Kunst
+  case cartoonLMd = "cartoonLMd" //LMd Comic
+  case cartoonBremen = "cartoonBremen" //Kari Bremen
+  case publisherHistory = "publisherHistory" //Verlag: Geschichte
+  case unknown = "unknown"
+} // ArticleType
+
 /**
  An Article
  */
 public protocol Article: Content, ToString {
-  /// File storing audio data
-  var audio: FileEntry? { get }
   /// Teaser of article
   var teaser: String? { get }
   /// Link to online version
@@ -431,26 +524,49 @@ public protocol Article: Content, ToString {
   var hasBookmark: Bool { get set }
   /// List of PDF page (-file) names containing this article
   var pageNames: [String]? { get }
+  /// Teaser of article
+  var articleType: ArticleType? { get }
+  /// Server side article ID
+  var serverId: Int? { get }
+  /// Aprox. reading duration in minutes
+  var readingDuration: Int? { get }
 } // Article
 
 public extension Article {
   
-  func toString() -> String { "\(hasBookmark ? "Bookmarked " : "")Article \((self as Content).toString())" }
+  func toString() -> String { "\(hasBookmark ? "Bookmarked " : "")Article \((self as Content).toString()) artType: \(articleType?.toString() ?? "-")" }
   
   /// Returns true if this Article can be played
-  var canPlayAudio: Bool { ArticlePlayer.singleton.canPlay(art: self) }
+  ///
+  var canPlayAudio: Bool { ArticlePlayer.singleton.canPlay(self) }
   
   /// Start/stop audio play if available
-  func toggleAudio(issue: Issue, sectionName: String) {
-    ArticlePlayer.singleton.toggle(issue: issue, art: self, sectionName: sectionName)
+  func toggleAudio(issue: Issue) {
+    if ArticlePlayer.singleton.currentContent?.html?.sha256 == self.html?.sha256 && self.html?.sha256 != nil {
+      ArticlePlayer.singleton.toggle(origin: .appUi)
+    }
+    else if let issue = issue as? BookmarkIssue {
+      ArticlePlayer.singleton.play(issue: issue,
+                                   startFromArticle: self,
+                                   enqueueType: .replaceCurrent)
+    }
+    else if let issue = issue as? StoredIssue {
+      ArticlePlayer.singleton.play(issue: issue,
+                                   startFromArticle: self,
+                                   enqueueType: .replaceCurrent)
+    }
+    else {
+      Log.debug("cannot play article")
+    }
   }
   
   // By default Articles don't have bookmarks
   var hasBookmark: Bool { get { false } set {} }
   
   func isEqualTo(otherArticle: Article) -> Bool{
-    return self.html.sha256 == otherArticle.html.sha256
-    && self.html.name == otherArticle.html.name
+    return self.html?.sha256 == otherArticle.html?.sha256
+    && self.html?.name.length ?? 0 > 0
+    && self.html?.name == otherArticle.html?.name
     && self.title == otherArticle.title
   }
 } // Article
@@ -460,7 +576,9 @@ public extension Article {
  */
 public enum SectionType: String, CodableEnum {  
   case articles = "articles"  /// a list of articles
-  case text     = "text"      /// a single HTML text (eg. imprint)
+  case advertisement = "advertisement" /// advertisement no article
+  case text = "text"      /// a single HTML text (eg. imprint)
+  case podcast = "podcast"      /// podcast
   case unknown  = "unknown"   /// decoded from unknown string
 } // SectionType
 
@@ -485,7 +603,7 @@ public extension Section {
   func toString() -> String {
     var ret = "Section \"\(name)\""
     if let tit = extendedTitle { ret += " (\(tit))" }
-    ret += ", type: \(type.toString())\n  \(html.toString())"
+    ret += ", type: \(type.toString())\n  \(html?.toString() ?? "-")"
     if let button = navButton { ret += "\n  navButton: \(button.toString())" }
     if let arts = articles {
       ret += ":\n"
@@ -503,18 +621,50 @@ public extension Section {
     }
     return ret
   }
+    
+  var audioItems: [Audio] {
+    var ret: [Audio] = []
+    if let audio = audioItem {
+      ret.append(audio)
+    }
+    for art in articles ?? [] {
+      if let audio =  art.audioItem {
+        ret.append(audio)
+      }
+    }
+    return ret
+  }
+  
   
   /// articleHtml returns an array of filenames with article HTML
   var articleHtml: [String] {
     var ret: [String] = []
     if let arts = articles, arts.count > 0 {
-      for art in arts { ret += art.html.fileName }
+      for art in arts {
+        ret += art.html?.fileName ?? "-"
+      }
     }
     return ret
   }
   
   /// Title - either extendedTitle (if available) or name
-  var title: String? { return extendedTitle ?? name }
+  var title: String? { return extendedTitle ?? safeName }
+  ///safe acces to pr.name
+  var safeName: String? {
+    if let stSec = self as? StoredSection {
+      return stSec.pr.name
+    }
+    return name
+  }
+  
+  func toggleAudio() {
+    if ArticlePlayer.singleton.currentContent?.html?.sha256 == self.html?.sha256 && self.html?.sha256 != nil {
+      ArticlePlayer.singleton.toggle(origin: .appUi)
+    }
+    else {
+      ArticlePlayer.singleton.play(sectionAudio: self)
+    }
+  }
   
 } // extension Section
 
@@ -564,6 +714,8 @@ public protocol Page: ToString {
   var pdf: FileEntry? { get }
   /// Facsimile of page PDF (eg. Jpeg)
   var facsimile: ImageEntry? { get }
+  ///podcast audio item
+  var audioItem: Audio? { get }
   /// Page title (if any)
   var title: String? { get }
   /// Page number (or some String numbering the page in some way)
@@ -666,9 +818,23 @@ public extension Moment {
     }
     return ret
   }
+  
+  /// Return the image with the lowest resolution
+  func lowest(images: [ImageEntry]) -> ImageEntry? {
+    var ret: ImageEntry?
+    for img in images {
+      if let lowest = ret, img.resolution.rawValue >= lowest.resolution.rawValue
+      { continue }
+      else { ret = img }
+    }
+    return ret
+  }
 
   /// Image in highest resolution
   var highres: ImageEntry? { highest(images: images) }
+
+  /// Image in lowest resolution
+  var lowres: ImageEntry? { highest(images: images) }
   
   /// Credited image in highest resolution
   var creditedHighres: ImageEntry? { highest(images: creditedImages) }
@@ -696,6 +862,39 @@ public enum IssueStatus: String, CodableEnum {
 
 public extension IssueStatus {
   var watchable : Bool { return self != .unknown}
+  var downloaded : Bool {
+    return self == .regular || self == .demo
+  }
+}
+
+/// PublicationDate
+public protocol PublicationDate: ToString, AnyObject {
+  /// Publication date
+  var date: Date { get }
+  /// validity date for week issue
+  var validityDate: Date? { get }
+  /// Reference to Feed providing this Issue
+  var feed: Feed? { get set }
+}
+
+public extension PublicationDate {
+  func toString() -> String {
+    if let v = validityDate {
+      return "\(self.date.short) - \(v.short)"
+    }
+    return (self.date.short)
+  }
+  
+  func validityDateText(timeZone:String,
+                        short:Bool = false,
+                        shorter:Bool = false,
+                        leadingText: String? = "woche, ") -> String {
+    return date.validityDateText(validityDate: validityDate,
+                                 timeZone: GqlFeeder.tz,
+                                 short: short,
+                                 shorter: shorter,
+                                 leadingText: leadingText)
+  }
 }
 
 /// One Issue of a Feed
@@ -708,6 +907,8 @@ public protocol Issue: ToString, AnyObject {
   var feed: Feed { get set }
   /// Issue date
   var date: Date { get }
+  /// date until issue is valid if more then one
+  var validityDate: Date? { get }
   /// The date/time of the latest modification
   var moTime: Date { get }
   /// Is this Issue a week end edition
@@ -746,6 +947,17 @@ public protocol Issue: ToString, AnyObject {
 
 public extension Issue {
   
+  func validityDateText(timeZone:String,
+                        short:Bool = false,
+                        shorter:Bool = false,
+                        leadingText: String? = "woche, ") -> String {
+    return date.validityDateText(validityDate: validityDate,
+                                 timeZone: timeZone,
+                                 short: short,
+                                 shorter: shorter,
+                                 leadingText: leadingText)
+  }
+  
   func toString() -> String {
     var ret = "Issue \(date.isoDate()), key: \(key ?? "[undefined]"), " +
               "status: \(status.toString())"
@@ -771,7 +983,14 @@ public extension Issue {
         if let arts = sect.articles { ret.append(contentsOf: arts) } 
       }
     }
+    if self is SearchResultIssue { return ret }
+    
     if let imp = imprint { ret += imp }
+    #if TAZ
+    for tom in Tom.toms(issue: self) {
+      ret += tom
+    }
+    #endif
     return ret
   }
   
@@ -781,7 +1000,7 @@ public extension Issue {
       for sect in sects { 
         if let arts = sect.articles { 
           for art in arts {
-            if art.html.name == artname || art.html.name == "\(artname).html" 
+            if art.html?.name == artname || art.html?.name == "\(artname).html" 
               { return art }
           }
         } 
@@ -846,6 +1065,22 @@ public extension Issue {
     return ret
   }
   
+  /// Content files
+  var audioFiles: [FileEntry] {
+    return audioItems.compactMap{ $0.file }
+  }
+  
+  var audioItems: [Audio] {
+    var ret: [Audio] = []
+    for sect in sections ?? [] {
+      let sAudioItems = sect.audioItems
+      if sAudioItems.count > 0 {
+        ret.append(contentsOf: sAudioItems)
+      }
+    }
+    return ret
+  }
+  
   /// Overview files
   var overviewFiles: [FileEntry] {
     var ret = moment.files
@@ -861,10 +1096,13 @@ public extension Issue {
   }
     
   /// Returns files and facsimiles if isPages == true
-  func files(isPages: Bool = false) -> [FileEntry] {
+  func files(isPages: Bool = false, withAudio: Bool = false) -> [FileEntry] {
     var ret = files
     if isPages {
       if let facs = facsimiles { ret.append(contentsOf: facs) }
+    }
+    if withAudio {
+      ret.append(contentsOf: audioFiles)
     }
     return ret
   }
@@ -873,9 +1111,9 @@ public extension Issue {
   var sectionHtml: [String] {
     var ret: [String] = []
     if let sects = sections, sects.count > 0 {
-      for sect in sects { ret += sect.html.fileName }
+      for sect in sects { ret += sect.html?.fileName ?? "-" }
     }
-    ret += imprint?.html.fileName ?? ""
+    ret += imprint?.html?.fileName ?? ""
     return ret
   }
   
@@ -895,9 +1133,9 @@ public extension Issue {
     var ret: [String:[String]] = [:]
     if let sects = sections, sects.count > 0 {
       for sect in sects { 
-        let sectHtml = sect.html.fileName
+        guard let sectHtml = sect.html?.fileName else { continue }
         for art in sect.articles ?? [] {
-          let artHtml = art.html.fileName
+          guard let artHtml = art.html?.fileName else { continue }
           if ret[artHtml] != nil { ret[artHtml]! += sectHtml }
           else { ret[artHtml] = [sectHtml] }
         }
@@ -914,7 +1152,7 @@ public extension Issue {
     if let sects = sections, sects.count > 0 {
       for sect in sects { 
         for art in sect.articles ?? [] {
-          let artHtml = art.html.fileName
+          guard let artHtml = art.html?.fileName else { continue }
           if ret[artHtml] != nil { ret[artHtml]! += sect }
           else { ret[artHtml] = [sect] }
         }
@@ -967,6 +1205,7 @@ public protocol Feed: ToString {
   /// Number of issues available
   var issueCnt: Int { get }
   /// Date of last issue available (newest)
+  #warning("WHERE FROM?? USING PUB DATES!!")
   var lastIssue: Date { get }
   /// Date of issue last read
   var lastIssueRead: Date? { get }
@@ -978,6 +1217,8 @@ public protocol Feed: ToString {
   var firstSearchableIssue: Date? { get }
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
+  /// publicationDates this Feed
+  var publicationDates: [PublicationDate]? { get }
   /// Directory where all feed specific data is stored
   var dir: Dir { get }
 } // Feed
@@ -998,7 +1239,7 @@ public extension Feed {
  A Feeder is an abstract datatype handling the communication with a server
  providing Feeds.
  */
-public protocol Feeder: ToString {  
+public protocol Feeder: ToString, AnyObject {  
   /// Timezone Feeder lives in
   var timeZone: String { get }
   /// URL of GraphQL server
@@ -1019,9 +1260,6 @@ public protocol Feeder: ToString {
   var feeds: [Feed] { get }
   /// Directory where all Feeder specific data is stored
   var dir: Dir { get }
-  
-  /// Initilialize with name/title and URL of server
-  init(title: String, url: String, closure: @escaping(Result<Feeder,Error>)->())
   
   /// Request authentication token from GraphQL server
   func authenticate(account: String, password: String,
@@ -1065,7 +1303,10 @@ extension Feeder {
   public var revocation: String { resourcesDir.path + "/" + Const.Filename.revocation }
   /// Pathname to terms & conditions
   public var terms: String { resourcesDir.path + "/" + Const.Filename.terms }
-
+  /// Pathname to terms & conditions
+  public var passwordCheckJs: String { resourcesDir.path + "/" + Const.Filename.passwordCheckJs }
+  public var passwordCheckJsUrl: URL? { File(passwordCheckJs).url }
+  
   /// resource version as Int
   public var storedResVersion: Int {
     get { return Int(resVersionFile.string.trim) ?? 0 }
@@ -1076,6 +1317,8 @@ extension Feeder {
   
   /// Returns true if successfully authenticated
   public var isAuthenticated: Bool { return authToken != nil }
+  /// Returns true if login/account is expired
+  public var isExpiredAccount: Bool { return Defaults.expiredAccount }
   
   /// Returns directory where all feed specific data is stored
   public func feedDir(_ feed: String) -> Dir { return Dir(dir: baseDir.path, fname: feed) }
@@ -1091,24 +1334,41 @@ extension Feeder {
   }
   
   /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
-  public func momentImageName(issue: Issue, isCredited: Bool = false,
-                              isPdf: Bool = false)
+  public func momentImageName(issue: Issue,
+                              isCredited: Bool = false,
+                              isPdf: Bool = false,
+                              usePdfAlternative: Bool = true)
     -> String? {
     var file: FileEntry?
-    if isPdf { file = issue.moment.facsimile }
+    if isPdf {
+      file = issue.moment.facsimile
+    }
     else {
       file = issue.moment.animatedGif
       if isCredited, let highres = issue.moment.creditedHighres {
         file = highres
       }
     }
-    if file == nil { file = issue.moment.highres }
+    let loadHighres = !isPdf || usePdfAlternative
+    if file == nil && loadHighres { file = issue.moment.highres }
     if let img = file {
       return "\(issueDir(issue: issue).path)/\(img.fileName)"
     }
     return nil
   }
   
+  /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
+  public func smallMomentImageName(issue: Issue, isPdf: Bool = false)
+    -> String? {
+    var file: FileEntry?
+    if isPdf { file = issue.moment.facsimile }
+    else { file = issue.moment.lowres }
+    if let img = file {
+      return "\(issueDir(issue: issue).path)/\(img.fileName)"
+    }
+    return nil
+  }
+
   /// Returns the name of the first PDF page file name (if available)
   public func momentPdfName(issue: Issue) -> String? {
     if let fac1 = issue.pageOneFacsimile {
@@ -1126,27 +1386,21 @@ extension Feeder {
   }
 
   /// Returns the "Moment" Image as Gif-Animation or in highest resolution
-  public func momentImage(issue: Issue, isCredited: Bool = false,
-                          isPdf: Bool = false) -> UIImage? {
-    var img:UIImage?
-        
-    if let fn = momentImageName(issue: issue, isCredited: isCredited,
-                                isPdf: isPdf) {
+  public func momentImage(issue: Issue,
+                          isCredited: Bool = false,
+                          isPdf: Bool = false,
+                          usePdfAlternative: Bool = true) -> UIImage? {
+    if let fn = momentImageName(issue: issue,
+                                isCredited: isCredited,
+                                isPdf: isPdf,
+                                usePdfAlternative: usePdfAlternative) {
       if File.extname(fn) == "gif" {
-        img = UIImage.animatedGif(File(fn).data)
+        return UIImage.animatedGif(File(fn).data)
       }
       else {
-        img = UIImage(contentsOfFile: fn)
+        return UIImage(contentsOfFile: fn)
       }
     }
-    
-    if img != nil { return img }
-    
-    if let sissue = issue as? StoredIssue, sissue.isOvwComplete == false {
-      return UIImage(named: "demo-moment-frame")
-    }
-    //Currently: do not return demo frame for issue.isOverview items, otherwise home, bottom area did not work
-    //issue would be: frame stays, no refresh with real moment
     return nil
   }
 
@@ -1171,6 +1425,8 @@ public enum NotificationType: String, CodableEnum {
   /// new subscription info available
   case subscription = "subscription(subscriptionPoll)" 
   /// new issue available
-  case newIssue     = "newIssue(aboPoll)"    
+  case newIssue = "newIssue(aboPoll)"
+  case textNotificationAlert = "textNotificationAlert"
+  case textNotificationToast = "textNotificationToast"
   case unknown      = "unknown"   /// decoded from unknown string
 } // NotificationType

@@ -10,25 +10,38 @@ import NorthLib
 
 /// A simple view controller only showing a startup screen
 /// ...just a Spinner in Git History there is more
-open class StartupVC: UIViewController {
-  
-  // The startup view
-  var startupView = SpinnerStartupView()
-  /// Light status bar because of dark background
-  override public var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
-
-  open override func viewDidLoad() {
-    super.viewDidLoad()
-    self.view.addSubview(startupView)
-    pin(startupView, to: self.view)
+class StartupVC : UIViewController {
+  public var text: String = "Starte..." {
+    didSet {
+      label.text = text
+    }
   }
   
-  open override func viewDidAppear(_ animated: Bool) {
-    startupView.isAnimating = true
+  let label = UILabel()
+  let ai = UIActivityIndicatorView()
+  
+  override func viewDidLoad() {
+    label.numberOfLines = -1
+    label.text = text
+    label.contentFont().centerAxis()
+    label.textColor = .white
+    
+
+    self.view.addSubview(label)
+    self.view.addSubview(ai)
+    
+    pin(label.left, to: self.view.leftGuide(isMargin: true), dist: 10)
+    pin(label.right, to: self.view.rightGuide(isMargin: true), dist: 10)
+    label.centerY()
+    
+    ai.centerX()
+    pin(label.top, to: ai.bottom, dist: 10)
+    
+    ai.startAnimating()
   }
   
   open override func viewDidDisappear(_ animated: Bool) {
-    startupView.isAnimating = false
+    super.viewDidDisappear(animated)
+    ai.stopAnimating()
   }
-  
 } // StartupVC

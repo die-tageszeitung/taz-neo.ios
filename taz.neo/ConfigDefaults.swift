@@ -11,7 +11,8 @@ import NorthLib
 /**
  Configuration variables and default values to store in Apple's UserDefaults
  */
-public let ConfigDefaults = Defaults.Values([
+
+private let configValues = [
   // Default Feeder & Server
   "defaultFeeder" : "taz",
   // shall text notifications be displayed on notification screen
@@ -32,18 +33,16 @@ public let ConfigDefaults = Defaults.Values([
   "colorMode" : "light",
   // Carousel scroll from left to right
   "carouselScrollFromLeft" : "false",
-  // Use mobile networks
-  "useMobile" : "true",
   // Automtically download new issues
   "autoDownload" : "true",
   // Allow automatic download over mobile networks
   "autoMobileDownloads" : "false",
-  // Allow trial subscriptions
-  "offerTrialSubscription" : "true",
   // Use facsimile mode if available
   "isFacsimile" : "false",
   // Tap in PDF open ArticleView
   "articleFromPdf" : "true",
+  // double Tap in PDF zoom in/out
+  "doubleTapToZoomPdf" : "true",
   // show/hide Toolbar in PDF View at page switch
   "showToolbarOnPageSwitch" : "true",
   // display full PDF Page on Page switch in Landscape
@@ -59,20 +58,40 @@ public let ConfigDefaults = Defaults.Values([
   // "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
   // show teaser text in bookmarks list
-  "bookmarksListTeaserEnabled" : "true"
-])
+  "bookmarksListTeaserEnabled" : "true",
+  "smartBackFromArticle" : "true",
+  "autoHideToolbar" : "true",
+  "tabbarInSection" : "false",
+  "simulateFailedMinVersion" : "false",
+  "simulateNewVersion" : "false",
+  "autoPlayNext" : "true",
+  "playbackRate": "1.0",
+  "edgeTapToNavigate" : "false",
+  "edgeTapToNavigateVisible" : "false",
+  // coachmark defaults
+  "showCoachmarks" : "true",
+  "cmLastPrio": "1",
+  "cmSessionCount": "0",
+]
 
+private let configValuesLMD = [
+  // Use facsimile mode for LMD
+  "isFacsimile" : "true",
+  "usageTrackingAllowed" : "false",
+]
+
+#if LMD
+  public let ConfigDefaults = Defaults.Values(configValues.merging(configValuesLMD) {
+    (_,lmd) in lmd
+  })
+#else
+  public let ConfigDefaults = Defaults.Values(configValues)
+#endif
 
 extension Defaults {
   ///Provide getter only
   public static var isTextNotification:Bool { Defaults.singleton["isTextNotification"]!.bool }
-  
-  /*getter/setter
-  @Default("isTextNotification")
-  static var isTextNotification: Bool
-  */
-  
-  
+
   ///Helper to get current server from user defaults
   static var expiredAccountDate : Date? {
     get {
@@ -82,6 +101,7 @@ extension Defaults {
       return nil
     }
     set {
+      if expiredAccountDate == newValue { return }
       if let date = newValue {
         Defaults.singleton["expiredAccountDate"] = Date.toString(date)
       }
@@ -91,10 +111,86 @@ extension Defaults {
       Notification.send(Const.NotificationNames.expiredAccountDateChanged)
     }
   }
+  
+  ///Helper to get current server from user defaults
+  static var notificationsActivationPopupRejectedDate : Date? {
+    get {
+      if let curr = Defaults.singleton["notificationsActivationPopupRejectedDate"] {
+        return Date.fromString(curr)
+      }
+      return nil
+    }
+    set {
+      if let date = newValue {
+        Defaults.singleton["notificationsActivationPopupRejectedDate"] = Date.toString(date)
+      }
+      else {
+        Defaults.singleton["notificationsActivationPopupRejectedDate"] = nil
+      }
+    }
+  }
+  
+  ///Helper to get current server from user defaults
+  static var notificationsActivationPopupRejectedTemporaryDate : Date? {
+    get {
+      if let curr = Defaults.singleton["notificationsActivationPopupRejectedTemporaryDate"] {
+        return Date.fromString(curr)
+      }
+      return nil
+    }
+    set {
+      if let date = newValue {
+        Defaults.singleton["notificationsActivationPopupRejectedTemporaryDate"] = Date.toString(date)
+      }
+      else {
+        Defaults.singleton["notificationsActivationPopupRejectedTemporaryDate"] = nil
+      }
+    }
+  }
+  
+  static var customerType : GqlCustomerType? {
+    get {
+      if let curr = Defaults.singleton["customerType"] {
+        return GqlCustomerType.fromExternal(curr)
+      }
+      return nil
+    }
+    set {
+      if let type = newValue {
+        Defaults.singleton["customerType"] = type.toString()
+      }
+      else {
+        Defaults.singleton["customerType"] = nil
+      }
+    }
+  }
 
   static var expiredAccount : Bool { return expiredAccountDate != nil }
   static var expiredAccountText : String? {
     guard let d = expiredAccountDate else { return nil }
     return "Abo abgelaufen am: \(d.gDate())"
+  }
+  
+  static func deleteAppStateDefaults(){
+    let dfl = Defaults.singleton
+    dfl["nStarted"] = "0"
+    dfl["lastStarted"] = "0"
+    dfl["installationId"] = nil
+    dfl["pushToken"] = nil
+    
+    dfl["bottomTilesLastShown"] = nil
+    dfl["bottomTilesShown"] = nil
+    dfl["showBottomTilesAnimation"] = nil
+    dfl["bottomTilesAnimationLastShown"] = nil
+    
+    dfl["ratingCount"] = nil
+    dfl["ratingRequestedForVersion"] = nil
+    dfl["ratingRequestedDate"] = nil
+    
+    Defaults.notificationsActivationPopupRejectedTemporaryDate = nil
+    Defaults.notificationsActivationPopupRejectedDate = nil
+    Defaults.lastKnownPushToken = nil
+    
+    dfl["usageTrackingAllowed"] = nil
   }
 }

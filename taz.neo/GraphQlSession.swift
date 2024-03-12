@@ -62,6 +62,8 @@ public class GraphQlError: LocalizedError, Codable, CustomStringConvertible {
 /// A class to read/write from GraphQL servers
 open class GraphQlSession: HttpSession {
   
+  public override var isDebugLogging: Bool { false }
+  
   /// The Server URL to get data from
   public var url: String?
   
@@ -72,8 +74,11 @@ open class GraphQlSession: HttpSession {
   
   public init(_ url: String, authToken: String? = nil) {
     self.url = url
-    self.authToken = authToken
     super.init(name: "GQL:\(url)")
+    if let authToken {
+      self.authToken = authToken
+      header["X-tazAppAuthKey"] = authToken
+    }
     header["Accept"] = "application/json, */*"
     header["Content-Type"] = "application/json"
     header["Accept-Encoding"] = "gzip"
@@ -83,7 +88,7 @@ open class GraphQlSession: HttpSession {
     -> Result<T,Error> where T: Decodable {
     var result: Result<T,Error>
     if let d = data {
-      //self.debug("Received: \"\(String(decoding: d, as: UTF8.self)[0..<2000])\"")
+      self.debug("Received: \"\(String(decoding: d, as: UTF8.self)[0..<2000])\"")
       if let gerr = GraphQlError.from(data: d) {
         self.error("Errorneous data sent to server: \(graphql)")
         self.fatal("GraphQL-Server encountered error:\n\(gerr)")
@@ -95,6 +100,25 @@ open class GraphQlSession: HttpSession {
           let dict = try dec.decode([String:T].self, from: d)
           result = .success(dict["data"]!)
         }
+        catch let DecodingError.dataCorrupted(context) {
+          print(context)
+          result = .failure(self.fatal("JSON decoding error"))
+        } catch let DecodingError.keyNotFound(key, context) {
+          print("Key '\(key)' not found:", context.debugDescription)
+          print("codingPath:", context.codingPath)
+          result = .failure(self.fatal("JSON decoding error"))
+        } catch let DecodingError.valueNotFound(value, context) {
+          print("Value '\(value)' not found:", context.debugDescription)
+          print("codingPath:", context.codingPath)
+          result = .failure(self.fatal("JSON decoding error"))
+        } catch let DecodingError.typeMismatch(type, context)  {
+          print("Type '\(type)' mismatch:", context.debugDescription)
+          print("codingPath:", context.codingPath)
+          result = .failure(self.fatal("JSON decoding error"))
+        } catch {
+          print("error: ", error)
+          result = .failure(self.fatal("JSON decoding error"))
+        }
         catch {
           result = .failure(self.fatal("JSON decoding error"))
         }
@@ -105,7 +129,7 @@ open class GraphQlSession: HttpSession {
   }
   
   public func request<T>(requestType: String, graphql: String, type: T.Type,
-                         fromData: Data? = nil, closure: @escaping(Result<T,Error>)->())
+                         fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>)->())
     where T: Decodable {
     guard let url = self.url else { return }
     if let data = fromData {
@@ -114,8 +138,8 @@ open class GraphQlSession: HttpSession {
     else {
       let quoted = "\(requestType) {\(graphql)}".quote()
       let str = "{ \"query\": \(quoted) }"
-      //debug("Sending: \(requestType) {\n\(graphql)\n}")
-      post(url, data: str.data(using: .utf8)!) { [weak self] res in
+      debug("Sending: \(requestType) {\n\(graphql)\n}")
+      post(url, data: str.data(using: .utf8)!, returnOnMain: returnOnMain) { [weak self] res in
         guard let self = self else { return }
         if case let .success(data) = res {
           closure(self.requestResult(data: data, graphql: graphql, type: type))
@@ -128,9 +152,9 @@ open class GraphQlSession: HttpSession {
   }
   
   public func query<T>(graphql: String, type: T.Type,
-                       fromData: Data? = nil, closure: @escaping(Result<T,Error>)->())
+                       fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>)->())
     where T: Decodable { 
-      request(requestType: "query", graphql: graphql, type: type, fromData: fromData,
+      request(requestType: "query", graphql: graphql, type: type, fromData: fromData, returnOnMain: returnOnMain,
               closure: closure)
   }
   

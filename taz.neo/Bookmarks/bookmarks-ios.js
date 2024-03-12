@@ -20,6 +20,7 @@ function setColorTheme(theme, selector = "body") {
   if (selector == "body") {
     setColorTheme(theme, "a:link, a:visited, a:hover, a:active, a:focus");
     setColorTheme(theme, "article");
+    setColorTheme(theme, "header");
   }
 }
 
@@ -132,7 +133,7 @@ function reallyDeleteBookmark(event) {
     }
     else {
       art.remove();
-      tazApi.setBookmark(art.id + ".html", false);
+      tazApi.setBookmark(art.id, false);
     }
   });
   art.removeEventListener("transitionend", reallyDeleteBookmark);
@@ -151,7 +152,7 @@ function insertArticle(html, id, order) {
   art.innerHTML = html;
   art.style.height = "0px";
   art.style.order = order;
-  let content = document.getElementbyId("content");
+  let content = document.getElementById("content");
   content.appendChild(art);
   grow(art);
 }
@@ -162,9 +163,13 @@ function shareArticle(elem) {
   tazApi.shareArticle(art.id + ".html");
 }
 
-/* Set up click functions for share and trash icons */
+function gotoIssue(elem) {
+  tazApi.gotoIssue(elem.id);
+}
+
+/* Set up click functions for share and bookmark icons */
 function setupButtons() {
-  for (let b of document.getElementsByClassName("trash")) {
+  for (let b of document.getElementsByClassName("bookmark")) {
     b.addEventListener("click", (event) => {
       event.preventDefault();
       deleteBookmark(event.target);
@@ -174,6 +179,13 @@ function setupButtons() {
     b.addEventListener("click", (event) => {
       event.preventDefault();
       shareArticle(event.target);
+    });
+  }
+  
+  for (let b of document.querySelectorAll('header.issue')) {
+    b.addEventListener("click", (event) => {
+      event.preventDefault();
+      gotoIssue(event.target.closest(".issue").parentElement);
     });
   }
 }

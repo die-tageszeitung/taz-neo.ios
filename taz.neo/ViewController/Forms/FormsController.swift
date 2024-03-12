@@ -42,19 +42,6 @@ extension String{
  - **ConnectTazIdController**
  - **TrialSubscriptionController**
  
- #TODO REMOVE AFTER REFACTOR
- We have the following inheritance
- - FormsController: UIViewController
- - **LoginController**
- - FormsController_Result_Controller
- - AskForTrial_Controller
- - SubscriptionIdElapsedController
- - PwForgottController
- - SubscriptionResetSuccessController
- - PasswordResetRequestedSuccessController
- - TrialSubscriptionController
- - CreateTazIDController
- - ConnectExistingTazIdController
  
  #Discussion TextView with Attributed String for format & handle Links/E-Mail Adresses
  or multiple Views with individual button/click Handler
@@ -91,7 +78,7 @@ extension FormsController {
         return "Zurück zur Ausgabe"
       case _ as SettingsVC:
         return "Zurück zu den Einstellungen"
-      case _ as IssueVC://Currently due Settings are presented modal
+      case _ as HomeTVC://Currently due Settings are presented modal
         return "Zurück zu den Einstellungen"
       default:
         return "Zurück"
@@ -109,9 +96,6 @@ class FormsResultController: UIViewController {
   private var wConstraint:NSLayoutConstraint?
   
   var dismissAllFinishedClosure: (()->())?
-  
-  @Default("offerTrialSubscription")
-  var offerTrialSubscription: Bool
   
   private var messageLabel = Padded.Label(paddingTop: 30, paddingBottom: 15)
   private var messageLabel2 = Padded.Label(paddingTop: 15, paddingBottom: 30)
@@ -136,34 +120,39 @@ class FormsResultController: UIViewController {
   
   /// Setup the xButton
   func setupXButton() {
-    guard self.modalPresentationStyle == .formSheet
-    || self.dismissType == .all
-    || self.dismissType == .allReal
-    else { return }
     xButton.tazX()
     self.view.addSubview(xButton)
     pin(xButton.right, to: self.view.rightGuide(), dist: -15)
     pin(xButton.top, to: self.view.topGuide(), dist: 15)
     xButton.onPress { [weak self] _ in
-      guard let self = self else { return }
-      self.dismissType = .all
-      self.handleBack(nil)
+      self?.handleBack(nil)
     }
   }
     
   var ui : FormView { get { return contentView }}
   
   var dismissType:dismissType = .current
-  /// dispisses all modal until the first occurence of given type
-  /// so dismissUntil should be a UIViewController
-//  var dismissUntil:Any.Type?@Idea
   
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(ui)
-    pin(ui, toSafe: self.view).top.constant = 0
+    pin(ui, to: self.view).top.constant = 0
     setupXButton()
+    self.isModalInPresentation = true
+  }
+  
+  override var preferredContentSize: CGSize {
+    get{
+      let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
+      updateViewSize(windowSize)
+      ui.container.doLayout()
+      let h = min(ui.container.frame.size.height, windowSize.height)
+      return  CGSize(width: 540, height: h)
+    }
+    set{
+      log("not implemented")
+    }
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -181,19 +170,11 @@ class FormsResultController: UIViewController {
     }
     
     let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
-//    print("ScreenSize: \(screenSize)  (updateViewSize)")
-//    print("WindowSize: \(UIApplication.shared.windows.first?.bounds.size)  (updateViewSize)")
     
     ///Fix Form Sheet Size
     if newSize.width > 540 && Device.isIpad {
-      ///Unfortunattly ui.scrollView.contentSize.height is too small for Register View to use it,
-      ///may need 2 Steps to calculate its height, maybe later
-      let height:CGFloat = min(windowSize.width,
-                               windowSize.height)
-        
       let formSheetSize = CGSize(width: 540,
-                                 height: height)
-      self.preferredContentSize = formSheetSize
+                                 height: windowSize.height)
       wConstraint = ui.container.pinWidth(formSheetSize.width, priority: .required)
     } else {
       wConstraint = ui.container.pinWidth(newSize.width, priority: .required)
@@ -219,7 +200,6 @@ class FormsResultController: UIViewController {
     messageLabel2.numberOfLines = 0
     
     ui.views = [
-      TazHeader(),
       messageLabel,
       messageLabel2,
       Padded.Button(title: backButtonTitle,
@@ -249,11 +229,32 @@ class FormsResultController: UIViewController {
                               backButtonTitle: backButtonTitle,
                               dismissType: dismissType)
     successCtrl.dismissAllFinishedClosure = dismissAllFinishedClosure
-    modalFlip(successCtrl)
+    modalFromBottom(successCtrl)
+  }
+  
+  func handleRequestCancelUserInput(){
+    let dismissAction = UIAlertAction(title: "Ja, Änderungen verwerfen",
+                                      style: .destructive) { [weak self] _ in
+      self?.dismiss()
+    }
+    let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel)
+    
+    Alert.message(message:  "Änderungen verwerfen?",
+                  actions: [dismissAction,  cancelAction],
+                  presentationController: self)
   }
   
   // MARK: handleBack Action
   @IBAction func handleBack(_ sender: UIButton?) {
+    if self.ui.hasUserInput {
+      handleRequestCancelUserInput()
+    } else {
+      dismiss()
+    }
+  }
+    
+    // MARK: handleBack Action
+  func dismiss() {
     var stack = self.modalStack
     switch dismissType {
       case .allReal:
@@ -266,7 +267,6 @@ class FormsResultController: UIViewController {
       case .leftFirst, .all:
         //remove first, to kept it on vc stack!
         //currently the firt item in stack is maybe Settungs and a return was maybe not possible
-        #warning("@ringo v0.9.7 Test and Refactor with Tab Controller")
         if let root = stack.popLast(), root.isKind(of: FormsResultController.self) == false {
           _ = stack.popLast()
         }
@@ -325,21 +325,7 @@ extension UIViewController {
 
 // MARK: - Modal Present extension for FormsResultController
 extension FormsResultController{
-  /// Present given VC on topmost Viewcontroller with flip transition
-  func modalFlip(_ controller:UIViewController){
-    if Device.isIpad, let size = self.baseLoginController?.view.bounds.size {
-      controller.preferredContentSize = size
-      
-    }
-    controller.modalPresentationStyle = .overCurrentContext
-    controller.modalTransitionStyle = .flipHorizontal
-    
-    ensureMain {
-      self.topmostModalVc.present(controller, animated: true, completion:nil)
-    }
-  }
-  
-  func modalFromBottom(_ controller:UIViewController){
+  func modalFromBottom(_ controller:UIViewController, completion: (() -> Void)? = nil){
     controller.modalPresentationStyle = .overCurrentContext
     controller.modalTransitionStyle = .coverVertical
     
@@ -350,7 +336,7 @@ extension FormsResultController{
       }
       else{
         ensureMain {
-          topmostModalVc.present(controller, animated: true, completion:nil)
+          topmostModalVc.present(controller, animated: true, completion:completion)
         }
         break
       }
@@ -374,9 +360,18 @@ extension FormsController: UITextViewDelegate {
     }
     
     if let localResource = localResource, localResource.exists {
-      let introVC = IntroVC()
+      let introVC = TazIntroVC()
+      introVC.topOffset = Const.Dist.margin
+      introVC.isModalInPresentation = true
       introVC.webView.webView.load(url: localResource.url)
-      modalFromBottom(introVC)
+      modalFromBottom(introVC) {
+        //Overwrite Default in: IntroVC viewDidLoad
+        introVC.webView.buttonLabel.text = nil
+        //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
+        guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
+        bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
+        bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
+      }
       introVC.webView.onX {_ in 
         introVC.dismiss(animated: true, completion: nil)
       }

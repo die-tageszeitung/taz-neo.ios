@@ -15,6 +15,8 @@ public class ArticleDB: Database {
   /// There is only one article DB in the app
   public static var singleton: ArticleDB!
   
+  let dbQueue = DispatchQueue(label: "database-queue")
+  
   /// Initialize with name of database, open it and call the passed closure
   @discardableResult
   public init(name: String, closure: @escaping (Error?)->()) { 
@@ -27,7 +29,7 @@ public class ArticleDB: Database {
   }    
   
   /// The managed object context
-  public static var context: NSManagedObjectContext { return singleton.context! } 
+  public static var context: NSManagedObjectContext { return singleton.context! }
   
   /// Save the singleton's context
   public static func save() { singleton.save() }
@@ -188,6 +190,10 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     set { pr.storageType = newValue.rawValue }
   }
   public var moTime: Date {
+    ///optional unwrap fixed crash occoured everytime on open an issue which had corupt data
+    ///Crash Count in Debug: 2
+    ///last Time: Logout, open PDF, (was not loaded, App data was loaded)
+//    get { pr.moTime ?? Date(timeIntervalSince1970: 0) }
     get { pr.moTime! }
     set { pr.moTime = newValue }
   }
@@ -741,6 +747,95 @@ public final class StoredResources: Resources, StoredObject {
   
 } // StoredResources
 
+extension PersistentAudio: PersistentObject {}
+
+/// A stored Author
+public final class StoredAudio: Audio, StoredObject {
+  public static var entity = "Audio"
+  public var pr: PersistentAudio // persistent record
+  
+  public var file: FileEntry? {
+    get {
+      guard let file = pr.file else { return nil }
+      return StoredFileEntry(persistent: file) }
+    set {
+      if let fe = newValue {
+        pr.file = StoredFileEntry.persist(object: fe).pr
+        pr.file?.audio = pr
+      }
+      else { pr.file = nil }
+    }
+  }
+
+  public var duration: Float?{
+    get { return pr.duration }
+    set { pr.duration = newValue ?? 0.0 }
+  }
+    
+  public var speaker: AudioSpeaker? {
+    get {
+      guard let s = pr.speaker else { return nil }
+      return AudioSpeaker(s)
+    }
+    set {
+      pr.speaker = newValue?.rawValue
+    }
+  }
+  
+  public var breaks: [Float]?{
+    get { return pr.breaks }
+    set { pr.breaks = newValue }
+  }
+  
+  public var content: [Content]?{
+    var ret:[Content] = []
+    for pArticle in pr.content?.allObjects as? [PersistentArticle] ?? [] {
+      ret.append(StoredArticle(persistent: pArticle))
+    }
+    for pSection in pr.content?.allObjects as? [PersistentSection] ?? [] {
+      ret.append(StoredSection(persistent: pSection))
+    }
+    return ret
+  }
+  
+  public var page: [Page]?{
+    var ret:[Page] = []
+    for pPage in pr.page?.allObjects as? [PersistentPage] ?? [] {
+      ret.append(StoredPage(persistent: pPage))
+    }
+    return ret
+  }
+  
+  public required init(persistent: PersistentAudio) {
+    self.pr = persistent
+  }
+  
+  /// Overwrite the persistent values
+  public func update(from object: Audio) {
+    self.file = object.file
+    self.duration = object.duration
+    self.speaker = object.speaker
+    self.breaks = object.breaks
+  }
+  
+  /// Return stored record with given name
+  public static func get(file: String) -> [StoredAudio] {
+    let request = fetchRequest
+    #warning("Test if relation correct")
+    request.predicate = NSPredicate(format: "file.name = %@", file)
+    return get(request: request)
+  }
+  
+  public static func get(object: Audio) -> StoredAudio? {
+    guard let audioFileName = object.file?.name else { return nil }
+    let tmp = get(file: audioFileName)
+    if tmp.count > 0 { return tmp[0] }
+    else { return nil }
+  }
+  
+} // StoredAudio
+
+
 extension PersistentAuthor: PersistentObject {}
 
 /// A stored Author
@@ -749,7 +844,18 @@ public final class StoredAuthor: Author, StoredObject {
   public static var entity = "Author"
   public var pr: PersistentAuthor // persistent record
   public var name: String? { pr.name }
-  public var photo: ImageEntry? { 
+  
+  public var serverId: Int? {
+    get { return pr.serverId != 0 ? Int(pr.serverId) : nil }
+    set {
+      if let id = newValue {
+        pr.serverId = Int64(id)
+      }
+      else { pr.serverId = 0 }
+    }
+  }
+  
+  public var photo: ImageEntry? {
     if let p = pr.photo { return StoredImageEntry(persistent: p) }
     else { return nil }
   }
@@ -759,6 +865,7 @@ public final class StoredAuthor: Author, StoredObject {
   /// Overwrite the persistent values
   public func update(from object: Author) {
     pr.name = object.name
+    self.serverId = object.serverId
     if let photo = object.photo {
       let imageEntry = StoredImageEntry.persist(object: photo)
       pr.photo = imageEntry.pr
@@ -792,14 +899,6 @@ public final class StoredAuthor: Author, StoredObject {
     if tmp.count < 1 { return nil }
     else { return tmp[0] }
   }
-  
-  /// Return all Authors of an Article
-  public static func authorsOfArticle(article: StoredArticle) -> [StoredAuthor] {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "%@ IN articles", article.pr)
-    return get(request: request)
-  }
-  
 } // StoredAuthor
 
 /// also: PersistentSection, PersistentArticle
@@ -814,13 +913,62 @@ extension PersistentContent: PersistentObject {
       }
     }
   }
+  
+}
+
+extension PersistentAudio {
+  var referencesCount:Int {
+    return content?.count ?? 0 + (page?.count ?? 0)
+  }
+}
+
+extension PersistentArticle {
+  public override func prepareForDeletion() {
+    if audioItem?.referencesCount == 1 {
+      debug("Delete AutioItem due last Reference")
+      audioItem?.delete()
+    }
+    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
+  }
+}
+extension PersistentSection {
+  public override func prepareForDeletion() {
+    if audioItem?.referencesCount == 1 {
+      debug("Delete AutioItem due last Reference")
+      audioItem?.delete()
+    }
+    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
+  }
+}
+
+extension PersistentPage: PersistentObject {
+  public override func prepareForDeletion() {
+    if audioItem?.referencesCount == 1 {
+      debug("Delete AutioItem due last Reference")
+      audioItem?.delete()
+    }
+    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
+  }
 }
 
 /// A stored Article
 public final class StoredArticle: Article, StoredObject {
-  
   public static var entity = "Article"
   public var pr: PersistentArticle // persistent record
+  public var audioItem: Audio? {
+    get {
+      guard let audio = pr.audioItem else { return nil }
+      return StoredAudio(persistent: audio)
+    }
+    set {
+      guard let newValue = newValue else {
+        pr.audioItem = nil
+        return
+      }
+      pr.audioItem = StoredAudio.persist(object: newValue).pr
+      pr.audioItem?.addToContent(self.pr)
+    }
+  }
   public var text: String? {
     get { return pr.text }
     set { pr.text = newValue }
@@ -829,24 +977,17 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.title }
     set { pr.title = newValue }
   }
-  public var html: FileEntry {
-    get { return StoredFileEntry(persistent: pr.html!) }
-    set { 
+  public var html: FileEntry? {
+    get {
+      guard let html = pr.html else { return nil }
+      return StoredFileEntry(persistent: html) }
+    set {
+      guard let newValue = newValue else {
+        pr.html = nil
+        return
+      }
       pr.html = StoredFileEntry.persist(object: newValue).pr 
       pr.html!.content = pr
-    }
-  }
-  public var audio: FileEntry? {
-    get { 
-      if let pau = pr.audio { return StoredFileEntry(persistent: pau) }
-      else { return nil } 
-    }
-    set { 
-      if let au = newValue { 
-        pr.audio = StoredFileEntry.persist(object: au).pr
-        pr.audio?.articleAudio = pr
-      }
-      else { pr.audio = nil }      
     }
   }
   public var lastArticlePosition: Int {
@@ -856,6 +997,15 @@ public final class StoredArticle: Article, StoredObject {
   public var onlineLink: String? {
     get { return pr.onlineLink }
     set { pr.onlineLink = newValue }
+  }
+  public var articleType: ArticleType? {
+    get {
+      guard let type = pr.articleType else { return nil }
+      return ArticleType(type)
+    }
+    set {
+      pr.articleType = newValue?.rawValue
+    }
   }
   public var teaser: String? {
     get { return pr.teaser }
@@ -867,18 +1017,43 @@ public final class StoredArticle: Article, StoredObject {
       let old = pr.hasBookmark
       setBookmark(newValue)
       if old != newValue {
-        Notification.send("BookmarkChanged", content: sections, sender: self)
+        Notification.send(Const.NotificationNames.bookmarkChanged, content: sections, sender: self)
       }
     }
   }
+  public var serverId: Int? {
+    get { return pr.serverId != 0 ? Int(pr.serverId) : nil }
+    set {
+      if let id = newValue {
+        pr.serverId = Int64(id)
+      }
+      else { pr.serverId = 0 }
+    }
+  }
+  public var readingDuration: Int? {
+    get { return pr.readingDuration != 0 ? Int(pr.readingDuration) : nil }
+    set {
+      if let id = newValue {
+        pr.readingDuration = Int64(id)
+      }
+      else { pr.readingDuration = 0 }
+    }
+  }
+
   
   fileprivate func setBookmark(_ isBookmark:Bool){
     pr.hasBookmark = isBookmark
   }
   
   public var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
-  public var authors: [Author]? { StoredAuthor.authorsOfArticle(article: self) }
-  public var pageNames: [String]? { nil }
+  public var authors: [Author]? {
+    return (pr.authors?.array as? [PersistentAuthor])?
+    .map{StoredAuthor(persistent: $0)}
+  }
+  public var pageNames: [String]? {
+    get { return pr.pageNames }
+    set { pr.pageNames = newValue }
+  }
   public var sections: [StoredSection] {
     var ret: [StoredSection] = []
     if let sections = pr.sections {
@@ -941,9 +1116,13 @@ public final class StoredArticle: Article, StoredObject {
     }
     self.title = object.title
     self.html = object.html
-    self.audio = object.audio
+    self.audioItem = object.audioItem
     self.onlineLink = object.onlineLink
+    self.articleType = object.articleType
+    self.pageNames = object.pageNames
     self.teaser = object.teaser
+    self.serverId = object.serverId
+    self.readingDuration = object.readingDuration
     if let imgs = object.images {
       var order: Int32 = 0
       for img in imgs {
@@ -968,7 +1147,7 @@ public final class StoredArticle: Article, StoredObject {
         pr.addToAuthors(sau.pr)
       }
       // Remove unneeded authors
-      for au in authors as! [StoredAuthor] {
+      for au in authors as? [StoredAuthor] ?? [] {
         if !aus.contains(where: { $0.name == au.name }) {
           pr.removeFromAuthors(au.pr)
         }
@@ -985,7 +1164,8 @@ public final class StoredArticle: Article, StoredObject {
   }
     
   public static func get(object: Article) -> StoredArticle? {
-    let tmp = get(file: object.html.name)
+    guard let name =  object.html?.name else { return nil }
+    let tmp = get(file:name)
     if tmp.count > 0 { return tmp[0] }
     else { return nil }
   }
@@ -1094,7 +1274,7 @@ public final class StoredFrame: Frame, StoredObject {
     return nil
   }
   
-  public static func get(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
+  public static func getOld(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
     let epsilon: Float = 0.0001
     let request = fetchRequest
     let p1 = NSPredicate(format: "abs(x1 - %f) < %f", object.x1, epsilon)
@@ -1109,6 +1289,24 @@ public final class StoredFrame: Frame, StoredObject {
       if relatedPage.pr == sf.pr.page { return sf}
     }
 
+    return nil
+  }
+  
+  public static func get(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
+    
+    let epsilon: Float = 0.0001
+    
+    for storedFrame in relatedPage.frames ?? [] {
+      if abs(storedFrame.x1 - object.x1) > epsilon { continue }
+      if abs(storedFrame.x2 - object.x2) > epsilon { continue }
+      if abs(storedFrame.y1 - object.y1) > epsilon { continue }
+      if abs(storedFrame.y2 - object.y2) > epsilon { continue }
+      if (storedFrame as? StoredFrame)?.pr.page != relatedPage.pr {
+        Log.log("Warning unexpected found frame on another page")
+        continue
+      }
+      return storedFrame as? StoredFrame
+    }
     return nil
   }
   
@@ -1130,8 +1328,6 @@ public final class StoredFrame: Frame, StoredObject {
   }
 
 } // StoredFrame
-
-extension PersistentPage: PersistentObject {}
 
 /// A stored Page
 public final class StoredPage: Page, StoredObject {
@@ -1174,6 +1370,21 @@ public final class StoredPage: Page, StoredObject {
       else { pr.facsimile = nil }
     }
   }
+  public var audioItem: Audio? {
+    get {
+      guard let audio = pr.audioItem else { return nil }
+      return StoredAudio(persistent: audio)
+    }
+    set {
+      guard let newValue = newValue else {
+        pr.audioItem = nil
+        #warning("ToDO Check deleted Issue with page if PageToAudio Reference TAble had 1 page:audio entry and after save page:nil")
+        return
+      }
+      pr.audioItem = StoredAudio.persist(object: newValue).pr
+      pr.audioItem?.addToPage(self.pr)
+    }
+  }
   public var type: PageType {
     get { return PageType(pr.type!)! }
     set { pr.type = newValue.representation }
@@ -1188,7 +1399,9 @@ public final class StoredPage: Page, StoredObject {
       let jpgPath = File.prefname(pdfPath) + ".jpg"
       if File(pdfPath).exists {
         if !File(jpgPath).exists {
-          let img = UIImage.pdf(File(pdfPath).data)
+          ///ensure facsimile images for home are not bigger than the images from Backend
+          ///saved storage before: Image was 700-900KB now: 200-400KB
+          let img = UIImage.pdf(File(pdfPath).data, width: 660, useHeight: false)
           img?.save(to: jpgPath)
           return true
         }
@@ -1219,6 +1432,7 @@ public final class StoredPage: Page, StoredObject {
     self.title = object.title
     self.pdf = object.pdf
     self.facsimile = object.facsimile
+    self.audioItem = object.audioItem
     self.type = object.type
     self.pagina = object.pagina
     self.pr.frames = nil
@@ -1244,6 +1458,11 @@ public final class StoredPage: Page, StoredObject {
         }
       }
     }
+//    if let sourceCount = object.frames?.count,
+//       let selfCount = self.frames?.count,
+//       sourceCount != selfCount {
+//      log("Wrong count of Frames saved. Source: \(sourceCount) != \(selfCount) saved.")
+//    }
   }
   
   /// Return stored record with given name
@@ -1283,9 +1502,22 @@ public final class StoredPage: Page, StoredObject {
 
 /// A stored Section
 public final class StoredSection: Section, StoredObject {
-  
   public static var entity = "Section"
   public var pr: PersistentSection // persistent record
+  public var audioItem: Audio? {
+    get {
+      guard let audio = pr.audioItem else { return nil }
+      return StoredAudio(persistent: audio)
+    }
+    set {
+      guard let newValue = newValue else {
+        pr.audioItem = nil
+        return
+      }
+      pr.audioItem = StoredAudio.persist(object: newValue).pr
+      pr.audioItem?.addToContent(self.pr)
+    }
+  }
   public var text: String? {
     get { return pr.text }
     set { pr.text = newValue }
@@ -1302,14 +1534,23 @@ public final class StoredSection: Section, StoredObject {
     get { return SectionType(pr.type!)! }
     set { pr.type = newValue.representation }
   }
-  public var html: FileEntry {
-    get { return StoredFileEntry(persistent: pr.html!) }
+  public var html: FileEntry? {
+    get {
+      guard let html = pr.html else { return nil }
+      return StoredFileEntry(persistent: html)
+    }
     set {
-      if let old = pr.html, old.name != newValue.name { old.delete() }
+      guard let newValue = newValue else {
+        pr.html?.delete()
+        pr.html = nil
+        return
+      }
+      if pr.html?.name != newValue.name { pr.html?.delete() }
       pr.html = StoredFileEntry.persist(object: newValue).pr 
-      pr.html!.content = pr
+      pr.html?.content = pr
     }
   }
+
   public var navButton: ImageEntry? {
     get { 
       if let pbutton = pr.navButton { return StoredImageEntry(persistent: pbutton) }
@@ -1326,7 +1567,10 @@ public final class StoredSection: Section, StoredObject {
       else { pr.navButton = nil }      
     }
   }
-  public var primaryIssue: Issue? { StoredIssue(persistent: pr.issue!) }
+  public var primaryIssue: Issue? {
+    guard let pIssue = pr.issue else { return nil }
+    return StoredIssue(persistent: pIssue)
+  }
   
   public var dir: Dir {
     guard let sdir = (html as? StoredFileEntry)?.dir
@@ -1335,8 +1579,10 @@ public final class StoredSection: Section, StoredObject {
   }
   
   public var path: String {
+    #warning("DoDo 1.0.0 Crash Cnt#: 1")
     guard let path = (html as? StoredFileEntry)?.path
     else { fatalError("FileEntry.path is undefined") }
+    ///empty on start see frame in carousell, open issue login ...slider opened, but why?
     return path
   }
   
@@ -1367,6 +1613,7 @@ public final class StoredSection: Section, StoredObject {
     self.extendedTitle = object.extendedTitle
     self.type = object.type
     self.html = object.html
+    self.audioItem = object.audioItem
     self.navButton = object.navButton
     if let imgs = object.images {
       var order: Int32 = 0
@@ -1396,7 +1643,7 @@ public final class StoredSection: Section, StoredObject {
       }
       // Remove unneeded articles
       for art in articles as! [StoredArticle] {
-        if !arts.contains(where: { $0.html.name == art.html.name }) {
+        if !arts.contains(where: { $0.html?.name == art.html?.name }) {
           debug("deleting \(art)")
           art.delete()
         }
@@ -1413,7 +1660,8 @@ public final class StoredSection: Section, StoredObject {
   }
   
   public static func get(object: Section) -> StoredSection? {
-    let tmp = get(file: object.html.name)
+    guard let name = object.html?.name else { return nil }
+    let tmp = get(file: name)
     if tmp.count > 0 { return tmp[0] }
     else { return nil }
   }
@@ -1428,7 +1676,144 @@ public final class StoredSection: Section, StoredObject {
 
 } // StoredSection
 
+extension PersistentPublicationDate: PersistentObject {}
+
+extension StoredPublicationDate: Equatable {
+  static public func ==(lhs: StoredPublicationDate, rhs: StoredPublicationDate) -> Bool {
+    return lhs.date == rhs.date
+  }
+}
+
+/// A stored PublicationDate
+public final class StoredPublicationDate: PublicationDate, StoredObject {
+  
+  public static var entity = "PublicationDate"
+  public var pr: PersistentPublicationDate // persistent record
+  
+  public var feed: Feed?
+  
+  public var date: Date {
+    get { return pr.date! }
+    set { pr.date = newValue }
+  }
+  public var validityDate: Date? {
+    get { return pr.validityDate }
+    set { pr.validityDate = newValue }
+  }
+  ///For future Performance Studies, after initial installation, with manipulated get PubDates of last 200 Days this Version took 14s on M1 Pro Simulator
+//  static func persistGet(publicationDates: [PublicationDate],
+//                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+//    var start = Date()
+//    var ret:[StoredPublicationDate] = []
+//    let allPr = Self.getAll(inFeed: feed)
+//
+//    for pubDate in publicationDates {
+//      let storedRecord: StoredPublicationDate
+//      = allPr.first(where: { $0.date == pubDate.date }) ?? new()
+//      storedRecord.update(from: pubDate)
+//      storedRecord.feed = feed
+//      ret.append(storedRecord)
+//      feed.pr.addToPublicationDates(storedRecord.pr)
+//    }
+//    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
+//    return ret
+//  }
+  
+  ///For future Performance Studies, after initial installation, with manipulated get PubDates of last 200 Days this Version took 13s on M1 Pro Simulator
+//  public static func persist(publicationDates: [PublicationDate],
+//                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+//    var start = Date()
+//    var ret:[StoredPublicationDate] = []
+//
+//    for pubDate in publicationDates {
+//      let storedRecord: StoredPublicationDate
+//      = Self.get(object: pubDate, inFeed: feed) ?? new()
+//      storedRecord.update(from: pubDate)
+//      storedRecord.feed = feed
+//      ret.append(storedRecord)
+//      feed.pr.addToPublicationDates(storedRecord.pr)
+//    }
+//    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
+//    return ret
+//  }
+  ///optimal Performance for huge amount of new items: write all existing in Dict => update existing
+  ///in addition to indexed pubDates in Database
+  public static func persist(publicationDates: [PublicationDate],
+                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+    let start = Date()
+    var ret:[StoredPublicationDate] = []
+    let allPr = Self.getAll(inFeed: feed)
+    
+    var dbItems:[String:StoredPublicationDate] = [:]
+    
+    for prPubDate in allPr {
+      dbItems[prPubDate.date.short] = prPubDate
+    }
+    
+    for pubDate in publicationDates {
+      let storedRecord: StoredPublicationDate
+      = dbItems[pubDate.date.short] ?? new()
+      storedRecord.update(from: pubDate)
+      storedRecord.feed = feed
+      feed.pr.addToPublicationDates(storedRecord.pr)
+      ret.append(storedRecord)
+    }
+    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
+    return ret
+  }
+  
+  /// Return stored record with given name
+  public static func get(date: Date, inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+    let nsdate = NSDate(timeIntervalSinceReferenceDate:
+                        date.timeIntervalSinceReferenceDate)
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)",
+                                    nsdate, feed.pr)
+    return get(request: request)
+  }
+  
+  /// Return stored record with given name
+  public static func getAll(inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "(feed = %@)", feed.pr)
+    return get(request: request)
+  }
+  
+  public static func get(object: PublicationDate, inFeed feed: StoredFeed) -> StoredPublicationDate? {
+    return get(date: object.date, inFeed: feed).first
+  }
+
+  public static func get(object: PublicationDate) -> StoredPublicationDate? {
+    if let feed = object.feed,
+       let sfeed = StoredFeed.get(object: feed) {
+      return get(object: object, inFeed: sfeed)
+    }
+    else { return nil }
+  }
+  
+  /// Return an array of Issues in a Feed
+  public static func publicationDatesInFeed(feed: StoredFeed, count: Int = -1)
+    -> [StoredPublicationDate] {
+    let request = fetchRequest
+      request.predicate = NSPredicate(format: "feed = %@", feed.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+    if count > 0 { request.fetchLimit = count }
+    return get(request: request)
+  }
+  
+  public required init(persistent: PersistentPublicationDate) { self.pr = persistent }
+
+  /// Overwrite the persistent values
+  public func update(from object: PublicationDate) {
+    self.feed = object.feed ///in or out?
+    self.date = object.date
+    self.validityDate = object.validityDate
+  }
+  
+} //StoredPublicationDate
+
 extension PersistentIssue: PersistentObject {}
+
 
 
 extension StoredIssue: Equatable {
@@ -1451,9 +1836,22 @@ public final class StoredIssue: Issue, StoredObject {
       }
     }
   }
+  public var safeDate: Date? { pr.date }
   public var date: Date {
     get { return pr.date! }
+    ///In case of multiple crashes in different situations may use the following or refactor all to use optional date
+    ///crash seeams to appeared on DemoIssue > FullIssue after login, also after app-restart in new home
+    /*
+     get {
+      if let d = pr.date { return d }
+      error("Prevent Crash Bug!")
+      return Date(timeIntervalSince1970: 0)
+    }*/
     set { pr.date = newValue }
+  }
+  public var validityDate: Date? {
+    get { return pr.validityDate }
+    set { pr.validityDate = newValue }
   }
   public var moTime: Date {
     get { return pr.moTime! }
@@ -1503,7 +1901,7 @@ public final class StoredIssue: Issue, StoredObject {
     }
     set {
       if let sim = newValue {
-        if let old = pr.imprint, old.html?.name != sim.html.name {
+        if let old = pr.imprint, old.html?.name != sim.html?.name {
           old.delete()
         }
         pr.imprint = StoredArticle.persist(object: sim).pr
@@ -1535,6 +1933,14 @@ public final class StoredIssue: Issue, StoredObject {
     get { return pr.isOvwComplete }
     set { pr.isOvwComplete = newValue }
   }
+  public var isAudioComplete: Bool {
+    get { return pr.isAudioComplete }
+    set { pr.isAudioComplete = newValue }
+  }
+  public var needUpdateAudio: Bool {
+    get { return pr.needUpdateAudio }
+    set { pr.needUpdateAudio = newValue }
+  }
   public var storedPayload: StoredPayload? {
     if let ppl = pr.payload { return StoredPayload(persistent: ppl) }
     else { return nil }
@@ -1543,7 +1949,9 @@ public final class StoredIssue: Issue, StoredObject {
 
   public var sections: [Section]? { StoredSection.sectionsInIssue(issue: self) }
   public var pages: [Page]? { StoredPage.pagesInIssue(issue: self) }
-  public var isDownloading: Bool = false
+  public var isDownloading: Bool = false {
+    willSet {}
+  }
 
   public required init(persistent: PersistentIssue) { self.pr = persistent }
 
@@ -1552,6 +1960,7 @@ public final class StoredIssue: Issue, StoredObject {
     let sendUpdatedDemoIssueNotification = self.status == .reduced && object.status != .reduced
     self.feed = object.feed
     self.date = object.date
+    self.validityDate = object.validityDate
     self.moTime = object.moTime
     self.isWeekend = object.isWeekend
     self.moment = object.moment
@@ -1572,7 +1981,7 @@ public final class StoredIssue: Issue, StoredObject {
     var bookmarkedDemoArticleNames:[String] = []
     
     if sendUpdatedDemoIssueNotification {
-      bookmarkedDemoArticleNames = self.allArticles.filter{ $0.hasBookmark }.map{$0.html.name.replacingOccurrences(of: ".public.", with: ".")}
+      bookmarkedDemoArticleNames = self.allArticles.filter{ $0.hasBookmark }.map{($0.html?.name ?? "").replacingOccurrences(of: ".public.", with: ".")}
     }
     
     if let secs = object.sections {
@@ -1585,8 +1994,8 @@ public final class StoredIssue: Issue, StoredObject {
         order += 1
         if let arts = ssection.articles {
           for art in arts {
-            if let art = art as? StoredArticle {
-              if bookmarkedDemoArticleNames.contains(art.html.name) {
+            if let art = art as? StoredArticle, let name = art.html?.name {
+              if bookmarkedDemoArticleNames.contains(name) {
                 art.setBookmark(true)
               }
               art.pr.addToIssues(self.pr)
@@ -1609,7 +2018,7 @@ public final class StoredIssue: Issue, StoredObject {
     if let osecs = oldSections as? [StoredSection] {
       if let secs = object.sections {
         for s in osecs {
-          if !secs.contains(where: { $0.html.name == s.html.name }) {
+          if !secs.contains(where: { $0.html?.name == s.html?.name }) {
             s.delete()
           }
         }
@@ -1743,18 +2152,20 @@ public final class StoredIssue: Issue, StoredObject {
     return nil
   }
   
-  /// Remove oldest Issues and keep the newest ones
-  public static func reduceOldest(feed: StoredFeed, keep: Int) {
-    let issues = firstLoaded(feed: feed)
-    if issues.count > keep {
-      var n = issues.count
-      for issue in issues {
-        if n <= keep { break }
-        issue.reduceToOverview()
-        n -= 1
-      }
-    }
-  }
+  #warning("reduceOldest ...is no more needed currently may delete!")
+//  /// Remove oldest Issues and keep the newest ones
+//  public static func reduceOldest(feed: StoredFeed, keep: Int) {
+//    Log.log("Delete Issues: \(feed) keep: \(keep)")
+//    let issues = firstLoaded(feed: feed)
+//    if issues.count > keep {
+//      var n = issues.count
+//      for issue in issues {
+//        if n <= keep { break }
+//        issue.reduceToOverview()
+//        n -= 1
+//      }
+//    }
+//  }
   
   /// Remove old Issues and keep newest
   /// - Parameters:
@@ -1763,9 +2174,9 @@ public final class StoredIssue: Issue, StoredObject {
   ///   - keepPreviews: count of keep previews
   public static func removeOldest(feed: StoredFeed,
                                   keepDownloaded: Int,
-                                  keepPreviews: Int = 30,
+                                  keepPreviews: Int = 90,
                                   deleteOrphanFolders:Bool = false) {
-    
+    Log.log("keepDownloaded: \(keepDownloaded) keepPreviews: \(keepPreviews) deleteOrphanFolders: \(deleteOrphanFolders)")
     let lastCompleeteIssues:[StoredIssue]
     = keepDownloaded == 0
     ? []
@@ -1778,11 +2189,20 @@ public final class StoredIssue: Issue, StoredObject {
     let reduceableIssues = allIssues[..<keepPreviewCount]
     
     let keep:Int = keepDownloaded == 0 ? 0 : 2 //Do not reduce the newest 2 Issues
-    for issue in allIssues[keep...] {
-      if lastCompleeteIssues.contains(issue) { continue }
-      if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
-      Log.log("reduceToOverview for issue: \(issue.date.short)")
-      issue.reduceToOverview()
+    
+    if allIssues.isEmpty {
+      Log.log("Prevent crash")
+      return;
+    }
+    
+    if keep <= allIssues.count {
+      for issue in allIssues[keep...] {
+        if lastCompleeteIssues.contains(issue) { continue }
+        if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
+        if issue.reduceToOverview() {
+          Log.log("reduced to Overview for issue: \(issue.date.short)")
+        }
+      }
     }
          
     guard deleteOrphanFolders else { return }
@@ -1796,6 +2216,14 @@ public final class StoredIssue: Issue, StoredObject {
     }
     
     for issue in reduceableIssues {
+      ///Probably not needed anymore found error above
+      if issue.pr.feed == nil {
+        Log.log("PREVENTED CRASH")
+        if App.isAlpha {
+          Toast.show("Chrash verhindert!\nDetails im log, bitte an Entwickler senden!\n𝛼")
+        }
+        continue
+      }
       let dir = feed.feeder.issueDir(issue: issue)
       if dir.exists { knownDirs.append(dir.path)}
     }
@@ -1804,31 +2232,46 @@ public final class StoredIssue: Issue, StoredObject {
     
     for path in allSubdirs {
       if knownDirs.contains(path) {
-        Log.log("DO NOT delete folder at: \(path)")
+        Log.debug("DO NOT delete folder at: \(path)")
         continue
       }
-      Log.log("delete folder at: \(path)")
+      Log.debug("delete folder at: \(path)")
       Dir(path).remove()
     }
   }
   
-  
+  @discardableResult
   /// Deletes data that is not needed for overview
-  public func reduceToOverview() {
-    guard StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
-    else { return }
+  /// - Parameter force: delete also issues with bookmarks
+  /// - Returns: true if content deletes, false if already overview version OR currently downloading
+  public func reduceToOverview(force: Bool = false) -> Bool {
+    if isDownloading {
+      ///WARNING May not catch all states, due isDownloading is set if Downloader.downloading files;
+      ///not in first Step: get Structure Data @REFACTORING
+      Log.log("Delete Issue: \(self.date.short) while downloading")
+      return false
+    }
+    else {
+      Log.debug("Delete Issue: \(self.date.short)")
+    }
+    guard force ||
+            StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
+    else { return false }
     // Remove files not needed for overview
     storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them
+    var hasChanges = false
     if let secs = sections {
       for section in secs as! [StoredSection] {
         section.delete()
+        hasChanges = true
       }
     }
     let p1 = pageOneFacsimile
     for case let p as StoredPage in pages ?? [] {
       if p.pdf?.fileName == p1?.fileName { continue }
       p.delete()
+      hasChanges = true
     }
     
     (imprint as? StoredArticle)?.delete()
@@ -1836,12 +2279,14 @@ public final class StoredIssue: Issue, StoredObject {
       isComplete = false
       isOvwComplete = true
     }
+    self.isAudioComplete = false
     self.lastPage = nil
     self.lastArticle = nil
     self.lastSection = nil
     //lastPage = nil //May delete also last Page?
     //Cannot be restored in current UI Flow and DataModel settup
     ArticleDB.save()
+    return hasChanges
   }
   
 } // StoredIssue
@@ -1906,12 +2351,34 @@ public final class StoredFeed: Feed, StoredObject {
   public var storedIssues: [StoredIssue] { StoredIssue.issuesInFeed(feed: self) }
   public var issues: [Issue]? { storedIssues }
   
+  
+  public var storedPublicationDates: [StoredPublicationDate] {
+    let dates = StoredPublicationDate.publicationDatesInFeed(feed: self)
+    if !dates.isEmpty { return dates }
+    return publicationDatesFromStoredIssues()
+  }
+  
+  private func publicationDatesFromStoredIssues() -> [StoredPublicationDate] {
+    var dates: [PublicationDate] = []
+    for issue in storedIssues {
+      let date = GqlPublicationDate(from: issue.date.dbIssueRepresentation, feed: self)
+      date.validityDate = issue.validityDate
+      dates.append(date)
+    }
+    guard let issue = issues?.first else { return [] }
+    let sDates
+    = StoredPublicationDate.persist(publicationDates: dates, inFeed: self)
+    ArticleDB.save()
+    return sDates
+  }
+  
+  public var publicationDates: [PublicationDate]? { storedPublicationDates }
+  
   public required init(persistent: PersistentFeed) { self.pr = persistent }
 
   /// Overwrite the persistent values
   public func update(from object: Feed) {
     self.name = object.name
-    self.feeder = object.feeder
     self.feeder = object.feeder
     self.cycle = object.cycle
     self.type = object.type
@@ -1935,6 +2402,27 @@ public final class StoredFeed: Feed, StoredObject {
         }
       }
     }
+    if let pubDates = object.publicationDates {
+      let start = Date()
+      let storedPubDates = StoredPublicationDate.persist(publicationDates: pubDates, inFeed: self)
+      for spd in storedPubDates {
+        pr.addToPublicationDates(spd.pr)
+      }
+      
+#warning("not removing wrong publicationDates!")
+      /// Remove publicationDates no longer needed e.g. wrongly delivered by temporary api error
+      /// **is not possible due we request only the newest ones
+//      for pd in self.publicationDates as! [StoredPublicationDate] {
+//        if !pubDates.contains(where: { $0.date == pd.date }) {
+//          pr.removeFromPublicationDates(pd.pr)
+//        }
+//      }
+      ///Saving 3770 PublicationDates took 13.26183307170868s on iPhone 7 initially in Debugging!
+      ///  Saving 3770 PublicationDates took 5.203890919685364s on iPhone 7 initially in Debugging! after StoredPublicationDate.feed removed db requests
+      ///    Saving 3770 PublicationDates took 5.487667918205261s
+      log("Saving \(pubDates.count) PublicationDates took \(abs(start.timeIntervalSinceNow))s")
+    }
+    
   }
   
   /// Return stored Issue with given name in Feeder
@@ -1966,6 +2454,19 @@ public final class StoredFeed: Feed, StoredObject {
   }
 
 } // StoredFeed
+
+extension StoredFeed {
+  public var lastPublicationDate: Date? {
+    guard let publicationDates = pr.publicationDates as? Set<PersistentPublicationDate> else {
+      return nil
+    }
+    return publicationDates.max { a, b in
+      guard let apd = a.date,
+            let bpd = b.date else { return false }
+      return apd < bpd
+    }?.date
+  }
+}
 
 extension PersistentFeeder: PersistentObject {}
 

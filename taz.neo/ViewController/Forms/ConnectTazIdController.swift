@@ -48,7 +48,7 @@ class ConnectTazIdController : FormsController {
     ///may the user already wrote its credentials before he recognize there is a already have taz-Id button
     child.ui.mailInput.text = ui.mailInput.text
     child.ui.passInput.text = ui.passInput.text
-    modalFlip(child)
+    modalFromBottom(child)
   }
   
   // MARK: handleLogin Action
@@ -87,7 +87,7 @@ class ConnectTazIdController : FormsController {
               self.showResultWith(message: Localized("tazid_connect_create_successful_header"),
                                   backButtonTitle: Self.backButtonTitle,
                                   dismissType: .allReal)
-              Notification.send("authenticationSucceeded")
+              (self.auth as? DefaultAuthenticator)?.notifySuccess()
             case .waitForMail:///user need to confirm mail
               self.showResultWith(message: Localized(keyWithFormat: "fragment_login_confirm_email_header", tazId),
                                   backButtonTitle: Self.backButtonTitle,
@@ -165,7 +165,6 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
     ui.registerButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     
     ui.views = [
-      TazHeader(),
       Padded.Label(title: Localized("connect_abo_id_title")),
       ui.mailInput,//Is now Number Input
       ui.passInput,
@@ -205,14 +204,14 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
   }
   
   @IBAction func handlePwForgot(_ sender: UIButton) {
-    let ctrl = PwForgottController(id: ui.mailInput.text?.trim, auth: auth)
+    let ctrl = PwForgottController(id: ui.mailInput.text?.trimed, auth: auth)
     //Change to SubscriptionReset
     ctrl.ui.idInput.keyboardType = .numberPad
     ctrl.ui.idInput.placeholder = Localized("login_subscription_hint")
     ctrl.ui.introLabel.text = Localized("login_forgot_subscription_password_header")
     
     ctrl.childDismissType = .two //Reset & ResetSuccess
-    modalFlip(ctrl)
+    modalFromBottom(ctrl)
   }
 }
 
@@ -231,7 +230,6 @@ class ConnectTazIdRequestNameCtrl : ConnectTazIdController{
     super.init(aboId: aboId, aboIdPassword: aboIdPassword, auth: auth)
     ui.registerButton.setTitle(Localized("send_button"), for: .normal)
     ui.views = [
-      TazHeader(),
       Padded.Label(title: Localized("taz_id_account_create_intro")),
       ui.firstnameInput,
       ui.lastnameInput,
@@ -272,7 +270,6 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     ui.registerButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
     
     ui.views = [
-      TazHeader(),
       Padded.Label(title: Localized("fragment_login_request_test_subscription_existing_account")),
       Padded.Button(type: .label,
                title: Localized("fragment_login_missing_credentials_switch_to_registration"),
@@ -330,7 +327,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
   }
   
   @IBAction func handlePwForgot(_ sender: UIButton) {
-    let ctrl = PwForgottController(id: ui.mailInput.text?.trim, auth: auth)
+    let ctrl = PwForgottController(id: ui.mailInput.text?.trimed, auth: auth)
     //Change to SubscriptionReset
     ctrl.ui.idInput.keyboardType = .emailAddress
     ctrl.ui.idInput.autocapitalizationType = .none
@@ -338,7 +335,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     ctrl.ui.introLabel.text = Localized("login_forgot_tazid_password_header")
     
     ctrl.childDismissType = .two //Reset & ResetSuccess
-    modalFlip(ctrl)
+    modalFromBottom(ctrl)
   }
 }
 

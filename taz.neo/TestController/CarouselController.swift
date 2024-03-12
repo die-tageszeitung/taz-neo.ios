@@ -19,7 +19,7 @@ class CarouselVC: UIViewController {
     view.addSubview(issueCarousel)
     pin(issueCarousel, to: view)
     issueCarousel.carousel.scrollFromLeftToRight = true
-    issueCarousel.carousel.onDisplay { (idx, view) in 
+    _ = issueCarousel.carousel.onDisplay { (idx, _, _) in 
       if !self.isInitialized {
         self.isInitialized = true
         self.issueCarousel.showAnimations()

@@ -42,7 +42,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   /// The ZoomedImage
   var image: ZoomedImage?
   /// Show an image gallery if available
-  var showImageGallery = true
+  var showImageGallery:Bool
   
   /// Closure to call when this VC wishes to close itself
   private var toCloseClosure: (()->())?
@@ -119,9 +119,6 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
       if let zimg = zoomedImage(fname: name) { ret += zimg }
       idx = ret.count - 1
     }
-#warning("ToDo 0.9.4+ @Norbert: crash on open 2nd Image")
-    ///Corrupt data not reproduceable but documented and zipped
-    ///the fix did not change behaviour, but prevents the crash!
     return (min(idx, ret.count-1), ret)
   }
     
@@ -136,7 +133,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     self.xButton.isHidden = true
     self.onTap { [weak self] (_,_,_) in self?.xButton.isHidden.toggle() }
     self.onX { [weak self] in self?.toCloseClosure?() }
-    self.onDisplay { [weak self] (idx, oview) in
+    self.onDisplay { [weak self] (idx, _, _) in
       guard let self = self else { return }
       if let zi = self.images[idx] as? ZoomedImage {
         if let ziv = self.currentView as? ZoomedImageView, ziv.menu.menu.count == 0 {
@@ -172,12 +169,21 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     }
   }
   
-  public init(content: Content, delegate: IssueInfo, imageTapped: String? = nil) {
+  private var orientationClosure:OrientationClosure? = OrientationClosure()
+  
+  public init(content: Content, delegate: IssueInfo, imageTapped: String? = nil, showImageGallery:Bool) {
     self.content = content
     self.delegate = delegate
     self.imageTapped = imageTapped
+    self.showImageGallery = showImageGallery
     super.init() 
     super.pinTopToSafeArea = false
+    if #available(iOS 16.0, *) {
+      orientationClosure?.onOrientationChange(closure: { [weak self] in
+        guard let self else { return }
+        self.perform(#selector(self.setNeedsUpdateOfSupportedInterfaceOrientations))
+      })
+    }
   }
   
   required init?(coder: NSCoder) {
@@ -188,5 +194,12 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     super.viewDidLoad()
     setupImageCollectionVC()
   }
-    
+  public override func viewWillDisappear(_ animated: Bool) {
+    if #available(iOS 16.0, *), let parent = self.parentViewController {
+      onMainAfter {
+        parent.perform(#selector(parent.setNeedsUpdateOfSupportedInterfaceOrientations))
+      }
+    }
+    super.viewWillDisappear(animated)
+  }
 } // ContentImageVC

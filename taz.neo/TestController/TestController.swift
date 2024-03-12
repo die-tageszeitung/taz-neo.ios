@@ -89,8 +89,9 @@ class TestController: PageCollectionVC {
       }
       else { self.error("Invalid Notification") }
     }
-    self.feederContext.getOvwIssues(feed: self.feed, count: 1, 
-                                    fromDate: self.testDate, isAutomatically: false)
+    #warning("removed unused!")
+//    self.feederContext.getOvwIssues(feed: self.feed, count: 1,
+//                                    fromDate: self.testDate, isAutomatically: false)
   }
   
   // Load single overview issue of data 2020-09-14 and overwrite it with demo issue 
@@ -111,7 +112,7 @@ class TestController: PageCollectionVC {
       self.debug("Complete \(issue!)")
       guard self.checkIssueCount(1) else { result(false); return }      
       guard self.checkFileCount(145, inIssue: issue) else { result(false); return }
-      Notification.receiveOnce("authenticationSucceeded") {_ in 
+      Notification.receiveOnce(Const.NotificationNames.authenticationSucceeded) {_ in 
         var gqlIssue: GqlIssue? = nil 
         Notification.receiveOnce("gqlIssue", from: issue) { notification in
           gqlIssue = notification.content as? GqlIssue
@@ -126,8 +127,9 @@ class TestController: PageCollectionVC {
       }
       self.feederContext.authenticate()
     }
-    self.feederContext.getOvwIssues(feed: self.feed, count: 1, 
-                                    fromDate: self.testDate, isAutomatically: false)
+    #warning("removed unused")
+//    self.feederContext.getOvwIssues(feed: self.feed, count: 1,
+//                                    fromDate: self.testDate, isAutomatically: false)
   }
 
   override public var preferredStatusBarStyle: UIStatusBarStyle { .default }
@@ -146,7 +148,7 @@ class TestController: PageCollectionVC {
       if pn.isPermitted { self.debug("Permission granted") }
       else { self.debug("No permission") }
     }
-    nd.onReceivePush { (pn, payload) in
+    nd.onReceivePush { (pn, payload, _) in
       self.debug(payload.toString())
     }
     self.view.backgroundColor = UIColor.red
@@ -177,10 +179,11 @@ class TestController: PageCollectionVC {
       print("resource progress: \(loaded)/\(total)")
     }
     Notification.receive("feederReady") { notification in 
-      guard let fctx = notification.sender as? FeederContext else { return }
+      guard let fctx = notification.sender as? FeederContext,
+      let storedFeeder = fctx.storedFeeder else { return }
       self.feederContext = fctx
-      self.debug(fctx.storedFeeder.toString())
-      self.feed = StoredFeed.get(name: "taz", inFeeder: fctx.storedFeeder)[0]
+      self.debug(fctx.storedFeeder?.toString())
+      self.feed = StoredFeed.get(name: "taz", inFeeder: storedFeeder)[0]
       self.testSingleOverview { ok in
         if ok { 
           self.debug("testSingleOverview OK") 
@@ -194,7 +197,7 @@ class TestController: PageCollectionVC {
         else { self.error("testSingleOverview failed") }
       } 
     }
-    Notification.receive("feederReachable") {_ in 
+    Notification.receive(Const.NotificationNames.feederReachable) {_ in 
       self.debug("feeder is reachable")
     }
     Notification.receive("feederNotReachable") {_ in 

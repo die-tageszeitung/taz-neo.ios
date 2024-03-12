@@ -8,6 +8,7 @@
 
 import UIKit
 import NorthLib
+import WebKit
 
 extension TrialSubscriptionView : UITextFieldDelegate {
   public func textFieldDidBeginEditing(_ textField: UITextField) {
@@ -18,9 +19,36 @@ extension TrialSubscriptionView : UITextFieldDelegate {
       exchangeResponder = false
     }
   }
+  
+  
+  /// Performes local password check, manipulate passwordInputs bottomLabel and bottomMessage
+  /// - Parameters:
+  ///   - password: password to be checked
+  ///   - mail: usermail to check if particullary contained in password
+  func doPasswortCheck(password: String, mail: String?) {
+    Task { [weak self] in
+      guard let self = self else { return }
+      let pwq = await pwValidator.check(password: password, mail: mail)
+      self.passInput.bottomMessage = pwq.message
+      self.passInput.bottomLabel.textColor = pwq.strength.color
+      self.registerButton.isEnabled = pwq.valid
+      self.registerButton.alpha = pwq.valid ? 1.0 : 0.3
+    }
+  }
+
+  
+  public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+    guard textField == passInput else { return true }
+    if let textFieldString = textField.text, let swtRange = Range(range, in: textFieldString) {
+      let newString = textFieldString.replacingCharacters(in: swtRange, with: string)
+      doPasswortCheck(password: newString, mail: mailInput.text)
+    }
+    return true
+  }
 }
 
 public class TrialSubscriptionView : FormView{
+  let pwValidator = PasswordValidator()
   
   var exchangeResponder = false
   
@@ -74,7 +102,6 @@ public class TrialSubscriptionView : FormView{
     pass2Input.delegate = self
     
     return   [
-      TazHeader(),
       Padded.Label(title: Localized("trial_subscription_title")),
       mailInput,
       passInput,
@@ -114,9 +141,15 @@ public class TrialSubscriptionView : FormView{
       errors = true
       passInput.bottomMessage = Localized("login_password_error_empty")
     }
-    else if passInput.isUsed, (passInput.text ?? "").length < 7 {
+    else if passInput.isUsed, (passInput.text ?? "").length < 12 {
       errors = true
       passInput.bottomMessage = Localized("password_too_short")
+    }
+    else if let mailLeading = mailInput.text?.components(separatedBy: "@").first,
+            mailLeading.length > 3,
+            passInput.text?.contains(mailLeading) != false {
+      errors = true
+      passInput.bottomMessage = Localized("password_contains_mail")
     }
     
     if pass2Input.isUsed, pass2Input.isVisible, (pass2Input.text ?? "").isEmpty {

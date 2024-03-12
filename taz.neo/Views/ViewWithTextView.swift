@@ -14,14 +14,26 @@ import NorthLib
 
 
 /// A UITextView with Top Label (for Description), Bottom Label (for Errormessages), Placeholder Label (Placeholder)
-public class ViewWithTextView : UIStackView{
+public class ViewWithTextView : UIStackView, KeyboardToolbarForText{
+  public var inputToolbar: UIToolbar { textView.inputToolbar }
+  
+  public override var tag: Int {
+    get { return textView.tag}
+    set { textView.tag = newValue }
+  }
   
   var textViewheightConstraint:NSLayoutConstraint?
-  
   
   let topLabel = UILabel()
   let bottomLabel = UILabel()
   let textView = PlaceholderUITextView()
+  
+  lazy var border : UIView = {
+    let v = UIView()
+    v.pinHeight(2.0)
+    v.addBorderView(Const.SetColor.ForegroundHeavy.color, 1.0, edge: .bottom, insets: .zero)
+    return v
+  }()
   
   weak open var delegate: UITextViewDelegate? {
     didSet {
@@ -88,6 +100,7 @@ public class ViewWithTextView : UIStackView{
     
     self.addArrangedSubview(topLabel)
     self.addArrangedSubview(textView)
+    self.addArrangedSubview(border)
     self.addArrangedSubview(bottomLabel)
     
     textView.textContainerInset = UIEdgeInsets.zero
@@ -102,8 +115,12 @@ public class ViewWithTextView : UIStackView{
   }
 }
 
-class PlaceholderUITextView: UITextView {
+class PlaceholderUITextView: UITextView, KeyboardToolbarForText {
+  lazy public var inputToolbar: UIToolbar = createToolbar()
   
+  var container: UIView? { return self.superview?.superview}
+  
+  public var placeholderInsets:UIEdgeInsets = .zero
   public var placeholder:String?{  didSet{ setup()}  }
   weak open var tvDelegate: UITextViewDelegate?
   
@@ -115,8 +132,8 @@ class PlaceholderUITextView: UITextView {
     if self.placeholder == nil { return }
     super.delegate = self
     self.insertSubview(placeholderLabel, at: 0)
-    pin(placeholderLabel.top, to: self.top)
-    pin(placeholderLabel.left, to: self.left)
+    pin(placeholderLabel.top, to: self.top, dist: placeholderInsets.top)
+    pin(placeholderLabel.left, to: self.left, dist: placeholderInsets.left)
     placeholderLabel.numberOfLines = 0
     placeholderLabel.text = placeholder
   }
@@ -143,10 +160,16 @@ extension PlaceholderUITextView: UITextViewDelegate {
     tvDelegate?.textViewDidEndEditing?(textView)
   }
   
+  func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
+    textView.inputAccessoryView = inputToolbar
+    return true
+  }
+  
   public func textViewDidBeginEditing(_ textView: UITextView)
   {
     placeholderLabel.isHidden = true
     tvDelegate?.textViewDidBeginEditing?(textView)
+    textView.inputAccessoryView = inputToolbar
   }
   
   func textViewDidChange(_ textView: UITextView) {

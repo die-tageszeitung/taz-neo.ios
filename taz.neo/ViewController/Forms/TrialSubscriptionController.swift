@@ -44,6 +44,7 @@ class TrialSubscriptionController : FormsController {
     if let errormessage = ui.validate() {
       Toast.show(errormessage, .alert)
       ui.blocked = false
+      Usage.track(Usage.event.subscription.InquiryFormValidationError)
       return
     }
     
@@ -79,7 +80,7 @@ class TrialSubscriptionController : FormsController {
                 DefaultAuthenticator.storeUserData(id: tazId,
                                       password: tazIdPassword,
                                       token: token)
-                Notification.send("authenticationSucceeded")
+                (self.auth as? DefaultAuthenticator)?.notifySuccess()
                 self.ui.blocked = false
                 return;
               }
@@ -172,33 +173,17 @@ class TrialSubscriptionRequestNameCtrl : TrialSubscriptionController{
     super.init(auth)
     
     ui.registerButton.setTitle(Localized("send_button"), for: .normal)
-    
-    if offerTrialSubscription {
-      // Dialog mit Probeabo
-      ui.views = [
-        TazHeader(),
-        Padded.Label(title: Localized("fragment_login_missing__names_header")),
-        ui.firstnameInput,
-        ui.lastnameInput,
-        ui.agbAcceptTV,
-        ui.registerButton,
-        ui.cancelButton,
-        ui.registerTipsButton
-        
-      ]
-    }
-    else {
-      // Dialog ohne Probeabo
-      ui.views = [
-        TazHeader(),
-        Padded.Label(title: Localized("fragment_login_missing__names_header")),
-        ui.firstnameInput,
-        ui.lastnameInput,
-        ui.agbAcceptTV,
-        ui.registerButton,
-        ui.cancelButton,
-      ]
-    }
+    // Dialog mit Probeabo
+    ui.views = [
+      Padded.Label(title: Localized("fragment_login_missing__names_header")),
+      ui.firstnameInput,
+      ui.lastnameInput,
+      ui.agbAcceptTV,
+      ui.registerButton,
+      ui.cancelButton,
+      ui.registerTipsButton
+      
+    ]
   }
   
   required init?(coder: NSCoder) {

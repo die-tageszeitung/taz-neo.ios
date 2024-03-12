@@ -19,6 +19,12 @@ class SearchController: UIViewController {
   
   private var articleVC:SearchResultArticleVc
   
+  func searchFor(searchString: String){
+    header.searchTextField.text = searchString
+    self.searchItem.reset()
+    self.search(false)
+  }
+  
   var searchItem:SearchItem {
     didSet {
       updateArticleVcIfNeeded()
@@ -66,7 +72,9 @@ class SearchController: UIViewController {
           resultsTable.isHidden = false
         case .emptyResult:
           centralActivityIndicator.isHidden = true
-          placeholderView.showAnimated()
+          onMainAfter(1.0){[weak self] in
+            self?.placeholderView.showAnimated()
+          }
           resultsTable.hideAnimated()
       }
     }
@@ -120,6 +128,38 @@ class SearchController: UIViewController {
       self?.checkFilter()
       self?.header.checkCancelButton()
     }
+    v.helpButton.onTapping {[weak self] _ in
+      guard let url = Bundle.main.url(forResource: "searchHelp",
+                                      withExtension: "html",
+                                      subdirectory: "files"),
+            case let file = File(url),
+            file.exists  else {
+        self?.log("search Help not found")
+        return
+      }
+      let introVC = TazIntroVC()
+      introVC.htmlIntro = url.absoluteString
+      introVC.topOffset = 40
+      let intro = file
+      introVC.webView.webView.load(url: intro.url)
+      introVC.webView.webView.scrollView.contentInsetAdjustmentBehavior = .never
+      introVC.webView.webView.scrollView.isScrollEnabled = true
+      
+      introVC.webView.onX { _ in
+        introVC.dismiss(animated: true, completion: nil)
+      }
+      self?.modalPresentationStyle = .fullScreen
+      introVC.modalPresentationStyle = .fullScreen
+      introVC.webView.webView.scrollDelegate.atEndOfContent {_ in }
+      self?.present(introVC, animated: true) {
+        //Overwrite Default in: IntroVC viewDidLoad
+        introVC.webView.buttonLabel.text = nil
+        //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
+        guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
+        bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
+        bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
+      }
+    }
     v.textFieldDelegate = self
     return v
   }()
@@ -140,7 +180,7 @@ class SearchController: UIViewController {
   
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    self.view.backgroundColor = Const.SetColor.CTBackground.color
+    self.view.backgroundColor = Const.SetColor.HBackground.color
   }
   
   override func viewDidLoad() {
@@ -150,7 +190,10 @@ class SearchController: UIViewController {
     self.view.addSubview(resultsTable)
     self.view.addSubview(searchSettingsView)
     self.view.addSubview(header)
-    centralActivityIndicator.center()
+    placeholderView.onTapping {[weak self] _ in
+        self?.header.searchTextField.resignFirstResponder()
+    }
+    centralActivityIndicator.centerAxis()
     pin(placeholderView, toSafe: self.view)
     pin(resultsTable, toSafe: self.view, exclude: .top)
     pin(resultsTable.top, to: header.bottom)
@@ -227,7 +270,7 @@ extension SearchController {
   }
   
   private func openSearchHit(_ searchHit: GqlSearchHit){
-    if let idx = searchItem.allArticles?.firstIndex(where: {$0.html.name == searchHit.article.html.name}) {
+    if let idx = searchItem.allArticles?.firstIndex(where: {$0.html?.name == searchHit.article.html?.name}) {
       self.articleVC.index = idx
     }
     
@@ -238,6 +281,7 @@ extension SearchController {
 
   private func search(_ sendDismissNotofication:Bool = false) {
     var searchSettings = self.searchSettingsView.data.settings
+    header.searchTextField.text = header.searchTextField.text?.trimed ?? ""
     searchSettings.text = header.searchTextField.text
     if searchSettings.searchTermTooShort {
       header.setStatusLabel(text: "Bitte Suchbegriff eingeben!",
@@ -308,6 +352,7 @@ extension SearchController {
   }
   
   @objc func handleSearchButton(){
+    Usage.track(Usage.event.search.filterSearch)
     searchSettingsView.toggle(toVisible: false)
     checkFilter()
     search()
@@ -342,6 +387,7 @@ extension SearchController{
 extension SearchController : UITextFieldDelegate {
   
   func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+    Usage.track(Usage.event.search.keyboardSearch)
     search()
     checkFilter()
     return true
@@ -379,7 +425,8 @@ extension SearchController: ArticleVCdelegate {
     if let s = searchResultIssue.sections, let artArray = searchItem.allArticles {
       var d : [String : [Section]]  = [:]
       for art in artArray {
-        d[art.html.fileName] = s
+        guard let fileName = art.html?.fileName else { continue }
+        d[fileName] = s
       }
       return d
     }
@@ -391,7 +438,14 @@ extension SearchController: ArticleVCdelegate {
   }
   
   public func linkPressed(from: URL?, to: URL?) {
-    debug("TODO:: linkPressed \(from?.absoluteString) to: \(to?.absoluteString)")
+    guard let to = to else { return }
+    self.debug("Calling application for: \(to.absoluteString)")
+    if UIApplication.shared.canOpenURL(to) {
+      UIApplication.shared.open(to, options: [:], completionHandler: nil)
+    }
+    else {
+      error("No application or no permission for: \(to.absoluteString)")
+    }
   }
   
   public func closeIssue() {
@@ -416,17 +470,18 @@ extension String {
 // MARK: *** GqlSearchHit ***
 extension GqlSearchHit {
   @discardableResult
-  public func writeToDisk() -> String {
-    let filename = self.article.html.fileName
+  public func writeToDisk() -> String? {
+    guard let filename = self.article.html?.fileName else { return nil }
     let f = TmpFileEntry(name: filename)
     f.content = self.articleHtml
     return f.path
   }
   
   var localPath: String? {
-    let f = File(dir: Dir.searchResultsPath, fname: article.html.fileName)
+    guard let fileName = article.html?.fileName else { return nil }
+    let f = File(dir: Dir.searchResultsPath, fname: fileName)
     if !f.exists { return nil }
-    return Dir.searchResultsPath + "/" + article.html.fileName
+    return Dir.searchResultsPath + "/" + fileName
   }
 }
 

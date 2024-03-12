@@ -9,12 +9,15 @@
 import UIKit
 import NorthLib
 
+enum OfflineAlertType { case initial, issueDownload }
+
 class OfflineAlert {
   static let sharedInstance = OfflineAlert()
   
   private init(){}
   
   var needsUpdate : Bool = false
+  var presented : Bool = false
   
   var title : String? { didSet {
     if oldValue != title { needsUpdate = true }
@@ -23,57 +26,96 @@ class OfflineAlert {
     if oldValue != title { needsUpdate = true }
   }}
   
+  var actionButtonTitle : String? { didSet {
+    if oldValue != actionButtonTitle { needsUpdate = true }
+  }}
+  
   var closures : [(()->())] = []
   
-  lazy var alert:AlertController = {
-    let okButton = UIAlertAction(title: "OK", style: .cancel) {   [weak self] _ in
-      self?.okPressed()
+  private var newAlert: AlertController {
+    let actionButton = UIAlertAction(title: actionButtonTitle, style: .cancel) {   [weak self] _ in
+      self?.buttonPressed()
     }
     let a = AlertController(title: nil, message: nil, preferredStyle: .alert)
-    a.addAction(okButton)
+    a.addAction(actionButton)
+    a.onDisappear {[weak self] in
+      self?.presented = false
+    }
     return a
-  }()
+  }
   
-  func okPressed(){
-    while closures.count > 0 {
-      let closure = closures.popLast()
+  lazy var alert:AlertController = {   return newAlert }()
+  
+  func buttonPressed(){
+    var oldClosures = closures
+    closures = []
+    needsUpdate = true //prepare for reuse
+
+    while oldClosures.count > 0 {
+      let closure = oldClosures.popLast()
       closure?()
     }
-    needsUpdate = true //prepare for reuse
   }
   
   func updateIfNeeded(){
     if needsUpdate == false { return }
-    onMain {   [weak self]  in
+    ensureMain { [weak self]  in
       guard let self = self else { return }
+      ///Recreate new Alert Instance due Actions (==Buttons) are imutable
+      if self.alert.actions.first?.title != self.actionButtonTitle {
+        self.alert = newAlert
+      }
+      
       self.alert.title = self.title
       self.alert.message = self.message
       
-      if self.alert.presentingViewController == nil {
-        UIViewController.top()?.present(self.alert, animated: true, completion: nil)
+      if self.presented == false,
+         self.alert.presentingViewController == nil,
+         let target = UIViewController.top()
+      {
+        self.presented = true
+        target.present(self.alert,
+                       animated: true,
+                       completion: nil)
+        self.needsUpdate = false
+        return
       }
-      self.needsUpdate = false
+      onMainAfter(2.0) {[weak self] in
+        self?.presented = self?.alert.presentingViewController != nil
+        self?.updateIfNeeded()
+      }
     }
   }
   
-  static func message(title: String? = nil, message: String, closure: (()->())? = nil) {
-    sharedInstance.title = title
-    sharedInstance.message = message
-    if let c = closure { sharedInstance.closures.append(c)}
+  static func show(type: OfflineAlertType, closure: (()->())? = nil) {
+    var name = "\(TazAppEnvironment.sharedInstance.feederContext?.name ?? "")"
+    if name.length > 1 { name = "\(name)-"}
+    switch type {
+      case .initial:
+        sharedInstance.title = "Fehler"
+        sharedInstance.actionButtonTitle = "Erneut versuchen"
+        sharedInstance.message = """
+        Ich kann den \(name)Server nicht erreichen, möglicherweise
+        besteht keine Verbindung zum Internet. Oder Sie haben der App
+        die Verwendung mobiler Daten nicht gestattet.
+        Bitte versuchen Sie es zu einem späteren Zeitpunkt
+        noch einmal.
+        """
+        if let c = closure { sharedInstance.closures = [c]}
+        Usage.track(Usage.event.dialog.ConnectionError)
+      case .issueDownload:
+        sharedInstance.title = "Warnung"
+        sharedInstance.actionButtonTitle = "OK"
+        sharedInstance.message = """
+        Beim Laden der Ausgabe ist ein Fehler aufgetreten.
+        Bitte versuchen Sie es zu einem späteren Zeitpunkt
+        noch einmal.
+        Sie können bereits heruntergeladene Ausgaben auch
+        ohne Internet-Zugriff lesen.
+        """
+        if let c = closure { sharedInstance.closures.append(c)}
+        Usage.track(Usage.event.dialog.IssueDownloadError)
+    }
     sharedInstance.updateIfNeeded()
   }
-  
-  /// enqueues callback to presented Alert
-  /// - Parameter closure: closure to add to callback handlers
-  /// - Returns: true if presented and closure added, otherwise false
-  static func enqueueCallbackIfPresented(closure: (()->())? = nil) -> Bool {
-    if sharedInstance.alert.presentingViewController != nil,
-       let c = closure {
-      sharedInstance.closures.append(c)
-      return true
-    }
-    return false
-  }
-  
-  
 }

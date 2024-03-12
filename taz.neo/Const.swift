@@ -11,6 +11,23 @@ import NorthLib
 /// Some Constants
 public struct Const {
   
+  struct Urls {
+    ///former
+    //static let faqUrl = URL(string: "https://blogs.taz.de/app-faq/")
+    ///new foreward url's
+    ///Source Mail Ralf 3.5.23
+    /// dl.taz.de/faq && https://dl.monde-diplomatique.de/faq
+    #if LMD
+    static let faqUrl = lmdFaqUrl
+    #else
+    static let faqUrl = tazFaqUrl
+    #endif
+    static let tazFaqUrl
+    = URL(string: "https://dl.taz.de/faq")
+    static let lmdFaqUrl
+    = URL(string: "https://dl.monde-diplomatique.de/faq")
+  }
+  
   /// Filenames
   struct Filename {
     /// Some resource filenames
@@ -18,6 +35,7 @@ public struct Const {
     static let welcomeSlides = "welcomeSlides.html"
     static let revocation = "welcomeRevocation.html"
     static let terms = "welcomeTerms.html"
+    static let passwordCheckJs = "tazPasswordSpec.js"
   } // Filename
   
   
@@ -27,10 +45,24 @@ public struct Const {
   /// and here: static let articleLoaded = NSNotification.Name("NotificationName.articleLoaded")
   struct NotificationNames {
     /// Some resource filenames
+    static let checkForNewIssues = "NotificationName.checkForNewIssues"
+    static let publicationDatesChanged = "NotificationName.publicationDatesChanged"
+    static let feederReachable = "NotificationName.feederReachable"
+    static let feederUnreachable = "NotificationName.feederUnreachable"
+    static let issueUpdate = "NotificationName.issueUpdate"
     static let articleLoaded = "NotificationName.articleLoaded"
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
     static let viewSizeTransition = "NotificationName.viewSizeTransition"
+    static let traitCollectionDidChange = "NotificationName.traitCollectionDidChange"
     static let expiredAccountDateChanged = "NotificationName.expiredAccountDateChanged"
+    static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
+    static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
+    static let bookmarkChanged = "Const.NotificationNames.bookmarkChanged"
+    static let audioPlaybackStateChanged = "Const.NotificationNames.audioPlaybackStateChanged"
+    static let audioPlaybackFinished = "Const.NotificationNames.audioPlaybackFinished"
+    static let gotoIssue = "Const.NotificationNames.gotoIssue"
+    static let gotoArticleInIssue = "Const.NotificationNames.gotoArticleInIssue"
+    static let searchSelectedText = "Const.NotificationNames.searchSelectedText"
     
   } // Filename
   
@@ -47,16 +79,25 @@ public struct Const {
     static let darkSeparator: UIColor = UIColor.rgb(0x545458)
     static let darkPrimaryText: UIColor =  UIColor.rgb(0xffffff)
     static let darkSecondaryText: UIColor = UIColor.rgb(0xebebf5)
-    static let appIconGrey: UIColor = darkSecondaryText //UIColor.rgb(0x9c9c9c)
-    static let iconButtonInactive: UIColor = UIColor.rgb(0x9c9c9c)
-    static let iconButtonActive: UIColor = appIconGrey
-    
+    static let appIconGrey: UIColor = UIColor.rgb(0x9c9c9c)
+    static let appIconGreyActive: UIColor = darkSecondaryText
+    #if LMD
+    static let foundTextHighlight: UIColor = UIColor.rgb(0x71FF01)
+    #else
     static let foundTextHighlight: UIColor = UIColor.rgb(0xffff88)
+    #endif
     static let ciColor: UIColor =  UIColor.rgb(0xd50d2e)
     static let radioGreen: UIColor =  UIColor.rgb(0x2ca400)
     
     static let darkToolbar = darkSecondaryBG
     static let darkTintColor = darkSecondaryText
+    
+    #if LMD
+    struct LMd {
+      static let ci: UIColor =  UIColor.rgb(0x3B88A7)
+      static let bgGrey: UIColor =  UIColor.rgb(0xF0F0ED)
+    }
+    #endif
     
     struct Light {
       static let CTBackground = UIColor.white
@@ -67,8 +108,19 @@ public struct Const {
       static let HText = UIColor.black
       static let ForegroundLight = UIColor.lightGray
       static let ForegroundHeavy = UIColor.darkGray
+      #if LMD
+        static let HomeBackground = UIColor.rgb(0xd9d9d3)//LMD-background-darker
+        static let HomeText = UIColor.rgb(0x1f1f1f)//LMD-offblack
+        static let MenuBackground = UIColor.rgb(0xf0f0ed)//--LMD-background
+        static let MenuText = UIColor.rgb(0x000000)//LMD-black
+      #else
+        static let HomeBackground = UIColor.black
+        static let HomeText = appIconGrey
+        static let MenuBackground = UIColor.white//Const.SetColor.HBackground.color
+        static let MenuText = UIColor.black//Const.SetColor.HText.color
+
+      #endif
     }
-    
     struct Dark {
       static let CTBackground = darkSecondaryBG
       static let CTSection = darkSecondaryText
@@ -78,6 +130,17 @@ public struct Const {
       static let HText = darkSecondaryText
       static let ForegroundLight = UIColor.darkGray
       static let ForegroundHeavy = UIColor.lightGray
+      #if LMD
+        static let HomeBackground = UIColor.rgb(0xd9d9d3)//LMD-background-darker
+        static let HomeText = UIColor.rgb(0x1f1f1f)//LMD-offblack
+        static let MenuBackground = UIColor.rgb(0x121212)//LMD-Android-Dark-Theme-background
+        static let MenuText = UIColor.rgb(0xe3e3e3)//LMD-Logogrey
+      #else
+        static let HomeBackground = UIColor.black
+        static let HomeText = appIconGrey
+        static let MenuBackground = UIColor.black
+        static let MenuText = UIColor.rgb(0xebebf5)//darkSecondaryText
+      #endif
     }
     
     struct iOSLight {
@@ -142,6 +205,10 @@ public struct Const {
     case ForegroundHeavy
     case CTDate
     case HBackground
+    case HomeBackground
+    case HomeText
+    case MenuBackground
+    case MenuText
     case HText
     case Test
     case CIColor
@@ -158,6 +225,7 @@ public struct Const {
       case textFieldClear
       case textFieldText
       case textIconGray
+      case secondaryBackground
     }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
@@ -192,6 +260,20 @@ public struct Const {
       }
     }
     
+    /// using a color that responds to `userInterfaceStyle` trait changes
+    var dynamicColor : UIColor {
+      get{
+        let set = colors(name: self)
+        return UIColor(light: set.light, dark: set.dark ?? set.light)
+      }
+    }
+    
+    var brightColor : UIColor {
+      get{
+        return colors(name: self).light
+      }
+    }
+    
     fileprivate typealias ColorSet = ( light: UIColor, dark: UIColor?, lightHigh: UIColor?, darkHigh: UIColor?)
     
     fileprivate func colors(name: SetColor) -> ColorSet {
@@ -215,11 +297,15 @@ public struct Const {
         case .Test://Rainbow: use to test Light/Darkmode with lightHigh & darkHigh
           return (UIColor.red, UIColor.green, UIColor.blue,UIColor.magenta)
         case .CIColor:
+          #if LMD
+          return (Const.Colors.LMd.ci,nil,nil,nil)
+          #else
           return (Const.Colors.ciColor,nil,nil,nil)
+          #endif
         case .ios_opaque(.closeX):
           return (UIColor.rgb(0x5D5E63), UIColor.rgb(0xB8B8C1), nil, nil)
         case .ios_opaque(.closeXcircleBackground):
-          return (UIColor.rgb(0xDCDCDE), UIColor.rgb(0x424147), nil, nil)
+          return (UIColor.rgb(0xE9E9EB), UIColor.rgb(0x39393D), nil, nil)
         case .ios(.label):
           return (Const.Colors.iOSLight.label, Const.Colors.iOSDark.label, nil, nil)
         case .ios(.secondaryLabel):
@@ -275,10 +361,19 @@ public struct Const {
           return (UIColor.rgb(0x9C9C9C), UIColor.rgb(0x9C9C9C), nil, nil)
         case .taz(.textIconGray):
           return (UIColor.rgb(0x565656), UIColor.rgb(0x929292), nil, nil)
+        case .taz(.secondaryBackground):
+          return (UIColor.rgb(0xDEDEDE), UIColor.rgb(0x323232), nil, nil)
+        case .HomeBackground:
+          return (Const.Colors.Light.HomeBackground, Const.Colors.Dark.HomeBackground,nil,nil)
+        case .HomeText:
+          return (Const.Colors.Light.HomeText, Const.Colors.Dark.HomeText,nil,nil)
+        case .MenuBackground:
+          return (Const.Colors.Light.MenuBackground, Const.Colors.Dark.MenuBackground,nil,nil)
+        case .MenuText:
+          return (Const.Colors.Light.MenuText, Const.Colors.Dark.MenuText,nil,nil)
       }
     }
   } // SetColors
-  
   
   /// Various font values
   struct Fonts {
@@ -294,6 +389,15 @@ public struct Const {
     static var quaTextRegular: String? = UIFont.register(name: "QuaText-Regular", type: "woff", subDir: "files")
     static var quaTextB: String? = UIFont.register(name: "QuaText-Bold", type: "woff", subDir: "files")
     static var quaTextBi: String? = UIFont.register(name: "QuaText-BoldItalic", type: "woff", subDir: "files")
+    static var lmdArnhem: String? = UIFont.register(name: "ArnhemPro-Blond", type: "woff", subDir: "files")
+    static var lmdArnhemItalic: String? = UIFont.register(name: "ArnhemPro-BlondItalic", type: "woff", subDir: "files")
+    static var lmdArnhemBold: String? = UIFont.register(name: "ArnhemPro-Bold", type: "woff", subDir: "files")
+    static var lmdArnhemBoldItalic: String? = UIFont.register(name: "ArnhemPro-BoldItalic", type: "woff", subDir: "files")
+    static var lmdBenton: String? = UIFont.register(name: "BentonSans-Regular", type: "woff", subDir: "files")
+    static var lmdBentonItalic: String? = UIFont.register(name: "BentonSans-Italic", type: "woff", subDir: "files")
+    static var lmdBentonBold: String? = UIFont.register(name: "BentonSans-Bold", type: "woff", subDir: "files")
+    static var lmdBentonBoldItalic: String? = UIFont.register(name: "BentonSans-BoldItalic", type: "woff", subDir: "files")
+    static var americanTypewriterFontName: String = "AmericanTypewriter-CondensedBold"
     /// *WARNING* Cannot use bundled Aktiv Grotesk fonts from Ressources, due just one font variant will be loaded,
     /// Hacky Workaround sleep(1) then load the other Problem is: multiple fonts have same generic font names
     /// from UIFont extension NorthLib -> register(data: Data)
@@ -361,6 +465,14 @@ public struct Const {
     static let TinyPadding = CGFloat(5.0)
     static let ContentTableFontSize = CGFloat(22.0)
     static let ContentTableRowHeight = CGFloat(30.0)
+    
+    static let ContentSliderMaxWidth = 420.0
+    struct LMd {
+      struct Slider {
+        static let xLeft = 0.20//left Scale Factor 0.3*SliderWidth
+        //NOT NEEDED static let xRight = 0.77//right Scale Factor 1-xLeft*SliderWidth
+      }
+    }
   }
   
   struct Insets {
@@ -372,6 +484,10 @@ public struct Const {
                                     left: Const.Size.DefaultPadding,
                                     bottom: 0,
                                     right: -Const.Size.DefaultPadding)
+    static let NegDefault = UIEdgeInsets(top: 0,
+                                    left: -Const.Size.DefaultPadding,
+                                    bottom: 0,
+                                    right: Const.Size.DefaultPadding)
   }
   
   /// Adjusted Sizes for tiny Displays (iPhone 5s/SE1, iPod 7G)
@@ -436,6 +552,50 @@ extension UILabel {
     return self
   }
   
+  /// set americanTypewriter font with default font size and return self (for chaining)
+  /// - Returns: self
+  @discardableResult
+  func americanTypewriter(size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
+    self.font = Const.Fonts.font(name: Const.Fonts.americanTypewriterFontName, size: size)
+    return self
+  }
+  
+  /// set lmd  ArnhemPro  font with default font size and return self (for chaining)
+  ///  @todo may respect dark/light mode with param ignore dark/lightMode
+  /// - Returns: self
+  @discardableResult
+  func lmdArnhem(bold:Bool = false, italic: Bool = false, size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
+    switch (bold, italic) {
+      case (false, false):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdArnhem, size: size)
+      case (false, true):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdArnhemItalic, size: size)
+      case (true, false):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdArnhemBold, size: size)
+      case (true, true):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdArnhemBoldItalic, size: size)
+    }
+    return self
+  }
+  
+  /// set lmd  Benton  font with default font size and return self (for chaining)
+  ///  @todo may respect dark/light mode with param ignore dark/lightMode
+  /// - Returns: self
+  @discardableResult
+  func lmdBenton(bold:Bool = false, italic: Bool = false, size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
+    switch (bold, italic) {
+      case (false, false):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdBenton, size: size)
+      case (false, true):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdBentonItalic, size: size)
+      case (true, false):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdBentonBold, size: size)
+      case (true, true):
+        self.font = Const.Fonts.font(name: Const.Fonts.lmdBentonBoldItalic, size: size)
+    }
+    return self
+  }
+
   /// set content title font with default font size and return self (for chaining)
   /// - Returns: self
   @discardableResult
@@ -444,6 +604,12 @@ extension UILabel {
     return self
   }
   
+  @discardableResult
+  internal func color(_ color: UIColor) -> UILabel {
+    self.textColor = color
+    return self
+  }
+
   @discardableResult
   internal func color(_ color: Const.SetColor) -> UILabel {
     self.textColor = color.color
@@ -491,6 +657,12 @@ extension UILabel {
   
   @discardableResult
   func center() -> UILabel {
+    self.textAlignment = .center
+    return self
+  }
+
+  @discardableResult
+  func centerText() -> UILabel {
     self.textAlignment = .center
     return self
   }

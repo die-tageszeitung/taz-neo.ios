@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html style="overflow: hidden;">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+        <title>Lottie Animation</title>
+        <script src="../files/jquery-3.min.js"></script>
+        <script src="../files/welcomeSlidesLottie.min.js"></script>
+        <script src="./trypdf.js"></script>
+        <script>
+            $(document).ready(function() {
+                const player = document.getElementById("lottieplayer");
+                player.load(lottie_pdf);
+            });
+        </script>
+    </head>
+    <body style="overflow: hidden;">
+      <div class="lottie-wrapper">
+        <lottie-player
+          id="lottieplayer"
+          background="transparent"
+          speed="1"
+          loop
+          autoplay >
+        </lottie-player>
+      </div>
+    </body>
+</html>

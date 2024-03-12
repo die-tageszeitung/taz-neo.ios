@@ -64,4 +64,19 @@ extension Defaults{
       return articleTextSize
     }
   }
+  
+  static var usageTrackingAllowed : Bool? {
+    get {
+      return Defaults.singleton["usageTrackingAllowed"]?.bool
+    }
+    set {
+      Defaults.singleton["usageTrackingAllowed"] = newValue?.stringRepresentation
+    }
+  }
+}
+
+fileprivate extension Bool {
+  var stringRepresentation: String {
+    return self == true ? "true" : "false"
+  }
 }

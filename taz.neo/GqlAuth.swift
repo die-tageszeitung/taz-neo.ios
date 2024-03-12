@@ -91,6 +91,85 @@ struct GqlSubscriptionInfo: GQLObject {
   }  
 } // GqlSubscriptionInfo
 
+/// A GqlSubscriptionInfo describes an GqlAuthStatus with an optional message
+struct GqlSubscriptionFormData: GQLObject {
+  /// Subscription status
+  var error:  GqlSubscriptionFormDataError?
+  /// Optional message in case of !valid
+  var errorMessage: String?
+
+  
+  static var fields = "error errorMessage"
+  
+  func toString() -> String {
+    var ret = ""
+    if let error = error { ret += "\n error: \(error.toString())" }
+    if let errorMessage = errorMessage { ret += "errorMessage: \(errorMessage)" }
+    return ret
+  }
+} // GqlSubscriptionInfo
+
+/// Subscription Form Data Error
+enum GqlSubscriptionFormDataError: String, CodableEnum {
+  case noMail = "noMail" //no mail adress given
+  case invalidMail = "invalidMail" //invalid mail adress
+  case noSurname = "noSurname" //no noSurname" given
+  case noFirstName = "noFirstName" //no Firstname given
+  case noCity = "noCity" //no City given
+  case employees = "employees" //form not for internal users
+  case unknown          = "unknown"   /// decoded from unknown string
+
+  func errWithMessage(message: String?) -> SubscriptionFormDataError {
+    switch self {
+      case .noMail:
+        return .noMail(message)
+      case .invalidMail:
+        return .invalidMail(message)
+      case .noSurname:
+        return .noSurname(message)
+      case .noFirstName:
+        return .noFirstName(message)
+      case .noCity:
+        return .noCity(message)
+      case .employees:
+        return .employees(message)
+      case .unknown:
+        return .unknown(message)
+    }
+  }
+  
+  
+}
+
+/// Subscription Form Data Error
+enum SubscriptionFormDataError: Error {
+  case noMail(String?)
+  case invalidMail(String?)
+  case noSurname(String?)
+  case noFirstName(String?)
+  case noCity(String?)
+  case employees(String?)
+  case unknown(String?)
+  case unexpectedResponse(String?)
+
+  public var errorDescription: String? { return description }
+  
+  public var associatedValue: String? {
+    switch self {
+      case .noMail(let msg): return msg
+      case .invalidMail(let msg): return msg
+      case .noSurname(let msg): return msg
+      case .noFirstName(let msg): return msg
+      case .noCity(let msg): return msg
+      case .employees(let msg): return msg
+      case .unknown(let msg): return msg
+      case .unexpectedResponse(let msg): return msg
+    }
+  }
+
+} // SubscriptionFormDataError
+
+
 /// A GqlSubscriptionResetInfo describes the result of a subscriptionReset method
 struct GqlSubscriptionResetInfo: GQLObject {  
   /// Subscription reset status
@@ -333,6 +412,81 @@ extension GqlFeeder {
         case .failure(let err):  ret = .failure(err)
       }
       finished(ret)
+    }
+  }
+  
+  // Get current Subscription Infos
+  func customerInfo(closure: @escaping(Result<GqlCustomerInfo,Error>)->()) {
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected"))); return
+    }
+    let request = """
+      customerInfo{\(GqlCustomerInfo.fields)}
+    """
+    gqlSession.query(graphql: request, type: [String:GqlCustomerInfo].self) { (res) in
+      var ret: Result<GqlCustomerInfo,Error>
+      switch res {
+      case .success(let dict):
+        let ai = dict["customerInfo"]!
+        ret = .success(ai)
+      case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
+    }
+  }
+  
+  /// Send contact form data to subscription department
+  func subscriptionFormData(type: SubscriptionFormDataType,
+                            mail: String?,
+                            surname: String?,
+                            firstName: String?,
+                            street: String?,
+                            city: String?,
+                            postcode: String?,
+                            subscriptionId: Int32?,
+                            message: String?,
+                            requestCurrentSubscriptionOpportunities: Bool?,
+                            closure: @escaping(Result<Bool,Error>)->()) {
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected"))); return
+    }
+    
+    var fields:[String] = []
+    
+    fields.append("type: \(type.toString())")
+    
+    if let str = mail {  fields.append("mail: \(str.quote())") }
+    if let str = surname {  fields.append("surname: \(str.quote())") }
+    if let str = firstName {  fields.append("firstName: \(str.quote())") }
+    if let str = street {  fields.append("street: \(str.quote())") }
+    if let str = city {  fields.append("city: \(str.quote())") }
+    if let str = postcode {  fields.append("postcode: \(str.quote())") }
+    if let subscriptionId = subscriptionId {  fields.append("subscriptionId: \(subscriptionId)") }
+    if let str = message {  fields.append("message: \(str.quote())") }
+    if let bool = requestCurrentSubscriptionOpportunities {
+      fields.append("requestCurrentSubscriptionOpportunities: \(bool ? "true" : "false")")
+    }
+    let request = """
+      subscriptionFormData(\(fields.joined(separator: ", ")), \(deviceInfoString)) {
+        \(GqlSubscriptionFormData.fields)
+      }
+    """
+    
+    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionFormData].self) { (res) in
+      var ret: Result<Bool,Error>
+      switch res {
+        case .success(let dict):
+          if let data = dict["subscriptionFormData"],
+              let err = data.error,
+              let msg = data.errorMessage {
+            ret = .failure(err.errWithMessage(message: msg))
+          }
+          else {
+            ret = .success(true)
+          }
+        case .failure(let err):  ret = .failure(err)
+      }
+      closure(ret)
     }
   }
 

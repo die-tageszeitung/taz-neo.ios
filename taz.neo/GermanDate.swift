@@ -42,9 +42,10 @@ public extension Date {
   }
   
   /// German month and year <month> <year>
-  func gMonthYear(tz: String?) -> String {
+  func gMonthYear(tz: String?, isNumeric: Bool = false) -> String {
     let dc = components(tz: tz)
-    return "\(Date.gMonthNames[dc.month!]) \(dc.year!)"
+    return isNumeric ? "\(dc.month!)/\(dc.year!)" :
+      "\(Date.gMonthNames[dc.month!]) \(dc.year!)"
   }
   
   /// German month and year in lowercase letters
@@ -52,10 +53,10 @@ public extension Date {
     return gMonthYear(tz: tz).lowercased()
   }
   
-  var short:String{
+  var shorter:String{
     get{
       let dateFormatterGet = DateFormatter()
-      dateFormatterGet.dateFormat = "dd.MM.yy"
+      dateFormatterGet.dateFormat = "d.M.yy"
       return dateFormatterGet.string(from: self)
     }
   }
@@ -68,20 +69,33 @@ public extension Date {
     }
   }
   
-  var shorter:String{
+  var short:String{
     get{
       let dateFormatterGet = DateFormatter()
       dateFormatterGet.dateFormat = "d.M.yyyy"
       return dateFormatterGet.string(from: self)
     }
   }
+
   
-  var shortest:String{
+  /// Helper to create date strings with given date format
+  /// - Parameter dateFormat: date format to use
+  /// - Returns: string from date with format
+  func stringWith(dateFormat: String) -> String {
+    let dateFormatterGet = DateFormatter()
+    dateFormatterGet.dateFormat = dateFormat
+    return dateFormatterGet.string(from: self)
+  }
+  
+  var dbIssueRepresentation:String{ filename }
+
+  var filename:String{ ISO8601 }
+  
+  var ISO8601:String{
     get{
       let dateFormatterGet = DateFormatter()
-      dateFormatterGet.dateFormat = "d.M.yy"
+      dateFormatterGet.dateFormat = "yyyy-MM-dd"
       return dateFormatterGet.string(from: self)
     }
   }
-  
 }

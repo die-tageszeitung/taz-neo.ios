@@ -80,12 +80,18 @@ public enum SearchRangeOption: String {
   case lastYear = "Letztes Jahr"
   case custom = "Zeitraum festlegen"
   
-  static let allItems : [SearchRangeOption] = [.all, .lastDay, .lastWeek, .lastMonth, .lastYear, .custom]
+  static let allItems : [SearchRangeOption] = {
+  #if LMD
+      return [.all, .lastMonth, .lastYear, .custom]
+  #else
+      return [.all, .lastDay, .lastWeek, .lastMonth, .lastYear, .custom]
+  #endif
+    }()
   
   var textWithDate: String {
     get {
       if self == .all { return "\(self.rawValue)" }
-      return "\(self.rawValue) (\(self.minimumDate?.shortest ?? "") - \(self.maximuDate?.shortest ?? ""))"
+      return "\(self.rawValue) (\(self.minimumDate?.shorter ?? "") - \(self.maximuDate?.shorter ?? ""))"
     }}
     
   var minimumDate: Date? {
@@ -291,13 +297,13 @@ public class SearchItem: DoesLog {
       
       var searchString = ""
       if let txt = settings.text, !txt.isEmpty {
-        searchString += "text: \"\(txt)\","
+        searchString += "text: \(txt.quote()),"
       }
       if let txt = settings.author, !txt.isEmpty {
-        searchString += "author: \"\(txt)\","
+        searchString += "author: \(txt.quote()),"
       }
       if let txt = settings.title, !txt.isEmpty {
-        searchString += "title: \"\(txt)\","
+        searchString += "title: \(txt.quote()),"
       }
       
       
@@ -307,7 +313,8 @@ public class SearchItem: DoesLog {
         offset: \(offset),
         filter: \(settings.filter),
         rowCnt: \(Self.itemsPerFetch),
-        sorting: \(settings.sorting)
+        sorting: \(settings.sorting),
+        \(TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder.deviceInfoString ?? "") 
       \(sessionArg)
       \(fromDateArg)
        \(toDateArg)
@@ -412,36 +419,13 @@ extension GqlFeeder {
       searchItem.searching = false
       switch res {
         case .success(let searchResponseWrapper):
-          #warning("Do not handle unauth error currently!")
-//          if let authError
-//              = self.handleResponseAuthInfo(wasAuthenticated,
-//                                            searchResponseWrapper.search.authInfo){
-//            closure(.failure(authError))
-//            return
-//          }
+          self.checkResponse(authInfo: searchResponseWrapper.search.authInfo,
+                             wasAuthenticated: wasAuthenticated)
           searchItem.lastResponse = searchResponseWrapper
           closure(.success(searchItem))
         case .failure(let err):
           closure(.failure(err))
       }
     }
-  }
-  
-  
-  /// Checks Auth Status
-  /// - Parameters:
-  ///   - wasAuthenticated: Request auth
-  ///   - authStatus: Response AuthStatus
-  /// - Returns: Error if auth expired or changed
-  func handleResponseAuthInfo(_ wasAuthenticated:Bool, _ authInfo: GqlAuthInfo) -> Error? {
-    if wasAuthenticated {
-      if authInfo.status == .expired {
-        return FeederError.expiredAccount(authInfo.message)
-      }
-      else if authInfo.status != .valid {
-        return FeederError.changedAccount(authInfo.message)
-      }
-    }
-    return nil
   }
 }

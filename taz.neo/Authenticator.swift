@@ -82,7 +82,7 @@ public protocol Authenticator: DoesLog {
   /**
    Use this method to delete authentication relevant user data
    */
-  static func deleteUserData(excludeDataPolicyAccepted:Bool, _ properties: StoredProperty...)
+  static func deleteUserData(logoutFromServer: Bool, _ properties: StoredProperty...)
 
 } // Authenticator 
 
@@ -101,6 +101,14 @@ extension Authenticator {
     kc["token"] = token
     kc["id"] = id
     kc["password"] = password
+    TazAppEnvironment.checkcDevMenu()
+    if id.hasSuffix("@taz.de") {
+      kc["tazAccountLogin"] = Date().short
+      TazAppEnvironment.sharedInstance.tazAccountLoginCount += 1
+    }
+    
+    TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
+    Usage.track(Usage.event.user.Login)
   }
   
   public static func getUserData(requestKeychainPassword: Bool = false) -> (id: String?, password: String?, token: String?) {
@@ -111,9 +119,16 @@ extension Authenticator {
     if requestKeychainPassword == false,
        let id = did, id.length > 0,
        let token = dtoken, token.length > 0 {
+      Log.log("INFO :: USE DEFAULTS")
       return (id: id, password: nil, token: token)
     }
-
+    else if requestKeychainPassword == false {
+      Log.log("CANNOT USE DEFAULTS: ID Length:\(did?.length ?? 0) token length: \(dtoken?.length ?? 0)")
+    }
+    ///Probably Error only appears for not Logged In Users
+    ///
+    
+    Log.log("WARNING ACCESS KEYCHAIN :: requestKeychainPassword: \(requestKeychainPassword)")
     let kc = Keychain.singleton
     let kid = kc["id"]
     let ktoken = kc["token"]
@@ -127,19 +142,21 @@ extension Authenticator {
   /// deletes all stored User Data or selected Userdata
   /// - Parameter properties: limit to properties which schould be deleted
   /// e.g. .token, just for current auth Info
-  public static func deleteUserData(excludeDataPolicyAccepted:Bool, _ properties: StoredProperty...){
+  public static func deleteUserData(logoutFromServer: Bool, _ properties: StoredProperty...){
     let dfl = Defaults.singleton
     let kc = Keychain.singleton
     
+    Usage.track(Usage.event.user.Logout)
+    
     if properties.count == 0 {
       kc["token"] = nil
-      kc["id"] = nil
       kc["password"] = nil
-      if excludeDataPolicyAccepted == false {
+      if logoutFromServer == false {
         kc["dataPolicyAccepted"] = nil
+        dfl["id"] = nil
+        kc["id"] = nil
       }
       dfl["token"] = nil
-      dfl["id"] = nil
       return
     }
     

@@ -12,6 +12,15 @@ import NorthLib
 /// The Section view controller managing a collection of Section pages
 open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelegate {
   
+  @Default("tabbarInSection")
+  var tabbarInSection: Bool
+  
+  open var sectionPath:[String]? {
+    guard let section = section,
+          let sectFileName = section.html?.name else { return nil}
+    return ["issue", self.feederContext.feedName, self.issue.date.ISO8601, "section", sectFileName]
+  }
+  
   private var articleVC: ArticleVC?
   private var lastIndex: Int?
   public var sections: [Section] = []
@@ -25,7 +34,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     didSet {
       guard let art = article else { return }
       let secIndex = article2index(art: art)
-      if let lidx = lastIndex, secIndex != lidx {
+      if secIndex != lastIndex {
         displaySection(index: secIndex)
       }
       lastIndex = secIndex
@@ -40,9 +49,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   public override var delegate: IssueInfo! {
     didSet { if oldValue == nil { self.setup() } }
   }
-  
-  /// Perform slider animations?
-  static var showAnimations = true
 
   /// Is top VC
   public var isVisibleVC: Bool {
@@ -57,24 +63,46 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
         "\(self.index?.description ?? "[undefined]")" )
       if let curr = currentWebView { curr.scrollToTop() }
       self.index = index
-    }    
+    }
   }
   
-  private func showArticle(url: URL? = nil, index: Int? = nil) {
+  func showArticle(_ article: Article, animated: Bool = true) {
+    guard let i = article.index else { return }
+    showArticle(index: i, animated: animated)
+  }
+  
+  private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true) {
     if let avc = articleVC {
       if let url = url { avc.gotoUrl(url: url) }
       else if let index = index { avc.index = index }
       if let nvc = navigationController {
         if avc != nvc.topViewController {
+          avc.view.doLayout()
           avc.writeTazApiCss()
-          nvc.pushViewController(avc, animated: true)
+          avc.toolBar.show(show:true, animated: false)
+          avc.header.show(show: true, animated: false)
+          nvc.pushViewController(avc, animated: animated)
         }
       }
     }
   }
   
+  func sectionIfAudio(atIndex: Int?) -> Section?{
+    if let idx = atIndex,
+       let section = contents.valueAt(idx) as? Section,
+       section.type == .podcast,
+       section.audioItem != nil {
+      return section
+    }
+    return nil
+  }
+  
   public func linkPressed(from: URL?, to: URL?) {
     guard let to = to else { return }
+    if let section = sectionIfAudio(atIndex: index) {
+      ArticlePlayer.singleton.play(sectionAudio: section)
+      return
+    }
     let fn = to.lastPathComponent
     let top = navigationController?.topViewController
     debug("*** Action: Link pressed from: \(from?.lastPathComponent ?? "[undefined]") to: \(fn)")
@@ -85,7 +113,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       }    
       else {
         for s in self.sections {
-          if fn == s.html.name { 
+          if fn == s.html?.name {
             self.gotoUrl(url: to) 
             if top == articleVC {
               navigationController?.popViewController(animated: true)
@@ -115,17 +143,26 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
           error("No application or no permission for: \(to.absoluteString)")
         }
       }
-
     }
   }
   
   public func closeIssue() {
     self.navigationController?.popViewController(animated: false)
+    self.articleVC?.releaseOnDisappear()
+    self.releaseOnDisappear()
   }
   
-  override func relaese(){
-    super.relaese()
-    articleVC?.relaese()
+  func updatePlayButton(){
+    if let section = sectionIfAudio(atIndex: index) {
+      self.playButton.isHidden = false
+      self.onPlay { _ in
+        section.toggleAudio()
+      }
+    }
+    else {
+      self.playButton.isHidden = true
+      self.onPlay(closure: nil)
+    }
   }
   
   func setup() {
@@ -136,26 +173,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
-    contentTable?.onSectionPress { [weak self] sectionIndex in
+    onDisplay { [weak self] (secIndex, _, isFromScroll) in
       guard let self = self else { return }
-      if sectionIndex < self.sections.count {
-        self.debug("*** Action: Section \(sectionIndex) (\(self.sections[sectionIndex])) in Slider pressed")
-      }
-      else {
-        self.debug("*** Action: \"Impressum\" in Slider pressed")
-      }
-      self.slider?.close()
-      self.displaySection(index: sectionIndex)
-    }
-    contentTable?.onImagePress { [weak self] in
-      self?.debug("*** Action: Moment in Slider pressed")
-      self?.slider?.close()
-      self?.closeIssue()
-    }
-    onDisplay { [weak self] (secIndex, oview) in
-      guard let self = self else { return }
+      self.contentTable?.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex)")
+      if isFromScroll {
+        deactivateCoachmark(Coachmarks.Section.swipe)
+      }
       self.setHeader(secIndex: secIndex)
+      self.updatePlayButton()
       if self.isVisibleVC { 
         self.issue.lastSection = self.index
         self.issue.lastArticle = nil 
@@ -173,13 +199,18 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
           so this is currently the most effective solution
        **/
       if UIApplication.shared.applicationState != .active { return }
+      if self?.navigationController?.topViewController != self {
+        self?.log("WARNING :: Prevent double tap on open issue to schow article and then pop to section")
+        return
+      }
       self?.linkPressed(from: from, to: to)
     }
-    Notification.receive("BookmarkChanged") { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       if let art = msg.sender as? StoredArticle {
+        guard let name = art.html?.name.nonPublic() else { return }
         let js = """
           if (typeof tazApi.onBookmarkChange === "function") {
-            tazApi.onBookmarkChange("\(art.html.name)", \(art.hasBookmark));
+            tazApi.onBookmarkChange("\(name)", \(art.hasBookmark));
           }
         """
         Task { [weak self] in
@@ -187,6 +218,25 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
         }
       }
     }
+    Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+      guard let nIssue = notif.content as? Issue else { return }
+      guard self?.delegate != nil && self?.delegate.issue != nil else { return }
+      guard nIssue.date.issueKey == self?.issue.date.issueKey else { return }
+      if nIssue.sections?.count == self?.issue.sections?.count
+      && nIssue.allArticles.count == self?.issue.allArticles.count { return }
+      self?.setup()
+    }
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+      self?.updateAudioButton()
+    }
+  }
+  
+  func updateAudioButton(){
+    self.playButton.buttonView.name
+    = ArticlePlayer.singleton.isPlaying
+    && ArticlePlayer.singleton.currentContent?.html?.sha256 == self.sectionIfAudio(atIndex: index)?.html?.sha256
+    ? "audio-active"
+    : "audio"
   }
   
   /// Delete Article from ArticleVC
@@ -204,27 +254,45 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   // Return nearest section index containing given Article
-  func article2index(art: Article) -> Int {
-    if let sects = article2sectionHtml[art.html.fileName] {
-      if let s = section, sects.contains(s.html.fileName) { return index! }
+  public func article2index(art: Article) -> Int {
+    if let fileName = art.html?.fileName,
+        let sects = article2sectionHtml[fileName] {
+      if let s = section, let fn = s.html?.fileName, sects.contains(fn) { return index! }
       else {
         let fn = sects[0]
         for i in 0 ..< sections.count {
-          if fn == sections[i].html.fileName { return i }
+          if fn == sections[i].html?.fileName { return i }
         }
       }
     }
     return 0
   }
     
-  // Define Header elements
+  // Define Header elements including menu slider
   func setHeader(secIndex: Int) {
-    header.title = contents[secIndex].title ?? ""
+    let content = contents.valueAt(secIndex)
+    
+    if let section = content as? Section {
+      ///@Refactor: Thread 1: Fatal error: Unexpectedly found nil while unwrapping an Optional value
+      ///StoredSection.type.getter
+      ///Particular Download? => STOP?=> Account unexpired => Tap on Issue => Crash
+      self.slider?.collapsedButton = section.type == .advertisement
+      
+      if section.type == .advertisement {
+        header.title = section.title ?? ""
+        header.show(show: false, animated: true)
+        toolBar.show(show:false, animated: true)
+        return
+      }
+    }
+    
+    header.title = content?.title ?? ""
     if !isStaticHeader {
-      header.subTitle = issue.date.gLowerDate(tz: feeder.timeZone)
+      header.subTitle = issue.validityDateText(timeZone: feeder.timeZone)
       header.titletype = index == 0 ? .section0 : .section
     }
-    header.showAnimated()
+    header.show(show: true, animated: true)
+    toolBar.show(show:true, animated: true)
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -232,33 +300,92 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     articleVC?.invalidateLayoutNeededOnViewWillAppear = true
   }
   
+  public override func setupSlider() {
+    super.setupSlider()
+    contentTable?.onArticlePress{[weak self] article in
+      guard let self = self else { return }
+      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+      self.linkPressed(from: nil, to: url)
+      self.slider?.close()
+      self.articleVC?.slider?.close()
+    }
+    contentTable?.onSectionPress { [weak self] sectionIndex in
+      guard let self = self else { return }
+      if sectionIndex < self.sections.count {
+        self.debug("*** Action: Section \(sectionIndex) (\(self.sections[sectionIndex])) in Slider pressed")
+      }
+      else {
+        self.debug("*** Action: \"Impressum\" in Slider pressed")
+      }
+      self.slider?.close()
+      self.articleVC?.slider?.close()
+      self.articleVC?.navigationController?.popViewController(animated: true)
+      self.displaySection(index: sectionIndex)
+    }
+    contentTable?.onImagePress { [weak self] in
+      self?.debug("*** Action: Moment in Slider pressed")
+      self?.slider?.close()
+      self?.closeIssue()
+    }
+  }
   
   override public func viewDidLoad() {
     super.viewDidLoad()
+    if !(self is BookmarkSectionVC){
+      contentTable = NewContentTableVC()
+    }
+    self.showImageGallery = false
     self.index = initialSection ?? 0
+    
+    scrollViewDidScroll{[weak self] offset in
+      self?.header.scrollViewDidScroll(offset)
+    }
+    
+    scrollViewDidEndDragging{[weak self] offset in
+      self?.header.scrollViewDidEndDragging(offset)
+    }
+    
+    scrollViewWillBeginDragging{[weak self] offset in
+      self?.header.scrollViewWillBeginDragging(offset)
+    }
+    Rating.issueOpened()
+  }
+  
+  fileprivate var doPreventCoachmark = false
+  
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    if let iart = initialArticle {
+      doPreventCoachmark = true
+      articleVC?.view.doLayout()
+      self.showArticle(index: iart, animated: false)
+      initialArticle = nil
+      self.header.isHidden = true
+      self.collectionView?.isHidden = true
+    }
   }
   
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    if let iart = initialArticle {
-      delay(seconds: 1.0) { [weak self] in
-        self?.showArticle(index: iart)
-      }
-      initialArticle = nil
-      SectionVC.showAnimations = false
-    }
-    if SectionVC.showAnimations && issue.sections?.count ?? 0 > 1 {
-      SectionVC.showAnimations = false
-      delay(seconds: 1.5) {
-        self.slider?.open() { _ in
-          delay(seconds: 1.5) {
-            self.slider?.close() { _ in
-              self.slider?.blinkButton()
-            }
-          }
-        }
-      }
-    }
+    self.header.isHidden = false
+    self.collectionView?.isHidden = false
+    showCoachmarkIfNeeded()
+  }
+  
+  public override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    doPreventCoachmark = false
+  }
+  
+  open override func didMove(toParent parent: UIViewController?) {
+    super.didMove(toParent: parent)
+    if parent == nil { releaseOnDisappear() }
+  }
+  ///Declaration 'releaseOnDisappear()' cannot override more than one superclass declaration
+  open override func releaseOnDisappear() {
+    articleVC?.releaseOnDisappear()
+    articleVC = nil
+    super.releaseOnDisappear()
   }
    
   /// Initialize with FeederContext
@@ -270,6 +397,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     let sec: String = (atSection == nil) ? "nil" : "\(atSection!)"
     let art: String = (atArticle == nil) ? "nil" : "\(atArticle!)"
     debug("new SectionVC: section=\(sec), article=\(art)")
+    if tabbarInSection {
+      toolBar.isHidden = true
+      hidesBottomBarWhenPushed = false
+    }
   }
   
   required public init?(coder: NSCoder) {
@@ -284,4 +415,27 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
 
 } // SectionVC
 
-
+extension SectionVC: CoachmarkVC {
+  public var viewName: String { Coachmarks.Section.typeName }
+  
+  public var preventCoachmark: Bool { return doPreventCoachmark }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    if let item = item as? Coachmarks.Section {
+      switch item {
+        case .slider:
+          return slider?.button
+        case .swipe:
+          return currentView as? UIView
+      }
+    }
+    return nil
+  }
+  
+  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
+    guard index ?? 0 > 0,
+          let item = item as? Coachmarks.Section,
+          item == .swipe else { return nil }
+    return (UIImage(named: "cm-swipe")?.withRenderingMode(.alwaysOriginal), [], []) as? (UIImage, [UIView], [CGPoint]) ?? nil
+  }
+}
