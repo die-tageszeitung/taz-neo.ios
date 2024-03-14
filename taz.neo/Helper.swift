@@ -46,7 +46,25 @@ extension Defaults{
   
   struct articleTextSize {
     @Default("articleTextSize")
-    static var articleTextSize: Int
+    static var articleTextSize: Int {
+      didSet {
+        print("articleTextSize changed to: \(articleTextSize)")
+        calculateMinColumnWidth()
+      }
+    }
+    
+    static let lbl = UILabel()
+    
+    static func calculateMinColumnWidth() {
+      print("calculateMinColumnWidth")
+      /// 49 Char Blindtext to determine the column width minimal complexity
+      onMain {
+        lbl.numberOfLines = 0
+        lbl.text = "die Tageszeitung, Politik, Zukunft, Gesellschaft"
+        lbl.doLayout()
+        print("label width for \(lbl.text?.count ?? 0) is: \(lbl.width)")
+      }
+    }
     
     @discardableResult
     static func increase() -> Int { if articleTextSize < 200 { articleTextSize += 10 }
@@ -71,6 +89,20 @@ extension Defaults{
     }
     set {
       Defaults.singleton["usageTrackingAllowed"] = newValue?.stringRepresentation
+    }
+  }
+  
+  static var calculatedColumnWidth : Int? {
+    get {
+      return Defaults.singleton["calculatedColumnWidth"]?.int
+    }
+    set {
+      if let new = newValue {
+        Defaults.singleton["calculatedColumnWidth"] = "\(new)"
+      }
+      else {
+        Defaults.singleton["calculatedColumnWidth"] = nil
+      }
     }
   }
 }

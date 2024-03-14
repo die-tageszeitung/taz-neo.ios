@@ -108,6 +108,9 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   @Key("usageTrackingAcceptanceTesting")
   fileprivate var usageTrackingAcceptanceTesting: Bool
   
+  @Default("articleTextSize")
+  private var articleTextSize: Int
+  
   public private(set) var isErrorReporting = false
   private var isForeground = false
   
@@ -125,6 +128,20 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     setup()
     copyDemoContent()
     registerForStyleUpdates()
+    $articleTextSize.onChange{ newVal in
+      onMain {
+        let lbl = UILabel()
+        lbl.numberOfLines = 0
+        /// 49 Char Blindtext to determine the column width minimal complexity
+        lbl.text = "die Tageszeitung, Politik, Zukunft, Gesellschaft"
+        let resultingFontSize: CGFloat
+        = Const.Size.DefaultFontSize * CGFloat(newVal) / 100.0
+        lbl.font = Const.Fonts.contentFont(size: resultingFontSize)
+        let fit = lbl.sizeThatFits(CGSize(width: 10000, height: 200))
+        print("for size: \(newVal) min column width is: \(Int(fit.width))px")
+        Defaults.calculatedColumnWidth = Int(fit.width)
+      }
+    }
   }
   
   func copyDemoContent(){

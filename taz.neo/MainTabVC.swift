@@ -46,6 +46,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       self?.selectedIndex = 2
       searchCtrl.searchFor(searchString: searchString)
     }
+
+    Notification.receive(Const.NotificationNames.gotoSettings) { [weak self] notif in
+      self?.selectedIndex = 3
+    }
     
     Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in
       self?.selectedIndex = 0
