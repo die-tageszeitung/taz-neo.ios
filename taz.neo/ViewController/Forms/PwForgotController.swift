@@ -4,7 +4,7 @@
 //
 // Created by Ringo Müller-Gromes on 22.07.20.
 // Copyright © 2020 Ringo Müller-Gromes for "taz" digital newspaper. All rights reserved.
-// 
+//
 
 import UIKit
 import MessageUI
@@ -128,18 +128,21 @@ class PwForgottController: FormsController {
 }
 
 // MARK: - PasswordResetRequestedSuccessController
-class PasswordResetRequestedSuccessController: FormsResultController {
+class PasswordResetRequestedSuccessController: MailFormController {
   init(){
     super.init(nibName: nil, bundle: nil)
     self.dismissType = .two
+    let mailLabel = Padded.Label(title: Localized("digiabo_email"))
+    mailLabel.onTapping { [weak self] _ in self?.handleMail(mailLabel)}
+    mailLabel.contentFont().textColor = Const.Colors.ciColor
+    
     ui.views =  [
-      Padded.Label(title: Localized("login_forgot_password_email_sent_header"),
-              paddingTop: 30,
-              paddingBottom: 30
-      ),
+      Padded.Label(title: Localized("forgot_password_email_sent_top")),
       Padded.Button(title: Localized("login_forgot_password_email_sent_back"),
-               target: self, action: #selector(handleBack)),
-      
+                    target: self,
+                    action: #selector(handleBack)),
+      Padded.Label(title: Localized("forgot_password_email_sent_bottom")),
+      mailLabel
     ]
   }
   
@@ -155,46 +158,14 @@ class PasswordResetRequestedSuccessController: FormsResultController {
   }
 }
 
-// MARK: - SubscriptionResetSuccessController
-class SubscriptionResetSuccessController: FormsResultController, MFMailComposeViewControllerDelegate {
-  
-  init(){
-    super.init(nibName: nil, bundle: nil)
-    self.dismissType = .two
-    ui.views =   [
-      Padded.Label(title: Localized("login_forgot_password_email_sent_header")
-      ),
-      Padded.Label(title: Localized("subscription_reset_found_link")
-      ),
-      Padded.Button(title: Localized("login_forgot_password_email_sent_back"),
-               target: self, action: #selector(handleBack)),
-      Padded.Label(title: Localized("login_subscription_taken_body")
-      ),
-      Padded.Button(type: .label, title: Localized("digiabo_email"),
-               target: self, action: #selector(handleMail)),
-      Padded.Button(type: .outline ,title: Localized("cancel_button"),
-               target: self, action: #selector(handleBack))
-    ]
-  }
-  
-  required init?(coder: NSCoder) { super.init(coder: coder)}
-  
-  // MARK: handleBack Action
-  @IBAction override func handleBack(_ sender: UIButton?) {
-    if let pwForgottCtrl = self.presentingViewController as? PwForgottController,
-      let loginCtrl = self.presentingViewController?.presentingViewController as? LoginController{
-      loginCtrl.ui.idInput.text = pwForgottCtrl.ui.idInput.text
-    }
-    super.handleBack(sender)
-  }
-  
+class MailFormController: FormsResultController, MFMailComposeViewControllerDelegate {
   // MARK: handleMail Action
-  @IBAction func handleMail(_ sender: UIButton) {
+  func handleMail(_ sender: UIView) {
     if MFMailComposeViewController.canSendMail() == false {
-      if sender.isEnabled == false { return }
-      sender.isEnabled = false
+      if sender.isUserInteractionEnabled == false { return }
+      sender.isUserInteractionEnabled = false
       Alert.message(title: Localized("no_mail_title"), message: Localized("no_mail_text"), closure: {
-        sender.isEnabled = true
+        sender.isUserInteractionEnabled = true
       })
       return
     }
@@ -214,5 +185,38 @@ class SubscriptionResetSuccessController: FormsResultController, MFMailComposeVi
   // MARK: Mail Dismiss
   func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
     controller.dismiss(animated: true)
+  }
+}
+
+// MARK: - SubscriptionResetSuccessController
+class SubscriptionResetSuccessController: MailFormController {
+  
+  init(){
+    super.init(nibName: nil, bundle: nil)
+    self.dismissType = .two
+    
+    let mailLabel = Padded.Label(title: Localized("digiabo_email"))
+    mailLabel.onTapping { [weak self] _ in self?.handleMail(mailLabel)}
+    mailLabel.contentFont().textColor = Const.Colors.ciColor
+    
+    ui.views =  [
+      Padded.Label(title: Localized("forgot_password_aboid_sent_top")),
+      Padded.Button(title: Localized("login_forgot_password_email_sent_back"),
+                    target: self,
+                    action: #selector(handleBack)),
+      Padded.Label(title: Localized("forgot_password_aboid_sent_bottom")),
+      mailLabel
+    ]
+  }
+  
+  required init?(coder: NSCoder) { super.init(coder: coder)}
+  
+  // MARK: handleBack Action
+  @IBAction override func handleBack(_ sender: UIButton?) {
+    if let pwForgottCtrl = self.presentingViewController as? PwForgottController,
+      let loginCtrl = self.presentingViewController?.presentingViewController as? LoginController{
+      loginCtrl.ui.idInput.text = pwForgottCtrl.ui.idInput.text
+    }
+    super.handleBack(sender)
   }
 }
