@@ -984,6 +984,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     }
     #endif
     super.setupSlider()
+    applyStyles()
   }
   
   override func setHeader(artIndex: Int) {
