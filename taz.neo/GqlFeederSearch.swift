@@ -229,8 +229,9 @@ public class SearchItem: DoesLog {
         self.log("No Data Added!")
       }
       saveArticles(hits: lastResponse?.search.searchHitList)
-      noMoreSearchResults = (lastResponse?.search.searchHitList?.count ?? 0) == 0
-      sessionId = lastResponse?.search.sessionId
+      noMoreSearchResults 
+      = (lastResponse?.search.searchHitList?.count ?? 0) == 0
+      || (lastResponse?.search.searchHitList?.count ?? 0) == lastResponse?.search.total
     }
   }
   
