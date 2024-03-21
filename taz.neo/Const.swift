@@ -421,11 +421,12 @@ public struct Const {
 //    static var titleFontName: String? = UIFont.register(name: "AktivGrotesk_W_Bd", type: "woff", subDir: "files")
 //    static var contentFontName: String? = UIFont.register(name: "AktivGrotesk_W_Rg", type: "woff", subDir: "files")
     ///**SIMPLE SOLUTION FOR THE MOMENT** Use old way!
-    static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
     #if LMD
     static var contentFontName: String? = lmdBenton
+    static var titleFontName: String? = lmdBentonBold
     #else
     static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
+    static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
     #endif
     
     static var contentTableFontName = titleFontName
