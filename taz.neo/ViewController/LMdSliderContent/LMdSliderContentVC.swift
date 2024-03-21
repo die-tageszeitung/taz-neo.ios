@@ -48,7 +48,7 @@ class LMdSliderContentVC: UIViewController {
   var dataSource: LMdSliderDataModel? {
     didSet {
       collectionView.reloadData()
-      header.issueLabel.text = dataSource?.issue.date.stringWith(dateFormat: "MMMM YYYY")
+      header.issueLabel.text = dataSource?.issue.date.stringWith(dateFormat: "MMMM YYYY").prepend(" ")
     }
   }
 

@@ -14,10 +14,10 @@ class LMdSliderHeader: UIView {
   let imageView = UIImageView()
   let pageLabel = UILabel()
   let bottomBorder = UIView()
-  let contentLabel = UILabel("Inhalt - ",
+  let contentLabel = UILabel("Inhalt –",
                              _numberOfLines: 1,
                              align: .left) 
-  let issueLabel = UILabel("Ausgabe",
+  let issueLabel = UILabel(" Ausgabe",
                              _numberOfLines: 1,
                              align: .right)
   
