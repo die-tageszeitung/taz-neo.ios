@@ -38,6 +38,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
       ///authors & readingDuration
       var autors = article?.authors() ?? ""
       if autors.length > 0 {
+        autors = autors.prepend("von ")
         autors.append("  ")
       }
 

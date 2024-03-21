@@ -105,7 +105,7 @@ public class BookmarkFeed: Feed, DoesLog {
           if i != n { ret += ", " }
         }
       }
-      ret = "<address>\(ret.xmlEscaped())</address>&ensp;"
+      ret = "<address>\(ret.authorsFormated)</address>&ensp;"
     }
     if let duration = art.readingDuration {
       ret += "<time>\(duration) min</time>"
@@ -376,3 +376,12 @@ extension File {
   }
 }
 
+fileprivate extension String {
+  var authorsFormated: String {
+    #if LMD
+    return self.length > 0 ? self.xmlEscaped().prepend("von ") : ""
+    #else
+    return self.xmlEscaped()
+    #endif
+  }
+}
