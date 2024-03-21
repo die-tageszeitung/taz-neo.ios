@@ -1377,7 +1377,6 @@ class SectionHeader: UIView {
 }
 
 class SettingsHeaderView: HeaderView {
-  public override var sidePadding: CGFloat { get { return 15.9 }} 
 }
 
 extension String {

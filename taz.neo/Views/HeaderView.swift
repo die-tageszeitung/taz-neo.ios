@@ -41,7 +41,7 @@ open class HeaderView: UIView,  Touchable {
         case .bigLeft:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = true
-          titleLeftConstraint?.constant = 3.0
+          titleLeftConstraint?.constant = -2.0
           titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           titleLabel.textAlignment = .left

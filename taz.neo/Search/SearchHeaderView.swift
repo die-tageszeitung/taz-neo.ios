@@ -11,18 +11,21 @@ import UIKit
 
 class SearchHeaderView: UIView {
   // MARK: *** Properties ***
-  let cancelButtonRightOffsetVisible = 0.0
+  let cancelButtonRightOffsetVisible = -7.0
   let cancelButtonRightOffsetHidden = 90.0
   
   var topConstraint: NSLayoutConstraint?
   var cancelButtonRightConstraint: NSLayoutConstraint?
-  var statusLabelTopConstraint: NSLayoutConstraint?
   
   var statusLabelChanging = false
   
   var statusLabelSetColor: Const.SetColor?
   
   var filterActive:Bool = false { didSet {
+    extendedSearchButton.image 
+    = filterActive
+    ? UIImage(named: "filter-active")
+    : UIImage(named: "filter")
     extendedSearchButton.tintColor
     = filterActive
     ? Const.SetColor.ios(.tintColor).color
@@ -103,9 +106,9 @@ class SearchHeaderView: UIView {
     pin(statusLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(statusLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
     pin(searchTextField.left, to: self.left, dist: Const.Size.DefaultPadding)
-    pin(extendedSearchButton.left, to: searchTextField.right, dist: 8)
-    pin(cancelButton.left, to: extendedSearchButton.right, dist: 8)
+    pin(cancelButton.left, to: searchTextField.right, dist: 8)
     cancelButtonRightConstraint = pin(cancelButton.right, to: self.right, dist: cancelButtonRightOffsetHidden)
+    pin(extendedSearchButton.right, to: self.right, dist: -Const.Size.DefaultPadding)
     
     //miniHeaderLabel under Search Textfield
     pin(miniHeaderLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
@@ -113,16 +116,16 @@ class SearchHeaderView: UIView {
 
     //From top to bottom
     pin(searchTextField.top, to: self.topGuide(), dist: 2)
-    statusLabelTopConstraint = pin(statusLabel.top, to: searchTextField.bottom, dist: 12)
-    pin(statusLabel.bottom, to: self.bottom, dist: -8)
+    pin(statusLabel.centerY, to: extendedSearchButton.centerY)
+    
+    pin(extendedSearchButton.bottom, to: self.bottom, dist: -10)
     
     //in horizontal line with textField
     pin(miniHeaderLabel.centerY, to: searchTextField.centerY)
-    pin(extendedSearchButton.centerY, to: searchTextField.centerY)
+    pin(extendedSearchButton.top, to: searchTextField.bottom, dist: Const.Size.DefaultPadding)
     pin(cancelButton.centerY, to: searchTextField.centerY)
 
     self.addBorder(.opaqueSeparator, 0.5, only: .bottom)
-    setStatusLabelTopConstraint()
   }
   
   override func layoutSubviews() {
@@ -207,18 +210,10 @@ extension SearchHeaderView {
       self?.topConstraint?.constant = -targetOffset/2
       self?.cancelButtonRightConstraint?.constant
       = (self?.cancelButtonRightOffsetHidden ?? 0)*ratio // maxi 0...90 mini
-      self?.setStatusLabelTopConstraint(ratio)
     }
     animate
     ?  UIView.animate(seconds: 0.3) {  handler(); self.superview?.layoutIfNeeded() }
     : handler()
-  }
-  
-  func setStatusLabelTopConstraint(_ ratio: CGFloat? = nil){
-    let ratio = ratio ?? 1 - searchTextField.alpha
-    let offset = statusLabel.text?.isEmpty == true ? -10.0 : 0.0
-    self.statusLabelTopConstraint?.constant
-    = 12 - 22*ratio - offset // maxi 12...-3 mini
   }
   
   func checkCancelButton(){

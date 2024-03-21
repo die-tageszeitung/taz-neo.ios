@@ -9,7 +9,7 @@
 import NorthLib
 import UIKit
 
-class SearchSettingsView: UITableView {
+class SearchSettingsView: UITableView, UIStyleChangeDelegate {
   
   // MARK: *** Closures ***
   var propertyChanged: (()->())?
@@ -46,21 +46,22 @@ class SearchSettingsView: UITableView {
   
   lazy var searchButton: UIButton = {
     let btn = UIButton()
-    btn.pinHeight(TazTextField.recomendedHeight)
+    btn.pinHeight(Const.Size.ButtonHeight)
     btn.titleLabel?.font = Const.Fonts.boldContentFont
-    btn.layer.cornerRadius = TazTextField.recomendedHeight/2
-    btn.backgroundColor = Const.SetColor.CIColor.color
-    btn.setTitleColor(UIColor.white, for: .normal)
+    btn.layer.cornerRadius = Const.Size.ButtonHeight * 0.5
+    #if LMD
+    btn.setTitle("Suche starten", for: .normal)
+    #else
     btn.setTitle("Suchen", for: .normal)
+    #endif
     return btn
   }()
   
   lazy var helpButton: UILabel = {
     let lbl = UILabel()
     lbl.text = "Hilfe"
-    lbl.contentFont(size: Const.Size.MiniPageNumberFontSize)
-    lbl.textColor = .gray
-    lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
+    lbl.contentFont(size: Const.Size.SmallerFontSize)
+    lbl.textColor = Const.SetColor.ios(.link).color
     return lbl
   }()
   
@@ -76,7 +77,7 @@ class SearchSettingsView: UITableView {
     pin(helpButton.top, to: searchButton.bottom, dist: Const.Size.DefaultPadding)
     pin(helpButton.left, to: v.left, dist: Const.Size.DefaultPadding)
     //No need to close Autolayout due Footer needs Fix Frame foe easier use
-    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+40)
+    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+68)
     v.backgroundColor = Const.SetColor.ios(.systemBackground).color
     return v
   }()
@@ -111,6 +112,11 @@ class SearchSettingsView: UITableView {
       self?.bottomConstraint?.constant = -h
       self?.superview?.layoutIfNeeded()
     }
+  }
+  
+  func applyStyles() {
+    searchButton.backgroundColor = Const.SetColor.PrimaryButton.color
+    searchButton.setTitleColor(Const.SetColor.HBackground.color, for: .normal)
   }
   
   func restoreInitialState(){
@@ -197,6 +203,8 @@ class SearchSettingsView: UITableView {
       self._data.update()
       self.reloadAnimatedIfNeeded(oldContent: oldContent)
     }
+    registerForStyleUpdates()
+    applyStyles()
   }
 
   // MARK: *** Lifecycle ***
@@ -300,7 +308,7 @@ class TextInputCell: TazCell {
     self.textField.defaultStyle(placeholder: self.textField.attributedPlaceholder?.string, cornerRadius: 0)
     self.textField.textColor = Const.SetColor.ios(.label).color
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
-    textField.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
+    textField.backgroundColor =  Const.SetColor.taz(.textFieldBackground).color
   }
 }
 
@@ -443,12 +451,12 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
     didSet {
       if oldValue == collapsed { return }
       UIView.animateKeyframes(withDuration: 0.5, delay: 0.0, animations: {
-        UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.5) { [weak self] in
+        UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.49) { [weak self] in
           guard let self = self else { return }
           self.chevron.transform = CGAffineTransform(rotationAngle: 0)
         }
         
-        UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5) { [weak self] in
+        UIView.addKeyframe(withRelativeStartTime: 0.51, relativeDuration: 0.48) { [weak self] in
           self?.rotateChevron()
         }
       })
@@ -639,8 +647,7 @@ class TData {
   var expandedSection: Int? {
     didSet {
       headerViews.enumerated().forEach( { (index,view) in
-        //index 0 is header of section 1!
-        view.collapsed = index != (expandedSection ?? 0) - 1
+        view.collapsed = index != (expandedSection ?? -1)
       } )
     }
   }
@@ -769,9 +776,9 @@ class TData {
     ///Title no more used!!
     #if LMD
     content = [
-      ("erweiterte suche", [titleInpulCell, authorInpulCell]),
-      ("zeitraum", expandedSection == 1 ? rangeCells : [rangeMoreCell]),
-      ("sortierung", expandedSection == 2 ? sortingCells : [sortingMoreCell])
+      ("Erweiterte suche", [titleInpulCell, authorInpulCell]),
+      ("Zeitraum", expandedSection == 1 ? rangeCells : [rangeMoreCell]),
+      ("Sortierung", expandedSection == 2 ? sortingCells : [sortingMoreCell])
     ]
     #else
     content = [
@@ -796,12 +803,12 @@ class TData {
       }
       header.onTapping { [weak self] _ in
         guard let self = self else { return }
-        self.expandedSection
+        header.collapsed = !header.collapsed
+        self.expandedSection 
         = self.expandedSection == section
         ? nil
         : section
         self.reloadTable?()
-        header.collapsed = self.expandedSection != section
       }
       header.addBorderView(Const.SetColor.ios(.separator).color,
                                 0.7,
