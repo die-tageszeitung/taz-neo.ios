@@ -70,9 +70,12 @@ class SearchController: UIViewController {
           centralActivityIndicator.isHidden = false
           centralActivityIndicator.stopAnimating()
           resultsTable.isHidden = false
+          onMainAfter(0.7){[weak self] in
+            self?.resultsTable.isHidden = false
+          }
         case .emptyResult:
           centralActivityIndicator.isHidden = true
-          onMainAfter(1.0){[weak self] in
+          onMainAfter(0.7){[weak self] in
             self?.placeholderView.showAnimated()
           }
           resultsTable.hideAnimated()
