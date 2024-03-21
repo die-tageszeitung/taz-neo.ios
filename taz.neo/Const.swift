@@ -212,6 +212,7 @@ public struct Const {
     case HText
     case Test
     case CIColor
+    case PrimaryButton
     case ios_opaque(iOS_Opaque)
     enum iOS_Opaque {
       case closeXcircleBackground
@@ -299,6 +300,12 @@ public struct Const {
         case .CIColor:
           #if LMD
           return (Const.Colors.LMd.ci,nil,nil,nil)
+          #else
+          return (Const.Colors.ciColor,nil,nil,nil)
+          #endif
+        case .PrimaryButton:
+          #if LMD
+          return (.black,.white,nil,nil)
           #else
           return (Const.Colors.ciColor,nil,nil,nil)
           #endif
@@ -415,7 +422,11 @@ public struct Const {
 //    static var contentFontName: String? = UIFont.register(name: "AktivGrotesk_W_Rg", type: "woff", subDir: "files")
     ///**SIMPLE SOLUTION FOR THE MOMENT** Use old way!
     static var titleFontName: String? = UIFont.register(name: "Aktiv Grotesk Bold")
+    #if LMD
+    static var contentFontName: String? = lmdBenton
+    #else
     static var contentFontName: String? = UIFont.register(name: "Aktiv Grotesk")
+    #endif
     
     static var contentTableFontName = titleFontName
     static var contentTextFont = quaTextRegular
@@ -464,6 +475,12 @@ public struct Const {
     static let TinyPadding = CGFloat(5.0)
     static let ContentTableFontSize = CGFloat(22.0)
     static let ContentTableRowHeight = CGFloat(30.0)
+    #if LMD
+    static let ButtonHeight = CGFloat(45.0)
+    #else
+    static let ButtonHeight = CGFloat(34.0)
+    #endif
+    
     
     static let ContentSliderMaxWidth = 420.0
     struct LMd {
