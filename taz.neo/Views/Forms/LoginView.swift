@@ -11,7 +11,7 @@ import NorthLib
 import WebKit
 
 public class LoginView : FormView{
-  var idInput = TazTextField(placeholder: Localized("login_username_hint"),
+  var idInput = TazTextField(placeholder: App.isTAZ ? Localized("login_username_hint") : "Abo-ID",
                              textContentType: .emailAddress,
                              enablesReturnKeyAutomatically: true,
                              keyboardType: .emailAddress,
