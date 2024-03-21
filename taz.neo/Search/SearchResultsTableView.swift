@@ -231,7 +231,7 @@ class SearchResultsCell: UITableViewCell {
     pin(dateLabel.left, to: cellView.left)
     pin(dateLabel.right, to: cellView.right)
     
-    pin(titleLabel.top, to: cellView.top, dist: 15)
+    pin(titleLabel.top, to: cellView.top, dist: App.isTAZ ? 15.0 : 6.0)
     pin(authorLabel.top, to: titleLabel.bottom, dist: App.isTAZ ? 8.0 : 5.0)
     pin(contentLabel.top, to: authorLabel.bottom, dist: App.isTAZ ? 8.0 : 8.0)
     pin(dateLabel.top, to: contentLabel.bottom, dist: App.isTAZ ? 8.0 : 12.0)

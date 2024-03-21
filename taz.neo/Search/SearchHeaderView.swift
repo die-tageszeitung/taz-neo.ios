@@ -11,7 +11,7 @@ import UIKit
 
 class SearchHeaderView: UIView {
   // MARK: *** Properties ***
-  let cancelButtonRightOffsetVisible = 0.0
+  let cancelButtonRightOffsetVisible = -7.0
   let cancelButtonRightOffsetHidden = 90.0
   
   var topConstraint: NSLayoutConstraint?
@@ -118,7 +118,7 @@ class SearchHeaderView: UIView {
     pin(searchTextField.top, to: self.topGuide(), dist: 2)
     pin(statusLabel.centerY, to: extendedSearchButton.centerY)
     
-    pin(extendedSearchButton.bottom, to: self.bottom, dist: -8)
+    pin(extendedSearchButton.bottom, to: self.bottom, dist: -10)
     
     //in horizontal line with textField
     pin(miniHeaderLabel.centerY, to: searchTextField.centerY)
