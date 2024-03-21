@@ -443,12 +443,12 @@ class TazHeaderFooterView: UITableViewHeaderFooterView {
     didSet {
       if oldValue == collapsed { return }
       UIView.animateKeyframes(withDuration: 0.5, delay: 0.0, animations: {
-        UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.5) { [weak self] in
+        UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.49) { [weak self] in
           guard let self = self else { return }
           self.chevron.transform = CGAffineTransform(rotationAngle: 0)
         }
         
-        UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5) { [weak self] in
+        UIView.addKeyframe(withRelativeStartTime: 0.51, relativeDuration: 0.48) { [weak self] in
           self?.rotateChevron()
         }
       })
@@ -639,8 +639,7 @@ class TData {
   var expandedSection: Int? {
     didSet {
       headerViews.enumerated().forEach( { (index,view) in
-        //index 0 is header of section 1!
-        view.collapsed = index != (expandedSection ?? 0) - 1
+        view.collapsed = index != (expandedSection ?? -1)
       } )
     }
   }
@@ -796,12 +795,12 @@ class TData {
       }
       header.onTapping { [weak self] _ in
         guard let self = self else { return }
-        self.expandedSection
+        header.collapsed = !header.collapsed
+        self.expandedSection 
         = self.expandedSection == section
         ? nil
         : section
         self.reloadTable?()
-        header.collapsed = self.expandedSection != section
       }
       header.addBorderView(Const.SetColor.ios(.separator).color,
                                 0.7,
