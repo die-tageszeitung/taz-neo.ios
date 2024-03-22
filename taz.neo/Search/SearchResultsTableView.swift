@@ -10,7 +10,7 @@ import NorthLib
 import CoreGraphics
 import UIKit
 
-class SearchResultsTableView:UITableView{
+class SearchResultsTableView : UITableView, UIStyleChangeDelegate {
   
   var beginDragOffset:CGFloat?
   
@@ -64,6 +64,11 @@ class SearchResultsTableView:UITableView{
     
     self.dataSource = self
     self.delegate = self
+    registerForStyleUpdates()
+  }
+  
+  func applyStyles() {
+    self.backgroundColor = Const.Colors.opacityBackground
   }
   
   // MARK: *** Lifecycle ***

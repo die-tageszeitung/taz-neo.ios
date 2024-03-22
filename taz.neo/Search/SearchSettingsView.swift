@@ -853,7 +853,7 @@ class TData {
         if settings.filter == rbCell!.filter! { expandedSection = nil}
         settings.filter = rbCell!.filter!
       case (sortingMoreCell, _):
-        expandedSection = 3
+        expandedSection = App.isLMD ? 2 : 3
       case let (_, rbCell) where rbCell?.sorting != nil:
         if settings.sorting == rbCell!.sorting! { expandedSection = nil}
         settings.sorting = rbCell!.sorting!
