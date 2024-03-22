@@ -221,6 +221,11 @@ article time {
     /* align-items: center; */
 }
 
+.author > * {
+  line-height: 1.3rem;
+  vertical-align: baseline;
+}
+
 .photo {
   float: right;
   padding: 1.18rem 0rem 0.6rem 0.6rem;
