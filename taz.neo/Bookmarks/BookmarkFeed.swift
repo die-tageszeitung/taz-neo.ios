@@ -108,7 +108,7 @@ public class BookmarkFeed: Feed, DoesLog {
       ret = "<address>\(ret.authorsFormated)</address>&ensp;"
     }
     if let duration = art.readingDuration {
-      ret += "<time>\(duration) min</time>"
+      ret += "<time>\(duration) min.</time>"
     }
     return """
         <div class="author">
