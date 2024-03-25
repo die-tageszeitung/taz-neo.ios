@@ -77,7 +77,7 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
     pin(helpButton.top, to: searchButton.bottom, dist: Const.Size.DefaultPadding)
     pin(helpButton.left, to: v.left, dist: Const.Size.DefaultPadding)
     //No need to close Autolayout due Footer needs Fix Frame foe easier use
-    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+68)
+    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+45)
     v.backgroundColor = Const.SetColor.ios(.systemBackground).color
     return v
   }()
@@ -117,6 +117,9 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
   func applyStyles() {
     searchButton.backgroundColor = Const.SetColor.PrimaryButton.color
     searchButton.setTitleColor(Const.SetColor.HBackground.color, for: .normal)
+    self.shadow()
+    self.layer.shadowOpacity = Const.Shadow.Light.Opacity
+    self.layer.shadowColor = Defaults.darkMode ? UIColor.white.cgColor : Const.Shadow.Color
   }
   
   func restoreInitialState(){
@@ -853,7 +856,7 @@ class TData {
         if settings.filter == rbCell!.filter! { expandedSection = nil}
         settings.filter = rbCell!.filter!
       case (sortingMoreCell, _):
-        expandedSection = 3
+        expandedSection = App.isLMD ? 2 : 3
       case let (_, rbCell) where rbCell?.sorting != nil:
         if settings.sorting == rbCell!.sorting! { expandedSection = nil}
         settings.sorting = rbCell!.sorting!

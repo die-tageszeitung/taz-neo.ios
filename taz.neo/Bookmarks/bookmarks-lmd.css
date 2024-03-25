@@ -43,6 +43,14 @@
   font-weight   : bold;
   font-stretch  : normal;
 }
+/* BentonSans Regular */
+@font-face {
+  font-family   : BentonSans;
+  src           : url(BentonSans-Regular.woff) format("woff");
+  font-style    : normal;
+  font-weight   : normal;
+  font-stretch  : normal;
+}
 
 html {
   font-family      : ArnhemPro, sans-serif;
@@ -189,11 +197,11 @@ article address {
 }
 
 article time {
+  font-family: BentonSans, sans-serif;
   font-size: 0.71rem;
   font-weight: normal;
   font-style: normal;
   line-height: 1rem;
-  padding-top: 0.06rem;
 }
 
 .foot {
@@ -211,6 +219,11 @@ article time {
     /* display: flex; */
     /* flex-direction: row; */
     /* align-items: center; */
+}
+
+.author > * {
+  line-height: 1.3rem;
+  vertical-align: baseline;
 }
 
 .photo {

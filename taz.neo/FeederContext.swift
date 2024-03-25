@@ -387,10 +387,10 @@ open class FeederContext: DoesLog {
     }
       
     if self.simulateNewVersion || simulateFailedMinVersion {
-      self.bundleID = "de.taz.taz.2"
+      self.bundleID = App.isTAZ ? "de.taz.taz.2" : "de.taz.lmd.neo"
     }
     if self.simulateNewVersion {
-      self.currentVersion = Version("0.5.0")      
+      self.currentVersion = Version("0.8.15")      
     }
 
     Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
