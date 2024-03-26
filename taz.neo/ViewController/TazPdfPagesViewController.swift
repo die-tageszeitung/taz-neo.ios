@@ -228,7 +228,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   var autoHideToolbar: Bool
   
   private var hideOnScroll: Bool {
-    if UIScreen.isIpadRegularSize {
+    if UIScreen.isIpadRegularHorizontalSize {
       return false
     }
     if autoHideToolbar == false {

@@ -113,7 +113,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   var autoHideToolbar: Bool
   
   private var hideOnScroll: Bool {
-    if UIScreen.isIpadRegularSize {
+    if UIScreen.isIpadRegularHorizontalSize {
       return false
     }
     if autoHideToolbar == false {
@@ -619,11 +619,20 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     else { toolBar.setArticlePlayBar() }
   }
   
+  var bottomSheetDefaultCoverage: CGFloat {
+    return 490 + UIWindow.safeInsets.bottom
+  }
+  
+  var bottomSheetDefaultSlideDown: CGFloat {
+    return 82//hide special Settings
+  }
+  
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet2(slider: textSettingsVC, into: self)
     settingsBottomSheet?.updateMaxWidth()
     ///was 130 >= 208 //Now 195 => 273//with Align 260 => 338
-    settingsBottomSheet?.coverage =  438 + UIWindow.verticalInsets
+    ///sliderHeight? + TabbarHeight? + BottomInsets?
+    settingsBottomSheet?.coverage =  bottomSheetDefaultCoverage
     
     onSettings{ [weak self] _ in
       guard let self = self else { return }
@@ -633,7 +642,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       else {
         self.settingsBottomSheet?.open()
-        self.settingsBottomSheet?.slideDown(130)
+        self.settingsBottomSheet?.slideDown(self.bottomSheetDefaultSlideDown)
       }
       
       self.textSettingsVC.updateButtonValuesOnOpen()
@@ -848,6 +857,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func applyStyles() {
     settingsBottomSheet?.color = Const.SetColor.HBackground.color
     settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
+    settingsBottomSheet?.shadeView.backgroundColor = Const.SetColor.taz(.shade).color
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
@@ -864,17 +874,25 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     return Defaults.darkMode ?  .lightContent : .default
   }
   
+  open override func willTransition(to newCollection: UITraitCollection, with coordinator: any UIViewControllerTransitionCoordinator) {
+    ///WTF I wanted here? I Guess..... trait size changes to handle botom sheet
+    super.willTransition(to: newCollection, with: coordinator)
+  }
+  
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     updateSliderWidth(newParentWidth: size.width)
-    onMain(after: 1.0) {[weak self] in
-      let newCoverage = 338 + UIWindow.verticalInsets
-      if self?.settingsBottomSheet?.coverage == newCoverage { return }//no rotate
-      self?.settingsBottomSheet?.coverage =  newCoverage
-      if self?.settingsBottomSheet?.isOpen == false  { return }
-      self?.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
+    settingsBottomSheet?.updateMaxWidth(for: size.width)
+    onMain(after: 0.7) {[weak self] in
+      guard let self = self else { return }
+      let oldCoverage = self.settingsBottomSheet?.coverage ?? 0
+      let newCoverage = self.bottomSheetDefaultCoverage
+      if abs(oldCoverage - newCoverage) < 2 { return }//no rotate
+      self.settingsBottomSheet?.coverage =  newCoverage
+      if self.settingsBottomSheet?.isOpen == false  { return }
+      self.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
         self?.settingsBottomSheet?.open()
-        self?.settingsBottomSheet?.slideDown(130)
+        self?.settingsBottomSheet?.slideDown(self?.bottomSheetDefaultSlideDown ?? 0)
       })
     }
   }

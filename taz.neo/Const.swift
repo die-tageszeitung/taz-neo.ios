@@ -226,7 +226,14 @@ public struct Const {
       case textFieldClear
       case textFieldText
       case textIconGray
+      case shade
+      case primaryForeground
+      case primaryBackground
       case secondaryBackground
+      case buttonBackground
+      case buttonActiveBackground
+      case buttonForeground
+      case buttonActiveForeground
     }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
@@ -362,8 +369,23 @@ public struct Const {
           return (UIColor.rgb(0x9C9C9C), UIColor.rgb(0x9C9C9C), nil, nil)
         case .taz(.textIconGray):
           return (UIColor.rgb(0x565656), UIColor.rgb(0x929292), nil, nil)
+        case .taz(.primaryBackground):
+          return (.white, .black, nil, nil)
+        case .taz(.primaryForeground)://same: .taz(.buttonForeground):
+          return (.black, .white, nil, nil)
+        case .taz(.shade):
+          return (.black, UIColor.rgb(0x9C9C9C), nil, nil)
         case .taz(.secondaryBackground):
           return (UIColor.rgb(0xDEDEDE), UIColor.rgb(0x323232), nil, nil)
+        case .taz(.buttonBackground):
+          //derived from and Figma f4f4f4 > ios(.secondarySystemBackground) is 0xF2F2F7 0x1C1C1E
+          return (UIColor.rgb(0xF4F4F4), UIColor.rgb(0x101010), nil, nil)
+        case .taz(.buttonForeground):
+          return (.black, .white, nil, nil)
+        case .taz(.buttonActiveBackground):
+          return (.black, .white, nil, nil)
+        case .taz(.buttonActiveForeground):
+          return (.white, .black, nil, nil)
         case .HomeBackground:
           return (Const.Colors.Light.HomeBackground, Const.Colors.Dark.HomeBackground,nil,nil)
         case .HomeText:

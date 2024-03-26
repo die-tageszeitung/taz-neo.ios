@@ -155,7 +155,7 @@ extension FormView {
   }
   
   @objc func keyboardWillShow(_ notification: Notification) {
-    if UIScreen.isIpadRegularSize { return }
+    if UIScreen.isIpadRegularHorizontalSize { return }
     if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue {
       let keyboardRectangle = keyboardFrame.cgRectValue
       let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardRectangle.height + 30, right: 0)

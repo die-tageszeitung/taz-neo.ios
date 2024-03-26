@@ -26,11 +26,15 @@ class TextSettingsVC: UIViewController {
   @Default("textAlign")
   private var textAlign: String
   
+  @Default("multiColumnMode")
+  var multiColumnMode: Bool
+  
   func updateButtonValuesOnOpen(){
     textSettings.textSize = articleTextSize
     textSettings.articleColumnPercentageWidth = articleColumnPercentageWidth
     updateTextAlignmentButtons()
     updateDayNightButtons()
+    updateColumnModeButtons()
   }
   
   @Default("colorMode")
@@ -54,6 +58,11 @@ class TextSettingsVC: UIViewController {
   private func updateDayNightButtons(){
     self.textSettings.nightModeButton.buttonView.isActivated = Defaults.darkMode
     self.textSettings.dayModeButton.buttonView.isActivated = !Defaults.darkMode
+  }
+  
+  private func updateColumnModeButtons(){
+    self.textSettings.defaultScrollingButton.buttonView.isActivated = !multiColumnMode
+    self.textSettings.horizontalScrollingButton.buttonView.isActivated = multiColumnMode
   }
   
   private func setSize(_ s: Int) {
@@ -113,6 +122,22 @@ class TextSettingsVC: UIViewController {
       }
     }
     
+    textSettings.defaultScrollingButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      if self.multiColumnMode == false { return }
+      self.multiColumnMode = false
+      Notification.send(globalStylesChangedNotification)
+      self.updateColumnModeButtons()
+    }
+    
+    textSettings.horizontalScrollingButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      if self.multiColumnMode == true { return }
+      self.multiColumnMode = true
+      Notification.send(globalStylesChangedNotification)
+      self.updateColumnModeButtons()
+    }
+    
     
     textSettings.settingsButton.onPress { _ in
       Notification.send(Const.NotificationNames.gotoSettings)
@@ -138,7 +163,7 @@ class TextSettingsVC: UIViewController {
   }
   
   func applyStyles() {
-    self.view.backgroundColor = Const.SetColor.HBackground.color
+    self.view.backgroundColor = Const.SetColor.taz(.primaryBackground).color
   }
   
   public override func viewDidLoad() {
@@ -164,14 +189,14 @@ class TextSettingsView: UIView {
     let btn = Button<ImageLabelView>()
     btn.buttonView.name = "font-adjust-smaller"
     btn.buttonView.text = "kleinere Schrift"
-    btn.buttonView.label.contentFont(size: 9.0)
+    btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
   public lazy var largeAButton : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
     btn.buttonView.name = "font-adjust-bigger"
     btn.buttonView.text = "größere Schrift"
-    btn.buttonView.label.contentFont(size: 9.0)
+    btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
   public lazy var fontScaleButton : Button<TextView> = {
@@ -184,50 +209,50 @@ class TextSettingsView: UIView {
     let btn = Button<ImageLabelView>()
     btn.buttonView.name = "light-mode"
     btn.buttonView.text = "Heller Hintergrund"
-    btn.buttonView.label.contentFont(size: 9.0)
+    btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
   public lazy var nightModeButton : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
     btn.buttonView.name = "dark-mode"
     btn.buttonView.text = "Dunkler Hintergrund"
-    btn.buttonView.label.contentFont(size: 9.0)
+    btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
   public lazy var defaultScrollingButton : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
     btn.buttonView.name = "scroll-view"
-    btn.buttonView.text = "größere Schrift"
+    btn.buttonView.text = "Einspaltigkeit"
     btn.buttonView.vPadding = 5.0
-    btn.buttonView.label.contentFont(size: 9.0)
+    btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
   public lazy var horizontalScrollingButton : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
     btn.buttonView.name = "column-view"
-    btn.buttonView.text = "größere Schrift"
-    btn.buttonView.label.contentFont(size: 9.0)
+    btn.buttonView.text = "Mehrspaltigkeit"
+    btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
   public lazy var settingsButton : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
     btn.buttonView.name = "settings"
     btn.buttonView.text = "Einstellungen"
-    btn.buttonView.label.contentFont(size: 9.0)
+    btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
   public lazy var textAlignLeftButton : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
     btn.buttonView.symbol = "text.alignleft"
     btn.buttonView.text = "linksbündig (Standard)"
-    btn.buttonView.label.contentFont(size: 9.0)
+    btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
   public lazy var textAlignJustifyButton : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
     btn.buttonView.symbol = "text.justify"
     btn.buttonView.text = "Blocksatz"
-    btn.buttonView.label.contentFont(size: 9.0)
+    btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
     
@@ -266,7 +291,7 @@ class TextSettingsView: UIView {
       scrollingModeStack.addArrangedSubview(v)
     }
     
-    settingsButton.pinHeight(58)
+    settingsButton.pinHeight(65.5)
     settingsButton.layer.cornerRadius = 8.0
     settingsButton.clipsToBounds = true
     
@@ -285,13 +310,46 @@ class TextSettingsView: UIView {
     verticalStack.addArrangedSubview(alignStack)
     verticalStack.setCustomSpacing(20.0, after: settingsButton)
     addSubview(verticalStack)
-    pin(verticalStack, 
+    
+    labelStack.axis = .vertical
+    labelStack.alignment = .fill
+    labelStack.spacing = 12.0
+//    labelStack.setCustomSpacing(20.0, after: settingsButton)
+    [textSizeLabel, dayNightLabel, scrollingModeLabel, settingsLabel].forEach {
+      $0.pinHeight(65.5)//Settings and others in hStack are 65.5
+      $0.baselineAdjustment = .alignCenters
+      labelStack.addArrangedSubview($0)
+    }
+
+    labelStack.isHidden = true
+    addSubview(labelStack)
+    
+    pin(labelStack,
+        to: self,
+        margins: UIEdgeInsets(top: 5, left: 3, bottom: 10, right: 3),
+        exclude: .right
+    ).bottom?.priority = .fittingSizeLevel
+    labelStack.pinWidth(220)
+    
+    let vstConstrains = pin(verticalStack,
         to: self,
         margins: UIEdgeInsets(top: 5, left: 3, bottom: 10, right: 3)
-    ).bottom.priority = .fittingSizeLevel
+    )
+    vstConstrains.bottom?.priority = .fittingSizeLevel
+    vStackLeftLayoutConstraint = vstConstrains.left
   }
   
+  var vStackLeftLayoutConstraint: NSLayoutConstraint?
+  
   func applyStyles() {
+    if UIScreen.isIpadRegularHorizontalSize {
+      vStackLeftLayoutConstraint?.constant = 220
+      labelStack.isHidden = false
+    }
+    else {
+      labelStack.isHidden = true
+      vStackLeftLayoutConstraint?.constant = 3
+    }
     [smallAButton.buttonView,
      largeAButton.buttonView,
      fontScaleButton.buttonView,
@@ -304,14 +362,17 @@ class TextSettingsView: UIView {
      textAlignJustifyButton.buttonView
      ].forEach {
       //Active Background Color deactivated for the Moment due missing unclear Color Values
-      $0.activeBackgroundColor = Const.SetColor.CTDate.color
-      $0.backgroundColor = Const.SetColor.ios(.secondarySystemBackground).color
-      $0.activeColor = Const.SetColor.HBackground.color
-      $0.color = Const.SetColor.CTDate.color
+      $0.activeBackgroundColor = Const.SetColor.taz(.buttonActiveBackground).color
+      $0.backgroundColor = Const.SetColor.taz(.buttonBackground).color
+      $0.activeColor = Const.SetColor.taz(.buttonActiveForeground).color
+      $0.color = Const.SetColor.taz(.buttonForeground).color
         }
-    backgroundColor = Const.SetColor.HBackground.color
-    sizeStack.backgroundColor = Const.SetColor.CTDate.color
-    scrollingModeStack.backgroundColor = Const.SetColor.CTDate.color
+    [textSizeLabel, dayNightLabel, scrollingModeLabel, settingsLabel].forEach {
+      $0.textColor = Const.SetColor.taz(.primaryForeground).color
+    }
+    backgroundColor = Const.SetColor.taz(.primaryBackground).color
+    sizeStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
+    scrollingModeStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
   }
   
   //UIImage(named: "settings")

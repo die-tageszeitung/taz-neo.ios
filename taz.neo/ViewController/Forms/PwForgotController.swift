@@ -133,13 +133,14 @@ class PasswordResetRequestedSuccessController: FormsResultController {
     super.init(nibName: nil, bundle: nil)
     self.dismissType = .two
     ui.views =  [
-      Padded.Label(title: Localized("login_forgot_password_email_sent_header"),
-              paddingTop: 30,
-              paddingBottom: 30
-      ),
+      Padded.Label(title: Localized("forgot_password_email_sent_top")),
       Padded.Button(title: Localized("login_forgot_password_email_sent_back"),
-               target: self, action: #selector(handleBack)),
-      
+                    target: self, 
+                    action: #selector(handleBack)),
+      Padded.Label(title: Localized("forgot_password_email_sent_top")),
+//      Padded.Button(type: .label, title: Localized("digiabo_email"),
+//                    target: self,
+//                    action: #selector(handleMail)),
     ]
   }
   
@@ -161,19 +162,15 @@ class SubscriptionResetSuccessController: FormsResultController, MFMailComposeVi
   init(){
     super.init(nibName: nil, bundle: nil)
     self.dismissType = .two
-    ui.views =   [
-      Padded.Label(title: Localized("login_forgot_password_email_sent_header")
-      ),
-      Padded.Label(title: Localized("subscription_reset_found_link")
-      ),
+    ui.views =  [
+      Padded.Label(title: Localized("forgot_password_aboid_sent_top")),
       Padded.Button(title: Localized("login_forgot_password_email_sent_back"),
-               target: self, action: #selector(handleBack)),
-      Padded.Label(title: Localized("login_subscription_taken_body")
-      ),
+                    target: self,
+                    action: #selector(handleBack)),
+      Padded.Label(title: Localized("forgot_password_aboid_sent_top")),
       Padded.Button(type: .label, title: Localized("digiabo_email"),
-               target: self, action: #selector(handleMail)),
-      Padded.Button(type: .outline ,title: Localized("cancel_button"),
-               target: self, action: #selector(handleBack))
+                    target: self,
+                    action: #selector(handleMail)),
     ]
   }
   

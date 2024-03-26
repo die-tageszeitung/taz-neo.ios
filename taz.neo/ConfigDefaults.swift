@@ -72,6 +72,7 @@ private let configValues = [
   "showCoachmarks" : "true",
   "cmLastPrio": "1",
   "cmSessionCount": "0",
+  "multiColumnMode": "false",
 ]
 
 private let configValuesLMD = [

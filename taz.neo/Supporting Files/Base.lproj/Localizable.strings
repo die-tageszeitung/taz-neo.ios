@@ -87,13 +87,14 @@
 "back_button" = "Zurück";
 
 /* translation from Android */
-"login_forgot_password_email_sent_header" = "Falls Sie ein bestehendes taz-Konto unter der E-Mail-Adresse haben, wurde Ihnen eine E-Mail zugesandt. Bitte schauen Sie in Ihr Mail-Postfach.\n\nSollten Sie die E-Mail nicht finden, schauen Sie bitte auch in Ihrem Spam-Ordner nach.\n\nWenn auch dort nichts eingegangen ist, stimmt die von Ihnen eingegebene E-Mail-Adresse evtl. nicht mit der bei uns für Sie gespeicherten Adresse überein.\n\nFür weitere Fragen wenden Sie sich bitte an app@taz.de.";
+"forgot_password_email_sent_top" = "Falls Sie ein bestehendes taz-Konto unter der E-Mail-Adresse haben, wurde Ihnen eine E-Mail zugesandt.\nBitte schauen Sie in Ihr Mail-Postfach und gegebenenfalls auch in Ihrem Spam-Ordner nach.";
+"forgot_password_email_sent_bottom" = "Falls Sie keine E-Mail empfangen haben, stimmt die von Ihnen eingegebene E-Mail-Adresse eventuell nicht mit der bei uns für Sie gespeicherten Adresse überein. Probieren Sie gerne erneut die Passwort zurücksetzen Funktion mit einer anderen Ihrer möglicherweise bei uns hinterlegten E-Mail Adresse aus.\n\nFalls Sie sich nicht sicher sind, welche E-Mail-Adresse zu Ihrem Abo hinterlegt ist, auf das bei uns hinterlegte E-Mail Postfach keinen Zugriff mehr haben oder für weitere Fragen, wenden Sie sich bitte an unseren Service unter:";
+"forgot_password_aboid_sent_top" = "Falls zu Ihrem Abo eine E-Mail-Adresse hinterlegt ist, haben wir Ihnen eine E-Mail gesendet.\n\nBitte schauen Sie in Ihr Mail-Postfach und gegebenenfalls auch in Ihrem Spam-Ordner nach.
+Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte E-Mail-Adresse wissen und darauf Zugriff haben, nutzen Sie bitte die Passwort vergessen Funktion mit dieser E-Mail-Adresse.\n\nHaben Sie Ihre Zugangsdaten gefunden?";
+"forgot_password_aboid_sent_bottom" = "Falls Sie keine E-Mail bekommen haben, sich nicht sicher sind, welche E-Mail zu Ihrem Abo hinterlegt ist, auf das bei uns hinterlegte E-Mail Postfach keinen Zugriff mehr haben oder für weitere Fragen, wenden Sie sich bitte an unseren Service unter:";
 
 /* translation from Android */
 "login_forgot_password_email_sent_back" = "Zurück zur Anmeldung";
-
-/* translation from Android */
-"login_subscription_taken_body" = "Oder wenden Sie sich an unseren Service unter:";
 
 /* Abo Mail */
 "digiabo_email" = "app@taz.de";
@@ -103,9 +104,6 @@
 
 /* Abo Mail Text*/
 "digiabo_access_request_message" = "Hallo,\nich kann mich nicht in der taz App anmelden.\n\nMeine AboID lautet: \n\n(Bitte ggf. um weitere Informationen ergänzen!)";
-
-/* Haben Sie Ihre Zugangsdaten gefunden? */
-"subscription_reset_found_link" = "Haben Sie Ihre Zugangsdaten gefunden?";
 
 /* Fehler */
 "error" = "Es ist ein Fehler aufgetreten, versuchen Sie es später noch einmal.";
