@@ -217,7 +217,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let colorMode = dfl["colorMode"]
     let textAlign = dfl["textAlign"]
     let colWidth = UIScreen.main.bounds.size.width * 0.28
-    let colHeight = UIScreen.main.bounds.size.height - 220
+    let colHeight1 = UIScreen.main.bounds.size.height - 220
+    let colHeight = UIWindow.size.height - UIWindow.verticalInsets - 50 - 47 - 61
+    //webview body padding top:78 bottom: 50
+    self.currentWebView?.addBorder(.red)
+    // 50 Tabbar Height 47 Header height
+    print("WebContentHeight: \(colHeight) : \(self.currentWebView?.frame.size.height ?? -1) : \(self.view.frame.size.height) : \(UIWindow.size.height - UIWindow.verticalInsets - 50 - 47)")
     var colorModeImport: String = ""
     if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\";" }
     let cssContent = """
@@ -241,36 +246,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         text-align: \(textAlign!);
       }
       @media (min-width: \(mediaLimit)px) {
-        body #content.article {
-              column-width: \(colWidth)px;
+        body, html {
               height: \(colHeight)px;
-              \(multiColCss1c)
         }
     
-        \(multiColCss2b)
-      }
-
-    """
-    URLCache.shared.removeAllCachedResponses()
-    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
-      callback?()
-    }
-  }
-  //MINE
-  var multiColCss1 = """
-          width: initial;
-          position: relative;
-          left: 0;
-          margin-left: 0;
-          column-rule-style: inset;
-          column-gap: 34px;
-          column-rule-color: #efefef;
-          column-fill: auto;
-          overflow-x: initial;
-          overflow-y: initial;
-  """
-  //MINEADJUSTED
-  var multiColCss1c = """
+        body #content.article {
+          column-width: \(colWidth)px;
+          height: \(colHeight)px;
           width: initial;
           column-fill: auto;
           column-gap: 34px;
@@ -280,111 +262,23 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
           padding-left: 34px;
           padding-right: 34px;
           left: 0px; /*Required otherwise offset is wrong*/
-          /* overflow-x: scroll;  Block scroll to next*/
-          overflow-x: initial; /*Allow scroll to next*/
+          overflow-x: initial;
           overflow-y: initial;
-  """
-  //MINEADJUSTED
-  var multiColCss1b = """
-          width: initial;
-          column-fill: auto;
-          column-gap: 34px;
-          orphans: 3;
-          widows: 3;
-          margin-left: 0px;
-          padding-left: 34px;
-          padding-right: 34px;
-          left: 0px;
-          overflow-x: scroll;
-  """
-  //COOP
-  // The column-width, #content.width and height will be calculated dependent on the
-  // actual View size. See tazApiJs.enableArticleColumnMode for further information.
-  // The ::-webkit-scrollbar must be disabled to make sure that high content like portrait
-  // images won't break the column calculation. By default WebViews reserve a space of 6px
-  // for scrollbars, but we can hide it as we don't use the scrollbars at all.
-  var multiColCss2 = """
-          column-fill: auto;
-          column-gap: ${DEFAULT_COLUMN_GAP_PX}px;
-          orphans: 3;
-          widows: 3;
-          margin-left: 0px;
-          padding-left: ${DEFAULT_COLUMN_GAP_PX}px;
-          padding-right: ${DEFAULT_COLUMN_GAP_PX}px;
-          left: 0px;
-          overflow-x: scroll;
-  """
-  var multiColCss2b = """
-  #content.article::-webkit-scrollbar {
-      display: none;
+        }
+    
+        body #content.article .Autor {
+          break-inside: avoid;
+        }
+        #content.article::-webkit-scrollbar {
+            display: none;
+        }
+      }
+    """
+    URLCache.shared.removeAllCachedResponses()
+    File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
+      callback?()
+    }
   }
-  """
-  //NOT USED
-  var multiColCss3 = """
-              column-fill: auto;
-              column-gap: 20px;
-              orphans: 3;
-              widows: 3;
-              margin-left: 0px;
-              padding-left: 20px;
-              padding-right: 20px;
-              left: 0px;
-              overflow-x: scroll;
-  """
-  
-  var multicolumncss1 =
-  """
-      #content.article {
-          column-fill: auto;
-          column-gap: 20px;
-          orphans: 3;
-          widows: 3;
-          margin-left: 0px;
-          padding-left: 20px;
-          padding-right: 20px;
-          left: 0px;
-          overflow-x: scroll;
-          height: 1000px;
-      }
-      #content.article::-webkit-scrollbar {
-          display: none;
-      }
-      .no-horizontal-padding {
-          padding-left: 0px;
-          padding-right: 0px;
-      }
-  """
-  /*
-  $(window)[0].innerHeight => 1000
-   
-   
-   DEMO
-   +    let colWidth = UIScreen.main.bounds.size.width * 0.28 //3 Rows on a Screen max(UIScreen.main.bounds.size.width * 0.8, 300)
-   +    let colHeight = UIScreen.main.bounds.size.height - 220//variable calculate! depends on device safe area, toolbar, header, ...
-   
-   AND
-   @media (min-width: \(mediaLimit)px) {
-     body #content {
--            width: \(maxWidth)px;
--            margin-left: \(-maxWidth/2)px;
--            position: absolute;
--            left: 50%;
-+        width: initial;
-+        position: relative;
-+        left: 0;
-+        margin-left: 0;
-+        column-width: \(colWidth)px;
-+        height: \(colHeight)px;
-+        column-rule-style: inset;
-+        column-gap: 60px;
-+        column-rule-color: #efefef;
-+        column-fill: auto;
-+        overflow-x: initial;
-+        overflow-y: initial;
-     }
-   }
-   
-   */
   
   /// Return dictionary for dynamic HTML style data
   public static func dynamicStyles() -> [String:String] {
