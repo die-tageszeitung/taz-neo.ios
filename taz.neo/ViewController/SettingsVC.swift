@@ -1253,26 +1253,8 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     leftButton.circleIconButton(true)
     rightButton.circleIconButton(true)
     label.text = "\(articleTextSize)%"
-    calculateMinColumnWidth()
   }
  
-  func calculateMinColumnWidth() {
-    print("calculateMinColumnWidth")
-    /// 49 Char Blindtext to determine the column width minimal complexity
-    onMain {[weak self] in
-      guard let self = self else { return }
-      let lbl = UILabel(frame: CGRect(x: 0, y: 0, width: 1000, height: 200))
-      lbl.numberOfLines = 0
-      lbl.text = "die Tageszeitung, Politik, Zukunft, Gesellschaft"
-      let cf: CGFloat
-      = Const.Size.DefaultFontSize * CGFloat(self.articleTextSize) / 100.0
-      lbl.font = Const.Fonts.contentFont(size: cf)
-      let fit = lbl.sizeThatFits(CGSize(width: 10000, height: 100))
-      print("for size: \(self.articleTextSize) label fit: \(fit)")
-      //for size: 180 label fit: (603.0, 37.0)
-    }
-  }
-  
   override func layoutSubviews() {
     super.layoutSubviews()
     applyStyles()

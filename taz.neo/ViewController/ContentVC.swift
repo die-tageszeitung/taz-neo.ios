@@ -131,6 +131,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
+  
+  @Default("multiColumnMode")
+  var multiColumnMode: Bool
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
@@ -209,20 +212,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let bottomMargin = bottomMargin ?? Self.bottomMargin
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
-    let percentageMaxWidth = Int(dfl["articleColumnPercentageWidth"]!)!
-    let maxWidth = percentageMaxWidth * 6
-    let calculatedColumnWidth = Defaults.calculatedColumnWidth
-    let mediaLimit = max(Int(UIWindow.size.width), maxWidth)
-    print("MultiColumns available?: \(UIWindow.size.width/CGFloat(calculatedColumnWidth ?? 1) > 2.0)")
     let colorMode = dfl["colorMode"]
     let textAlign = dfl["textAlign"]
-    let colWidth = UIScreen.main.bounds.size.width * 0.28
-    let colHeight1 = UIScreen.main.bounds.size.height - 220
-    let colHeight = UIWindow.size.height - UIWindow.verticalInsets - 50 - 47 - 61
-    //webview body padding top:78 bottom: 50
-    self.currentWebView?.addBorder(.red)
-    // 50 Tabbar Height 47 Header height
-    print("WebContentHeight: \(colHeight) : \(self.currentWebView?.frame.size.height ?? -1) : \(self.view.frame.size.height) : \(UIWindow.size.height - UIWindow.verticalInsets - 50 - 47)")
     var colorModeImport: String = ""
     if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\";" }
     let cssContent = """
@@ -245,39 +236,83 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       p {
         text-align: \(textAlign!);
       }
-      @media (min-width: \(mediaLimit)px) {
-        body, html {
-              height: \(colHeight)px;
-        }
-    
-        body #content.article {
-          column-width: \(colWidth)px;
-          height: \(colHeight)px;
-          width: initial;
-          column-fill: auto;
-          column-gap: 34px;
-          orphans: 3; /*at least 3 lines in a block at end*/
-          widows: 3; /*at least 3 lines in a block at start*/
-          margin-left: 0px;
-          padding-left: 34px;
-          padding-right: 34px;
-          left: 0px; /*Required otherwise offset is wrong*/
-          overflow-x: initial;
-          overflow-y: initial;
-        }
-    
-        body #content.article .Autor {
-          break-inside: avoid;
-        }
-        #content.article::-webkit-scrollbar {
-            display: none;
-        }
-      }
+      \(multiColumnCss)
     """
     URLCache.shared.removeAllCachedResponses()
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
       callback?()
     }
+  }
+  
+  var multiColumnCss : String {
+    let css = getMultiColumnCss()
+    isMultiColumnMode = css != nil
+    return css ?? ""
+  }
+  
+  func getMultiColumnCss() -> String?  {
+    guard let calculatedColumnWidth = Defaults.calculatedColumnWidth else {
+      return nil
+    }
+    
+    let maxRowCount = UIWindow.size.width/CGFloat(calculatedColumnWidth)
+    
+    guard multiColumnMode && maxRowCount > 2.2 else { return nil }
+    
+    typealias columnData = (width:CGFloat, sidePadding: CGFloat, columnGap: CGFloat)
+    
+    func colMetrics(maxRowCount: CGFloat) -> columnData {
+      if maxRowCount < 3.0 {
+        return (UIWindow.size.width * 0.5 - 34.0 - 15.0, 34.0, 15.0)//2 Rows
+      }
+      if maxRowCount < 4.0 {
+        return (UIWindow.size.width * 0.33 - 30.0, 30.0, 12.0) //3 Rows
+      }
+      if maxRowCount < 7.0 {
+        return (UIWindow.size.width * 0.25 - 20.0, 20.0, 8.0) //4 Rows
+      }
+      return (UIWindow.size.width * 0.2 - 7.0, 18.0, 7.0) // 5 Rows usually not reachable
+    }
+    
+    let colMetrics = colMetrics(maxRowCount: maxRowCount)
+    let colWidth = colMetrics.width
+    let sidePadding = colMetrics.sidePadding
+    multiColumnGap = colMetrics.columnGap
+    print("MainWindowWidth: \(UIWindow.size.width) colWidth: \(colWidth) colGAp: \(multiColumnGap) rowCount:\(min(floor(maxRowCount), 5)) rowCountCalc: \(UIWindow.size.width/colWidth) maxRowCount: \(maxRowCount)")
+    ///50 = Tabbar, 47 == Header, 61 == ??? 656 < 602
+    let colHeight = UIWindow.size.height - UIWindow.verticalInsets - 50 - 47 - 61
+
+    return """
+      body, html {
+        height: \(colHeight)px;
+        overflow-y: clip;
+      }
+      body {
+        padding-top: 68px;
+        overflow-x: scroll;
+        column-width: \(colWidth)px;
+        width: fit-content;
+        column-fill: auto;
+        column-gap: \(multiColumnGap)px;
+        orphans: 3; /*at least 3 lines in a block at end*/
+        widows: 3; /*at least 3 lines in a block at start*/
+      }
+      body #content.article {
+        margin-left: initial; /*important overwrite scroll.css defaults*/
+        position: relative;/*important overwrite scroll.css defaults*/
+        left: 0;/*important overwrite scroll.css defaults*/
+        margin-right: \(sidePadding)px;
+        width: initial;/*important overwrite scroll.css defaults*/
+        overflow-y: hidden;
+      }
+      body #content.article .Autor {
+        break-inside: avoid;
+      }
+      html1::-webkit-scrollbar,
+      #content.article1::-webkit-scrollbar {
+          display: none;
+      }
+    """
   }
   
   /// Return dictionary for dynamic HTML style data

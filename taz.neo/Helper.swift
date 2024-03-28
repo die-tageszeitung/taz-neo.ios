@@ -112,3 +112,21 @@ fileprivate extension Bool {
     return self == true ? "true" : "false"
   }
 }
+
+class nonsens {
+  let sidePadding = 34.0
+  //Problem at 150% TextSize rowCount == 2 => SOLVED NOW
+  //MainWindowWidth: 1194.0 colWidth: 580.0 colGAp: 15.0 rowCount:2.0 rowCountCalc: 2.0586206896551724
+  func colWidth1(maxRowCount: CGFloat) -> CGFloat {
+    if maxRowCount < 3.0 {
+      return (UIWindow.size.width - sidePadding) * 0.5  //2 Rows
+    }
+    if maxRowCount < 4.0 {
+      return (UIWindow.size.width - sidePadding) * 0.33  //3 Rows
+    }
+    if maxRowCount < 5.0 {
+      return (UIWindow.size.width - sidePadding) * 0.25 //4 Rows
+    }
+    return (UIWindow.size.width - sidePadding) * 0.2 // 5 Rows
+  }
+}
