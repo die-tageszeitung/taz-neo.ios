@@ -259,49 +259,83 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     
     guard multiColumnMode && maxRowCount > 2.2 else { return nil }
     
-    typealias columnData = (width:CGFloat, sidePadding: CGFloat, columnGap: CGFloat)
+    typealias columnData = (width:CGFloat, padding: CGFloat)
     
     func colMetrics(maxRowCount: CGFloat) -> columnData {
+      let padding = 30.0
       if maxRowCount < 3.0 {
-        return (UIWindow.size.width * 0.5 - 34.0 - 15.0, 34.0, 15.0)//2 Rows
+        return (UIWindow.size.width * 0.5 - 3*padding, padding)//2 Rows
       }
       if maxRowCount < 4.0 {
-        return (UIWindow.size.width * 0.33 - 30.0, 30.0, 12.0) //3 Rows
+        return (UIWindow.size.width * 0.333  - 3*padding, padding) //3 Rows
       }
       if maxRowCount < 7.0 {
-        return (UIWindow.size.width * 0.25 - 20.0, 20.0, 8.0) //4 Rows
+        return (UIWindow.size.width * 0.25  - 4*padding, padding) //4 Rows
       }
-      return (UIWindow.size.width * 0.2 - 7.0, 18.0, 7.0) // 5 Rows usually not reachable
+      return (UIWindow.size.width * 0.2  - 5*padding, padding) // 5 Rows usually not reachable
     }
+    
+    /**
+     iPAd 11 pro 834px × 1194px *2 ==> 1668*2388
+     ColWidth messure: 686 /2 > 343
+     Paddign-Left Messure: 60/2 > 30
+     Gap 182/2 > 91
+      387+387 = 774 + 30+30 = 834
+     
+     
+     */
     
     let colMetrics = colMetrics(maxRowCount: maxRowCount)
     let colWidth = colMetrics.width
-    let sidePadding = colMetrics.sidePadding
-    multiColumnGap = colMetrics.columnGap
-    print("MainWindowWidth: \(UIWindow.size.width) colWidth: \(colWidth) colGAp: \(multiColumnGap) rowCount:\(min(floor(maxRowCount), 5)) rowCountCalc: \(UIWindow.size.width/colWidth) maxRowCount: \(maxRowCount)")
-    ///50 = Tabbar, 47 == Header, 61 == ??? 656 < 602
+    let padding = colMetrics.padding
+    multiColumnGap = padding
+    print("MainWindowWidth: \(UIWindow.size.width) colWidth: \(colWidth) padding: \(padding) rowCount:\(min(floor(maxRowCount), 5)) rowCountCalc: \(UIWindow.size.width/colWidth) maxRowCount: \(maxRowCount)")
     let colHeight = UIWindow.size.height - UIWindow.verticalInsets - 50 - 47 - 61
-
+    /**
+     ***pretty ugly css** but:
+        * content paddings&margins increase column gap
+        * need to add padding/margin at end
+        * tap to scroll needs perect alligned columns
+        * body #content minus margin-left fixes: gap increase
+     * Copy adjust Helper
+      margin-right: \(padding/2)px;
+      margin-left: \(padding/2)px; /*important overwrite scroll.css defaults*/
+      padding-right: \(padding)px;
+      padding-left: \(padding)px;
+      //OVERWRITE BODY 1REM
+      padding-right: 0;
+      padding-left: 0;
+      body #content.article:last-child {
+       padding-right: \(padding)px;
+      }
+      */
     return """
+      p {
+        text-align: justify;
+      }
       body, html {
         height: \(colHeight)px;
         overflow-y: clip;
       }
       body {
+        padding-right: 0;
+        padding-left: 0;
+        margin-left: \(2*padding)px;
         padding-top: 68px;
         overflow-x: scroll;
         column-width: \(colWidth)px;
         width: fit-content;
         column-fill: auto;
-        column-gap: \(multiColumnGap)px;
+        column-gap: \(padding)px;
         orphans: 3; /*at least 3 lines in a block at end*/
         widows: 3; /*at least 3 lines in a block at start*/
       }
       body #content.article {
-        margin-left: initial; /*important overwrite scroll.css defaults*/
+        margin-left: \(-padding)px;
+        margin-right: \(padding)px;
+        /*padding left/right must be 0 otherwise it extends the GAP*/
         position: relative;/*important overwrite scroll.css defaults*/
         left: 0;/*important overwrite scroll.css defaults*/
-        margin-right: \(sidePadding)px;
         width: initial;/*important overwrite scroll.css defaults*/
         overflow-y: hidden;
       }
