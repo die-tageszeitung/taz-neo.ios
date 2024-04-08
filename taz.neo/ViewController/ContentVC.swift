@@ -129,6 +129,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public class var topMargin: CGFloat { return 40 }
   public static let bottomMargin: CGFloat = 50
   
+  var multiColumnGap: CGFloat = 0.0
+  
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
@@ -248,6 +250,33 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let css = getMultiColumnCss()
     isMultiColumnMode = css != nil
     return css ?? ""
+  }
+  
+  public override func handleRightTap() -> Bool {
+    guard isMultiColumnMode else { return super.handleRightTap() }
+    guard let sv = self.currentWebView?.scrollView  else { return false }
+    if sv.contentOffset.x + 2 + sv.frame.size.width > sv.contentSize.width { return false }
+    
+    
+    if sv.contentOffset.x > 0 {
+      let currentScreen = sv.frame.size.width/sv.contentOffset.x
+    }
+    
+    var x = min(sv.contentOffset.x + sv.frame.size.width - multiColumnGap,
+                sv.contentSize.width - sv.frame.size.width)
+    sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
+    sv.flashScrollIndicators()
+    return true
+  }
+  
+  public override func handleLeftTap() -> Bool {
+    guard isMultiColumnMode else { return super.handleLeftTap() }
+    guard let sv = self.currentWebView?.scrollView  else { return false }
+    if sv.contentOffset.x - 2 < 0 { return false }
+    let x = max(sv.contentOffset.x - sv.frame.size.width + multiColumnGap, 0)
+    sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
+    sv.flashScrollIndicators()
+    return true
   }
   
   func getMultiColumnCss() -> String?  {
