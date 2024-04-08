@@ -130,6 +130,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public static let bottomMargin: CGFloat = 50
   
   var multiColumnGap: CGFloat = 0.0
+  var multiColumnWidth: CGFloat = 0.0
+  var screenRowCount: Int = 1
   
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
@@ -256,14 +258,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     guard isMultiColumnMode else { return super.handleRightTap() }
     guard let sv = self.currentWebView?.scrollView  else { return false }
     if sv.contentOffset.x + 2 + sv.frame.size.width > sv.contentSize.width { return false }
-    
-    
-    if sv.contentOffset.x > 0 {
-      let currentScreen = sv.frame.size.width/sv.contentOffset.x
-    }
-    
-    var x = min(sv.contentOffset.x + sv.frame.size.width - multiColumnGap,
-                sv.contentSize.width - sv.frame.size.width)
+    /// scroll visible row count right usually:
+    /// contentOffset.x + sv.frame.size.width - multiColumnGap
+    /// but in case of misplaced scrolling/offset, we need to 'snap' next row
+    let rowWidth = Int(UIWindow.size.width - multiColumnGap)/screenRowCount
+    let currentRow = sv.contentOffset.x/CGFloat(rowWidth)
+    let wrongOffset = currentRow - floor(currentRow) > 0.1
+    let offset = wrongOffset ? 1 : 0
+    let nextRow = Int(currentRow) + max(1, screenRowCount - offset)
+    let x = min(rowWidth*nextRow,//nextStart
+                Int(sv.contentSize.width - sv.frame.size.width))
     sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
     sv.flashScrollIndicators()
     return true
@@ -273,7 +277,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     guard isMultiColumnMode else { return super.handleLeftTap() }
     guard let sv = self.currentWebView?.scrollView  else { return false }
     if sv.contentOffset.x - 2 < 0 { return false }
-    let x = max(sv.contentOffset.x - sv.frame.size.width + multiColumnGap, 0)
+    /// scroll visible row count right usually:
+    /// contentOffset.x + sv.frame.size.width - multiColumnGap
+    /// but in case of misplaced scrolling/offset, we need to 'snap' next row
+    let rowWidth = Int(UIWindow.size.width - multiColumnGap)/screenRowCount
+    let currentRow = sv.contentOffset.x/CGFloat(rowWidth)
+    let wrongOffset = abs(floor(currentRow) - currentRow) > 0.1
+    let offset = wrongOffset ? 1 : 0
+    let nextRow = Int(currentRow) - max(1, screenRowCount - offset)
+    let x = max(0, rowWidth*nextRow)//nextStart
     sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
     sv.flashScrollIndicators()
     return true
@@ -293,14 +305,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     func colMetrics(maxRowCount: CGFloat) -> columnData {
       let padding = 30.0
       if maxRowCount < 3.0 {
+        screenRowCount = 2
         return (UIWindow.size.width * 0.5 - 3*padding, padding)//2 Rows
       }
-      if maxRowCount < 4.0 {
-        return (UIWindow.size.width * 0.333  - 3*padding, padding) //3 Rows
+      if maxRowCount < 5.0 {
+        screenRowCount = Int(maxRowCount) //3/4 Rows
+        return (floor(UIWindow.size.width / maxRowCount  - maxRowCount*padding), padding)
       }
-      if maxRowCount < 7.0 {
-        return (UIWindow.size.width * 0.25  - 4*padding, padding) //4 Rows
-      }
+      screenRowCount = 5
       return (UIWindow.size.width * 0.2  - 5*padding, padding) // 5 Rows usually not reachable
     }
     
@@ -310,15 +322,21 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
      Paddign-Left Messure: 60/2 > 30
      Gap 182/2 > 91
       387+387 = 774 + 30+30 = 834
+     834 - 30 > 804 expected offset
+     0>2
+     327 + 327 = 654
+      834*992
+     body 774*992*
      
+     834 - 774 = 60
+      774-654 = 120
      
      */
     
     let colMetrics = colMetrics(maxRowCount: maxRowCount)
-    let colWidth = colMetrics.width
-    let padding = colMetrics.padding
-    multiColumnGap = padding
-    print("MainWindowWidth: \(UIWindow.size.width) colWidth: \(colWidth) padding: \(padding) rowCount:\(min(floor(maxRowCount), 5)) rowCountCalc: \(UIWindow.size.width/colWidth) maxRowCount: \(maxRowCount)")
+    multiColumnGap = colMetrics.padding
+    multiColumnWidth = colMetrics.width
+    print("MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) padding: \(padding) rowCount:\(min(floor(maxRowCount), 5)) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) maxRowCount: \(maxRowCount)")
     let colHeight = UIWindow.size.height - UIWindow.verticalInsets - 50 - 47 - 61
     /**
      ***pretty ugly css** but:
@@ -349,19 +367,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       body {
         padding-right: 0;
         padding-left: 0;
-        margin-left: \(2*padding)px;
+        margin-left: \(2*multiColumnGap)px;
         padding-top: 68px;
         overflow-x: scroll;
-        column-width: \(colWidth)px;
+        column-width: \(multiColumnWidth)px;
         width: fit-content;
         column-fill: auto;
-        column-gap: \(padding)px;
+        column-gap: \(multiColumnGap)px;
         orphans: 3; /*at least 3 lines in a block at end*/
         widows: 3; /*at least 3 lines in a block at start*/
       }
       body #content.article {
-        margin-left: \(-padding)px;
-        margin-right: \(padding)px;
+        margin-left: \(-multiColumnGap)px;
+        margin-right: \(multiColumnGap)px;
         /*padding left/right must be 0 otherwise it extends the GAP*/
         position: relative;/*important overwrite scroll.css defaults*/
         left: 0;/*important overwrite scroll.css defaults*/
