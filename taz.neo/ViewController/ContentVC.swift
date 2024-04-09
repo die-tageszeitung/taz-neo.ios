@@ -323,7 +323,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
        (1112-4*padding)/3
        */
       let screenRowCount = CGFloat(screenRowCount)
-      return (floor((UIWindow.size.width - (screenRowCount + 1)*padding)/screenRowCount + 1), padding)
+      return (floor((UIWindow.size.width - (screenRowCount + 1)*padding)/screenRowCount), padding)
     }
     /**
      Delivers wrong values?
