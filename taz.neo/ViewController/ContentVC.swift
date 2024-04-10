@@ -344,13 +344,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func getMultiColumnCss() -> String?  {
-    guard let calculatedColumnWidth = Defaults.calculatedColumnWidth else {
-      return nil
-    }
-    
+    let calculatedColumnWidth = Int(3.35 * CGFloat(articleTextSize))
     let maxRowCount = UIWindow.size.width/CGFloat(calculatedColumnWidth)
     
-    guard multiColumnMode && maxRowCount > 2.2 else { return nil }
+    guard multiColumnMode && maxRowCount >= 2.0 else { return nil }
     
     typealias columnData = (width:CGFloat, padding: CGFloat)
     

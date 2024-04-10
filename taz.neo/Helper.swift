@@ -91,23 +91,6 @@ extension Defaults{
       Defaults.singleton["usageTrackingAllowed"] = newValue?.stringRepresentation
     }
   }
-  
-  static var calculatedColumnWidth : Int? {
-    get {
-      return Defaults.singleton["calculatedColumnWidth"]?.int
-    }
-    set {
-      if let new = newValue {
-        Defaults.singleton["calculatedColumnWidth"] = "\(new)"
-        if calculatedColumnWidth != new {
-          Notification.send(globalStylesChangedNotification)
-        }
-      }
-      else {
-        Defaults.singleton["calculatedColumnWidth"] = nil
-      }
-    }
-  }
 }
 
 fileprivate extension Bool {
