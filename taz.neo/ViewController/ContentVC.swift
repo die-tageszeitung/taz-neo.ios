@@ -284,31 +284,21 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   var singleColumnCss : String {
     if Device.isIpad == false { return "" }
-    if self.traitCollection.horizontalSizeClass != .regular { return "" }
-    
     var rowWidth = 660.0
     if articleLineLengthAdjustment < 0 {
       rowWidth *= 0.9
     }
-    else if articleLineLengthAdjustment > 0 && textSize >= 100 {
+    else if articleLineLengthAdjustment > 0 {
       rowWidth *= 1.1
     }
     rowWidth *= floor(CGFloat(textSize)/10)/10
-    
-    let maxWidth = Int(rowWidth)
-    /*
-    breite ist maximal UIWindow.size.width - 20
-     wenn ich die Schriftgröße breiter stelle wird das trotzdem so angewand d.h. media Limit ist irelevant!!!
-    */
-    let mediaLimit = max(Int(UIWindow.size.width), maxWidth)
+    let maxWidth = min(Int(rowWidth), Int(UIWindow.size.width - 36))
     return """
-    @media (min-width: \(mediaLimit)px) {
-      body #content {
-          width: \(maxWidth)px;
-          margin-left: \(-maxWidth/2)px;
-          position: absolute;
-          left: 50%;
-      }
+    body #content {
+        width: \(maxWidth)px;
+        margin-left: \(-maxWidth/2)px;
+        position: absolute;
+        left: 50%;
     }
     """
   }
