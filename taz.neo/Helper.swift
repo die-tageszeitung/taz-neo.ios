@@ -99,6 +99,9 @@ extension Defaults{
     set {
       if let new = newValue {
         Defaults.singleton["calculatedColumnWidth"] = "\(new)"
+        if calculatedColumnWidth != new {
+          Notification.send(globalStylesChangedNotification)
+        }
       }
       else {
         Defaults.singleton["calculatedColumnWidth"] = nil

@@ -145,7 +145,26 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   @Default("multiColumnMode")
   var multiColumnMode: Bool
   ///indicator if multiColumnMode == true & tablet & enough space to display multi columns
-  private var isMultiColumnMode = false
+  private var isMultiColumnMode = false {
+    didSet {
+      if self.isKind(of: ArticleVC.self)
+          && oldValue == true
+          && isMultiColumnMode == false
+          && multiColumnMode == true {
+        var tip = ""
+        if Device.isIpad && UIDevice.current.orientation.isPortrait {
+          tip = "iPad ins Querformat drehen."
+        }
+        else if UIScreen.main.bounds.size.width > UIWindow.size.width {
+          tip = "App vergrößern."
+        }
+        else {
+          tip = "Schriftgröße verkleinern."
+        }
+        Toast.show("Mehrspaltigkeit nicht verfügbar!<br>Zum Aktivieren der Mehrspaltigkeit \(tip)")
+      }
+    }
+  }
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
@@ -225,7 +244,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let dfl = Defaults.singleton
     let textSize = Int(dfl["articleTextSize"]!)!
     let colorMode = dfl["colorMode"]
-    let textAlign = dfl["textAlign"]
+    let textAlign = dfl["textAlign"] ?? "initial"
     var colorModeImport: String = ""
     if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\";" }
     let cssContent = """
@@ -246,7 +265,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
       }
       p {
-        text-align: \(textAlign!);
+        text-align: \(textAlign);
       }
       \(multiColumnCss)
     """
@@ -259,6 +278,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   var multiColumnCss : String {
     let css = getMultiColumnCss()
     isMultiColumnMode = css != nil
+    self.collectionView?.showsHorizontalScrollIndicator = false
     return css ?? ""
   }
   
@@ -313,7 +333,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     typealias columnData = (width:CGFloat, padding: CGFloat)
     
     func colMetrics(maxRowCount: CGFloat) -> columnData {
-      let padding = 30.0
+      let padding
+      = articleTextSize <= 100
+      ? 30.0
+      : 30.0 * floor(CGFloat(articleTextSize)/10)/10
       
       switch maxRowCount {
         case -10..<3.0:
@@ -350,9 +373,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         * body #content minus margin-left fixes: gap increase
       */
     return """
-      p {
-        text-align: justify;
-      }
       body {
         padding: 68px 0 50px 0;
         height: calc(100vh - 158px);
@@ -793,7 +813,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     writeTazApiCss()
     writeTazApiJs()
     self.view.addSubview(header)
-    self.collectionView?.showsHorizontalScrollIndicator = false
+//    self.collectionView?.showsHorizontalScrollIndicator = false
     pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
@@ -856,6 +876,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
     slider?.button.shadow()
+    updateWebwiews()
+  }
+  
+  open override var preferredStatusBarStyle: UIStatusBarStyle {
+    return Defaults.darkMode ?  .lightContent : .default
+  }
+  
+  func updateWebwiews(){
     writeTazApiCss {[weak self] in
       self?.reloadLoaded = true
       self?.reloadAllWebViews()
@@ -863,17 +891,23 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
   }
   
-  open override var preferredStatusBarStyle: UIStatusBarStyle {
-    return Defaults.darkMode ?  .lightContent : .default
+  open override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    if sizeChanged {
+      sizeChanged = false
+      onMainAfter {[weak self] in
+        self?.updateWebwiews()
+      }
+    }
   }
   
-  open override func willTransition(to newCollection: UITraitCollection, with coordinator: any UIViewControllerTransitionCoordinator) {
-    ///WTF I wanted here? I Guess..... trait size changes to handle botom sheet
-    super.willTransition(to: newCollection, with: coordinator)
-  }
+  private var sizeChanged = false
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
+    if self.view.frame.size != size {
+      sizeChanged = true
+    }
     updateSliderWidth(newParentWidth: size.width)
     settingsBottomSheet?.updateMaxWidth(for: size.width)
     onMain(after: 0.7) {[weak self] in
