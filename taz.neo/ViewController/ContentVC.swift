@@ -136,8 +136,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
+  @Default("articleLineLengthAdjustment")
+  private var articleLineLengthAdjustment: Int
+  
+  @Default("articleTextSize")
+  private var articleTextSize: Int
+  
   @Default("multiColumnMode")
   var multiColumnMode: Bool
+  ///indicator if multiColumnMode == true & tablet & enough space to display multi columns
+  private var isMultiColumnMode = false
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
@@ -322,6 +330,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
        331*3+4*60
        (1112-4*padding)/3
        */
+      screenRowCount = max(2, screenRowCount - articleLineLengthAdjustment)
       let screenRowCount = CGFloat(screenRowCount)
       return (floor((UIWindow.size.width - (screenRowCount + 1)*padding)/screenRowCount), padding)
     }
@@ -604,11 +613,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   var bottomSheetDefaultCoverage: CGFloat {
-    return 490 + UIWindow.safeInsets.bottom
+    return 572 + UIWindow.safeInsets.bottom
   }
   
   var bottomSheetDefaultSlideDown: CGFloat {
-    return 82//hide special Settings
+    return 164//hide special Settings
   }
   
   func setupSettingsBottomSheet() {

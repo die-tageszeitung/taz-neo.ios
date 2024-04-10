@@ -20,8 +20,8 @@ class TextSettingsVC: UIViewController {
   @Default("articleTextSize")
   private var articleTextSize: Int
   
-  @Default("articleColumnPercentageWidth")
-  private var articleColumnPercentageWidth: Int
+  @Default("articleLineLengthAdjustment")
+  private var articleLineLengthAdjustment: Int
   
   @Default("textAlign")
   private var textAlign: String
@@ -31,28 +31,24 @@ class TextSettingsVC: UIViewController {
   
   func updateButtonValuesOnOpen(){
     textSettings.textSize = articleTextSize
-    textSettings.articleColumnPercentageWidth = articleColumnPercentageWidth
     updateTextAlignmentButtons()
     updateDayNightButtons()
     updateColumnModeButtons()
+    updateLineLengthButtons()
   }
   
   @Default("colorMode")
   private var colorMode: String
   
   private func updateTextAlignmentButtons(){
-    if self.textAlign == "justify" {
-      textSettings.textAlignJustifyButton.buttonView.isActivated = true
-      textSettings.textAlignLeftButton.buttonView.isActivated = false
-    } else {
-      textSettings.textAlignJustifyButton.buttonView.isActivated = false
-      textSettings.textAlignLeftButton.buttonView.isActivated = true
-    }
+    textSettings.textAlignJustifyButton.buttonView.isActivated
+    = self.textAlign == "justify"
+    textSettings.textAlignLeftButton.buttonView.isActivated
+    = self.textAlign != "justify"
   }
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
-    textSettings.updateWidthSettingButtons(size.width)
   }
   
   private func updateDayNightButtons(){
@@ -65,15 +61,18 @@ class TextSettingsVC: UIViewController {
     self.textSettings.horizontalScrollingButton.buttonView.isActivated = multiColumnMode
   }
   
+  private func updateLineLengthButtons(){
+    textSettings.lineLengthSmallerButton.buttonView.isActivated
+    = articleLineLengthAdjustment == -1
+    textSettings.lineLengthDefaultButton.buttonView.isActivated 
+    = articleLineLengthAdjustment == 0
+    textSettings.lineLengthLargerButton.buttonView.isActivated
+    = articleLineLengthAdjustment == 1
+  }
+  
   private func setSize(_ s: Int) {
     textSettings.textSize = s
     articleTextSize = s
-    Notification.send(globalStylesChangedNotification)
-  }
-  private func setPercentageWidth(_ w: Int) {
-    //#warning("ToDo 0.9.4: use Helper.swift Defaults.articleTextSize functions @see Settings")
-    textSettings.articleColumnPercentageWidth = w
-    articleColumnPercentageWidth = w
     Notification.send(globalStylesChangedNotification)
   }
   
@@ -92,17 +91,32 @@ class TextSettingsVC: UIViewController {
       if self.articleTextSize != 100 { self.setSize(100) }
     }
     
-    textSettings.articleColumnPercentageWidth = articleColumnPercentageWidth
-//    textSettings.decreaseWith.onPress { [weak self] _ in
-//      guard let self = self else { return }
-//      if self.articleColumnPercentageWidth > 50 { self.setPercentageWidth(self.articleColumnPercentageWidth-5) }
-//    }
-//    textSettings.increaseWith.onPress { [weak self] _ in
-//      guard let self = self else { return }
-//      if self.articleColumnPercentageWidth < max(100, Int(UIWindow.size.width/61)*10) {
-//        //61 to have a side padding
-//        self.setPercentageWidth(self.articleColumnPercentageWidth+5) }
-//    }
+    textSettings.lineLengthSmallerButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      if articleLineLengthAdjustment != -1 {
+        articleLineLengthAdjustment = -1
+        Notification.send(globalStylesChangedNotification)
+      }
+      self.updateLineLengthButtons()
+    }
+    
+    textSettings.lineLengthDefaultButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      if articleLineLengthAdjustment != 0 {
+        articleLineLengthAdjustment = 0
+        Notification.send(globalStylesChangedNotification)
+      }
+      self.updateLineLengthButtons()
+    }
+    
+    textSettings.lineLengthLargerButton.onPress { [weak self] _ in
+      guard let self = self else { return }
+      if articleLineLengthAdjustment != 1 {
+        articleLineLengthAdjustment = 1
+        Notification.send(globalStylesChangedNotification)
+      }
+      self.updateLineLengthButtons()
+    }
     
     textSettings.textAlignLeftButton.onPress { [weak self] _ in
       guard let self = self else { return }
@@ -170,7 +184,6 @@ class TextSettingsVC: UIViewController {
     super.viewDidLoad()
     self.view.addSubview(textSettings)
     setupButtons()
-    textSettings.addBorder(.red)
     pin(textSettings.top, to: self.view.top)
     pin(textSettings.bottom, to: self.view.bottom, priority: .defaultLow)
     pin(textSettings.left, to: self.view.left, dist: 8)
@@ -256,14 +269,37 @@ class TextSettingsView: UIView {
     btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
+  public lazy var lineLengthSmallerButton : Button<ImageLabelView> = {
+    let btn = Button<ImageLabelView>()
+    btn.buttonView.symbol = "minus.square"
+    btn.buttonView.text = "schmaler"
+    btn.buttonView.label.contentFont(size: 9.4)
+    return btn
+  }()
+  public lazy var lineLengthDefaultButton : Button<ImageLabelView> = {
+    let btn = Button<ImageLabelView>()
+    btn.buttonView.symbol = "1.square"
+    btn.buttonView.text = "normal"
+    btn.buttonView.label.contentFont(size: 9.4)
+    return btn
+  }()
+  public lazy var lineLengthLargerButton : Button<ImageLabelView> = {
+    let btn = Button<ImageLabelView>()
+    btn.buttonView.symbol = "plus.rectangle"
+    btn.buttonView.text = "breiter"
+    btn.buttonView.label.contentFont(size: 9.4)
+    return btn
+  }()
     
   public var textSizeLabel = UILabel("Textgröße")
   public var dayNightLabel = UILabel("Tag- und Nachtmodus")
   public var scrollingModeLabel = UILabel("Artikeldarstellung")
   public var settingsLabel = UILabel("Weitere Einstellungen")
   public var textAlignLabel = UILabel("Textausrichtung")
+  public var lineLengthLabel = UILabel("Zeilenlänge")
   
   private var sizeStack = UIStackView()
+  private var lineLengthStack = UIStackView()
   private var colorModeStack = UIStackView()
   private var scrollingModeStack = UIStackView()
   //settings Button need no stack
@@ -272,7 +308,7 @@ class TextSettingsView: UIView {
   private var labelStack = UIStackView()//leftSideVerticalStack, only if enoughtWidth
   
   private func setup() {
-    [sizeStack, colorModeStack, scrollingModeStack, alignStack].forEach {
+    [sizeStack, colorModeStack, scrollingModeStack, alignStack, lineLengthStack].forEach {
       $0.axis = .horizontal
       $0.alignment = .fill
       $0.distribution = .fillEqually
@@ -301,23 +337,26 @@ class TextSettingsView: UIView {
       alignStack.addArrangedSubview(v)
     }
     
+    for v in [lineLengthSmallerButton, lineLengthDefaultButton, lineLengthLargerButton] {
+      lineLengthStack.addArrangedSubview(v)
+    }
+    
     verticalStack.axis = .vertical
     verticalStack.alignment = .fill
-//    verticalStack.distribution = .fillEqually
     verticalStack.spacing = 12.0
     verticalStack.addArrangedSubview(sizeStack)
     verticalStack.addArrangedSubview(colorModeStack)
     verticalStack.addArrangedSubview(scrollingModeStack)
     verticalStack.addArrangedSubview(settingsButton)
     verticalStack.addArrangedSubview(alignStack)
+    verticalStack.addArrangedSubview(lineLengthStack)
     verticalStack.setCustomSpacing(20.0, after: settingsButton)
     addSubview(verticalStack)
     
     labelStack.axis = .vertical
     labelStack.alignment = .fill
     labelStack.spacing = 12.0
-//    labelStack.setCustomSpacing(20.0, after: settingsButton)
-    [textSizeLabel, dayNightLabel, scrollingModeLabel, settingsLabel, textAlignLabel].forEach {
+    [textSizeLabel, dayNightLabel, scrollingModeLabel, settingsLabel, textAlignLabel, lineLengthLabel].forEach {
       $0.pinHeight(65.5)//Settings and others in hStack are 65.5
       $0.baselineAdjustment = .alignCenters
       labelStack.addArrangedSubview($0)
@@ -362,7 +401,10 @@ class TextSettingsView: UIView {
      horizontalScrollingButton.buttonView,
      settingsButton.buttonView,
      textAlignLeftButton.buttonView,
-     textAlignJustifyButton.buttonView
+     textAlignJustifyButton.buttonView,
+     lineLengthSmallerButton.buttonView,
+     lineLengthDefaultButton.buttonView,
+     lineLengthLargerButton.buttonView
      ].forEach {
       //Active Background Color deactivated for the Moment due missing unclear Color Values
       $0.activeBackgroundColor = Const.SetColor.taz(.buttonActiveBackground).color
@@ -375,6 +417,7 @@ class TextSettingsView: UIView {
     }
     backgroundColor = Const.SetColor.taz(.primaryBackground).color
     sizeStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
+    lineLengthStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
     scrollingModeStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
   }
   
@@ -382,31 +425,7 @@ class TextSettingsView: UIView {
   public var textSize: Int = 100 {
     didSet { fontScaleButton.buttonView.text = "\(textSize)%" }
   }
-  
-  public var articleColumnPercentageWidth: Int = 100 {
-    didSet {
-//      defaultWidth.buttonView.text = "\(articleColumnPercentageWidth)%"
-      updateWidthSettingButtons()
-    }
-  }
-  
-  func updateWidthSettingButtons(_ withWindowWidth:CGFloat = UIWindow.size.width){
-    if articleColumnPercentageWidth >= Int(withWindowWidth/61)*10 {//61 to have a side padding
-//      defaultWidth.buttonView.color = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
-//      increaseWith.buttonView.color = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
-    }
-    else if self.articleColumnPercentageWidth <= 50 {
-//      increaseWith.buttonView.color = Const.SetColor.ios(.link).color
-//      defaultWidth.buttonView.color = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
-//      decreaseWith.buttonView.color = Const.SetColor.ios(.link).color.withAlphaComponent(0.5)
-    }
-    else {
-//      defaultWidth.buttonView.color = Const.SetColor.ios(.link).color
-//      increaseWith.buttonView.color = Const.SetColor.ios(.link).color
-//      decreaseWith.buttonView.color = Const.SetColor.ios(.link).color
-    }
-  }
-  
+    
   override func layoutSubviews() {
     super.layoutSubviews()
     applyStyles()

@@ -73,6 +73,7 @@ private let configValues = [
   "cmLastPrio": "1",
   "cmSessionCount": "0",
   "multiColumnMode": "false",
+  "articleLineLengthAdjustment": "0",
 ]
 
 private let configValuesLMD = [
