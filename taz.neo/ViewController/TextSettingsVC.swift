@@ -340,13 +340,17 @@ class TextSettingsView: UIView {
     for v in [lineLengthSmallerButton, lineLengthDefaultButton, lineLengthLargerButton] {
       lineLengthStack.addArrangedSubview(v)
     }
+    lineLengthStack.isHidden = Device.isIpad == false
+    lineLengthLabel.isHidden = Device.isIpad == false
     
     verticalStack.axis = .vertical
     verticalStack.alignment = .fill
     verticalStack.spacing = 12.0
     verticalStack.addArrangedSubview(sizeStack)
     verticalStack.addArrangedSubview(colorModeStack)
-    verticalStack.addArrangedSubview(scrollingModeStack)
+    if Device.isIpad {
+      verticalStack.addArrangedSubview(scrollingModeStack)
+    }
     verticalStack.addArrangedSubview(settingsButton)
     verticalStack.addArrangedSubview(alignStack)
     verticalStack.addArrangedSubview(lineLengthStack)

@@ -236,13 +236,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     #warning("ToDo delegate.resetIssueList")
 //    delegate.resetIssueList()
   }
+  
+  var textSize: Int { Int(Defaults.singleton["articleTextSize"] ?? "100") ?? 100}
 
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat? = nil,
                              bottomMargin: CGFloat? = nil, callback: (()->())? = nil) {
     let bottomMargin = bottomMargin ?? Self.bottomMargin
     let dfl = Defaults.singleton
-    let textSize = Int(dfl["articleTextSize"]!)!
     let colorMode = dfl["colorMode"]
     let textAlign = dfl["textAlign"] ?? "initial"
     var colorModeImport: String = ""
@@ -258,7 +259,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       #content:first-child > *:first-child > *:first-child > img:first-child{
              padding-top: -20px
       }
-
     
       body {
         padding-top: 78px;
@@ -279,7 +279,38 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let css = getMultiColumnCss()
     isMultiColumnMode = css != nil
     self.collectionView?.showsHorizontalScrollIndicator = false
-    return css ?? ""
+    return css ?? singleColumnCss
+  }
+  
+  var singleColumnCss : String {
+    if Device.isIpad == false { return "" }
+    if self.traitCollection.horizontalSizeClass != .regular { return "" }
+    
+    var rowWidth = 660.0
+    if articleLineLengthAdjustment < 0 {
+      rowWidth *= 0.9
+    }
+    else if articleLineLengthAdjustment > 0 && textSize >= 100 {
+      rowWidth *= 1.1
+    }
+    rowWidth *= floor(CGFloat(textSize)/10)/10
+    
+    let maxWidth = Int(rowWidth)
+    /*
+    breite ist maximal UIWindow.size.width - 20
+     wenn ich die Schriftgröße breiter stelle wird das trotzdem so angewand d.h. media Limit ist irelevant!!!
+    */
+    let mediaLimit = max(Int(UIWindow.size.width), maxWidth)
+    return """
+    @media (min-width: \(mediaLimit)px) {
+      body #content {
+          width: \(maxWidth)px;
+          margin-left: \(-maxWidth/2)px;
+          position: absolute;
+          left: 50%;
+      }
+    }
+    """
   }
   
   public override func handleRightTap() -> Bool {
@@ -633,11 +664,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   var bottomSheetDefaultCoverage: CGFloat {
-    return 572 + UIWindow.safeInsets.bottom
+    return Device.isIpad
+    ? 572 + UIWindow.safeInsets.bottom
+    : 450 + UIWindow.safeInsets.bottom
   }
   
   var bottomSheetDefaultSlideDown: CGFloat {
-    return 164//hide special Settings
+    //hide special Settings
+    return Device.isIpad
+    ? 164
+    : 82
   }
   
   func setupSettingsBottomSheet() {
