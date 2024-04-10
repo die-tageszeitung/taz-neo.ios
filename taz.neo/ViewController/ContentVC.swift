@@ -284,15 +284,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   var singleColumnCss : String {
     if Device.isIpad == false { return "" }
-    var rowWidth = 660.0
+    let textSizeFactor = floor(CGFloat(textSize)/10)/10 ///(0.3...2.0)
+    var rowWidth = 825.0*textSizeFactor //734 for 0.8&0.9 / 835 fot 0.6 and 0.8
+    var maxWidth = min(rowWidth, UIWindow.size.width - 36)
     if articleLineLengthAdjustment < 0 {
-      rowWidth *= 0.9
+      maxWidth *= 0.7
     }
-    else if articleLineLengthAdjustment > 0 {
-      rowWidth *= 1.1
+    else if articleLineLengthAdjustment == 0 {
+      maxWidth *= 0.8
     }
-    rowWidth *= floor(CGFloat(textSize)/10)/10
-    let maxWidth = min(Int(rowWidth), Int(UIWindow.size.width - 36))
+    maxWidth = floor(maxWidth)
     return """
     body #content {
         width: \(maxWidth)px;
