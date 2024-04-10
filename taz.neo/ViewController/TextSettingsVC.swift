@@ -109,8 +109,8 @@ class TextSettingsVC: UIViewController {
       if self.textAlign != "left" {
         self.textAlign = "left"
         Notification.send(globalStylesChangedNotification)
-        self.updateTextAlignmentButtons()
       }
+      self.updateTextAlignmentButtons()
     }
     
     textSettings.textAlignJustifyButton.onPress { [weak self] _ in
@@ -118,26 +118,27 @@ class TextSettingsVC: UIViewController {
       if self.textAlign != "justify" {
         self.textAlign = "justify"
         Notification.send(globalStylesChangedNotification)
-        self.updateTextAlignmentButtons()
       }
+      self.updateTextAlignmentButtons()
     }
     
     textSettings.defaultScrollingButton.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.multiColumnMode == false { return }
-      self.multiColumnMode = false
-      Notification.send(globalStylesChangedNotification)
+      if self.multiColumnMode != false {
+        self.multiColumnMode = false
+        Notification.send(globalStylesChangedNotification)
+      }
       self.updateColumnModeButtons()
     }
     
     textSettings.horizontalScrollingButton.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.multiColumnMode == true { return }
-      self.multiColumnMode = true
-      Notification.send(globalStylesChangedNotification)
+      if self.multiColumnMode != true {
+        self.multiColumnMode = true
+        Notification.send(globalStylesChangedNotification)
+      }
       self.updateColumnModeButtons()
     }
-    
     
     textSettings.settingsButton.onPress { _ in
       Notification.send(Const.NotificationNames.gotoSettings)
@@ -150,9 +151,8 @@ class TextSettingsVC: UIViewController {
    
     textSettings.dayModeButton.onPress { [weak self] _ in
       guard let self = self else { return }
-      self.textSettings.nightModeButton.buttonView.isActivated = false
-      self.textSettings.dayModeButton.buttonView.isActivated = true
       Defaults.darkMode = false
+      self.updateDayNightButtons()
     }
     
     textSettings.nightModeButton.onPress {[weak self] _ in
@@ -170,8 +170,9 @@ class TextSettingsVC: UIViewController {
     super.viewDidLoad()
     self.view.addSubview(textSettings)
     setupButtons()
-    textSettings.pinHeight(260)
+    textSettings.addBorder(.red)
     pin(textSettings.top, to: self.view.top)
+    pin(textSettings.bottom, to: self.view.bottom, priority: .defaultLow)
     pin(textSettings.left, to: self.view.left, dist: 8)
     pin(textSettings.right, to: self.view.right, dist: -8)
   }
@@ -244,7 +245,7 @@ class TextSettingsView: UIView {
   public lazy var textAlignLeftButton : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
     btn.buttonView.symbol = "text.alignleft"
-    btn.buttonView.text = "linksbündig (Standard)"
+    btn.buttonView.text = "Linksbündig (Standard)"
     btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
@@ -260,6 +261,7 @@ class TextSettingsView: UIView {
   public var dayNightLabel = UILabel("Tag- und Nachtmodus")
   public var scrollingModeLabel = UILabel("Artikeldarstellung")
   public var settingsLabel = UILabel("Weitere Einstellungen")
+  public var textAlignLabel = UILabel("Textausrichtung")
   
   private var sizeStack = UIStackView()
   private var colorModeStack = UIStackView()
@@ -315,11 +317,12 @@ class TextSettingsView: UIView {
     labelStack.alignment = .fill
     labelStack.spacing = 12.0
 //    labelStack.setCustomSpacing(20.0, after: settingsButton)
-    [textSizeLabel, dayNightLabel, scrollingModeLabel, settingsLabel].forEach {
+    [textSizeLabel, dayNightLabel, scrollingModeLabel, settingsLabel, textAlignLabel].forEach {
       $0.pinHeight(65.5)//Settings and others in hStack are 65.5
       $0.baselineAdjustment = .alignCenters
       labelStack.addArrangedSubview($0)
     }
+    labelStack.setCustomSpacing(20.0, after: textAlignLabel)
 
     labelStack.isHidden = true
     addSubview(labelStack)
