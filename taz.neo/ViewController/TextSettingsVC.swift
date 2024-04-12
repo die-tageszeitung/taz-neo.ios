@@ -29,6 +29,10 @@ class TextSettingsVC: UIViewController {
   @Default("multiColumnMode")
   var multiColumnMode: Bool
   
+  @Default("columnCountLandscape")
+  var columnCountLandscape: Int
+  //columnCountPortrait = 2 fix, not displayed
+  
   func updateButtonValuesOnOpen(){
     textSettings.textSize = articleTextSize
     updateTextAlignmentButtons()
@@ -47,10 +51,6 @@ class TextSettingsVC: UIViewController {
     = self.textAlign != "justify"
   }
   
-  public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    super.viewWillTransition(to: size, with: coordinator)
-  }
-  
   private func updateDayNightButtons(){
     self.textSettings.nightModeButton.buttonView.isActivated = Defaults.darkMode
     self.textSettings.dayModeButton.buttonView.isActivated = !Defaults.darkMode
@@ -59,6 +59,7 @@ class TextSettingsVC: UIViewController {
   private func updateColumnModeButtons(){
     self.textSettings.defaultScrollingButton.buttonView.isActivated = !multiColumnMode
     self.textSettings.horizontalScrollingButton.buttonView.isActivated = multiColumnMode
+    self.textSettings.updateViews(for: self.traitCollection.horizontalSizeClass)
   }
   
   private func updateLineLengthButtons(){
@@ -73,6 +74,7 @@ class TextSettingsVC: UIViewController {
   private func setSize(_ s: Int) {
     textSettings.textSize = s
     articleTextSize = s
+    textSettings.updateColumnButtons()
     Notification.send(globalStylesChangedNotification)
   }
   
@@ -80,7 +82,7 @@ class TextSettingsVC: UIViewController {
     textSettings.textSize = articleTextSize
     textSettings.smallAButton.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleTextSize > 30 { self.setSize(self.articleTextSize-10) }
+      if self.articleTextSize > 50 { self.setSize(self.articleTextSize-10) }
     }
     textSettings.largeAButton.onPress { [weak self] _ in
       guard let self = self else { return }
@@ -116,6 +118,19 @@ class TextSettingsVC: UIViewController {
         Notification.send(globalStylesChangedNotification)
       }
       self.updateLineLengthButtons()
+    }
+    
+    textSettings.columnCount2Button.onPress { [weak self] _ in
+      self?.columnCountLandscape = 2
+      self?.textSettings.updateColumnButtons()
+    }    
+    textSettings.columnCount3Button.onPress { [weak self] _ in
+      self?.columnCountLandscape = 3
+      self?.textSettings.updateColumnButtons()
+    }    
+    textSettings.columnCount4Button.onPress { [weak self] _ in
+      self?.columnCountLandscape = 4
+      self?.textSettings.updateColumnButtons()
     }
     
     textSettings.textAlignLeftButton.onPress { [weak self] _ in
@@ -193,10 +208,22 @@ class TextSettingsVC: UIViewController {
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     applyStyles()
+    
   }
 }
 
 class TextSettingsView: UIView {
+  
+  @Default("columnCountLandscape")
+  var columnCountLandscape: Int
+  
+  @Default("multiColumnMode")
+  var multiColumnMode: Bool
+  
+  func isMultiColumnAvailable(for horizontalSiteClass: UIUserInterfaceSizeClass) -> Bool {
+    guard horizontalSiteClass == .regular else { return false }
+    return multiColumnMode
+  }
     
   /// Buttons used to switch between various modes
   public lazy var smallAButton : Button<ImageLabelView> = {
@@ -290,16 +317,38 @@ class TextSettingsView: UIView {
     btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
+  public lazy var columnCount2Button : Button<ImageLabelView> = {
+    let btn = Button<ImageLabelView>()
+    btn.buttonView.symbol = "2.lane"
+    btn.buttonView.text = "2 Spalten"
+    btn.buttonView.label.contentFont(size: 9.4)
+    return btn
+  }()
+  public lazy var columnCount3Button : Button<ImageLabelView> = {
+    let btn = Button<ImageLabelView>()
+    btn.buttonView.symbol = "3.lane"
+    btn.buttonView.text = "3 Spalten"
+    btn.buttonView.label.contentFont(size: 9.4)
+    return btn
+  }()
+  public lazy var columnCount4Button : Button<ImageLabelView> = {
+    let btn = Button<ImageLabelView>()
+    btn.buttonView.symbol = "4.lane"
+    btn.buttonView.text = "4 Spalten"
+    btn.buttonView.label.contentFont(size: 9.4)
+    return btn
+  }()
     
   public var textSizeLabel = UILabel("Textgröße")
   public var dayNightLabel = UILabel("Tag- und Nachtmodus")
   public var scrollingModeLabel = UILabel("Artikeldarstellung")
   public var settingsLabel = UILabel("Weitere Einstellungen")
   public var textAlignLabel = UILabel("Textausrichtung")
-  public var lineLengthLabel = UILabel("Zeilenlänge")
+  public var columnLabel = UILabel("Zeilenlänge")
   
   private var sizeStack = UIStackView()
   private var lineLengthStack = UIStackView()
+  private var columnCountStack = UIStackView()
   private var colorModeStack = UIStackView()
   private var scrollingModeStack = UIStackView()
   //settings Button need no stack
@@ -307,8 +356,91 @@ class TextSettingsView: UIView {
   private var verticalStack = UIStackView()//right side stack views
   private var labelStack = UIStackView()//leftSideVerticalStack, only if enoughtWidth
   
+  fileprivate func updateViews(for horizontalSiteClass: UIUserInterfaceSizeClass){
+    ///0: FontSize 1: Day/Night 2: Single/Multi(iPAd!) 3: More 4: Width/Count
+    /// Warning Rotation may not set in Device.isLandscape!!
+    ///not displaying extra settings for iPhone
+    if Device.isIphone { return }
+    //iPad, Mac: multiColumnMode(true/false), TextSize>LineLength, DeviceWidth(compact/regular)
+    
+    ///If multiColumnMode == false SHOW lineLengthStack | ENABLED if DeviceWidth > Compact
+    if isMultiColumnAvailable(for: horizontalSiteClass){///multiColumnMode == true && regular width
+      columnLabel.text = "Spaltenanzahl"
+      if columnCountStack.superview == nil {
+        verticalStack.insertArrangedSubview(columnCountStack,
+                                            at: verticalStack.subviews.count)
+      }
+      if lineLengthStack.superview != nil {
+        lineLengthStack.removeFromSuperview()
+      }
+      updateColumnButtons()
+    }
+    else if horizontalSiteClass == .regular{
+      columnLabel.text = "Zeilenlänge"
+      if lineLengthStack.superview == nil {
+        verticalStack.insertArrangedSubview(lineLengthStack,
+                                            at: verticalStack.subviews.count)
+      }
+      if columnCountStack.superview != nil {
+        columnCountStack.removeFromSuperview()
+      }
+    }
+    else {
+      if columnCountStack.superview != nil {
+        columnCountStack.removeFromSuperview()
+      }
+      if lineLengthStack.superview != nil {
+        lineLengthStack.removeFromSuperview()
+      }
+    }
+    
+    if horizontalSiteClass == .regular {
+      if scrollingModeStack.superview == nil {
+        verticalStack.insertArrangedSubview(scrollingModeStack,
+                                            at: 2)
+      }
+      if scrollingModeLabel.superview == nil {
+        labelStack.insertArrangedSubview(scrollingModeLabel,
+                                            at: 2)
+      }
+      if columnLabel.superview == nil {
+        labelStack.insertArrangedSubview(columnLabel,
+                                         at: labelStack.subviews.count)
+        columnLabel.pinHeight(65.5)
+        columnLabel.baselineAdjustment = .alignCenters
+      }
+    }
+    else {
+      if scrollingModeStack.superview != nil {
+        scrollingModeStack.removeFromSuperview()
+      }
+      if scrollingModeLabel.superview != nil {
+        scrollingModeLabel.removeFromSuperview()
+      }
+    }
+  }
+  
+  fileprivate func updateColumnButtons(){
+    let isLandscape = UIWindow.isLandscapeInterface
+    let availableColumnsCount:Int = isLandscape ? Defaults.availableColumnsCount : 2
+    let columnsCountSetting = isLandscape ? columnCountLandscape : 2
+    let selectedColumnCount
+    = columnsCountSetting >= availableColumnsCount
+    ? availableColumnsCount
+    : columnsCountSetting
+        
+    columnCount3Button.isEnabled = availableColumnsCount > 2
+    columnCount3Button.alpha = availableColumnsCount > 2 ? 1.0 : 0.3
+    columnCount4Button.isEnabled = availableColumnsCount > 3
+    columnCount4Button.alpha = availableColumnsCount > 3 ? 1.0 : 0.3
+    
+    columnCount2Button.buttonView.isActivated = selectedColumnCount == 2
+    columnCount3Button.buttonView.isActivated = selectedColumnCount == 3
+    columnCount4Button.buttonView.isActivated = selectedColumnCount == 4
+  }
+  
   private func setup() {
-    [sizeStack, colorModeStack, scrollingModeStack, alignStack, lineLengthStack].forEach {
+    [sizeStack, colorModeStack, scrollingModeStack, alignStack, lineLengthStack, columnCountStack].forEach {
       $0.axis = .horizontal
       $0.alignment = .fill
       $0.distribution = .fillEqually
@@ -333,34 +465,33 @@ class TextSettingsView: UIView {
     settingsButton.layer.cornerRadius = 8.0
     settingsButton.clipsToBounds = true
     
-    for v in [textAlignLeftButton, textAlignJustifyButton] {
-      alignStack.addArrangedSubview(v)
-    }
+    alignStack.addArrangedSubview(textAlignLeftButton)
+    alignStack.addArrangedSubview(textAlignJustifyButton)
     
-    for v in [lineLengthSmallerButton, lineLengthDefaultButton, lineLengthLargerButton] {
-      lineLengthStack.addArrangedSubview(v)
-    }
-    lineLengthStack.isHidden = Device.isIpad == false
-    lineLengthLabel.isHidden = Device.isIpad == false
+    lineLengthStack.addArrangedSubview(lineLengthSmallerButton)
+    lineLengthStack.addArrangedSubview(lineLengthDefaultButton)
+    lineLengthStack.addArrangedSubview(lineLengthLargerButton)
     
+    columnCountStack.addArrangedSubview(columnCount2Button)
+    columnCountStack.addArrangedSubview(columnCount3Button)
+    columnCountStack.addArrangedSubview(columnCount4Button)
+    
+    //Need to exchange Einspaltigkeit/Mehrspaltigkeit ...Hochformat wird nur 2 angeboten
     verticalStack.axis = .vertical
     verticalStack.alignment = .fill
     verticalStack.spacing = 12.0
     verticalStack.addArrangedSubview(sizeStack)
     verticalStack.addArrangedSubview(colorModeStack)
-    if Device.isIpad {
-      verticalStack.addArrangedSubview(scrollingModeStack)
-    }
     verticalStack.addArrangedSubview(settingsButton)
     verticalStack.addArrangedSubview(alignStack)
-    verticalStack.addArrangedSubview(lineLengthStack)
+    ///addArrangedSubview(lineLengthStack) **handled in: updateViews(...**
     verticalStack.setCustomSpacing(20.0, after: settingsButton)
     addSubview(verticalStack)
     
     labelStack.axis = .vertical
     labelStack.alignment = .fill
     labelStack.spacing = 12.0
-    [textSizeLabel, dayNightLabel, scrollingModeLabel, settingsLabel, textAlignLabel, lineLengthLabel].forEach {
+    [textSizeLabel, dayNightLabel, scrollingModeLabel, settingsLabel, textAlignLabel].forEach {
       $0.pinHeight(65.5)//Settings and others in hStack are 65.5
       $0.baselineAdjustment = .alignCenters
       labelStack.addArrangedSubview($0)
@@ -408,7 +539,11 @@ class TextSettingsView: UIView {
      textAlignJustifyButton.buttonView,
      lineLengthSmallerButton.buttonView,
      lineLengthDefaultButton.buttonView,
-     lineLengthLargerButton.buttonView
+     lineLengthLargerButton.buttonView,
+     lineLengthDefaultButton.buttonView,
+     columnCount2Button.buttonView,
+     columnCount3Button.buttonView,
+     columnCount4Button.buttonView
      ].forEach {
       //Active Background Color deactivated for the Moment due missing unclear Color Values
       $0.activeBackgroundColor = Const.SetColor.taz(.buttonActiveBackground).color
@@ -416,13 +551,17 @@ class TextSettingsView: UIView {
       $0.activeColor = Const.SetColor.taz(.buttonActiveForeground).color
       $0.color = Const.SetColor.taz(.buttonForeground).color
         }
-    [textSizeLabel, dayNightLabel, scrollingModeLabel, settingsLabel].forEach {
+    [textSizeLabel, dayNightLabel, scrollingModeLabel, settingsLabel, textAlignLabel, columnLabel].forEach {
       $0.textColor = Const.SetColor.taz(.primaryForeground).color
     }
     backgroundColor = Const.SetColor.taz(.primaryBackground).color
     sizeStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
     lineLengthStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
     scrollingModeStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
+    let horizontalSizeClass: UIUserInterfaceSizeClass
+    = UIWindow.keyWindow?.traitCollection.horizontalSizeClass
+    ?? self.traitCollection.horizontalSizeClass
+    self.updateViews(for: horizontalSizeClass)
   }
   
   //UIImage(named: "settings")

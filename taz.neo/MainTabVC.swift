@@ -15,12 +15,12 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
+    TazAppEnvironment.sharedInstance.nextWindowSize = size
     Notification.send(Const.NotificationNames.viewSizeTransition,
                       content: size,
                       error: nil,
                       sender: nil)
   }
-  
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
     super.traitCollectionDidChange(previousTraitCollection)
     Notification.send(Const.NotificationNames.traitCollectionDidChange,

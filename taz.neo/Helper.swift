@@ -72,7 +72,7 @@ extension Defaults{
     }
     
     @discardableResult
-    static func decrease() -> Int { if articleTextSize > 30 { articleTextSize -= 10 }
+    static func decrease() -> Int { if articleTextSize > 50 { articleTextSize -= 10 }
       return articleTextSize
     }
     

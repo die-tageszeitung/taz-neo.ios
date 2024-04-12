@@ -73,6 +73,7 @@ private let configValues = [
   "cmLastPrio": "1",
   "cmSessionCount": "0",
   "multiColumnMode": "false",
+  "columnCountLandscape": "3",
   "articleLineLengthAdjustment": "0",
 ]
 
@@ -164,6 +165,16 @@ extension Defaults {
       else {
         Defaults.singleton["customerType"] = nil
       }
+    }
+  }
+  
+  
+  static var availableColumnsCount : Int {
+    get {
+      let articleTextSize = Defaults.singleton["articleTextSize"]?.int ?? 100
+      let width = TazAppEnvironment.sharedInstance.nextWindowSize.width
+      let calculatedColumnWidth = 3.4 * CGFloat(articleTextSize) + 30.0 //+padding
+      return Int(min(4, width/calculatedColumnWidth))//2..4
     }
   }
 
