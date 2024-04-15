@@ -131,7 +131,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   var multiColumnGap: CGFloat = 0.0
   var multiColumnWidth: CGFloat = 0.0
-  var screenRowCount: Int = 1
+  var screenColumnsCount: Int = 1
   
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
@@ -312,9 +312,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     /// contentOffset.x + sv.frame.size.width - multiColumnGap
     /// but in case of misplaced scrolling/offset, we need to 'snap' next row
     let currentRow = sv.contentOffset.x/CGFloat(rowWidth)
-    let wrongOffset = currentRow - floor(currentRow) > 0.1
-    let offset = wrongOffset ? 1 : 0
-    let nextRow = CGFloat(Int(currentRow) + max(1, screenRowCount - offset))
+//    let wrongOffset = currentRow - floor(currentRow) > 0.1
+    let offset = 0 // wrongOffset ? 1 : 0 Offset Calc only for left tap!?
+    let nextRow = CGFloat(Int(currentRow) + max(1, screenColumnsCount - offset))
     let maxX = CGFloat(sv.contentSize.width - sv.frame.size.width)
     var x = min(maxX, rowWidth*nextRow)//nextStart
     if maxX - x < 5 { x = maxX }///fix round errors
@@ -335,7 +335,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let currentRow = sv.contentOffset.x/CGFloat(rowWidth)
     let wrongOffset = abs(floor(currentRow) - currentRow) > 0.1
     let offset = wrongOffset ? 1 : 0
-    let nextRow = CGFloat(Int(currentRow) - max(1, screenRowCount - offset))
+    let nextRow = CGFloat(Int(currentRow) - max(1, screenColumnsCount - offset))
     var x = max(0, rowWidth*nextRow)//nextStart
     if x < 5 { x = 0 }///fix round errors
     sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
@@ -344,18 +344,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func getMultiColumnCss() -> String?  {
-    let columns = CGFloat(Defaults.columnSetting.used)
-    guard multiColumnMode && columns >= 2.0 else { return nil }
+    let columns = Defaults.columnSetting.used
+    guard multiColumnMode && columns >= 2 else { return nil }
     
     let padding
     = articleTextSize <= 100
     ? 30.0
     : 30.0 * floor(CGFloat(articleTextSize)/10)/10
     #warning("Is window width the right one after rotate!?")
-    let multiColumnWidth = floor((UIWindow.size.width - (columns + 1)*padding)/columns)
-    
+    let colF = CGFloat(columns)
+    multiColumnWidth = floor((UIWindow.size.width - (colF + 1)*padding)/colF)
+    screenColumnsCount = columns
     multiColumnGap = padding
-    print("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenRowCount)")
+    print("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenColumnsCount)")
     /**
      ***pretty ugly css** but:
         * content paddings&margins increase column gap
@@ -624,27 +625,18 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   var bottomSheetDefaultCoverage: CGFloat {
-    return Device.isIpad
-    ? 572 + UIWindow.safeInsets.bottom
-    : 450 + UIWindow.safeInsets.bottom
+    420 + UIWindow.safeInsets.bottom + self.textSettingsVC.multiColumnButtonsAdditionalHeight
   }
   
-  var bottomSheetDefaultSlideDown: CGFloat {
-    //hide special Settings
-    return Device.isIpad
-    ? 164
-    : 82
-  }
+  var bottomSheetDefaultSlideDown: CGFloat { self.textSettingsVC.slideDownHeight }
   
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet2(slider: textSettingsVC, into: self)
     settingsBottomSheet?.updateMaxWidth()
-    ///was 130 >= 208 //Now 195 => 273//with Align 260 => 338
-    ///sliderHeight? + TabbarHeight? + BottomInsets?
-    settingsBottomSheet?.coverage =  bottomSheetDefaultCoverage
-    
+    self.settingsBottomSheet?.coverage = self.bottomSheetDefaultCoverage
     onSettings{ [weak self] _ in
       guard let self = self else { return }
+      self.settingsBottomSheet?.coverage = self.bottomSheetDefaultCoverage
       self.debug("*** Action: <Settings> pressed")
       if self.settingsBottomSheet?.isOpen ?? false {
           self.settingsBottomSheet?.close()

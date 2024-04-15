@@ -17,6 +17,9 @@ class TextSettingsVC: UIViewController {
   /// View responsible for text settings representation
   private var textSettings = TextSettingsView()
   
+  var slideDownHeight: CGFloat { textSettings.slideDownHeight }
+  var multiColumnButtonsAdditionalHeight: CGFloat { textSettings.multiColumnButtonsAdditionalHeight }
+  
   @Default("articleTextSize")
   private var articleTextSize: Int
   
@@ -35,6 +38,7 @@ class TextSettingsVC: UIViewController {
   
   func updateButtonValuesOnOpen(){
     textSettings.textSize = articleTextSize
+    _ = textSettings.isMultiColumnAvailable(for: self.traitCollection.horizontalSizeClass)
     updateTextAlignmentButtons()
     updateDayNightButtons()
     updateColumnModeButtons()
@@ -198,7 +202,7 @@ class TextSettingsVC: UIViewController {
     self.view.addSubview(textSettings)
     setupButtons()
     pin(textSettings.top, to: self.view.top)
-    pin(textSettings.bottom, to: self.view.bottom, priority: .defaultLow)
+    pin(textSettings.bottom, to: self.view.bottom)
     pin(textSettings.left, to: self.view.left, dist: 8)
     pin(textSettings.right, to: self.view.right, dist: -8)
   }
@@ -211,18 +215,28 @@ class TextSettingsVC: UIViewController {
 
 class TextSettingsView: UIView {
   
+  var slideDownHeight: CGFloat { hasAdditionalSettingsRows ? 163 : 87 }
+  var multiColumnButtonsAdditionalHeight: CGFloat {
+    return hasAdditionalSettingsRows ? 150 : 0
+  }
+  
   @Default("columnCountLandscape")
   var columnCountLandscape: Int
   
   @Default("multiColumnMode")
   var multiColumnMode: Bool
-  
-  var multiColumnsAvailable = false
+  var multiColumnsAvailable: Bool { Defaults.multiColumnsAvailable }
   
   func isMultiColumnAvailable(for horizontalSiteClass: UIUserInterfaceSizeClass) -> Bool {
     guard horizontalSiteClass == .regular else { return false }
     guard multiColumnsAvailable else { return false }
     return multiColumnMode
+  }
+  
+  var hasAdditionalSettingsRows:Bool {
+    let horizontalSiteClass = self.traitCollection.horizontalSizeClass
+    return horizontalSiteClass == .regular
+    || isMultiColumnAvailable(for: horizontalSiteClass)
   }
     
   /// Buttons used to switch between various modes
@@ -319,21 +333,21 @@ class TextSettingsView: UIView {
   }()
   public lazy var columnCount2Button : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
-    btn.buttonView.symbol = "2.lane"
+    btn.buttonView.symbol = "square.split.2x1"
     btn.buttonView.text = "2 Spalten"
     btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
   public lazy var columnCount3Button : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
-    btn.buttonView.symbol = "3.lane"
+    btn.buttonView.symbol = "rectangle.split.3x1"
     btn.buttonView.text = "3 Spalten"
     btn.buttonView.label.contentFont(size: 9.4)
     return btn
   }()
   public lazy var columnCount4Button : Button<ImageLabelView> = {
     let btn = Button<ImageLabelView>()
-    btn.buttonView.symbol = "4.lane"
+    btn.buttonView.symbol = "plus.rectangle"
     btn.buttonView.text = "4 Spalten"
     btn.buttonView.label.contentFont(size: 9.4)
     return btn
@@ -363,7 +377,6 @@ class TextSettingsView: UIView {
     if Device.isIphone { return }
     let horizontalSiteClass = horizontalSiteClass ?? self.traitCollection.horizontalSizeClass
     let columnsSetting = Defaults.columnSetting
-    multiColumnsAvailable = columnsSetting.available >= 2
     updateColumnButtons(availableColumnsCount: columnsSetting.available,
                         selectedColumnCount: columnsSetting.used)
     //iPad, Mac: multiColumnMode(true/false), TextSize>LineLength, DeviceWidth(compact/regular)
@@ -434,9 +447,10 @@ class TextSettingsView: UIView {
     columnCount4Button.isEnabled = availableColumnsCount > 3
     columnCount4Button.alpha = availableColumnsCount > 3 ? 1.0 : 0.3
     
-    defaultScrollingButton.buttonView.isActivated = availableColumnsCount == 1
+    defaultScrollingButton.buttonView.isActivated = 
+    availableColumnsCount == 1 || multiColumnMode == false
     horizontalScrollingButton.buttonView.isActivated
-    = availableColumnsCount > 1 && multiColumnMode
+    = !defaultScrollingButton.buttonView.isActivated
     columnCount2Button.buttonView.isActivated = selectedColumnCount == 2
     columnCount3Button.buttonView.isActivated = selectedColumnCount == 3
     columnCount4Button.buttonView.isActivated = selectedColumnCount == 4

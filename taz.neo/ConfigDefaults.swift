@@ -185,9 +185,12 @@ extension Defaults {
       = columnsCountSetting >= availableColumnsCount
       ? availableColumnsCount
       : columnsCountSetting
+      Self.multiColumnsAvailable = availableColumnsCount >= 2
       return (used, availableColumnsCount, columnsCountSetting)
     }
   }
+  
+  static var multiColumnsAvailable: Bool = false
   
   /**
    fileprivate func updateColumnButtons(){
@@ -199,8 +202,6 @@ extension Defaults {
      = columnsCountSetting >= availableColumnsCount
      ? availableColumnsCount
      : columnsCountSetting
-  
-  
   */
   
 
