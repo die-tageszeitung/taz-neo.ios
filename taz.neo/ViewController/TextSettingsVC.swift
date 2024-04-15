@@ -74,8 +74,8 @@ class TextSettingsVC: UIViewController {
   private func setSize(_ s: Int) {
     textSettings.textSize = s
     articleTextSize = s
-    textSettings.updateColumnButtons()
     Notification.send(globalStylesChangedNotification)
+    self.textSettings.updateViews(for: self.traitCollection.horizontalSizeClass)
   }
   
   private func setupButtons() {
@@ -122,15 +122,18 @@ class TextSettingsVC: UIViewController {
     
     textSettings.columnCount2Button.onPress { [weak self] _ in
       self?.columnCountLandscape = 2
-      self?.textSettings.updateColumnButtons()
-    }    
+      self?.textSettings.updateViews(for: nil)
+      Notification.send(globalStylesChangedNotification)
+    }
     textSettings.columnCount3Button.onPress { [weak self] _ in
       self?.columnCountLandscape = 3
-      self?.textSettings.updateColumnButtons()
-    }    
+      self?.textSettings.updateViews(for: nil)
+      Notification.send(globalStylesChangedNotification)
+    }
     textSettings.columnCount4Button.onPress { [weak self] _ in
       self?.columnCountLandscape = 4
-      self?.textSettings.updateColumnButtons()
+      self?.textSettings.updateViews(for: nil)
+      Notification.send(globalStylesChangedNotification)
     }
     
     textSettings.textAlignLeftButton.onPress { [weak self] _ in
@@ -172,11 +175,6 @@ class TextSettingsVC: UIViewController {
     textSettings.settingsButton.onPress { _ in
       Notification.send(Const.NotificationNames.gotoSettings)
     }
-    
-//    textSettings.defaultWidth.onPress { [weak self] _ in
-//      guard let self = self else { return }
-//      if self.articleColumnPercentageWidth != 100 { self.setPercentageWidth(100) }
-//    }
    
     textSettings.dayModeButton.onPress { [weak self] _ in
       guard let self = self else { return }
@@ -208,7 +206,6 @@ class TextSettingsVC: UIViewController {
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     applyStyles()
-    
   }
 }
 
@@ -220,8 +217,11 @@ class TextSettingsView: UIView {
   @Default("multiColumnMode")
   var multiColumnMode: Bool
   
+  var multiColumnsAvailable = false
+  
   func isMultiColumnAvailable(for horizontalSiteClass: UIUserInterfaceSizeClass) -> Bool {
     guard horizontalSiteClass == .regular else { return false }
+    guard multiColumnsAvailable else { return false }
     return multiColumnMode
   }
     
@@ -356,11 +356,16 @@ class TextSettingsView: UIView {
   private var verticalStack = UIStackView()//right side stack views
   private var labelStack = UIStackView()//leftSideVerticalStack, only if enoughtWidth
   
-  fileprivate func updateViews(for horizontalSiteClass: UIUserInterfaceSizeClass){
+  fileprivate func updateViews(for horizontalSiteClass: UIUserInterfaceSizeClass?){
     ///0: FontSize 1: Day/Night 2: Single/Multi(iPAd!) 3: More 4: Width/Count
     /// Warning Rotation may not set in Device.isLandscape!!
     ///not displaying extra settings for iPhone
     if Device.isIphone { return }
+    let horizontalSiteClass = horizontalSiteClass ?? self.traitCollection.horizontalSizeClass
+    let columnsSetting = Defaults.columnSetting
+    multiColumnsAvailable = columnsSetting.available >= 2
+    updateColumnButtons(availableColumnsCount: columnsSetting.available,
+                        selectedColumnCount: columnsSetting.used)
     //iPad, Mac: multiColumnMode(true/false), TextSize>LineLength, DeviceWidth(compact/regular)
     
     ///If multiColumnMode == false SHOW lineLengthStack | ENABLED if DeviceWidth > Compact
@@ -373,7 +378,6 @@ class TextSettingsView: UIView {
       if lineLengthStack.superview != nil {
         lineLengthStack.removeFromSuperview()
       }
-      updateColumnButtons()
     }
     else if horizontalSiteClass == .regular{
       columnLabel.text = "Zeilenlänge"
@@ -420,20 +424,19 @@ class TextSettingsView: UIView {
     }
   }
   
-  fileprivate func updateColumnButtons(){
-    let isLandscape = UIWindow.isLandscapeInterface
-    let availableColumnsCount:Int = isLandscape ? Defaults.availableColumnsCount : 2
-    let columnsCountSetting = isLandscape ? columnCountLandscape : 2
-    let selectedColumnCount
-    = columnsCountSetting >= availableColumnsCount
-    ? availableColumnsCount
-    : columnsCountSetting
-        
+  fileprivate func updateColumnButtons(availableColumnsCount:Int, selectedColumnCount:Int){
+    horizontalScrollingButton.isEnabled = availableColumnsCount > 1
+    horizontalScrollingButton.alpha = availableColumnsCount > 1 ? 1.0 : 0.3
+    columnCount2Button.isEnabled = availableColumnsCount > 1
+    columnCount2Button.alpha = availableColumnsCount > 1 ? 1.0 : 0.3
     columnCount3Button.isEnabled = availableColumnsCount > 2
     columnCount3Button.alpha = availableColumnsCount > 2 ? 1.0 : 0.3
     columnCount4Button.isEnabled = availableColumnsCount > 3
     columnCount4Button.alpha = availableColumnsCount > 3 ? 1.0 : 0.3
     
+    defaultScrollingButton.buttonView.isActivated = availableColumnsCount == 1
+    horizontalScrollingButton.buttonView.isActivated
+    = availableColumnsCount > 1 && multiColumnMode
     columnCount2Button.buttonView.isActivated = selectedColumnCount == 2
     columnCount3Button.buttonView.isActivated = selectedColumnCount == 3
     columnCount4Button.buttonView.isActivated = selectedColumnCount == 4
@@ -557,7 +560,6 @@ class TextSettingsView: UIView {
     backgroundColor = Const.SetColor.taz(.primaryBackground).color
     sizeStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
     lineLengthStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
-    scrollingModeStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
     let horizontalSizeClass: UIUserInterfaceSizeClass
     = UIWindow.keyWindow?.traitCollection.horizontalSizeClass
     ?? self.traitCollection.horizontalSizeClass

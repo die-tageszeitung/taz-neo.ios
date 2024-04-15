@@ -344,46 +344,18 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func getMultiColumnCss() -> String?  {
-    let calculatedColumnWidth = Int(3.35 * CGFloat(articleTextSize))
-    let maxRowCount = UIWindow.size.width/CGFloat(calculatedColumnWidth)
+    let columns = CGFloat(Defaults.columnSetting.used)
+    guard multiColumnMode && columns >= 2.0 else { return nil }
     
-    guard multiColumnMode && maxRowCount >= 2.0 else { return nil }
+    let padding
+    = articleTextSize <= 100
+    ? 30.0
+    : 30.0 * floor(CGFloat(articleTextSize)/10)/10
+    #warning("Is window width the right one after rotate!?")
+    let multiColumnWidth = floor((UIWindow.size.width - (columns + 1)*padding)/columns)
     
-    typealias columnData = (width:CGFloat, padding: CGFloat)
-    
-    func colMetrics(maxRowCount: CGFloat) -> columnData {
-      let padding
-      = articleTextSize <= 100
-      ? 30.0
-      : 30.0 * floor(CGFloat(articleTextSize)/10)/10
-      
-      switch maxRowCount {
-        case -10..<3.0:
-          screenRowCount = 2
-        case 3.0..<4.0:
-          screenRowCount = 3
-        case 4.0..<5.1:
-          screenRowCount = 4
-        default:
-          screenRowCount = 5
-      }
-      /*
-       331 = 1112/3 - 4*padding
-       331*3+4*60
-       (1112-4*padding)/3
-       */
-      screenRowCount = max(2, screenRowCount - articleLineLengthAdjustment)
-      let screenRowCount = CGFloat(screenRowCount)
-      return (floor((UIWindow.size.width - (screenRowCount + 1)*padding)/screenRowCount), padding)
-    }
-    /**
-     Delivers wrong values?
-     */
-        
-    let colMetrics = colMetrics(maxRowCount: maxRowCount)
-    multiColumnGap = colMetrics.padding
-    multiColumnWidth = colMetrics.width
-    print("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCount:\(min(floor(maxRowCount), 5)) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) maxRowCount: \(maxRowCount) screenRowCount: \(screenRowCount)")
+    multiColumnGap = padding
+    print("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenRowCount)")
     /**
      ***pretty ugly css** but:
         * content paddings&margins increase column gap

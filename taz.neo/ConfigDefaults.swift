@@ -7,6 +7,7 @@
 
 import Foundation
 import NorthLib
+import UIKit
 
 /**
  Configuration variables and default values to store in Apple's UserDefaults
@@ -168,15 +169,40 @@ extension Defaults {
     }
   }
   
+  typealias columnSettingData = (used:Int, available: Int, setting: Int)
   
-  static var availableColumnsCount : Int {
+  static var columnSetting : columnSettingData {
     get {
+      let isLandscape = UIWindow.isLandscapeInterface
       let articleTextSize = Defaults.singleton["articleTextSize"]?.int ?? 100
       let width = TazAppEnvironment.sharedInstance.nextWindowSize.width
       let calculatedColumnWidth = 3.4 * CGFloat(articleTextSize) + 30.0 //+padding
-      return Int(min(4, width/calculatedColumnWidth))//2..4
+      let maxCount = isLandscape ? 4.0 : 2.0
+      let availableColumnsCount = Int(min(maxCount, width/calculatedColumnWidth))//1..4
+      let columnCountLandscape = Defaults.singleton["columnCountLandscape"]?.int ?? 3
+      let columnsCountSetting = isLandscape ? columnCountLandscape : 2
+      let used
+      = columnsCountSetting >= availableColumnsCount
+      ? availableColumnsCount
+      : columnsCountSetting
+      return (used, availableColumnsCount, columnsCountSetting)
     }
   }
+  
+  /**
+   fileprivate func updateColumnButtons(){
+     let isLandscape = UIWindow.isLandscapeInterface
+     #warning("MAYBE WRONG!")//Portrait also Calc ...ro o fo
+     let availableColumnsCount = Defaults.availableColumnsCount
+     let columnsCountSetting = isLandscape ? columnCountLandscape : 2
+     let selectedColumnCount
+     = columnsCountSetting >= availableColumnsCount
+     ? availableColumnsCount
+     : columnsCountSetting
+  
+  
+  */
+  
 
   static var expiredAccount : Bool { return expiredAccountDate != nil }
   static var expiredAccountText : String? {
