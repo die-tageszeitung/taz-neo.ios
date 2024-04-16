@@ -217,7 +217,7 @@ class TextSettingsView: UIView {
   
   var slideDownHeight: CGFloat { hasAdditionalSettingsRows ? 163 : 87 }
   var multiColumnButtonsAdditionalHeight: CGFloat {
-    return hasAdditionalSettingsRows ? 150 : 0
+    return hasAdditionalSettingsRows ? 150 : UIWindow.bottomInset
   }
   
   @Default("columnCountLandscape")
