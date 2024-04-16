@@ -356,6 +356,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     multiColumnWidth = floor((UIWindow.size.width - (colF + 1)*padding)/colF)
     screenColumnsCount = columns
     multiColumnGap = padding
+    let hFix = Int(128 + UIWindow.bottomInset)
+    
     print("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenColumnsCount)")
     /**
      ***pretty ugly css** but:
@@ -363,11 +365,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         * need to add padding/margin at end
         * tap to scroll needs perect alligned columns
         * body #content minus margin-left fixes: gap increase
+        * body needs padding bottom of 50, but set this activates vertical scrolling
+        * => set height  height: calc(100vh - 128px); 128 = 68+50 top/bottom + 10px extra margin/padding
       */
     return """
+      html {
+        height: 100%;
+      }
       body {
-        padding: 68px 0 50px 0;
-        height: calc(100vh - 158px);
+        padding: 68px 0 0 0;
+        height: calc(100vh - \(hFix)px);
         margin-left: \(Int(multiColumnGap))px;
         overflow-x: scroll;
         column-width: \(Int(multiColumnWidth))px;
