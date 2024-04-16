@@ -919,6 +919,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
   }
   
+  open override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    toolBar.bringToFront()
+    slider?.sliderView.bringToFront()
+  }
+  
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
