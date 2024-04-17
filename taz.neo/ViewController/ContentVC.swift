@@ -109,6 +109,12 @@ extension String {
 
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
+  @Default("multiColumnSnap")
+  public var multiColumnSnap: Bool
+  
+  @Default("multiColumnFixedScrolling")
+  public var multiColumnFixedScrolling: Bool
+  
   @Default("autoHideToolbar")
   var autoHideToolbar: Bool
   
@@ -315,9 +321,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 //    let wrongOffset = currentRow - floor(currentRow) > 0.1
     let offset = 0 // wrongOffset ? 1 : 0 Offset Calc only for left tap!?
     let nextRow = CGFloat(Int(currentRow) + max(1, screenColumnsCount - offset))
-    let maxX = CGFloat(sv.contentSize.width - sv.frame.size.width)
-    var x = min(maxX, rowWidth*nextRow)//nextStart
-    if maxX - x < 5 { x = maxX }///fix round errors
+    var x = rowWidth*nextRow
+    if !multiColumnFixedScrolling {
+      let maxX = CGFloat(sv.contentSize.width - sv.frame.size.width)
+      if maxX - x < 5 { x = maxX }  ///fix round errors
+      x = min(maxX, x)
+    }
     sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
     sv.flashScrollIndicators()
     return true
@@ -821,6 +830,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
+    
+    scrollViewDidEndScrolling{ [weak self] offset in
+      guard let self = self,
+              self.isMultiColumnMode,
+              self.multiColumnSnap else { return }
+      let nextRow = offset.x/CGFloat(self.rowWidth)
+      self.currentWebView?.scrollView.setContentOffset(CGPoint(x: rowWidth*round(nextRow), y: 0), animated: true)
+    }
     
     whenScrolled { [weak self] ratio in
       if (ratio < 0) {

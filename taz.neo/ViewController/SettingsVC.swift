@@ -70,6 +70,12 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("edgeTapToNavigateVisible")
   public var edgeTapToNavigateVisible: Bool
   
+  @Default("multiColumnSnap")
+  public var multiColumnSnap: Bool
+  
+  @Default("multiColumnFixedScrolling")
+  public var multiColumnFixedScrolling: Bool
+  
   var initialTextNotificationSetting: Bool?
   
   var data:TableData = TableData(sectionContent: [])
@@ -280,7 +286,22 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                     self?.bookmarksListTeaserEnabled = newValue
                     Notification.send(Const.NotificationNames.bookmarkChanged)
                   })
-    
+  #warning("Text TBD")
+  lazy var multiColumnSnapCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Mehrspaltigkeit einrasten",
+                  detailText: "Beim manuellem Scrollen in der mehrspaltigen Ansicht automatisch Spaltenweise einrasten.",
+                  initialValue: multiColumnSnap,
+                  onChange: {[weak self] newValue in
+    self?.multiColumnSnap = newValue
+  })
+  #warning("Text TBD")
+  lazy var multiColumnFixedScrollingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Mehrspaltigkeit gleichmäßiges Scrollen",
+                  detailText: "In der mehrspaltigen Ansicht bei 'Tap am Rand' immer die gleiche Anzahl von Spalten weiterscrollen.\nDies wirkt sich nur beim 'vorwärts Tap' auf dem letzten Bildschirmbereich (Seite) aus und kann dazu führen, dass dort nur eine dicke Linie zu sehen ist.",
+                  initialValue: multiColumnFixedScrolling,
+                  onChange: {[weak self] newValue in
+    self?.multiColumnFixedScrolling = newValue
+  })
   lazy var tabbarInSectionCellALPHA: XSettingsCell
   = XSettingsCell(toggleWithText: "Teige Tabbar auf Sectionebene",
                   detailText: "Alpha Feature",
@@ -738,6 +759,11 @@ extension SettingsVC {
       deleteDatabaseCell,
       resetAppCell
     ]
+    
+    if Device.isIpad {
+      cells.insert(multiColumnFixedScrollingCell, at: 2)
+      cells.insert(multiColumnSnapCell, at: 2)
+    }
     
     if TazAppEnvironment.hasValidAuth {
       cells.insert(showCoachmarksCell, at: 2)
