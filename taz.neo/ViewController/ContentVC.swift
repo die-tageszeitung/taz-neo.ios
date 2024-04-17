@@ -352,7 +352,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     ? 30.0
     : 30.0 * floor(CGFloat(articleTextSize)/10)/10
     let colF = CGFloat(columns)
-    multiColumnWidth = floor((UIWindow.size.width - (colF + 1)*padding)/colF)
+    multiColumnWidth = floor((UIWindow.size.width + 1 - (colF + 1)*padding)/colF)
     screenColumnsCount = columns
     multiColumnGap = padding
     let hFix = Int(128 + UIWindow.bottomInset)
