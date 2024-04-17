@@ -400,6 +400,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         object-fit: contain;
         max-height: calc(100vh - \(buFix)px);
       }
+      #content div {
+        /*fix: 240417-w+u-1 author box broken text in ip6m/ios17.4/100%fontSize/Landscape */
+        break-inside: avoid;
+      }
     """
   }
   
