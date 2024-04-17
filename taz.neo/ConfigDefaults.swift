@@ -176,7 +176,7 @@ extension Defaults {
       let isLandscape = UIWindow.isLandscapeInterface
       let articleTextSize = Defaults.singleton["articleTextSize"]?.int ?? 100
       let width = TazAppEnvironment.sharedInstance.nextWindowSize.width
-      let calculatedColumnWidth = 3.4 * CGFloat(articleTextSize) + 30.0 //+padding
+      let calculatedColumnWidth = 3.1 * CGFloat(articleTextSize) + 30.0 //+padding
       let maxCount = isLandscape ? 4.0 : 2.0
       let availableColumnsCount = Int(min(maxCount, width/calculatedColumnWidth))//1..4
       let columnCountLandscape = Defaults.singleton["columnCountLandscape"]?.int ?? 3
