@@ -351,13 +351,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     = articleTextSize <= 100
     ? 30.0
     : 30.0 * floor(CGFloat(articleTextSize)/10)/10
-    #warning("Is window width the right one after rotate!?")
     let colF = CGFloat(columns)
     multiColumnWidth = floor((UIWindow.size.width - (colF + 1)*padding)/colF)
     screenColumnsCount = columns
     multiColumnGap = padding
     let hFix = Int(128 + UIWindow.bottomInset)
-    
+    let buFix = hFix - 20 + Int(CGFloat(articleTextSize*70)/100)
+      
     print("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenColumnsCount)")
     /**
      ***pretty ugly css** but:
@@ -394,6 +394,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       body #content.article .Autor {
         break-inside: avoid;
+      }
+      body #content.article #foto img {
+        break-inside: avoid;
+        object-fit: contain;
+        max-height: calc(100vh - \(buFix)px);
       }
     """
   }
