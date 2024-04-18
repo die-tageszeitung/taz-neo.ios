@@ -381,7 +381,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       html {
         height: 100%;
       }
-      body {
+      body:has(.article) {
         padding: 68px 0 0 0;
         height: calc(100vh - \(hFix)px);
         margin-left: \(Int(multiColumnGap))px;
