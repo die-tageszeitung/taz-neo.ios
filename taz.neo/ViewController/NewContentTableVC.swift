@@ -311,8 +311,9 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     
     if let ressort = issue?.sections?.valueAt(section) {
       header.label.text = ressort.name
-      header.chevron.isHidden = ressort.type == .advertisement
-      header.dottedLine.isHidden = ressort.type == .advertisement
+      let unexpandable = ressort.type == .advertisement || ressort.type == .podcast
+      header.chevron.isHidden = unexpandable
+      header.dottedLine.isHidden = unexpandable
     } else if section == issue?.sections?.count ?? 0 {
       header.label.text = issue?.imprint?.title ?? "Impressum"
       header.chevron.isHidden = true
