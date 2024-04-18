@@ -291,7 +291,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   var singleColumnCss : String {
     if Device.isIpad == false { return "" }
     let textSizeFactor = floor(CGFloat(textSize)/10)/10 ///(0.3...2.0)
-    var rowWidth = 825.0*textSizeFactor //734 for 0.8&0.9 / 835 fot 0.6 and 0.8
+    let rowWidth = 825.0*textSizeFactor //734 for 0.8&0.9 / 835 fot 0.6 and 0.8
     var maxWidth = min(rowWidth, UIWindow.size.width - 36)
     if articleLineLengthAdjustment < 0 {
       maxWidth *= 0.7
