@@ -147,10 +147,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   @Default("articleTextSize")
   private var articleTextSize: Int
+
+  @Default("multiColumnModePortrait")
+  var multiColumnModePortrait: Bool
   
-  @Default("multiColumnMode")
-  var multiColumnMode: Bool
+  @Default("multiColumnModeLandscape")
+  var multiColumnModeLandscape: Bool
   ///indicator if multiColumnMode == true & tablet & enough space to display multi columns
+  
+  var multiColumnMode: Bool {
+    return UIDevice.isPortrait && multiColumnModePortrait
+    || UIDevice.isLandscape && multiColumnModeLandscape
+  }
+  
   private var isMultiColumnMode = false {
     didSet {
       if self.isKind(of: ArticleVC.self)
@@ -158,7 +167,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
           && isMultiColumnMode == false
           && multiColumnMode == true {
         var tip = ""
-        if Device.isIpad && UIDevice.current.orientation.isPortrait {
+        if Device.isIpad && UIDevice.isPortrait {
           tip = "iPad ins Querformat drehen."
         }
         else if UIScreen.main.bounds.size.width > UIWindow.size.width {

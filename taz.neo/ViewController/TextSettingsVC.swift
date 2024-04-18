@@ -29,8 +29,33 @@ class TextSettingsVC: UIViewController {
   @Default("textAlign")
   private var textAlign: String
   
-  @Default("multiColumnMode")
-  var multiColumnMode: Bool
+  @Default("multiColumnModePortrait")
+  var multiColumnModePortrait: Bool
+  
+  @Default("multiColumnModeLandscape")
+  var multiColumnModeLandscape: Bool
+  ///indicator if multiColumnMode == true & tablet & enough space to display multi columns
+  
+  var multiColumnMode: Bool {
+    get {
+      if UIDevice.isPortrait {
+        print("return: \(multiColumnModePortrait) for: multiColumnModePortrait")
+        return multiColumnModePortrait
+      }
+      else {
+        print("return: \(multiColumnModeLandscape) for: multiColumnModeLandscape")
+        return multiColumnModeLandscape
+      }
+    }
+    set {
+      if UIDevice.isPortrait {
+        multiColumnModePortrait = newValue
+      }
+      else {
+        multiColumnModeLandscape = newValue
+      }
+    }
+  }
   
   @Default("columnCountLandscape")
   var columnCountLandscape: Int
@@ -223,8 +248,34 @@ class TextSettingsView: UIView {
   @Default("columnCountLandscape")
   var columnCountLandscape: Int
   
-  @Default("multiColumnMode")
-  var multiColumnMode: Bool
+  @Default("multiColumnModePortrait")
+  var multiColumnModePortrait: Bool
+  
+  @Default("multiColumnModeLandscape")
+  var multiColumnModeLandscape: Bool
+  ///indicator if multiColumnMode == true & tablet & enough space to display multi columns
+  
+  var multiColumnMode: Bool {
+    get {
+      if UIDevice.isPortrait {
+        print("return: \(multiColumnModePortrait) for: multiColumnModePortrait")
+        return multiColumnModePortrait
+      }
+      else {
+        print("return: \(multiColumnModeLandscape) for: multiColumnModeLandscape")
+        return multiColumnModeLandscape
+      }
+    }
+    set {
+      if UIDevice.isPortrait {
+        multiColumnModePortrait = newValue
+      }
+      else {
+        multiColumnModeLandscape = newValue
+      }
+    }
+  }
+  
   var multiColumnsAvailable: Bool { Defaults.multiColumnsAvailable }
   
   func isMultiColumnAvailable(for horizontalSiteClass: UIUserInterfaceSizeClass) -> Bool {
@@ -454,6 +505,10 @@ class TextSettingsView: UIView {
     columnCount2Button.buttonView.isActivated = selectedColumnCount == 2
     columnCount3Button.buttonView.isActivated = selectedColumnCount == 3
     columnCount4Button.buttonView.isActivated = selectedColumnCount == 4
+    scrollingModeLabel.text
+    = UIDevice.isPortrait
+    ? "Artikeldarstellung\nim Hochformat"
+    : "Artikeldarstellung\nim Querformat"
   }
   
   private func setup() {
