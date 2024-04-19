@@ -226,7 +226,7 @@ class TextSettingsVC: UIViewController {
     super.viewDidLoad()
     self.view.addSubview(textSettings)
     setupButtons()
-    pin(textSettings.top, to: self.view.top)
+    pin(textSettings.top, to: self.view.top, dist: 28)
     pin(textSettings.bottom, to: self.view.bottom)
     pin(textSettings.left, to: self.view.left, dist: 8)
     pin(textSettings.right, to: self.view.right, dist: -8)

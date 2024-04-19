@@ -30,7 +30,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   public var menu: MenuActions?{
     return article?.contextMenu()
   }
-  
+
+  @Default("multiColumnOnboardingAnswered")
+  var multiColumnOnboardingAnswered: Bool
   
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
@@ -388,6 +390,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     
     let suche = UIMenuItem(title: "Suche", action: #selector(search))
     UIMenuController.shared.menuItems = [suche]
+    showMultiColumnOnboardingIfNeeded()
   }
   
   public override func viewDidDisappear(_ animated: Bool) {
@@ -430,5 +433,148 @@ extension ArticleVC: CoachmarkVC {
       case .font:
         return textSettingsButton.buttonView
     }
+  }
+}
+
+
+extension ArticleVC {
+  private static var dialogAlreadyShown = false
+  
+  func showMultiColumnOnboardingIfNeeded(){
+    guard self.issue.isReduced == false else { return }
+    guard multiColumnOnboardingAnswered == false else { return }
+    guard Device.isIpad else { return }
+    guard UIDevice.isLandscape else { return }
+    guard traitCollection.horizontalSizeClass == .regular else { return }
+    guard Self.dialogAlreadyShown == false else { return }
+    guard multiColumnModeLandscape == false else { return }
+    Self.dialogAlreadyShown = true
+    showMultiColumnOnboarding()
+  }
+  private func showMultiColumnOnboarding(){
+    mcoBottomSheet = BottomSheet2(slider:mcoVc , into: self)
+    mcoBottomSheet?.handle?.isHidden = true
+    mcoBottomSheet?.onX {[weak self] in
+      self?.mcoBottomSheet?.close()
+    }
+    mcoBottomSheet?.xButton.tazX()
+    mcoBottomSheet?.updateMaxWidth(defaultWidth: 620)
+    mcoBottomSheet?.sliderView.backgroundColor = Const.SetColor.taz(.primaryBackground).color
+    /*
+    let s = mcoVc.view.sizeThatFits(CGSize(width: mcoVc.view.frame.size.width, height: 3000))
+    print(">>>sizeThatFits w: \(mcoVc.view.frame.size.width) is: \(s)")
+    mcoBottomSheet?.coverage = s.height + 30*/
+    mcoBottomSheet?.coverage = 525
+    mcoBottomSheet?.open()
+    mcoVc.contentView.declineButton.addTarget(self,
+                                        action: #selector(declineButtonPressed),
+                                        for: .touchUpInside)
+    mcoVc.contentView.activateButton.addTarget(self,
+                                        action: #selector(activateButtonPressed),
+                                        for: .touchUpInside)
+  }
+  
+  @objc func declineButtonPressed(sender: UIButton) {
+    multiColumnOnboardingAnswered = true
+    mcoBottomSheet?.close()
+  }
+  
+  @objc func activateButtonPressed(sender: UIButton) {
+    multiColumnOnboardingAnswered = true
+    multiColumnModeLandscape = true
+    edgeTapToNavigate = true
+    edgeTapToNavigateVisible = true
+    Notification.send(globalStylesChangedNotification)
+    updateTapArea()
+    mcoBottomSheet?.close()
+  }
+  
+  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    if UIDevice.isPortrait { mcoBottomSheet?.close() }
+  }
+}
+
+class MultiColumnOnboarding: UIViewController {
+  lazy var contentView = MultiColumnOnboardingView()
+  public override func viewDidLoad() {
+    super.viewDidLoad()
+    self.view.addSubview(contentView)
+    pin(contentView, to: self.view)
+  }
+}
+
+class MultiColumnOnboardingView: UIView {
+  var title = UILabel(Localized("multicol_onboarding_title")).marketingHead()
+  var text = UILabel(Localized("multicol_onboarding_text"), _numberOfLines: 0).contentFont()
+  var iv = UIImageView()
+  
+  lazy var spacer: UIView = {
+    let s = UIView(frame: CGRectZero)
+    s.setContentHuggingPriority(.fittingSizeLevel, for: .vertical)
+    return s
+  }()
+  
+  lazy var buttonsStack: UIStackView = {
+    let s = UIStackView()
+    s.axis = .horizontal
+    s.distribution = .fillEqually
+    s.spacing = 18.0
+    s.addArrangedSubview(declineButton)
+    s.addArrangedSubview(activateButton)
+    return s
+  }()
+  
+  lazy var image: UIImage? = {
+    guard let img = UIImage(named: "BundledResources/MultiColumn.png")else {
+      log("Bundled MultiColumn.png not found!")
+      return nil
+    }
+    return img
+  }()
+  
+  var declineButton = Padded.Button(type: .newBlackOutline, title: Localized("multicol_onboarding_btn_decline"))
+  var activateButton = Padded.Button(type: .newBlack, title: Localized("multicol_onboarding_btn_activate"))
+  private func setup() {
+    self.addSubview(title)
+    self.addSubview(iv)
+    self.addSubview(text)
+    self.addSubview(buttonsStack)
+    self.addSubview(spacer)
+    let pad = 33.0
+    pin(title, to: self, dist: pad, exclude: .bottom)
+    
+    title.setContentHuggingPriority(.defaultHigh, for: .vertical)
+    text.setContentHuggingPriority(.defaultHigh, for: .vertical)
+    
+    iv.image = image
+    iv.contentMode = .scaleAspectFit
+    
+    pin(iv.top, to: title.bottom, dist: pad)
+    pin(text.top, to: title.bottom, dist: 18)
+    pin(buttonsStack.top, to: text.bottom, dist: 18)
+    pin(spacer.top, to: text.bottom, dist: pad)
+    pin(spacer.bottom, to: self.bottomGuide())
+    
+    pin(iv.left, to: self.left, dist: pad)
+    pin(text.right, to: self.right, dist: -pad)
+    pin(text.left, to: iv.right, dist: 18.0)
+    
+    iv.pinWidth(to: declineButton.width)
+    iv.pinHeight(to: text.height, factor: 0.9)
+    
+    pin(buttonsStack.left, to: self.left, dist: pad)
+    pin(buttonsStack.right, to: self.right, dist: -pad)
+    backgroundColor = Const.SetColor.taz(.primaryBackground).color
+  }
+  
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
   }
 }

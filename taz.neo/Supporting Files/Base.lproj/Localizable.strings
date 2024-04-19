@@ -266,3 +266,9 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 
 /* Search Placeholder empty result */
 "search_placeholder_empty_result" = "Hm, wir finden zu diesem Suchbegriff nichts\n\nWir haben dazu mehrere Vermutungen:\n1. Gibt es eventuell eine andere Schreibweise des Begriffs?\n2. Oder hat sich ein Tippfehler eingeschlichen?\n3. Vielleicht haben wir aber auch wirklich keinen Eintrag dazu. (Sieht uns eigentlich gar nicht ähnlich.)";
+
+/* FAQ Button Text */
+"multicol_onboarding_title" = "Lesemodus ändern?";
+"multicol_onboarding_text" = "Sie lesen die Ausgabe auf einem iPad im Querformat. Wir empfehlen für Ihr Lesevergnügen das Mehrspaltige Layout.\n\nIm Mehrspaltigen Layout scrollen Sie horizontal durch die Texte.\nZum noch einfacheren Scrollen und Artikelwechsel wird die Funktion 'Tap am Rand' aktiviert. Alle Einstellungen können Sie jederzeit über die Texteinstellungen in der Toolbar wieder ändern.";
+"multicol_onboarding_btn_decline" = "Alles so lassen, wie es ist";
+"multicol_onboarding_btn_activate" = "Mehrspaltigkeit aktivieren";

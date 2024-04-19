@@ -421,6 +421,7 @@ public struct Const {
     static var lmdBentonBold: String? = UIFont.register(name: "BentonSans-Bold", type: "woff", subDir: "files")
     static var lmdBentonBoldItalic: String? = UIFont.register(name: "BentonSans-BoldItalic", type: "woff", subDir: "files")
     static var americanTypewriterFontName: String = "AmericanTypewriter-CondensedBold"
+    static var knileLight: String? = UIFont.register(name: "knile-light-webfont", type: "woff", subDir: "files")
     /// *WARNING* Cannot use bundled Aktiv Grotesk fonts from Ressources, due just one font variant will be loaded,
     /// Hacky Workaround sleep(1) then load the other Problem is: multiple fonts have same generic font names
     /// from UIFont extension NorthLib -> register(data: Data)
@@ -466,6 +467,10 @@ public struct Const {
     /// The font to use in content tables
     static func contentTextFont(size: CGFloat) -> UIFont
     { return font(name: contentTextFont, size: size) }
+    
+    /// The font to use in modals
+    static func marketingHeadFont(size: CGFloat) -> UIFont
+    { return font(name: knileLight, size: size) }
     
     static var contentFont: UIFont = contentFont(size: Size.DefaultFontSize)
     static var boldContentFont: UIFont = titleFont(size: Size.DefaultFontSize)
@@ -624,6 +629,14 @@ extension UILabel {
   @discardableResult
   func titleFont(size: CGFloat = Const.Size.LargeTitleFontSize) -> UILabel {
     self.font = Const.Fonts.titleFont(size: size)
+    return self
+  }
+  
+  /// set font to marketing head knile with its default font size of 30 and return self (for chaining)
+  /// - Returns: self
+  @discardableResult
+  func marketingHead(size: CGFloat = 30) -> UILabel {
+    self.font = Const.Fonts.marketingHeadFont(size: size)
     return self
   }
   

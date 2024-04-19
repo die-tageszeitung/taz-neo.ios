@@ -221,6 +221,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   var settingsBottomSheet: BottomSheet2?
   private var textSettingsVC = TextSettingsVC()
   
+  var mcoBottomSheet:BottomSheet2?
+  var mcoVc = MultiColumnOnboarding()
+  
   private var issueObserver: Notification.Observer?
   private var reloadLoaded: Bool = false
   
@@ -659,13 +662,18 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   var bottomSheetDefaultCoverage: CGFloat {
-    420 + UIWindow.safeInsets.bottom + self.textSettingsVC.multiColumnButtonsAdditionalHeight
+    448 + UIWindow.safeInsets.bottom + self.textSettingsVC.multiColumnButtonsAdditionalHeight
   }
   
   var bottomSheetDefaultSlideDown: CGFloat { self.textSettingsVC.slideDownHeight }
   
   func setupSettingsBottomSheet() {
     settingsBottomSheet = BottomSheet2(slider: textSettingsVC, into: self)
+    settingsBottomSheet?.xButton.tazX()
+    settingsBottomSheet?.onX {[weak self] in
+      self?.mcoBottomSheet?.close()
+    }
+    Const.Size.DefaultPadding
     settingsBottomSheet?.updateMaxWidth()
     self.settingsBottomSheet?.coverage = self.bottomSheetDefaultCoverage
     onSettings{ [weak self] _ in
@@ -901,6 +909,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     settingsBottomSheet?.color = Const.SetColor.HBackground.color
     settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
     settingsBottomSheet?.shadeView.backgroundColor = Const.SetColor.taz(.shade).color
+    settingsBottomSheet?.xButton.tazX()
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
@@ -947,17 +956,18 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if abs(oldCoverage - newCoverage) < 2 { return }//no rotate
       self.settingsBottomSheet?.coverage =  newCoverage
       if self.settingsBottomSheet?.isOpen == false  { return }
-      self.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
-        self?.settingsBottomSheet?.open()
-        self?.settingsBottomSheet?.slideDown(self?.bottomSheetDefaultSlideDown ?? 0)
-      })
+      #warning("Is this still required?")
+//      self.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
+//        self?.settingsBottomSheet?.open()
+//        self?.settingsBottomSheet?.slideDown(self?.bottomSheetDefaultSlideDown ?? 0)
+//      })
     }
   }
   
   open override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     toolBar.bringToFront()
-    slider?.sliderView.bringToFront()
+    slider?.active.view.bringToFront()
   }
   
   override public func viewWillAppear(_ animated: Bool) {
