@@ -733,12 +733,20 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       Usage.track(Usage.event.dialog.TextSettings)
       CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.font)
     }
-    backButton.pinSize(CGSize(width: 35, height: 40))
-    shareButton.pinSize(CGSize(width: 30, height: 30))
-    textSettingsButton.pinSize(CGSize(width: 30, height: 30))
-    playButton.pinSize(CGSize(width: 30, height: 30))
-    bookmarkButton.pinSize(CGSize(width: 30, height: 30))
-    homeButton.pinSize(CGSize(width: 30, height: 30))
+    
+    backButton.pinSize(CGSize(width: 47, height: 47))
+    shareButton.pinSize(CGSize(width: 47, height: 47))
+    textSettingsButton.pinSize(CGSize(width: 47, height: 47))
+    playButton.pinSize(CGSize(width: 47, height: 47))
+    bookmarkButton.pinSize(CGSize(width: 47, height: 47))
+    homeButton.pinSize(CGSize(width: 47, height: 47))
+    
+    backButton.hinset = 0.15
+    shareButton.hinset = 0.15
+    textSettingsButton.hinset = 0.15
+    playButton.hinset = 0.15
+    bookmarkButton.hinset = 0.15
+    homeButton.hinset = 0.15
     
     backButton.buttonView.name = "chevron-left"
     backButton.buttonView.imageView.contentMode = .right
