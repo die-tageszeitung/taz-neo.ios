@@ -487,6 +487,7 @@ extension ArticleVC {
     Notification.send(globalStylesChangedNotification)
     updateTapArea()
     mcoBottomSheet?.close()
+    ensureToolbarInFrontOfTapButtons()
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

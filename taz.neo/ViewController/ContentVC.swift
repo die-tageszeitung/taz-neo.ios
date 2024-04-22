@@ -671,9 +671,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     settingsBottomSheet = BottomSheet2(slider: textSettingsVC, into: self)
     settingsBottomSheet?.xButton.tazX()
     settingsBottomSheet?.onX {[weak self] in
-      self?.mcoBottomSheet?.close()
+      self?.settingsBottomSheet?.close()
     }
-    Const.Size.DefaultPadding
     settingsBottomSheet?.updateMaxWidth()
     self.settingsBottomSheet?.coverage = self.bottomSheetDefaultCoverage
     onSettings{ [weak self] _ in
@@ -843,7 +842,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     writeTazApiCss()
     writeTazApiJs()
     self.view.addSubview(header)
-//    self.collectionView?.showsHorizontalScrollIndicator = false
     pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
@@ -966,6 +964,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   open override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    ensureToolbarInFrontOfTapButtons()
+  }
+  
+  /// ensures that left/right tap buttons are behind tollbar and content slider
+  func ensureToolbarInFrontOfTapButtons(){
     toolBar.bringToFront()
     slider?.active.view.bringToFront()
   }
