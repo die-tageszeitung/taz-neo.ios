@@ -81,7 +81,7 @@ struct Coachmarks {
     Coachmarks.Article.audio,
     Coachmarks.Section.swipe,
     Coachmarks.Article.font,
-    Coachmarks.IssueCarousel.loading,//no need to deactivate if used cm should be shown
+    Coachmarks.IssueCarousel.loading,
     Coachmarks.Article.share,
     Coachmarks.IssueCarousel.tiles,
     Coachmarks.Search.filter
@@ -250,6 +250,16 @@ public class CoachmarksBusiness: DoesLog{
   }()
   
   func getCurrentAvailableCoachmarkKeys() -> [String:Int] {
+    if false { //debug show all coachmarks
+      var ret : [String:Int] = [:]
+      for cm in Coachmarks.all {
+          ret[cm.key] = 1
+      }
+      currentPrio = 1
+      count = -20
+      return ret
+    }
+    
     let disabledCm = disabledCoachmarks
     let all = Coachmarks.all
     var ret : [String:Int] = [:]

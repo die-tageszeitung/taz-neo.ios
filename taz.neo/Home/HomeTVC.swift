@@ -27,6 +27,34 @@ protocol PushIssueDelegate {
   func push(_ viewController:UIViewController, issueInfo: IssueDisplayService)
 }
 
+extension HomeTVC: CoachmarkVC {
+  var viewName: String { Coachmarks.IssueCarousel.typeName }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    guard let item = item as? Coachmarks.IssueCarousel else { return nil }
+    
+    switch item {
+      case .pdfButton:
+        return togglePdfButton
+      case .loading:
+        if carouselController.downloadButton.indicator.downloadState == .notStarted {
+          return carouselController.downloadButton
+        }
+        fallthrough
+      default:
+        return nil
+    }
+  }
+  
+  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
+    guard let item = item as? Coachmarks.IssueCarousel,
+          item == .tiles else { return nil }
+    return (UIImage(named: "cm-scroll")?.withRenderingMode(.alwaysOriginal), [], [])
+    as? (UIImage, [UIView], [CGPoint]) ?? nil
+  }
+}
+
+
 class HomeTVC: UITableViewController {
 
   /// should show PDF Info Toast on startup (from config defaults)
@@ -421,6 +449,7 @@ extension HomeTVC {
   func onPDF(sender:Any){
     self.isFacsimile = !self.isFacsimile
     Usage.track(self.isFacsimile ? Usage.event.appMode.SwitchToPDFMode : Usage.event.appMode.SwitchToMobileMode)
+    deactivateCoachmark(Coachmarks.IssueCarousel.pdfButton)
     
     if let imageButton = sender as? Button<ImageView> {
       imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
@@ -609,7 +638,10 @@ extension HomeTVC {
 // MARK: - ShowPDF Info Toast
 extension HomeTVC {
   func showRequestTrackingIfNeeded() {
-    if Defaults.usageTrackingAllowed != nil { return }
+    if Defaults.usageTrackingAllowed != nil {
+      showCoachmarkIfNeeded()
+      return
+    }
     guard let image = UIImage(named: "BundledResources/UsagePopover.png")else {
       log("Bundled UsagePopover.png not found!")
       return

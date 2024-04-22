@@ -16,6 +16,7 @@ class CoachmarkView: UIView {
     closeClosure = closure
   }
   
+  var backgroundTapped = false
   
   var item: CoachmarkItem
   
@@ -91,7 +92,7 @@ class CoachmarkView: UIView {
     closeButton.accessibilityLabel = "Schliessen"
     if true {//pin to top == conflict with Search Filter
       pin(closeButton.right, to: self.right, dist: -10.0)
-      pin(closeButton.top, to: self.topGuide(), dist: 55.0)
+      pin(closeButton.top, to: self.topGuide(), dist: 10.0)
     }
     else {///pin to textlayer
       pin(closeButton.right, to: textLayer.right, dist: 40.0)
@@ -100,7 +101,27 @@ class CoachmarkView: UIView {
     }
     
     closeButton.onTapping { [weak self] _ in self?.closeClosure?() }
-    textLayer.onTapping { [weak self] _ in self?.closeClosure?() }
+    textLayer.onTapping { [weak self] _ in
+      if self?.backgroundTapped == true { self?.closeClosure?() }
+      self?.backgroundTapped = true
+      self?.pulsateCloseX()
+    }
+    background.onTapping{ [weak self] _ in
+      if self?.backgroundTapped == true { self?.closeClosure?() }
+      self?.backgroundTapped = true
+      self?.pulsateCloseX()
+    }
+  }
+  
+  func pulsateCloseX(){
+    let pulseAnimation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
+    pulseAnimation.duration = 0.6
+    pulseAnimation.fromValue = 0.1
+    pulseAnimation.toValue = 1
+    pulseAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+    pulseAnimation.autoreverses = true
+    pulseAnimation.repeatCount = 1
+    closeButton.layer.add(pulseAnimation, forKey: "animateOpacity")
   }
   
   override func didMoveToSuperview() {

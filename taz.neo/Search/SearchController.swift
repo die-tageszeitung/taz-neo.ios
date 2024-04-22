@@ -109,6 +109,7 @@ class SearchController: UIViewController {
     header.extendedSearchButton.onTapping { [weak self] _ in
       self?.header.setHeader(showMaxi: true)
       self?.searchSettingsView.toggle()
+      self?.deactivateCoachmark(Coachmarks.Search.filter)
       self?.checkFilter()
     }
     header.searchTextField.delegate = self
@@ -179,6 +180,11 @@ class SearchController: UIViewController {
        let idx = hitList.firstIndex(where: { lastArticle.isEqualTo(otherArticle: $0.article)}) {
       resultsTable.scrollToRow(at: IndexPath(row: idx, section:0 ), at: .top, animated: false)
     }
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    showCoachmarkIfNeeded()
   }
   
   override func viewDidLayoutSubviews() {
@@ -500,3 +506,15 @@ fileprivate extension SearchSettings {
   }
 }
 
+extension SearchController: CoachmarkVC {
+  
+   public var viewName: String { Coachmarks.Search.typeName }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    guard let item = item as? Coachmarks.Search else { return nil }
+    switch item {
+      case .filter:
+        return header.extendedSearchButton
+    }
+  }
+}
