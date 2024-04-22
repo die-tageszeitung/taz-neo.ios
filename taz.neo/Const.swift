@@ -61,6 +61,7 @@ public struct Const {
     static let audioPlaybackStateChanged = "Const.NotificationNames.audioPlaybackStateChanged"
     static let audioPlaybackFinished = "Const.NotificationNames.audioPlaybackFinished"
     static let gotoIssue = "Const.NotificationNames.gotoIssue"
+    static let gotoSettings = "Const.NotificationNames.gotoSettings"
     static let gotoArticleInIssue = "Const.NotificationNames.gotoArticleInIssue"
     static let searchSelectedText = "Const.NotificationNames.searchSelectedText"
     
@@ -226,7 +227,14 @@ public struct Const {
       case textFieldClear
       case textFieldText
       case textIconGray
+      case shade
+      case primaryForeground
+      case primaryBackground
       case secondaryBackground
+      case buttonBackground
+      case buttonActiveBackground
+      case buttonForeground
+      case buttonActiveForeground
     }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
@@ -368,8 +376,23 @@ public struct Const {
           return (UIColor.rgb(0x9C9C9C), UIColor.rgb(0x9C9C9C), nil, nil)
         case .taz(.textIconGray):
           return (UIColor.rgb(0x565656), UIColor.rgb(0x929292), nil, nil)
+        case .taz(.primaryBackground):
+          return (.white, .black, nil, nil)
+        case .taz(.primaryForeground)://same: .taz(.buttonForeground):
+          return (.black, .white, nil, nil)
+        case .taz(.shade):
+          return (.black, UIColor.rgb(0x9C9C9C), nil, nil)
         case .taz(.secondaryBackground):
           return (UIColor.rgb(0xDEDEDE), UIColor.rgb(0x323232), nil, nil)
+        case .taz(.buttonBackground):
+          //derived from and Figma f4f4f4 > ios(.secondarySystemBackground) is 0xF2F2F7 0x1C1C1E
+          return (UIColor.rgb(0xF4F4F4), UIColor.rgb(0x101010), nil, nil)
+        case .taz(.buttonForeground):
+          return (.black, .white, nil, nil)
+        case .taz(.buttonActiveBackground):
+          return (.black, .white, nil, nil)
+        case .taz(.buttonActiveForeground):
+          return (.white, .black, nil, nil)
         case .HomeBackground:
           return (Const.Colors.Light.HomeBackground, Const.Colors.Dark.HomeBackground,nil,nil)
         case .HomeText:
@@ -405,6 +428,7 @@ public struct Const {
     static var lmdBentonBold: String? = UIFont.register(name: "BentonSans-Bold", type: "woff", subDir: "files")
     static var lmdBentonBoldItalic: String? = UIFont.register(name: "BentonSans-BoldItalic", type: "woff", subDir: "files")
     static var americanTypewriterFontName: String = "AmericanTypewriter-CondensedBold"
+    static var knileLight: String? = UIFont.register(name: "knile-light-webfont", type: "woff", subDir: "files")
     /// *WARNING* Cannot use bundled Aktiv Grotesk fonts from Ressources, due just one font variant will be loaded,
     /// Hacky Workaround sleep(1) then load the other Problem is: multiple fonts have same generic font names
     /// from UIFont extension NorthLib -> register(data: Data)
@@ -455,6 +479,10 @@ public struct Const {
     /// The font to use in content tables
     static func contentTextFont(size: CGFloat) -> UIFont
     { return font(name: contentTextFont, size: size) }
+    
+    /// The font to use in modals
+    static func marketingHeadFont(size: CGFloat) -> UIFont
+    { return font(name: knileLight, size: size) }
     
     static var contentFont: UIFont = contentFont(size: Size.DefaultFontSize)
     static var boldContentFont: UIFont = titleFont(size: Size.DefaultFontSize)
@@ -619,6 +647,14 @@ extension UILabel {
   @discardableResult
   func titleFont(size: CGFloat = Const.Size.LargeTitleFontSize) -> UILabel {
     self.font = Const.Fonts.titleFont(size: size)
+    return self
+  }
+  
+  /// set font to marketing head knile with its default font size of 30 and return self (for chaining)
+  /// - Returns: self
+  @discardableResult
+  func marketingHead(size: CGFloat = 30) -> UILabel {
+    self.font = Const.Fonts.marketingHeadFont(size: size)
     return self
   }
   

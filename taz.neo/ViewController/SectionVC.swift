@@ -99,7 +99,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   public func linkPressed(from: URL?, to: URL?) {
     guard let to = to else { return }
-    if let section = sectionIfAudio(atIndex: index) {
+    if to.isFileURL == false, let section = sectionIfAudio(atIndex: index) {
       ArticlePlayer.singleton.play(sectionAudio: section)
       return
     }

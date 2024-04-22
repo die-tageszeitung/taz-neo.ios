@@ -46,7 +46,25 @@ extension Defaults{
   
   struct articleTextSize {
     @Default("articleTextSize")
-    static var articleTextSize: Int
+    static var articleTextSize: Int {
+      didSet {
+        print("articleTextSize changed to: \(articleTextSize)")
+        calculateMinColumnWidth()
+      }
+    }
+    
+    static let lbl = UILabel()
+    
+    static func calculateMinColumnWidth() {
+      print("calculateMinColumnWidth")
+      /// 49 Char Blindtext to determine the column width minimal complexity
+      onMain {
+        lbl.numberOfLines = 0
+        lbl.text = "die Tageszeitung, Politik, Zukunft, Gesellschaft"
+        lbl.doLayout()
+        print("label width for \(lbl.text?.count ?? 0) is: \(lbl.width)")
+      }
+    }
     
     @discardableResult
     static func increase() -> Int { if articleTextSize < 200 { articleTextSize += 10 }
@@ -54,7 +72,7 @@ extension Defaults{
     }
     
     @discardableResult
-    static func decrease() -> Int { if articleTextSize > 30 { articleTextSize -= 10 }
+    static func decrease() -> Int { if articleTextSize > 50 { articleTextSize -= 10 }
       return articleTextSize
     }
     
@@ -78,5 +96,23 @@ extension Defaults{
 fileprivate extension Bool {
   var stringRepresentation: String {
     return self == true ? "true" : "false"
+  }
+}
+
+class nonsens {
+  let sidePadding = 34.0
+  //Problem at 150% TextSize rowCount == 2 => SOLVED NOW
+  //MainWindowWidth: 1194.0 colWidth: 580.0 colGAp: 15.0 rowCount:2.0 rowCountCalc: 2.0586206896551724
+  func colWidth1(maxRowCount: CGFloat) -> CGFloat {
+    if maxRowCount < 3.0 {
+      return (UIWindow.size.width - sidePadding) * 0.5  //2 Rows
+    }
+    if maxRowCount < 4.0 {
+      return (UIWindow.size.width - sidePadding) * 0.33  //3 Rows
+    }
+    if maxRowCount < 5.0 {
+      return (UIWindow.size.width - sidePadding) * 0.25 //4 Rows
+    }
+    return (UIWindow.size.width - sidePadding) * 0.2 // 5 Rows
   }
 }

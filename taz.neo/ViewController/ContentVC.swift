@@ -109,11 +109,17 @@ extension String {
 
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
+  @Default("multiColumnSnap")
+  public var multiColumnSnap: Bool
+  
+  @Default("multiColumnFixedScrolling")
+  public var multiColumnFixedScrolling: Bool
+  
   @Default("autoHideToolbar")
   var autoHideToolbar: Bool
   
   private var hideOnScroll: Bool {
-    if UIScreen.isIpadRegularSize {
+    if UIScreen.isIpadRegularHorizontalSize {
       return false
     }
     if autoHideToolbar == false {
@@ -129,8 +135,51 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public class var topMargin: CGFloat { return 40 }
   public static let bottomMargin: CGFloat = 50
   
+  var multiColumnGap: CGFloat = 0.0
+  var multiColumnWidth: CGFloat = 0.0
+  var screenColumnsCount: Int = 1
+  
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
+  
+  @Default("articleLineLengthAdjustment")
+  private var articleLineLengthAdjustment: Int
+  
+  @Default("articleTextSize")
+  private var articleTextSize: Int
+
+  @Default("multiColumnModePortrait")
+  var multiColumnModePortrait: Bool
+  
+  @Default("multiColumnModeLandscape")
+  var multiColumnModeLandscape: Bool
+  ///indicator if multiColumnMode == true & tablet & enough space to display multi columns
+  
+  var multiColumnMode: Bool {
+    return UIDevice.isPortrait && multiColumnModePortrait
+    || UIDevice.isLandscape && multiColumnModeLandscape
+  }
+  
+  private var isMultiColumnMode = false {
+    didSet {
+      if self.isKind(of: ArticleVC.self)
+          && oldValue == true
+          && isMultiColumnMode == false
+          && multiColumnMode == true {
+        var tip = ""
+        if Device.isIpad && UIDevice.isPortrait {
+          tip = "iPad ins Querformat drehen."
+        }
+        else if UIScreen.main.bounds.size.width > UIWindow.size.width {
+          tip = "App vergrößern."
+        }
+        else {
+          tip = "Schriftgröße verkleinern."
+        }
+        Toast.show("Mehrspaltigkeit nicht verfügbar!<br>Zum Aktivieren der Mehrspaltigkeit \(tip)")
+      }
+    }
+  }
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
@@ -169,8 +218,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var shareClosure: ((ContentVC)->())?
   private var imageOverlay: Overlay?
   
-  var settingsBottomSheet: BottomSheet?
+  var settingsBottomSheet: BottomSheet2?
   private var textSettingsVC = TextSettingsVC()
+  
+  var mcoBottomSheet:BottomSheet2?
+  var mcoVc = MultiColumnOnboarding()
   
   private var issueObserver: Notification.Observer?
   private var reloadLoaded: Bool = false
@@ -202,18 +254,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     #warning("ToDo delegate.resetIssueList")
 //    delegate.resetIssueList()
   }
+  
+  var textSize: Int { Int(Defaults.singleton["articleTextSize"] ?? "100") ?? 100}
 
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat? = nil,
                              bottomMargin: CGFloat? = nil, callback: (()->())? = nil) {
     let bottomMargin = bottomMargin ?? Self.bottomMargin
     let dfl = Defaults.singleton
-    let textSize = Int(dfl["articleTextSize"]!)!
-    let percentageMaxWidth = Int(dfl["articleColumnPercentageWidth"]!)!
-    let maxWidth = percentageMaxWidth * 6
-    let mediaLimit = max(Int(UIWindow.size.width), maxWidth)
     let colorMode = dfl["colorMode"]
-    let textAlign = dfl["textAlign"]
+    let textAlign = dfl["textAlign"] ?? "initial"
     var colorModeImport: String = ""
     if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\";" }
     let cssContent = """
@@ -227,28 +277,155 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       #content:first-child > *:first-child > *:first-child > img:first-child{
              padding-top: -20px
       }
-
     
       body {
         padding-top: 78px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
       }
       p {
-        text-align: \(textAlign!);
+        text-align: \(textAlign);
       }
-      @media (min-width: \(mediaLimit)px) {
-        body #content {
-            width: \(maxWidth)px;
-            margin-left: \(-maxWidth/2)px;
-            position: absolute;
-            left: 50%;
-        }
-      }
+      \(multiColumnCss)
     """
     URLCache.shared.removeAllCachedResponses()
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
       callback?()
     }
+  }
+  
+  var multiColumnCss : String {
+    let css = getMultiColumnCss()
+    isMultiColumnMode = css != nil
+    self.collectionView?.showsHorizontalScrollIndicator = false
+    return css ?? singleColumnCss
+  }
+  
+  var singleColumnCss : String {
+    if Device.isIpad == false { return "" }
+    let textSizeFactor = floor(CGFloat(textSize)/10)/10 ///(0.3...2.0)
+    let rowWidth = 825.0*textSizeFactor //734 for 0.8&0.9 / 835 fot 0.6 and 0.8
+    var maxWidth = min(rowWidth, UIWindow.size.width - 36)
+    if articleLineLengthAdjustment < 0 {
+      maxWidth *= 0.7
+    }
+    else if articleLineLengthAdjustment == 0 {
+      maxWidth *= 0.8
+    }
+    maxWidth = floor(maxWidth)
+    return """
+    body #content {
+        width: \(maxWidth)px;
+        margin-left: \(-maxWidth/2)px;
+        position: absolute;
+        left: 50%;
+    }
+    """
+  }
+  
+  public override func handleRightTap() -> Bool {
+    guard isMultiColumnMode else { return super.handleRightTap() }
+    guard let sv = self.currentWebView?.scrollView  else { return false }
+    if sv.contentOffset.x + 2 + sv.frame.size.width > sv.contentSize.width { return false }
+    /// scroll visible row count right usually:
+    /// contentOffset.x + sv.frame.size.width - multiColumnGap
+    /// but in case of misplaced scrolling/offset, we need to 'snap' next row
+    let currentRow = sv.contentOffset.x/CGFloat(rowWidth)
+//    let wrongOffset = currentRow - floor(currentRow) > 0.1
+    let offset = 0 // wrongOffset ? 1 : 0 Offset Calc only for left tap!?
+    let nextRow = CGFloat(Int(currentRow) + max(1, screenColumnsCount - offset))
+    var x = rowWidth*nextRow
+    if !multiColumnFixedScrolling {
+      let maxX = CGFloat(sv.contentSize.width - sv.frame.size.width)
+      if maxX - x < 5 { x = maxX }  ///fix round errors
+      x = min(maxX, x)
+    }
+    sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
+    sv.flashScrollIndicators()
+    return true
+  }
+  
+  var rowWidth:CGFloat { multiColumnWidth + multiColumnGap}
+  
+  public override func handleLeftTap() -> Bool {
+    guard isMultiColumnMode else { return super.handleLeftTap() }
+    guard let sv = self.currentWebView?.scrollView  else { return false }
+    if sv.contentOffset.x - 2 < 0 { return false }
+    /// scroll visible row count right usually:
+    /// contentOffset.x + sv.frame.size.width - multiColumnGap
+    /// but in case of misplaced scrolling/offset, we need to 'snap' next row
+    let currentRow = sv.contentOffset.x/CGFloat(rowWidth)
+    let wrongOffset = abs(floor(currentRow) - currentRow) > 0.1
+    let offset = wrongOffset ? 1 : 0
+    let nextRow = CGFloat(Int(currentRow) - max(1, screenColumnsCount - offset))
+    var x = max(0, rowWidth*nextRow)//nextStart
+    if x < 5 { x = 0 }///fix round errors
+    sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
+    sv.flashScrollIndicators()
+    return true
+  }
+  
+  func getMultiColumnCss() -> String?  {
+    let columns = Defaults.columnSetting.used
+    guard multiColumnMode && columns >= 2 else { return nil }
+    
+    let padding
+    = articleTextSize <= 100
+    ? 30.0
+    : 30.0 * floor(CGFloat(articleTextSize)/10)/10
+    let colF = CGFloat(columns)
+    multiColumnWidth = floor((UIWindow.size.width + 1 - (colF + 1)*padding)/colF)
+    screenColumnsCount = columns
+    multiColumnGap = padding
+    let hFix = Int(128 + UIWindow.bottomInset)
+    let buFix = hFix - 20 + Int(CGFloat(articleTextSize*70)/100)
+      
+    print("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenColumnsCount)")
+    /**
+     ***pretty ugly css** but:
+        * content paddings&margins increase column gap
+        * need to add padding/margin at end
+        * tap to scroll needs perect alligned columns
+        * body #content minus margin-left fixes: gap increase
+        * body needs padding bottom of 50, but set this activates vertical scrolling
+        * => set height  height: calc(100vh - 128px); 128 = 68+50 top/bottom + 10px extra margin/padding
+      */
+    return """
+      html {
+        height: 100%;
+      }
+      body:has(.article) {
+        padding: 68px 0 0 0;
+        height: calc(100vh - \(hFix)px);
+        margin-left: \(Int(multiColumnGap))px;
+        overflow-x: scroll;
+        column-width: \(Int(multiColumnWidth))px;
+        width: fit-content;
+        column-fill: auto;
+        column-gap: 0;
+        orphans: 3; /*at least 3 lines in a block at end*/
+        widows: 3; /*at least 3 lines in a block at start*/
+      }
+      body #content.article {
+        margin: 0;
+        width: \(Int(multiColumnWidth))px;
+        padding-right: \(Int(multiColumnGap))px;
+        position: relative;/*important overwrite scroll.css defaults*/
+        left: 0;/*important overwrite scroll.css defaults*/
+        overflow-y: hidden;
+      }
+      body #content.article .Autor {
+        break-inside: avoid;
+      }
+      body #content.article #foto img {
+        break-inside: avoid;
+        object-fit: contain;
+        max-height: calc(100vh - \(buFix)px);
+      }
+      #content div {
+        /*fix: 240417-w+u-1 author box broken text in ip6m/ios17.4/100%fontSize/Landscape */
+        break-inside: avoid;
+      }
+    """
   }
   
   /// Return dictionary for dynamic HTML style data
@@ -484,20 +661,31 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     else { toolBar.setArticlePlayBar() }
   }
   
+  var bottomSheetDefaultCoverage: CGFloat {
+    448 + UIWindow.safeInsets.bottom + self.textSettingsVC.multiColumnButtonsAdditionalHeight
+  }
+  
+  var bottomSheetDefaultSlideDown: CGFloat { self.textSettingsVC.slideDownHeight }
+  
   func setupSettingsBottomSheet() {
-    settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self, maxWidth: 500)
-    ///was 130 >= 208 //Now 195 => 273//with Align 260 => 338
-    settingsBottomSheet?.coverage =  338 + UIWindow.verticalInsets
-    
+    settingsBottomSheet = BottomSheet2(slider: textSettingsVC, into: self)
+    settingsBottomSheet?.xButton.tazX()
+    settingsBottomSheet?.onX {[weak self] in
+      self?.mcoBottomSheet?.close()
+    }
+    Const.Size.DefaultPadding
+    settingsBottomSheet?.updateMaxWidth()
+    self.settingsBottomSheet?.coverage = self.bottomSheetDefaultCoverage
     onSettings{ [weak self] _ in
       guard let self = self else { return }
+      self.settingsBottomSheet?.coverage = self.bottomSheetDefaultCoverage
       self.debug("*** Action: <Settings> pressed")
       if self.settingsBottomSheet?.isOpen ?? false {
           self.settingsBottomSheet?.close()
       }
       else {
         self.settingsBottomSheet?.open()
-        self.settingsBottomSheet?.slideDown(130)
+        self.settingsBottomSheet?.slideDown(self.bottomSheetDefaultSlideDown)
       }
       
       self.textSettingsVC.updateButtonValuesOnOpen()
@@ -655,10 +843,18 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     writeTazApiCss()
     writeTazApiJs()
     self.view.addSubview(header)
-    self.collectionView?.showsHorizontalScrollIndicator = false
+//    self.collectionView?.showsHorizontalScrollIndicator = false
     pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
+    
+    scrollViewDidEndScrolling{ [weak self] offset in
+      guard let self = self,
+              self.isMultiColumnMode,
+              self.multiColumnSnap else { return }
+      let nextRow = offset.x/CGFloat(self.rowWidth)
+      self.currentWebView?.scrollView.setContentOffset(CGPoint(x: rowWidth*round(nextRow), y: 0), animated: true)
+    }
     
     whenScrolled { [weak self] ratio in
       if (ratio < 0) {
@@ -710,13 +906,23 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   public func applyStyles() {
-    settingsBottomSheet?.color = Const.SetColor.ios(.secondarySystemBackground).color
+    settingsBottomSheet?.color = Const.SetColor.HBackground.color
     settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
+    settingsBottomSheet?.shadeView.backgroundColor = Const.SetColor.taz(.shade).color
+    settingsBottomSheet?.xButton.tazX()
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
     slider?.button.shadow()
+    updateWebwiews()
+  }
+  
+  open override var preferredStatusBarStyle: UIStatusBarStyle {
+    return Defaults.darkMode ?  .lightContent : .default
+  }
+  
+  func updateWebwiews(){
     writeTazApiCss {[weak self] in
       self?.reloadLoaded = true
       self?.reloadAllWebViews()
@@ -724,23 +930,44 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
   }
   
-  open override var preferredStatusBarStyle: UIStatusBarStyle {
-    return Defaults.darkMode ?  .lightContent : .default
+  open override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    if sizeChanged {
+      sizeChanged = false
+      onMainAfter {[weak self] in
+        self?.updateWebwiews()
+      }
+    }
   }
+  
+  private var sizeChanged = false
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
-    updateSliderWidth(newParentWidth: size.width)
-    onMain(after: 1.0) {[weak self] in
-      let newCoverage = 338 + UIWindow.verticalInsets
-      if self?.settingsBottomSheet?.coverage == newCoverage { return }//no rotate
-      self?.settingsBottomSheet?.coverage =  newCoverage
-      if self?.settingsBottomSheet?.isOpen == false  { return }
-      self?.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
-        self?.settingsBottomSheet?.open()
-        self?.settingsBottomSheet?.slideDown(130)
-      })
+    if self.view.frame.size != size {
+      sizeChanged = true
     }
+    updateSliderWidth(newParentWidth: size.width)
+    settingsBottomSheet?.updateMaxWidth(for: size.width)
+    onMain(after: 0.7) {[weak self] in
+      guard let self = self else { return }
+      let oldCoverage = self.settingsBottomSheet?.coverage ?? 0
+      let newCoverage = self.bottomSheetDefaultCoverage
+      if abs(oldCoverage - newCoverage) < 2 { return }//no rotate
+      self.settingsBottomSheet?.coverage =  newCoverage
+      if self.settingsBottomSheet?.isOpen == false  { return }
+      #warning("Is this still required?")
+//      self.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
+//        self?.settingsBottomSheet?.open()
+//        self?.settingsBottomSheet?.slideDown(self?.bottomSheetDefaultSlideDown ?? 0)
+//      })
+    }
+  }
+  
+  open override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    toolBar.bringToFront()
+    slider?.active.view.bringToFront()
   }
   
   override public func viewWillAppear(_ animated: Bool) {

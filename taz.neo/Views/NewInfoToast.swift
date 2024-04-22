@@ -292,7 +292,7 @@ public class NewInfoToast : UIView {
     dismiss()
   }
   
-  lazy var button1 = Padded.Button(type: .newBlackOutlineBright,
+  lazy var button1 = Padded.Button(type: .newBlackOutline,
                                 title: button1Text,
                                    target: self,
                                    action: #selector(handleButton1Action))
@@ -302,7 +302,7 @@ public class NewInfoToast : UIView {
     dismiss()
   }
   
-  lazy var button2 = Padded.Button(type: .newBlackOutlineBright,
+  lazy var button2 = Padded.Button(type: .newBlackOutline,
                                 title: button2Text,
                                    target: self,
                                    action: #selector(handleButton2Action))

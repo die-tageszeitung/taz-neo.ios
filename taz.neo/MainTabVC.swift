@@ -15,12 +15,12 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
+    TazAppEnvironment.sharedInstance.nextWindowSize = size
     Notification.send(Const.NotificationNames.viewSizeTransition,
                       content: size,
                       error: nil,
                       sender: nil)
   }
-  
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
     super.traitCollectionDidChange(previousTraitCollection)
     Notification.send(Const.NotificationNames.traitCollectionDidChange,
@@ -45,6 +45,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
         .viewControllers.first as? SearchController) else { return }
       self?.selectedIndex = 2
       searchCtrl.searchFor(searchString: searchString)
+    }
+
+    Notification.receive(Const.NotificationNames.gotoSettings) { [weak self] notif in
+      self?.selectedIndex = 3
     }
     
     Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in

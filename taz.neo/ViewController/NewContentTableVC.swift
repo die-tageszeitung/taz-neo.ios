@@ -104,7 +104,6 @@ public class NewContentTableVC: UIViewController {
   
   fileprivate static let CellIdentifier = "NewContentTableVcCell"
   fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
-  fileprivate static let SectionFooterIdentifier = "ContentTableFooterSeperatorView"
   
   private var tableView = UITableView(frame: .zero, style: .plain)
   ///for SectionVc the highlighted SectionHeader
@@ -215,8 +214,6 @@ extension NewContentTableVC {
                             forCellReuseIdentifier: Self.CellIdentifier)
     self.tableView.register(ContentTableHeaderFooterView.self,
                             forHeaderFooterViewReuseIdentifier: Self.SectionHeaderIdentifier)
-    self.tableView.register(ContentTableFooterView.self,
-                            forHeaderFooterViewReuseIdentifier: Self.SectionFooterIdentifier)
     self.tableView.rowHeight = UITableView.automaticDimension
     self.tableView.separatorStyle = .none
     self.tableView.estimatedRowHeight = 100.0
@@ -314,8 +311,9 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     
     if let ressort = issue?.sections?.valueAt(section) {
       header.label.text = ressort.name
-      header.chevron.isHidden = ressort.type == .advertisement
-      header.dottedLine.isHidden = ressort.type == .advertisement
+      let unexpandable = ressort.type == .advertisement || ressort.type == .podcast
+      header.chevron.isHidden = unexpandable
+      header.dottedLine.isHidden = unexpandable
     } else if section == issue?.sections?.count ?? 0 {
       header.label.text = issue?.imprint?.title ?? "Impressum"
       header.chevron.isHidden = true
@@ -329,6 +327,7 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     header.collapsed = !expandedSections.contains(section)
 
     header.tag = section
+    header.topSeperator?.isHidden = section == 0
     
     let isImprint = section == issue?.sections?.count ?? 0
     
@@ -351,19 +350,6 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     }
     header.active = section == sectIndex
     return header
-  }
-  
-  public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    return 1.0
-  }
-  
-  public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    return tableView.dequeueReusableHeaderFooterView(withIdentifier: Self.SectionFooterIdentifier)
-  }
-  
-  public func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
-    if section < (issue?.sections?.count ?? 0) { return }
-    (view as? ContentTableFooterView)?.seperator.isHidden = true
   }
   
   public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -636,16 +622,8 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     v.addSubview(customTextLabel)
     v.addSubview(bottomLabel)
     
-//    titleLabel.addBorder(.red)
-//    customTextLabel.addBorder(.yellow)
-//    bottomLabel.addBorder(.green)
-    
     rightCenterVerticalSpacer.pinWidth(10.0)
     rightCenterVerticalSpacer.pinHeight(10.0, priority: .fittingSizeLevel)
-    
-//    customImageView.addBorder(.red)
-//    rightCenterVerticalSpacer.addBorder(.yellow)
-//    bookmarkButton.addBorder(.green)
     
     v.addSubview(customImageView)
     v.addSubview(rightCenterVerticalSpacer)
@@ -744,44 +722,10 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   }
 }
 
-fileprivate class ContentTableFooterView: UITableViewHeaderFooterView, UIStyleChangeDelegate{
-  
-  var seperator = UIView(frame: CGRect(x: 0, y: 0, width: 1000, height: 0.7))
-  
-  func setup(){
-    self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
-    self.contentView.addSubview(seperator)
-    pin(seperator.left, to: self.contentView.left, dist: Const.Size.DefaultPadding, priority: .fittingSizeLevel)
-    pin(seperator.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
-    pin(seperator.top, to: self.contentView.top)
-    seperator.pinHeight(0.7)
-    registerForStyleUpdates()
-  }
-  
-  override func prepareForReuse() {
-    seperator.isHidden = false
-  }
-  
-  func applyStyles() {
-    self.contentView.backgroundColor = Const.SetColor.HBackground.color
-    seperator.backgroundColor = Const.SetColor.HText.color
-  }
-  
-  override init(reuseIdentifier: String?) {
-    super.init(reuseIdentifier: reuseIdentifier)
-    setup()
-  }
-  
-  required init?(coder: NSCoder) {
-    super.init(coder: coder)
-    setup()
-  }
-}
-  
-  
 fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
   
   let dottedLine = DottedLineView()
+  var topSeperator: UIView?
   
   var active: Bool = false {
     didSet {
@@ -802,6 +746,7 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     super.setup()
     dottedLine.isHorizontal = false
     self.contentView.addSubview(dottedLine)
+    topSeperator = self.contentView.addBorderView(Const.SetColor.HText.color, 0.7, edge: .top, insets: Const.Insets.Default)
     
     dottedLine.clipsToBounds = true
     pin(dottedLine.top, to: self.contentView.top, dist: 9.5, priority: .fittingSizeLevel)
@@ -810,8 +755,6 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     dottedLine.pinWidth(Const.Size.DottedLineHeight*0.6)
     dottedLine.fillColor = Const.SetColor.HText.color
     dottedLine.strokeColor = Const.SetColor.HText.color
-//    chevron.activeColor = .lightGray
-//    chevron.color = Const.SetColor.HText.color
     chevron.tintColor = Const.SetColor.HText.color
 
     label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -820,8 +763,7 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
   override func setColors() {
     super.setColors()
     chevron.tintColor = Const.SetColor.HText.color
-
-//    chevron.color = Const.SetColor.HText.color
+    topSeperator?.backgroundColor = Const.SetColor.HText.color
   }
 }
 

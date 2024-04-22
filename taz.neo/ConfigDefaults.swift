@@ -7,6 +7,7 @@
 
 import Foundation
 import NorthLib
+import UIKit
 
 /**
  Configuration variables and default values to store in Apple's UserDefaults
@@ -72,6 +73,11 @@ private let configValues = [
   "showCoachmarks" : "true",
   "cmLastPrio": "1",
   "cmSessionCount": "0",
+  "multiColumnModeLandscape": "false",
+  "multiColumnModePortrait": "false",
+  "columnCountLandscape": "3",
+  "articleLineLengthAdjustment": "0",
+  "multiColumnOnboardingAnswered" : "false",
 ]
 
 private let configValuesLMD = [
@@ -164,6 +170,42 @@ extension Defaults {
       }
     }
   }
+  
+  typealias columnSettingData = (used:Int, available: Int, setting: Int)
+  
+  static var columnSetting : columnSettingData {
+    get {
+      let isLandscape = UIWindow.isLandscapeInterface
+      let articleTextSize = Defaults.singleton["articleTextSize"]?.int ?? 100
+      let width = TazAppEnvironment.sharedInstance.nextWindowSize.width
+      let calculatedColumnWidth = 3.1 * CGFloat(articleTextSize) + 30.0 //+padding
+      let maxCount = isLandscape ? 4.0 : 2.0
+      let availableColumnsCount = Int(min(maxCount, width/calculatedColumnWidth))//1..4
+      let columnCountLandscape = Defaults.singleton["columnCountLandscape"]?.int ?? 3
+      let columnsCountSetting = isLandscape ? columnCountLandscape : 2
+      let used
+      = columnsCountSetting >= availableColumnsCount
+      ? availableColumnsCount
+      : columnsCountSetting
+      Self.multiColumnsAvailable = availableColumnsCount >= 2
+      return (used, availableColumnsCount, columnsCountSetting)
+    }
+  }
+  
+  static var multiColumnsAvailable: Bool = false
+  
+  /**
+   fileprivate func updateColumnButtons(){
+     let isLandscape = UIWindow.isLandscapeInterface
+     #warning("MAYBE WRONG!")//Portrait also Calc ...ro o fo
+     let availableColumnsCount = Defaults.availableColumnsCount
+     let columnsCountSetting = isLandscape ? columnCountLandscape : 2
+     let selectedColumnCount
+     = columnsCountSetting >= availableColumnsCount
+     ? availableColumnsCount
+     : columnsCountSetting
+  */
+  
 
   static var expiredAccount : Bool { return expiredAccountDate != nil }
   static var expiredAccountText : String? {

@@ -13,6 +13,7 @@ import UIKit
 class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate {
   
   class Spinner: UIViewController {
+    #warning("Required? try to remove and test, handled in MainTabVc, but for startup?")
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
       super.viewWillTransition(to: size, with: coordinator)
       Notification.send(Const.NotificationNames.viewSizeTransition,
@@ -98,6 +99,8 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       }
     }
   }
+  
+  var nextWindowSize: CGSize
 
   @Key("dataPolicyAccepted")
   public var dataPolicyAccepted: Bool
@@ -108,10 +111,14 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   @Key("usageTrackingAcceptanceTesting")
   fileprivate var usageTrackingAcceptanceTesting: Bool
   
+  @Default("articleTextSize")
+  private var articleTextSize: Int
+  
   public private(set) var isErrorReporting = false
   private var isForeground = false
   
   override init(){
+    nextWindowSize = UIWindow.size
     super.init()
     Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
       self?.goingBackground()
