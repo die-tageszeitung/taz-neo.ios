@@ -47,7 +47,7 @@ public class LoginView : FormView{
   var passForgottButton: Padded.View = {
     let lbl = UILabel()
     lbl.text = Localized("login_forgot_password")
-    lbl.contentFont(size: Const.Size.MiniPageNumberFontSize)
+    lbl.contentFont(size: Const.Size.SmallerFontSize)
     lbl.textColor = .gray
     lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
     let wrapper = Padded.View()
@@ -60,6 +60,19 @@ public class LoginView : FormView{
     wrapper.paddingTop = miniPadding
     return wrapper
   }()
+    
+  lazy var privacyLabel : CustomTextView = {
+    let view = CustomTextView()
+    view.isEditable = false
+    view.attributedText = Localized("login_privacy_link").htmlAttributed
+    view.linkTextAttributes = [.foregroundColor : UIColor.gray, .underlineColor: UIColor.gray]
+    view.textContainer.lineFragmentPadding = 0;
+    view.font = Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)
+    view.textColor = UIColor.gray
+    view.textAlignment = .left
+    return view
+  }()
+  
   
   var trialSubscriptionButton = Padded.Button(title: Localized("login_trial_subscription_button_text"))
   var switchButton = Padded.Button(title: Localized("login_switch_print2digi_button_text"))
@@ -147,6 +160,7 @@ public class LoginView : FormView{
       whereIsTheAboId,
       passInput,
       passForgottButton,
+      privacyLabel,
       loginButton,
       marketingContainerWidth(button: trialSubscriptionButton,
                               htmlFile: Dir.appSupportPath.appending("/taz/resources/trialNOTEXISTFALLBACHTEST.html"),

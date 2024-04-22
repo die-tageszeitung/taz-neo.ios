@@ -67,6 +67,7 @@
 
 /* translation from Android */
 "login_forgot_password" = "Haben Sie Ihr Passwort vergessen?";
+"login_privacy_link" = "Hier finden Sie unere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
 
 /* translation from Android */
 "login_forgot_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre E-Mail-Adresse oder Abo-ID an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
