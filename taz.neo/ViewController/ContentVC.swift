@@ -843,9 +843,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   // MARK: - viewDidLoad
   override public func viewDidLoad() {
-    if self is BookmarkSectionVC == false {
-      tapButtonsBottomDist = hideOnScroll ? -20 : 20
-    }
     super.viewDidLoad()
     writeTazApiCss()
     writeTazApiJs()

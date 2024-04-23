@@ -37,7 +37,6 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
   }()
   
   public override func viewDidLoad() {
-    leftTapBottomMargin = false
     super.viewDidLoad()
     self.header.addSubview(headerPlayButton)
     pin(headerPlayButton.right, to: self.header.right, dist: -10)
@@ -66,7 +65,6 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
     let show = show ?? ((ctH ?? 0.0) * 0.8  > UIWindow.size.height)
     ///topInset looks strange, something is wrong but the result/placement is over multiple devices the best currently
     ///maybe re-think sectionVC with Tabbar insets and pin
-    tapButtonsBottomDist = (show ?  88 - UIWindow.topInset : 220)
   }
   
   public override func viewWillAppear(_ animated: Bool) {
