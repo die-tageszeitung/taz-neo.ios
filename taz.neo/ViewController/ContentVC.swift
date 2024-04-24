@@ -854,7 +854,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     scrollViewDidEndScrolling{ [weak self] offset in
       guard let self = self,
               self.isMultiColumnMode,
-              self.multiColumnSnap else { return }
+              self.multiColumnSnap,
+              self is ArticleVC else { return }
       let nextRow = offset.x/CGFloat(self.rowWidth)
       self.currentWebView?.scrollView.setContentOffset(CGPoint(x: rowWidth*round(nextRow), y: 0), animated: true)
     }
