@@ -36,6 +36,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
+  
     
   var hasValidAbo: Bool {feederContext.isAuthenticated && !Defaults.expiredAccount}
   var needValidAboToShareText: String {
@@ -527,7 +528,7 @@ class MultiColumnOnboardingView: UIView {
   }()
   
   lazy var image: UIImage? = {
-    guard let img = UIImage(named: "BundledResources/MultiColumn.png")else {
+    guard let img = UIImage(named: "BundledResources/MultiColumn.jpeg")else {
       log("Bundled MultiColumn.png not found!")
       return nil
     }
