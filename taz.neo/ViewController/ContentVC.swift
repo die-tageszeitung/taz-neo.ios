@@ -393,8 +393,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       html {
         height: 100%;
       }
-      body:has(.article) {
-        padding: 68px 0 0 0;
+      body {
+        padding: 82px 0 0 0;
         height: calc(100vh - \(hFix)px);
         margin-left: \(Int(multiColumnGap))px;
         overflow-x: scroll;
@@ -405,7 +405,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         orphans: 3; /*at least 3 lines in a block at end*/
         widows: 3; /*at least 3 lines in a block at start*/
       }
-      body #content.article {
+      body:has(.article) {
+        padding: 68px 0 0 0;
+      }
+      body #content {
         margin: 0;
         width: \(Int(multiColumnWidth))px;
         padding-right: \(Int(multiColumnGap))px;
@@ -413,10 +416,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         left: 0;/*important overwrite scroll.css defaults*/
         overflow-y: hidden;
       }
-      body #content.article .Autor {
+      body #content .Autor {
         break-inside: avoid;
       }
-      body #content.article #foto img {
+      body #content #foto img {
         break-inside: avoid;
         object-fit: contain;
         max-height: calc(100vh - \(buFix)px);
