@@ -47,6 +47,9 @@ extension IssueDisplayService {
         self.feederContext.authenticate()
         return
       }
+      //...not show login if logged in!
+      if self.feederContext.isAuthenticated == true { return }
+      /// ...show Login
       let loginAction = UIAlertAction(title: Localized("login_button"),
                                       style: .default) { _ in
         self.feederContext.authenticate()
