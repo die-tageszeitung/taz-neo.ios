@@ -200,7 +200,15 @@ extension IssueDisplayService {
         }
       }
     }
+    
+    let preventOpenDirect
+    = issue.isReduced
+    && isFacsimile
+    && feederContext.isAuthenticated
+    && feederContext.gqlFeeder.isExpiredAccount == false
+    
     if issue.status.watchable
+        && preventOpenDirect == false
         && issue.sections?.isEmpty == false
         && isReloadOpened == false {
       self.openIssue(issue: issue,
