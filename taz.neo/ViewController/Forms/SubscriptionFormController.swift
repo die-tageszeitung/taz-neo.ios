@@ -98,6 +98,12 @@ class SubscriptionFormController : FormsController {
       }
     }
   }
+  
+  func setupDismissOnAccountReactivation(){
+    Notification.receive(Const.NotificationNames.removeLoginRefreshDataOverlay) {_ in
+      onMainAfter(1.7) {[weak self] in self?.dismiss() }
+    }
+  }
     
   required init(formType: SubscriptionFormDataType,
                 auth:AuthMediator,
@@ -108,6 +114,11 @@ class SubscriptionFormController : FormsController {
                            expireDate: expireDate,
                            customerType: customerType)
     super.init(auth)
+    switch formType {
+      case .print2Digi, .printPlusDigi: break; //do Nothing
+      case .expiredDigiSubscription, .trialSubscription, .expiredDigiPrint:
+        setupDismissOnAccountReactivation()
+    }
   }
   
   required init?(coder: NSCoder) {

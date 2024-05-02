@@ -1448,6 +1448,7 @@ extension GqlFeeder {
       TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
       TazAppEnvironment.sharedInstance.feederContext?.clearExpiredAccountFeederError()
       Defaults.expiredAccountDate = nil
+      self.log("Account Reactivation")
       Notification.send(Const.NotificationNames.authenticationSucceeded,
                         content: "Ihr Abo ist wieder aktiv!")
       //Usage.track(uEvt.subscriptionStatus(.SubcriptionRenewed))///Is already tracked by expiredAccountDate change

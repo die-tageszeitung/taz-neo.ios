@@ -80,7 +80,8 @@ public class WaitingAppOverlay {
                      })
       
       Notification.receiveOnce(dismissNotification) { _ in
-        onMain {
+        Log.log("dismiss WaitingAppOverlay")
+        onMainAfter(1.3) {
           UIView.animate(withDuration: 0.7,
                          delay: 0,
                          options: UIView.AnimationOptions.curveEaseInOut,
