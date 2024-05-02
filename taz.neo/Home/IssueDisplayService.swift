@@ -203,7 +203,6 @@ extension IssueDisplayService {
     
     let preventOpenDirect
     = issue.isReduced
-    && isFacsimile
     && feederContext.isAuthenticated
     && feederContext.gqlFeeder.isExpiredAccount == false
     
