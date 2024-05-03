@@ -71,7 +71,7 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
     v.addSubview(helpButton)
     
     pin(searchButton.top, to: v.top, dist: 5.0)
-    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding)
+    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
     pin(searchButton.left, to: v.left, dist: Const.Size.DefaultPadding)
     
     pin(helpButton.top, to: searchButton.bottom, dist: Const.Size.DefaultPadding)

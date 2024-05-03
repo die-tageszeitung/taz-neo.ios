@@ -402,7 +402,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
       sv.addSubview(header)
       pin(header, to: sv, exclude: .bottom)
       pin(self.tableView, toSafe: sv, exclude: .top).bottom?.constant = -50.0
-      pin(self.tableView.top, to: header.bottom)
+      pin(self.tableView.top, to: header.bottom)//.priority = .defaultHigh??
     }
     self.tableView.contentInset = UIEdgeInsets(top: 23, left: 0, bottom: 0, right: 0)
   }
@@ -1144,7 +1144,7 @@ class XSettingsCell:UITableViewCell {
       av.updateConstraintsIfNeeded()
       av.layoutIfNeeded()
       self.contentView.addSubview(av)
-      av.pinWidth(av.bounds.size.width)
+      av.pinWidth(av.bounds.size.width, priority: .defaultHigh)
       pin(av.right, to: contentView.right, dist: -dist)
       if self.detailTextLabel == nil{
         av.centerY()
@@ -1152,7 +1152,7 @@ class XSettingsCell:UITableViewCell {
       else {
         pin(av.top, to: self.contentView.top, dist: padding)
       }
-      pin(label.right, to: av.left, dist: -dist)
+      pin(label.right, to: av.left, dist: -dist, priority: .fittingSizeLevel)
       label.heightAnchor.constraint(greaterThanOrEqualToConstant: av.frame.size.height).isActive = true
     }
     else {

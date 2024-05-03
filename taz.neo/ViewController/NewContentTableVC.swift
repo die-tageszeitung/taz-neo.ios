@@ -746,7 +746,7 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     super.setup()
     dottedLine.isHorizontal = false
     self.contentView.addSubview(dottedLine)
-    topSeperator = self.contentView.addBorderView(Const.SetColor.HText.color, 0.7, edge: .top, insets: Const.Insets.Default)
+    topSeperator = self.contentView.addBorderView(Const.SetColor.HText.color, 0.7, edge: .top, insets: Const.Insets.Default, lastEdgePriority: .fittingSizeLevel)
     
     dottedLine.clipsToBounds = true
     pin(dottedLine.top, to: self.contentView.top, dist: 9.5, priority: .fittingSizeLevel)

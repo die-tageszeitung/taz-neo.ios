@@ -180,7 +180,7 @@ open class HeaderView: UIView,  Touchable {
     = pin(titleLabel.top, to: self.topGuide(), dist: titleTopIndentL)
     
     titleBottomConstraint
-    = pin(titleLabel.bottom, to: self.bottom, dist:titleBottomIndentL)
+    = pin(titleLabel.bottom, to: self.bottom, dist:titleBottomIndentL, priority: .defaultHigh)
     
     pin(subTitleLabel.bottom, to: self.bottom, dist: -5)
     
@@ -189,15 +189,15 @@ open class HeaderView: UIView,  Touchable {
     leftConstraint = pin(pageNumberLabel.left, to: self.left, dist:sidePadding)
     
     titleLeftConstraint = pin(titleLabel.left, to: pageNumberLabel.right, dist: 8)
-    pin(titleLabel.right, to: self.right, dist: -sidePadding)
+    pin(titleLabel.right, to: self.right, dist: -sidePadding).priority = .defaultHigh
     
     pin(line.left, to: self.left, dist:sidePadding)
-    pin(line.right, to: self.right, dist:-sidePadding)
+    pin(line.right, to: self.right, dist:-sidePadding).priority = .defaultHigh
     titleLineDistConstraint =
     pin(line.top, to: titleLabel.bottom, dist: 0)
     
     pin(subTitleLabel.left, to: self.left, dist:sidePadding)
-    pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
+    pin(subTitleLabel.right, to: self.right, dist:-sidePadding).priority = .defaultHigh
   }
   
   open override func layoutSubviews() {

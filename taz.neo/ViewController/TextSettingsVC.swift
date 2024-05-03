@@ -585,6 +585,7 @@ class TextSettingsView: UIView {
         margins: UIEdgeInsets(top: 5, left: 3, bottom: 10, right: 3)
     )
     vstConstrains.bottom?.priority = .fittingSizeLevel
+    vstConstrains.right?.priority = .fittingSizeLevel
     vStackLeftLayoutConstraint = vstConstrains.left
   }
   
