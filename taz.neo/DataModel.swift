@@ -984,6 +984,7 @@ public extension Issue {
       }
     }
     if self is SearchResultIssue { return ret }
+    if self is BookmarkIssue { return ret }
     
     if let imp = imprint { ret += imp }
     #if TAZ
