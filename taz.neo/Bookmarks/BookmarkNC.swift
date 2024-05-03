@@ -55,8 +55,7 @@ class BookmarkNC: NavigationController {
   
   func setup() {
     Notification.receive(Const.NotificationNames.expiredAccountDateChanged) { [weak self] notif in
-      guard self?.feeder.isAuthenticated ?? false else { return }
-      guard Defaults.expiredAccount == false else { return }
+      guard TazAppEnvironment.hasValidAuth else { return }
       self?.reloadOpened()
     }
     
@@ -136,7 +135,7 @@ extension BookmarkNC: ReloadAfterAuthChanged {
     /// "Aktualisiere Daten" did not disappear due the StoredFeeder of the FeederContext still unauth,
     /// but the gql feeder is authenticated => hack test this one not the stored feeder, untill Fixing
     /// OLD CODE:  guard self.feeder.isAuthenticated else { return }
-    guard self.feederContext.gqlFeeder.isAuthenticated else { return }
+    guard TazAppEnvironment.hasValidAuth else { return }
     
     let lastIndex: Int? = (self.viewControllers.last as? ArticleVC)?.index
     var issuesToDownload:[StoredIssue] = []
@@ -198,12 +197,8 @@ extension BookmarkNC: ReloadAfterAuthChanged {
   }
   
   private func loadReload(reloadIssue: StoredIssue){
-    reloadOpened()
-    return
-    
     let lastIndex: Int? = (self.viewControllers.last as? ArticleVC)?.index
     let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
-    
     WaitingAppOverlay.show(alpha: 1.0,
                            backbround: snap,
                            showSpinner: true,
@@ -216,9 +211,9 @@ extension BookmarkNC: ReloadAfterAuthChanged {
       guard reloadIssue.date.issueKey == issue.date.issueKey else { return }
       self?.reopenArticleAtIndex(idx: lastIndex)
     }
-    popToRootViewController(animated: true)
-    self.feederContext.getCompleteIssue(issue: reloadIssue,
-                                         isPages: false,
-                                         isAutomatically: false)
+    reloadOpened()
+    onMainAfter {[weak self] in
+      self?.popToRootViewController(animated: false)//there is a overlay
+    }
   }
 }
