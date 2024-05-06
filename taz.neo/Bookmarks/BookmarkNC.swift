@@ -58,6 +58,27 @@ class BookmarkNC: NavigationController {
       guard TazAppEnvironment.hasValidAuth else { return }
       self?.reloadOpened()
     }
+    #warning("ToDo after refactor and issue independent bookmarks")
+    /*
+     there was a (particullary not) reproduceable bug:
+     logged out > load demo issue > bookmark demo article > view in bookmark list
+     > login in issue-overview
+     1. > move to article in bookmarks > showed demo Article OR! full Article (depend on what?) AND showed Login Form
+     2. > article in bookmark list was not clickable (list did not refreshed!)
+     
+     to load all articles fully is maybe too much because currently its needed to load all issues
+     later with issue independent bookmark articles we can load all articles
+     
+     another bug: bookmark css was also after a few restarts not available.
+     from testflight alpha > alpha
+     not solved by various restarts @see error report by mail
+     solved by start debug
+     */
+    
+    Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
+      guard TazAppEnvironment.hasValidAuth else { return }
+      self?.reloadOpened()
+    }
     
     Notification.receive("updatedDemoIssue") { [weak self] notif in
       guard let self = self else { return }
