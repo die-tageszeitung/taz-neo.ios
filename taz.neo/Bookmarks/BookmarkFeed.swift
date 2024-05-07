@@ -53,7 +53,14 @@ public class BookmarkFeed: Feed, DoesLog {
     if let path = Bundle.main.path(forResource: css, ofType: nil) {
       let src = File(path)
       let dest = "\(dir.path)/resources/bookmarks-ios.css"
-      src.copyResource(to: dest)
+      let targetFile1 = File(dest)
+      log("bookmarks-ios.css before copy exist: \(targetFile1.exists) size: \(targetFile1.size) content: \(targetFile1.string.prefix(42))")
+      let status = src.copyResourceWithStatusReturn(to: dest)
+      let targetFile = File(dest)
+      log("copied bookmarks-ios.css with status: \(status) targetExist: \(targetFile.exists) size: \(targetFile.size) content: \(targetFile.string.prefix(42))")
+    }
+    else {
+      log("cannot copy bookmarks-ios.css due dest not found")
     }
   }
   
@@ -373,6 +380,16 @@ extension File {
       self.copy(to: to)
       dest.mtime = self.mtime
     }
+  }
+  
+  public func copyResourceWithStatusReturn(to: String) -> Int {
+    var status = -123
+    let dest = File(to)
+    if dest.mtime != self.mtime {
+      status = self.copy(to: to)
+      dest.mtime = self.mtime
+    }
+    return status
   }
 }
 
