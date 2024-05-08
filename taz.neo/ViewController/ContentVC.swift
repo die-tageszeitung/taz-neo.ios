@@ -976,7 +976,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   /// ensures that left/right tap buttons are behind tollbar and content slider
   func ensureToolbarInFrontOfTapButtons(){
     toolBar.bringToFront()
-    slider?.active.view.bringToFront()
+    slider?.sliderView.bringToFront()
+    slider?.button.bringToFront()
   }
   
   override public func viewWillAppear(_ animated: Bool) {
