@@ -348,6 +348,7 @@ public class CoachmarksBusiness: DoesLog{
     }).first else { return }
     
     if let target = sender.targetView(for: item) {
+      (sender as? ContentVC)?.toolBar.show(show: true, animated: true)
       showCoachmark(sender: sender, target: target, item: item)
     }
     else if let alternativeTarget = sender.target(for: item) {
