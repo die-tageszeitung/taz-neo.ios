@@ -181,6 +181,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
+      if self.issue is BookmarkIssue == false {
+        LastReadBusiness.persist(lastArticle: art, page: nil, in: self.issue)
+      }
       let player = ArticlePlayer.singleton
       if art.canPlayAudio {
         updateAudioButton()

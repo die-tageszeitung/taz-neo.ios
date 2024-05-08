@@ -103,12 +103,26 @@ extension IssueDisplayService {
                              atArticle: Int? = nil,
                              pushDelegate: PushIssueDelegate) {
     let sectionVC = SectionVC(feederContext: feederContext,
-                              atSection: atSection,
-                              atArticle: atArticle)
+                              atSection: nil /*atSection*/,
+                              atArticle: nil /*atArticle*/)
     sectionVC.delegate = self
     
+    let lastArticleShown = LastReadBusiness.getLast(for: issue)
+    var reopenArticle = true
+        
     if atArticle == nil {
       sectionVC.whenLoaded {
+        if reopenArticle, let lastArticle = lastArticleShown.lastArticle, let changed = lastArticleShown.changed{
+          reopenArticle = false
+          let actions: [UIAlertAction] = [
+            Alert.action("Weiterlesen") {_ in
+              sectionVC.showArticle(lastArticle)
+            },
+          ]
+          let title = "Letzten Artikel erneut öffnen?"
+          let msg = "Sie haben auf diesem Gerät am \(changed.date.short) um \(changed.date.timeFromDate) den Artikel \"\(lastArticle.title ?? "")\" geöffnet. Möchten Sie diesen erneut anzeigen?"
+          Alert.actionSheet(title: title, message: msg, actions: actions)
+        }
         Notification.send(Const.NotificationNames.articleLoaded)
       }
     }
