@@ -484,7 +484,6 @@ extension ArticleVC {
     multiColumnOnboardingAnswered = true
     multiColumnModeLandscape = true
     edgeTapToNavigate = true
-    edgeTapToNavigateVisible = true
     Notification.send(globalStylesChangedNotification)
     updateTapArea()
     mcoBottomSheet?.close()

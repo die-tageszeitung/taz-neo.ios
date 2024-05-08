@@ -67,8 +67,8 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("edgeTapToNavigate")
   public var edgeTapToNavigate: Bool
   
-  @Default("edgeTapToNavigateVisible")
-  public var edgeTapToNavigateVisible: Bool
+  @Default("edgeTapToNavigateVisible2")
+  public var edgeTapToNavigateVisible2: Bool
   
   @Default("multiColumnSnap")
   public var multiColumnSnap: Bool
@@ -271,10 +271,10 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   })
   lazy var edgeTapToNavigateVisibleCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Tap am Rand sichtbar",
-                  detailText: "Bereich für \"Tap am Rand\" sichtbar",
-                  initialValue: edgeTapToNavigateVisible,
+                  detailText: "Bereich für \"Tap am Rand\" sichtbar (Alpha Feature)",
+                  initialValue: edgeTapToNavigateVisible2,
                   onChange: {[weak self] newValue in
-    self?.edgeTapToNavigateVisible = newValue
+    self?.edgeTapToNavigateVisible2 = newValue
     Usage.track(Usage.event.tapEdge.visibility, name: newValue ? "Ein" : "Aus")
 
   })
@@ -788,17 +788,16 @@ extension SettingsVC {
     #else
     let rechtlichesCells = [termsCell, privacyCell, revokeCell]
     #endif
+    
+    let displayCells
+    = App.isAlpha
+    ? [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell, edgeTapToNavigateVisibleCell]
+    : [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell]
+    
     return [
       ("Konto".lowerIfTaz, false, accountSettingsCells),
       ("Ausgabenverwaltung".lowerIfTaz, false, issueSettingsCells),
-      ("Darstellung".lowerIfTaz, false,
-       [
-        textSizeSettingsCell,
-        darkmodeSettingsCell,
-        edgeTapToNavigateCell,
-        edgeTapToNavigateVisibleCell
-       ]
-      ),
+      ("Darstellung".lowerIfTaz, false, displayCells),
       (  App.isTAZ 
          ? "steuerung in der Zeitungsansicht"
          : "Steuerung in der Zeitungsansicht", false,

@@ -68,7 +68,7 @@ private let configValues = [
   "autoPlayNext" : "true",
   "playbackRate": "1.0",
   "edgeTapToNavigate" : "false",
-  "edgeTapToNavigateVisible" : "false",
+  "edgeTapToNavigateVisible2" : "false",
   // coachmark defaults
   "showCoachmarks" : "true",
   "cmLastPrio": "1",

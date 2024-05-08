@@ -722,6 +722,13 @@ extension TazAppEnvironment : UIStyleChangeDelegate {
   }
 }
 
+extension TazAppEnvironment {
+  static var internalPreviewAvailable:Bool {
+    return !App.isRelease
+    || (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de")
+  }
+}
+
 // Defaults Server Switch extension
 extension Defaults{
 #if TAZ  
