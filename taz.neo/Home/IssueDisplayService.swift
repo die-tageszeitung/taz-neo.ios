@@ -102,9 +102,12 @@ extension IssueDisplayService {
                              atSection: Int? = nil,
                              atArticle: Int? = nil,
                              pushDelegate: PushIssueDelegate) {
+    let atSection: Int? = nil
+    let atArticle: Int? = nil
+    
     let sectionVC = SectionVC(feederContext: feederContext,
-                              atSection: nil /*atSection*/,
-                              atArticle: nil /*atArticle*/)
+                              atSection: atSection,
+                              atArticle: atArticle)
     sectionVC.delegate = self
     
     let lastArticleShown = LastReadBusiness.getLast(for: issue)
