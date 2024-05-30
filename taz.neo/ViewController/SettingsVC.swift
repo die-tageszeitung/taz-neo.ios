@@ -240,6 +240,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var feedbackCell: XSettingsCell
   = XSettingsCell(text: "Feedback geben",
                   tapHandler: {TazAppEnvironment.sharedInstance.showFeedbackErrorReport(.feedback)} )
+ 
   ///rechtliches
   lazy var termsCell: XSettingsCell
   = XSettingsCell(text: "Allgemeine Geschäftsbedingungen (AGB)",
@@ -1151,7 +1152,7 @@ class XSettingsCell:UITableViewCell {
       else {
         pin(av.top, to: self.contentView.top, dist: padding)
       }
-      pin(label.right, to: av.left, dist: -dist, priority: .fittingSizeLevel)
+      pin(label.right, to: av.left, dist: -dist)
       label.heightAnchor.constraint(greaterThanOrEqualToConstant: av.frame.size.height).isActive = true
     }
     else {
