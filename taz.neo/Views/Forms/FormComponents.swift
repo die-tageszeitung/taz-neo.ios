@@ -266,7 +266,12 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
   var heightConstraint: NSLayoutConstraint?
 //  var bottomLabelHeightConstraint: NSLayoutConstraint?
   
+  private var handleEnter: (()->())?
   var onResignFirstResponder: (()->())?
+  
+  func onEnter(closure: @escaping ()->()){
+    handleEnter = closure
+  }
   
   // MARK: > pwInput
   required init(prefilledText: String? = nil,
@@ -320,7 +325,7 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
   }
   
   public override func textRect(forBounds bounds: CGRect) -> CGRect {
-    var r = bounds.insetBy(dx: Const.Size.DefaultPadding,
+    let r = bounds.insetBy(dx: Const.Size.DefaultPadding,
                           dy: Const.Size.DefaultPadding)
     if isError { return r}
     return CGRect(x: r.origin.x, y: r.origin.y,
@@ -459,6 +464,7 @@ extension TazTextField{
   
   @objc public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
     nextOrEndEdit()
+    handleEnter?()
     return true
   }
   

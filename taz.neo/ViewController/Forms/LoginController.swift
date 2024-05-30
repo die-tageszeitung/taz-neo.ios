@@ -6,6 +6,7 @@
 //
 import UIKit
 import NorthLib
+import GameController
 
 // MARK: - LoginCtrl
 /// Presents Login Form and Functionallity
@@ -200,6 +201,20 @@ class LoginController: FormsController {
       }
       self.ui.blocked = false
     })
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    if #available(iOS 14.0, *) {
+      if Device.isIphone { return }
+      ui.passInput.onEnter {[weak self] in
+        guard let btn = self?.ui.loginButton else { return }
+        self?.handleLogin(btn)
+      }
+      if GCKeyboard.coalesced == nil { return }//no Hadrware Keyboard
+      if ui.idInput.text?.isEmpty == true { ui.idInput.becomeFirstResponder()}
+      else { ui.passInput.becomeFirstResponder()}
+    }
   }
 }
 
