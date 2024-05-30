@@ -876,9 +876,8 @@ open class GqlFeeder: Feeder, DoesLog {
     let appVersion = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
     return ""
       + "deviceType: \(deviceType), "   //apple Default
-      + "deviceName: \"\(UIDevice().model)\", " // e.g.: iPhone iPad iPod touch (Ringos iPhone)
+      + "deviceName: \"\(Utsname.machineModel)\", "
       //e.g. iPhone12,3 (modelName) for iPhone 11 Pro (modelNameReadable)
-      + "deviceVersion: \"\(Utsname.machineModel)\", "//e.g. iPhone 11 Pro
       + "deviceFormat: \(deviceFormat), " //e.g.: mobile, tablet
       + "appVersion: \"\(appVersion)\", " //e.g.: Taz App (de.taz.taz.2) Version 0.4.9 (#2020090951)
       + "deviceOS: \"iOS \(UIDevice.current.systemVersion)\""
@@ -1379,7 +1378,7 @@ open class GqlFeeder: Feeder, DoesLog {
 
 
     fields["deviceOS"] = "iOS \(UIDevice.current.systemVersion)"
-    fields["deviceName"] = UIDevice().model
+    fields["deviceName"] = Utsname.machineModel
     fields["eMail"] = eMail
     //    fields["deviceVersion"] = deviceVersion
     fields["appVersion"] = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
@@ -1389,7 +1388,6 @@ open class GqlFeeder: Feeder, DoesLog {
     fields["ramAvailable"] = deviceData?.ramAvailable
     fields["ramUsed"] = deviceData?.ramUsed
     fields["pushToken"] = Defaults.singleton["pushToken"]
-    fields["architecture"] = Utsname.machine
     fields["screenshotName"] = screenshotName
     fields["screenshot"] = screenshot
     
