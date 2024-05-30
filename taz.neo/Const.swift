@@ -771,7 +771,11 @@ extension UILabel {
         font = Const.Fonts.contentTextFont(size: Const.Size.DefaultFontSize)
     }
     self.init()
-    self.init(_text, _numberOfLines: numberOfLines, font: font, color: color, align: align )
+    text = _text
+    numberOfLines = _numberOfLines
+    self.font = font
+    self.textColor = color.color
+    self.textAlignment = align
   }
   
   internal convenience init(_ _text : String,
