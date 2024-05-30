@@ -245,17 +245,17 @@ public class LoginView : FormView{
   
   func setup(){
     let mc1 = marketingContainerWidth(button: trialSubscriptionButton,
-                                      htmlFile: Dir.appSupportPath.appending("/taz/resources/trial.html"),
+                                      htmlFile: Dir.appSupportPath.appending("/taz/resources/trialX.html"),
                                       fallbackTitle: Localized("login_trial_subscription_title"),
                                       fallbackText: Localized("login_trial_subscription_body"),
                                       fallbackImage: Dir.appSupportPath.appending("/taz/resources/trial.jpg"))
     let mc2 = marketingContainerWidth(button: switchButton,
-                                      htmlFile: Dir.appSupportPath.appending("/taz/resources/switch.html"),
+                                      htmlFile: Dir.appSupportPath.appending("/taz/resources/switchX.html"),
                                       fallbackTitle: Localized("login_switch_print2digi_title"),
                                       fallbackText: Localized("login_switch_print2digi_body"),
                                       fallbackImage: Dir.appSupportPath.appending("/taz/resources/switch.jpg"))
     let mc3 = marketingContainerWidth(button: extendButton,
-                                      htmlFile: Dir.appSupportPath.appending("/taz/resources/extend.html"),
+                                      htmlFile: Dir.appSupportPath.appending("/taz/resources/extendX.html"),
                                       fallbackTitle: Localized("login_extend_print_with_digi_title"),
                                       fallbackText: Localized("login_extend_print_with_digi_body"),
                                       fallbackImage: Dir.appSupportPath.appending("/taz/resources/extend.jpg"))
