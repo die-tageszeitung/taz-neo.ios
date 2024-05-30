@@ -123,13 +123,13 @@ extension Padded.Label{
 // MARK: - taz UIButton
 extension Padded.Button{
   
-  enum tazButtonType { case normal, outline, label, newBlackOutline, newBlack}
+  enum tazButtonType { case normal, outline, label}
   
   convenience init( type: tazButtonType = .normal,
                     title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
-                    color: UIColor = Const.SetColor.CIColor.color,
-                    textColor: UIColor = .white,
-                    height: CGFloat = 34,
+                    color: UIColor = Const.SetColor.CTDate.dynamicColor,
+                    textColor: UIColor = Const.SetColor.HBackground.dynamicColor,
+                    height: CGFloat = 45,
                     paddingTop: CGFloat = DefaultPadding,
                     paddingBottom: CGFloat = DefaultPadding,
                     target: Any? = nil,
@@ -140,10 +140,10 @@ extension Padded.Button{
       self.setTitle(title, for: .normal)
     }
     self.backgroundColor = color
-    self.setBackgroundColor(color: color.withAlphaComponent(0.8), forState: .highlighted)
-    
+    self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
     self.setTitleColor(textColor, for: .normal)
-    self.layer.cornerRadius = 3.0
+    self.titleLabel?.font = Const.Fonts.boldContentFont
+    self.layer.cornerRadius = height/2
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
     if let target = target, let action = action {
@@ -156,26 +156,14 @@ extension Padded.Button{
       case .outline:
         self.backgroundColor = .clear
         self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
-        self.addBorder(Const.SetColor.CIColor.color, 1.0)
-        self.setTitleColor(Const.SetColor.CIColor.color, for: .normal)
-      case .label:
-        self.backgroundColor = .clear
-        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
-        self.setTitleColor(Const.SetColor.CIColor.color, for: .normal)
-      case .newBlackOutline:
-        self.backgroundColor = .clear
-        self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
         self.addBorder(Const.SetColor.CTDate.color, 1.5)
         self.setTitleColor(Const.SetColor.CTDate.color, for: .normal)
         self.titleLabel?.font = Const.Fonts.boldContentFont
         self.layer.cornerRadius = height/2
-      case .newBlack:
-        self.backgroundColor = Const.SetColor.CTDate.dynamicColor
+      case .label:
+        self.backgroundColor = .clear
         self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
-        self.addBorder(Const.SetColor.CTDate.dynamicColor, 1.5)
-        self.setTitleColor(Const.SetColor.HBackground.dynamicColor, for: .normal)
-        self.titleLabel?.font = Const.Fonts.boldContentFont
-        self.layer.cornerRadius = height/2
+        self.setTitleColor(Const.SetColor.CTDate.color, for: .normal)
       case .normal: fallthrough
       default:
         self.backgroundColor = color
@@ -257,11 +245,26 @@ class RadioButton : UIButton {
 // MARK: - TazTextField
 public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolbarForText{
   public var index: Int?
-  static let recomendedHeight:CGFloat = 56.0
-  private let border = BorderView()
+  static let recomendedHeight:CGFloat = 61.0
+  var initialHeight: CGFloat
   let topLabel = UILabel()
+  var isError = false {
+    didSet {
+      if oldValue == isError { return }
+      self.bottomLabel.alpha = isError ? 1.0 :1.0
+      self.heightConstraint?.constant
+      = self.initialHeight + (isError ? 20.0 : 0)
+      backgroundLayer.borderColor
+      = isError
+      ? Const.SetColor.taz2(.notifications_error).color.cgColor
+      : CGColor.init(gray: 0, alpha: 0)
+      backgroundLayer.borderWidth = isError ? 2.0 : 0.0
+    }
+  }
+  let backgroundLayer = CALayer()
   let bottomLabel = UILabel()
-  private var borderHeightConstraint: NSLayoutConstraint?
+  var heightConstraint: NSLayoutConstraint?
+//  var bottomLabelHeightConstraint: NSLayoutConstraint?
   
   var onResignFirstResponder: (()->())?
   
@@ -280,15 +283,16 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
                 autocapitalizationType: UITextAutocapitalizationType = .words,
                 target: Any? = nil,
                 action: Selector? = nil) {
+    self.initialHeight = height
     super.init(frame:.zero)
-    pinHeight(height)
+    heightConstraint = pinHeight(height)
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
     
     if let placeholder = placeholder {
       self.placeholder = placeholder
       self.attributedPlaceholder = NSAttributedString(string: placeholder,
-      attributes: [NSAttributedString.Key.foregroundColor: Const.SetColor.ForegroundLight.color])
+                                                      attributes: [NSAttributedString.Key.foregroundColor: Const.SetColor.ios_opaque(.grey).color])
     }
     //tf.borderStyle = .line //Border Bottom Alternative
     
@@ -315,32 +319,68 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
     setup()
   }
   
+  public override func textRect(forBounds bounds: CGRect) -> CGRect {
+    var r = bounds.insetBy(dx: Const.Size.DefaultPadding,
+                          dy: Const.Size.DefaultPadding)
+    if isError { return r}
+    return CGRect(x: r.origin.x, y: r.origin.y,
+                  width: r.size.width, height: r.size.height + 20)
+  }
+
+  public override func editingRect(forBounds bounds: CGRect) -> CGRect {
+      return textRect(forBounds: bounds)
+  }
+  
+  public override func rightViewRect(forBounds bounds: CGRect) -> CGRect {
+    var rect = super.rightViewRect(forBounds: bounds)
+    rect.origin.y -= isError ? 10 : 0;
+    rect.origin.x -= 10;
+    return rect
+  }
   
   // MARK: > init
   public override init(frame: CGRect){
+    self.initialHeight = TazTextField.recomendedHeight
     super.init(frame: frame)
     setup()
   }
   
   required public init?(coder: NSCoder) {
+    self.initialHeight = TazTextField.recomendedHeight
     super.init(coder: coder)
     setup()
   }
   
+  public override func layoutSubviews() {
+    backgroundLayer.frame = CGRect(x: 0,
+                                   y: 0,
+                                   width: self.frame.size.width,
+                                   height: self.frame.size.height - (isError ? 20 : 0))
+    super.layoutSubviews()
+  }
+  
   func setup(){
-    self.addSubview(border)
+    backgroundLayer.backgroundColor = Const.SetColor.HBackground.color.cgColor
+    self.layer.insertSublayer(backgroundLayer, at: 0)
     self.delegate = self
-    self.border.backgroundColor = Const.SetColor.ForegroundHeavy.color
-    self.borderHeightConstraint = border.pinHeight(1)
-    pin(border.left, to: self.left)
-    pin(border.right, to: self.right)
-    pin(border.bottom, to: self.bottom, dist: -15)
+    bottomLabel.alpha = 0.0
+    bottomLabel.numberOfLines = 1
+    self.addSubview(bottomLabel)
+    pin(bottomLabel.left, to: self.left)
+//    bottomLabelHeightConstraint = 
+    bottomLabel.pinHeight(20.0)
+    pin(bottomLabel.right, to: self.right)
+    pin(bottomLabel.bottom, to: self.bottom, dist: 0)
+    bottomLabel.font = Const.Fonts.contentFont(size: MiniPageNumberFontSize)
+    bottomLabel.textColor = 
+    Const.SetColor.taz2(.notifications_errorText).color
+    
     self.addTarget(self, action: #selector(textFieldEditingDidChange),
                    for: UIControl.Event.editingChanged)
     self.addTarget(self, action: #selector(textFieldEditingDidBegin),
                    for: UIControl.Event.editingDidBegin)
-    self.addTarget(self, action: #selector(textFieldEditingDidEnd),
-                   for: UIControl.Event.editingDidEnd)
+//    self.addTarget(self, action: #selector(textFieldEditingDidEnd),
+//                   for: UIControl.Event.editingDidEnd)
   }
   
   override open var text: String?{
@@ -367,12 +407,11 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
         topLabel.alpha = 0.0
         topLabel.numberOfLines = 1
         self.addSubview(topLabel)
-        pin(topLabel.left, to: self.left)
-        pin(topLabel.right, to: self.right)
-        pin(topLabel.top, to: self.top, dist: -2)
+        pin(topLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
+        pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
+        pin(topLabel.top, to: self.top, dist: 8)
         topLabel.font = Const.Fonts.contentFont(size: MiniPageNumberFontSize)
-        self.topLabel.textColor = Const.SetColor.ForegroundLight.color
-        
+        self.topLabel.textColor = Const.SetColor.ios_opaque(.grey).color
       }
     }
   }
@@ -381,26 +420,27 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
   open var bottomMessage: String?{
     didSet{
       bottomLabel.text = bottomMessage
-      if bottomLabel.superview == nil && bottomMessage?.isEmpty == false{
-        bottomLabel.alpha = 0.0
-        bottomLabel.numberOfLines = 1
-        self.addSubview(bottomLabel)
-        pin(bottomLabel.left, to: self.left)
-        pin(bottomLabel.right, to: self.right)
-        pin(bottomLabel.bottom, to: self.bottom)
-        bottomLabel.font = Const.Fonts.contentFont(size: MiniPageNumberFontSize)
-        bottomLabel.textColor = Const.SetColor.CIColor.color
-      }
+      isError = self.bottomMessage?.isEmpty == false
+      self.bottomLabel.alpha = isError ? 1.0 :1.0
+      self.heightConstraint?.constant
+      = self.initialHeight + (isError ? 20.0 : 0)
       
-      UIView.animate(seconds: 0.3) { [weak self] in
-        self?.bottomLabel.alpha = self?.bottomMessage?.isEmpty == false ? 1.0 : 0.0
-      }
+      backgroundLayer.borderColor = isError ? Const.SetColor.taz2(.notifications_error).color.cgColor : CGColor.init(gray: 0, alpha: 0)
+      backgroundLayer.borderWidth = isError ? 2.0 : 0.0
+      
     }
   }
   
   // MARK: > inputToolbar
   lazy public var inputToolbar: UIToolbar = createToolbar()
 }
+
+
+
+
+
+
+
 
 // MARK: - TazTextField : UITextFieldDelegate
 extension TazTextField{
@@ -424,23 +464,6 @@ extension TazTextField{
   
   @objc public func textFieldEditingDidBegin(_ textField: UITextField) {
     textField.inputAccessoryView = inputToolbar
-    
-    UIView.animate(seconds: 0.3) { [weak self] in
-      self?.border.backgroundColor = Const.SetColor.CIColor.color
-      self?.topLabel.textColor = Const.SetColor.CIColor.color
-      self?.borderHeightConstraint?.constant = 2.0
-    }
-  }
-  
-  @objc public func textFieldEditingDidEnd(_ textField: UITextField) {
-    //textField.text = textField.text?.trim //work not good "123 456" => "123"
-    //push (e.g.) pw forgott child let end too late
-    //may use trimed in future in case if required
-    UIView.animate(seconds: 0.3) { [weak self] in
-      self?.border.backgroundColor = Const.SetColor.ForegroundHeavy.color
-      self?.topLabel.textColor = Const.SetColor.ForegroundHeavy.color
-      self?.borderHeightConstraint?.constant = 1.0
-    }
   }
 }
 
@@ -541,7 +564,7 @@ class CheckboxWithText:UIView{
   public var error : Bool = false {
     didSet {
       checkbox.layer.borderColor
-        = error ? Const.SetColor.CIColor.color.cgColor : Const.SetColor.ForegroundLight.color.cgColor
+        = error ? Const.SetColor.CIColor.color.cgColor : Const.SetColor.ios_opaque(.grey).color.cgColor
     }
   }
   

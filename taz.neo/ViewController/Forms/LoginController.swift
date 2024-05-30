@@ -20,6 +20,7 @@ class LoginController: FormsController {
     super.viewDidLoad()
     ui.idInput.text = DefaultAuthenticator.getUserData().id
     ui.loginButton.touch(self, action: #selector(handleLogin))
+    ui.cancelButton.touch(self, action: #selector(handleBack))
     ui.registerButton.touch(self, action: #selector(handleTrial))
     ui.trialSubscriptionButton.touch(self, action: #selector(handleTrial))
     ui.extendButton.touch(self, action: #selector(handleExtend))

@@ -43,25 +43,18 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
   var isOpen: Bool { get{ self.topConstraint?.constant == 0 }}
   
   // MARK: *** UI Elements ***
-  
-  lazy var searchButton: UIButton = {
-    let btn = UIButton()
-    btn.pinHeight(Const.Size.ButtonHeight)
-    btn.titleLabel?.font = Const.Fonts.boldContentFont
-    btn.layer.cornerRadius = Const.Size.ButtonHeight * 0.5
-    #if LMD
-    btn.setTitle("Suche starten", for: .normal)
-    #else
-    btn.setTitle("Suchen", for: .normal)
-    #endif
-    return btn
-  }()
+  #if LMD
+    let searchButton = Padded.Button(title: "Suche starten")
+  #else
+    let searchButton = Padded.Button(title: "Suchen")
+  #endif
   
   lazy var helpButton: UILabel = {
     let lbl = UILabel()
     lbl.text = "Hilfe"
     lbl.contentFont(size: Const.Size.SmallerFontSize)
-    lbl.textColor = Const.SetColor.ios(.link).color
+    lbl.textColor = Const.SetColor.ios_opaque(.grey).color
+    lbl.addBorderView(Const.SetColor.ios_opaque(.grey).color, edge: UIRectEdge.bottom)
     return lbl
   }()
   
@@ -115,8 +108,6 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
   }
   
   func applyStyles() {
-    searchButton.backgroundColor = Const.SetColor.PrimaryButton.color
-    searchButton.setTitleColor(Const.SetColor.HBackground.color, for: .normal)
     self.shadow()
     self.layer.shadowOpacity = Const.Shadow.Light.Opacity
     self.layer.shadowColor = Defaults.darkMode ? UIColor.white.cgColor : Const.Shadow.Color

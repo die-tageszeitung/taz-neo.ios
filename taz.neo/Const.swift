@@ -119,8 +119,10 @@ public struct Const {
         static let HomeText = appIconGrey
         static let MenuBackground = UIColor.white//Const.SetColor.HBackground.color
         static let MenuText = UIColor.black//Const.SetColor.HText.color
-
       #endif
+      static let Taz_BackgroundForms = UIColor.rgb(0xEBEBEB)
+      static let Taz_Notifications_error = UIColor.rgb(0xFF1919)
+      static let Taz_Notifications_errorText = UIColor.rgb(0xC01111)
     }
     struct Dark {
       static let CTBackground = darkSecondaryBG
@@ -142,6 +144,9 @@ public struct Const {
         static let MenuBackground = UIColor.black
         static let MenuText = UIColor.rgb(0xebebf5)//darkSecondaryText
       #endif
+      static let Taz_BackgroundForms = UIColor.rgb(0x242424)
+      static let Taz_Notifications_error = UIColor.red//0xFF1919
+      static let Taz_Notifications_errorText = UIColor.red//0xC01111
     }
     
     struct iOSLight {
@@ -218,6 +223,7 @@ public struct Const {
     enum iOS_Opaque {
       case closeXcircleBackground
       case closeX
+      case grey
     }
     case taz(taz_Custom)
     enum taz_Custom {
@@ -235,6 +241,12 @@ public struct Const {
       case buttonActiveBackground
       case buttonForeground
       case buttonActiveForeground
+    }
+    case taz2(taz2_Custom)//new taz colors
+    enum taz2_Custom {
+      case backgroundForms
+      case notifications_error
+      case notifications_errorText
     }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
@@ -321,6 +333,8 @@ public struct Const {
           return (UIColor.rgb(0x5D5E63), UIColor.rgb(0xB8B8C1), nil, nil)
         case .ios_opaque(.closeXcircleBackground):
           return (UIColor.rgb(0xE9E9EB), UIColor.rgb(0x39393D), nil, nil)
+        case .ios_opaque(.grey):
+          return (UIColor.gray, UIColor(white: 0.85, alpha: 1.0), nil, nil)
         case .ios(.label):
           return (Const.Colors.iOSLight.label, Const.Colors.iOSDark.label, nil, nil)
         case .ios(.secondaryLabel):
@@ -401,6 +415,12 @@ public struct Const {
           return (Const.Colors.Light.MenuBackground, Const.Colors.Dark.MenuBackground,nil,nil)
         case .MenuText:
           return (Const.Colors.Light.MenuText, Const.Colors.Dark.MenuText,nil,nil)
+        case .taz2(.backgroundForms):
+          return (Const.Colors.Light.Taz_BackgroundForms, Const.Colors.Dark.Taz_BackgroundForms, nil, nil)
+        case .taz2(.notifications_error):
+          return (Const.Colors.Light.Taz_Notifications_error, Const.Colors.Light.Taz_Notifications_error, nil, nil)
+        case .taz2(.notifications_errorText):
+          return (Const.Colors.Dark.Taz_Notifications_errorText, Const.Colors.Dark.Taz_Notifications_errorText, nil, nil)
       }
     }
   } // SetColors
@@ -496,6 +516,7 @@ public struct Const {
     static let LargeTitleFontSize = CGFloat(34)
     static let TitleFontSize = CGFloat(25)
     static let SubtitleFontSize = CGFloat(21)
+    static let DT_Head_extrasmall = CGFloat(20.5)
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
     static let NewTextFieldHeight = CGFloat(40.0)
@@ -529,6 +550,10 @@ public struct Const {
     static let Default = UIEdgeInsets(top: 0,
                                     left: Const.Size.DefaultPadding,
                                     bottom: 0,
+                                    right: -Const.Size.DefaultPadding)
+    static let DefaultAll = UIEdgeInsets(top: Const.Size.DefaultPadding,
+                                    left: Const.Size.DefaultPadding,
+                                    bottom: -Const.Size.DefaultPadding,
                                     right: -Const.Size.DefaultPadding)
     static let NegDefault = UIEdgeInsets(top: 0,
                                     left: -Const.Size.DefaultPadding,
@@ -732,21 +757,32 @@ extension UILabel {
                    type: tazFontType = .content,
                    color: Const.SetColor = .ios(.label),
                    align: NSTextAlignment = .natural) {
+    var font: UIFont
+    switch type {
+      case .bold:
+        font = Const.Fonts.titleFont(size: Const.Size.DefaultFontSize)
+      case .content:
+        font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+      case .small:
+        font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
+      case .title:
+        font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+      case .contentText:
+        font = Const.Fonts.contentTextFont(size: Const.Size.DefaultFontSize)
+    }
+    self.init()
+    self.init(_text, _numberOfLines: numberOfLines, font: font, color: color, align: align )
+  }
+  
+  internal convenience init(_ _text : String,
+                   _numberOfLines : Int = 0,
+                   font: UIFont,
+                   color: Const.SetColor = .ios(.label),
+                   align: NSTextAlignment = .natural) {
     self.init()
     text = _text
     numberOfLines = _numberOfLines
-    switch type {
-      case .bold:
-        self.font = Const.Fonts.titleFont(size: Const.Size.DefaultFontSize)
-      case .content:
-        self.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
-      case .small:
-        self.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
-      case .title:
-        self.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
-      case .contentText:
-        self.font = Const.Fonts.contentTextFont(size: Const.Size.DefaultFontSize)
-    }
+    self.font = font
     self.textColor = color.color
     self.textAlignment = align
     

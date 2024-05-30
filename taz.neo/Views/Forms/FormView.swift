@@ -55,7 +55,7 @@ public class FormView: UIView {
   // MARK: addAndPin
   func addAndPin(_ views: [UIView]){
     self.subviews.forEach({ $0.removeFromSuperview() })
-    self.backgroundColor = Const.SetColor.CTBackground.color
+    self.backgroundColor = Const.SetColor.taz2(.backgroundForms).color
     if views.isEmpty { return }
     self.views = views
     
@@ -65,7 +65,7 @@ public class FormView: UIView {
     var tfTags : Int = 100
     
     for v in views {
-      
+      var sideMargin = v is MarketingContainerWrapperView ? 0 : margin
       if v is KeyboardToolbarForText {
         v.tag = tfTags
         tfTags += 1
@@ -74,18 +74,23 @@ public class FormView: UIView {
       container.addSubview(v)
       //pin
       if previous == nil {
-        pin(v.left, to: container.left, dist: margin)
-        pin(v.right, to: container.right, dist: -margin)
+        pin(v.left, to: container.left, dist: sideMargin)
+        pin(v.right, to: container.right, dist: -sideMargin)
         pin(v.top, to: container.top, dist: margin + 30)//Top Margin
       }
       else {
-        pin(v.left, to: container.left, dist: margin)
-        pin(v.right, to: container.right, dist: -margin)
+        pin(v.left, to: container.left, dist: sideMargin)
+        pin(v.right, to: container.right, dist: -sideMargin)
         pin(v.top, to: previous!.bottom, dist: padding(previous!, v))
       }
       previous = v
     }
-    pin(previous!.bottom, to: container.bottom, dist: -margin - 30.0)
+    if previous is MarketingContainerWrapperView {
+      pin(previous!.bottom, to: container.bottom, dist: 0)
+    }
+    else {
+      pin(previous!.bottom, to: container.bottom, dist: -margin - 30.0)
+    }
     
     scrollView.addSubview(container)
     NorthLib.pin(container, to: scrollView)

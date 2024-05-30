@@ -73,7 +73,6 @@ public class SubscriptionFormView : FormView{
     = ViewWithTextView(text: nil,
                        font: Const.Fonts.contentFont(size: Const.Size.DefaultFontSize))
     ti.placeholder = "Ihre Nachricht"
-    ti.border.isHidden = false
     return ti
   }()
 

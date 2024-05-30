@@ -64,6 +64,7 @@ public class FeedbackView : UIView {
   }
   
   private func setup() {
+    self.backgroundColor = Const.SetColor.taz2(.backgroundForms).color
     setupText()
     
     self.onTapping { [weak self] (_) in self?.endEditing(false)}

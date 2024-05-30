@@ -28,13 +28,6 @@ public class ViewWithTextView : UIStackView, KeyboardToolbarForText{
   let bottomLabel = UILabel()
   let textView = PlaceholderUITextView()
   
-  lazy var border : UIView = {
-    let v = UIView()
-    v.pinHeight(2.0)
-    v.addBorderView(Const.SetColor.ForegroundHeavy.color, 1.0, edge: .bottom, insets: .zero)
-    return v
-  }()
-  
   weak open var delegate: UITextViewDelegate? {
     didSet {
       textView.tvDelegate = delegate
@@ -83,7 +76,7 @@ public class ViewWithTextView : UIStackView, KeyboardToolbarForText{
     textView.textColor = Const.SetColor.CTDate.color
     textView.placeholderLabel.font = font
     textView.placeholderLabel.textColor = Const.SetColor.ForegroundLight.color
-    
+
     topLabel.numberOfLines = 1
     topLabel.alpha = 0.0
     topLabel.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
@@ -100,14 +93,13 @@ public class ViewWithTextView : UIStackView, KeyboardToolbarForText{
     
     self.addArrangedSubview(topLabel)
     self.addArrangedSubview(textView)
-    self.addArrangedSubview(border)
     self.addArrangedSubview(bottomLabel)
-    
-    textView.textContainerInset = UIEdgeInsets.zero
+    textView.textContainerInset = Const.Insets.DefaultAll
     textView.textContainer.lineFragmentPadding = 0
     textView.isScrollEnabled = false
     textView.text = text
     textView.backgroundColor = .clear
+    self.backgroundColor = Const.SetColor.HBackground.color
   }
   
   required init(coder: NSCoder) {
@@ -120,7 +112,7 @@ class PlaceholderUITextView: UITextView, KeyboardToolbarForText {
   
   var container: UIView? { return self.superview?.superview}
   
-  public var placeholderInsets:UIEdgeInsets = .zero
+  public var placeholderInsets:UIEdgeInsets = Const.Insets.DefaultAll
   public var placeholder:String?{  didSet{ setup()}  }
   weak open var tvDelegate: UITextViewDelegate?
   
@@ -146,8 +138,9 @@ class PlaceholderUITextView: UITextView, KeyboardToolbarForText {
     if self.frame.size.width == 0 { return }
     heightConstraint?.isActive = false
     labelWidthConstraint?.isActive = false
-    let nh = placeholderLabel.sizeThatFits(CGSize(width: self.frame.size.width, height: 2000)).height
-    self.heightConstraint = self.pinHeight(nh, priority: .defaultHigh)
+    ///min height is 55
+    let nh = max(55,placeholderLabel.sizeThatFits(CGSize(width: self.frame.size.width, height: 2000)).height)
+    self.heightConstraint = self.pinHeight(nh + 15, priority: .defaultHigh)
     self.labelWidthConstraint = placeholderLabel.pinWidth(self.frame.size.width)
   }
 }
@@ -168,6 +161,7 @@ extension PlaceholderUITextView: UITextViewDelegate {
   public func textViewDidBeginEditing(_ textView: UITextView)
   {
     placeholderLabel.isHidden = true
+//    topLabel.text = placeholder
     tvDelegate?.textViewDidBeginEditing?(textView)
     textView.inputAccessoryView = inputToolbar
   }

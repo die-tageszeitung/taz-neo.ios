@@ -148,7 +148,7 @@ class FormsResultController: UIViewController {
       updateViewSize(windowSize)
       ui.container.doLayout()
       let h = min(ui.container.frame.size.height, windowSize.height)
-      return  CGSize(width: 540, height: h)
+      return  CGSize(width: 640, height: h)
     }
     set{
       log("not implemented")
@@ -172,8 +172,8 @@ class FormsResultController: UIViewController {
     let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
     
     ///Fix Form Sheet Size
-    if newSize.width > 540 && Device.isIpad {
-      let formSheetSize = CGSize(width: 540,
+    if newSize.width > 640 && Device.isIpad {
+      let formSheetSize = CGSize(width: 640,
                                  height: windowSize.height)
       wConstraint = ui.container.pinWidth(formSheetSize.width, priority: .required)
     } else {
