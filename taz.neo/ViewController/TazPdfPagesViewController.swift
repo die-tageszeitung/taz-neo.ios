@@ -609,6 +609,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     #endif
   }
   
+  var lastWindowSize: CGSize?
+  
+  open override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    lastWindowSize = UIWindow.size
+  }
+  
   // MARK: - viewWillAppear
   open override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -622,6 +629,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     updateSlidersWidth(self.view.frame.size)
     slider?.button.isHidden = false
     self.updateMenuItems()
+    //PDF>Article>Rotate>PDF: fix layout pos
+    if lastWindowSize == nil || lastWindowSize == UIWindow.size { return }
+    guard let ziv = self.currentView as? ZoomedImageView else { return }
+    onMainAfter{[weak self] in
+      self?.applyPageLayout(ziv)
+    }
   }
   
   open override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -747,7 +760,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       slider = nil
     }
   }
-  
+    
   // MARK: - viewDidAppear
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
