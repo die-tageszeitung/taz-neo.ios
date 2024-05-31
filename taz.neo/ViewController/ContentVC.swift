@@ -219,7 +219,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var imageOverlay: Overlay?
   
   var settingsBottomSheet: BottomSheet2?
-  private var textSettingsVC = TextSettingsVC()
+  private var textSettingsVC:TextSettingsVC? = TextSettingsVC()
   
   var mcoBottomSheet:BottomSheet2?
   var mcoVc = MultiColumnOnboarding()
@@ -247,6 +247,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     //Circular reference with: onImagePress, onSectionPress
     settingsBottomSheet = nil
     slider = nil
+    textSettingsVC = nil
+    contentTable = nil
     super.releaseOnDisappear()
   }
 
@@ -662,12 +664,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   var bottomSheetDefaultCoverage: CGFloat {
-    448 + UIWindow.safeInsets.bottom + self.textSettingsVC.multiColumnButtonsAdditionalHeight
+    448 + UIWindow.safeInsets.bottom + (self.textSettingsVC?.multiColumnButtonsAdditionalHeight ?? 0)
   }
   
-  var bottomSheetDefaultSlideDown: CGFloat { self.textSettingsVC.slideDownHeight }
+  var bottomSheetDefaultSlideDown: CGFloat { self.textSettingsVC?.slideDownHeight ?? 0 }
   
   func setupSettingsBottomSheet() {
+    guard let textSettingsVC = textSettingsVC else { return }
     settingsBottomSheet = BottomSheet2(slider: textSettingsVC, into: self)
     settingsBottomSheet?.xButton.tazX()
     settingsBottomSheet?.onX {[weak self] in
@@ -687,7 +690,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         self.settingsBottomSheet?.slideDown(self.bottomSheetDefaultSlideDown)
       }
       
-      self.textSettingsVC.updateButtonValuesOnOpen()
+      self.textSettingsVC?.updateButtonValuesOnOpen()
     }
   }
   

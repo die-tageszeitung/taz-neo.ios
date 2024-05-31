@@ -88,6 +88,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   func sectionIfAudio(atIndex: Int?) -> Section?{
+    if self.navigationController == nil { return nil }//Prevent Crash on not released old sectVC @see commit
     if let idx = atIndex,
        let section = contents.valueAt(idx) as? Section,
        section.type == .podcast,
