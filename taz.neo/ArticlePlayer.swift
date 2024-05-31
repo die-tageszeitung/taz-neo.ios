@@ -10,7 +10,7 @@ import NorthLib
 import MediaPlayer
 
 
-enum PlayerEnqueueType { case replaceCurrent, enqueueNext, enqueueLast}
+enum PlayerEnqueueType { case replaceCurrent, enqueueNext, enqueueLast/*, enqueueOneNext, enqueueOneNextAndPlay*/}
 
 /// The ArticlePlayer plays one or more Articles as audio streams
 class ArticlePlayer: DoesLog {
@@ -215,6 +215,65 @@ class ArticlePlayer: DoesLog {
     self.userInterface.progressCircle.waiting = true
   }
   
+  func reloadOpened(){
+    /* Edge Case Szenario: What happen if there are some Demo Articles in nextContent, now we have a valid auth?
+     - former: the app just crashed, due demo Issue was deleted and loaded new
+     **What can we do**
+     - reject play if demo Audio: no good idea, because this can be a selling point "hey look at this great feature you want to have it!"
+     - stop and close player: what if there are full audio inside e.g. because of subsciption department or tecnical problems  ...verry bad idea
+     - exchange all content, download missing ...a lot of work to handle offline states and more
+     - solve deleted status issue to not to crash and extend player to download stuff ...would be the best but also a lot of work
+     - solution for the moment: remove all demo stuff, in next, delete all last, if next is empty toast and close player
+    */
+    lastContent = []
+    ///prevent crash on end
+    if currentContent?.primaryIssue?.isReduced == true {
+      print("ap:: pause")
+      pause()
+    }
+    var newNext:[Content] = []
+    for content in nextContent {
+      guard content.primaryIssue?.isReduced == false else { continue }
+      newNext.append(content)
+    }
+    
+    if newNext.isEmpty {
+      ///Close Player
+      self.userInterface.removeFromSuperview()
+      self.close()
+      self.userInterface.isErrorState = false
+//      Toast.show("Die Demo-Artikel können leider nicht wiedergegeben werden. Bitte starten Sie die Audiowiedergabe erneut. Es steht jetzt die vollständige Audiowiedergabe zur Verfügung.")
+      return
+    }
+    
+    if newNext.count != nextContent.count {
+//      Toast.show("Die Demo-Artikel wurden aus der aktuellen Wiedergabe entfernt, bitte fügen Sie diese manuell hinzu oder starten Sie Ihre Wiedergabe erneut.")
+    }
+    print("ap:: next has: \(newNext.count) items")
+    nextContent = newNext
+    /**
+     Old Ideas: exchange articles ...more complicated...a lot of things to do
+    var artsToPlay:[String:String] = [:]
+    var issuesToDownload:[String:Issue] = [:]
+    lastContent = []
+    
+    for art in nextContent {
+      guard let date = art.primaryIssue?.date.short else { continue }
+      artsToPlay[date]
+      = art.baseURL.lastPathComponent
+        .replacingOccurrences(of: ".public", with: "")
+      issuesToDownload[date] = art.primaryIssue
+    }
+    let dates =
+     Was kann dabei sein?
+     Volle Issues mit Audio
+     Demo Issue Audio
+     Mixed
+     habe nextContent!!
+     Downloade alle Issues in nextContent, die demo sind, wenn die da sind reihe alle Artikel in der Reihenfolge wieder ein
+     */
+  }
+  
   private init() {
     aplayer = AudioPlayer()
     Usage.xtrack.audio.autoPlayNext(enable: autoPlayNext, initial: true)
@@ -232,6 +291,11 @@ class ArticlePlayer: DoesLog {
     ///Handle reachability changes: show offline status
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
       self?.feederReachable()
+    }
+    
+    Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
+      guard TazAppEnvironment.hasValidAuth else { return }
+      self?.reloadOpened()
     }
     
     aplayer.onStatusChange {[weak self] status in
@@ -661,6 +725,12 @@ class ArticlePlayer: DoesLog {
         nextContent = arts
         isPlaying ? nil : aplayer.close()
         playNext()
+//      case .enqueueOneNext:
+//        guard let a = startFromArticle else { return }
+//        nextContent.append(a)
+//      case .enqueueOneNextAndPlay:
+//        guard let a = startFromArticle else { return }
+//        nextContent.append(a)
     }
   }
   
