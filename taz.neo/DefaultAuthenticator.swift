@@ -260,6 +260,13 @@ public class DefaultAuthenticator: Authenticator {
     ?? UIWindow.rootVC
     else { return }
     
+    if rootVC.view.window == nil {
+      onMainAfter(2.0) {[weak self] in
+        self?.authenticate(with: targetVC)
+      }
+      return
+    }
+    
     if self.feeder.isAuthenticated && TazAppEnvironment.sharedInstance.feederContext?.needsReInit() ?? false {
       TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin)
       return
