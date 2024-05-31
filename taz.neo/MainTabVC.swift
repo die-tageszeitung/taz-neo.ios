@@ -218,6 +218,11 @@ extension MainTabVC {
     onMainAfter(1.0) {
       reloadTarget.reloadOpened()
     }
+    onMainAfter(15.0) {
+      //dirty hack sometimes reload opened did not work
+      //had it unreproduceable in debug, and sendt the following notification enter foreground hock/Breakpoint
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+    }
   }
 }
 
