@@ -84,14 +84,14 @@ open class GraphQlSession: HttpSession {
     header["Accept-Encoding"] = "gzip"
   }
   
-  private func requestResult<T>(data: Data?, graphql: String, type: T.Type)
+  private func requestResult<T>(data: Data?, graphql: String, type: T.Type, origin: String? = nil)
     -> Result<T,Error> where T: Decodable {
     var result: Result<T,Error>
     if let d = data {
       self.debug("Received: \"\(String(decoding: d, as: UTF8.self)[0..<2000])\"")
       if let gerr = GraphQlError.from(data: d) {
         self.error("Errorneous data sent to server: \(graphql)")
-        self.fatal("GraphQL-Server encountered error:\n\(gerr)")
+        self.fatal("GraphQL-Server encountered error:\n\(gerr)", origin:origin)
         result = .failure(gerr)
       }
       else {
@@ -129,11 +129,11 @@ open class GraphQlSession: HttpSession {
   }
   
   public func request<T>(requestType: String, graphql: String, type: T.Type,
-                         fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>)->())
+                         fromData: Data? = nil, returnOnMain: Bool = true, origin: String? = nil, closure: @escaping(Result<T,Error>)->())
     where T: Decodable {
     guard let url = self.url else { return }
     if let data = fromData {
-      closure(requestResult(data: data, graphql: graphql, type: type))
+      closure(requestResult(data: data, graphql: graphql, type: type, origin: origin))
     }
     else {
       let quoted = "\(requestType) {\(graphql)}".quote()
@@ -142,7 +142,7 @@ open class GraphQlSession: HttpSession {
       post(url, data: str.data(using: .utf8)!, returnOnMain: returnOnMain) { [weak self] res in
         guard let self = self else { return }
         if case let .success(data) = res {
-          closure(self.requestResult(data: data, graphql: graphql, type: type))
+          closure(self.requestResult(data: data, graphql: graphql, type: type, origin: origin))
         }
         else if case let .failure(err) = res {
           closure(.failure(err))
@@ -152,9 +152,9 @@ open class GraphQlSession: HttpSession {
   }
   
   public func query<T>(graphql: String, type: T.Type,
-                       fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>)->())
-    where T: Decodable { 
-      request(requestType: "query", graphql: graphql, type: type, fromData: fromData, returnOnMain: returnOnMain,
+                       fromData: Data? = nil, returnOnMain: Bool = true, origin: String? = nil, closure: @escaping(Result<T,Error>)->())
+    where T: Decodable {
+      request(requestType: "query", graphql: graphql, type: type, fromData: fromData, returnOnMain: returnOnMain, origin: origin,
               closure: closure)
   }
   

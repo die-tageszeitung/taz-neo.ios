@@ -410,6 +410,9 @@ class GqlPage: Page, GQLObject {
   var frameList: [GqlFrame]?
   var frames: [Frame]? { return frameList }
   
+  ///Add the following line to fields to provoke a feeder Error from Server
+  ///  gqlFacsimile: facsimileTestForErrorAndEndlessReturn { \(GqlImage.fields) }
+  
   static var fields = """
   pagePdf { \(GqlFile.fields) }
   gqlAudio: podcast { \(GqlAudio.fields) }
@@ -1211,6 +1214,7 @@ open class GqlFeeder: Feeder, DoesLog {
                      isPages: Bool = false,
                      withAudio: Bool = false,
                      returnOnMain: Bool = true,
+                     origin: String? = nil,
     closure: @escaping(Result<[Issue],Error>)->()) {
     struct FeedRequest: Decodable {
       var authInfo: GqlAuthInfo
@@ -1245,7 +1249,7 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
                                       count: count, isOverview: isOverview)
     gqlSession.query(graphql: request,
-      type: [String:FeedRequest].self, returnOnMain: returnOnMain) {[weak self]  (res) in
+                     type: [String:FeedRequest].self, returnOnMain: returnOnMain, origin: origin) {[weak self]  (res) in
       guard let self = self else { return }
       var ret: Result<[Issue],Error>? = nil
       switch res {
@@ -1480,6 +1484,7 @@ extension FeederError {
     TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
     = self
     var text = ""
+    var actions: [UIAlertAction]? = nil
     switch self {
       case .expiredAccount:
         text = "Ihr Abonnement ist am \(self.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
@@ -1500,9 +1505,13 @@ extension FeederError {
         let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder
         text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
         Log.debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == gqlFeeder?.authToken) 4ses: \(gqlFeeder?.gqlSession?.authToken == gqlFeeder?.authToken)")
-        
         TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true,
                                                         resetAppState: false)
+        actions = [
+          Alert.action("Anmelden") { _ in
+            TazAppEnvironment.sharedInstance.feederContext?.authenticator.authenticate(with: nil)
+          },
+        ]
       case .unexpectedResponse:
         Alert.message(title: "Fehler",
                       message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
@@ -1510,7 +1519,7 @@ extension FeederError {
         }
       case .minVersionRequired: break
     }
-    Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: {
+    Alert.message(title: "Fehler", message: text, additionalActions: actions,  closure: {
       ///Do not authenticate here because its not needed here e.g.
       /// expired account due probeabo, user may not want to auth again
       /// additionally it makes more problems currently e.g. Overlay may appear and not disappear
