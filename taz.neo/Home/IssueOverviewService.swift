@@ -56,28 +56,6 @@ class IssueOverviewService: NSObject, DoesLog {
   var feed: StoredFeed
   var timer: Timer?
   var skipNextTimer = false
-  let maxSimultanApiRequests = Device.speedParameter.parallelRequests //2...4
-  var apiRequestCount = 0
-  var stopOvwTimer:Timer?
-  var gqlErrorCount:Int = 0 {
-    didSet {
-      if oldValue == gqlErrorCount { return }
-      if gqlErrorCount < 1 { return }
-      stopOvwRequests(for: Double(gqlErrorCount*3))//3...12s
-    }
-  }
-
-  func stopOvwRequests(for duration: Double){
-    if let stopOvwTimer = stopOvwTimer,
-       stopOvwTimer.fireDate.timeIntervalSinceNow > duration { return }
-    stopOvwTimer?.invalidate()
-    stopOvwTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false, block: {[weak self] _ in
-      self?.stopOvwTimer?.invalidate()
-      self?.stopOvwTimer = nil
-     })
-  }
-  
-  var gqlOverviewError:Bool = false { didSet {  gqlErrorCount += 1 }}
   
   public private(set) var publicationDates: [PublicationDate]
   
@@ -141,12 +119,9 @@ class IssueOverviewService: NSObject, DoesLog {
   }
     
   private func loadMissingItems(){
-    if apiRequestCount > maxSimultanApiRequests { return }
-    if stopOvwTimer != nil { return }
     if skipNextTimer == true { skipNextTimer  = false; return }
     guard self.requestedRemoteItems.count > 0 else { return }
     if feederContext.isConnected == false { return }
-    if gqlOverviewError == true { return }//prevent requests while in error loop
     var missingIssues:[Date] = []
     for (key, date) in self.requestedRemoteItems {
       if let issue = self.issue(at: date) {
@@ -220,36 +195,27 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     
     if lds.count == 0 { return }//prevent multiple times enqueued same item 
-    apiRequestCount += 1
+    
     count = max(1, lds.count/feederContext.defaultFeed.cycle.multiplicator)//prevent load same issue multiple times
-    self.debug("...Do load Issues for: \(date.issueKey), count: \(count)")
+    
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: date,
                                         count: count,
                                         isOverview: true,
-                                        returnOnMain: true,
-                                        origin: Const.FatalOriginNames.originOverview) {[weak self] res in
+                                        returnOnMain: true) {[weak self] res in
       guard let self = self else { return }
-      var isGqlError = false
-      self.apiRequestCount -= 1
       var newIssues: [StoredIssue] = []
       self.debug("Finished load Issues for: \(date.issueKey), count: \(count)")
       
       if let err = res.error() as? FeederError {
         self.handleDownloadError(error: err)
-      }
-      else if  let err = res.error() as? GraphQlError {
-       ///send Error Report is already handled with: Log.onFatal
-        isGqlError = true
-      }
-      else if let err = res.error() as? URLError {
+      } else if let err = res.error() as? URLError {
         ///offline
         self.debug("failed to load \(err)")
       } else if let err = res.error(){
         self.debug("failed to load \(err)")
         ///unknown
       }
-      gqlErrorCount += isGqlError ? 1 : gqlErrorCount > 0 ? -1 : 0
       if let issues = res.value() {
         var loadedDates:[Date] = []
         let start = Date()

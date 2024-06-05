@@ -162,9 +162,9 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     HttpSession.isDebug = false
     PdfRenderService.isDebug = false
     ZoomedImageView.isDebug = false
-    Log.onFatal {[weak self] msg, source in
-      self?.log("fatal closure called, error id: \(msg.id)")
-      self?.reportFatalError(err: msg, source: source)
+    Log.onFatal { msg in
+      self.log("fatal closure called, error id: \(msg.id)")
+      self.reportFatalError(err: msg)
     }
     net.onChange { (flags) in self.log("net changed: \(flags)") }
     net.whenUp { self.log("Network up") }
@@ -478,56 +478,26 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     }
   }
   
-  func reportFatalError(err: Log.Message, source: String?) {
+  func reportFatalError(err: Log.Message) {
     guard !isErrorReporting else { return }
     isErrorReporting = true
+    
+    
     
     if let topVc = UIViewController.top(),
        topVc.presentedViewController != nil {
       topVc.dismiss(animated: false)
     }
-      
-    let ovwError = source == Const.FatalOriginNames.originOverview
-    
-    var message
-    = ovwError
-    ? """
-          Beim Abrufen der aktuellen Daten ist ein Fehler aufgetreten.
-          Bitte versuchen Sie es später erneut.
-          Falls ein Update der App vorliegt, installieren Sie dieses bitte.
-          Sollte das Problem weiterhin auftreten, senden Sie uns bitte einen Fehlerbericht.
-      """
-    : """
-          Es liegt ein schwerwiegender interner Fehler vor, möchten Sie uns
-          darüber mit einer Nachricht informieren?
-          Interne Fehlermeldung:\n\(err)
-      """
-    
-    let sendAction = UIAlertAction(title: ovwError ? "Fehlerbericht senden" : "OK",
-                                   style: .default) {[weak self] _ in
-      self?.produceErrorReport(recipient: "app@taz.de",
-                               subject: "Interner Fehler\(ovwError ? " Ausgabenübersicht" : "")")
-    }
-
-    let cancelAction = UIAlertAction(title: ovwError ? "Erneut versuchen" : "Abbrechen",
-                                     style: .cancel)  {[weak self] _ in
-      self?.isErrorReporting = false
-    }
-    
-    let stopAction = UIAlertAction(title: "Aktualisierung Stoppen", 
-                                   style: .destructive)  {[weak self] _ in
-      self?.log("************************************")
-      self?.log("Stop refresh data until App-Restart")
-      self?.log("************************************")
-      Alert.message(message: "Die nächsten 15 Minuten werden keine neuen Ausgaben abgerufen.\nFalls Sie vorher neue Ausgaben abrufen wollen, müssen Sie die App neu starten.")
-      self?.service?.stopOvwRequests(for: 60*15)//
-      self?.isErrorReporting = false
-    }
-    
     Usage.track(Usage.event.dialog.FatalError)
-    Alert.message(title: "Interner Fehler",
-                  message: message, 
-                  actions: ovwError ? [sendAction, cancelAction, stopAction] : [sendAction, cancelAction])
+    Alert.confirm(title: "Interner Fehler",
+                  message: "Es liegt ein schwerwiegender interner Fehler vor, möchten Sie uns " +
+                           "darüber mit einer Nachricht informieren?\n" +
+                           "Interne Fehlermeldung:\n\(err)") { yes in
+      if yes {
+        self.produceErrorReport(recipient: "app@taz.de", subject: "Interner Fehler")
+      }
+      else { self.isErrorReporting = false }
+    }
   }
   
   func produceErrorReport(recipient: String,
@@ -561,12 +531,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
                                fileName: "taz.neo-logfile.txt")
       }
       UIViewController.top()?.topmostModalVc.present(mail, animated: true, completion: completion)
-    }
-    else {
-      Alert.message(title: "E-Mail senden nicht verfügbar",
-                    message: "Leider ist keine passende E-Mailanwendung auf diesem Gerät eingerichtet, um direkt eine E-Mail zu verfassen.\nBitte benachrichtigen Sie uns via app@taz.de über Ihren Webmailer."){[weak self] in
-        self?.isErrorReporting = false
-      }
     }
   }
   

@@ -65,14 +65,7 @@ public struct Const {
     static let gotoArticleInIssue = "Const.NotificationNames.gotoArticleInIssue"
     static let searchSelectedText = "Const.NotificationNames.searchSelectedText"
     
-  } // NotificationNames
-  
-  /// Names for Fatal Errors Origin
-  /// to identify errors origin if fired and catched from different place
-  struct FatalOriginNames {
-    /// Some resource filenames
-    static let originOverview = "FeedRequest.FetchNewIssuesForOverview"
-  } // FatalOriginNames
+  } // Filename
   
   /// Various color values
   struct Colors {
