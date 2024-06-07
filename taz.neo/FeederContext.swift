@@ -150,7 +150,7 @@ open class FeederContext: DoesLog {
     return defaultFeed.lastIssue
   }
   ///Shortcut
-  var isConnected: Bool { netAvailability.isConnected }
+  var isConnected: Bool { netAvailability.isConnected && gqlFeeder.workOffline == false }
   
   /// Has minVersion been met?
   public var minVersionOK = true {
@@ -242,6 +242,7 @@ open class FeederContext: DoesLog {
   }
   
   private func updateFeeder(loadAllPublicationDates:Bool = false){
+    if gqlFeeder.workOffline { return }
     if loadAllPublicationDates == false && gqlFeeder.isUpdating { return }
     Notification.send(Const.NotificationNames.checkForNewIssues,
                       content: FetchNewStatusHeader.status.fetchNewIssues,

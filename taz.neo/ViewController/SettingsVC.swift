@@ -112,8 +112,47 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     Notification.receive(Const.NotificationNames.logoutUserDataDeleted) { _ in
       onMainAfter {[weak self] in self?.refreshAndReload() }
     }
+    Notification.receive(Const.NotificationNames.offlineModeSwitch) {[weak self] _ in
+      self?.updateWorkOfflineCell()
+      (self?.workOfflineCell.customAccessoryView as? UISwitch)?.isOn
+      = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder.workOffline ?? false
+    }
+    ///Handle reachability changes: show offline status
+    Notification.receive(Const.NotificationNames.feederUnreachable) {[weak self] _ in
+      self?.updateWorkOfflineCell(feederReachable: false)
+    }
+    ///Handle reachability changes: show offline status
+    Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
+      self?.updateWorkOfflineCell(feederReachable: true)
+    }
     return logoutCellPrototype
   }()
+  
+  func updateWorkOfflineCell(feederReachable:Bool? = nil){
+    workOfflineCell.detailTextLabel?.text
+    = updateWorkOfflineCellDetailText(feederReachable: feederReachable)
+//    let iP = IndexPath(row: 4, section: 6)
+//    self.tableView.reloadRows(at: [iP], with: .none)
+//    self.tableView.reloadSections([6], with: .middle)
+//    self.tableView.reloadData()
+  }
+  
+  func updateWorkOfflineCellDetailText(feederReachable:Bool? = nil) -> String {
+    if TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder.workOffline == true,
+       let fireDate = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder.offlineTimer?.fireDate {
+      return "Temporär bis \(fireDate.dateAndTime)"
+    }
+    if TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder.workOffline == true {
+      return " "
+    }
+    if feederReachable == false {
+        "Keine Internetverbindung verfügbar"
+    }
+    if feederReachable == true {
+        "Internetverbindung verfügbar"
+    }
+    return " "
+  }
   
   func updateLogoutCell(){
     self.logoutCell = self.logoutCellPrototype
@@ -304,7 +343,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     self?.multiColumnFixedScrolling = newValue
   })
   lazy var tabbarInSectionCellALPHA: XSettingsCell
-  = XSettingsCell(toggleWithText: "Teige Tabbar auf Sectionebene",
+  = XSettingsCell(toggleWithText: "Zeige Tabbar auf Sectionebene",
                   detailText: "Alpha Feature",
                   initialValue: tabbarInSection,
                   onChange: {[weak self] newValue in
@@ -337,6 +376,19 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                     }
                     self?.showCoachmarks = newValue
                   })
+  
+  lazy var workOfflineCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Offline Modus",
+                  detailText: updateWorkOfflineCellDetailText(),
+                  initialValue: showCoachmarks,
+                  onChange: {[weak self] newValue in
+    TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder.workOffline = newValue
+    if newValue == false { return }
+    onMainAfter {[weak self] in
+      self?.workOfflineCell.detailTextLabel?.text = "Manuell aktiviert"
+    }
+    
+  })
   
   lazy var memoryUsageCell: XSettingsCell
   = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
@@ -756,6 +808,7 @@ extension SettingsVC {
     var cells =  [
       bookmarksTeaserCell,
       smartBackFromArticleCell,
+      workOfflineCell,
       memoryUsageCell,
       deleteDatabaseCell,
       resetAppCell

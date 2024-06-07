@@ -54,8 +54,10 @@ class IssueOverviewService: NSObject, DoesLog {
   
   internal var feederContext: FeederContext
   var feed: StoredFeed
-  var timer: Timer?
+  private var timer: Timer?
   var skipNextTimer = false
+  var skipTimerCount = 0
+  var errorCount = 0
   
   public private(set) var publicationDates: [PublicationDate]
   
@@ -119,6 +121,15 @@ class IssueOverviewService: NSObject, DoesLog {
   }
     
   private func loadMissingItems(){
+    if errorCount > 0 && skipTimerCount < 2*errorCount {
+      /* In case of errors...
+       - timer fires with same frequency e.g. 0.1s
+       - if timer freq is 0.1s and 4 errors delay is 0.8s
+       */
+      skipTimerCount += 1
+      return
+    }
+    skipTimerCount = 0
     if skipNextTimer == true { skipNextTimer  = false; return }
     guard self.requestedRemoteItems.count > 0 else { return }
     if feederContext.isConnected == false { return }
@@ -217,6 +228,7 @@ class IssueOverviewService: NSObject, DoesLog {
         ///unknown
       }
       if let issues = res.value() {
+        errorCount = 0
         var loadedDates:[Date] = []
         let start = Date()
         for issue in issues {
@@ -236,6 +248,9 @@ class IssueOverviewService: NSObject, DoesLog {
         for si in newIssues {
           self.updateIssue(issue: si, isPdf: isFacsimile)
         }
+      }
+      else {
+        errorCount += 1
       }
       for sdate in lds { self.loadingIssueData[sdate] = nil }
     }
@@ -502,9 +517,7 @@ class IssueOverviewService: NSObject, DoesLog {
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
       self?.updateIssues()
     }
-    
     let params = Device.speedParameter
-    
     self.timer = Timer.scheduledTimer(withTimeInterval: params.waitDuration, repeats: true, block: {[weak self] _ in
       self?.loadMissingItems()
      })

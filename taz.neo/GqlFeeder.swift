@@ -413,6 +413,7 @@ class GqlPage: Page, GQLObject {
   static var fields = """
   pagePdf { \(GqlFile.fields) }
   gqlAudio: podcast { \(GqlAudio.fields) }
+  gqlFacsimile: facsimileTestForErrorAndEndlessReturn { \(GqlImage.fields) }
   title
   pagina
   type
@@ -858,8 +859,36 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let st = status else { return [] }
     return st.feeds
   }
+
+  func workOffline(for duration:Double){
+    ensureMain {[weak self] in
+      self?.offlineTimer?.invalidate()
+      self?.offlineTimer = nil
+      self?.workOffline = true
+      self?.offlineTimer = Timer.scheduledTimer(withTimeInterval: duration,
+                            repeats: false,
+                            block: {[weak self] _ in
+        self?.workOffline = false
+        self?.offlineTimer?.invalidate()
+        self?.offlineTimer = nil
+      })
+    }
+  }
+  public private(set) var offlineTimer:Timer?
+  var workOfflineTemporary: Bool {
+    return workOffline && offlineTimer != nil
+  }
+  var workOffline = false { didSet {   Notification.send(Const.NotificationNames.offlineModeSwitch)}}
+  private var _gqlSession: GraphQlSession?
+  
   /// The GraphQL server delivering the Feeds
-  public var gqlSession: GraphQlSession?
+  public var gqlSession: GraphQlSession? {
+    set { _gqlSession = newValue }
+    get {
+      if workOffline { return nil }
+      return _gqlSession
+    }
+  }
   /// Last weekly status
   private var wasWeekly = false
   
