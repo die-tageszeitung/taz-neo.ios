@@ -140,6 +140,8 @@ extension TazAppEnvironment: MFMailComposeViewControllerDelegate {
   func mailComposeController(_ controller: MFMailComposeViewController,
     didFinishWith result: MFMailComposeResult, error: Error?) {
     controller.dismiss(animated: true)
-    isErrorReporting = false
+    onMainAfter(2.0) {[weak self] in
+      self?.isErrorReporting = false
+    }
   }
 }
