@@ -15,7 +15,7 @@ class FetchNewStatusHeader: UIView {
   
   ///Possible States
   enum status:String {
-    case offline, online, fetchNewIssues, fetchMoreIssues, loadPreview, loadIssue, downloadError, none
+    case offline, online, fetchNewIssues, fetchMoreIssues, loadPreview, loadIssue, downloadError, none, stoppedLoadOvw
     ///Message for the user
     var infoMessage:String? {
       get {
@@ -32,6 +32,8 @@ class FetchNewStatusHeader: UIView {
             return "Keine Internetverbindung"
           case .downloadError:
             return "Fehler beim Laden der Daten"
+          case .stoppedLoadOvw:
+            return "Aktualisierung angehalten!"
           case .online: fallthrough;
           default:
             return nil
@@ -42,7 +44,7 @@ class FetchNewStatusHeader: UIView {
     var textColor:UIColor {
       get {
         switch self {
-          case .downloadError:
+          case .stoppedLoadOvw, .downloadError:
             return UIColor.red.withAlphaComponent(0.7)
           case .offline: fallthrough;
           case .online: fallthrough;
@@ -127,6 +129,7 @@ class FetchNewStatusHeader: UIView {
   var currentStatus:status {
     get { return _currentStatus }
     set {
+      if currentStatus == .stoppedLoadOvw { return }//do not overwrite this important info
       if _currentStatus == newValue || nextStatus.last == newValue { return; }
       if animating { nextStatus.append(newValue); return; }
       if newValue == .downloadError { lastErrorShown = Date() }

@@ -73,6 +73,7 @@
 		7758CCBD2B504E7F000B8E30 /* LMdPageArticleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBB2B504E7A000B8E30 /* LMdPageArticleCell.swift */; };
 		7758CCBF2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBE2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift */; };
 		7758CCC22B505181000B8E30 /* LMdSliderDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCC02B504F61000B8E30 /* LMdSliderDataModel.swift */; };
+		776CB3BB2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */; };
 		776E59C629ED25A3001D5C5B /* dot-day.svg in Resources */ = {isa = PBXBuildFile; fileRef = 776E59C429ED25A3001D5C5B /* dot-day.svg */; };
 		776E59C729ED25A3001D5C5B /* dot-night.svg in Resources */ = {isa = PBXBuildFile; fileRef = 776E59C529ED25A3001D5C5B /* dot-night.svg */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
@@ -350,6 +351,7 @@
 		7758CCBE2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderCVFlowLayout.swift; sourceTree = "<group>"; };
 		7758CCC02B504F61000B8E30 /* LMdSliderDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderDataModel.swift; sourceTree = "<group>"; };
 		776158192743E8440044516C /* AppIcons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcons; sourceTree = "<group>"; };
+		776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TazAppEnvironment+ErrorHandling.swift"; sourceTree = "<group>"; };
 		776E59C429ED25A3001D5C5B /* dot-day.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "dot-day.svg"; sourceTree = "<group>"; };
 		776E59C529ED25A3001D5C5B /* dot-night.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "dot-night.svg"; sourceTree = "<group>"; };
 		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
@@ -580,6 +582,7 @@
 				4D308ED9283404D400529592 /* TazAppEnvironment.swift */,
 				77B993D92AC4706600C7D832 /* Usage.swift */,
 				7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */,
+				776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */,
 			);
 			path = Business;
 			sourceTree = "<group>";
@@ -1229,6 +1232,7 @@
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */,
+				776CB3BB2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift in Sources */,
 				7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */,
 				AE5DFACF267E10540035162C /* KeychainTest.swift in Sources */,
 				4D308ED6283404C700529592 /* GqlFeederSearch.swift in Sources */,

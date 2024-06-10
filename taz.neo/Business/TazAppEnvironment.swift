@@ -7,10 +7,9 @@
 //
 
 import NorthLib
-import MessageUI
 import UIKit
 
-class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate {
+class TazAppEnvironment: NSObject, DoesLog {
   
   class Spinner: UIViewController {
     #warning("Required? try to remove and test, handled in MainTabVc, but for startup?")
@@ -114,8 +113,13 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   @Default("articleTextSize")
   private var articleTextSize: Int
   
-  public private(set) var isErrorReporting = false
-  public private(set) var gqlErrorShown = false
+  public internal(set) var isErrorReporting = false {
+    didSet {
+      print("isErrorReporting set to: \(isErrorReporting)")
+    }
+  }
+  public internal(set) var gqlErrorShown = false
+  public internal(set) var lastErrormessage: String?
   private var isForeground = false
   
   override init(){
@@ -456,12 +460,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self?.threeFingerAlertOpen = false
     }
   }
-  func mailComposeController(_ controller: MFMailComposeViewController,
-    didFinishWith result: MFMailComposeResult, error: Error?) {
-    controller.dismiss(animated: true)
-    isErrorReporting = false
-    feederContext?.gqlFeeder.workOffline = false
-  }
   
   @objc func twoFingerErrorReportActivated(_ sender: UIGestureRecognizer) {
     if isErrorReporting == true { return }//Prevent multiple Calls
@@ -477,117 +475,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
                               feedbackType: feedbackType) {[weak self] didSend in
       self?.log("Feedback send? \(didSend)")
       self?.isErrorReporting = false
-    }
-  }
-  
-  func reportFatalError(err: Log.Message) {
-    guard !isErrorReporting else { return }
-    isErrorReporting = true
-    
-    let isGqlError = err.className?.starts(with: "GraphQl") ?? false
-    let canSendMail = MFMailComposeViewController.canSendMail()
-    
-    #if DEBUG
-      let errorOfflineDuration: Double = 60
-      print("I'm running in DEBUG mode")
-    #else
-      let errorOfflineDuration: Double = 15*60
-      print("I'm running in a non-DEBUG mode")
-    #endif
-    
-    
-    if isGqlError {
-      self.feederContext?.gqlFeeder.workOffline(for: 15)
-    }
-    
-    var msg
-    = isGqlError
-    ? "Bei der Kommunikation mit dem Server ist ein schwerwiegender interner Fehler aufgetreten."
-    : "Es liegt ein schwerwiegender interner Fehler vor."
-    
-    msg.append(canSendMail ? "\nMöchten Sie uns darüber mit einer Nachricht informieren?" : "\nBitte informieren Sie uns darüber mit einer Nachricht.\nMit der Schaltfläche ‚Text kopieren‘ wird ein vorformulierter Text zu diesem Fehler in die Zwischenablage kopiert. Diesen können Sie in eine E-Mail an app@taz.de einfügen." )
-    
-    if let topVc = UIViewController.top(),
-       topVc.presentedViewController != nil {
-      topVc.dismiss(animated: false)
-    }
-    
-    let sendAction = UIAlertAction(title: "Fehlerbericht senden",
-                                   style: .default) {[weak self] _ in
-      self?.produceErrorReport(recipient: "app@taz.de",
-                               subject: "Interner Fehler")
-      ///workOffline = false & isErrorReporting = false is set in: mailComposeController didFinishWith...
-    }
-    
-    let copyAction = UIAlertAction(title: "Text kopieren",
-                                   style: .default) {[weak self] _ in
-      self?.copyErrorReportToPasteboard()
-    }
-
-    let cancelAction = UIAlertAction(title: isGqlError ? "Erneut versuchen" : "Abbrechen",
-                                     style: .cancel)  {[weak self] _ in
-      self?.isErrorReporting = false
-      self?.feederContext?.gqlFeeder.workOffline = false
-    }
-    
-    let stopAction = UIAlertAction(title: "Offline fortfahren",
-                                   style: .destructive)  {[weak self] _ in
-      self?.log("************************************")
-      self?.log("Stop refresh data until App-Restart")
-      self?.log("************************************")
-      Alert.message(message: "Die nächsten \(errorOfflineDuration/60) Minuten werden keine Daten wie z.B. Ausgaben abgerufen.\nFalls Sie vorher neue Ausgaben abrufen wollen, müssen Sie die App neu starten.")
-      self?.isErrorReporting = false
-      self?.feederContext?.gqlFeeder.workOffline(for: errorOfflineDuration)
-    }
-    
-    let msgAction = canSendMail ? sendAction : copyAction
-    
-    Alert.message(title: "Interner Fehler",
-                  message: msg,
-                  actions: isGqlError ? [msgAction, cancelAction, stopAction] : [sendAction, cancelAction])
-    Usage.track(Usage.event.dialog.FatalError)
-  }
-  
-  func copyErrorReportToPasteboard(){
-    print("ToDo implement copy")
-    UIPasteboard.general.string = "Es ist TBD----"
-  }
-  
-  func produceErrorReport(recipient: String,
-                          subject: String = "Feedback",
-                          logData: Data? = nil,
-                          addScreenshot: Bool = true,
-                          completion: (()->())? = nil) {
-    if MFMailComposeViewController.canSendMail() {
-      let mail =  MFMailComposeViewController()
-      let screenshot = UIWindow.screenshot?.jpeg
-      let logData = logData ?? fileLogger.mem?.data
-      mail.mailComposeDelegate = self
-      mail.setToRecipients([recipient])
-      
-      var tazIdText = ""
-      let data = DefaultAuthenticator.getUserData()
-      if let tazID = data.id, tazID.isEmpty == false {
-        tazIdText = " taz-Konto: \(tazID)"
-      }
-      
-      mail.setSubject("\(subject) \"\(App.name)\" (iOS)\(tazIdText)")
-      mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
-        isHTML: false)
-      if addScreenshot, let screenshot = screenshot {
-        mail.addAttachmentData(screenshot, mimeType: "image/jpeg",
-                               fileName: "taz.neo-screenshot.jpg")
-      }
-      if let logData = logData {
-        mail.addAttachmentData(logData, mimeType: "text/plain",
-                               fileName: "taz.neo-logfile.txt")
-      }
-      UIViewController.top()?.topmostModalVc.present(mail, animated: true){
-        [weak self] in
-        completion?()
-        mail.becomeFirstResponder()
-      }
     }
   }
   

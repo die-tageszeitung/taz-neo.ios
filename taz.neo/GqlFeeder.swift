@@ -409,6 +409,8 @@ class GqlPage: Page, GQLObject {
   /// Frames in page
   var frameList: [GqlFrame]?
   var frames: [Frame]? { return frameList }
+  ///add the following field to test errors on requests
+  ///gqlFacsimile: facsimileTestForErrorAndEndlessReturn { \(GqlImage.fields) }
   
   static var fields = """
   pagePdf { \(GqlFile.fields) }
