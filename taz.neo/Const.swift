@@ -56,7 +56,6 @@ public struct Const {
     static let traitCollectionDidChange = "NotificationName.traitCollectionDidChange"
     static let expiredAccountDateChanged = "NotificationName.expiredAccountDateChanged"
     static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
-    static let offlineModeSwitch = "NotificationName.offlineModeSwitch"
     static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
     static let bookmarkChanged = "Const.NotificationNames.bookmarkChanged"
     static let audioPlaybackStateChanged = "Const.NotificationNames.audioPlaybackStateChanged"

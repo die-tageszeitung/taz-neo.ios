@@ -29,19 +29,6 @@ extension TazAppEnvironment {
     || errorClass.starts(with: "GqlFeeder")
     let canSendMail = MFMailComposeViewController.canSendMail()
     
-//    #if DEBUG
-//      let errorOfflineDuration: Double = 60
-//      print("I'm running in DEBUG mode")
-//    #else
-//      let errorOfflineDuration: Double = 15*60
-//      print("I'm running in a non-DEBUG mode")
-//    #endif
-    
-  //too much?
-//    if isGqlError {
-//      self.feederContext?.gqlFeeder.workOffline(for: 15)
-//    }
-    
     var msg
     = isGqlError
     ? "Bei der Kommunikation mit dem Server ist ein schwerwiegender interner Fehler aufgetreten."
@@ -58,7 +45,6 @@ extension TazAppEnvironment {
                                    style: .default) {[weak self] _ in
       self?.produceErrorReport(recipient: "app@taz.de",
                                subject: "Interner Fehler")
-      ///workOffline = false & isErrorReporting = false is set in: mailComposeController didFinishWith...
     }
     
     let copyAction = UIAlertAction(title: "Text kopieren",
@@ -69,19 +55,7 @@ extension TazAppEnvironment {
     let cancelAction = UIAlertAction(title: isGqlError ? "Erneut versuchen" : "Abbrechen",
                                      style: .cancel)  {[weak self] _ in
       self?.isErrorReporting = false
-//      self?.feederContext?.gqlFeeder.workOffline = false
     }
-    
-//    let stopAction = UIAlertAction(title: "Offline fortfahren",
-//                                   style: .destructive)  {[weak self] _ in
-//      self?.log("************************************")
-//      self?.log("Stop refresh data until App-Restart")
-//      self?.log("************************************")
-//      Alert.message(message: "Die nächsten \(errorOfflineDuration/60) Minuten werden keine Daten wie z.B. Ausgaben abgerufen.\nFalls Sie vorher neue Ausgaben abrufen wollen, müssen Sie die App neu starten.")
-//      self?.isErrorReporting = false
-//      self?.feederContext?.gqlFeeder.workOffline(for: errorOfflineDuration)
-//    }
-    ///...isGqlError ? [msgAction, cancelAction, stopAction] : [sendAction, cancelAction]
     
     let msgAction = canSendMail ? sendAction : copyAction
     
@@ -125,7 +99,6 @@ extension TazAppEnvironment {
     Alert.message(title: "Text in die Zwischenablage kopiert",
                   message: "Bitte per E-Mail an app@taz.de senden.") { [weak self] in
       self?.isErrorReporting = false
-      self?.feederContext?.gqlFeeder.workOffline = false
     }
   }
   
@@ -172,6 +145,5 @@ extension TazAppEnvironment: MFMailComposeViewControllerDelegate {
     didFinishWith result: MFMailComposeResult, error: Error?) {
     controller.dismiss(animated: true)
     isErrorReporting = false
-    feederContext?.gqlFeeder.workOffline = false
   }
 }
