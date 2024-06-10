@@ -14,10 +14,6 @@ extension TazAppEnvironment {
   func reportFatalError(err: Log.Message) {
     guard !isErrorReporting else { return }
     
-    if lastErrormessage == err.message {
-      log("same error like last time...not showing Popup")
-      return
-    }
     lastErrormessage = err.message
     
     isErrorReporting = true

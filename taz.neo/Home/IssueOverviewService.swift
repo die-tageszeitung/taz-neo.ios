@@ -657,7 +657,7 @@ class LoadOverviewHelperBusiness: DoesLog {
   
   // MARK: - Errors
   private var ovwGraphQlErrorCount = 0 { didSet {}}
-  private var ovwGraphQlErrorAlertInterval = 5
+  private var ovwGraphQlErrorAlertInterval = 2
   private var lastOvwGraphQlErrorAlertAtCount = 0
   private var isShowingFetchOvwDisableAlert = false
   
@@ -675,7 +675,7 @@ class LoadOverviewHelperBusiness: DoesLog {
     }
   }
   
-  func showFetchOvwDisableAlertIfNeeded(_ force: Bool = false){
+  func showFetchOvwDisableAlertIfNeeded(){
     guard !isShowingFetchOvwDisableAlert else { return }
     if ovwGraphQlErrorCount
         < lastOvwGraphQlErrorAlertAtCount + ovwGraphQlErrorAlertInterval { return }
@@ -687,8 +687,10 @@ class LoadOverviewHelperBusiness: DoesLog {
     let cancelAction = UIAlertAction(title: "Weiter versuchen",
                                      style: .default) {[weak self] _ in
       TazAppEnvironment.sharedInstance.isErrorReporting = false
-      self?.isShowingFetchOvwDisableAlert = false
       self?.log("FetchOvwDisableAlert...retry")
+      onMainAfter(2.0) {[weak self] in
+        self?.isShowingFetchOvwDisableAlert = false
+      }
     }
     let stopAction = UIAlertAction(title: "Abruf anhalten",
                                    style: .destructive){[weak self] _ in

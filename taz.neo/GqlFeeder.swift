@@ -415,7 +415,6 @@ class GqlPage: Page, GQLObject {
   static var fields = """
   pagePdf { \(GqlFile.fields) }
   gqlAudio: podcast { \(GqlAudio.fields) }
-  gqlFacsimile: facsimileTestForErrorAndEndlessReturn { \(GqlImage.fields) }
   title
   pagina
   type

@@ -23,6 +23,22 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
+  private var orgOvwFields = GqlIssue.ovwFields
+  private lazy var failureOvwFields : String = {
+    ///WARNING AT FIRST Init Issue Fields, that this would be correct for later Access!!
+    _ = GqlIssue.fields
+    ///...DONE
+    let wrongFacsimile =  """
+    gqlFacsimile: facsimileTestForErrorAndEndlessReturn { \(GqlImage.fields) }
+    """
+    return orgOvwFields.replacingOccurrences(of: "gqlAudio: podcast", with: "\(wrongFacsimile) gqlAudio: podcast")
+  }()
+  private var sendFailureRequestToServer: Bool = false {
+    didSet {
+      GqlIssue.ovwFields = sendFailureRequestToServer ? failureOvwFields : orgOvwFields
+    }
+  }
+  
   @Default("autoloadPdf")
   var autoloadPdf: Bool
   
@@ -348,6 +364,14 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
                   isDestructive: true,
                   tapHandler: {[weak self] in self?.requestResetApp()} )
+  lazy var sendFailureRequestCell: XSettingsCell
+  = XSettingsCell(text: "Sende fehlerhaften Page Request für die Ausgabenübersicht",
+                  detailText: "ALPHA-App :: erneut antippen zum Wechsel",
+                  isDestructive: true,
+                  tapHandler: {[weak self] in
+    self?.sendFailureRequestToServer = !(self?.sendFailureRequestToServer ?? true)
+    Toast.show("Nachfolgende Page Requests sind: \(self?.sendFailureRequestToServer == true ? "fehlerhaft" : "normal")")
+  })
   lazy var contentChangeSettingCellALPHA: XSettingsCell
   = XSettingsCell(toggleWithText: "Zeige Toolbar bei Artikelwechsel",
                   detailText: "Alpha Feature",
@@ -778,6 +802,11 @@ extension SettingsVC {
       cells.append(contentChangeSettingCellALPHA)
       cells.append(tabbarInSectionCellALPHA)
     }
+    
+    if App.isAlpha && SimpleAuthenticator.getUserData().id == "145489" {
+      cells.append(sendFailureRequestCell)
+    }
+    
     return cells
   }
   
