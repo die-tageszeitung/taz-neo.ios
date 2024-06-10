@@ -1423,7 +1423,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2024053001;
+				CURRENT_PROJECT_VERSION = 2024061001;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
@@ -1432,7 +1432,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.13;
+				MARKETING_VERSION = 1.1.14;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -1654,7 +1654,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2024053001;
+				CURRENT_PROJECT_VERSION = 2024061001;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -1662,7 +1662,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.13;
+				MARKETING_VERSION = 1.1.14;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1680,7 +1680,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2024053001;
+				CURRENT_PROJECT_VERSION = 2024061001;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -1688,7 +1688,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.13;
+				MARKETING_VERSION = 1.1.14;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
