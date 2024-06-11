@@ -125,6 +125,11 @@ class PwForgottController: FormsController {
       trialSView.mailInput.text = idOrMail
     }
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    contentView.idInput.becomeFirstResponder()
+  }
 }
 
 // MARK: - PasswordResetRequestedSuccessController
