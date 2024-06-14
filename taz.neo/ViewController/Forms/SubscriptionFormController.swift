@@ -49,8 +49,9 @@ class SubscriptionFormController : FormsController {
     ui.blocked = true
     
     if let errormessage = ui.validate() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
+      ui.scrollView.scrollRectToVisible(CGRect(x: 1, y: 1, width: 1, height: 1), animated: true)
       Usage.track(Usage.event.subscription.InquiryFormValidationError)
       return
     }
@@ -89,10 +90,11 @@ class SubscriptionFormController : FormsController {
           }
           
           if let fe = err as? SubscriptionFormDataError, let msg = fe.associatedValue {
-            Toast.show("<b>Fehler beim senden</b></br>\(msg)", .alert)
+            self?.ui.handle(formError: fe)
+            Alert.message(title: "Fehler beim senden", message: msg)
           }
           else{
-            Toast.show("Fehler beim senden", .alert)
+            Alert.message(message: "Fehler beim senden")
           }
           self?.log("Failed: \(err)")
       }

@@ -247,6 +247,7 @@ public struct Const {
       case backgroundForms
       case notifications_error
       case notifications_errorText
+      case text_disabled
     }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
@@ -384,6 +385,7 @@ public struct Const {
         case .taz(.textFieldText):
           return (UIColor.rgb(0x1F1F1F), UIColor.rgb(0xF0F0F0), nil, nil)
         case .taz(.textDisabled): fallthrough
+        case .taz2(.text_disabled): fallthrough
         case .taz(.textFieldPlaceholder):
           return (UIColor.rgb(0xA6A6A6), UIColor.rgb(0x505050), nil, nil)
         case .taz(.textFieldClear):

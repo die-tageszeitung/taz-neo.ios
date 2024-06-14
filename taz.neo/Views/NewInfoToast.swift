@@ -308,7 +308,7 @@ public class NewInfoToast : UIView {
   lazy var privacyText : CustomTextView = {
     let view = CustomTextView()
     view.isEditable = false
-    view.attributedText = Localized("fragment_tracking_privacy_info").htmlAttributed
+    view.attributedText = Localized("login_privacy_link").htmlAttributed
     view.linkTextAttributes = [.foregroundColor : Const.SetColor.HText.brightColor, .underlineColor: Const.SetColor.HText.brightColor]
     view.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
     view.textColor = Const.SetColor.HText.brightColor

@@ -23,7 +23,7 @@ public class FormView: UIView {
   public var hasUserInput : Bool {
     for v in views ?? [] {
       if (v as? TazTextField)?.text?.length ?? 0 > 0 { return true }
-      if (v as? ViewWithTextView)?.text?.length ?? 0 > 0 { return true }
+      if (v as? TazTextView)?.text?.length ?? 0 > 0 { return true }
     }
     return false
   }

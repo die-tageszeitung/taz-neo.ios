@@ -69,7 +69,7 @@
 
 /* translation from Android */
 "login_forgot_password" = "Haben Sie Ihr Passwort vergessen?";
-"login_privacy_link" = "Hier finden Sie unere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
+"login_privacy_link" = "Hier finden Sie unsere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
 
 /* translation from Android */
 "login_forgot_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre E-Mail-Adresse oder Abo-ID an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
@@ -120,8 +120,12 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 /* translation from Android */
 "login_password_error_empty" = "Passwort darf nicht leer sein.";
 
+"forms_error_empty" = "Bitte überprüfen, darf nicht leer sein.";
+
 /* translation from Android */
 "toast_login_failed_retry" = "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.";
+
+"toast_login_wrong_retry" = "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben und versuchen Sie es erneut.";
 
 /* translation from Android */
 "fragment_login_missing_credentials_switch_to_login" = "Ich habe schon eine taz-Konto";
@@ -160,8 +164,6 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 
 /* translation from Android */
 "fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/welcomeTerms.html'>AGB</a> sowie die Hinweise zum <a href='https://taz.de/welcomeRevocation.html'>Widerruf</a> und <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutz</a>.";
-
-"fragment_tracking_privacy_info" = "Hier finden Sie unsere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
 
 /* translation from Android */
 "something_went_wrong_try_later" = "Etwas unerwartetes ist passiert. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut.";
