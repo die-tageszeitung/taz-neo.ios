@@ -84,6 +84,12 @@ public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
   }
 
   private var textView = GrowableTextView()
+  public override func becomeFirstResponder() -> Bool {
+    return textView.becomeFirstResponder()
+  }
+  public override func resignFirstResponder() -> Bool {
+    return textView.resignFirstResponder()
+  }
   
   var heightConstraint: NSLayoutConstraint?
 
@@ -205,6 +211,7 @@ public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
 }
 
 extension TazTextView: UITextViewDelegate {
+  
   public func textViewDidEndEditing(_ textView: UITextView) {
     delegate?.textViewDidEndEditing?(textView)
     if let _text = textView.text, _text.isEmpty {
@@ -215,6 +222,14 @@ extension TazTextView: UITextViewDelegate {
         }
       }
     }
+  }
+  
+  public func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+    if text == "\t" {
+      self.nextOrEndEdit()
+      return false
+    }
+    return  delegate?.textView?(textView, shouldChangeTextIn: range, replacementText: text) ?? true
   }
   
   public func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
