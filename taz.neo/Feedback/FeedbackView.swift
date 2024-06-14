@@ -171,15 +171,15 @@ public class FeedbackView : UIView {
         messageTextView.placeholder = "Ihr Feedback.\n \n "
       case .error:
         subjectLabel.text = "Fehler melden"
-        messageTextView.placeholder = "Beschreiben Sie ihr Problem bitte hier."
+        messageTextView.placeholder = "Beschreiben Sie Ihr Problem bitte hier."
       case .fatalError:
         subjectLabel.text = "Abbsturz melden"
-        messageTextView.placeholder = "Beschreiben Sie ihr Problem bitte hier."
+        messageTextView.placeholder = "Beschreiben Sie Ihr Problem bitte hier."
     }
     
     if isLoggedIn {
       senderMail.placeholder
-        = "Für Rückfragen und Antwort nutzen wir die E-Mail-Adresse ihres taz-Kontos oder nachfolgende E-Mail-Adresse.";
+        = "E-Mail-Adresse für Rückfragen und Antwort. Falls nicht angegeben nutzen wir die E-Mail-Adresse Ihres taz-Kontos.";
       senderMail.topMessage
         = "Alternative E-Mail (optional)"
     }
@@ -239,12 +239,11 @@ extension FeedbackView : UITextFieldDelegate{
   public func textFieldDidEndEditing(_ textField: UITextField){
     if textField != senderMail { return}
     checkSendButton()
-    if isLoggedIn == false {
+    if (textField.text ?? "").isEmpty && isLoggedIn == false && type != FeedbackType.feedback {
       senderMail.bottomMessage = "Bitte ausfüllen"
     }
-    else if type != FeedbackType.feedback
-              && !(textField.text ?? "").isValidEmail() {
-      senderMail.bottomMessage = "Muss E-Mail oder leer sein"
+    else if !(textField.text ?? "").isEmpty && !(textField.text ?? "").isValidEmail() {
+      senderMail.bottomMessage = "Keine gültige E-Mail Adresse"
     }
     else {
       senderMail.bottomMessage = nil
