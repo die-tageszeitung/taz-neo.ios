@@ -511,7 +511,8 @@ public struct Const {
   } // Fonts
   
   struct Size {
-    static let TextViewPadding = CGFloat(10.0)
+    static let TextViewPadding = SmallPadding
+    static let TextFieldPadding = SmallPadding
     static let MiniPageNumberFontSize = CGFloat(12)
     static let DefaultFontSize = CGFloat(16)
     static let SmallerFontSize = CGFloat(14)
@@ -523,7 +524,6 @@ public struct Const {
     static let DefaultPadding = CGFloat(15.0)
     static let NewTextFieldHeight = CGFloat(40.0)
     static let TextFieldHeight = CGFloat(36.0)//Default Height of Search Controllers Text Input
-    static let TextFieldPadding = SmallPadding
     static let SmallPadding = CGFloat(10.0)
     static let TinyPadding = CGFloat(5.0)
     static let ContentTableFontSize = CGFloat(22.0)

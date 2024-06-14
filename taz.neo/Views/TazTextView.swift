@@ -13,6 +13,8 @@ import NorthLib
 // MARK: - TazTextView
 public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
   
+  weak open var delegate: (any UITextViewDelegate)?
+  
   static let minimalHeight:CGFloat = 61.0
   var minimalHeight:CGFloat = 61.0
   
@@ -111,12 +113,6 @@ public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
     self.addSubview(textView)
     self.addSubview(errorLabel)
     
-//    errorLabel.addBorder(.red)
-//    textView.addBorder(.blue)
-//    topLabel.addBorder(.green)
-//    placeholderLabel.addBorder(.systemPink)
-//    self.addBorder(.yellow)
-    
     pin(textView.right, to: self.right)
     pin(textView.left, to: self.left)
     pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
@@ -187,17 +183,17 @@ public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
   class GrowableTextView: UITextView {
     var heightConstraint: NSLayoutConstraint?
     var minimalHeight: CGFloat = 55.0
-    var lastCalculatedPlaceholderwidth = 0.0
+    var lastCalculatedPlaceholderHeightAlWidth = 0.0
     
     public override func layoutSubviews() {
       super.layoutSubviews()
       let selfW = self.frame.size.width
-      if abs(selfW - lastCalculatedPlaceholderwidth) > 10, let placeholderLabel = (self.superview as? TazTextView)?.placeholderLabel{
-        minimalHeight = max(55.0, placeholderLabel.sizeThatFits(CGSize(width: selfW, height: 2000)).height )
-        lastCalculatedPlaceholderwidth = selfW
+      if abs(selfW - lastCalculatedPlaceholderHeightAlWidth) > 10, let placeholderLabel = (self.superview as? TazTextView)?.placeholderLabel {
+        minimalHeight = max(55.0, 12 + placeholderLabel.sizeThatFits(CGSize(width: selfW, height: 2000)).height )
+        lastCalculatedPlaceholderHeightAlWidth = selfW
       }
       let newHeight
-      = max(minimalHeight,self.sizeThatFits(CGSize(width: selfW, height: 2000)).height)
+      = max(minimalHeight,12 + self.sizeThatFits(CGSize(width: selfW, height: 2000)).height)
       if self.heightConstraint == nil {
         self.heightConstraint = self.pinHeight(newHeight, priority: .defaultHigh)
       }
@@ -210,6 +206,7 @@ public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
 
 extension TazTextView: UITextViewDelegate {
   public func textViewDidEndEditing(_ textView: UITextView) {
+    delegate?.textViewDidEndEditing?(textView)
     if let _text = textView.text, _text.isEmpty {
       UIView.animate(seconds: 0.3) { [weak self] in
         self?.placeholderLabel.alpha = 1.0
@@ -227,6 +224,7 @@ extension TazTextView: UITextViewDelegate {
   
   public func textViewDidBeginEditing(_ textView: UITextView)
   {
+    delegate?.textViewDidBeginEditing?(textView)
     if self.placeholderLabel.alpha != 0.0 {
       UIView.animate(seconds: 0.3) { [weak self] in
         self?.topLabel.alpha = 1.0

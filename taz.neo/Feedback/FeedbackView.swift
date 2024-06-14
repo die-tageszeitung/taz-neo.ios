@@ -38,7 +38,9 @@ public class FeedbackView : UIView {
   public let lastInteractionTextView = TazTextView()
   public let environmentTextView = TazTextView()
   
-  public let senderMail = TazTextView()
+  public let senderMail = TazTextField(textContentType: .emailAddress,
+                                       keyboardType: .emailAddress,
+                                       autocapitalizationType: .none)
   public let sendButton = UIButton()
   public let cancelButton = UIButton()
   let attachmentsLabel = UILabel.descriptionLabel
@@ -66,20 +68,9 @@ public class FeedbackView : UIView {
   private func setup() {
     self.backgroundColor = Const.SetColor.taz2(.backgroundForms).color
     setupText()
-    
-    senderMail.textField.textC
-    TODO...
-  textContentType: .emailAddress, keyboardType: .emailAddress, autocapitalizationType: .none
-    
-    
     self.onTapping { [weak self] (_) in self?.endEditing(false)}
-//    senderMailDescriptionLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
-//    lastInteractionTextView.topLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
-//    lastInteractionTextView.bottomLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
-//    environmentTextView.topLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
-//    environmentTextView.bottomLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
-//    messageTextView.topLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
-//    messageTextView.bottomLabel.onTapping { [weak self] (_) in self?.endEditing(false)}
+    senderMail.delegate = self
+    messageTextView.delegate = self
 
     cancelButton.setTitle("Abbrechen", for: .normal)
     cancelButton.setTitleColor(Const.SetColor.ios(.link).color, for: .normal)
@@ -143,7 +134,6 @@ public class FeedbackView : UIView {
       stack.addArrangedSubview(hStack2)
     }
     
-    
     let scrollView = UIScrollView()
     
     scrollView.addSubview(stack)
@@ -162,6 +152,7 @@ public class FeedbackView : UIView {
     screenshotAttachmentButton.shadow()
     pin(screenshotAttachmentButton, to: hStack2, exclude: .right)
     pin(logAttachmentButton, to: hStack2, exclude: .left)
+    checkSendButton()
   }
   
   func setupText(){
@@ -187,35 +178,34 @@ public class FeedbackView : UIView {
     }
     
     if isLoggedIn {
-      senderMail.placeholderText
+      senderMail.placeholder
         = "Für Rückfragen und Antwort nutzen wir die E-Mail-Adresse ihres taz-Kontos oder nachfolgende E-Mail-Adresse.";
       senderMail.topMessage
         = "Alternative E-Mail (optional)"
     }
     else {
       //User is not logged in
-      senderMail.placeholderText
-        = "Rückfragen und Antworten sollen an nachfolgende E-Mail-Adresse zugestellt werden."
+      senderMail.placeholder
+        = "Ihre E-Mail-Adresse für Rückfragen und Antworten"
       senderMail.topMessage
-        = "Ihre E-Mail für Rückmeldungen (optional)"
+        = "Ihre E-Mail für Rückmeldungen"
     }
   }
 }
 
-
-
 extension FeedbackView {
   var isSenderMailValid : Bool {
     get {
-      if (senderMail.text ?? "").isEmpty { return true }
-      if (senderMail.text ?? "").isValidEmail() { return true }
+      if type == FeedbackType.feedback,
+          (senderMail.text ?? "").isEmpty { return true }//feedback can have empty mail
+      if isLoggedIn || (senderMail.text ?? "").isValidEmail() { return true }
       return false
     }
   }
   
   var isMessageFieldValid : Bool {
     get {
-      if type != FeedbackType.feedback { return true }
+      if type != FeedbackType.feedback { return true }///error can have empty message
       return messageTextView.text?.isEmpty == false
     }
   }
@@ -230,17 +220,12 @@ extension FeedbackView {
 }
 
 extension FeedbackView : UITextViewDelegate{
-  
-//  public func textViewDidChange(_ textView: UITextView){
-//
-//  }
-  
   public func textViewDidEndEditing(_ textView: UITextView){
-//    if textView != messageTextView.textView { return }
-//    checkSendButton()
-//    messageTextView.bottomMessage = isMessageFieldValid
-//    ? nil
-//    : "Darf nicht leer sein"
+    checkSendButton()
+    (textView.superview as? TazTextView)?.errorMessage
+    = textView.text.isEmpty == true
+    ? "Bitte ausfüllen"
+    : nil
   }
 }
 
@@ -252,11 +237,18 @@ extension FeedbackView : UITextFieldDelegate{
   }
   
   public func textFieldDidEndEditing(_ textField: UITextField){
-//    if textField != senderMail.textfield { return}//only handle this here!
-//    checkSendButton()
-//    senderMail.bottomMessage = isSenderMailValid
-//    ? nil
-//    : "Muss E-Mail oder leer sein"
+    if textField != senderMail { return}
+    checkSendButton()
+    if isLoggedIn == false {
+      senderMail.bottomMessage = "Bitte ausfüllen"
+    }
+    else if type != FeedbackType.feedback
+              && !(textField.text ?? "").isValidEmail() {
+      senderMail.bottomMessage = "Muss E-Mail oder leer sein"
+    }
+    else {
+      senderMail.bottomMessage = nil
+    }
   }
   
   public func textViewDidChange(_ textView: UITextView) {
