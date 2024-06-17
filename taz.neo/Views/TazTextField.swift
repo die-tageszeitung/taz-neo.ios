@@ -114,7 +114,7 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
   }
   
   func updateHeightIfNeeded(force: Bool = false){
-    let selfW = self.frame.size.width
+    let selfW = self.frame.size.width - 2*Const.Size.DefaultPadding
     let plY = placeholderLabel.frame.origin.y
     guard force || plY > 0 else { return }
     guard force || abs(selfW - lastCalculatedPlaceholderHeightAlWidth) > 3 else { return }
