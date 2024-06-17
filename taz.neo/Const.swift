@@ -144,7 +144,7 @@ public struct Const {
         static let MenuBackground = UIColor.black
         static let MenuText = UIColor.rgb(0xebebf5)//darkSecondaryText
       #endif
-      static let Taz_BackgroundForms = UIColor.rgb(0x242424)
+      static let Taz_BackgroundForms = UIColor.rgb(0x353535)
       static let Taz_Notifications_error = UIColor.red//0xFF1919
       static let Taz_Notifications_errorText = UIColor.red//0xC01111
     }
@@ -487,7 +487,7 @@ public struct Const {
     }
     
     /// The font to use for content
-    static func contentFont(size: CGFloat) -> UIFont
+    static func contentFont(size: CGFloat = 30.0) -> UIFont
     { return font(name: contentFontName, size: size) }
     
     /// The font to use in titles
@@ -499,11 +499,11 @@ public struct Const {
     { return font(name: contentTableFontName, size: size) }
     
     /// The font to use in content tables
-    static func contentTextFont(size: CGFloat) -> UIFont
+    static func contentTextFont(size: CGFloat = Const.Size.DefaultFontSize) -> UIFont
     { return font(name: contentTextFont, size: size) }
     
     /// The font to use in modals
-    static func marketingHeadFont(size: CGFloat) -> UIFont
+    static func marketingHeadFont(size: CGFloat = 30.0) -> UIFont
     { return font(name: knileLight, size: size) }
     
     static var contentFont: UIFont = contentFont(size: Size.DefaultFontSize)
@@ -522,6 +522,8 @@ public struct Const {
     static let DT_Head_extrasmall = CGFloat(20.5)
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
+    static let TabletSidePadding = CGFloat(35.0)
+    static let BiggerPadding = CGFloat(20.0)
     static let NewTextFieldHeight = CGFloat(40.0)
     static let TextFieldHeight = CGFloat(36.0)//Default Height of Search Controllers Text Input
     static let SmallPadding = CGFloat(10.0)

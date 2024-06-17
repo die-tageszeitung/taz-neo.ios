@@ -135,23 +135,7 @@ class TazAppEnvironment: NSObject, DoesLog {
       self?.appWillTerminate()
     }
     setup()
-    copyDemoContent()
     registerForStyleUpdates()
-  }
-  
-  func copyDemoContent(){
-    let demoFiles = ["trial.html", "extend.html", "switch.html", "trial.jpg", "extend.jpg", "switch.jpg"]
-    for file in demoFiles {
-      let components = file.split(separator: ".")
-      guard let _filename = components.first,
-            let _ext = components.last else { continue }
-      let filename = String(_filename)
-      let ext = String(_ext)
-      if let url = Bundle.main.url(forResource: filename, withExtension: ext, subdirectory: "BundledResources") {
-        let file = File(url.path )
-        file.copy(to: Dir.appSupportPath.appending("/taz/resources/\(filename).\(ext)"))
-      }
-    }
   }
   
   func setup(){

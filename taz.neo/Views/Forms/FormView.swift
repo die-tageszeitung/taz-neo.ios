@@ -65,7 +65,7 @@ public class FormView: UIView {
     var tfTags : Int = 100
     
     for v in views {
-      var sideMargin = v is MarketingContainerWrapperView ? 0 : margin
+      let sideMargin = v is MarketingContainerWrapperView ? 0 : margin
       if v is KeyboardToolbarForText {
         v.tag = tfTags
         tfTags += 1
