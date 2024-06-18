@@ -30,6 +30,7 @@ public class LoginView : FormView{
   
   var marketingContainer: MarketingContainerWrapperView = MarketingContainerWrapperView()
   
+  var buttonWidthConstraints: [NSLayoutConstraint] = []
   
   var whereIsTheAboId: Padded.View = {
     let lbl = UILabel()
@@ -89,11 +90,27 @@ public class LoginView : FormView{
     
   static let miniPadding = 0.0
   
+  override public func updateCustomConstraints() {
+    super.updateCustomConstraints()
+    let isTabletLayout = isTabletLayout
+    buttonWidthConstraints.forEach { c in c.isActive = isTabletLayout }
+    marketingContainer.updateCustomConstraints(isTabletLayout: isTabletLayout)
+  }
+  
   override func createSubviews() -> [UIView] {
     idInput.paddingBottom = Self.miniPadding
     passInput.paddingBottom = Self.miniPadding
     loginButton.paddingBottom = 30//add some extra Padding
     loginButton.paddingBottom = 30//add some extra Padding
+    
+    buttonWidthConstraints.append(
+      loginButton.pinWidth(Const.Size.TabletFormMinWidth/2, 
+                           relation: .lessThanOrEqual,
+                           priority: .required))
+    buttonWidthConstraints.append(
+      cancelButton.pinWidth(Const.Size.TabletFormMinWidth/2, 
+                            relation: .lessThanOrEqual,
+                            priority: .required))
     
     let label
     = Padded.Label(title: "Anmeldung für Digital-Abonnent:innen")
@@ -166,7 +183,6 @@ public class LoginView : FormView{
   
   func dottedLine() -> UIView {
     let dottedLine = DottedLineView()
-//    dottedLine.offset = 1.7
     dottedLine.pinHeight(Const.Size.DottedLineHeight*1.2)
     dottedLine.fillColor = Const.SetColor.HText.color
     dottedLine.strokeColor = Const.SetColor.HText.color
@@ -189,25 +205,28 @@ public class LoginView : FormView{
                                      title: Localized("login_extend_print_with_digi_title"),
                                      text: Localized("login_extend_print_with_digi_body"),
                                      imageName: "BundledResources/extend.jpg")
-    marketingContainer.addSubview(mc1)
-    marketingContainer.addSubview(dottedLine1)
-    marketingContainer.addSubview(mc2)
-    marketingContainer.addSubview(dottedLine2)
-    marketingContainer.addSubview(mc3)
-    pin(mc1, to: marketingContainer, exclude: .bottom)
-    pin(dottedLine1.left, to: marketingContainer.left, dist: Const.Size.DefaultPadding)
-    pin(dottedLine1.right, to: marketingContainer.right, dist: -Const.Size.DefaultPadding)
-    pin(mc2.left, to: marketingContainer.left)
-    pin(mc2.right, to: marketingContainer.right)
-    pin(dottedLine2.left, to: marketingContainer.left, dist: Const.Size.DefaultPadding)
-    pin(dottedLine2.right, to: marketingContainer.right, dist: -Const.Size.DefaultPadding)
-    pin(mc3.left, to: marketingContainer.left)
-    pin(mc3.right, to: marketingContainer.right)
-    pin(mc3.bottom, to: marketingContainer.bottom, dist: -30.0)
-    pin(dottedLine1.top, to: mc1.bottom, dist: 2*Const.Size.BiggerPadding)
-    pin(mc2.top, to: dottedLine1.bottom)
-    pin(dottedLine2.top, to: mc2.bottom, dist: 2*Const.Size.BiggerPadding)
-    pin(mc3.top, to: dottedLine2.bottom)
+    marketingContainer.addViewToWrapper(mc1)
+    marketingContainer.addViewToWrapper(dottedLine1)
+    marketingContainer.addViewToWrapper(mc2)
+    marketingContainer.addViewToWrapper(dottedLine2)
+    marketingContainer.addViewToWrapper(mc3)
+    pin(dottedLine1.left, to: marketingContainer.wrapper.left)
+    pin(dottedLine1.right, to: marketingContainer.wrapper.right)
+    pin(mc2.left, to: marketingContainer.wrapper.left)
+    pin(mc2.right, to: marketingContainer.wrapper.right)
+    pin(dottedLine2.left, to: marketingContainer.wrapper.left)
+    pin(dottedLine2.right, to: marketingContainer.wrapper.right)
+    pin(mc3.left, to: marketingContainer.wrapper.left)
+    pin(mc3.right, to: marketingContainer.wrapper.right)
+    
+    pin(mc1, to: marketingContainer.wrapper, exclude: .bottom)
+    pin(dottedLine1.top, to: mc1.bottom, dist: Const.Dist2.l)
+    pin(mc2.top, to: dottedLine1.bottom, dist: Const.Dist2.m15)
+    pin(dottedLine2.top, to: mc2.bottom, dist: Const.Dist2.l)
+    pin(mc3.top, to: dottedLine2.bottom, dist: Const.Dist2.m15)
+    pin(mc3.bottom,
+        to: marketingContainer.wrapper.bottom,
+        dist: -2*Const.Dist2.l)///2 times because of overflow in scrollview to hide grey bg
     marketingContainer.backgroundColor = Const.SetColor.HBackground.color
   }
 }
@@ -232,172 +251,5 @@ public class NotLinkedLoginAboIDView : LoginView {
       connectButton,
       passForgottButton
     ]
-  }
-}
-
-class MarketingContainerWrapperView: UIView {}
-
-class MarketingContainerView: Padded.View {
-  
-  var imageLeftAligned: Bool
-  
-  var button: Padded.Button
-  var titleLabel = UILabel()
-  var textLabel = UILabel()
-  var imageView = UIImageView()
-  
-  var firstWrapper = UIView()
-  var secondWrapper = UIView()
-  
-  var first2sv_bottomConstraint: NSLayoutConstraint?
-  var first2sv_rightConstraint: NSLayoutConstraint?
-  
-  var second2sv_topConstraint: NSLayoutConstraint?
-  var second2sv_leftConstraint: NSLayoutConstraint?
-  
-  var first2second_verticalConstraint: NSLayoutConstraint?
-  var firstHalf_widthConstraint: NSLayoutConstraint?
-  var secondHalf_widthConstraint: NSLayoutConstraint?
-  
-  var imageAspectConstraint: NSLayoutConstraint?
-  
-  func setup(){
-    if imageLeftAligned {
-      secondWrapper.addSubview(titleLabel)
-      secondWrapper.addSubview(textLabel)
-      firstWrapper.addSubview(imageView)
-    }
-    else {
-      firstWrapper.addSubview(titleLabel)
-      firstWrapper.addSubview(textLabel)
-      secondWrapper.addSubview(imageView)
-    }
-    
-    let imgSv = imageLeftAligned ? firstWrapper : secondWrapper
-    let lblSv = imageLeftAligned ? secondWrapper : firstWrapper
-    
-    firstWrapper.addBorder(.yellow)
-    secondWrapper.addBorder(.green)
-    
-    self.addBorder(.red)
-    
-    titleLabel.addBorder(.blue)
-    textLabel.addBorder(.systemPink)
-    imageView.addBorder(.purple)
-    button.addBorder(.magenta)
-    
-    self.addSubview(firstWrapper)
-    self.addSubview(secondWrapper)
-    self.addSubview(button)
-    
-    pin(titleLabel, to: lblSv, dist: Const.Size.DefaultPadding, exclude: .bottom)
-    pin(textLabel, to: lblSv, dist: Const.Size.DefaultPadding, exclude: .top)
-    pin(textLabel.top, to: titleLabel.bottom, dist: Const.Size.SmallPadding)
-    
-    pin(imageView, to: imgSv, dist: Const.Size.DefaultPadding)
-    imageView.contentMode = .scaleAspectFit
-    if let img = imageView.image,
-       img.size.width > 0,
-       img.size.height > 0 {
-      imageView.pinAspect(ratio: img.size.width/img.size.height, priority: .defaultHigh)
-    }
-    
-    let c1 = pin(firstWrapper, to: self)
-    first2sv_bottomConstraint = c1.bottom
-    first2sv_rightConstraint = c1.right
-    first2sv_bottomConstraint?.isActive = false
-    first2sv_rightConstraint?.isActive = false
-    c1.bottom.constant = -46 //dist for button
-    
-    let c2 = pin(secondWrapper, to: self)
-    second2sv_topConstraint = c2.top
-    second2sv_leftConstraint = c2.left
-    second2sv_topConstraint?.isActive = false
-    second2sv_leftConstraint?.isActive = false
-    c2.bottom.constant = -46 //dist for button
-    
-    firstHalf_widthConstraint = firstWrapper.pinWidth(to: self.width, factor: 0.5)
-    secondHalf_widthConstraint = secondWrapper.pinWidth(to: self.width, factor: 0.5)
-    first2second_verticalConstraint = pin(secondWrapper.top, to: firstWrapper.bottom)
-    
-    titleLabel.numberOfLines = 0
-    titleLabel.textAlignment = .left
-    titleLabel.marketingHead()
-    
-    textLabel.numberOfLines = 0
-    textLabel.textAlignment = .left
-    textLabel.contentFont()
-    
-    self.backgroundColor = Const.SetColor.HBackground.color
-    
-    pin(button.bottom, to: self.bottom)
-    pin(button.width, to: firstWrapper.width, dist: -2*Const.Size.DefaultPadding)
-    if imageLeftAligned {
-      pin(button.right, to: self.right, dist: -Const.Size.DefaultPadding)
-    }
-    else {
-      pin(button.left, to: self.left, dist: Const.Size.DefaultPadding)
-    }
-  }
-  
-  override func layoutSubviews() {
-    resetConstrainsIfNeeded()
-    super.layoutSubviews()
-  }
-  
-  var updatedConstrainsAtWidth: CGFloat = 0.0
-  
-  func resetConstrainsIfNeeded(){
-    if abs(updatedConstrainsAtWidth - self.frame.size.width) < 10 { return }
-    updatedConstrainsAtWidth = self.frame.size.width
-    first2sv_bottomConstraint?.isActive = false
-    first2sv_rightConstraint?.isActive = false
-    second2sv_topConstraint?.isActive = false
-    second2sv_leftConstraint?.isActive = false
-    firstHalf_widthConstraint?.isActive = false
-    secondHalf_widthConstraint?.isActive = false
-    first2second_verticalConstraint?.isActive = false
-    imageAspectConstraint?.isActive = false
-    if self.frame.size.width > 550 {
-      first2sv_bottomConstraint?.isActive = true
-      second2sv_topConstraint?.isActive = true
-      firstHalf_widthConstraint?.isActive = true
-      secondHalf_widthConstraint?.isActive = true
-    }
-    else {
-      first2sv_rightConstraint?.isActive = true
-      second2sv_leftConstraint?.isActive = true
-      first2second_verticalConstraint?.isActive = true
-      imageAspectConstraint?.isActive = true
-    }
-  }
-  
-  
-  /// Creates Marketing Container View with given Layout
-  /// - Parameters:
-  ///   - button: Button for Action
-  ///   - title: Title for MarketingContainer
-  ///   - text: Text for MarketingContainer
-  ///   - imageName: image to use
-  ///   - imageLeftAligned: true if image left and Text/Button right; false otherwise
-  init(button: Padded.Button,
-       title: String,
-       text:String,
-       imageName:String?,
-       imageLeftAligned: Bool = false
-  ) {
-    self.imageLeftAligned = imageLeftAligned
-    self.button = button
-    self.titleLabel.text = title
-    self.textLabel.attributedText = text.attributedStringWith(lineHeightMultiplier: 1.25)
-    if let img = imageName {
-        self.imageView.image = UIImage(named: img)
-    }
-    super.init(frame: .zero)
-    setup()
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
   }
 }

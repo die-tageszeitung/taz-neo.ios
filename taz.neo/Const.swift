@@ -523,6 +523,7 @@ public struct Const {
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
     static let TabletSidePadding = CGFloat(35.0)
+    static let TabletFormMinWidth = CGFloat(550.0)
     static let BiggerPadding = CGFloat(20.0)
     static let NewTextFieldHeight = CGFloat(40.0)
     static let TextFieldHeight = CGFloat(36.0)//Default Height of Search Controllers Text Input
@@ -590,9 +591,26 @@ public struct Const {
     }
   }
   
-  /// Various Shadow values
+  /// Various Shadow values??
   struct Dist {
     static let margin: CGFloat = 12.0
+  }
+  
+  struct Dist2 {
+    /// small dist beetween related elements e.g. Image and Caption
+    static let s5: CGFloat = 5.0
+    /// small dist beetween related elements e.g. Headline and Subhead or same types of objects
+    static let s10: CGFloat = 10.0
+    /// medium dist to seperate components wich are not related together; e.g. top/left/right margin; inner elements
+    static let m15: CGFloat = 15.0
+    /// medium dist to seperate components wich are not related together; e.g. Image/Head; Text/Info, Buttons
+    static let m20: CGFloat = 20.0
+    /// medium dist to seperate components wich are not related together; e.g. Form Fields
+    static let m25: CGFloat = 25.0
+    /// medium dist to seperate components wich are not related together; e.g. before Buttons; between caption and Headline
+    static let m30: CGFloat = 30.0
+    ///biggest dist at end of content
+    static let l: CGFloat = 40.0
   }
   
 } // Const

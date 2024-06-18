@@ -550,7 +550,7 @@ extension HomeTVC {
   fileprivate func setupCarouselControllerCell() {
     carouselController.view.isAccessibilityElement = false
     carouselControllerCell.contentView.addSubview(carouselController.view)
-    pin(carouselController.view, toSafe: carouselControllerCell).bottom.constant = -UIWindow.topInset
+    pin(carouselController.view, toSafe: carouselControllerCell).bottom?.constant = -UIWindow.topInset
     carouselControllerCell.backgroundColor = .clear
     
     Notification.receive(Const.NotificationNames.authenticationSucceeded) { _ in

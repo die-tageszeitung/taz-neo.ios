@@ -37,6 +37,10 @@
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
 		7709E3162BEBA70400AC27F3 /* LastReadBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */; };
+		77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */; };
+		77129FFF2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */; };
+		7712A0012C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */; };
+		7712A0022C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */; };
 		7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968C25CC605D00508DE8 /* FeedbackViewController.swift */; };
 		7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968D25CC605D00508DE8 /* FeedbackComposer.swift */; };
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
@@ -315,6 +319,8 @@
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
 		7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastReadBusiness.swift; sourceTree = "<group>"; };
+		77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketingContainerWrapperView.swift; sourceTree = "<group>"; };
+		7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketingContainerView.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
 		7715968D25CC605D00508DE8 /* FeedbackComposer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackComposer.swift; sourceTree = "<group>"; };
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
@@ -501,6 +507,8 @@
 				006E17E824D418090092DC0D /* FormComponents.swift */,
 				77BA74642892836600D1039B /* SubscriptionFormView.swift */,
 				774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */,
+				77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */,
+				7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */,
 			);
 			path = Forms;
 			sourceTree = "<group>";
@@ -1123,6 +1131,7 @@
 				AE5131962AFBCADB002289E8 /* NotificationsView.swift in Sources */,
 				AE5131972AFBCADB002289E8 /* CarouselController.swift in Sources */,
 				AE5131982AFBCADB002289E8 /* InfoToaster.swift in Sources */,
+				77129FFF2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
 				AE5131992AFBCADB002289E8 /* IssueTilesCVC.swift in Sources */,
 				AE51319A2AFBCADB002289E8 /* SettingsVC.swift in Sources */,
 				AE51319B2AFBCADB002289E8 /* FormComponents.swift in Sources */,
@@ -1162,6 +1171,7 @@
 				AE5131BA2AFBCADB002289E8 /* SliderTest.swift in Sources */,
 				77791EB62BA0602200E9C0D9 /* CoachmarkView.swift in Sources */,
 				AE5131BB2AFBCADB002289E8 /* TazAppEnvironment.swift in Sources */,
+				7712A0022C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */,
 				AE5131BC2AFBCADB002289E8 /* SearchHeaderView.swift in Sources */,
 				7758CCBA2B504E4D000B8E30 /* _LMdSliderCell.swift in Sources */,
 				AE5131BD2AFBCADB002289E8 /* ArticleVC.swift in Sources */,
@@ -1248,6 +1258,7 @@
 				773500B92A1C0B7E00678647 /* IssueCollectionViewActions.swift in Sources */,
 				773500AF2A1C0A7C00678647 /* IssueCarouselCVC.swift in Sources */,
 				77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */,
+				77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
 				779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */,
 				773500B12A1C0A7C00678647 /* IssueTilesCVC.swift in Sources */,
@@ -1315,6 +1326,7 @@
 				AEBAF594219ACFAC00566205 /* TestController.swift in Sources */,
 				778F741825CC60C80017E426 /* TazTextField.swift in Sources */,
 				AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */,
+				7712A0012C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */,
 				77ECD87C2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift in Sources */,
 				AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */,
 				774C27462BA05BA800835BB9 /* VirtualArticle.swift in Sources */,
