@@ -159,6 +159,7 @@ class ArticlePlayer: DoesLog {
   }
   
   private func playDisclaimer(){
+    if TazAppEnvironment.sharedInstance.audioDisclaimerPlayed == true { return }
     if isDisclaimer {
       self.pause()
       let cc = currentContent
@@ -174,6 +175,7 @@ class ArticlePlayer: DoesLog {
       disclaimer = disclaimerUrlFemale ?? disclaimerUrlMale
     }
     if disclaimer == nil { return }
+    TazAppEnvironment.sharedInstance.audioDisclaimerPlayed = true
     userInterface.slider.value = 0.0
     aplayer.file = disclaimer
     aplayer.image = UIImage(named: "AppIcon60x60")

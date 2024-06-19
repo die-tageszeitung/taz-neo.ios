@@ -54,6 +54,8 @@ class TazAppEnvironment: NSObject, DoesLog {
     }
   }
   
+  var audioDisclaimerPlayed: Bool = false
+  
   private var threeFingerAlertOpen: Bool = false
   private var devGestureRecognizer: UIGestureRecognizer?
   
