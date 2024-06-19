@@ -43,7 +43,6 @@ public class LoginView : FormView{
     pin(lbl, to: wrapper).right.priority = .defaultLow
     lbl.setContentHuggingPriority(.required, for: .horizontal)
     lbl.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-    wrapper.paddingBottom = miniPadding
     wrapper.paddingTop = 5.0
     return wrapper
   }()
@@ -60,7 +59,6 @@ public class LoginView : FormView{
     pin(lbl, to: wrapper).right.priority = .defaultLow
     lbl.setContentHuggingPriority(.required, for: .horizontal)
     lbl.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-    wrapper.paddingBottom = miniPadding
     wrapper.paddingTop = 5.0
     return wrapper
   }()
@@ -87,8 +85,6 @@ public class LoginView : FormView{
   var extendButton
   = Padded.Button(type: .outline, title: Localized("login_extend_print_with_digi_button_text"))
     
-  static let miniPadding = 0.0
-  
   override public func updateCustomConstraints() {
     super.updateCustomConstraints()
     let isTabletLayout = isTabletLayout
@@ -102,13 +98,11 @@ public class LoginView : FormView{
     label.boldContentFont(size: Const.Size.DT_Head_extrasmall).align(.left)
     label.paddingBottom = 25.0
     
-    idInput.paddingBottom = Self.miniPadding
     helpButton.paddingBottom = 25.0
-    passInput.paddingBottom = Self.miniPadding
-    passForgottButton.paddingBottom = Const.Dist2.m30
-    loginButton.paddingBottom = Const.Dist2.m25
-    privacyLabel.paddingBottom = Const.Dist2.l
-    
+    passForgottButton.paddingBottom = Const.Dist2.m15
+    privacyLabel.paddingBottom = Const.Dist2.m20
+    loginButton.paddingBottom = Const.Dist2.m30
+
     buttonWidthConstraint
     = loginButton.pinWidth(Const.Size.TabletFormMinWidth/2,
                            relation: .lessThanOrEqual,
@@ -128,8 +122,8 @@ public class LoginView : FormView{
       helpButton,
       passInput,
       passForgottButton,
-      loginButton,
       privacyLabel,
+      loginButton,
       marketingContainer
     ]
   }
