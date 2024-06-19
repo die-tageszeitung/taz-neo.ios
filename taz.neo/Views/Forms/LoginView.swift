@@ -23,16 +23,15 @@ public class LoginView : FormView{
                                enablesReturnKeyAutomatically: true)
   
   var loginButton = Padded.Button(title: Localized("login_button"))
-  var cancelButton = Padded.Button(type: .outline, title: Localized("cancel_button"))
   
   var registerButton = Padded.Button(type: .outline,
                                 title: Localized("register_free_button"))
   
   var marketingContainer: MarketingContainerWrapperView = MarketingContainerWrapperView()
   
-  var buttonWidthConstraints: [NSLayoutConstraint] = []
+  var buttonWidthConstraint: NSLayoutConstraint?
   
-  var whereIsTheAboId: Padded.View = {
+  var helpButton: Padded.View = {
     let lbl = UILabel()
     lbl.text = "Hilfe"
     lbl.contentFont(size: Const.Size.SmallerFontSize)
@@ -93,50 +92,44 @@ public class LoginView : FormView{
   override public func updateCustomConstraints() {
     super.updateCustomConstraints()
     let isTabletLayout = isTabletLayout
-    buttonWidthConstraints.forEach { c in c.isActive = isTabletLayout }
+    buttonWidthConstraint?.isActive = isTabletLayout
     marketingContainer.updateCustomConstraints(isTabletLayout: isTabletLayout)
   }
   
   override func createSubviews() -> [UIView] {
-    idInput.paddingBottom = Self.miniPadding
-    passInput.paddingBottom = Self.miniPadding
-    loginButton.paddingBottom = 30//add some extra Padding
-    loginButton.paddingBottom = 30//add some extra Padding
-    
-    buttonWidthConstraints.append(
-      loginButton.pinWidth(Const.Size.TabletFormMinWidth/2, 
-                           relation: .lessThanOrEqual,
-                           priority: .required))
-    buttonWidthConstraints.append(
-      cancelButton.pinWidth(Const.Size.TabletFormMinWidth/2, 
-                            relation: .lessThanOrEqual,
-                            priority: .required))
-    
     let label
     = Padded.Label(title: "Anmeldung für Digital-Abonnent:innen")
     label.boldContentFont(size: Const.Size.DT_Head_extrasmall).align(.left)
     label.paddingBottom = 25.0
-    privacyLabel.paddingBottom = 25.0
-    cancelButton.paddingBottom = 25.0
-    whereIsTheAboId.paddingBottom = 25.0
+    
+    idInput.paddingBottom = Self.miniPadding
+    helpButton.paddingBottom = 25.0
+    passInput.paddingBottom = Self.miniPadding
+    passForgottButton.paddingBottom = Const.Dist2.m30
+    loginButton.paddingBottom = Const.Dist2.m25
+    privacyLabel.paddingBottom = Const.Dist2.l
+    
+    buttonWidthConstraint
+    = loginButton.pinWidth(Const.Size.TabletFormMinWidth/2,
+                           relation: .lessThanOrEqual,
+                           priority: .required)
     
     if App.isLMD {
       return   [
         label,
         idInput,
-        whereIsTheAboId,
+        helpButton,
         passInput,
         loginButton]
     }
     return   [
       label,
       idInput,
-      whereIsTheAboId,
+      helpButton,
       passInput,
       passForgottButton,
-      privacyLabel,
       loginButton,
-      cancelButton,
+      privacyLabel,
       marketingContainer
     ]
   }

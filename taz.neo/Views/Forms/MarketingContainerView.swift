@@ -61,7 +61,7 @@ class MarketingContainerView: Padded.View {
     
     pin(titleLabel, to: lblSv, exclude: .bottom)
     pin(textLabel, to: lblSv, exclude: .top)
-    pin(textLabel.top, to: titleLabel.bottom, dist: Const.Size.SmallPadding)
+    pin(textLabel.top, to: titleLabel.bottom, dist: Const.Dist2.s5)
     
     pin(imageView, to: imgSv)
     imageView.contentMode = .scaleAspectFit
@@ -85,7 +85,9 @@ class MarketingContainerView: Padded.View {
     secondHalf_widthConstraint = secondWrapper.pinWidth(to: self.width, dist: -Const.Size.DefaultPadding, factor: 0.5)
     firstHalf_widthConstraint?.isActive = false
     secondHalf_widthConstraint?.isActive = false
-    first2second_verticalConstraint = pin(secondWrapper.top, to: firstWrapper.bottom)
+    first2second_verticalConstraint = pin(secondWrapper.top,
+                                          to: firstWrapper.bottom,
+                                          dist: Const.Dist2.m15)
     
     titleLabel.numberOfLines = 0
     titleLabel.textAlignment = .left

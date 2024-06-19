@@ -21,14 +21,13 @@ class LoginController: FormsController {
     super.viewDidLoad()
     ui.idInput.text = DefaultAuthenticator.getUserData().id
     ui.loginButton.touch(self, action: #selector(handleLogin))
-    ui.cancelButton.touch(self, action: #selector(handleBack))
     ui.registerButton.touch(self, action: #selector(handleTrial))
     ui.trialSubscriptionButton.touch(self, action: #selector(handleTrial))
     ui.extendButton.touch(self, action: #selector(handleExtend))
     ui.switchButton.touch(self, action: #selector(handleSwitch))
     
     ui.passForgottButton.onTapping {   [weak self] _ in self?.handlePwForgot() }
-    ui.whereIsTheAboId.onTapping {   [weak self] _ in self?.handleWhereIsTheAboId() }
+    ui.helpButton.onTapping {   [weak self] _ in self?.handleWhereIsTheAboId() }
     ui.passInput.onResignFirstResponder = { [weak self] in
       guard let self = self else {return}
       self.handleLogin(self.ui.loginButton)
