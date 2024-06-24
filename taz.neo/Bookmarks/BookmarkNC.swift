@@ -49,7 +49,6 @@ class BookmarkNC: NavigationController {
     svc.header.titletype = .bigLeft
     svc.header.title = App.isTAZ ? "leseliste" : "Leseliste"
     svc.hidesBottomBarWhenPushed = false
-    svc.updateTapOnEdge(show: issue.allArticles.count > 10)
     return svc
   }
   
