@@ -510,7 +510,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       return NSNull()
     }
     self.bridge?.addfunc("setBookmark") { [weak self] jscall in
-      guard let self else { return NSNull() }
+      guard self != nil else { return NSNull() }
       if let args = jscall.args, args.count > 1,
          let name = args[0] as? String,
          let hasBookmark = args[1] as? Int {
@@ -961,13 +961,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       let oldCoverage = self.settingsBottomSheet?.coverage ?? 0
       let newCoverage = self.bottomSheetDefaultCoverage
       if abs(oldCoverage - newCoverage) < 2 { return }//no rotate
+      ///**Tip** If there are update with issues, look in git history former the menu was closed and re-opened to fix this
       self.settingsBottomSheet?.coverage =  newCoverage
-      if self.settingsBottomSheet?.isOpen == false  { return }
-      #warning("Is this still required?")
-//      self.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
-//        self?.settingsBottomSheet?.open()
-//        self?.settingsBottomSheet?.slideDown(self?.bottomSheetDefaultSlideDown ?? 0)
-//      })
     }
   }
   

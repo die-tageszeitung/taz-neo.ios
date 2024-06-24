@@ -474,15 +474,15 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     
     ///Update downloaded Issue Reference
-    Notification.receive("issue"){ [weak self] notif in
-      guard let err = notif.userInfo!["error"] as? Error else { return }
+    Notification.receive("issue"){ notif in
+      guard notif.userInfo!["error"] is Error else { return }
       Notification.send("issueProgress",
                         content: DownloadStatusIndicatorState.notStarted,
                         sender: notif.object)
     }
     ///Update downloaded Issue Reference
     Notification.receive("issueStructure"){ notif in
-      guard let err = notif.userInfo!["error"] as? Error else { return }
+      guard notif.userInfo!["error"] is Error else { return }
       Notification.send("issueProgress",
                         content: DownloadStatusIndicatorState.notStarted,
                         sender: notif.object)

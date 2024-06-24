@@ -32,8 +32,6 @@ extension FeederContext {
     if !isConnected {
       //Skip Offline Start Deathlock //TODO TEST either notify("resourcesReady"); or:
       isUpdatingResources = false
-      #warning("TODO")
-//      noConnection()
       return
     }
     // update from server needed

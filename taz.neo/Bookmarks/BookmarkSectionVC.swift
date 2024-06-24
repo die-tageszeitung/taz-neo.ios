@@ -59,22 +59,9 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
     self.headerPlayButton.buttonView.isHidden = !issue.hasAudio
   }
   
-  func updateTapOnEdge(show: Bool? = nil){
-    let ctH = self.currentWebView?.scrollView.contentSize.height
-    if show == nil && (ctH ?? 0.0) == 0.0 { return }
-    let show = show ?? ((ctH ?? 0.0) * 0.8  > UIWindow.size.height)
-    ///topInset looks strange, something is wrong but the result/placement is over multiple devices the best currently
-    ///maybe re-think sectionVC with Tabbar insets and pin
-  }
-  
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     updateAudioButton()
-  }
-  
-  public override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    updateTapOnEdge()
   }
   
   // We don't have a toolbar

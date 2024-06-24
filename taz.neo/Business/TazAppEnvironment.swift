@@ -171,7 +171,6 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   func startup() {
     let dfl = Defaults.singleton
-    let oneWeek = 7*24*3600
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
     debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
