@@ -95,6 +95,8 @@
 		77B993DA2AC4706600C7D832 /* Usage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D92AC4706600C7D832 /* Usage.swift */; };
 		77B993DD2AC47F6400C7D832 /* MatomoTracker in Frameworks */ = {isa = PBXBuildFile; productRef = 77B993DC2AC47F6400C7D832 /* MatomoTracker */; };
 		77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA74642892836600D1039B /* SubscriptionFormView.swift */; };
+		77C766752C29C2EB00198324 /* TazAppEnvironment+ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */; };
+		77C766762C29C30300198324 /* LastReadBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */; };
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77CB2D202A8148EA00021804 /* UIAlertAction+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CB2D1F2A8148EA00021804 /* UIAlertAction+Extension.swift */; };
 		77CB2D222A814A3100021804 /* FeederContext+IssueDownload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CB2D212A814A3100021804 /* FeederContext+IssueDownload.swift */; };
@@ -1117,6 +1119,7 @@
 				AE5131882AFBCADB002289E8 /* TazPdfPagesViewController.swift in Sources */,
 				AE5131892AFBCADB002289E8 /* KeychainTest.swift in Sources */,
 				AE51318A2AFBCADB002289E8 /* GqlFeederSearch.swift in Sources */,
+				77C766752C29C2EB00198324 /* TazAppEnvironment+ErrorHandling.swift in Sources */,
 				AE51318B2AFBCADB002289E8 /* TrialSubscriptionView.swift in Sources */,
 				AE51318C2AFBCADB002289E8 /* SearchSettingsView.swift in Sources */,
 				AE51318D2AFBCADB002289E8 /* MainTabVC.swift in Sources */,
@@ -1146,6 +1149,7 @@
 				AE5131A32AFBCADB002289E8 /* SearchResultIssue.swift in Sources */,
 				AE5131A42AFBCADB002289E8 /* ArticlePlayer.swift in Sources */,
 				AE5131A52AFBCADB002289E8 /* DefaultAuthenticator.swift in Sources */,
+				77C766762C29C30300198324 /* LastReadBusiness.swift in Sources */,
 				AE5131A62AFBCADB002289E8 /* FormsController.swift in Sources */,
 				7758CCB32B504DAA000B8E30 /* LMdSliderHeader.swift in Sources */,
 				AE5131A72AFBCADB002289E8 /* FeederContext+Notifications.swift in Sources */,
