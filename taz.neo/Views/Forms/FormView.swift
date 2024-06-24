@@ -18,12 +18,15 @@ public class FormView: UIView {
   let container = UIView()
   let scrollView = UIScrollView()
   
+  var leftSideConstraints: [NSLayoutConstraint] = []
+  var rightSideConstraints: [NSLayoutConstraint] = []
+  
   let blockingView = BlockingProcessView()
   
   public var hasUserInput : Bool {
     for v in views ?? [] {
       if (v as? TazTextField)?.text?.length ?? 0 > 0 { return true }
-      if (v as? ViewWithTextView)?.text?.length ?? 0 > 0 { return true }
+      if (v as? TazTextView)?.text?.length ?? 0 > 0 { return true }
     }
     return false
   }
@@ -42,6 +45,32 @@ public class FormView: UIView {
   ///if not overwritten and no [views] provided, a taz header is used
   func createSubviews() -> [UIView] { return [TazHeader()] }
   
+  var updatedConstrainsAtWidth: CGFloat = 0.0
+  
+  public override func layoutSubviews() {
+    updateCustomConstraintsIfNeeded()
+    super.layoutSubviews()
+  }
+  
+  public func updateCustomConstraintsIfNeeded() {
+    if abs(updatedConstrainsAtWidth - self.frame.size.width) < 10 { return }
+    updatedConstrainsAtWidth = self.frame.size.width
+    updateCustomConstraints()
+  }
+  
+  var isTabletLayout: Bool {
+    return self.frame.size.width > Const.Size.TabletFormMinWidth
+  }
+  
+  public func updateCustomConstraints() {
+    let dist
+    = isTabletLayout
+    ? Const.Size.TabletSidePadding
+    : Const.Size.DefaultPadding
+    leftSideConstraints.forEach { c in c.constant = dist }
+    rightSideConstraints.forEach { c in c.constant = -dist }
+  }
+  
   // MARK: createSubviews need to be overwritten in inherited
   public override func willMove(toSuperview newSuperview: UIView?) {
     if newSuperview != nil {///do nothing if removed
@@ -55,7 +84,7 @@ public class FormView: UIView {
   // MARK: addAndPin
   func addAndPin(_ views: [UIView]){
     self.subviews.forEach({ $0.removeFromSuperview() })
-    self.backgroundColor = Const.SetColor.CTBackground.color
+    self.backgroundColor = Const.SetColor.taz2(.backgroundForms).color
     if views.isEmpty { return }
     self.views = views
     
@@ -65,7 +94,6 @@ public class FormView: UIView {
     var tfTags : Int = 100
     
     for v in views {
-      
       if v is KeyboardToolbarForText {
         v.tag = tfTags
         tfTags += 1
@@ -73,27 +101,34 @@ public class FormView: UIView {
       //add
       container.addSubview(v)
       //pin
+      if v is MarketingContainerWrapperView {
+        pin(v.left, to: container.left)
+        pin(v.right, to: container.right)
+      }
+      else {
+        leftSideConstraints.append(pin(v.left, to: container.left, dist: margin))
+        rightSideConstraints.append(pin(v.right, to: container.right, dist: -margin, priority: UILayoutPriority(950)))
+      }
+
       if previous == nil {
-        pin(v.left, to: container.left, dist: margin)
-        pin(v.right, to: container.right, dist: -margin)
         pin(v.top, to: container.top, dist: margin + 30)//Top Margin
       }
       else {
-        pin(v.left, to: container.left, dist: margin)
-        pin(v.right, to: container.right, dist: -margin)
         pin(v.top, to: previous!.bottom, dist: padding(previous!, v))
       }
       previous = v
     }
-    pin(previous!.bottom, to: container.bottom, dist: -margin - 30.0)
+    if previous is MarketingContainerWrapperView {
+      pin(previous!.bottom, to: container.bottom, dist: Const.Dist2.l + Const.Dist2.m15)
+    }
+    else {
+      pin(previous!.bottom, to: container.bottom, dist: -margin - 30.0)
+    }
     
     scrollView.addSubview(container)
     NorthLib.pin(container, to: scrollView)
     self.addSubview(scrollView)
     NorthLib.pin(scrollView, to: self)
-//    container.addBorder(.green)
-//    scrollView.addBorder(.red, 2.0)
-//    self.addBorder(.blue, 4.0)
     self.addSubview(blockingView)
     NorthLib.pin(blockingView, to: self)
   }

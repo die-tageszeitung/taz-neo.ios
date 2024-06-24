@@ -206,7 +206,6 @@ extension Defaults {
      : columnsCountSetting
   */
   
-
   static var expiredAccount : Bool { return expiredAccountDate != nil }
   static var expiredAccountText : String? {
     guard let d = expiredAccountDate else { return nil }

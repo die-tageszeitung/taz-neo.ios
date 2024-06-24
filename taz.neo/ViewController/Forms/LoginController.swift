@@ -6,6 +6,7 @@
 //
 import UIKit
 import NorthLib
+import GameController
 
 // MARK: - LoginCtrl
 /// Presents Login Form and Functionallity
@@ -26,7 +27,7 @@ class LoginController: FormsController {
     ui.switchButton.touch(self, action: #selector(handleSwitch))
     
     ui.passForgottButton.onTapping {   [weak self] _ in self?.handlePwForgot() }
-    ui.whereIsTheAboId.onTapping {   [weak self] _ in self?.handleWhereIsTheAboId() }
+    ui.helpButton.onTapping {   [weak self] _ in self?.handleWhereIsTheAboId() }
     ui.passInput.onResignFirstResponder = { [weak self] in
       guard let self = self else {return}
       self.handleLogin(self.ui.loginButton)
@@ -38,7 +39,7 @@ class LoginController: FormsController {
   @IBAction func handleLogin(_ sender: UIButton) {
     ui.blocked = true
     if let errormessage = ui.validate() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
       return
     }
@@ -48,7 +49,7 @@ class LoginController: FormsController {
         self.queryCheckSubscriptionId(aboId: "\(i)" ,aboIdPass: ui.passInput.text ?? "")
       } else {
         ui.idInput.bottomMessage = Localized("abo_id_validation_error_digit")
-        Toast.show(Localized("register_validation_issue"), .alert)
+        Alert.message(message: Localized("register_validation_issue"))
         ui.blocked = false
         return
       }
@@ -106,21 +107,21 @@ class LoginController: FormsController {
           }
         case .failure(let error):
           if error is URLError {
-            Toast.show(Localized("communication_breakdown"))
+            Alert.message(message: Localized("communication_breakdown"))
             self.ui.blocked = false
             return
           }
           
           guard let authStatusError = error as? AuthStatusError else {
             //generell error e.g. no connection
-            Toast.show(Localized("something_went_wrong_try_later"))
+            Alert.message(message: Localized("something_went_wrong_try_later"))
             self.ui.blocked = false
             return
           }
           switch authStatusError.status {
             case .invalid:
               //wrong Credentials
-              Toast.show(Localized("toast_login_failed_retry"), .alert)
+              Alert.message(message: Localized("toast_login_failed_retry"))
               self.ui.passInput.bottomMessage = Localized("register_validation_issue")
             case .expired:
               var expiredDate: Date?
@@ -152,7 +153,7 @@ class LoginController: FormsController {
             case .alreadyLinked: fallthrough //Makes no sense here!
             default:
               self.log("Auth with tazID should not have alreadyLinked as result", logLevel: .Error)
-              Toast.show(Localized("something_went_wrong_try_later"))
+              Alert.message(message: Localized("something_went_wrong_try_later"))
         }
       }
       self.ui.blocked = false
@@ -191,14 +192,28 @@ class LoginController: FormsController {
             case .invalid: fallthrough //tested 111&111
             case .notValidMail: fallthrough//tested
             default: //Falsche Credentials
-              Toast.show(Localized("toast_login_failed_retry"), .alert)
+              Alert.message(message: Localized("toast_login_wrong_retry"))
               self.ui.passInput.bottomMessage = Localized("register_validation_issue")
         }
         case .failure:
-          Toast.show(Localized("toast_login_failed_retry"))
+          Alert.message(message: Localized("toast_login_failed_retry"))
       }
       self.ui.blocked = false
     })
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    if #available(iOS 14.0, *) {
+      if Device.isIphone { return }
+      ui.passInput.onEnter {[weak self] in
+        guard let btn = self?.ui.loginButton else { return }
+        self?.handleLogin(btn)
+      }
+      if GCKeyboard.coalesced == nil { return }//no Hadrware Keyboard
+      if ui.idInput.text?.isEmpty == true { ui.idInput.becomeFirstResponder()}
+      else { ui.passInput.becomeFirstResponder()}
+    }
   }
 }
 

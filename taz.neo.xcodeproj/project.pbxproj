@@ -37,6 +37,10 @@
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
 		7709E3162BEBA70400AC27F3 /* LastReadBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */; };
+		77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */; };
+		77129FFF2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */; };
+		7712A0012C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */; };
+		7712A0022C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */; };
 		7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968C25CC605D00508DE8 /* FeedbackViewController.swift */; };
 		7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968D25CC605D00508DE8 /* FeedbackComposer.swift */; };
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
@@ -73,14 +77,15 @@
 		7758CCBD2B504E7F000B8E30 /* LMdPageArticleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBB2B504E7A000B8E30 /* LMdPageArticleCell.swift */; };
 		7758CCBF2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBE2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift */; };
 		7758CCC22B505181000B8E30 /* LMdSliderDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCC02B504F61000B8E30 /* LMdSliderDataModel.swift */; };
+		776CB3BB2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */; };
 		776E59C629ED25A3001D5C5B /* dot-day.svg in Resources */ = {isa = PBXBuildFile; fileRef = 776E59C429ED25A3001D5C5B /* dot-day.svg */; };
 		776E59C729ED25A3001D5C5B /* dot-night.svg in Resources */ = {isa = PBXBuildFile; fileRef = 776E59C529ED25A3001D5C5B /* dot-night.svg */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
 		77791EB62BA0602200E9C0D9 /* CoachmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27472BA05C4500835BB9 /* CoachmarkView.swift */; };
 		777A49292B5817D6006956B7 /* CvSeperator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777A49282B5817D6006956B7 /* CvSeperator.swift */; };
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
-		778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
-		778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
+		778F741825CC60C80017E426 /* TazTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* TazTextField.swift */; };
+		778F741B25CC61340017E426 /* TazTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* TazTextView.swift */; };
 		779DE96126FA3D790056187B /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779DE96026FA3D790056187B /* SettingsVC.swift */; };
 		779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779EF0CF2A03A16200D6A626 /* InfoToaster.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
@@ -203,7 +208,7 @@
 		AE5131C02AFBCADB002289E8 /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		AE5131C12AFBCADB002289E8 /* GraphQlSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE82262C232A70E000FFBE67 /* GraphQlSession.swift */; };
 		AE5131C22AFBCADB002289E8 /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
-		AE5131C32AFBCADB002289E8 /* ViewWithTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* ViewWithTextView.swift */; };
+		AE5131C32AFBCADB002289E8 /* TazTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* TazTextView.swift */; };
 		AE5131C42AFBCADB002289E8 /* InfoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773D564126145E8500B42FEF /* InfoToast.swift */; };
 		AE5131C52AFBCADB002289E8 /* FeederContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEC7D46C249A598B008630FB /* FeederContext.swift */; };
 		AE5131C62AFBCADB002289E8 /* DataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE822631232A717E00FFBE67 /* DataModel.swift */; };
@@ -221,7 +226,7 @@
 		AE5131D22AFBCADB002289E8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		AE5131D32AFBCADB002289E8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
 		AE5131D42AFBCADB002289E8 /* TestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBAF58D219ACFAC00566205 /* TestController.swift */; };
-		AE5131D52AFBCADB002289E8 /* ViewWithTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* ViewWithTextField.swift */; };
+		AE5131D52AFBCADB002289E8 /* TazTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* TazTextField.swift */; };
 		AE5131D62AFBCADB002289E8 /* StartupVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAEE0002456D9EC00F627FE /* StartupVC.swift */; };
 		AE5131D72AFBCADB002289E8 /* PushNotification.Payload+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */; };
 		AE5131D82AFBCADB002289E8 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
@@ -314,6 +319,8 @@
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
 		7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastReadBusiness.swift; sourceTree = "<group>"; };
+		77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketingContainerWrapperView.swift; sourceTree = "<group>"; };
+		7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketingContainerView.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
 		7715968D25CC605D00508DE8 /* FeedbackComposer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackComposer.swift; sourceTree = "<group>"; };
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
@@ -350,14 +357,15 @@
 		7758CCBE2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderCVFlowLayout.swift; sourceTree = "<group>"; };
 		7758CCC02B504F61000B8E30 /* LMdSliderDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderDataModel.swift; sourceTree = "<group>"; };
 		776158192743E8440044516C /* AppIcons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcons; sourceTree = "<group>"; };
+		776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TazAppEnvironment+ErrorHandling.swift"; sourceTree = "<group>"; };
 		776E59C429ED25A3001D5C5B /* dot-day.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "dot-day.svg"; sourceTree = "<group>"; };
 		776E59C529ED25A3001D5C5B /* dot-night.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "dot-night.svg"; sourceTree = "<group>"; };
 		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
 		77770EC62AC2161A00511841 /* ArticleDB 3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "ArticleDB 3.xcdatamodel"; sourceTree = "<group>"; };
 		777A49282B5817D6006956B7 /* CvSeperator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CvSeperator.swift; sourceTree = "<group>"; };
 		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
-		778F741525CC60C80017E426 /* ViewWithTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextField.swift; sourceTree = "<group>"; };
-		778F741A25CC61340017E426 /* ViewWithTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewWithTextView.swift; sourceTree = "<group>"; };
+		778F741525CC60C80017E426 /* TazTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazTextField.swift; sourceTree = "<group>"; };
+		778F741A25CC61340017E426 /* TazTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazTextView.swift; sourceTree = "<group>"; };
 		779DE96026FA3D790056187B /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
 		779EF0CF2A03A16200D6A626 /* InfoToaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToaster.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
@@ -499,6 +507,8 @@
 				006E17E824D418090092DC0D /* FormComponents.swift */,
 				77BA74642892836600D1039B /* SubscriptionFormView.swift */,
 				774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */,
+				77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */,
+				7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */,
 			);
 			path = Forms;
 			sourceTree = "<group>";
@@ -580,6 +590,7 @@
 				4D308ED9283404D400529592 /* TazAppEnvironment.swift */,
 				77B993D92AC4706600C7D832 /* Usage.swift */,
 				7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */,
+				776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */,
 			);
 			path = Business;
 			sourceTree = "<group>";
@@ -622,8 +633,8 @@
 				AECCE11D23FBF449007C2276 /* StartupView.swift */,
 				77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */,
 				77328429274F9F5B00B08535 /* TazCustomized.swift */,
-				778F741A25CC61340017E426 /* ViewWithTextView.swift */,
-				778F741525CC60C80017E426 /* ViewWithTextField.swift */,
+				778F741A25CC61340017E426 /* TazTextView.swift */,
+				778F741525CC60C80017E426 /* TazTextField.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1120,6 +1131,7 @@
 				AE5131962AFBCADB002289E8 /* NotificationsView.swift in Sources */,
 				AE5131972AFBCADB002289E8 /* CarouselController.swift in Sources */,
 				AE5131982AFBCADB002289E8 /* InfoToaster.swift in Sources */,
+				77129FFF2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
 				AE5131992AFBCADB002289E8 /* IssueTilesCVC.swift in Sources */,
 				AE51319A2AFBCADB002289E8 /* SettingsVC.swift in Sources */,
 				AE51319B2AFBCADB002289E8 /* FormComponents.swift in Sources */,
@@ -1159,6 +1171,7 @@
 				AE5131BA2AFBCADB002289E8 /* SliderTest.swift in Sources */,
 				77791EB62BA0602200E9C0D9 /* CoachmarkView.swift in Sources */,
 				AE5131BB2AFBCADB002289E8 /* TazAppEnvironment.swift in Sources */,
+				7712A0022C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */,
 				AE5131BC2AFBCADB002289E8 /* SearchHeaderView.swift in Sources */,
 				7758CCBA2B504E4D000B8E30 /* _LMdSliderCell.swift in Sources */,
 				AE5131BD2AFBCADB002289E8 /* ArticleVC.swift in Sources */,
@@ -1168,7 +1181,7 @@
 				AE5131C12AFBCADB002289E8 /* GraphQlSession.swift in Sources */,
 				774C27422BA05A7100835BB9 /* CoachmarksBusiness.swift in Sources */,
 				AE5131C22AFBCADB002289E8 /* AppOverlay.swift in Sources */,
-				AE5131C32AFBCADB002289E8 /* ViewWithTextView.swift in Sources */,
+				AE5131C32AFBCADB002289E8 /* TazTextView.swift in Sources */,
 				AE5131C42AFBCADB002289E8 /* InfoToast.swift in Sources */,
 				AE5131C52AFBCADB002289E8 /* FeederContext.swift in Sources */,
 				AE5131C62AFBCADB002289E8 /* DataModel.swift in Sources */,
@@ -1188,7 +1201,7 @@
 				AE5131D32AFBCADB002289E8 /* FeedbackHelper.swift in Sources */,
 				AE5131D42AFBCADB002289E8 /* TestController.swift in Sources */,
 				7758CCBF2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift in Sources */,
-				AE5131D52AFBCADB002289E8 /* ViewWithTextField.swift in Sources */,
+				AE5131D52AFBCADB002289E8 /* TazTextField.swift in Sources */,
 				AE5131D62AFBCADB002289E8 /* StartupVC.swift in Sources */,
 				AE5131D72AFBCADB002289E8 /* PushNotification.Payload+Extension.swift in Sources */,
 				AE5131D82AFBCADB002289E8 /* HeaderView.swift in Sources */,
@@ -1229,6 +1242,7 @@
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */,
+				776CB3BB2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift in Sources */,
 				7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */,
 				AE5DFACF267E10540035162C /* KeychainTest.swift in Sources */,
 				4D308ED6283404C700529592 /* GqlFeederSearch.swift in Sources */,
@@ -1244,6 +1258,7 @@
 				773500B92A1C0B7E00678647 /* IssueCollectionViewActions.swift in Sources */,
 				773500AF2A1C0A7C00678647 /* IssueCarouselCVC.swift in Sources */,
 				77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */,
+				77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
 				779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */,
 				773500B12A1C0A7C00678647 /* IssueTilesCVC.swift in Sources */,
@@ -1291,7 +1306,7 @@
 				77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */,
 				AE5D9EBD23E1B8160002C3B8 /* GraphQlSession.swift in Sources */,
 				77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */,
-				778F741B25CC61340017E426 /* ViewWithTextView.swift in Sources */,
+				778F741B25CC61340017E426 /* TazTextView.swift in Sources */,
 				773D564226145E8500B42FEF /* InfoToast.swift in Sources */,
 				AEC7D46D249A598B008630FB /* FeederContext.swift in Sources */,
 				AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */,
@@ -1309,8 +1324,9 @@
 				7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */,
 				7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */,
 				AEBAF594219ACFAC00566205 /* TestController.swift in Sources */,
-				778F741825CC60C80017E426 /* ViewWithTextField.swift in Sources */,
+				778F741825CC60C80017E426 /* TazTextField.swift in Sources */,
 				AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */,
+				7712A0012C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */,
 				77ECD87C2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift in Sources */,
 				AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */,
 				774C27462BA05BA800835BB9 /* VirtualArticle.swift in Sources */,
@@ -1419,7 +1435,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2024052702;
+				CURRENT_PROJECT_VERSION = 2024061901;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
@@ -1428,7 +1444,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.12;
+				MARKETING_VERSION = 1.1.14;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -1650,7 +1666,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2024052702;
+				CURRENT_PROJECT_VERSION = 2024061901;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -1658,7 +1674,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.12;
+				MARKETING_VERSION = 1.1.14;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1676,7 +1692,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2024052702;
+				CURRENT_PROJECT_VERSION = 2024061901;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -1684,7 +1700,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.12;
+				MARKETING_VERSION = 1.1.14;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

@@ -88,6 +88,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   func sectionIfAudio(atIndex: Int?) -> Section?{
+    if self.navigationController == nil { return nil }//Prevent Crash on not released old sectVC @see commit
     if let idx = atIndex,
        let section = contents.valueAt(idx) as? Section,
        section.type == .podcast,
@@ -276,9 +277,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       ///@Refactor: Thread 1: Fatal error: Unexpectedly found nil while unwrapping an Optional value
       ///StoredSection.type.getter
       ///Particular Download? => STOP?=> Account unexpired => Tap on Issue => Crash
-      self.slider?.collapsedButton = section.type == .advertisement
+      var hideItems
+      = section.type == .advertisement || section.type == .podcast
+      self.slider?.collapsedButton = hideItems
       
-      if section.type == .advertisement {
+      if hideItems {
         header.title = section.title ?? ""
         header.show(show: false, animated: true)
         toolBar.show(show:false, animated: true)

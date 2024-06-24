@@ -36,7 +36,6 @@ class PwForgottController: FormsController {
     ui.blocked = true
     guard let id = ui.idInput.text, !id.isEmpty  else {
       ui.idInput.bottomMessage = Localized("login_username_error_empty")
-      Toast.show(Localized("register_validation_issue"))
       ui.blocked = false
       return
     }
@@ -46,14 +45,12 @@ class PwForgottController: FormsController {
         self.mutateSubscriptionReset("\(i)")
       } else {
         ui.idInput.bottomMessage = Localized("abo_id_validation_error_digit")
-        Toast.show(Localized("register_validation_issue"), .alert)
         ui.blocked = false
         return
       }
     }
     else if !id.isValidEmail(){
       ui.idInput.bottomMessage = Localized("error_invalid_email_or_abo_id")
-      Toast.show(Localized("register_validation_issue"))
       ui.blocked = false
     }
     else{
@@ -79,7 +76,7 @@ class PwForgottController: FormsController {
         }
         //ToDo #901
         case .failure:
-          Toast.show(Localized("error"))
+          Alert.message(message: Localized("error"))
           self.log("An error occured in mutateSubscriptionReset: \(String(describing: result.error()))")
       }
       self.ui.blocked = false
@@ -99,14 +96,14 @@ class PwForgottController: FormsController {
               if let cdt = self.childDismissType { ctrl.dismissType = cdt}
               self.modalFromBottom(ctrl)
             case .invalidMail:
-              Toast.show(Localized("error_invalid_email_or_abo_id"))
+              Alert.message(message: Localized("error_invalid_email_or_abo_id"))
             case .mailError:
               fallthrough
             default:
-              Toast.show(Localized("error"))
+              Alert.message(message: Localized("error"))
         }
         case .failure:
-          Toast.show(Localized("error"))
+          Alert.message(message: Localized("error"))
           self.log("An error occured in mutatePasswordReset: \(String(describing: result.error()))")
       }
       self.ui.blocked = false
@@ -124,6 +121,11 @@ class PwForgottController: FormsController {
     else if let trialSView = parent.ui as? TrialSubscriptionView {
       trialSView.mailInput.text = idOrMail
     }
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    contentView.idInput.becomeFirstResponder()
   }
 }
 

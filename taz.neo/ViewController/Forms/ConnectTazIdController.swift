@@ -56,7 +56,7 @@ class ConnectTazIdController : FormsController {
     ui.blocked = true
     
     if let errormessage = ui.validate() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
       return
     }
@@ -106,7 +106,7 @@ class ConnectTazIdController : FormsController {
                                   dismissType: .leftFirst)
             case .invalidMail: /// invalid mail address (only syntactic check)
               self.ui.mailInput.bottomMessage = Localized("login_email_error_no_email")
-              Toast.show(Localized("register_validation_issue"))
+              Alert.message(message: Localized("register_validation_issue"))
             /// tazId not verified
             case .nameTooLong:
               self.ui.lastnameInput.bottomMessage = Localized("too_many_chars")
@@ -134,11 +134,11 @@ class ConnectTazIdController : FormsController {
               fallthrough
             // case .tazIdNotValid: ///not available here
             default:
-              Toast.show(Localized("toast_login_failed_retry"))
+              Alert.message(message: Localized("toast_login_failed_retry"))
               self.log("Succeed with status: \(info.status) message: \(info.message ?? "-")", logLevel: .Debug)
         }
         case .failure:
-          Toast.show(Localized("error"))
+          Alert.message(message: Localized("error"))
       }
       //Re-Enable Button if needed
       self.ui.blocked = false
@@ -186,14 +186,14 @@ class ConnectTazIdRequestAboIdCtrl : ConnectTazIdController{
     ui.blocked = true
     
     if let errormessage = ui.validateAsRequestAboIdLogin() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
       return
     }
     
     guard let _inputAboId = ui.mailInput.text, let inputAboIdNumeric = Int32(_inputAboId) else{
       ui.mailInput.bottomMessage = Localized("abo_id_validation_error_digit")
-      Toast.show(Localized("register_validation_issue"), .alert)
+      Alert.message(message: Localized("register_validation_issue"))
       ui.blocked = false
       return
     }
@@ -247,7 +247,7 @@ class ConnectTazIdRequestNameCtrl : ConnectTazIdController{
     ui.blocked = true
     
     if let errormessage = ui.validateAsRequestName() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
       return
     }
@@ -295,7 +295,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     ui.blocked = true
     
     if let errormessage = ui.validateAsRequestTazIdLogin() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
       return
     }
@@ -313,7 +313,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
         let authStatusError = error as? AuthStatusError,
         authStatusError.status == .invalid {
         //wrong Credentials
-        Toast.show(Localized("toast_login_failed_retry"), .alert)
+        Alert.message(message: Localized("toast_login_failed_retry"))
         self.ui.passInput.bottomMessage = Localized("register_validation_issue")
         self.ui.blocked = false
       }

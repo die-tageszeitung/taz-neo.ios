@@ -219,7 +219,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var imageOverlay: Overlay?
   
   var settingsBottomSheet: BottomSheet2?
-  private var textSettingsVC = TextSettingsVC()
+  private var textSettingsVC:TextSettingsVC? = TextSettingsVC()
   
   var mcoBottomSheet:BottomSheet2?
   var mcoVc = MultiColumnOnboarding()
@@ -247,6 +247,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     //Circular reference with: onImagePress, onSectionPress
     settingsBottomSheet = nil
     slider = nil
+    textSettingsVC = nil
+    contentTable = nil
     super.releaseOnDisappear()
   }
 
@@ -508,7 +510,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       return NSNull()
     }
     self.bridge?.addfunc("setBookmark") { [weak self] jscall in
-      guard let self else { return NSNull() }
+      guard self != nil else { return NSNull() }
       if let args = jscall.args, args.count > 1,
          let name = args[0] as? String,
          let hasBookmark = args[1] as? Int {
@@ -662,12 +664,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   var bottomSheetDefaultCoverage: CGFloat {
-    448 + UIWindow.safeInsets.bottom + self.textSettingsVC.multiColumnButtonsAdditionalHeight
+    448 + UIWindow.safeInsets.bottom + (self.textSettingsVC?.multiColumnButtonsAdditionalHeight ?? 0)
   }
   
-  var bottomSheetDefaultSlideDown: CGFloat { self.textSettingsVC.slideDownHeight }
+  var bottomSheetDefaultSlideDown: CGFloat { self.textSettingsVC?.slideDownHeight ?? 0 }
   
   func setupSettingsBottomSheet() {
+    guard let textSettingsVC = textSettingsVC else { return }
     settingsBottomSheet = BottomSheet2(slider: textSettingsVC, into: self)
     settingsBottomSheet?.xButton.tazX()
     settingsBottomSheet?.onX {[weak self] in
@@ -687,7 +690,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         self.settingsBottomSheet?.slideDown(self.bottomSheetDefaultSlideDown)
       }
       
-      self.textSettingsVC.updateButtonValuesOnOpen()
+      self.textSettingsVC?.updateButtonValuesOnOpen()
     }
   }
   
@@ -958,13 +961,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       let oldCoverage = self.settingsBottomSheet?.coverage ?? 0
       let newCoverage = self.bottomSheetDefaultCoverage
       if abs(oldCoverage - newCoverage) < 2 { return }//no rotate
+      ///**Tip** If there are update with issues, look in git history former the menu was closed and re-opened to fix this
       self.settingsBottomSheet?.coverage =  newCoverage
-      if self.settingsBottomSheet?.isOpen == false  { return }
-      #warning("Is this still required?")
-//      self.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
-//        self?.settingsBottomSheet?.open()
-//        self?.settingsBottomSheet?.slideDown(self?.bottomSheetDefaultSlideDown ?? 0)
-//      })
     }
   }
   

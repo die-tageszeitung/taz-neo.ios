@@ -17,9 +17,11 @@
 
 /* translation from Android */
 "login_username_hint" = "E-Mail-Adresse oder Abo-ID";
+"login_username_placeholder" = "Meine E-Mail-Adresse oder Abo-ID";
 
 /* translation from Android */
 "login_password_hint" = "Passwort";
+"login_password_placeholder" = "Mein Passwort";
 
 "close_window" = "Fenster Schließen";
 
@@ -41,13 +43,13 @@
 
 /* translation from Android */
 "login_trial_subscription_title" = "Noch kein Abo?";
-"login_trial_subscription_body" = "Testen Sie uns doch mal 6 Wochen für umme! Nach 6 Wochen können Sie unabhängigen Journalismus mit 45.000 anderen digitalen Leser:innen in verschiedenen Abo-Modellen lesen.";
+"login_trial_subscription_body" = "Testen Sie uns doch einfach mal 6 Wochen kostenlos! Und wenn Sie danach weiterlesen wollen – was wir natürlich stark hoffen – können Sie unseren unabhängigen Journalismus in verschiedenen Abo-Modellen lesen.";
 "login_trial_subscription_button_text" = "Jetzt kostenlos testen";
 "login_switch_print2digi_title" = "Papierlos glücklich lesen";
-"login_switch_print2digi_body" = "Sie haben ein Print-Abo und wollen nur noch digital lesen? Auf in die Zukunft! taz wird digital. Machen Sie es wie weitere 45.000 digitale Leser:innen.\nWie es geht? Kontaktieren Sie unser Service-Team.";
+"login_switch_print2digi_body" = "Sie haben ein Print-Abo und wollen aber nur noch digital lesen? Auf in die Zukunft! Machen Sie es wie bereits 45.000 andere digitale Leser:innen.\nWie? Kontaktieren Sie einfach unser Service-Team.";
 "login_switch_print2digi_button_text" = "Jetzt informieren";
 "login_extend_print_with_digi_title" = "Sie haben die taz im Print \nund möchten diese um Digital erweitern?";
-"login_extend_print_with_digi_body" = "Kein Problem — kontaktieren Sie unser Service-Team.";
+"login_extend_print_with_digi_body" = "Kontaktieren Sie zur Aktivierung einfach unser Service-Team.";
 "login_extend_print_with_digi_button_text" = "Jetzt Infos anfordern";
 
 /* translation from Android */
@@ -67,7 +69,7 @@
 
 /* translation from Android */
 "login_forgot_password" = "Haben Sie Ihr Passwort vergessen?";
-"login_privacy_link" = "Hier finden Sie unere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
+"login_privacy_link" = "Hier finden Sie unsere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
 
 /* translation from Android */
 "login_forgot_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre E-Mail-Adresse oder Abo-ID an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
@@ -118,8 +120,12 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 /* translation from Android */
 "login_password_error_empty" = "Passwort darf nicht leer sein.";
 
+"forms_error_empty" = "Bitte überprüfen, darf nicht leer sein.";
+
 /* translation from Android */
 "toast_login_failed_retry" = "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.";
+
+"toast_login_wrong_retry" = "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben und versuchen Sie es erneut.";
 
 /* translation from Android */
 "fragment_login_missing_credentials_switch_to_login" = "Ich habe schon eine taz-Konto";
@@ -158,8 +164,6 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 
 /* translation from Android */
 "fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/welcomeTerms.html'>AGB</a> sowie die Hinweise zum <a href='https://taz.de/welcomeRevocation.html'>Widerruf</a> und <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutz</a>.";
-
-"fragment_tracking_privacy_info" = "Hier finden Sie unsere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
 
 /* translation from Android */
 "something_went_wrong_try_later" = "Etwas unerwartetes ist passiert. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut.";

@@ -139,7 +139,7 @@ open class FeedbackComposer : DoesLog{
                                                        
     feedbackBottomSheet = FullscreenBottomSheet(slider: feedbackViewController,
                                               into: currentVc)
-    feedbackBottomSheet?.sliderView.backgroundColor = Const.SetColor.CTBackground.color
+    feedbackBottomSheet?.sliderView.backgroundColor = Const.SetColor.taz2(.backgroundForms).color
     feedbackBottomSheet?.coverageRatio = 1.0
     
     let cancelHandler: ()->() = {

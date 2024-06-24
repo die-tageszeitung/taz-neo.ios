@@ -292,8 +292,7 @@ public class NewInfoToast : UIView {
     dismiss()
   }
   
-  lazy var button1 = Padded.Button(type: .newBlackOutline,
-                                title: button1Text,
+  lazy var button1 = Padded.Button(title: button1Text,
                                    target: self,
                                    action: #selector(handleButton1Action))
     
@@ -302,15 +301,14 @@ public class NewInfoToast : UIView {
     dismiss()
   }
   
-  lazy var button2 = Padded.Button(type: .newBlackOutline,
-                                title: button2Text,
+  lazy var button2 = Padded.Button(title: button2Text,
                                    target: self,
                                    action: #selector(handleButton2Action))
   
   lazy var privacyText : CustomTextView = {
     let view = CustomTextView()
     view.isEditable = false
-    view.attributedText = Localized("fragment_tracking_privacy_info").htmlAttributed
+    view.attributedText = Localized("login_privacy_link").htmlAttributed
     view.linkTextAttributes = [.foregroundColor : Const.SetColor.HText.brightColor, .underlineColor: Const.SetColor.HText.brightColor]
     view.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
     view.textColor = Const.SetColor.HText.brightColor

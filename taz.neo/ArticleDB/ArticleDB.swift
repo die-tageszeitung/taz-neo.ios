@@ -2151,22 +2151,7 @@ public final class StoredIssue: Issue, StoredObject {
     if issues.count >= 1 { return issues[0] }
     return nil
   }
-  
-  #warning("reduceOldest ...is no more needed currently may delete!")
-//  /// Remove oldest Issues and keep the newest ones
-//  public static func reduceOldest(feed: StoredFeed, keep: Int) {
-//    Log.log("Delete Issues: \(feed) keep: \(keep)")
-//    let issues = firstLoaded(feed: feed)
-//    if issues.count > keep {
-//      var n = issues.count
-//      for issue in issues {
-//        if n <= keep { break }
-//        issue.reduceToOverview()
-//        n -= 1
-//      }
-//    }
-//  }
-  
+    
   /// Remove old Issues and keep newest
   /// uses issue.reduceToOverview instead of issue.delete
   /// - Parameters:
@@ -2366,7 +2351,7 @@ public final class StoredFeed: Feed, StoredObject {
       date.validityDate = issue.validityDate
       dates.append(date)
     }
-    guard let issue = issues?.first else { return [] }
+    guard (issues?.first) != nil else { return [] }
     let sDates
     = StoredPublicationDate.persist(publicationDates: dates, inFeed: self)
     ArticleDB.save()

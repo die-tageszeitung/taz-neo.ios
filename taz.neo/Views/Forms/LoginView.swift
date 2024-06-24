@@ -27,20 +27,23 @@ public class LoginView : FormView{
   var registerButton = Padded.Button(type: .outline,
                                 title: Localized("register_free_button"))
   
-  var whereIsTheAboId: Padded.View = {
+  var marketingContainer: MarketingContainerWrapperView = MarketingContainerWrapperView()
+  
+  var buttonWidthConstraint: NSLayoutConstraint?
+  
+  var helpButton: Padded.View = {
     let lbl = UILabel()
     lbl.text = "Hilfe"
-    lbl.contentFont(size: Const.Size.MiniPageNumberFontSize)
-    lbl.textColor = .gray
-    lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
+    lbl.contentFont(size: Const.Size.SmallerFontSize)
+    lbl.textColor = Const.SetColor.ios_opaque(.grey).color
+    lbl.addBorderView(Const.SetColor.ios_opaque(.grey).color, edge: UIRectEdge.bottom)
     let wrapper = Padded.View()
     wrapper.addSubview(lbl)
     //Allow label to shink if wrapper shrinks, not alow to grow more than needed
     pin(lbl, to: wrapper).right.priority = .defaultLow
     lbl.setContentHuggingPriority(.required, for: .horizontal)
     lbl.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-    wrapper.paddingBottom = miniPadding
-    wrapper.paddingTop = miniPadding
+    wrapper.paddingTop = 5.0
     return wrapper
   }()
   
@@ -48,16 +51,15 @@ public class LoginView : FormView{
     let lbl = UILabel()
     lbl.text = Localized("login_forgot_password")
     lbl.contentFont(size: Const.Size.SmallerFontSize)
-    lbl.textColor = .gray
-    lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
+    lbl.textColor = Const.SetColor.ios_opaque(.grey).color
+    lbl.addBorderView(Const.SetColor.ios_opaque(.grey).color, edge: UIRectEdge.bottom)
     let wrapper = Padded.View()
     wrapper.addSubview(lbl)
     //Allow label to shink if wrapper shrinks, not alow to grow more than needed
     pin(lbl, to: wrapper).right.priority = .defaultLow
     lbl.setContentHuggingPriority(.required, for: .horizontal)
     lbl.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-    wrapper.paddingBottom = miniPadding
-    wrapper.paddingTop = miniPadding
+    wrapper.paddingTop = 5.0
     return wrapper
   }()
     
@@ -65,115 +67,64 @@ public class LoginView : FormView{
     let view = CustomTextView()
     view.isEditable = false
     view.attributedText = Localized("login_privacy_link").htmlAttributed
-    view.linkTextAttributes = [.foregroundColor : UIColor.gray, .underlineColor: UIColor.gray]
+    view.linkTextAttributes 
+    = [.foregroundColor : Const.SetColor.ios_opaque(.grey).color,
+      .underlineColor: Const.SetColor.ios_opaque(.grey).color]
     view.textContainer.lineFragmentPadding = 0;
     view.font = Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)
-    view.textColor = UIColor.gray
+    view.textColor = Const.SetColor.ios_opaque(.grey).color
     view.textAlignment = .left
     return view
   }()
   
   
-  var trialSubscriptionButton = Padded.Button(title: Localized("login_trial_subscription_button_text"))
-  var switchButton = Padded.Button(title: Localized("login_switch_print2digi_button_text"))
-  var extendButton = Padded.Button(title: Localized("login_extend_print_with_digi_button_text"))
+  var trialSubscriptionButton
+  = Padded.Button(type: .outline, title: Localized("login_trial_subscription_button_text"))
+  var switchButton
+  = Padded.Button(type: .outline, title: Localized("login_switch_print2digi_button_text"))
+  var extendButton
+  = Padded.Button(type: .outline, title: Localized("login_extend_print_with_digi_button_text"))
     
-  func marketingContainerWidth(button: Padded.Button,
-                               htmlFile:String,
-                               htmlHeight:CGFloat = 150,
-                               fallbackTitle: String?,
-                               fallbackText:String) -> Padded.View{
-    let wrapper = Padded.View()
-    var intro:UIView
-    let trialHtml = File(htmlFile)
-    
-    if false && trialHtml.exists {//deactivated for release
-      let wv = WebView()
-      wv.whenLoaded {_ in
-        wv.evaluateJavaScript("document.body.scrollHeight", completionHandler: { (height, error) in
-          wv.pinHeight((height as! CGFloat) - 15.0)
-        })
-      }
-      wv.load(url: trialHtml.url)
-      wv.isOpaque = false
-      wv.backgroundColor = .clear
-      intro = wv
-    } else {
-      let lbl = UILabel()
-      lbl.text = fallbackText
-      lbl.numberOfLines = 0
-      lbl.textAlignment = .left
-      lbl.contentFont()
-      
-      if let title = fallbackTitle, title.length > 0 {
-        let tl = UILabel()
-        tl.text = title
-        tl.numberOfLines = 0
-        tl.textAlignment = .left
-        tl.contentFont(size: Const.Size.SubtitleFontSize)
-        let wrapper = UIStackView()
-        wrapper.axis = .vertical
-        wrapper.spacing = 6.0
-        wrapper.alignment = .top
-        wrapper.distribution = .fillProportionally
-        wrapper.addArrangedSubview(tl)
-        wrapper.addArrangedSubview(lbl)
-        intro = wrapper
-      }
-      else {
-        intro = lbl
-      }
-    }
-    
-    wrapper.addSubview(intro)
-    wrapper.addSubview(button)
-    
-    pin(intro, to: wrapper, dist: Const.Dist.margin, exclude: .bottom)
-    pin(button, to: wrapper, dist: Const.Dist.margin, exclude: .top)
-    pin(button.top, to: intro.bottom, dist: Const.Dist.margin)
-    
-    wrapper.backgroundColor = Const.SetColor.taz(.secondaryBackground).color
-    wrapper.layer.cornerRadius = 8.0
-    
-    return wrapper
-    
+  override public func updateCustomConstraints() {
+    super.updateCustomConstraints()
+    let isTabletLayout = isTabletLayout
+    buttonWidthConstraint?.isActive = isTabletLayout
+    marketingContainer.updateCustomConstraints(isTabletLayout: isTabletLayout)
   }
   
-  static let miniPadding = 0.0
-  
   override func createSubviews() -> [UIView] {
-    idInput.paddingBottom = Self.miniPadding
-    passInput.paddingBottom = Self.miniPadding
+    let label
+    = Padded.Label(title: "Anmeldung für Digital-Abonnent:innen")
+    label.boldContentFont(size: Const.Size.DT_Head_extrasmall).align(.left)
+    label.paddingBottom = 25.0
+    
+    helpButton.paddingBottom = 25.0
+    passForgottButton.paddingBottom = Const.Dist2.m15
+    privacyLabel.paddingBottom = Const.Dist2.m20
+    loginButton.paddingBottom = Const.Dist2.m30
+
+    buttonWidthConstraint
+    = loginButton.pinWidth(Const.Size.TabletFormMinWidth/2,
+                           relation: .lessThanOrEqual,
+                           priority: .required)
+    
     if App.isLMD {
       return   [
-        Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").contentFont(size: Const.Size.SubtitleFontSize).align(.left),
+        label,
         idInput,
-        whereIsTheAboId,
+        helpButton,
         passInput,
         loginButton]
     }
-    
-    
     return   [
-      Padded.Label(title: "Anmeldung für Digital-Abonnent:innen").contentFont(size: Const.Size.SubtitleFontSize).align(.left),
+      label,
       idInput,
-      whereIsTheAboId,
+      helpButton,
       passInput,
       passForgottButton,
       privacyLabel,
       loginButton,
-      marketingContainerWidth(button: trialSubscriptionButton,
-                              htmlFile: Dir.appSupportPath.appending("/taz/resources/trialNOTEXISTFALLBACHTEST.html"),
-                              fallbackTitle: Localized("login_trial_subscription_title"),
-                              fallbackText: Localized("login_trial_subscription_body")),
-      marketingContainerWidth(button: switchButton,
-                              htmlFile: Dir.appSupportPath.appending("/taz/resources/switch1.html"),
-                              fallbackTitle: Localized("login_switch_print2digi_title"),
-                              fallbackText: Localized("login_switch_print2digi_body")),
-      marketingContainerWidth(button: extendButton,
-                              htmlFile: Dir.appSupportPath.appending("/taz/resources/extend1.html"),
-                              fallbackTitle: Localized("login_extend_print_with_digi_title"),
-                              fallbackText: Localized("login_extend_print_with_digi_body"))
+      marketingContainer
     ]
   }
   
@@ -182,23 +133,88 @@ public class LoginView : FormView{
   ///Mark issue fields with hints
   func validate() -> String?{
     var errors = false
-    idInput.bottomMessage = ""
-    passInput.bottomMessage = ""
+    var idInput_bottomMessage: String? = nil
+    var passInput_bottomMessage: String? = nil
     
     if (idInput.text ?? "").isEmpty {
-      idInput.bottomMessage = Localized("login_username_error_empty")
+      idInput_bottomMessage = Localized("login_username_error_empty")
       errors = true
     }
     
     if (passInput.text ?? "").isEmpty {
-      passInput.bottomMessage = Localized("login_password_error_empty")
+      passInput_bottomMessage = Localized("login_password_error_empty")
       errors = true
+    }
+    
+    UIView.animate(seconds: 0.3) { [weak self] in
+      self?.idInput.bottomMessage = idInput_bottomMessage
+      self?.passInput.bottomMessage = passInput_bottomMessage
+      self?.layoutIfNeeded()
     }
     
     if errors {
       return Localized("register_validation_issue")
     }
     return nil
+  }
+  
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
+  }
+  
+  func dottedLine() -> UIView {
+    let dottedLine = DottedLineView()
+    dottedLine.pinHeight(Const.Size.DottedLineHeight*1.2)
+    dottedLine.fillColor = Const.SetColor.HText.color
+    dottedLine.strokeColor = Const.SetColor.HText.color
+    return dottedLine
+  }
+  
+  func setup(){
+    let mc1 = MarketingContainerView(button: trialSubscriptionButton,
+                                     title: Localized("login_trial_subscription_title"),
+                                     text: Localized("login_trial_subscription_body"),
+                                     imageName:  "BundledResources/trial.jpg")
+    let dottedLine1 = dottedLine()
+    let mc2 = MarketingContainerView(button: switchButton,
+                                     title: Localized("login_switch_print2digi_title"),
+                                     text: Localized("login_switch_print2digi_body"),
+                                     imageName: "BundledResources/switch.jpg",
+                                     imageLeftAligned: true)
+    let dottedLine2 = dottedLine()
+    let mc3 = MarketingContainerView(button: extendButton,
+                                     title: Localized("login_extend_print_with_digi_title"),
+                                     text: Localized("login_extend_print_with_digi_body"),
+                                     imageName: "BundledResources/extend.jpg")
+    marketingContainer.addViewToWrapper(mc1)
+    marketingContainer.addViewToWrapper(dottedLine1)
+    marketingContainer.addViewToWrapper(mc2)
+    marketingContainer.addViewToWrapper(dottedLine2)
+    marketingContainer.addViewToWrapper(mc3)
+    pin(dottedLine1.left, to: marketingContainer.wrapper.left)
+    pin(dottedLine1.right, to: marketingContainer.wrapper.right)
+    pin(mc2.left, to: marketingContainer.wrapper.left)
+    pin(mc2.right, to: marketingContainer.wrapper.right)
+    pin(dottedLine2.left, to: marketingContainer.wrapper.left)
+    pin(dottedLine2.right, to: marketingContainer.wrapper.right)
+    pin(mc3.left, to: marketingContainer.wrapper.left)
+    pin(mc3.right, to: marketingContainer.wrapper.right)
+    
+    pin(mc1, to: marketingContainer.wrapper, exclude: .bottom)
+    pin(dottedLine1.top, to: mc1.bottom, dist: Const.Dist2.l)
+    pin(mc2.top, to: dottedLine1.bottom, dist: Const.Dist2.m15)
+    pin(dottedLine2.top, to: mc2.bottom, dist: Const.Dist2.l)
+    pin(mc3.top, to: dottedLine2.bottom, dist: Const.Dist2.m15)
+    pin(mc3.bottom,
+        to: marketingContainer.wrapper.bottom,
+        dist: -2*Const.Dist2.l)///2 times because of overflow in scrollview to hide grey bg
+    marketingContainer.backgroundColor = Const.SetColor.HBackground.color
   }
 }
 

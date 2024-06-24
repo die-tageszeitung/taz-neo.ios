@@ -409,6 +409,8 @@ class GqlPage: Page, GQLObject {
   /// Frames in page
   var frameList: [GqlFrame]?
   var frames: [Frame]? { return frameList }
+  ///add the following field to test errors on requests
+  ///gqlFacsimile: facsimileTestForErrorAndEndlessReturn { \(GqlImage.fields) }
   
   static var fields = """
   pagePdf { \(GqlFile.fields) }
@@ -858,8 +860,14 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let st = status else { return [] }
     return st.feeds
   }
+
+  private var _gqlSession: GraphQlSession?
+  
   /// The GraphQL server delivering the Feeds
-  public var gqlSession: GraphQlSession?
+  public var gqlSession: GraphQlSession? {
+    set { _gqlSession = newValue }
+    get { return _gqlSession }
+  }
   /// Last weekly status
   private var wasWeekly = false
   
@@ -876,9 +884,8 @@ open class GqlFeeder: Feeder, DoesLog {
     let appVersion = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
     return ""
       + "deviceType: \(deviceType), "   //apple Default
-      + "deviceName: \"\(UIDevice().model)\", " // e.g.: iPhone iPad iPod touch (Ringos iPhone)
+      + "deviceName: \"\(Utsname.machineModel)\", "
       //e.g. iPhone12,3 (modelName) for iPhone 11 Pro (modelNameReadable)
-      + "deviceVersion: \"\(Utsname.machineModel)\", "//e.g. iPhone 11 Pro
       + "deviceFormat: \(deviceFormat), " //e.g.: mobile, tablet
       + "appVersion: \"\(appVersion)\", " //e.g.: Taz App (de.taz.taz.2) Version 0.4.9 (#2020090951)
       + "deviceOS: \"iOS \(UIDevice.current.systemVersion)\""
@@ -1379,7 +1386,7 @@ open class GqlFeeder: Feeder, DoesLog {
 
 
     fields["deviceOS"] = "iOS \(UIDevice.current.systemVersion)"
-    fields["deviceName"] = UIDevice().model
+    fields["deviceName"] = Utsname.machineModel
     fields["eMail"] = eMail
     //    fields["deviceVersion"] = deviceVersion
     fields["appVersion"] = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
@@ -1389,7 +1396,6 @@ open class GqlFeeder: Feeder, DoesLog {
     fields["ramAvailable"] = deviceData?.ramAvailable
     fields["ramUsed"] = deviceData?.ramUsed
     fields["pushToken"] = Defaults.singleton["pushToken"]
-    fields["architecture"] = Utsname.machine
     fields["screenshotName"] = screenshotName
     fields["screenshot"] = screenshot
     

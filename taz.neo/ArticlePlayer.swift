@@ -10,7 +10,7 @@ import NorthLib
 import MediaPlayer
 
 
-enum PlayerEnqueueType { case replaceCurrent, enqueueNext, enqueueLast}
+enum PlayerEnqueueType { case replaceCurrent, enqueueNext, enqueueLast/*, enqueueOneNext, enqueueOneNextAndPlay*/}
 
 /// The ArticlePlayer plays one or more Articles as audio streams
 class ArticlePlayer: DoesLog {
@@ -159,6 +159,7 @@ class ArticlePlayer: DoesLog {
   }
   
   private func playDisclaimer(){
+    if TazAppEnvironment.sharedInstance.audioDisclaimerPlayed == true { return }
     if isDisclaimer {
       self.pause()
       let cc = currentContent
@@ -174,6 +175,7 @@ class ArticlePlayer: DoesLog {
       disclaimer = disclaimerUrlFemale ?? disclaimerUrlMale
     }
     if disclaimer == nil { return }
+    TazAppEnvironment.sharedInstance.audioDisclaimerPlayed = true
     userInterface.slider.value = 0.0
     aplayer.file = disclaimer
     aplayer.image = UIImage(named: "AppIcon60x60")
@@ -215,6 +217,37 @@ class ArticlePlayer: DoesLog {
     self.userInterface.progressCircle.waiting = true
   }
   
+  private func showCloseOnDemoAlert(){
+    Alert.message(title: "Wiedergabe beendet", message: "In Ihrer Wiedergabeliste befanden sich gekürzte Demo Artikel. Mit gültigem Abonnement können die vollständigen Inhalte wiedergegeben werden.\nBitte starten Sie die Wiedergabe erneut.")
+    self.userInterface.removeFromSuperview()
+    self.close()
+    self.userInterface.isErrorState = false
+  }
+  
+  private func handleAuthenticationSucceeded(){
+    /* Edge Case Szenario: What happen if there are some Demo Articles in nextContent, now we have a valid auth?
+     - former: the app just crashed, due demo Issue was deleted and loaded new
+     **What can we do**
+     - reject play if demo Audio: no good idea, because this can be a selling point "hey look at this great feature you want to have it!"
+     - stop and close player: what if there are full audio inside e.g. because of subsciption department or tecnical problems  ...verry bad idea
+     - exchange all content, download missing ...a lot of work to handle offline states and more
+     - solve deleted status issue to not to crash and extend player to download stuff ...would be the best but also a lot of work
+     - solution for the moment: remove all demo stuff, in next, delete all last, if next is empty toast and close player
+    */
+    lastContent = []
+    ///prevent crash on end
+    if currentContent?.primaryIssue?.isReduced == true {
+      showCloseOnDemoAlert()
+      return
+    }
+    for content in nextContent {
+      if content.primaryIssue?.isReduced == true {
+        showCloseOnDemoAlert()
+        return
+      }
+    }
+  }
+  
   private init() {
     aplayer = AudioPlayer()
     Usage.xtrack.audio.autoPlayNext(enable: autoPlayNext, initial: true)
@@ -232,6 +265,11 @@ class ArticlePlayer: DoesLog {
     ///Handle reachability changes: show offline status
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
       self?.feederReachable()
+    }
+    
+    Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
+      guard TazAppEnvironment.hasValidAuth else { return }
+      self?.handleAuthenticationSucceeded()
     }
     
     aplayer.onStatusChange {[weak self] status in
@@ -661,6 +699,12 @@ class ArticlePlayer: DoesLog {
         nextContent = arts
         isPlaying ? nil : aplayer.close()
         playNext()
+//      case .enqueueOneNext:
+//        guard let a = startFromArticle else { return }
+//        nextContent.append(a)
+//      case .enqueueOneNextAndPlay:
+//        guard let a = startFromArticle else { return }
+//        nextContent.append(a)
     }
   }
   

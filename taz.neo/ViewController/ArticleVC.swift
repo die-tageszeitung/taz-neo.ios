@@ -537,8 +537,8 @@ class MultiColumnOnboardingView: UIView {
     return img
   }()
   
-  var declineButton = Padded.Button(type: .newBlackOutline, title: Localized("multicol_onboarding_btn_decline"))
-  var activateButton = Padded.Button(type: .newBlack, title: Localized("multicol_onboarding_btn_activate"))
+  var declineButton = Padded.Button(type: .outline, title: Localized("multicol_onboarding_btn_decline"))
+  var activateButton = Padded.Button(title: Localized("multicol_onboarding_btn_activate"))
   private func setup() {
     self.addSubview(title)
     self.addSubview(iv)

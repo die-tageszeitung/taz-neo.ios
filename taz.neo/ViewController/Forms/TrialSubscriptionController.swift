@@ -42,7 +42,7 @@ class TrialSubscriptionController : FormsController {
     ui.blocked = true
     
     if let errormessage = ui.validate() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
       Usage.track(Usage.event.subscription.InquiryFormValidationError)
       return
@@ -104,7 +104,7 @@ class TrialSubscriptionController : FormsController {
             case .invalidMail:
               /// invalid mail address (only syntactic check)
               self.ui.mailInput.bottomMessage = Localized("login_email_error_no_email")
-              Toast.show(Localized("register_validation_issue"))
+              Alert.message(message: Localized("register_validation_issue"))
             case .waitForProc:
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Self.backButtonTitle,
@@ -115,19 +115,18 @@ class TrialSubscriptionController : FormsController {
                                          resultSuccessText: Localized("trialsubscription_successful_header"))
             case .invalidFirstname: //What if No Form and this Issue occours? @Test with: Web Change Name prepared the +12 Account
               self.ui.firstnameInput.bottomMessage = Localized("invalid_chars")
-              Toast.show(Localized("register_validation_issue"))
+              Alert.message(message: Localized("register_validation_issue"))
             case .invalidSurname:
               self.ui.lastnameInput.bottomMessage = Localized("invalid_chars")
-              Toast.show(Localized("register_validation_issue"))
+              Alert.message(message: Localized("register_validation_issue"))
             case .invalidAccountholder:
               self.ui.firstnameInput.bottomMessage = Localized("invalid_chars")
               self.ui.lastnameInput.bottomMessage = Localized("invalid_chars")
-              Toast.show(Localized("register_validation_issue"))
+              Alert.message(message: Localized("register_validation_issue"))
             case .nameTooLong:
                self.ui.lastnameInput.bottomMessage = Localized("too_many_chars")
                self.ui.firstnameInput.bottomMessage = Localized("too_many_chars")
                Alert.message(title: Localized("info"), message: Localized("name_too_long_issue"))
-//               Toast.show(Localized("name_too_long_issue"))
             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
               if self.onMissingNameRequested == nil { fallthrough }
               self.onMissingNameRequested?()
@@ -146,11 +145,11 @@ class TrialSubscriptionController : FormsController {
               /// decoded from unknown string
               fallthrough
             default:
-              Toast.show(Localized("toast_login_failed_retry"))
+              Alert.message(message: Localized("toast_login_failed_retry"))
               self.log("Succeed with status: \(info.status) message: \(info.message ?? "-")")
         }
         case .failure:
-          Toast.show(Localized("toast_login_failed_retry")+"\n(Fehler!)")
+          Alert.message(title: "Fehler", message: Localized("toast_login_failed_retry"))
       }
       self.ui.blocked = false
     })
@@ -195,7 +194,7 @@ class TrialSubscriptionRequestNameCtrl : TrialSubscriptionController{
     ui.blocked = true
     
     if let errormessage = ui.validate() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
       return
     }

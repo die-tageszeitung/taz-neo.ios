@@ -20,7 +20,7 @@ public class SubscriptionFormView : FormView{
   var mailInput = TazTextField(placeholder: "E-Mail-Adresse",
                                     textContentType: .emailAddress,
                                     enablesReturnKeyAutomatically: true,
-                                    keyboardType: .default,
+                                    keyboardType: .emailAddress,
                                     autocapitalizationType: .none)
     
   var firstName = TazTextField(placeholder: "Vorname",
@@ -68,14 +68,8 @@ public class SubscriptionFormView : FormView{
     return view
   }()
   
-  var message:ViewWithTextView = {
-    let ti
-    = ViewWithTextView(text: nil,
-                       font: Const.Fonts.contentFont(size: Const.Size.DefaultFontSize))
-    ti.placeholder = "Ihre Nachricht"
-    ti.border.isHidden = false
-    return ti
-  }()
+  var message = TazTextView(topLabelText: "Ihre Nachricht",
+                            placeholder: "Liegt Ihnen sonst was am Herzen? Hier ist Platz dafür.")
 
   var sendButton = Padded.Button(title: "Absenden")
   var cancelButton =  Padded.Button(type:.outline, title: Localized("cancel_button"))
@@ -162,6 +156,27 @@ public class SubscriptionFormView : FormView{
     return views
   }
   
+  func handle(formError: SubscriptionFormDataError){
+    switch formError {
+      case .noMail(let msg):
+        mailInput.bottomMessage = msg
+      case .invalidMail(let msg): 
+        mailInput.bottomMessage = msg
+      case .noSurname(let msg):
+        lastName.bottomMessage = msg
+      case .noFirstName(let msg):
+        firstName.bottomMessage = msg
+      case .noCity(let msg):
+        city.bottomMessage = msg
+      case .employees(let msg):
+        mailInput.bottomMessage = msg
+      case .unexpectedResponse(_):
+        fallthrough
+      case .unknown(_):
+        break
+    }
+  }
+  
   ///Validates the Form returns translated Errormessage String for Popup/Toast
   ///Mark issue fields with hints
   func validate() -> String?{
@@ -179,18 +194,46 @@ public class SubscriptionFormView : FormView{
         city.bottomMessage = ""
         street.bottomMessage = ""
       }
+      
+      if mailInput.text?.isEmpty == true {
+        mailInput.bottomMessage = Localized("login_email_error_empty")
+        errors = true
+      }
+      else if mailInput.text?.isValidEmail() == false {
+        mailInput.bottomMessage = Localized("login_email_error_no_email")
+        errors = true
+      }
+      else {
+        mailInput.bottomMessage = ""
+      }
+      
+      if firstName.text?.isEmpty == true {
+        firstName.bottomMessage = Localized("forms_error_empty")
+        errors = true
+      }
+      else {
+        firstName.bottomMessage = ""
+      }
+      
+      if lastName.text?.isEmpty == true {
+        lastName.bottomMessage = Localized("forms_error_empty")
+        errors = true
+      }
+      else {
+        lastName.bottomMessage = ""
+      }
     }
     
     if (message.text ?? "").isEmpty {
       errors = true
-      message.bottomMessage = "Bitte ausfüllen!"
+      message.errorMessage = "Bitte ausfüllen!"
     }
     else if (message.text?.length ?? 0) < 8 {
       errors = true
-      message.bottomMessage = "Ihre Nachricht ist zu kurz!"
+      message.errorMessage = "Ihre Nachricht ist zu kurz!"
     }
     else {
-      message.bottomMessage = nil
+      message.errorMessage = nil
     }
     
     if errors {

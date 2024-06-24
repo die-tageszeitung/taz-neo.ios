@@ -250,15 +250,15 @@ public class CoachmarksBusiness: DoesLog{
   }()
   
   func getCurrentAvailableCoachmarkKeys() -> [String:Int] {
-    if false { //debug show all coachmarks
-      var ret : [String:Int] = [:]
-      for cm in Coachmarks.all {
-          ret[cm.key] = 1
-      }
-      currentPrio = 1
-      count = -20
-      return ret
-    }
+//    if false { //debug show all coachmarks
+//      var ret : [String:Int] = [:]
+//      for cm in Coachmarks.all {
+//          ret[cm.key] = 1
+//      }
+//      currentPrio = 1
+//      count = -20
+//      return ret
+//    }
     
     let disabledCm = disabledCoachmarks
     let all = Coachmarks.all

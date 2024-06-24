@@ -7,10 +7,9 @@
 //
 
 import NorthLib
-import MessageUI
 import UIKit
 
-class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate {
+class TazAppEnvironment: NSObject, DoesLog {
   
   class Spinner: UIViewController {
     #warning("Required? try to remove and test, handled in MainTabVc, but for startup?")
@@ -54,6 +53,8 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       }
     }
   }
+  
+  var audioDisclaimerPlayed: Bool = false
   
   private var threeFingerAlertOpen: Bool = false
   private var devGestureRecognizer: UIGestureRecognizer?
@@ -114,7 +115,13 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   @Default("articleTextSize")
   private var articleTextSize: Int
   
-  public private(set) var isErrorReporting = false
+  public internal(set) var isErrorReporting = false {
+    didSet {
+      print("isErrorReporting set to: \(isErrorReporting)")
+    }
+  }
+  public internal(set) var gqlErrorShown = false
+  public internal(set) var lastErrormessage: String?
   private var isForeground = false
   
   override init(){
@@ -130,18 +137,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self?.appWillTerminate()
     }
     setup()
-    copyDemoContent()
     registerForStyleUpdates()
-  }
-  
-  func copyDemoContent(){
-    let demoFiles = ["trial", "extend", "switch"]
-    for filename in demoFiles {
-      if let url = Bundle.main.url(forResource: filename, withExtension: "html", subdirectory: "BundledResources") {
-        let file = File(url.path )
-        file.copy(to: Dir.appSupportPath.appending("/taz/resources/\(filename).html"))
-      }
-    }
   }
   
   func setup(){
@@ -175,7 +171,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   func startup() {
     let dfl = Defaults.singleton
-    let oneWeek = 7*24*3600
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
     debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
@@ -450,11 +445,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self?.threeFingerAlertOpen = false
     }
   }
-  func mailComposeController(_ controller: MFMailComposeViewController,
-    didFinishWith result: MFMailComposeResult, error: Error?) {
-    controller.dismiss(animated: true)
-    isErrorReporting = false
-  }
   
   @objc func twoFingerErrorReportActivated(_ sender: UIGestureRecognizer) {
     if isErrorReporting == true { return }//Prevent multiple Calls
@@ -470,62 +460,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
                               feedbackType: feedbackType) {[weak self] didSend in
       self?.log("Feedback send? \(didSend)")
       self?.isErrorReporting = false
-    }
-  }
-  
-  func reportFatalError(err: Log.Message) {
-    guard !isErrorReporting else { return }
-    isErrorReporting = true
-    
-    
-    
-    if let topVc = UIViewController.top(),
-       topVc.presentedViewController != nil {
-      topVc.dismiss(animated: false)
-    }
-    Usage.track(Usage.event.dialog.FatalError)
-    Alert.confirm(title: "Interner Fehler",
-                  message: "Es liegt ein schwerwiegender interner Fehler vor, möchten Sie uns " +
-                           "darüber mit einer Nachricht informieren?\n" +
-                           "Interne Fehlermeldung:\n\(err)") { yes in
-      if yes {
-        self.produceErrorReport(recipient: "app@taz.de", subject: "Interner Fehler")
-      }
-      else { self.isErrorReporting = false }
-    }
-  }
-  
-  func produceErrorReport(recipient: String,
-                          subject: String = "Feedback",
-                          logData: Data? = nil,
-                          addScreenshot: Bool = true,
-                          completion: (()->())? = nil) {
-    if MFMailComposeViewController.canSendMail() {
-      let mail =  MFMailComposeViewController()
-      let screenshot = UIWindow.screenshot?.jpeg
-      let logData = logData ?? fileLogger.mem?.data
-      mail.mailComposeDelegate = self
-      mail.setToRecipients([recipient])
-      
-      var tazIdText = ""
-      let data = DefaultAuthenticator.getUserData()
-      if let tazID = data.id, tazID.isEmpty == false {
-        tazIdText = " taz-Konto: \(tazID)"
-      }
-      
-      mail.setSubject("\(subject) \"\(App.name)\" (iOS)\(tazIdText)")
-      mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
-        isHTML: false)
-      if addScreenshot, let screenshot = screenshot {
-        mail.addAttachmentData(screenshot, mimeType: "image/jpeg",
-                               fileName: "taz.neo-screenshot.jpg")
-      }
-      if let logData = logData {
-        mail.addAttachmentData(logData, mimeType: "text/plain",
-                               fileName: "taz.neo-logfile.txt")
-      }
-      UIViewController.top()?.topmostModalVc.present(mail, animated: true, completion: completion)
     }
   }
   
@@ -719,13 +653,6 @@ extension TazAppEnvironment : UIStyleChangeDelegate {
                        tintColor: Const.SetColor.taz(.textFieldClear).color) {
       UIButton.appearance(whenContainedInInstancesOf: [UITextField.self]).setImage(img, for: .normal)
     }
-  }
-}
-
-extension TazAppEnvironment {
-  static var internalPreviewAvailable:Bool {
-    return !App.isRelease
-    || (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de")
   }
 }
 

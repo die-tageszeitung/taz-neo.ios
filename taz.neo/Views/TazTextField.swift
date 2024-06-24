@@ -11,7 +11,8 @@ import UIKit
 import NorthLib
 
 // MARK: - TazTextField
-public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolbarForText{
+public class TazTextField : Padded.TextField, KeyboardToolbarForText{
+  
   public var index: Int?
   static let recomendedHeight:CGFloat = 61.0
   var initialHeight: CGFloat = TazTextField.recomendedHeight
@@ -20,8 +21,7 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
     didSet {
       if oldValue == isError { return }
       self.bottomLabel.alpha = isError ? 1.0 :1.0
-      self.heightConstraint?.constant
-      = self.initialHeight + (isError ? 20.0 : 0)
+      updateHeightIfNeeded(force: true)
       backgroundLayer.borderColor
       = isError
       ? Const.SetColor.taz2(.notifications_error).color.cgColor
@@ -31,8 +31,9 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
   }
   let backgroundLayer = CALayer()
   let bottomLabel = UILabel()
-  var heightConstraint: NSLayoutConstraint?
-//  var bottomLabelHeightConstraint: NSLayoutConstraint?
+  fileprivate let placeholderLabel = UILabel()
+  private var heightConstraint: NSLayoutConstraint?
+  private var lastCalculatedPlaceholderHeightAlWidth = 0.0
   
   private var handleEnter: (()->())?
   var onResignFirstResponder: (()->())?
@@ -41,16 +42,13 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
     handleEnter = closure
   }
   
-  var placeholderText: String? {
-    get { return placeholder }
+  public override var placeholder:String?{
+    get { return placeholderLabel.text }
     set {
-      self.placeholder = newValue
-      guard let newValue = newValue else {
-        self.attributedPlaceholder = nil
-        return
+      placeholderLabel.text = newValue
+      if topMessage == nil {
+        topLabel.text = newValue
       }
-      self.attributedPlaceholder = NSAttributedString(string: newValue,
-                                                      attributes: [NSAttributedString.Key.foregroundColor: Const.SetColor.taz2(.text_disabled).color])
     }
   }
   
@@ -60,8 +58,8 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
                 color: UIColor = Const.SetColor.CIColor.color,
                 textColor: UIColor = Const.SetColor.CTDate.color,
                 height: CGFloat = TazTextField.recomendedHeight,
-                paddingTop: CGFloat = TextFieldPadding,
-                paddingBottom: CGFloat = TextFieldPadding,
+                paddingTop: CGFloat = Const.Size.TextFieldPadding,
+                paddingBottom: CGFloat = Const.Size.TextFieldPadding,
                 textContentType: UITextContentType? = .givenName,
                 isSecureTextEntry: Bool = false,
                 enablesReturnKeyAutomatically: Bool = false,
@@ -89,9 +87,8 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
   public override func textRect(forBounds bounds: CGRect) -> CGRect {
     let r = bounds.insetBy(dx: Const.Size.DefaultPadding,
                           dy: Const.Size.DefaultPadding)
-    if isError { return r}
-    return CGRect(x: r.origin.x, y: r.origin.y,
-                  width: r.size.width, height: r.size.height + 20)
+    return CGRect(x: r.origin.x, y: placeholderLabel.frame.origin.y,
+                  width: r.size.width, height: r.size.height)
   }
 
   public override func editingRect(forBounds bounds: CGRect) -> CGRect {
@@ -116,21 +113,33 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
     setup()
   }
   
+  func updateHeightIfNeeded(force: Bool = false){
+    let selfW = self.frame.size.width - 2*Const.Size.DefaultPadding
+    let plY = placeholderLabel.frame.origin.y
+    guard force || plY > 0 else { return }
+    guard force || abs(selfW - lastCalculatedPlaceholderHeightAlWidth) > 3 else { return }
+    lastCalculatedPlaceholderHeightAlWidth = selfW
+    let placeholderHeight = placeholderLabel.sizeThatFits(CGSize(width: selfW, height: 2000)).height
+    let newHeight = max(initialHeight, placeholderHeight + plY + 12) + (isError ? 20.0 : 0)
+    if abs((heightConstraint?.constant ?? 0) - newHeight) > 3 { heightConstraint?.constant = newHeight }
+  }
+  
   public override func layoutSubviews() {
+    updateHeightIfNeeded()
     backgroundLayer.frame = CGRect(x: 0,
                                    y: 0,
                                    width: self.frame.size.width,
                                    height: self.frame.size.height - (isError ? 20 : 0))
     super.layoutSubviews()
-  }
+ }
   
   func setup(prefilledText: String? = nil,
              placeholder: String? = nil,
              color: UIColor = Const.SetColor.CIColor.color,
              textColor: UIColor = Const.SetColor.CTDate.color,
              height: CGFloat = TazTextField.recomendedHeight,
-             paddingTop: CGFloat = TextFieldPadding,
-             paddingBottom: CGFloat = TextFieldPadding,
+             paddingTop: CGFloat = Const.Size.TextFieldPadding,
+             paddingBottom: CGFloat = Const.Size.TextFieldPadding,
              textContentType: UITextContentType? = .givenName,
              isSecureTextEntry: Bool = false,
              enablesReturnKeyAutomatically: Bool = false,
@@ -139,10 +148,14 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
              target: Any? = nil,
              action: Selector? = nil){
     heightConstraint = pinHeight(initialHeight)
+    self.text = prefilledText
+    self.placeholder = placeholder
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
+    self.contentVerticalAlignment = .top
     
-    placeholderText = placeholder
+    self.placeholderLabel.textColor = Const.SetColor.taz2(.text_disabled).color
+    placeholderLabel.numberOfLines = 0
     self.textColor = textColor
     self.keyboardType = keyboardType
     self.textContentType = textContentType
@@ -168,8 +181,22 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
     bottomLabel.alpha = 0.0
     bottomLabel.numberOfLines = 1
     self.addSubview(bottomLabel)
+    self.addSubview(placeholderLabel)
+    
+    topLabel.alpha = 0.0
+    topLabel.numberOfLines = 1
+    self.addSubview(topLabel)
+    pin(topLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
+    pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
+    pin(topLabel.top, to: self.top, dist: 8)
+    topLabel.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
+    self.topLabel.textColor = Const.SetColor.ForegroundLight.color
+    
+    pin(placeholderLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
+    pin(placeholderLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
+    pin(placeholderLabel.top, to: topLabel.bottom, dist: 6)
+    
     pin(bottomLabel.left, to: self.left)
-//    bottomLabelHeightConstraint =
     bottomLabel.pinHeight(20.0)
     pin(bottomLabel.right, to: self.right)
     pin(bottomLabel.bottom, to: self.bottom, dist: 0)
@@ -181,8 +208,8 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
                    for: UIControl.Event.editingChanged)
     self.addTarget(self, action: #selector(textFieldEditingDidBegin),
                    for: UIControl.Event.editingDidBegin)
-//    self.addTarget(self, action: #selector(textFieldEditingDidEnd),
-//                   for: UIControl.Event.editingDidEnd)
+    self.addTarget(self, action: #selector(textFieldEditingDidEnd),
+                   for: UIControl.Event.editingDidEnd)
   }
   
   override open var text: String?{
@@ -190,11 +217,13 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
       if let _text = text, _text.isEmpty {
         UIView.animate(seconds: 0.3) { [weak self] in
           self?.topLabel.alpha = 0.0
+          self?.placeholderLabel.alpha = 1.0
         }
       }
       else {
         UIView.animate(seconds: 0.3) { [weak self] in
           self?.topLabel.alpha = 1.0
+          self?.placeholderLabel.alpha = 0.0
         }
       }
     }
@@ -202,29 +231,10 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
   
   open var topMessage: String? {
     didSet {
-      topLabel.text = topMessage == nil ? placeholder : topMessage
+      topLabel.text = topMessage ?? placeholder
     }
   }
   
-  // MARK: > placeholder
-  override open var placeholder: String?{
-    didSet{
-      super.placeholder = placeholder
-      if topMessage == nil {
-        topLabel.text = placeholder
-      }
-      if topLabel.superview == nil && placeholder?.isEmpty == false{
-        topLabel.alpha = 0.0
-        topLabel.numberOfLines = 1
-        self.addSubview(topLabel)
-        pin(topLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
-        pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
-        pin(topLabel.top, to: self.top, dist: 8)
-        topLabel.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
-        self.topLabel.textColor = Const.SetColor.ForegroundLight.color
-      }
-    }
-  }
   
   // MARK: > bottomMessage
   open var bottomMessage: String?{
@@ -232,12 +242,8 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
       bottomLabel.text = bottomMessage
       isError = self.bottomMessage?.isEmpty == false
       self.bottomLabel.alpha = isError ? 1.0 :1.0
-      self.heightConstraint?.constant
-      = self.initialHeight + (isError ? 20.0 : 0)
-      
       backgroundLayer.borderColor = isError ? Const.SetColor.taz2(.notifications_error).color.cgColor : CGColor.init(gray: 0, alpha: 0)
       backgroundLayer.borderWidth = isError ? 2.0 : 0.0
-      
     }
   }
   
@@ -246,21 +252,37 @@ public class TazTextField : Padded.TextField, UITextFieldDelegate, KeyboardToolb
 }
 
 // MARK: - TazTextField : UITextFieldDelegate
-extension TazTextField{
+extension TazTextField: UITextFieldDelegate{
+  
   @objc public func textFieldEditingDidChange(_ textField: UITextField) {
-    if let _text = textField.text, _text.isEmpty {
+    if let _text = self.text
+        , _text.isEmpty,
+        self.topLabel.alpha == 1.0 {
       UIView.animate(seconds: 0.3) { [weak self] in
         self?.topLabel.alpha = 0.0
+        self?.placeholderLabel.alpha = 1.0
       }
     }
-    else {
+    else if self.topLabel.alpha == 0.0 || self.placeholderLabel.alpha == 1.0 {
       UIView.animate(seconds: 0.3) { [weak self] in
         self?.topLabel.alpha = 1.0
+        self?.placeholderLabel.alpha = 0.0
       }
     }
   }
   
-  @objc public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+  @objc  public func textFieldEditingDidEnd(_ textField: UITextField) {
+    if let _text = self.text, _text.isEmpty {
+      UIView.animate(seconds: 0.3) { [weak self] in
+        self?.placeholderLabel.alpha = 1.0
+        if self?.topMessage == self?.placeholder {
+          self?.topLabel.alpha = 0.0
+        }
+      }
+    }
+  }
+  
+  public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
     nextOrEndEdit()
     handleEnter?()
     return true

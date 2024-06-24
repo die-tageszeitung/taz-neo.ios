@@ -54,8 +54,8 @@ class IssueOverviewService: NSObject, DoesLog {
   
   internal var feederContext: FeederContext
   var feed: StoredFeed
-  var timer: Timer?
-  var skipNextTimer = false
+  
+  var ovwHelper = LoadOverviewHelperBusiness()
   
   public private(set) var publicationDates: [PublicationDate]
   
@@ -96,7 +96,6 @@ class IssueOverviewService: NSObject, DoesLog {
     }
 
     if issue == nil || img == nil {
-      skipNextTimer = true
       addToLoadFromRemote(key:key, date: publicationDate.date)
     }
     
@@ -119,9 +118,8 @@ class IssueOverviewService: NSObject, DoesLog {
   }
     
   private func loadMissingItems(){
-    if skipNextTimer == true { skipNextTimer  = false; return }
-    guard self.requestedRemoteItems.count > 0 else { return }
     if feederContext.isConnected == false { return }
+    guard self.requestedRemoteItems.count > 0 else { return }
     var missingIssues:[Date] = []
     for (key, date) in self.requestedRemoteItems {
       if let issue = self.issue(at: date) {
@@ -237,6 +235,7 @@ class IssueOverviewService: NSObject, DoesLog {
           self.updateIssue(issue: si, isPdf: isFacsimile)
         }
       }
+      self.ovwHelper.currentOverviewErrorResponse = res.error()
       for sdate in lds { self.loadingIssueData[sdate] = nil }
     }
   }
@@ -455,13 +454,12 @@ class IssueOverviewService: NSObject, DoesLog {
     self.feederContext = feederContext
     self.feed = feederContext.defaultFeed
     self.publicationDates = feed.publicationDates ?? []
-    
     issues =
     (feed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1
     } ?? [:]
     super.init()
-    
+    self.ovwHelper.sender = self//required for notification send
     $isFacsimile.onChange {[weak self] _ in
       guard let mode = self?.isFacsimile.mode,
             let keys = self?.requestedRemoteItems.keys,
@@ -476,15 +474,15 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     
     ///Update downloaded Issue Reference
-    Notification.receive("issue"){ [weak self] notif in
-      guard let err = notif.userInfo!["error"] as? Error else { return }
+    Notification.receive("issue"){ notif in
+      guard notif.userInfo!["error"] is Error else { return }
       Notification.send("issueProgress",
                         content: DownloadStatusIndicatorState.notStarted,
                         sender: notif.object)
     }
     ///Update downloaded Issue Reference
     Notification.receive("issueStructure"){ notif in
-      guard let err = notif.userInfo!["error"] as? Error else { return }
+      guard notif.userInfo!["error"] is Error else { return }
       Notification.send("issueProgress",
                         content: DownloadStatusIndicatorState.notStarted,
                         sender: notif.object)
@@ -502,12 +500,9 @@ class IssueOverviewService: NSObject, DoesLog {
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
       self?.updateIssues()
     }
-    
-    let params = Device.speedParameter
-    
-    self.timer = Timer.scheduledTimer(withTimeInterval: params.waitDuration, repeats: true, block: {[weak self] _ in
+    self.ovwHelper.onTimer{ [weak self] in
       self?.loadMissingItems()
-     })
+    }
   }
 }
 
@@ -582,22 +577,22 @@ fileprivate extension Date {
   }
 }
 
-typealias DeviceSpeedParameter = (waitDuration: Double, parallelRequests: Int)
 
 fileprivate extension Device {
   //iPhone SE 1 Requested Speed Level: 2,  2 CPUs, 2013 MB RAM, is in *Normal* Power Mode (waitDuration: 0.9, parallelRequests: 3)
   //iPhone 7    Requested Speed Level: 2,  2 CPUs, 2000 MB RAM, is in *Normal* Power Mode (waitDuration: 0.9, parallelRequests: 3)
   //iPhone 7    Requested Speed Level: 1,  2 CPUs, 2000 MB RAM, is in *Low* Power Mode (waitDuration: 1.0, parallelRequests: 2)
   //iPhone 11   Requested Speed Level: 6,  6 CPUs, 3851 MB RAM, is in *Normal* Power Mode (waitDuration: 0.6, parallelRequests: 4)
+  // parallelRequests are not used currently
   
   /// Return Parameters for optimized Remote Requests for IssueOverview Service
   /// Not so many parallel requests on slow devices, and not so often
-  static var speedParameter: DeviceSpeedParameter {
-    switch (Self.isIpad, Self.speedLevel){
-      case (_, 1): return (0.5, 2)
-      case (_, 2): return (0.3, 3)
-      case (_, 3): return (0.2, 4)
-      case (_, _): return (0.1, 4)
+  static var requestTimerInterval: TimeInterval{
+    switch Self.speedLevel{
+      case 1: return 0.5
+      case 2: return 0.3
+      case 3: return 0.2
+      default: return 0.1
     }
   }
   
@@ -635,5 +630,110 @@ fileprivate extension PublicationCycle {
       case .quarterly: return 91;
       case .unknown: return 1;
     }
+  }
+}
+
+class LoadOverviewHelperBusiness: DoesLog {
+  // MARK: - Timer
+  var timer: Timer?
+  var sender: IssueOverviewService?
+  
+  func onTimer(_ closure: (()->())?){  timerHandler = closure  }
+  
+  private var timerHandler: (()->())? {
+    didSet {
+      timer?.invalidate()
+      timer = nil
+      guard timerHandler != nil else { return }
+      self.timer
+      = Timer.scheduledTimer(withTimeInterval: Device.requestTimerInterval,
+                             repeats: true,
+                             block: {[weak self] _ in
+        guard self?.canHandleTimer() == true else { return }
+        self?.timerHandler?()
+      })
+    }
+  }
+  
+  // MARK: - Errors
+  private var ovwGraphQlErrorCount = 0 { didSet {}}
+  private var ovwGraphQlErrorAlertInterval = 2
+  private var lastOvwGraphQlErrorAlertAtCount = 0
+  private var isShowingFetchOvwDisableAlert = false
+  
+  var currentOverviewErrorResponse:Error? {
+    didSet {
+      guard let err = currentOverviewErrorResponse else {
+        ovwGraphQlErrorCount = 0
+        return
+      }
+      
+      if err is GraphQlError {
+        ovwGraphQlErrorCount +=  1
+        showFetchOvwDisableAlertIfNeeded()
+      }
+    }
+  }
+  
+  func showFetchOvwDisableAlertIfNeeded(){
+    guard !isShowingFetchOvwDisableAlert else { return }
+    if ovwGraphQlErrorCount
+        < lastOvwGraphQlErrorAlertAtCount + ovwGraphQlErrorAlertInterval { return }
+    guard TazAppEnvironment.sharedInstance.isErrorReporting == false else { return }
+    TazAppEnvironment.sharedInstance.isErrorReporting = true
+    isShowingFetchOvwDisableAlert = true
+    lastOvwGraphQlErrorAlertAtCount = ovwGraphQlErrorCount
+    
+    let cancelAction = UIAlertAction(title: "Weiter versuchen",
+                                     style: .default) {[weak self] _ in
+      TazAppEnvironment.sharedInstance.isErrorReporting = false
+      self?.log("FetchOvwDisableAlert...retry")
+      onMainAfter(2.0) {[weak self] in
+        self?.isShowingFetchOvwDisableAlert = false
+      }
+    }
+    let stopAction = UIAlertAction(title: "Abruf anhalten",
+                                   style: .destructive){[weak self] _ in
+      self?.log("FetchOvwDisableAlert...STOP")
+      self?.timer?.invalidate()
+      self?.timer = nil
+      TazAppEnvironment.sharedInstance.isErrorReporting = false
+      self?.isShowingFetchOvwDisableAlert = false
+      Notification.send(Const.NotificationNames.checkForNewIssues,
+                        content: FetchNewStatusHeader.status.stoppedLoadOvw,
+                        error: nil,
+                        sender: self?.sender)
+    }
+    
+    Alert.message(title: "Wiederholter Fehler",
+                  message: "Beim Abruf der Daten für die Ausgabenübersicht kam es wiederholt zum einem Fehler.\nMöchten Sie das Abrufen der Daten für die Ausgabenübersicht bis zum Neustart der App anhalten?\nSie können noch auf lokal vorhandene Daten zugreifen.",
+                  actions: [stopAction, cancelAction] )
+  }
+  
+  var skipCount = 0
+  var skipCountTarget = 0
+  
+  // MARK: - skip timer for load...
+  func updateSkipCounts(){
+    let timerIntervall = max(timer?.timeInterval ?? 0.1, 0.5)//>=0.1
+    switch ovwGraphQlErrorCount {
+      case 0: skipCountTarget = 0;
+      case 1..<5: skipCountTarget = Int(5/timerIntervall) ///5s = 100 for 0.1 timeIntervall
+      case 6..<15: skipCountTarget = Int(15/timerIntervall) ///15s = 100 for 0.1 timeIntervall
+      default: skipCountTarget = Int(20/timerIntervall)
+    }
+  }
+  
+  func canHandleTimer()->Bool{
+    if ovwGraphQlErrorCount == 0 { return true }///probably not required
+    if TazAppEnvironment.sharedInstance.isErrorReporting { return false }
+    if isShowingFetchOvwDisableAlert { return false }
+    ///In case of ovw GraphQL Errors slow down server requests
+    if skipCount < skipCountTarget {
+      skipCount += 1
+      return false
+    }
+    skipCount = 0
+    return true
   }
 }
