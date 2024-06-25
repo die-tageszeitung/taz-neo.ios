@@ -138,7 +138,7 @@ extension Padded.Button{
     self.backgroundColor = color
     self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
     self.setTitleColor(textColor, for: .normal)
-    self.titleLabel?.font = Const.Fonts.boldContentFont
+    self.titleLabel?.font = Const.Fonts.titleFont(size: Const.Size.DefaultButtonFontSize)
     self.layer.cornerRadius = height/2
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
@@ -154,7 +154,6 @@ extension Padded.Button{
         self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
         self.addBorder(Const.SetColor.CTDate.color, 1.5)
         self.setTitleColor(Const.SetColor.CTDate.color, for: .normal)
-        self.titleLabel?.font = Const.Fonts.boldContentFont
         self.layer.cornerRadius = height/2
       case .label:
         self.backgroundColor = .clear
@@ -325,7 +324,7 @@ class CheckboxWithText:UIView{
   public var error : Bool = false {
     didSet {
       checkbox.layer.borderColor
-        = error ? Const.SetColor.CIColor.color.cgColor : Const.SetColor.ios_opaque(.grey).color.cgColor
+        = error ? Const.SetColor.CIColor.color.cgColor : Const.SetColor.taz2(.text_icon_grey).color.cgColor
     }
   }
   

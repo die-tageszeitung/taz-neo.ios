@@ -72,7 +72,6 @@ public class SubscriptionFormView : FormView{
                             placeholder: "Liegt Ihnen sonst was am Herzen? Hier ist Platz dafür.")
 
   var sendButton = Padded.Button(title: "Absenden")
-  var cancelButton =  Padded.Button(type:.outline, title: Localized("cancel_button"))
   
   var title: UILabel? {
     
@@ -102,7 +101,7 @@ public class SubscriptionFormView : FormView{
         }
     }
     guard let text = text else { return nil }
-    return Padded.Label(title: text).titleFont(size: 18)
+    return Padded.Label(title: text).titleFont(size: 21)
   }
   
   var subTitle: UILabel? {
@@ -144,7 +143,6 @@ public class SubscriptionFormView : FormView{
     if !self.formType.expiredForm {
       views.append(contentsOf: [mailInput, firstName, lastName, street, city, postcode, aboIdInput])
     }
-    views.append( UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10)))//spacer
     views.append(message)
     views.append( UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10)))//spacer
     
@@ -152,7 +150,7 @@ public class SubscriptionFormView : FormView{
       views.append(requestInfoCheckbox)
     }
     
-    views.append(contentsOf: [sendButton, cancelButton])
+    views.append(sendButton)
     return views
   }
   

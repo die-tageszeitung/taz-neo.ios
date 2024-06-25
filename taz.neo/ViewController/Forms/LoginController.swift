@@ -32,7 +32,6 @@ class LoginController: FormsController {
       guard let self = self else {return}
       self.handleLogin(self.ui.loginButton)
     }
-    contentView.privacyLabel.delegate = self
   }
   
   // MARK: Button Actions

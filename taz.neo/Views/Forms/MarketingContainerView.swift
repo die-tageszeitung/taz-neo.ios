@@ -11,8 +11,6 @@ import NorthLib
 
 class MarketingContainerView: Padded.View {
   
-  var imageLeftAligned: Bool
-  
   var button: Padded.Button
   var titleLabel = UILabel()
   var textLabel = UILabel()
@@ -31,39 +29,20 @@ class MarketingContainerView: Padded.View {
   var imageAspectConstraint: NSLayoutConstraint?
   
   func setup(){
-    if imageLeftAligned {
-      secondWrapper.addSubview(titleLabel)
-      secondWrapper.addSubview(textLabel)
-      firstWrapper.addSubview(imageView)
-    }
-    else {
-      firstWrapper.addSubview(titleLabel)
-      firstWrapper.addSubview(textLabel)
-      secondWrapper.addSubview(imageView)
-    }
-    
-    let imgSv = imageLeftAligned ? firstWrapper : secondWrapper
-    let lblSv = imageLeftAligned ? secondWrapper : firstWrapper
-    
-//    firstWrapper.addBorder(.yellow)
-//    secondWrapper.addBorder(.green)
-//    
-//    self.addBorder(.red)
-//    
-//    titleLabel.addBorder(.blue)
-//    textLabel.addBorder(.systemPink)
-//    imageView.addBorder(.purple)
-//    button.addBorder(.magenta)
+
+    firstWrapper.addSubview(titleLabel)
+    firstWrapper.addSubview(textLabel)
+    secondWrapper.addSubview(imageView)
     
     self.addSubview(firstWrapper)
     self.addSubview(secondWrapper)
     self.addSubview(button)
     
-    pin(titleLabel, to: lblSv, exclude: .bottom)
-    pin(textLabel, to: lblSv, exclude: .top)
+    pin(titleLabel, to: firstWrapper, exclude: .bottom)
+    pin(textLabel, to: firstWrapper, exclude: .top)
     pin(textLabel.top, to: titleLabel.bottom, dist: Const.Dist2.s5)
     
-    pin(imageView, to: imgSv)
+    pin(imageView, to: secondWrapper)
     imageView.contentMode = .scaleAspectFit
     if let img = imageView.image,
        img.size.width > 0,
@@ -95,13 +74,13 @@ class MarketingContainerView: Padded.View {
     
     textLabel.numberOfLines = 0
     textLabel.textAlignment = .left
-    textLabel.contentFont()
+    textLabel.contentFont(size: 18.0)
     
     self.backgroundColor = Const.SetColor.HBackground.color
     
     pin(button.bottom, to: self.bottom)
     pin(button.width, to: firstWrapper.width)
-    _ = imageLeftAligned ? pin(button.right, to: self.right) : pin(button.left, to: self.left)
+    button.centerX()
   }
   
   
@@ -142,10 +121,7 @@ class MarketingContainerView: Padded.View {
   init(button: Padded.Button,
        title: String,
        text:String,
-       imageName:String?,
-       imageLeftAligned: Bool = false
-  ) {
-    self.imageLeftAligned = imageLeftAligned
+       imageName:String?) {
     self.button = button
     self.titleLabel.text = title
     self.textLabel.attributedText = text.attributedStringWith(lineHeightMultiplier: 1.25)

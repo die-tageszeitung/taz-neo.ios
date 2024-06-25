@@ -83,8 +83,6 @@ public class TrialSubscriptionView : FormView{
   
   var registerButton = Padded.Button(title: Localized("register_button"))
   
-  var cancelButton =  Padded.Button(type:.outline, title: Localized("cancel_button"))
-  
   // MARK: agbAcceptLabel with Checkbox
   lazy var agbAcceptTV : CheckboxWithText = {
     let view = CheckboxWithText()
@@ -101,6 +99,9 @@ public class TrialSubscriptionView : FormView{
     passInput.delegate = self
     pass2Input.delegate = self
     
+    let registerWrapper = registerButton.centeredWrapper()
+    registerWrapper.paddingBottom = Const.Dist2.m20
+    
     return   [
       Padded.Label(title: Localized("trial_subscription_title")),
       mailInput,
@@ -111,8 +112,7 @@ public class TrialSubscriptionView : FormView{
       Padded.Label(title:
         Localized("fragment_login_request_test_subscription_existing_account")),
       agbAcceptTV,
-      registerButton,
-      cancelButton,
+      registerWrapper,
       registerTipsButton
     ]
   }

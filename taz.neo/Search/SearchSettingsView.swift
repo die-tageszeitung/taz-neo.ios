@@ -53,8 +53,8 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
     let lbl = UILabel()
     lbl.text = "Hilfe"
     lbl.contentFont(size: Const.Size.SmallerFontSize)
-    lbl.textColor = Const.SetColor.ios_opaque(.grey).color
-    lbl.addBorderView(Const.SetColor.ios_opaque(.grey).color, edge: UIRectEdge.bottom)
+    lbl.textColor = Const.SetColor.taz2(.text_icon_grey).color
+    lbl.addBorderView(Const.SetColor.taz2(.text_icon_grey).color, edge: UIRectEdge.bottom)
     return lbl
   }()
   

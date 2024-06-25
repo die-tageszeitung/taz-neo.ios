@@ -35,8 +35,8 @@ public class LoginView : FormView{
     let lbl = UILabel()
     lbl.text = "Hilfe"
     lbl.contentFont(size: Const.Size.SmallerFontSize)
-    lbl.textColor = Const.SetColor.ios_opaque(.grey).color
-    lbl.addBorderView(Const.SetColor.ios_opaque(.grey).color, edge: UIRectEdge.bottom)
+    lbl.textColor = Const.SetColor.taz2(.text_icon_grey).color
+    lbl.addBorderView(Const.SetColor.taz2(.text_icon_grey).color, edge: UIRectEdge.bottom)
     let wrapper = Padded.View()
     wrapper.addSubview(lbl)
     //Allow label to shink if wrapper shrinks, not alow to grow more than needed
@@ -51,8 +51,8 @@ public class LoginView : FormView{
     let lbl = UILabel()
     lbl.text = Localized("login_forgot_password")
     lbl.contentFont(size: Const.Size.SmallerFontSize)
-    lbl.textColor = Const.SetColor.ios_opaque(.grey).color
-    lbl.addBorderView(Const.SetColor.ios_opaque(.grey).color, edge: UIRectEdge.bottom)
+    lbl.textColor = Const.SetColor.taz2(.text_icon_grey).color
+    lbl.addBorderView(Const.SetColor.taz2(.text_icon_grey).color, edge: UIRectEdge.bottom)
     let wrapper = Padded.View()
     wrapper.addSubview(lbl)
     //Allow label to shink if wrapper shrinks, not alow to grow more than needed
@@ -62,22 +62,8 @@ public class LoginView : FormView{
     wrapper.paddingTop = 5.0
     return wrapper
   }()
+  
     
-  lazy var privacyLabel : CustomTextView = {
-    let view = CustomTextView()
-    view.isEditable = false
-    view.attributedText = Localized("login_privacy_link").htmlAttributed
-    view.linkTextAttributes 
-    = [.foregroundColor : Const.SetColor.ios_opaque(.grey).color,
-      .underlineColor: Const.SetColor.ios_opaque(.grey).color]
-    view.textContainer.lineFragmentPadding = 0;
-    view.font = Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)
-    view.textColor = Const.SetColor.ios_opaque(.grey).color
-    view.textAlignment = .left
-    return view
-  }()
-  
-  
   var trialSubscriptionButton
   = Padded.Button(type: .outline, title: Localized("login_trial_subscription_button_text"))
   var switchButton
@@ -97,24 +83,22 @@ public class LoginView : FormView{
     = Padded.Label(title: "Anmeldung für Digital-Abonnent:innen")
     label.boldContentFont(size: Const.Size.DT_Head_extrasmall).align(.left)
     label.paddingBottom = 25.0
+    label.accessibilityTraits = .none
+    idInput.accessibilityTraits = .none
+    
+    let loginWrapper = loginButton.centeredWrapper()
     
     helpButton.paddingBottom = 25.0
     passForgottButton.paddingBottom = Const.Dist2.m15
-    privacyLabel.paddingBottom = Const.Dist2.m20
-    loginButton.paddingBottom = Const.Dist2.m30
+    loginWrapper.paddingBottom = Const.Dist2.l
 
-    buttonWidthConstraint
-    = loginButton.pinWidth(Const.Size.TabletFormMinWidth/2,
-                           relation: .lessThanOrEqual,
-                           priority: .required)
-    
     if App.isLMD {
       return   [
         label,
         idInput,
         helpButton,
         passInput,
-        loginButton]
+        loginWrapper]
     }
     return   [
       label,
@@ -122,8 +106,7 @@ public class LoginView : FormView{
       helpButton,
       passInput,
       passForgottButton,
-      privacyLabel,
-      loginButton,
+      loginWrapper,
       marketingContainer
     ]
   }
@@ -185,8 +168,7 @@ public class LoginView : FormView{
     let mc2 = MarketingContainerView(button: switchButton,
                                      title: Localized("login_switch_print2digi_title"),
                                      text: Localized("login_switch_print2digi_body"),
-                                     imageName: "BundledResources/switch.jpg",
-                                     imageLeftAligned: true)
+                                     imageName: "BundledResources/switch.jpg")
     let dottedLine2 = dottedLine()
     let mc3 = MarketingContainerView(button: extendButton,
                                      title: Localized("login_extend_print_with_digi_title"),

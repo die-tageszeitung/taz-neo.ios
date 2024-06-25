@@ -13,6 +13,13 @@ import NorthLib
 // MARK: - TazTextField
 public class TazTextField : Padded.TextField, KeyboardToolbarForText{
   
+  private var _accessibilityLabel: String?
+  
+  public override var accessibilityLabel: String? {
+    get { return (_accessibilityLabel ?? topLabel.text ?? placeholder ?? "").prepend("Eingabe ")   }
+    set {_accessibilityLabel = newValue }
+  }
+  
   public var index: Int?
   static let recomendedHeight:CGFloat = 61.0
   var initialHeight: CGFloat = TazTextField.recomendedHeight
@@ -55,6 +62,7 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
   // MARK: > pwInput
   required init(prefilledText: String? = nil,
                 placeholder: String? = nil,
+                topMessage: String? = nil,
                 color: UIColor = Const.SetColor.CIColor.color,
                 textColor: UIColor = Const.SetColor.CTDate.color,
                 height: CGFloat = TazTextField.recomendedHeight,
@@ -70,6 +78,7 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
     super.init(frame:.zero)
     setup(prefilledText: prefilledText,
           placeholder: placeholder,
+          topMessage: topMessage,
           color: color,
           textColor: textColor,
           height: height,
@@ -135,6 +144,7 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
   
   func setup(prefilledText: String? = nil,
              placeholder: String? = nil,
+             topMessage: String? = nil,
              color: UIColor = Const.SetColor.CIColor.color,
              textColor: UIColor = Const.SetColor.CTDate.color,
              height: CGFloat = TazTextField.recomendedHeight,
@@ -150,6 +160,7 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
     heightConstraint = pinHeight(initialHeight)
     self.text = prefilledText
     self.placeholder = placeholder
+//    self.topMessage = topMessage //layout issues?
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
     self.contentVerticalAlignment = .top
@@ -185,12 +196,13 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
     
     topLabel.alpha = 0.0
     topLabel.numberOfLines = 1
+//    topLabel.text = topMessage//layout issues?
     self.addSubview(topLabel)
     pin(topLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
     pin(topLabel.top, to: self.top, dist: 8)
     topLabel.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
-    self.topLabel.textColor = Const.SetColor.ForegroundLight.color
+    self.topLabel.textColor = Const.SetColor.taz2(.text_icon_grey).color
     
     pin(placeholderLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(placeholderLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)

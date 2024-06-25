@@ -32,7 +32,6 @@ class SubscriptionFormController : FormsController {
   override func viewDidLoad() {
     super.viewDidLoad()
     ui.sendButton.touch(self, action: #selector(handleSubmit))
-    ui.cancelButton.touch(self, action: #selector(handleBack))
   }
   
   override func viewDidAppear(_ animated: Bool) {

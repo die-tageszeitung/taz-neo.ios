@@ -195,7 +195,7 @@ public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
       super.layoutSubviews()
       let selfW = self.frame.size.width
       if abs(selfW - lastCalculatedPlaceholderHeightAlWidth) > 10, let placeholderLabel = (self.superview as? TazTextView)?.placeholderLabel {
-        minimalHeight = max(55.0, 12 + placeholderLabel.sizeThatFits(CGSize(width: selfW, height: 2000)).height )
+        minimalHeight = max(55.0, 25 + placeholderLabel.sizeThatFits(CGSize(width: selfW, height: 2000)).height )
         lastCalculatedPlaceholderHeightAlWidth = selfW
       }
       let newHeight

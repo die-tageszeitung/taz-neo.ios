@@ -223,7 +223,6 @@ public struct Const {
     enum iOS_Opaque {
       case closeXcircleBackground
       case closeX
-      case grey
     }
     case taz(taz_Custom)
     enum taz_Custom {
@@ -248,6 +247,7 @@ public struct Const {
       case notifications_error
       case notifications_errorText
       case text_disabled
+      case text_icon_grey
     }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
@@ -334,8 +334,6 @@ public struct Const {
           return (UIColor.rgb(0x5D5E63), UIColor.rgb(0xB8B8C1), nil, nil)
         case .ios_opaque(.closeXcircleBackground):
           return (UIColor.rgb(0xE9E9EB), UIColor.rgb(0x39393D), nil, nil)
-        case .ios_opaque(.grey):
-          return (UIColor.gray, UIColor(white: 0.85, alpha: 1.0), nil, nil)
         case .ios(.label):
           return (Const.Colors.iOSLight.label, Const.Colors.iOSDark.label, nil, nil)
         case .ios(.secondaryLabel):
@@ -390,6 +388,7 @@ public struct Const {
           return (UIColor.rgb(0xA6A6A6), UIColor.rgb(0x505050), nil, nil)
         case .taz(.textFieldClear):
           return (UIColor.rgb(0x9C9C9C), UIColor.rgb(0x9C9C9C), nil, nil)
+        case .taz2(.text_icon_grey): fallthrough
         case .taz(.textIconGray):
           return (UIColor.rgb(0x565656), UIColor.rgb(0x929292), nil, nil)
         case .taz(.primaryBackground):
@@ -515,6 +514,7 @@ public struct Const {
     static let TextFieldPadding = SmallPadding
     static let MiniPageNumberFontSize = CGFloat(12)
     static let DefaultFontSize = CGFloat(16)
+    static let DefaultButtonFontSize = CGFloat(17)
     static let SmallerFontSize = CGFloat(14)
     static let LargeTitleFontSize = CGFloat(34)
     static let TitleFontSize = CGFloat(25)

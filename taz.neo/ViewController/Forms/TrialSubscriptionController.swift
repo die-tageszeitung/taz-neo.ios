@@ -33,7 +33,6 @@ class TrialSubscriptionController : FormsController {
   override func viewDidLoad() {
     super.viewDidLoad()
     ui.registerButton.touch(self, action: #selector(handleSubmit))
-    ui.cancelButton.touch(self, action: #selector(handleBack))
     ui.agbAcceptTV.textView.delegate = self ///FormsController cares
   }
   
@@ -179,7 +178,6 @@ class TrialSubscriptionRequestNameCtrl : TrialSubscriptionController{
       ui.lastnameInput,
       ui.agbAcceptTV,
       ui.registerButton,
-      ui.cancelButton,
       ui.registerTipsButton
       
     ]

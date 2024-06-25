@@ -203,3 +203,21 @@ extension FormView {
     scrollView.contentInset = contentInset
   }
 }
+
+extension UIView {
+  func centeredWrapper(maxWidth: CGFloat = Const.Size.TabletFormMinWidth/2) -> Padded.View {
+    self.pinWidth(maxWidth,
+                  relation: .lessThanOrEqual,
+                  priority: .required)
+    let wrapper = Padded.View()
+    wrapper.addSubview(self)
+    pin(self.top, to: wrapper.top)
+    pin(self.bottom, to: wrapper.bottom)
+    pin(self.left, to: wrapper.left, priority: .defaultLow)
+    pin(self.right, to: wrapper.right, priority: .defaultLow)
+    self.centerX()
+    wrapper.paddingTop = Const.Dist2.m30
+    wrapper.paddingBottom = Const.Dist2.l
+    return wrapper
+  }
+}
