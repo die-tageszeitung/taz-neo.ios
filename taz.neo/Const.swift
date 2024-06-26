@@ -123,6 +123,7 @@ public struct Const {
       static let Taz_BackgroundForms = UIColor.rgb(0xEBEBEB)
       static let Taz_Notifications_error = UIColor.rgb(0xFF1919)
       static let Taz_Notifications_errorText = UIColor.rgb(0xC01111)
+      static let Taz_Text_DisabledX = UIColor.rgb(0x6A6A6A)
     }
     struct Dark {
       static let CTBackground = darkSecondaryBG
@@ -145,8 +146,9 @@ public struct Const {
         static let MenuText = UIColor.rgb(0xebebf5)//darkSecondaryText
       #endif
       static let Taz_BackgroundForms = UIColor.rgb(0x353535)
-      static let Taz_Notifications_error = UIColor.red//0xFF1919
-      static let Taz_Notifications_errorText = UIColor.red//0xC01111
+      static let Taz_Notifications_error = UIColor.rgb(0xFF1919)
+      static let Taz_Notifications_errorText = UIColor.rgb(0xE3E3E3)
+      static let Taz_Text_Disabled = UIColor.rgb(0xA6A6A6)
     }
     
     struct iOSLight {
@@ -248,6 +250,7 @@ public struct Const {
       case notifications_errorText
       case text_disabled
       case text_icon_grey
+      case text
     }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
@@ -385,12 +388,12 @@ public struct Const {
         case .taz(.textDisabled): fallthrough
         case .taz2(.text_disabled): fallthrough
         case .taz(.textFieldPlaceholder):
-          return (UIColor.rgb(0xA6A6A6), UIColor.rgb(0x505050), nil, nil)
+          return (UIColor.rgb(0x6A6A6A), UIColor.rgb(0xA6A6A6), nil, nil)
         case .taz(.textFieldClear):
           return (UIColor.rgb(0x9C9C9C), UIColor.rgb(0x9C9C9C), nil, nil)
         case .taz2(.text_icon_grey): fallthrough
         case .taz(.textIconGray):
-          return (UIColor.rgb(0x565656), UIColor.rgb(0x929292), nil, nil)
+          return (UIColor.rgb(0x565656), UIColor.rgb(0xbdbdbd), nil, nil)
         case .taz(.primaryBackground):
           return (.white, .black, nil, nil)
         case .taz(.primaryForeground)://same: .taz(.buttonForeground):
@@ -419,9 +422,11 @@ public struct Const {
         case .taz2(.backgroundForms):
           return (Const.Colors.Light.Taz_BackgroundForms, Const.Colors.Dark.Taz_BackgroundForms, nil, nil)
         case .taz2(.notifications_error):
-          return (Const.Colors.Light.Taz_Notifications_error, Const.Colors.Light.Taz_Notifications_error, nil, nil)
+          return (Const.Colors.Light.Taz_Notifications_error, Const.Colors.Dark.Taz_Notifications_error, nil, nil)
         case .taz2(.notifications_errorText):
-          return (Const.Colors.Dark.Taz_Notifications_errorText, Const.Colors.Dark.Taz_Notifications_errorText, nil, nil)
+          return (Const.Colors.Light.Taz_Notifications_errorText, Const.Colors.Dark.Taz_Notifications_errorText, nil, nil)
+        case .taz2(.text):
+          return (UIColor.rgb(0x1f1f1f), UIColor.rgb(0xe3e3e3), nil, nil)
       }
     }
   } // SetColors

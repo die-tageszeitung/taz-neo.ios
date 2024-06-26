@@ -139,6 +139,7 @@ class FormsResultController: UIViewController {
     self.view.addSubview(ui)
     pin(ui, to: self.view).top.constant = 0
     setupXButton()
+    self.view.accessibilityViewIsModal = true
     self.isModalInPresentation = true
   }
   

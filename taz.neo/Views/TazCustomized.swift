@@ -28,6 +28,11 @@ public extension ButtonControl {
     bv.buttonView.pinAspect = false
     bv.buttonView.symbol = symbol
     bv.buttonView.hinset = 0.28
+    
+    self.accessibilityLabel = "Schließen"
+    self.accessibilityTraits = .button
+    self.isAccessibilityElement = true
+    
     self.pinSize(CGSize(width: circleRadius, height: circleRadius))
     bv.layer.cornerRadius = circleRadius/2
     return self

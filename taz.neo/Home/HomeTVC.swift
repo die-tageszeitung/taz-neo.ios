@@ -145,6 +145,7 @@ class HomeTVC: UITableViewController {
                                    enqueueType: .replaceCurrent)
     }
     accessibilityPlayHelper.numberOfLines = 2
+    accessibilityPlayHelper.accessibilityTraits = .button
     accessibilityPlayHelper.boldContentFont().color(.white).centerText()
     //--
     accessibilityOlderHelper.onTapping {[weak self] _ in
@@ -152,6 +153,7 @@ class HomeTVC: UITableViewController {
       self?.carouselController.scrollTo(idx+1, animated: false)
     }
     accessibilityOlderHelper.accessibilityLabel = "Ausgabe zurück"
+    accessibilityOlderHelper.accessibilityTraits = .button
     accessibilityOlderHelper.isAccessibilityElement = true
     accessibilityOlderHelper.image = UIImage(named: "forward")
     accessibilityOlderHelper.image?.accessibilityTraits = .none
@@ -163,6 +165,7 @@ class HomeTVC: UITableViewController {
       self?.carouselController.scrollTo(idx-1, animated: false)
     }
     accessibilityNewerHelper.accessibilityLabel = "Ausgabe vor"
+    accessibilityNewerHelper.accessibilityTraits = .button
     accessibilityNewerHelper.isAccessibilityElement = true
     accessibilityNewerHelper.image = UIImage(named: "backward")
     accessibilityNewerHelper.image?.accessibilityTraits = .none
@@ -370,7 +373,7 @@ extension HomeTVC: IssueSelectionChangeDelegate {
       accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) abspielen"
     }
     else {
-      accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) ohne Audiowiedergabe"
+      accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) laden und abspielen"
     }
     
   }
@@ -658,6 +661,14 @@ extension HomeTVC {
                             button2Handler: { Defaults.usageTrackingAllowed = false },
                             dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
     }
+    dataPolicyToast?.accessibilityViewIsModal = true
+    dataPolicyToast?.button1.accessibilityLabel = "Tracking zustimmen"
+    dataPolicyToast?.button2.accessibilityLabel = "Tracking verweigern"
+    ///unfortunately links are not accessible @see: https://stackoverflow.com/a/49366620
+    #warning("accessibility: Change Component")
+    dataPolicyToast?.privacyText.accessibilityLabel = "Hinweise zum Datenschutz finden Sie in den Einstellungen"
+    dataPolicyToast?.privacyText.isAccessibilityElement = false
+    dataPolicyToast?.privacyText.accessibilityTraits = .none
     dataPolicyToast?.show(fromBottom: fromBottom)
   }
   

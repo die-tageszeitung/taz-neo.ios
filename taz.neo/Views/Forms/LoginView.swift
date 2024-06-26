@@ -35,6 +35,7 @@ public class LoginView : FormView{
     let lbl = UILabel()
     lbl.text = "Hilfe"
     lbl.contentFont(size: Const.Size.SmallerFontSize)
+    lbl.accessibilityTraits = .button
     lbl.textColor = Const.SetColor.taz2(.text_icon_grey).color
     lbl.addBorderView(Const.SetColor.taz2(.text_icon_grey).color, edge: UIRectEdge.bottom)
     let wrapper = Padded.View()
@@ -51,6 +52,7 @@ public class LoginView : FormView{
     let lbl = UILabel()
     lbl.text = Localized("login_forgot_password")
     lbl.contentFont(size: Const.Size.SmallerFontSize)
+    lbl.accessibilityTraits = .button
     lbl.textColor = Const.SetColor.taz2(.text_icon_grey).color
     lbl.addBorderView(Const.SetColor.taz2(.text_icon_grey).color, edge: UIRectEdge.bottom)
     let wrapper = Padded.View()
@@ -87,6 +89,8 @@ public class LoginView : FormView{
     idInput.accessibilityTraits = .none
     
     let loginWrapper = loginButton.centeredWrapper()
+    
+    idInput.accessibilityLabel = "Eingabe E-Mail-Adresse oder Abo Ei Di"
     
     helpButton.paddingBottom = 25.0
     passForgottButton.paddingBottom = Const.Dist2.m15
