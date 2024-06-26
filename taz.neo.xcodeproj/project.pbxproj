@@ -1752,8 +1752,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/matomo-org/matomo-sdk-ios.git";
 			requirement = {
-				kind = revision;
-				revision = 15a645e11eaa8053f93749d73ced03da1e56fd01;
+				kind = upToNextMinorVersion;
+				minimumVersion = 7.6.0;
 			};
 		};
 		AE5131692AFBCADB002289E8 /* XCRemoteSwiftPackageReference "NorthLib" */ = {
