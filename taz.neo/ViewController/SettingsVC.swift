@@ -1054,12 +1054,8 @@ extension SettingsVC {
     introVC.modalPresentationStyle = .fullScreen
     introVC.webView.webView.scrollDelegate.atEndOfContent {_ in }
     self.present(introVC, animated: true) {
-      //Overwrite Default in: IntroVC viewDidLoad
+      ///Overwrite Default in: IntroVC viewDidLoad, hide Accept Button from former ux
       introVC.webView.buttonLabel.text = nil
-      //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
-      guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
-      bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
-      bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
     }
   }
 }

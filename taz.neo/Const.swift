@@ -251,6 +251,8 @@ public struct Const {
       case text_disabled
       case text_icon_grey
       case text
+      case closeX
+      case closeX_background
     }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
@@ -425,6 +427,10 @@ public struct Const {
           return (Const.Colors.Light.Taz_Notifications_error, Const.Colors.Dark.Taz_Notifications_error, nil, nil)
         case .taz2(.notifications_errorText):
           return (Const.Colors.Light.Taz_Notifications_errorText, Const.Colors.Dark.Taz_Notifications_errorText, nil, nil)
+        case .taz2(.closeX):
+          return (UIColor.rgb(0x3C3C43), UIColor.rgb(0xB3B3B5), nil, nil)
+        case .taz2(.closeX_background):
+          return (UIColor.rgb(0xE0E0E0), UIColor.rgb(0x48484A), nil, nil)
         case .taz2(.text):
           return (UIColor.rgb(0x1f1f1f), UIColor.rgb(0xe3e3e3), nil, nil)
       }

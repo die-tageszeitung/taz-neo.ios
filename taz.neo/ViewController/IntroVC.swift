@@ -7,16 +7,43 @@
 
 import UIKit
 import NorthLib
+import WebKit
 
 /// A view controller to show introductory HTML-files
 class IntroVC: UIViewController {
   
   /// The WebView to show the HTML-files
-  var webView = ButtonedWebView(customXButton: Button<ImageView>())
+  var webView = ButtonedWebView(customXButton: Button<ImageView>(), configuration: IntroVC.webViewConfiguration())
   /// The file containing the data policy
   var htmlDataPolicy: String?
   /// The file containing the introduction
   var htmlIntro: String?
+  
+  static func webViewConfiguration() -> WKWebViewConfiguration? {
+    if Defaults.darkMode == false { return nil }
+    let cssString
+    = "#welcome-carousel .carousel-inner img:not(#slide2 .second-inner-div img){ filter: invert(1); }"
+    let source = """
+        var link = document.createElement("link");
+        link.href = "themeNight.css";
+        link.rel = "stylesheet";
+        document.head.appendChild(link);
+        var style = document.createElement('style');
+        style.innerHTML = '\(cssString)';
+        document.head.appendChild(style);
+        """
+    
+    let userScript = WKUserScript(source: source,
+                                   injectionTime: .atDocumentEnd,
+                                   forMainFrameOnly: true)
+    let userContentController = WKUserContentController()
+        userContentController.addUserScript(userScript)
+
+        let configuration = WKWebViewConfiguration()
+        configuration.userContentController = userContentController
+    
+    return configuration
+  }
   
   var topOffset: CGFloat = 0.0 {
     didSet {
@@ -40,8 +67,11 @@ class IntroVC: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.view.backgroundColor = .white
+    self.view.backgroundColor = Const.SetColor.CTBackground.color
     self.view.addSubview(webView)
+    if #available(iOS 16.4, *) {
+      webView.webView.isInspectable = true
+    }
     pin(webView, to: self.view, exclude: .top)
     webViewTopOffsetConstraint = pin(webView.top, to: self.view.top, dist: topOffset)
     webView.buttonMargin = 26

@@ -369,10 +369,6 @@ extension FormsController: UITextViewDelegate {
       modalFromBottom(introVC) {
         //Overwrite Default in: IntroVC viewDidLoad
         introVC.webView.buttonLabel.text = nil
-        //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
-        guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
-        bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
-        bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
       }
       introVC.webView.onX {_ in 
         introVC.dismiss(animated: true, completion: nil)
