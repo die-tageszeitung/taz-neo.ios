@@ -116,7 +116,8 @@ class HomeTVC: UITableViewController {
     didSet {
       if oldValue == isAccessibilityMode { return }
       accessibilityControlls.isHidden = !isAccessibilityMode
-      scroll(up: true)
+      scroll(up: true, animated: false)
+      tableView.isScrollEnabled = !isAccessibilityMode
       tableView.reloadData()
     }
   }
@@ -170,6 +171,12 @@ class HomeTVC: UITableViewController {
     accessibilityNewerHelper.image = UIImage(named: "backward")
     accessibilityNewerHelper.image?.accessibilityTraits = .none
     accessibilityNewerHelper.tintColor = .white
+    
+    accessibilityPlayHelper.accessibilityLabel = "aktuelle Ausgabe abspielen, bitte benutzen Sie die Mediensteuerung auf dem Speerbildschirm um zwischen den Artikeln zu wechseln"
+    accessibilityPlayHelper.text = "aktuelle Ausgabe abspielen"
+    accessibilityPlayHelper.accessibilityTraits = .button
+    accessibilityPlayHelper.isAccessibilityElement = true
+    
     //--
     let accessibilityInfoLabel = UILabel(frame: CGRect(x: 5, y: 50, width: 10, height: 4))
     accessibilityInfoLabel.text = "Voiceover Hilfsschaltflächen aktiviert\nVoiceover deaktivieren\num diese zu deaktivieren"
@@ -183,6 +190,7 @@ class HomeTVC: UITableViewController {
     wrapper.addSubview(accessibilityOlderHelper)
     wrapper.addSubview(accessibilityNewerHelper)
     wrapper.addSubview(accessibilityInfoLabel)
+    wrapper.backgroundColor = UIColor.black.withAlphaComponent(0.8)
     //--
     pin(accessibilityOlderHelper.right, to: wrapper.right)
     pin(accessibilityNewerHelper.left, to: wrapper.left)
@@ -371,6 +379,7 @@ extension HomeTVC: IssueSelectionChangeDelegate {
   func  setCurrent(cellData: IssueCellData, idx: Int) {
     if cellData.issue?.audioFiles.count ?? 0 > 0 {
       accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) abspielen"
+      accessibilityPlayHelper.accessibilityLabel = "taz vom\n\(cellData.date.date.short) abspielen"
     }
     else {
       accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) laden und abspielen"
@@ -566,7 +575,7 @@ extension HomeTVC {
     carouselControllerCell.contentView.addSubview(accessibilityControlls)
     pin(accessibilityControlls.left, to: carouselControllerCell.contentView.left, dist: 12.0)
     pin(accessibilityControlls.right, to: carouselControllerCell.contentView.right, dist: -12.0)
-    pin(accessibilityControlls.topGuide(), to: carouselControllerCell.contentView.top)
+    pin(accessibilityControlls.top, to: carouselControllerCell.contentView.topGuide(isMargin: true), dist: 15)
   }
   
   fileprivate func updateLoginButton(){
