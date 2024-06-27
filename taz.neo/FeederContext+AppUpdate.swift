@@ -72,6 +72,8 @@ extension FeederContext {
     async { [weak self] in
       guard let self else { return }
       let id = self.bundleID
+      if id == "de.taz.taz.neo" { return }
+      if id == "de.taz.taz.beta" { return }
       let version = self.currentVersion
       guard let store = try? StoreApp(id) else {
         self.error("Can't find App with bundle ID '\(id)' in AppStore")
