@@ -383,8 +383,8 @@ extension HomeTVC: IssueSelectionChangeDelegate {
     }
     else {
       accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) laden und abspielen"
+      accessibilityPlayHelper.accessibilityLabel = "taz vom\n\(cellData.date.date.short) laden und abspielen"
     }
-    
   }
 }
 
