@@ -44,15 +44,18 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
               = ((self?.viewControllers?.valueAt(2) as? UINavigationController)?
         .viewControllers.first as? SearchController) else { return }
       self?.selectedIndex = 2
+      self?.tabBar.isHidden = false///iOS 18 workaround
       searchCtrl.searchFor(searchString: searchString)
     }
 
     Notification.receive(Const.NotificationNames.gotoSettings) { [weak self] notif in
       self?.selectedIndex = 3
+      self?.tabBar.isHidden = false///iOS 18 workaround
     }
     
     Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in
       self?.selectedIndex = 0
+      self?.tabBar.isHidden = false///iOS 18 workaround
       (self?.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
       guard let date = notif.content as? Date,
             let home = ((self?.selectedViewController as? UINavigationController)?
@@ -64,6 +67,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     Notification.receive(Const.NotificationNames.gotoArticleInIssue) { [weak self] notif in
       self?.selectedIndex = 0
+      self?.tabBar.isHidden = false///iOS 18 workaround
       guard let article = notif.content as? Article,
             let issue = article.primaryIssue as? StoredIssue,
             let home = ((self?.selectedViewController as? UINavigationController)?
