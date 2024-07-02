@@ -261,7 +261,7 @@ extension UILabel{
       let label = UILabel()
       label.numberOfLines = 0
       label.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
-      label.textColor = Const.SetColor.ForegroundLight.color
+      label.textColor = Const.SetColor.taz2(.text_icon_grey).color
       return label
     }
   }

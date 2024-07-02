@@ -178,7 +178,7 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
       let imgEyeSlash = UIImage(name: "eye.slash.fill")
       let eye = UIImageView(image: imgEyeSlash)
       eye.contentMode = .scaleAspectFit
-      eye.tintColor = Const.SetColor.ForegroundHeavy.color
+      eye.tintColor = Const.SetColor.taz2(.text).color
       eye.onTapping(closure: { _ in
         self.isSecureTextEntry = !self.isSecureTextEntry
         eye.image = self.isSecureTextEntry ? imgEyeSlash : imgEye

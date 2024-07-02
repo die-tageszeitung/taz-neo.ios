@@ -106,7 +106,7 @@ public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
     textView.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
     
     topLabel.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
-    self.topLabel.textColor = Const.SetColor.ForegroundLight.color
+    self.topLabel.textColor = Const.SetColor.taz2(.text_icon_grey).color
     self.placeholderLabel.textColor = Const.SetColor.taz2(.text_disabled).color
     placeholderLabel.numberOfLines = 0
     

@@ -102,23 +102,17 @@ public struct Const {
     
     struct Light {
       static let CTBackground = UIColor.white
-      static let CTSection = ciColor
       static let CTArticle = UIColor.darkGray
-      static let CTDate = UIColor.black
       static let HBackground = UIColor.white
       static let HText = UIColor.black
-      static let ForegroundLight = UIColor.lightGray
-      static let ForegroundHeavy = UIColor.darkGray
       #if LMD
         static let HomeBackground = UIColor.rgb(0xd9d9d3)//LMD-background-darker
         static let HomeText = UIColor.rgb(0x1f1f1f)//LMD-offblack
         static let MenuBackground = UIColor.rgb(0xf0f0ed)//--LMD-background
-        static let MenuText = UIColor.rgb(0x000000)//LMD-black
       #else
         static let HomeBackground = UIColor.black
         static let HomeText = appIconGrey
         static let MenuBackground = UIColor.white//Const.SetColor.HBackground.color
-        static let MenuText = UIColor.black//Const.SetColor.HText.color
       #endif
       static let Taz_BackgroundForms = UIColor.rgb(0xEBEBEB)
       static let Taz_Notifications_error = UIColor.rgb(0xFF1919)
@@ -127,23 +121,17 @@ public struct Const {
     }
     struct Dark {
       static let CTBackground = darkSecondaryBG
-      static let CTSection = darkSecondaryText
       static let CTArticle = UIColor.rgb(0xacace0)
-      static let CTDate = UIColor.white
       static let HBackground = UIColor.black
       static let HText = darkSecondaryText
-      static let ForegroundLight = UIColor.darkGray
-      static let ForegroundHeavy = UIColor.lightGray
       #if LMD
         static let HomeBackground = UIColor.rgb(0xd9d9d3)//LMD-background-darker
         static let HomeText = UIColor.rgb(0x1f1f1f)//LMD-offblack
         static let MenuBackground = UIColor.rgb(0x121212)//LMD-Android-Dark-Theme-background
-        static let MenuText = UIColor.rgb(0xe3e3e3)//LMD-Logogrey
       #else
         static let HomeBackground = UIColor.black
         static let HomeText = appIconGrey
         static let MenuBackground = UIColor.black
-        static let MenuText = UIColor.rgb(0xebebf5)//darkSecondaryText
       #endif
       static let Taz_BackgroundForms = UIColor.rgb(0x353535)
       static let Taz_Notifications_error = UIColor.rgb(0xFF1919)
@@ -207,20 +195,13 @@ public struct Const {
   //and accessibilityContrast (default/height)
   enum SetColor{
     case CTBackground
-    case CTSection
     case CTArticle
-    case ForegroundLight
-    case ForegroundHeavy
-    case CTDate
     case HBackground
     case HomeBackground
     case HomeText
     case MenuBackground
-    case MenuText
     case HText
-    case Test
     case CIColor
-    case PrimaryButton
     case ios_opaque(iOS_Opaque)
     enum iOS_Opaque {
       case closeXcircleBackground
@@ -311,31 +292,15 @@ public struct Const {
       switch name {
         case .CTBackground:
           return (UIColor.white, Const.Colors.darkSecondaryBG,nil,nil)
-        case .CTSection:
-          return (Const.Colors.ciColor, Const.Colors.darkSecondaryText,nil,nil)
-        case .ForegroundLight:
-          return (Const.Colors.Light.ForegroundLight, Const.Colors.Dark.ForegroundLight,nil,nil)
-        case .ForegroundHeavy:
-          return (Const.Colors.Light.ForegroundHeavy, Const.Colors.Dark.ForegroundHeavy,nil,nil)
         case .CTArticle:
           return (UIColor.darkGray, UIColor.rgb(0xacace0),nil,nil)
-        case .CTDate:
-          return (UIColor.black, UIColor.white,nil,nil)
         case .HBackground:
           return (UIColor.white,UIColor.black,nil,nil)
         case .HText:
           return (UIColor.black, Const.Colors.darkSecondaryText,nil,nil)
-        case .Test://Rainbow: use to test Light/Darkmode with lightHigh & darkHigh
-          return (UIColor.red, UIColor.green, UIColor.blue,UIColor.magenta)
         case .CIColor:
           #if LMD
           return (Const.Colors.LMd.ci,nil,nil,nil)
-          #else
-          return (Const.Colors.ciColor,Const.Colors.ciColor,nil,nil)
-          #endif
-        case .PrimaryButton:
-          #if LMD
-          return (.black,.white,nil,nil)
           #else
           return (Const.Colors.ciColor,Const.Colors.ciColor,nil,nil)
           #endif
@@ -423,8 +388,6 @@ public struct Const {
           return (Const.Colors.Light.HomeText, Const.Colors.Dark.HomeText,nil,nil)
         case .MenuBackground:
           return (Const.Colors.Light.MenuBackground, Const.Colors.Dark.MenuBackground,nil,nil)
-        case .MenuText:
-          return (Const.Colors.Light.MenuText, Const.Colors.Dark.MenuText,nil,nil)
         case .taz2(.backgroundForms):
           return (Const.Colors.Light.Taz_BackgroundForms, Const.Colors.Dark.Taz_BackgroundForms, nil, nil)
         case .taz2(.notifications_error):
