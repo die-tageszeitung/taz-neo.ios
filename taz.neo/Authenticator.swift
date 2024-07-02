@@ -111,6 +111,10 @@ extension Authenticator {
     Usage.track(Usage.event.user.Login)
   }
   
+  public static var isTazLogin: Bool {
+    return (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de")
+  }
+  
   public static func getUserData(requestKeychainPassword: Bool = false) -> (id: String?, password: String?, token: String?) {
     let dfl = Defaults.singleton
     let did = dfl["id"]

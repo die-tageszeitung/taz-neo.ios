@@ -288,11 +288,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         text-align: \(textAlign);
       }
       \(multiColumnCss)
+      \(heightContrastDarkmodeTextColor)
     """
     URLCache.shared.removeAllCachedResponses()
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
       callback?()
     }
+  }
+  
+  var heightContrastDarkmodeTextColor : String {
+    if App.isRelease && DefaultAuthenticator.isTazLogin == false { return ""}
+    if Defaults.darkMode == false { return ""}
+    if UITraitCollection.current.accessibilityContrast != .high { return ""}
+    return "a:link, a:visited, body, span.AbstraktUntenLinks, span.AbstraktUntenRechts, div.AnzeigenSonderSeitenTitel::before, em.ctColorBlack, div.AnzeigenSonderSeitenTitel, h4.Dach, div.ArtikelTyp_AKOM1_2017 h4.Dach, div.ArtikelTyp_AKOM2_2017 h4.Dach, div.ArtikelTyp_AKolumne1_2017 h4.Dach, span.Stichwort, h4.AutorName, h5.AutorJob, span.TitelSpitz, span.Spitzmarke, div.Shorty, .ShortyTitel, div.Shorty h2.Titel, div.eptShorty, h2 span.Stichwort, div.eptBildbox h2 span.Stichwort, div.ArtikelTyp_AKOM1 h4.Dach, div.ArtikelTyp_AKOM2 h4.Dach, div.ArtikelTyp_AKolumne1 h4.Dach, div.Shorty, div.VerzeichnisArtikel, div.Autoren, div.SectionArticleEnd, div.SectionArticleEnd.Kurztitel, .SectionArticleEnd.Linkliste, div.lastElement, div.Autor, div.eptMeldung h4.Dach, div.eptKommentar h4.Dach, div.eptKolumne h4.Dach, div.eptShorty h2.Titel, div.eptShorty p.ShortyTitel, div.AnzeigenSonderSeitenUnterzeile {color: #fff}"
   }
   
   var multiColumnCss : String {
