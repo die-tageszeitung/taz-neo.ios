@@ -232,6 +232,7 @@ public class SearchItem: DoesLog {
       noMoreSearchResults 
       = (lastResponse?.search.searchHitList?.count ?? 0) == 0
       || (lastResponse?.search.searchHitList?.count ?? 0) == lastResponse?.search.total
+      sessionId = lastResponse?.search.sessionId
     }
   }
   
