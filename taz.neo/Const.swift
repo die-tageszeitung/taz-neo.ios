@@ -300,7 +300,7 @@ public struct Const {
           return (UIColor.black, Const.Colors.darkSecondaryText,nil,nil)
         case .CIColor:
           #if LMD
-          return (Const.Colors.LMd.ci,nil,nil,nil)
+          return (Const.Colors.LMd.ci,Const.Colors.LMd.ci,nil,nil)
           #else
           return (Const.Colors.ciColor,Const.Colors.ciColor,nil,nil)
           #endif
