@@ -162,7 +162,7 @@ public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
                 topLabelText: String? = nil,
                 placeholder: String? = nil,
                 font: UIFont? = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize),
-                textColor: UIColor = Const.SetColor.CTDate.color,
+                textColor: UIColor = Const.SetColor.taz2(.text).color,
                 minimalHeight: CGFloat = TazTextView.minimalHeight,
                 enablesReturnKeyAutomatically: Bool = false,
                 keyboardType: UIKeyboardType = .default,

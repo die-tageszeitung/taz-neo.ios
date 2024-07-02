@@ -382,13 +382,13 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     = Defaults.darkMode
     ? Const.Shadow.Dark.Opacity
     : Const.Shadow.Light.Opacity
-    self.imageView.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
-    listenLabel.textColor = Const.SetColor.CTDate.color
-    bottomBorder?.backgroundColor = Const.SetColor.CTDate.color
+    self.imageView.layer.shadowColor = Const.SetColor.taz2(.text).color.cgColor
+    listenLabel.textColor = Const.SetColor.taz2(.text).color
+    bottomBorder?.backgroundColor = Const.SetColor.taz2(.text).color
     collapseIcon.image
     = UIImage(named:"chevron-doubleup")?
       .withRenderingMode(.alwaysOriginal)
-      .withTintColor(Const.SetColor.CTDate.color)
+      .withTintColor(Const.SetColor.taz2(.text).color)
     updateListenIcon()
   }
   
@@ -430,7 +430,7 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     listenIcon.image
     = UIImage(named: listenIconActive ?  "audio-active" : "audio")?
       .withRenderingMode(.alwaysOriginal)
-      .withTintColor(Const.SetColor.CTDate.color)
+      .withTintColor(Const.SetColor.taz2(.text).color)
   }
   
   var listenIconActive: Bool = false { didSet { updateListenIcon() }}
@@ -508,7 +508,7 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     
     pin(listenLabel.left, to: listenIcon.right, dist: 5, priority: .fittingSizeLevel)
     
-    bottomBorder = self.addBorderView(Const.SetColor.CTDate.color, 0.7,
+    bottomBorder = self.addBorderView(Const.SetColor.taz2(.text).color, 0.7,
                                       edge: .bottom,
                                       insets: Const.Insets.Default)
     registerForStyleUpdates()

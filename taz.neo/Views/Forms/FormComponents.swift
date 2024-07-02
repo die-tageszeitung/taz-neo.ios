@@ -34,12 +34,12 @@ class TazHeader: Padded.View{
   func setup() {
     let title = UILabel()
     let line = DottedLineView()
-    line.fillColor = Const.SetColor.CTDate.color
+    line.fillColor = Const.SetColor.taz2(.text).color
     title.text = NSLocalizedString("die tageszeitung",
                                    comment: "taz_title")
     title.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
     title.textAlignment = .right
-    title.textColor = Const.SetColor.CTDate.color
+    title.textColor = Const.SetColor.taz2(.text).color
     
     self.addSubview(title)
     self.addSubview(line)
@@ -101,7 +101,7 @@ class BlockingProcessView : UIView{
 extension Padded.Label{
   convenience init(title: String? = nil,
                    font: UIFont = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize),
-                   textColor: UIColor = Const.SetColor.CTDate.color,
+                   textColor: UIColor = Const.SetColor.taz2(.text).color,
                    textAlignment: NSTextAlignment = .left,
                    paddingTop: CGFloat = 8,
                    paddingBottom: CGFloat = 8) {
@@ -123,7 +123,7 @@ extension Padded.Button{
   
   convenience init( type: tazButtonType = .normal,
                     title: String? = NSLocalizedString("Senden", comment: "Send Button Title"),
-                    color: UIColor = Const.SetColor.CTDate.dynamicColor,
+                    color: UIColor = Const.SetColor.taz2(.text).dynamicColor,
                     textColor: UIColor = Const.SetColor.HBackground.dynamicColor,
                     height: CGFloat = 45,
                     paddingTop: CGFloat = DefaultPadding,
@@ -152,13 +152,13 @@ extension Padded.Button{
       case .outline:
         self.backgroundColor = .clear
         self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
-        self.addBorder(Const.SetColor.CTDate.color, 1.5)
-        self.setTitleColor(Const.SetColor.CTDate.color, for: .normal)
+        self.addBorder(Const.SetColor.taz2(.text).color, 1.5)
+        self.setTitleColor(Const.SetColor.taz2(.text).color, for: .normal)
         self.layer.cornerRadius = height/2
       case .label:
         self.backgroundColor = .clear
         self.setBackgroundColor(color: UIColor.lightGray.withAlphaComponent(0.2), forState: .highlighted)
-        self.setTitleColor(Const.SetColor.CTDate.color, for: .normal)
+        self.setTitleColor(Const.SetColor.taz2(.text).color, for: .normal)
       case .normal: fallthrough
       default:
         self.backgroundColor = color
@@ -180,8 +180,8 @@ class Checkbox : UIButton {
   
   func setup(){
     self.setBackgroundImage(UIImage(name: "xmark"), for: .selected)
-    self.tintColor = Const.SetColor.CTDate.color
-    self.layer.borderColor = Const.SetColor.CTDate.color.cgColor
+    self.tintColor = Const.SetColor.taz2(.text).color
+    self.layer.borderColor = Const.SetColor.taz2(.text).color.cgColor
     self.layer.borderWidth = 1.0
     self.layer.cornerRadius = 3.0
     self.addTarget(self, action: #selector(toggle), for: .touchUpInside)
@@ -206,7 +206,7 @@ class RadioButton : UIButton {
     didSet {
       self.layer.borderColor = isSelected
       ? tintColor.cgColor
-      : Const.SetColor.CTDate.color.cgColor
+      : Const.SetColor.taz2(.text).color.cgColor
     }
   }
   
@@ -254,7 +254,7 @@ class CustomTextView : Padded.TextView{
                 paddingTop: CGFloat = Const.Size.TextFieldPadding,
                 paddingBottom: CGFloat = Const.Size.TextFieldPadding,
                 font: UIFont = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize),
-                textColor: UIColor = Const.SetColor.CTDate.color,
+                textColor: UIColor = Const.SetColor.taz2(.text).color,
                 textAlignment: NSTextAlignment = .left,
                 linkTextAttributes: [NSAttributedString.Key : Any] = [.foregroundColor : Const.SetColor.CIColor.color,
                                                                       .underlineColor: UIColor.clear]) {

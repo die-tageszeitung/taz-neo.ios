@@ -41,7 +41,7 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
     self.header.addSubview(headerPlayButton)
     pin(headerPlayButton.right, to: self.header.right, dist: -10)
     headerPlayButton.centerY()
-    headerPlayButton.activeColor = Const.SetColor.CTDate.color
+    headerPlayButton.activeColor = Const.SetColor.taz2(.text).color
     headerPlayButtonContextMenu = ContextMenu(view: headerPlayButton.buttonView)
     headerPlayButtonContextMenu?.itemPrivider = self
   }

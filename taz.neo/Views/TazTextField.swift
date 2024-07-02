@@ -64,7 +64,7 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
                 placeholder: String? = nil,
                 topMessage: String? = nil,
                 color: UIColor = Const.SetColor.CIColor.color,
-                textColor: UIColor = Const.SetColor.CTDate.color,
+                textColor: UIColor = Const.SetColor.taz2(.text).color,
                 height: CGFloat = TazTextField.recomendedHeight,
                 paddingTop: CGFloat = Const.Size.TextFieldPadding,
                 paddingBottom: CGFloat = Const.Size.TextFieldPadding,

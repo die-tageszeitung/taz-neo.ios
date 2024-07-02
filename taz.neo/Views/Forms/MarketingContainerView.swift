@@ -70,13 +70,13 @@ class MarketingContainerView: Padded.View {
     
     titleLabel.numberOfLines = 0
     titleLabel.textAlignment = .left
+    titleLabel.textColor = Const.SetColor.taz2(.text).color
     titleLabel.marketingHead()
     
     textLabel.numberOfLines = 0
     textLabel.textAlignment = .left
     textLabel.contentFont(size: 18.0)
-    
-    self.backgroundColor = Const.SetColor.HBackground.color
+    textLabel.textColor = Const.SetColor.taz2(.text).color
     
     pin(button.bottom, to: self.bottom)
     pin(button.width, to: firstWrapper.width)

@@ -283,7 +283,9 @@ public struct Const {
     var color : UIColor {
       get{
         let set = colors(name: self)
-        return Defaults.darkMode ? set.dark ??  set.light : set.light
+        return UITraitCollection.current.accessibilityContrast == .high 
+        ? Defaults.darkMode ? set.darkHigh ?? set.dark : set.lightHigh ?? set.light
+        : Defaults.darkMode ? set.dark : set.light
       }
     }
     
@@ -291,7 +293,9 @@ public struct Const {
     var dynamicColor : UIColor {
       get{
         let set = colors(name: self)
-        return UIColor(light: set.light, dark: set.dark ?? set.light)
+        return UITraitCollection.current.accessibilityContrast == .high
+        ? UIColor(light: set.lightHigh ?? set.light, dark: set.darkHigh ?? set.dark)
+        : UIColor(light: set.light, dark: set.dark)
       }
     }
     
@@ -301,7 +305,7 @@ public struct Const {
       }
     }
     
-    fileprivate typealias ColorSet = ( light: UIColor, dark: UIColor?, lightHigh: UIColor?, darkHigh: UIColor?)
+    fileprivate typealias ColorSet = ( light: UIColor, dark: UIColor, lightHigh: UIColor?, darkHigh: UIColor?)
     
     fileprivate func colors(name: SetColor) -> ColorSet {
       switch name {
@@ -327,13 +331,13 @@ public struct Const {
           #if LMD
           return (Const.Colors.LMd.ci,nil,nil,nil)
           #else
-          return (Const.Colors.ciColor,nil,nil,nil)
+          return (Const.Colors.ciColor,Const.Colors.ciColor,nil,nil)
           #endif
         case .PrimaryButton:
           #if LMD
           return (.black,.white,nil,nil)
           #else
-          return (Const.Colors.ciColor,nil,nil,nil)
+          return (Const.Colors.ciColor,Const.Colors.ciColor,nil,nil)
           #endif
         case .ios_opaque(.closeX):
           return (UIColor.rgb(0x5D5E63), UIColor.rgb(0xB8B8C1), nil, nil)
@@ -432,7 +436,7 @@ public struct Const {
         case .taz2(.closeX_background):
           return (UIColor.rgb(0xE0E0E0), UIColor.rgb(0x48484A), nil, nil)
         case .taz2(.text):
-          return (UIColor.rgb(0x1f1f1f), UIColor.rgb(0xe3e3e3), nil, nil)
+          return (UIColor.rgb(0x1f1f1f), UIColor.rgb(0xe3e3e3), UIColor.rgb(0x000000), UIColor.rgb(0xffffff))
       }
     }
   } // SetColors

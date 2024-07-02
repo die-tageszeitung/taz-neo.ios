@@ -158,8 +158,8 @@ public class LoginView : FormView{
   func dottedLine() -> UIView {
     let dottedLine = DottedLineView()
     dottedLine.pinHeight(Const.Size.DottedLineHeight*1.2)
-    dottedLine.fillColor = Const.SetColor.HText.color
-    dottedLine.strokeColor = Const.SetColor.HText.color
+    dottedLine.fillColor = Const.SetColor.taz2(.text).color
+    dottedLine.strokeColor = Const.SetColor.taz2(.text).color
     return dottedLine
   }
   

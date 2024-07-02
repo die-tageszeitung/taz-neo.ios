@@ -56,9 +56,9 @@ open class LoadingView: UIView, UIStyleChangeDelegate {
   }
   
   public func applyStyles(){
-    spinner.color = Const.SetColor.CTDate.color
-    topLabel.textColor = Const.SetColor.CTDate.color
-    bottomLabel.textColor = Const.SetColor.CTDate.color
+    spinner.color = Const.SetColor.taz2(.text).color
+    topLabel.textColor = Const.SetColor.taz2(.text).color
+    bottomLabel.textColor = Const.SetColor.taz2(.text).color
   }
   
   public override init(frame: CGRect) {

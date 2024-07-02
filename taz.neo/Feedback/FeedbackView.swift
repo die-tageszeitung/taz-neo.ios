@@ -96,7 +96,7 @@ public class FeedbackView : UIView {
     ///Content: subjectLabel
     
     subjectLabel.numberOfLines = 0
-    subjectLabel.textColor = Const.SetColor.CTDate.color
+    subjectLabel.textColor = Const.SetColor.taz2(.text).color
     subjectLabel.font = UIFont.boldSystemFont(ofSize: Const.Size.LargeTitleFontSize)
     /// Content: sendButton Style
     sendButton.setBackgroundColor(color: Const.SetColor.ios(.link).color, forState: .normal)
