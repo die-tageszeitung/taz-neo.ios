@@ -62,6 +62,7 @@ public class SubscriptionFormView : FormView{
   var requestInfoCheckbox: CheckboxWithText = {
     let view = CheckboxWithText()
     view.textView.isEditable = false
+    view.textView.isScrollEnabled = false
     view.textView.text = "Bitte informieren Sie mich zu aktuellen Abo-Möglichkeiten"
     view.textView.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
     view.textView.textColor = Const.SetColor.HText.color

@@ -147,9 +147,8 @@ class FormsResultController: UIViewController {
     get{
       let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
       updateViewSize(windowSize)
-      ui.container.doLayout()
-      //45 comes from FormView.addAndPin last Item pin bottom dist -margin - 30 == -45
-      let h = min(ui.container.frame.size.height + 45, windowSize.height)
+      ui.doLayout()
+      let h = min(ui.container.frame.size.height, windowSize.height)
       return  CGSize(width: 640, height: h)
     }
     set{
