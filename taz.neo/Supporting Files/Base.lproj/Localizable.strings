@@ -258,6 +258,9 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 /* Kein Netz */
 "communication_breakdown" = "Es gab ein Problem bei der Kommunikation mit dem Server.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
 
+/* Kein Netz */
+"unknown_communication_error" = "Bitte überprüfen Sie Ihre Eingaben und Ihre Internetverbindung und versuchen Sie es erneut!\nSollte der Fehler weiterhin auftreten, würden wir uns über eine Rückmeldung an app@taz.de freuen.";
+
 /* FAQ Button Text */
 "open_faq_in_browser" = "Öffne FAQ im Browser";
 

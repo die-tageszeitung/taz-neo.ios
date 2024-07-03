@@ -87,14 +87,19 @@ class SubscriptionFormController : FormsController {
           else {
             Usage.track(Usage.event.subscription.InquiryServerError, name: err.description)
           }
-          
+          var message = ""
           if let fe = err as? SubscriptionFormDataError, let msg = fe.associatedValue {
             self?.ui.handle(formError: fe)
-            Alert.message(title: "Fehler beim senden", message: msg)
+            message = msg
+          }
+          else if err is URLError {
+            ///(err as? URLError)?.description is probably: "Es besteht anscheinend keine Verbindung zum Internet."
+            message = Localized("communication_breakdown")
           }
           else{
-            Alert.message(message: "Fehler beim senden")
+            message = Localized("unknown_communication_error")
           }
+          Alert.message(title: "Fehler beim senden", message: message)
           self?.log("Failed: \(err)")
       }
     }
