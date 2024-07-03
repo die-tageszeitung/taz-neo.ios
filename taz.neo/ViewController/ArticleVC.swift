@@ -336,8 +336,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")
       self?.slider?.close()
-      self?.navigationController?.popViewController(animated: false)
+      let issueDate = self?.issue.date
       self?.adelegate?.closeIssue()
+      Notification.send(Const.NotificationNames.gotoIssue, content: issueDate , sender: self)
     }
   }
   
