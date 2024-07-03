@@ -257,7 +257,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let art = article else { return }
       let i = mod.pageIndexForArticle(art)
       self.index = i
+      #if LMD
       childArticleVC?.header.title = "Seite \((i ?? 0) + 1)"
+      #endif
     }
   }
   ///reference to pushed child vc, if any
@@ -995,13 +997,11 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   }
   
   override func setHeader(artIndex: Int) {
-    updateHeader()
-  }
-  
-  private func updateHeader(){
     #if LMD
     guard let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC else { return }
     header.title = "Seite \(lmdSliderContentVc.currentPage?.pagina ?? "")"
+    #else
+    super.setHeader(artIndex: artIndex)
     #endif
   }
   
