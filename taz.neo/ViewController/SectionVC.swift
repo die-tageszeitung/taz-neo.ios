@@ -67,7 +67,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   func showArticle(_ article: Article, animated: Bool = true) {
-    guard let i = article.index else { return }
+    guard let i = issue.indexOf(article: article) else { return }
     showArticle(index: i, animated: animated)
   }
   

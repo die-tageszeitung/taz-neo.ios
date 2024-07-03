@@ -52,36 +52,91 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
     
     Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in
-      self?.selectedIndex = 0
-      (self?.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
-      guard let date = notif.content as? Date,
-            let home = ((self?.selectedViewController as? UINavigationController)?
-                .viewControllers.first as? HomeTVC) else { return }
-      home.scroll(up: true)
-      let idx = home.carouselController.service.nextIndex(for: date)
-      home.carouselController.scrollTo(idx, animated: true)
+      self?.gotoIssue(at: notif.content as? Date)
     }
     
     Notification.receive(Const.NotificationNames.gotoArticleInIssue) { [weak self] notif in
       self?.selectedIndex = 0
-      guard let article = notif.content as? Article,
-            let issue = article.primaryIssue as? StoredIssue,
-            let home = ((self?.selectedViewController as? UINavigationController)?
-                .viewControllers.first as? HomeTVC) else { return }
-      if let sectVc = home.navigationController?.viewControllers.valueAt(1) as? SectionVC,
-      let sectIssue = sectVc.issue as? StoredIssue,
-          issue == sectIssue {
-        sectVc.showArticle(article, animated: true)
-        home.togglePdfButton.isHidden = true
-      }
-      else {
-        home.navigationController?.popToRootViewController(animated: false)
-        home.openIssue(issue, at: article)
-        home.togglePdfButton.isHidden = true
-      }
+      guard let article = notif.content as? Article else { return }
+      self?.gotoArticleInIssue(article: article)
     }
     
+    Notification.receive("issue") { [weak self] notification in
+      self?.handleIssueDownloadNotification(notification: notification)
+    }
+    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
+      self?.handleIssueDownloadNotification(notification: notification)
+    }
   } // viewDidLoad
+  
+  var searchArticleToOpen: SearchArticle?
+  
+  func handleIssueDownloadNotification(notification: Notification){
+    guard let art = searchArticleToOpen,
+          art.originalIssueDate != nil,
+          let issue = (notification.content as? Issue)
+                    ?? (notification.content as? IssueCellData)?.issue,
+          art.originalIssueDate?.issueKey == issue.date.issueKey else { return }
+    openArticleFromSearch(article: art)
+  }
+  
+  func gotoArticleInIssue(article: Article){
+    if let art = article as? SearchArticle {
+      self.openArticleFromSearch(article: art)
+      return
+    }
+    self.searchArticleToOpen = nil
+    guard let issue = article.primaryIssue as? StoredIssue,
+          let home = ((self.selectedViewController as? UINavigationController)?
+            .viewControllers.first as? HomeTVC) else { return }
+    if let sectVc = home.navigationController?.viewControllers.valueAt(1) as? SectionVC,
+       let sectIssue = sectVc.issue as? StoredIssue,
+       issue == sectIssue {
+      sectVc.showArticle(article, animated: true)
+      home.togglePdfButton.isHidden = true
+    }
+    else {
+      home.navigationController?.popToRootViewController(animated: false)
+      home.openIssue(issue, atArticle: issue.indexOf(article: article), atPage: issue.pageIndexOf(article: article))
+      home.togglePdfButton.isHidden = true
+    }
+  }
+  
+  func openArticleFromSearch(article: SearchArticle){
+    guard let date = article.originalIssueDate else {
+      gotoIssue(at: nil)
+      return
+    }
+    searchArticleToOpen = article
+    guard let issue = self.service.issue(at: date) else {
+      service.download(issueAt: date, withAudio: false)
+      gotoIssue(at: date)
+      return
+    }
+    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+      service.download(issueAt: date, withAudio: false)
+      gotoIssue(at: date)
+      return
+    }
+    
+    guard let issueArtIndex = issue.indexOf(article: article),
+          let artInTargetIssue = issue.allArticles.valueAt(issueArtIndex) else {
+      gotoIssue(at: date)
+      return
+    }
+    gotoArticleInIssue(article: artInTargetIssue)
+  }
+  
+  func gotoIssue(at date: Date?){
+    self.selectedIndex = 0
+    (self.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
+    guard let date = date,
+        let home = ((self.selectedViewController as? UINavigationController)?
+              .viewControllers.first as? HomeTVC) else { return }
+    home.scroll(up: true)
+    let idx = home.carouselController.service.nextIndex(for: date)
+    home.carouselController.scrollTo(idx, animated: true)
+  }
   
   func setupTabbar() {
     self.tabBar.barTintColor = Const.Colors.iOSDark.secondarySystemBackground

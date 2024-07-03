@@ -258,6 +258,7 @@ public class SearchItem: DoesLog {
         ///Set Search Hit Base URL to Article because this is missing currently,
         /// used to download server contents from related issue
         art.originalIssueBaseURL = $0.baseUrl
+        art.originalIssueDate = $0.date
         return art
       }
     }
