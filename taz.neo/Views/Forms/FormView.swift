@@ -190,17 +190,17 @@ extension FormView {
   }
   
   @objc func keyboardWillShow(_ notification: Notification) {
-    if UIScreen.isIpadRegularHorizontalSize { return }
-    if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue {
-      let keyboardRectangle = keyboardFrame.cgRectValue
-      let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardRectangle.height + 30, right: 0)
-      scrollView.contentInset = contentInsets
+    if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
+      scrollView.contentInset
+      = UIEdgeInsets(top: 0,
+                     left: 0,
+                     bottom: keyboardFrame.cgRectValue.height,
+                     right: 0)
     }
   }
   
   @objc func keyboardWillHide(notification:NSNotification){
-    let contentInset:UIEdgeInsets = UIEdgeInsets.zero
-    scrollView.contentInset = contentInset
+    scrollView.contentInset = UIEdgeInsets.zero
   }
 }
 
