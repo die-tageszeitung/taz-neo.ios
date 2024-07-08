@@ -58,3 +58,16 @@ not needed if fast foreward or small merges.
       ERROR Fixed, was showAnimated and would not work for Coachmarks
 
 ...seams to be **successful** 
+
+## 'Author Image CoreData validation crash'
+
+- in  dev qa of taz 1.2.0 a crash occurred on iPhone 15Pro
+- extracting device database, transfered to simulator, checks have shown that:
+  - a related authorImage (IMAGEENTRY) should be saved with resolution, sharable, file, type == nil
+  - in broken db there are 2 FILEENTRYs for the image: AutorImg.1030.1.png and AutorImg.1030.2.png
+    the old and a newer one
+  - the author and relation from FileEntry to ImageEntry and Author) is missing
+- in debugging we have seen the author image is also accessed/created by section update/persist
+- the error could be solved by loading old issues with the old author/author image before loading newer ones
+- 2 bugfixes found, probably orphan ImageEntrys could not be solved, but should not be a problem
+- additional info and problematic database in ticket: ##17089 

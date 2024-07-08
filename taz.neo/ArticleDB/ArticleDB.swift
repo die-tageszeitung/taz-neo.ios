@@ -365,7 +365,9 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
       }
       else {
         let sr = new()
-        sr.pf = files[0].pr
+        ///changed to fix 'Author Image CoreData validation crash' @see: TODO.md
+        ///alternative: 'return []'
+        sr.pr.file = files[0].pr
         return [sr]
       }
     }
