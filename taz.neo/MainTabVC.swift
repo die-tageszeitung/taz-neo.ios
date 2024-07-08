@@ -215,31 +215,25 @@ extension MainTabVC {
   public func authenticationSucceededCheckReload(alertMessage: String? = nil) {
     feederContext.updateAuthIfNeeded()
     
-    let selectedNc = selectedViewController as? UINavigationController
-    var reloadTarget: ReloadAfterAuthChanged?
-    
-    if let home = selectedNc?.viewControllers.first as? HomeTVC,
-       selectedNc?.topViewController != home {
-      reloadTarget = home
-    }
-    else if let search = selectedNc?.viewControllers.first as? SearchController,
-            selectedNc?.topViewController != search {
-      reloadTarget = search
-    }
-    else if let target = selectedNc as? ReloadAfterAuthChanged {
-      reloadTarget = target
-    }
-    
-    ///Settings need to be reloaded no matter if selected!
-    if let settings = selectedViewController as? SettingsVC {
-      settings.refreshAndReload()
-    } else  {
-      for case let settings as SettingsVC in self.viewControllers ?? [] {
+    var reloadTargets: [ReloadAfterAuthChanged] = []
+        
+    for case let tabNav as UINavigationController in self.viewControllers ?? [] {
+      let firstVc = tabNav.viewControllers.first
+      let vcCount = tabNav.viewControllers.count
+      if let home = firstVc as? HomeTVC {
+        if vcCount > 1 { reloadTargets.append(home)}
+      }
+      else if let search = firstVc as? SearchController{
+        if search.currentState == .result { reloadTargets.append(search)}
+      }
+      else if let target = firstVc as? ReloadAfterAuthChanged {
+        reloadTargets.append(target)
+      }
+      else if let settings = firstVc as? SettingsVC {
         settings.refreshAndReload()
       }
     }
-              
-    guard let reloadTarget = reloadTarget else {
+    if reloadTargets.count == 0 {
       if let alertMessage = alertMessage {
         Alert.message(message: alertMessage)
       }
@@ -259,19 +253,18 @@ extension MainTabVC {
                            titleMessage: "\(alertMessage ?? "")\nAktualisiere Daten",
                            bottomMessage: "Bitte haben Sie einen Moment Geduld!",
                            dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
-    if !(reloadTarget is BookmarkNC) {
-      Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
-        Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
-      }
+    Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
     }
-  
     Notification.receiveOnce(Const.NotificationNames.feederUnreachable) { _ in
       /// popToRootViewController is no more needed here due its done by reloadTarget.reloadOpened
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
       Toast.show(Localized("error"))
     }
     onMainAfter(1.0) {
-      reloadTarget.reloadOpened()
+      for reloadTarget in reloadTargets {
+        reloadTarget.reloadOpened()
+      }
     }
     onMainAfter(15.0) {
       //dirty hack sometimes reload opened did not work

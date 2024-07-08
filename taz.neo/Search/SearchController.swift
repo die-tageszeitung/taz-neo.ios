@@ -56,7 +56,7 @@ class SearchController: UIViewController {
   
   var blockedState = false
   
-  private var currentState: searchState = .initial {
+  public private(set) var currentState: searchState = .initial {
     didSet {
       checkStateChange()
     }
