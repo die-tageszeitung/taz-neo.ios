@@ -961,6 +961,7 @@ extension SettingsVC {
             }
 //      TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
       StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, deleteOrphanFolders: true)
+//      StoredIssue.deleteAllIssues(feed: storedFeed) Idea: delete everything
       onMainAfter { [weak self] in
         self?.refreshAndReload()
         Notification.send("reloadIssues")

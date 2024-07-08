@@ -2153,6 +2153,33 @@ public final class StoredIssue: Issue, StoredObject {
     if issues.count >= 1 { return issues[0] }
     return nil
   }
+  
+  #warning("Not in use! May use in future and exchange in SettingsVC l. 964")
+  /**
+    Exchange after Refactor and issue independent bookmarks; persisted Bookmark issue
+   
+   */
+  /// delete all issues in feed
+  /// - Parameters:
+  ///   - feed: feed for Issues
+  public static func deleteAllIssues(feed: StoredFeed) {
+    let allIssues
+    = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
+    
+    for issue in allIssues {
+      if issue.isDownloading == true {
+        Log.log("not deleting \(issue.date.short) due its currently downloading")
+        continue
+      }
+      let bookmarkCount = StoredArticle.bookmarkedArticlesInIssue(issue: issue).count
+      if bookmarkCount > 0 {
+        Log.log("not deleting \(issue.date.short) due it has \(bookmarkCount) bookmarks")
+        continue
+      }
+      issue.delete()
+    }
+  }
+  
     
   /// Remove old Issues and keep newest
   /// uses issue.reduceToOverview instead of issue.delete
