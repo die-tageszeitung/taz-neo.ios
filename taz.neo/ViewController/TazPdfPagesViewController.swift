@@ -1017,6 +1017,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
+    if self.parentViewController != nil { return }
     (slider as? MyButtonSlider)?.hideContentAnimated()
     self.releaseOnDisappear()
     #if LMD
