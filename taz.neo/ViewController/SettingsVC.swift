@@ -436,6 +436,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     super.viewDidAppear(animated)
     checkNotifications()
     trackScreen()
+    memoryUsageCell.detailTextLabel?.text = storageDetails
   }
     
   required public init(feederContext: FeederContext) {
@@ -964,6 +965,7 @@ extension SettingsVC {
 //      StoredIssue.deleteAllIssues(feed: storedFeed) Idea: delete everything
       onMainAfter { [weak self] in
         self?.refreshAndReload()
+        self?.memoryUsageCell.detailTextLabel?.text = self?.storageDetails
         Notification.send("reloadIssues")
       }
     } ) )
