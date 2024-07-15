@@ -191,6 +191,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.showImageGallery = false
     articleVC = ArticleVC(feederContext: feederContext)
     articleVC?.delegate = self
+    articleVC?.header.onTitle { [weak self] _ in
+      self?.debug("*** Action: ToSection pressed")
+      guard let aDelegate = self?.articleVC?.delegate as? ArticleVCdelegate,
+            let art = self?.articleVC?.article else { return }
+      let sIdx = aDelegate.article2index(art: art)
+      self?.index = sIdx
+      self?.articleVC?.navigationController?.popViewController(animated: true)
+    }
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
           after re-enter app due wired Scroll Pos change

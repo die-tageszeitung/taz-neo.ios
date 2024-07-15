@@ -225,10 +225,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     whenLoaded {
       Notification.send(Const.NotificationNames.articleLoaded)
     }
-    header.onTitle { [weak self] _ in
-      self?.debug("*** Action: ToSection pressed")
-      self?.navigationController?.popViewController(animated: true)
-    }
     header.titletype = .article
   }
 
