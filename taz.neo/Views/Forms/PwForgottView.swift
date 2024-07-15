@@ -19,11 +19,14 @@ public class PwForgottView : FormView{
   var introLabel = Padded.Label(title: Localized("login_forgot_password_header"))
   
   override func createSubviews() -> [UIView] {
+    var spacer = UIView()
+    spacer.pinHeight(100)///quickfix: modally pushed Result Screen was too small
     return  [
       introLabel,
       idInput,
       submitButton,
-      cancelButton
+      cancelButton,
+      spacer
     ]
   }
 }
