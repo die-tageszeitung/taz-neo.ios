@@ -15,16 +15,10 @@ class NotificationsView: InfoToasterView {
   private var titleLabel = UILabel()
   private var messageLabel = UILabel()
   
-  private var activateNotificationsButton = Padded.Button(title: "Ja, Mitteilungen einschalten",
-                                                          color: Const.SetColor.CTArticle.color,
-                                                          textColor: Const.SetColor.CTArticle.color,
-                                                          height: 46)
+  private var activateNotificationsButton = Padded.Button(title: "Ja, Mitteilungen einschalten")
   
   
-  private var dismissButton = Padded.Button(title: "Nein, Einstellungen so lassen",
-                                            color: Const.SetColor.CTArticle.color,
-                                            textColor: Const.SetColor.CTArticle.color,
-                                            height: 46)
+  private var dismissButton = Padded.Button(title: "Nein, Einstellungen so lassen")
   lazy var notNowButton: Padded.View = {
     let lbl = UILabel()
     lbl.text = "Jetzt nicht"
