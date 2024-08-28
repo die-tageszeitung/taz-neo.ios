@@ -122,6 +122,36 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
                minDuration: 0,
                completion: completion)
     art.hasBookmark.toggle()
+//    
+//    
+////    guard let bi = StoredIssue.boockmarkIssue(in: feederContext.defaultFeed) else { return }
+////    guard let bookmarkSection = bi.sections?.first as? StoredSection else { return }
+//    art.pr.addToSections(bookmarkSection.pr)
+//    bookmarkSection.pr.addToArticles(art.pr)//ändert die Zuordnung Issue muss neu geladen werden damit verschwindet der Artikel aus leseliste...
+//    //selbst ohne issue manuell neu laden update verschwindet der Artikel aus der Leseliste bei Neustart ...WIESO???
+//    art.pr.addToIssues(bi.pr)
+//    bi.pr.addToArticles(art.pr)
+//    
+//    
+//    ArticleDB.save()
+//    
+//    onMainAfter(3.0) {[weak self] in
+//      self?.test()
+//    }
+//  }
+//  
+//  func test(){
+//    let bi = StoredIssue.boockmarkIssue(in: feederContext.defaultFeed)
+////    feederContext.defaultFeed.issues.b
+////    feederContext.defaultFeed.lastIssue
+////    feederContext.storedFeeder.
+////    feederContext.storedFeeder.momentImage(issue: nil)
+////    let bi = BookmarkIssue.
+//    log("bi art count: \(bi?.allArticles.count ?? 0) hatBMSect: \(bi?.sections?.first?.name ?? "-")")
+//    for art in bi?.allArticles ?? [] {
+//      log("art in bi title: \(art.title ?? "-") sectionTitle: \(art.sectionTitle ?? "-") path: \(art.path)")
+//    }
+//    
   }
   
   func updateAudioButton(){
@@ -181,9 +211,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
-      if self.issue is BookmarkIssue == false {
-        LastReadBusiness.persist(lastArticle: art, page: nil, in: self.issue)
-      }
+//      if self.issue is BookmarkIssue == false {
+//        LastReadBusiness.persist(lastArticle: art, page: nil, in: self.issue)
+//      }
       let player = ArticlePlayer.singleton
       if art.canPlayAudio {
         updateAudioButton()

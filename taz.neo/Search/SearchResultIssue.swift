@@ -9,7 +9,7 @@
 import Foundation
 import NorthLib
 
-public class SearchResultIssue: BookmarkIssue {
+public class SearchResultIssue: VirtualIssue {
   
   public override var isComplete: Bool {
     get{

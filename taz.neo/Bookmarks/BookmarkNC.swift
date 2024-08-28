@@ -28,11 +28,16 @@ extension PlaceholderVC: DefaultScreenTracking {
 }
 
 class BookmarkNC: NavigationController {
+  @Default("bookmarksListTeaserEnabled")
+  var bookmarksListTeaserEnabled: Bool
+  
   private var placeholderVC = PlaceholderVC()
   
   public var feederContext: FeederContext
-  public lazy var bookmarkFeed = BookmarkFeed.allBookmarks(feeder: feeder)
-  public var issue: Issue { bookmarkFeed.issues![0] }
+//  public lazy var bookmarkFeed = BookmarkFeed.allBookmarks(feeder: feeder)
+#warning("ITS BAD CHANGE")
+  public var issue: Issue { Bookmarks.shared.bookmarkIssue! }
+    
   var isShowingAlert = false
   
   public lazy var sectionVC: BookmarkSectionVC = {
@@ -40,6 +45,7 @@ class BookmarkNC: NavigationController {
   }()
   
   func createSectionVC(openArticleAtIndex: Int? = nil) -> BookmarkSectionVC{
+    genAllHtml()
     let svc = BookmarkSectionVC(feederContext: feederContext,
                                atSection: nil,
                                atArticle: openArticleAtIndex)
@@ -51,6 +57,15 @@ class BookmarkNC: NavigationController {
     svc.hidesBottomBarWhenPushed = false
     return svc
   }
+  
+//  func getModel(){
+//    let bi = StoredIssue.bookmarkIssue(in: feederContext.defaultFeed)
+//    log("bi art count: \(bi?.allArticles.count ?? 0) hatBMSect: \(bi?.sections?.first?.name ?? "-")")
+//    for art in bi?.allArticles ?? [] {
+//      log("art in bi title: \(art.title ?? "-") sectionTitle: \(art.sectionTitle ?? "-") path: \(art.path)")
+//    }
+//    log("done")
+//  }
   
   func setup() {
     Notification.receive(Const.NotificationNames.expiredAccountDateChanged) { [weak self] notif in
@@ -79,45 +94,49 @@ class BookmarkNC: NavigationController {
       self?.reloadOpened()
     }
     
-    Notification.receive("updatedDemoIssue") { [weak self] notif in
-      guard let self = self else { return }
-      self.bookmarkFeed
-      = BookmarkFeed.allBookmarks(feeder: self.feeder)
-      self.sectionVC.delegate = nil
-      self.sectionVC.delegate = self///trigger SectionVC.setup()
-    }
+//    Notification.receive("updatedDemoIssue") { [weak self] notif in
+//      guard let self = self else { return }
+//      self.bookmarkFeed
+//      = BookmarkFeed.allBookmarks(feeder: self.feeder)
+//      self.sectionVC.delegate = nil
+//      self.sectionVC.delegate = self///trigger SectionVC.setup()
+//    }
     
-    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
-      // regenerate all bookmark sections
-      guard let emptyRoot = self?.placeholderVC,
-            let self = self else { return }
-      if let art = msg.sender as? StoredArticle {
-        self.bookmarkFeed.loadAllBookmarks()
-        self.bookmarkFeed.genAllHtml()
-        if art.hasBookmark {
-          self.sectionVC.insertArticle(art)
-          self.sectionVC.reload()
-          self.ensureBookmarkListVisibleIfNeeded(animated: false)
-        }
-        else {
-          self.sectionVC.deleteArticle(art)
-          if !self.sectionVC.isVisible { self.sectionVC.reload() }
-          self.sectionVC.updateAudioButton()
-        }
-        if self.bookmarkFeed.count <= 0 {
-          self.viewControllers[0] = emptyRoot
-          self.popToRootViewController(animated: true)
-        }
-      }
-      else {
-        self.bookmarkFeed.genAllHtml()
-        self.sectionVC.reload()
-      }
-    }
+//    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+//      // regenerate all bookmark sections
+//      guard let emptyRoot = self?.placeholderVC,
+//            let self = self else { return }
+//      if let art = msg.sender as? StoredArticle {
+//        self.bookmarkFeed.loadAllBookmarks()
+//        self.bookmarkFeed.genAllHtml()
+//        if art.hasBookmark {
+//          self.sectionVC.insertArticle(art)
+//          self.sectionVC.reload()
+//          self.ensureBookmarkListVisibleIfNeeded(animated: false)
+//        }
+//        else {
+//          self.sectionVC.deleteArticle(art)
+//          if !self.sectionVC.isVisible { self.sectionVC.reload() }
+//          self.sectionVC.updateAudioButton()
+//        }
+//        if self.bookmarkFeed.count <= 0 {
+//          self.viewControllers[0] = emptyRoot
+//          self.popToRootViewController(animated: true)
+//        }
+//      }
+//      else {
+//        self.bookmarkFeed.genAllHtml()
+//        self.sectionVC.reload()
+//      }
+//    }
+    genAllHtml()
   }
   
+  
+  
   func ensureBookmarkListVisibleIfNeeded(animated: Bool = true){
-    if bookmarkFeed.count > 0 && self.viewControllers.first != sectionVC  {
+//    if bookmarkFeed?.count ?? 0 > 0 && self.viewControllers.first != sectionVC  {
+    if self.viewControllers.first != sectionVC  {
       setViewControllers([sectionVC], animated: animated)
     }
   }
@@ -159,13 +178,13 @@ extension BookmarkNC: ReloadAfterAuthChanged {
     
     let lastIndex: Int? = (self.viewControllers.last as? ArticleVC)?.index
     var issuesToDownload:[StoredIssue] = []
-    for art in bookmarkFeed.issues?.first?.allArticles ?? [] {
-      if let sissue = art.primaryIssue as? StoredIssue,
-         sissue.status == .reduced,
-         issuesToDownload.contains(sissue) == false {
-        issuesToDownload.append(sissue)
-      }
-    }
+//    for art in bookmarkFeed.issues?.first?.allArticles ?? [] {
+//      if let sissue = art.primaryIssue as? StoredIssue,
+//         sissue.status == .reduced,
+//         issuesToDownload.contains(sissue) == false {
+//        issuesToDownload.append(sissue)
+//      }
+//    }
         
     func downloadNextIfNeeded(){
       if let nextIssue = issuesToDownload.first {
@@ -175,9 +194,9 @@ extension BookmarkNC: ReloadAfterAuthChanged {
       } else if let idx = lastIndex {
         reopenArticleAtIndex(idx: idx)
       } else {
-        self.bookmarkFeed
-        = BookmarkFeed.allBookmarks(feeder: self.feeder)
-        self.sectionVC.reload()
+//        self.bookmarkFeed
+//        = BookmarkFeed.allBookmarks(feeder: self.feeder)
+//        self.sectionVC.reload()
         Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
       }
     }
@@ -194,14 +213,14 @@ extension BookmarkNC: ReloadAfterAuthChanged {
   }
   
   private func reopenArticleAtIndex(idx: Int?){
-    self.bookmarkFeed
-    = BookmarkFeed.allBookmarks(feeder: self.feeder)
-    self.sectionVC.releaseOnDisappear()
-    self.sectionVC
-    = createSectionVC(openArticleAtIndex: idx)
-    self.viewControllers[0] = self.sectionVC
-    self.popToRootViewController(animated: true)
-    Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
+//    self.bookmarkFeed
+//    = BookmarkFeed.allBookmarks(feeder: self.feeder)
+//    self.sectionVC.releaseOnDisappear()
+//    self.sectionVC
+//    = createSectionVC(openArticleAtIndex: idx)
+//    self.viewControllers[0] = self.sectionVC
+//    self.popToRootViewController(animated: true)
+//    Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
   }
   
   public func reloadIfNeeded(article: Article?){
@@ -235,5 +254,183 @@ extension BookmarkNC: ReloadAfterAuthChanged {
     onMainAfter {[weak self] in
       self?.popToRootViewController(animated: false)//there is a overlay
     }
+  }
+}
+
+
+//generate section html helper
+extension BookmarkNC {
+  // HTML header
+  static var htmlHeader = """
+  <!DOCTYPE html>
+  <html lang="de">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0"/>
+    <link rel="stylesheet" href="resources/bookmarks-ios.css"/>
+    <script src="resources/tazApi.js"></script>
+    <script src="resources/bookmarks-ios.js"></script>
+    <title>Bookmarks</title>
+  </head>
+  """
+  
+  // A dotted line using SVG
+  //static var htmlDottedLine = "<div class='dottedline'></div>"
+  static var htmlDottedLine = "<hr class='dotted'/>"
+  
+  func dottedLine(inSection: Bool) -> String {
+    return (App.isTAZ ? !inSection : inSection) ?
+      BookmarkFeed.htmlDottedLine : "";
+  }
+  
+  /// Get all authors as String with HTML markup
+  public func getAuthors(art: Article) -> String {
+    var ret = ""
+    if let authors = art.authors, authors.count > 0 {
+      let n = authors.count - 1
+      for i in 0...n {
+        if let name = authors[i].name {
+          ret += name
+          if i != n { ret += ", " }
+        }
+      }
+      ret = "<address>\(ret.authorsFormated)</address>&ensp;"
+    }
+    if let duration = art.readingDuration {
+      ret += "<time>\(duration) min.</time>"
+    }
+    return """
+        <div class="author">
+          \(ret)
+        </div>\n
+    """
+  }
+  
+  /// Get image of first picture (if available) with markup
+  public func getImage(art: Article) -> String {
+    if let imgs = art.images, imgs.count > 0 {
+      let fn = imgs[0].name
+      return "<img class=\"photo\" src=\"\(art.dir.path)/\(fn)\">"
+    }
+    else { return "" }
+  }
+  
+  /// Get the inner HTML of an article
+  public func getInnerHtml(art: StoredArticle) -> String {
+    let title = art.title ?? art.html?.name ?? ""
+    let shareIcon
+    = art.onlineLink == nil
+    ? ""
+    : """
+        <img class="share" src="resources/Share.svg">
+      """
+    let teaser = bookmarksListTeaserEnabled
+    ? "<p>\((art.teaser ?? "").xmlEscaped())</p>"
+    : ""
+    let html = """
+      \(dottedLine(inSection: false))
+      <a href="\(art.path)">
+        \(getImage(art: art))
+        <h2>\(title.xmlEscaped())</h2>
+        \(teaser)
+      </a>
+      <div class = "foot">
+        \(getAuthors(art: art))
+        <div class="icons">
+          \(shareIcon)
+          <img class="bookmark" src="resources/StarFilled.svg">
+        </div>
+      </div>
+    """
+    return html
+  }
+  
+  /// Generate HTML for given HTML Section
+  public func genHtmlSection(date: Date, arts: [Article]) -> String {
+    if let articles = arts as? [StoredArticle],
+       articles.count > 0,
+       let issue = articles[0].primaryIssue {
+      let momentPath = feeder.smallMomentImageName(issue: issue)
+      let dateText = App.isLMD ?
+        "Ausgabe " + issue.date.gMonthYear(tz: GqlFeeder.tz, isNumeric: true) :
+        issue.validityDateText(timeZone: GqlFeeder.tz, leadingText: "wochentaz, ")
+      var html = """
+      <section id="\(date.timeIntervalSince1970)">
+        <header class="issue">
+          <img class="moment" src="\(momentPath ?? "")">
+          <h1>\(dateText)</h1>
+        </header>\n
+        \(dottedLine(inSection: true))
+      """
+      var order = 1;
+      for art in articles {
+        let issues = art.issues
+        if issues.count > 0 {
+          html += """
+            <article id="\(File.progname(art.html?.name ?? ""))" style="order:\(order)">
+            \(getInnerHtml(art: art))
+            </article>\n
+          """
+        }
+        order += 1
+      }
+      html += "</section>\n"
+      return html
+    }
+    return ""
+  }
+
+  public func genHtmlSections(section: StoredSection) -> String {
+    var groupedArticles: [Date:[Article]] = [:]
+    
+    for art in section.articles ?? [] {
+      let sdate = art.issueDate
+      var artsAtDate: [Article] = groupedArticles[sdate] ?? []
+      artsAtDate.append(art)
+      groupedArticles[sdate] = artsAtDate
+    }
+    var html = ""
+    for date in Array(groupedArticles.keys).sorted(by: { d1, d2 in d1 > d2 }) {
+      guard let arts = groupedArticles[date] else { continue }
+      html += genHtmlSection(date: date, arts: arts)
+    }
+    return html
+  }
+  
+  /// Generate HTML for given Section
+  public func genHtml(section: StoredSection) {
+    var html = """
+      \(BookmarkFeed.htmlHeader)
+      <body>\n
+      """
+    html += genHtmlSections(section: section)
+    html += "</body>\n</html>\n"
+//    let tmpFile = section.html as! BookmarkFileEntry
+    guard let path = (section.html as? StoredFileEntry)?.path,
+          File(path).exists else { return }
+    File(path).string = html
+//    
+//    guard let feed = Bookmarks.shared.bookmarkIssue?.feed else { return }
+//    let feed2 = section.primaryIssue?.feed
+//    let bmFile = BookmarkFileEntry(feed: feed,
+//                      name: "\(section.name).html")
+//    bmFile.content = html
+//    section.html.content = html
+  }
+
+  /// Generate HTML for all Sections
+  public func genAllHtml() {
+    guard let section = Bookmarks.shared.bookmarkSection else { return }
+    self.genHtml(section: section)
+  }
+}
+
+fileprivate extension String {
+  var authorsFormated: String {
+    #if LMD
+    return self.length > 0 ? self.xmlEscaped().prepend("von ") : ""
+    #else
+    return self.xmlEscaped()
+    #endif
   }
 }

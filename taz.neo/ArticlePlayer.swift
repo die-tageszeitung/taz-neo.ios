@@ -746,11 +746,11 @@ extension Article {
   }
 }
 
-extension BookmarkIssue {
-  func contextMenu(group: Int) -> MenuActions {
-    return _contextMenu(group:group)
-  }
-}
+//extension BookmarkIssue {
+//  func contextMenu(group: Int) -> MenuActions {
+//    return _contextMenu(group:group)
+//  }
+//}
 
 extension StoredIssue {
   func contextMenu(group: Int) -> MenuActions {

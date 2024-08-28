@@ -24,7 +24,8 @@ public class BookmarkFeed: Feed, DoesLog {
   public var firstIssue: Date
   public var issues: [Issue]?
   public var publicationDates: [PublicationDate]?
-  public var dir: Dir { Dir("\(feeder.baseDir.path)/bookmarks") }
+  public var dir: Dir { Dir("\(feeder.dir.path)/bookmarks") }
+//  public var dir: Dir { Dir("\(feeder.baseDir.path)/bookmarks") }
   /// total number of bookmarks
   public var count: Int = 0
   
@@ -70,8 +71,9 @@ public class BookmarkFeed: Feed, DoesLog {
     for issue in issues {
       if let sections = issue.sections {
         for section in sections {
-          if let tmpFile = section.html as? BookmarkFileEntry {
-            tmpFile.content = nil // removes file
+          if let tmpFile = section.html as? StoredFileEntry {
+            #warning("ToDO")
+//            tmpFile.conten = nil // removes file
           }
         }
       }
@@ -214,8 +216,9 @@ public class BookmarkFeed: Feed, DoesLog {
       """
     html += genHtmlSections(section: section)
     html += "</body>\n</html>\n"
-    let tmpFile = section.html as! BookmarkFileEntry
-    tmpFile.content = html
+    let tmpFile = section.html
+    #warning("ToDo writeFile!!!")
+//    tmpFile.content = html
   }
 
   /// Generate HTML for all Sections
@@ -255,21 +258,176 @@ public class BookmarkFeed: Feed, DoesLog {
   }
   
   /// Return BookmarkFeed consisting of one Section with all bookmarks
-  public static func allBookmarks(feeder: Feeder) -> BookmarkFeed {
-    let bm = BookmarkFeed(feeder: feeder)
-    let bmIssue = BookmarkIssue(feed: bm)
-    let bmSection = BookmarkSection(name: App.isTAZ ? "leseliste" : "Leseliste", 
-        issue: bmIssue, html: BookmarkFileEntry(feed: bm, name: "allBookmarks.html"))
-    bm.issues = [bmIssue]
-    bmIssue.sections = [bmSection]
-    bm.loadAllBookmarks()
-    bm.genHtml(section: bmSection)
-    return bm
+  /// @Norbert wieso bookmark feed? ...feed Bookmarks, feed audiohörliste, feed sonstwas
+  /// NOPE ...now its same feed == taz /lmd Feed, wenn ich umschalte zwischen den feeds habe ich die anderen Feeds
+  /// same behaviour like before where issue.articles hatten bookmark, waren also auch in feed "gefangen"
+  /// ich brauche keinen bookmark feed, also weg damit und code gen in init oder bookmarks verlagern!
+  public static func allBookmarks()  {
+//    let bm = BookmarkFeed(feeder: feeder)
+//    let bmIssue = Bookmarks.shared.bookmarkIssue
+////    let bmSection = BookmarkSection(name: App.isTAZ ? "leseliste" : "Leseliste",
+////        issue: bmIssue, html: BookmarkFileEntry(feed: bm, name: "allBookmarks.html"))
+//    let bmSection = Bookmarks.shared.bookmarkSection
+//    bm.issues = [bmIssue]
+//    bmIssue.sections = [bmSection]
+//    bm.loadAllBookmarks()
+//    bm.genHtml(section: bmSection)
+//    return bm
+  }
+}
+
+public extension StoredArticle {
+  
+}
+
+extension StoredArticle {
+  public var hasBookmark: Bool {
+    get {
+      Bookmarks.has(article: self)
+    }
+    set {
+      if Bookmarks.set(article: self, active: newValue) == false { return }///No change, no notification
+      Notification.send(Const.NotificationNames.bookmarkChanged, content: sections, sender: self)
+    }
+  }
+}
+
+extension StoredIssue {
+  public var isBookmarkIssue: Bool {
+    return baseUrl == Bookmarks.bookmarkUrl
+  }
+}
+
+public class Bookmarks {
+  ///Motivation: altes bookmark issue war virtuell und nicht in db, soll jetzt in db sein um ausgabenunabhängige lesezeichen zu haben
+  ///Problem setze und entferne bookmark hat riesen overhead, sollte vielleicht nicht komplett im Model via Artikel gemacht werden, also hier ...halte dann hier auch das BookmarkIssue und die entsprechende Section vorrätig
+  ///später mehrere Sections: Leseliste, archiv, hörliste....
+
+  private static let sharedInstance = Bookmarks()
+  static var shared: Bookmarks {
+    get {
+      if sharedInstance.bookmarkSection == nil {
+        ///solves access to bookmarks without inited feeder
+        ///if no stored feeder:
+        /// - no bookmark can be set OK
+        /// - no bookmark can be fetsch from DB list is empty OK
+        sharedInstance.setup()
+      }
+      return sharedInstance
+    }
+  }
+  
+  fileprivate static let bookmarkUrl = "bookmark.issue.local"
+  
+  var bookmarkIssue: StoredIssue?
+  var bookmarkSection: StoredSection?
+  
+  /// returns true if value changed
+  /// prepared for multiple bookmark lists
+  fileprivate static func set(article: StoredArticle, active: Bool, in list: StoredSection? = nil) -> Bool {
+    guard has(article: article, in: list) != active else { return false }//No Change nothing to do
+    guard let bookmarkIssue = shared.bookmarkIssue,
+          let bookmarkSection = list ?? shared.bookmarkSection else {
+      Log.log("Fail to set Bookmark, usually unreachable code")
+      return false
+    }
+    if active {
+      article.pr.addToSections(bookmarkSection.pr)
+      bookmarkSection.pr.addToArticles(article.pr)
+      article.pr.addToIssues(bookmarkIssue.pr)
+      bookmarkIssue.pr.addToArticles(article.pr)
+    }
+    else {
+      article.pr.removeFromSections(bookmarkSection.pr)
+      bookmarkSection.pr.removeFromArticles(article.pr)
+      article.pr.removeFromIssues(bookmarkIssue.pr)
+      bookmarkIssue.pr.removeFromArticles(article.pr)
+    }
+    return true
+  }
+  
+  /// returns true if is in given list
+  /// prepared for multiple bookmark lists, uses default list if none given
+  fileprivate static func has(article: Article, in list: StoredSection? = nil) -> Bool {
+    return (list ?? shared.bookmarkSection)?
+      .articles?.contains{$0.serverId == article.serverId } ?? false
+  }
+  
+  private static func bookmarkIssue(in feed: Feed) -> StoredIssue {
+    let request = StoredIssue.fetchRequest
+    request.predicate = NSPredicate(format: "(baseUrl = %@)", bookmarkUrl)
+    if let si = StoredIssue.get(request: request).first { return si }
+    
+    let si = StoredIssue.new()
+    si.baseUrl = bookmarkUrl
+    si.date = Date(timeIntervalSinceReferenceDate: 0)//1.1.2001
+    si.moTime = Date()
+    si.minResourceVersion = 0
+    si.status = .unknown
+    si.isWeekend = false
+    
+    si.isDownloading = false
+    si.isComplete = false
+    si.feed = feed
+    si.moment =  DummyMoment()
+    
+    addBookmarkSection(to: si)
+    return si
+  }
+  
+  #warning("ToDo: migrate old bookmarks!")
+  private static func migrateBookmarks(){
+    
+  }
+  
+  @discardableResult
+  private static func addBookmarkSection(to issue: StoredIssue, with name: String = "Leseliste") -> StoredSection {
+    let sect = StoredSection.new()
+    sect.name = "Leseliste"
+    sect.type = .unknown
+//    sect.primaryIssue = issue
+    
+    let bmPath = "\(issue.feed.dir.path)/bookmarks"
+    let bmDir = Dir(bmPath)
+    if !bmDir.exists {
+      bmDir.create()
+      let rlink = File(dir: bmDir.path, fname: "resources")
+      let glink = File(dir: bmDir.path, fname: "global")
+      if !rlink.isLink { rlink.link(to: issue.feed.feeder.resourcesDir.path) }
+      if !glink.isLink { glink.link(to: issue.feed.feeder.globalDir.path) }
+    }
+    
+    let bmFilePath = "\(bmPath)/\(sect.name).html"
+    
+    File(bmFilePath).string = "initial, empty"
+    let tmpFile = StoredFileEntry.new(path: bmFilePath)
+    print("Created Bookmarks at path: \(tmpFile?.path) in dir: \(tmpFile?.dir) subdir: \(tmpFile?.subdir)")
+//    BookmarkFileEntry(feed: issue.feed, name: "\(sect.name).html")
+//    print("tmp file path: \(tmpFile.path)")
+    sect.html = tmpFile
+//    sect.html?.exists(inDir: <#T##String#>)
+    issue.pr.addToSections(sect.pr)
+    sect.pr.issue = issue.pr
+    migrateBookmarks()
+    return sect
+  }
+  
+  func setup(){
+    guard let feed
+    = TazAppEnvironment.sharedInstance.feederContext?.defaultFeed else {
+      return
+    }
+    let bmIssue: StoredIssue = Self.bookmarkIssue(in: feed)
+    self.bookmarkIssue = bmIssue
+    self.bookmarkSection
+    = bookmarkIssue?.sections?.first as? StoredSection
+    ?? Self.addBookmarkSection(to: bmIssue)
+    BookmarkFeed(feeder: feed.feeder)
   }
 }
 
 /// An Issue of Sections of bookmarked Articles
-public class BookmarkIssue: Issue {
+public class VirtualIssue: Issue {
   public var isDownloading: Bool { get { false } set {} }
   public var isComplete: Bool { get { false } set {} }
   public var feed: Feed
@@ -322,10 +480,51 @@ public class BookmarkSection: Section {
   }
 }
 
-/// A temporary file entry
-public class BookmarkFileEntry: FileEntry {
+public class BookmarkFileEntry3: FileEntry {
   public var name: String
-  public var storageType: FileStorageType { .unknown }
+  
+  public var storageType: FileStorageType { .issue }
+  
+  public var moTime: Date
+  
+  public var size: Int64
+  
+  public var sha256: String
+  
+  /// Read/write access to contents of file
+  public var content: String? {
+    get { File(path).string }
+    set {
+      if let content = newValue { File(path).string = content }
+      else { File(path).remove() }
+    }
+  }
+  
+  private var path: String
+  
+  public init(feed: Feed, name: String) {
+    self.name = name
+    let bmPath = "\(feed.dir.path)/bookmarks/"
+    let bmDir = Dir(bmPath)
+    if !bmDir.exists {
+      bmDir.create()
+      let rlink = File(dir: bmDir.path, fname: "resources")
+      let glink = File(dir: bmDir.path, fname: "global")
+      if !rlink.isLink { rlink.link(to: feed.feeder.resourcesDir.path) }
+      if !glink.isLink { glink.link(to: feed.feeder.globalDir.path) }
+    }
+    path = "\(bmDir.path)/\(name)"
+    self.moTime = Date()
+    self.size = 0
+    self.sha256 = ""
+  }
+  
+}
+
+/// A temporary file entry
+public class BookmarkFileEntry2: FileEntry {
+  public var name: String
+  public var storageType: FileStorageType { .issue }
   public var moTime: Date
   public var size: Int64 { 0 }
   public var sha256: String { "" }
@@ -340,9 +539,18 @@ public class BookmarkFileEntry: FileEntry {
     }
   }
   
-  public init(feed: BookmarkFeed, name: String) {
+  public init(feed: Feed, name: String) {
     self.name = name
-    self.path = "\(feed.dir.path)/\(name)"
+    let bmPath = "\(feed.dir.path)/bookmarks/"
+    let bmDir = Dir(bmPath)
+    if !bmDir.exists {
+      bmDir.create()
+      let rlink = File(dir: bmDir.path, fname: "resources")
+      let glink = File(dir: bmDir.path, fname: "global")
+      if !rlink.isLink { rlink.link(to: feed.feeder.resourcesDir.path) }
+      if !glink.isLink { glink.link(to: feed.feeder.globalDir.path) }
+    }
+    self.path = "\(bmDir.path)/\(name)"
     self.moTime = Date()
   }
 }

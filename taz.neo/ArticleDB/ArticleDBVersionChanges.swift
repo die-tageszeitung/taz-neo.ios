@@ -48,11 +48,41 @@ public extension ArticleDB {
     }
   }
   
+//  private func merge3to4() {
+//    for feeder in StoredFeeder.all() {
+//      ///!uses get ArticleDB.context.fetch
+//      ///feeds are: lmd taz? not wochentaz ...this was another "concept"
+//      for feed in StoredFeed.feedsOfFeeder(feeder: feeder) {
+//        guard let bmIssue = StoredIssue.bookmarkIssue(in: feed) else { continue }
+//        guard let bmSect = bmIssue.sections?.first as? StoredSection else { return }
+//        for issue in feed.issues ?? [] {
+//          let barts = (issue.allArticles as? [StoredArticle] ?? []).filter{$0.pr.hasBookmark}
+//          for bart in barts {
+//            bart.pr.addToSections(bmSect.pr)
+//            bmSect.pr.addToArticles(bart.pr)
+//          }
+//        }
+//      }
+//    }
+//    
+//    
+//    for art in bookmarkedArticles {
+//      guard let bi = StoredIssue.boockmarkIssue(in: feederContext.defaultFeed) else { return }
+//      guard let bookmarkSection = bi.sections?.first as? StoredSection else { return }
+//      art.pr.addToSections(bookmarkSection.pr)
+//      bookmarkSection.pr.addToArticles(art.pr)//ändert die Zuordnung Issue muss neu geladen werden damit verschwindet der Artikel aus leseliste...
+//      //selbst ohne issue manuell neu laden update verschwindet der Artikel aus der Leseliste bei Neustart ...WIESO???
+//      art.pr.addToIssues(bi.pr)
+//      bi.pr.addToArticles(art.pr)
+//    }
+//  }
+  
   /// Merge different model versions (after auto migration)
   func mergeVersions() {
     if oldModelVersion == 0 { initializeDB() }
     if oldModelVersion < 2 && newModelVersion >= 2 { merge1to2() }
     if oldModelVersion < 3 && newModelVersion >= 3 { merge2to3() }
+//    if oldModelVersion < 4 && newModelVersion >= 4 { merge3to4() }
     ///For future migrations ... In case of audio => audioEntry do manual sheme migration THIS IS NOT HERE
   }
   

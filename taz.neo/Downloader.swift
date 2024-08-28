@@ -238,7 +238,7 @@ open class Downloader: DoesLog {
   public func downloadIssueData(issue: Issue, files: [FileEntry], 
                                 closure: @escaping (Error?)->()) {
     if issue.isComplete { closure(nil); return }
-    if issue is BookmarkIssue { closure(nil); return }
+//    if issue is BookmarkIssue { closure(nil); return }
     downloadGlobalFiles(files: files) { [weak self] err in
       guard err == nil else { closure(err); return }
       guard let self = self else { return }

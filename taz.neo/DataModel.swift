@@ -545,11 +545,11 @@ public extension Article {
     if ArticlePlayer.singleton.currentContent?.html?.sha256 == self.html?.sha256 && self.html?.sha256 != nil {
       ArticlePlayer.singleton.toggle(origin: .appUi)
     }
-    else if let issue = issue as? BookmarkIssue {
-      ArticlePlayer.singleton.play(issue: issue,
-                                   startFromArticle: self,
-                                   enqueueType: .replaceCurrent)
-    }
+//    else if let issue = issue as? BookmarkIssue {
+//      ArticlePlayer.singleton.play(issue: issue,
+//                                   startFromArticle: self,
+//                                   enqueueType: .replaceCurrent)
+//    }
     else if let issue = issue as? StoredIssue {
       ArticlePlayer.singleton.play(issue: issue,
                                    startFromArticle: self,
@@ -984,7 +984,8 @@ public extension Issue {
       }
     }
     if self is SearchResultIssue { return ret }
-    if self is BookmarkIssue { return ret }
+//    if self is BookmarkIssue { return ret }
+//    if self.isBookmarkIssue { return ret }
     
     if let imp = imprint { ret += imp }
     #if TAZ

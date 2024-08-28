@@ -626,11 +626,11 @@ extension TazAppEnvironment {
 extension TazAppEnvironment {
   func playBookmarks(){
     guard let feeder = feederContext?.storedFeeder else { return }
-    let bookmarkFeed = BookmarkFeed.allBookmarks(feeder: feeder)
-    guard let bi = (bookmarkFeed.issues ?? []).first as? BookmarkIssue else { return }
-    ArticlePlayer.singleton.play(issue: bi,
-                                 startFromArticle: nil,
-                                 enqueueType: .replaceCurrent)
+//    let bookmarkFeed = BookmarkFeed.allBookmarks(feeder: feeder)
+//    guard let bi = (bookmarkFeed.issues ?? []).first as? BookmarkIssue else { return }
+//    ArticlePlayer.singleton.play(issue: bi,
+//                                 startFromArticle: nil,
+//                                 enqueueType: .replaceCurrent)
   }
   
   func playLatestIssue(){
@@ -708,10 +708,10 @@ enum Shortcuts{
     var itms:[UIApplicationShortcutItem]
     = [Shortcuts.playLatestIssue.shortcutItem]
     
-    if let sf = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder ,
-       BookmarkFeed.allBookmarks(feeder: sf).issues?.first?.allArticles.count ?? 0 > 0 {
-      itms.append(Shortcuts.playBookmarks.shortcutItem)
-    }
+//    if let sf = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder ,
+//       BookmarkFeed.allBookmarks(feeder: sf).issues?.first?.allArticles.count ?? 0 > 0 {
+//      itms.append(Shortcuts.playBookmarks.shortcutItem)
+//    }
     // No Server Switch for Release App
     if App.isRelease { return itms }
     itms.append(Shortcuts.liveServer.shortcutItem)

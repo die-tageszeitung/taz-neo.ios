@@ -223,8 +223,6 @@ open class FeederContext: DoesLog {
     if needUpdate {
       updateFeeder(loadAllPublicationDates: loadAll)
     }
-    
-
   }
   
   func checkForNewIssues(force: Bool = false){

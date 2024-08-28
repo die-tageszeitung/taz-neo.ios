@@ -1013,16 +1013,16 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.teaser }
     set { pr.teaser = newValue }
   }
-  public var hasBookmark: Bool {
-    get { pr.hasBookmark }
-    set {
-      let old = pr.hasBookmark
-      setBookmark(newValue)
-      if old != newValue {
-        Notification.send(Const.NotificationNames.bookmarkChanged, content: sections, sender: self)
-      }
-    }
-  }
+//  public var hasBookmark: Bool {
+//    get {
+//      Bookmarks.has(article: self)
+//    }
+//    set {
+//      if Bookmarks.set(active: newValue) == false { return }///No change, no notification
+//      Notification.send(Const.NotificationNames.bookmarkChanged, content: sections, sender: self)
+//    }
+//  }
+  
   public var serverId: Int? {
     get { return pr.serverId != 0 ? Int(pr.serverId) : nil }
     set {
@@ -1074,8 +1074,15 @@ public final class StoredArticle: Article, StoredObject {
     }
     return ret
   }
-  /// For now the primary Issue is assumed to be the first one stored
-  public var primaryIssue: Issue? { issues.count > 0 ? issues[0] : nil }
+  /// the primary Issue is assumed to be the first none Bookmark Issue stored
+  /// if there is only the bookmark issue, primary issue is nil
+  /// Former: -For now the primary Issue is assumed to be the first one stored-
+  public var primaryIssue: Issue? {
+    for issue in issues {
+      if issue.isBookmarkIssue == false { return issue }
+    }
+    return nil
+  }
   
   public var dir: Dir {
     guard let sdir = (html as? StoredFileEntry)?.dir
@@ -1549,7 +1556,10 @@ public final class StoredSection: Section, StoredObject {
       }
       if pr.html?.name != newValue.name { pr.html?.delete() }
       pr.html = StoredFileEntry.persist(object: newValue).pr 
-      pr.html?.content = pr
+      pr.html?.content = pr///WTF !????????
+      ///pr is some db stuff
+      ///html is a file entry
+      ///
     }
   }
 
@@ -1824,6 +1834,10 @@ extension StoredIssue: Equatable {
   }
 }
 
+//extension Issue {
+//  var isBookmarkIssue: Bool { return self.baseUrl == StoredIssue.bookmarkUrl }
+//}
+
 /// A stored Issue
 public final class StoredIssue: Issue, StoredObject {
   
@@ -2062,6 +2076,40 @@ public final class StoredIssue: Issue, StoredObject {
     return get(request: request)
   }
   
+//  static let bookmarkUrl = "bookmark.issue.local5"
+//  
+//  /// Return stored record with given name
+//  public static func bookmarkIssue(in feed: Feed) -> StoredIssue? {
+//    let request = fetchRequest
+//    request.predicate = NSPredicate(format: "(baseUrl = %@)", bookmarkUrl)
+//    if let si = get(request: request).first { return si }
+//    
+//    let si = StoredIssue.new()
+//    si.baseUrl = bookmarkUrl
+//    si.date = Date(timeIntervalSinceReferenceDate: 0)//1.1.2001
+//    si.moTime = Date()
+//    si.minResourceVersion = 0
+//    si.status = .unknown
+//    si.isWeekend = false
+//    
+//    si.isDownloading = false
+//    si.isComplete = false
+//    si.feed = feed
+//    si.moment =  DummyMoment()
+//    
+//    let sect = StoredSection.new()
+//    sect.name = "Leseliste"
+//    sect.type = .unknown
+//    sect.html = BookmarkFileEntry(feed: feed, name: "allBookmarks.html")
+//    si.pr.addToSections(sect.pr)
+//    sect.pr.issue = si.pr
+//    return si
+//  }
+  
+//  public static func bookmarkSection(in feed: Feed) -> StoredSection? {
+//    return Self.bookmarkIssue(in: feed)?.sections?.first as? StoredSection
+//  }
+  
   public static func get(object: Issue, inFeed feed: StoredFeed) -> StoredIssue? {
     let issues = get(date: object.date, inFeed: feed)
     if issues.count > 0 { return issues[0] }
@@ -2209,9 +2257,14 @@ public final class StoredIssue: Issue, StoredObject {
       Log.log("Prevent crash")
       return;
     }
+    var knownDirs: [String] = []
     
     if keep <= allIssues.count {
       for issue in allIssues[keep...] {
+        if issue.isBookmarkIssue {
+          let dir = feed.feeder.issueDir(issue: issue)
+          if dir.exists { knownDirs.append(dir.path)}
+        }
         if lastCompleeteIssues.contains(issue) { continue }
         if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
         if issue.reduceToOverview() {
@@ -2222,8 +2275,6 @@ public final class StoredIssue: Issue, StoredObject {
          
     guard deleteOrphanFolders else { return }
     Log.log("delete orphan folders")
-    
-    var knownDirs: [String] = []
     
     for issue in lastCompleeteIssues {
       let dir = feed.feeder.issueDir(issue: issue)
