@@ -230,6 +230,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     Notification.receiveOnce("issue", from: issue) { [weak self] notif in
       guard let nIssue = notif.content as? Issue else { return }
       guard self?.delegate != nil && self?.delegate.issue != nil else { return }
+      #warning("ToDo CRASH AGAIN")
+      ///Thread 1: Fatal error: Unexpectedly found nil while unwrapping an Optional value
+      ///self.section has 20 sections articles:93 => regular Issue sectionVC ...Ansicht im Karussell
+      ///markStopDownload
+      ///taz_alpha/ArticleDB.swift:1860: Fatal error: Unexpectedly found nil while unwrapping an Optional value
       guard nIssue.date.issueKey == self?.issue.date.issueKey else { return }
       if nIssue.sections?.count == self?.issue.sections?.count
       && nIssue.allArticles.count == self?.issue.allArticles.count { return }

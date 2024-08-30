@@ -31,7 +31,7 @@ extension FeederContext {
   /// Download complete Payload of Issue
   func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
     //    enqueuedDownlod.append(issue)
-    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated), ")
     markStartDownload(feed: issue.feed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
       issue.isDownloading = true
       self.dloader.downloadPayload(payload: issue.payload as! StoredPayload,

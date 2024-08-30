@@ -403,7 +403,11 @@ public extension Content {
   /// Date of Issue encompassing this Content (refering to primaryIssue)
   var defaultIssueDate: Date { 
     guard let issue = primaryIssue
-    else { fatalError("Undefined primaryIssue") }
+    else {
+      #warning("to do")
+      /// Anpassen an Search Result, ein Artikel braucht sein zugehöriges Issue Date
+      return Date(timeIntervalSinceReferenceDate: 0)
+      fatalError("Undefined primaryIssue") }
     return issue.date
   }
   var issueDate: Date { defaultIssueDate }

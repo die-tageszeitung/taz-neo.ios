@@ -79,7 +79,12 @@ public extension StoredObject {
 
   /// Delete the object from the persistent store
   func deletePersistent() { pr.delete() }
-  func delete() { deletePersistent() }
+  func delete() {
+    if let art = self as? Article {
+      print(" > delete Artikel with title: \(art.title ?? "-")")
+    }
+    deletePersistent()
+  }
 
   /// Create a new persistent record
   static func newPersistent() -> PO {
@@ -906,6 +911,7 @@ public final class StoredAuthor: Author, StoredObject {
 /// also: PersistentSection, PersistentArticle
 extension PersistentContent: PersistentObject {
   public override func prepareForDeletion() {
+    super.prepareForDeletion()
     for case let img as PersistentImageEntry in self.images ?? []{
       if img.imageContent?.count == 1,
          (img.imageContent ?? []).allObjects.first as? PersistentContent == self,
@@ -924,8 +930,26 @@ extension PersistentAudio {
   }
 }
 
+/// Model Delete Rules
+/// (regular) issue 1-n section n - m article m - n section m - 1 bookmark issue
+/// former article to section was nullify
+/// now its deny
+/// so if a regular issue bith a bookm arked article is deleted, all of the issue will be deleted, but not the bookmarked article
+/// the article will be in its bookmark section
+/// to delete the article its needed to remove him from the section and then delete him
+/// @see: https://stackoverflow.com/a/52412945
+///  With Article > section toMany Relation min NIL or 1 Delete Rule DENY
+///  ====>> on Issue with Bookmark delete =====>>
+/// NorthFoundation/Database.swift:176: Fatal error: 'try!' expression unexpectedly raised an error: Error Domain=NSCocoaErrorDomain Code=1560 "Bei der Überprüfung sind mehrere Fehler aufgetreten." UserInfo={NSDetailedErrors=(
+/// "Error Domain=NSCocoaErrorDomain Code=1600 \"Aus sections können keine Objekte gelöscht werden.\"
+/// ===== NEXT DELETE RULE: NO ACTION
+/// 
 extension PersistentArticle {
   public override func prepareForDeletion() {
+    /**WTF WIESO WIRD DER ARTIKEL VOR DER SECTION GELÖSCHT? OH DAS KOMMT VON DER ISSUE ARTIKEL RELATION?**/
+//    super.prepareForDeletion()
+//    debug("called for Article with\n  Title: \(self.title ?? "-")\n   Filename: \(self.html?.name ?? "-") ")
+//    print(" > delete Artikel with title: \(self.title ?? "-") sect count: \(self.sections?.count)")
     if audioItem?.referencesCount == 1 {
       debug("Delete AutioItem due last Reference")
       audioItem?.delete()
@@ -935,6 +959,47 @@ extension PersistentArticle {
 }
 extension PersistentSection {
   public override func prepareForDeletion() {
+    for case let art as PersistentArticle in articles ?? [] {
+      var delete = true
+      for case let artSect as PersistentSection in art.sections ?? [] {
+        if artSect != self {
+          delete = false
+          break
+        }
+      }
+      if !delete {
+        if let issueMoment = self.issue?.moment {
+          art.originalMoment = issueMoment
+        }
+        /*
+        for case let img as PersistentImageEntry in self.issue?.moment?.images ?? [] {
+          print("What to do with: \(img.file?.name ?? "-")")
+          ///hier wird wahrscheinlich nur eine datei rauskommen aber wie soll ich sie in bookmarks wiederfinden?
+          ///also muss ich eh den Moment an den Artikel hängen
+          ///macht die nächsten FÄSSER auf:
+          ///was passiert, wenn ich eine Ausgabe lösche, dann wieder lade => dann muss ich sicherstellen, dass ich den Moment wieder richtig zuordne
+          ///das müsste ich auch machen, wenn ich über Listen arbeite
+          ///wenn ich nur ein Moment Image "aufhebe" und mir das merke, müsste die Zuordnung jetzt schon passieren
+          ///...nicht so faul => merke den Moment und Teste
+         ...beim löschen einer Ausgabe mit Lesezeichen, wird diese bei aufruf im Karusell neu geladen, bekommt wenn geändert einen neuen Moment, der alte moment hängt am Lesezeichen
+         ...d.h. in der Leseliste gibt es eine Miniatur des alten Moments, bei Tap auf den Moment in der Leseliste lande ich im Karussell auf der Ausgabe mit dem neuen Moment
+         wenn ich das letzte Lesezeichen Lösche wird der alte moment gelöscht, alles ok
+         wenn ich nach neuladen einnen neuen bookmark setze
+         ...dann habe ich für eine Ausgabe 2 momente in meiner leseliste, brauche aber nur einen
+         ...ich könnte das Modell weiter (komplett) umstrukturieren/erweitern um ein abstraktesIssue mit oment auf dem die artikel verweisen ...lieber nicht
+         den Moment mit dem IssueDate erweitern
+         ................was bedeutet das? wie komme ich von den 2 artikeln auf nur einen moment?
+         => publicationDate bekommt den Moment!!
+         => der Artikel ebenso das PublicationDate
+         => Artikel ?1:1? PublicationDate ?1:1? Moment BINGO!
+        }*/
+        to do continue with last line
+        
+        continue
+      }
+      debug("Delete Artikel with title: \(art.title ?? "-") sect count: \(art.sections?.count ?? -1)")
+      art.delete()
+    }
     if audioItem?.referencesCount == 1 {
       debug("Delete AutioItem due last Reference")
       audioItem?.delete()

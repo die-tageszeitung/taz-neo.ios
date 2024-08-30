@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22522" systemVersion="22G436" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="3">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23G93" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="3">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="articleType" optional="YES" attributeType="String"/>
         <attribute name="hasBookmark" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
@@ -14,6 +14,7 @@
         <relationship name="frames" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Frame" inverseName="article" inverseEntity="Frame"/>
         <relationship name="issueImprint" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="imprint" inverseEntity="Issue"/>
         <relationship name="issues" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Issue" inverseName="articles" inverseEntity="Issue"/>
+        <relationship name="originalMoment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="article" inverseEntity="Moment"/>
         <relationship name="remarks" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Remark" inverseName="article" inverseEntity="Remark"/>
         <relationship name="sections" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Section" inverseName="articles" inverseEntity="Section"/>
         <fetchIndex name="Index">
@@ -149,7 +150,7 @@
         <attribute name="validityDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="zipName" optional="YES" attributeType="String"/>
         <attribute name="zipNamePdf" optional="YES" attributeType="String"/>
-        <relationship name="articles" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Article" inverseName="issues" inverseEntity="Article"/>
+        <relationship name="articles" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Article" inverseName="issues" inverseEntity="Article"/>
         <relationship name="feed" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Feed" inverseName="issues" inverseEntity="Feed"/>
         <relationship name="imprint" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Article" inverseName="issueImprint" inverseEntity="Article"/>
         <relationship name="moment" maxCount="1" deletionRule="Cascade" destinationEntity="Moment" inverseName="issue" inverseEntity="Moment"/>
@@ -161,6 +162,7 @@
     <entity name="Moment" representedClassName="PersistentMoment" syncable="YES" codeGenerationType="class">
         <attribute name="data" optional="YES" attributeType="Binary"/>
         <relationship name="animation" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="momentAnimated" inverseEntity="FileEntry"/>
+        <relationship name="article" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Article" inverseName="originalMoment" inverseEntity="Article"/>
         <relationship name="creditedImages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="momentCredit" inverseEntity="ImageEntry"/>
         <relationship name="firstPage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Page" inverseName="moment" inverseEntity="Page"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="moment" inverseEntity="ImageEntry"/>
@@ -217,7 +219,7 @@
         <attribute name="extendedTitle" optional="YES" attributeType="String"/>
         <attribute name="name" attributeType="String"/>
         <attribute name="type" attributeType="String"/>
-        <relationship name="articles" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Article" inverseName="sections" inverseEntity="Article"/>
+        <relationship name="articles" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Article" inverseName="sections" inverseEntity="Article"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="sections" inverseEntity="Issue"/>
         <relationship name="navButton" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="navSection" inverseEntity="ImageEntry"/>
     </entity>

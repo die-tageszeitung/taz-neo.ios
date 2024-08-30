@@ -46,8 +46,8 @@
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
 		7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
-		7731CA412B60238B00EE8600 /* bookmarks-taz.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA402B60238B00EE8600 /* bookmarks-taz.css */; };
-		7731CA432B60239D00EE8600 /* bookmarks-lmd.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA422B60239D00EE8600 /* bookmarks-lmd.css */; };
+		7731CA412B60238B00EE8600 /* bookmarks-taz-ios.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA402B60238B00EE8600 /* bookmarks-taz-ios.css */; };
+		7731CA432B60239D00EE8600 /* bookmarks-lmd-ios.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA422B60239D00EE8600 /* bookmarks-lmd-ios.css */; };
 		7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77328429274F9F5B00B08535 /* TazCustomized.swift */; };
 		773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A62A1C0A7C00678647 /* IssueOverviewService.swift */; };
 		773500AF2A1C0A7C00678647 /* IssueCarouselCVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A72A1C0A7C00678647 /* IssueCarouselCVC.swift */; };
@@ -91,6 +91,8 @@
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
 		77A63BDF2AD8271A0047DF5A /* NewInfoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A63BDE2AD8271A0047DF5A /* NewInfoToast.swift */; };
 		77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77AB6B042A02653000C42712 /* NotificationsView.swift */; };
+		77B274FA2C81CB38007A3477 /* bookmarks-lmd-ios.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA422B60239D00EE8600 /* bookmarks-lmd-ios.css */; };
+		77B274FB2C81CB3B007A3477 /* bookmarks-taz-ios.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA402B60238B00EE8600 /* bookmarks-taz-ios.css */; };
 		77B993D82AC406F900C7D832 /* Rating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D72AC406F900C7D832 /* Rating.swift */; };
 		77B993DA2AC4706600C7D832 /* Usage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D92AC4706600C7D832 /* Usage.swift */; };
 		77B993DD2AC47F6400C7D832 /* MatomoTracker in Frameworks */ = {isa = PBXBuildFile; productRef = 77B993DC2AC47F6400C7D832 /* MatomoTracker */; };
@@ -329,8 +331,8 @@
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
-		7731CA402B60238B00EE8600 /* bookmarks-taz.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-taz.css"; sourceTree = "<group>"; };
-		7731CA422B60239D00EE8600 /* bookmarks-lmd.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-lmd.css"; sourceTree = "<group>"; };
+		7731CA402B60238B00EE8600 /* bookmarks-taz-ios.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-taz-ios.css"; sourceTree = "<group>"; };
+		7731CA422B60239D00EE8600 /* bookmarks-lmd-ios.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-lmd-ios.css"; sourceTree = "<group>"; };
 		77328429274F9F5B00B08535 /* TazCustomized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazCustomized.swift; sourceTree = "<group>"; };
 		773500A62A1C0A7C00678647 /* IssueOverviewService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueOverviewService.swift; sourceTree = "<group>"; };
 		773500A72A1C0A7C00678647 /* IssueCarouselCVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueCarouselCVC.swift; sourceTree = "<group>"; };
@@ -841,8 +843,8 @@
 		AED3760B285E1E5D00EFE608 /* Bookmarks */ = {
 			isa = PBXGroup;
 			children = (
-				7731CA422B60239D00EE8600 /* bookmarks-lmd.css */,
-				7731CA402B60238B00EE8600 /* bookmarks-taz.css */,
+				7731CA422B60239D00EE8600 /* bookmarks-lmd-ios.css */,
+				7731CA402B60238B00EE8600 /* bookmarks-taz-ios.css */,
 				776E59C429ED25A3001D5C5B /* dot-day.svg */,
 				776E59C529ED25A3001D5C5B /* dot-night.svg */,
 				4D308EEF2834061600529592 /* BookmarkNC.swift */,
@@ -963,7 +965,7 @@
 				AE5131E22AFBCADB002289E8 /* BundledResources in Resources */,
 				AE5131E32AFBCADB002289E8 /* dot-night.svg in Resources */,
 				AEBCEE352B0E23980038392B /* resources.json in Resources */,
-				7731CA432B60239D00EE8600 /* bookmarks-lmd.css in Resources */,
+				7731CA432B60239D00EE8600 /* bookmarks-lmd-ios.css in Resources */,
 				AE5131E42AFBCADB002289E8 /* Localizable.strings in Resources */,
 				AE5131E52AFBCADB002289E8 /* StarFilled.svg in Resources */,
 				AE5131E62AFBCADB002289E8 /* LaunchScreen.storyboard in Resources */,
@@ -972,6 +974,7 @@
 				AE5131EB2AFBCADB002289E8 /* Star.svg in Resources */,
 				AE5131FA2AFBE76B002289E8 /* lmd.plist in Resources */,
 				AE5131EC2AFBCADB002289E8 /* bookmarks-ios.js in Resources */,
+				77B274FB2C81CB3B007A3477 /* bookmarks-taz-ios.css in Resources */,
 				AE5131ED2AFBCADB002289E8 /* dot-day.svg in Resources */,
 				AE5131EF2AFBCADB002289E8 /* Share.svg in Resources */,
 			);
@@ -991,7 +994,8 @@
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
 				AEF877ED282BC47400FD51CD /* Trash.svg in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
-				7731CA412B60238B00EE8600 /* bookmarks-taz.css in Resources */,
+				7731CA412B60238B00EE8600 /* bookmarks-taz-ios.css in Resources */,
+				77B274FA2C81CB38007A3477 /* bookmarks-lmd-ios.css in Resources */,
 				AEB935332917E81F000330DA /* Star.svg in Resources */,
 				AE1632882848A728004CB55E /* bookmarks-ios.js in Resources */,
 				776E59C629ED25A3001D5C5B /* dot-day.svg in Resources */,

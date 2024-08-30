@@ -269,7 +269,7 @@ extension BookmarkNC {
   <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0"/>
-    <link rel="stylesheet" href="resources/bookmarks-ios.css"/>
+    <link rel="stylesheet" href="resources/bookmarks-\(App.isLMD ? "lmd" : "taz")-ios.css"/>
     <script src="resources/tazApi.js"></script>
     <script src="resources/bookmarks-ios.js"></script>
     <title>Bookmarks</title>
@@ -282,7 +282,7 @@ extension BookmarkNC {
   
   func dottedLine(inSection: Bool) -> String {
     return (App.isTAZ ? !inSection : inSection) ?
-      BookmarkFeed.htmlDottedLine : "";
+    BookmarkNC.htmlDottedLine : "";
   }
   
   /// Get all authors as String with HTML markup
@@ -349,6 +349,15 @@ extension BookmarkNC {
   
   /// Generate HTML for given HTML Section
   public func genHtmlSection(date: Date, arts: [Article]) -> String {
+    #warning("Primary Issue unavailable after delete!")
+    ///Herausforderung: Wie bekomme ich das Moment Image persistiert? Aber ich möchte die ganze Ausgabe löschen?
+    ///ich muss das Moment IMage irgendwo ander hinschieben/kopieren?
+    ///Übergeordnete Frage: will ich vielleicht Lese/Vorlese Listen haben, darin dann die Artikel vielleicht noch gruppiert?
+    ///**NEIN**, weil ich keine Code duplication für den Download von zusätzlichen Ressourcen haben möchte
+    ///**UND NEIN** weil ich die komplexitätssteigerung durch Abstraktion dessen scheue
+    ///zu sehen an den Beispielen TBD wo einfach bestimmte Objekte reingeworfen werden und dann aber 1.000 Sonderbehandlungen gemacht werden müssen
+    ///bzw. endlode Bugfixing Sessions anstehen
+    ///....KISS vermeide Komplexitätssteigerung ist die Intention der aktuellen Umsetzung
     if let articles = arts as? [StoredArticle],
        articles.count > 0,
        let issue = articles[0].primaryIssue {
@@ -402,7 +411,7 @@ extension BookmarkNC {
   /// Generate HTML for given Section
   public func genHtml(section: StoredSection) {
     var html = """
-      \(BookmarkFeed.htmlHeader)
+      \(BookmarkNC.htmlHeader)
       <body>\n
       """
     html += genHtmlSections(section: section)
