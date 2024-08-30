@@ -1227,6 +1227,7 @@ public protocol Feed: ToString {
 
 public extension Feed {  
   var dir: Dir { Dir(dir: feeder.baseDir.path, fname: name) }
+  var bookmarksDir: Dir { Dir(dir: feeder.baseDir.path, fname: "\(name)/bookmarks") }
   var type: FeedType { .publication }
   var lastIssueRead: Date? { nil }
   var lastUpdated: Date? { nil }
@@ -1332,6 +1333,7 @@ extension Feeder {
   /// Returns directory where all issue specific data is stored
   public func issueDir(issue: Issue) -> Dir {
     if issue is SearchResultIssue { return Dir.searchResults }
+    if issue.isBookmarkIssue { return issue.feed.bookmarksDir }
     return issueDir(feed: issue.feed.name, issue: date2a(issue.date))
   }
   

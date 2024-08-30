@@ -144,6 +144,8 @@ class BookmarkNC: NavigationController {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     ensureBookmarkListVisibleIfNeeded()
+    genAllHtml()
+    self.sectionVC.reload()
   }
   
   override func viewDidLoad() {

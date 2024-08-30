@@ -9,6 +9,31 @@
 import Foundation
 import NorthLib
 
+/**
+ 
+ 
+ HACKS:
+ po (shared.bookmarkSection?.articles as? [StoredArticle])?.flatMap{$0.serverId}
+ 
+ Status
+ * Bookmark Feed is depreciated
+ * lost Section's html after restart
+ StoredFileEntry.fileNameExists(inDir:) Info:
+   * Warning: File Leseliste.html exists but mtime and/or size are wrong 2024-08-29 08:24:41 +0000 !=? 2024-08-29 08:24:37 +0000 || 377 !=? 14
+ ...datei muss generiert und bei appear neu geladen werden!
+ tap auf Artikel geht nicht in Artikel
+ * löschen Ausgabe
+ * neu laden ausgabe?
+ * Migration
+ * wieso verschwinden artikel aus ihrem eigentlichen issue? ...und wann?
+ 
+ * aktuelle Probleme?
+ LADEFEHLER => DONE
+ * entfernen aus Leseliste auf Artikelebene klappt nicht
+ falscher bookmarks ordner wird noch vom bookmarks feed angelegt
+ wenn ein Artikel in Section gebookmarkt ist, erscheint nach neustart der Stern nicht und er lässt sich nicht toggln
+ */
+
 
 /// A Feed of bookmarked Articles
 public class BookmarkFeed: Feed, DoesLog {
@@ -283,7 +308,9 @@ public extension StoredArticle {
 extension StoredArticle {
   public var hasBookmark: Bool {
     get {
-      Bookmarks.has(article: self)
+      let has = Bookmarks.has(article: self)
+      print("requested has Bookmark for: \(self.title ?? "-") id: \(self.serverId ?? -1) has: \(has)")
+      return has
     }
     set {
       if Bookmarks.set(article: self, active: newValue) == false { return }///No change, no notification
@@ -292,10 +319,14 @@ extension StoredArticle {
   }
 }
 
-extension StoredIssue {
+extension Issue {
   public var isBookmarkIssue: Bool {
-    return baseUrl == Bookmarks.bookmarkUrl
+    return self is StoredIssue && baseUrl == Bookmarks.bookmarkUrl
   }
+  
+//  public var dir: Dir? {
+//    return nil
+//  }
 }
 
 public class Bookmarks {
@@ -387,8 +418,8 @@ public class Bookmarks {
     sect.type = .unknown
 //    sect.primaryIssue = issue
     
-    let bmPath = "\(issue.feed.dir.path)/bookmarks"
-    let bmDir = Dir(bmPath)
+//    let bmPath = "\(issue.feed.dir.path)/bookmarks"
+    let bmDir = issue.feed.bookmarksDir
     if !bmDir.exists {
       bmDir.create()
       let rlink = File(dir: bmDir.path, fname: "resources")
@@ -397,7 +428,7 @@ public class Bookmarks {
       if !glink.isLink { glink.link(to: issue.feed.feeder.globalDir.path) }
     }
     
-    let bmFilePath = "\(bmPath)/\(sect.name).html"
+    let bmFilePath = "\(bmDir.path)/\(sect.name).html"
     
     File(bmFilePath).string = "initial, empty"
     let tmpFile = StoredFileEntry.new(path: bmFilePath)

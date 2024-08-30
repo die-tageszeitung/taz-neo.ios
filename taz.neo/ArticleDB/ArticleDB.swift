@@ -1208,7 +1208,10 @@ public final class StoredArticle: Article, StoredObject {
   }
   
   /// Return all bookmarked Articles
+  ///
+  #warning("DO REFACTOR")
   public static func bookmarkedArticles() -> [StoredArticle] {
+    return Bookmarks.shared.bookmarkSection?.articles as? [StoredArticle] ?? []
     let request = fetchRequest
     request.predicate = NSPredicate(format: "hasBookmark = true")
     var arts: [StoredArticle] = get(request: request)
@@ -2264,6 +2267,7 @@ public final class StoredIssue: Issue, StoredObject {
         if issue.isBookmarkIssue {
           let dir = feed.feeder.issueDir(issue: issue)
           if dir.exists { knownDirs.append(dir.path)}
+          continue
         }
         if lastCompleeteIssues.contains(issue) { continue }
         if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }

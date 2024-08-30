@@ -114,12 +114,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       }    
       else {
         for s in self.sections {
-          if fn == s.html?.name {
+//          if fn == s.html?.name {
             self.gotoUrl(url: to) 
             if top == articleVC {
               navigationController?.popViewController(animated: true)
             }
-          }
+//          }
         }
       }
     }
