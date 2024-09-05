@@ -268,6 +268,7 @@ class HomeTVC: UITableViewController {
   }
   
  @objc private func updateAccessibillityHelper(){
+   return//DO not activate accassabillity mode for accessabillity test build
    isAccessibilityMode
     = loginButton.superview == nil
     && UIAccessibility.isVoiceOverRunning
