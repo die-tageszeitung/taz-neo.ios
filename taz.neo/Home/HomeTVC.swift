@@ -65,6 +65,9 @@ class HomeTVC: UITableViewController {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  @Default("voiceoverControls")
+  var voiceoverControls: Bool
+  
   private var dataPolicyToast: NewInfoToast?
   
   #warning("Refactor ContentVC should hold it's IssueInfo Reference")
@@ -234,13 +237,9 @@ class HomeTVC: UITableViewController {
     #if TAZ
       setupTogglePdfButton()
       togglePdfButton.isAccessibilityElement = false
-    #endif    
-    carouselController.dateLabel.isAccessibilityElement = false
-    carouselControllerCell.isAccessibilityElement = false
-    carouselController.collectionView.isAccessibilityElement = false
-    tilesControllerCell.isAccessibilityElement = false
-    tilesControllerCell.contentView.isAccessibilityElement = false
-    tilesController.collectionView.isAccessibilityElement = false
+    #endif
+    $voiceoverControls.onChange{ [weak self] _ in self?.updateAccessibillityHelper() }
+    updateAccessibillityHelper()
    }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -268,10 +267,17 @@ class HomeTVC: UITableViewController {
   }
   
  @objc private func updateAccessibillityHelper(){
-   return//DO not activate accassabillity mode for accessabillity test build
    isAccessibilityMode
     = loginButton.superview == nil
+    && voiceoverControls
     && UIAccessibility.isVoiceOverRunning
+   
+   carouselController.dateLabel.isAccessibilityElement = !isAccessibilityMode
+   carouselControllerCell.isAccessibilityElement = !isAccessibilityMode
+   carouselController.collectionView.isAccessibilityElement = !isAccessibilityMode
+   tilesControllerCell.isAccessibilityElement = !isAccessibilityMode
+   tilesControllerCell.contentView.isAccessibilityElement = !isAccessibilityMode
+   tilesController.collectionView.isAccessibilityElement = !isAccessibilityMode
   }
   
   var nextHorizontalSizeClass:UIUserInterfaceSizeClass?

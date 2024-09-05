@@ -20,6 +20,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("autoloadOnlyInWLAN")
   var autoloadOnlyInWLAN: Bool
   
+  @Default("voiceoverControls")
+  var voiceoverControls: Bool
+  
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
@@ -170,6 +173,14 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                   initialValue: autoloadOnlyInWLAN,
                   onChange: {[weak self] newValue in
     self?.autoloadOnlyInWLAN = newValue })
+  
+  lazy var voiceoverControlsCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Voiceover Steuerung",
+                  detailText: "Alternative Steuerelemente für Ausgabenauswahl bei aktiviertem Voiceover verwenden",
+                  initialValue: voiceoverControls,
+                  onChange: {[weak self] newValue in
+    self?.voiceoverControls = newValue })
+  
   lazy var epaperLoadCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Zeitungsansicht immer mit laden",
                   initialValue: autoloadPdf,
@@ -553,6 +564,9 @@ extension SettingsVC {
     guard let sectionData = data.sectionData(for: section),
           let title = sectionData.title else { return nil }
     let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
+    if section == 6 {
+      header.label.accessibilityLabel = "\(title) \(self.extendedSettingsCollapsed ? "zum öffnen doppelt tippen" : "geöffnet")"
+    }
     header.collapsed = self.extendedSettingsCollapsed
     header.onTapping { [weak self] _ in
       guard let self = self else { return }
@@ -781,6 +795,7 @@ extension SettingsVC {
     var cells =  [
       bookmarksTeaserCell,
       smartBackFromArticleCell,
+      voiceoverControlsCell,
       memoryUsageCell,
       deleteDatabaseCell,
       resetAppCell
@@ -1323,6 +1338,8 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     
     leftButton.circleIconButton(symbol: "minus")
     rightButton.circleIconButton(symbol: "plus")
+    leftButton.accessibilityLabel = "kleiner"
+    rightButton.accessibilityLabel = "größer"
     
     leftButton.buttonView.hinset = 0.23
     rightButton.buttonView.hinset = 0.23
