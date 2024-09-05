@@ -238,6 +238,12 @@ class HomeTVC: UITableViewController {
       setupTogglePdfButton()
       togglePdfButton.isAccessibilityElement = false
     #endif
+    carouselController.dateLabel.isAccessibilityElement = false
+    carouselControllerCell.isAccessibilityElement = false
+    carouselController.collectionView.isAccessibilityElement = false
+    tilesControllerCell.isAccessibilityElement = false
+    tilesControllerCell.contentView.isAccessibilityElement = false
+    tilesController.collectionView.isAccessibilityElement = false
     $voiceoverControls.onChange{ [weak self] _ in self?.updateAccessibillityHelper() }
     updateAccessibillityHelper()
    }
@@ -267,17 +273,11 @@ class HomeTVC: UITableViewController {
   }
   
  @objc private func updateAccessibillityHelper(){
+   let isLoggedIn = loginButton.superview == nil
    isAccessibilityMode
-    = loginButton.superview == nil
+    = isLoggedIn
     && voiceoverControls
     && UIAccessibility.isVoiceOverRunning
-   
-   carouselController.dateLabel.isAccessibilityElement = !isAccessibilityMode
-   carouselControllerCell.isAccessibilityElement = !isAccessibilityMode
-   carouselController.collectionView.isAccessibilityElement = !isAccessibilityMode
-   tilesControllerCell.isAccessibilityElement = !isAccessibilityMode
-   tilesControllerCell.contentView.isAccessibilityElement = !isAccessibilityMode
-   tilesController.collectionView.isAccessibilityElement = !isAccessibilityMode
   }
   
   var nextHorizontalSizeClass:UIUserInterfaceSizeClass?
@@ -307,7 +307,7 @@ class HomeTVC: UITableViewController {
   
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     // #warning Incomplete implementation, return the number of rows
-    return isAccessibilityMode ? 1 : 2
+    return UIAccessibility.isVoiceOverRunning ? 1 : 2
   }
   
   override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -567,7 +567,7 @@ extension HomeTVC {
   }
   
   fileprivate func setupCarouselControllerCell() {
-    carouselController.view.isAccessibilityElement = false
+    carouselController.view.isAccessibilityElement = !isAccessibilityMode
     carouselControllerCell.contentView.addSubview(carouselController.view)
     pin(carouselController.view, toSafe: carouselControllerCell).bottom?.constant = -UIWindow.topInset
     carouselControllerCell.backgroundColor = .clear
