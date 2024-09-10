@@ -681,6 +681,7 @@ extension Defaults{
   
   static var currentFeeder : (name: String, url: String, feed: String) {
     get {
+      return (name: "taz-test", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
       switch Defaults.singleton["currentServer"] {
         case Shortcuts.testServer.type:
           return (name: "taz-test", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
@@ -715,8 +716,8 @@ enum Shortcuts{
     // No Server Switch for Release App
     if App.isRelease { return itms }
     itms.append(Shortcuts.liveServer.shortcutItem)
-    itms.append(Shortcuts.lmdServer.shortcutItem)
     itms.append(Shortcuts.testServer.shortcutItem)
+    itms.append(Shortcuts.lmdServer.shortcutItem)
     return itms
   }
   

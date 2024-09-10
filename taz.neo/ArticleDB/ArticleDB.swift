@@ -921,7 +921,6 @@ extension PersistentContent: PersistentObject {
       }
     }
   }
-  
 }
 
 extension PersistentAudio {
@@ -954,23 +953,40 @@ extension PersistentArticle {
       debug("Delete AutioItem due last Reference")
       audioItem?.delete()
     }
+    
+//    if self.originalMoment?.pr.articles?.count == 1 {
+//      self.originalMoment?.delete()//delete or test&prepare what happen to the issue if bookmark delete?
+//      ///if art deleted from bookmarks
+//      ///if art deleted from org issue
+//      ///has bookmark => not delete
+//      ///no bookmark > delete
+//    }
     debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
   }
 }
 extension PersistentSection {
   public override func prepareForDeletion() {
-    for case let art as PersistentArticle in articles ?? [] {
-      var delete = true
-      for case let artSect as PersistentSection in art.sections ?? [] {
-        if artSect != self {
-          delete = false
-          break
-        }
+    #warning("ToDO: refactor to delete all articles....which are not bookmarked")
+    for case let art as PersistentArticle in articles ?? [] {//Issue-Delete > Section-Delete > Article if not Bookmarked...handled in Article?
+      self.removeFromArticles(art)
+      if art.hasBookmark {
+        print(">> NOT DELETE ARTICLE WITH TITLE: \(art.title)")
+        continue
       }
-      if !delete {
-        if let issueMoment = self.issue?.moment {
-          art.originalMoment = issueMoment
-        }
+      print(">> DELETE ARTICLE WITH TITLE: \(art.title)")
+      art.delete()
+//
+//      var delete = true
+//      for case let artSect as PersistentSection in art.sections ?? [] {
+//        if artSect != self {//umgehangen?
+//          delete = false
+//          break
+//        }
+//      }
+//      if !delete {
+//        if let issueMoment = self.issue?.moment {
+//          art.originalMoment = issueMoment
+//        }
         /*
         for case let img as PersistentImageEntry in self.issue?.moment?.images ?? [] {
           print("What to do with: \(img.file?.name ?? "-")")
@@ -978,7 +994,7 @@ extension PersistentSection {
           ///also muss ich eh den Moment an den Artikel hängen
           ///macht die nächsten FÄSSER auf:
           ///was passiert, wenn ich eine Ausgabe lösche, dann wieder lade => dann muss ich sicherstellen, dass ich den Moment wieder richtig zuordne
-          ///das müsste ich auch machen, wenn ich über Listen arbeite
+          ///das müsste ich auch machen, wenn ich über Listen arbeite *AKTUALISIERUNG DES MOMENTES MÖCHTE ICH AUCH BERÜCKSICHTIGEN*
           ///wenn ich nur ein Moment Image "aufhebe" und mir das merke, müsste die Zuordnung jetzt schon passieren
           ///...nicht so faul => merke den Moment und Teste
          ...beim löschen einer Ausgabe mit Lesezeichen, wird diese bei aufruf im Karusell neu geladen, bekommt wenn geändert einen neuen Moment, der alte moment hängt am Lesezeichen
@@ -992,13 +1008,20 @@ extension PersistentSection {
          => publicationDate bekommt den Moment!!
          => der Artikel ebenso das PublicationDate
          => Artikel ?1:1? PublicationDate ?1:1? Moment BINGO!
+         ----------------
+         self.issue?.feed?.publicationDates?.first{$0.date.issueKey == }
+         (where: <#T##(NSSet.Element) throws -> Bool#>)
+         self.issueDate
+         to do continue with last line
+         
+         continue
+         art.org moment sieht doch ganz gut aus
+         
         }*/
-        to do continue with last line
         
-        continue
-      }
-      debug("Delete Artikel with title: \(art.title ?? "-") sect count: \(art.sections?.count ?? -1)")
-      art.delete()
+//      }
+//      debug("Delete Artikel with title: \(art.title ?? "-") sect count: \(art.sections?.count ?? -1)")
+//      art.delete()
     }
     if audioItem?.referencesCount == 1 {
       debug("Delete AutioItem due last Reference")
@@ -1186,7 +1209,8 @@ public final class StoredArticle: Article, StoredObject {
     if let sobject = object as? StoredArticle {
       self.text = sobject.text
       self.lastArticlePosition = sobject.lastArticlePosition
-      self.hasBookmark = object.hasBookmark
+      #warning("Bookmarks-refactor")
+//      self.hasBookmark = object.hasBookmark
     }
     self.title = object.title
     self.html = object.html
@@ -1892,7 +1916,14 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   
 } //StoredPublicationDate
 
-extension PersistentIssue: PersistentObject {}
+extension PersistentIssue: PersistentObject {
+  public override func prepareForDeletion() {
+    super.prepareForDeletion()
+    ///Store Moment at PublicationDate to use it with Bookmarked Articles
+    guard let moment = self.moment else { return }
+    
+  }
+}
 
 
 

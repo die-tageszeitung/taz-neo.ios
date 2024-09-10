@@ -250,6 +250,9 @@ public class CoachmarksBusiness: DoesLog{
   }()
   
   func getCurrentAvailableCoachmarkKeys() -> [String:Int] {
+    if Device.isSimulator {
+      return [:]
+    }
 //    if false { //debug show all coachmarks
 //      var ret : [String:Int] = [:]
 //      for cm in Coachmarks.all {

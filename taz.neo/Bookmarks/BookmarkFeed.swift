@@ -65,6 +65,15 @@ public extension StoredArticle {
   
 }
 
+extension PersistentArticle {
+  public var hasBookmark2: Bool {
+    return true
+//    let has = Bookmarks.has(article: self)
+//    print("requested has Bookmark for: \(self.title ?? "-") id: \(self.serverId ?? -1) has: \(has)")
+//    return has
+  }
+}
+
 extension StoredArticle {
   public var hasBookmark: Bool {
     get {
@@ -117,16 +126,16 @@ public class Bookmarks: DoesLog {
   /// prepared for multiple bookmark lists
   fileprivate static func set(article: StoredArticle, active: Bool, in list: StoredSection? = nil) -> Bool {
     guard has(article: article, in: list) != active else { return false }//No Change nothing to do
-    guard let bookmarkIssue = shared.bookmarkIssue,
-          let bookmarkSection = list ?? shared.bookmarkSection else {
+    guard let bookmarkSection = list ?? shared.bookmarkSection else {
       Log.log("Fail to set Bookmark, usually unreachable code")
       return false
     }
     if active {
-      article.pr.addToSections(bookmarkSection.pr)//MUSS ICH BEIDES MACHEN, wirklich?
-      bookmarkSection.pr.addToArticles(article.pr)//..wirklich?
-//      article.pr.addToIssues(bookmarkIssue.pr) both do
-//      bookmarkIssue.pr.addToArticles(article.pr) FAIL sets Primary Issue DO NOT!
+      article.pr.addToSections(bookmarkSection.pr)
+      bookmarkSection.pr.addToArticles(article.pr)
+      article.pr.originalMoment?.addToBookmarkedArticles(article.pr)//Required??
+//      = article.primaryIssue?.moment.pr.
+      addMomentToPublicationDate(for: article)
     }
     else {
       article.pr.removeFromSections(bookmarkSection.pr)
@@ -140,9 +149,21 @@ public class Bookmarks: DoesLog {
     return true
   }
   
+  fileprivate static func addMomentToPublicationDate(for article: StoredArticle){
+    guard let iDate = article.primaryIssue?.date,
+          let moment = article.primaryIssue?.moment as? StoredMoment
+    else { return }
+    
+    let pDate = article.primaryIssue?.feed.publicationDates?
+      .first{$0.date.issueKey == iDate.issueKey}
+    guard let pDate = pDate as? StoredPublicationDate else { return }
+    pDate.pr.moment = moment.pr
+    article.pr.originalMoment = moment.pr
+  }
+  
   /// returns true if is in given list
   /// prepared for multiple bookmark lists, uses default list if none given
-  fileprivate static func has(article: Article, in list: StoredSection? = nil) -> Bool {
+  fileprivate static func has(article: StoredArticle, in list: StoredSection? = nil) -> Bool {
     return (list ?? shared.bookmarkSection)?
       .articles?.contains{$0.serverId == article.serverId } ?? false
   }
