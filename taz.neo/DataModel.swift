@@ -889,10 +889,13 @@ public extension PublicationDate {
     return (self.date.short)
   }
   
-  func validityDateText(timeZone:String,
-                        short:Bool = false,
+  func validityDateText(short:Bool = false,
                         shorter:Bool = false,
                         leadingText: String? = "woche, ") -> String {
+    if App.isLMD {
+      return "Ausgabe " + date.gMonthYear(tz: GqlFeeder.tz, isNumeric: true)
+    }
+    
     return date.validityDateText(validityDate: validityDate,
                                  timeZone: GqlFeeder.tz,
                                  short: short,

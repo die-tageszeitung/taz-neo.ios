@@ -38,10 +38,9 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
 
   func updateLabel(){
     guard let issue = data?.issue else {
-      button.label.text = data?.date.validityDateText(timeZone: GqlFeeder.tz,
-                                                            short: true,
-                                                            shorter: shorter,
-                                                            leadingText: "")
+      button.label.text = data?.date.validityDateText(short: true,
+                                                      shorter: shorter,
+                                                      leadingText: "")
       return
     }
     if issue.feed.cycle == .monthly {
