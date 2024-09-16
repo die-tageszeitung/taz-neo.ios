@@ -65,26 +65,10 @@ public extension StoredArticle {
   
 }
 
-extension PersistentArticle {
-  public var hasBookmark2: Bool {
-    return true
-//    let has = Bookmarks.has(article: self)
-//    print("requested has Bookmark for: \(self.title ?? "-") id: \(self.serverId ?? -1) has: \(has)")
-//    return has
-  }
-}
-
 extension StoredArticle {
   public var hasBookmark: Bool {
-    get {
-      let has = Bookmarks.has(article: self)
-      print("requested has Bookmark for: \(self.title ?? "-") id: \(self.serverId ?? -1) has: \(has)")
-      return has
-    }
-    set {
-      if Bookmarks.set(article: self, active: newValue) == false { return }///No change, no notification
-      Notification.send(Const.NotificationNames.bookmarkChanged, content: sections, sender: self)
-    }
+    get { return Bookmarks.has(article: self)}
+    set {Bookmarks.set(article: self, active: newValue)}
   }
 }
 
@@ -124,17 +108,24 @@ public class Bookmarks: DoesLog {
   
   /// returns true if value changed
   /// prepared for multiple bookmark lists
-  fileprivate static func set(article: StoredArticle, active: Bool, in list: StoredSection? = nil) -> Bool {
-    guard has(article: article, in: list) != active else { return false }//No Change nothing to do
+  fileprivate static func set(article: StoredArticle, active: Bool, in list: StoredSection? = nil) {
+    guard has(article: article, in: list) != active else { return }//No Change nothing to do
     guard let bookmarkSection = list ?? shared.bookmarkSection else {
       Log.log("Fail to set Bookmark, usually unreachable code")
-      return false
+      return
     }
     if active {
       article.pr.addToSections(bookmarkSection.pr)
       bookmarkSection.pr.addToArticles(article.pr)
-      article.pr.originalMoment?.addToBookmarkedArticles(article.pr)//Required??
-//      = article.primaryIssue?.moment.pr.
+      //only this, is not working due originalMoment is not set yet
+      //article.pr.originalMoment?.addToBookmarkedArticles(article.pr)      
+      //addTo...is only available for ...to n relation in a to 1 relation its just asign
+      article.pr.originalMoment = (article.primaryIssue as? StoredIssue)?.pr.moment
+      
+//      AHH WIRD VERMUTLICH BEIM ISSUE LÖSCHEN GELÖSCHT ÜBERPRÜFE IN MODEL UND AM BEISPIEL!
+      
+      ///or the opposite direction:
+//      (article.primaryIssue as? StoredIssue)?.pr.moment?.addToBookmarkedArticles(article.pr)
       addMomentToPublicationDate(for: article)
     }
     else {
@@ -143,10 +134,16 @@ public class Bookmarks: DoesLog {
       if article.pr.sections?.count == 0 {
         article.delete()
       }
+      if article.pr.originalMoment?.bookmarkedArticles?.count == 1
+          && article.pr.originalMoment?.issue == nil {
+        article.pr.originalMoment?.delete()
+      }
 //      article.pr.removeFromIssues(bookmarkIssue.pr)
 //      bookmarkIssue.pr.removeFromArticles(article.pr)//??
     }
-    return true
+    Notification.send(Const.NotificationNames.bookmarkChanged, 
+                      content: article.sections,
+                      sender: article)
   }
   
   fileprivate static func addMomentToPublicationDate(for article: StoredArticle){
@@ -166,6 +163,12 @@ public class Bookmarks: DoesLog {
   fileprivate static func has(article: StoredArticle, in list: StoredSection? = nil) -> Bool {
     return (list ?? shared.bookmarkSection)?
       .articles?.contains{$0.serverId == article.serverId } ?? false
+  }
+  
+  static func has(article: PersistentArticle, in list: StoredSection? = nil) -> Bool {
+    guard article.serverId != -1 else { return false }
+    return (list ?? shared.bookmarkSection)?
+      .articles?.contains{$0.serverId ?? -1 == article.serverId } ?? false
   }
   
   //IS STatic required?

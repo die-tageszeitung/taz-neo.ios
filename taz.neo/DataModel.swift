@@ -573,7 +573,20 @@ public extension Article {
     && self.html?.name == otherArticle.html?.name
     && self.title == otherArticle.title
   }
+
 } // Article
+
+
+public extension StoredArticle {
+  
+  func originalIssueDir() -> Dir? {
+    guard let publicationDate = self.originalMoment?.publicationDate,
+          let feed = publicationDate.feed
+    else { return nil } 
+    return Dir(dir: feed.dir.path,
+               fname: feed.feeder.date2a(publicationDate.date))
+  }
+}
 
 /**
  Section type
@@ -823,8 +836,12 @@ public extension Moment {
     return ret
   }
   
-  /// Return the image with the lowest resolution
   func lowest(images: [ImageEntry]) -> ImageEntry? {
+    return Self.lowest(images: images)
+  }
+  
+  /// Return the image with the lowest resolution
+  static func lowest(images: [ImageEntry]) -> ImageEntry? {
     var ret: ImageEntry?
     for img in images {
       if let lowest = ret, img.resolution.rawValue >= lowest.resolution.rawValue
@@ -838,7 +855,9 @@ public extension Moment {
   var highres: ImageEntry? { highest(images: images) }
 
   /// Image in lowest resolution
-  var lowres: ImageEntry? { highest(images: images) }
+  #warning("BUG? THE FOLLOWING LINE WAS HERE CHANGED!")
+//  var lowres: ImageEntry? { highest(images: images) }
+  var lowres: ImageEntry? { lowest(images: images) }
   
   /// Credited image in highest resolution
   var creditedHighres: ImageEntry? { highest(images: creditedImages) }
@@ -1378,6 +1397,19 @@ extension Feeder {
       return "\(issueDir(issue: issue).path)/\(img.fileName)"
     }
     return nil
+  }
+  
+  /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
+  public func smallMomentImageName(article: StoredArticle)
+    -> String? {
+      let moment = article.pr.originalMoment
+      let momentImages: [ImageEntry] = moment?.images?.allObjects as? [ImageEntry] ?? []
+      guard let fileName = StoredMoment.lowest(images: momentImages)?.fileName,
+            let feedName = moment?.publicationDate?.feed?.name,
+            let issueDate = moment?.publicationDate?.date
+      else { return nil }
+      let dir = issueDir(feed: feedName, issue: date2a(issueDate))
+      return "\(dir.path)/\(fileName)"
   }
 
   /// Returns the name of the first PDF page file name (if available)

@@ -360,29 +360,26 @@ extension BookmarkNC {
     ///....KISS vermeide Komplexitätssteigerung ist die Intention der aktuellen Umsetzung
     if let articles = arts as? [StoredArticle],
        articles.count > 0,
-       let issue = articles[0].primaryIssue {
-      let momentPath = feeder.smallMomentImageName(issue: issue)
-      let dateText = App.isLMD ?
-        "Ausgabe " + issue.date.gMonthYear(tz: GqlFeeder.tz, isNumeric: true) :
-        issue.validityDateText(timeZone: GqlFeeder.tz, leadingText: "wochentaz, ")
+       let publicationDate =  articles.first?.originalMoment?.publicationDate,
+       let lowres = articles.first?.originalMoment?.lowres,
+       let path = articles.first?.originalIssueDir()?.path {
+      let momentPath = "\(path)/\(lowres.name)"
+      let dateText = publicationDate.validityDateText(leadingText: "wochentaz, ")
       var html = """
       <section id="\(date.timeIntervalSince1970)">
         <header class="issue">
-          <img class="moment" src="\(momentPath ?? "")">
+          <img class="moment" src="\(momentPath)">
           <h1>\(dateText)</h1>
         </header>\n
         \(dottedLine(inSection: true))
       """
       var order = 1;
       for art in articles {
-        let issues = art.issues
-        if issues.count > 0 {
           html += """
             <article id="\(File.progname(art.html?.name ?? ""))" style="order:\(order)">
             \(getInnerHtml(art: art))
             </article>\n
           """
-        }
         order += 1
       }
       html += "</section>\n"
@@ -394,8 +391,8 @@ extension BookmarkNC {
   public func genHtmlSections(section: StoredSection) -> String {
     var groupedArticles: [Date:[Article]] = [:]
     
-    for art in section.articles ?? [] {
-      let sdate = art.issueDate
+    for case let art as StoredArticle in section.articles ?? [] {
+      guard let sdate = art.pr.originalMoment?.publicationDate?.date else { continue }
       var artsAtDate: [Article] = groupedArticles[sdate] ?? []
       artsAtDate.append(art)
       groupedArticles[sdate] = artsAtDate

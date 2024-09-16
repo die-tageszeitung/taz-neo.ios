@@ -153,7 +153,7 @@
         <relationship name="articles" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Article" inverseName="issues" inverseEntity="Article"/>
         <relationship name="feed" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Feed" inverseName="issues" inverseEntity="Feed"/>
         <relationship name="imprint" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Article" inverseName="issueImprint" inverseEntity="Article"/>
-        <relationship name="moment" maxCount="1" deletionRule="Cascade" destinationEntity="Moment" inverseName="issue" inverseEntity="Moment"/>
+        <relationship name="moment" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="issue" inverseEntity="Moment"/>
         <relationship name="pages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Page" inverseName="issue" inverseEntity="Page"/>
         <relationship name="payload" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Payload" inverseName="issue" inverseEntity="Payload"/>
         <relationship name="resource" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Resources" inverseName="issues" inverseEntity="Resources"/>
@@ -167,7 +167,7 @@
         <relationship name="firstPage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Page" inverseName="moment" inverseEntity="Page"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageEntry" inverseName="moment" inverseEntity="ImageEntry"/>
         <relationship name="issue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Issue" inverseName="moment" inverseEntity="Issue"/>
-        <relationship name="issueDate" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PublicationDate" inverseName="moment" inverseEntity="PublicationDate"/>
+        <relationship name="publicationDate" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PublicationDate" inverseName="moment" inverseEntity="PublicationDate"/>
     </entity>
     <entity name="Page" representedClassName="PersistentPage" syncable="YES" codeGenerationType="class">
         <attribute name="order" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -197,7 +197,7 @@
         <attribute name="date" attributeType="Date" usesScalarValueType="NO" customClassName="[Date]"/>
         <attribute name="validityDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="feed" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Feed" inverseName="publicationDates" inverseEntity="Feed"/>
-        <relationship name="moment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="issueDate" inverseEntity="Moment"/>
+        <relationship name="moment" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Moment" inverseName="publicationDate" inverseEntity="Moment"/>
         <fetchIndex name="Index">
             <fetchIndexElement property="date" type="Binary" order="ascending"/>
         </fetchIndex>

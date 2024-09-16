@@ -459,6 +459,21 @@ public final class StoredMoment: Moment, StoredObject {
     }
   }
   public var facsimile: ImageEntry? { firstPage?.facsimile }
+  
+  ///will be set on bookmark
+  public var publicationDate: StoredPublicationDate? {
+    get {
+      guard let publicationDate = pr.publicationDate else { return nil }
+      return StoredPublicationDate(persistent: publicationDate) }
+    set {
+      guard let newValue = newValue else {
+        pr.publicationDate = nil
+        return
+      }
+      pr.publicationDate = StoredPublicationDate.persist(object: newValue).pr
+    }
+  }
+  
 
   public required init(persistent: PersistentMoment) { 
     self.pr = persistent 
@@ -969,7 +984,7 @@ extension PersistentSection {
     #warning("ToDO: refactor to delete all articles....which are not bookmarked")
     for case let art as PersistentArticle in articles ?? [] {//Issue-Delete > Section-Delete > Article if not Bookmarked...handled in Article?
       self.removeFromArticles(art)
-      if art.hasBookmark {
+      if Bookmarks.has(article: art) {
         print(">> NOT DELETE ARTICLE WITH TITLE: \(art.title)")
         continue
       }
@@ -1144,6 +1159,21 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.pageNames }
     set { pr.pageNames = newValue }
   }
+  
+  ///will be set on bookmark
+  public var originalMoment: StoredMoment? {
+    get {
+      guard let moment = pr.originalMoment else { return nil }
+      return StoredMoment(persistent: moment) }
+    set {
+      guard let newValue = newValue else {
+        pr.originalMoment = nil
+        return
+      }
+      pr.originalMoment = StoredMoment.persist(object: newValue).pr
+    }
+  }
+  
   public var sections: [StoredSection] {
     var ret: [StoredSection] = []
     if let sections = pr.sections {
@@ -1794,7 +1824,20 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   public static var entity = "PublicationDate"
   public var pr: PersistentPublicationDate // persistent record
   
-  public var feed: Feed?
+  public var feed: (any Feed)? {
+    get {
+      guard let pFeed = pr.feed else { return nil }
+      return StoredFeed(persistent: pFeed)
+    }
+    set {
+      #warning("SET IS NOT ALLOWED, oherwise circular calls/endless loop on startup")
+//      guard let newValue = newValue else {
+//        pr.feed = nil
+//        return
+//      }
+//      pr.feed = StoredFeed.persist(object: newValue).pr
+    }
+  }
   
   public var date: Date {
     get { return pr.date! }
@@ -1920,8 +1963,8 @@ extension PersistentIssue: PersistentObject {
   public override func prepareForDeletion() {
     super.prepareForDeletion()
     ///Store Moment at PublicationDate to use it with Bookmarked Articles
-    guard let moment = self.moment else { return }
-    
+    guard self.moment?.bookmarkedArticles?.count ?? 0 == 0 else { return }
+    self.moment?.delete()
   }
 }
 
