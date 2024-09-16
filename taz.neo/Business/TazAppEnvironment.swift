@@ -681,7 +681,6 @@ extension Defaults{
   
   static var currentFeeder : (name: String, url: String, feed: String) {
     get {
-      return (name: "taz-test", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
       switch Defaults.singleton["currentServer"] {
         case Shortcuts.testServer.type:
           return (name: "taz-test", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
