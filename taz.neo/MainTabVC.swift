@@ -29,6 +29,13 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
                       sender: nil)
   }
   
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    guard let data = TazAppEnvironment.openedFromNotificationCenter else { return }
+    TazAppEnvironment.openedFromNotificationCenter = nil
+    gotoArticleInIssue(with: data)
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     setupTabbar()
@@ -57,6 +64,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     Notification.receive(Const.NotificationNames.gotoArticleInIssue) { [weak self] notif in
       self?.selectedIndex = 0
+      if let data = notif.content as? PushNotification.Payload.ArticlePushData {
+        self?.gotoArticleInIssue(with: data)
+        return 
+      }
       guard let article = notif.content as? Article else { return }
       self?.gotoArticleInIssue(article: article)
     }
@@ -78,6 +89,29 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
                     ?? (notification.content as? IssueCellData)?.issue,
           art.originalIssueDate?.issueKey == issue.date.issueKey else { return }
     openArticleFromSearch(article: art)
+  }
+  
+  func gotoArticleInIssue(with data: PushNotification.Payload.ArticlePushData){
+    log("open issue with date: \(data.articleDate) and Article: \(data.articleTitle ?? "\(data.articleMsId)")")
+    guard let issue = self.service.issue(at: data.articleDate) else {
+      Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: data)}
+      service.download(issueAt: data.articleDate, withAudio: false)
+      gotoIssue(at: data.articleDate)
+      return
+    }
+    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+      Notification.receiveOnce("issue") { [weak self] _ in self?.gotoArticleInIssue(with: data)}
+      service.download(issueAt: data.articleDate, withAudio: false)
+      gotoIssue(at: data.articleDate)
+      return
+    }
+    
+    guard let issueArtIndex = issue.indexOfArticle(with: data.articleMsId),
+          let artInTargetIssue = issue.allArticles.valueAt(issueArtIndex) else {
+      gotoIssue(at: data.articleDate)
+      return
+    }
+    gotoArticleInIssue(article: artInTargetIssue)
   }
   
   func gotoArticleInIssue(article: Article){

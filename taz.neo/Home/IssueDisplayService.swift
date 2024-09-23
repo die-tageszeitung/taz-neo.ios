@@ -273,6 +273,10 @@ extension IssueDisplayService {
 }
 
 extension Issue {
+  func indexOfArticle(with id: Int) -> Int? {
+    return allArticles.firstIndex(where: { art in art.serverId == id })
+  }
+  
   func indexOf(article: Article?) -> Int? {
     guard let article = article else { return nil }
     return allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: article) })

@@ -17,6 +17,16 @@ class AppDelegate: NotifiedDelegate {
     TazAppEnvironment.updateDefaultsIfNeeded()
     TazAppEnvironment.saveLastLog()
     TazAppEnvironment.setupDefaultStyles()
+    Log.append(logger: TazAppEnvironment.fileLogger)
+    ///log available now, not earlier
+    Log.minLogLevel = .Debug
+    log("starting with #launchOptions: \(launchOptions?.count ?? -1)")
+    ///handle application started from NotificationCenter, if app not running
+    /////will be overwritten, on TazAppEnvironment setup, stores data
+    onOpenApplicationFromNotification {center, response, handler in
+      TazAppEnvironment.openedFromNotificationCenter
+      = response.notification.request.content.userInfo.articlePushData
+    }
     self.window = UIWindow(frame: UIScreen.main.bounds)
     self.window?.rootViewController = TazAppEnvironment.sharedInstance.rootViewController
 //    self.window?.rootViewController =  TmpTestController()
