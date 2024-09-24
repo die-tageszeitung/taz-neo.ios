@@ -91,15 +91,35 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     openArticleFromSearch(article: art)
   }
   
+  var isLoadingIssueInBackground = false
+  
+  func showLoadingOverlayIfNeeded(data: PushNotification.Payload.ArticlePushData){
+    if isLoadingIssueInBackground { return }
+    isLoadingIssueInBackground = true
+    let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
+    WaitingAppOverlay.show(alpha: 1.0,
+                           backbround: snap,
+                           showSpinner: true,
+                           titleMessage: "Aktualisiere Daten",
+                           bottomMessage: "lade \"\(data.articleTitle ?? "Artikel")\" aus Ausgabe: \(data.articleDate.short)\nBitte haben Sie einen Moment Geduld!",
+                           dismissNotification: Const.NotificationNames.removeRefreshDataOverlay)
+    onMainAfter(7.0) {[weak self] in
+      Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
+      self?.isLoadingIssueInBackground = false
+    }
+  }
+  
   func gotoArticleInIssue(with data: PushNotification.Payload.ArticlePushData){
     log("open issue with date: \(data.articleDate) and Article: \(data.articleTitle ?? "\(data.articleMsId)")")
     guard let issue = self.service.issue(at: data.articleDate) else {
+      showLoadingOverlayIfNeeded(data: data)
       Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: data)}
       service.download(issueAt: data.articleDate, withAudio: false)
       gotoIssue(at: data.articleDate)
       return
     }
     if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+      showLoadingOverlayIfNeeded(data: data)
       Notification.receiveOnce("issue") { [weak self] _ in self?.gotoArticleInIssue(with: data)}
       service.download(issueAt: data.articleDate, withAudio: false)
       gotoIssue(at: data.articleDate)
@@ -112,6 +132,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       return
     }
     gotoArticleInIssue(article: artInTargetIssue)
+    onMainAfter(0.6) {[weak self] in
+      Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
+      self?.isLoadingIssueInBackground = false
+    }
   }
   
   func gotoArticleInIssue(article: Article){
