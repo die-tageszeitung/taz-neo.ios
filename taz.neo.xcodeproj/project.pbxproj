@@ -46,6 +46,8 @@
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
 		7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
+		7731389B2CA4968800A0237A /* TazExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7731389A2CA4968800A0237A /* TazExportDialogue.swift */; };
+		7731389C2CA4968800A0237A /* TazExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7731389A2CA4968800A0237A /* TazExportDialogue.swift */; };
 		7731CA412B60238B00EE8600 /* bookmarks-taz.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA402B60238B00EE8600 /* bookmarks-taz.css */; };
 		7731CA432B60239D00EE8600 /* bookmarks-lmd.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA422B60239D00EE8600 /* bookmarks-lmd.css */; };
 		7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77328429274F9F5B00B08535 /* TazCustomized.swift */; };
@@ -328,6 +330,7 @@
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
+		7731389A2CA4968800A0237A /* TazExportDialogue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazExportDialogue.swift; sourceTree = "<group>"; };
 		7731CA402B60238B00EE8600 /* bookmarks-taz.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-taz.css"; sourceTree = "<group>"; };
 		7731CA422B60239D00EE8600 /* bookmarks-lmd.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-lmd.css"; sourceTree = "<group>"; };
 		77328429274F9F5B00B08535 /* TazCustomized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazCustomized.swift; sourceTree = "<group>"; };
@@ -433,7 +436,7 @@
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
 		AEB935312917E81F000330DA /* Star.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Star.svg; sourceTree = "<group>"; };
 		AEB935322917E81F000330DA /* StarFilled.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = StarFilled.svg; sourceTree = "<group>"; };
-		AEBAF564219ACD1900566205 /* die tageszeitung.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "die tageszeitung.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEBAF564219ACD1900566205 /* taz.alpha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.alpha.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AEBAF58D219ACFAC00566205 /* TestController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestController.swift; sourceTree = "<group>"; };
@@ -600,6 +603,7 @@
 		77CB2D1D2A8148C800021804 /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				7731389A2CA4968800A0237A /* TazExportDialogue.swift */,
 				77CB2D1F2A8148EA00021804 /* UIAlertAction+Extension.swift */,
 				77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */,
 				77ECD87D2A814ED100DFBBB6 /* LocalNotifications+Extension.swift */,
@@ -713,7 +717,7 @@
 		AEBAF565219ACD1900566205 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AEBAF564219ACD1900566205 /* die tageszeitung.app */,
+				AEBAF564219ACD1900566205 /* taz.alpha.app */,
 				AE5131F52AFBCADB002289E8 /* LMd.app */,
 			);
 			name = Products;
@@ -908,7 +912,7 @@
 				77B993DC2AC47F6400C7D832 /* MatomoTracker */,
 			);
 			productName = taz.neo;
-			productReference = AEBAF564219ACD1900566205 /* die tageszeitung.app */;
+			productReference = AEBAF564219ACD1900566205 /* taz.alpha.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1115,6 +1119,7 @@
 				AE5131842AFBCADB002289E8 /* ArticleDB.xcdatamodeld in Sources */,
 				AE5131852AFBCADB002289E8 /* SimpleAuthenticator.swift in Sources */,
 				AE5131862AFBCADB002289E8 /* AppDelegate.swift in Sources */,
+				7731389C2CA4968800A0237A /* TazExportDialogue.swift in Sources */,
 				AE5131872AFBCADB002289E8 /* AppHelper.swift in Sources */,
 				AE5131882AFBCADB002289E8 /* TazPdfPagesViewController.swift in Sources */,
 				AE5131892AFBCADB002289E8 /* KeychainTest.swift in Sources */,
@@ -1251,6 +1256,7 @@
 				AE5DFACF267E10540035162C /* KeychainTest.swift in Sources */,
 				4D308ED6283404C700529592 /* GqlFeederSearch.swift in Sources */,
 				00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */,
+				7731389B2CA4968800A0237A /* TazExportDialogue.swift in Sources */,
 				4D308EE72834057200529592 /* SearchSettingsView.swift in Sources */,
 				4D308EEC283405A900529592 /* MainTabVC.swift in Sources */,
 				4D308EEA2834057200529592 /* SearchController.swift in Sources */,

@@ -15,11 +15,11 @@ class AppDelegate: NotifiedDelegate {
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     TazAppEnvironment.updateDefaultsIfNeeded()
-    TazAppEnvironment.saveLastLog()
-    TazAppEnvironment.setupDefaultStyles()
-    Log.append(logger: TazAppEnvironment.fileLogger)
-    ///log available now, not earlier
-    Log.minLogLevel = .Debug
+//    TazAppEnvironment.saveLastLog()
+//    TazAppEnvironment.setupDefaultStyles()
+//    Log.append(logger: TazAppEnvironment.fileLogger)
+//    ///log available now, not earlier
+//    Log.minLogLevel = .Debug
     log("starting with #launchOptions: \(launchOptions?.count ?? -1)")
     ///handle application started from NotificationCenter, if app not running
     /////will be overwritten, on TazAppEnvironment setup, stores data

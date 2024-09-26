@@ -65,7 +65,7 @@ extension TazAppEnvironment {
     let appVersion = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
 
     var logString = ""
-    if let logData = Self.fileLogger.mem?.data {
+    if let logData = fileLogger.mem?.data {
       logString = String(data: logData, encoding: .utf8) ?? "-"
     }
     let deviceData = DeviceData()
@@ -106,7 +106,7 @@ extension TazAppEnvironment {
     if MFMailComposeViewController.canSendMail() {
       let mail =  MFMailComposeViewController()
       let screenshot = UIWindow.screenshot?.jpeg
-      let logData = logData ?? Self.fileLogger.mem?.data
+      let logData = logData ?? fileLogger.mem?.data
       mail.mailComposeDelegate = self
       mail.setToRecipients([recipient])
       

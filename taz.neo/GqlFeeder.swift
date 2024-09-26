@@ -298,6 +298,9 @@ class GqlArticle: Article, GQLObject {
   /// File storing article HTML
   var articleHtml: GqlFile
   var html: FileEntry? { return articleHtml }
+  ///pdf for sharing
+  var gqlPdf: GqlFile?
+  var pdf: FileEntry? { return gqlPdf }
   var gqlAudio: GqlAudio?
   var audioItem: Audio?{ return gqlAudio }
   /// Article title
@@ -320,6 +323,7 @@ class GqlArticle: Article, GQLObject {
 
   static var fields = """
   articleHtml { \(GqlFile.fields) }
+  gqlPdf:pdf { \(GqlFile.fields) }
   gqlAudio: audio { \(GqlAudio.fields) }
   title
   teaser
