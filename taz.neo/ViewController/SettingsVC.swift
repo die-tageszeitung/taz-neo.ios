@@ -193,46 +193,24 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   ///notifications, mitteilungen
   var notificationsCell: NotificationsSettingsCell {
     
-    let systemNotificationsEnabled
-    = NotificationBusiness.sharedInstance.systemNotificationsEnabled
-    
-    var detailText: NSMutableAttributedString
-    
-    switch (isTextNotification, systemNotificationsEnabled) {
-      case (true, true):
-        detailText
-        = NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
-      case (true, false):
-        detailText
-        = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen  deaktiviert. Diese müssen aktiviert sein, um Mitteilungen zu erhalten.")
-        detailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 30, length: 20))
-      case (false, true):
-        detailText
-        = NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
-      case (false, false):
-        detailText
-        = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen ebenfalls zu aktivieren.")
-        detailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 30, length: 20))
-      case (_, _):
-        detailText
-        = NSMutableAttributedString(string: "\n\n")
-    }
-    
-    let cell = NotificationsSettingsCell(toggleWithText: "Mitteilungen erlauben".lowerIfTaz, detailText: detailText, initialValue: isTextNotification, onChange: {[weak self] newValue in
-      self?.isTextNotification = newValue
-      TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
-      self?.refreshAndReload()
+    let cell = NotificationsSettingsCell(
+      toggleWithText: "Mitteilungen erlauben".lowerIfTaz,
+      detailText: NotificationBusiness.sharedInstance.settingsDetailText,
+      initialValue: isTextNotification,
+      onChange: {[weak self] newValue in
+        self?.isTextNotification = newValue
+        TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
+        NotificationBusiness.sharedInstance.updateSettingsDetailText()
+        self?.refreshAndReload()
     })
     
-    if systemNotificationsEnabled == false && isTextNotification == true {
+    if NotificationBusiness.sharedInstance.settingsDetailTextAlert {
       cell.detailLabelTextColor = .red
       (cell.customAccessoryView as? UISwitch)?.onTintColor = UIColor(white: 0.95, alpha: 1.0)
     }
-    
-    if systemNotificationsEnabled == false {
+    if NotificationBusiness.sharedInstance.settingsLink {
       cell.tapHandler = { NotificationBusiness.sharedInstance.openAppInSystemSettings() }
     }
-    
     return cell
   }
 
