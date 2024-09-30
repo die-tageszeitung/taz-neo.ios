@@ -9,31 +9,38 @@
 import UIKit
 import NorthLib
 
+/// **NotificationBusiness**
+/// A singleton class that manages notification settings and behaviors within the app.
+///
 /// **Motivation**
-/// - this is a Helper for multiple (currently 2) parts of the app
-///   1. Settings, on Change TextNotifications and Autodownload Toggle
-///   2. on App Start Check if System Settings still Match with In App User Settings
-/// - not using NorthLib's PushNotification due it handle(remote) PushNotifications
+/// - This helper is designed for multiple parts of the application:
+///   1. **Settings:** Handles changes in text notifications and auto-download toggles.
+///   2. **App Startup:** Checks if system settings still match with in-app user settings.
+///
+/// **Note:** This implementation does not utilize NorthLib's PushNotification as it handles remote push notifications.
 public final class NotificationBusiness: DoesLog {
+  /// Shared instance of `NotificationBusiness`
   public static let sharedInstance = NotificationBusiness()
-  private init(){}
   
+  // Private initializer to enforce singleton pattern
+  private init() {}
+  
+  // Default user preferences
   @Default("isTextNotification")
   var isTextNotification: Bool
   
-//  @Default("autoloadNewIssues")
-//  var autoloadNewIssues: Bool
-  
-  /// helper
+  // Check if notifications are required based on user preferences
+  /// Indicates whether notifications are required based on user preferences.
   var notificationsRequired: Bool {
     get {
       return isTextNotification // || autoloadNewIssues
     }
   }
-    
+  
+  /// Indicates if a notifications popup is currently displayed.
   var showingNotificationsPopup = false
   
-  ///remember last accessed auth status due its maybe not determinated after new install
+  // Store the last accessed authorization status for notifications
   var systemNotificationsStatus: UNAuthorizationStatus?
   var alertStyle: UNAlertStyle?
   var notificationCenterSetting: UNNotificationSetting?
@@ -42,156 +49,158 @@ public final class NotificationBusiness: DoesLog {
   var badgeSetting: UNNotificationSetting?
   var soundSetting: UNNotificationSetting?
   var alertSetting: UNNotificationSetting?
-
-  /// Check if in app notifications settings are applyable for current setting in ios system settings
-  /// - Parameter finished: callback after async check is finished
-  func checkNotificationStatus(finished: (()->())? = nil){
+  
+  /// Asynchronously checks the notification settings against system settings.
+  /// - Parameter finished: A closure called after the check is complete.
+  func checkNotificationStatus(finished: (()->())? = nil) {
     let notifCenter = UNUserNotificationCenter.current()
-    notifCenter.getNotificationSettings(
-      completionHandler: { [weak self] (settings) in
-        guard let self = self else { return }
-        self.systemNotificationsStatus = settings.authorizationStatus
-        if settings.authorizationStatus == .notDetermined {//possible to send PN, but silent recive
-          updateSettingsDetailText()
-          finished?()
-          return;
-        }
-        
-        self.alertStyle = settings.alertStyle
-        self.notificationCenterSetting = settings.notificationCenterSetting
-        self.lockScreenSetting = settings.lockScreenSetting
-        self.criticalAlertSetting = settings.criticalAlertSetting
-        self.badgeSetting = settings.badgeSetting
-        self.soundSetting = settings.soundSetting
-        self.alertSetting = settings.alertSetting
-        updateSettingsDetailText()
+    notifCenter.getNotificationSettings { [weak self] (settings) in
+      guard let self = self else { return }
+      
+      self.systemNotificationsStatus = settings.authorizationStatus
+      
+      // If the authorization status is not determined, it may allow silent notifications.
+      if settings.authorizationStatus == .notDetermined {
+        self.updateSettingsDetailText()
         finished?()
-      })
+        return
+      }
+      
+      // Store notification settings
+      self.alertStyle = settings.alertStyle
+      self.notificationCenterSetting = settings.notificationCenterSetting
+      self.lockScreenSetting = settings.lockScreenSetting
+      self.criticalAlertSetting = settings.criticalAlertSetting
+      self.badgeSetting = settings.badgeSetting
+      self.soundSetting = settings.soundSetting
+      self.alertSetting = settings.alertSetting
+      
+      self.updateSettingsDetailText()
+      finished?()
+    }
   }
   
-  /// Helper to open system settings
-  func openAppInSystemSettings(){
+  /// Opens the app's settings in the system settings.
+  func openAppInSystemSettings() {
     if let url = URL(string: UIApplication.openSettingsURLString) {
       if UIApplication.shared.canOpenURL(url) {
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
+      } else {
+        handleFailOpenAppInSystemSettings()
       }
-      else { handleFailOpenAppInSystemSettings() }
+    } else {
+      handleFailOpenAppInSystemSettings()
     }
-    else { handleFailOpenAppInSystemSettings() }
   }
   
+  // Flags and attributes for settings detail text
   var settingsDetailTextAlert: Bool = true
   var settingsLink: Bool = true
   var settingsDetailText: NSMutableAttributedString = NSMutableAttributedString(string: "")
   
+  /// Updates the detailed text displayed in the settings.
   func updateSettingsDetailText() {
     settingsDetailText = NSMutableAttributedString(string: "")
     
     if isTextNotification == false {
-      settingsDetailText
-      = NSMutableAttributedString(string: "\nErhalten Sie täglich Push-Benachrichtigungen zur aktuellen Ausgabe und bleiben Sie stets auf dem Laufenden. Detaillierte Einstellungen finden Sie in den Systemeinstellungen unter „Mitteilungen“.")
+      settingsDetailText = NSMutableAttributedString(string: "\nErhalten Sie täglich Push-Benachrichtigungen zur aktuellen Ausgabe und bleiben Sie stets auf dem Laufenden. Detaillierte Einstellungen finden Sie in den Systemeinstellungen unter „Mitteilungen“.")
       settingsDetailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 154, length: 20))
       settingsDetailTextAlert = true
       settingsLink = true
       return
     }
     
-    ///**notifications are enabled, but are they silent&invisible?**
-    ///alertStyle == .alert{ //alert, banner, none, some
-    ///systemNotificationsStatus == .authorized { //none, some, notDetermined, denied, authorized, provisional, ephemeral(flüchtig)
-    ///notificationCenterSetting == .enabled { //notSupported, disabled, enabled, none, some
-    ///lockScreenSetting == .enabled { //notSupported, disabled, enabled, none, some
-    ///criticalAlertSetting == .enabled { //notSupported, disabled, enabled, none, some
-    /// badgeSetting == .enabled { //notSupported, disabled, enabled, none, some
-    /// soundSetting != .enabled { //notSupported, disabled, enabled, none, some
-    /// alertSetting == .enabled { //notSupported, disabled, enabled, none, some
+    // Collects issues with current notification settings
     var items: [String] = []
     var bannerAdditionalText: String = ""
     
-    if soundSetting != .enabled { items.append("Töne")}
-    if lockScreenSetting != .enabled { items.append("Mitteilungen auf dem Sperrbildschirm")}
-    if notificationCenterSetting != .enabled { items.append("Mitteilungen in der Mitteilungszentrale")}
+    if soundSetting != .enabled { items.append("Töne") }
+    if lockScreenSetting != .enabled { items.append("Mitteilungen auf dem Sperrbildschirm") }
+    if notificationCenterSetting != .enabled { items.append("Mitteilungen in der Mitteilungszentrale") }
     if alertStyle == UNAlertStyle.none {
       items.append("Banner")
       bannerAdditionalText = " Mitteilungs-Banner sind kurze Benachrichtigungen, die oben auf dem Bildschirm erscheinen, wenn das Gerät entsperrt ist."
     }
     
-    if items.count == 0 {///Everything is perfect
+    if items.isEmpty { // no user interaction/Change required
       settingsDetailTextAlert = false
       settingsLink = false
       settingsDetailText = NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
       return
     }
-    settingsLink = true
-    settingsDetailTextAlert = items.count > 1//2 things are red otherwise not
     
+    settingsLink = true
+    settingsDetailTextAlert = items.count > 1 // More than one issue
     let itemsText = items.joined(separator: ", ", lastSeparator: " und ")
     
     settingsDetailText = NSMutableAttributedString(string: "\nDie Mitteilungseinstellungen für die \(App.shortName) App lassen derzeit keine \(itemsText) zu.\(bannerAdditionalText)\nTippen Sie hier, um zu den Systemeinstellungen für die taz App zu gelangen und diese anzupassen.")
     settingsDetailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 5, length: 25))
   }
   
-  /// Helper if system settings open failed
-  func handleFailOpenAppInSystemSettings(){
-    Alert.confirm(title: "Öffnen der Systemeinstellungen fehlgeschlagen.", message: "Bitte öffnen Sie die Systemeinstellungen und suchen nach \"\(App.name)\"", okText: "Wiederholen", cancelText: "Abbrechen", closure: { [weak self] _ in
+  /// Handles the failure of opening the system settings.
+  func handleFailOpenAppInSystemSettings() {
+    Alert.confirm(title: "Öffnen der Systemeinstellungen fehlgeschlagen.", message: "Bitte öffnen Sie die Systemeinstellungen und suchen nach \"\(App.name)\"", okText: "Wiederholen", cancelText: "Abbrechen") { [weak self] _ in
       self?.openAppInSystemSettings()
-    })
+    }
   }
 }
 
+// MARK: - Popup Notification Management
 extension NotificationBusiness {
-  func showPopupIfNeeded(newIssueAvailableSince: TimeInterval){
+  
+  /// Shows a notification popup if conditions are met.
+  /// - Parameter newIssueAvailableSince: A timestamp indicating when a new issue became available.
+  func showPopupIfNeeded(newIssueAvailableSince: TimeInterval) {
     guard !showingNotificationsPopup else { return }
     
-    ///if status unavailable: recheck later
+    // If the notification status is not determined, recheck later
     if self.systemNotificationsStatus == .notDetermined {
-      onThreadAfter(5.0){[weak self] in
-        self?.checkNotificationStatus{
-          onMain {[weak self] in
+      onThreadAfter(5.0) { [weak self] in
+        self?.checkNotificationStatus {
+          onMain { [weak self] in
             self?.showPopupIfNeeded(newIssueAvailableSince: newIssueAvailableSince)
           }
         }
       }
-      return;
+      return
     }
     
-    ///if status unchecked: check now
-    //wenn status nicht gecheckt, checke status, und re-evaluiere
+    // If the notification status is unchecked, check now
     if self.systemNotificationsStatus == nil {
-      self.checkNotificationStatus{
-        onMain {[weak self] in
+      self.checkNotificationStatus {
+        onMain { [weak self] in
           self?.showPopupIfNeeded(newIssueAvailableSince: newIssueAvailableSince)
         }
       }
-      return;
+      return
     }
     
-    ///erlier user choice to ignore: do nothing
+    // Earlier user choice to ignore notifications
     guard Defaults.notificationsActivationPopupRejectedDate != nil else {
       return
     }
     
-    ///if no problem: do nothing
+    // If no issues with settings, do nothing
     if self.settingsDetailTextAlert == false {
-      return;
+      return
     }
     
-    ///if noot on Home: do nothing
+    // If not on Home, do nothing
     guard TazAppEnvironment.sharedInstance.rootViewController is MainTabVC else {
       return
     }
     
-    ///skip 10 days by pressed x
+    // Skip if the popup was dismissed less than 10 days ago
     if let skippedDate = Defaults.notificationsActivationPopupRejectedTemporaryDate,
-       abs(skippedDate.timeIntervalSinceNow) < 3600*24*10 {
+       abs(skippedDate.timeIntervalSinceNow) < 3600 * 24 * 10 {
       return
     }
     
     showingNotificationsPopup = true
     
-    //show popup on new issue appear
+    // Show the popup when a new issue appears
     let toast = NotificationsView(newIssueAvailableSince: newIssueAvailableSince)
-    toast.onDismiss {[weak self] in
+    toast.onDismiss { [weak self] in
       self?.showingNotificationsPopup = false
     }
     toast.show()
