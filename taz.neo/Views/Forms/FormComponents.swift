@@ -168,6 +168,13 @@ extension Padded.Button{
 
 // MARK: -  Checkbox
 class Checkbox : UIButton {
+  
+  var accessibilityPrefix: String? {
+    didSet {
+      accessibilityLabel = accessibilityPrefix
+    }
+  }
+  
   public override init(frame: CGRect) {
     super.init(frame: frame)
     setup()
@@ -185,10 +192,12 @@ class Checkbox : UIButton {
     self.layer.borderWidth = 1.0
     self.layer.cornerRadius = 3.0
     self.addTarget(self, action: #selector(toggle), for: .touchUpInside)
+    self.accessibilityTraits = .button
   }
   
   @IBAction func toggle(_ sender: UIButton) {
     self.isSelected = !self.isSelected
+    self.accessibilityLabel = "\(accessibilityPrefix ?? "") \(self.isSelected ? "Akzeptiert" : "Nicht akzeptiert")"
   }
 }
 

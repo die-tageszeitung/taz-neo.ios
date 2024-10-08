@@ -298,6 +298,9 @@ class GqlArticle: Article, GQLObject {
   /// File storing article HTML
   var articleHtml: GqlFile
   var html: FileEntry? { return articleHtml }
+  ///pdf for sharing
+  var gqlPdf: GqlFile?
+  var pdf: FileEntry? { return gqlPdf }
   var gqlAudio: GqlAudio?
   var audioItem: Audio?{ return gqlAudio }
   /// Article title
@@ -320,6 +323,7 @@ class GqlArticle: Article, GQLObject {
 
   static var fields = """
   articleHtml { \(GqlFile.fields) }
+  gqlPdf:pdf { \(GqlFile.fields) }
   gqlAudio: audio { \(GqlAudio.fields) }
   title
   teaser
@@ -1044,6 +1048,7 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = """
       notification(\(pToken), \(oToken) 
                    textNotification: \(isTextNotification ? "true" : "false"),
+                   appVersionCode: \(App.bundleVersionCode),
                    \(deviceInfoString)
                   )
     """
@@ -1325,6 +1330,7 @@ open class GqlFeeder: Feeder, DoesLog {
     downloadStart(
       feedName: "\(feed.name)", 
       issueDate: "\(self.date2a(issue.date))",
+      appVersionCode: \(App.bundleVersionCode),
       isPush: \(isPush ? "true" : "false"),
       \(pToken)
       isAutomatically: \(isAutomatically ? "true" : "false"),

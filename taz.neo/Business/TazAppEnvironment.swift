@@ -81,6 +81,8 @@ class TazAppEnvironment: NSObject, DoesLog {
   }
   
   public static let sharedInstance = TazAppEnvironment()
+  ///shared startup info
+  public static var openedFromNotificationCenter:PushNotification.Payload.ArticlePushData?
   
   lazy var consoleLogger = Log.Logger()
   lazy var fileLogger = Log.FileLogger()
@@ -783,6 +785,15 @@ extension App {
       return true
     #else
       return false
+    #endif
+  }
+  
+  /// Are we running the taz app?
+  static var shortName: String {
+    #if TAZ
+      return "taz"
+    #else
+      return "LMd"
     #endif
   }
 } // App

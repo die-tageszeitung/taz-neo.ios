@@ -65,6 +65,9 @@ class HomeTVC: UITableViewController {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  @Default("voiceoverControls")
+  var voiceoverControls: Bool
+  
   private var dataPolicyToast: NewInfoToast?
   
   #warning("Refactor ContentVC should hold it's IssueInfo Reference")
@@ -234,13 +237,15 @@ class HomeTVC: UITableViewController {
     #if TAZ
       setupTogglePdfButton()
       togglePdfButton.isAccessibilityElement = false
-    #endif    
+    #endif
     carouselController.dateLabel.isAccessibilityElement = false
     carouselControllerCell.isAccessibilityElement = false
     carouselController.collectionView.isAccessibilityElement = false
     tilesControllerCell.isAccessibilityElement = false
     tilesControllerCell.contentView.isAccessibilityElement = false
     tilesController.collectionView.isAccessibilityElement = false
+    $voiceoverControls.onChange{ [weak self] _ in self?.updateAccessibillityHelper() }
+    updateAccessibillityHelper()
    }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -268,8 +273,10 @@ class HomeTVC: UITableViewController {
   }
   
  @objc private func updateAccessibillityHelper(){
+   let isLoggedIn = loginButton.superview == nil
    isAccessibilityMode
-    = loginButton.superview == nil
+    = isLoggedIn
+    && voiceoverControls
     && UIAccessibility.isVoiceOverRunning
   }
   
@@ -300,7 +307,7 @@ class HomeTVC: UITableViewController {
   
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     // #warning Incomplete implementation, return the number of rows
-    return isAccessibilityMode ? 1 : 2
+    return UIAccessibility.isVoiceOverRunning ? 1 : 2
   }
   
   override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -560,7 +567,7 @@ extension HomeTVC {
   }
   
   fileprivate func setupCarouselControllerCell() {
-    carouselController.view.isAccessibilityElement = false
+    carouselController.view.isAccessibilityElement = !isAccessibilityMode
     carouselControllerCell.contentView.addSubview(carouselController.view)
     pin(carouselController.view, toSafe: carouselControllerCell).bottom?.constant = -UIWindow.topInset
     carouselControllerCell.backgroundColor = .clear
