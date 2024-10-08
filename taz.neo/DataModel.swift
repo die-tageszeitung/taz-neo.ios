@@ -520,10 +520,6 @@ public protocol Article: Content, ToString {
   var teaser: String? { get }
   /// Link to online version
   var onlineLink: String? { get }
-  /// File storing content as printable pdf
-  var pdf: FileEntry? { get }
-//  ///placeholder for article PDF Data for on-the-fly generation on share
-//  var articlePdf: Data? { get set }
   /// Has Article been bookmarked
   var hasBookmark: Bool { get set }
   /// List of PDF page (-file) names containing this article
@@ -1431,7 +1427,6 @@ public enum NotificationType: String, CodableEnum {
   case subscription = "subscription(subscriptionPoll)" 
   /// new issue available
   case newIssue = "newIssue(aboPoll)"
-  case articlePush = "articlePush(aboPollTestArticle)"
   case textNotificationAlert = "textNotificationAlert"
   case textNotificationToast = "textNotificationToast"
   case unknown      = "unknown"   /// decoded from unknown string

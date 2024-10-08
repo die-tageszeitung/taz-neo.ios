@@ -37,6 +37,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
   
+    
   var hasValidAbo: Bool {feederContext.isAuthenticated && !Defaults.expiredAccount}
   var needValidAboToShareText: String {
     if feederContext.isAuthenticated == false {
@@ -172,12 +173,12 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         return
       }
       #endif
-      shareButton.isHidden = false
       textSettingsButton.isHidden = false
 
       if self.smartBackFromArticle {
         self.adelegate?.article = art
       }
+      self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
       if self.issue is BookmarkIssue == false {
@@ -275,13 +276,37 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     }
   }
   
-  // Export/Share article
-  public func exportArticle() {
-    let img = article?.images?.first?.image(dir: delegate.issue.dir)
-    guard let art = self.article else { return }
-    ArticleExportDialogue.show(article: art, delegate: self, image: img, sourceView: shareButton)
+  @available(iOS 14.0, *)
+  private func exportPdf(article art: Article, from button: UIView? = nil) {
+    if let webView = currentWebView {
+      webView.pdf { data in
+        guard let data = data else { return }
+        let dialogue = ExportDialogue<Data>()
+        let altText = "\(art.teaser ?? "")\n\(art.onlineLink!)"
+        dialogue.present(item: data, altText: altText, onlineLink: art.onlineLink, view: button,
+                         subject: art.title)
+      }
+    }
   }
 
+  // Export/Share article
+  public static func exportArticle(article: Article?, artvc: ArticleVC? = nil, 
+                                   from button: UIView? = nil) {
+    
+    let img = article?.images?.first?.image(dir: artvc?.delegate.issue.dir)
+    
+    if let art = article,
+       let link = art.onlineLink,
+       !link.isEmpty{
+          let dialogue = ExportDialogue<Any>()
+        dialogue.present(item: link,
+                       altText: nil,
+                       onlineLink: link,
+                       view: button,
+                       subject: art.title,
+                       image: img)
+    }
+  }
   
   public override func setupSlider() {
     super.setupSlider()
@@ -346,21 +371,21 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       guard let self = self else { return }
       CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.share)
       self.debug("*** Action: Share Article")
-      if self.article?.isShareable == false && hasValidAbo == false {
+      if (self.article?.onlineLink ?? "").isEmpty {
         Usage.track(Usage.event.dialog.SharingNotPossible)
         Alert.actionSheet(message: self.needValidAboToShareText,
                           actions: UIAlertAction.init( title: self.feederContext.isAuthenticated ? "Weitere Informationen" : "Anmelden",
                                                        style: .default ){ [weak self] _ in
           self?.feederContext.authenticate()
         })
-      } else if let art = self.article {
+      } else {
         if self.issue is SearchResultIssue {
-          Usage.xtrack.share.searchHit(article: art)
+          Usage.xtrack.share.searchHit(article: self.article)
         }
         else {
-          Usage.xtrack.share.article(article: art)
+          Usage.xtrack.share.article(article: self.article)
         }
-        exportArticle()
+        ArticleVC.exportArticle(article: self.article, artvc: self, from: self.shareButton)
       }
     }
     

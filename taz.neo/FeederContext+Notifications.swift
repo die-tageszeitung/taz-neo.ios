@@ -39,11 +39,6 @@ extension FeederContext {
     nd.onReceivePush { [weak self] (pn, payload, completion) in
       self?.processPushNotification(pn: pn, payload: payload, fetchCompletionHandler: completion)
     }
-    nd.onOpenApplicationFromNotification {[weak self] center, response, handler in
-      self?.onOpenApplicationFromNotification(center: center,
-                                              response: response,
-                                              completionHandler: handler)
-    }
     nd.permitPush {[weak self] pn in
       guard let self = self else { return }
       if pn.isPermitted {
@@ -83,8 +78,6 @@ extension FeederContext {
         doPolling(fetchCompletionHandler)
       case .newIssue:
         handleNewIssuePush(fetchCompletionHandler)
-      case .articlePush:
-        handleArticlePush(pn: pn, payload: payload, fetchCompletionHandler: fetchCompletionHandler)
       case .textNotificationAlert:
         #warning("may comes in double if real PN!")
         if UIApplication.shared.applicationState == .active {
@@ -100,30 +93,6 @@ extension FeederContext {
       default:
         fetchCompletionHandler?(.noData)
     }
-  }
-  
-  ///handle application started from NotificationCenter, if app already running
-  func onOpenApplicationFromNotification(center: UNUserNotificationCenter,
-                                         response: UNNotificationResponse,
-                                         completionHandler:()->()){
-    guard let data = response.notification.request.content.userInfo.articlePushData else { return }
-    debug("open article: \(data.articleTitle ?? "\(data.articleMsId)") in issue with date: \(data.articleDate.short)")
-    Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data, sender: self)
-  }
-  
-  ///handle incomming push notification
-  ///due no Background Issue download available, just add a local notification with the info; download will happen after App Foreground start
-  public func handleArticlePush(pn: PushNotification,
-                                payload: PushNotification.Payload,
-                                fetchCompletionHandler: FetchCompletionHandler?) {
-    log("Handle new Article Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
-    log("pn: \(pn) ")
-    guard let data = payload.articlePushData else {
-      fetchCompletionHandler?(.noData)
-      return
-    }
-    LocalNotifications.notifyNewArticle(data: data)
-    fetchCompletionHandler?(.newData)
   }
   
   /// Get/Download latestIssue requested by PushNotification
@@ -291,14 +260,5 @@ fileprivate extension LocalNotifications {
                 badge: UIApplication.shared.applicationIconBadgeNumber + 1,
                 attachmentURL: attachmentURL)
     
-  }
-  
-  //Helper to trigger local Notification for new Article if App is in Background
-  static func notifyNewArticle(data: PushNotification.Payload.ArticlePushData){
-    Self.notify(title: data.articleTitle,
-//                subtitle: "TBD",
-                message: data.articleBody ?? "-",
-                badge: UIApplication.shared.applicationIconBadgeNumber + 1,
-                payload: data.payload)
   }
 }

@@ -256,7 +256,6 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
       self.bottomLabel.alpha = isError ? 1.0 :1.0
       backgroundLayer.borderColor = isError ? Const.SetColor.taz2(.notifications_error).color.cgColor : CGColor.init(gray: 0, alpha: 0)
       backgroundLayer.borderWidth = isError ? 2.0 : 0.0
-      self.accessibilityLabel = bottomMessage
     }
   }
   

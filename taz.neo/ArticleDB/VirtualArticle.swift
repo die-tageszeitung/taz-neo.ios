@@ -26,8 +26,6 @@ public class VirtualArticle: Article {
   
   public var html: FileEntry?
   
-  public var pdf: FileEntry?
-  
   public var title: String?
   
   public var images: [ImageEntry]?

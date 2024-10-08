@@ -988,21 +988,8 @@ public final class StoredArticle: Article, StoredObject {
         pr.html = nil
         return
       }
-      pr.html = StoredFileEntry.persist(object: newValue).pr
+      pr.html = StoredFileEntry.persist(object: newValue).pr 
       pr.html!.content = pr
-    }
-  }
-  public var pdf: FileEntry? {
-    get {
-      guard let pdf = pr.pdf else { return nil }
-      return StoredFileEntry(persistent: pdf) }
-    set {
-      guard let newValue = newValue else {
-        pr.pdf = nil
-        return
-      }
-      pr.pdf = StoredFileEntry.persist(object: newValue).pr
-      pr.pdf!.article = pr
     }
   }
   public var lastArticlePosition: Int {
@@ -1131,7 +1118,6 @@ public final class StoredArticle: Article, StoredObject {
     }
     self.title = object.title
     self.html = object.html
-    self.pdf = object.pdf
     self.audioItem = object.audioItem
     self.onlineLink = object.onlineLink
     self.articleType = object.articleType

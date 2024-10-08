@@ -26,26 +26,6 @@ extension UIAlertAction {
                                                                               fetchCompletionHandler: nil)
       callback(false)
     }
-    
-    let article:UIAlertAction = UIAlertAction(title: "Simulator: ArticlePush",
-                                                 style: .default){_ in
-      let payload:[AnyHashable : Any] = [
-        "aps":[
-          "content-available" : 1,
-          "sound": nil],
-        "data":[
-          "articleMsId" : 6022610,
-          "articleTitle" : "Resilienz für die Roten Roben",
-          "articleBody" : "Das Bundesverfassungsgericht soll vor einer Übernahme durch die AfD geschützt werden. SPD, Grüne, FDP und CDU/CSU berufen sich auf die Erfahrungen aus Polen und Ungarn",
-          "refresh" : "aboPoll",
-          "articleDate" : "2024-07-24"
-        ]
-      ]
-      TazAppEnvironment.sharedInstance.feederContext?.processPushNotification(pn: PushNotification(),
-                                                                              payload: PushNotification.Payload(payload),
-                                                                              fetchCompletionHandler: nil)
-      callback(false)
-    }
 
     let textPushAlert:UIAlertAction = UIAlertAction(title: "Simulator: TextPush Alert",
                                                     style: .default){_ in
@@ -87,6 +67,6 @@ extension UIAlertAction {
       callback(false)
     }
 
-    return [newIssue, article, textPushAlert, textPushToast]
+    return [newIssue, textPushAlert, textPushToast]
   }
 }

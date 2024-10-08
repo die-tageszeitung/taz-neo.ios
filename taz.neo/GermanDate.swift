@@ -69,14 +69,6 @@ public extension Date {
     }
   }
   
-  var yearMonthDay:String{
-    get{
-      let dateFormatterGet = DateFormatter()
-      dateFormatterGet.dateFormat = "yyMMdd"
-      return dateFormatterGet.string(from: self)
-    }
-  }
-  
   var short:String{
     get{
       let dateFormatterGet = DateFormatter()

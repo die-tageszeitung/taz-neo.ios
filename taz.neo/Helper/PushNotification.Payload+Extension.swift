@@ -13,9 +13,6 @@ extension PushNotification.Payload {
   public var notificationType: NotificationType? {
     get {
       guard let data = self.custom["data"] as? [AnyHashable:Any] else { return nil }
-      if data["articleMsId"] != nil && data["articleDate"] != nil {
-        return NotificationType.articlePush
-      }
       for case let (key, value) as (String, String) in data {
         if key == "perform" && value == "subscriptionPoll" {
           return NotificationType.subscription
@@ -49,32 +46,6 @@ extension PushNotification.Payload {
       }
       debug("data.body is: \(body)")
       return body
-    }
-  }
-  
-  typealias ArticlePushData = (articleMsId:Int,
-                               articleTitle:String?,
-                               articleBody:String?,
-                               articleDate:Date,
-                               payload: [AnyHashable:Any])
-  
-  var articlePushData: ArticlePushData? {
-    get {
-      guard let data = self.custom["data"] as? [AnyHashable:Any] else { return nil }
-      return data.articlePushData
-    }
-  }
-}
-
-extension [AnyHashable:Any] {
-  var articlePushData: PushNotification.Payload.ArticlePushData? {
-    get {
-      guard let articleMsId = self["articleMsId"] as? Int else { return nil }
-      let articleTitle = self["articleTitle"] as? String
-      let articleBody = self["articleBody"] as? String
-      guard let articleDateString = self["articleDate"] as? String else { return nil }
-      guard let articleDate = UsTime.parse(iso: articleDateString) else { return nil }
-      return PushNotification.Payload.ArticlePushData(articleMsId, articleTitle, articleBody, articleDate.date, self)
     }
   }
 }

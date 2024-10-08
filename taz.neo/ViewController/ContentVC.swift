@@ -289,10 +289,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       \(multiColumnCss)
       \(heightContrastDarkmodeTextColor)
-    
-      @media print {
-        #content p { page-break-inside: avoid;}
-      }
     """
     URLCache.shared.removeAllCachedResponses()
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
@@ -564,7 +560,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if let args = jscall.args, args.count > 0,
          let name = args[0] as? String,
          let art = self.issue.article(artname: name) {
-//        ArticleExportDialogue(article: art).presentAt(self.shareButton)
+        ArticleVC.exportArticle(article: art)
       }
       return NSNull()
     }

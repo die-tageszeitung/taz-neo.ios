@@ -91,7 +91,6 @@ public class TrialSubscriptionView : FormView{
     view.textView.linkTextAttributes = [.foregroundColor : Const.SetColor.taz2(.text).color, .underlineColor: Const.SetColor.taz2(.text).color]
     view.textView.font = Const.Fonts.contentFont(size: DefaultFontSize)
     view.textView.textColor = Const.SetColor.HText.color
-    view.checkbox.accessibilityPrefix = "AGB und Hinweise akzeptieren"
     return view
   }()
     

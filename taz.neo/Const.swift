@@ -52,7 +52,6 @@ public struct Const {
     static let issueUpdate = "NotificationName.issueUpdate"
     static let articleLoaded = "NotificationName.articleLoaded"
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
-    static let removeRefreshDataOverlay = "NotificationName.removeRefreshDataOverlay"
     static let viewSizeTransition = "NotificationName.viewSizeTransition"
     static let traitCollectionDidChange = "NotificationName.traitCollectionDidChange"
     static let expiredAccountDateChanged = "NotificationName.expiredAccountDateChanged"

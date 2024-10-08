@@ -81,13 +81,9 @@ class TazAppEnvironment: NSObject, DoesLog {
   }
   
   public static let sharedInstance = TazAppEnvironment()
-  ///shared fileLogger to use before AppEnvironment is set up
-//  public static let fileLogger = Log.FileLogger()
-  lazy var fileLogger = Log.FileLogger()
-  ///shared startup info
-  public static var openedFromNotificationCenter:PushNotification.Payload.ArticlePushData?
   
   lazy var consoleLogger = Log.Logger()
+  lazy var fileLogger = Log.FileLogger()
   var feederContext: FeederContext?
   var service: IssueOverviewService?
   let net = NetAvailability()
@@ -151,12 +147,9 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   /// Enable logging to file and otional to view
   func setupLogging() {
-    ///inittial file logger setup moved to appdelegate to have it earlier, and see open from loacal notifications logs
-    ///
     Log.log("Setting up logging")
     Log.append(logger: fileLogger)
     Log.minLogLevel = .Debug
-
     HttpSession.isDebug = false
     PdfRenderService.isDebug = false
     ZoomedImageView.isDebug = false
@@ -790,15 +783,6 @@ extension App {
       return true
     #else
       return false
-    #endif
-  }
-  
-  /// Are we running the taz app?
-  static var shortName: String {
-    #if TAZ
-      return "taz"
-    #else
-      return "LMd"
     #endif
   }
 } // App
