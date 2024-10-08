@@ -351,12 +351,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           self?.feederContext.authenticate()
         })
       } else if let art = self.article {
-        if self.issue is SearchResultIssue {
-          Usage.xtrack.share.searchHit(article: art)
-        }
-        else {
-          Usage.xtrack.share.article(article: art)
-        }
         exportArticle()
       }
     }

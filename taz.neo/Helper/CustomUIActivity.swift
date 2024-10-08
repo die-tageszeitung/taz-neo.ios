@@ -41,6 +41,36 @@ public class CustomUIActivity: UIActivity, DoesLog {
   public override func activityDidFinish(_ completed: Bool) {
     log("CustomUIActivity: \(title ?? "-") didFinish with completed: \(completed)")
     super.activityDidFinish(completed)
+    guard let article = delegate?.article else {
+      debug("error: no article for tracking available")
+      return
+    }
+    
+    if completed == false {
+      Usage.xtrack.share.article(article: article, event: Usage.event.share.Canceled)
+      return
+    }
+    
+    switch self.type {
+      case .openInSafari:
+        Usage.xtrack.share.article(article: article, event: Usage.event.share.Browser)
+      case .paperPdfSave:
+        Usage.xtrack.share.article(article: article, event: Usage.event.share.ArticlePDF2Files)
+      case .paperPdfPrint:
+        Usage.xtrack.share.article(article: article, event: Usage.event.share.ArticlePDF2Print)
+      case .saveToFiles:
+        Usage.xtrack.share.article(article: article, event: Usage.event.share.ArticleAppPDF2Files)
+      case .print:
+        Usage.xtrack.share.article(article: article, event: Usage.event.share.ArticleAppPDF2Print)
+      case .moreInfo:
+        Usage.xtrack.share.article(article: article, event: Usage.event.share.Info)
+      case .copyToPasteboard:
+        Usage.xtrack.share.article(article: article, event: Usage.event.share.Copy2Clipboard)
+      case .mail:
+        Usage.xtrack.share.article(article: article, event: Usage.event.share.Mail)
+      case .message:
+        Usage.xtrack.share.article(article: article, event: Usage.event.share.Message)
+    }
   }
   
   /// Executes the activity's action and informs when it's finished.

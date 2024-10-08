@@ -177,7 +177,7 @@ extension ArticleExportDialogueItemSource: CustomUIActivityActionDelegate {
           let dialogue = ArticleExportDialogue(itemSource: strongSelf)
           dialogue.presentAt(strongSelf.sourceView)
         }
-        caller.activityDidFinish(false)
+        caller.activityDidFinish(true)
       case .print:
         guard let pdfFileUrl = article.generatedArticlePdfURL else {
           caller.activityDidFinish(false)
