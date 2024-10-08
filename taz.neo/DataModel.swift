@@ -520,6 +520,8 @@ public protocol Article: Content, ToString {
   var teaser: String? { get }
   /// Link to online version
   var onlineLink: String? { get }
+  /// File storing content as printable pdf
+  var pdf: FileEntry? { get }
   /// Has Article been bookmarked
   var hasBookmark: Bool { get set }
   /// List of PDF page (-file) names containing this article
@@ -1320,6 +1322,8 @@ extension Feeder {
   public var isAuthenticated: Bool { return authToken != nil }
   /// Returns true if login/account is expired
   public var isExpiredAccount: Bool { return Defaults.expiredAccount }
+  /// Returns true if logged in with not expired account
+  public var hasValidAbo: Bool { return isAuthenticated && !isExpiredAccount }
   
   /// Returns directory where all feed specific data is stored
   public func feedDir(_ feed: String) -> Dir { return Dir(dir: baseDir.path, fname: feed) }
@@ -1427,6 +1431,7 @@ public enum NotificationType: String, CodableEnum {
   case subscription = "subscription(subscriptionPoll)" 
   /// new issue available
   case newIssue = "newIssue(aboPoll)"
+  case articlePush = "articlePush(aboPollTestArticle)"
   case textNotificationAlert = "textNotificationAlert"
   case textNotificationToast = "textNotificationToast"
   case unknown      = "unknown"   /// decoded from unknown string

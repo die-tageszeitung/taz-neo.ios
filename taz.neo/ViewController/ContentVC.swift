@@ -267,7 +267,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let colorMode = dfl["colorMode"]
     let textAlign = dfl["textAlign"] ?? "initial"
     var colorModeImport: String = ""
-    if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\";" }
+    if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\", screen;" }
     let cssContent = """
       \(colorModeImport)
 
@@ -287,8 +287,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       p {
         text-align: \(textAlign);
       }
-      \(multiColumnCss)
+      @media screen {
+        \(multiColumnCss)
+      }
       \(heightContrastDarkmodeTextColor)
+    
+      @media print {
+        #content p, img { page-break-inside: avoid;}
+    
+        .Autor, .AutorProfil, .AutorImg {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }    
+      }
     """
     URLCache.shared.removeAllCachedResponses()
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
@@ -560,7 +571,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if let args = jscall.args, args.count > 0,
          let name = args[0] as? String,
          let art = self.issue.article(artname: name) {
-        ArticleVC.exportArticle(article: art)
+        self.export(article: art)
       }
       return NSNull()
     }
@@ -602,6 +613,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       Toast.show("Das ist der Anfang!")
       return NSNull()
     }
+  }
+  
+  func export(article: Article){
+    let bookmarkTabbar: UIView? //LeselisteTab only for Bookmark SectionVC
+    = (((self as? BookmarkSectionVC)?.navigationController as? BookmarkNC)?.parentViewController as? UITabBarController)?.tabBar
+    ArticleExportDialogue.show(article: article,
+                               delegate: self,
+                               image: article.images?.first?.image(dir: delegate.issue.dir),
+                               sourceView: bookmarkTabbar ?? shareButton)
   }
   
   /// Write tazApi.js to resource directory

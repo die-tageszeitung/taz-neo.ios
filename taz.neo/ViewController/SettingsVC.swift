@@ -20,6 +20,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("autoloadOnlyInWLAN")
   var autoloadOnlyInWLAN: Bool
   
+  @Default("voiceoverControls")
+  var voiceoverControls: Bool
+  
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
@@ -170,6 +173,14 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                   initialValue: autoloadOnlyInWLAN,
                   onChange: {[weak self] newValue in
     self?.autoloadOnlyInWLAN = newValue })
+  
+  lazy var voiceoverControlsCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Voiceover Steuerung",
+                  detailText: "Alternative Steuerelemente für Ausgabenauswahl bei aktiviertem Voiceover verwenden",
+                  initialValue: voiceoverControls,
+                  onChange: {[weak self] newValue in
+    self?.voiceoverControls = newValue })
+  
   lazy var epaperLoadCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Zeitungsansicht immer mit laden",
                   initialValue: autoloadPdf,
@@ -182,46 +193,24 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   ///notifications, mitteilungen
   var notificationsCell: NotificationsSettingsCell {
     
-    let systemNotificationsEnabled
-    = NotificationBusiness.sharedInstance.systemNotificationsEnabled
-    
-    var detailText: NSMutableAttributedString
-    
-    switch (isTextNotification, systemNotificationsEnabled) {
-      case (true, true):
-        detailText
-        = NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
-      case (true, false):
-        detailText
-        = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen  deaktiviert. Diese müssen aktiviert sein, um Mitteilungen zu erhalten.")
-        detailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 30, length: 20))
-      case (false, true):
-        detailText
-        = NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
-      case (false, false):
-        detailText
-        = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen ebenfalls zu aktivieren.")
-        detailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 30, length: 20))
-      case (_, _):
-        detailText
-        = NSMutableAttributedString(string: "\n\n")
-    }
-    
-    let cell = NotificationsSettingsCell(toggleWithText: "Mitteilungen erlauben".lowerIfTaz, detailText: detailText, initialValue: isTextNotification, onChange: {[weak self] newValue in
-      self?.isTextNotification = newValue
-      TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
-      self?.refreshAndReload()
+    let cell = NotificationsSettingsCell(
+      toggleWithText: "Mitteilungen erlauben".lowerIfTaz,
+      detailText: NotificationBusiness.sharedInstance.settingsDetailText,
+      initialValue: isTextNotification,
+      onChange: {[weak self] newValue in
+        self?.isTextNotification = newValue
+        TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
+        NotificationBusiness.sharedInstance.updateSettingsDetailText()
+        self?.refreshAndReload()
     })
     
-    if systemNotificationsEnabled == false && isTextNotification == true {
+    if NotificationBusiness.sharedInstance.settingsDetailTextAlert {
       cell.detailLabelTextColor = .red
       (cell.customAccessoryView as? UISwitch)?.onTintColor = UIColor(white: 0.95, alpha: 1.0)
     }
-    
-    if systemNotificationsEnabled == false {
+    if NotificationBusiness.sharedInstance.settingsLink {
       cell.tapHandler = { NotificationBusiness.sharedInstance.openAppInSystemSettings() }
     }
-    
     return cell
   }
 
@@ -553,6 +542,9 @@ extension SettingsVC {
     guard let sectionData = data.sectionData(for: section),
           let title = sectionData.title else { return nil }
     let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
+    if section == 6 {
+      header.label.accessibilityLabel = "\(title) \(self.extendedSettingsCollapsed ? "zum öffnen doppelt tippen" : "geöffnet")"
+    }
     header.collapsed = self.extendedSettingsCollapsed
     header.onTapping { [weak self] _ in
       guard let self = self else { return }
@@ -781,6 +773,7 @@ extension SettingsVC {
     var cells =  [
       bookmarksTeaserCell,
       smartBackFromArticleCell,
+      voiceoverControlsCell,
       memoryUsageCell,
       deleteDatabaseCell,
       resetAppCell
@@ -1323,6 +1316,8 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     
     leftButton.circleIconButton(symbol: "minus")
     rightButton.circleIconButton(symbol: "plus")
+    leftButton.accessibilityLabel = "kleiner"
+    rightButton.accessibilityLabel = "größer"
     
     leftButton.buttonView.hinset = 0.23
     rightButton.buttonView.hinset = 0.23

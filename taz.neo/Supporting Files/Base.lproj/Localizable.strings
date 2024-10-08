@@ -111,6 +111,9 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 /* Fehler */
 "error" = "Es ist ein Fehler aufgetreten, versuchen Sie es später noch einmal.";
 
+/* Kein Netz */
+"error_download" = "Es ist ein Fehler aufgetreten.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später noch einmal.";
+
 /* Fehler keine E-Mail */
 "error_invalid_email_or_abo_id" = "Keine gültige E-Mail-Adresse oder AboId";
 

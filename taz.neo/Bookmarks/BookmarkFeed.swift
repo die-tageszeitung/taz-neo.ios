@@ -137,7 +137,7 @@ public class BookmarkFeed: Feed, DoesLog {
   public func getInnerHtml(art: StoredArticle) -> String {
     let title = art.title ?? art.html?.name ?? ""
     let shareIcon
-    = art.onlineLink == nil
+    = art.isShareable == false && feeder.hasValidAbo == false
     ? ""
     : """
         <img class="share" src="resources/Share.svg">
