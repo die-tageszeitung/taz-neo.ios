@@ -38,9 +38,7 @@ public class CustomUIActivity: UIActivity, DoesLog {
     delegate?.prepare(caller: self)
   }
   
-  public override func activityDidFinish(_ completed: Bool) {
-    log("CustomUIActivity: \(title ?? "-") didFinish with completed: \(completed)")
-    super.activityDidFinish(completed)
+  func trackUsage(_ completed: Bool){
     guard let article = delegate?.article else {
       debug("error: no article for tracking available")
       return
@@ -71,6 +69,12 @@ public class CustomUIActivity: UIActivity, DoesLog {
       case .message:
         Usage.xtrack.share.article(article: article, event: Usage.event.share.Message)
     }
+  }
+  
+  public override func activityDidFinish(_ completed: Bool) {
+    log("CustomUIActivity: \(title ?? "-") didFinish with completed: \(completed)")
+    trackUsage(completed)
+    super.activityDidFinish(completed)
   }
   
   /// Executes the activity's action and informs when it's finished.
