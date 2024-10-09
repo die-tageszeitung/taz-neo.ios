@@ -12,7 +12,7 @@ import NorthLib
  The TextSettingsVC is responsible for setting text attributes
  like fontsize of Articles.
  */
-class TextSettingsVC: UIViewController {
+class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
   
   /// View responsible for text settings representation
   private var textSettings = TextSettingsView()
@@ -220,6 +220,7 @@ class TextSettingsVC: UIViewController {
   
   func applyStyles() {
     self.view.backgroundColor = Const.SetColor.taz(.primaryBackground).color
+    textSettings.applyStyles()
   }
   
   public override func viewDidLoad() {
@@ -230,6 +231,7 @@ class TextSettingsVC: UIViewController {
     pin(textSettings.bottom, to: self.view.bottom)
     pin(textSettings.left, to: self.view.left, dist: 8)
     pin(textSettings.right, to: self.view.right, dist: -8)
+    registerForStyleUpdates()
   }
   
   override func viewDidLayoutSubviews() {

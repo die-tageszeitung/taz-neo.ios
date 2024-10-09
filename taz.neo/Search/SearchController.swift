@@ -9,7 +9,8 @@
 import NorthLib
 import UIKit
 
-class SearchController: UIViewController {
+class SearchController: UIViewController, UIStyleChangeDelegate {
+  
   // MARK: *** Properties ***
   var feederContext: FeederContext
   
@@ -196,11 +197,14 @@ class SearchController: UIViewController {
     showCoachmarkIfNeeded()
   }
   
-  override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
+  func applyStyles() {
     self.view.backgroundColor = Const.SetColor.HBackground.color
+    self.resultsTable.reloadData()
+    self.resultsTable.applyStyles()
+    self.header.applyStyles()
+    self.searchSettingsView.applyStyles()
   }
-  
+    
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.addSubview(placeholderView)
@@ -235,6 +239,8 @@ class SearchController: UIViewController {
         name: UIResponder.keyboardWillHideNotification,
         object: nil
     )
+    
+    registerForStyleUpdates()
     
   }
   

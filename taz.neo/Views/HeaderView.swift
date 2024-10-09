@@ -11,7 +11,7 @@ import NorthLib
 enum TitleType { case bigLeft, article, section, section0, search  }
 
 /// The Header to show on top of sections and articles
-open class HeaderView: UIView,  Touchable {
+open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
   let maxOffset = 40.0
   
   private var beginScrollOffset: CGFloat?
@@ -198,6 +198,7 @@ open class HeaderView: UIView,  Touchable {
     
     pin(subTitleLabel.left, to: self.left, dist:sidePadding)
     pin(subTitleLabel.right, to: self.right, dist:-sidePadding).priority = .defaultHigh
+    registerForStyleUpdates()
   }
   
   open override func layoutSubviews() {

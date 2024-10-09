@@ -198,7 +198,6 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
       self.reloadAnimatedIfNeeded(oldContent: oldContent)
     }
     registerForStyleUpdates()
-    applyStyles()
   }
 
   // MARK: *** Lifecycle ***
@@ -232,10 +231,18 @@ extension SearchSettingsView: UITableViewDelegate {
   }
 }
 
-fileprivate class SimpleFooterView: UIView {
-  override func layoutSubviews() {
-    super.layoutSubviews()
+fileprivate class SimpleFooterView: UIView, UIStyleChangeDelegate {
+  func applyStyles() {
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
+  }
+  
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    registerForStyleUpdates()
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
 }
 
@@ -290,11 +297,6 @@ class TextInputCell: TazCell {
                               bottom: -5,
                               right: -Const.Size.DefaultPadding)
     pin(textField, to: contentView, insets: insets)
-  }
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    applyStyles()
   }
   
   override func applyStyles() {

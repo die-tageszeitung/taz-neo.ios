@@ -396,7 +396,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     super.viewDidLoad()
     data = TableData(sectionContent: currentSectionContent())
     setup()
-    registerForStyleUpdates()
     let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
     tableView.addGestureRecognizer(longTap)
     initialTextNotificationSetting = isTextNotification
@@ -1059,7 +1058,7 @@ extension SettingsVC {
 // MARK: - Nested Classes / UI Components
 
 // MARK: -
-class XSettingsCell:UITableViewCell {
+class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   var padding = 10.0
   var tapHandler:(()->())?
   var isDestructive: Bool = false
@@ -1079,11 +1078,6 @@ class XSettingsCell:UITableViewCell {
   
   override func prepareForReuse() {
     debug("XSettingsCell prepareForReuse ...should not be called due not reuse cells!")
-  }
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    applyStyles()
   }
   
   func applyStyles() {
@@ -1155,6 +1149,7 @@ class XSettingsCell:UITableViewCell {
   }
   
   func setupLayout(){
+    registerForStyleUpdates()
     guard let label = self.textLabel else { return }
     
     let dist = Const.ASize.DefaultPadding
@@ -1359,7 +1354,7 @@ class CustomHStack: UIStackView {
 }
 
 // MARK: -
-class SectionHeader: UIView {
+class SectionHeader: UIView, UIStyleChangeDelegate {
   
   let label = UILabel()
   var chevron: UIImageView?
@@ -1384,10 +1379,6 @@ class SectionHeader: UIView {
     chevron?.transform = CGAffineTransform(rotationAngle: self.collapsed ? CGFloat.pi : CGFloat.pi*2)
   }
   
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    applyStyles()
-  }
   
   func applyStyles() {
     label.textColor =  Const.SetColor.ios(.label).color
@@ -1418,6 +1409,7 @@ class SectionHeader: UIView {
       chevron?.tintColor = Const.SetColor.ios(.secondaryLabel).color
     }
     setup()
+    registerForStyleUpdates()
   }
   
   required init?(coder: NSCoder) {
