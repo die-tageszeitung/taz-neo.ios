@@ -33,6 +33,8 @@ public class ContentUrl: WebViewUrl, DoesLog {
       return true
     }
     set {
+      ////Required, if fired twice "wird geladen" may not disappear!
+      if _isAvailable == newValue { return }
       _isAvailable = newValue
       if _isAvailable {
         errorCount = 0
@@ -74,7 +76,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
             self.content.html != nil else { return }
       self.loadClosure(self)
     }
-    onMainAfter(25.0) {[weak self] in
+    onMainAfter(15.0) {[weak self] in
       guard let self = self,
             self.content.html == nil else { return }
       self.log("started autoload again! (no crash)")
