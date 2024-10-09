@@ -1034,7 +1034,10 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     super.viewWillAppear(animated)
     #if LMD
     (sliderContent as? LMdSliderContentVC)?.currentArticle = self.article
-    updateHeader()
+    if let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC {
+      header.title = "Seite \(lmdSliderContentVc.currentPage?.pagina ?? "")"
+    }
+    
     #endif
     updateSlidersWidth(self.view.frame.size)
   }
@@ -1100,3 +1103,12 @@ fileprivate extension CGSize {
     return min(self.width, Const.Size.ContentSliderMaxWidth)
   }
 }
+
+#if LMD
+extension Article {
+  var index: Int? {
+    return self.primaryIssue?.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: self) })
+  }
+  
+}
+#endif
