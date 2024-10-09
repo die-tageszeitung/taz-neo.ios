@@ -796,4 +796,13 @@ extension App {
       return "LMd"
     #endif
   }
+  
+  /// AppIcon from Assets in given size
+  static func appIcon(size: String) -> String {
+    #if TAZ
+      return "AppIcon\(size)"
+    #else
+      return "AppIconLMD\(size)"
+    #endif
+  }
 } // App

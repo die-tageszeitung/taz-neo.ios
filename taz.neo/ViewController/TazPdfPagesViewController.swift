@@ -802,7 +802,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       let origin = App.isLMD ? "LMd" : "taz"
       dialogue.present(item: tmpFile,
                        view: self.shareButton ?? self.toolBar,
-                       subject: "\(origin) vom \(self.issue.date.short) Seite \(page)")
+                       subject: "\(origin) vom \(self.issue.date.short) Seite \(page)",
+                       image: UIImage(named: App.appIcon(size: "60x60")))
      Usage.xtrack.share.faksimilelePage(issue: issue, pagina: page)
     }
     

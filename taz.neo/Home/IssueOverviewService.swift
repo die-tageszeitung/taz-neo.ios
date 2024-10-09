@@ -553,7 +553,11 @@ extension IssueOverviewService {
       let ext = file.extname
       let dialogue = ExportDialogue<Any>()
       let name = "\(issue.feed.name)-\(issue.date.isoDate(tz: feeder.timeZone)).\(ext ?? "")"
-      dialogue.present(item: file.url, view: sourceView, subject: name)
+      let img = UIImage(data: file.data)
+      dialogue.present(item: file.url,
+                       view: sourceView,
+                       subject: name,
+                       image: img ?? UIImage(named: App.appIcon(size: "60x60")))
       isFacsimile
       ? Usage.xtrack.share.faksimilelePage(issue: issue, pagina: "1")
       : Usage.xtrack.share.issueMoment(issue)

@@ -95,7 +95,7 @@ class ArticleExportDialogueItemSource: NSObject, DoesLog {
   ///   - sourceView: The source view from which the share dialog is presented.
   init(article: Article, image: UIImage?, delegate: ArticleExportDialogueDelegate, sourceView: UIView) {
     self.article = article
-    self.image = image ?? UIImage(named: "AppIcon60x60")
+    self.image = image ?? UIImage(named: App.appIcon(size: "60x60"))
     self.delegate = delegate
     self.sourceView = sourceView
     super.init()
