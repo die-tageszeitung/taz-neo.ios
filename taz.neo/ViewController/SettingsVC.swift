@@ -206,7 +206,9 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     
     if NotificationBusiness.sharedInstance.settingsDetailTextAlert {
       cell.detailLabelTextColor = .red
+      cell.applyStyles()
       (cell.customAccessoryView as? UISwitch)?.onTintColor = UIColor(white: 0.95, alpha: 1.0)
+      
     }
     if NotificationBusiness.sharedInstance.settingsLink {
       cell.tapHandler = { NotificationBusiness.sharedInstance.openAppInSystemSettings() }
@@ -411,20 +413,25 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   open override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    if let sv = self.view.superview {
+    self.tableView.contentInset = UIEdgeInsets(top: 23, left: 0, bottom: 0, right: 0)
+  }
+  
+  open override func viewDidAppear(_ animated: Bool) {
+    if let sv = self.view.superview, header.superview == nil {
+      header.alpha = 0.0
       sv.addSubview(header)
       pin(header, to: sv, exclude: .bottom)
       pin(self.tableView, toSafe: sv, exclude: .top).bottom?.constant = -50.0
       pin(self.tableView.top, to: header.bottom)//.priority = .defaultHigh??
     }
-    self.tableView.contentInset = UIEdgeInsets(top: 23, left: 0, bottom: 0, right: 0)
-  }
-  
-  open override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     checkNotifications()
     trackScreen()
     memoryUsageCell.detailTextLabel?.text = storageDetails
+    guard header.alpha == 0.0 else { return }
+    UIView.animate(withDuration: 0.4) {[weak self] in
+      self?.header.alpha = 1.0
+    }
   }
     
   required public init(feederContext: FeederContext) {
@@ -462,6 +469,7 @@ extension SettingsVC {
   
   func setup(){
     tableView.separatorInset = .zero
+    header.setNeedsLayout()
     header.layoutIfNeeded()
     registerForStyleUpdates()
     NotificationCenter.default
@@ -469,7 +477,6 @@ extension SettingsVC {
                    selector: #selector(applicationDidBecomeActive),
                    name: UIApplication.didBecomeActiveNotification,
                    object: nil)
-    checkNotifications()
   }
   
   func refreshAndReload() {
@@ -728,8 +735,9 @@ extension SettingsVC {
     _ = loginCell
     print("isAuthenticated: \(isAuthenticated)")
     var cells = [isAuthenticated ? logoutCell : loginCell]
-
-    if App.isLMD {
+    let notificationCellAvailable
+    = NotificationBusiness.sharedInstance.systemNotificationsStatus != nil
+    if App.isLMD && notificationCellAvailable {
       cells.append(notificationsCell)
       return cells
     }
@@ -744,7 +752,9 @@ extension SettingsVC {
     if showDeleteAccountCell {
       cells.append(deleteAccountCell)
     }
-    cells.append(notificationsCell)
+    if notificationCellAvailable {
+      cells.append(notificationsCell)
+    }
     return cells
   }
   
