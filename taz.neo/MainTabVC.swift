@@ -29,11 +29,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
                       sender: nil)
   }
   
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    if #available(iOS 17.0, *) { traitOverrides.horizontalSizeClass = .compact }
-  }
-  
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     guard let data = TazAppEnvironment.openedFromNotificationCenter else { return }
