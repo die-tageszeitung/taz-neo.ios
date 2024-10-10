@@ -1,5 +1,5 @@
 //
-//  TazExportDialogue.swift
+//  ArticleExportDialogue.swift
 //  taz.neo
 //
 //  Created by Ringo Müller on 25.09.24.
