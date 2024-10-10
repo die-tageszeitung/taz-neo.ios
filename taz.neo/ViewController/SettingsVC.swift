@@ -206,6 +206,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     
     if NotificationBusiness.sharedInstance.settingsDetailTextAlert {
       cell.detailLabelTextColor = .red
+      cell.applyStyles()
       (cell.customAccessoryView as? UISwitch)?.onTintColor = UIColor(white: 0.95, alpha: 1.0)
     }
     if NotificationBusiness.sharedInstance.settingsLink {
