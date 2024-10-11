@@ -124,9 +124,6 @@ class TestController: PageCollectionVC {
       }
       self.feederContext.authenticate()
     }
-    #warning("removed unused")
-//    self.feederContext.getOvwIssues(feed: self.feed, count: 1,
-//                                    fromDate: self.testDate, isAutomatically: false)
   }
 
   override public var preferredStatusBarStyle: UIStatusBarStyle { .default }

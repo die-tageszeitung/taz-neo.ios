@@ -293,7 +293,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                     self?.bookmarksListTeaserEnabled = newValue
                     Notification.send(Const.NotificationNames.bookmarkChanged)
                   })
-  #warning("Text TBD")
   lazy var multiColumnSnapCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Mehrspaltigkeit einrasten",
                   detailText: "Beim manuellem Scrollen in der mehrspaltigen Ansicht automatisch Spaltenweise einrasten.",
@@ -301,7 +300,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                   onChange: {[weak self] newValue in
     self?.multiColumnSnap = newValue
   })
-  #warning("Text TBD")
   lazy var multiColumnFixedScrollingCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Mehrspaltigkeit gleichmäßiges Scrollen",
                   detailText: "In der mehrspaltigen Ansicht bei 'Tap am Rand' immer die gleiche Anzahl von Spalten weiterscrollen.\nDies wirkt sich nur beim 'vorwärts Tap' auf dem letzten Bildschirmbereich (Seite) aus und kann dazu führen, dass dort nur eine dicke Linie zu sehen ist.",

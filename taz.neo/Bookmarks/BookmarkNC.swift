@@ -149,12 +149,8 @@ extension BookmarkNC: IssueInfo {
 
 extension BookmarkNC: ReloadAfterAuthChanged {
   public func reloadOpened(){
-    #warning("TODO: discuss with nthies...")
     /// UseCase: app reseted, unauth, bookmark demo Article
     /// view demo article in bookmark list, scroll down login
-    /// "Aktualisiere Daten" did not disappear due the StoredFeeder of the FeederContext still unauth,
-    /// but the gql feeder is authenticated => hack test this one not the stored feeder, untill Fixing
-    /// OLD CODE:  guard self.feeder.isAuthenticated else { return }
     guard TazAppEnvironment.hasValidAuth else { return }
     
     let lastIndex: Int? = (self.viewControllers.last as? ArticleVC)?.index

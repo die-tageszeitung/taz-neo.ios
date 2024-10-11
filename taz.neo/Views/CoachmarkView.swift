@@ -90,15 +90,8 @@ class CoachmarkView: UIView {
     ///WARNING NOT WORKING: underlaying view passes accessabillity items
     ///kiss solution: execute close coachmark on voiceover activation
     closeButton.accessibilityLabel = "Schliessen"
-    if true {//pin to top == conflict with Search Filter
-      pin(closeButton.right, to: self.right, dist: -10.0)
-      pin(closeButton.top, to: self.topGuide(), dist: 10.0)
-    }
-    else {///pin to textlayer
-      pin(closeButton.right, to: textLayer.right, dist: 40.0)
-      pin(closeButton.bottom, to: textLayer.top, dist: -40.0)
-
-    }
+    pin(closeButton.right, to: self.right, dist: -10.0)
+    pin(closeButton.top, to: self.topGuide(), dist: 10.0)
     
     closeButton.onTapping { [weak self] _ in self?.closeClosure?() }
     textLayer.onTapping { [weak self] _ in

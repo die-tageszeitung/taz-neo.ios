@@ -429,10 +429,6 @@ public extension Content {
     if let auths = authors, auths.count > 0 {
       for au in auths { if let p = au.photo { ret += p } }
     }
-    #warning("Uncomment to enable audio file download")
-//    if let audioFile = audioItem?.file {
-//      ret += audioFile
-//    }
     return ret
   }
   
@@ -1208,7 +1204,6 @@ public protocol Feed: ToString {
   /// Number of issues available
   var issueCnt: Int { get }
   /// Date of last issue available (newest)
-  #warning("WHERE FROM?? USING PUB DATES!!")
   var lastIssue: Date { get }
   /// Date of issue last read
   var lastIssueRead: Date? { get }

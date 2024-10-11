@@ -239,7 +239,6 @@ extension HeaderView {
   
   private func didScrolling(offsetDelta:CGFloat, end: Bool){
     if titletype == .bigLeft { return }
-    let miniPadding = titletype == .section0 ? 2.6 : 0.0
      
     let isMaxi = lastRatio == 0.0
     let isMini = lastRatio == 1.0

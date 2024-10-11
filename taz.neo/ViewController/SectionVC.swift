@@ -285,7 +285,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       ///@Refactor: Thread 1: Fatal error: Unexpectedly found nil while unwrapping an Optional value
       ///StoredSection.type.getter
       ///Particular Download? => STOP?=> Account unexpired => Tap on Issue => Crash
-      var hideItems
+      let hideItems
       = section.type == .advertisement || section.type == .podcast
       self.slider?.collapsedButton = hideItems
       
