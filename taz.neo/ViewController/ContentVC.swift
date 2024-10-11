@@ -16,6 +16,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
 
   private var loadClosure: (ContentUrl)->()
   private var _isAvailable = false
+  private var preventNotify = false
   private var errorCount = 0
   
   public var isAvailable: Bool {
@@ -33,12 +34,16 @@ public class ContentUrl: WebViewUrl, DoesLog {
       return true
     }
     set {
-      ////Required, if fired twice "wird geladen" may not disappear!
-      if _isAvailable == newValue { return }
+      ///WARNING, if fired twice "wird geladen" may not disappear!
+      ///if _isAvailable == newValue { return } DISABLED: Problem: if wird geladen not disappers tap on it wount work just
       _isAvailable = newValue
       if _isAvailable {
         errorCount = 0
-        $whenAvailable.notify(sender: self)
+        if preventNotify == false {
+          preventNotify = true
+          onMainAfter(1.0) {[weak self] in self?.preventNotify = false }
+          $whenAvailable.notify(sender: self)
+        }
       }
       else if errorCount > 5,
         TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
@@ -78,7 +83,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
     }
     onMainAfter(15.0) {[weak self] in
       guard let self = self,
-            self.content.html == nil else { return }
+            self.content.html != nil else { return }
       self.log("started autoload again! (no crash)")
       self.loadClosure(self)
     }
