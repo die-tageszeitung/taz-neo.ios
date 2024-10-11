@@ -973,7 +973,6 @@ class ArticleVcWithPdfInSlider : ArticleVC {
       slider.image = UIImage.init(named: logo)
       slider.image?.accessibilityLabel = "Inhalt"
       slider.buttonAlpha = 1.0
-      if !App.isLMD { slider.hideButtonOnClose = true }
       slider.button.additionalTapOffset = 50
       slider.close()
     }
