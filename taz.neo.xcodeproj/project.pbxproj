@@ -46,8 +46,8 @@
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
 		7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
-		7731389B2CA4968800A0237A /* TazExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7731389A2CA4968800A0237A /* TazExportDialogue.swift */; };
-		7731389C2CA4968800A0237A /* TazExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7731389A2CA4968800A0237A /* TazExportDialogue.swift */; };
+		7731389B2CA4968800A0237A /* ArticleExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7731389A2CA4968800A0237A /* ArticleExportDialogue.swift */; };
+		7731389C2CA4968800A0237A /* ArticleExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7731389A2CA4968800A0237A /* ArticleExportDialogue.swift */; };
 		7731CA412B60238B00EE8600 /* bookmarks-taz.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA402B60238B00EE8600 /* bookmarks-taz.css */; };
 		7731CA432B60239D00EE8600 /* bookmarks-lmd.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA422B60239D00EE8600 /* bookmarks-lmd.css */; };
 		7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77328429274F9F5B00B08535 /* TazCustomized.swift */; };
@@ -332,7 +332,7 @@
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
-		7731389A2CA4968800A0237A /* TazExportDialogue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazExportDialogue.swift; sourceTree = "<group>"; };
+		7731389A2CA4968800A0237A /* ArticleExportDialogue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleExportDialogue.swift; sourceTree = "<group>"; };
 		7731CA402B60238B00EE8600 /* bookmarks-taz.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-taz.css"; sourceTree = "<group>"; };
 		7731CA422B60239D00EE8600 /* bookmarks-lmd.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-lmd.css"; sourceTree = "<group>"; };
 		77328429274F9F5B00B08535 /* TazCustomized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazCustomized.swift; sourceTree = "<group>"; };
@@ -607,7 +607,7 @@
 			isa = PBXGroup;
 			children = (
 				774ECA012CB02D2C00D6BA27 /* CustomUIActivity.swift */,
-				7731389A2CA4968800A0237A /* TazExportDialogue.swift */,
+				7731389A2CA4968800A0237A /* ArticleExportDialogue.swift */,
 				77CB2D1F2A8148EA00021804 /* UIAlertAction+Extension.swift */,
 				77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */,
 				77ECD87D2A814ED100DFBBB6 /* LocalNotifications+Extension.swift */,
@@ -1123,7 +1123,7 @@
 				AE5131842AFBCADB002289E8 /* ArticleDB.xcdatamodeld in Sources */,
 				AE5131852AFBCADB002289E8 /* SimpleAuthenticator.swift in Sources */,
 				AE5131862AFBCADB002289E8 /* AppDelegate.swift in Sources */,
-				7731389C2CA4968800A0237A /* TazExportDialogue.swift in Sources */,
+				7731389C2CA4968800A0237A /* ArticleExportDialogue.swift in Sources */,
 				AE5131872AFBCADB002289E8 /* AppHelper.swift in Sources */,
 				AE5131882AFBCADB002289E8 /* TazPdfPagesViewController.swift in Sources */,
 				AE5131892AFBCADB002289E8 /* KeychainTest.swift in Sources */,
@@ -1261,7 +1261,7 @@
 				AE5DFACF267E10540035162C /* KeychainTest.swift in Sources */,
 				4D308ED6283404C700529592 /* GqlFeederSearch.swift in Sources */,
 				00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */,
-				7731389B2CA4968800A0237A /* TazExportDialogue.swift in Sources */,
+				7731389B2CA4968800A0237A /* ArticleExportDialogue.swift in Sources */,
 				4D308EE72834057200529592 /* SearchSettingsView.swift in Sources */,
 				4D308EEC283405A900529592 /* MainTabVC.swift in Sources */,
 				4D308EEA2834057200529592 /* SearchController.swift in Sources */,
