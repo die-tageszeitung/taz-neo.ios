@@ -135,22 +135,28 @@ public class FormView: UIView {
 }
 
 extension FormView {
-  func openFaqAction() -> UIAlertAction {
-    return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
-      guard let url = Const.Urls.faqUrl else { return }
-      UIApplication.shared.open(url, options: [:], completionHandler: nil)
-    }
-  }
+  ///disabled due rejection
+//  func openFaqAction() -> UIAlertAction {
+//    return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
+//      guard let url = Const.Urls.faqUrl else { return }
+//      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+//    }
+//  }
       
   @objc public func showRegisterTips(_ textField: UITextField) {
      Alert.message(title: Localized("register_tips_button"),
-                  message: Localized("register_tips_text"), additionalActions:[openFaqAction()])
+                  message: Localized("register_tips_text"), 
+                   additionalActions:[])
+    ///disabled due rejection openFaqAction()
     Usage.track(Usage.event.dialog.SubscriptionHelp)
   }
   
   @objc public func showLoginTips(_ textField: UITextField) {
     let fullText = "\(Localized("login_missing_credentials_header_login"))\n\(Localized("article_read_onreadon"))"
-    Alert.message(title: Localized("help"), message: fullText, additionalActions:[self.openFaqAction()])
+    Alert.message(title: Localized("help"),
+                  message: fullText,
+                  additionalActions:[])
+    ///disabled due rejection openFaqAction()
   }
   
   var registerTipsButton:UIButton{
