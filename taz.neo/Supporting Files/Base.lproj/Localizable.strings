@@ -166,7 +166,7 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 "login_password_confirmation_error_match" = "Passwörter stimmen nicht überein";
 
 /* translation from Android */
-"fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/welcomeTerms.html'>AGB</a> sowie die Hinweise zum <a href='https://taz.de/welcomeRevocation.html'>Widerruf</a> und <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutz</a>.";
+"fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/welcomeTerms.html'>AGB</a> sowie die Hinweise zum <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutz</a>.";
 
 /* translation from Android */
 "something_went_wrong_try_later" = "Etwas unerwartetes ist passiert. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut.";
@@ -175,7 +175,7 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 "register_validation_issue" = "Bitte überprüfen Sie Ihre Eingaben!";
 
 /* Fehler lokale Validierung */
-"register_validation_issue_agb" = "Bitte bestätigen Sie die AGB sowie die Hinweise zum Widerruf und Datenschutz!";
+"register_validation_issue_agb" = "Bitte bestätigen Sie die AGB sowie die Hinweise zum Datenschutz!";
 
 /* taz id register intro */
 "taz_id_register_intro" = "Um die neue App zu nutzen, müssen Sie sich zukünftig mit Ihrer E-Mail-Adresse und selbst gewähltem Passwort anmelden.";
