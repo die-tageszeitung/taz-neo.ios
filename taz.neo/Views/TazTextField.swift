@@ -72,7 +72,7 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
                 isSecureTextEntry: Bool = false,
                 enablesReturnKeyAutomatically: Bool = false,
                 keyboardType: UIKeyboardType = .default,
-                autocapitalizationType: UITextAutocapitalizationType = .words,
+                autocapitalizationType: UITextAutocapitalizationType = .none,
                 target: Any? = nil,
                 action: Selector? = nil) {
     super.init(frame:.zero)
@@ -154,7 +154,7 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
              isSecureTextEntry: Bool = false,
              enablesReturnKeyAutomatically: Bool = false,
              keyboardType: UIKeyboardType = .default,
-             autocapitalizationType: UITextAutocapitalizationType = .words,
+             autocapitalizationType: UITextAutocapitalizationType = .none,
              target: Any? = nil,
              action: Selector? = nil){
     heightConstraint = pinHeight(initialHeight)

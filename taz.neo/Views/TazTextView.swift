@@ -166,7 +166,7 @@ public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
                 minimalHeight: CGFloat = TazTextView.minimalHeight,
                 enablesReturnKeyAutomatically: Bool = false,
                 keyboardType: UIKeyboardType = .default,
-                autocapitalizationType: UITextAutocapitalizationType = .words) {
+                autocapitalizationType: UITextAutocapitalizationType = .sentences) {
     super.init(frame: .zero)
     self.text = text
     self.placeholder = placeholder
