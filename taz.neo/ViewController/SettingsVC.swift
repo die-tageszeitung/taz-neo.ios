@@ -254,9 +254,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var privacyCell: XSettingsCell
   = XSettingsCell(text: "Datenschutzerklärung",
                   tapHandler: {[weak self] in self?.showPrivacy()} )
-  lazy var revokeCell: XSettingsCell
-  = XSettingsCell(text: "Widerruf",
-                  tapHandler: {[weak self] in self?.showRevocation()} )
   
   lazy var usageCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nutzungsdaten senden",
@@ -806,9 +803,9 @@ extension SettingsVC {
   func currentSectionContent() -> [tSectionContent] {
     ///**WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
     #if TAZ
-    let rechtlichesCells = [termsCell, privacyCell, revokeCell, usageCell]
+    let rechtlichesCells = [termsCell, privacyCell, usageCell]
     #else
-    let rechtlichesCells = [termsCell, privacyCell, revokeCell]
+    let rechtlichesCells = [termsCell, privacyCell]
     #endif
     
     let displayCells
