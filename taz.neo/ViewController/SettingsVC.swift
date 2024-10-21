@@ -828,7 +828,7 @@ extension SettingsVC {
       ("Hilfe".lowerIfTaz, false,
        [
         onboardingCell,
-        faqCell,
+//        faqCell,
         reportErrorCell,
         feedbackCell
        ]

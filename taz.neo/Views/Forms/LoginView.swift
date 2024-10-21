@@ -164,11 +164,11 @@ public class LoginView : FormView{
   }
   
   func setup(){
-    let mc1 = MarketingContainerView(button: trialSubscriptionButton,
-                                     title: Localized("login_trial_subscription_title"),
-                                     text: Localized("login_trial_subscription_body"),
-                                     imageName:  "BundledResources/trial.jpg")
-    let dottedLine1 = dottedLine()
+//    let mc1 = MarketingContainerView(button: trialSubscriptionButton,
+//                                     title: Localized("login_trial_subscription_title"),
+//                                     text: Localized("login_trial_subscription_body"),
+//                                     imageName:  "BundledResources/trial.jpg")
+//    let dottedLine1 = dottedLine()
     let mc2 = MarketingContainerView(button: switchButton,
                                      title: Localized("login_switch_print2digi_title"),
                                      text: Localized("login_switch_print2digi_body"),
@@ -178,13 +178,13 @@ public class LoginView : FormView{
                                      title: Localized("login_extend_print_with_digi_title"),
                                      text: Localized("login_extend_print_with_digi_body"),
                                      imageName: "BundledResources/extend.jpg")
-    marketingContainer.addViewToWrapper(mc1)
-    marketingContainer.addViewToWrapper(dottedLine1)
+//    marketingContainer.addViewToWrapper(mc1)
+//    marketingContainer.addViewToWrapper(dottedLine1)
     marketingContainer.addViewToWrapper(mc2)
     marketingContainer.addViewToWrapper(dottedLine2)
     marketingContainer.addViewToWrapper(mc3)
-    pin(dottedLine1.left, to: marketingContainer.wrapper.left)
-    pin(dottedLine1.right, to: marketingContainer.wrapper.right)
+//    pin(dottedLine1.left, to: marketingContainer.wrapper.left)
+//    pin(dottedLine1.right, to: marketingContainer.wrapper.right)
     pin(mc2.left, to: marketingContainer.wrapper.left)
     pin(mc2.right, to: marketingContainer.wrapper.right)
     pin(dottedLine2.left, to: marketingContainer.wrapper.left)
@@ -192,9 +192,10 @@ public class LoginView : FormView{
     pin(mc3.left, to: marketingContainer.wrapper.left)
     pin(mc3.right, to: marketingContainer.wrapper.right)
     
-    pin(mc1, to: marketingContainer.wrapper, exclude: .bottom)
-    pin(dottedLine1.top, to: mc1.bottom, dist: Const.Dist2.l)
-    pin(mc2.top, to: dottedLine1.bottom, dist: Const.Dist2.m15)
+//    pin(mc1, to: marketingContainer.wrapper, exclude: .bottom)
+    pin(mc2, to: marketingContainer.wrapper, exclude: .bottom)
+//    pin(dottedLine1.top, to: mc1.bottom, dist: Const.Dist2.l)
+//    pin(mc2.top, to: dottedLine1.bottom, dist: Const.Dist2.m15)
     pin(dottedLine2.top, to: mc2.bottom, dist: Const.Dist2.l)
     pin(mc3.top, to: dottedLine2.bottom, dist: Const.Dist2.m15)
     pin(mc3.bottom,
