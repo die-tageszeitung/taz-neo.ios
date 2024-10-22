@@ -22,8 +22,12 @@ class StoreBusiness: DoesLog {
   @Default("canRegisterEvaluationResult")
   private var canRegisterEvaluationResult: String
   
+  #if DEBUG
   ///currently StoreFront returns USA in Simulator, so to test Device Location use: Device.isSimulator == false
   private var evaluateStoreFront = Device.isSimulator == false
+  #else
+  private var evaluateStoreFront = true
+  #endif
   
   /// Enum to represent possible evaluation results.
   private enum RegisterEvaluationResult: String, CodableEnum {
