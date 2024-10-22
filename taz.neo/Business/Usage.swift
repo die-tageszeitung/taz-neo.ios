@@ -146,6 +146,7 @@ fileprivate extension Usage {
   }
   
   func trackGoal(_ goal: TrackingGoal){
+    if usageTrackingAllowed != true { return }
     log("track::Goal with ID: \"\(goal.goalId)\", revenue: \"\(goal.value)")
     self.matomoTracker.trackGoal(id: goal.goalId, revenue: goal.value)
   }
