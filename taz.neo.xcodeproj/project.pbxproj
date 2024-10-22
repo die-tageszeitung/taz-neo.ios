@@ -46,6 +46,7 @@
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
 		7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
+		771D01022CC7974A00261F48 /* StoreBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 771D01012CC7974A00261F48 /* StoreBusiness.swift */; };
 		7731389B2CA4968800A0237A /* ArticleExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7731389A2CA4968800A0237A /* ArticleExportDialogue.swift */; };
 		7731389C2CA4968800A0237A /* ArticleExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7731389A2CA4968800A0237A /* ArticleExportDialogue.swift */; };
 		7731CA412B60238B00EE8600 /* bookmarks-taz.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA402B60238B00EE8600 /* bookmarks-taz.css */; };
@@ -332,6 +333,7 @@
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
+		771D01012CC7974A00261F48 /* StoreBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreBusiness.swift; sourceTree = "<group>"; };
 		7731389A2CA4968800A0237A /* ArticleExportDialogue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleExportDialogue.swift; sourceTree = "<group>"; };
 		7731CA402B60238B00EE8600 /* bookmarks-taz.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-taz.css"; sourceTree = "<group>"; };
 		7731CA422B60239D00EE8600 /* bookmarks-lmd.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-lmd.css"; sourceTree = "<group>"; };
@@ -599,6 +601,7 @@
 				77B993D92AC4706600C7D832 /* Usage.swift */,
 				7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */,
 				776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */,
+				771D01012CC7974A00261F48 /* StoreBusiness.swift */,
 			);
 			path = Business;
 			sourceTree = "<group>";
@@ -1287,6 +1290,7 @@
 				77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */,
 				773500B42A1C0A7C00678647 /* FetchNewStatusHeader.swift in Sources */,
 				4D308EE82834057200529592 /* SearchResultIssue.swift in Sources */,
+				771D01022CC7974A00261F48 /* StoreBusiness.swift in Sources */,
 				AE4C4FEF26A04EBD006079C8 /* ArticlePlayer.swift in Sources */,
 				0015B73A24DD87DA0037A8D6 /* DefaultAuthenticator.swift in Sources */,
 				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,

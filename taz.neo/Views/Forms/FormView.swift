@@ -135,28 +135,24 @@ public class FormView: UIView {
 }
 
 extension FormView {
-  ///disabled due rejection
-//  func openFaqAction() -> UIAlertAction {
-//    return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
-//      guard let url = Const.Urls.faqUrl else { return }
-//      UIApplication.shared.open(url, options: [:], completionHandler: nil)
-//    }
-//  }
+  func openFaqAction() -> UIAlertAction {
+    return UIAlertAction(title: Localized("open_faq_in_browser"), style: .default) { _ in
+      guard let url = Const.Urls.faqUrl else { return }
+      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    }
+  }
       
   @objc public func showRegisterTips(_ textField: UITextField) {
      Alert.message(title: Localized("register_tips_button"),
-                  message: Localized("register_tips_text"), 
-                   additionalActions:[])
-    ///disabled due rejection openFaqAction()
+                   message: Localized("register_tips_text"),
+                   additionalActions: StoreBusiness.canRegister ? [openFaqAction()] : [])
     Usage.track(Usage.event.dialog.SubscriptionHelp)
   }
   
   @objc public func showLoginTips(_ textField: UITextField) {
     let fullText = "\(Localized("login_missing_credentials_header_login"))\n\(Localized("article_read_onreadon"))"
-    Alert.message(title: Localized("help"),
-                  message: fullText,
-                  additionalActions:[])
-    ///disabled due rejection openFaqAction()
+    Alert.message(title: Localized("help"), message: fullText, 
+                  additionalActions: StoreBusiness.canRegister ? [openFaqAction()] : [])
   }
   
   var registerTipsButton:UIButton{

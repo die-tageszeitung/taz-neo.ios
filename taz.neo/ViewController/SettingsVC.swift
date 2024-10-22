@@ -813,6 +813,11 @@ extension SettingsVC {
     ? [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell, edgeTapToNavigateVisibleCell]
     : [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell]
     
+    let helpCells 
+    = StoreBusiness.canRegister
+    ? [onboardingCell, faqCell, reportErrorCell, feedbackCell]
+    : [onboardingCell, reportErrorCell, feedbackCell]
+    
     return [
       ("Konto".lowerIfTaz, false, accountSettingsCells),
       ("Ausgabenverwaltung".lowerIfTaz, false, issueSettingsCells),
@@ -825,14 +830,7 @@ extension SettingsVC {
         doubleTapToZoomPdfCell
        ]
       ),
-      ("Hilfe".lowerIfTaz, false,
-       [
-        onboardingCell,
-//        faqCell,
-        reportErrorCell,
-        feedbackCell
-       ]
-      ),
+      ("Hilfe".lowerIfTaz, false, helpCells),
       ("Rechtliches".lowerIfTaz, false, rechtlichesCells),
       ///WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
       ("Erweitert".lowerIfTaz, true,

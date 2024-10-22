@@ -661,6 +661,7 @@ extension HomeTVC {
       showCoachmarkIfNeeded()
       return
     }
+    _ = StoreBusiness.canRegister///initially check App Store
     guard let image = UIImage(named: "BundledResources/UsagePopover.png")else {
       log("Bundled UsagePopover.png not found!")
       return

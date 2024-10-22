@@ -85,12 +85,11 @@ class LoginController: FormsController {
                                   auth: auth))
   }
   func handleWhereIsTheAboId() {
-//    let faqAction = self.ui.openFaqAction()
+    let faqAction = self.ui.openFaqAction()
     
     Alert.message(title:"",
                   message: App.isLMD ? Localized("fragment_login_help_lmd") : Localized("fragment_login_help"),
-                  additionalActions: [])
-    ///disabled due rejection faqAction
+                  additionalActions: StoreBusiness.canRegister ? [faqAction] : [])
     Usage.track(Usage.event.dialog.LoginHelp)
   }
   
