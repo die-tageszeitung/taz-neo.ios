@@ -163,59 +163,43 @@ public class LoginView : FormView{
     return dottedLine
   }
   
-  func setup() {
-    // Declare common marketing containers first (shared between both versions)
-    let mc2 = MarketingContainerView(
-      button: switchButton,
-      title: Localized("login_switch_print2digi_title"),
-      text: Localized("login_switch_print2digi_body"),
-      imageName: "BundledResources/switch.jpg"
-    )
-    let dottedLine2 = dottedLine()
+  func setup(){
+    var mc1:MarketingContainerView
     
-    let mc3 = MarketingContainerView(
-      button: extendButton,
-      title: Localized("login_extend_print_with_digi_title"),
-      text: Localized("login_extend_print_with_digi_body"),
-      imageName: "BundledResources/extend.jpg"
-    )
-    
-    // Conditional block for the "Register" version
     if StoreBusiness.canRegister {
-      // This block runs for the "Register version"
-      let mc1 = MarketingContainerView(
-        button: trialSubscriptionButton,
-        title: Localized("login_trial_subscription_title"),
-        text: Localized("login_trial_subscription_body"),
-        imageName: "BundledResources/trial.jpg"
-      )
-      let dottedLine1 = dottedLine()
-      
-      // Add registration-related marketing container and dotted line to `marketingContainer`
-      marketingContainer.addViewToWrapper(mc1)
-      marketingContainer.addViewToWrapper(dottedLine1)
-      marketingContainer.addViewToWrapper(mc2)
-      
-      // Layout pins for the "Register" version
-      pin(mc1, to: marketingContainer.wrapper, exclude: .bottom)
-      pin(dottedLine1.top, to: mc1.bottom, dist: Const.Dist2.l)
-      pin(mc2.top, to: dottedLine1.bottom, dist: Const.Dist2.m15)
-      
-      // Pin registration-related dotted line
-      pin(dottedLine1.left, to: marketingContainer.wrapper.left)
-      pin(dottedLine1.right, to: marketingContainer.wrapper.right)
-    } else {
-      // This block runs for the "Non-Register version"
-      // Pin `mc2` directly to the top of `marketingContainer.wrapper`
-      marketingContainer.addViewToWrapper(mc2)
-      pin(mc2, to: marketingContainer.wrapper, exclude: .bottom)
+      mc1 = MarketingContainerView(button: trialSubscriptionButton,
+                                       title: Localized("login_trial_subscription_title"),
+                                       text: Localized("login_trial_subscription_body"),
+                                       imageName:  "BundledResources/trial.jpg")
+    }
+    else {
+      let noSubscriptionButton = Padded.Button(type: .outline, title: "")
+      noSubscriptionButton.alpha = 0.0
+      noSubscriptionButton.pinHeight(1.0)
+      noSubscriptionButton.isHidden = true
+      mc1 = MarketingContainerView(button: noSubscriptionButton,
+                                       title: Localized("login_trial_subscription_title"),
+                                       text: "Leider können wir Ihnen in der App derzeit kein kostenloses Probeabo anbieten. Auf unserer Webseite haben Sie jedoch die Möglichkeit, ein 6-wöchiges kostenloses Probeabo abzuschließen. Dieses endet automatisch – Sie brauchen sich um nichts weiter zu kümmern!",
+                                       imageName:  "BundledResources/trial.jpg")
     }
     
-    // Add the shared marketing containers (always present)
+    let dottedLine1 = dottedLine()
+    let mc2 = MarketingContainerView(button: switchButton,
+                                     title: Localized("login_switch_print2digi_title"),
+                                     text: Localized("login_switch_print2digi_body"),
+                                     imageName: "BundledResources/switch.jpg")
+    let dottedLine2 = dottedLine()
+    let mc3 = MarketingContainerView(button: extendButton,
+                                     title: Localized("login_extend_print_with_digi_title"),
+                                     text: Localized("login_extend_print_with_digi_body"),
+                                     imageName: "BundledResources/extend.jpg")
+    marketingContainer.addViewToWrapper(mc1)
+    marketingContainer.addViewToWrapper(dottedLine1)
+    marketingContainer.addViewToWrapper(mc2)
     marketingContainer.addViewToWrapper(dottedLine2)
     marketingContainer.addViewToWrapper(mc3)
-    
-    // Layout pins for all versions (common containers)
+    pin(dottedLine1.left, to: marketingContainer.wrapper.left)
+    pin(dottedLine1.right, to: marketingContainer.wrapper.right)
     pin(mc2.left, to: marketingContainer.wrapper.left)
     pin(mc2.right, to: marketingContainer.wrapper.right)
     pin(dottedLine2.left, to: marketingContainer.wrapper.left)
@@ -223,12 +207,14 @@ public class LoginView : FormView{
     pin(mc3.left, to: marketingContainer.wrapper.left)
     pin(mc3.right, to: marketingContainer.wrapper.right)
     
-    // Layout pinning for common containers
+    pin(mc1, to: marketingContainer.wrapper, exclude: .bottom)
+    pin(dottedLine1.top, to: mc1.bottom, dist: StoreBusiness.canRegister ? Const.Dist2.l : 0)
+    pin(mc2.top, to: dottedLine1.bottom, dist: Const.Dist2.m15)
     pin(dottedLine2.top, to: mc2.bottom, dist: Const.Dist2.l)
     pin(mc3.top, to: dottedLine2.bottom, dist: Const.Dist2.m15)
-    pin(mc3.bottom, to: marketingContainer.wrapper.bottom, dist: -2 * Const.Dist2.l) // ScrollView overflow
-    
-    // Set the background color
+    pin(mc3.bottom,
+        to: marketingContainer.wrapper.bottom,
+        dist: -2*Const.Dist2.l)///2 times because of overflow in scrollview to hide grey bg
     marketingContainer.backgroundColor = Const.SetColor.HBackground.color
   }
 }

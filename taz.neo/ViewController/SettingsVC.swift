@@ -813,11 +813,6 @@ extension SettingsVC {
     ? [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell, edgeTapToNavigateVisibleCell]
     : [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell]
     
-    let helpCells 
-    = StoreBusiness.canRegister
-    ? [onboardingCell, faqCell, reportErrorCell, feedbackCell]
-    : [onboardingCell, reportErrorCell, feedbackCell]
-    
     return [
       ("Konto".lowerIfTaz, false, accountSettingsCells),
       ("Ausgabenverwaltung".lowerIfTaz, false, issueSettingsCells),
@@ -830,7 +825,14 @@ extension SettingsVC {
         doubleTapToZoomPdfCell
        ]
       ),
-      ("Hilfe".lowerIfTaz, false, helpCells),
+      ("Hilfe".lowerIfTaz, false,
+       [
+        onboardingCell,
+        faqCell,
+        reportErrorCell,
+        feedbackCell
+       ]
+      ),
       ("Rechtliches".lowerIfTaz, false, rechtlichesCells),
       ///WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
       ("Erweitert".lowerIfTaz, true,
@@ -1023,6 +1025,10 @@ extension SettingsVC {
   }
   
   func openFaq(){
+    if StoreBusiness.canRegister == false {
+      Alert.message(message: "Leider können wir Ihnen keinen direkten Link zu unseren häufig gestellten Fragen zur App (App-FAQ) anbieten. Sie finden diese Informationen auf unserer Webseite.")
+      return
+    }
     guard let url = Const.Urls.faqUrl else { return }
     UIApplication.shared.open(url, options: [:], completionHandler: nil)
   }

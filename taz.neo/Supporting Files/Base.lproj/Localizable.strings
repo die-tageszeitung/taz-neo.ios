@@ -42,8 +42,8 @@
 "trial_subscription_title" = "Sie möchten die digitale Ausgabe der taz 6 Wochen kostenlos und unverbindlich testen?";
 
 /* translation from Android */
-"login_trial_subscription_title" = "Noch nicht registriert?";
-"login_trial_subscription_body" = "Melden Sie sich an und testen Sie 6 Wochen die taz kostenlos!\nDer Probezeitraum endet automatisch.";
+"login_trial_subscription_title" = "Noch kein Abo?";
+"login_trial_subscription_body" = "Testen Sie uns doch einfach mal 6 Wochen kostenlos! Und wenn Sie danach weiterlesen wollen – was wir natürlich stark hoffen – können Sie unseren unabhängigen Journalismus in verschiedenen Abo-Modellen lesen.";
 "login_trial_subscription_button_text" = "Jetzt kostenlos testen";
 "login_switch_print2digi_title" = "Papierlos glücklich lesen";
 "login_switch_print2digi_body" = "Sie haben ein Print-Abo und wollen aber nur noch digital lesen? Auf in die Zukunft! Machen Sie es wie bereits 45.000 andere digitale Leser:innen.\nWie? Kontaktieren Sie einfach unser Service-Team.";
@@ -62,10 +62,10 @@
 /* translation from Android */
 "register_button" = "Kostenlos Probelesen";
 
-"register_tips_button" = "Hinweise zum Testzugang";
+"register_tips_button" = "Hinweise zum taz Probeabo";
 "register_free_button" = "Kostenlos Probelesen";
 
-"register_tips_text" = "Nach Ihrer Bestellung erhalten Sie eine Bestätigungs-E-Mail mit einem Aktivierungs-Link. Sobald Sie diesen aufrufen, wird Ihr Testzugang freigeschaltet. Falls Sie die E-Mail nicht in Ihrem Posteingang finden, schauen Sie bitte auch in Ihrem Spam-Ordner nach.\n\nDie digitale Ausgabe der taz können Sie bereits am Vorabend des Erscheinungstages bequem in der App lesen.\n\nIhr Testzeitraum endet automatisch, eine Kündigung ist also nicht notwendig. Es entstehen keinerlei Zahlungspflichten durch den Testzugang.";
+"register_tips_text" = "Nach Ihrer Bestellung erhalten Sie eine Bestätigungs-E-Mail mit einem Aktivierungs-Link. Sobald Sie diesen aufrufen, wird Ihr Probeabo freigeschaltet. Falls Sie die E-Mail nicht in Ihrem Posteingang finden, schauen Sie bitte auch in Ihrem Spam-Ordner nach.\n\nDie digitale Ausgabe der taz können Sie bereits am Vorabend des Erscheinungstages bequem in der App lesen.\n\nIhr Probeabo endet automatisch, eine Kündigung ist also nicht notwendig. Es entstehen keinerlei Zahlungspflichten durch das Probeabo.";
 
 /* translation from Android */
 "login_forgot_password" = "Haben Sie Ihr Passwort vergessen?";
@@ -173,6 +173,8 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 
 /* Fehler lokale Validierung */
 "register_validation_issue" = "Bitte überprüfen Sie Ihre Eingaben!";
+
+
 
 /* Fehler lokale Validierung */
 "register_validation_issue_agb" = "Bitte bestätigen Sie die AGB sowie die Hinweise zum Datenschutz!";
