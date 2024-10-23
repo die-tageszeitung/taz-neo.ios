@@ -21,14 +21,7 @@ class StoreBusiness: DoesLog {
   /// This property stores the evaluation result status.
   @Default("canRegisterEvaluationResult")
   private var canRegisterEvaluationResult: String
-  
-  #if DEBUG
-  ///currently StoreFront returns USA in Simulator, so to test Device Location use: Device.isSimulator == false
-  private var evaluateStoreFront = Device.isSimulator == false
-  #else
-  private var evaluateStoreFront = true
-  #endif
-  
+    
   /// Enum to represent possible evaluation results.
   private enum RegisterEvaluationResult: String, CodableEnum {
     case allowed = "allowed"
@@ -62,8 +55,10 @@ class StoreBusiness: DoesLog {
   /// - Returns: `true` if the user is in an EU country, otherwise `false`.
   private func evaluate() -> Bool {
     // First, attempt to get the App Store country code
-    if evaluateStoreFront,
-       let storefront = SKPaymentQueue.default().storefront {
+    if #available(iOS 15.0, *) {
+      evaluateStoreFrontRegion()
+      return false	
+    } else if let storefront = SKPaymentQueue.default().storefront {
       let regionCode = storefront.countryCode
       debug("App Store country code: \(regionCode)")
       return handleEvaluation(for: regionCode)
@@ -81,14 +76,44 @@ class StoreBusiness: DoesLog {
     return false
   }
   
+  var regionCode: String? = nil
+  
+  @available(iOS 15.0, *)
+  private func evaluateStoreFrontRegion() {
+      let semaphore = DispatchSemaphore(value: 0) // Semaphore to wait for async task completion
+      Task {
+          do {
+              // Fetch the storefront using StoreKit's new API
+              let storefront = await Storefront.current
+              regionCode = storefront?.countryCode
+          }
+          semaphore.signal() // Signal that the async task is complete
+      }
+      
+      // Wait for the async task to complete (timeout after 10 seconds to prevent deadlock)
+    _ = semaphore.wait(timeout: .now() + 10)
+    
+    guard let regionCode = regionCode else { return }
+    let storeMessage = handleEvaluation(for: regionCode) ? "eu store" : "non-eu store"
+    log("Updating RegisterEvaluationResult for Store Region Code: \(regionCode) with result: \(storeMessage)")
+  }
+  
+  
   /// Helper method to handle evaluation logic by checking if the region is in the EU.
   ///
   /// - Parameters:
   ///   - regionCode: The region code to evaluate.
   /// - Returns: `true` if the region is in the EU, otherwise `false`.
   private func handleEvaluation(for regionCode: String) -> Bool {
+    if regionCode.length > 3 || regionCode.length < 2 {
+      log("============== W A R N I N G =============")
+      log("Wrong Region Code length for \(regionCode), expected 2 or 3 letters!")
+      log("==========================================")
+      return false
+    }
+    
     ///Countries from: https://support.apple.com/en-lb/118110 About alternative app distribution in the European Union > Eligible countries and regions
-    let euCountries = [
+    let euCountriesAlpha2 = [
         "AT", // Austria
         "BE", // Belgium
         "BG", // Bulgaria
@@ -124,6 +149,44 @@ class StoreBusiness: DoesLog {
         "ES", // Spain
         "SE"  // Sweden
     ]
+    
+    let euCountriesAlpha3 = [
+      "AUT", //Austria
+      "BEL", //Belgium
+      "BGR", //Bulgaria
+      "HRV", //Croatia
+      "CYP", //Cyprus
+      "CZE", //Czechia
+      "DNK", //Denmark
+      "EST", //Estonia
+      "FIN", //Finland
+      "ALA", //Åland Islands
+      "FRA", //France
+      "GUF", //French Guiana
+      "GLP", //Guadeloupe
+      "MTQ", //Martinique
+      "MYT", //Mayotte
+      "REU", //Reunion
+      "MAF", //Saint Martin
+      "DEU", //Germany
+      "GRC", //Greece
+      "HUN", //Hungary
+      "IRL", //Ireland
+      "ITA", //Italy
+      "LVA", //Latvia
+      "LTU", //Lithuania
+      "LUX", //Luxembourg
+      "MLT", //Malta
+      "NLD", //Netherlands
+      "POL", //Poland
+      "PRT", //Portugal
+      "ROU", //Romania
+      "SVK", //Slovakia
+      "SVN", //Slovenia
+      "ESP", //Spain
+      "SWE", //Sweden"
+    ]
+    let euCountries = regionCode.length == 3 ? euCountriesAlpha3 : euCountriesAlpha2
     
     if euCountries.contains(regionCode) {
       debug("Region \(regionCode) is in the EU. Registration is allowed.")
