@@ -87,7 +87,43 @@ class StoreBusiness: DoesLog {
   ///   - regionCode: The region code to evaluate.
   /// - Returns: `true` if the region is in the EU, otherwise `false`.
   private func handleEvaluation(for regionCode: String) -> Bool {
-    let euCountries = ["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE"]
+    ///Countries from: https://support.apple.com/en-lb/118110 About alternative app distribution in the European Union > Eligible countries and regions
+    let euCountries = [
+        "AT", // Austria
+        "BE", // Belgium
+        "BG", // Bulgaria
+        "HR", // Croatia
+        "CY", // Cyprus
+        "CZ", // Czechia
+        "DK", // Denmark
+        "EE", // Estonia
+        "FI", // Finland
+        "AX", // Åland Islands
+        "FR", // France
+        "GF", // French Guiana
+        "GP", // Guadeloupe
+        "MQ", // Martinique
+        "YT", // Mayotte
+        "RE", // Reunion
+        "MF", // Saint Martin
+        "DE", // Germany
+        "GR", // Greece
+        "HU", // Hungary
+        "IE", // Ireland
+        "IT", // Italy
+        "LV", // Latvia
+        "LT", // Lithuania
+        "LU", // Luxembourg
+        "MT", // Malta
+        "NL", // Netherlands
+        "PL", // Poland
+        "PT", // Portugal
+        "RO", // Romania
+        "SK", // Slovakia
+        "SI", // Slovenia
+        "ES", // Spain
+        "SE"  // Sweden
+    ]
     
     if euCountries.contains(regionCode) {
       debug("Region \(regionCode) is in the EU. Registration is allowed.")
