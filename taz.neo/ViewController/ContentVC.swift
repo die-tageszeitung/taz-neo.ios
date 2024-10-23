@@ -225,6 +225,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var shareClosure: ((ContentVC)->())?
   private var imageOverlay: Overlay?
   
+  var isImageOverlay:Bool{
+    return imageOverlay != nil
+  }
+  
   var settingsBottomSheet: BottomSheet2?
   private var textSettingsVC:TextSettingsVC? = TextSettingsVC()
   

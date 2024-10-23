@@ -212,6 +212,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
         self?.log("WARNING :: Prevent double tap on open issue to schow article and then pop to section")
         return
       }
+      if self?.isImageOverlay == true {
+        self?.log("WARNING :: Prevent Page Change in Image Galery open")
+        return
+      }
       self?.linkPressed(from: from, to: to)
     }
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
