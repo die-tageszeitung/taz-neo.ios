@@ -1455,7 +1455,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2024102202;
+				CURRENT_PROJECT_VERSION = 2024102301;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
@@ -1687,7 +1687,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2024102202;
+				CURRENT_PROJECT_VERSION = 2024102301;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.magazines-and-newspapers";
@@ -1714,7 +1714,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2024102202;
+				CURRENT_PROJECT_VERSION = 2024102301;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.magazines-and-newspapers";
