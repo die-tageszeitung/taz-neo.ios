@@ -89,7 +89,7 @@ class LoginController: FormsController {
     
     Alert.message(title:"",
                   message: App.isLMD ? Localized("fragment_login_help_lmd") : Localized("fragment_login_help"),
-                  additionalActions: StoreBusiness.canRegister ? [faqAction] : [])
+                  additionalActions: [faqAction])
     Usage.track(Usage.event.dialog.LoginHelp)
   }
   
