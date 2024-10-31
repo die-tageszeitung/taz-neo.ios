@@ -139,8 +139,11 @@ extension FeederContext {
     ///if we send remoteNotificationFetchCompleete newData too early the System killy all Download Processes and wen miss data
     ///if wen send it too late the automatic .failed is told the system
     ///can we check that there are still downloads?
-    
-    if App.isAvailable(.AUTODOWNLOAD) == false {
+    ///
+    ///**ENSURE INTERNAL USERS DID NOT HANDLE SILENT PN ABO POLL ...App may crash in BG State**
+    ///but its still testable if app would crash for the changed code, just by turn on autodownload
+    if self.autoloadNewIssues == false
+    || App.isAvailable(.AUTODOWNLOAD) == false {
       log("Currently not handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
       fetchCompletionHandler?(.noData)
       return
@@ -218,19 +221,20 @@ extension FeederContext {
             fetchCompletionHandler?(.newData)
             return
           }
-          self.log("Download Compleete Issue: \(sissue.date.short)")
-          
-          self.dloader.createIssueDir(issue: issue)
-          Notification.receive("issue"){ notif in
-            ///ensure the issue download comes from here!
-            guard let downloaded = notif.object as? Issue else { return }
-            guard downloaded.date.short == issue.date.short else { return }
-            LocalNotifications.notifyNewIssue(issue: sissue, feeder: self.gqlFeeder)
-            #warning("KILL SWITCH due 2nd call on receive issue!")
-            fetchCompletionHandler?(.newData)//2nd Time Call!
-          }
           
           if self.autoloadNewIssues {
+            ///ensure fetchCompletionHandler is called once only!
+            var _fetchCompletionHandler = fetchCompletionHandler
+            self.log("Download Compleete Issue: \(sissue.date.short)")
+            self.dloader.createIssueDir(issue: issue)
+            Notification.receive("issue"){ notif in
+              ///ensure the issue download comes from here!
+              guard let downloaded = notif.object as? Issue else { return }
+              guard downloaded.date.short == issue.date.short else { return }
+              LocalNotifications.notifyNewIssue(issue: sissue, feeder: self.gqlFeeder)
+              _fetchCompletionHandler?(.newData)
+              _fetchCompletionHandler = nil
+            }
             self.downloadCompleteIssue(issue: sissue, isAutomatically: true)
           }
           else {
