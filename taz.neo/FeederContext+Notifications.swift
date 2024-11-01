@@ -118,6 +118,11 @@ extension FeederContext {
                                 fetchCompletionHandler: FetchCompletionHandler?) {
     log("Handle new Article Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
     log("pn: \(pn) ")
+    if Defaults.specialArticleSystemSetting == false {
+      log("do not notify user, deactivated")
+      fetchCompletionHandler?(.noData)
+      return
+    }
     guard let data = payload.articlePushData else {
       fetchCompletionHandler?(.noData)
       return
@@ -143,8 +148,9 @@ extension FeederContext {
     ///**ENSURE INTERNAL USERS DID NOT HANDLE SILENT PN ABO POLL ...App may crash in BG State**
     ///but its still testable if app would crash for the changed code, just by turn on autodownload
     if self.autoloadNewIssues == false
-    || App.isAvailable(.AUTODOWNLOAD) == false {
-      log("Currently not handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
+        || App.isAvailable(.AUTODOWNLOAD) == false
+        || Defaults.newIssueSystemSetting == false {
+      log("Do not handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
       fetchCompletionHandler?(.noData)
       return
     }

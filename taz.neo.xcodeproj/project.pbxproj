@@ -47,6 +47,7 @@
 		7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
 		771D01022CC7974A00261F48 /* StoreBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 771D01012CC7974A00261F48 /* StoreBusiness.swift */; };
+		772D9C7D2CD3DE250092EB28 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 772D9C7C2CD3DE250092EB28 /* Settings.bundle */; };
 		7731389B2CA4968800A0237A /* ArticleExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7731389A2CA4968800A0237A /* ArticleExportDialogue.swift */; };
 		7731389C2CA4968800A0237A /* ArticleExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7731389A2CA4968800A0237A /* ArticleExportDialogue.swift */; };
 		7731CA412B60238B00EE8600 /* bookmarks-taz.css in Resources */ = {isa = PBXBuildFile; fileRef = 7731CA402B60238B00EE8600 /* bookmarks-taz.css */; };
@@ -334,6 +335,7 @@
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
 		771D01012CC7974A00261F48 /* StoreBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreBusiness.swift; sourceTree = "<group>"; };
+		772D9C7C2CD3DE250092EB28 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = SOURCE_ROOT; };
 		7731389A2CA4968800A0237A /* ArticleExportDialogue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleExportDialogue.swift; sourceTree = "<group>"; };
 		7731CA402B60238B00EE8600 /* bookmarks-taz.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-taz.css"; sourceTree = "<group>"; };
 		7731CA422B60239D00EE8600 /* bookmarks-lmd.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "bookmarks-lmd.css"; sourceTree = "<group>"; };
@@ -688,6 +690,7 @@
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
 				00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */,
 				779DE96026FA3D790056187B /* SettingsVC.swift */,
+				772D9C7C2CD3DE250092EB28 /* Settings.bundle */,
 				77AB6B042A02653000C42712 /* NotificationsView.swift */,
 			);
 			path = ViewController;
@@ -997,6 +1000,7 @@
 				080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */,
 				AEB935342917E81F000330DA /* StarFilled.svg in Resources */,
 				AEBAF572219ACD1A00566205 /* LaunchScreen.storyboard in Resources */,
+				772D9C7D2CD3DE250092EB28 /* Settings.bundle in Resources */,
 				AEF877ED282BC47400FD51CD /* Trash.svg in Resources */,
 				AEBAF56F219ACD1A00566205 /* Assets.xcassets in Resources */,
 				7731CA412B60238B00EE8600 /* bookmarks-taz.css in Resources */,

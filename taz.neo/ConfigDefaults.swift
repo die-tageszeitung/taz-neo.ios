@@ -97,7 +97,15 @@ private let configValuesLMD = [
 extension Defaults {
   ///Provide getter only
   public static var isTextNotification:Bool { Defaults.singleton["isTextNotification"]!.bool }
-
+  
+  public static var newIssueSystemSetting:Bool {
+    UserDefaults.standard.bool(forKey: "newIssueSystemSetting")
+  }
+  
+  public static var specialArticleSystemSetting:Bool {
+    UserDefaults.standard.bool(forKey: "specialArticleSystemSetting")
+  }
+  
   ///Helper to get current server from user defaults
   static var expiredAccountDate : Date? {
     get {

@@ -335,6 +335,22 @@ class TazAppEnvironment: NSObject, DoesLog {
     debug("\(intro)\(str)")
   }
   
+  func logRelevantSettings() {
+    let settings = """
+        Current app settings for diagnostics - some values may have changed!
+        ---
+        newIssueSystemSetting: \(Defaults.newIssueSystemSetting)
+        specialArticleSystemSetting: \(Defaults.specialArticleSystemSetting)
+        autoloadNewIssues: \(Defaults.singleton["autoloadNewIssues"] ?? "-")
+        autoloadOnlyInWLAN: \(Defaults.singleton["autoloadOnlyInWLAN"] ?? "-")
+        App.isAvailable(.AUTODOWNLOAD): \(App.isAvailable(.AUTODOWNLOAD))
+        ---
+        voiceoverControls: \(Defaults.singleton["voiceoverControls"] ?? "-")
+        smartBackFromArticle: \(Defaults.singleton["smartBackFromArticle"] ?? "-")
+    """
+    self.log(settings)
+  }
+  
   func logSystemEvents() {
     
     NotificationCenter.default.addObserver(forName: NSNotification.Name.NSProcessInfoPowerStateDidChange,
@@ -455,7 +471,7 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil, screenshot: UIImage? = nil) {
     isErrorReporting = true //No Check here to ensure error reporting is available at least from settings
-    
+    logRelevantSettings()
     FeedbackComposer.showWith(logData: fileLogger.mem?.data,
                               screenshot: screenshot,
                               feederContext: self.feederContext,

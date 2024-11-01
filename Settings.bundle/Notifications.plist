@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Title</key>
+	<string>Benachrichtigungskategorien</string>
+	<key>PreferenceSpecifiers</key>
+	<array>
+        <dict>
+            <key>Type</key>
+            <string>PSGroupSpecifier</string>
+			<key>FooterText</key>
+            <string>Wählen Sie aus, bei welchen Ereignissen Sie informiert werden möchten. Je nach Ihren Mitteilungs- und Fokus-Einstellungen (z. B. „Nicht stören“) oder Stummschaltungsoptionen, erhalten Sie Benachrichtigungen in Form von Tönen oder Hinweisen.</string>
+        </dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Besonderer Artikel</string>
+			<key>Key</key>
+			<string>specialArticleSystemSetting</string>
+			<key>DefaultValue</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Neue Ausgabe</string>
+			<key>Key</key>
+			<string>newIssueSystemSetting</string>
+			<key>DefaultValue</key>
+			<true/>
+		</dict>
+	</array>
+</dict>
+</plist>
