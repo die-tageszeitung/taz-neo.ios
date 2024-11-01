@@ -28,7 +28,6 @@ class PwForgottController: FormsController {
     ui.idInput.text = id
     ui.idInput.autocapitalizationType = .none
     ui.submitButton.touch(self, action: #selector(handleSubmit))
-    ui.cancelButton.touch(self, action: #selector(handleBack))
   }
   
   // MARK: handleSend

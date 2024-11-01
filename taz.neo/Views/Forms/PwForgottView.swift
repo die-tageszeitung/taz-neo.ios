@@ -15,17 +15,15 @@ public class PwForgottView : FormView{
                              keyboardType: .emailAddress,
                              autocapitalizationType: .none)
   var submitButton =  Padded.Button(title: Localized("login_forgot_password_send"))
-  var cancelButton =  Padded.Button(type:.outline, title: Localized("cancel_button"))
   var introLabel = Padded.Label(title: Localized("login_forgot_password_header"))
   
   override func createSubviews() -> [UIView] {
-    var spacer = UIView()
+    let spacer = UIView()
     spacer.pinHeight(100)///quickfix: modally pushed Result Screen was too small
     return  [
       introLabel,
       idInput,
       submitButton,
-      cancelButton,
       spacer
     ]
   }
