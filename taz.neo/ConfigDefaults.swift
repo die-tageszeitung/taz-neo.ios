@@ -78,6 +78,7 @@ private let configValues = [
   "columnCountLandscape": "3",
   "articleLineLengthAdjustment": "0",
   "multiColumnOnboardingAnswered" : "false",
+  "multiColumnFixedScrolling" : "true",
 ]
 
 private let configValuesLMD = [
