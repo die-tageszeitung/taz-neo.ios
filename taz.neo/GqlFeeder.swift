@@ -1480,54 +1480,71 @@ extension GqlFeeder {
 }
 
 extension FeederError {
-  /// Feeder has flagged an error
+  /// Handles feeder errors by triggering the appropriate UI alert or action.
   func handle() {
-    let currentFeederErrorReason
-    = TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
-    //prevent multiple appeariance of the same alert
+    let currentFeederErrorReason = TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
+    
+    // Prevent multiple appearances of the same alert
     if let curr = currentFeederErrorReason, curr === self {
-      ///not refactor and add closures to alert cause in case of later changes/programming errors may
-      ///lot of similar closure calls added and may result in other errors e.g. multiple times of calling getOwvIssue...
-      Log.log("Closure not added"); return
+      // Avoid adding closures to prevent redundant calls and possible errors
+      // (e.g., multiple invocations of getOwvIssue).
+      Log.log("Closure not added")
+      return
     }
+    
     Log.debug("handleFeederError for: \(self)")
-    TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
-    = self
+    TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason = self
     var text = ""
+    var additionalActions: [UIAlertAction]? = nil
+    
     switch self {
       case .expiredAccount:
-        text = "Ihr Abonnement ist am \(self.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        text = "Ihr Abonnement ist am \(self.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen, melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        
+        // Show the alert only once after expiration
         if Defaults.expiredAccountDate != nil {
-          return //dont show popup on each start
+          return
         }
+        
         if Defaults.expiredAccountDate == nil {
-          Defaults.expiredAccountDate =  self.expiredAccountDate ?? Date()
+          Defaults.expiredAccountDate = self.expiredAccountDate ?? Date()
         }
+        
+        // Update the subscription status and attempt re-authentication
         TazAppEnvironment.sharedInstance.feederContext?.updateSubscriptionStatus { _ in
           TazAppEnvironment.sharedInstance.feederContext?.authenticator.authenticate(with: nil)
         }
-        return; //Prevent default Popup
+        return // Prevent default alert popup
+
       case .invalidAccount:
         text = "Ihre Kundendaten sind nicht korrekt."
         fallthrough
+
       case .changedAccount:
         let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder
         text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
         Log.debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == gqlFeeder?.authToken) 4ses: \(gqlFeeder?.gqlSession?.authToken == gqlFeeder?.authToken)")
         
-        TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true,
-                                                        resetAppState: false)
+        let loginAction = UIAlertAction(title: "Anmelden", style: .default) { _ in
+          TazAppEnvironment.sharedInstance.feederContext?.authenticator.authenticate(with: nil)
+        }
+        additionalActions = [loginAction]
+        
+        // Log out and clear user data while keeping the app state
+        TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true, resetAppState: false)
+
       case .unexpectedResponse:
-        Alert.message(title: "Fehler",
-                      message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
+        Alert.message(title: "Fehler", message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
           exit(0)
         }
-      case .minVersionRequired: break
+
+      case .minVersionRequired:
+        break
     }
-    Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: {
-      ///Do not authenticate here because its not needed here e.g.
-      /// expired account due probeabo, user may not want to auth again
-      /// additionally it makes more problems currently e.g. Overlay may appear and not disappear
+    
+    // Display the error alert with additional actions if applicable
+    Alert.message(title: "Fehler", message: text, additionalActions: additionalActions, closure: {
+      // Reset the error reason; avoid re-authenticating to prevent overlay issues, especially with expired accounts.
       TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason = nil
     })
   }
