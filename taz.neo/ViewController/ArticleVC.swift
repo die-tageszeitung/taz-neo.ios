@@ -350,7 +350,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
                                                        style: .default ){ [weak self] _ in
           self?.feederContext.authenticate()
         })
-      } else if let art = self.article {
+      } else {
         exportArticle()
       }
     }
