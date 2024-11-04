@@ -61,7 +61,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     image.waitingImage = UIImage(contentsOfFile: "\(path)/\(normal.fileName)")
     if let high = pair.high {
       image.imageEntry = high
-      delegate.dloader.downloadIssueFiles(from: content.baseURL, 
+      delegate.dloader.downloadIssueFiles(from: (content as? SearchArticle)?.originalIssueBaseURL ?? content.baseURL,
         to: content.dir, files: [high])
       { [weak self] err in
         if err == nil { 
