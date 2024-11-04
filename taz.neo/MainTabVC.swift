@@ -279,6 +279,10 @@ extension MainTabVC {
       let firstVc = tabNav.viewControllers.first
       let vcCount = tabNav.viewControllers.count
       if let home = firstVc as? HomeTVC {
+        ///if full issue > text settngs > settings > login no more refresh data will appear for compleete issue
+        if (tabNav.viewControllers.valueAt(1) as? SectionVC)?.issue.isComplete == true {
+          continue
+        }
         if vcCount > 1 { reloadTargets.append(home)}
       }
       else if let search = firstVc as? SearchController{
