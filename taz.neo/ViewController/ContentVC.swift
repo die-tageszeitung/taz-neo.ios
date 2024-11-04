@@ -223,7 +223,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var textSettingsClosure: ((ContentVC)->())?
   public var shareButton = Button<ImageView>()
   private var shareClosure: ((ContentVC)->())?
-  private var imageOverlay: Overlay?
+  private var imageOverlay: Overlay? {
+    didSet {
+      currentWebView?.suppressLinkPressedNotification = imageOverlay != nil
+    }
+  }
   
   var isImageOverlay:Bool{
     return imageOverlay != nil
@@ -520,7 +524,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         self.imageOverlay?.onClose {[weak self] in
           // reset orientation to portrait //no negative effect on iPad
           UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-          self?.imageOverlay = nil
+          ///delay until the rotation has been propagated
+          onMainAfter(1.42) {[weak self] in self?.imageOverlay = nil }
         }
         imgVC.toClose {[weak self] in
           self?.imageOverlay?.close(animated: true, toBottom: true)
@@ -969,6 +974,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func updateWebwiews(){
+    if isImageOverlay { return }
     writeTazApiCss {[weak self] in
       self?.reloadLoaded = true
       self?.reloadAllWebViews()
