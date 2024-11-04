@@ -181,7 +181,7 @@ extension NotificationBusiness {
     }
     
     // Earlier user choice to ignore notifications
-    guard Defaults.notificationsActivationPopupRejectedDate != nil else {
+    guard Defaults.notificationsActivationPopupRejectedDate == nil else {
       return
     }
     
