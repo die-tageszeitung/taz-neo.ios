@@ -11,7 +11,7 @@ import NorthLib
 
 class CoachmarkView: UIView {
 
-  fileprivate var closeClosure: (()->())? = nil
+  fileprivate(set)var closeClosure: (()->())? = nil
   public func onClose(closure: @escaping ()->()) {
     closeClosure = closure
   }

@@ -360,6 +360,7 @@ public class CoachmarksBusiness: DoesLog{
   }
   
   var currentActiveCMVC: CoachmarkVC?
+  var currentCoachmarkView: CoachmarkView?
   
   func showCoachmark(sender: CoachmarkVC, target: UIView?, item: CoachmarkItem, alternativeTarget: (UIImage, [UIView], [CGPoint])? = nil) {
     guard let window = UIApplication.shared.delegate?.window else { return }
@@ -383,6 +384,7 @@ public class CoachmarksBusiness: DoesLog{
       let cv = CoachmarkView(target: target, item: item, alternativeTarget: alternativeTarget)
       cv.alpha = 0.0
       window?.addSubview(cv)
+      self?.currentCoachmarkView = cv
       
       UIView.animate(withDuration: 0.7,
                      delay: 0,
@@ -412,6 +414,7 @@ public class CoachmarksBusiness: DoesLog{
                         })
         self?.setShown(item: cv.item)
         self?.currentActiveCMVC = nil
+        self?.currentCoachmarkView = nil
       }
     }
   }

@@ -139,6 +139,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   }
   
   func gotoArticleInIssue(article: Article){
+    CoachmarksBusiness.shared.currentCoachmarkView?.closeClosure?()
     if let art = article as? SearchArticle {
       self.openArticleFromSearch(article: art)
       return
