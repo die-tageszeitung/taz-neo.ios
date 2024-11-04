@@ -81,8 +81,10 @@ class LoginController: FormsController {
   }
   
   func handlePwForgot() {
-    modalFromBottom(PwForgottController(id: ui.idInput.text?.trimed,
-                                  auth: auth))
+    let pwReset = PwForgottController(id: ui.idInput.text?.trimed,
+                                      auth: auth)
+    pwReset.fromLogin = true
+    modalFromBottom(pwReset)
   }
   func handleWhereIsTheAboId() {
     let faqAction = self.ui.openFaqAction()

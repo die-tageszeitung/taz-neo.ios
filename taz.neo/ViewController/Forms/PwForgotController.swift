@@ -13,6 +13,7 @@ import NorthLib
 // MARK: - PwForgottController
 class PwForgottController: FormsController {
   private var contentView = PwForgottView()
+  var fromLogin = false
   override var ui : PwForgottView { get { return contentView }}
   var childDismissType:dismissType?
   /**
@@ -91,7 +92,7 @@ class PwForgottController: FormsController {
           switch info {
             case .ok:
               self.updateParentIfApplyable(id)
-              let ctrl = PasswordResetRequestedSuccessController()
+              let ctrl = PasswordResetRequestedSuccessController(fromLogin: fromLogin)
               if let cdt = self.childDismissType { ctrl.dismissType = cdt}
               self.modalFromBottom(ctrl)
             case .invalidMail:
@@ -130,7 +131,7 @@ class PwForgottController: FormsController {
 
 // MARK: - PasswordResetRequestedSuccessController
 class PasswordResetRequestedSuccessController: MailFormController {
-  init(){
+  init(fromLogin:Bool){
     super.init(nibName: nil, bundle: nil)
     self.dismissType = .two
     let mailLabel = Padded.Label(title: Localized("digiabo_email"))
@@ -139,7 +140,8 @@ class PasswordResetRequestedSuccessController: MailFormController {
     
     ui.views =  [
       Padded.Label(title: Localized("forgot_password_email_sent_top")),
-      Padded.Button(title: Localized("login_forgot_password_email_sent_back"),
+      Padded.Button(title: fromLogin ? Localized("login_forgot_password_email_sent_back")
+                                     : Localized("back_button"),
                     target: self,
                     action: #selector(handleBack)),
       Padded.Label(title: Localized("forgot_password_email_sent_bottom")),
