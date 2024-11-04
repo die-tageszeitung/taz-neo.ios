@@ -132,6 +132,13 @@ public class NewContentTableVC: UIViewController {
     }
   }
   
+  var audioPlaybackStateChangedObserver:Notification.Observer? {
+    didSet {
+      guard let old = oldValue else { return }
+      Notification.remove(observer: old)
+    }
+  }
+  
   var feeder:Feeder?
   var image:UIImage? { didSet { header.image = image }}
   var issue:Issue? {
@@ -230,11 +237,21 @@ extension NewContentTableVC {
     pin(tableView, to: self.view, exclude: .top)
     pin(tableView.top, to: header.bottom)
     
+    audioPlaybackStateChangedObserver =
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+      ///prevent crash bug; better remove observer
+      ///if ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey == nil { return }
       self?.header.listenIconActive =
       ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey
       == self?.issue?.date.issueKey
     }
+  }
+  
+  func releaseOnDisappear(){
+    feeder = nil
+    issue = nil
+    image = nil
+    audioPlaybackStateChangedObserver = nil
   }
   
   public override func viewWillAppear(_ animated: Bool) {

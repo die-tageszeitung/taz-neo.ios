@@ -263,6 +263,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     settingsBottomSheet = nil
     slider = nil
     textSettingsVC = nil
+    contentTable?.releaseOnDisappear()
     contentTable = nil
     super.releaseOnDisappear()
   }
