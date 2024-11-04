@@ -1495,6 +1495,7 @@ extension FeederError {
     Log.debug("handleFeederError for: \(self)")
     TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason = self
     var text = ""
+    var buttonTitle:String? = nil
     var additionalActions: [UIAlertAction]? = nil
     
     switch self {
@@ -1523,13 +1524,13 @@ extension FeederError {
       case .changedAccount:
         let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder
         text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
+        buttonTitle = "Abbrechen"
         Log.debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == gqlFeeder?.authToken) 4ses: \(gqlFeeder?.gqlSession?.authToken == gqlFeeder?.authToken)")
         
-        let loginAction = UIAlertAction(title: "Anmelden", style: .default) { _ in
+        let loginAction = UIAlertAction(title: "Anmelden", style: .default) { _ in ///OK/ABbrechen already has cancel 2 will crash
           TazAppEnvironment.sharedInstance.feederContext?.authenticator.authenticate(with: nil)
         }
         additionalActions = [loginAction]
-        
         // Log out and clear user data while keeping the app state
         TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true, resetAppState: false)
 
@@ -1543,7 +1544,7 @@ extension FeederError {
     }
     
     // Display the error alert with additional actions if applicable
-    Alert.message(title: "Fehler", message: text, additionalActions: additionalActions, closure: {
+    Alert.message(title: "Fehler", message: text, additionalActions: additionalActions, buttonTitle: buttonTitle, closure: {
       // Reset the error reason; avoid re-authenticating to prevent overlay issues, especially with expired accounts.
       TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason = nil
     })
