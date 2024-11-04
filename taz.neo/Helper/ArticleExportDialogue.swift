@@ -503,6 +503,20 @@ extension ArticleExportDialogueItemSource: UIDocumentPickerDelegate {
 extension ContentVC:ArticleExportDialogueDelegate {
   ///create printable pdf from current webviev content
   public func createPDFfromWebView(for article: Article) {
+    ///Leseliste
+    if article.html?.fileName != currentWebView?.originalUrl?.lastPathComponent,
+       let bmc = self as? BookmarkSectionVC
+    {
+      bmc.showArticle(article, animated: false)
+      onMainAfter {[weak self] in
+        guard let cvc = self?.navigationController?.viewControllers.last
+                as? ContentVC else { return }
+        cvc.createPDFfromWebView(for: article)
+        cvc.navigationController?.popViewController(animated: false)
+      }
+      return
+    }
+    
     guard let printFormatter = currentWebView?.viewPrintFormatter() else {
       return
     }
