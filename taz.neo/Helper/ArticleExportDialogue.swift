@@ -503,6 +503,7 @@ extension ArticleExportDialogueItemSource: UIDocumentPickerDelegate {
 extension ContentVC:ArticleExportDialogueDelegate {
   ///create printable pdf from current webviev content
   public func createPDFfromWebView(for article: Article) {
+    let contentOffset:CGPoint = currentWebView?.scrollView.contentOffset ?? .zero
     ///Leseliste
     if article.html?.fileName != currentWebView?.originalUrl?.lastPathComponent,
        let bmc = self as? BookmarkSectionVC
@@ -561,6 +562,12 @@ extension ContentVC:ArticleExportDialogueDelegate {
       try pdfData.write(to: article.generatedArticlePdfTargetURL)
     } catch {
       log("Fehler beim Speichern des PDFs: \(error.localizedDescription)")
+    }
+    
+    guard contentOffset.x > 10.0 else { return }
+    ///fix scrollOffset for MultiCloumn View
+    onMainAfter(2.0) {[weak self] in
+      self?.currentWebView?.scrollView.setContentOffset(contentOffset, animated: false)
     }
   }
 }
