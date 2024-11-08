@@ -280,8 +280,15 @@ extension MainTabVC {
       let vcCount = tabNav.viewControllers.count
       if let home = firstVc as? HomeTVC {
         ///if full issue > text settngs > settings > login no more refresh data will appear for compleete issue
-        guard let issue = (tabNav.viewControllers.valueAt(1) as? SectionVC)?.issue else { continue }
-        if feederContext.needsUpdate(issue: issue, toShowPdf: home.isFacsimile) == false { continue }
+        if let issue = (tabNav.viewControllers.valueAt(1) as? SectionVC)?.issue,
+           feederContext.needsUpdate(issue: issue, toShowPdf: false) == false {
+          continue
+        }
+        else if let issue = (tabNav.viewControllers.valueAt(1) as? TazPdfPagesViewController)?.issue,
+           feederContext.needsUpdate(issue: issue, toShowPdf: true) == false {
+          continue
+        }
+        ///Facsimile/PDF View or Article/Section VC wich need Update
         if vcCount > 1 { reloadTargets.append(home)}
       }
       else if let bookmarks = tabNav as? BookmarkNC {
