@@ -28,6 +28,9 @@ protocol PushIssueDelegate {
 }
 
 extension HomeTVC: CoachmarkVC {
+  
+  public var preventCoachmark: Bool { return preventCoachmarkOnNextAppear }
+  
   var viewName: String { Coachmarks.IssueCarousel.typeName }
   
   public func targetView(for item: CoachmarkItem) -> UIView? {
@@ -69,6 +72,8 @@ class HomeTVC: UITableViewController {
   var voiceoverControls: Bool
   
   private var dataPolicyToast: NewInfoToast?
+  
+  var preventCoachmarkOnNextAppear: Bool = false
   
   #warning("Refactor ContentVC should hold it's IssueInfo Reference")
   ///Needed because ContentVC did not has a strong reference to its IssueInfo Object
@@ -259,6 +264,7 @@ class HomeTVC: UITableViewController {
       togglePdfButton.isHidden = true
     #endif
     super.viewWillDisappear(animated)
+    preventCoachmarkOnNextAppear = false
   }
   
   public override func viewDidAppear(_ animated: Bool) {
@@ -712,6 +718,7 @@ extension HomeTVC {
 
 extension HomeTVC: ReloadAfterAuthChanged {
   public func reloadOpened(){
+    preventCoachmarkOnNextAppear = true ///reverted in: viewWillDisappear fixes Login reload..
     guard let selectedIssue = self.issueInfo?.issue as? StoredIssue else { return }
     navigationController?.popToRootViewController(animated: false)
     if selectedIssue.isDownloading == false {
