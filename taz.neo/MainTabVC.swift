@@ -280,10 +280,12 @@ extension MainTabVC {
       let vcCount = tabNav.viewControllers.count
       if let home = firstVc as? HomeTVC {
         ///if full issue > text settngs > settings > login no more refresh data will appear for compleete issue
-        if (tabNav.viewControllers.valueAt(1) as? SectionVC)?.issue.isComplete == true {
-          continue
-        }
+        guard let issue = (tabNav.viewControllers.valueAt(1) as? SectionVC)?.issue else { continue }
+        if feederContext.needsUpdate(issue: issue, toShowPdf: home.isFacsimile) == false { continue }
         if vcCount > 1 { reloadTargets.append(home)}
+      }
+      else if let bookmarks = tabNav as? BookmarkNC {
+        if vcCount > 1 { reloadTargets.append(bookmarks)}
       }
       else if let search = firstVc as? SearchController{
         if search.currentState == .result { reloadTargets.append(search)}
