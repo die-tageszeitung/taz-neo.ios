@@ -707,6 +707,17 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     bookmarkButton.onTapping {[weak self] _ in
       Usage.track(Usage.event.drawer.action_tap.Bookmark)
       self?.article?.hasBookmark.toggle()
+      let msg
+      = self?.article?.hasBookmark == true
+      ? "Der Artikel wurde in ihrer Leseliste gespeichert."
+      : "Der Artikel wurde aus ihrer Leseliste entfernt."
+      let txt
+      = self?.article?.title != nil
+      ? "<h3>\(self?.article?.title ?? "")</h3>\(msg)"
+      : msg
+      onMainAfter(0.1) {///delay otherwise tap will also trigger link/item tapped and open articel
+        Toast.show(txt, minDuration: 0)
+      }
     }
     
     return v
