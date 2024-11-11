@@ -276,6 +276,7 @@ class HomeTVC: UITableViewController {
     self.carouselController.showScrollDownAnimationIfNeeded()
     scroll(up: wasUp)
     Rating.homeAppeared()
+    _ = StoreBusiness.canRegister///initially check App Store
   }
   
  @objc private func updateAccessibillityHelper(){
@@ -667,7 +668,6 @@ extension HomeTVC {
       showCoachmarkIfNeeded()
       return
     }
-    _ = StoreBusiness.canRegister///initially check App Store
     guard let image = UIImage(named: "BundledResources/UsagePopover.png")else {
       log("Bundled UsagePopover.png not found!")
       return
