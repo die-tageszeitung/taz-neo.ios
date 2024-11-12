@@ -408,7 +408,8 @@ extension ArticleVC {
   private static var dialogAlreadyShown = false
   
   func showMultiColumnOnboardingIfNeeded(){
-    guard self.issue.isReduced == false else { return }
+    ///issue comes from delegate and may be unset on deinit; so check it before use it
+    guard self.delegate != nil, self.issue.isReduced == false else { return }
     guard multiColumnOnboardingAnswered == false else { return }
     guard Device.isIpad else { return }
     guard UIDevice.isLandscape else { return }
