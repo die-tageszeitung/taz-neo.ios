@@ -25,10 +25,13 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
   private lazy var headerPlayButton: Button<ImageView> = {
     let btn = Button<ImageView>()
     btn.onTapping { [weak self] _ in
-      guard let sissue = self?.delegate.issue as? BookmarkIssue else { return }
-      ArticlePlayer.singleton.play(issue: sissue,
+      guard let issue = self?.delegate.issue,
+              issue.isBookmarkIssue == true else { return }
+      ///do not lopad bookmark issue!
+      ArticlePlayer.singleton.play(issue: issue,
                                    startFromArticle: nil,
-                                   enqueueType: .replaceCurrent)
+                                   enqueueType: .replaceCurrent,
+                                   loadIssueIfNeeded: false)
     }
     btn.pinSize(CGSize(width: 36, height: 36))
     btn.hinset = 0.1//20%
@@ -81,7 +84,7 @@ open class BookmarkSectionVC: SectionVC, ContextMenuItemPrivider {
         """
         wv.jsexec(js)
       }
-      (self.delegate as? BookmarkNC)?.reloadIfNeeded(article: article)
+//      (self.delegate as? BookmarkNC)?.reloadIfNeeded(article: article)
     }
   }
   

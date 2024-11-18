@@ -179,7 +179,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       }
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
-      if self.issue is BookmarkIssue == false {
+      if !self.issue.isBookmarkIssue {
         LastReadBusiness.persist(lastArticle: art, page: nil, in: self.issue)
       }
       let player = ArticlePlayer.singleton

@@ -211,7 +211,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     let homeNc = NavigationController(rootViewController: home)
     homeNc.isNavigationBarHidden = true
     
-    let bookmarksNc = BookmarkNC(feederContext: feederContext)
+    let bookmarksNc = BookmarkNC()
     bookmarksNc.title = "Leseliste"
     bookmarksNc.tabBarItem.image = UIImage(named: "star")
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
@@ -291,9 +291,9 @@ extension MainTabVC {
         ///Facsimile/PDF View or Article/Section VC wich need Update
         if vcCount > 1 { reloadTargets.append(home)}
       }
-      else if let bookmarks = tabNav as? BookmarkNC {
-        if vcCount > 1 { reloadTargets.append(bookmarks)}
-      }
+//      else if let bookmarks = tabNav as? BookmarkNC {
+//        if vcCount > 1 { reloadTargets.append(bookmarks)}
+//      }
       else if let search = firstVc as? SearchController{
         if search.currentState == .result { reloadTargets.append(search)}
       }

@@ -188,7 +188,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
                                              idx: cidx)
     let isMonthly = service.feed.cycle == .monthly
     let txt = isMonthly ? data.date.date.gMonthYear(tz: GqlFeeder.tz) :
-                          data.date.validityDateText(timeZone: GqlFeeder.tz, short: true)
+                          data.date.validityDateText(short: true)
     let newKey = data.date.date.issueKey
     if force || newKey != centerIssueDateKey {
       downloadButton.indicator.downloadState = data.downloadState
