@@ -578,7 +578,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     self.bridge?.addfunc("getBookmarks") { [weak self] jscall in
       guard let _ = self else { return NSNull() }
-      let arts = StoredArticle.bookmarkedArticles()
+      let arts = Bookmarks.shared.bookmarkSection?.articles ?? []
       var names: [String] = []
       for a in arts { names += a.html?.name.nonPublic() ?? "-" }
       return names
