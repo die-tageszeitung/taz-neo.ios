@@ -1040,16 +1040,6 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.teaser }
     set { pr.teaser = newValue }
   }
-  //  public var hasBookmark: Bool {
-  //    get { pr.hasBookmark }
-  //    set {
-  //      let old = pr.hasBookmark
-  //      setBookmark(newValue)
-  //      if old != newValue {
-  //        Notification.send(Const.NotificationNames.bookmarkChanged, content: sections, sender: self)
-  //      }
-  //    }
-  //  }
   
   public var serverId: Int? {
     get { return pr.serverId != 0 ? Int(pr.serverId) : nil }
