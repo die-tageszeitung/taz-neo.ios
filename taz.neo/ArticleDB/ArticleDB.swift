@@ -933,6 +933,7 @@ public final class StoredAuthor: Author, StoredObject {
 /// also: PersistentSection, PersistentArticle
 extension PersistentContent: PersistentObject {
   public override func prepareForDeletion() {
+    super.prepareForDeletion()
     for case let img as PersistentImageEntry in self.images ?? []{
       if img.imageContent?.count == 1,
          (img.imageContent ?? []).allObjects.first as? PersistentContent == self,
@@ -953,6 +954,7 @@ extension PersistentAudio {
 
 extension PersistentArticle {
   public override func prepareForDeletion() {
+    super.prepareForDeletion()
     if audioItem?.referencesCount == 1 {
       debug("Delete AutioItem due last Reference")
       audioItem?.delete()
@@ -1625,11 +1627,6 @@ public final class StoredSection: Section, StoredObject {
     else { return defaultBaseURL }
   }
   
-  public var issueDate: Date {
-    if let d = pr.issueDate { return d }
-    else { return defaultIssueDate }
-  }
-  
   public var sectionTitle: String? { return pr.sectionTitle }
   
   public var images: [ImageEntry]? { StoredImageEntry.imagesInSection(section: self) }
@@ -1852,7 +1849,14 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   
 } //StoredPublicationDate
 
-extension PersistentIssue: PersistentObject {}
+extension PersistentIssue: PersistentObject {
+  public override func prepareForDeletion() {
+    super.prepareForDeletion()
+    ///Store Moment at PublicationDate to use it with Bookmarked Articles
+    guard self.moment?.bookmarkedArticles?.count ?? 0 == 0 else { return }
+    self.moment?.delete()
+  }
+}
 
 
 
@@ -1861,6 +1865,10 @@ extension StoredIssue: Equatable {
     return lhs.date == rhs.date
   }
 }
+
+//extension Issue {
+//  var isBookmarkIssue: Bool { return self.baseUrl == StoredIssue.bookmarkUrl }
+//}
 
 /// A stored Issue
 public final class StoredIssue: Issue, StoredObject {
@@ -2247,9 +2255,20 @@ public final class StoredIssue: Issue, StoredObject {
       Log.log("Prevent crash")
       return;
     }
+    var knownDirs: [String] = []
+    
+    for case let art as StoredArticle in Bookmarks.shared.bookmarkIssue?.allArticles ?? [] {
+      guard let orgIssue =  art.originalMoment?.issue else { continue }
+      knownDirs.append(feed.feeder.issueDir(issue: orgIssue).path)
+    }
     
     if keep <= allIssues.count {
       for issue in allIssues[keep...] {
+        if issue.isBookmarkIssue {
+          let dir = feed.feeder.issueDir(issue: issue)
+          if dir.exists { knownDirs.append(dir.path)}
+          continue
+        }
         if lastCompleeteIssues.contains(issue) { continue }
         if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
         if issue.reduceToOverview() {
@@ -2260,8 +2279,6 @@ public final class StoredIssue: Issue, StoredObject {
     
     guard deleteOrphanFolders else { return }
     Log.log("delete orphan folders")
-    
-    var knownDirs: [String] = []
     
     for issue in lastCompleeteIssues {
       let dir = feed.feeder.issueDir(issue: issue)
