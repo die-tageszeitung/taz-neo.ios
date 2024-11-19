@@ -453,6 +453,19 @@ public final class StoredMoment: Moment, StoredObject {
       pr.firstPage?.moment = pr
     }
   }
+  
+  public var issue: StoredIssue? {
+    get {
+      guard let pIssue = pr.issue else { return nil }
+      return StoredIssue(persistent: pIssue)
+    }
+    set {
+      guard let sIssue = newValue else { return }
+      pr.issue = sIssue.pr
+      pr.issue?.moment = pr
+    }
+  }
+  
   public var facsimile: ImageEntry? { firstPage?.facsimile }
   
   ///will be set on bookmark
@@ -1107,8 +1120,15 @@ public final class StoredArticle: Article, StoredObject {
     }
     return ret
   }
-  /// For now the primary Issue is assumed to be the first one stored
-  public var primaryIssue: Issue? { issues.count > 0 ? issues[0] : nil }
+  /// the primary Issue is assumed to be the first none Bookmark Issue stored
+  /// if there is only the bookmark issue, primary issue is nil
+  /// Former: -For now the primary Issue is assumed to be the first one stored-
+  public var primaryIssue: Issue? {
+    for issue in issues {
+      if issue.isBookmarkIssue == false { return issue }
+    }
+    return nil
+  }
   
   public var dir: Dir {
     guard let sdir = (html as? StoredFileEntry)?.dir
@@ -1233,28 +1253,6 @@ public final class StoredArticle: Article, StoredObject {
     ]
     return get(request: request)
   }
-  
-  /// Return all bookmarked Articles
-  public static func bookmarkedArticles() -> [StoredArticle] {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "hasBookmark = true")
-    var arts: [StoredArticle] = get(request: request)
-    arts.sort {
-      let issue1 = $0.issues[0]//Seen Non reproduceable Crash here
-      let issue2 = $1.issues[0]
-      if issue1.date == issue2.date {
-        let section1 = $0.sections[0]
-        let section2 = $1.sections[0]
-        if section1.pr.order == section2.pr.order {
-          return $0.pr.order < $1.pr.order
-        }
-        else { return section1.pr.order < section2.pr.order }
-      }
-      else { return issue1.date > issue2.date }
-    }
-    return arts
-  }
-  
 } // StoredArticle
 
 extension PersistentFrame: PersistentObject {}
@@ -1726,7 +1724,13 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   public static var entity = "PublicationDate"
   public var pr: PersistentPublicationDate // persistent record
   
-  public var feed: Feed?
+  public var feed: (any Feed)? {
+    get {
+      guard let pFeed = pr.feed else { return nil }
+      return StoredFeed(persistent: pFeed)
+    }
+    set {/*not allowed due circular/endless loop on startup*/}
+  }
   
   public var date: Date {
     get { return pr.date! }
