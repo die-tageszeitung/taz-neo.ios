@@ -49,7 +49,7 @@ class SearchArticle:GqlArticle{
   /// every Article from a search can have a own issue
   /// every issue has a own base url
   /// use this field to transfer the issue base url from serachHit to downloader
-  var originalIssueBaseURL: String?
+  var baseURL: String?
   
   var originalIssueDate: Date?
   

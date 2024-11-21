@@ -128,7 +128,7 @@ extension SearchResultsTableView: UITableViewDelegate {
     }
           )
     // Show Current Cloud Upload Status
-    openIssueAction.backgroundColor = .black
+    openIssueAction.backgroundColor = .systemIndigo
     let swipeConfiguration = UISwipeActionsConfiguration(actions: [openIssueAction])
     return swipeConfiguration
   } // end func leadingSwipeActionsConfigurationForRowAt

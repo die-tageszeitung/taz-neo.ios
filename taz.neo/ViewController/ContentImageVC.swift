@@ -55,13 +55,14 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   
   /// Create a ZoomedImage from a pair of images
   private func zoomedImage(pair: (normal: ImageEntry?, high: ImageEntry?)) -> ZoomedImage? {
-    guard let normal = pair.normal else { return nil }
+    guard let normal = pair.normal,
+          let baseUrl = content.baseURL else { return nil }
     let image = ZoomedImage()
     let path = content.dir.path
     image.waitingImage = UIImage(contentsOfFile: "\(path)/\(normal.fileName)")
     if let high = pair.high {
       image.imageEntry = high
-      delegate.dloader.downloadIssueFiles(from: (content as? SearchArticle)?.originalIssueBaseURL ?? content.baseURL,
+      delegate.dloader.downloadIssueFiles(from: baseUrl,
         to: content.dir, files: [high])
       { [weak self] err in
         if err == nil { 

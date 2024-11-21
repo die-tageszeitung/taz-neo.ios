@@ -9,14 +9,43 @@
 import Foundation
 import NorthLib
 
-class BookmarksIssueInfo: IssueInfo {
+class BookmarksIssueInfo: ArticleVCdelegate, DoesLog {
+  var section: (any Section)?
+  
+  var sections: [any Section] = []///required for header
+  
+  var article: (any Article)?
+  
+  var article2section: [String : [any Section]] = [:]///required for header
+  
+  func displaySection(index: Int) {}
+  
+  public func linkPressed(from: URL?, to: URL?) {
+    guard let to = to else { return }
+    self.debug("Calling application for: \(to.absoluteString)")
+    if UIApplication.shared.canOpenURL(to) {
+      UIApplication.shared.open(to, options: [:], completionHandler: nil)
+    }
+    else {
+      error("No application or no permission for: \(to.absoluteString)")
+    }
+  }
+  
+  func closeIssue() {}
+  
   var feederContext: FeederContext
   var issue: Issue
+  
+  func updateData(){
+    article2section = issue.article2section
+    sections = issue.sections ?? []
+  }
   
   init?(feederContext: FeederContext?, issue: Issue?){
     guard let fc = feederContext, let i = issue else { return nil }
     self.feederContext = fc
     self.issue = i
+    updateData()
   }
 }
 
@@ -36,12 +65,22 @@ public class Bookmarks: DoesLog {
     }
   }
   
-  fileprivate static let bookmarkUrl = "bookmark.issue.local"
+  ///DO not Change stored in Database
+  static let bookmarkUrl = "bookmark.issue.local"
   
   var bookmarkIssue: StoredIssue?
-  var bookmarkSection: StoredSection?
+  var bookmarkSection: StoredSection? {
+    didSet {
+      bookmarkedArticles
+      = bookmarkSection?.articles as? [StoredArticle] ?? []
+    }
+  }
   var feederContext: FeederContext?
-
+  
+  var bookmarkedArticles: [StoredArticle] = []
+  ///probably not different "list" save
+//  private var pendingDeletedArticleServerIds: [Int] = []
+  
   private var _issueInfo: BookmarksIssueInfo?
   var issueInfo: BookmarksIssueInfo? {
     return _issueInfo ?? {
@@ -52,70 +91,109 @@ public class Bookmarks: DoesLog {
     }()
   }
   
-  /// returns true if value changed
-  /// prepared for multiple bookmark lists
-  fileprivate static func set(article: StoredArticle, active: Bool, in list: StoredSection? = nil) {
-    guard has(article: article, in: list) != active else { return }//No Change nothing to do
-    guard let bookmarkSection = list ?? shared.bookmarkSection else {
-      Log.log("Fail to set Bookmark, usually unreachable code")
+  fileprivate func newStored(article: Article) -> StoredArticle {
+    // Create a new StoredArticle and update its details from the given article
+    let storedArticle = StoredArticle.new()
+    storedArticle.update(from: article)
+    return storedArticle
+  }
+  
+  /// Prepares for managing bookmarks across multiple lists
+  fileprivate func set(article: Article, active: Bool, in list: StoredSection? = nil) {
+    // Retrieve the existing bookmarked article, if any
+    let bookmarkedArticle = bookmarkArticle(for: article, in: list)
+    
+    // If the desired state matches the current state, exit early
+    if (bookmarkedArticle == nil && !active) || (bookmarkedArticle != nil && active) {
       return
     }
-    if active {
-      article.pr.addToSections(bookmarkSection.pr)
-      bookmarkSection.pr.addToArticles(article.pr)
-      //only this, is not working due originalMoment is not set yet
-      //article.pr.originalMoment?.addToBookmarkedArticles(article.pr)
-      //addTo...is only available for ...to n relation in a to 1 relation its just asign
-      article.pr.originalMoment = (article.primaryIssue as? StoredIssue)?.pr.moment
-      
-//      AHH WIRD VERMUTLICH BEIM ISSUE LÖSCHEN GELÖSCHT ÜBERPRÜFE IN MODEL UND AM BEISPIEL!
-      
-      ///or the opposite direction:
-//      (article.primaryIssue as? StoredIssue)?.pr.moment?.addToBookmarkedArticles(article.pr)
-      addMomentToPublicationDate(for: article)
+    
+    // Determine the target bookmark section
+    guard let bookmarkSection = list ?? bookmarkSection else {
+      Log.log("Failed to set bookmark. This code should typically not be reachable.")
+      return
     }
-    else {
-      article.pr.removeFromSections(bookmarkSection.pr)
-      bookmarkSection.pr.removeFromArticles(article.pr)
+    
+    if active {
+      // Activate the bookmark
+      let storedArticle = (article as? StoredArticle) ?? newStored(article: article)
+      storedArticle.pr.addToSections(bookmarkSection.pr)
+      bookmarkSection.pr.addToArticles(storedArticle.pr)
+      
+      // Update details from the article's primary issue if available
+      if let issue = storedArticle.primaryIssue as? StoredIssue {
+        if storedArticle.pr.issueDate == nil {
+          storedArticle.pr.issueDate = issue.date
+        }
+        storedArticle.baseURL = issue.baseUrl
+      } else if let sArt = article as? SearchArticle {
+        storedArticle.pr.issueDate = sArt.originalIssueDate
+        storedArticle.baseURL = sArt.baseURL
+      }
+      bookmarkedArticles.append(storedArticle)
+      ArticleDB.save()
+      Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
+      
+      let msg = "Der Artikel wurde in ihrer Leseliste gespeichert."
+      Toast.show("<h3>\(article.title ?? "")</h3>\(msg)")
+    } else if let storedArticle = bookmarkedArticle {
+      removeBookmarked(article: storedArticle, from: bookmarkSection)
+    }
+    
+    // Notify about the bookmark change
+  }
+  
+  private func removeBookmarked(article: StoredArticle, from section: StoredSection){
+    guard let serverId = article.serverId else { return }
+    bookmarkedArticles.removeAll{ $0.serverId == serverId }
+    
+    let completion = { [weak self] wasTapped in
+      if wasTapped {///do not delete
+        self?.bookmarkedArticles.append(article)
+        Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
+        return
+      }
+      // Deactivate the bookmark
+      article.pr.removeFromSections(section.pr)
+      section.pr.removeFromArticles(article.pr)
+      // Remove the stored article if it no longer belongs to any section
       if article.pr.sections?.count == 0 {
         article.delete()
       }
-      if article.pr.originalMoment?.bookmarkedArticles?.count == 1
-          && article.pr.originalMoment?.issue == nil {
-        article.pr.originalMoment?.delete()
-      }
-//      article.pr.removeFromIssues(bookmarkIssue.pr)
-//      bookmarkIssue.pr.removeFromArticles(article.pr)//??
+      ArticleDB.save()
     }
-    Notification.send(Const.NotificationNames.bookmarkChanged,
-                      content: article.sections,
-                      sender: article)
+    let msg = "Der Artikel wurde aus ihrer Leseliste entfernt.<br/>Löschen rückgängig durch Antippen"
+    Toast.show("<h3>\(article.title ?? "")</h3>\(msg)",
+               minDuration: 0,
+               completion: completion)
+    Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
   }
   
-  fileprivate static func addMomentToPublicationDate(for article: StoredArticle){
-    guard let iDate = article.primaryIssue?.date,
-          let moment = article.primaryIssue?.moment as? StoredMoment
-    else { return }
+  fileprivate func setBookmark(for article: Article, in list: StoredSection? = nil, active: Bool) {
+    set(article: article, active: active, in: list)
+  }
     
-    let pDate = article.primaryIssue?.feed.publicationDates?
-      .first{$0.date.issueKey == iDate.issueKey}
-    guard let pDate = pDate as? StoredPublicationDate else { return }
-    pDate.pr.moment = moment.pr
-    article.pr.originalMoment = moment.pr
+  fileprivate func has(article: Article) -> Bool {
+    return bookmarkedArticles.contains{$0.serverId == article.serverId }
+//    }
+//    // Check if the article exists in the specified or default bookmark list
+//    return bookmarkArticle(for: article, in: list) != nil
   }
   
-  /// returns true if is in given list
-  /// prepared for multiple bookmark lists, uses default list if none given
-  fileprivate static func has(article: StoredArticle, in list: StoredSection? = nil) -> Bool {
-    return (list ?? shared.bookmarkSection)?
-      .articles?.contains{$0.serverId == article.serverId } ?? false
+  ///ignoring pending deletions
+  private func bookmarkArticle(for article: Article, in list: Section? = nil) -> StoredArticle? {
+    guard let serverId = article.serverId else { return nil }
+    return bookmarkArticle(forArticleWith: serverId, in: list)
   }
   
-  static func has(article: PersistentArticle, in list: StoredSection? = nil) -> Bool {
-    guard article.serverId != -1 else { return false }
-    return (list ?? shared.bookmarkSection)?
-      .articles?.contains{$0.serverId ?? -1 == article.serverId } ?? false
+  ///ignoring pending deletions
+  private func bookmarkArticle(forArticleWith serverId: Int, in list: Section? = nil) -> StoredArticle? {
+    // Retrieve the specified section or the shared bookmark section
+    let section = list as? StoredSection ?? bookmarkSection
+    // Find the matching article by its server ID
+    return section?.articles?.first { $0.serverId == serverId } as? StoredArticle
   }
+  
   
   //IS STatic required?
   private func bookmarkIssue(in feed: Feed) -> StoredIssue {
@@ -142,12 +220,14 @@ public class Bookmarks: DoesLog {
   
   /// Migrates bookmarks from previously implementation stored as flag of article to the new implementation.
   private func migrateBookmarks() {
-      // Fetch previous bookmarks using previous implementation
-      // Only articles with `hasBookmark` flag are retrieved.
-      let request = StoredArticle.fetchRequest
-      request.predicate = NSPredicate(format: "hasBookmark = true")
-      // Migrate bookmarks by using self.hasBookmark logic to add them to the bookmark issue
-      for article in StoredArticle.get(request: request) { article.hasBookmark = true }
+    // Fetch previous bookmarks using previous implementation
+    // Only articles with `hasBookmark` flag are retrieved.
+    let request = StoredArticle.fetchRequest
+    request.predicate = NSPredicate(format: "hasBookmark = true")
+    // Migrate bookmarks by using self.hasBookmark logic to add them to the bookmark issue
+    for article in StoredArticle.get(request: request) { 
+      set(article: article, active: true)
+    }
   }
   
   //IS STatic required?
@@ -161,7 +241,7 @@ public class Bookmarks: DoesLog {
     let sect = StoredSection.new()
     sect.name = "Leseliste"
     sect.type = .unknown
-//    sect.primaryIssue = issue
+    //    sect.primaryIssue = issue
     
     let bmFilePath = "\(issue.feed.bookmarksDir.path)/\(sect.name).html"
     File(bmFilePath).string = "initial, empty"
@@ -170,11 +250,10 @@ public class Bookmarks: DoesLog {
     issue.pr.addToSections(sect.pr)
     sect.pr.issue = issue.pr
     migrateBookmarks()
-
+    
     return sect
   }
   
-  //IS STatic required?
   private func copyRessourcesIfNeeded(){
     guard let issue = bookmarkIssue else {
       log("Failed to copy, bookmarkIssue is missing.")
@@ -182,25 +261,12 @@ public class Bookmarks: DoesLog {
     }
     let bmDir = issue.feed.bookmarksDir
     if bmDir.exists { return }
-
+    
     bmDir.create()
     let rlink = File(dir: bmDir.path, fname: "resources")
     let glink = File(dir: bmDir.path, fname: "global")
     if !rlink.isLink { rlink.link(to: issue.feed.feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: issue.feed.feeder.globalDir.path) }
-    
-    ///copy both taz and lmd bookmark css, and just use different ones! Switch would be easier
-    ///@see old init BookmarkFeed for prev version
-    var resources = ["bookmarks-ios.js", "Star.svg", "StarFilled.svg",
-                     "Share.svg", "dot-night.svg", "dot-day.svg", "bookmarks-taz-ios.css", "bookmarks-lmd-ios.css"]
-    for f in resources {
-      if let path = Bundle.main.path(forResource: f, ofType: nil) {
-        let base = File.basename(path)
-        let src = File(path)
-        let dest = "\(bmDir.path)/resources/\(base)"
-        src.copyResource(to: dest)
-      }
-    }
   }
   
   func setup(){
@@ -290,7 +356,7 @@ public class DummyMoment: Moment {
 extension File {
   /**
    copies a file to a destination given by its pathname.
-
+   
    self is only copied if it is either newer than the destination file
    (in this case it is an update of a new app version) or the destination
    file is newer than the source file (in this case it has been copied before
@@ -319,18 +385,34 @@ extension File {
 
 fileprivate extension String {
   var authorsFormated: String {
-    #if LMD
+#if LMD
     return self.length > 0 ? self.xmlEscaped().prepend("von ") : ""
-    #else
+#else
     return self.xmlEscaped()
-    #endif
+#endif
+  }
+}
+
+extension Bookmarks {
+  static func toggle(article: Article, in list: StoredSection? = nil){
+    shared.set(article: article, active: !article.hasBookmark, in: list)
+  }
+  static func set(article: Article, bookmarked:Bool, in list: StoredSection? = nil){
+    shared.set(article: article, active: bookmarked, in: list)
+  }
+}
+
+extension Article {
+  public var hasBookmark: Bool {
+    get { return Bookmarks.shared.has(article: self)}
+    set { Bookmarks.shared.set(article: self, active: newValue)}
   }
 }
 
 extension StoredArticle {
   public var hasBookmark: Bool {
-    get { return Bookmarks.has(article: self)}
-    set {Bookmarks.set(article: self, active: newValue)}
+    get { return Bookmarks.shared.has(article: self)}
+    set { Bookmarks.shared.set(article: self, active: newValue)}
   }
 }
 
@@ -340,3 +422,85 @@ extension Issue {
   }
 }
 
+extension PersistentIssue: PersistentObject {
+  var isBookmarkIssue: Bool { baseUrl == Bookmarks.bookmarkUrl }
+}
+
+/* IDEAS**/
+import UIKit
+class XViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+  
+  private var articles: [Article] = []
+  private var groupedArticles: [String: [Article]] = [:]
+  private var sortedSectionKeys: [String] = []
+  
+  private let tableView = UITableView()
+  private let dateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd" // Gruppierung nach Tag
+    return formatter
+  }()
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    view.backgroundColor = .white
+    
+    // Beispielartikel erstellen
+    articles = [
+      
+    ]
+    
+    // Artikel gruppieren
+    groupArticlesByDate()
+    
+    // UITableView einrichten
+    tableView.dataSource = self
+    tableView.delegate = self
+    tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+    tableView.frame = view.bounds
+    view.addSubview(tableView)
+  }
+  
+  private func groupArticlesByDate() {
+    
+    
+    // Sections sortieren (nach Datum aufsteigend)
+    sortedSectionKeys = groupedArticles.keys.sorted()
+  }
+  
+  // MARK: - UITableViewDataSource
+  
+  func numberOfSections(in tableView: UITableView) -> Int {
+    return sortedSectionKeys.count
+  }
+  
+  func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    return sortedSectionKeys[section]
+  }
+  
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    let sectionKey = sortedSectionKeys[section]
+    return groupedArticles[sectionKey]?.count ?? 0
+  }
+  
+  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+    
+    let sectionKey = sortedSectionKeys[indexPath.section]
+    if let articlesForSection = groupedArticles[sectionKey] {
+      let article = articlesForSection[indexPath.row]
+      cell.textLabel?.text = article.title
+    }
+    
+    return cell
+  }
+  
+  // MARK: - UITableViewDelegate (optional, für Benutzerinteraktion)
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    let sectionKey = sortedSectionKeys[indexPath.section]
+    if let articlesForSection = groupedArticles[sectionKey] {
+      let article = articlesForSection[indexPath.row]
+      print("Ausgewählt: \(article.title)")
+    }
+  }
+}

@@ -78,6 +78,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
       self?.handleIssueDownloadNotification(notification: notification)
     }
+    self.selectedIndex = 1
   } // viewDidLoad
   
   var searchArticleToOpen: SearchArticle?
@@ -211,7 +212,8 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     let homeNc = NavigationController(rootViewController: home)
     homeNc.isNavigationBarHidden = true
     
-    let bookmarksNc = BookmarkNC()
+    let bookmarksOverview = BookmarkTVC()
+    let bookmarksNc = NavigationController(rootViewController: bookmarksOverview)
     bookmarksNc.title = "Leseliste"
     bookmarksNc.tabBarItem.image = UIImage(named: "star")
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)

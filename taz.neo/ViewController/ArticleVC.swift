@@ -84,7 +84,15 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     // only insert new Article
     guard articles.firstIndex(where: { $0.html?.name == name }) == nil
     else { return }
-    let all = delegate.issue.allArticles
+    
+    var all: [Article] = []
+    if delegate.issue.isBookmarkIssue {
+      #warning("ToDO")
+      all = Bookmarks.shared.bookmarkedArticles ///WRONG ORDER!!
+    }
+    else {
+      all = delegate.issue.allArticles
+    }
     if let idx = all.firstIndex(where: { $0.html?.name == name }) {
       articles.insert(article, at: idx)
       insertContent(content: article, at: idx)
@@ -100,26 +108,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     
     if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
     else { self.bookmarkButton.buttonView.name = "star" }
-  }
-  
-  func toggleBookmark(art: StoredArticle?) {
-    guard let art = art else { return }
-    var msg: String
-    var completion:((Bool)->())? = nil
-    
-    if art.hasBookmark {
-      msg = "Der Artikel wurde aus ihrer Leseliste entfernt.<br/>Löschen rückgängig durch Antippen"
-      completion = { wasTapped in
-        guard wasTapped else { return }
-        art.hasBookmark = true
-        Toast.show("Löschen wurde wiederrufen!")
-      }
-    }
-    else { msg = "Der Artikel wurde in ihrer Leseliste gespeichert." }
-    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)",
-               minDuration: 0,
-               completion: completion)
-    art.hasBookmark.toggle()
   }
   
   func updateAudioButton(){
@@ -193,13 +181,12 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       else { self.onPlay(closure: nil) }
       player.onEnd { [weak self] err in
         self?.playButton.buttonView.name = "audio"
-        guard let err = err else { return }
+        if let err = err {
+          self?.debug("Failed on end with err: \(err)")
+        }
       }
-      self.onBookmark { [weak self] _ in
-        guard let self = self else { return }
-        self.toggleBookmark(art: art as? StoredArticle)
-      }
-      ///     && (feederContext.isAuthenticated == false || Defaults.expiredAccount) bookmarks finally did not refresh
+      self.onBookmark { _ in  Bookmarks.toggle(article: art) }
+      
       if art.primaryIssue?.isReduced == true {
         self.atEndOfContent() { [weak self] isAtEnd in
           if isAtEnd { self?.feederContext.authenticate() }
@@ -251,11 +238,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           }
           if let st = art.sectionTitle { header.title = st }
           else { header.title = "\(title)" }
-       
           
-          if section is BookmarkSection {
+          if issue.isBookmarkIssue {
             header.titletype = .search
-            header.subTitle = "Ausgabe \(art.issueDate.short)"
+            header.subTitle = "Ausgabe \(art.issueDate?.short ?? "")"
             header.pageNumber = "\(i+1) von \(articles.count)"
           }
           else {
@@ -323,7 +309,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
     }
-    if self.parent is BookmarkNC { /*NO CONTENT TABLE*/}
+    else if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
     else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
     else if self.contentTable == nil {
       self.contentTable = NewContentTableVC()

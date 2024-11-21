@@ -122,29 +122,29 @@ function grow(art) {
   });
 }
 
-function reallyDeleteBookmark(event) {
-  let art = event.target;
-  const title = art.querySelector("h2").textContent;
-  tazApi.toast("<h3>" + title + "</h3>" + "Löschen rückgängig durch Antippen",
-    3.0, (wasTapped) => {
-    if (wasTapped) {
-      let rect = art.getBoundingClientRect();
-      if (rect.height <= 2) { grow(art); }
-    }
-    else {
-      art.remove();
-      tazApi.setBookmark(art.id, false);
-    }
-  });
-  art.removeEventListener("transitionend", reallyDeleteBookmark);
-}
-
-/* Delete bookmark */
-function deleteBookmark(elem) {
-  const art = elem.parentElement.parentElement.parentElement;
-  art.addEventListener("transitionend", reallyDeleteBookmark);
-  shrink(art);
-}
+//function reallyDeleteBookmark(event) {
+//  let art = event.target;
+//  const title = art.querySelector("h2").textContent;
+//  tazApi.toast("<h3>" + title + "</h3>" + "Löschen rückgängig durch Antippen",
+//    3.0, (wasTapped) => {
+//    if (wasTapped) {
+//      let rect = art.getBoundingClientRect();
+//      if (rect.height <= 2) { grow(art); }
+//    }
+//    else {
+//      art.remove();
+//      tazApi.setBookmark(art.id, false);
+//    }
+//  });
+//  art.removeEventListener("transitionend", reallyDeleteBookmark);
+//}
+//
+///* Delete bookmark */
+//function deleteBookmark(elem) {
+//  const art = elem.parentElement.parentElement.parentElement;
+//  art.addEventListener("transitionend", reallyDeleteBookmark);
+//  shrink(art);
+//}
 
 function insertArticle(html, id, order) {
   let art = docment.createElement("article");

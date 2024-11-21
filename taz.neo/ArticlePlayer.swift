@@ -533,7 +533,7 @@ class ArticlePlayer: DoesLog {
       return localFile
     }
     if let article = content as? Article,
-       let baseUrl = (article as? SearchArticle)?.originalIssueBaseURL
+       let baseUrl = (article as? SearchArticle)?.baseURL
                      ?? article.primaryIssue?.baseUrl,
        let afn = article.audioItem?.file?.fileName {
       return "\(baseUrl)/\(afn)"

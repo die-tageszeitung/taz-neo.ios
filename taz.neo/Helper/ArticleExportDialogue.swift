@@ -220,7 +220,7 @@ extension ArticleExportDialogueItemSource {
       caller.activityDidFinish(false)
       return
     }
-    let subject = "Aus der \(App.shortName) vom \(article.issueDate.short)"
+    let subject = "Aus der \(App.shortName) vom \(article.issueDate?.short ?? "")"
     var intro = ""
     if let title = article.title { intro.append(title.appending("\n")) }
     if let authors = article.authors() { intro.append(authors.prepend("von ")) }
@@ -246,7 +246,7 @@ extension ArticleExportDialogueItemSource {
       caller.activityDidFinish(false)
       return
     }
-    let subject = "Aus der \(App.shortName) vom \(article.issueDate.short)"
+    let subject = "Aus der \(App.shortName) vom \(article.issueDate?.short ?? "")"
     var intro = ""
     if let title = article.title { intro.append(title.appending("\n")) }
     if let authors = article.authors() { intro.append(authors.prepend("von ")) }
@@ -275,7 +275,7 @@ extension ArticleExportDialogueItemSource {
       caller.activityDidFinish(false)
       return
     }
-    var text = "Aus der \(App.shortName) vom \(article.issueDate.short)"
+    var text = "Aus der \(App.shortName) vom \(article.issueDate?.short ?? "")"
     if let title = article.title { text.append(title.prepend("\n"))}
     if let authors = article.authors() { text.append(authors.prepend("\nvon "))}
     if let online = article.onlineLink { text.append(online.prepend("\nonline unter:\n"))}
@@ -418,7 +418,7 @@ extension ArticleExportDialogueItemSource {
        self?.performPaperPdfIfDownloaded(for: caller, pdfUrl: pdfUrl)
     }
     
-    if let searchArticle = article as? SearchArticle, let baseUrl = searchArticle.originalIssueBaseURL {
+    if let searchArticle = article as? SearchArticle, let baseUrl = searchArticle.baseURL {
       vc.dloader.downloadSearchHitFiles(files: [pdf],
                                         baseUrl: baseUrl,
                                         closure: downloadFinishedCallback)
@@ -505,18 +505,19 @@ extension ContentVC:ArticleExportDialogueDelegate {
   public func createPDFfromWebView(for article: Article) {
     let contentOffset:CGPoint = currentWebView?.scrollView.contentOffset ?? .zero
     ///Leseliste
-    if article.html?.fileName != currentWebView?.originalUrl?.lastPathComponent,
-       let bmc = self as? BookmarkSectionVC
-    {
-      bmc.showArticle(article, animated: false)
-      onMainAfter {[weak self] in
-        guard let cvc = self?.navigationController?.viewControllers.last
-                as? ContentVC else { return }
-        cvc.createPDFfromWebView(for: article)
-        cvc.navigationController?.popViewController(animated: false)
-      }
-      return
-    }
+    #warning("ToDO")
+//    if article.html?.fileName != currentWebView?.originalUrl?.lastPathComponent,
+//       let bmc = self as? BookmarkSectionVC
+//    {
+//      bmc.showArticle(article, animated: false)
+//      onMainAfter {[weak self] in
+//        guard let cvc = self?.navigationController?.viewControllers.last
+//                as? ContentVC else { return }
+//        cvc.createPDFfromWebView(for: article)
+//        cvc.navigationController?.popViewController(animated: false)
+//      }
+//      return
+//    }
     
     guard let printFormatter = currentWebView?.viewPrintFormatter() else {
       return

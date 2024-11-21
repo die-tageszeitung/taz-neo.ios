@@ -342,9 +342,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   override public func viewDidLoad() {
     super.viewDidLoad()
-    if !(self is BookmarkSectionVC){
-      contentTable = NewContentTableVC()
-    }
+    contentTable = NewContentTableVC()
     self.showImageGallery = false
     self.index = initialSection ?? 0
     

@@ -59,9 +59,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("usageTrackingAllowed")
   var usageTrackingAllowed: Bool
   
-  @Default("bookmarksListTeaserEnabled")
-  var bookmarksListTeaserEnabled: Bool
-  
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   
@@ -282,14 +279,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     Usage.track(Usage.event.tapEdge.visibility, name: newValue ? "Ein" : "Aus")
 
   })
-  lazy var bookmarksTeaserCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Leseliste Anrisstext",
-                  detailText: "Zeige Anrisstext in Leseliste",
-                  initialValue: bookmarksListTeaserEnabled,
-                  onChange: {[weak self] newValue in
-                    self?.bookmarksListTeaserEnabled = newValue
-                    Notification.send(Const.NotificationNames.bookmarkChanged)
-                  })
   lazy var multiColumnSnapCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Mehrspaltigkeit einrasten",
                   detailText: "Beim manuellem Scrollen in der mehrspaltigen Ansicht automatisch Spaltenweise einrasten.",
@@ -766,7 +755,6 @@ extension SettingsVC {
   var extendedSettingsCells:[XSettingsCell] {
     (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
-      bookmarksTeaserCell,
       smartBackFromArticleCell,
       voiceoverControlsCell,
       memoryUsageCell,
@@ -775,12 +763,12 @@ extension SettingsVC {
     ]
     
     if Device.isIpad {
-      cells.insert(multiColumnFixedScrollingCell, at: 2)
-      cells.insert(multiColumnSnapCell, at: 2)
+      cells.insert(multiColumnFixedScrollingCell, at: 1)
+      cells.insert(multiColumnSnapCell, at: 1)
     }
     
     if TazAppEnvironment.hasValidAuth {
-      cells.insert(showCoachmarksCell, at: 2)
+      cells.insert(showCoachmarksCell, at: 1)
     }
     
     if Device.isIphone {
@@ -949,7 +937,7 @@ extension SettingsVC {
               return
             }
 //      TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
-      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, deleteOrphanFolders: true)
+      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, doDelete: true, deleteOrphanFolders: true)
 //      StoredIssue.deleteAllIssues(feed: storedFeed) Idea: delete everything
       onMainAfter { [weak self] in
         self?.refreshAndReload()

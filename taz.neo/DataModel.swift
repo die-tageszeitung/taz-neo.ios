@@ -364,11 +364,11 @@ public protocol Content {
   /// Absolute pathname of content
   var path: String { get }
   /// Date of Issue encompassing this Content
-  var issueDate: Date { get }
+  var issueDate: Date? { get }
   /// Title of Section refering to this content
   var sectionTitle: String? { get }
   /// BaseURL of server for this content 
-  var baseURL: String { get }
+  var baseURL: String? { get }
 }
 
 public extension Content {
@@ -400,22 +400,9 @@ public extension Content {
     return "\(dir.path)/\(html.name)"
   }
   
-  /// Date of Issue encompassing this Content (refering to primaryIssue)
-  var defaultIssueDate: Date { 
-    guard let issue = primaryIssue
-    else { fatalError("Undefined primaryIssue") }
-    return issue.date
-  }
-  var issueDate: Date { defaultIssueDate }
-  
-  /// BaseURL of server for this content 
-  var defaultBaseURL: String { 
-    guard let issue = primaryIssue
-    else { fatalError("Undefined primaryIssue") }
-    return issue.baseUrl
-  }
-  var baseURL: String { defaultBaseURL }
-  
+  var issueDate: Date? { (self as? StoredArticle)?.pr.issueDate ?? primaryIssue?.date }
+  var baseURL: String? { primaryIssue?.baseUrl }
+    
   /// Title of Section refering to this content
   var sectionTitle: String? { nil }
  
@@ -518,8 +505,6 @@ public protocol Article: Content, ToString {
   var onlineLink: String? { get }
   /// File storing content as printable pdf
   var pdf: FileEntry? { get }
-  /// Has Article been bookmarked
-  var hasBookmark: Bool { get set }
   /// List of PDF page (-file) names containing this article
   var pageNames: [String]? { get }
   /// Teaser of article
@@ -553,10 +538,7 @@ public extension Article {
       Log.debug("cannot play article")
     }
   }
-  
-  // By default Articles don't have bookmarks
-  var hasBookmark: Bool { get { false } set {} }
-  
+    
   func isEqualTo(otherArticle: Article) -> Bool{
     return self.html?.sha256 == otherArticle.html?.sha256
     && self.html?.name.length ?? 0 > 0
@@ -568,13 +550,13 @@ public extension Article {
 
 public extension StoredArticle {
   
-  func originalIssueDir() -> Dir? {
-    guard let publicationDate = self.originalMoment?.publicationDate,
-          let feed = publicationDate.feed
-    else { return nil } 
-    return Dir(dir: feed.dir.path,
-               fname: feed.feeder.date2a(publicationDate.date))
-  }
+//  func originalIssueDir() -> Dir? {
+//    guard let publicationDate = self.originalMoment?.publicationDate,
+//          let feed = publicationDate.feed
+//    else { return nil } 
+//    return Dir(dir: feed.dir.path,
+//               fname: feed.feeder.date2a(publicationDate.date))
+//  }
 }
 
 /**
@@ -1392,13 +1374,11 @@ extension Feeder {
   /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
   public func smallMomentImageName(article: StoredArticle)
     -> String? {
-      let moment = article.pr.originalMoment
-      let momentImages: [ImageEntry] = moment?.images?.allObjects as? [ImageEntry] ?? []
-      guard let fileName = StoredMoment.lowest(images: momentImages)?.fileName,
-            let feedName = moment?.publicationDate?.feed?.name,
-            let issueDate = moment?.publicationDate?.date
-      else { return nil }
-      let dir = issueDir(feed: feedName, issue: date2a(issueDate))
+      guard let issueDate = article.issueDate,
+            let issue = article.primaryIssue,
+            let publicationDate = issue.feed.publicationDates?.first(where: {$0.date == issueDate}),
+            let fileName =  issue.moment.lowres?.fileName else { return nil }
+      let dir = issueDir(feed: issue.feed.name, issue: date2a(issueDate))
       return "\(dir.path)/\(fileName)"
   }
 

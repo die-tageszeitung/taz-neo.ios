@@ -590,6 +590,7 @@ public struct Const {
     static let m30: CGFloat = 30.0
     ///biggest dist at end of content
     static let l: CGFloat = 40.0
+    static let s10AndL: CGFloat = 60.0
   }
   
 } // Const

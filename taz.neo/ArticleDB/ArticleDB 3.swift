@@ -79,7 +79,12 @@ public extension StoredObject {
   
   /// Delete the object from the persistent store
   func deletePersistent() { pr.delete() }
-  func delete() { deletePersistent() }
+  func delete() {
+    if let art = self as? Article {
+      print(" > delete Artikel with title: \(art.title ?? "-")")
+    }
+    deletePersistent()
+  }
   
   /// Create a new persistent record
   static func newPersistent() -> PO {
@@ -468,6 +473,20 @@ public final class StoredMoment: Moment, StoredObject {
   
   public var facsimile: ImageEntry? { firstPage?.facsimile }
   
+  ///will be set on bookmark
+  public var publicationDate: StoredPublicationDate? {
+    get {
+      guard let publicationDate = pr.publicationDate else { return nil }
+      return StoredPublicationDate(persistent: publicationDate) }
+    set {
+      guard let newValue = newValue else {
+        pr.publicationDate = nil
+        return
+      }
+      pr.publicationDate = StoredPublicationDate.persist(object: newValue).pr
+    }
+  }
+  
   public required init(persistent: PersistentMoment) {
     self.pr = persistent
   }
@@ -836,7 +855,7 @@ public final class StoredAudio: Audio, StoredObject {
   /// Return stored record with given name
   public static func get(file: String) -> [StoredAudio] {
     let request = fetchRequest
-    #warning("Test if relation correct")
+#warning("Test if relation correct")
     request.predicate = NSPredicate(format: "file.name = %@", file)
     return get(request: request)
   }
@@ -919,25 +938,137 @@ public final class StoredAuthor: Author, StoredObject {
 /// also: PersistentSection, PersistentArticle
 extension PersistentContent: PersistentObject {
   public override func prepareForDeletion() {
+#warning("Re Check for IssueIndependent!")
     super.prepareForDeletion()
     for case let img as PersistentImageEntry in self.images ?? []{
-      img.removeFromImageContent(self)
-      if img.imageContent?.count == 0 { img.delete() }
+      if img.imageContent?.count == 1,
+         (img.imageContent ?? []).allObjects.first as? PersistentContent == self,
+         img.moment == nil
+      {
+        img.delete()
+      }
     }
   }
 }
 
-extension PersistentSection {
+extension PersistentAudio {
+  var referencesCount:Int {
+    return content?.count ?? 0 + (page?.count ?? 0)
+  }
+}
+
+/// Model Delete Rules
+/// (regular) issue 1-n section n - m article m - n section m - 1 bookmark issue
+/// former article to section was nullify
+/// now its deny
+/// so if a regular issue bith a bookm arked article is deleted, all of the issue will be deleted, but not the bookmarked article
+/// the article will be in its bookmark section
+/// to delete the article its needed to remove him from the section and then delete him
+/// @see: https://stackoverflow.com/a/52412945
+///  With Article > section toMany Relation min NIL or 1 Delete Rule DENY
+///  ====>> on Issue with Bookmark delete =====>>
+/// NorthFoundation/Database.swift:176: Fatal error: 'try!' expression unexpectedly raised an error: Error Domain=NSCocoaErrorDomain Code=1560 "Bei der Überprüfung sind mehrere Fehler aufgetreten." UserInfo={NSDetailedErrors=(
+/// "Error Domain=NSCocoaErrorDomain Code=1600 \"Aus sections können keine Objekte gelöscht werden.\"
+/// ===== NEXT DELETE RULE: NO ACTION
+///
+extension PersistentArticle {
   public override func prepareForDeletion() {
     super.prepareForDeletion()
-    for case let art as PersistentArticle in self.articles ?? []{
-      art.removeFromSections(self)
-      if art.sections?.count == 0 { art.delete() }
+    
+    if audioItem?.referencesCount == 1 {
+      debug("Delete AutioItem due last Reference")
+      audioItem?.delete()
     }
+    
+    //    if self.originalMoment?.pr.articles?.count == 1 {
+    //      self.originalMoment?.delete()//delete or test&prepare what happen to the issue if bookmark delete?
+    //      ///if art deleted from bookmarks
+    //      ///if art deleted from org issue
+    //      ///has bookmark => not delete
+    //      ///no bookmark > delete
+    //    }
+    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
+  }
+}
+extension PersistentSection {
+  public override func prepareForDeletion() {
+#warning("ToDO: refactor to delete all articles....which are not bookmarked")
+    for case let art as PersistentArticle in articles ?? [] {//Issue-Delete > Section-Delete > Article if not Bookmarked...handled in Article?
+      self.removeFromArticles(art)
+      if Bookmarks.has(article: art) {
+        if art.baseURL == nil {
+          art.baseURL = self.issue?.baseUrl
+        }
+        print(">> NOT DELETE ARTICLE WITH TITLE: \(art.title)")
+        continue
+      }
+      print(">> DELETE ARTICLE WITH TITLE: \(art.title)")
+      art.delete()
+      //
+      //      var delete = true
+      //      for case let artSect as PersistentSection in art.sections ?? [] {
+      //        if artSect != self {//umgehangen?
+      //          delete = false
+      //          break
+      //        }
+      //      }
+      //      if !delete {
+      //        if let issueMoment = self.issue?.moment {
+      //          art.originalMoment = issueMoment
+      //        }
+      /*
+       for case let img as PersistentImageEntry in self.issue?.moment?.images ?? [] {
+       print("What to do with: \(img.file?.name ?? "-")")
+       ///hier wird wahrscheinlich nur eine datei rauskommen aber wie soll ich sie in bookmarks wiederfinden?
+       ///also muss ich eh den Moment an den Artikel hängen
+       ///macht die nächsten FÄSSER auf:
+       ///was passiert, wenn ich eine Ausgabe lösche, dann wieder lade => dann muss ich sicherstellen, dass ich den Moment wieder richtig zuordne
+       ///das müsste ich auch machen, wenn ich über Listen arbeite *AKTUALISIERUNG DES MOMENTES MÖCHTE ICH AUCH BERÜCKSICHTIGEN*
+       ///wenn ich nur ein Moment Image "aufhebe" und mir das merke, müsste die Zuordnung jetzt schon passieren
+       ///...nicht so faul => merke den Moment und Teste
+       ...beim löschen einer Ausgabe mit Lesezeichen, wird diese bei aufruf im Karusell neu geladen, bekommt wenn geändert einen neuen Moment, der alte moment hängt am Lesezeichen
+       ...d.h. in der Leseliste gibt es eine Miniatur des alten Moments, bei Tap auf den Moment in der Leseliste lande ich im Karussell auf der Ausgabe mit dem neuen Moment
+       wenn ich das letzte Lesezeichen Lösche wird der alte moment gelöscht, alles ok
+       wenn ich nach neuladen einnen neuen bookmark setze
+       ...dann habe ich für eine Ausgabe 2 momente in meiner leseliste, brauche aber nur einen
+       ...ich könnte das Modell weiter (komplett) umstrukturieren/erweitern um ein abstraktesIssue mit oment auf dem die artikel verweisen ...lieber nicht
+       den Moment mit dem IssueDate erweitern
+       ................was bedeutet das? wie komme ich von den 2 artikeln auf nur einen moment?
+       => publicationDate bekommt den Moment!!
+       => der Artikel ebenso das PublicationDate
+       => Artikel ?1:1? PublicationDate ?1:1? Moment BINGO!
+       ----------------
+       self.issue?.feed?.publicationDates?.first{$0.date.issueKey == }
+       (where: <#T##(NSSet.Element) throws -> Bool#>)
+       self.issueDate
+       to do continue with last line
+       
+       continue
+       art.org moment sieht doch ganz gut aus
+       
+       }*/
+      
+      //      }
+      //      debug("Delete Artikel with title: \(art.title ?? "-") sect count: \(art.sections?.count ?? -1)")
+      //      art.delete()
+    }
+    if audioItem?.referencesCount == 1 {
+      debug("Delete AutioItem due last Reference")
+      audioItem?.delete()
+    }
+    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
   }
 }
 
-extension PersistentPage: PersistentObject {}
+extension PersistentPage: PersistentObject {
+  public override func prepareForDeletion() {
+    if audioItem?.referencesCount == 1 {
+      debug("Delete AutioItem due last Reference")
+      audioItem?.delete()
+    }
+    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
+  }
+}
 
 /// A stored Article
 public final class StoredArticle: Article, StoredObject {
@@ -957,13 +1088,6 @@ public final class StoredArticle: Article, StoredObject {
       pr.audioItem?.addToContent(self.pr)
     }
   }
-  
-  public var baseURL: String? {
-    /// For backward compatibility and because this field is not filled in the mapping, use the base URL from issues as the default.
-    get { return primaryIssue?.baseUrl ?? pr.baseURL }
-    set { pr.baseURL = newValue }
-  }
-  
   public var text: String? {
     get { return pr.text }
     set { pr.text = newValue }
@@ -972,7 +1096,6 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.title }
     set { pr.title = newValue }
   }
-  
   public var html: FileEntry? {
     get {
       guard let html = pr.html else { return nil }
@@ -1040,9 +1163,10 @@ public final class StoredArticle: Article, StoredObject {
     }
   }
   
-//  fileprivate func setBookmark(_ isBookmark:Bool){
-//    pr.hasBookmark = isBookmark
-//  }
+  
+  fileprivate func setBookmark(_ isBookmark:Bool){
+    pr.hasBookmark = isBookmark
+  }
   
   public var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
   public var authors: [Author]? {
@@ -1054,15 +1178,27 @@ public final class StoredArticle: Article, StoredObject {
     set { pr.pageNames = newValue }
   }
   
-  public var nonBookmarkSections: [StoredSection] {
+  ///will be set on bookmark
+  public var originalMoment: StoredMoment? {
+    get {
+      guard let moment = pr.originalMoment else { return nil }
+      return StoredMoment(persistent: moment) }
+    set {
+      guard let newValue = newValue else {
+        pr.originalMoment = nil
+        return
+      }
+      pr.originalMoment = StoredMoment.persist(object: newValue).pr
+    }
+  }
+  
+  public var sections: [StoredSection] {
     var ret: [StoredSection] = []
-    for case let s as PersistentSection in pr.sections ?? [] {
-      if s.issue?.isBookmarkIssue == true { continue }
-      ret += StoredSection(persistent: s)
+    if let sections = pr.sections {
+      for s in sections { ret += StoredSection(persistent: s as! PersistentSection) }
     }
     return ret
   }
-  
   public var issues: [StoredIssue] {
     var ret: [StoredIssue] = []
     if let issues = pr.issues {
@@ -1096,13 +1232,19 @@ public final class StoredArticle: Article, StoredObject {
     return path
   }
   
-  public var issueDate: Date? {
-    pr.issueDate ?? primaryIssue?.date
+  public var baseURL: String {
+    if let s = pr.baseURL { return s }
+    else { return defaultBaseURL }
+  }
+  
+  public var issueDate: Date {
+    if let d = pr.issueDate { return d }
+    else { return defaultIssueDate }
   }
   
   public var sectionTitle: String? {
     if let s = pr.sectionTitle { return s }
-    for s in nonBookmarkSections {
+    for s in sections {
       if let t = s.title { return t }
     }
     return nil
@@ -1115,8 +1257,7 @@ public final class StoredArticle: Article, StoredObject {
     if let sobject = object as? StoredArticle {
       self.text = sobject.text
       self.lastArticlePosition = sobject.lastArticlePosition
-      #warning("Update from Demo BOOKMARK ERROR!")
-     /// self.hasBookmark = object.hasBookmark
+      self.hasBookmark = object.hasBookmark
     }
     self.title = object.title
     self.html = object.html
@@ -1183,12 +1324,20 @@ public final class StoredArticle: Article, StoredObject {
     return get(request: request)
   }
   
-
-  
   /// Return all Articles in an Issue
   public static func articlesInIssue(issue: StoredIssue) -> [StoredArticle] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "%@ IN issues", issue.pr)
+    request.sortDescriptors = [
+      NSSortDescriptor(key: "order", ascending: true)
+    ]
+    return get(request: request)
+  }
+  
+  /// Return all bookmarked Articles in an Issue
+  public static func bookmarkedArticlesInIssue(issue: StoredIssue) -> [StoredArticle] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "hasBookmark = true AND %@ IN issues", issue.pr)
     request.sortDescriptors = [
       NSSortDescriptor(key: "order", ascending: true)
     ]
@@ -1246,6 +1395,24 @@ public final class StoredFrame: Frame, StoredObject {
                                             subpredicates: [p1, p2, p3, p4])
     let res = get(request: request)
     if res.count > 0 { return res[0] }
+    return nil
+  }
+  
+  public static func getOld(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
+    let epsilon: Float = 0.0001
+    let request = fetchRequest
+    let p1 = NSPredicate(format: "abs(x1 - %f) < %f", object.x1, epsilon)
+    let p2 = NSPredicate(format: "abs(x2 - %f) < %f", object.x2, epsilon)
+    let p3 = NSPredicate(format: "abs(y1 - %f) < %f", object.y1, epsilon)
+    let p4 = NSPredicate(format: "abs(y2 - %f) < %f", object.y2, epsilon)
+    request.predicate = NSCompoundPredicate(type: .and,
+                                            subpredicates: [p1, p2, p3, p4])
+    let res = get(request: request)
+    
+    for sf in res {
+      if relatedPage.pr == sf.pr.page { return sf}
+    }
+    
     return nil
   }
   
@@ -1504,7 +1671,10 @@ public final class StoredSection: Section, StoredObject {
       }
       if pr.html?.name != newValue.name { pr.html?.delete() }
       pr.html = StoredFileEntry.persist(object: newValue).pr
-      pr.html?.content = pr
+      pr.html?.content = pr///WTF !????????
+      ///pr is some db stuff
+      ///html is a file entry
+      ///
     }
   }
   
@@ -1543,23 +1713,16 @@ public final class StoredSection: Section, StoredObject {
     return path
   }
   
-  public var baseURL: String? {
-    /// For backward compatibility and because this field is not filled in the mapping, use the base URL from issues as the default.
-    get { return primaryIssue?.baseUrl ?? pr.baseURL }
-    set { pr.baseURL = newValue }
+  public var baseURL: String {
+    if let s = pr.baseURL { return s }
+    else { return defaultBaseURL }
   }
   
   public var sectionTitle: String? { return pr.sectionTitle }
   
   public var images: [ImageEntry]? { StoredImageEntry.imagesInSection(section: self) }
   public var authors: [Author]? { nil }
-  public var articles: [Article]? {
-    var ret: [Article] = []
-    for case let art as PersistentArticle in self.pr.articles ?? [] {
-      ret.append(StoredArticle(persistent: art))
-    }
-    return ret
-  }
+  public var articles: [Article]? { StoredArticle.articlesInSection(section: self) }
   
   public required init(persistent: PersistentSection) { self.pr = persistent }
   
@@ -1654,7 +1817,14 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
       guard let pFeed = pr.feed else { return nil }
       return StoredFeed(persistent: pFeed)
     }
-    set {/*not allowed due circular/endless loop on startup*/}
+    set {
+#warning("SET IS NOT ALLOWED, oherwise circular calls/endless loop on startup")
+      //      guard let newValue = newValue else {
+      //        pr.feed = nil
+      //        return
+      //      }
+      //      pr.feed = StoredFeed.persist(object: newValue).pr
+    }
   }
   
   public var date: Date {
@@ -1777,11 +1947,26 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   
 } //StoredPublicationDate
 
+extension PersistentIssue: PersistentObject {
+  public override func prepareForDeletion() {
+    super.prepareForDeletion()
+    ///Store Moment at PublicationDate to use it with Bookmarked Articles
+    guard self.moment?.bookmarkedArticles?.count ?? 0 == 0 else { return }
+    self.moment?.delete()
+  }
+}
+
+
+
 extension StoredIssue: Equatable {
   static public func ==(lhs: StoredIssue, rhs: StoredIssue) -> Bool {
     return lhs.date == rhs.date
   }
 }
+
+//extension Issue {
+//  var isBookmarkIssue: Bool { return self.baseUrl == StoredIssue.bookmarkUrl }
+//}
 
 /// A stored Issue
 public final class StoredIssue: Issue, StoredObject {
@@ -1910,7 +2095,9 @@ public final class StoredIssue: Issue, StoredObject {
   
   public var sections: [Section]? { StoredSection.sectionsInIssue(issue: self) }
   public var pages: [Page]? { StoredPage.pagesInIssue(issue: self) }
-  public var isDownloading: Bool = false
+  public var isDownloading: Bool = false {
+    willSet {}
+  }
   
   public required init(persistent: PersistentIssue) { self.pr = persistent }
   
@@ -1955,8 +2142,7 @@ public final class StoredIssue: Issue, StoredObject {
           for art in arts {
             if let art = art as? StoredArticle, let name = art.html?.name {
               if bookmarkedDemoArticleNames.contains(name) {
-                #warning("DB BOOKMARKS MIGRATION")
-//                art.setBookmark(true)
+                art.setBookmark(true)
               }
               art.pr.addToIssues(self.pr)
             }
@@ -2019,6 +2205,40 @@ public final class StoredIssue: Issue, StoredObject {
                                     nsdate, feed.pr)
     return get(request: request)
   }
+  
+  //  static let bookmarkUrl = "bookmark.issue.local5"
+  //
+  //  /// Return stored record with given name
+  //  public static func bookmarkIssue(in feed: Feed) -> StoredIssue? {
+  //    let request = fetchRequest
+  //    request.predicate = NSPredicate(format: "(baseUrl = %@)", bookmarkUrl)
+  //    if let si = get(request: request).first { return si }
+  //
+  //    let si = StoredIssue.new()
+  //    si.baseUrl = bookmarkUrl
+  //    si.date = Date(timeIntervalSinceReferenceDate: 0)//1.1.2001
+  //    si.moTime = Date()
+  //    si.minResourceVersion = 0
+  //    si.status = .unknown
+  //    si.isWeekend = false
+  //
+  //    si.isDownloading = false
+  //    si.isComplete = false
+  //    si.feed = feed
+  //    si.moment =  DummyMoment()
+  //
+  //    let sect = StoredSection.new()
+  //    sect.name = "Leseliste"
+  //    sect.type = .unknown
+  //    sect.html = BookmarkFileEntry(feed: feed, name: "allBookmarks.html")
+  //    si.pr.addToSections(sect.pr)
+  //    sect.pr.issue = si.pr
+  //    return si
+  //  }
+  
+  //  public static func bookmarkSection(in feed: Feed) -> StoredSection? {
+  //    return Self.bookmarkIssue(in: feed)?.sections?.first as? StoredSection
+  //  }
   
   public static func get(object: Issue, inFeed feed: StoredFeed) -> StoredIssue? {
     let issues = get(date: object.date, inFeed: feed)
@@ -2129,6 +2349,11 @@ public final class StoredIssue: Issue, StoredObject {
         Log.log("not deleting \(issue.date.short) due its currently downloading")
         continue
       }
+      let bookmarkCount = StoredArticle.bookmarkedArticlesInIssue(issue: issue).count
+      if bookmarkCount > 0 {
+        Log.log("not deleting \(issue.date.short) due it has \(bookmarkCount) bookmarks")
+        continue
+      }
       issue.delete()
     }
   }
@@ -2143,7 +2368,6 @@ public final class StoredIssue: Issue, StoredObject {
   public static func removeOldest(feed: StoredFeed,
                                   keepDownloaded: Int,
                                   keepPreviews: Int = 90,
-                                  doDelete: Bool = false,
                                   deleteOrphanFolders:Bool = false) {
     Log.log("keepDownloaded: \(keepDownloaded) keepPreviews: \(keepPreviews) deleteOrphanFolders: \(deleteOrphanFolders)")
     let lastCompleeteIssues:[StoredIssue]
@@ -2164,11 +2388,11 @@ public final class StoredIssue: Issue, StoredObject {
       return;
     }
     var knownDirs: [String] = []
-    #warning("Prevent delete folder with bookmarked article")
-//    for case let art as StoredArticle in Bookmarks.shared.bookmarkIssue?.allArticles ?? [] {
-//      guard let orgIssue =  art.originalMoment?.issue else { continue }
-//      knownDirs.append(feed.feeder.issueDir(issue: orgIssue).path)
-//    }
+    
+    for case let art as StoredArticle in Bookmarks.shared.bookmarkIssue?.allArticles ?? [] {
+      guard let orgIssue =  art.originalMoment?.issue else { continue }
+      knownDirs.append(feed.feeder.issueDir(issue: orgIssue).path)
+    }
     
     if keep <= allIssues.count {
       for issue in allIssues[keep...] {
@@ -2178,14 +2402,9 @@ public final class StoredIssue: Issue, StoredObject {
           continue
         }
         if lastCompleeteIssues.contains(issue) { continue }
-        if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.safeDate { continue }
-        if doDelete {
-          Log.log("delete Issue: \(issue.safeDate?.short ?? "-")")
-          issue.delete()
-          continue
-        }
+        if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
         if issue.reduceToOverview() {
-          Log.log("reduced to Overview for issue: \(issue.safeDate?.short ?? "-")")
+          Log.log("reduced to Overview for issue: \(issue.date.short)")
         }
       }
     }
@@ -2227,7 +2446,7 @@ public final class StoredIssue: Issue, StoredObject {
   /// Deletes data that is not needed for overview
   /// - Parameter force: delete also issues with bookmarks
   /// - Returns: true if content deletes, false if already overview version OR currently downloading
-  public func reduceToOverview() -> Bool {
+  public func reduceToOverview(force: Bool = false) -> Bool {
     if isDownloading {
       ///WARNING May not catch all states, due isDownloading is set if Downloader.downloading files;
       ///not in first Step: get Structure Data @REFACTORING
@@ -2237,6 +2456,9 @@ public final class StoredIssue: Issue, StoredObject {
     else {
       Log.debug("Delete Issue: \(self.date.short)")
     }
+    guard force ||
+            StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
+    else { return false }
     // Remove files not needed for overview
     storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them

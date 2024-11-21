@@ -557,22 +557,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         if arts.count == 0 {
           arts = StoredArticle.get(file: name + ".public.html")
         }
-        
-        if arts.count > 0 {
-          let art = arts[0]
-          if art.hasBookmark != bm {
-            art.hasBookmark = bm
-            ArticleDB.save()
-            if args.count > 2, let showToast = args[2] as? Int, showToast != 0 {
-              let msg = bm ? "Der Artikel wurde in ihrer Leseliste gespeichert." :
-                             "Der Artikel wurde aus ihrer Leseliste entfernt."
-              if let title = art.title {
-                Toast.show("<h3>\(title)</h3>\(msg)", minDuration: 0)
-              }
-              else { Toast.show(msg, minDuration: 0) }
-            }
-          }
-        }
+        arts.first?.hasBookmark.toggle()
       }
       return NSNull()
     }
@@ -633,12 +618,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func export(article: Article){
-    let bookmarkTabbar: UIView? //LeselisteTab only for Bookmark SectionVC
-    = (((self as? BookmarkSectionVC)?.navigationController as? BookmarkNC)?.parentViewController as? UITabBarController)?.tabBar
     ArticleExportDialogue.show(article: article,
                                delegate: self,
                                image: article.images?.first?.image(dir: delegate.issue.dir),
-                               sourceView: bookmarkTabbar ?? shareButton)
+                               sourceView: shareButton)
   }
   
   /// Write tazApi.js to resource directory
@@ -804,11 +787,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     playButton.buttonView.name = "audio"
     homeButton.buttonView.name = "home"
 
-    if self.isMember(of: SearchResultArticleVc.self) == false {
-      #warning("No Bookmark Button For Search Result Articles")
-      toolBar.addArticleButton(bookmarkButton, direction: .center)
-      toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
-    }
+    toolBar.addArticleButton(bookmarkButton, direction: .center)
+    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
+    
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticlePlayButton(Toolbar.Spacer(), direction: .center)
     if self is SectionVC {
