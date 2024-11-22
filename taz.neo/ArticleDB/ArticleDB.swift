@@ -2164,11 +2164,9 @@ public final class StoredIssue: Issue, StoredObject {
       return;
     }
     var knownDirs: [String] = []
-    #warning("Prevent delete folder with bookmarked article")
-//    for case let art as StoredArticle in Bookmarks.shared.bookmarkIssue?.allArticles ?? [] {
-//      guard let orgIssue =  art.originalMoment?.issue else { continue }
-//      knownDirs.append(feed.feeder.issueDir(issue: orgIssue).path)
-//    }
+
+    var reduceToOverviewIssueDates: [String] = []
+    var deletedIssueDates: [String] = []
     
     if keep <= allIssues.count {
       for issue in allIssues[keep...] {
@@ -2180,18 +2178,35 @@ public final class StoredIssue: Issue, StoredObject {
         if lastCompleeteIssues.contains(issue) { continue }
         if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.safeDate { continue }
         if doDelete {
-          Log.log("delete Issue: \(issue.safeDate?.short ?? "-")")
+          deletedIssueDates.append(issue.safeDate?.short ?? "-")
           issue.delete()
           continue
         }
         if issue.reduceToOverview() {
-          Log.log("reduced to Overview for issue: \(issue.safeDate?.short ?? "-")")
+          reduceToOverviewIssueDates.append(issue.safeDate?.short ?? "-")
         }
       }
+    }
+
+    if reduceToOverviewIssueDates.count > 0 {
+      Log.log("reduced to Overview for issue dates: \(reduceToOverviewIssueDates.joined(separator: ", "))")
+    }
+    if deletedIssueDates.count > 0 {
+      Log.log("deleted issue dates: \(deletedIssueDates.joined(separator: ", "))")
     }
     
     guard deleteOrphanFolders else { return }
     Log.log("delete orphan folders")
+    
+    guard let bookmarkIssue = Bookmarks.shared.bookmarkIssue else {
+      Log.log("bookmarks not inited skip delete folders")
+      return
+    }
+    
+    ///Prevent delete folder with bookmarked articles
+    for case let art as StoredArticle in bookmarkIssue.allArticles {
+      knownDirs.append(art.dir.path)
+    }
     
     for issue in lastCompleeteIssues {
       let dir = feed.feeder.issueDir(issue: issue)
@@ -2213,13 +2228,23 @@ public final class StoredIssue: Issue, StoredObject {
     
     let allSubdirs = feed.feeder.feedDir(feed.name).scan()
     
+    var deletedFolders: [String] = []
+    var skipDeleteFolders: [String] = []
+    
     for path in allSubdirs {
       if knownDirs.contains(path) {
-        Log.debug("DO NOT delete folder at: \(path)")
+        skipDeleteFolders.append(path.lastPathComponents(4))
         continue
       }
-      Log.debug("delete folder at: \(path)")
+      deletedFolders.append(path.lastPathComponents(4))
       Dir(path).remove()
+    }
+    
+    if deletedFolders.count > 0 {
+      Log.log("deletedFolders:\n  \(deletedFolders.joined(separator: "\n  "))")
+    }
+    if skipDeleteFolders.count > 0 {
+      Log.log("skipDeleteFolders:\n  \(skipDeleteFolders.joined(separator: "\n  "))")
     }
   }
   
