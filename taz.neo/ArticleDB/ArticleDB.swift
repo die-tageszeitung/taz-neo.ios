@@ -2189,10 +2189,10 @@ public final class StoredIssue: Issue, StoredObject {
     }
 
     if reduceToOverviewIssueDates.count > 0 {
-      Log.log("reduced to Overview for issue dates: \(reduceToOverviewIssueDates.joined(separator: ", "))")
+      Log.log("reduced to Overview for issue dates: \(reduceToOverviewIssueDates.sorted().joined(separator: ", "))")
     }
     if deletedIssueDates.count > 0 {
-      Log.log("deleted issue dates: \(deletedIssueDates.joined(separator: ", "))")
+      Log.log("deleted issue dates: \(deletedIssueDates.sorted().joined(separator: ", "))")
     }
     
     guard deleteOrphanFolders else { return }
@@ -2241,10 +2241,10 @@ public final class StoredIssue: Issue, StoredObject {
     }
     
     if deletedFolders.count > 0 {
-      Log.log("deletedFolders:\n  \(deletedFolders.joined(separator: "\n  "))")
+      Log.log("deletedFolders:\n  \(deletedFolders.sorted().joined(separator: "\n  "))")
     }
     if skipDeleteFolders.count > 0 {
-      Log.log("skipDeleteFolders:\n  \(skipDeleteFolders.joined(separator: "\n  "))")
+      Log.log("skipDeleteFolders:\n  \(skipDeleteFolders.sorted().joined(separator: "\n  "))")
     }
   }
   
