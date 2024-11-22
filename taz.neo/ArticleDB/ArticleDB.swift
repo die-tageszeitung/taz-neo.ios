@@ -2142,7 +2142,7 @@ public final class StoredIssue: Issue, StoredObject {
   ///   - keepPreviews: count of keep previews
   public static func removeOldest(feed: StoredFeed,
                                   keepDownloaded: Int,
-                                  keepPreviews: Int = 90,
+                                  keepPreviews: Int = 20,
                                   doDelete: Bool = false,
                                   deleteOrphanFolders:Bool = false) {
     Log.log("keepDownloaded: \(keepDownloaded) keepPreviews: \(keepPreviews) deleteOrphanFolders: \(deleteOrphanFolders)")

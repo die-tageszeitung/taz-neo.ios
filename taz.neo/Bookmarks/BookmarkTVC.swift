@@ -147,7 +147,7 @@ class BookmarkTVC: UIViewController {
       bookmarksTable.reloadData()
       return
     }
-    self.removeBookmarkArticleCell(at: indexPath)
+    self.removeBookmarkArticleCell(at: indexPath, article: article)
   }
   
   open override func viewWillAppear(_ animated: Bool) {
@@ -213,7 +213,7 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
 
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
     if indexPath.row > 0 { return UITableView.automaticDimension }
-    return indexPath.section == 0 ? 55.0 + Const.Dist2.m25 : 55.0
+    return indexPath.section == 0 ? 57.0 + Const.Dist2.m20 : 57.0
   }
   
   
@@ -237,7 +237,7 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
           let article = cell.article
     else { return nil }
       let deleteAction = UIContextualAction(style: .destructive, title: "löschen", handler: {(_, _, completionHandler) in
-        self.removeBookmarkArticleCell(at: indexPath)
+        self.removeBookmarkArticleCell(at: indexPath, article: article)
         Bookmarks.set(article: article, bookmarked: false)
         completionHandler(true)
     }
@@ -248,12 +248,12 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
     return swipeConfiguration
   }
   
-  func removeBookmarkArticleCell(at indexPath: IndexPath){
+  func removeBookmarkArticleCell(at indexPath: IndexPath, article: Article){
     let sectionKey = sortedSectionKeys[indexPath.section]
     guard var articlesInSection = groupedArticles[sectionKey] else { return }
     
     // Entferne den Artikel aus der Datenquelle
-    articlesInSection.remove(at: indexPath.row)
+    articlesInSection.removeAll { $0.serverId == article.serverId }
     self.groupedArticles[sectionKey] = articlesInSection
     
     // Wenn die Section leer ist, entferne die Section
@@ -327,7 +327,7 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
   }
   
   func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    return 1.0
+    return 0.7
   }
   
   func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
@@ -438,14 +438,14 @@ fileprivate class BookmarkTableHeaderCell: UITableViewCell, UIStyleChangeDelegat
     pin(dottedLine.left, to: self.contentView.left, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
     pin(dottedLine.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
     pin(dottedLine.bottom, to: self.contentView.bottom)
-    imgView.pinSize(CGSize(width: 25, height: 34))
+    imgView.pinSize(CGSize(width: 28, height: 37))
     imgView.contentMode = .scaleAspectFit
     
     pin(dateLabel.left, to: self.contentView.left, dist: Const.Size.DefaultPadding, priority: .defaultLow)
     pin(dateLabel.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
     
     pin(imgView.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
-    pin(imgView.bottom, to: self.contentView.bottom, dist: -Const.Size.DefaultPadding)
+    pin(imgView.bottom, to: self.contentView.bottom, dist: -Const.Size.DefaultPadding + 5)
     pin(dateLabel.centerY, to: imgView.centerY)
     textLeftImageConstraint = pin(dateLabel.left, to: imgView.right, dist: Const.Dist2.s10)
     textLeftImageConstraint?.isActive = false
