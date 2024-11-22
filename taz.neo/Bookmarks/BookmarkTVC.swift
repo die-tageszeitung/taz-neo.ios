@@ -34,11 +34,10 @@ class BookmarkTVC: UIViewController {
     let tv = UITableView(frame: .zero, style: .plain)
     tv.register(BookmarksCell.self,
                             forCellReuseIdentifier: BookmarksCell.ReuseIdentifier)
-    tv.register(BookmarkTableHeaderView.self,
-                            forHeaderFooterViewReuseIdentifier: BookmarkTableHeaderView.ReuseIdentifier)
+    tv.register(BookmarkTableHeaderCell.self,
+                forCellReuseIdentifier: BookmarkTableHeaderCell.ReuseIdentifier)
     tv.register(BookmarkTableFooterView.self,
                             forHeaderFooterViewReuseIdentifier: BookmarkTableFooterView.ReuseIdentifier)
-    tv.rowHeight = UITableView.automaticDimension
     tv.separatorStyle = .none
     tv.estimatedRowHeight = 100.0
     tv.separatorInset = .zero
@@ -211,6 +210,12 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
       print("long tap at cell: \(indexPath)")
     }
   }
+
+  func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+    if indexPath.row > 0 { return UITableView.automaticDimension }
+    return indexPath.section == 0 ? 55.0 + Const.Dist2.m25 : 55.0
+  }
+  
   
   func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
     guard let cell = tableView.cellForRow(at: indexPath) as? BookmarksCell,
@@ -276,26 +281,38 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
       let sectionKey = sortedSectionKeys[section]
-      return groupedArticles[sectionKey]?.count ?? 0
+      return (groupedArticles[sectionKey]?.count ?? -1) + 1
   }
   
   func article(for indexPath: IndexPath) -> Article? {
     let sectionKey = sortedSectionKeys[indexPath.section]
     guard let articlesForSection = groupedArticles[sectionKey] else { return nil }
-    return articlesForSection[indexPath.row]
+    if indexPath.row - 1  > articlesForSection.count { return nil }
+    return articlesForSection[indexPath.row - 1]
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    if indexPath.row == 0 {
+      // Header-Zelle
+      guard let headerCell = tableView.dequeueReusableCell(withIdentifier: BookmarkTableHeaderCell.ReuseIdentifier, for: indexPath) as? BookmarkTableHeaderCell,
+              let feed = Bookmarks.shared.bookmarkIssue?.feed as? StoredFeed else { return BookmarkTableHeaderCell() }
+      
+      let article = article(for: IndexPath(item: 1, section: indexPath.section))
+      headerCell.dateLabel.text = article?.issueDate?.validityDateText(timeZone: GqlFeeder.tz, feed: feed)
+      headerCell.image = lowresMomentImage(for: article)
+      return headerCell
+    }
+
     guard let cell
             = tableView.dequeueReusableCell(withIdentifier: BookmarksCell.ReuseIdentifier,
-                                            for: indexPath) as? NewContentTableVcCell,
+                                            for: indexPath) as? BookmarksCell,
           let article = article(for: indexPath) else { return BookmarksCell() }
     cell.article = article
     if let issue = article.primaryIssue {
       cell.image = cell.article?.images?.first?.image(dir: issue.dir)?.invertedIfNeeded
     }
     let sectionKey = sortedSectionKeys[indexPath.section]
-    cell.dottedLine.isHidden = groupedArticles[sectionKey]?.count == indexPath.row + 1
+    cell.dottedLine.isHidden = groupedArticles[sectionKey]?.count == indexPath.row
     return cell
   }
   
@@ -305,9 +322,7 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
     guard let cell = tableView.cellForRow(at: indexPath) as? BookmarksCell,
           let article = cell.article,
           let avc = articleVC else { return }
-    #warning("TODODODODOD")
-//    let index = articles.firstIndex{ $0.serverId == article.serverId }
-    avc.index = 0
+    avc.index = avc.articles.firstIndex { $0.serverId == article.serverId } ?? 0
     self.navigationController?.pushViewController(avc, animated: true)
   }
   
@@ -319,18 +334,7 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
     if section == sortedSectionKeys.count - 1 { return nil }
     return tableView.dequeueReusableHeaderFooterView(withIdentifier: BookmarkTableFooterView.ReuseIdentifier)
   }
-  
-  func tableView1(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    let v = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.longSide, height: 1))
-      v.backgroundColor = .black
-    #warning("not handlet darkmode change")
-    return v
-  }
-  
-  func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-    if section == 0 { return 55.0 + Const.Dist2.m25}
-    return 55.0
-  }
+
   
   ///get moment image even if article is not in related issue
   private func lowresMomentImage(for article:Article?) -> UIImage? {
@@ -343,98 +347,6 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
    return UIImage(contentsOfFile: "\(issue.dir.path)/\(image.name)")
   }
     
-  func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: BookmarkTableHeaderView.ReuseIdentifier)
-            as? BookmarkTableHeaderView,
-          let feed = Bookmarks.shared.bookmarkIssue?.feed as? StoredFeed
-    else { return nil}
-    let article = article(for: IndexPath(row: 0, section: section))
-    header.dateLabel.text = article?.issueDate?.validityDateText(timeZone: GqlFeeder.tz, feed: feed)
-    header.image = lowresMomentImage(for: article)
-//    header.topBorderHidden = section == 0
-    
-        
-    header.onTapping { [weak self] gr in
-//      guard let _header = gr.view as? ContentTableHeaderFooterView else { return }
-//      self?.sectionPressedClosure?(_header.tag)
-//      _header.active = true
-//      _header.collapsed = false
-//      self?.collapseAll(expect: _header.tag)
-//      Usage.track(isImprint ? Usage.event.drawer.action_tap.Imprint : Usage.event.drawer.action_tap.Section)
-    }
-    
-    return header
-  }
-  
-  
-  /*
-  public override  func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: Self.SectionHeaderIdentifier)
-            as? ContentTableHeaderFooterView else { return nil}
-    
-    if let ressort = issue?.sections?.valueAt(section) {
-      header.label.text = ressort.name
-      let unexpandable = ressort.type == .advertisement || ressort.type == .podcast
-      header.chevron.isHidden = unexpandable
-      header.dottedLine.isHidden = unexpandable
-    } else if section == issue?.sections?.count ?? 0 {
-      header.label.text = issue?.imprint?.title ?? "Impressum"
-      header.chevron.isHidden = true
-      header.dottedLine.isHidden = true
-    } else {
-      header.label.text = nil
-      header.chevron.isHidden = true
-      header.dottedLine.isHidden = true
-    }
-    
-    header.collapsed = !expandedSections.contains(section)
-
-    header.tag = section
-    header.topSeperator?.isHidden = section == 0
-    
-    let isImprint = section == issue?.sections?.count ?? 0
-    
-    header.onTapping { [weak self] gr in
-      guard let _header = gr.view as? ContentTableHeaderFooterView else { return }
-      self?.sectionPressedClosure?(_header.tag)
-      _header.active = true
-      _header.collapsed = false
-      self?.collapseAll(expect: _header.tag)
-      Usage.track(isImprint ? Usage.event.drawer.action_tap.Imprint : Usage.event.drawer.action_tap.Section)
-    }
-    
-    header.chevronTapArea.onTapping {  [weak self] gr in
-      ///fixes memory leak
-      ///ugly but working first superview is _UITableViewHeaderFooterContentView due chevronTapArea is added to contentView
-      ///on refactor my just pass closure/handler
-      guard let _header = gr.view?.superview?.superview as? ContentTableHeaderFooterView else { return }
-      _header.collapsed = self?.toggle(section: _header.tag) ?? true
-      Usage.track(Usage.event.drawer.action_toggle.Section)
-    }
-    header.active = section == sectIndex
-    return header
-  }*/
-  /*
-  public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    guard let art = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row) else {
-      log("Article you tapped not found for section: \(indexPath.section), row: \(indexPath.row)")
-      return
-    }
-    Usage.track(Usage.event.drawer.action_tap.Article)
-    articlePressedClosure?(art)
-  }
-  
-  public func tableView(_ tableView: UITableView,
-                                 cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell
-    = tableView.dequeueReusableCell(withIdentifier: Self.CellIdentifier,
-                                    for: indexPath) as? NewContentTableVcCell
-    ?? NewContentTableVcCell()
-    cell.article = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row)
-    cell.image = cell.article?.images?.first?.image(dir: issue?.dir)?.invertedIfNeeded
-    cell.active = indexPath == activeItem
-    return cell
-  }*/
 }
 
 
@@ -485,16 +397,16 @@ fileprivate class BookmarkTableFooterView: UITableViewHeaderFooterView, UIStyleC
   }
 }
  
-fileprivate class BookmarkTableHeaderView: UITableViewHeaderFooterView, UIStyleChangeDelegate{
+fileprivate class BookmarkTableHeaderCell: UITableViewCell, UIStyleChangeDelegate{
   
   static let ReuseIdentifier = "BookmarkTableHeaderViewIdentifier"
   
   var dateLabel: UILabel = UILabel()
   let dottedLine = DottedLineView()
-  private let imageView = UIImageView()
+  private let imgView = UIImageView()
   var image: UIImage? {
     didSet {
-      imageView.image = image
+      imgView.image = image
       textLeftImageConstraint?.isActive = image != nil
     }
   }
@@ -522,20 +434,20 @@ fileprivate class BookmarkTableHeaderView: UITableViewHeaderFooterView, UIStyleC
     dottedLine.pinHeight(Const.Size.DottedLineHeight*0.7)
     self.contentView.addSubview(dottedLine)
     self.contentView.addSubview(dateLabel)
-    self.contentView.addSubview(imageView)
+    self.contentView.addSubview(imgView)
     pin(dottedLine.left, to: self.contentView.left, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
     pin(dottedLine.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
     pin(dottedLine.bottom, to: self.contentView.bottom)
-    imageView.pinSize(CGSize(width: 25, height: 34))
-    imageView.contentMode = .scaleAspectFit
+    imgView.pinSize(CGSize(width: 25, height: 34))
+    imgView.contentMode = .scaleAspectFit
     
     pin(dateLabel.left, to: self.contentView.left, dist: Const.Size.DefaultPadding, priority: .defaultLow)
     pin(dateLabel.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
     
-    pin(imageView.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
-    pin(imageView.bottom, to: self.contentView.bottom, dist: -Const.Size.DefaultPadding)
-    pin(dateLabel.centerY, to: imageView.centerY)
-    textLeftImageConstraint = pin(dateLabel.left, to: imageView.right, dist: Const.Dist2.s10)
+    pin(imgView.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
+    pin(imgView.bottom, to: self.contentView.bottom, dist: -Const.Size.DefaultPadding)
+    pin(dateLabel.centerY, to: imgView.centerY)
+    textLeftImageConstraint = pin(dateLabel.left, to: imgView.right, dist: Const.Dist2.s10)
     textLeftImageConstraint?.isActive = false
     
     self.contentView.layoutMargins.top = 0.0
@@ -546,8 +458,8 @@ fileprivate class BookmarkTableHeaderView: UITableViewHeaderFooterView, UIStyleC
     dateLabel.boldContentFont()
   }
   
-  override init(reuseIdentifier: String?) {
-    super.init(reuseIdentifier: reuseIdentifier)
+  override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+    super.init(style: style, reuseIdentifier: reuseIdentifier)
     setup()
   }
   
