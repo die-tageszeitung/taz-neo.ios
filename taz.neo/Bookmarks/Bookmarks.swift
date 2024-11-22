@@ -91,13 +91,6 @@ public class Bookmarks: DoesLog {
     }()
   }
   
-  fileprivate func newStored(article: Article) -> StoredArticle {
-    // Create a new StoredArticle and update its details from the given article
-    let storedArticle = StoredArticle.new()
-    storedArticle.update(from: article)
-    return storedArticle
-  }
-  
   /// Prepares for managing bookmarks across multiple lists
   fileprivate func set(article: Article, active: Bool, in list: StoredSection? = nil) {
     // Retrieve the existing bookmarked article, if any
@@ -116,20 +109,11 @@ public class Bookmarks: DoesLog {
     
     if active {
       // Activate the bookmark
-      let storedArticle = (article as? StoredArticle) ?? newStored(article: article)
+      guard let storedArticle = bookmarkableArticle(from: article) else { return }
+      
       storedArticle.pr.addToSections(bookmarkSection.pr)
       bookmarkSection.pr.addToArticles(storedArticle.pr)
       
-      // Update details from the article's primary issue if available
-      if let issue = storedArticle.primaryIssue as? StoredIssue {
-        if storedArticle.pr.issueDate == nil {
-          storedArticle.pr.issueDate = issue.date
-        }
-        storedArticle.baseURL = issue.baseUrl
-      } else if let sArt = article as? SearchArticle {
-        storedArticle.pr.issueDate = sArt.originalIssueDate
-        storedArticle.baseURL = sArt.baseURL
-      }
       bookmarkedArticles.append(storedArticle)
       ArticleDB.save()
       Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
@@ -138,9 +122,9 @@ public class Bookmarks: DoesLog {
       Toast.show("<h3>\(article.title ?? "")</h3>\(msg)")
     } else if let storedArticle = bookmarkedArticle {
       removeBookmarked(article: storedArticle, from: bookmarkSection)
+    } else {
+      error("something went wrong: the article which should be un-bookmarked is not bookmarked. RaceCondition?")
     }
-    
-    // Notify about the bookmark change
   }
   
   private func removeBookmarked(article: StoredArticle, from section: StoredSection){
@@ -237,14 +221,14 @@ public class Bookmarks: DoesLog {
       log("Failed to add BookmarkSection with name: \(name), bookmarkIssue is missing.")
       return nil
     }
-    copyRessourcesIfNeeded()
     let sect = StoredSection.new()
     sect.name = "Leseliste"
     sect.type = .unknown
-    //    sect.primaryIssue = issue
     
-    let bmFilePath = "\(issue.feed.bookmarksDir.path)/\(sect.name).html"
-    File(bmFilePath).string = "initial, empty"
+    let bmDir = issue.feed.bookmarksDir
+    if bmDir.exists == false { bmDir.create() }
+    let bmFilePath = "\(bmDir.path)/\(sect.name).html"
+    File(bmFilePath).string = "initial, empty: Only for Compatibility Reasons due a Section(Content) required html"
     let tmpFile = StoredFileEntry.new(path: bmFilePath)
     sect.html = tmpFile
     issue.pr.addToSections(sect.pr)
@@ -254,19 +238,79 @@ public class Bookmarks: DoesLog {
     return sect
   }
   
-  private func copyRessourcesIfNeeded(){
-    guard let issue = bookmarkIssue else {
-      log("Failed to copy, bookmarkIssue is missing.")
-      return
+  
+  private func commonIssueDir(fromSearchArticle searchArticle: SearchArticle) -> Dir? {
+    guard let feeder = feederContext?.storedFeeder,
+    let feed = bookmarkIssue?.feed,
+    let issueDate = searchArticle.originalIssueDate else { return nil }
+    return feeder.issueDir(feed: feed.name, issue: feeder.date2a(issueDate))
+  }
+  /// ensures storedArticle properies are set as expected
+  /// * creates target dir in default issue dir format e.g. /taz/taz/YYYY-mm-dd
+  /// * link ressources to this folder
+  /// * copies serach article files to this folder
+  /// * sets StoredFileEntry.subdir property to the new target dir for all article.files
+  private func bookmarkableArticle(from article: Article) -> StoredArticle? {
+    if let storedArticle = article as? StoredArticle {
+      ///bookmark from downloaded issue; just set some properties
+      if let issue = storedArticle.primaryIssue as? StoredIssue {
+        if storedArticle.pr.issueDate == nil {
+          storedArticle.pr.issueDate = issue.date
+        }
+        storedArticle.baseURL = issue.baseUrl
+      }
+      return storedArticle
     }
-    let bmDir = issue.feed.bookmarksDir
-    if bmDir.exists { return }
     
-    bmDir.create()
-    let rlink = File(dir: bmDir.path, fname: "resources")
-    let glink = File(dir: bmDir.path, fname: "global")
-    if !rlink.isLink { rlink.link(to: issue.feed.feeder.resourcesDir.path) }
-    if !glink.isLink { glink.link(to: issue.feed.feeder.globalDir.path) }
+    guard let searchArticle = article as? SearchArticle else {
+      error("something went wrong: \(article) is not a StoredArticle or a SearchArticle")
+      return nil
+    }
+    
+    
+    guard let issueDir = commonIssueDir(fromSearchArticle: searchArticle) else {
+      error("something went wrong, did not found commonIssueDir for: \(article)")
+      return nil
+    }
+    guard let feeder = feederContext?.storedFeeder else {
+      error("something went wrong, did not found feeder")
+      return nil
+    }
+    
+    ///link Ressources (js/css/author images) if needed
+    if issueDir.exists == false {
+      issueDir.create()
+      let rlink = File(dir: issueDir.path, fname: "resources")
+      let glink = File(dir: issueDir.path, fname: "global")
+      if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
+      if !glink.isLink { glink.link(to: feeder.globalDir.path) }
+    }
+    
+    ///copy serach content to target issue dir
+    for fileEntry in searchArticle.files {
+      let f = File(dir: Dir.searchResults.path, fname: fileEntry.fileName)
+      if !f.exists { continue }
+      f.copy(to: issueDir.path + "/" + fileEntry.fileName)
+    }
+    
+    ///it is ensured, that article is not already a StoredArticle
+    let storedArticle = StoredArticle.persist(object: article)
+    
+    ///set default properties, wich are not set correctly in
+    storedArticle.pr.issueDate = searchArticle.originalIssueDate
+    storedArticle.baseURL = searchArticle.baseURL
+    
+    ///add subdir info to StoredArticle files
+    let subdir = String(issueDir.path.dropFirst(Database.appDir.count + 1))
+    for case let f as StoredFileEntry in storedArticle.files {
+      f.subdir = subdir
+    }
+    
+    /* NOT ONLY:
+     (storedArticle.html as? StoredFileEntry)?.subdir
+     = String(targetDir.path.dropFirst(Database.appDir.count + 1))
+     */
+    return storedArticle
   }
   
   func setup(){
