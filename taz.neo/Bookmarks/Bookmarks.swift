@@ -237,13 +237,16 @@ public class Bookmarks: DoesLog {
     
     return sect
   }
-  
+
+  func commonIssueDir(for issueDate: Date) -> Dir? {
+    guard let feeder = feederContext?.storedFeeder,
+    let feed = bookmarkIssue?.feed else { return nil }
+    return feeder.issueDir(feed: feed.name, issue: feeder.date2a(issueDate))
+  }
   
   private func commonIssueDir(fromSearchArticle searchArticle: SearchArticle) -> Dir? {
-    guard let feeder = feederContext?.storedFeeder,
-    let feed = bookmarkIssue?.feed,
-    let issueDate = searchArticle.originalIssueDate else { return nil }
-    return feeder.issueDir(feed: feed.name, issue: feeder.date2a(issueDate))
+    guard let issueDate = searchArticle.originalIssueDate else { return nil }
+    return commonIssueDir(for: issueDate)
   }
   /// ensures storedArticle properies are set as expected
   /// * creates target dir in default issue dir format e.g. /taz/taz/YYYY-mm-dd
@@ -280,18 +283,36 @@ public class Bookmarks: DoesLog {
     ///link Ressources (js/css/author images) if needed
     if issueDir.exists == false {
       issueDir.create()
-      let rlink = File(dir: issueDir.path, fname: "resources")
-      let glink = File(dir: issueDir.path, fname: "global")
-      if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
-      if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     }
+    let rlink = File(dir: issueDir.path, fname: "resources")
+    let glink = File(dir: issueDir.path, fname: "global")
+    if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
+    if !glink.isLink { glink.link(to: feeder.globalDir.path) }
+    
+    var dlFiles: [FileEntry]  = []
     
     ///copy serach content to target issue dir
     for fileEntry in searchArticle.files {
       let f = File(dir: Dir.searchResults.path, fname: fileEntry.fileName)
-      if !f.exists { continue }
+      if !f.exists { dlFiles.append(fileEntry); continue }
       f.copy(to: issueDir.path + "/" + fileEntry.fileName)
     }
+    
+    if let searchArticleBaseUrl = searchArticle.baseURL {
+      ///try to download not yet downloaded files
+      feederContext?.dloader.downloadSearchHitFiles(files: dlFiles, baseUrl: searchArticleBaseUrl, closure: { err in
+        for file in dlFiles {
+          let f = File(dir: Dir.searchResults.path, fname: file.fileName)
+          if !f.exists { continue }
+          f.copy(to: issueDir.path + "/" + file.fileName)
+        }
+        if let err = err {
+          Toast.show("Fehler beim Download von Dateien")
+          self.log("download finished with err: \(err)")
+        }
+      })
+    }
+    #warning("FIX ERROR DOWNLOAD => LATER LOAD ON OPEN ARTICLE")
     
     ///it is ensured, that article is not already a StoredArticle
     let storedArticle = StoredArticle.persist(object: article)

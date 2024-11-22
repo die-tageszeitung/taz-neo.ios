@@ -520,6 +520,7 @@ extension ContentVC:ArticleExportDialogueDelegate {
 //    }
     
     guard let printFormatter = currentWebView?.viewPrintFormatter() else {
+      log("cannot create local pdf webview: \(currentView)", logLevel: .Error)
       return
     }
     let renderer = CustomPrintPageRenderer()

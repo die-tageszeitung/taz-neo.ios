@@ -311,6 +311,11 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
     if let issue = article.primaryIssue {
       cell.image = cell.article?.images?.first?.image(dir: issue.dir)?.invertedIfNeeded
     }
+    else if let issueDate = article.issueDate,
+            let dir = Bookmarks.shared.commonIssueDir(for: issueDate) {
+      cell.image = cell.article?.images?.first?.image(dir: dir)?.invertedIfNeeded
+    }
+    
     let sectionKey = sortedSectionKeys[indexPath.section]
     cell.dottedLine.isHidden = groupedArticles[sectionKey]?.count == indexPath.row
     return cell
