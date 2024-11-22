@@ -134,7 +134,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,
-         cart.html?.name == art.html?.name {
+         art.serverId != nil,
+         cart.serverId == art.serverId {
          self.displayBookmark(art: art)
       }
     }

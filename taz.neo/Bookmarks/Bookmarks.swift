@@ -116,7 +116,7 @@ public class Bookmarks: DoesLog {
       
       bookmarkedArticles.append(storedArticle)
       ArticleDB.save()
-      Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
+      Notification.send(Const.NotificationNames.bookmarkChanged, sender: storedArticle)
       
       let msg = "Der Artikel wurde in ihrer Leseliste gespeichert."
       Toast.show("<h3>\(article.title ?? "")</h3>\(msg)")
