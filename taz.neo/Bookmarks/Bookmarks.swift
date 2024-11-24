@@ -320,6 +320,7 @@ public class Bookmarks: DoesLog {
     ///set default properties, wich are not set correctly in
     storedArticle.pr.issueDate = searchArticle.originalIssueDate
     storedArticle.baseURL = searchArticle.baseURL
+    storedArticle.sectionTitle = searchArticle.sectionTitle
     
     ///add subdir info to StoredArticle files
     let subdir = String(issueDir.path.dropFirst(Database.appDir.count + 1))

@@ -1101,11 +1101,14 @@ public final class StoredArticle: Article, StoredObject {
   }
   
   public var sectionTitle: String? {
-    if let s = pr.sectionTitle { return s }
-    for s in nonBookmarkSections {
-      if let t = s.title { return t }
+    get {
+      if let s = pr.sectionTitle { return s }
+      for s in nonBookmarkSections {
+        if let t = s.title { return t }
+      }
+      return nil
     }
-    return nil
+    set { pr.sectionTitle = newValue }
   }
   
   public required init(persistent: PersistentArticle) { self.pr = persistent }

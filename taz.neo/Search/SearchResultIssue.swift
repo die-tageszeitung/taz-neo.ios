@@ -51,6 +51,8 @@ class SearchArticle:GqlArticle{
   /// use this field to transfer the issue base url from serachHit to downloader
   var baseURL: String?
   
+  var sectionTitle: String?
+  
   var originalIssueDate: Date?
   
   override var primaryIssue: Issue? {
