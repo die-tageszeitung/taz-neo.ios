@@ -62,7 +62,7 @@ class SearchArticle:GqlArticle{
 }
 
 /// A Section of searched  Articles
-public class SearchSection: BookmarkSection {}
+public class SearchSection: VirtualSection {}
 
 /// A temporary file entry
 public class TmpFileEntry: FileEntry {

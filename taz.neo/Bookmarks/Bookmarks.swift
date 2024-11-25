@@ -395,8 +395,8 @@ public class VirtualIssue: Issue {
   }
 }
 
-/// A Section of bookmarked Articles
-public class BookmarkSection: Section {
+/// A Section for search result articles
+public class VirtualSection: Section {
   public var audioItem: Audio?
   public var name: String
   public var extendedTitle: String? { name }
