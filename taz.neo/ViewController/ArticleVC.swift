@@ -85,15 +85,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     guard articles.firstIndex(where: { $0.html?.name == name }) == nil
     else { return }
     
-    var all: [Article] = []
-    if delegate.issue.isBookmarkIssue {
-      #warning("ToDO")
-      all = Bookmarks.shared.bookmarkedArticles ///WRONG ORDER!!
-    }
-    else {
-      all = delegate.issue.allArticles
-    }
-    if let idx = all.firstIndex(where: { $0.html?.name == name }) {
+    if let idx = delegate.issue.allArticles.firstIndex(where: { $0.html?.name == name }) {
       articles.insert(article, at: idx)
       insertContent(content: article, at: idx)
     }
@@ -126,7 +118,11 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
                   smoothPreviewForImage: true)
     playButtonContextMenu?.itemPrivider = self
     
-    if let arts = self.adelegate?.issue.allArticles {
+    if self.adelegate?.issue.isBookmarkIssue == true,
+        let arts = self.adelegate?.issue.allArticles {
+      self.articles = (arts as? [StoredArticle])?.bmSorted() ?? arts
+    }
+    else if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
     }
     super.setup(contents: articles, isLargeHeader: false)
@@ -227,6 +223,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       header.title = article?.title
       header.pageNumber = nil
     }
+    else if adelegate?.issue.isBookmarkIssue == true {
+      let idx = articles.firstIndex {$0.serverId == article?.serverId } ?? -2
+      if let st = article?.sectionTitle { header.title = st }
+      header.titletype = .search
+      header.subTitle = "Ausgabe \(article?.issueDate?.short ?? "")"
+      header.pageNumber = "\(idx+1) von \(articles.count)"
+    }
     else if let art = article, let name = art.html?.name {
       if let sections = adelegate?.article2section[name],
          sections.count > 0 {
@@ -239,15 +242,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           }
           if let st = art.sectionTitle { header.title = st }
           else { header.title = "\(title)" }
-          
-          if issue.isBookmarkIssue {
-            header.titletype = .search
-            header.subTitle = "Ausgabe \(art.issueDate?.short ?? "")"
-            header.pageNumber = "\(i+1) von \(articles.count)"
-          }
-          else {
-            header.pageNumber = "\(i+1)/\(articles.count)"
-          }
+          header.pageNumber = "\(i+1)/\(articles.count)"
           contentTable?.setActive(row: i,
                                   section: adelegate?.article2index(art: art))
         }

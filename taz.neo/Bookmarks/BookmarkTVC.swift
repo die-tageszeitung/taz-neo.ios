@@ -12,9 +12,13 @@ import UIKit
 //@inlinable public mutating func sort(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows
 // extension Array<StoredArticle> {
 
-fileprivate extension Array where Element == StoredArticle {
-  func sorted() -> Self {
+extension Array where Element == StoredArticle {
+  func bmSorted() -> Self {
     self.sorted(by: {
+      if $0.issueDate?.issueKey != $1.issueDate?.issueKey {
+        return $0.issueDate?.ISO8601 ?? "0" > $1.issueDate?.ISO8601 ?? "1"
+      }
+      
       let section0MinOrder
       = $0.nonBookmarkSections.map { Int($0.pr.order) }.min() ?? Int.max
       let section1MinOrder
@@ -27,7 +31,7 @@ fileprivate extension Array where Element == StoredArticle {
       return $0.pr.order < $1.pr.order
     })
   }
-}
+  }
 class BookmarkTVC: UIViewController {
   
   private lazy var bookmarksTable:UITableView = {
@@ -189,7 +193,7 @@ extension BookmarkTVC {
     
     for (sectionKey, articles) in dict {
       //Cannot use mutating member on immutable value: 'articles' is a 'let' constant
-      out[sectionKey] = articles.sorted()
+      out[sectionKey] = articles.bmSorted()
       
     }
     
