@@ -300,6 +300,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         padding-top: 78px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
       }
+      \(bookmarkAntiSnippetCss)
       p {
         text-align: \(textAlign);
       }
@@ -335,6 +336,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     isMultiColumnMode = css != nil
     self.collectionView?.showsHorizontalScrollIndicator = false
     return css ?? singleColumnCss
+  }
+  
+  var bookmarkAntiSnippetCss : String {
+    if issue.isBookmarkIssue {
+      return """
+        body span.snippet {
+          background-color  : unset;
+        }
+      """
+    }
+    return ""
   }
   
   var singleColumnCss : String {
