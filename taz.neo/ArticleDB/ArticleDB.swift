@@ -937,6 +937,16 @@ extension PersistentSection {
   }
 }
 
+extension PersistentArticle {
+  public override func prepareForDeletion() {
+    super.prepareForDeletion()
+    for case let author as PersistentAuthor in self.authors ?? []{
+      author.removeFromArticles(self)
+      if author.articles?.count == 0 { author.delete() }
+    }
+  }
+}
+
 extension PersistentPage: PersistentObject {}
 
 /// A stored Article
