@@ -328,6 +328,11 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
   // MARK: - UITableViewDelegate (optional, für Benutzerinteraktion)
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
+    if let cell = tableView.cellForRow(at: indexPath) as? BookmarkTableHeaderCell,
+       let article = article(for: IndexPath(item: 1, section: indexPath.section)) {
+      Notification.send(Const.NotificationNames.gotoIssue, content: article.issueDate, sender: self)
+    }
+    
     guard let cell = tableView.cellForRow(at: indexPath) as? BookmarksCell,
           let article = cell.article,
           let avc = articleVC else { return }
