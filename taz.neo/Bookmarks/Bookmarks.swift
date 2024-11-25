@@ -295,13 +295,21 @@ public class Bookmarks: DoesLog {
     for fileEntry in searchArticle.files {
       let f = File(dir: Dir.searchResults.path, fname: fileEntry.fileName)
       if !f.exists { dlFiles.append(fileEntry); continue }
-      f.copy(to: issueDir.path + "/" + fileEntry.fileName)
+      f.copyResource(to: issueDir.path + "/" + fileEntry.fileName)
     }
     
-    if let searchArticleBaseUrl = searchArticle.baseURL {
+    ///copy serach content to target issue dir
+    for author in searchArticle.authors ?? [] {
+      guard let fileEntry = author.photo else { continue }
+      let f = File(dir: feeder.globalDir.path, fname: fileEntry.fileName)
+      if !f.exists { dlFiles.append(fileEntry) }
+    }
+    
+    if let searchArticleBaseUrl = searchArticle.baseURL, dlFiles.count > 0 {
       ///try to download not yet downloaded files
       feederContext?.dloader.downloadSearchHitFiles(files: dlFiles, baseUrl: searchArticleBaseUrl, closure: { err in
         for file in dlFiles {
+          if file.storageType == .global { continue }///prevent move author images from global to issue folder
           let f = File(dir: Dir.searchResults.path, fname: file.fileName)
           if !f.exists { continue }
           f.copy(to: issueDir.path + "/" + file.fileName)
@@ -312,6 +320,7 @@ public class Bookmarks: DoesLog {
         }
       })
     }
+    
     #warning("FIX ERROR DOWNLOAD => LATER LOAD ON OPEN ARTICLE")
     
     ///it is ensured, that article is not already a StoredArticle
@@ -321,6 +330,11 @@ public class Bookmarks: DoesLog {
     storedArticle.pr.issueDate = searchArticle.originalIssueDate
     storedArticle.baseURL = searchArticle.baseURL
     storedArticle.sectionTitle = searchArticle.sectionTitle
+    for au in searchArticle.authors ?? [] {
+      let sau = StoredAuthor.persist(object: au)
+      sau.pr.addToArticles(storedArticle.pr)
+      storedArticle.pr.addToAuthors(sau.pr)
+    }
     
     ///add subdir info to StoredArticle files
     let subdir = String(issueDir.path.dropFirst(Database.appDir.count + 1))
