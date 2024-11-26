@@ -63,7 +63,39 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
   
   public var menu: MenuActions? {
-    return Bookmarks.shared.bookmarkIssue?._contextMenu(group: 0)
+    let ctxMenu = Bookmarks.shared.bookmarkIssue?._contextMenu(group: 0)
+    var dlContent: [Article] = []
+    for art in Bookmarks.shared.bookmarkedArticles {
+      guard let fileEntry = art.audioItem?.file else { continue }
+      let localFilePath = art.dir.path + "/" + fileEntry.name
+      let file = File(localFilePath)
+      if file.exists == false {  dlContent.append(art) }
+    }
+    
+    if dlContent.count == 0 { return ctxMenu }
+    debug("can download \(dlContent.count) items")
+    ctxMenu?.addMenuItem(title: "Alle Audioinhalte der Leseliste herunterladen",
+                        icon: "download",
+                        group: 0,
+                        closure: {[weak self] _ in
+      self?.downloadAllAudio(dlContent: dlContent)
+    })
+    return ctxMenu
+  }
+  
+  private func downloadAllAudio(dlContent: [Article]){
+    guard let fc = Bookmarks.shared.feederContext else { return }
+    for art in dlContent {
+      guard let baseUrl = art.baseURL,
+            let audioItem = art.audioItem?.file else { continue }
+      fc.dloader.downloadSearchHitFiles(files: [audioItem],
+                                        baseUrl: baseUrl,
+                                        targetDir: art.dir) {[weak self] err in
+        if let err = err {
+          self?.log("dl err \(err) for: \(audioItem.fileName)")
+        }
+      }
+    }
   }
   
   var headerPlayButtonContextMenu: ContextMenu?
