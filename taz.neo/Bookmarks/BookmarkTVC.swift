@@ -122,7 +122,7 @@ class BookmarkTVC: UIViewController {
     for (sectionKey, articles) in groupedArticles {
       if let aIdx = articles.firstIndex(where: { $0.serverId == serverId }) {
         if let sIdx = sortedSectionKeys.firstIndex(where: {$0 == sectionKey }) {
-          return IndexPath(row: aIdx, section: sIdx)
+          return IndexPath(row: aIdx + 1, section: sIdx)///+1 to fix section header is row 0
           
         }
         return nil
