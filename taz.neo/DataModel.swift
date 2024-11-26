@@ -528,7 +528,7 @@ public extension Article {
     if ArticlePlayer.singleton.currentContent?.html?.sha256 == self.html?.sha256 && self.html?.sha256 != nil {
       ArticlePlayer.singleton.toggle(origin: .appUi)
     }
-    else if let issue = issue as? StoredIssue {
+    else if issue is VirtualIssue || issue is StoredIssue {
       ArticlePlayer.singleton.play(issue: issue,
                                    startFromArticle: self,
                                    enqueueType: .replaceCurrent,

@@ -32,7 +32,7 @@ extension Array where Element == StoredArticle {
     })
   }
   }
-class BookmarkTVC: UIViewController {
+class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
   private lazy var bookmarksTable:UITableView = {
     let tv = UITableView(frame: .zero, style: .plain)
@@ -61,6 +61,26 @@ class BookmarkTVC: UIViewController {
     return tv
   }()
   
+  
+  public var menu: MenuActions? {
+    return Bookmarks.shared.bookmarkIssue?._contextMenu(group: 0)
+  }
+  
+  var headerPlayButtonContextMenu: ContextMenu?
+  
+  private lazy var headerPlayButton: Button<ImageView> = {
+    let btn = Button<ImageView>()
+    btn.onTapping { [weak self] _ in
+      guard let sissue = Bookmarks.shared.bookmarkIssue else { return }
+      ArticlePlayer.singleton.play(issue: sissue,
+                                   startFromArticle: nil,
+                                   enqueueType: .replaceCurrent)
+    }
+    btn.pinSize(CGSize(width: 36, height: 36))
+    btn.hinset = 0.1//20%
+    btn.color = Const.Colors.appIconGrey
+    return btn
+  }()
   
   //groupedArticles.values.flatMap { $0 }
   private var groupedArticles: [String: [Article]] = [:] {
@@ -94,7 +114,7 @@ class BookmarkTVC: UIViewController {
   let placeholderView = PlaceholderView("Sie haben noch keine Artikel in Ihrer Leseliste.\n\nSpeichern Sie Artikel zum weiterlesen, hören oder erinnern in Ihrer persönlichen Leseliste. Einfach das Sternchen bei den Artikeln aktivieren.",
                             image: UIImage(named: "star"))
   
-  override func viewDidLoad() {
+  public override func viewDidLoad() {
     super.viewDidLoad()
     self.view.addSubview(placeholderView)
     pin(placeholderView, toSafe: self.view)
@@ -109,6 +129,16 @@ class BookmarkTVC: UIViewController {
     ///It
     pin(bookmarksTable.top, to: header.bottom, dist: -2)
    
+    self.header.addSubview(headerPlayButton)
+    pin(headerPlayButton.right, to: self.header.right, dist: -10)
+    pin(headerPlayButton.centerY, to: header.titleLabel.centerY)
+    headerPlayButton.activeColor = Const.SetColor.taz2(.text).color
+    headerPlayButtonContextMenu = ContextMenu(view: headerPlayButton.buttonView)
+    headerPlayButtonContextMenu?.itemPrivider = self
+    
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+      self?.updateAudioButton()
+    }
     
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       if let art = msg.sender as? StoredArticle {
@@ -117,6 +147,15 @@ class BookmarkTVC: UIViewController {
     }
   }
   
+  func updateAudioButton(){
+    self.headerPlayButton.buttonView.name
+    = ArticlePlayer.singleton.isPlaying
+    && (ArticlePlayer.singleton.currentContent as? Article)?.hasBookmark == true
+    ? "audio-active"
+    : "audio"
+    self.headerPlayButton.buttonView.isHidden = Bookmarks.shared.bookmarkIssue?.hasAudio != true
+  }
+
   private func indexPath(for article: Article) -> IndexPath? {
     guard let serverId = article.serverId else { return nil }
     for (sectionKey, articles) in groupedArticles {
@@ -160,6 +199,7 @@ class BookmarkTVC: UIViewController {
     updateData()
     bookmarksTable.reloadData()///ugly to reload all rows
     applyStyles()
+    updateAudioButton()
   }
 }
 
