@@ -86,8 +86,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     else { return }
     
     if let idx = delegate.issue.allArticles.firstIndex(where: { $0.html?.name == name }) {
-      articles.insert(article, at: idx)
-      insertContent(content: article, at: idx)
+      ///print(">>> Insert article: \(article.title ?? "-") at index: \(idx) / \(articles.count - 1 )")
+      articles.insert(article, at: min(idx, articles.count - 1))
+      insertContent(content: article, at: min(idx, contents.count - 1))
     }
   }
   

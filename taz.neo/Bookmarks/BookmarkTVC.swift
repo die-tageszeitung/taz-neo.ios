@@ -132,7 +132,8 @@ class BookmarkTVC: UIViewController {
   }
   
   func handleBookmarkChanged(for article: StoredArticle){
-    Bookmarks.shared.issueInfo?.updateData()
+    ///do not set compleete array new, this did not add/remove articles if in artVC e.g. when unbookmark and revert e.g.:
+    /// articleVC?.articles = (Bookmarks.shared.bookmarkIssue?.allArticles as? [StoredArticle])?.bmSorted() ?? []
     if article.hasBookmark {
       articleVC?.insert(article: article)
     }
