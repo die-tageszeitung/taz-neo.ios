@@ -78,7 +78,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
       self?.handleIssueDownloadNotification(notification: notification)
     }
-    self.selectedIndex = 1
+    self.selectedIndex = 0
   } // viewDidLoad
   
   var searchArticleToOpen: SearchArticle?
