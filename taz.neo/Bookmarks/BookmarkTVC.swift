@@ -188,18 +188,17 @@ extension BookmarkTVC {
   
   func updateData() {
     // group after date
-    let dict = Dictionary(grouping: Bookmarks.shared.bookmarkedArticles, by: { article in (article.issueDate ?? Date(timeIntervalSince1970: 0)).isoDate() })
+    let dict = Dictionary(grouping: Bookmarks.shared.bookmarkedArticles.bmSorted(), by: { article in (article.issueDate ?? Date(timeIntervalSince1970: 0)).isoDate() })
     
     var out: [String: [StoredArticle]] = [:]
     
     for (sectionKey, articles) in dict {
       //Cannot use mutating member on immutable value: 'articles' is a 'let' constant
-      out[sectionKey] = articles.bmSorted()
+      out[sectionKey] = articles
       
     }
     
     groupedArticles = out
-    
     
     // Sections sortieren (nach Datum absteigend)
     sortedSectionKeys = groupedArticles.keys.sorted().reversed()
