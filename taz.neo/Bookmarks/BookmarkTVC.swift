@@ -312,6 +312,12 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
                                             for: indexPath) as? BookmarksCell,
           let article = article(for: indexPath) else { return BookmarksCell() }
     cell.article = article
+    
+    cell.onShare { [weak self] (art, sourceView) in
+      self?.shareArticle(article: art, sourceView: sourceView)
+    }
+    
+    
     if let issue = article.primaryIssue {
       cell.image = cell.article?.images?.first?.image(dir: issue.dir)?.invertedIfNeeded
     }
@@ -323,6 +329,19 @@ extension BookmarkTVC: UITableViewDataSource,  UITableViewDelegate {
     let sectionKey = sortedSectionKeys[indexPath.section]
     cell.dottedLine.isHidden = groupedArticles[sectionKey]?.count == indexPath.row
     return cell
+  }
+  
+  func shareArticle(article: Article, sourceView: UIView){
+    guard let articleVC = articleVC else { return }
+    var artImage: UIImage?
+    if let issue = article.primaryIssue {
+      artImage = article.images?.first?.image(dir: issue.dir)?.invertedIfNeeded
+    }
+    
+    ArticleExportDialogue.show(article: article,
+                               delegate: articleVC,
+                               image: artImage,
+                               sourceView: sourceView)
   }
   
   // MARK: - UITableViewDelegate (optional, für Benutzerinteraktion)
@@ -484,6 +503,13 @@ fileprivate class BookmarkTableHeaderCell: UITableViewCell, UIStyleChangeDelegat
 }
 
 class BookmarksCell: NewContentTableVcCell {
+  
+  func onShare(closure:  ((Article, UIView)->())?) { _shareClosure = closure }
+  private var _shareClosure: ((
+    Article , UIView)->())?
+  
+  let shareButton = UIImageView(image: UIImage(named: "share"))
+    
   override func updateStyles(){
     super.updateStyles()
     self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
@@ -492,6 +518,19 @@ class BookmarksCell: NewContentTableVcCell {
   override func setup() {
     super.setup()
     pin(dottedLine.bottom, to: self.contentView.bottom)
+    shareButton.tintColor = Const.Colors.appIconGrey
+    content.addSubview(shareButton)
+    shareButton.pinSize(CGSize(width: 26, height: 26))
+    pin(shareButton.right, to: bookmarkButton.left, dist: -10)
+    pin(shareButton.centerY, to: bookmarkButton.centerY)
+    
+    shareButton.onTapping {[weak self] _ in
+      onMainAfter(0.1){[weak self] in ///prevent additional  cell tap due async call
+        if let article = self?.article, let self = self {
+          self._shareClosure?(article, self.shareButton)
+        }
+      }
+    }
   }
   
 }
