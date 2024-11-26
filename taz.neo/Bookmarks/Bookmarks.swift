@@ -315,7 +315,7 @@ public class Bookmarks: DoesLog {
           f.copy(to: issueDir.path + "/" + file.fileName)
         }
         if let err = err {
-          Toast.show("Fehler beim Download von Dateien")
+          Toast.show(Localized("error_download"))
           self.log("download finished with err: \(err)")
         }
       })
