@@ -834,6 +834,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let curl = ContentUrl(content: content) { [weak self] curl in
       guard let self = self,
       self.delegate != nil else { return }
+      if content.primaryIssue?.isBookmarkIssue == true {
+        guard let baseUrl = curl.content.baseURL else { return }
+        self.dloader.downloadSearchHitFiles(files: curl.content.files,
+                                            baseUrl: baseUrl) { err in
+          curl.isAvailable = err == nil
+        }
+        return
+      }
+      
       self.dloader.downloadIssueData(issue: self.issue, files: curl.content.files) { err in
         curl.isAvailable = err == nil
       }
@@ -866,6 +875,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     
     let curls: [ContentUrl] = contents.map { cnt in
       ContentUrl(content: cnt) { curl in
+        if curl.content.primaryIssue == nil
+          || curl.content.primaryIssue?.isBookmarkIssue == true {
+          guard let baseUrl = curl.content.baseURL,
+                let issueDate = curl.content.issueDate,
+                let issueDir = Bookmarks.shared.commonIssueDir(for: issueDate)
+          else { return }
+          self.dloader.downloadSearchHitFiles(files: curl.content.files,
+                                              baseUrl: baseUrl,
+                                              targetDir: issueDir) { err in
+            curl.isAvailable = err == nil
+          }
+          return
+        }
         selfSafeDloader.downloadIssueData(issue: selfSafeIssue,
                                           files: curl.content.files) { err in
           curl.isAvailable = err == nil

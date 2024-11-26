@@ -212,13 +212,14 @@ open class Downloader: DoesLog {
 
   /// Download files with storage type .issue
   public func downloadSearchHitFiles( files: [FileEntry],
-                                       baseUrl: String,
-                                       closure: @escaping (Error?)->()){
+                                      baseUrl: String,
+                                      targetDir: Dir = Dir.searchResults,
+                                      closure: @escaping (Error?)->()){
     downloadGlobalFiles(files: files) { [weak self] err in
       guard err == nil else { closure(err); return }
       guard let self = self else { return }
       self.downloadIssueFiles(from: baseUrl,
-                         to: Dir.searchResults,
+                         to: targetDir,
                          files: files,
                          closure: closure)
     }

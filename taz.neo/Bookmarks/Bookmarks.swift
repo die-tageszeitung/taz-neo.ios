@@ -244,7 +244,7 @@ public class Bookmarks: DoesLog {
     return feeder.issueDir(feed: feed.name, issue: feeder.date2a(issueDate))
   }
   
-  private func commonIssueDir(fromSearchArticle searchArticle: SearchArticle) -> Dir? {
+  func commonIssueDir(fromSearchArticle searchArticle: SearchArticle) -> Dir? {
     guard let issueDate = searchArticle.originalIssueDate else { return nil }
     return commonIssueDir(for: issueDate)
   }
