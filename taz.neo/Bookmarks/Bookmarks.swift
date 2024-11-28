@@ -9,49 +9,18 @@
 import Foundation
 import NorthLib
 
-class BookmarksIssueInfo: ArticleVCdelegate, DoesLog {
-  var section: (any Section)?
-  
-  var sections: [any Section] = []///required for header
-  
-  var article: (any Article)?
-  
-  var article2section: [String : [any Section]] = [:]///required for header
-  
-  func displaySection(index: Int) {}
-  
-  public func linkPressed(from: URL?, to: URL?) {
-    guard let to = to else { return }
-    self.debug("Calling application for: \(to.absoluteString)")
-    if UIApplication.shared.canOpenURL(to) {
-      UIApplication.shared.open(to, options: [:], completionHandler: nil)
-    }
-    else {
-      error("No application or no permission for: \(to.absoluteString)")
-    }
-  }
-  
-  func closeIssue() {}
-  
-  var feederContext: FeederContext
-  var issue: Issue
-  
-  func updateData(){
-    article2section = issue.article2section
-    sections = issue.sections ?? []
-  }
-  
-  init?(feederContext: FeederContext?, issue: Issue?){
-    guard let fc = feederContext, let i = issue else { return nil }
-    self.feederContext = fc
-    self.issue = i
-    updateData()
-  }
-}
-
+///new issue independent bookmarks implementation
+///uses persisted issue to store all bookmarks
+///default "Leseliste" Bookmarks are stored in the section named "Leseliste"
+///
+///currently the implementation is not ready for multiple bookmark lists but its prepared
 public class Bookmarks: DoesLog {
   
+  ///**DO not Change** stored in Database
+  static let bookmarkUrl = "bookmark.issue.local"
+  
   private static let sharedInstance = Bookmarks()
+  
   static var shared: Bookmarks {
     get {
       if sharedInstance.bookmarkSection == nil {
@@ -65,10 +34,9 @@ public class Bookmarks: DoesLog {
     }
   }
   
-  ///DO not Change stored in Database
-  static let bookmarkUrl = "bookmark.issue.local"
-  
   var bookmarkIssue: StoredIssue?
+  
+  ///default bookmark section
   var bookmarkSection: StoredSection? {
     didSet {
       bookmarkedArticles
@@ -78,8 +46,6 @@ public class Bookmarks: DoesLog {
   var feederContext: FeederContext?
   
   var bookmarkedArticles: [StoredArticle] = []
-  ///probably not different "list" save
-//  private var pendingDeletedArticleServerIds: [Int] = []
   
   private var _issueInfo: BookmarksIssueInfo?
   var issueInfo: BookmarksIssueInfo? {
@@ -91,8 +57,44 @@ public class Bookmarks: DoesLog {
     }()
   }
   
+  func setup(){
+    guard let fc = TazAppEnvironment.sharedInstance.feederContext,
+          let feed = fc.defaultFeed else {
+      return
+    }
+    let bmIssue: StoredIssue = bookmarkIssue(in: feed)
+    self.feederContext = fc
+    self.bookmarkIssue = bmIssue
+    ///In case of Multiple Bookmark Lists, handle theese here and set 'the default' bookmark section
+    self.bookmarkSection
+    = bookmarkIssue?.sections?.first as? StoredSection ?? addBookmarkSection()
+  }
+}
+
+// MARK: - Logig GET|SET ... REMOVE Helper
+
+extension Bookmarks {
+  
+  ///ignoring pending deletions
+  private func bookmarkArticle(for article: Article, in list: Section? = nil) -> StoredArticle? {
+    guard let serverId = article.serverId else { return nil }
+    return bookmarkArticle(forArticleWith: serverId, in: list)
+  }
+  
+  ///ignoring pending deletions
+  private func bookmarkArticle(forArticleWith serverId: Int, in list: Section? = nil) -> StoredArticle? {
+    // Retrieve the specified section or the shared bookmark section
+    let section = list as? StoredSection ?? bookmarkSection
+    // Find the matching article by its server ID
+    return section?.articles?.first { $0.serverId == serverId } as? StoredArticle
+  }
+  
+  func has(article: Article) -> Bool {
+    return bookmarkedArticles.contains{$0.serverId == article.serverId }
+  }
+    
   /// Prepares for managing bookmarks across multiple lists
-  fileprivate func set(article: Article, active: Bool, in list: StoredSection? = nil) {
+  func set(article: Article, active: Bool, in list: StoredSection? = nil) {
     // Retrieve the existing bookmarked article, if any
     let bookmarkedArticle = bookmarkArticle(for: article, in: list)
     
@@ -153,101 +155,16 @@ public class Bookmarks: DoesLog {
     Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
   }
   
-  fileprivate func setBookmark(for article: Article, in list: StoredSection? = nil, active: Bool) {
+  fileprivate func setBookmark11(for article: Article, in list: StoredSection? = nil, active: Bool) {
     set(article: article, active: active, in: list)
   }
-    
-  fileprivate func has(article: Article) -> Bool {
-    return bookmarkedArticles.contains{$0.serverId == article.serverId }
-//    }
-//    // Check if the article exists in the specified or default bookmark list
-//    return bookmarkArticle(for: article, in: list) != nil
-  }
   
-  ///ignoring pending deletions
-  private func bookmarkArticle(for article: Article, in list: Section? = nil) -> StoredArticle? {
-    guard let serverId = article.serverId else { return nil }
-    return bookmarkArticle(forArticleWith: serverId, in: list)
-  }
-  
-  ///ignoring pending deletions
-  private func bookmarkArticle(forArticleWith serverId: Int, in list: Section? = nil) -> StoredArticle? {
-    // Retrieve the specified section or the shared bookmark section
-    let section = list as? StoredSection ?? bookmarkSection
-    // Find the matching article by its server ID
-    return section?.articles?.first { $0.serverId == serverId } as? StoredArticle
-  }
-  
-  
-  //IS STatic required?
-  private func bookmarkIssue(in feed: Feed) -> StoredIssue {
-    let request = StoredIssue.fetchRequest
-    request.predicate = NSPredicate(format: "(baseUrl = %@)", Self.bookmarkUrl)
-    if let si = StoredIssue.get(request: request).first { return si }
-    
-    let si = StoredIssue.new()
-    si.baseUrl = Self.bookmarkUrl
-    si.date = Date(timeIntervalSinceReferenceDate: 0)//1.1.2001
-    si.moTime = Date()
-    si.minResourceVersion = 0
-    si.status = .unknown
-    si.isWeekend = false
-    
-    si.isDownloading = false
-    si.isComplete = false
-    si.feed = feed
-    si.moment =  DummyMoment()
-    
-    addBookmarkSection()
-    return si
-  }
-  
-  /// Migrates bookmarks from previously implementation stored as flag of article to the new implementation.
-  private func migrateBookmarks() {
-    // Fetch previous bookmarks using previous implementation
-    // Only articles with `hasBookmark` flag are retrieved.
-    let request = StoredArticle.fetchRequest
-    request.predicate = NSPredicate(format: "hasBookmark = true")
-    // Migrate bookmarks by using self.hasBookmark logic to add them to the bookmark issue
-    for article in StoredArticle.get(request: request) { 
-      set(article: article, active: true)
-    }
-  }
-  
-  //IS STatic required?
-  @discardableResult
-  private func addBookmarkSection(with name: String = "Leseliste") -> StoredSection? {
-    guard let issue = bookmarkIssue else {
-      log("Failed to add BookmarkSection with name: \(name), bookmarkIssue is missing.")
-      return nil
-    }
-    let sect = StoredSection.new()
-    sect.name = "Leseliste"
-    sect.type = .unknown
-    
-    let bmDir = issue.feed.bookmarksDir
-    if bmDir.exists == false { bmDir.create() }
-    let bmFilePath = "\(bmDir.path)/\(sect.name).html"
-    File(bmFilePath).string = "initial, empty: Only for Compatibility Reasons due a Section(Content) required html"
-    let tmpFile = StoredFileEntry.new(path: bmFilePath)
-    sect.html = tmpFile
-    issue.pr.addToSections(sect.pr)
-    sect.pr.issue = issue.pr
-    migrateBookmarks()
-    
-    return sect
-  }
+}
 
-  func commonIssueDir(for issueDate: Date) -> Dir? {
-    guard let feeder = feederContext?.storedFeeder,
-    let feed = bookmarkIssue?.feed else { return nil }
-    return feeder.issueDir(feed: feed.name, issue: feeder.date2a(issueDate))
-  }
+// MARK: - Persistence Helper
+
+extension Bookmarks {
   
-  func commonIssueDir(fromSearchArticle searchArticle: SearchArticle) -> Dir? {
-    guard let issueDate = searchArticle.originalIssueDate else { return nil }
-    return commonIssueDir(for: issueDate)
-  }
   /// ensures storedArticle properies are set as expected
   /// * creates target dir in default issue dir format e.g. /taz/taz/YYYY-mm-dd
   /// * link ressources to this folder
@@ -295,7 +212,7 @@ public class Bookmarks: DoesLog {
     for fileEntry in searchArticle.files {
       let f = File(dir: Dir.searchResults.path, fname: fileEntry.fileName)
       if !f.exists { dlFiles.append(fileEntry); continue }
-      f.copyResource(to: issueDir.path + "/" + fileEntry.fileName)
+      f.copyResourceWT(to: issueDir.path + "/" + fileEntry.fileName)
     }
     
     ///copy serach content to target issue dir
@@ -320,8 +237,6 @@ public class Bookmarks: DoesLog {
         }
       })
     }
-    
-    #warning("FIX ERROR DOWNLOAD => LATER LOAD ON OPEN ARTICLE")
     
     ///it is ensured, that article is not already a StoredArticle
     let storedArticle = StoredArticle.persist(object: article)
@@ -348,314 +263,70 @@ public class Bookmarks: DoesLog {
      */
     return storedArticle
   }
-  
-  func setup(){
-    guard let fc = TazAppEnvironment.sharedInstance.feederContext,
-          let feed = fc.defaultFeed else {
-      return
-    }
-    let bmIssue: StoredIssue = bookmarkIssue(in: feed)
-    self.feederContext = fc
-    self.bookmarkIssue = bmIssue
-    ///In case of Multiple Bookmark Lists, handle theese here and set 'the default' bookmark section
-    self.bookmarkSection
-    = bookmarkIssue?.sections?.first as? StoredSection ?? addBookmarkSection()
-  }
 }
 
-/// An Issue of Sections of bookmarked Articles
-public class VirtualIssue: Issue {
-  public var isDownloading: Bool { get { false } set {} }
-  public var isComplete: Bool { get { false } set {} }
-  public var feed: Feed
-  public var date: Date
-  public var validityDate: Date?
-  public var moTime: Date
-  public var isWeekend: Bool { false }
-  public var moment: Moment { DummyMoment() }
-  public var key: String? { nil }
-  public var baseUrl: String { "" }
-  public var status: IssueStatus { .unknown }
-  public var minResourceVersion: Int { 0 }
-  public var zipName: String? { nil }
-  public var zipNamePdf: String? { nil }
-  public var imprint: Article? { nil }
-  public var sections: [Section]?
-  public var pages: [Page]? { nil }
-  public var lastSection: Int? { get { nil } set {} }
-  public var lastArticle: Int? { get { nil } set {} }
-  public var lastPage: Int? { get { nil } set {} }
-  public var payload: Payload { DummyPayload() }
-  public var dir: Dir { feed.dir }
-  
-  init(feed: Feed) {
-    self.feed = feed
-    self.date = Date()
-    self.moTime = self.date
-  }
-}
-
-/// A Section for search result articles
-public class VirtualSection: Section {
-  public var audioItem: Audio?
-  public var name: String
-  public var extendedTitle: String? { name }
-  public var type: SectionType { .articles }
-  public var articles: [Article]?
-  public var groupedArticles: [Date:[Article]]?
-  public var issueDates: [Date]?
-  public var navButton: ImageEntry? { nil }
-  public var html: FileEntry?
-  public var images: [ImageEntry]? { nil }
-  public var authors: [Author]? { nil }
-  public var primaryIssue: Issue?
-  
-  public init(name: String, issue: Issue, html: FileEntry) {
-    self.name = name
-    self.primaryIssue = issue
-    self.html = html
-  }
-}
-
-public class DummyPayload: Payload {
-  public var localDir: String { "" }
-  public var remoteBaseUrl: String { "" }
-  public var remoteZipName: String? { nil }
-  public var files: [FileEntry] { [] }
-  public var issue: Issue? { nil }
-  public var resources: Resources? { nil }
-}
-
-public class DummyMoment: Moment {
-  public var images: [ImageEntry] { [] }
-  public var creditedImages: [ImageEntry] { [] }
-  public var animation: [FileEntry] { [] }
-}
-
-/// Small File extension to copy resource files
-extension File {
-  /**
-   copies a file to a destination given by its pathname.
-   
-   self is only copied if it is either newer than the destination file
-   (in this case it is an update of a new app version) or the destination
-   file is newer than the source file (in this case it has been copied before
-   but the mtime has not been set to that of the source file).
-   After copying the destination file's mtime is set to that of the source
-   file.
-   */
-  public func copyResource(to: String) {
-    let dest = File(to)
-    if dest.mtime != self.mtime {
-      self.copy(to: to)
-      dest.mtime = self.mtime
-    }
-  }
-  
-  public func copyResourceWithStatusReturn(to: String) -> Int {
-    var status = -123
-    let dest = File(to)
-    if dest.mtime != self.mtime {
-      status = self.copy(to: to)
-      dest.mtime = self.mtime
-    }
-    return status
-  }
-}
-
-fileprivate extension String {
-  var authorsFormated: String {
-#if LMD
-    return self.length > 0 ? self.xmlEscaped().prepend("von ") : ""
-#else
-    return self.xmlEscaped()
-#endif
-  }
-}
+// MARK: - Initialisation Helper
 
 extension Bookmarks {
-  static func toggle(article: Article, in list: StoredSection? = nil){
-    shared.set(article: article, active: !article.hasBookmark, in: list)
-  }
-  static func set(article: Article, bookmarked:Bool, in list: StoredSection? = nil){
-    shared.set(article: article, active: bookmarked, in: list)
-  }
-}
-
-extension Article {
-  public var hasBookmark: Bool {
-    get { return Bookmarks.shared.has(article: self)}
-    set { Bookmarks.shared.set(article: self, active: newValue)}
-  }
-}
-
-extension StoredArticle {
-  public var hasBookmark: Bool {
-    get { return Bookmarks.shared.has(article: self)}
-    set { Bookmarks.shared.set(article: self, active: newValue)}
-  }
-}
-
-extension Issue {
-  public var isBookmarkIssue: Bool {
-    return self is StoredIssue && baseUrl == Bookmarks.bookmarkUrl
-  }
-}
-
-extension PersistentIssue: PersistentObject {
-  var isBookmarkIssue: Bool { baseUrl == Bookmarks.bookmarkUrl }
-}
-
-/* IDEAS**/
-import UIKit
-class XViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-  
-  private var articles: [Article] = []
-  private var groupedArticles: [String: [Article]] = [:]
-  private var sortedSectionKeys: [String] = []
-  
-  private let tableView = UITableView()
-  private let dateFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd" // Gruppierung nach Tag
-    return formatter
-  }()
-  
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    view.backgroundColor = .white
+  fileprivate func bookmarkIssue(in feed: Feed) -> StoredIssue {
+    let request = StoredIssue.fetchRequest
+    request.predicate = NSPredicate(format: "(baseUrl = %@)", Self.bookmarkUrl)
+    if let si = StoredIssue.get(request: request).first { return si }
     
-    // Beispielartikel erstellen
-    articles = [
-      
-    ]
+    let si = StoredIssue.new()
+    si.baseUrl = Self.bookmarkUrl
+    si.date = Date(timeIntervalSinceReferenceDate: 0)//1.1.2001
+    si.moTime = Date()
+    si.minResourceVersion = 0
+    si.status = .unknown
+    si.isWeekend = false
     
-    // Artikel gruppieren
-    groupArticlesByDate()
+    si.isDownloading = false
+    si.isComplete = false
+    si.feed = feed
+    si.moment =  DummyMoment()
     
-    // UITableView einrichten
-    tableView.dataSource = self
-    tableView.delegate = self
-    tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
-    tableView.frame = view.bounds
-    view.addSubview(tableView)
+    addBookmarkSection()
+    return si
   }
   
-  private func groupArticlesByDate() {
-    
-    
-    // Sections sortieren (nach Datum aufsteigend)
-    sortedSectionKeys = groupedArticles.keys.sorted()
-  }
-  
-  // MARK: - UITableViewDataSource
-  
-  func numberOfSections(in tableView: UITableView) -> Int {
-    return sortedSectionKeys.count
-  }
-  
-  func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    return sortedSectionKeys[section]
-  }
-  
-  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    let sectionKey = sortedSectionKeys[section]
-    return groupedArticles[sectionKey]?.count ?? 0
-  }
-  
-  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-    
-    let sectionKey = sortedSectionKeys[indexPath.section]
-    if let articlesForSection = groupedArticles[sectionKey] {
-      let article = articlesForSection[indexPath.row]
-      cell.textLabel?.text = article.title
+  @discardableResult
+  fileprivate func addBookmarkSection(with name: String = "Leseliste") -> StoredSection? {
+    guard let issue = bookmarkIssue else {
+      log("Failed to add BookmarkSection with name: \(name), bookmarkIssue is missing.")
+      return nil
     }
+    let sect = StoredSection.new()
+    sect.name = "Leseliste"
+    sect.type = .unknown
     
-    return cell
+    let bmDir = issue.feed.bookmarksDir
+    if bmDir.exists == false { bmDir.create() }
+    let bmFilePath = "\(bmDir.path)/\(sect.name).html"
+    File(bmFilePath).string = "initial, empty: Only for Compatibility Reasons due a Section(Content) required html"
+    let tmpFile = StoredFileEntry.new(path: bmFilePath)
+    sect.html = tmpFile
+    issue.pr.addToSections(sect.pr)
+    sect.pr.issue = issue.pr
+    migrateBookmarks()
+    
+    return sect
   }
   
-  // MARK: - UITableViewDelegate (optional, für Benutzerinteraktion)
-  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    let sectionKey = sortedSectionKeys[indexPath.section]
-    if let articlesForSection = groupedArticles[sectionKey] {
-      let article = articlesForSection[indexPath.row]
-      print("Ausgewählt: \(article.title)")
-    }
-  }
 }
+
+// MARK: - Migration Helper
 
 extension Bookmarks {
-  func loadFullArticlesIfNeeded(){
-    guard TazAppEnvironment.hasValidAuth else {
-      log("no valid auth, skip loading")
-      return
+  /// Migrates bookmarks from previously implementation stored as flag of article to the new implementation.
+  private func migrateBookmarks() {
+    // Fetch previous bookmarks using previous implementation
+    // Only articles with `hasBookmark` flag are retrieved.
+    let request = StoredArticle.fetchRequest
+    request.predicate = NSPredicate(format: "hasBookmark = true")
+    // Migrate bookmarks by using self.hasBookmark logic to add them to the bookmark issue
+    for article in StoredArticle.get(request: request) {
+      set(article: article, active: true)
     }
-    
-    /// workflow: load article data, update "demo" article entity (including: onlineLink, Authors, files (content+images)...
-    /// download files
-    let reducedArticles = bookmarkedArticles.filter { $0.isReducedArticle }
-    
-    if reducedArticles.count == 0 { return }
-    
-    Bookmarks.shared.feederContext?.gqlFeeder.loadArticles(reducedArticles, finished:{[weak self] res in
-      guard let self = self else { return }
-      if let err = res.error() as? FeederError {
-        self.handleDownloadError(error: err)
-      } else if let err = res.error() as? URLError {
-        self.debug("failed to load \(err)")///offline
-      } else if let err = res.error(){
-        self.debug("failed to load \(err)")///unknown
-      }
-      if let arts = res.value() {
-        self.update(bookmarkedArticles: reducedArticles, with: arts)
-      }
-    })
-  }
-  
-  private func update(bookmarkedArticles: [StoredArticle], with articles: [GqlSingleArticle]) {
-    debug("try to update \(bookmarkedArticles.count)")
-    // Iterate through the list of GqlSingleArticles
-    for articleWrapper in articles {
-      // Extract the serverId from the current GqlSingleArticle
-      guard let gqlServerId = articleWrapper.gqlArticle.serverId else {
-        continue // Skip if the serverId is nil
-      }
-      
-      // Find the matching StoredArticle based on the serverId
-      guard let storedArticle
-              = bookmarkedArticles.first(where: { $0.serverId == gqlServerId }) else {
-        continue
-      }
-      // Call the update method to sync the StoredArticle with the GqlSingleArticle
-      storedArticle.update(from: articleWrapper.gqlArticle)
-      storedArticle.baseURL = articleWrapper.baseUrl
-      
-      ///2 options: either write file OR download file(s)
-      guard let issueDate = storedArticle.issueDate,
-            let targetDir = commonIssueDir(for: issueDate) else { continue }
-      
-      let subdir = String(targetDir.path.dropFirst(Database.appDir.count + 1))
-      for case let f as StoredFileEntry in storedArticle.files {
-        f.subdir = subdir
-      }
-      
-      /// Warning: do not use storedArticle.baseURL! It is still the old, due getter uses: article.pr.baseURL
-      feederContext?.dloader.downloadSearchHitFiles(files: storedArticle.files,
-                                                    baseUrl: articleWrapper.baseUrl,
-                                                    targetDir: targetDir,
-                                                    closure: { err in
-        if let err = err { self.log("download of article files for: \(String(describing: storedArticle.title)) finished with err: \(err)") }
-      })
-    }
-    ArticleDB.save()
-  }
-}
-
-extension Article {
-  var isReducedArticle:Bool {
-    baseURL?.lastPathComponent.hasSuffix(".public") == true
-    && authors?.isEmpty == true
-    && onlineLink == nil
   }
 }

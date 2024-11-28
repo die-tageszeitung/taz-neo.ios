@@ -106,6 +106,24 @@
 		77D434002CE694A100AC992A /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D433FF2CE694A100AC992A /* Bookmarks.swift */; };
 		77D434012CE694F800AC992A /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D433FF2CE694A100AC992A /* Bookmarks.swift */; };
 		77E5E1BC292D772200611148 /* Javascript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E5E1BB292D772200611148 /* Javascript.swift */; };
+		77E6E99A2CF850F300430B83 /* TableSectionSeperatorFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9992CF850F300430B83 /* TableSectionSeperatorFooterView.swift */; };
+		77E6E99B2CF850F300430B83 /* TableSectionSeperatorFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9992CF850F300430B83 /* TableSectionSeperatorFooterView.swift */; };
+		77E6E99D2CF8520500430B83 /* BookmarkTableHeaderCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E99C2CF8520500430B83 /* BookmarkTableHeaderCell.swift */; };
+		77E6E99E2CF8520500430B83 /* BookmarkTableHeaderCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E99C2CF8520500430B83 /* BookmarkTableHeaderCell.swift */; };
+		77E6E9A02CF8524E00430B83 /* BookmarksCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E99F2CF8524E00430B83 /* BookmarksCell.swift */; };
+		77E6E9A12CF8524E00430B83 /* BookmarksCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E99F2CF8524E00430B83 /* BookmarksCell.swift */; };
+		77E6E9A32CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9A22CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift */; };
+		77E6E9A42CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9A22CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift */; };
+		77E6E9A62CF8745100430B83 /* Bookmarks+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9A52CF8745100430B83 /* Bookmarks+Helper.swift */; };
+		77E6E9A72CF8745100430B83 /* Bookmarks+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9A52CF8745100430B83 /* Bookmarks+Helper.swift */; };
+		77E6E9AC2CF880FD00430B83 /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9AB2CF880FD00430B83 /* String+Extension.swift */; };
+		77E6E9AD2CF880FD00430B83 /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9AB2CF880FD00430B83 /* String+Extension.swift */; };
+		77E6E9AF2CF8814100430B83 /* Bookmarks+ModelHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9AE2CF8814100430B83 /* Bookmarks+ModelHelper.swift */; };
+		77E6E9B02CF8814100430B83 /* Bookmarks+ModelHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9AE2CF8814100430B83 /* Bookmarks+ModelHelper.swift */; };
+		77E6E9B22CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9B12CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift */; };
+		77E6E9B32CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9B12CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift */; };
+		77E6E9B52CF882A800430B83 /* Bookmarks+UpdateFromServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9B42CF882A800430B83 /* Bookmarks+UpdateFromServer.swift */; };
+		77E6E9B62CF882A800430B83 /* Bookmarks+UpdateFromServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9B42CF882A800430B83 /* Bookmarks+UpdateFromServer.swift */; };
 		77E839912CED2F55001CBB35 /* BookmarkTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E839902CED2F55001CBB35 /* BookmarkTVC.swift */; };
 		77E839922CED2F55001CBB35 /* BookmarkTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E839902CED2F55001CBB35 /* BookmarkTVC.swift */; };
 		77ECD87A2A814C1F00DFBBB6 /* FeederContext+Polling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD8792A814C1F00DFBBB6 /* FeederContext+Polling.swift */; };
@@ -380,6 +398,15 @@
 		77CB2D272A814B6100021804 /* FeederContext+ResourcesUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+ResourcesUpdate.swift"; sourceTree = "<group>"; };
 		77D433FF2CE694A100AC992A /* Bookmarks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmarks.swift; sourceTree = "<group>"; };
 		77E5E1BB292D772200611148 /* Javascript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Javascript.swift; sourceTree = "<group>"; };
+		77E6E9992CF850F300430B83 /* TableSectionSeperatorFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableSectionSeperatorFooterView.swift; sourceTree = "<group>"; };
+		77E6E99C2CF8520500430B83 /* BookmarkTableHeaderCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkTableHeaderCell.swift; sourceTree = "<group>"; };
+		77E6E99F2CF8524E00430B83 /* BookmarksCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksCell.swift; sourceTree = "<group>"; };
+		77E6E9A22CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BookmarkTVC-DataSource+Delegate.swift"; sourceTree = "<group>"; };
+		77E6E9A52CF8745100430B83 /* Bookmarks+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bookmarks+Helper.swift"; sourceTree = "<group>"; };
+		77E6E9AB2CF880FD00430B83 /* String+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extension.swift"; sourceTree = "<group>"; };
+		77E6E9AE2CF8814100430B83 /* Bookmarks+ModelHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bookmarks+ModelHelper.swift"; sourceTree = "<group>"; };
+		77E6E9B12CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bookmarks+ArticleVCdelegate.swift"; sourceTree = "<group>"; };
+		77E6E9B42CF882A800430B83 /* Bookmarks+UpdateFromServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bookmarks+UpdateFromServer.swift"; sourceTree = "<group>"; };
 		77E839902CED2F55001CBB35 /* BookmarkTVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkTVC.swift; sourceTree = "<group>"; };
 		77ECD8792A814C1F00DFBBB6 /* FeederContext+Polling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+Polling.swift"; sourceTree = "<group>"; };
 		77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushNotification.Payload+Extension.swift"; sourceTree = "<group>"; };
@@ -601,6 +628,7 @@
 				77CB2D1F2A8148EA00021804 /* UIAlertAction+Extension.swift */,
 				77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */,
 				77ECD87D2A814ED100DFBBB6 /* LocalNotifications+Extension.swift */,
+				77E6E9AB2CF880FD00430B83 /* String+Extension.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -839,12 +867,20 @@
 		AED3760B285E1E5D00EFE608 /* Bookmarks */ = {
 			isa = PBXGroup;
 			children = (
-				77D433FF2CE694A100AC992A /* Bookmarks.swift */,
 				AE1632832848A4C9004CB55E /* Share.svg */,
 				AEF877EC282BC47400FD51CD /* Trash.svg */,
 				AEB935312917E81F000330DA /* Star.svg */,
 				AEB935322917E81F000330DA /* StarFilled.svg */,
+				77D433FF2CE694A100AC992A /* Bookmarks.swift */,
+				77E6E9AE2CF8814100430B83 /* Bookmarks+ModelHelper.swift */,
+				77E6E9A52CF8745100430B83 /* Bookmarks+Helper.swift */,
+				77E6E9B12CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift */,
+				77E6E9B42CF882A800430B83 /* Bookmarks+UpdateFromServer.swift */,
 				77E839902CED2F55001CBB35 /* BookmarkTVC.swift */,
+				77E6E9A22CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift */,
+				77E6E99F2CF8524E00430B83 /* BookmarksCell.swift */,
+				77E6E99C2CF8520500430B83 /* BookmarkTableHeaderCell.swift */,
+				77E6E9992CF850F300430B83 /* TableSectionSeperatorFooterView.swift */,
 			);
 			path = Bookmarks;
 			sourceTree = "<group>";
@@ -1080,6 +1116,7 @@
 				AE5131702AFBCADB002289E8 /* Javascript.swift in Sources */,
 				7758CCB42B504DAD000B8E30 /* LMdSliderContentVC.swift in Sources */,
 				AE5131712AFBCADB002289E8 /* WebViewTests.swift in Sources */,
+				77E6E99B2CF850F300430B83 /* TableSectionSeperatorFooterView.swift in Sources */,
 				AE5131722AFBCADB002289E8 /* Usage.swift in Sources */,
 				AE5131732AFBCADB002289E8 /* IssueTilesCvcCell.swift in Sources */,
 				AE5131742AFBCADB002289E8 /* DeviceData.swift in Sources */,
@@ -1094,6 +1131,7 @@
 				AE51317B2AFBCADB002289E8 /* ConfigDefaults.swift in Sources */,
 				AE51317C2AFBCADB002289E8 /* IssueCollectionViewCell.swift in Sources */,
 				AE51317D2AFBCADB002289E8 /* SubscriptionFormController.swift in Sources */,
+				77E6E9B32CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift in Sources */,
 				AE51317E2AFBCADB002289E8 /* OverlayTest.swift in Sources */,
 				AE51317F2AFBCADB002289E8 /* OfflineAlert.swift in Sources */,
 				AE5131802AFBCADB002289E8 /* ArticlePlayerUI.swift in Sources */,
@@ -1101,15 +1139,18 @@
 				AE5131822AFBCADB002289E8 /* IssueCarousel.swift in Sources */,
 				AE5131832AFBCADB002289E8 /* Rating.swift in Sources */,
 				AE5131842AFBCADB002289E8 /* ArticleDB.xcdatamodeld in Sources */,
+				77E6E9B02CF8814100430B83 /* Bookmarks+ModelHelper.swift in Sources */,
 				AE5131852AFBCADB002289E8 /* SimpleAuthenticator.swift in Sources */,
 				AE5131862AFBCADB002289E8 /* AppDelegate.swift in Sources */,
 				AE5131872AFBCADB002289E8 /* AppHelper.swift in Sources */,
 				AE5131882AFBCADB002289E8 /* TazPdfPagesViewController.swift in Sources */,
 				AE5131892AFBCADB002289E8 /* KeychainTest.swift in Sources */,
 				AE51318A2AFBCADB002289E8 /* GqlFeederSearch.swift in Sources */,
+				77E6E9A42CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift in Sources */,
 				77C766752C29C2EB00198324 /* TazAppEnvironment+ErrorHandling.swift in Sources */,
 				AE51318B2AFBCADB002289E8 /* TrialSubscriptionView.swift in Sources */,
 				AE51318C2AFBCADB002289E8 /* SearchSettingsView.swift in Sources */,
+				77E6E9A72CF8745100430B83 /* Bookmarks+Helper.swift in Sources */,
 				AE51318D2AFBCADB002289E8 /* MainTabVC.swift in Sources */,
 				AE51318E2AFBCADB002289E8 /* SearchController.swift in Sources */,
 				AE51318F2AFBCADB002289E8 /* ContentImageVC.swift in Sources */,
@@ -1122,6 +1163,7 @@
 				AE5131962AFBCADB002289E8 /* NotificationsView.swift in Sources */,
 				AE5131972AFBCADB002289E8 /* CarouselController.swift in Sources */,
 				AE5131982AFBCADB002289E8 /* InfoToaster.swift in Sources */,
+				77E6E9B62CF882A800430B83 /* Bookmarks+UpdateFromServer.swift in Sources */,
 				77129FFF2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
 				AE5131992AFBCADB002289E8 /* IssueTilesCVC.swift in Sources */,
 				AE51319A2AFBCADB002289E8 /* SettingsVC.swift in Sources */,
@@ -1130,6 +1172,7 @@
 				AE51319D2AFBCADB002289E8 /* LoadingView.swift in Sources */,
 				AE51319E2AFBCADB002289E8 /* BuildConst.swift in Sources */,
 				AE51319F2AFBCADB002289E8 /* Downloader.swift in Sources */,
+				77E6E9AD2CF880FD00430B83 /* String+Extension.swift in Sources */,
 				AE5131A02AFBCADB002289E8 /* FeedbackViewController.swift in Sources */,
 				7758CCB92B504E2B000B8E30 /* LMdPageImageCell.swift in Sources */,
 				AE5131A12AFBCADB002289E8 /* SubscriptionFormView.swift in Sources */,
@@ -1147,6 +1190,7 @@
 				AE5131AB2AFBCADB002289E8 /* Helper.swift in Sources */,
 				AE5131AC2AFBCADB002289E8 /* StartupView.swift in Sources */,
 				AE5131AD2AFBCADB002289E8 /* ContentToolbar.swift in Sources */,
+				77E6E9A12CF8524E00430B83 /* BookmarksCell.swift in Sources */,
 				AE5131AE2AFBCADB002289E8 /* NewContentTableVC.swift in Sources */,
 				AE5131AF2AFBCADB002289E8 /* TazCustomized.swift in Sources */,
 				AE5131B02AFBCADB002289E8 /* FeederContext+AppUpdate.swift in Sources */,
@@ -1183,6 +1227,7 @@
 				AE5131CB2AFBCADB002289E8 /* SectionVC.swift in Sources */,
 				AE5131CC2AFBCADB002289E8 /* NotificationBusiness.swift in Sources */,
 				AE5131CD2AFBCADB002289E8 /* GermanDate.swift in Sources */,
+				77E6E99E2CF8520500430B83 /* BookmarkTableHeaderCell.swift in Sources */,
 				AE5131CE2AFBCADB002289E8 /* GqlFeeder.swift in Sources */,
 				7758CCC22B505181000B8E30 /* LMdSliderDataModel.swift in Sources */,
 				AE5131CF2AFBCADB002289E8 /* SearchResultArticleVc.swift in Sources */,
@@ -1220,10 +1265,13 @@
 				774C27482BA05C4500835BB9 /* CoachmarkView.swift in Sources */,
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
 				0015B73724DD86B30037A8D6 /* Authenticator.swift in Sources */,
+				77E6E9A32CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift in Sources */,
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				773500B72A1C0AEA00678647 /* IssueCollectionViewCell.swift in Sources */,
+				77E6E9B52CF882A800430B83 /* Bookmarks+UpdateFromServer.swift in Sources */,
 				4D3131F2289159FE0087EE1B /* SubscriptionFormController.swift in Sources */,
+				77E6E99A2CF850F300430B83 /* TableSectionSeperatorFooterView.swift in Sources */,
 				AEC7D467249920DF008630FB /* OverlayTest.swift in Sources */,
 				7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */,
 				77FABFA22A4DD56500FB9EB1 /* ArticlePlayerUI.swift in Sources */,
@@ -1231,6 +1279,7 @@
 				AEF2DF2F244709CC00D1482D /* IssueCarousel.swift in Sources */,
 				77B993D82AC406F900C7D832 /* Rating.swift in Sources */,
 				AE34778F283681490022316C /* ArticleDB.xcdatamodeld in Sources */,
+				77E6E9AF2CF8814100430B83 /* Bookmarks+ModelHelper.swift in Sources */,
 				77D434002CE694A100AC992A /* Bookmarks.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
@@ -1252,6 +1301,7 @@
 				773500AF2A1C0A7C00678647 /* IssueCarouselCVC.swift in Sources */,
 				77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */,
 				77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
+				77E6E9A02CF8524E00430B83 /* BookmarksCell.swift in Sources */,
 				AEF2DF3324475A6200D1482D /* CarouselController.swift in Sources */,
 				779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */,
 				773500B12A1C0A7C00678647 /* IssueTilesCVC.swift in Sources */,
@@ -1270,6 +1320,7 @@
 				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,
 				77CB2D262A814B1400021804 /* FeederContext+Notifications.swift in Sources */,
 				773500B32A1C0A7C00678647 /* IssueDisplayService.swift in Sources */,
+				77E6E9B22CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift in Sources */,
 				773500B52A1C0A7C00678647 /* IssueCarouselFlowLayout.swift in Sources */,
 				C794F23524FED184007168AC /* Helper.swift in Sources */,
 				AECCE11E23FBF449007C2276 /* StartupView.swift in Sources */,
@@ -1279,6 +1330,7 @@
 				774BBAFB2A821DAC0017039D /* FeederContext+AppUpdate.swift in Sources */,
 				00E3D2A924E68F5500AE075A /* PwForgottView.swift in Sources */,
 				774C27442BA05A7C00835BB9 /* Tom.swift in Sources */,
+				77E6E9AC2CF880FD00430B83 /* String+Extension.swift in Sources */,
 				77CB2D222A814A3100021804 /* FeederContext+IssueDownload.swift in Sources */,
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,
 				7709E3162BEBA70400AC27F3 /* LastReadBusiness.swift in Sources */,
@@ -1308,6 +1360,7 @@
 				0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */,
 				774C6F8129CB5BAF001285FB /* KeyboardToolbarForText.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
+				77E6E99D2CF8520500430B83 /* BookmarkTableHeaderCell.swift in Sources */,
 				777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */,
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,
 				AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */,
@@ -1323,6 +1376,7 @@
 				7712A0012C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */,
 				77ECD87C2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift in Sources */,
 				AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */,
+				77E6E9A62CF8745100430B83 /* Bookmarks+Helper.swift in Sources */,
 				774C27462BA05BA800835BB9 /* VirtualArticle.swift in Sources */,
 				AEEC919A282E964300F91A2D /* ArticleDBVersionChanges.swift in Sources */,
 				00E3D2A124E68F1B00AE075A /* ConnectTazIdView.swift in Sources */,

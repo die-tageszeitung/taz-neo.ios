@@ -59,7 +59,6 @@ private let configValues = [
   // "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
   // show teaser text in bookmarks list
-  "bookmarksListTeaserEnabled" : "true",
   "smartBackFromArticle" : "false",
   "autoHideToolbar" : "true",
   "tabbarInSection" : "false",
