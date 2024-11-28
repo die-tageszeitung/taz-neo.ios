@@ -293,9 +293,6 @@ extension MainTabVC {
         ///Facsimile/PDF View or Article/Section VC wich need Update
         if vcCount > 1 { reloadTargets.append(home)}
       }
-//      else if let bookmarks = tabNav as? BookmarkNC {
-//        if vcCount > 1 { reloadTargets.append(bookmarks)}
-//      }
       else if let search = firstVc as? SearchController{
         if search.currentState == .result { reloadTargets.append(search)}
       }

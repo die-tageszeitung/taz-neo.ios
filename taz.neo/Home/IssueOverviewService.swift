@@ -532,7 +532,7 @@ extension IssueOverviewService {
   }
 }
 
-extension IssueOverviewService {
+extension DoesLog {
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
     self.debug("Err: \(error?.description ?? "-")")

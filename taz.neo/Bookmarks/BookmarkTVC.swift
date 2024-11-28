@@ -466,6 +466,12 @@ extension BookmarkTVC: UIStyleChangeDelegate {
   }
 }
 
+extension BookmarkTVC: ReloadAfterAuthChanged {
+  public func reloadOpened(){
+    Bookmarks.shared.loadFullArticlesIfNeeded()
+  }
+}
+
 ///just a black/white line
 fileprivate class BookmarkTableFooterView: UITableViewHeaderFooterView, UIStyleChangeDelegate{
   static let ReuseIdentifier = "BookmarkTableFooterViewIdentifier"

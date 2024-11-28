@@ -185,8 +185,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       }
       self.onBookmark { _ in  Bookmarks.toggle(article: art) }
       
-      if art.primaryIssue?.isReduced == true {
-        self.atEndOfContent() { [weak self] isAtEnd in
+    ///**FORMER:** art.primaryIssue?.isReduced == true
+    /// did not work for Issue Independent Bookmarks in Bookmarks Article View
+    if art.isReducedArticle {///or just a Download/Exchange need more refactor?
+      self.atEndOfContent() { [weak self] isAtEnd in
           if isAtEnd { self?.feederContext.authenticate() }
         }
       }

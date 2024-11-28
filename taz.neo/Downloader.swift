@@ -211,6 +211,8 @@ open class Downloader: DoesLog {
   }
 
   /// Download files with storage type .issue
+  /// 1st: download global files e.g. author images
+  /// 2nd step: download article/issue files e.g. html, images...
   public func downloadSearchHitFiles( files: [FileEntry],
                                       baseUrl: String,
                                       targetDir: Dir = Dir.searchResults,
