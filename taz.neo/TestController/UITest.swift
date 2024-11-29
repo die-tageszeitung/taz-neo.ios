@@ -27,9 +27,9 @@ final class UITest: XCTestCase {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()
         app.launch()
-      // Warte für 60 Sekunden, während du die App manuell steuerst
+      // wait x*60 seconds to manually controll the app
       let waitTime: TimeInterval = 10*60 // x minutes x 60 seconds
-      print("Test is started and maused for \(waitTime) seconds. You can controll the app manually to gather code coverage.")
+      print("Test is started and maused for \(waitTime/60) minutes. You can controll the app manually to gather code coverage.")
       
       // XCTWaiter wird verwendet, um asynchron auf Zeitablauf zu warten
       let expectation = XCTestExpectation(description: "waiting for userinteraction")
