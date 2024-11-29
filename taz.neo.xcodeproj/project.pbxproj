@@ -107,6 +107,7 @@
 		77CD16C12CF8D79B00B1C3EE /* Bookmarks+InitHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CD16BF2CF8D79B00B1C3EE /* Bookmarks+InitHelper.swift */; };
 		77D1B4FB2CF9C2BE004CF5FC /* UIViewController+Active.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D1B4FA2CF9C2BE004CF5FC /* UIViewController+Active.swift */; };
 		77D1B4FC2CF9C2BE004CF5FC /* UIViewController+Active.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D1B4FA2CF9C2BE004CF5FC /* UIViewController+Active.swift */; };
+		77D1B5102CF9D306004CF5FC /* UITest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D1B4FD2CF9D137004CF5FC /* UITest.swift */; };
 		77D434002CE694A100AC992A /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D433FF2CE694A100AC992A /* Bookmarks.swift */; };
 		77D434012CE694F800AC992A /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D433FF2CE694A100AC992A /* Bookmarks.swift */; };
 		77E5E1BC292D772200611148 /* Javascript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E5E1BB292D772200611148 /* Javascript.swift */; };
@@ -299,6 +300,16 @@
 		C794F23524FED184007168AC /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C794F23424FED184007168AC /* Helper.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		77D1B50A2CF9D2F3004CF5FC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AEBAF55C219ACD1900566205 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AEBAF563219ACD1900566205;
+			remoteInfo = taz.neo;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		0015B73524DD86B30037A8D6 /* Authenticator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		0015B73624DD86B30037A8D6 /* SimpleAuthenticator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleAuthenticator.swift; sourceTree = "<group>"; };
@@ -394,6 +405,8 @@
 		77CB2D272A814B6100021804 /* FeederContext+ResourcesUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+ResourcesUpdate.swift"; sourceTree = "<group>"; };
 		77CD16BF2CF8D79B00B1C3EE /* Bookmarks+InitHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bookmarks+InitHelper.swift"; sourceTree = "<group>"; };
 		77D1B4FA2CF9C2BE004CF5FC /* UIViewController+Active.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Active.swift"; sourceTree = "<group>"; };
+		77D1B4FD2CF9D137004CF5FC /* UITest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITest.swift; sourceTree = "<group>"; };
+		77D1B5042CF9D2F3004CF5FC /* taz ui tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "taz ui tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		77D433FF2CE694A100AC992A /* Bookmarks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmarks.swift; sourceTree = "<group>"; };
 		77E5E1BB292D772200611148 /* Javascript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Javascript.swift; sourceTree = "<group>"; };
 		77E6E9992CF850F300430B83 /* TableSectionSeperatorFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableSectionSeperatorFooterView.swift; sourceTree = "<group>"; };
@@ -476,6 +489,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		77D1B5012CF9D2F3004CF5FC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AE5131DC2AFBCADB002289E8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -714,6 +734,7 @@
 				AE44F8EA248949B0009DA152 /* ColorTests.swift */,
 				AE86486F248E274F007096B4 /* OverlayTest.swift */,
 				AE5DFACE267E10540035162C /* KeychainTest.swift */,
+				77D1B4FD2CF9D137004CF5FC /* UITest.swift */,
 			);
 			path = TestController;
 			sourceTree = "<group>";
@@ -737,6 +758,7 @@
 			children = (
 				AEBAF564219ACD1900566205 /* taz.alpha.app */,
 				AE5131F52AFBCADB002289E8 /* LMd.app */,
+				77D1B5042CF9D2F3004CF5FC /* taz ui tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -887,6 +909,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		77D1B5032CF9D2F3004CF5FC /* taz ui tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 77D1B50C2CF9D2F3004CF5FC /* Build configuration list for PBXNativeTarget "taz ui tests" */;
+			buildPhases = (
+				77D1B5002CF9D2F3004CF5FC /* Sources */,
+				77D1B5012CF9D2F3004CF5FC /* Frameworks */,
+				77D1B5022CF9D2F3004CF5FC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				77D1B50B2CF9D2F3004CF5FC /* PBXTargetDependency */,
+			);
+			name = "taz ui tests";
+			productName = "taz ui tests";
+			productReference = 77D1B5042CF9D2F3004CF5FC /* taz ui tests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		AE5131672AFBCADB002289E8 /* lmd.neo */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AE5131F12AFBCADB002289E8 /* Build configuration list for PBXNativeTarget "lmd.neo" */;
@@ -939,10 +979,14 @@
 		AEBAF55C219ACD1900566205 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1160;
+				LastSwiftUpdateCheck = 1540;
 				LastUpgradeCheck = 1230;
 				ORGANIZATIONNAME = "Norbert Thies";
 				TargetAttributes = {
+					77D1B5032CF9D2F3004CF5FC = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = AEBAF563219ACD1900566205;
+					};
 					AEBAF563219ACD1900566205 = {
 						CreatedOnToolsVersion = 10.1;
 						LastSwiftMigration = 1020;
@@ -969,11 +1013,19 @@
 			targets = (
 				AEBAF563219ACD1900566205 /* taz.neo */,
 				AE5131672AFBCADB002289E8 /* lmd.neo */,
+				77D1B5032CF9D2F3004CF5FC /* taz ui tests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		77D1B5022CF9D2F3004CF5FC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AE5131E12AFBCADB002289E8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1091,6 +1143,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		77D1B5002CF9D2F3004CF5FC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				77D1B5102CF9D306004CF5FC /* UITest.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AE51316D2AFBCADB002289E8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1374,6 +1434,14 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		77D1B50B2CF9D2F3004CF5FC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AEBAF563219ACD1900566205 /* taz.neo */;
+			targetProxy = 77D1B50A2CF9D2F3004CF5FC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXVariantGroup section */
 		080271C524ADDD68002CD2F7 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
@@ -1404,6 +1472,76 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		77D1B50D2CF9D2F3004CF5FC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3R3GBCY6FA;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.taz.uitest.taz-ui-tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = taz.neo;
+			};
+			name = Debug;
+		};
+		77D1B50E2CF9D2F3004CF5FC /* Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3R3GBCY6FA;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.taz.uitest.taz-ui-tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = taz.neo;
+			};
+			name = Beta;
+		};
+		77D1B50F2CF9D2F3004CF5FC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3R3GBCY6FA;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.taz.uitest.taz-ui-tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = taz.neo;
+			};
+			name = Release;
+		};
 		94D7CD19273D6E49001E41D2 /* Beta */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
@@ -1750,6 +1888,16 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		77D1B50C2CF9D2F3004CF5FC /* Build configuration list for PBXNativeTarget "taz ui tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				77D1B50D2CF9D2F3004CF5FC /* Debug */,
+				77D1B50E2CF9D2F3004CF5FC /* Beta */,
+				77D1B50F2CF9D2F3004CF5FC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		AE5131F12AFBCADB002289E8 /* Build configuration list for PBXNativeTarget "lmd.neo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
