@@ -121,7 +121,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     
     if self.adelegate?.issue.isBookmarkIssue == true,
         let arts = self.adelegate?.issue.allArticles {
-      self.articles = (arts as? [StoredArticle])?.bmSorted() ?? arts
+      self.articles = (arts as? [StoredArticle])?.bookmarkOrder() ?? arts
     }
     else if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts

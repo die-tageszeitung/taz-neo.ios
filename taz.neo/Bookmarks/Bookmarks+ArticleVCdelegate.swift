@@ -9,6 +9,7 @@
 import UIKit
 import NorthLib
 
+///Helper to handle Access from ArticleVC to Bookmark Issue
 class BookmarksIssueInfo: ArticleVCdelegate, DoesLog {
   var section: (any Section)?
   

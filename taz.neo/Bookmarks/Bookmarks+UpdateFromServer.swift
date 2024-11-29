@@ -9,6 +9,7 @@
 import Foundation
 import NorthLib
 
+/// Helper to load missing data from server
 extension Bookmarks {
   func loadFullArticlesIfNeeded(){
     guard TazAppEnvironment.hasValidAuth else {

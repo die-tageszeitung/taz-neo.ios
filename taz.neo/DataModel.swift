@@ -983,7 +983,7 @@ public extension Issue {
     }
     if self is SearchResultIssue { return ret }
     if self.isBookmarkIssue {
-      return (ret as? [StoredArticle])?.bmSorted() ?? ret
+      return (ret as? [StoredArticle])?.bookmarkOrder() ?? ret
       /// print(">>> allArticles cnt: \(ret.count)\n  \(ret.enumerated().map { (idx, elm) in "\(idx+1): \(elm.title ?? "-")" }.joined(separator: "\n  "))")
     }
     

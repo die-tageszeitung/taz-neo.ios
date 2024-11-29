@@ -9,69 +9,82 @@
 import Foundation
 import NorthLib
 
-///new issue independent bookmarks implementation
-///uses persisted issue to store all bookmarks
-///default "Leseliste" Bookmarks are stored in the section named "Leseliste"
-///
-///currently the implementation is not ready for multiple bookmark lists but its prepared
+/// Manages user bookmarks for articles.
+/// Bookmarks are stored persistently, with a default section named "Leseliste".
+/// Currently, the implementation is limited to a single list (section) but is designed for future extensibility.
 public class Bookmarks: DoesLog {
   
-  ///**DO not Change** stored in Database
-  static let bookmarkUrl = "bookmark.issue.local"
+  /// Database key for bookmark storage. **DO not Change**
+  static let bookmarkURL = "bookmark.issue.local"
   
+  static let defaultBookmarkSectionTitle = "Leseliste"
+  
+  /// Singleton instance for managing bookmarks.
   private static let sharedInstance = Bookmarks()
   
-  static var shared: Bookmarks {
-    get {
-      if sharedInstance.bookmarkSection == nil {
-        ///solves access to bookmarks without inited feeder
-        ///if no stored feeder:
-        /// - no bookmark can be set OK
-        /// - no bookmark can be fetsch from DB list is empty OK
-        sharedInstance.setup()
-      }
-      return sharedInstance
-    }
-  }
-  
+  /// Persistent issue for bookmark storage.
   var bookmarkIssue: StoredIssue?
   
-  ///default bookmark section
+  /// Default section for storing bookmarks.
   var bookmarkSection: StoredSection? {
     didSet {
       bookmarkedArticles
       = bookmarkSection?.articles as? [StoredArticle] ?? []
     }
   }
+  
+  /// Feeder context to manage the environment and data fetching.
   var feederContext: FeederContext?
   
+  /// List of articles currently bookmarked in default list
   var bookmarkedArticles: [StoredArticle] = []
   
+  /// Cached issue information for ArticleVC @see: ArticleVCdelegate
   private var _issueInfo: BookmarksIssueInfo?
+  
+  /// Accessor for BookmarksIssueInfo lazily initialized if feederContext and bookmarkIssue is already set
   var issueInfo: BookmarksIssueInfo? {
     return _issueInfo ?? {
-      let ii = BookmarksIssueInfo(feederContext: self.feederContext,
-                                  issue: self.bookmarkIssue)
-      _issueInfo = ii
-      return ii
+      _issueInfo = BookmarksIssueInfo(feederContext: self.feederContext,
+                                      issue: self.bookmarkIssue)
+      return _issueInfo
     }()
   }
   
-  func setup(){
-    guard let fc = TazAppEnvironment.sharedInstance.feederContext,
-          let feed = fc.defaultFeed else {
-      return
+  /// Shared accessor for the singleton instance.
+  /// initialize environment if default StoredFeed and FeederContext is available
+  /// dev/null if not; means no database no bookmark functionallity,
+  /// no worry initial Popup "Server not reachable" block every user interaction
+  static var shared: Bookmarks {
+    get {
+      ///already initialized, just return sharedInstance
+      if sharedInstance.bookmarkSection != nil {
+        return sharedInstance
+      }
+      
+      ///check if required environment is available; otherwise bookmarks would not work and cannot be initialized
+      guard let feederContext = TazAppEnvironment.sharedInstance.feederContext,
+            let feed = feederContext.defaultFeed else {
+        return sharedInstance
+      }
+      ///solves access to bookmarks without inited feeder
+      ///if no stored feeder:
+      /// - no bookmark can be set: OK
+      /// - no bookmark can be fetch from Database, list is empty: OK
+      sharedInstance.feederContext = feederContext
+      let bookmarkIssue = sharedInstance.loadOrCreateBookmarkIssue(in: feed)
+      sharedInstance.bookmarkIssue = bookmarkIssue
+      ///as long as default bookmarkSection is unset bookmarks did not work;
+      sharedInstance.bookmarkSection
+      = bookmarkIssue.sections?.first as? StoredSection
+      ?? sharedInstance.createBookmarkSection(in: bookmarkIssue,
+                                              sectionName: Bookmarks.defaultBookmarkSectionTitle)
+      return sharedInstance
     }
-    let bmIssue: StoredIssue = bookmarkIssue(in: feed)
-    self.feederContext = fc
-    self.bookmarkIssue = bmIssue
-    ///In case of Multiple Bookmark Lists, handle theese here and set 'the default' bookmark section
-    self.bookmarkSection
-    = bookmarkIssue?.sections?.first as? StoredSection ?? addBookmarkSection()
   }
 }
 
-// MARK: - Logig GET|SET ... REMOVE Helper
+// MARK: - Logic: GET|SET ... REMOVE Helper
 
 extension Bookmarks {
   
@@ -154,11 +167,6 @@ extension Bookmarks {
                completion: completion)
     Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
   }
-  
-  fileprivate func setBookmark11(for article: Article, in list: StoredSection? = nil, active: Bool) {
-    set(article: article, active: active, in: list)
-  }
-  
 }
 
 // MARK: - Persistence Helper
@@ -265,68 +273,3 @@ extension Bookmarks {
   }
 }
 
-// MARK: - Initialisation Helper
-
-extension Bookmarks {
-  fileprivate func bookmarkIssue(in feed: Feed) -> StoredIssue {
-    let request = StoredIssue.fetchRequest
-    request.predicate = NSPredicate(format: "(baseUrl = %@)", Self.bookmarkUrl)
-    if let si = StoredIssue.get(request: request).first { return si }
-    
-    let si = StoredIssue.new()
-    si.baseUrl = Self.bookmarkUrl
-    si.date = Date(timeIntervalSinceReferenceDate: 0)//1.1.2001
-    si.moTime = Date()
-    si.minResourceVersion = 0
-    si.status = .unknown
-    si.isWeekend = false
-    
-    si.isDownloading = false
-    si.isComplete = false
-    si.feed = feed
-    si.moment =  DummyMoment()
-    
-    addBookmarkSection()
-    return si
-  }
-  
-  @discardableResult
-  fileprivate func addBookmarkSection(with name: String = "Leseliste") -> StoredSection? {
-    guard let issue = bookmarkIssue else {
-      log("Failed to add BookmarkSection with name: \(name), bookmarkIssue is missing.")
-      return nil
-    }
-    let sect = StoredSection.new()
-    sect.name = "Leseliste"
-    sect.type = .unknown
-    
-    let bmDir = issue.feed.bookmarksDir
-    if bmDir.exists == false { bmDir.create() }
-    let bmFilePath = "\(bmDir.path)/\(sect.name).html"
-    File(bmFilePath).string = "initial, empty: Only for Compatibility Reasons due a Section(Content) required html"
-    let tmpFile = StoredFileEntry.new(path: bmFilePath)
-    sect.html = tmpFile
-    issue.pr.addToSections(sect.pr)
-    sect.pr.issue = issue.pr
-    migrateBookmarks()
-    
-    return sect
-  }
-  
-}
-
-// MARK: - Migration Helper
-
-extension Bookmarks {
-  /// Migrates bookmarks from previously implementation stored as flag of article to the new implementation.
-  private func migrateBookmarks() {
-    // Fetch previous bookmarks using previous implementation
-    // Only articles with `hasBookmark` flag are retrieved.
-    let request = StoredArticle.fetchRequest
-    request.predicate = NSPredicate(format: "hasBookmark = true")
-    // Migrate bookmarks by using self.hasBookmark logic to add them to the bookmark issue
-    for article in StoredArticle.get(request: request) {
-      set(article: article, active: true)
-    }
-  }
-}

@@ -205,7 +205,7 @@ extension BookmarkTVC {
   ///updates datasource initially and after change
   func updateData() {
     // group after date
-    let dict = Dictionary(grouping: Bookmarks.shared.bookmarkedArticles.bmSorted(), by: { article in (article.issueDate ?? Date(timeIntervalSince1970: 0)).isoDate() })
+    let dict = Dictionary(grouping: Bookmarks.shared.bookmarkedArticles.bookmarkOrder(), by: { article in (article.issueDate ?? Date(timeIntervalSince1970: 0)).isoDate() })
     
     var out: [String: [StoredArticle]] = [:]
     
