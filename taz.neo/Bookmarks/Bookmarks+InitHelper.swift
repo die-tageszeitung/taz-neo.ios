@@ -36,7 +36,7 @@ extension Bookmarks {
     newBookmarkIssue.isComplete = false
     newBookmarkIssue.feed = feed
     newBookmarkIssue.moment =  DummyMoment()
-    
+    ///result is fetched in setup/singleton getter
     createBookmarkSection(in: newBookmarkIssue,
                           sectionName: Bookmarks.defaultBookmarkSectionTitle)
     // Save the newly created bookmark issue to the database
@@ -50,6 +50,7 @@ extension Bookmarks {
   ///   - issue: The `StoredIssue` object to which the bookmark section will be added.
   ///   - title: The title of the new bookmark section.
   /// - Returns: A `StoredSection` object representing the newly created section.
+  @discardableResult
   func createBookmarkSection(in issue: StoredIssue, sectionName: String) -> StoredSection {
     
     let newSection = StoredSection.new()

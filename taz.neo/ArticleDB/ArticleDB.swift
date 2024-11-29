@@ -1197,16 +1197,16 @@ public final class StoredArticle: Article, StoredObject {
   }
   
 
-  
-  /// Return all Articles in an Issue
-  public static func articlesInIssue(issue: StoredIssue) -> [StoredArticle] {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "%@ IN issues", issue.pr)
-    request.sortDescriptors = [
-      NSSortDescriptor(key: "order", ascending: true)
-    ]
-    return get(request: request)
-  }
+/// **currently unused!**
+//  /// Return all Articles in an Issue
+//  public static func articlesInIssue(issue: StoredIssue) -> [StoredArticle] {
+//    let request = fetchRequest
+//    request.predicate = NSPredicate(format: "%@ IN issues", issue.pr)
+//    request.sortDescriptors = [
+//      NSSortDescriptor(key: "order", ascending: true)
+//    ]
+//    return get(request: request)
+//  }
 } // StoredArticle
 
 extension PersistentFrame: PersistentObject {}
