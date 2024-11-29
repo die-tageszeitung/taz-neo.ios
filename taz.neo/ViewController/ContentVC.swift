@@ -339,6 +339,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   var bookmarkAntiSnippetCss : String {
+    guard delegate != nil else {
+      log("!ERROR!: Prevented crash on disappeared VC\nIt seams there is a unreleased Reference again! Fix it!")
+      return ""
+    }
     if issue.isBookmarkIssue {
       return """
         body span.snippet {
@@ -874,14 +878,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let selfSafeDloader = self.dloader
     
     let curls: [ContentUrl] = contents.map { cnt in
-      ContentUrl(content: cnt) { curl in
+      ContentUrl(content: cnt) {[weak self] curl in
         if curl.content.primaryIssue == nil
           || curl.content.primaryIssue?.isBookmarkIssue == true {
           guard let baseUrl = curl.content.baseURL,
                 let issueDate = curl.content.issueDate,
                 let issueDir = Bookmarks.shared.commonIssueDir(for: issueDate)
           else { return }
-          self.dloader.downloadSearchHitFiles(files: curl.content.files,
+          self?.dloader.downloadSearchHitFiles(files: curl.content.files,
                                               baseUrl: baseUrl,
                                               targetDir: issueDir) { err in
             curl.isAvailable = err == nil

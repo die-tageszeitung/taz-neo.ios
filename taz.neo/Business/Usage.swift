@@ -42,7 +42,7 @@ public class Usage: NSObject, DoesLog{
   ///use to remove onDisplay handler
   fileprivate var lastPageCollectionVConDisplayClosureKey:String?
   ///remember last PageCollectionVC, to handle onDisplay change due swipe
-  fileprivate var lastPageCollectionVC:PageCollectionVC? {
+  fileprivate weak var lastPageCollectionVC:PageCollectionVC? {
     didSet {
       if let key = lastPageCollectionVConDisplayClosureKey {
         oldValue?.removeOnDisplay(forKey: key)

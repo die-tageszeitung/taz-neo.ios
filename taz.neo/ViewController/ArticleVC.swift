@@ -336,7 +336,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           self?.feederContext.authenticate()
         })
       } else {
-        exportArticle()
+        self.exportArticle()
       }
     }
     
