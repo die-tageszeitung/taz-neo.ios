@@ -39,6 +39,9 @@ public class Bookmarks: DoesLog {
   /// List of articles currently bookmarked in default list
   var bookmarkedArticles: [StoredArticle] = []
   
+  ///currently downloading articles
+  var loadingArticles: [StoredArticle] = []
+  
   /// Cached issue information for ArticleVC @see: ArticleVCdelegate
   private var _issueInfo: BookmarksIssueInfo?
   
@@ -57,30 +60,34 @@ public class Bookmarks: DoesLog {
   /// no worry initial Popup "Server not reachable" block every user interaction
   static var shared: Bookmarks {
     get {
-      ///already initialized, just return sharedInstance
-      if sharedInstance.bookmarkSection != nil {
-        return sharedInstance
+      if sharedInstance.bookmarkSection == nil {
+        ///initialize if needed
+        sharedInstance.setup()
       }
-      
-      ///check if required environment is available; otherwise bookmarks would not work and cannot be initialized
-      guard let feederContext = TazAppEnvironment.sharedInstance.feederContext,
-            let feed = feederContext.defaultFeed else {
-        return sharedInstance
-      }
-      ///solves access to bookmarks without inited feeder
-      ///if no stored feeder:
-      /// - no bookmark can be set: OK
-      /// - no bookmark can be fetch from Database, list is empty: OK
-      sharedInstance.feederContext = feederContext
-      let bookmarkIssue = sharedInstance.loadOrCreateBookmarkIssue(in: feed)
-      sharedInstance.bookmarkIssue = bookmarkIssue
-      ///as long as default bookmarkSection is unset bookmarks did not work;
-      sharedInstance.bookmarkSection
-      = bookmarkIssue.sections?.first as? StoredSection
-      ?? sharedInstance.createBookmarkSection(in: bookmarkIssue,
-                                              sectionName: Bookmarks.defaultBookmarkSectionTitle)
       return sharedInstance
     }
+  }
+  
+  private func setup(){
+    ///check if required environment is available; otherwise bookmarks would not work and cannot be initialized
+    guard let feederContext = TazAppEnvironment.sharedInstance.feederContext,
+          let feed = feederContext.defaultFeed else {
+      return
+    }
+    
+    ///solves access to bookmarks without inited feeder
+    ///if no stored feeder:
+    /// - no bookmark can be set: OK
+    /// - no bookmark can be fetch from Database, list is empty: OK
+    self.feederContext = feederContext
+    let bookmarkIssue = self.loadOrCreateBookmarkIssue(in: feed)
+    self.bookmarkIssue = bookmarkIssue
+    ///as long as default bookmarkSection is unset bookmarks did not work;
+    self.bookmarkSection
+    = bookmarkIssue.sections?.first as? StoredSection
+    ?? self.createBookmarkSection(in: bookmarkIssue,
+                                            sectionName: Bookmarks.defaultBookmarkSectionTitle)
+    loadFullArticlesIfNeeded()
   }
 }
 

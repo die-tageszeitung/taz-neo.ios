@@ -969,8 +969,12 @@ public final class StoredArticle: Article, StoredObject {
   }
   
   public var baseURL: String? {
-    /// For backward compatibility and because this field is not filled in the mapping, use the base URL from issues as the default.
-    get { return primaryIssue?.baseUrl ?? pr.baseURL }
+    /// When downloading missing files, it's possible that the issue is still in demo/preview mode while 
+    /// the bookmarked article have already been updated.
+    /// Therefore, prioritize the persisted and updated base URL, 
+    /// particularly in ContentVC's `setContents()`... `contents.map`
+    /// Former: the base URL from the issues was used as default, since this field is not populated in the mapping
+    get { return pr.baseURL?.length ?? 0 > 10 ? pr.baseURL ?? primaryIssue?.baseUrl : primaryIssue?.baseUrl }
     set { pr.baseURL = newValue }
   }
   

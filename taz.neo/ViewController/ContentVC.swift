@@ -880,7 +880,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let curls: [ContentUrl] = contents.map { cnt in
       ContentUrl(content: cnt) {[weak self] curl in
         if curl.content.primaryIssue == nil
-          || curl.content.primaryIssue?.isBookmarkIssue == true {
+          || curl.content.primaryIssue?.isBookmarkIssue == true
+            || selfSafeIssue.isBookmarkIssue == true {
           guard let baseUrl = curl.content.baseURL,
                 let issueDate = curl.content.issueDate,
                 let issueDir = Bookmarks.shared.commonIssueDir(for: issueDate)

@@ -25,13 +25,17 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   }
   
   // MARK: - Properties: UI Components
-  
-  private lazy var articleVC: ArticleVC? = {
-    guard let issueInfo = Bookmarks.shared.issueInfo else { return nil }
-    let avc =  ArticleVC(feederContext: issueInfo.feederContext)
-    avc.delegate = issueInfo
-    return avc
-  }()
+  private var _articleVC: ArticleVC? {
+    didSet { if oldValue != nil { oldValue?.releaseOnDisappear() }}
+  }
+  private var articleVC: ArticleVC? {
+    if _articleVC == nil,
+      let issueInfo = Bookmarks.shared.issueInfo {
+      _articleVC =  ArticleVC(feederContext: issueInfo.feederContext)
+      _articleVC?.delegate = issueInfo
+    }
+    return _articleVC
+  }
   
   lazy var header:SettingsHeaderView = {
     let v = SettingsHeaderView()
@@ -138,6 +142,9 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       if let art = msg.sender as? StoredArticle {
         self?.handleBookmarkChanged(for: art)
+      } else {
+        self?.updateData()
+        self?.bookmarksTable.reloadData()///ugly to reload all rows
       }
     }
   }
@@ -178,11 +185,37 @@ extension BookmarkTVC {
   }
   
   func open(article: Article){
+    if article.isReducedArticle
+        && TazAppEnvironment.sharedInstance.feederContext?.isConnected == true
+        && TazAppEnvironment.hasValidAuth {
+      loadAndOpen(article: article)
+      return
+    }
     guard let avc = articleVC else { return }
     avc.index = avc.articles.firstIndex { $0.serverId == article.serverId } ?? 0
     self.navigationController?.pushViewController(avc, animated: true)
   }
   
+  ///handler for tap in List on demo Article
+  private func loadAndOpen(article: Article){
+    let serverId = article.serverId ///save bevore reload article
+    Notification.receiveOnce(Const.NotificationNames.bookmarksLoaded) { [weak self] _ in
+      ///ensure Tabledata is refreshed earlier
+      onMainAfter(0.2) {[weak self] in
+        guard let avc = self?.articleVC else { return }
+        avc.index = avc.articles.firstIndex { $0.serverId == serverId } ?? 0
+        self?.navigationController?.pushViewController(avc, animated: true)
+      }
+    }
+    let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
+    WaitingAppOverlay.show(alpha: 1.0,
+                           backbround: snap,
+                           showSpinner: true,
+                           titleMessage: "Aktualisiere Daten",
+                           bottomMessage: "Bitte haben Sie einen Moment Geduld!",
+                           dismissNotification: Const.NotificationNames.bookmarksLoaded)
+    reloadOpened()
+  }
 }
 
 // MARK: - BookmarkTVC: Helper
@@ -305,7 +338,43 @@ extension BookmarkTVC: UIStyleChangeDelegate {
 
 // MARK: - ReloadAfterAuthChanged
 extension BookmarkTVC: ReloadAfterAuthChanged {
+  
+  var shouldReload: Bool {
+    guard (groupedArticles.values.flatMap { $0 })
+      .filter({ $0.isReducedArticle }).count > 0 else { return false }
+    guard TazAppEnvironment.hasValidAuth else { return false }
+    return true
+  }
+  
   public func reloadOpened(){
+    ///check if demo articles in table then reload
+    guard shouldReload else {
+      Notification.send(Const.NotificationNames.bookmarksLoaded, sender: nil)
+      return
+    }
+    var reloadArtIndex: Int?
+    
+    if let artVc = self.navigationController?.viewControllers.last as? ArticleVC {
+      artVc.navigationController?.popToRootViewController(animated: false)
+      reloadArtIndex = artVc.index
+    }
+    
+    _articleVC = nil///ensure re-init; set articles, content and updateWebwiews() did not worked
+    
+    Notification.receiveOnce(Const.NotificationNames.bookmarksLoaded) { [weak self] _ in
+      ///Reload Overview Table
+      self?.updateData()
+      self?.bookmarksTable.reloadData()
+
+      guard let reloadArtIndex = reloadArtIndex else {
+        /// no article reopen needed; e.g. loadAndOpen(article: Article) sets and pushes correct articleVc himself
+        return
+      }
+      guard let avc = self?.articleVC else { return }
+      ///handle exchange event comes in while on articleVC, not in list
+      avc.index = reloadArtIndex
+      self?.navigationController?.pushViewController(avc, animated: true)
+    }
     Bookmarks.shared.loadFullArticlesIfNeeded()
   }
 }

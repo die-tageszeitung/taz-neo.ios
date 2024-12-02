@@ -11,9 +11,12 @@ import NorthLib
 
 /// Helper to load missing data from server
 extension Bookmarks {
+  
+  /// Verify valid authentication, then check if reduced/demo articles are bookmarked, and load them
   func loadFullArticlesIfNeeded(){
     guard TazAppEnvironment.hasValidAuth else {
       log("no valid auth, skip loading")
+      Notification.send(Const.NotificationNames.bookmarksLoaded, sender: nil)
       return
     }
     
@@ -34,6 +37,9 @@ extension Bookmarks {
       }
       if let arts = res.value() {
         self.update(bookmarkedArticles: reducedArticles, with: arts)
+      }
+      else {
+        Notification.send(Const.NotificationNames.bookmarksLoaded, sender: nil)
       }
     })
   }
@@ -64,16 +70,23 @@ extension Bookmarks {
       for case let f as StoredFileEntry in storedArticle.files {
         f.subdir = subdir
       }
-      
+      loadingArticles.append(storedArticle)
       /// Warning: do not use storedArticle.baseURL! It is still the old, due getter uses: article.pr.baseURL
       feederContext?.dloader.downloadSearchHitFiles(files: storedArticle.files,
                                                     baseUrl: articleWrapper.baseUrl,
                                                     targetDir: targetDir,
-                                                    closure: { err in
-        if let err = err { self.log("download of article files for: \(String(describing: storedArticle.title)) finished with err: \(err)") }
+                                                    closure: {[weak self] err in
+        if let err = err { self?.log("download of article files for: \(String(describing: storedArticle.title)) finished with err: \(err)") }
+        self?.downloadFinished(for: storedArticle)
       })
     }
     ArticleDB.save()
   }
+  
+  private func downloadFinished(for article: StoredArticle){
+    loadingArticles.removeAll { $0.serverId == article.serverId }
+    if loadingArticles.isEmpty {
+      Notification.send(Const.NotificationNames.bookmarksLoaded, sender: nil)
+    }
+  }
 }
-

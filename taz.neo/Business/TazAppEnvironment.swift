@@ -274,9 +274,10 @@ class TazAppEnvironment: NSObject, DoesLog {
     ?? (DefaultAuthenticator.getUserData().token != nil)
   }
   
-  var hasValidAuth: Bool {
-    isAuthenticated && Defaults.expiredAccount == false
-  }
+  var hasValidAuth: Bool { !shouldAuthenticate }
+  
+  ///show login or expired Form
+  var shouldAuthenticate: Bool{ !isAuthenticated || Defaults.expiredAccount }
 
   func unlinkSubscriptionId() {
     authenticator?.unlinkSubscriptionId()

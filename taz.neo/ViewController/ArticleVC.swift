@@ -139,6 +139,31 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.updateAudioButton()
     }
+    
+    /// do not add this in onDosplay otherwise it is called multiple times after swipe/scroll
+    self.atEndOfContent { [weak self] isAtEnd in
+      self?.handleAtEndOfContent(isAtEnd: isAtEnd)
+    }
+    
+    self.onBookmark { [weak self] _ in
+      guard let art = self?.article else { return }
+      Bookmarks.toggle(article: art)
+    }
+    
+    self.onPlay { [weak self] _ in
+      guard let art = self?.article,
+            let issue = self?.issue,
+      art.canPlayAudio else { return }
+      art.toggleAudio(issue: issue)
+    }
+    
+    ArticlePlayer.singleton.onEnd { [weak self] err in
+      self?.playButton.buttonView.name = "audio"
+      if let err = err {
+        self?.debug("Failed on end with err: \(err)")
+      }
+    }
+    
     onDisplay { [weak self] (idx, _, _) in
       guard let self = self else { return }
       guard let art = self.articles.valueAt(idx) else {
@@ -168,34 +193,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       if !self.issue.isBookmarkIssue {
         LastReadBusiness.persist(lastArticle: art, page: nil, in: self.issue)
       }
-      let player = ArticlePlayer.singleton
       if art.canPlayAudio {
         updateAudioButton()
-        self.onPlay { [weak self] _ in
-          guard let self = self else { return }
-          art.toggleAudio(issue: self.issue)
-        }
-      }
-      else { self.onPlay(closure: nil) }
-      player.onEnd { [weak self] err in
-        self?.playButton.buttonView.name = "audio"
-        if let err = err {
-          self?.debug("Failed on end with err: \(err)")
-        }
-      }
-      self.onBookmark { _ in  Bookmarks.toggle(article: art) }
-      
-    ///**FORMER:** art.primaryIssue?.isReduced == true
-    /// did not work for Issue Independent Bookmarks in Bookmarks Article View
-    if art.isReducedArticle {///or just a Download/Exchange need more refactor?
-      self.atEndOfContent() { [weak self] isAtEnd in
-          if isAtEnd { self?.feederContext.authenticate() }
-        }
       }
       self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
       self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
       showCoachmarkIfNeeded()
-    }
+    } ///eof: onDisplay
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
           after re-enter app due wired Scroll Pos change
@@ -211,6 +215,25 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       Notification.send(Const.NotificationNames.articleLoaded)
     }
     header.titletype = .article
+  }
+  
+  func handleAtEndOfContent(isAtEnd: Bool){
+    ///**FORMER:** art.primaryIssue?.isReduced == true
+    /// did not work for Issue Independent Bookmarks in Bookmarks Article View
+    guard isAtEnd,
+    let art = self.article,
+    art.isReducedArticle else { return }
+   
+    if TazAppEnvironment.sharedInstance.shouldAuthenticate {
+      ///show Login OR Expired Form
+      self.feederContext.authenticate()
+      return
+    }
+    
+    /// TazAppEnvironment.sharedInstance.hasValidAuth ...should no be demo
+    if TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
+      Toast.show(Localized("error_download"))
+    }
   }
 
   // Define Header elements
