@@ -119,11 +119,9 @@ class LoginController: FormsController {
             self.ui.blocked = false
             return
           }
+          var alertMessage:String? = authStatusError.message ?? Localized("toast_login_failed_retry")
+          
           switch authStatusError.status {
-            case .invalid:
-              //wrong Credentials
-              Alert.message(message: Localized("toast_login_failed_retry"))
-              self.ui.passInput.bottomMessage = Localized("register_validation_issue")
             case .expired:
               var expiredDate: Date?
               if let isoDate = authStatusError.message {
@@ -145,17 +143,29 @@ class LoginController: FormsController {
               }
               
               self.modalFromBottom(expiredForm)
+              alertMessage = nil
             case .unlinked:
               self.modalFromBottom(AskForTrial_Controller(tazId: tazId,
                                                     tazIdPass: tazIdPass,
                                                     auth: self.auth))
-            case .notValidMail: fallthrough
+              alertMessage = nil
             case .unknown: fallthrough
-            case .alreadyLinked: fallthrough //Makes no sense here!
-            default:
-              self.log("Auth with tazID should not have alreadyLinked as result", logLevel: .Error)
-              Alert.message(message: Localized("something_went_wrong_try_later"))
-        }
+            case .alreadyLinked: //Makes no sense here!
+              alertMessage = Localized("something_went_wrong_try_later")
+            case .invalid:
+              //wrong Credentials, login only with E-Mail, not Abo-ID
+              if Int(tazId) ?? 0 > 0 {
+                ///probably login with Abo-ID but forbidden
+                ///can also be login with Abo-ID, wrong password but alloded
+                ///"Bitte überprüfen Sie Ihre Eingaben!"
+                self.ui.idInput.bottomMessage = Localized("register_validation_issue")
+              }
+              self.ui.passInput.bottomMessage = Localized("register_validation_issue")
+            case .notValidMail: fallthrough
+            default: break
+          }
+          if let alertMessage = alertMessage { Alert.message(message: alertMessage) }
+          self.log("Auth Error: \(authStatusError)", logLevel: .Error)
       }
       self.ui.blocked = false
     })

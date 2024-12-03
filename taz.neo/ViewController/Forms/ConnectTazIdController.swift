@@ -332,7 +332,7 @@ fileprivate class ConnectTazIdRequestTazIdCtrl : ConnectTazIdController{
     ctrl.ui.idInput.keyboardType = .emailAddress
     ctrl.ui.idInput.autocapitalizationType = .none
     ctrl.ui.idInput.placeholder = Localized("login_tazid_hint")
-    ctrl.ui.introLabel.text = Localized("login_forgot_tazid_password_header")
+    ctrl.ui.introLabel.text = Localized("login_forgot_password_header")
     
     ctrl.childDismissType = .two //Reset & ResetSuccess
     modalFromBottom(ctrl)

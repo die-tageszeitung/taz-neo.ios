@@ -50,7 +50,7 @@ class PwForgottController: FormsController {
       }
     }
     else if !id.isValidEmail(){
-      ui.idInput.bottomMessage = Localized("error_invalid_email_or_abo_id")
+      ui.idInput.bottomMessage = Localized("error_invalid_email")
       ui.blocked = false
     }
     else{
@@ -96,7 +96,8 @@ class PwForgottController: FormsController {
               if let cdt = self.childDismissType { ctrl.dismissType = cdt}
               self.modalFromBottom(ctrl)
             case .invalidMail:
-              Alert.message(message: Localized("error_invalid_email_or_abo_id"))
+//              info.message??
+              Alert.message(message: Localized("error_invalid_email"))
             case .mailError:
               fallthrough
             default:

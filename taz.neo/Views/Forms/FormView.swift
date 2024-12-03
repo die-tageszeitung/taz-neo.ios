@@ -153,6 +153,7 @@ extension FormView {
     Usage.track(Usage.event.dialog.SubscriptionHelp)
   }
   
+  ///depreciated: only used in: ConnectTazIdView
   @objc public func showLoginTips(_ textField: UITextField) {
     let fullText = "\(Localized("login_missing_credentials_header_login"))\n\(Localized("article_read_onreadon"))"
     Alert.message(title: Localized("help"), message: fullText, 
@@ -168,7 +169,7 @@ extension FormView {
     }
   }
   
-  
+  ///depreciated: only used in: ConnectTazIdView
   var loginTipsButton:UIButton{
     get{
       return Padded.Button(type: .label,
