@@ -278,10 +278,6 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   ///show login or expired Form
   var shouldAuthenticate: Bool{ !isAuthenticated || Defaults.expiredAccount }
-
-  func unlinkSubscriptionId() {
-    authenticator?.unlinkSubscriptionId()
-  }
   
   func deleteUserData(logoutFromServer: Bool = false, resetAppState: Bool) {
     SimpleAuthenticator.deleteUserData(logoutFromServer: logoutFromServer)
@@ -428,7 +424,6 @@ class TazAppEnvironment: NSObject, DoesLog {
     
     let akActive = self.usageTrackingAcceptanceTesting ? "Aktiv" : "Inaktiv"
     
-    actions.append(Alert.action("Abo-Verknüpfung löschen") {[weak self] _ in self?.unlinkSubscriptionId() })
     actions.append(Alert.action("Abo-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
     actions.append(Alert.action("Download-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
     actions.append(Alert.action("Tracking AK Test: \(akActive)") {[weak self] _ in

@@ -16,12 +16,10 @@
 		004D4F0024ACDC1F008C4EE7 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFF24ACDC1F008C4EE7 /* FormView.swift */; };
 		006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006007E124D1D333001680B6 /* TrialSubscriptionController.swift */; };
 		006E17E924D418090092DC0D /* FormComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006E17E824D418090092DC0D /* FormComponents.swift */; };
-		00E3D2A124E68F1B00AE075A /* ConnectTazIdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */; };
 		00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */; };
 		00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A624E68F4600AE075A /* LoginView.swift */; };
 		00E3D2A924E68F5500AE075A /* PwForgottView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A824E68F5500AE075A /* PwForgottView.swift */; };
 		080271C724ADDD68002CD2F7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 080271C524ADDD68002CD2F7 /* Localizable.strings */; };
-		08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */; };
 		4D308ED6283404C700529592 /* GqlFeederSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308ED4283404C700529592 /* GqlFeederSearch.swift */; };
 		4D308EDB283404D400529592 /* TazAppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308ED9283404D400529592 /* TazAppEnvironment.swift */; };
 		4D308EE52834057200529592 /* SearchResultsTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EDF2834057200529592 /* SearchResultsTableView.swift */; };
@@ -253,8 +251,6 @@
 		AE5131D72AFBCADB002289E8 /* PushNotification.Payload+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */; };
 		AE5131D82AFBCADB002289E8 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0A4D0223F429D800C44625 /* HeaderView.swift */; };
 		AE5131D92AFBCADB002289E8 /* ArticleDBVersionChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEEC9199282E964300F91A2D /* ArticleDBVersionChanges.swift */; };
-		AE5131DA2AFBCADB002289E8 /* ConnectTazIdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */; };
-		AE5131DB2AFBCADB002289E8 /* ConnectTazIdController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */; };
 		AE5131DD2AFBCADB002289E8 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = AED748A9238413D800C09D2D /* libc++.tbd */; };
 		AE5131DE2AFBCADB002289E8 /* NorthLib in Frameworks */ = {isa = PBXBuildFile; productRef = AE5131682AFBCADB002289E8 /* NorthLib */; };
 		AE5131DF2AFBCADB002289E8 /* MatomoTracker in Frameworks */ = {isa = PBXBuildFile; productRef = AE51316A2AFBCADB002289E8 /* MatomoTracker */; };
@@ -317,12 +313,10 @@
 		006007E124D1D333001680B6 /* TrialSubscriptionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialSubscriptionController.swift; sourceTree = "<group>"; };
 		006E17E824D418090092DC0D /* FormComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormComponents.swift; sourceTree = "<group>"; };
 		00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazPdfPagesViewController.swift; sourceTree = "<group>"; };
-		00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdView.swift; sourceTree = "<group>"; };
 		00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialSubscriptionView.swift; sourceTree = "<group>"; };
 		00E3D2A624E68F4600AE075A /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		00E3D2A824E68F5500AE075A /* PwForgottView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PwForgottView.swift; sourceTree = "<group>"; };
 		080271C624ADDD68002CD2F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Localizable.strings; sourceTree = "<group>"; };
-		08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectTazIdController.swift; sourceTree = "<group>"; };
 		4D308ED4283404C700529592 /* GqlFeederSearch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GqlFeederSearch.swift; sourceTree = "<group>"; };
 		4D308ED9283404D400529592 /* TazAppEnvironment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazAppEnvironment.swift; sourceTree = "<group>"; };
 		4D308EDF2834057200529592 /* SearchResultsTableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultsTableView.swift; sourceTree = "<group>"; };
@@ -521,7 +515,6 @@
 				0032A4D824C89E4800284723 /* FormsController.swift */,
 				004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */,
 				0032A4DA24C89F1100284723 /* PwForgotController.swift */,
-				08D6045324C9D3A70045EBE7 /* ConnectTazIdController.swift */,
 				006007E124D1D333001680B6 /* TrialSubscriptionController.swift */,
 				4D3131F1289159FE0087EE1B /* SubscriptionFormController.swift */,
 			);
@@ -534,7 +527,6 @@
 				004D4EFF24ACDC1F008C4EE7 /* FormView.swift */,
 				00E3D2A624E68F4600AE075A /* LoginView.swift */,
 				00E3D2A824E68F5500AE075A /* PwForgottView.swift */,
-				00E3D2A024E68F1B00AE075A /* ConnectTazIdView.swift */,
 				00E3D2A424E68F3300AE075A /* TrialSubscriptionView.swift */,
 				006E17E824D418090092DC0D /* FormComponents.swift */,
 				77BA74642892836600D1039B /* SubscriptionFormView.swift */,
@@ -1278,8 +1270,6 @@
 				AE5131D72AFBCADB002289E8 /* PushNotification.Payload+Extension.swift in Sources */,
 				AE5131D82AFBCADB002289E8 /* HeaderView.swift in Sources */,
 				AE5131D92AFBCADB002289E8 /* ArticleDBVersionChanges.swift in Sources */,
-				AE5131DA2AFBCADB002289E8 /* ConnectTazIdView.swift in Sources */,
-				AE5131DB2AFBCADB002289E8 /* ConnectTazIdController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1415,8 +1405,6 @@
 				77E6E9A62CF8745100430B83 /* Bookmarks+Helper.swift in Sources */,
 				774C27462BA05BA800835BB9 /* VirtualArticle.swift in Sources */,
 				AEEC919A282E964300F91A2D /* ArticleDBVersionChanges.swift in Sources */,
-				00E3D2A124E68F1B00AE075A /* ConnectTazIdView.swift in Sources */,
-				08D6045424C9D3A70045EBE7 /* ConnectTazIdController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

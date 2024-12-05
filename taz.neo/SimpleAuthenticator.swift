@@ -64,18 +64,6 @@ public class SimpleAuthenticator: Authenticator {
     rootVC?.present(alert, animated: true, completion: nil)
   } 
   
-  /// Unlink connection from taz-ID to Abo-ID
-  public func unlinkSubscriptionId() {
-    withLoginData { (id, pw) in
-      guard let id = id, let pw = pw else { return }
-      self.feeder.unlinkSubscriptionId(aboId: id, password: pw) { res in
-        if let info = res.value() {
-          self.debug("\(info.toString())")
-        }
-      }
-    }
-  }
-  
   /// Ask user for id/password, check with GraphQL-Server and store in user defaults
   public func authenticate(with targetVC:UIViewController? = nil) {
     withLoginData { [weak self] (id, password) in

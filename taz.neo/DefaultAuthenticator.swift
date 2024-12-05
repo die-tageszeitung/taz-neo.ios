@@ -315,11 +315,6 @@ public class DefaultAuthenticator: Authenticator {
       }
     })
   }
-  
-  public func unlinkSubscriptionId() { 
-    SimpleAuthenticator(feeder: self.feeder).unlinkSubscriptionId()
-  }
-  
 } // DefaultAuthenticator
 
 

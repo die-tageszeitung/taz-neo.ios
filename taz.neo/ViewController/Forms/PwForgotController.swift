@@ -41,13 +41,8 @@ class PwForgottController: FormsController {
     }
     
     if id.isNumber {
-      if let i = Int32(id){
-        self.mutateSubscriptionReset("\(i)")
-      } else {
-        ui.idInput.bottomMessage = Localized("abo_id_validation_error_digit")
-        ui.blocked = false
-        return
-      }
+      ui.idInput.bottomMessage = Localized("abo_id_validation_error_digit")
+      ui.blocked = false
     }
     else if !id.isValidEmail(){
       ui.idInput.bottomMessage = Localized("error_invalid_email")
@@ -57,32 +52,7 @@ class PwForgottController: FormsController {
       self.mutatePasswordReset(id)
     }
   }
-  
-  // MARK: mutateSubscriptionReset
-  func mutateSubscriptionReset(_ id: String){
-    auth.feeder.subscriptionReset(aboId: id, closure: { [weak self]  (result) in
-      guard let self = self else { return }
-      switch result {
-        case .success(let info):
-          switch info.status {
-            case .ok: fallthrough
-            case .invalidSubscriptionId: fallthrough
-            case .alreadyConnected: fallthrough
-            default:
-              self.updateParentIfApplyable(id)
-              let ctrl = SubscriptionResetSuccessController()
-              if let cdt = self.childDismissType { ctrl.dismissType = cdt}
-              self.modalFromBottom(ctrl)
-        }
-        //ToDo #901
-        case .failure:
-          Alert.message(message: Localized("error"))
-          self.log("An error occured in mutateSubscriptionReset: \(String(describing: result.error()))")
-      }
-      self.ui.blocked = false
-    })
-  }
-  
+    
   // MARK: mutatePasswordReset
   func mutatePasswordReset(_ id: String){
     auth.feeder.passwordReset(email: id, closure: { [weak self]  (result) in
@@ -115,9 +85,6 @@ class PwForgottController: FormsController {
     guard let parent = self.presentingViewController as? FormsController else { return;}
     if let loginView = parent.ui as? LoginView {
       loginView.idInput.text = idOrMail
-    }
-    else if let connectView = parent.ui as? ConnectTazIdView {
-      connectView.mailInput.text = idOrMail
     }
     else if let trialSView = parent.ui as? TrialSubscriptionView {
       trialSView.mailInput.text = idOrMail

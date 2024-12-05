@@ -1,11 +1,3 @@
-/* taz Id Account Create */
-"taz_id_account_create_intro" = "Sie haben noch kein taz-Konto? Hier können Sie sich selbst ein neues taz-Konto mit einer E-Mail-Adresse und Ihrem persönlichen Passwort aussuchen.";
-
-"taz_id_account_create_intro2" = "Um die neue taz App zu nutzen, müssen Sie sich zukünftig mit Ihrer E-Mail-Adresse und selbst gewähltem Passwort einloggen.";
-
-/* taz Id Account Create */
-"login_missing_credentials_switch_to_login" = "Ich habe schon ein taz-Konto";
-
 /* translation from Android */
 "login_missing_credentials_header_login" = "Sollten Sie bereits bei taz.de mit E-Mail-Adresse und Passwort registriert sein, geben Sie hier bitte diese Daten an.";
 
@@ -23,10 +15,6 @@
 "login_password_placeholder" = "Mein Passwort";
 
 "close_window" = "Fenster Schließen";
-
-/* depreciated: only used in: ConnectTazIdView */
-/* translation from Android */
-"article_read_onreadon" = "Wir möchten Ihnen den Zugang zu unseren digitalen Produkten erleichtern und stellen deshalb unser Anmeldeverfahren in einem zweistufigen Verfahren um. Geben Sie bitte zunächst Ihre bisherige Abo-ID und Passwort ein. In einem zweiten Schritt werden Sie gebeten sich mit einer gültigen E-Mail-Adresse und einem selbst gewählten Passwort anzumelden. Fertig! Sie können sich ab jetzt mit Ihrer E-Mail-Adresse anmelden.";
 
 /* login erforderlich */
 "login_required" = "Bitte melden Sie sich an, um weiterzulesen.";
@@ -66,15 +54,14 @@
 
 "register_tips_text" = "Nach Ihrer Bestellung erhalten Sie eine Bestätigungs-E-Mail mit einem Aktivierungs-Link. Sobald Sie diesen aufrufen, wird Ihr Probeabo freigeschaltet. Falls Sie die E-Mail nicht in Ihrem Posteingang finden, schauen Sie bitte auch in Ihrem Spam-Ordner nach.\n\nDie digitale Ausgabe der taz können Sie bereits am Vorabend des Erscheinungstages bequem in der App lesen.\n\nIhr Probeabo endet automatisch, eine Kündigung ist also nicht notwendig. Es entstehen keinerlei Zahlungspflichten durch das Probeabo.";
 
+"register_tips_text_existingtazid" = "Nach Ihrer Anfrage wird das Probeabo für Ihre E-Mail-Adresse unmittelbar freigeschaltet.\n\nDie digitale Ausgabe der taz können Sie bereits am Vorabend des Erscheinungstages bequem in der App lesen.\n\nIhr Probeabo endet automatisch, eine Kündigung ist also nicht notwendig. Es entstehen keinerlei Zahlungspflichten durch das Probeabo.";
+
 /* translation from Android */
 "login_forgot_password" = "Haben Sie Ihr Passwort vergessen?";
 "login_privacy_link" = "Hier finden Sie unsere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
 
 /* translation from Android */
 "login_forgot_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre E-Mail-Adresse an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
-
-/* PW Vergessen bei Subscription Reset nach mit bestehender taz-ID verknüpfen */
-"login_forgot_subscription_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre Abo-ID an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
 
 /* translation from Android */
 "login_forgot_password_send" = "Senden und Link anfordern";
@@ -125,13 +112,6 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 "toast_login_failed_retry" = "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.";
 
 "toast_login_wrong_retry" = "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben und versuchen Sie es erneut.";
-
-/* translation from Android */
-"fragment_login_missing_credentials_switch_to_login" = "Ich habe schon eine taz-Konto";
-
-/* translation from Android */
-"fragment_login_missing_credentials_switch_to_registration" = "Ich habe noch kein taz-Konto";
-
 
 /* translation from Android */
 "login_email_hint" = "E-Mail-Adresse";
@@ -208,34 +188,17 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 "password_contains_mail" = "Ihr Passwort darf nicht Teile Ihrer E-Mail enthalten!";
 
 /* zum Probeabo */
-"trial_subscroption" = "Probeabo abschließen";
+"trial_subscroption" = "kostenloses Probeabo anfragen";
 
 /* Header tazID ohne Abo ID */
-"unconnected_taz_id_header" = "Bisher ist kein Abo mit Ihrer E-Mail-Adresse verknüpft.\n\nMöchten Sie ein bestehendes Abo mit Ihrer E-Mail-Adresse verknüpfen?";
+"unconnected_taz_id_header" = "Bisher ist kein Abo mit Ihrer E-Mail-Adresse %@ verknüpft.\n\nMöchten Sie die digitale Ausgabe der taz 6 Wochen kostenlos und unverbindlich testen?";
 
-/* tazID ohne Abo ID bestehendes abo verknüpfen*/
-"connect_abo_id" = "Bestehendes Abo verknüpfen";
+"unconnected_taz_id_contact1" = "Falls Sie bereits ein Print-Abo der taz haben, können Sie mit dem nachfolgenden Formular Kontakt zur Abo-Abteilung aufnehmen, um Ihr bestehendes Abo mit der E-Mail-Adresse: %@ zu verknüpfen.";
 
-/* tazID ohne Abo ID bestehendes abo verknüpfen*/
-"connect_abo_id_title" = "Bitte geben Sie hier Ihre Abo-ID und das zugehörige Passwort ein.";
-
-/* translation from Android */
-"login_subscription_hint" = "Abo-ID";
-
-/* translation from Android */
-"login_tazid_hint" = "E-Mail-Adresse";
-
-/* aboId mit taz Id Verknüfpen */
-"connect_this_abo_id_with_taz_id" = "Abo mit taz-Konto verknüpfen";
+"unconnected_taz_id_contact" = "Falls Sie bereits ein Print-Abo der taz haben, können Sie mit den nachfolgenden Formularen Kontakt zur Abo-Abteilung aufnehmen, um Ihr bestehendes Abo mit der E-Mail-Adresse: %@ zu verknüpfen.";
 
 /* aboId mit taz Id Verknüfpen */
 "send_button" = "Abschicken";
-
-/* translation from Android */
-"login_subscription_error_invalid" = "Die Abo-ID ist ungültig.";
-
-/* translation from Android */
-"login_subscription_error_empty" = "Bitte Abo-ID angeben.";
 
 /* translation from Android */
 "fragment_login_missing__names_header" = "Zu Ihrem taz-Konto ist noch kein Vor- und Nachname registriert. Dies ist zur Erstellung eines Probeabos notwendig.";
