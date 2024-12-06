@@ -11,6 +11,14 @@ import UIKit
 import NorthLib
 
 // MARK: - TazTextField
+/// A custom `UITextField` implementation with enhanced UI and layout features:
+/// - Displays a placeholder as a `topLabel` when the input field is not empty.
+/// - Shows an error state by adding a red border when `isError` is set to `true`.
+/// - Includes a `bottomLabel` positioned below the background layer, creating the illusion of stacked views.
+///   This effect is achieved with a custom layout, maintaining a single `UITextField` instance for simplicity.
+/// - Supports Auto Layout with a self-sizing height, dynamically adjusting based on its components,
+///   particularly the height of the multi-line `bottomLabel`, which depends on the length of the `bottomMessage`.
+/// - Conforms to `KeyboardToolbarForText` for additional keyboard customization.
 public class TazTextField : Padded.TextField, KeyboardToolbarForText{
   
   private var _accessibilityLabel: String?
@@ -21,26 +29,30 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
   }
   
   public var index: Int?
-  static let recomendedHeight:CGFloat = 61.0
-  var initialHeight: CGFloat = TazTextField.recomendedHeight
   let topLabel = UILabel()
   var isError = false {
     didSet {
       if oldValue == isError { return }
       self.bottomLabel.alpha = isError ? 1.0 :1.0
-      updateHeightIfNeeded(force: true)
       backgroundLayer.borderColor
       = isError
       ? Const.SetColor.taz2(.notifications_error).color.cgColor
       : CGColor.init(gray: 0, alpha: 0)
       backgroundLayer.borderWidth = isError ? 2.0 : 0.0
+      UIView.animate(withDuration: 0.4) {
+        self.superview?.setNeedsLayout()
+        self.superview?.layoutIfNeeded()
+      }
     }
   }
   let backgroundLayer = CALayer()
   let bottomLabel = UILabel()
+  ///placeholderLabel is also the magic component for self resize
+  ///This  == Textfield has a common Height of (self.TextField + Paddings) + topLabel + bottomLabel = 20
+  ///(self.TextField + Paddings) == placeholderLabel.height + dist to topLabel and bottomLabel
+  ///Using AutoLayout with V: | topMessage - a - placeholderLabel - b - bottomLabel |
+  ///bottomLabel is grow and shrinkable and sets this (TextFild) height
   fileprivate let placeholderLabel = UILabel()
-  private var heightConstraint: NSLayoutConstraint?
-  private var lastCalculatedPlaceholderHeightAlWidth = 0.0
   
   private var handleEnter: (()->())?
   var onResignFirstResponder: (()->())?
@@ -65,7 +77,6 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
                 topMessage: String? = nil,
                 color: UIColor = Const.SetColor.CIColor.color,
                 textColor: UIColor = Const.SetColor.taz2(.text).color,
-                height: CGFloat = TazTextField.recomendedHeight,
                 paddingTop: CGFloat = Const.Size.TextFieldPadding,
                 paddingBottom: CGFloat = Const.Size.TextFieldPadding,
                 textContentType: UITextContentType? = .givenName,
@@ -81,7 +92,6 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
           topMessage: topMessage,
           color: color,
           textColor: textColor,
-          height: height,
           paddingTop: paddingTop,
           paddingBottom: paddingBottom,
           textContentType: textContentType,
@@ -121,24 +131,12 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
     super.init(coder: coder)
     setup()
   }
-  
-  func updateHeightIfNeeded(force: Bool = false){
-    let selfW = self.frame.size.width - 2*Const.Size.DefaultPadding
-    let plY = placeholderLabel.frame.origin.y
-    guard force || plY > 0 else { return }
-    guard force || abs(selfW - lastCalculatedPlaceholderHeightAlWidth) > 3 else { return }
-    lastCalculatedPlaceholderHeightAlWidth = selfW
-    let placeholderHeight = placeholderLabel.sizeThatFits(CGSize(width: selfW, height: 2000)).height
-    let newHeight = max(initialHeight, placeholderHeight + plY + 12) + (isError ? 20.0 : 0)
-    if abs((heightConstraint?.constant ?? 0) - newHeight) > 3 { heightConstraint?.constant = newHeight }
-  }
-  
+    
   public override func layoutSubviews() {
-    updateHeightIfNeeded()
     backgroundLayer.frame = CGRect(x: 0,
                                    y: 0,
                                    width: self.frame.size.width,
-                                   height: self.frame.size.height - (isError ? 20 : 0))
+                                   height: bottomLabel.frame.origin.y - 3)
     super.layoutSubviews()
  }
   
@@ -147,7 +145,6 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
              topMessage: String? = nil,
              color: UIColor = Const.SetColor.CIColor.color,
              textColor: UIColor = Const.SetColor.taz2(.text).color,
-             height: CGFloat = TazTextField.recomendedHeight,
              paddingTop: CGFloat = Const.Size.TextFieldPadding,
              paddingBottom: CGFloat = Const.Size.TextFieldPadding,
              textContentType: UITextContentType? = .givenName,
@@ -157,10 +154,8 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
              autocapitalizationType: UITextAutocapitalizationType = .none,
              target: Any? = nil,
              action: Selector? = nil){
-    heightConstraint = pinHeight(initialHeight)
     self.text = prefilledText
     self.placeholder = placeholder
-//    self.topMessage = topMessage //layout issues?
     self.paddingTop = paddingTop
     self.paddingBottom = paddingBottom
     self.contentVerticalAlignment = .top
@@ -190,28 +185,36 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
     self.layer.insertSublayer(backgroundLayer, at: 0)
     self.delegate = self
     bottomLabel.alpha = 0.0
-    bottomLabel.numberOfLines = 1
-    self.addSubview(bottomLabel)
+    bottomLabel.numberOfLines = 0
+    
+    self.addSubview(topLabel)
     self.addSubview(placeholderLabel)
+    self.addSubview(bottomLabel)
+    
+    topLabel.pinHeight(20)
+    placeholderLabel.pinHeight(20)
+    bottomLabel.pinHeight(20.0, priority: .defaultLow)
+    
+    pin(topLabel.top, to: self.top, dist: 5)
+    pin(placeholderLabel.top, to: topLabel.bottom, dist: 5)
+    pin(bottomLabel.top, to: placeholderLabel.bottom, dist: 12)//test with 8 and fix bg
+    pin(bottomLabel.bottom, to: self.bottom, dist: 0)
     
     topLabel.alpha = 0.0
     topLabel.numberOfLines = 1
-//    topLabel.text = topMessage//layout issues?
-    self.addSubview(topLabel)
+
     pin(topLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(topLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
-    pin(topLabel.top, to: self.top, dist: 8)
+
     topLabel.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
     self.topLabel.textColor = Const.SetColor.taz2(.text_icon_grey).color
     
     pin(placeholderLabel.left, to: self.left, dist: Const.Size.DefaultPadding)
     pin(placeholderLabel.right, to: self.right, dist: -Const.Size.DefaultPadding)
-    pin(placeholderLabel.top, to: topLabel.bottom, dist: 6)
-    
+        
     pin(bottomLabel.left, to: self.left)
-    bottomLabel.pinHeight(20.0)
     pin(bottomLabel.right, to: self.right)
-    pin(bottomLabel.bottom, to: self.bottom, dist: 0)
+
     bottomLabel.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
     bottomLabel.textColor =
     Const.SetColor.taz2(.notifications_errorText).color

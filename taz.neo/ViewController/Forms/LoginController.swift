@@ -106,7 +106,8 @@ class LoginController: FormsController {
             self.ui.blocked = false
             return
           }
-          var alertMessage:String? = authStatusError.message ?? Localized("toast_login_failed_retry")
+
+          var alertMessage: String?
           
           switch authStatusError.status {
             case .expired:
@@ -130,20 +131,21 @@ class LoginController: FormsController {
               }
               
               self.modalFromBottom(expiredForm)
-              alertMessage = nil
             case .unlinked:
               self.modalFromBottom(AskForTrial_Controller(tazId: tazId,
                                                     tazIdPass: tazIdPass,
                                                     auth: self.auth))
-              alertMessage = nil
             case .unknown: fallthrough
-            case .alreadyLinked: //Makes no sense here!
+            case .notValidMail: fallthrough //does this status code makes sense here?
+            case .alreadyLinked: //this status code makes no sense here!
               alertMessage = Localized("something_went_wrong_try_later")
             case .invalid:
+              alertMessage = Localized("toast_login_failed_retry")
+              self.ui.idInput.bottomMessage = authStatusError.message ?? Localized("register_validation_issue")
               self.ui.passInput.bottomMessage = Localized("register_validation_issue")
-            case .notValidMail: fallthrough
             default: break
           }
+          
           if let alertMessage = alertMessage { Alert.message(message: alertMessage) }
           self.log("Auth Error: \(authStatusError)", logLevel: .Error)
       }
