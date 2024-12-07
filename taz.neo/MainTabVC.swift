@@ -27,8 +27,24 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
                       content: self.traitCollection,
                       error: nil,
                       sender: nil)
+    updateTraitOverrides()
   }
   
+  private func updateTraitOverrides() {
+      guard #available(iOS 18.0, *) else { return }
+      // Update the current size class to display original design
+      traitOverrides.horizontalSizeClass = .compact
+    if let original = UIWindow.keyWindow?.traitCollection.horizontalSizeClass {
+          // Updates every tab with the window size class
+          viewControllers?.forEach { $0.traitOverrides.horizontalSizeClass = original }
+      }
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    updateTraitOverrides()
+  }
+
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     guard let data = TazAppEnvironment.openedFromNotificationCenter else { return }
@@ -38,6 +54,12 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    /* Did not work
+    if #available(iOS 18.0, *) {
+      let compactTraitCollection = UITraitCollection(horizontalSizeClass: .compact)
+      self.setOverrideTraitCollection(compactTraitCollection, forChild: self) //<Did not work
+    }
+     */
     setupTabbar()
     self.navigationController?.isNavigationBarHidden = true
     registerForStyleUpdates()
