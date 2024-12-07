@@ -54,12 +54,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    /* Did not work
-    if #available(iOS 18.0, *) {
-      let compactTraitCollection = UITraitCollection(horizontalSizeClass: .compact)
-      self.setOverrideTraitCollection(compactTraitCollection, forChild: self) //<Did not work
-    }
-     */
     setupTabbar()
     self.navigationController?.isNavigationBarHidden = true
     registerForStyleUpdates()
