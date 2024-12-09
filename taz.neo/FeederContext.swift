@@ -214,11 +214,10 @@ open class FeederContext: DoesLog {
     }
     
     let loadAll = needLoadAllPublicationDates()
-    cleanupOldIssues()
-    defaultFeed = storedFeeder.feeds.first as? StoredFeed
-    //Alternative:
-    //defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder).first
+    defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder).first
+    //Alternative: defaultFeed = storedFeeder.feeds.first as? StoredFeed
     notify("feederReady")
+    cleanupOldIssues()//requires inited bookmarks
     checkAppUpdate()
     if needUpdate {
       updateFeeder(loadAllPublicationDates: loadAll)

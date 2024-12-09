@@ -53,10 +53,7 @@ public protocol Authenticator: DoesLog {
   /// Ask user for id/password, check with GraphQL-Server, store using method 
   /// 'storeUserData' and call closure to indicate success (closure(nil) is success)
   func authenticate(with targetVC:UIViewController?)
- 
-  /// Unlink the connection between ID and subscription ID
-  func unlinkSubscriptionId()
- 
+  
   /**
    Use this method to store user authentication data in user defaults and keychain
    

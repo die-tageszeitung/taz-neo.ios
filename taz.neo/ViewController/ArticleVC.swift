@@ -84,10 +84,11 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     // only insert new Article
     guard articles.firstIndex(where: { $0.html?.name == name }) == nil
     else { return }
-    let all = delegate.issue.allArticles
-    if let idx = all.firstIndex(where: { $0.html?.name == name }) {
-      articles.insert(article, at: idx)
-      insertContent(content: article, at: idx)
+    
+    if let idx = delegate.issue.allArticles.firstIndex(where: { $0.html?.name == name }) {
+      ///print(">>> Insert article: \(article.title ?? "-") at index: \(idx) / \(articles.count - 1 )")
+      articles.insert(article, at: min(idx, articles.count - 1))
+      insertContent(content: article, at: min(idx, contents.count - 1))
     }
   }
   
@@ -100,26 +101,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     
     if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
     else { self.bookmarkButton.buttonView.name = "star" }
-  }
-  
-  func toggleBookmark(art: StoredArticle?) {
-    guard let art = art else { return }
-    var msg: String
-    var completion:((Bool)->())? = nil
-    
-    if art.hasBookmark {
-      msg = "Der Artikel wurde aus ihrer Leseliste entfernt.<br/>Löschen rückgängig durch Antippen"
-      completion = { wasTapped in
-        guard wasTapped else { return }
-        art.hasBookmark = true
-        Toast.show("Löschen wurde wiederrufen!")
-      }
-    }
-    else { msg = "Der Artikel wurde in ihrer Leseliste gespeichert." }
-    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)",
-               minDuration: 0,
-               completion: completion)
-    art.hasBookmark.toggle()
   }
   
   func updateAudioButton(){
@@ -138,7 +119,11 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
                   smoothPreviewForImage: true)
     playButtonContextMenu?.itemPrivider = self
     
-    if let arts = self.adelegate?.issue.allArticles {
+    if self.adelegate?.issue.isBookmarkIssue == true,
+        let arts = self.adelegate?.issue.allArticles {
+      self.articles = (arts as? [StoredArticle])?.bookmarkOrder() ?? arts
+    }
+    else if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
     }
     super.setup(contents: articles, isLargeHeader: false)
@@ -146,13 +131,39 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,
-         cart.html?.name == art.html?.name {
+         art.serverId != nil,
+         cart.serverId == art.serverId {
          self.displayBookmark(art: art)
       }
     }
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.updateAudioButton()
     }
+    
+    /// do not add this in onDosplay otherwise it is called multiple times after swipe/scroll
+    self.atEndOfContent { [weak self] isAtEnd in
+      self?.handleAtEndOfContent(isAtEnd: isAtEnd)
+    }
+    
+    self.onBookmark { [weak self] _ in
+      guard let art = self?.article else { return }
+      Bookmarks.toggle(article: art)
+    }
+    
+    self.onPlay { [weak self] _ in
+      guard let art = self?.article,
+            let issue = self?.issue,
+      art.canPlayAudio else { return }
+      art.toggleAudio(issue: issue)
+    }
+    
+    ArticlePlayer.singleton.onEnd { [weak self] err in
+      self?.playButton.buttonView.name = "audio"
+      if let err = err {
+        self?.debug("Failed on end with err: \(err)")
+      }
+    }
+    
     onDisplay { [weak self] (idx, _, _) in
       guard let self = self else { return }
       guard let art = self.articles.valueAt(idx) else {
@@ -179,36 +190,16 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       }
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
-      if self.issue is BookmarkIssue == false {
+      if !self.issue.isBookmarkIssue {
         LastReadBusiness.persist(lastArticle: art, page: nil, in: self.issue)
       }
-      let player = ArticlePlayer.singleton
       if art.canPlayAudio {
         updateAudioButton()
-        self.onPlay { [weak self] _ in
-          guard let self = self else { return }
-          art.toggleAudio(issue: self.issue)
-        }
-      }
-      else { self.onPlay(closure: nil) }
-      player.onEnd { [weak self] err in
-        self?.playButton.buttonView.name = "audio"
-        guard let err = err else { return }
-      }
-      self.onBookmark { [weak self] _ in
-        guard let self = self else { return }
-        self.toggleBookmark(art: art as? StoredArticle)
-      }
-      ///     && (feederContext.isAuthenticated == false || Defaults.expiredAccount) bookmarks finally did not refresh
-      if art.primaryIssue?.isReduced == true {
-        self.atEndOfContent() { [weak self] isAtEnd in
-          if isAtEnd { self?.feederContext.authenticate() }
-        }
       }
       self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
       self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
       showCoachmarkIfNeeded()
-    }
+    } ///eof: onDisplay
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
           after re-enter app due wired Scroll Pos change
@@ -225,6 +216,25 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     }
     header.titletype = .article
   }
+  
+  func handleAtEndOfContent(isAtEnd: Bool){
+    ///**FORMER:** art.primaryIssue?.isReduced == true
+    /// did not work for Issue Independent Bookmarks in Bookmarks Article View
+    guard isAtEnd,
+    let art = self.article,
+    art.isReducedArticle else { return }
+   
+    if TazAppEnvironment.sharedInstance.shouldAuthenticate {
+      ///show Login OR Expired Form
+      self.feederContext.authenticate()
+      return
+    }
+    
+    /// TazAppEnvironment.sharedInstance.hasValidAuth ...should no be demo
+    if TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
+      Toast.show(Localized("error_download"))
+    }
+  }
 
   // Define Header elements
   #warning("ToDo: Refactor get HeaderField with Protocol! (ArticleVC, SectionVC...)")
@@ -239,6 +249,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       header.title = article?.title
       header.pageNumber = nil
     }
+    else if adelegate?.issue.isBookmarkIssue == true {
+      let idx = articles.firstIndex {$0.serverId == article?.serverId } ?? -2
+      if let st = article?.sectionTitle { header.title = st }
+      header.titletype = .search
+      header.subTitle = "Ausgabe \(article?.issueDate?.short ?? "")"
+      header.pageNumber = "\(idx+1) von \(articles.count)"
+    }
     else if let art = article, let name = art.html?.name {
       if let sections = adelegate?.article2section[name],
          sections.count > 0 {
@@ -251,16 +268,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           }
           if let st = art.sectionTitle { header.title = st }
           else { header.title = "\(title)" }
-       
-          
-          if section is BookmarkSection {
-            header.titletype = .search
-            header.subTitle = "Ausgabe \(art.issueDate.short)"
-            header.pageNumber = "\(i+1) von \(articles.count)"
-          }
-          else {
-            header.pageNumber = "\(i+1)/\(articles.count)"
-          }
+          header.pageNumber = "\(i+1)/\(articles.count)"
           contentTable?.setActive(row: i,
                                   section: adelegate?.article2index(art: art))
         }
@@ -323,7 +331,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
     }
-    if self.parent is BookmarkNC { /*NO CONTENT TABLE*/}
+    else if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
     else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
     else if self.contentTable == nil {
       self.contentTable = NewContentTableVC()
@@ -351,7 +359,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           self?.feederContext.authenticate()
         })
       } else {
-        exportArticle()
+        self.exportArticle()
       }
     }
     

@@ -73,6 +73,9 @@ class HomeTVC: UITableViewController {
   
   private var dataPolicyToast: NewInfoToast?
   
+  /// Temporary variable to prevent the same issue from being opened multiple times due to repeated touches.
+  private var openingIssue: Issue?
+  
   var preventCoachmarkOnNextAppear: Bool = false
   
   #warning("Refactor ContentVC should hold it's IssueInfo Reference")
@@ -277,6 +280,11 @@ class HomeTVC: UITableViewController {
     scroll(up: wasUp)
     Rating.homeAppeared()
     _ = StoreBusiness.canRegister///initially check App Store
+  }
+  
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    openingIssue = nil
   }
   
  @objc private func updateAccessibillityHelper(){
@@ -537,7 +545,10 @@ extension HomeTVC: OpenIssueDelegate {
     ///should i allow?
     ///YES: Which one is selected? What if selected is no reference here?
     ///if  not what happen if i only have
-    
+    ///TRY TO BUGFIX MULTIPLE OPEN OF Logged Out not downloaded issue due it causes other errors by saving which issue was tried to open and unset after 10 seconds od push delegate happen
+    if openingIssue?.date.issueKey == issue.date.issueKey { return }
+    onMainAfter(10) {[weak self] in self?.openingIssue = nil }
+    openingIssue = issue
     let issueInfo = IssueDisplayService(feederContext: feederContext,
                                     issue: issue)
     loadingIssueInfos.append(issueInfo)

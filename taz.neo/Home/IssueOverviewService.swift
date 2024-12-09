@@ -21,6 +21,19 @@ typealias IndexPathMoved = (from: IndexPath, to: IndexPath)
 extension Date { var issueKey : String { short } }
 
 extension Date {
+  func validityDateText(timeZone:String,
+                        feed: StoredFeed,
+                        short:Bool = false,
+                        shorter:Bool = false,
+                        leadingText: String? = "woche, ") -> String {
+    let validityDate = StoredPublicationDate.get(date: self, inFeed: feed).first?.validityDate
+    return validityDateText(validityDate: validityDate,
+                            timeZone:timeZone,
+                            short:short,
+                            shorter:shorter,
+                            leadingText:leadingText)
+  }
+  
   func validityDateText(validityDate: Date?,
                         timeZone:String,
                         short:Bool = false,
@@ -88,6 +101,7 @@ class IssueOverviewService: NSObject, DoesLog {
       return nil
     }
     let issue = issue(at: publicationDate.date)
+    if issue?.pr.isDeleted == true { return nil }
     var img: UIImage?
     let key = publicationDate.date.key(pdf: isFacsimile)
     
@@ -304,6 +318,7 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func storedImage(issue: StoredIssue, isPdf: Bool) -> UIImage? {
+    if issue.pr.isDeleted { return nil }
     return feederContext.storedFeeder?.momentImage(issue: issue,
                                                   isPdf: isPdf,
                                                   usePdfAlternative: false)
@@ -517,7 +532,7 @@ extension IssueOverviewService {
   }
 }
 
-extension IssueOverviewService {
+extension DoesLog {
   /// Inspect download Error and show it to user
   func handleDownloadError(error: Error?) {
     self.debug("Err: \(error?.description ?? "-")")

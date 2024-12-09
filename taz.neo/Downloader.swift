@@ -211,14 +211,17 @@ open class Downloader: DoesLog {
   }
 
   /// Download files with storage type .issue
+  /// 1st: download global files e.g. author images
+  /// 2nd step: download article/issue files e.g. html, images...
   public func downloadSearchHitFiles( files: [FileEntry],
-                                       baseUrl: String,
-                                       closure: @escaping (Error?)->()){
+                                      baseUrl: String,
+                                      targetDir: Dir = Dir.searchResults,
+                                      closure: @escaping (Error?)->()){
     downloadGlobalFiles(files: files) { [weak self] err in
       guard err == nil else { closure(err); return }
       guard let self = self else { return }
       self.downloadIssueFiles(from: baseUrl,
-                         to: Dir.searchResults,
+                         to: targetDir,
                          files: files,
                          closure: closure)
     }
@@ -238,7 +241,7 @@ open class Downloader: DoesLog {
   public func downloadIssueData(issue: Issue, files: [FileEntry], 
                                 closure: @escaping (Error?)->()) {
     if issue.isComplete { closure(nil); return }
-    if issue is BookmarkIssue { closure(nil); return }
+    if issue.isBookmarkIssue { closure(nil); return }
     downloadGlobalFiles(files: files) { [weak self] err in
       guard err == nil else { closure(err); return }
       guard let self = self else { return }

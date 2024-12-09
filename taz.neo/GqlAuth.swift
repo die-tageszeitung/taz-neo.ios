@@ -372,30 +372,6 @@ extension GqlFeeder {
     }
   }
   
-  // Unlink the connection of a certain subsciptionId with a tazId
-  func unlinkSubscriptionId(aboId: String, password: String,
-    closure: @escaping(Result<GqlAuthInfo,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
-      closure(.failure(fatal("Not connected"))); return
-    }
-    let id = Int32(aboId) ?? 0
-    let request = """
-    unlinkSubscriptionId(\(self.deviceInfoString), subscriptionId: \(id), password: \(password.quote())) {
-        \(GqlAuthInfo.fields)      
-      }
-    """
-    gqlSession.mutation(graphql: request, type: [String:GqlAuthInfo].self) { (res) in
-      var ret: Result<GqlAuthInfo,Error>
-      switch res {
-      case .success(let dict):   
-        let ai = dict["unlinkSubscriptionId"]!
-        ret = .success(ai)
-      case .failure(let err):  ret = .failure(err)
-      }
-      closure(ret)
-    }
-  }
-  
   /// send error report to server
   func requestAccountDeletion(forceDelete: Bool = false,
                                      finished: @escaping(Result<GqlCancellationStatus,Error>)->()) {

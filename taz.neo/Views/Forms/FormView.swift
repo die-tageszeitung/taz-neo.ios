@@ -153,28 +153,12 @@ extension FormView {
     Usage.track(Usage.event.dialog.SubscriptionHelp)
   }
   
-  @objc public func showLoginTips(_ textField: UITextField) {
-    let fullText = "\(Localized("login_missing_credentials_header_login"))\n\(Localized("article_read_onreadon"))"
-    Alert.message(title: Localized("help"), message: fullText, 
-                  additionalActions: [openFaqAction()])
-  }
-  
   var registerTipsButton:UIButton{
     get{
       return Padded.Button(type: .label,
                            title: Localized("register_tips_button"),
                            target: self,
                            action: #selector(showRegisterTips))
-    }
-  }
-  
-  
-  var loginTipsButton:UIButton{
-    get{
-      return Padded.Button(type: .label,
-                           title: Localized("help"),
-                           target: self,
-                           action: #selector(showLoginTips))
     }
   }
 }

@@ -42,21 +42,8 @@ class LoginController: FormsController {
       ui.blocked = false
       return
     }
-    
-    if !App.isAvailable(.ABOIDLOGIN) && (ui.idInput.text ?? "").isNumber {
-      if let txt = ui.idInput.text, let i = Int32(txt){
-        self.queryCheckSubscriptionId(aboId: "\(i)" ,aboIdPass: ui.passInput.text ?? "")
-      } else {
-        ui.idInput.bottomMessage = Localized("abo_id_validation_error_digit")
-        Alert.message(message: Localized("register_validation_issue"))
-        ui.blocked = false
-        return
-      }
-    }
-    else {
-      self.ui.idInput.text = self.ui.idInput.text?.trimed
-      self.queryAuthToken(tazId: (self.ui.idInput.text ?? ""),tazIdPass: self.ui.passInput.text ?? "")
-    }
+    self.ui.idInput.text = self.ui.idInput.text?.trimed
+    self.queryAuthToken(tazId: (self.ui.idInput.text ?? ""),tazIdPass: self.ui.passInput.text ?? "")
   }
   
   @IBAction func handleTrial(_ sender: UIButton) {
@@ -119,11 +106,10 @@ class LoginController: FormsController {
             self.ui.blocked = false
             return
           }
+
+          var alertMessage: String?
+          
           switch authStatusError.status {
-            case .invalid:
-              //wrong Credentials
-              Alert.message(message: Localized("toast_login_failed_retry"))
-              self.ui.passInput.bottomMessage = Localized("register_validation_issue")
             case .expired:
               var expiredDate: Date?
               if let isoDate = authStatusError.message {
@@ -149,55 +135,19 @@ class LoginController: FormsController {
               self.modalFromBottom(AskForTrial_Controller(tazId: tazId,
                                                     tazIdPass: tazIdPass,
                                                     auth: self.auth))
-            case .notValidMail: fallthrough
             case .unknown: fallthrough
-            case .alreadyLinked: fallthrough //Makes no sense here!
-            default:
-              self.log("Auth with tazID should not have alreadyLinked as result", logLevel: .Error)
-              Alert.message(message: Localized("something_went_wrong_try_later"))
-        }
-      }
-      self.ui.blocked = false
-    })
-  }
-  
-  // MARK: queryCheckSubscriptionId
-  // ToDo WARNING Handle expiredSubscription may not work correct!!
-  func queryCheckSubscriptionId(aboId: String, aboIdPass: String){
-    auth.feeder.checkSubscriptionId(aboId: aboId, password: aboIdPass, closure: { (result) in
-      switch result {
-        case .success(let info):
-          //ToDo #900
-          switch info.status {
-            case .valid:
-              let ctrl = ConnectTazIdController(aboId: aboId,
-                                                aboIdPassword: aboIdPass, auth: self.auth)
-              ctrl.ui.registerButton.setTitle("taz-Konto erstellen", for: .normal)
-              self.modalFromBottom(ctrl)
-            case .expired:
-              var expiredDate: Date?
-              if let isoDate = info.message {
-                expiredDate = UsTime(iso:isoDate).date
-              }
-              self.modalFromBottom(
-                SubscriptionFormController(formType: .expiredDigiSubscription,
-                                           auth: self.auth,
-                                           expireDate: expiredDate,
-                                           customerType: nil)
-              )
-            case .alreadyLinked:
-              self.ui.idInput.text = info.message
-              self.ui.passInput.text = ""
-              Alert.message(message: Localized("toast_login_with_email"))
-            case .unlinked: fallthrough
-            case .invalid: fallthrough //tested 111&111
-            case .notValidMail: fallthrough//tested
-            default: //Falsche Credentials
-              Alert.message(message: Localized("toast_login_wrong_retry"))
+            case .notValidMail: fallthrough //does this status code makes sense here?
+            case .alreadyLinked: //this status code makes no sense here!
+              alertMessage = Localized("something_went_wrong_try_later")
+            case .invalid:
+              alertMessage = Localized("toast_login_failed_retry")
+              self.ui.idInput.bottomMessage = authStatusError.message ?? Localized("register_validation_issue")
               self.ui.passInput.bottomMessage = Localized("register_validation_issue")
-        }
-        case .failure:
-          Alert.message(message: Localized("toast_login_failed_retry"))
+            default: break
+          }
+          
+          if let alertMessage = alertMessage { Alert.message(message: alertMessage) }
+          self.log("Auth Error: \(authStatusError)", logLevel: .Error)
       }
       self.ui.blocked = false
     })
@@ -221,6 +171,11 @@ class LoginController: FormsController {
 // MARK: - AskForTrial_Controller
 ///USer has valid taz-Id Credentials
 class AskForTrial_Controller: FormsController {
+  
+  ///just exchange showRegisterTips
+  private var contentView = AskForTrial_View()
+  override var ui : AskForTrial_View { get { return contentView }}
+  
   var tazId:String
   var tazIdPass:String
   
@@ -231,18 +186,21 @@ class AskForTrial_Controller: FormsController {
     self.tazIdPass = tazIdPass
     super.init(auth)
     ui.views = [
-      Padded.Label(title: Localized("unconnected_taz_id_header"),
+      Padded.Label(title: Localized(keyWithFormat: "unconnected_taz_id_header", tazId),
                    paddingTop: 30,
                    paddingBottom: 30
                   ),
-      Padded.Button(title: Localized("connect_abo_id"),
-                    target: self, action: #selector(handleConnectAboId)),
       Padded.Button(title: Localized("trial_subscroption"),
-                    target: self, action: #selector(handleTrialSubscroption)),
-      Padded.Button(type:.outline,
-                    title: Localized("cancel_button"),
-                    target: self, action: #selector(handleBack)),
-      ui.registerTipsButton
+                    target: self, action: #selector(handleTrialSubscription)),
+      ui.registerTipsButton,
+      Padded.Label(title: Localized(keyWithFormat: "unconnected_taz_id_contact", tazId),
+                   paddingTop: 30,
+                   paddingBottom: 30
+                  ),
+      Padded.Button(title: "Print-Abo in Digital Abo umwandeln",
+                    target: self, action: #selector(handlePrint2Digi)),
+      Padded.Button(title: "Digital Abo zum Print-Abo aktivieren",
+                    target: self, action: #selector(handlePrintPlusDigi))
     ]
   }
   
@@ -251,11 +209,20 @@ class AskForTrial_Controller: FormsController {
   }
   
   // MARK: Button Actions
-  @IBAction func handleConnectAboId(_ sender: UIButton) {
-    modalFromBottom(ConnectTazIdRequestAboIdCtrl(tazId: tazId, tazIdPassword: tazIdPass, auth: auth))
+  @IBAction func handlePrint2Digi(_ sender: UIButton) {
+    let child = SubscriptionFormController(formType: .print2Digi,
+                                           auth: self.auth)
+    child.ui.mailInput.text = self.tazId
+    modalFromBottom(child)
+  }
+  @IBAction func handlePrintPlusDigi(_ sender: UIButton) {
+    let child = SubscriptionFormController(formType: .printPlusDigi,
+                                           auth: self.auth)
+    child.ui.mailInput.text = self.tazId
+    modalFromBottom(child)
   }
   
-  @IBAction func handleTrialSubscroption(_ sender: UIButton) {
+  @IBAction func handleTrialSubscription(_ sender: UIButton) {
     self.ui.blocked = true
     let ctrl = TrialSubscriptionRequestNameCtrl(tazId: tazId, tazIdPassword: tazIdPass, auth: auth)
     ///Test if TrialSubscription work without first/lastname!
@@ -263,6 +230,14 @@ class AskForTrial_Controller: FormsController {
       self.modalFromBottom(ctrl)
     }
     ctrl.createTrialSubscription(tazId: tazId, tazIdPassword: tazIdPass)
-    
+  }
+}
+
+class AskForTrial_View: FormView {
+  override func showRegisterTips(_ textField: UITextField) {
+    Alert.message(title: Localized("register_tips_button"),
+                  message: Localized("register_tips_text_existingtazid"),
+                  additionalActions: [openFaqAction()])
+   Usage.track(Usage.event.dialog.SubscriptionHelp)
   }
 }

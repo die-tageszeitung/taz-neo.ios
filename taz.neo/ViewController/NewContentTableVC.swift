@@ -101,10 +101,6 @@ extension NewContentTableVC {
 /// section Header = section title + chevron > or ^
 /// cell as Article Preview (like in serach or bookmarks
 public class NewContentTableVC: UIViewController {
-  
-  fileprivate static let CellIdentifier = "NewContentTableVcCell"
-  fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
-  
   private var tableView = UITableView(frame: .zero, style: .plain)
   ///for SectionVc the highlighted SectionHeader
   private var sectIndex: Int?
@@ -218,9 +214,9 @@ extension NewContentTableVC {
     tableView.dataSource = self
     tableView.delegate = self
     self.tableView.register(NewContentTableVcCell.self,
-                            forCellReuseIdentifier: Self.CellIdentifier)
+                            forCellReuseIdentifier: NewContentTableVcCell.ReuseIdentifier)
     self.tableView.register(ContentTableHeaderFooterView.self,
-                            forHeaderFooterViewReuseIdentifier: Self.SectionHeaderIdentifier)
+                            forHeaderFooterViewReuseIdentifier: ContentTableHeaderFooterView.ReuseIdentifier)
     self.tableView.rowHeight = UITableView.automaticDimension
     self.tableView.separatorStyle = .none
     self.tableView.estimatedRowHeight = 100.0
@@ -323,7 +319,7 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
   }
   
   public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: Self.SectionHeaderIdentifier)
+    guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: ContentTableHeaderFooterView.ReuseIdentifier)
             as? ContentTableHeaderFooterView else { return nil}
     
     if let ressort = issue?.sections?.valueAt(section) {
@@ -381,7 +377,7 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
   public func tableView(_ tableView: UITableView,
                                  cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell
-    = tableView.dequeueReusableCell(withIdentifier: Self.CellIdentifier,
+    = tableView.dequeueReusableCell(withIdentifier: NewContentTableVcCell.ReuseIdentifier,
                                     for: indexPath) as? NewContentTableVcCell
     ?? NewContentTableVcCell()
     cell.article = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row)
@@ -534,7 +530,9 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
   }
 }
 
-fileprivate  class NewContentTableVcCell: UITableViewCell {
+class NewContentTableVcCell: UITableViewCell {
+  
+  static let ReuseIdentifier = "NewContentTableVcCellIdentifier"
   
   var imageZeroHeightConstraint: NSLayoutConstraint?
   var imageDefaultHeightConstraint: NSLayoutConstraint?
@@ -706,17 +704,8 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     
     bookmarkButton.onTapping {[weak self] _ in
       Usage.track(Usage.event.drawer.action_tap.Bookmark)
-      self?.article?.hasBookmark.toggle()
-      let msg
-      = self?.article?.hasBookmark == true
-      ? "Der Artikel wurde in ihrer Leseliste gespeichert."
-      : "Der Artikel wurde aus ihrer Leseliste entfernt."
-      let txt
-      = self?.article?.title != nil
-      ? "<h3>\(self?.article?.title ?? "")</h3>\(msg)"
-      : msg
-      onMainAfter(0.1) {///delay otherwise tap will also trigger link/item tapped and open articel
-        Toast.show(txt, minDuration: 0)
+      onMainAfter(0.1){[weak self] in ///prevent additional  cell tap due async call
+        self?.article?.hasBookmark.toggle()
       }
     }
     
@@ -730,7 +719,9 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     dottedLine.pinHeight(Const.Size.DottedLineHeight*0.7)
     pin(dottedLine.left, to: self.contentView.left, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
     pin(dottedLine.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
-    pin(dottedLine.top, to: self.contentView.top)
+    if self is BookmarksCell == false {
+      pin(dottedLine.top, to: self.contentView.top)
+    }
     pin(content, to: contentView, dist: Const.Size.DefaultPadding)
     selectionStyle = .none
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
@@ -751,7 +742,7 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
 }
 
 fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
-  
+  static let ReuseIdentifier = "ContentTableHeaderFooterViewIdentifier"
   let dottedLine = DottedLineView()
   var topSeperator: UIView?
   

@@ -42,7 +42,7 @@ public class Usage: NSObject, DoesLog{
   ///use to remove onDisplay handler
   fileprivate var lastPageCollectionVConDisplayClosureKey:String?
   ///remember last PageCollectionVC, to handle onDisplay change due swipe
-  fileprivate var lastPageCollectionVC:PageCollectionVC? {
+  fileprivate weak var lastPageCollectionVC:PageCollectionVC? {
     didSet {
       if let key = lastPageCollectionVConDisplayClosureKey {
         oldValue?.removeOnDisplay(forKey: key)
@@ -792,12 +792,10 @@ class TazIntroVC: IntroVC, DefaultScreenTracking {
 
 extension SectionVC: ScreenTracking {
   public var screenUrl:URL? {
-    if self is BookmarkSectionVC { return URL(path: "bookmarks/list") }
     guard let trackingPath = section?.trackingPath else { return nil }
     return URL(path: "issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/\(trackingPath)")
   }
   public var screenTitle:String? {
-    if self is BookmarkSectionVC { return "Bookmarks List" }
     return section?.title
   }
 }

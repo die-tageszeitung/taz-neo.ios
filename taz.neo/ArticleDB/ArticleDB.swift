@@ -10,7 +10,7 @@ import CoreData
 import NorthLib
 
 /// A quite simple Database derivation
-public class ArticleDB: Database {  
+public class ArticleDB: Database {
   
   /// There is only one article DB in the app
   public static var singleton: ArticleDB!
@@ -19,14 +19,14 @@ public class ArticleDB: Database {
   
   /// Initialize with name of database, open it and call the passed closure
   @discardableResult
-  public init(name: String, closure: @escaping (Error?)->()) { 
-    super.init(name: name, model: "ArticleDB") 
+  public init(name: String, closure: @escaping (Error?)->()) {
+    super.init(name: name, model: "ArticleDB")
     onVersionChange { [weak self] _ in
       self?.mergeVersions()
     }
     ArticleDB.singleton = self
     self.open { err in closure(err) }
-  }    
+  }
   
   /// The managed object context
   public static var context: NSManagedObjectContext { return singleton.context! }
@@ -41,7 +41,7 @@ public protocol PersistentObject: NSManagedObject, DoesLog {}
 
 public extension PersistentObject {
   /// Get object using its ID
-  static func get(id: String) -> Self? { 
+  static func get(id: String) -> Self? {
     let uri = URL(string: id)
     let coordinator = ArticleDB.singleton.coordinator
     if let uri = uri,
@@ -72,26 +72,26 @@ public protocol StoredObject: DoesLog {
   
 } // StoredObject
 
-public extension StoredObject {  
+public extension StoredObject {
   
   var id: String { pr.objectID.uriRepresentation().absoluteString }// ID of persistent record
   static var fetchRequest: NSFetchRequest<PO> { NSFetchRequest<PO>(entityName: entity) }
-
+  
   /// Delete the object from the persistent store
   func deletePersistent() { pr.delete() }
   func delete() { deletePersistent() }
-
+  
   /// Create a new persistent record
   static func newPersistent() -> PO {
     NSEntityDescription.insertNewObject(forEntityName: entity,
-               into: ArticleDB.context) as! PO
+                                        into: ArticleDB.context) as! PO
   }
   
   /// Create a new stored and persistent record
   static func new() -> Self {
     Self(persistent: newPersistent())
   }
- 
+  
   /// Create new StoredObject and initialize from Object
   @discardableResult
   static func persist(object: Object) -> Self {
@@ -103,13 +103,13 @@ public extension StoredObject {
   }
   
   /// Get record using its ID
-  static func get(id: String) -> Self? { 
-    if let rec = PO.get(id: id) { 
-      return Self(persistent: rec) 
+  static func get(id: String) -> Self? {
+    if let rec = PO.get(id: id) {
+      return Self(persistent: rec)
     }
     return nil
   }
-
+  
   /// Execute fetch request and return persistent records
   static func getPersistent(request: NSFetchRequest<PO>) -> [PO] {
     do {
@@ -119,7 +119,7 @@ public extension StoredObject {
     catch let err { Log.error(err) }
     return []
   }
-
+  
   /// Execute fetch request and return stored records
   static func get(request: NSFetchRequest<PO>) -> [Self] {
     return getPersistent(request: request).map { Self(persistent: $0) }
@@ -139,7 +139,7 @@ extension PersistentFileEntry: PersistentObject {
   
   // Remove file if record is deleted and no other records point to this file
   public override func prepareForDeletion() {
-    if let fn = name, let sd = subdir { 
+    if let fn = name, let sd = subdir {
       let path = "\(Database.appDir)/\(sd)/\(fn)"
       File(path).remove()
     }
@@ -157,7 +157,7 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     set { pr.name = newValue }
   }
   /// Sub directory relative to Database.appDir where the file is stored
-  public var subdir: String? { 
+  public var subdir: String? {
     get { pr.subdir }
     set { pr.subdir = newValue }
   }
@@ -193,7 +193,7 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     ///optional unwrap fixed crash occoured everytime on open an issue which had corupt data
     ///Crash Count in Debug: 2
     ///last Time: Logout, open PDF, (was not loaded, App data was loaded)
-//    get { pr.moTime ?? Date(timeIntervalSince1970: 0) }
+    //    get { pr.moTime ?? Date(timeIntervalSince1970: 0) }
     get { pr.moTime! }
     set { pr.moTime = newValue }
   }
@@ -201,12 +201,12 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     get { pr.size }
     set { pr.size = newValue }
   }
-  public var storedSize: Int64 { 
-    get { 
-      if let p = path, pr.storedSize <= 0 { 
+  public var storedSize: Int64 {
+    get {
+      if let p = path, pr.storedSize <= 0 {
         let file = File(p)
         if file.exists { pr.storedSize = file.size }
-      } 
+      }
       return pr.storedSize
     }
     set { pr.storedSize = newValue }
@@ -215,10 +215,10 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     get { pr.sha256! }
     set { pr.sha256 = newValue }
   }
-  public var payloads: [StoredPayload] { 
+  public var payloads: [StoredPayload] {
     var pls: [StoredPayload] = []
-    for plpr in pr.payloads! { 
-      pls += StoredPayload(persistent: plpr as! PersistentPayload) 
+    for plpr in pr.payloads! {
+      pls += StoredPayload(persistent: plpr as! PersistentPayload)
     }
     return pls
   }
@@ -245,24 +245,24 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     }
     return ret
   }
-
+  
   /// Overwrite the persistent values
   public func update(from: FileEntry) {
     pr.name = from.name
     pr.storageType = from.storageType.representation
     pr.moTime = from.moTime
     pr.size = from.size
-    pr.sha256 = from.sha256      
+    pr.sha256 = from.sha256
   }
   
-  /// Return stored record with given name  
+  /// Return stored record with given name
   public static func get(name: String) -> [StoredFileEntry] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "name = %@", name)
     return get(request: request)
   }
-
-  /// Return stored record with given SHA256  
+  
+  /// Return stored record with given SHA256
   public static func get(sha256: String) -> [StoredFileEntry] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "sha256 = %@", sha256)
@@ -274,7 +274,7 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     let res = get(name: object.name)
     if res.count > 0 { return res[0] }
     else { return nil }
-  }  
+  }
   
   /// Return all records of a payload
   public static func filesInPayload(payload: StoredPayload) -> [StoredFileEntry] {
@@ -311,23 +311,23 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
   public var type: ImageType { ImageType(pr.type!)! }
   public var alpha: Float? { pr.alpha }
   public var sharable: Bool { pr.sharable }
-  public var author: StoredAuthor? { 
+  public var author: StoredAuthor? {
     if let au = pr.author { return StoredAuthor(persistent: au) }
     else { return nil }
   }
-  public var moment: StoredMoment? { 
+  public var moment: StoredMoment? {
     (pr.moment != nil) ? StoredMoment(persistent: pr.moment!) : nil
   }
   
-  public required init(persistent: PersistentImageEntry) { 
-    self.pr = persistent 
+  public required init(persistent: PersistentImageEntry) {
+    self.pr = persistent
     if let pf = persistent.file { self.pf = pf }
   }
   
   /// Initialize with image in existing file
   public static func new(path: String, resolution: ImageResolution = .normal,
-              type: ImageType = .facsimile,
-              storageType: FileStorageType = .issue) -> StoredImageEntry? {
+                         type: ImageType = .facsimile,
+                         storageType: FileStorageType = .issue) -> StoredImageEntry? {
     if let fe = StoredFileEntry.new(path: path, storageType: storageType) {
       let ie = StoredImageEntry.new()
       ie.pf = fe.pr
@@ -340,7 +340,7 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
     }
     return nil
   }
-
+  
   /// Overwrite the persistent values
   public func update(from: ImageEntry) {
     var file: StoredFileEntry
@@ -356,7 +356,7 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
     pf.image = pr
   }
   
-  /// Return stored record with given name  
+  /// Return stored record with given name
   public static func get(name: String) -> [StoredImageEntry] {
     let files = StoredFileEntry.get(name: name)
     if files.count > 0 {
@@ -374,7 +374,7 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
     return []
   }
   
-  /// Return stored record with given SHA256  
+  /// Return stored record with given SHA256
   public static func get(sha256: String) -> [StoredImageEntry] {
     let files = StoredFileEntry.get(sha256: sha256)
     if files.count > 0 {
@@ -390,7 +390,7 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
     let res = get(name: object.name)
     if res.count > 0 { return res[0] }
     else { return nil }
-  }  
+  }
   
   /// Return all images of a Moment
   public static func imagesInMoment(moment: StoredMoment) -> [StoredImageEntry] {
@@ -430,7 +430,7 @@ extension PersistentMoment: PersistentObject {}
 
 /// A stored Moment image
 public final class StoredMoment: Moment, StoredObject {
-
+  
   public static var entity = "Moment"
   public var pr: PersistentMoment // persistent record
   public var data: Data? {
@@ -439,8 +439,8 @@ public final class StoredMoment: Moment, StoredObject {
   }
   public var image: UIImage? { (data == nil) ? nil : UIImage(data: data!) }
   public var images: [ImageEntry] { StoredImageEntry.imagesInMoment(moment: self) }
-  public var creditedImages: [ImageEntry] 
-    { StoredImageEntry.creditedImagesInMoment(moment: self) }
+  public var creditedImages: [ImageEntry]
+  { StoredImageEntry.creditedImagesInMoment(moment: self) }
   public var animation: [FileEntry] { StoredFileEntry.animationInMoment(moment: self) }
   public var firstPage: StoredPage? {
     get {
@@ -453,12 +453,25 @@ public final class StoredMoment: Moment, StoredObject {
       pr.firstPage?.moment = pr
     }
   }
-  public var facsimile: ImageEntry? { firstPage?.facsimile }
-
-  public required init(persistent: PersistentMoment) { 
-    self.pr = persistent 
+  
+  public var issue: StoredIssue? {
+    get {
+      guard let pIssue = pr.issue else { return nil }
+      return StoredIssue(persistent: pIssue)
+    }
+    set {
+      guard let sIssue = newValue else { return }
+      pr.issue = sIssue.pr
+      pr.issue?.moment = pr
+    }
   }
-
+  
+  public var facsimile: ImageEntry? { firstPage?.facsimile }
+  
+  public required init(persistent: PersistentMoment) {
+    self.pr = persistent
+  }
+  
   /// Overwrite the persistent values
   public func update(from: Moment) {
     if let new = from as? StoredMoment { data = new.data }
@@ -498,7 +511,7 @@ public final class StoredMoment: Moment, StoredObject {
         pr.removeFromAnimation(file.pr)
       }
     }
-  } // update  
+  } // update
   
   /// Return stored record that matches the name of the passed object
   public static func get(object: Moment) -> StoredMoment? {
@@ -507,7 +520,7 @@ public final class StoredMoment: Moment, StoredObject {
       return img.moment
     }
     else { return nil }
-  }  
+  }
   
   /// Read Image data from file and store it in persistent record
   public func storeData(from file: String) {
@@ -521,7 +534,7 @@ extension PersistentPayload: PersistentObject {}
 /// A stored Payload
 public final class StoredPayload: StoredObject, Payload {
   
-  public static var entity = "Payload"  
+  public static var entity = "Payload"
   public var pr: PersistentPayload // persistent record
   public var bytesLoaded: Int64 {
     get { return pr.bytesLoaded }
@@ -567,8 +580,8 @@ public final class StoredPayload: StoredObject, Payload {
     if let pres = pr.resources { return StoredResources(persistent: pres) }
     else { return nil }
   }
-
-  public lazy var storedFiles: [StoredFileEntry] = { 
+  
+  public lazy var storedFiles: [StoredFileEntry] = {
     var fls: [StoredFileEntry] = []
     if let files = pr.files {
       for f in files {
@@ -637,7 +650,7 @@ public final class StoredPayload: StoredObject, Payload {
     self.remoteZipName = from.remoteZipName
   }
   
-  public static func get(object: Payload) -> StoredPayload? { 
+  public static func get(object: Payload) -> StoredPayload? {
     if let issue = object.issue {
       return StoredIssue.get(object: issue)?.storedPayload
     }
@@ -646,7 +659,7 @@ public final class StoredPayload: StoredObject, Payload {
     }
     return nil
   }
-
+  
 } // StoredPayload
 
 extension PersistentResources: PersistentObject {}
@@ -658,34 +671,34 @@ public final class BundledResources : DoesLog {
     return Bundle.main.urls(forResourcesWithExtension: "", subdirectory: "files")
   }() ?? []
   
-//  lazy var bundledFilesDir : String? = {
-//    return Bundle.main.resourceURL?.appendingPathComponent("files").absoluteString
-//  }()...finally unused
+  //  lazy var bundledFilesDir : String? = {
+  //    return Bundle.main.resourceURL?.appendingPathComponent("files").absoluteString
+  //  }()...finally unused
   
   lazy var resourcesPayload : Result<[String:GqlResources],Error> = {
-      guard let resourcesJsonFileUrl
-              = Bundle.main.url(forResource: "resources",
-                                withExtension: "json") else {
-        return .failure(self.fatal("Bundled resources.json Not found"))
-      }
-      let bundledResources = File(resourcesJsonFileUrl)
+    guard let resourcesJsonFileUrl
+            = Bundle.main.url(forResource: "resources",
+                              withExtension: "json") else {
+      return .failure(self.fatal("Bundled resources.json Not found"))
+    }
+    let bundledResources = File(resourcesJsonFileUrl)
+    
+    if bundledResources.exists == false {
+      return .failure(self.fatal("Bundled resources.json File Not exist!"))
+    }
+    
+    do {
+      let dec = JSONDecoder()
       
-      if bundledResources.exists == false {
-        return .failure(self.fatal("Bundled resources.json File Not exist!"))
-      }
+      //        self.debug("Try to decode: \"\(String(decoding: bundledResources.data, as: UTF8.self)[0..<2000])\"")
       
-      do {
-        let dec = JSONDecoder()
-        
-//        self.debug("Try to decode: \"\(String(decoding: bundledResources.data, as: UTF8.self)[0..<2000])\"")
-        
-        let dict = try dec.decode([String:[String:GqlResources]].self,
-                                  from: bundledResources.data)
-        return .success(dict["data"]!)
-      }
-      catch let error {
-        return .failure(self.fatal("JSON decoding error: \(error)"))
-      }
+      let dict = try dec.decode([String:[String:GqlResources]].self,
+                                from: bundledResources.data)
+      return .success(dict["data"]!)
+    }
+    catch let error {
+      return .failure(self.fatal("JSON decoding error: \(error)"))
+    }
   }()
 }
 
@@ -708,14 +721,14 @@ public final class StoredResources: Resources, StoredObject {
   public var localDir: String { payload.localDir }
   public var resourceFiles: [FileEntry] { payload.files }
   public var isDownloading: Bool = false
-  public var isComplete: Bool { 
+  public var isComplete: Bool {
     get { return payload.isComplete }
     set {}
   }
-
+  
   public required init(persistent: PersistentResources) { self.pr = persistent }
-
-  /// Return stored record with given resourceVersion  
+  
+  /// Return stored record with given resourceVersion
   public static func get(version: Int) -> [StoredResources] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "resourceVersion = %d", version)
@@ -768,12 +781,12 @@ public final class StoredAudio: Audio, StoredObject {
       else { pr.file = nil }
     }
   }
-
+  
   public var duration: Float?{
     get { return pr.duration }
     set { pr.duration = newValue ?? 0.0 }
   }
-    
+  
   public var speaker: AudioSpeaker? {
     get {
       guard let s = pr.speaker else { return nil }
@@ -863,7 +876,7 @@ public final class StoredAuthor: Author, StoredObject {
   }
   
   public required init(persistent: PersistentAuthor) { self.pr = persistent }
-
+  
   /// Overwrite the persistent values
   public func update(from object: Author) {
     pr.name = object.name
@@ -876,16 +889,16 @@ public final class StoredAuthor: Author, StoredObject {
     else { pr.photo = nil }
   }
   
-  /// Return stored record with given name  
+  /// Return stored record with given name
   public static func get(name: String) -> [StoredAuthor] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "name = %@", name)
     return get(request: request)
   }
   
-  /// Return stored record with given photo  
+  /// Return stored record with given photo
   public static func get(photo: ImageEntry) -> [StoredAuthor] {
-    let imgs = StoredImageEntry.get(name: photo.name) 
+    let imgs = StoredImageEntry.get(name: photo.name)
     if imgs.count > 0 {
       if let au = imgs[0].author {
         return [au]
@@ -893,7 +906,7 @@ public final class StoredAuthor: Author, StoredObject {
     }
     return []
   }
-    
+  
   public static func get(object: Author) -> StoredAuthor? {
     var tmp: [StoredAuthor] = []
     if let name = object.name { tmp = get(name: name) }
@@ -906,52 +919,35 @@ public final class StoredAuthor: Author, StoredObject {
 /// also: PersistentSection, PersistentArticle
 extension PersistentContent: PersistentObject {
   public override func prepareForDeletion() {
+    super.prepareForDeletion()
     for case let img as PersistentImageEntry in self.images ?? []{
-      if img.imageContent?.count == 1,
-         (img.imageContent ?? []).allObjects.first as? PersistentContent == self,
-         img.moment == nil
-      {
-        img.delete()
-      }
+      img.removeFromImageContent(self)
+      if img.imageContent?.count == 0 { img.delete() }
     }
   }
-  
 }
 
-extension PersistentAudio {
-  var referencesCount:Int {
-    return content?.count ?? 0 + (page?.count ?? 0)
+extension PersistentSection {
+  public override func prepareForDeletion() {
+    super.prepareForDeletion()
+    for case let art as PersistentArticle in self.articles ?? []{
+      art.removeFromSections(self)
+      if art.sections?.count == 0 { art.delete() }
+    }
   }
 }
 
 extension PersistentArticle {
   public override func prepareForDeletion() {
-    if audioItem?.referencesCount == 1 {
-      debug("Delete AutioItem due last Reference")
-      audioItem?.delete()
+    super.prepareForDeletion()
+    for case let author as PersistentAuthor in self.authors ?? []{
+      author.removeFromArticles(self)
+      if author.articles?.count == 0 { author.delete() }
     }
-    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
-  }
-}
-extension PersistentSection {
-  public override func prepareForDeletion() {
-    if audioItem?.referencesCount == 1 {
-      debug("Delete AutioItem due last Reference")
-      audioItem?.delete()
-    }
-    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
   }
 }
 
-extension PersistentPage: PersistentObject {
-  public override func prepareForDeletion() {
-    if audioItem?.referencesCount == 1 {
-      debug("Delete AutioItem due last Reference")
-      audioItem?.delete()
-    }
-    debug("NOT Delete AutioItem due Reference count is: \(audioItem?.referencesCount ?? -1)")
-  }
-}
+extension PersistentPage: PersistentObject {}
 
 /// A stored Article
 public final class StoredArticle: Article, StoredObject {
@@ -971,6 +967,17 @@ public final class StoredArticle: Article, StoredObject {
       pr.audioItem?.addToContent(self.pr)
     }
   }
+  
+  public var baseURL: String? {
+    /// When downloading missing files, it's possible that the issue is still in demo/preview mode while 
+    /// the bookmarked article have already been updated.
+    /// Therefore, prioritize the persisted and updated base URL, 
+    /// particularly in ContentVC's `setContents()`... `contents.map`
+    /// Former: the base URL from the issues was used as default, since this field is not populated in the mapping
+    get { return pr.baseURL?.length ?? 0 > 10 ? pr.baseURL ?? primaryIssue?.baseUrl : primaryIssue?.baseUrl }
+    set { pr.baseURL = newValue }
+  }
+  
   public var text: String? {
     get { return pr.text }
     set { pr.text = newValue }
@@ -979,6 +986,7 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.title }
     set { pr.title = newValue }
   }
+  
   public var html: FileEntry? {
     get {
       guard let html = pr.html else { return nil }
@@ -1026,16 +1034,7 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.teaser }
     set { pr.teaser = newValue }
   }
-  public var hasBookmark: Bool {
-    get { pr.hasBookmark }
-    set {
-      let old = pr.hasBookmark
-      setBookmark(newValue)
-      if old != newValue {
-        Notification.send(Const.NotificationNames.bookmarkChanged, content: sections, sender: self)
-      }
-    }
-  }
+  
   public var serverId: Int? {
     get { return pr.serverId != 0 ? Int(pr.serverId) : nil }
     set {
@@ -1054,28 +1053,26 @@ public final class StoredArticle: Article, StoredObject {
       else { pr.readingDuration = 0 }
     }
   }
-
-  
-  fileprivate func setBookmark(_ isBookmark:Bool){
-    pr.hasBookmark = isBookmark
-  }
   
   public var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
   public var authors: [Author]? {
     return (pr.authors?.array as? [PersistentAuthor])?
-    .map{StoredAuthor(persistent: $0)}
+      .map{StoredAuthor(persistent: $0)}
   }
   public var pageNames: [String]? {
     get { return pr.pageNames }
     set { pr.pageNames = newValue }
   }
-  public var sections: [StoredSection] {
+  
+  public var nonBookmarkSections: [StoredSection] {
     var ret: [StoredSection] = []
-    if let sections = pr.sections {
-      for s in sections { ret += StoredSection(persistent: s as! PersistentSection) }
+    for case let s as PersistentSection in pr.sections ?? [] {
+      if s.issue?.isBookmarkIssue == true { continue }
+      ret += StoredSection(persistent: s)
     }
     return ret
   }
+  
   public var issues: [StoredIssue] {
     var ret: [StoredIssue] = []
     if let issues = pr.issues {
@@ -1087,8 +1084,15 @@ public final class StoredArticle: Article, StoredObject {
     }
     return ret
   }
-  /// For now the primary Issue is assumed to be the first one stored
-  public var primaryIssue: Issue? { issues.count > 0 ? issues[0] : nil }
+  /// the primary Issue is assumed to be the first none Bookmark Issue stored
+  /// if there is only the bookmark issue, primary issue is nil
+  /// Former: -For now the primary Issue is assumed to be the first one stored-
+  public var primaryIssue: Issue? {
+    for issue in issues {
+      if issue.isBookmarkIssue == false { return issue }
+    }
+    return nil
+  }
   
   public var dir: Dir {
     guard let sdir = (html as? StoredFileEntry)?.dir
@@ -1102,32 +1106,28 @@ public final class StoredArticle: Article, StoredObject {
     return path
   }
   
-  public var baseURL: String {
-    if let s = pr.baseURL { return s }
-    else { return defaultBaseURL }
+  public var issueDate: Date? {
+    pr.issueDate ?? primaryIssue?.date
   }
   
-  public var issueDate: Date {
-    if let d = pr.issueDate { return d }
-    else { return defaultIssueDate }
-  }
-  
-  public var sectionTitle: String? { 
-    if let s = pr.sectionTitle { return s }
-    for s in sections {
-      if let t = s.title { return t }
+  public var sectionTitle: String? {
+    get {
+      if let s = pr.sectionTitle { return s }
+      for s in nonBookmarkSections {
+        if let t = s.title { return t }
+      }
+      return nil
     }
-    return nil
+    set { pr.sectionTitle = newValue }
   }
   
   public required init(persistent: PersistentArticle) { self.pr = persistent }
-
+  
   /// Overwrite the persistent values
   public func update(from object: Article) {
     if let sobject = object as? StoredArticle {
       self.text = sobject.text
       self.lastArticlePosition = sobject.lastArticlePosition
-      self.hasBookmark = object.hasBookmark
     }
     self.title = object.title
     self.html = object.html
@@ -1172,13 +1172,13 @@ public final class StoredArticle: Article, StoredObject {
     else { pr.authors = nil }
   }
   
-  /// Return stored record with given name  
+  /// Return stored record with given name
   public static func get(file: String) -> [StoredArticle] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "html.name = %@", file)
     return get(request: request)
   }
-    
+  
   public static func get(object: Article) -> StoredArticle? {
     guard let name =  object.html?.name else { return nil }
     let tmp = get(file:name)
@@ -1194,47 +1194,17 @@ public final class StoredArticle: Article, StoredObject {
     return get(request: request)
   }
   
-  /// Return all Articles in an Issue
-  public static func articlesInIssue(issue: StoredIssue) -> [StoredArticle] {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "%@ IN issues", issue.pr)
-    request.sortDescriptors = [
-      NSSortDescriptor(key: "order", ascending: true)
-    ]
-    return get(request: request)
-  }
-  
-  /// Return all bookmarked Articles in an Issue
-  public static func bookmarkedArticlesInIssue(issue: StoredIssue) -> [StoredArticle] {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "hasBookmark = true AND %@ IN issues", issue.pr)
-    request.sortDescriptors = [
-      NSSortDescriptor(key: "order", ascending: true)
-    ]
-    return get(request: request)
-  }
-  
-  /// Return all bookmarked Articles
-  public static func bookmarkedArticles() -> [StoredArticle] {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "hasBookmark = true")
-    var arts: [StoredArticle] = get(request: request)
-    arts.sort {
-      let issue1 = $0.issues[0]//Seen Non reproduceable Crash here
-      let issue2 = $1.issues[0]
-      if issue1.date == issue2.date {
-        let section1 = $0.sections[0]
-        let section2 = $1.sections[0]
-        if section1.pr.order == section2.pr.order {
-          return $0.pr.order < $1.pr.order
-        }
-        else { return section1.pr.order < section2.pr.order } 
-      }
-      else { return issue1.date > issue2.date }
-    }
-    return arts
-  }
 
+/// **currently unused!**
+//  /// Return all Articles in an Issue
+//  public static func articlesInIssue(issue: StoredIssue) -> [StoredArticle] {
+//    let request = fetchRequest
+//    request.predicate = NSPredicate(format: "%@ IN issues", issue.pr)
+//    request.sortDescriptors = [
+//      NSSortDescriptor(key: "order", ascending: true)
+//    ]
+//    return get(request: request)
+//  }
 } // StoredArticle
 
 extension PersistentFrame: PersistentObject {}
@@ -1275,7 +1245,7 @@ public final class StoredFrame: Frame, StoredObject {
   }
   
   public required init(persistent: PersistentFrame) { self.pr = persistent }
-
+  
   public static func get(object: Frame) -> Self? {
     let epsilon: Float = 0.0001
     let request = fetchRequest
@@ -1287,24 +1257,6 @@ public final class StoredFrame: Frame, StoredObject {
                                             subpredicates: [p1, p2, p3, p4])
     let res = get(request: request)
     if res.count > 0 { return res[0] }
-    return nil
-  }
-  
-  public static func getOld(object: Frame, relatedPage: StoredPage) -> StoredFrame? {
-    let epsilon: Float = 0.0001
-    let request = fetchRequest
-    let p1 = NSPredicate(format: "abs(x1 - %f) < %f", object.x1, epsilon)
-    let p2 = NSPredicate(format: "abs(x2 - %f) < %f", object.x2, epsilon)
-    let p3 = NSPredicate(format: "abs(y1 - %f) < %f", object.y1, epsilon)
-    let p4 = NSPredicate(format: "abs(y2 - %f) < %f", object.y2, epsilon)
-    request.predicate = NSCompoundPredicate(type: .and,
-                                            subpredicates: [p1, p2, p3, p4])
-    let res = get(request: request)
-    
-    for sf in res {
-      if relatedPage.pr == sf.pr.page { return sf}
-    }
-
     return nil
   }
   
@@ -1334,7 +1286,7 @@ public final class StoredFrame: Frame, StoredObject {
     self.y1 = object.y1
     self.y2 = object.y2
   }
-    
+  
   /// Return all Frames in a Page
   public static func framesInPage(page: StoredPage) -> [StoredFrame] {
     let request = fetchRequest
@@ -1342,7 +1294,7 @@ public final class StoredFrame: Frame, StoredObject {
     request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
-
+  
 } // StoredFrame
 
 /// A stored Page
@@ -1439,7 +1391,7 @@ public final class StoredPage: Page, StoredObject {
       }
     }
   }
-
+  
   /// Overwrite the persistent values
   public func update(from object: Page) {
     if !(object is GqlPage) {
@@ -1474,11 +1426,11 @@ public final class StoredPage: Page, StoredObject {
         }
       }
     }
-//    if let sourceCount = object.frames?.count,
-//       let selfCount = self.frames?.count,
-//       sourceCount != selfCount {
-//      log("Wrong count of Frames saved. Source: \(sourceCount) != \(selfCount) saved.")
-//    }
+    //    if let sourceCount = object.frames?.count,
+    //       let selfCount = self.frames?.count,
+    //       sourceCount != selfCount {
+    //      log("Wrong count of Frames saved. Source: \(sourceCount) != \(selfCount) saved.")
+    //    }
   }
   
   /// Return stored record with given name
@@ -1487,7 +1439,7 @@ public final class StoredPage: Page, StoredObject {
     request.predicate = NSPredicate(format: "pdf.name = %@", file)
     return get(request: request)
   }
-    
+  
   public static func get(object: Page) -> StoredPage? {
     guard let pdfName = object.pdf?.name else { return nil }
     let tmp = get(file: pdfName)
@@ -1513,7 +1465,7 @@ public final class StoredPage: Page, StoredObject {
     if res.count > 0 { return res[0] }
     else { return nil }
   }
-
+  
 } // StoredPage
 
 /// A stored Section
@@ -1562,17 +1514,17 @@ public final class StoredSection: Section, StoredObject {
         return
       }
       if pr.html?.name != newValue.name { pr.html?.delete() }
-      pr.html = StoredFileEntry.persist(object: newValue).pr 
+      pr.html = StoredFileEntry.persist(object: newValue).pr
       pr.html?.content = pr
     }
   }
-
+  
   public var navButton: ImageEntry? {
-    get { 
+    get {
       if let pbutton = pr.navButton { return StoredImageEntry(persistent: pbutton) }
-      else { return nil } 
+      else { return nil }
     }
-    set { 
+    set {
       if let button = newValue {
         if let old = navButton as? StoredImageEntry, old.name != button.name {
           old.delete()
@@ -1580,7 +1532,7 @@ public final class StoredSection: Section, StoredObject {
         pr.navButton = StoredImageEntry.persist(object: button).pr
         pr.navButton?.addToNavSection(pr)
       }
-      else { pr.navButton = nil }      
+      else { pr.navButton = nil }
     }
   }
   public var primaryIssue: Issue? {
@@ -1595,31 +1547,33 @@ public final class StoredSection: Section, StoredObject {
   }
   
   public var path: String {
-    #warning("DoDo 1.0.0 Crash Cnt#: 1")
+#warning("DoDo 1.0.0 Crash Cnt#: 1")
     guard let path = (html as? StoredFileEntry)?.path
     else { fatalError("FileEntry.path is undefined") }
     ///empty on start see frame in carousell, open issue login ...slider opened, but why?
     return path
   }
   
-  public var baseURL: String {
-    if let s = pr.baseURL { return s }
-    else { return defaultBaseURL }
-  }
-  
-  public var issueDate: Date {
-    if let d = pr.issueDate { return d }
-    else { return defaultIssueDate }
+  public var baseURL: String? {
+    /// For backward compatibility and because this field is not filled in the mapping, use the base URL from issues as the default.
+    get { return primaryIssue?.baseUrl ?? pr.baseURL }
+    set { pr.baseURL = newValue }
   }
   
   public var sectionTitle: String? { return pr.sectionTitle }
-
+  
   public var images: [ImageEntry]? { StoredImageEntry.imagesInSection(section: self) }
   public var authors: [Author]? { nil }
-  public var articles: [Article]? { StoredArticle.articlesInSection(section: self) }
+  public var articles: [Article]? {
+    var ret: [Article] = []
+    for case let art as PersistentArticle in self.pr.articles ?? [] {
+      ret.append(StoredArticle(persistent: art))
+    }
+    return ret
+  }
   
   public required init(persistent: PersistentSection) { self.pr = persistent }
-
+  
   /// Overwrite the persistent values
   public func update(from object: Section) {
     if let sobject = object as? StoredSection {
@@ -1668,7 +1622,7 @@ public final class StoredSection: Section, StoredObject {
     else { pr.articles = nil }
   }
   
-  /// Return stored record with given name  
+  /// Return stored record with given name
   public static func get(file: String) -> [StoredSection] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "html.name = %@", file)
@@ -1689,7 +1643,7 @@ public final class StoredSection: Section, StoredObject {
     request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
-
+  
 } // StoredSection
 
 extension PersistentPublicationDate: PersistentObject {}
@@ -1706,7 +1660,13 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   public static var entity = "PublicationDate"
   public var pr: PersistentPublicationDate // persistent record
   
-  public var feed: Feed?
+  public var feed: (any Feed)? {
+    get {
+      guard let pFeed = pr.feed else { return nil }
+      return StoredFeed(persistent: pFeed)
+    }
+    set {/*not allowed due circular/endless loop on startup*/}
+  }
   
   public var date: Date {
     get { return pr.date! }
@@ -1717,41 +1677,41 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
     set { pr.validityDate = newValue }
   }
   ///For future Performance Studies, after initial installation, with manipulated get PubDates of last 200 Days this Version took 14s on M1 Pro Simulator
-//  static func persistGet(publicationDates: [PublicationDate],
-//                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
-//    var start = Date()
-//    var ret:[StoredPublicationDate] = []
-//    let allPr = Self.getAll(inFeed: feed)
-//
-//    for pubDate in publicationDates {
-//      let storedRecord: StoredPublicationDate
-//      = allPr.first(where: { $0.date == pubDate.date }) ?? new()
-//      storedRecord.update(from: pubDate)
-//      storedRecord.feed = feed
-//      ret.append(storedRecord)
-//      feed.pr.addToPublicationDates(storedRecord.pr)
-//    }
-//    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
-//    return ret
-//  }
+  //  static func persistGet(publicationDates: [PublicationDate],
+  //                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+  //    var start = Date()
+  //    var ret:[StoredPublicationDate] = []
+  //    let allPr = Self.getAll(inFeed: feed)
+  //
+  //    for pubDate in publicationDates {
+  //      let storedRecord: StoredPublicationDate
+  //      = allPr.first(where: { $0.date == pubDate.date }) ?? new()
+  //      storedRecord.update(from: pubDate)
+  //      storedRecord.feed = feed
+  //      ret.append(storedRecord)
+  //      feed.pr.addToPublicationDates(storedRecord.pr)
+  //    }
+  //    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
+  //    return ret
+  //  }
   
   ///For future Performance Studies, after initial installation, with manipulated get PubDates of last 200 Days this Version took 13s on M1 Pro Simulator
-//  public static func persist(publicationDates: [PublicationDate],
-//                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
-//    var start = Date()
-//    var ret:[StoredPublicationDate] = []
-//
-//    for pubDate in publicationDates {
-//      let storedRecord: StoredPublicationDate
-//      = Self.get(object: pubDate, inFeed: feed) ?? new()
-//      storedRecord.update(from: pubDate)
-//      storedRecord.feed = feed
-//      ret.append(storedRecord)
-//      feed.pr.addToPublicationDates(storedRecord.pr)
-//    }
-//    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
-//    return ret
-//  }
+  //  public static func persist(publicationDates: [PublicationDate],
+  //                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+  //    var start = Date()
+  //    var ret:[StoredPublicationDate] = []
+  //
+  //    for pubDate in publicationDates {
+  //      let storedRecord: StoredPublicationDate
+  //      = Self.get(object: pubDate, inFeed: feed) ?? new()
+  //      storedRecord.update(from: pubDate)
+  //      storedRecord.feed = feed
+  //      ret.append(storedRecord)
+  //      feed.pr.addToPublicationDates(storedRecord.pr)
+  //    }
+  //    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
+  //    return ret
+  //  }
   ///optimal Performance for huge amount of new items: write all existing in Dict => update existing
   ///in addition to indexed pubDates in Database
   public static func persist(publicationDates: [PublicationDate],
@@ -1781,7 +1741,7 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   /// Return stored record with given name
   public static func get(date: Date, inFeed feed: StoredFeed) -> [StoredPublicationDate] {
     let nsdate = NSDate(timeIntervalSinceReferenceDate:
-                        date.timeIntervalSinceReferenceDate)
+                          date.timeIntervalSinceReferenceDate)
     let request = fetchRequest
     request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)",
                                     nsdate, feed.pr)
@@ -1798,7 +1758,7 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   public static func get(object: PublicationDate, inFeed feed: StoredFeed) -> StoredPublicationDate? {
     return get(date: object.date, inFeed: feed).first
   }
-
+  
   public static func get(object: PublicationDate) -> StoredPublicationDate? {
     if let feed = object.feed,
        let sfeed = StoredFeed.get(object: feed) {
@@ -1809,16 +1769,16 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   
   /// Return an array of Issues in a Feed
   public static func publicationDatesInFeed(feed: StoredFeed, count: Int = -1)
-    -> [StoredPublicationDate] {
+  -> [StoredPublicationDate] {
     let request = fetchRequest
-      request.predicate = NSPredicate(format: "feed = %@", feed.pr)
+    request.predicate = NSPredicate(format: "feed = %@", feed.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
     if count > 0 { request.fetchLimit = count }
     return get(request: request)
   }
   
   public required init(persistent: PersistentPublicationDate) { self.pr = persistent }
-
+  
   /// Overwrite the persistent values
   public func update(from object: PublicationDate) {
     self.feed = object.feed ///in or out?
@@ -1827,10 +1787,6 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   }
   
 } //StoredPublicationDate
-
-extension PersistentIssue: PersistentObject {}
-
-
 
 extension StoredIssue: Equatable {
   static public func ==(lhs: StoredIssue, rhs: StoredIssue) -> Bool {
@@ -1859,10 +1815,10 @@ public final class StoredIssue: Issue, StoredObject {
     ///crash seeams to appeared on DemoIssue > FullIssue after login, also after app-restart in new home
     /*
      get {
-      if let d = pr.date { return d }
-      error("Prevent Crash Bug!")
-      return Date(timeIntervalSince1970: 0)
-    }*/
+     if let d = pr.date { return d }
+     error("Prevent Crash Bug!")
+     return Date(timeIntervalSince1970: 0)
+     }*/
     set { pr.date = newValue }
   }
   public var validityDate: Date? {
@@ -1962,15 +1918,13 @@ public final class StoredIssue: Issue, StoredObject {
     else { return nil }
   }
   public var payload: Payload { storedPayload! }
-
+  
   public var sections: [Section]? { StoredSection.sectionsInIssue(issue: self) }
   public var pages: [Page]? { StoredPage.pagesInIssue(issue: self) }
-  public var isDownloading: Bool = false {
-    willSet {}
-  }
-
+  public var isDownloading: Bool = false
+  
   public required init(persistent: PersistentIssue) { self.pr = persistent }
-
+  
   /// Overwrite the persistent values
   public func update(from object: Issue) {
     let sendUpdatedDemoIssueNotification = self.status == .reduced && object.status != .reduced
@@ -2012,11 +1966,12 @@ public final class StoredIssue: Issue, StoredObject {
           for art in arts {
             if let art = art as? StoredArticle, let name = art.html?.name {
               if bookmarkedDemoArticleNames.contains(name) {
-                art.setBookmark(true)
+                #warning("DB BOOKMARKS MIGRATION")
+//                art.setBookmark(true)
               }
               art.pr.addToIssues(self.pr)
             }
-          }  
+          }
         }
       }
     }
@@ -2043,7 +1998,7 @@ public final class StoredIssue: Issue, StoredObject {
         for s in osecs { s.delete() }
       }
     }
-
+    
     // Remove pages no longer needed
     if let opgs = oldPages as? [StoredPage] {
       if let pages = object.pages {
@@ -2065,11 +2020,11 @@ public final class StoredIssue: Issue, StoredObject {
     }
     if sendUpdatedDemoIssueNotification { Notification.send("updatedDemoIssue") }
   }
-    
+  
   /// Return stored record with given name
   public static func get(date: Date, inFeed feed: StoredFeed) -> [StoredIssue] {
     let nsdate = NSDate(timeIntervalSinceReferenceDate:
-                        date.timeIntervalSinceReferenceDate)
+                          date.timeIntervalSinceReferenceDate)
     let request = fetchRequest
     request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)",
                                     nsdate, feed.pr)
@@ -2091,7 +2046,7 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Return an array of Issues in a Feed
   public static func issuesInFeed(feed: StoredFeed, count: Int = -1, fromDate: Date? = nil)
-    -> [StoredIssue] {
+  -> [StoredIssue] {
     let request = fetchRequest
     if let fromDate = fromDate {
       let nsdate = NSDate(timeIntervalSinceReferenceDate: fromDate.timeIntervalSinceReferenceDate)
@@ -2168,9 +2123,9 @@ public final class StoredIssue: Issue, StoredObject {
     return nil
   }
   
-  #warning("Not in use! May use in future and exchange in SettingsVC l. 964")
+#warning("Not in use! May use in future and exchange in SettingsVC l. 964")
   /**
-    Exchange after Refactor and issue independent bookmarks; persisted Bookmark issue
+   Exchange after Refactor and issue independent bookmarks; persisted Bookmark issue
    
    */
   /// delete all issues in feed
@@ -2185,16 +2140,11 @@ public final class StoredIssue: Issue, StoredObject {
         Log.log("not deleting \(issue.date.short) due its currently downloading")
         continue
       }
-      let bookmarkCount = StoredArticle.bookmarkedArticlesInIssue(issue: issue).count
-      if bookmarkCount > 0 {
-        Log.log("not deleting \(issue.date.short) due it has \(bookmarkCount) bookmarks")
-        continue
-      }
       issue.delete()
     }
   }
   
-    
+  
   /// Remove old Issues and keep newest
   /// uses issue.reduceToOverview instead of issue.delete
   /// - Parameters:
@@ -2203,7 +2153,8 @@ public final class StoredIssue: Issue, StoredObject {
   ///   - keepPreviews: count of keep previews
   public static func removeOldest(feed: StoredFeed,
                                   keepDownloaded: Int,
-                                  keepPreviews: Int = 90,
+                                  keepPreviews: Int = 20,
+                                  doDelete: Bool = false,
                                   deleteOrphanFolders:Bool = false) {
     Log.log("keepDownloaded: \(keepDownloaded) keepPreviews: \(keepPreviews) deleteOrphanFolders: \(deleteOrphanFolders)")
     let lastCompleeteIssues:[StoredIssue]
@@ -2223,21 +2174,50 @@ public final class StoredIssue: Issue, StoredObject {
       Log.log("Prevent crash")
       return;
     }
+    var knownDirs: [String] = []
+
+    var reduceToOverviewIssueDates: [String] = []
+    var deletedIssueDates: [String] = []
     
     if keep <= allIssues.count {
       for issue in allIssues[keep...] {
+        if issue.isBookmarkIssue {
+          let dir = feed.feeder.issueDir(issue: issue)
+          if dir.exists { knownDirs.append(dir.path)}
+          continue
+        }
         if lastCompleeteIssues.contains(issue) { continue }
-        if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.date { continue }
+        if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.safeDate { continue }
+        if doDelete {
+          deletedIssueDates.append(issue.safeDate?.short ?? "-")
+          issue.delete()
+          continue
+        }
         if issue.reduceToOverview() {
-          Log.log("reduced to Overview for issue: \(issue.date.short)")
+          reduceToOverviewIssueDates.append(issue.safeDate?.short ?? "-")
         }
       }
     }
-         
+
+    if reduceToOverviewIssueDates.count > 0 {
+      Log.log("reduced to Overview for issue dates: \(reduceToOverviewIssueDates.sorted().joined(separator: ", "))")
+    }
+    if deletedIssueDates.count > 0 {
+      Log.log("deleted issue dates: \(deletedIssueDates.sorted().joined(separator: ", "))")
+    }
+    
     guard deleteOrphanFolders else { return }
     Log.log("delete orphan folders")
     
-    var knownDirs: [String] = []
+    guard let bookmarkIssue = Bookmarks.shared.bookmarkIssue else {
+      Log.log("bookmarks not inited skip delete folders")
+      return
+    }
+    
+    ///Prevent delete folder with bookmarked articles
+    for case let art as StoredArticle in bookmarkIssue.allArticles {
+      knownDirs.append(art.dir.path)
+    }
     
     for issue in lastCompleeteIssues {
       let dir = feed.feeder.issueDir(issue: issue)
@@ -2259,13 +2239,23 @@ public final class StoredIssue: Issue, StoredObject {
     
     let allSubdirs = feed.feeder.feedDir(feed.name).scan()
     
+    var deletedFolders: [String] = []
+    var skipDeleteFolders: [String] = []
+    
     for path in allSubdirs {
       if knownDirs.contains(path) {
-        Log.debug("DO NOT delete folder at: \(path)")
+        skipDeleteFolders.append(path.lastPathComponents(4))
         continue
       }
-      Log.debug("delete folder at: \(path)")
+      deletedFolders.append(path.lastPathComponents(4))
       Dir(path).remove()
+    }
+    
+    if deletedFolders.count > 0 {
+      Log.log("deletedFolders:\n  \(deletedFolders.sorted().joined(separator: "\n  "))")
+    }
+    if skipDeleteFolders.count > 0 {
+      Log.log("skipDeleteFolders:\n  \(skipDeleteFolders.sorted().joined(separator: "\n  "))")
     }
   }
   
@@ -2273,7 +2263,7 @@ public final class StoredIssue: Issue, StoredObject {
   /// Deletes data that is not needed for overview
   /// - Parameter force: delete also issues with bookmarks
   /// - Returns: true if content deletes, false if already overview version OR currently downloading
-  public func reduceToOverview(force: Bool = false) -> Bool {
+  public func reduceToOverview() -> Bool {
     if isDownloading {
       ///WARNING May not catch all states, due isDownloading is set if Downloader.downloading files;
       ///not in first Step: get Structure Data @REFACTORING
@@ -2283,9 +2273,6 @@ public final class StoredIssue: Issue, StoredObject {
     else {
       Log.debug("Delete Issue: \(self.date.short)")
     }
-    guard force ||
-            StoredArticle.bookmarkedArticlesInIssue(issue: self).count == 0
-    else { return false }
     // Remove files not needed for overview
     storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them
@@ -2369,14 +2356,14 @@ public final class StoredFeed: Feed, StoredObject {
   }
   public var feeder: Feeder {
     get { return StoredFeeder(persistent: pr.feeder!) }
-    set { 
+    set {
       if let sfeeder = StoredFeeder.get(object: newValue) {
         pr.feeder = sfeeder.pr
         pr.feeder?.addToFeeds(self.pr)
       }
     }
   }
-
+  
   public var storedIssues: [StoredIssue] { StoredIssue.issuesInFeed(feed: self) }
   public var issues: [Issue]? { storedIssues }
   
@@ -2404,7 +2391,7 @@ public final class StoredFeed: Feed, StoredObject {
   public var publicationDates: [PublicationDate]? { storedPublicationDates }
   
   public required init(persistent: PersistentFeed) { self.pr = persistent }
-
+  
   /// Overwrite the persistent values
   public func update(from object: Feed) {
     self.name = object.name
@@ -2441,11 +2428,11 @@ public final class StoredFeed: Feed, StoredObject {
 #warning("not removing wrong publicationDates!")
       /// Remove publicationDates no longer needed e.g. wrongly delivered by temporary api error
       /// **is not possible due we request only the newest ones
-//      for pd in self.publicationDates as! [StoredPublicationDate] {
-//        if !pubDates.contains(where: { $0.date == pd.date }) {
-//          pr.removeFromPublicationDates(pd.pr)
-//        }
-//      }
+      //      for pd in self.publicationDates as! [StoredPublicationDate] {
+      //        if !pubDates.contains(where: { $0.date == pd.date }) {
+      //          pr.removeFromPublicationDates(pd.pr)
+      //        }
+      //      }
       ///Saving 3770 PublicationDates took 13.26183307170868s on iPhone 7 initially in Debugging!
       ///  Saving 3770 PublicationDates took 5.203890919685364s on iPhone 7 initially in Debugging! after StoredPublicationDate.feed removed db requests
       ///    Saving 3770 PublicationDates took 5.487667918205261s
@@ -2457,7 +2444,7 @@ public final class StoredFeed: Feed, StoredObject {
   /// Return stored Issue with given name in Feeder
   public static func get(name: String, inFeeder feeder: StoredFeeder) -> [StoredFeed] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "(name = %@) AND (feeder = %@)", 
+    request.predicate = NSPredicate(format: "(name = %@) AND (feeder = %@)",
                                     name, feeder.pr)
     return get(request: request)
   }
@@ -2474,14 +2461,14 @@ public final class StoredFeed: Feed, StoredObject {
     }
     else { return nil }
   }
-      
+  
   /// Return all Feeds of a Feeder
   public static func feedsOfFeeder(feeder: StoredFeeder) -> [StoredFeed] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "feeder = %@", feeder.pr)
     return get(request: request)
   }
-
+  
 } // StoredFeed
 
 extension StoredFeed {
@@ -2501,7 +2488,7 @@ extension PersistentFeeder: PersistentObject {}
 
 /// A stored Feeder
 public final class StoredFeeder: Feeder, StoredObject {
-
+  
   public static var entity = "Feeder"
   public var pr: PersistentFeeder // persistent record
   public var title: String {
@@ -2536,18 +2523,18 @@ public final class StoredFeeder: Feeder, StoredObject {
     get { return Int(pr.resourceVersion) }
     set { pr.resourceVersion = Int32(newValue) }
   }
-  public var storedResources: StoredResources? { 
-    let res = StoredResources.get(version: resourceVersion) 
+  public var storedResources: StoredResources? {
+    let res = StoredResources.get(version: resourceVersion)
     if res.count > 0 { return res[0] }
     else { return nil }
   }
-  public var resourceFiles: [StoredFileEntry] 
-    { storedResources?.storedPayload?.storedFiles ?? [] }
+  public var resourceFiles: [StoredFileEntry]
+  { storedResources?.storedPayload?.storedFiles ?? [] }
   public var storedFeeds: [StoredFeed] { StoredFeed.feedsOfFeeder(feeder: self) }
   public var feeds: [Feed] { storedFeeds }
   
   public required init(persistent: PersistentFeeder) { self.pr = persistent }
-
+  
   /// Overwrite the persistent values
   public func update(from object: Feeder) {
     self.title = object.title
@@ -2566,7 +2553,7 @@ public final class StoredFeeder: Feeder, StoredObject {
     // Do not remove Feeds no longer on server
   }
   
-  /// Return stored record with given name/title 
+  /// Return stored record with given name/title
   public static func get(name: String) -> [StoredFeeder] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "title = %@", name)
@@ -2585,7 +2572,7 @@ public final class StoredFeeder: Feeder, StoredObject {
   }
   
   public required init(title: String, url: String, closure:
-    @escaping(Result<Feeder,Error>)->()) {
+                       @escaping(Result<Feeder,Error>)->()) {
     let request = StoredFeeder.fetchRequest
     request.predicate = NSPredicate(format: "title = %@", title)
     let pfeeders = StoredFeeder.getPersistent(request: request)
@@ -2595,12 +2582,12 @@ public final class StoredFeeder: Feeder, StoredObject {
     }
     else {
       pr = PersistentFeeder()
-      closure(.failure(Log.error("No Feeder with name '\(title)' found"))) 
+      closure(.failure(Log.error("No Feeder with name '\(title)' found")))
     }
   }
-
-  public func authenticate(account: String, password: String, closure: 
-    @escaping (Result<String, Error>) -> ()) {
+  
+  public func authenticate(account: String, password: String, closure:
+                           @escaping (Result<String, Error>) -> ()) {
     closure(.failure(error("Can't authenticate at DB Feeder")))
   }
   

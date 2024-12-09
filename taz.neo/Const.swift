@@ -59,6 +59,7 @@ public struct Const {
     static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
     static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
     static let bookmarkChanged = "Const.NotificationNames.bookmarkChanged"
+    static let bookmarksLoaded = "Const.NotificationNames.bookmarksLoaded"
     static let audioPlaybackStateChanged = "Const.NotificationNames.audioPlaybackStateChanged"
     static let audioPlaybackFinished = "Const.NotificationNames.audioPlaybackFinished"
     static let gotoIssue = "Const.NotificationNames.gotoIssue"
@@ -590,6 +591,7 @@ public struct Const {
     static let m30: CGFloat = 30.0
     ///biggest dist at end of content
     static let l: CGFloat = 40.0
+    static let s10AndL: CGFloat = 60.0
   }
   
 } // Const

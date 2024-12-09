@@ -59,7 +59,6 @@ private let configValues = [
   // "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
   // show teaser text in bookmarks list
-  "bookmarksListTeaserEnabled" : "true",
   "smartBackFromArticle" : "false",
   "autoHideToolbar" : "true",
   "tabbarInSection" : "false",
@@ -70,7 +69,7 @@ private let configValues = [
   "edgeTapToNavigate" : "false",
   "edgeTapToNavigateVisible2" : "false",
   // coachmark defaults
-  "showCoachmarks" : "true",
+  "showCoachmarks" : Device.isSimulator ? "false" : "true",
   "cmLastPrio": "1",
   "cmSessionCount": "0",
   "multiColumnModeLandscape": "false",
@@ -100,11 +99,13 @@ extension Defaults {
   public static var isTextNotification:Bool { Defaults.singleton["isTextNotification"]!.bool }
   
   public static var newIssueSystemSetting:Bool {
-    UserDefaults.standard.bool(forKey: "newIssueSystemSetting")
+    Defaults.singleton.bool(for: "newIssueSystemSetting", true)
   }
   
   public static var specialArticleSystemSetting:Bool {
-    UserDefaults.standard.bool(forKey: "specialArticleSystemSetting")
+    ///Settings Bundle Default value is unset; prev Implementation returns false if unset; review setting is true
+    ///@see: https://stackoverflow.com/a/9181691
+    Defaults.singleton.bool(for: "specialArticleSystemSetting", true)
   }
   
   ///Helper to get current server from user defaults
@@ -243,4 +244,34 @@ extension Defaults {
     
     dfl["usageTrackingAllowed"] = nil
   }
+}
+
+fileprivate extension Defaults {
+    /// Retrieves a Boolean value from UserDefaults for the specified key, or returns a fallback value if the key does not exist.
+    /// handle stored Values like UserDefaults.standard.boolForKey
+    /// - Parameters:
+    ///   - key: The key for the value to retrieve.
+    ///   - fallbackIfNotExists: The default Boolean value to return if no value is found for the key.
+    /// - Returns: A Boolean value corresponding to the stored data in UserDefaults.
+    ///            - For NSNumber values, returns `true` for any non-zero value, otherwise `false`.
+    ///            - For String values, returns `true` if the stored string is "YES", "1", or "true" (case-insensitive), otherwise `false`.
+    ///            - Returns `fallbackIfNotExists` if the key is absent or the value cannot be converted to Boolean.
+    func bool(for key: String, _ fallbackIfNotExists: Bool) -> Bool {
+        guard let storedValue = UserDefaults.standard.object(forKey: key) else {
+            return fallbackIfNotExists
+        }
+        
+        // Interpret NSNumber values
+        if let num = storedValue as? NSNumber {
+            return num != 0
+        }
+        
+        // Interpret String values
+        if let str = storedValue as? String {
+            let lowercasedStr = str.lowercased()
+            return lowercasedStr == "1" || lowercasedStr == "yes" || lowercasedStr == "true"
+        }
+        
+        return fallbackIfNotExists
+    }
 }

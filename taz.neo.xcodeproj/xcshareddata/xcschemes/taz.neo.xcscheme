@@ -15,7 +15,7 @@
                   <BuildableReference
                      BuildableIdentifier = "primary"
                      BlueprintIdentifier = "AEBAF563219ACD1900566205"
-                     BuildableName = "die tageszeitung.app"
+                     BuildableName = "taz.alpha.app"
                      BlueprintName = "taz.neo"
                      ReferencedContainer = "container:taz.neo.xcodeproj">
                   </BuildableReference>
@@ -33,7 +33,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AEBAF563219ACD1900566205"
-               BuildableName = "die tageszeitung.app"
+               BuildableName = "taz.alpha.app"
                BlueprintName = "taz.neo"
                ReferencedContainer = "container:taz.neo.xcodeproj">
             </BuildableReference>
@@ -44,8 +44,23 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      codeCoverageEnabled = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "77D1B5032CF9D2F3004CF5FC"
+               BuildableName = "taz ui tests.xctest"
+               BlueprintName = "taz ui tests"
+               ReferencedContainer = "container:taz.neo.xcodeproj">
+            </BuildableReference>
+            <LocationScenarioReference
+               identifier = "Berlin, Germany"
+               referenceType = "1">
+            </LocationScenarioReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
@@ -63,7 +78,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEBAF563219ACD1900566205"
-            BuildableName = "die tageszeitung.app"
+            BuildableName = "taz.alpha.app"
             BlueprintName = "taz.neo"
             ReferencedContainer = "container:taz.neo.xcodeproj">
          </BuildableReference>
@@ -80,7 +95,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AEBAF563219ACD1900566205"
-            BuildableName = "die tageszeitung.app"
+            BuildableName = "taz.alpha.app"
             BlueprintName = "taz.neo"
             ReferencedContainer = "container:taz.neo.xcodeproj">
          </BuildableReference>
