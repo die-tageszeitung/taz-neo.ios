@@ -693,6 +693,13 @@ extension SettingsVC {
   
   var isAuthenticated: Bool { return feederContext.isAuthenticated }
   
+  var showPasswordCell: Bool {
+    if isAuthenticated == false { return true }///all not logged in users
+    guard let uid = SimpleAuthenticator.getUserData().id else { return true }///also not logged in
+    if uid.hasSuffix("@taz.de") { return false }
+    return uid.isValidEmail()//All E-Mails, not 12345 Abo-ID's not SpecialLoginForGroups
+  }
+  
   var showDeleteAccountCell: Bool {
     if isAuthenticated == false { return false }
     let uid = SimpleAuthenticator.getUserData().id ?? ""
@@ -725,9 +732,7 @@ extension SettingsVC {
     
     cells.append(manageAccountCell)
     
-    if isAuthenticated,
-       SimpleAuthenticator.getUserData().id?.isValidEmail() == true,
-       SimpleAuthenticator.getUserData().id?.hasSuffix("@taz.de") == false {
+    if showPasswordCell {
       cells.insert(resetPasswordCell, at: 1)
     }
     if showDeleteAccountCell {
