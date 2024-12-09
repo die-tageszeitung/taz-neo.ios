@@ -27,8 +27,24 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
                       content: self.traitCollection,
                       error: nil,
                       sender: nil)
+    updateTraitOverrides()
   }
   
+  private func updateTraitOverrides() {
+      guard #available(iOS 18.0, *) else { return }
+      // Update the current size class to display original design
+      traitOverrides.horizontalSizeClass = .compact
+    if let original = UIWindow.keyWindow?.traitCollection.horizontalSizeClass {
+          // Updates every tab with the window size class
+          viewControllers?.forEach { $0.traitOverrides.horizontalSizeClass = original }
+      }
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    updateTraitOverrides()
+  }
+
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     guard let data = TazAppEnvironment.openedFromNotificationCenter else { return }
@@ -211,7 +227,8 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     let homeNc = NavigationController(rootViewController: home)
     homeNc.isNavigationBarHidden = true
     
-    let bookmarksNc = BookmarkNC(feederContext: feederContext)
+    let bookmarksOverview = BookmarkTVC()
+    let bookmarksNc = NavigationController(rootViewController: bookmarksOverview)
     bookmarksNc.title = "Leseliste"
     bookmarksNc.tabBarItem.image = UIImage(named: "star")
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
@@ -290,9 +307,6 @@ extension MainTabVC {
         }
         ///Facsimile/PDF View or Article/Section VC wich need Update
         if vcCount > 1 { reloadTargets.append(home)}
-      }
-      else if let bookmarks = tabNav as? BookmarkNC {
-        if vcCount > 1 { reloadTargets.append(bookmarks)}
       }
       else if let search = firstVc as? SearchController{
         if search.currentState == .result { reloadTargets.append(search)}

@@ -50,8 +50,8 @@ class SearchResultArticleVc : ArticleVC {
       super.contents = searchContents
       let curls: [ContentUrl] = searchContents.map { cnt in
         ContentUrl(content: cnt) { [weak self] curl in
-          guard let this = self else { return }
-          let url = cnt.originalIssueBaseURL ?? cnt.baseURL
+          guard let this = self,
+                let url = cnt.baseURL else { return }
           ///Not Download Article HTML use it from SearchHit, it has highlighting for search term
           let additionalFiles = curl.content.files.filter{ $0.name != cnt.html?.name }
           this.dloader.downloadSearchHitFiles(files: additionalFiles, baseUrl: url) { err in

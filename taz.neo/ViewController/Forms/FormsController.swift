@@ -39,7 +39,6 @@ extension String{
  - **SubscriptionIdElapsedController**
  - **LoginController**
  - **PwForgottController**
- - **ConnectTazIdController**
  - **TrialSubscriptionController**
  
  

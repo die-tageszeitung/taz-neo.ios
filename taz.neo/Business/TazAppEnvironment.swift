@@ -274,13 +274,10 @@ class TazAppEnvironment: NSObject, DoesLog {
     ?? (DefaultAuthenticator.getUserData().token != nil)
   }
   
-  var hasValidAuth: Bool {
-    isAuthenticated && Defaults.expiredAccount == false
-  }
-
-  func unlinkSubscriptionId() {
-    authenticator?.unlinkSubscriptionId()
-  }
+  var hasValidAuth: Bool { !shouldAuthenticate }
+  
+  ///show login or expired Form
+  var shouldAuthenticate: Bool{ !isAuthenticated || Defaults.expiredAccount }
   
   func deleteUserData(logoutFromServer: Bool = false, resetAppState: Bool) {
     SimpleAuthenticator.deleteUserData(logoutFromServer: logoutFromServer)
@@ -427,7 +424,6 @@ class TazAppEnvironment: NSObject, DoesLog {
     
     let akActive = self.usageTrackingAcceptanceTesting ? "Aktiv" : "Inaktiv"
     
-    actions.append(Alert.action("Abo-Verknüpfung löschen") {[weak self] _ in self?.unlinkSubscriptionId() })
     actions.append(Alert.action("Abo-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
     actions.append(Alert.action("Download-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
     actions.append(Alert.action("Tracking AK Test: \(akActive)") {[weak self] _ in
@@ -643,12 +639,11 @@ extension TazAppEnvironment {
 // Player extension
 extension TazAppEnvironment {
   func playBookmarks(){
-    guard let feeder = feederContext?.storedFeeder else { return }
-    let bookmarkFeed = BookmarkFeed.allBookmarks(feeder: feeder)
-    guard let bi = (bookmarkFeed.issues ?? []).first as? BookmarkIssue else { return }
-    ArticlePlayer.singleton.play(issue: bi,
+    guard let bmIssue = Bookmarks.shared.bookmarkIssue else { return }
+    ArticlePlayer.singleton.play(issue: bmIssue,
                                  startFromArticle: nil,
-                                 enqueueType: .replaceCurrent)
+                                 enqueueType: .replaceCurrent,
+                                 loadIssueIfNeeded: false)
   }
   
   func playLatestIssue(){
@@ -725,16 +720,14 @@ enum Shortcuts{
   static func currentItems() -> [UIApplicationShortcutItem]{
     var itms:[UIApplicationShortcutItem]
     = [Shortcuts.playLatestIssue.shortcutItem]
-    
-    if let sf = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder ,
-       BookmarkFeed.allBookmarks(feeder: sf).issues?.first?.allArticles.count ?? 0 > 0 {
+    if Bookmarks.shared.bookmarkSection?.articles?.count ?? 0 > 0 {
       itms.append(Shortcuts.playBookmarks.shortcutItem)
     }
     // No Server Switch for Release App
     if App.isRelease { return itms }
     itms.append(Shortcuts.liveServer.shortcutItem)
-    itms.append(Shortcuts.lmdServer.shortcutItem)
     itms.append(Shortcuts.testServer.shortcutItem)
+    itms.append(Shortcuts.lmdServer.shortcutItem)
     return itms
   }
   

@@ -11,7 +11,7 @@ import NorthLib
 import WebKit
 
 public class LoginView : FormView{
-  var idInput = TazTextField(placeholder: App.isTAZ ? Localized("login_username_hint") : "Abo-ID",
+  var idInput = TazTextField(placeholder: Localized("login_username_hint"),
                              textContentType: .emailAddress,
                              enablesReturnKeyAutomatically: true,
                              keyboardType: .emailAddress,
@@ -216,28 +216,5 @@ public class LoginView : FormView{
         to: marketingContainer.wrapper.bottom,
         dist: -2*Const.Dist2.l)///2 times because of overflow in scrollview to hide grey bg
     marketingContainer.backgroundColor = Const.SetColor.HBackground.color
-  }
-}
-
-
-public class NotLinkedLoginAboIDView : LoginView {
-  
-  var aboIdInput = TazTextField(placeholder: Localized("login_subscription_hint"),
-                             textContentType: .emailAddress,
-                             enablesReturnKeyAutomatically: true,
-                             keyboardType: .numberPad,
-                             autocapitalizationType: .none)
-  
-  var connectButton = Padded.Button(title: Localized("connect_this_abo_id_with_taz_id"))
-  
-  override func createSubviews() -> [UIView] {
-    loginButton.setTitle(Localized("connect_this_abo_id_with_taz_id"), for: .normal)
-    return   [
-      Padded.Label(title: Localized("connect_abo_id_title")),
-      aboIdInput,
-      passInput,
-      connectButton,
-      passForgottButton
-    ]
   }
 }

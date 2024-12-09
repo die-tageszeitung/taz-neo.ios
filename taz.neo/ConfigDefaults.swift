@@ -59,7 +59,6 @@ private let configValues = [
   // "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
   // show teaser text in bookmarks list
-  "bookmarksListTeaserEnabled" : "true",
   "smartBackFromArticle" : "false",
   "autoHideToolbar" : "true",
   "tabbarInSection" : "false",
@@ -70,7 +69,7 @@ private let configValues = [
   "edgeTapToNavigate" : "false",
   "edgeTapToNavigateVisible2" : "false",
   // coachmark defaults
-  "showCoachmarks" : "true",
+  "showCoachmarks" : Device.isSimulator ? "false" : "true",
   "cmLastPrio": "1",
   "cmSessionCount": "0",
   "multiColumnModeLandscape": "false",

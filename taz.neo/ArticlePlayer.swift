@@ -63,29 +63,8 @@ class ArticlePlayer: DoesLog {
   var nextContent: [Content] = []
   var lastContent: [Content] = []
   
-  private var blockPlayNext = false
-  
-  private func cleanup(){
-    blockPlayNext = true
-    Alert.message(title: "Ausgabe gelöscht",
-                  message: "Die zur aktuellen Wiedergabe gehörende Ausgabe wurde gelöscht.\nDie Wiedergabeliste wird überprüft und nicht mehr abspielbare Elemente werden gelöscht.") {[weak self] in
-      self?.doCleanup()
-    }
-  }
-  
-  private func doCleanup(){
-    lastContent.removeAll{ $0.primaryIssue == nil }
-    nextContent.removeAll{ $0.primaryIssue == nil }
-    blockPlayNext = false
-    playNext()
-  }
-  
   var currentContent: Content? {
     didSet {
-      if let cc = currentContent, cc.primaryIssue == nil {
-        cleanup()
-        return
-      }
       Usage.xtrack.audio.play(content: currentContent)
       let wasPaused = !aplayer.isPlaying && aplayer.file != nil
       aplayer.file = url(currentContent)
@@ -532,24 +511,28 @@ class ArticlePlayer: DoesLog {
     if let localFile = content?.localAudioPathIfExist {
       return localFile
     }
-    if let article = content as? Article,
-       let baseUrl = (article as? SearchArticle)?.originalIssueBaseURL
-                     ?? article.primaryIssue?.baseUrl,
-       let afn = article.audioItem?.file?.fileName {
-      return "\(baseUrl)/\(afn)"
-    }
     if let section = content as? Section,
        let baseUrl = section.primaryIssue?.baseUrl,
        let afn = section.audioItem?.file?.fileName {
       return "\(baseUrl)/\(afn)"
     }
-    return nil
+    /// **WARNING:** (article as? SearchArticle)?.baseURL **!=** article.baseURL
+    guard let article = content as? Article,
+          let baseUrl = (article as? SearchArticle)?.baseURL 
+            ?? article.baseURL 
+            ?? article.primaryIssue?.baseUrl,
+          let _afn = article.audioItem?.file?.fileName else { return nil }
+    var afn = _afn
+    if article.primaryIssue?.isReduced != true,
+       article.primaryIssue?.isComplete == true {
+      afn = afn.replacingOccurrences(of: ".public.mp3", with: ".mp3")
+    }
+    return "\(baseUrl)/\(afn)"
   }
   
   func deleteHistory(){ lastContent = []   }
   
   func playNext(origin: Usage.xtrack.audio.buttonOrigin? = nil) {
-    if blockPlayNext { return }
     if let origin = origin {
       Usage.xtrack.audio.skip.Next(origin: origin)
     }
@@ -651,7 +634,8 @@ class ArticlePlayer: DoesLog {
     
     let feederContext = TazAppEnvironment.sharedInstance.feederContext
     
-    if let storedIssue = issue as? StoredIssue,
+    if issue.isBookmarkIssue == false,
+       let storedIssue = issue as? StoredIssue,
        feederContext?.needsUpdate(issue: issue) ?? true {
       let msg = enqueueType == .replaceCurrent
       ? "Die Wiedergabe wird nach Download der Ausgabe gestartet."
@@ -743,12 +727,6 @@ extension Article {
                  enqueueType: .enqueueNext)
     })
     return menu
-  }
-}
-
-extension BookmarkIssue {
-  func contextMenu(group: Int) -> MenuActions {
-    return _contextMenu(group:group)
   }
 }
 

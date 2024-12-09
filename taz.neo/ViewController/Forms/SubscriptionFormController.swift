@@ -9,19 +9,6 @@
 import UIKit
 import NorthLib
 
-// MARK: - ConnectTazIDController
-/// Presents Register TazID Form and Functionallity
-/// ChildViews/Controller are pushed modaly
-
-/**
- **TBD** This Controller offers the option to create a Trial Subscription
- it has 3 characteristics for users which have no Abo-ID
- 1. User has no Taz ID => TrialSubscriptionController with E-mail, new Password, Firstname, Lastname
- 2. User with taz-ID
- a) with first/Lastname => This form will not be used, its just for the "Service"
- b) without first and/or Lastname
- 
- */
 class SubscriptionFormController : FormsController {
   var onMissingNameRequested:(()->())?
   

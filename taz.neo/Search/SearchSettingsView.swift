@@ -70,7 +70,7 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
     pin(helpButton.top, to: searchButton.bottom, dist: Const.Size.DefaultPadding)
     pin(helpButton.left, to: v.left, dist: Const.Size.DefaultPadding)
     //No need to close Autolayout due Footer needs Fix Frame foe easier use
-    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+45)
+    v.frame = CGRect(x: 0, y: 0, width: 0, height: 120)
     v.backgroundColor = Const.SetColor.ios(.systemBackground).color
     return v
   }()

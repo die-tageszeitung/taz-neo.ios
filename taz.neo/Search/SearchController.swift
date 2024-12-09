@@ -104,6 +104,18 @@ class SearchController: UIViewController, UIStyleChangeDelegate {
     v.openSearchHit = { [weak self] hit in
       self?.openSearchHit(hit)
     }
+    v.shareArticle = { [weak self] (hit, sourceView) in
+      guard let artVc = self?.articleVC,
+            let issue = self?.issue else { return }
+      if let idx = self?.searchItem.allArticles?.firstIndex(where: {$0.serverId == hit.article.serverId}) {
+        artVc.index = idx
+      }
+      ArticleExportDialogue.show(article: hit.article,
+                                 delegate: artVc,
+                                 image: hit.article.images?.first?.image(dir: issue.dir),
+                                 sourceView: sourceView)
+    }
+    
     v.handleScrolling = { [weak self] (offset,end) in
       self?.header.setHeader(scrollOffset: offset, animateEnd: end)
     }

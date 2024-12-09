@@ -17,6 +17,7 @@ class SearchResultsTableView : UITableView, UIStyleChangeDelegate {
   var searchClosure: (()->())?
   
   var openSearchHit: ((GqlSearchHit)->())?
+  var shareArticle: ((GqlSearchHit, UIView)->())?
   
   var searchItem:SearchItem? {
     didSet {
@@ -128,7 +129,7 @@ extension SearchResultsTableView: UITableViewDelegate {
     }
           )
     // Show Current Cloud Upload Status
-    openIssueAction.backgroundColor = .black
+    openIssueAction.backgroundColor = .systemIndigo
     let swipeConfiguration = UISwipeActionsConfiguration(actions: [openIssueAction])
     return swipeConfiguration
   } // end func leadingSwipeActionsConfigurationForRowAt
@@ -147,6 +148,9 @@ extension SearchResultsTableView: UITableViewDataSource {
     let cell = tableView.dequeueReusableCell(withIdentifier: Self.SearchResultsCellIdentifier,
                                              for: indexPath) as! SearchResultsCell
     cell.content = self.searchItem?.searchHitList?.valueAt(indexPath.row)
+    cell.onShare { [weak self] (art, sourceView) in
+      self?.shareArticle?(art, sourceView)
+    }
     return cell
   }
 
@@ -155,9 +159,22 @@ extension SearchResultsTableView: UITableViewDataSource {
 // MARK: - SearchResultsCell
 class SearchResultsCell: UITableViewCell {
   
+  /// closure to call in case of error
+  func onShare(closure:  ((GqlSearchHit, UIView)->())?) { _shareClosure = closure }
+  private var _shareClosure: ((GqlSearchHit, UIView)->())?
+  
+  let shareButton = UIImageView(image: UIImage(named: "share"))
+  let bookmarkButton = UIImageView()
+  
+  let starFill = UIImage(named: "star-fill")
+  let star = UIImage(named: "star")
+  
   var content : GqlSearchHit? { didSet{ updateContent() }   }
   
+  private var contentServerId: Int?
+  
   private func updateContent(){
+    contentServerId = content?.article.serverId
     if let content = content {
       titleLabel.text = content.article.title
       authorLabel.text = content.article.authors()?.prepend("von ")
@@ -166,6 +183,7 @@ class SearchResultsCell: UITableViewCell {
       = App.isLMD
       ? "Ausgabe " + content.date.stringWith(dateFormat: "MM/YYYY")
       : content.date.short + " " + (content.sectionTitle ?? "")
+      updateBookmarkButton(for: content.article)
     }
     else {
       titleLabel.text = ""
@@ -173,6 +191,11 @@ class SearchResultsCell: UITableViewCell {
       contentLabel.text = ""
       dateLabel.text = ""
     }
+  }
+  
+  func updateBookmarkButton(for article: Article){
+    guard article.serverId == contentServerId else { return }
+    bookmarkButton.image = article.hasBookmark ? starFill : star
   }
   
   lazy var cellView: UIView = {
@@ -219,13 +242,16 @@ class SearchResultsCell: UITableViewCell {
   }
   
   func setup() {
-    addSubview(cellView)
+    self.contentView.addSubview(cellView)
     cellView.addSubview(titleLabel)
     cellView.addSubview(authorLabel)
     cellView.addSubview(contentLabel)
     cellView.addSubview(dateLabel)
+    cellView.addSubview(bookmarkButton)
+    cellView.addSubview(shareButton)
+    cellView.addSubview(dateLabel)
     self.selectionStyle = .none
-    pin(cellView, to: self, dist: Const.ASize.DefaultPadding)
+    pin(cellView, to: self.contentView, dist: Const.ASize.DefaultPadding)
     
     pin(titleLabel.left, to: cellView.left)
     pin(titleLabel.right, to: cellView.right)
@@ -234,13 +260,45 @@ class SearchResultsCell: UITableViewCell {
     pin(contentLabel.left, to: cellView.left)
     pin(contentLabel.right, to: cellView.right)
     pin(dateLabel.left, to: cellView.left)
-    pin(dateLabel.right, to: cellView.right)
+    pin(dateLabel.right, to: cellView.right, dist: -65)
     
     pin(titleLabel.top, to: cellView.top, dist: App.isTAZ ? 15.0 : 6.0)
     pin(authorLabel.top, to: titleLabel.bottom, dist: App.isTAZ ? 8.0 : 5.0)
     pin(contentLabel.top, to: authorLabel.bottom, dist: App.isTAZ ? 8.0 : 8.0)
     pin(dateLabel.top, to: contentLabel.bottom, dist: App.isTAZ ? 8.0 : 12.0)
     pin(dateLabel.bottom, to: cellView.bottom, dist:  App.isTAZ ? -12.0 : -6.0)
+    
+    shareButton.pinSize(CGSize(width: 26, height: 26))
+    bookmarkButton.pinSize(CGSize(width: 26, height: 26))
+    
+    pin(bookmarkButton.right, to: cellView.right)
+    pin(shareButton.right, to: bookmarkButton.left, dist: -12)
+    
+    pin(bookmarkButton.centerY, to: dateLabel.centerY)
+    pin(shareButton.centerY, to: dateLabel.centerY)
+    
+    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+      guard let art = msg.sender as? StoredArticle else { return }
+      self?.updateBookmarkButton(for: art)
+    }
+    bookmarkButton.tintColor = Const.Colors.appIconGrey
+    shareButton.tintColor = Const.Colors.appIconGrey
+
+    bookmarkButton.onTapping {[weak self] _ in
+//      Usage.track(Usage.event.drawer.action_tap.Bookmark)
+      onMainAfter(0.1){[weak self] in ///prevent additional  cell tap due async call
+        self?.content?.article.hasBookmark.toggle()
+      }
+    }
+    
+    shareButton.onTapping {[weak self] _ in
+      onMainAfter(0.1){[weak self] in ///prevent additional  cell tap due async call
+        if let content = self?.content, let self = self {
+          self._shareClosure?(content, self.shareButton)
+        }
+      }
+    }
+    selectionStyle = .none
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {

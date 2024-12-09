@@ -257,7 +257,8 @@ public class SearchItem: DoesLog {
         let art = $0.article
         ///Set Search Hit Base URL to Article because this is missing currently,
         /// used to download server contents from related issue
-        art.originalIssueBaseURL = $0.baseUrl
+        art.baseURL = $0.baseUrl
+        art.sectionTitle = $0.sectionTitle
         art.originalIssueDate = $0.date
         return art
       }

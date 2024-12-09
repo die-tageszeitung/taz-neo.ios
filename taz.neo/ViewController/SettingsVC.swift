@@ -12,7 +12,7 @@ import UIKit
  A SettingsVC is a view controller to edit app's user Settings; Cells are not re-used!
  */
 // MARK: - SettingsVC
-open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
+open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   @Default("persistedIssuesCount")
   var persistedIssuesCount: Int
@@ -58,9 +58,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   
   @Default("usageTrackingAllowed")
   var usageTrackingAllowed: Bool
-  
-  @Default("bookmarksListTeaserEnabled")
-  var bookmarksListTeaserEnabled: Bool
   
   @Default("tabbarInSection")
   var tabbarInSection: Bool
@@ -282,14 +279,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     Usage.track(Usage.event.tapEdge.visibility, name: newValue ? "Ein" : "Aus")
 
   })
-  lazy var bookmarksTeaserCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Leseliste Anrisstext",
-                  detailText: "Zeige Anrisstext in Leseliste",
-                  initialValue: bookmarksListTeaserEnabled,
-                  onChange: {[weak self] newValue in
-                    self?.bookmarksListTeaserEnabled = newValue
-                    Notification.send(Const.NotificationNames.bookmarkChanged)
-                  })
   lazy var multiColumnSnapCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Mehrspaltigkeit einrasten",
                   detailText: "Beim manuellem Scrollen in der mehrspaltigen Ansicht automatisch Spaltenweise einrasten.",
@@ -374,6 +363,24 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     return v
   }()
   
+  private lazy var settingsTable:UITableView = {
+    let tv = UITableView(frame: .zero, style: .grouped)
+    tv.estimatedRowHeight = 100.0
+    tv.separatorInset = .zero
+    if #available(iOS 15.0, *) {
+      tv.sectionHeaderTopPadding = 0
+    }
+    tv.dataSource = self
+    tv.delegate = self
+    
+    let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
+    tv.addGestureRecognizer(longTap)
+    
+    tv.tableFooterView = footer
+    tv.bounces = true
+    return tv
+  }()
+  
   let blockingView = BlockingProcessView()
   
   var uiBlocked:Bool = false {
@@ -387,13 +394,20 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     }
   }
   
-  open override func viewDidLoad() {
-    self.tableView = UITableView(frame: .zero, style: .grouped)
+  public override func viewDidLoad() {
     super.viewDidLoad()
+    
+    self.view.addSubview(header)
+    pin(header, to: self.view, exclude: .bottom)
+    
+    self.view.addSubview(settingsTable)
+    pin(settingsTable, to: self.view, exclude: .top)
+
+    pin(settingsTable.top, to: header.bottom, dist: -2)
+    
     data = TableData(sectionContent: currentSectionContent())
     setup()
-    let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
-    tableView.addGestureRecognizer(longTap)
+
     initialTextNotificationSetting = isTextNotification
     $articleFromPdf.onChange{[weak self] _ in
       guard let self = self else { return }
@@ -405,18 +419,11 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     }
   }
   
-  open override func viewWillAppear(_ animated: Bool) {
+  public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    if let sv = self.view.superview {
-      sv.addSubview(header)
-      pin(header, to: sv, exclude: .bottom)
-      pin(self.tableView, toSafe: sv, exclude: .top).bottom?.constant = -50.0
-      pin(self.tableView.top, to: header.bottom)//.priority = .defaultHigh??
-    }
-    self.tableView.contentInset = UIEdgeInsets(top: 23, left: 0, bottom: 0, right: 0)
   }
   
-  open override func viewDidAppear(_ animated: Bool) {
+  public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     checkNotifications()
     trackScreen()
@@ -449,7 +456,7 @@ extension SettingsVC {
   }
   
   public func applyStyles() {
-    tableView.backgroundColor = Const.SetColor.HBackground.color
+    settingsTable.backgroundColor = Const.SetColor.HBackground.color
     if let toggle = self.darkmodeSettingsCell.customAccessoryView as? UISwitch,
        toggle.isOn != Defaults.darkMode {
       toggle.isOn = Defaults.darkMode
@@ -457,7 +464,7 @@ extension SettingsVC {
   }
   
   func setup(){
-    tableView.separatorInset = .zero
+    settingsTable.separatorInset = .zero
     header.layoutIfNeeded()
     registerForStyleUpdates()
     NotificationCenter.default
@@ -473,67 +480,53 @@ extension SettingsVC {
     data = TableData(sectionContent: currentSectionContent())
     
     if oldData.sectionsCount != data.sectionsCount {
-      tableView.reloadData()
+      settingsTable.reloadData()
       return
     }
     
     let diff = data.changedIndexPaths(oldData: oldData)
         
     if (diff.added.count + diff.deleted.count) == 0 {
-      tableView.reloadData()
+      settingsTable.reloadData()
       return
     }
     
-    self.tableView.performBatchUpdates {   [weak self] in
+    self.settingsTable.performBatchUpdates {   [weak self] in
       guard let self = self else { return }
       if diff.deleted.count > 0 {
-        self.tableView.deleteRows(at: diff.deleted, with: .fade)
+        self.settingsTable.deleteRows(at: diff.deleted, with: .fade)
       }
       
       if diff.added.count > 0 {
-        self.tableView.insertRows(at: diff.added, with: .fade)
+        self.settingsTable.insertRows(at: diff.added, with: .fade)
       }
     }
   }
   
   @objc private func handleLongTap(sender: UILongPressGestureRecognizer) {
     if sender.state == .began {
-      let touchPoint = sender.location(in: tableView)
-      guard let indexPath = tableView.indexPathForRow(at: touchPoint) else { return }
+      let touchPoint = sender.location(in: settingsTable)
+      guard let indexPath = settingsTable.indexPathForRow(at: touchPoint) else { return }
       data.cell(at: indexPath)?.longTapHandler?()
     }
   }
 }
 
-extension SettingsVC {
-  open override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    self.header.scrollViewDidScroll(scrollView.contentOffset.y)
-  }
-  
-  open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    self.header.scrollViewDidEndDragging(scrollView.contentOffset.y)
-  }
-  
-  open override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-    self.header.scrollViewWillBeginDragging(scrollView.contentOffset.y)
-  }
-}
-
 // MARK: - UITableViewDataSource
-extension SettingsVC {
-  open override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+extension SettingsVC: UITableViewDataSource, UITableViewDelegate {
+  public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     return data.rowsIn(section: section)
   }
   
-  open override func numberOfSections(in tableView: UITableView) -> Int {
+  public func numberOfSections(in tableView: UITableView) -> Int {
     return data.sectionsCount
   }
   
-  open override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+  public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     return data.cell(at: indexPath) ?? UITableViewCell()
   }
   
-  open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+  public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
     guard let sectionData = data.sectionData(for: section),
           let title = sectionData.title else { return nil }
     let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
@@ -554,23 +547,23 @@ extension SettingsVC {
     return header
   }
   
-  open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+  public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     return section == data.sectionsCount - 1 ? footer : nil
   }
   
-  open override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
+  public func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
     view.backgroundColor = .clear
   }
   
-  open override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+  public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
     return data.footerHeight(for: section)
   }
   
-  open override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+  public func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
     return data.canTap(at: indexPath) ? indexPath : nil
   }
   
-  open override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+  public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
     data.cell(at: indexPath)?.tapHandler?()
   }
@@ -766,7 +759,6 @@ extension SettingsVC {
   var extendedSettingsCells:[XSettingsCell] {
     (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
-      bookmarksTeaserCell,
       smartBackFromArticleCell,
       voiceoverControlsCell,
       memoryUsageCell,
@@ -775,12 +767,12 @@ extension SettingsVC {
     ]
     
     if Device.isIpad {
-      cells.insert(multiColumnFixedScrollingCell, at: 2)
-      cells.insert(multiColumnSnapCell, at: 2)
+      cells.insert(multiColumnFixedScrollingCell, at: 1)
+      cells.insert(multiColumnSnapCell, at: 1)
     }
     
     if TazAppEnvironment.hasValidAuth {
-      cells.insert(showCoachmarksCell, at: 2)
+      cells.insert(showCoachmarksCell, at: 1)
     }
     
     if Device.isIphone {
@@ -949,7 +941,7 @@ extension SettingsVC {
               return
             }
 //      TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
-      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, deleteOrphanFolders: true)
+      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, doDelete: true, deleteOrphanFolders: true)
 //      StoredIssue.deleteAllIssues(feed: storedFeed) Idea: delete everything
       onMainAfter { [weak self] in
         self?.refreshAndReload()

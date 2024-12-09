@@ -300,6 +300,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         padding-top: 78px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
       }
+      \(bookmarkAntiSnippetCss)
       p {
         text-align: \(textAlign);
       }
@@ -335,6 +336,22 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     isMultiColumnMode = css != nil
     self.collectionView?.showsHorizontalScrollIndicator = false
     return css ?? singleColumnCss
+  }
+  
+  ///CSS fix for Search Article Result with snippet css highlight, removes highlight
+  var bookmarkAntiSnippetCss : String {
+    guard delegate != nil else {
+      log("!ERROR!: Prevented crash on disappeared VC\nIt seams there is a unreleased Reference again! Fix it!")
+      return ""
+    }
+    if issue.isBookmarkIssue {
+      return """
+        body span.snippet {
+          background-color  : unset;
+        }
+      """
+    }
+    return ""
   }
   
   var singleColumnCss : String {
@@ -557,28 +574,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         if arts.count == 0 {
           arts = StoredArticle.get(file: name + ".public.html")
         }
-        
-        if arts.count > 0 {
-          let art = arts[0]
-          if art.hasBookmark != bm {
-            art.hasBookmark = bm
-            ArticleDB.save()
-            if args.count > 2, let showToast = args[2] as? Int, showToast != 0 {
-              let msg = bm ? "Der Artikel wurde in ihrer Leseliste gespeichert." :
-                             "Der Artikel wurde aus ihrer Leseliste entfernt."
-              if let title = art.title {
-                Toast.show("<h3>\(title)</h3>\(msg)", minDuration: 0)
-              }
-              else { Toast.show(msg, minDuration: 0) }
-            }
-          }
-        }
+        arts.first?.hasBookmark.toggle()
       }
       return NSNull()
     }
     self.bridge?.addfunc("getBookmarks") { [weak self] jscall in
       guard let _ = self else { return NSNull() }
-      let arts = StoredArticle.bookmarkedArticles()
+      let arts = Bookmarks.shared.bookmarkSection?.articles ?? []
       var names: [String] = []
       for a in arts { names += a.html?.name.nonPublic() ?? "-" }
       return names
@@ -633,12 +635,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func export(article: Article){
-    let bookmarkTabbar: UIView? //LeselisteTab only for Bookmark SectionVC
-    = (((self as? BookmarkSectionVC)?.navigationController as? BookmarkNC)?.parentViewController as? UITabBarController)?.tabBar
     ArticleExportDialogue.show(article: article,
                                delegate: self,
                                image: article.images?.first?.image(dir: delegate.issue.dir),
-                               sourceView: bookmarkTabbar ?? shareButton)
+                               sourceView: shareButton)
   }
   
   /// Write tazApi.js to resource directory
@@ -804,11 +804,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     playButton.buttonView.name = "audio"
     homeButton.buttonView.name = "home"
 
-    if self.isMember(of: SearchResultArticleVc.self) == false {
-      #warning("No Bookmark Button For Search Result Articles")
-      toolBar.addArticleButton(bookmarkButton, direction: .center)
-      toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
-    }
+    toolBar.addArticleButton(bookmarkButton, direction: .center)
+    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
+    
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticlePlayButton(Toolbar.Spacer(), direction: .center)
     if self is SectionVC {
@@ -841,6 +839,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let curl = ContentUrl(content: content) { [weak self] curl in
       guard let self = self,
       self.delegate != nil else { return }
+      if content.primaryIssue?.isBookmarkIssue == true {
+        guard let baseUrl = curl.content.baseURL else { return }
+        self.dloader.downloadSearchHitFiles(files: curl.content.files,
+                                            baseUrl: baseUrl) { err in
+          curl.isAvailable = err == nil
+        }
+        return
+      }
+      
       self.dloader.downloadIssueData(issue: self.issue, files: curl.content.files) { err in
         curl.isAvailable = err == nil
       }
@@ -872,7 +879,21 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let selfSafeDloader = self.dloader
     
     let curls: [ContentUrl] = contents.map { cnt in
-      ContentUrl(content: cnt) { curl in
+      ContentUrl(content: cnt) {[weak self] curl in
+        if curl.content.primaryIssue == nil
+          || curl.content.primaryIssue?.isBookmarkIssue == true
+            || selfSafeIssue.isBookmarkIssue == true {
+          guard let baseUrl = curl.content.baseURL,
+                let issueDate = curl.content.issueDate,
+                let issueDir = Bookmarks.shared.commonIssueDir(for: issueDate)
+          else { return }
+          self?.dloader.downloadSearchHitFiles(files: curl.content.files,
+                                              baseUrl: baseUrl,
+                                              targetDir: issueDir) { err in
+            curl.isAvailable = err == nil
+          }
+          return
+        }
         selfSafeDloader.downloadIssueData(issue: selfSafeIssue,
                                           files: curl.content.files) { err in
           curl.isAvailable = err == nil
