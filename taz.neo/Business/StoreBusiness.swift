@@ -37,8 +37,10 @@ class StoreBusiness: DoesLog {
   /// Determines whether registration is allowed based on the stored evaluation result.
   /// If the stored value is `unknown` or not determinated, it will trigger the evaluation process.
   static var canRegister: Bool {
-    ///Enables Register Test in Simulator
+    ///Enables Register Test in Debug && Simulator
+    #if DEBUG
     if Device.isSimulator { return true }
+    #endif
     switch shared.canRegisterEvaluationResult {
       case RegisterEvaluationResult.allowed.rawValue:
         return true
