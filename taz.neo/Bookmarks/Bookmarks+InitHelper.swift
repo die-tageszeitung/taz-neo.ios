@@ -62,37 +62,11 @@ extension Bookmarks {
     issue.pr.addToSections(newSection.pr)
     newSection.pr.issue = issue.pr
     
+    bookmarkSection = newSection
     migrateBookmarks()
     ArticleDB.save()
     return newSection
   }
-  
-  
-  
-  @discardableResult
-  fileprivate func addBookmarkSection(with name: String = "Leseliste") -> StoredSection? {
-    guard let issue = bookmarkIssue else {
-      log("Failed to add BookmarkSection with name: \(name), bookmarkIssue is missing.")
-      return nil
-    }
-    let sect = StoredSection.new()
-    sect.name = "Leseliste"
-    sect.type = .unknown
-    
-    let bmDir = issue.feed.bookmarksDir
-    if bmDir.exists == false { bmDir.create() }
-    let bmFilePath = "\(bmDir.path)/\(sect.name).html"
-    File(bmFilePath).string = "initial, empty: Only for Compatibility Reasons due a Section(Content) required html"
-    let tmpFile = StoredFileEntry.new(path: bmFilePath)
-    sect.html = tmpFile
-    issue.pr.addToSections(sect.pr)
-    sect.pr.issue = issue.pr
-    migrateBookmarks()
-    
-    return sect
-  }
-  
-  
   
   fileprivate func fileEntry(for section: StoredSection, in dir: Dir) -> FileEntry? {
     if dir.exists == false { dir.create() }
@@ -113,8 +87,10 @@ extension Bookmarks {
     let request = StoredArticle.fetchRequest
     request.predicate = NSPredicate(format: "hasBookmark = true")
     // Migrate bookmarks by using self.hasBookmark logic to add them to the bookmark issue
-    for article in StoredArticle.get(request: request) {
+    let oldBookmarks =  StoredArticle.get(request: request)
+    for article in oldBookmarks {
       set(article: article, active: true)
     }
+    log("migrated: \(bookmarkedArticles.count)/\(oldBookmarks.count) Bookmarks")
   }
 }
