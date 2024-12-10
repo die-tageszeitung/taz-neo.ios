@@ -31,13 +31,16 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   }
   
   private func updateTraitOverrides() {
-      guard #available(iOS 18.0, *) else { return }
-      // Update the current size class to display original design
-      traitOverrides.horizontalSizeClass = .compact
+    guard #available(iOS 18.0, *),
+          Device.isIpad else { return }
+    // Update the current size class to display original design
+    traitOverrides.horizontalSizeClass = .unspecified
     if let original = UIWindow.keyWindow?.traitCollection.horizontalSizeClass {
-          // Updates every tab with the window size class
-          viewControllers?.forEach { $0.traitOverrides.horizontalSizeClass = original }
-      }
+      // Updates every tab with the window size class
+      viewControllers?.forEach { $0.traitOverrides.horizontalSizeClass = original }
+      // restore Tabbar's size class: if enought space name left of icon
+      tabBar.traitOverrides.horizontalSizeClass = original
+    }
   }
   
   override func viewWillAppear(_ animated: Bool) {
