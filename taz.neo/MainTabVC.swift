@@ -311,6 +311,10 @@ extension MainTabVC {
       else if let search = firstVc as? SearchController{
         if search.currentState == .result { reloadTargets.append(search)}
       }
+      else if let bookmarks = firstVc as? BookmarkTVC{
+        if bookmarks.navigationController?.viewControllers.last != bookmarks { reloadTargets.append(bookmarks)
+        }
+      }
       else if let target = firstVc as? ReloadAfterAuthChanged {
         reloadTargets.append(target)
       }
