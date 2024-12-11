@@ -40,16 +40,7 @@ extension IssueCollectionViewActions {
     = self.service.cellData(for: ccvc.centerIndex ?? 0)?.downloadState
   }
   
-  func _contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-    let loc = interaction.location(in: collectionView)
-    guard let indexPath = self.collectionView.indexPathForItem(at: loc) else {
-      return nil
-    }
-
-    guard let issue = self.service.cellData(for: indexPath.row)?.issue else {
-      return nil
-    }
-    
+  func contextMenuInteraction(for indexPath: IndexPath, issue: StoredIssue) -> UIContextMenuConfiguration? {
     let actions = MenuActions()
     
     actions.addMenuItem(title: "Ausgabe löschen",
@@ -60,14 +51,14 @@ extension IssueCollectionViewActions {
     
     if issue.isComplete && issue.isAudioComplete == false && issue.hasAudio
     {
-        actions.addMenuItem(title: "Audioinhalte laden",
-                            icon: "download",
-                            enabled: issue.isDownloading == false) {[weak self] _ in
-          self?.service.download(issueAt: issue.date, withAudio: true)
-          guard let ccvc = self as? IssueCarouselCVC,
-                ccvc.centerIndex == indexPath.row else { return }
-          ccvc.downloadButton.indicator.downloadState = .waiting
-        }
+      actions.addMenuItem(title: "Audioinhalte laden",
+                          icon: "download",
+                          enabled: issue.isDownloading == false) {[weak self] _ in
+        self?.service.download(issueAt: issue.date, withAudio: true)
+        guard let ccvc = self as? IssueCarouselCVC,
+              ccvc.centerIndex == indexPath.row else { return }
+        ccvc.downloadButton.indicator.downloadState = .waiting
+      }
     } else if issue.isComplete == false {
       actions.addMenuItem(title: "Ausgabe laden",
                           icon: "download",
@@ -107,5 +98,28 @@ extension IssueCollectionViewActions {
                                       previewProvider: nil){ _ -> UIMenu? in
       return actions.contextMenu
     }
+  }
+  
+  func _contextMenuInteraction(_ interaction: UIContextMenuInteraction,
+                               configurationForMenuAtLocation location: CGPoint)
+  -> UIContextMenuConfiguration? {
+    // Determine the position within the CollectionView
+    let locationInCollectionView = interaction.location(in: collectionView)
+    
+    // Main logic: Create a context menu for the cell at the specified position
+    if let indexPath = collectionView.indexPathForItem(at: locationInCollectionView),
+       let issue = service.cellData(for: indexPath.row)?.issue {
+      return contextMenuInteraction(for: indexPath, issue: issue)
+    }
+    
+    // Fallback: Handle cases where no indexPath could be determined (e.g., during scrolling)
+    if let tappedCell = interaction.view?.superview?.superview as? IssueCollectionViewCell,
+       let issue = tappedCell.data?.issue,
+       let indexPath = collectionView.indexPath(for: tappedCell) {
+      return contextMenuInteraction(for: indexPath, issue: issue)
+    }
+    
+    // No context menu available
+    return nil
   }
 }
