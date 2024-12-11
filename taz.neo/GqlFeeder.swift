@@ -43,9 +43,11 @@ enum GqlAuthStatus: String, CodableEnum {
   case invalid = "invalid(notValid)" 
   /// account provided by token is expired (ISO-Date in message)
   case expired = "expired(elapsed)"      
-  /// ID not linked to subscription
-  case unlinked = "unlinked(tazIdNotLinked)"  
-  // AboId exists but PW is wrong 
+  /// ID not linked to subscription DEPRECIATED
+  case unlinked = "unlinked(tazIdNotLinked)"
+  /// new Status Code for migration
+  case unlinkedAbo = "noAboLinked"
+  // AboId exists but PW is wrong
   case notValidMail = "notValidMail" 
   /// AboId already linked to tazId
   case alreadyLinked = "alreadyLinked" 
@@ -1010,7 +1012,7 @@ open class GqlFeeder: Feeder, DoesLog {
             self?.authToken = token
           }
           switch atoken.authInfo.status {
-            case .expired, .unlinked, .invalid, .alreadyLinked, .notValidMail, .unknown:
+            case .expired, .unlinked, .unlinkedAbo, .invalid, .alreadyLinked, .notValidMail, .unknown:
               if let token = atoken.token {
                 self?.authToken = token
               }

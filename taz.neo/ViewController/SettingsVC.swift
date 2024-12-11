@@ -204,7 +204,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
     if NotificationBusiness.sharedInstance.settingsDetailTextAlert {
       cell.detailLabelTextColor = .red
       cell.applyStyles()
-      (cell.customAccessoryView as? UISwitch)?.onTintColor = UIColor(white: 0.95, alpha: 1.0)
+      (cell.customAccessoryView as? UISwitch)?.onTintColor = UIColor(white: 0.6, alpha: 1.0)
     }
     if NotificationBusiness.sharedInstance.settingsLink {
       cell.tapHandler = { NotificationBusiness.sharedInstance.openAppInSystemSettings() }

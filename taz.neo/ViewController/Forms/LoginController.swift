@@ -131,7 +131,7 @@ class LoginController: FormsController {
               }
               
               self.modalFromBottom(expiredForm)
-            case .unlinked:
+            case .unlinked, .unlinkedAbo:
               self.modalFromBottom(AskForTrial_Controller(tazId: tazId,
                                                     tazIdPass: tazIdPass,
                                                     auth: self.auth))
