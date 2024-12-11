@@ -101,7 +101,7 @@ class IssueOverviewService: NSObject, DoesLog {
       return nil
     }
     let issue = issue(at: publicationDate.date)
-    if issue?.pr.isDeleted == true { return nil }
+    if issue?.pr.isDeleted == true || issue?.isFault == true { return nil }
     var img: UIImage?
     let key = publicationDate.date.key(pdf: isFacsimile)
     
@@ -259,6 +259,7 @@ class IssueOverviewService: NSObject, DoesLog {
   ///   - issue: load files for this issue
   ///   - isPdf: load pdf facsimile or moment
   func apiLoadMomentImages(for issue: StoredIssue, isPdf: Bool) {
+    if issue.isFault { return }
     let key = issue.key(pdf: isPdf)
     if loadingIssueImages.contains(key) { return }
     
@@ -325,6 +326,7 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func updateIssue(issue:StoredIssue, isPdf: Bool){
+    if issue.isFault {  return }
     if self.storedImage(issue: issue, isPdf: isPdf) == nil {
       apiLoadMomentImages(for: issue, isPdf: isPdf)
     } else {
@@ -585,6 +587,8 @@ fileprivate extension Bool {
 }
 
 fileprivate extension Issue {
+  var isFault:Bool{ (self as? StoredIssue)?.pr.isFault ?? false }
+  
   func key(pdf:Bool)->String{
     return self.date.key(pdf: pdf)
   }

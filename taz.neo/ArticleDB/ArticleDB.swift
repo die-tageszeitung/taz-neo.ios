@@ -31,9 +31,9 @@ public class ArticleDB: Database {
   /// The managed object context
   public static var context: NSManagedObjectContext { return singleton.context! }
   
-  /// Save the singleton's context
-  public static func save() { singleton.save() }
+  var isShowingDbErrorInfo: Bool = false
   
+  //public static func save() {...isMoved to ArticleDB+SaveErrorHandling
 } // ArticleDB
 
 /// A Protocol to extend CoreData objects
@@ -1867,7 +1867,7 @@ public final class StoredIssue: Issue, StoredObject {
     set { pr.isWeekend = newValue }
   }
   public var moment: Moment {
-    get { StoredMoment(persistent: pr.moment!) }
+    get { StoredMoment(persistent: pr.moment!) }///CrashCount: 1
     set {
       pr.moment = StoredMoment.persist(object: newValue).pr
       pr.moment?.issue = self.pr

@@ -205,7 +205,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     reset(isDelete: true)
   }
   
-  func deleteData() {
+  private func deleteData() {
     for f in Dir.appSupport.scan() {
       debug("remove: \(f)")
       File(f).remove()

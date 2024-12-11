@@ -1337,6 +1337,8 @@ extension Feeder {
       file = issue.moment.facsimile
     }
     else {
+      ///fix race condition bug: demo issue deleted due update, issueservice calls moment crash
+      if (issue as? StoredIssue)?.pr.moment == nil { return nil }
       file = issue.moment.animatedGif
       if isCredited, let highres = issue.moment.creditedHighres {
         file = highres
