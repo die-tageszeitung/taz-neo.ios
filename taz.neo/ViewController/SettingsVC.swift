@@ -964,7 +964,7 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Daten zurücksetzen", style: .destructive,
                                          handler: { _ in
-      TazAppEnvironment.sharedInstance.deleteAll()
+      TazAppEnvironment.sharedInstance.reset(isDelete: true)
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
