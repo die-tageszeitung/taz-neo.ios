@@ -142,6 +142,9 @@ extension PersistentFileEntry: PersistentObject {
     if let fn = name, let sd = subdir {
       let path = "\(Database.appDir)/\(sd)/\(fn)"
       File(path).remove()
+      if name?.contains("bundestalk") == true {
+        debug("Deleted File at \(path)")
+      }
     }
   }
   
@@ -924,6 +927,16 @@ extension PersistentContent: PersistentObject {
       img.removeFromImageContent(self)
       if img.imageContent?.count == 0 { img.delete() }
     }
+    if audioItem?.file?.name?.contains("bundestalk") == true {
+      debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
+    }
+    if audioItem?.referencesCount ?? 0 <= 1 {///Section or Article
+      debug("Delete AutioItem \(audioItem?.file?.name ?? "-") due last Reference")
+      audioItem?.delete()
+    }
+    else {
+      debug("do not Delete AutioItem Reference count \(audioItem?.referencesCount ?? 0)")
+    }
   }
 }
 
@@ -947,7 +960,27 @@ extension PersistentArticle {
   }
 }
 
-extension PersistentPage: PersistentObject {}
+extension PersistentPage: PersistentObject {
+  public override func prepareForDeletion() {
+    super.prepareForDeletion()
+    if audioItem?.file?.name?.contains("bundestalk") == true {
+      debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
+    }
+    if audioItem?.referencesCount ?? 0 <= 1 {
+      debug("Delete AutioItem \(audioItem?.file?.name ?? "-") due last Reference")
+      audioItem?.delete()
+    }
+    else {
+      debug("do not Delete AutioItem Reference count \(audioItem?.referencesCount ?? 0)")
+    }
+  }
+}
+
+extension PersistentAudio {
+  var referencesCount:Int {
+    return content?.count ?? 0 + (page?.count ?? 0)
+  }
+}
 
 /// A stored Article
 public final class StoredArticle: Article, StoredObject {
