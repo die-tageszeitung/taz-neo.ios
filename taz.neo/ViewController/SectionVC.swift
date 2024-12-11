@@ -336,7 +336,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")
       self?.slider?.close()
+      let issueDate = self?.issue.date
       self?.closeIssue()
+      Notification.send(Const.NotificationNames.gotoIssue, content: issueDate , sender: self)
     }
   }
   
