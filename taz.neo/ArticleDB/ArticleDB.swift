@@ -1598,11 +1598,11 @@ public final class StoredSection: Section, StoredObject {
   public var images: [ImageEntry]? { StoredImageEntry.imagesInSection(section: self) }
   public var authors: [Author]? { nil }
   public var articles: [Article]? {
-    var ret: [Article] = []
+    var ret: [StoredArticle] = []
     for case let art as PersistentArticle in self.pr.articles ?? [] {
       ret.append(StoredArticle(persistent: art))
     }
-    return ret
+    return ret.sorted(by: { $0.pr.order < $1.pr.order })
   }
   
   public required init(persistent: PersistentSection) { self.pr = persistent }
