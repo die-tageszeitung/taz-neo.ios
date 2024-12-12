@@ -801,8 +801,8 @@ public final class StoredAudio: Audio, StoredObject {
   }
   
   public var breaks: [Float]?{
-    get { return pr.breaks }
-    set { pr.breaks = newValue }
+    get { return pr.breaks as? [Float] }
+    set { pr.breaks = newValue as NSArray? }
   }
   
   public var content: [Content]?{
@@ -1093,8 +1093,8 @@ public final class StoredArticle: Article, StoredObject {
       .map{StoredAuthor(persistent: $0)}
   }
   public var pageNames: [String]? {
-    get { return pr.pageNames }
-    set { pr.pageNames = newValue }
+    get { return pr.pageNames as? [String] }
+    set { pr.pageNames = newValue as? NSArray }
   }
   
   public var nonBookmarkSections: [StoredSection] {
