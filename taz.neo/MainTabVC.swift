@@ -294,6 +294,7 @@ extension MainTabVC {
     feederContext.updateAuthIfNeeded()
     
     var reloadTargets: [ReloadAfterAuthChanged] = []
+    var bookmarkTVC: BookmarkTVC?
         
     for case let tabNav as UINavigationController in self.viewControllers ?? [] {
       let firstVc = tabNav.viewControllers.first
@@ -315,7 +316,22 @@ extension MainTabVC {
         if search.currentState == .result { reloadTargets.append(search)}
       }
       else if let bookmarks = firstVc as? BookmarkTVC{
-        if bookmarks.navigationController?.viewControllers.last != bookmarks { reloadTargets.append(bookmarks)
+        /// **WARNING**
+        /// Handling of issue-independent bookmarks requires special attention!
+        /// Scenario:
+        /// 1. User is unauthenticated.
+        /// 2. User opens an issue, bookmarks an article
+        /// 3. User accesses the article from the bookmarks, navigates to settings via text settings
+        /// 4. open same issue again and logs in
+        ///
+        /// Potential problem:
+        /// This can lead to parallel downloads of the bookmark list and the issue, resulting in duplicate entries for the same article.
+        /// In tests, this situation caused errors with articles in the issue, requiring the issue to be deleted.
+        ///
+        /// Solution:
+        /// To prevent this, load all bookmarks first, then proceed to load required issues.
+        if Bookmarks.shared.bookmarkedArticles.isEmpty == false {
+          bookmarkTVC = bookmarks
         }
       }
       else if let target = firstVc as? ReloadAfterAuthChanged {
@@ -345,24 +361,43 @@ extension MainTabVC {
                            titleMessage: "\(alertMessage ?? "")\nAktualisiere Daten",
                            bottomMessage: "Bitte haben Sie einen Moment Geduld!",
                            dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
+    
     Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
     }
+    
     Notification.receiveOnce(Const.NotificationNames.feederUnreachable) { _ in
       /// popToRootViewController is no more needed here due its done by reloadTarget.reloadOpened
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
       Toast.show(Localized("error"))
     }
-    onMainAfter(1.0) {
-      for reloadTarget in reloadTargets {
-        reloadTarget.reloadOpened()
-      }
-    }
+    
     onMainAfter(15.0) {
       //dirty hack sometimes reload opened did not work
       //had it unreproduceable in debug, and sendt the following notification enter foreground hock/Breakpoint
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
     }
+    
+    ///same: Bookmarks.shared.bookmarkedArticles.isEmpty == true
+    if bookmarkTVC == nil {
+      onMainAfter(1.0) {
+        for reloadTarget in reloadTargets {
+          reloadTarget.reloadOpened()
+        }
+      }
+      return
+    }
+    ///have bookmarks == load bookmarks before any persisted articles (in issues) to prevent race condition: 2 Articles parallel as normal and demo(public)
+    Notification.receiveOnce(Const.NotificationNames.bookmarksLoaded) {_ in
+      for reloadTarget in reloadTargets {
+        reloadTarget.reloadOpened()
+      }
+    }
+    /// Avoid using `Bookmarks.shared.loadFullArticlesIfNeeded()`here
+    /// Reason: It does not refresh `_articleVC`.
+    /// Recommended approach:
+    /// Use `bookmarkTVC?.reloadOpened()` instead.
+    bookmarkTVC?.reloadOpened()
   }
 }
 
