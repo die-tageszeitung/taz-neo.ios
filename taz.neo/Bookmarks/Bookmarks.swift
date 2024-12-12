@@ -141,7 +141,7 @@ extension Bookmarks {
       Notification.send(Const.NotificationNames.bookmarkChanged, sender: storedArticle)
       
       let msg = "Der Artikel wurde in ihrer Leseliste gespeichert."
-      Toast.show("<h3>\(article.title ?? "")</h3>\(msg)")
+      Toast.show("<h3>\(article.title ?? "")</h3>\(msg)", isDefaultToast: true)
     } else if let storedArticle = bookmarkedArticle {
       removeBookmarked(article: storedArticle, from: bookmarkSection)
     } else {
@@ -170,6 +170,7 @@ extension Bookmarks {
     }
     let msg = "Der Artikel wurde aus ihrer Leseliste entfernt.<br/>Löschen rückgängig durch Antippen"
     Toast.show("<h3>\(article.title ?? "")</h3>\(msg)",
+               isDefaultToast: true,
                minDuration: 0,
                completion: completion)
     Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)

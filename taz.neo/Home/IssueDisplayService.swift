@@ -19,6 +19,9 @@ class IssueDisplayService: NSObject, IssueInfo, DoesLog {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  @Default("reopenArticleSetting")
+  public var reopenArticleSetting: Bool
+  
   var feederContext: FeederContext
   var sissue: StoredIssue
   
@@ -111,21 +114,27 @@ extension IssueDisplayService {
     let lastArticleShown = LastReadBusiness.getLast(for: issue)
     var reopenArticle = true
         
-    if atArticle == nil {
+    if atArticle == nil && reopenArticleSetting == true {
       sectionVC.whenLoaded {
         if reopenArticle, let lastArticle = lastArticleShown.lastArticle, let changed = lastArticleShown.changed{
           reopenArticle = false
           let actions: [UIAlertAction] = [
             Alert.action("Weiterlesen") {_ in
               sectionVC.showArticle(lastArticle)
+              Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Open")
             },
           ]
           let title = "Letzten Artikel erneut öffnen?"
           let msg = "Sie haben auf diesem Gerät am \(changed.date.short) um \(changed.date.timeFromDate) den Artikel \"\(lastArticle.title ?? "")\" geöffnet. Möchten Sie diesen erneut anzeigen?"
-          Alert.actionSheet(title: title, message: msg, actions: actions)
+          Alert.actionSheet(title: title, message: msg, actions: actions, cancelHandler:  { _ in
+            Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Cancel")
+          })
         }
         Notification.send(Const.NotificationNames.articleLoaded)
       }
+    }
+    else if reopenArticleSetting == false {
+      Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Disabled")
     }
     pushDelegate.push(sectionVC, issueInfo: self)
   }

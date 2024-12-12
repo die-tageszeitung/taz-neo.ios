@@ -78,6 +78,8 @@ private let configValues = [
   "articleLineLengthAdjustment": "0",
   "multiColumnOnboardingAnswered" : "false",
   "multiColumnFixedScrolling" : "true",
+  "reopenArticleSetting" : "true",
+  //"defaultToastsDisabled" : "false" NO Default Setting to restore setting over reset!
 ]
 
 private let configValuesLMD = [

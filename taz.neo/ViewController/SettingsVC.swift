@@ -26,6 +26,12 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
+  @Default("reopenArticleSetting")
+  public var reopenArticleSetting: Bool
+  
+  @Default("defaultToastsDisabled")
+  public var defaultToastsDisabled: Bool
+  
   private var orgOvwFields = GqlIssue.ovwFields
   private lazy var failureOvwFields : String = {
     ///WARNING AT FIRST Init Issue Fields, that this would be correct for later Access!!
@@ -177,6 +183,20 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   initialValue: voiceoverControls,
                   onChange: {[weak self] newValue in
     self?.voiceoverControls = newValue })
+  
+  lazy var reopenArticleSettingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Weiterlesen",
+                  detailText: "Letzten Artikel erneut öffnen Abfrage",
+                  initialValue: reopenArticleSetting,
+                  onChange: {[weak self] newValue in
+    self?.reopenArticleSetting = newValue })
+  
+  lazy var defaultToastsDisabledCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Standard Toast Nachrichten",
+                  detailText: "Zeige Toasts bei Bookmarks und PDF Umschaltung",
+                  initialValue: !defaultToastsDisabled,
+                  onChange: {[weak self] newValue in
+    self?.defaultToastsDisabled = !newValue })
   
   lazy var epaperLoadCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Zeitungsansicht immer mit laden",
@@ -765,6 +785,7 @@ extension SettingsVC {
     (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
       smartBackFromArticleCell,
+      reopenArticleSettingCell,
       voiceoverControlsCell,
       memoryUsageCell,
       deleteDatabaseCell,
@@ -791,6 +812,10 @@ extension SettingsVC {
     
     if App.isAlpha && SimpleAuthenticator.getUserData().id == "145489" {
       cells.append(sendFailureRequestCell)
+    }
+    
+    if DefaultAuthenticator.isTazLogin {
+      cells.append(defaultToastsDisabledCell)
     }
     
     return cells

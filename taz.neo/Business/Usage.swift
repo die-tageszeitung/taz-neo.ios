@@ -440,7 +440,8 @@ extension Usage {
            PDFModeSwitchHint = "PDF Mode Switch Hint",
            ConnectionError = "Connection Error",
            FatalError = "Fatal Error",
-           IssueDownloadError = "Issue Download Error"
+           IssueDownloadError = "Issue Download Error",
+           OpenLastArticleAgain = "Open last article again"
     }
     struct drawer {
       enum action_open: String, TrackingEvent {

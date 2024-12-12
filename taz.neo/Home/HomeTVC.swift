@@ -491,7 +491,7 @@ extension HomeTVC {
     }
     Toast.show(self.isFacsimile
     ? "<h2>Zeitungsansicht</h2><p>Sie können jetzt die taz im Layout<br>der Zeitungsansicht lesen.</p>"
-    : "<h2>App-Ansicht</h2><p>Sie können jetzt die taz in der<br>für mobile Geräte<br>optimierten Ansicht lesen.</p>")
+    : "<h2>App-Ansicht</h2><p>Sie können jetzt die taz in der<br>für mobile Geräte<br>optimierten Ansicht lesen.</p>", isDefaultToast: true)
     self.tilesController.reloadVisibleCells()
     self.carouselController.reloadVisibleCells()
     self.carouselController.updateBottomWrapper(for: self.carouselController.centerIndex ?? 0,
