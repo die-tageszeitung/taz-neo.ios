@@ -318,11 +318,6 @@ extension BookmarkTVC {
 // MARK: - BookmarkTVC: Protocol Implementations / Delegate
 
 // MARK: - ScreenTracking
-extension BookmarkTVC: ScreenTracking {
-  public var screenUrl:URL? { URL(path: "bookmarks/list") }
-  public var screenTitle:String? { "Bookmarks List" }
-}
-
 extension BookmarkTVC: DefaultScreenTracking {
   public var defaultScreen: Usage.DefaultScreen? {
     placeholderView.isHidden ? .BookmarksList : .BookmarksEmpty
