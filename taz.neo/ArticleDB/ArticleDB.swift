@@ -1207,18 +1207,8 @@ public final class StoredArticle: Article, StoredObject {
   
   /// Return stored record with given name
   public static func get(file: String) -> [StoredArticle] {
-    ///get article e.g. to update art03848414.public.html to art03848414.html
-    ///var file contains `non public` filename
-    let trimmedName = file.replacingOccurrences(of: ".public.html", with: "")
-                             .replacingOccurrences(of: ".html", with: "")
     let request = fetchRequest
-    if trimmedName.length < 8 {
-      ///Old Version! Demo/Public Articles may need to be deleted after create new entities
-      request.predicate = NSPredicate(format: "html.name = %@", file)
-    }
-    else {
-      request.predicate = NSPredicate(format: "html.name BEGINSWITH %@", trimmedName)
-    }
+    request.predicate = NSPredicate(format: "html.name = %@", file)
     return get(request: request)
   }
   
