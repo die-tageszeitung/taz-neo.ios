@@ -31,7 +31,7 @@ class BookmarksCell: NewContentTableVcCell {
     shareButton.pinSize(CGSize(width: 26, height: 26))
     pin(shareButton.right, to: bookmarkButton.left, dist: -10)
     pin(shareButton.centerY, to: bookmarkButton.centerY)
-    
+    shareButton.isHidden = true
     shareButton.onTapping {[weak self] _ in
       onMainAfter(0.1){[weak self] in ///prevent additional  cell tap due async call
         if let article = self?.article, let self = self {
