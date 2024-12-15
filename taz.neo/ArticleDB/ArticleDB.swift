@@ -1961,6 +1961,7 @@ public final class StoredIssue: Issue, StoredObject {
   /// Overwrite the persistent values
   public func update(from object: Issue) {
     let sendUpdatedDemoIssueNotification = self.status == .reduced && object.status != .reduced
+    var sendUpdateBookmarksNotification: Bool = false
     self.feed = object.feed
     self.date = object.date
     self.validityDate = object.validityDate
@@ -1981,11 +1982,7 @@ public final class StoredIssue: Issue, StoredObject {
     let oldSections = sections
     let oldPages = pages
     
-    var bookmarkedDemoArticleNames:[String] = []
-    
-    if sendUpdatedDemoIssueNotification {
-      bookmarkedDemoArticleNames = self.allArticles.filter{ $0.hasBookmark }.map{($0.html?.name ?? "").replacingOccurrences(of: ".public.", with: ".")}
-    }
+//    var updatedArticles: [StoredArticle] = []
     
     if let secs = object.sections {
       var order: Int32 = 0
@@ -1996,14 +1993,12 @@ public final class StoredIssue: Issue, StoredObject {
         pr.addToSections(ssection.pr)
         order += 1
         if let arts = ssection.articles {
-          for art in arts {
-            if let art = art as? StoredArticle, let name = art.html?.name {
-              if bookmarkedDemoArticleNames.contains(name) {
-                #warning("DB BOOKMARKS MIGRATION")
-//                art.setBookmark(true)
-              }
-              art.pr.addToIssues(self.pr)
+          for case let art as StoredArticle in arts {
+            art.pr.addToIssues(self.pr)
+            if Bookmarks.shared.has(article: art){
+              sendUpdateBookmarksNotification = true
             }
+//            updatedArticles.append(art)
           }
         }
       }
@@ -2051,7 +2046,15 @@ public final class StoredIssue: Issue, StoredObject {
       let mom = StoredMoment(persistent: pr.moment!)
       mom.firstPage = p1
     }
+    
+//    for case let art as StoredArticle in pr.articles ?? [] {///added above with: art.pr.addToIssues(self.pr)//is not persisted yet did not work > itterate again or memorize
+//    for art in updatedArticles {///added above with: art.pr.addToIssues(self.pr)
+//      if Bookmarks.update(article: art) == true {
+//        sendUpdateBookmarksNotification = true
+//      }
+//    }
     if sendUpdatedDemoIssueNotification { Notification.send("updatedDemoIssue") }
+    if sendUpdateBookmarksNotification { Notification.send(Const.NotificationNames.bookmarkChanged) }
   }
   
   /// Return stored record with given name
