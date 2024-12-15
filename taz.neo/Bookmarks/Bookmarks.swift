@@ -113,38 +113,6 @@ extension Bookmarks {
     return bookmarkedArticles.contains{$0.serverId == article.serverId }
   }
   
-  ///contains logic from: func set(article: Article, active: true and func removeBookmarked
-  ///returns true if article had bookmark and was updated
-  static func update(article: StoredArticle) -> Bool{
-    guard let serverId = article.serverId,
-          let oldArticle = shared.bookmarkArticle(forArticleWith: serverId),
-          /*oldArticle.pr != article.pr,*/
-          let bookmarkableArticle = shared.bookmarkableArticle(from: article),
-          let bookmarkSection = shared.bookmarkSection else { return false }
-    print("bookmarks update Article: \(article.title ?? "-")")
-    shared.bookmarkedArticles.removeAll{ $0.serverId == serverId }
-    
-  ///removed old demo Bookmark, @see: removeBookmarked
-    shared.bookmarkedArticles.removeAll{ $0.serverId == serverId }
-    
-    oldArticle.pr.removeFromSections(bookmarkSection.pr)
-    bookmarkSection.pr.removeFromArticles(oldArticle.pr)
-    // Remove the stored article if it no longer belongs to any section
-    if oldArticle.pr.sections?.count == 0 {
-      oldArticle.delete()
-    } else {
-      print("not delete art with file: \(oldArticle.html?.name ?? "-")")
-      print("...")
-    }
-    
-    ///add new Bookmark
-    bookmarkableArticle.pr.addToSections(bookmarkSection.pr)
-    bookmarkSection.pr.addToArticles(bookmarkableArticle.pr)
-    
-    shared.bookmarkedArticles.append(bookmarkableArticle)
-    return true
-  }
-    
   /// Prepares for managing bookmarks across multiple lists
   func set(article: Article, active: Bool, in list: StoredSection? = nil) {
     // Retrieve the existing bookmarked article, if any

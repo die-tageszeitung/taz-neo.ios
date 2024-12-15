@@ -1982,8 +1982,6 @@ public final class StoredIssue: Issue, StoredObject {
     let oldSections = sections
     let oldPages = pages
     
-//    var updatedArticles: [StoredArticle] = []
-    
     if let secs = object.sections {
       var order: Int32 = 0
       for section in secs {
@@ -1998,7 +1996,6 @@ public final class StoredIssue: Issue, StoredObject {
             if Bookmarks.shared.has(article: art){
               sendUpdateBookmarksNotification = true
             }
-//            updatedArticles.append(art)
           }
         }
       }
@@ -2046,13 +2043,6 @@ public final class StoredIssue: Issue, StoredObject {
       let mom = StoredMoment(persistent: pr.moment!)
       mom.firstPage = p1
     }
-    
-//    for case let art as StoredArticle in pr.articles ?? [] {///added above with: art.pr.addToIssues(self.pr)//is not persisted yet did not work > itterate again or memorize
-//    for art in updatedArticles {///added above with: art.pr.addToIssues(self.pr)
-//      if Bookmarks.update(article: art) == true {
-//        sendUpdateBookmarksNotification = true
-//      }
-//    }
     if sendUpdatedDemoIssueNotification { Notification.send("updatedDemoIssue") }
     if sendUpdateBookmarksNotification { Notification.send(Const.NotificationNames.bookmarkChanged) }
   }
