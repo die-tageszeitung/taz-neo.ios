@@ -87,7 +87,7 @@ class LoginController: FormsController {
     let faqAction = self.ui.openFaqAction()
     if App.isLMD {
       Alert.message(title:"",
-                    message:Localized("fragment_login_help_lmd"))
+                    message:Localized("fragment_login_help_lmd"), additionalActions: [faqAction])
     }
     else {
       Alert.message(title:"",
