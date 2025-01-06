@@ -1387,7 +1387,7 @@ public final class StoredPage: Page, StoredObject {
     }
   }
   public var type: PageType {
-    get { return PageType(pr.type!)! }
+    get { return PageType(pr.type ?? "") ?? .unknown }
     set { pr.type = newValue.representation }
   }
   public var frames: [Frame]? { StoredFrame.framesInPage(page: self) }
