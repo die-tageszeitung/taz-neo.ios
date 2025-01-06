@@ -40,11 +40,7 @@ class PwForgottController: FormsController {
       return
     }
     
-    if id.isNumber {
-      ui.idInput.bottomMessage = Localized("abo_id_validation_error_digit")
-      ui.blocked = false
-    }
-    else if !id.isValidEmail(){
+    if !id.isValidEmail(){
       ui.idInput.bottomMessage = Localized("error_invalid_email")
       ui.blocked = false
     }
