@@ -286,6 +286,10 @@ extension Issue {
     return allArticles.firstIndex(where: { art in art.serverId == id })
   }
   
+  func indexOfArticle(with url: URL) -> Int? {
+    return allArticles.firstIndex(where: { art in art.html?.fileName == url.lastPathComponent })
+  }
+  
   func indexOf(article: Article?) -> Int? {
     guard let article = article else { return nil }
     return allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: article) })

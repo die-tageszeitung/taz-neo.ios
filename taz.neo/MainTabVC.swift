@@ -87,6 +87,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
         self?.gotoArticleInIssue(with: data)
         return 
       }
+      else if let data = notif.content as? ArticleLinkOpen {
+        self?.gotoArticleInIssue(with: data.issueDate, articleUrl: data.articleUrl)
+        return
+      }
       guard let article = notif.content as? Article else { return }
       self?.gotoArticleInIssue(article: article)
     }
@@ -156,6 +160,32 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       self?.isLoadingIssueInBackground = false
     }
   }
+  
+  func gotoArticleInIssue(with issueDate: Date, articleUrl: URL) {
+    log("open issue with date: \(issueDate) and Article: \(articleUrl)")
+    guard let issue = self.service.issue(at: issueDate) else {
+      Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: issueDate, articleUrl: articleUrl)
+      }
+      service.download(issueAt: issueDate, withAudio: false)
+      gotoIssue(at: issueDate)
+      return
+    }
+    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+      Notification.receiveOnce("issue") { [weak self] _ in self?.gotoArticleInIssue(with: issueDate, articleUrl: articleUrl)
+      }
+      service.download(issueAt: issueDate, withAudio: false)
+      gotoIssue(at: issueDate)
+      return
+    }
+    
+    guard let issueArtIndex = issue.indexOfArticle(with: articleUrl),
+          let artInTargetIssue = issue.allArticles.valueAt(issueArtIndex) else {
+      gotoIssue(at: issueDate)
+      return
+    }
+    gotoArticleInIssue(article: artInTargetIssue)
+  }
+  
   
   func gotoArticleInIssue(article: Article){
     CoachmarksBusiness.shared.currentCoachmarkView?.closeClosure?()
