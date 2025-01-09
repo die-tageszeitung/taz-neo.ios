@@ -1097,9 +1097,9 @@ fileprivate extension CGSize {
   func sliderWidth(for horizontalSizeClass: UIUserInterfaceSizeClass? = nil) -> CGFloat {
     if horizontalSizeClass ?? UIWindow.keyWindow?.traitCollection.horizontalSizeClass
         == .compact {
-      return self.width
+      return self.width - 28.0
     }
-    return min(self.width, Const.Size.ContentSliderMaxWidth)
+    return min(self.width, Const.Size.ContentSliderMaxWidth + 28.0) - 28.0
   }
 }
 
