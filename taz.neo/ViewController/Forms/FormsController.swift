@@ -142,13 +142,16 @@ class FormsResultController: UIViewController {
     self.isModalInPresentation = true
   }
   
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    updateWidth(UIApplication.shared.windows.first?.bounds.size.width)
+  }
+  
   override var preferredContentSize: CGSize {
     get{
       let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
-      updateViewSize(windowSize)
-      ui.doLayout()
       let h = min(ui.container.frame.size.height, windowSize.height)
-      return  CGSize(width: 640, height: h)
+      return  CGSize(width: min(windowSize.width, 640), height: h)
     }
     set{
       log("not implemented")
@@ -157,35 +160,32 @@ class FormsResultController: UIViewController {
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    updateViewSize(self.view.bounds.size)
+    updateWidth(self.view.bounds.size.width)
   }
     
-  /// Updates the Controllers View Size for changed traits
+  /// Updates the Controllers View Size for changed traits/ or transition to size
   ///
-  /// In this Case height did not matter
+  /// height did not matter
   /// - Parameter newSize: new Size for hosted view
-  func updateViewSize(_ newSize:CGSize){
-    if let constraint = wConstraint{
-      ui.container.removeConstraint(constraint)
+  func updateWidth(_ newWidth: CGFloat?) {
+    guard let newWidth = newWidth else { return }
+    var width = newWidth
+    if Device.isIpad {
+      width = min(width, 640)
     }
-    
-    let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
-    
-    ///Fix Form Sheet Size
-    if newSize.width > 640 && Device.isIpad {
-      let formSheetSize = CGSize(width: 640,
-                                 height: windowSize.height)
-      wConstraint = ui.container.pinWidth(formSheetSize.width, priority: .required)
-    } else {
-      wConstraint = ui.container.pinWidth(newSize.width, priority: .required)
-
+    if wConstraint == nil {
+      wConstraint = ui.container.pinWidth(width,
+                                          priority: .required)
+    }
+    else {
+      wConstraint?.constant = width
     }
   }
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     /// Unfortulatly the presented VC's did not recice the msg. no matter which presentation style
     self.presentedViewController?.viewWillTransition(to: size, with: coordinator)
-    updateViewSize(size)
+    updateWidth(size.width)
   }
   
   
