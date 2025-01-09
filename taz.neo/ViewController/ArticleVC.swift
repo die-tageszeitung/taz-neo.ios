@@ -196,6 +196,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       if art.canPlayAudio {
         updateAudioButton()
       }
+      playButton.isHidden = !art.canPlayAudio
       self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
       self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
       showCoachmarkIfNeeded()
