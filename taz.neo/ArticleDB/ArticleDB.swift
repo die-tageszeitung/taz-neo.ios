@@ -1208,7 +1208,10 @@ public final class StoredArticle: Article, StoredObject {
   /// Return stored record with given name
   public static func get(file: String) -> [StoredArticle] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "html.name = %@", file)
+    let fileNameWithoutExtension = file.replacingOccurrences(of: ".html", with: "")
+    let publicFileName = "\(fileNameWithoutExtension).public.html"
+    let nonPublicFileName = "\(fileNameWithoutExtension).html"
+    request.predicate = NSPredicate(format: "html.name IN %@", [publicFileName, nonPublicFileName])
     return get(request: request)
   }
   
