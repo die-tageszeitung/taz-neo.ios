@@ -117,6 +117,7 @@ extension ArticleExportDialogueItemSource: UIActivityItemSource {
   /// implements UIActivityItemSource function
   /// - Returns: nil due share uses custom applicationActivities
   public func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
+    log("activity type: \(String(describing: activityType))")
     return nil
   }
   
@@ -198,6 +199,8 @@ extension ArticleExportDialogueItemSource: CustomUIActivityActionDelegate {
           return
         }
         saveToFiles(documentUrl: pdfFileUrl, caller: caller)
+        default:
+        log("not implemented: \(caller.type)")
     }
   }
 }
@@ -223,7 +226,8 @@ extension ArticleExportDialogueItemSource {
     let subject = "Aus der \(App.shortName) vom \(article.issueDate?.short ?? "")"
     var intro = ""
     if let title = article.title { intro.append(title.appending("\n")) }
-    if let authors = article.authors() { intro.append(authors.prepend("von ")) }
+    if let authors = article.authors(), !authors.isEmpty { intro.append(authors.prepend("\nvon "))
+    }
     if let online = article.onlineLink { intro.append(online.prepend("\nonline unter:\n")) }
     
     let mailComposer = MFMailComposeViewController()
@@ -241,6 +245,7 @@ extension ArticleExportDialogueItemSource {
   /// Prepares and sends a message with the article content and PDF as an attachment.
   /// - Parameter caller: The activity caller that initiated the message.
   func handleSendMessage(for caller: CustomUIActivity) {
+    ///maybe direct Whatsapp is possible https://stackoverflow.com/a/32392437
     guard MFMessageComposeViewController.canSendText() else {
       log("action abort: cannot send message")
       caller.activityDidFinish(false)
@@ -249,7 +254,8 @@ extension ArticleExportDialogueItemSource {
     let subject = "Aus der \(App.shortName) vom \(article.issueDate?.short ?? "")"
     var intro = ""
     if let title = article.title { intro.append(title.appending("\n")) }
-    if let authors = article.authors() { intro.append(authors.prepend("von ")) }
+    if let authors = article.authors(), !authors.isEmpty { intro.append(authors.prepend("\nvon "))
+    }
     if let online = article.onlineLink { intro.append(online.prepend("\nonline unter:\n")) }
     
     let messageComposer = MFMessageComposeViewController()
@@ -277,7 +283,8 @@ extension ArticleExportDialogueItemSource {
     }
     var text = "Aus der \(App.shortName) vom \(article.issueDate?.short ?? "")"
     if let title = article.title { text.append(title.prepend("\n"))}
-    if let authors = article.authors() { text.append(authors.prepend("\nvon "))}
+    if let authors = article.authors(), !authors.isEmpty { text.append(authors.prepend("\nvon "))
+    }
     if let online = article.onlineLink { text.append(online.prepend("\nonline unter:\n"))}
     
     var pasteboardItems: [[String: Any]]
