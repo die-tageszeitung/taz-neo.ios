@@ -976,7 +976,7 @@ extension SettingsVC {
       onMainAfter { [weak self] in
         self?.refreshAndReload()
         self?.memoryUsageCell.detailTextLabel?.text = self?.storageDetails
-        Notification.send("reloadIssues")
+        TazAppEnvironment.sharedInstance.feederContext?.checkForNewIssues()
       }
     } ) )
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
