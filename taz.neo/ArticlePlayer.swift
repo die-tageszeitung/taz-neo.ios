@@ -114,9 +114,9 @@ class ArticlePlayer: DoesLog {
       = currentContent?.audioItem?.breaks?.isEmpty == false
       
       let articleImage = currentContent?.contentImage
-      let issueImage = currentContent?.contentImage
+      let issueImage = (currentContent as? Article)?.primaryIssue?.image
       aplayer.addLogo = articleImage != nil
-      aplayer.image = articleImage ?? issueImage
+      aplayer.image = articleImage ?? issueImage ?? appIcon
       userInterface.image = articleImage
       
       if aplayer.file != nil {
@@ -130,6 +130,10 @@ class ArticlePlayer: DoesLog {
       userInterface.updateUI()
       updatePlaying()
     }
+  }
+  
+  private var appIcon: UIImage? {
+    UIImage(named: "AppIcon60x60")
   }
   
   private var isDisclaimer: Bool {
@@ -157,8 +161,8 @@ class ArticlePlayer: DoesLog {
     TazAppEnvironment.sharedInstance.audioDisclaimerPlayed = true
     userInterface.slider.value = 0.0
     aplayer.file = disclaimer
-    aplayer.image = UIImage(named: "AppIcon60x60")
-    userInterface.image = UIImage(named: "AppIcon60x60")
+    aplayer.image = appIcon
+    userInterface.image = appIcon
     aplayer.addLogo = false
     userInterface.titleLabel.text = "Hinweis"
     aplayer.artist = "vertonung@taz.de"
