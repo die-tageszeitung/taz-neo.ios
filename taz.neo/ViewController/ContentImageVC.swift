@@ -56,7 +56,8 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   /// Create a ZoomedImage from a pair of images
   private func zoomedImage(pair: (normal: ImageEntry?, high: ImageEntry?)) -> ZoomedImage? {
     guard let normal = pair.normal,
-          let baseUrl = content.baseURL else { return nil }
+          let baseUrl = (content as? SearchArticle)?.baseURL
+            ?? content.baseURL else { return nil }
     let image = ZoomedImage()
     let path = content.dir.path
     image.waitingImage = UIImage(contentsOfFile: "\(path)/\(normal.fileName)")
