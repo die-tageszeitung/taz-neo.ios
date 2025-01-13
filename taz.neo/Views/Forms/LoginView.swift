@@ -137,6 +137,7 @@ public class LoginView : FormView{
         idInput,
         whereIsTheAboId,
         passInput,
+        passForgottButton,
         loginButton]
     }
     

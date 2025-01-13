@@ -133,7 +133,7 @@ class PasswordResetRequestedSuccessController: FormsResultController {
     super.init(nibName: nil, bundle: nil)
     self.dismissType = .two
     ui.views =  [
-      Padded.Label(title: Localized("login_forgot_password_email_sent_header"),
+      Padded.Label(title: App.isLMD ? Localized("login_forgot_password_email_sent_header_lmd") : Localized("login_forgot_password_email_sent_header"),
               paddingTop: 30,
               paddingBottom: 30
       ),

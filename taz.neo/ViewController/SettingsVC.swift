@@ -159,17 +159,19 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     
     var detailText: NSMutableAttributedString
     
+    var defaultText = App.isLMD
+    ? NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem Push-Hinweis, sobald die neue Ausgabe zum Download bereitsteht.")
+    : NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
+    
     switch (isTextNotification, systemNotificationsEnabled) {
       case (true, true):
-        detailText
-        = NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
+        detailText = defaultText
       case (true, false):
         detailText
         = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen  deaktiviert. Diese müssen aktiviert sein, um Mitteilungen zu erhalten.")
         detailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 30, length: 20))
       case (false, true):
-        detailText
-        = NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
+        detailText = defaultText
       case (false, false):
         detailText
         = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen ebenfalls zu aktivieren.")
@@ -675,6 +677,8 @@ extension SettingsVC {
     var cells = [isAuthenticated ? logoutCell : loginCell]
 
     if App.isLMD {
+      cells.append(manageAccountCell)
+      cells.append(resetPasswordCell)
       cells.append(notificationsCell)
       return cells
     }
