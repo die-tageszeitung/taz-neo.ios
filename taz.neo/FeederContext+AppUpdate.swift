@@ -26,6 +26,8 @@ extension FeederContext {
       return
     }
     
+    checkMinVersion()
+    
     guard minVersionOK else {
       enforceUpdate()
       return
@@ -34,6 +36,33 @@ extension FeederContext {
       TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin)
     }
     check4Update()
+  }
+  
+  //ToDo: Ensure this is just done once not on every net status Change
+  public func checkMinVersion(){
+    GqlAppInfo.query(feeder: self.gqlFeeder) { [weak self] res in
+      guard let self else { return }
+      //Test: let fakeMv = GqlAppInfo() // fakeMv.minVersion = "1.4.0"
+      let fakeMv = GqlAppInfo()
+      fakeMv.minVersion = "1.4.0"
+      if let mv = fakeMv ?? res.value() {
+        if let mvs = mv.minVersion {
+          let minVersion = Version(mvs)
+          self.debug("Version check current: \(App.version), server-min:\(mvs)")
+          if App.version < minVersion {
+            self.minVersion = minVersion
+            self.minVersionOK = false
+          }
+          else {
+            self.minVersion = nil
+            self.minVersionOK = true
+          }
+          return
+        }
+        else { self.debug("Server doesn't return minVersion") }
+      }
+      else { self.error("Can't get minimal App version from server") }
+    }
   }
   
   ///Force update called if minVersionOK false after init
@@ -53,12 +82,16 @@ extension FeederContext {
       Ausgaben zu laden, ist mindestens die Version \(minVersion)
       erforderlich. Möchten Sie jetzt eine neue Version laden?
     """
-    Alert.message(title: "Update erforderlich", message: msg){[weak self] in
+    if updateAlert?.message == msg
+        && updateAlert?.view.isVisible == true { return }
+    
+    updateAlert = Alert.message(title: "Update erforderlich", message: msg){[weak self] in
       guard let self else { return }
       if self.simulateFailedMinVersion {
         Defaults.singleton["simulateFailedMinVersion"] = "false"
       }
       store.openInAppStore { closure?() }
+      updateAlert = nil
       /*Discussion former solution 2 Buttons Store & Abbrechen
        Abbrechen exit the App, but this is forbidden!
        @see https://developer.apple.com/forums/thread/63795
@@ -79,7 +112,7 @@ extension FeederContext {
         self.error("Can't find App with bundle ID '\(id)' in AppStore")
         return
       }
-      self.debug("Version check: \(version) current, \(store.version) store")
+      self.debug("Version check current: \(version), store:\(store.version)")
       
       if store.version < version {
         ///set Rating Waiting Days to 1 for RC Testing

@@ -122,6 +122,7 @@ open class FeederContext: DoesLog {
   
   var pollingTimer: Timer?
   var pollEnd: Int64?
+  var updateAlert: AlertController?
   
   ///Helper to handle Network changes
   private(set) var netAvailability: ExtendedNetAvailability
