@@ -72,9 +72,9 @@ class ArticleExportDialogueItemSource: NSObject, DoesLog {
   var article: Article
   /// An image for the share dialogue header (optional).
   var image: UIImage?
-  /// A delegate, e.g., for rendering article PDF.
-  var delegate: ArticleExportDialogueDelegate
   /// A message shown during download, if download required
+  var pdfGenerationService: PdfGenerationService
+  
   var downloadMessagePopup: UIAlertController?
   /// A flag indicating if the download has been canceled by user, to not show share/print dialoge after download
   var downloadCanceledByUser = false
@@ -93,11 +93,11 @@ class ArticleExportDialogueItemSource: NSObject, DoesLog {
   ///   - image: An optional image to include in the share.
   ///   - delegate: The delegate responsible for handling PDF rendering.
   ///   - sourceView: The source view from which the share dialog is presented.
-  init(article: Article, image: UIImage?, delegate: ArticleExportDialogueDelegate, sourceView: UIView) {
+  init(article: Article, image: UIImage?, sourceView: UIView) {
     self.article = article
     self.image = image ?? UIImage(named: App.appIcon(size: "60x60"))
-    self.delegate = delegate
     self.sourceView = sourceView
+    self.pdfGenerationService = PdfGenerationService(article: article)
     super.init()
   }
 }
@@ -151,7 +151,7 @@ extension ArticleExportDialogueItemSource: CustomUIActivityActionDelegate {
   func prepare(caller: CustomUIActivity) {
     switch caller.type {
       case .print, .saveToFiles, .message, .copyToPasteboard, .mail:
-        createPDFfromWebViewIfNeeded()
+        break
       default:
         break
     }
@@ -180,39 +180,36 @@ extension ArticleExportDialogueItemSource: CustomUIActivityActionDelegate {
         }
         caller.activityDidFinish(true)
       case .print:
+        self.pdfGenerationService.createPDF()
         guard let pdfFileUrl = article.generatedArticlePdfURL else {
           caller.activityDidFinish(false)
           return
         }
         Print.print(pdf: pdfFileUrl, finishCallback: caller.activityDidFinish)
       case .copyToPasteboard:
+        self.pdfGenerationService.createPDF()
         handleCopyToPasteboard(for: caller)
       case .paperPdfPrint, .paperPdfSave:
         performPaperPdf(for: caller)
       case .mail:
+        self.pdfGenerationService.createPDF()
         handleSendMail(for: caller)
       case .message:
+        self.pdfGenerationService.createPDF()
         handleSendMessage(for: caller)
       case .saveToFiles:
+        self.pdfGenerationService.createPDF()
         guard let pdfFileUrl = article.generatedArticlePdfURL else {
           caller.activityDidFinish(false)
           return
         }
         saveToFiles(documentUrl: pdfFileUrl, caller: caller)
-        default:
-        log("not implemented: \(caller.type)")
     }
   }
 }
 
 /// Extension for managing the creation of a PDF from a web view.
 extension ArticleExportDialogueItemSource {
-  
-  /// Creates a PDF from the web view content if it hasn't been generated yet.
-  func createPDFfromWebViewIfNeeded() {
-    // Ensure the PDF is up to date (e.g., if the font has changed).
-    delegate.createPDFfromWebView(for: article)
-  }
   
   // MARK: - Mail Send Helper
   /// Prepares and sends an email with the article content and PDF as an attachment.
@@ -396,7 +393,7 @@ extension ArticleExportDialogueItemSource {
     }
     
     // PDF download is required, ensure required information is available.
-    guard let vc = delegate as? ContentVC,
+    guard let dloader = TazAppEnvironment.sharedInstance.feederContext?.dloader,
           let issue = article.primaryIssue,
           let pdf = article.pdf else {
       // If necessary details are missing, notify the caller of failure.
@@ -426,12 +423,12 @@ extension ArticleExportDialogueItemSource {
     }
     
     if let searchArticle = article as? SearchArticle, let baseUrl = searchArticle.baseURL {
-      vc.dloader.downloadSearchHitFiles(files: [pdf],
+      dloader.downloadSearchHitFiles(files: [pdf],
                                         baseUrl: baseUrl,
                                         closure: downloadFinishedCallback)
     }
     else {
-      vc.dloader.downloadIssueFiles(issue: issue, files: [pdf], closure: downloadFinishedCallback)
+      dloader.downloadIssueFiles(issue: issue, files: [pdf], closure: downloadFinishedCallback)
     }
   }
   
@@ -463,12 +460,6 @@ extension ArticleExportDialogueItemSource {
       closure?()
     })
   }
-}
-
-/// A protocol defining a delegate for exporting article HTML as PDFs using web view's content.
-/// This protocol is intended to be adopted by view controllers that can generate a PDF from a
-public protocol ArticleExportDialogueDelegate  where Self: UIViewController{
-  func createPDFfromWebView(for article: Article)
 }
 
 typealias ActivityFinishCallback = ((Bool) -> ())
@@ -506,67 +497,6 @@ extension ArticleExportDialogueItemSource: UIDocumentPickerDelegate {
   
 }
 
-///implementation of ArticleExportDialogueDelegate by ContentVC
-extension ContentVC:ArticleExportDialogueDelegate {
-  ///create printable pdf from current webviev content
-  public func createPDFfromWebView(for article: Article) {
-    let contentOffset:CGPoint = currentWebView?.scrollView.contentOffset ?? .zero
-    
-    guard let printFormatter = currentWebView?.viewPrintFormatter() else {
-      log("cannot create local pdf webview: \(String(describing: currentView))", logLevel: .Error)
-      return
-    }
-    let renderer = CustomPrintPageRenderer()
-    renderer.customText = "\(App.shortName) vom \(issue.date.short)"
-    if let title = article.title {
-      renderer.customText.append(" - \(title.prefix(50))")
-      if title.length > 50 {
-        renderer.customText.append("...")
-      }
-    }
-    
-    // Page bounds for paperformat A4
-    /// 21.0 * 72 / 2,54 #  29.7*72/2,54 => 595,275 # 841,889
-    let pageSize = CGSize(width: 595.2, height: 841.8) // A4 in points (72 DPI)
-    /// 1.5 * 72 / 2,54 #  3*72/2,54 =>  42,519 # 85,039 => 40 & 80
-    let margin: UIEdgeInsets = UIEdgeInsets(top: 30, left: 30, bottom: 60, right: 30)
-    
-    renderer.setValue(NSValue(cgRect: CGRect(x: 0,
-                                             y: 0,
-                                             width: pageSize.width,
-                                             height: pageSize.height)),
-                      forKey: "paperRect")
-    renderer.setValue(NSValue(cgRect: CGRect(x: margin.left,
-                                             y: margin.top,
-                                             width: pageSize.width - (margin.left + margin.right),
-                                             height: pageSize.height - (margin.top + margin.bottom))),
-                      forKey: "printableRect")
-    
-    renderer.addPrintFormatter(printFormatter, startingAtPageAt: 0)
-    
-    let pdfData = NSMutableData()
-    
-    UIGraphicsBeginPDFContextToData(pdfData, CGRect.zero, nil)
-    for i in 0..<renderer.numberOfPages {
-      UIGraphicsBeginPDFPage()
-      let bounds = UIGraphicsGetPDFContextBounds()
-      renderer.drawPage(at: i, in: bounds)
-    }
-    UIGraphicsEndPDFContext()
-    do {
-      try pdfData.write(to: article.generatedArticlePdfTargetURL)
-    } catch {
-      log("Fehler beim Speichern des PDFs: \(error.localizedDescription)")
-    }
-    
-    guard contentOffset.x > 10.0 else { return }
-    ///fix scrollOffset for MultiCloumn View
-    onMainAfter(2.0) {[weak self] in
-      self?.currentWebView?.scrollView.setContentOffset(contentOffset, animated: false)
-    }
-  }
-}
-
 ///just a Wrapper for UIActivityViewController to simplify article sharing
 class ArticleExportDialogue: UIActivityViewController {
   
@@ -583,14 +513,13 @@ class ArticleExportDialogue: UIActivityViewController {
   /// - Parameter delegate: A delegate for additional tasks e.g. download
   /// - Parameter image: An optional image to show in share dialogue header
   /// - Parameter sourceView: The view (e.g., a button) from which the dialogue is presented.
-  static func show(article:Article, delegate: ArticleExportDialogueDelegate, image: UIImage?, sourceView: UIView){
-    let dialogueItemSource = ArticleExportDialogueItemSource(article: article, image: image, delegate: delegate, sourceView: sourceView)
+  static func show(article:Article, image: UIImage?, sourceView: UIView){
+    let dialogueItemSource = ArticleExportDialogueItemSource(article: article, image: image, sourceView: sourceView)
     
     let dialogue = ArticleExportDialogue(itemSource: dialogueItemSource)
     dialogue.presentAt(sourceView)
   }
 }
-
 
 //helper extension for article
 extension Article {
@@ -627,30 +556,10 @@ extension Article {
 
 ///fileprivate helper extension for article
 fileprivate extension Article {
-  /// A computed property that generates the PDF file name based on the article's HTML filename.
-  var pdfFileName: String {
-    guard let htmlFilename = html?.name else { return "tazArtikel.pdf"}
-    return htmlFilename.replacingOccurrences(of: ".html", with: "-app.pdf")
-
-  }
-  
   /// articles online URL, if available
   var onlineLinkUrl: URL? {
     guard let link = self.onlineLink else { return nil }
     return URL(string: link)
-  }
-  
-  /// helper to generate the URL for the article PDF.
-  var generatedArticlePdfTargetURL:URL {
-    return Dir.cache.url.appendingPathComponent(pdfFileName)
-  }
-  
-  /// helper to generate the URL for the article PDF.
-  var generatedArticlePdfURL:URL? {
-    let url = generatedArticlePdfTargetURL
-    let file = File(generatedArticlePdfTargetURL)
-    if file.exists { return url }
-    return nil
   }
   
   ///string for share sheet header
@@ -680,68 +589,5 @@ extension Print {
     printController.present(animated: true, completionHandler: {_,success,_ in
       Log.debug("print done")
     })
-  }
-}
-
-
-/// A custom page renderer that handles drawing a footer on each printed page.
-/// Inherits from `UIPrintPageRenderer` and provides a custom footer with page numbering.
-///
-/// This class is designed to be used when printing documents with a custom footer
-/// that includes the app's name and the page number (e.g., "AppName - 1/5") centered in the footer area.
-class CustomPrintPageRenderer: UIPrintPageRenderer {
-  
-  /// The default height for the footer area in the printed page.
-  let defaultFooterHeight: CGFloat = 50
-  
-  /// The text to be displayed in the footer. By default, it is the app's name.
-  /// It can be modified to include different text as required.
-  var customText: String = App.shortName
-  
-  /// Initializes the `CustomPrintPageRenderer` with a default footer height.
-  /// This constructor sets the footer height to `defaultFooterHeight` and ensures
-  /// that every printed page will have a footer of the specified height.
-  override init() {
-    super.init()
-    self.footerHeight = defaultFooterHeight
-  }
-  
-  /// Draws the footer on the printed page at the given index.
-  ///
-  /// This method calculates the text size and position and then renders the footer text,
-  /// which includes the `customText` and the current page number (`pageIndex + 1`)
-  /// out of the total number of pages (`numberOfPages`), centered at the bottom of the page.
-  ///
-  /// - Parameters:
-  ///   - pageIndex: The index of the current page (zero-based).
-  ///   - footerRect: The rectangle defining the area of the footer on the page.
-  ///
-  /// The text is drawn with the app's name followed by the page number (e.g., "AppName - 1/3"),
-  /// using a small gray font. The text is centered horizontally within the footer area.
-  override func drawFooterForPage(at pageIndex: Int, in footerRect: CGRect) {
-    // Construct the footer text with the app's name and the current page number
-    let footerText = customText.appending(" - \(pageIndex + 1)/\(numberOfPages)")
-    
-    // Define the font and color for the footer text
-    let textFont = Const.Fonts.contentFont(size: 12)  // Small font for the footer
-    let textColor = UIColor.gray  // Gray color for the footer text
-    
-    // Set up the attributes for the text (font and color)
-    let attributes: [NSAttributedString.Key: Any] = [
-      .font: textFont,
-      .foregroundColor: textColor
-    ]
-    
-    // Calculate the size of the text to determine its position
-    let textSize = footerText.size(withAttributes: attributes)
-    
-    // Calculate the point at which to draw the text, centering it in the footer rectangle
-    let drawPoint = CGPoint(
-      x: footerRect.midX - textSize.width / 2,  // Center horizontally
-      y: footerRect.midY - textSize.height / 2  // Center vertically within the footer
-    )
-    
-    // Draw the footer text at the calculated position
-    footerText.draw(at: drawPoint, withAttributes: attributes)
   }
 }

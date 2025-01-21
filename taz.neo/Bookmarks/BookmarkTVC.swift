@@ -179,7 +179,6 @@ extension BookmarkTVC {
     }
     
     ArticleExportDialogue.show(article: article,
-                               delegate: articleVC,
                                image: artImage,
                                sourceView: sourceView)
   }

@@ -290,7 +290,6 @@ class SearchResultsCell: UITableViewCell {
         self?.content?.article.hasBookmark.toggle()
       }
     }
-    shareButton.isHidden = true
     shareButton.onTapping {[weak self] _ in
       onMainAfter(0.1){[weak self] in ///prevent additional  cell tap due async call
         if let content = self?.content, let self = self {

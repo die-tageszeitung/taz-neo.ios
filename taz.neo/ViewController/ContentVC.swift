@@ -636,7 +636,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   func export(article: Article){
     ArticleExportDialogue.show(article: article,
-                               delegate: self,
                                image: article.images?.first?.image(dir: delegate.issue.dir),
                                sourceView: shareButton)
   }

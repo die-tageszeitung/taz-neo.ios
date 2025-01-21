@@ -111,7 +111,6 @@ class SearchController: UIViewController, UIStyleChangeDelegate {
         artVc.index = idx
       }
       ArticleExportDialogue.show(article: hit.article,
-                                 delegate: artVc,
                                  image: hit.article.images?.first?.image(dir: issue.dir),
                                  sourceView: sourceView)
     }

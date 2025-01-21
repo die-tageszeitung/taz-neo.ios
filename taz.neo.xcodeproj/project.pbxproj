@@ -92,6 +92,8 @@
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
 		77A63BDF2AD8271A0047DF5A /* NewInfoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A63BDE2AD8271A0047DF5A /* NewInfoToast.swift */; };
 		77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77AB6B042A02653000C42712 /* NotificationsView.swift */; };
+		77ABEEC22D3AE73F00D0F063 /* PdfGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ABEEC12D3AE73400D0F063 /* PdfGenerationService.swift */; };
+		77ABEEC32D3AE73F00D0F063 /* PdfGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ABEEC12D3AE73400D0F063 /* PdfGenerationService.swift */; };
 		77B993D82AC406F900C7D832 /* Rating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D72AC406F900C7D832 /* Rating.swift */; };
 		77B993DA2AC4706600C7D832 /* Usage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D92AC4706600C7D832 /* Usage.swift */; };
 		77B993DD2AC47F6400C7D832 /* MatomoTracker in Frameworks */ = {isa = PBXBuildFile; productRef = 77B993DC2AC47F6400C7D832 /* MatomoTracker */; };
@@ -387,6 +389,7 @@
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
 		77A63BDE2AD8271A0047DF5A /* NewInfoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewInfoToast.swift; sourceTree = "<group>"; };
 		77AB6B042A02653000C42712 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
+		77ABEEC12D3AE73400D0F063 /* PdfGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfGenerationService.swift; sourceTree = "<group>"; };
 		77B993D72AC406F900C7D832 /* Rating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rating.swift; sourceTree = "<group>"; };
 		77B993D92AC4706600C7D832 /* Usage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Usage.swift; sourceTree = "<group>"; };
 		77BA74642892836600D1039B /* SubscriptionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormView.swift; sourceTree = "<group>"; };
@@ -626,6 +629,7 @@
 		77CB2D1D2A8148C800021804 /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				77ABEEC12D3AE73400D0F063 /* PdfGenerationService.swift */,
 				777607EC2CE6503D0023D3EF /* ArticleExportDialogue.swift */,
 				777607EB2CE6503D0023D3EF /* CustomUIActivity.swift */,
 				77CB2D1F2A8148EA00021804 /* UIAlertAction+Extension.swift */,
@@ -1152,6 +1156,7 @@
 				AE5131722AFBCADB002289E8 /* Usage.swift in Sources */,
 				AE5131732AFBCADB002289E8 /* IssueTilesCvcCell.swift in Sources */,
 				AE5131742AFBCADB002289E8 /* DeviceData.swift in Sources */,
+				77ABEEC32D3AE73F00D0F063 /* PdfGenerationService.swift in Sources */,
 				AE5131752AFBCADB002289E8 /* FeederContext+ResourcesUpdate.swift in Sources */,
 				7758CCBD2B504E7F000B8E30 /* LMdPageArticleCell.swift in Sources */,
 				AE5131762AFBCADB002289E8 /* ArticleDB.swift in Sources */,
@@ -1364,6 +1369,7 @@
 				77E6E9AC2CF880FD00430B83 /* String+Extension.swift in Sources */,
 				77CB2D222A814A3100021804 /* FeederContext+IssueDownload.swift in Sources */,
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,
+				77ABEEC22D3AE73F00D0F063 /* PdfGenerationService.swift in Sources */,
 				7709E3162BEBA70400AC27F3 /* LastReadBusiness.swift in Sources */,
 				7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */,
 				773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */,
@@ -1601,7 +1607,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.4.0;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -1832,7 +1838,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.4.0;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1859,7 +1865,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.4.0;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
