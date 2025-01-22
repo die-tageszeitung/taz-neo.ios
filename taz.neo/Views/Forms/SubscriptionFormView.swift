@@ -134,7 +134,7 @@ public class SubscriptionFormView : FormView{
         Wir haben Ihnen zum Ablauf Ihres \(abo) Informationen zu unseren Abonnements an Ihre E-Mail-Adresse zugesandt.
         Falls Sie diese E-Mail nicht finden können, oder weitere Fragen haben, können Sie jetzt einfach unserem Service-Team eine Nachricht zusenden.
         
-        Für weitere Fragen erreichen Sie unser Service-Team auch unter: fragen@taz.de
+        Für weitere Fragen erreichen Sie unser Service-Team auch unter: app@taz.de
         """
     }
     
