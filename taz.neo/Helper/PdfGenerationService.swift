@@ -40,6 +40,7 @@ class PdfGenerationService: DoesLog {
     }
     
     group.notify(queue: .main) {[weak self] in
+      self?.createPDF()
       self?.debug("PDF preparation complete.")
     }
   }

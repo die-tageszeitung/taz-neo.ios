@@ -109,9 +109,11 @@ extension ArticleExportDialogueItemSource: UIActivityItemSource {
   /// Returns a empty placeholder item for the share sheet.
   /// If using a URL or `Data()` `Save to Files` and `Mail`, `Message`, `AirDrop` is automatically available,
   /// but Mail has only the Filde, no additional Text, Subject and more
+  /// 1.4.0: NSObject()
+  /// Data(), no Facebook Messanger ; Mail Subject works; Message: only File attached
   /// CopyToPasteboard only can handle the URL, otherwise nothing happen
   public func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
-    return NSObject()
+    return Data()// NSString()
   }
   
   /// implements UIActivityItemSource function
@@ -515,9 +517,27 @@ class ArticleExportDialogue: UIActivityViewController {
   /// - Parameter sourceView: The view (e.g., a button) from which the dialogue is presented.
   static func show(article:Article, image: UIImage?, sourceView: UIView){
     let dialogueItemSource = ArticleExportDialogueItemSource(article: article, image: image, sourceView: sourceView)
+    var generator = PdfGenerationService(article: article)
+//    generator.createPDF()
     
-    let dialogue = ArticleExportDialogue(itemSource: dialogueItemSource)
-    dialogue.presentAt(sourceView)
+    onMainAfter(10.0) {
+      print("PDF created? \(generator)")
+      let url = article.generatedArticlePdfURL
+      var vc: UIActivityViewController
+      
+      if let artPdfUrl = url {
+        vc = UIActivityViewController(activityItems: ["Dies ist die erstellte PDF", artPdfUrl], applicationActivities: [])
+      }
+      else {
+        vc = UIActivityViewController(activityItems: ["Ohne PDF"], applicationActivities: [])
+      }
+      
+
+  //    let dialogue = UIActivityViewController(itemSource: [fileURL])
+      vc.presentAt(sourceView)
+    }
+    
+   
   }
 }
 
