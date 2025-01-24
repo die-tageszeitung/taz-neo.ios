@@ -159,9 +159,16 @@ class PdfGenerationService: DoesLog {
                       forKey: "printableRect")
     renderer.addPrintFormatter(printFormatter, startingAtPageAt: 0)
     
+    // Metadaten definieren
+    let pdfMetadata: [String: Any] = [
+      kCGPDFContextTitle as String: "\(article.title ?? "Artikel")",
+      kCGPDFContextAuthor as String: article.authors() ?? "-",
+      kCGPDFContextSubject as String: "taz vom: \(article.issueDate?.short ?? "???")"
+    ]
+    
     // Create the PDF.
     let pdfData = NSMutableData()
-    UIGraphicsBeginPDFContextToData(pdfData, .zero, nil)
+    UIGraphicsBeginPDFContextToData(pdfData, .zero, pdfMetadata)
     
     for pageIndex in 0..<renderer.numberOfPages {
       UIGraphicsBeginPDFPage()

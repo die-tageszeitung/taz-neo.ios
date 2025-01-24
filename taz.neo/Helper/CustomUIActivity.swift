@@ -163,7 +163,7 @@ public enum CustomUIActivityType {
       case .paperPdfSave:  return UIActivity.ActivityType(rawValue: "de.taz.paperPdf.save")
       case .paperPdfPrint:  return UIActivity.ActivityType(rawValue: "de.taz.paperPdf.print")
       case .moreInfo:  return UIActivity.ActivityType(rawValue: "de.taz.share.moreinfo")
-      case .copyToPasteboard:  return UIActivity.ActivityType.copyToPasteboard
+      case .copyToPasteboard:  return UIActivity.ActivityType(rawValue: "de.taz.share.copyToPasteboard")
       case .print:  return UIActivity.ActivityType.print
       case .mail:  return UIActivity.ActivityType(rawValue: "de.taz.share.mail")
       case .message:  return UIActivity.ActivityType(rawValue: "de.taz.share.message")
@@ -207,12 +207,14 @@ class CustomUIActivityFactory {
       items.append(CustomUIActivity(type: .message, delegate: delegate))
     }
     
-    if article.onlineLink?.isEmpty == false {///add 'Open in Safari' activity if available.
+    if article.onlineLink?.isEmpty == true {//add custom save to files due original one is not available
+      items.append(CustomUIActivity(type: .saveToFiles, delegate: delegate))
+    }
+    else {///add 'Open in Safari' activity if available.
       items.append(CustomUIActivity(type: .openInSafari, delegate: delegate))
     }
     
     items.append(CustomUIActivity(type: .print, delegate: delegate))
-    items.append(CustomUIActivity(type: .saveToFiles, delegate: delegate))
     
     if article.pdf != nil {
       items.append(CustomUIActivity(type: .paperPdfPrint, delegate: delegate))

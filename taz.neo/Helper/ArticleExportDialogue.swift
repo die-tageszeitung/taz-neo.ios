@@ -67,7 +67,6 @@ import UniformTypeIdentifiers
 /// providing empty `NSObject()` as Placeholder and nil for `itemForActivityType`
 /// Implements: UIActivityItemSource
 class ArticleExportDialogueItemSource: NSObject, DoesLog {
-  
   /// The article to share.
   var article: Article
   /// An image for the share dialogue header (optional).
@@ -107,18 +106,80 @@ extension ArticleExportDialogueItemSource: UIActivityItemSource {
   
   /// implements UIActivityItemSource function
   /// Returns a empty placeholder item for the share sheet.
-  /// If using a URL or `Data()` `Save to Files` and `Mail`, `Message`, `AirDrop` is automatically available,
-  /// but Mail has only the Filde, no additional Text, Subject and more
-  /// CopyToPasteboard only can handle the URL, otherwise nothing happen
+  /// for NSObject() no extra share options are available
+  /// for Data, NSString(), "" Save to Files, Mail, Message, AirDrop is automatically available
+  /// implement dataTypeIdentifierForActivityType for more default share options e.g. WharsApp, Facebook, Pocket
   public func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
-    return NSObject()
+    ///prevent extended share e.g. facebook... for articles without online link
+    ///do not share the local pdf in such cases
+    return article.onlineLink ?? NSObject()
   }
   
   /// implements UIActivityItemSource function
+  /// For Mail return: [ UTType.plainText.identifier: shareText,  UTType.pdf.identifier:
+  /// Data(contentsOf: pdfURL) adds text and file but file named as PDF-Dokument-1.pdf
+  ///..so just send text Mail, due it maybe already has recipient
   /// - Returns: nil due share uses custom applicationActivities
   public func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
-    log("activity type: \(String(describing: activityType))")
-    return nil
+    debug("activity type: \(String(describing: activityType))")
+    switch activityType {
+      case _ where activityType?.rawValue.hasPrefix("com.apple.mobilenotes.") == true,
+        _ where activityType?.rawValue.hasPrefix("com.apple.reminders.") == true,
+          .message,
+          .mail:
+        ///if no online Link is available e.g. for Rätsel, Tom
+        ///non wide sharing Apps can use local PDF
+        ///But usually this did not happen currently due placeholder item is NSObject()
+        ///and this option is not offered
+        if let txt = shareTextIfLinkAvailable { return txt }
+        self.pdfGenerationService.createPDF()
+        return article.generatedArticlePdfURL
+      case _ where activityType?.rawValue.hasPrefix("com.facebook") == true:
+        return shareTextIfLinkAvailable
+      case _ where activityType?.rawValue.hasPrefix("com.apple.DocumentManagerUICore") == true,
+        _ where activityType?.rawValue.hasPrefix("com.adobe.") == true:
+        self.pdfGenerationService.createPDF()
+        return article.generatedArticlePdfURL
+      case .airDrop:
+        if let url = article.onlineLinkUrl { return url }
+        self.pdfGenerationService.createPDF()///usually not reachable due placeholder NSObject() did not offer airDrop
+        return article.generatedArticlePdfURL
+      default:
+        return article.onlineLinkUrl ///Just the URL e.g. for Bookmark Tools, Browser
+    }
+  }
+
+  var shareTextIfLinkAvailable: String? {
+    guard article.onlineLinkUrl != nil else { return nil }
+    return shareText
+  }
+  
+  var shareText: String {
+    var text = "Aus der \(App.shortName) vom \(article.issueDate?.short ?? "")"
+    if let title = article.title { text.append(title.prepend("\n"))}
+    if let authors = article.authors(), !authors.isEmpty {
+      text.append(authors.prepend("\nvon "))
+    }
+    if let online = article.onlineLink { text.append(online.prepend("\nonline unter:\n"))}
+    return text
+  }
+  
+  func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String {
+    return "Aus der \(App.shortName) vom \(article.issueDate?.short ?? "")"
+  }
+
+  func activityViewController(_ activityViewController: UIActivityViewController, dataTypeIdentifierForActivityType activityType: UIActivity.ActivityType?) -> String {
+    guard #available(iOS 14.0, *) else { return "" }
+    
+    switch activityType {
+      case _ where activityType?.rawValue.hasPrefix("com.adobe.") == true,
+           _ where activityType?.rawValue.contains("pdf") == true:
+        return UTType.pdf.identifier
+      case _ where activityType?.rawValue.contains("Mail") == true:
+        return UTType.content.identifier
+      default:
+        return UTType.plainText.identifier
+    }
   }
   
   /// Generates metadata for the share sheet header.
@@ -367,7 +428,6 @@ extension ArticleExportDialogueItemSource {
         Print.print(pdf: pdfUrl) { success in
           caller.activityDidFinish(success)
         }
-        
       case .paperPdfSave:
         // Save the PDF to Files
         saveToFiles(documentUrl: pdfUrl, caller: caller)
@@ -494,7 +554,6 @@ extension ArticleExportDialogueItemSource: UIDocumentPickerDelegate {
   func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
     caller?.activityDidFinish(true)
   }
-  
 }
 
 ///just a Wrapper for UIActivityViewController to simplify article sharing
@@ -505,6 +564,16 @@ class ArticleExportDialogue: UIActivityViewController {
   init(itemSource: ArticleExportDialogueItemSource){
     super.init(activityItems: [itemSource],
                applicationActivities: CustomUIActivityFactory.createAvailableApplicationActivities(with: itemSource))
+    self.excludedActivityTypes = [
+      ///custom copy action with Text and PDF
+      .copyToPasteboard,
+      ///has no effect no matter what returned, its just a empty note
+      UIActivity.ActivityType("com.apple.sharing.quick-note"),
+    ]
+    ///Original SaveToFiles could not be excluded
+    ///ensure save to files is available for every article (even if no online link) by using  custom handler
+    ///UIActivity.ActivityType("com.apple.DocumentManagerUICore.SaveToFiles")
+    ///so only add its custom share option for non online Link articles
   }
   
   /// Static function to present the `ArticleExportDialogue`.
@@ -541,14 +610,14 @@ extension Article {
   ///message for potentially not available share options
   var shareInfoMessage: String? {
     let printInfo = "Die Optionen \"Drucken\" und \"In Dateien sichern\" erzeugt auf Ihrem \(Device.singleton.description) ein PDF mit den aktuellen Schrifteinstellungen. Wenn Sie also größere oder kleinere Schrift in dem PDF bevorzugen, stellen Sie diese bitte vorher um."
-    if onlineLink?.isEmpty == true &&  pdf == nil {
-      return "Für diesen Artikel existiert leider kein Online-Link oder ein PDF der Zeitungsansicht. Sie können jedoch ein PDF aus der Artikelansicht erstellen, speichern oder teilen.".appending("\n\(printInfo)")
+    if onlineLinkUrl == nil &&  pdf == nil {
+      return "Für diesen Artikel existiert leider kein Online-Link oder ein PDF der Zeitungsansicht. Sie können jedoch ein PDF aus der Artikelansicht erstellen, speichern oder teilen.".appending("\n\n\(printInfo)")
     }
-    else if onlineLink?.isEmpty == true {
-      return "Für diesen Artikel existiert leider kein Online-Link. Sie können jedoch das PDF speichern oder teilen.".appending("\n\(printInfo)")
+    else if onlineLinkUrl == nil  {
+      return "Für diesen Artikel existiert leider kein Online-Link. Daher fehlen einige Auswahlmöglichkeiten zum teilen.\nSie können jedoch das PDF speichern oder teilen.".appending("\n\n\(printInfo)")
     }
     else if pdf == nil {
-      return "Für diesen Artikel existiert leider kein PDF der Zeitungsansicht. Sie können jedoch den Online Link teilen sowie ein PDF aus der Artikelansicht erstellen, speichern oder teilen".appending("\n\(printInfo)")
+      return "Für diesen Artikel existiert leider kein PDF der Zeitungsansicht. Sie können jedoch den Online Link teilen sowie ein PDF aus der Artikelansicht erstellen, speichern oder teilen".appending("\n\n\(printInfo)")
     }
     return printInfo
   }
@@ -558,7 +627,8 @@ extension Article {
 fileprivate extension Article {
   /// articles online URL, if available
   var onlineLinkUrl: URL? {
-    guard let link = self.onlineLink else { return nil }
+    guard let link = self.onlineLink,
+          link.isEmpty == false else { return nil }
     return URL(string: link)
   }
   
