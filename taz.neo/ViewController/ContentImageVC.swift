@@ -132,9 +132,10 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   }
   
   private func setupImageCollectionVC() {
-    self.xButton.isHidden = true
-    self.onTap { [weak self] (_,_,_) in self?.xButton.isHidden.toggle() }
-    self.view.onTapping { [weak self] _ in self?.xButton.isHidden.toggle() }//Background Tap
+    ///permanent show close x button!
+//    self.xButton.isHidden = true
+//    self.onTap { [weak self] (_,_,_) in self?.xButton.isHidden.toggle() }
+//    self.view.onTapping { [weak self] _ in self?.xButton.isHidden.toggle() }//Background Tap
     self.onX { [weak self] in self?.toCloseClosure?() }
     self.onDisplay { [weak self] (idx, _, _) in
       guard let self = self else { return }
