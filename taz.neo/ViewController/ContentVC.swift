@@ -540,10 +540,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                         object: nil)
         self.imageOverlay?.onClose {[weak self] in
-          // reset orientation to portrait //no negative effect on iPad
+          self?.imageOverlay = nil///former we had a delayed set nil
+          guard Device.isIphone else { return }
+          /// reset orientation to portrait, really no negative effect on iPad?
           UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-          ///delay until the rotation has been propagated
-          onMainAfter(1.42) {[weak self] in self?.imageOverlay = nil }
         }
         imgVC.toClose {[weak self] in
           self?.imageOverlay?.close(animated: true, toBottom: true)
