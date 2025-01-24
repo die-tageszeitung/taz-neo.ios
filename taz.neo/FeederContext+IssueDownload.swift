@@ -151,7 +151,9 @@ extension FeederContext {
     if let dlId = dlId {
       let nsec = UsTime.now.timeInterval - tstart.timeInterval
       debug("Sending stop of download to server")
-      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec){_ in}
+      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec){[weak self] _ in
+        self?.cleanupOldIssues()
+      }
     }
   }
   

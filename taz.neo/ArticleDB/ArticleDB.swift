@@ -79,7 +79,10 @@ public extension StoredObject {
   
   /// Delete the object from the persistent store
   func deletePersistent() { pr.delete() }
-  func delete() { deletePersistent() }
+  func delete() {
+    Notification.send("issueProgress", content: "deleted", sender: self)
+    deletePersistent()
+  }
   
   /// Create a new persistent record
   static func newPersistent() -> PO {
@@ -2223,6 +2226,7 @@ public final class StoredIssue: Issue, StoredObject {
           continue
         }
         if issue.reduceToOverview() {
+          Notification.send("issueProgress", content: "deleted", sender: issue)
           reduceToOverviewIssueDates.append(issue.safeDate?.short ?? "-")
         }
       }

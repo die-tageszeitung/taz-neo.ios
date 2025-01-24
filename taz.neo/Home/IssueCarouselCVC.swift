@@ -386,7 +386,10 @@ extension IssueCarouselCVC {
     Notification.receive("issueProgress", closure: { [weak self] notif in
       guard let key = self?.centerIssueDateKey,
             (notif.object as? Issue)?.date.issueKey == key else { return }
-      if let (loaded,total) = notif.content as? (Int64,Int64) {
+      if (notif.content as? String) == "deleted" {
+        self?.downloadButton.indicator.downloadState = .notStarted
+      }
+      else if let (loaded,total) = notif.content as? (Int64,Int64) {
         let percent = Float(loaded)/Float(total)
         if percent > 0.05 {
           if percent != 1.0 {
