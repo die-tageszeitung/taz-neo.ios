@@ -16,7 +16,6 @@ class SearchController: UIViewController, UIStyleChangeDelegate {
   
   private var defaultSection: SearchSection
   private var searchResultIssue: SearchResultIssue
-  private var lastArticleShown: Article?
   
   private var articleVC:SearchResultArticleVc
   
@@ -196,7 +195,7 @@ class SearchController: UIViewController, UIStyleChangeDelegate {
   // MARK: *** Lifecycle ***
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    if let lastArticle = lastArticleShown,
+    if let lastArticle = articleVC.article,
        let hitList = searchItem.searchHitList,
        let idx = hitList.firstIndex(where: { lastArticle.isEqualTo(otherArticle: $0.article)}) {
       resultsTable.scrollToRow(at: IndexPath(row: idx, section:0 ), at: .top, animated: false)
@@ -448,8 +447,8 @@ extension SearchController: ArticleVCdelegate {
   }
   
   public var article: Article? {
-    get { return lastArticleShown }
-    set { lastArticleShown = newValue }
+    get { return articleVC.article }
+    set {  }
   }
   
   public var article2section: [String : [Section]] {
