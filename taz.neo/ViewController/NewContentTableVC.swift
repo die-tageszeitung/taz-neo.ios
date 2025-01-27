@@ -577,7 +577,17 @@ class NewContentTableVcCell: UITableViewCell {
     bottomLabel.attributedText = attributedString
     
     titleLabel.text = article?.title
-    customTextLabel.text = article?.teaser
+
+    if let teaserText = article?.teaser,
+       teaserText.contains("🐾") == true {
+      let attributedText = NSMutableAttributedString(string: teaserText)
+      let logoRange = (teaserText as NSString).range(of: "🐾")
+      attributedText.addAttribute(.font, value: Const.Fonts.tazFont(), range: logoRange)
+      customTextLabel.attributedText = attributedText
+    }
+    else {
+      customTextLabel.text = article?.teaser
+    }
     
     bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
     bookmarkButton.tintColor = Const.Colors.appIconGrey

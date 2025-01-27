@@ -415,7 +415,10 @@ public struct Const {
         print("found font: \(name).woff")
       }
     }
-    
+
+    static var tazRegular: String? = UIFont.register(name: "TazWt05-Regular", type: "woff", subDir: "files")
+    static var tazSemiBold: String? = UIFont.register(name: "TazWt06-SemiBold", type: "woff", subDir: "files")
+    static var tazBold: String? = UIFont.register(name: "TazWt07-Bold", type: "woff", subDir: "files")
     static var quaTextRegularI: String? = UIFont.register(name: "QuaText-RegularItalic", type: "woff", subDir: "files")
     static var quaTextRegular: String? = UIFont.register(name: "QuaText-Regular", type: "woff", subDir: "files")
     static var quaTextB: String? = UIFont.register(name: "QuaText-Bold", type: "woff", subDir: "files")
@@ -457,6 +460,9 @@ public struct Const {
     
     static var contentTableFontName = titleFontName
     static var contentTextFont = quaTextRegular
+    static var tazFont = tazRegular
+    static var tazFontSemiBold = tazSemiBold
+    static var tazFontBold = tazBold
 
     static func font(name: String?, size: CGFloat) -> UIFont {
       var font: UIFont? = nil
@@ -480,6 +486,17 @@ public struct Const {
     /// The font to use in content tables
     static func contentTextFont(size: CGFloat = Const.Size.DefaultFontSize) -> UIFont
     { return font(name: contentTextFont, size: size) }
+
+    static func tazFont(size: CGFloat = Const.Size.DefaultFontSize) -> UIFont
+    { return font(name: tazFont, size: size) }
+    
+    static func tazFontSemiBold(size: CGFloat = Const.Size.DefaultFontSize) -> UIFont
+    { return font(name: tazFontSemiBold, size: size) }
+    
+    static func tazFontBold(size: CGFloat = Const.Size.DefaultFontSize) -> UIFont
+    { return font(name: tazFontBold, size: size) }
+
+    
     
     /// The font to use in modals
     static func marketingHeadFont(size: CGFloat = 30.0) -> UIFont
