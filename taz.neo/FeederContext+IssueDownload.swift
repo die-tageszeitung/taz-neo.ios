@@ -90,6 +90,7 @@ extension FeederContext {
     if self.isConnected {
       gqlFeeder.issues(feed: issue.feed, 
                        date: issue.date,
+                       key: issue.key,
                        count: 1,
                        isPages: loadPages, 
                        withAudio: withAudio) { res in
