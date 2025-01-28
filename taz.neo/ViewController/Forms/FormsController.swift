@@ -150,6 +150,8 @@ class FormsResultController: UIViewController {
   override var preferredContentSize: CGSize {
     get{
       let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
+      updateWidth(windowSize.width)
+      ui.doLayout()
       let h = min(ui.container.frame.size.height, windowSize.height)
       return  CGSize(width: min(windowSize.width, 640), height: h)
     }
