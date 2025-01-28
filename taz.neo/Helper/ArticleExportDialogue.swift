@@ -123,8 +123,25 @@ extension ArticleExportDialogueItemSource: UIActivityItemSource {
   public func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
     debug("activity type: \(String(describing: activityType))")
     switch activityType {
+        /** **Share Text+Link; if no link local PDF* */
       case _ where activityType?.rawValue.hasPrefix("com.apple.mobilenotes.") == true,
         _ where activityType?.rawValue.hasPrefix("com.apple.reminders.") == true,
+        _ where activityType?.rawValue.hasPrefix("com.google.Gmail.ShareExtension") == true,
+        _ where activityType?.rawValue.hasPrefix("com.iwilab.KakaoTalk.Share") == true,
+        _ where activityType?.rawValue.hasPrefix("com.hammerandchisel.discord.Share") == true,
+        _ where activityType?.rawValue.hasPrefix("com.facebook.Messenger.ShareExtension") == true,
+        _ where activityType?.rawValue.hasPrefix("net.whatsapp.WhatsApp.ShareExtension") == true,
+        _ where activityType?.rawValue.hasPrefix("com.tinyspeck.chatlyio.share") == true, // Slack!
+        _ where activityType?.rawValue.hasPrefix("ph.telegra.Telegraph.Share") == true,
+        _ where activityType?.rawValue.hasPrefix("pinterest.ShareExtension") == true,
+        _ where activityType?.rawValue.hasPrefix("pinterest.ActionExtension") == true,
+        _ where activityType?.rawValue.hasPrefix("com.toyopagroup.picaboo.share") == true, // Snapchat!
+        _ where activityType?.rawValue.hasPrefix("com.fogcreek.trello.trelloshare") == true,
+        _ where activityType?.rawValue.hasPrefix("com.hammerandchisel.discord.Share") == true,
+        _ where activityType?.rawValue.hasPrefix("com.wearezeta.zclient.ios.extension-share") == true,//wire
+          .copyToPasteboard,
+          .postToTwitter,
+          .postToTencentWeibo,
           .message,
           .mail:
         ///if no online Link is available e.g. for Rätsel, Tom
@@ -134,16 +151,31 @@ extension ArticleExportDialogueItemSource: UIActivityItemSource {
         if let txt = shareTextIfLinkAvailable { return txt }
         self.pdfGenerationService.createPDF()
         return article.generatedArticlePdfURL
+        /** **Share Text+Link; if no link Nothing e.g. Social Media & TOM* may be disabled in excluded Items*/
       case _ where activityType?.rawValue.hasPrefix("com.facebook") == true:
         return shareTextIfLinkAvailable
+        /** **Share local PDF* */
       case _ where activityType?.rawValue.hasPrefix("com.apple.DocumentManagerUICore") == true,
-        _ where activityType?.rawValue.hasPrefix("com.adobe.") == true:
+        _ where activityType?.rawValue.hasPrefix("com.adobe.") == true,
+        _ where activityType?.rawValue.hasPrefix("com.apple.CloudDocsUI.AddToiCloudDrive") == true,
+        _ where activityType?.rawValue.hasPrefix("com.apple.mobilenotes.SharingExtension") == true,
+        _ where activityType?.rawValue.hasPrefix("com.apple.reminders.RemindersEditorExtension") == true,
+        _ where activityType?.rawValue.hasPrefix("com.apple.mobilenotes.SharingExtension") == true,
+        _ where activityType?.rawValue.hasPrefix("com.amazon.Lassen.SendToKindleExtension") == true,
+        _ where activityType?.rawValue.hasPrefix("com.google.Drive.ShareExtension") == true,
+        _ where activityType?.rawValue.hasPrefix("com.getdropbox.Dropbox.ActionExtension") == true,
+          .print,
+          .openInIBooks,
+          .markupAsPDF:
         self.pdfGenerationService.createPDF()
         return article.generatedArticlePdfURL
+        /** **Share Link; if no link local PDF* */
       case .airDrop:
         if let url = article.onlineLinkUrl { return url }
         self.pdfGenerationService.createPDF()///usually not reachable due placeholder NSObject() did not offer airDrop
         return article.generatedArticlePdfURL
+        /** **Share Link** */
+        /// also: .addToReadingList,  .postToFacebook, com.google.chrome.ios.ShareExtension, com.linkedin.LinkedIn.ShareExtension
       default:
         return article.onlineLinkUrl ///Just the URL e.g. for Bookmark Tools, Browser
     }
@@ -564,16 +596,54 @@ class ArticleExportDialogue: UIActivityViewController {
   init(itemSource: ArticleExportDialogueItemSource){
     super.init(activityItems: [itemSource],
                applicationActivities: CustomUIActivityFactory.createAvailableApplicationActivities(with: itemSource))
-    self.excludedActivityTypes = [
-      ///custom copy action with Text and PDF
-      .copyToPasteboard,
-      ///has no effect no matter what returned, its just a empty note
-      UIActivity.ActivityType("com.apple.sharing.quick-note"),
-    ]
+    self.excludedActivityTypes = excludedActivityTypes(for: itemSource.article)
+  }
+  
+  
+  func excludedActivityTypes(for article: Article) -> [UIActivity.ActivityType]? {
     ///Original SaveToFiles could not be excluded
     ///ensure save to files is available for every article (even if no online link) by using  custom handler
     ///UIActivity.ActivityType("com.apple.DocumentManagerUICore.SaveToFiles")
-    ///so only add its custom share option for non online Link articles
+    ///so only add its custom share option for non online Link articles @see CustomUIActivityFactory
+    
+    ///permanent excluded types
+    var excludedTypes = [
+      .copyToPasteboard,///custom copy action with Text and PDF
+      UIActivity.ActivityType.assignToContact,
+      UIActivity.ActivityType.postToWeibo,
+      UIActivity.ActivityType.postToVimeo,
+      UIActivity.ActivityType.postToFlickr,
+      UIActivity.ActivityType.saveToCameraRoll,
+      UIActivity.ActivityType(rawValue: "com.google.inbox.ShareExtension"),
+      UIActivity.ActivityType(rawValue: "com.google.hangouts.ShareExtension"),
+      UIActivity.ActivityType(rawValue: "com.nhncorp.NaverSearch.ShareExtension"),
+      UIActivity.ActivityType(rawValue: "com.riffsy.RiffsyKeyboard.RiffsyShareExtension"), //GIF Keyboard by Tenor
+      UIActivity.ActivityType(rawValue: "com.ifttt.ifttt.share"),
+      UIActivity.ActivityType(rawValue: "us.zoom.videomeetings.Extension"),
+      UIActivity.ActivityType("com.apple.sharing.quick-note") ///has no effect no matter what returned, its just a empty note
+    ]
+    
+    ///additionally excluded, if online link is nil maybe some are already self-excluded due
+    ///Placeholder is  **article.onlineLink ?? NSObject()**
+    if article.onlineLinkUrl == nil {
+      excludedTypes.append(contentsOf: [
+        UIActivity.ActivityType.postToTwitter,
+        UIActivity.ActivityType.postToTencentWeibo,
+        UIActivity.ActivityType(rawValue: "com.google.Gmail.ShareExtension"),
+        UIActivity.ActivityType(rawValue: "com.iwilab.KakaoTalk.Share"),
+        UIActivity.ActivityType(rawValue: "com.hammerandchisel.discord.Share"),
+        UIActivity.ActivityType(rawValue: "com.facebook.Messenger.ShareExtension"),
+        UIActivity.ActivityType(rawValue: "net.whatsapp.WhatsApp.ShareExtension"),
+        UIActivity.ActivityType(rawValue: "com.tinyspeck.chatlyio.share"), // Slack!
+        UIActivity.ActivityType(rawValue: "ph.telegra.Telegraph.Share"),
+        UIActivity.ActivityType(rawValue: "pinterest.ShareExtension"),
+        UIActivity.ActivityType(rawValue: "pinterest.ActionExtension"),
+        UIActivity.ActivityType(rawValue: "com.toyopagroup.picaboo.share"), // Snapchat!
+        UIActivity.ActivityType(rawValue: "com.fogcreek.trello.trelloshare"),
+        UIActivity.ActivityType(rawValue: "com.hammerandchisel.discord.Share")
+      ])
+    }
+    return excludedTypes
   }
   
   /// Static function to present the `ArticleExportDialogue`.
@@ -624,7 +694,7 @@ extension Article {
 }
 
 ///fileprivate helper extension for article
-fileprivate extension Article {
+extension Article {
   /// articles online URL, if available
   var onlineLinkUrl: URL? {
     guard let link = self.onlineLink,
@@ -633,7 +703,7 @@ fileprivate extension Article {
   }
   
   ///string for share sheet header
-  var shareOptions: String {
+  fileprivate var shareOptions: String {
     if self.onlineLink?.isEmpty == true { return "Drucken/Exportieren"}
     return "Teilen/Drucken/Sichern"
   }

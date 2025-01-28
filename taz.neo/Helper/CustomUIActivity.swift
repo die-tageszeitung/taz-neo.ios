@@ -207,7 +207,7 @@ class CustomUIActivityFactory {
       items.append(CustomUIActivity(type: .message, delegate: delegate))
     }
     
-    if article.onlineLink?.isEmpty == true {//add custom save to files due original one is not available
+    if article.onlineLinkUrl == nil {//add custom save to files due original one is not available
       items.append(CustomUIActivity(type: .saveToFiles, delegate: delegate))
     }
     else {///add 'Open in Safari' activity if available.
