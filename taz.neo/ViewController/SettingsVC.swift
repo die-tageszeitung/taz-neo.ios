@@ -912,7 +912,7 @@ extension SettingsVC {
     else if let cLink = status.cancellationLink,
               !cLink.isEmpty,
             let url = URL(string: cLink){
-      text = "Webseite zum Löschen Ihres Konto aufrufen?"
+      text = "Webseite zum Löschen Ihres Kontos aufrufen?"
       actionButton = UIAlertAction.init( title: "Webseite öffnen",
                                          style: .default,
                                          handler: { _ in
