@@ -140,8 +140,15 @@ class TrialSubscriptionController : FormsController {
               Alert.message(message: Localized("toast_login_failed_retry"))
               self.log("Succeed with status: \(info.status) message: \(info.message ?? "-")")
         }
-        case .failure:
-          Alert.message(title: "Fehler", message: Localized("toast_login_failed_retry"))
+        case .failure(let error):
+          if error is URLError {
+            Alert.message(title: "Fehler", message: Localized("communication_breakdown"))
+          } else {
+            ///"toast_login_failed_retry" = "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.";
+            ///"toast_login_wrong_retry" = "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben und versuchen Sie es erneut.";
+            ///"something_went_wrong_try_later" = "Etwas unerwartetes ist passiert. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut.";
+            Alert.message(title: "Fehler", message: Localized("something_went_wrong_try_later"))
+          }
       }
       self.ui.blocked = false
     })
