@@ -141,7 +141,7 @@ class PasswordValidator: DoesLog {
   
   func checkAlternate(password: String, mail: String?) -> passwordQuality  {
     log("use alternative password check")
-    return password.length > 11
+    return password.trimed.length > 11
     ? (true, nil, PasswordStrengthLevel.height)
     : (false, "Das Passwort muss mindestens 12 Zeichen lang sein.", PasswordStrengthLevel.none)
   }
