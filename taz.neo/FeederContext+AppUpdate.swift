@@ -48,7 +48,7 @@ extension FeederContext {
       if let mv = fakeMv ?? res.value() {
         if let mvs = mv.minVersion {
           let minVersion = Version(mvs)
-          self.debug("Version check current: \(App.version), server-min:\(mvs)")
+          self.log("Version check current: \(App.version), server-min:\(mvs)")
           if App.version < minVersion {
             self.minVersion = minVersion
             self.minVersionOK = false
@@ -59,7 +59,7 @@ extension FeederContext {
           }
           return
         }
-        else { self.debug("Server doesn't return minVersion") }
+        else { self.log("Server doesn't return minVersion") }
       }
       else { self.error("Can't get minimal App version from server") }
     }
@@ -102,6 +102,7 @@ extension FeederContext {
   }
   
   func check4Update() {
+    log("Überprüfe, ob neuere Store Version vorliegt")
     async { [weak self] in
       guard let self else { return }
       let id = self.bundleID
@@ -112,7 +113,7 @@ extension FeederContext {
         self.error("Can't find App with bundle ID '\(id)' in AppStore")
         return
       }
-      self.debug("Version check current: \(version), store:\(store.version)")
+      self.log("Version check current: \(version), store:\(store.version)")
       
       if store.version < version {
         ///set Rating Waiting Days to 1 for RC Testing
