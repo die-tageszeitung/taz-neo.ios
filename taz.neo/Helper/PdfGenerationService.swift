@@ -131,7 +131,7 @@ class PdfGenerationService: DoesLog {
     }
     
     if missingFilesCount > 0 {
-      Toast.show("Some images may be missing in the PDF. Please check your internet connection and try again.")
+      log("Some images may be missing in the PDF. Missing Files: \(missingFilesCount)")
     }
     
     let renderer = CustomPrintPageRenderer()
