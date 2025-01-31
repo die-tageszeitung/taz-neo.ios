@@ -22,6 +22,8 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
 
   var data: TData {
     get {
+      _data.titleInpulCell.textField.text = _data.titleInpulCell.textField.text?.trimed
+      _data.authorInpulCell.textField.text = _data.authorInpulCell.textField.text?.trimed
       _data.settings.title = _data.titleInpulCell.textField.text
       _data.settings.author = _data.authorInpulCell.textField.text
       
