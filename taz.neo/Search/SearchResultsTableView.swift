@@ -176,7 +176,7 @@ class SearchResultsCell: UITableViewCell {
   private func updateContent(){
     contentServerId = content?.article.serverId
     if let content = content {
-      titleLabel.text = content.article.title
+      titleLabel.setTazzeText(content.article.title)
       authorLabel.text = content.article.authors()?.prepend("von ")
       contentLabel.attributedText = content.snippet?.attributedFromSnippetString
       dateLabel.text 
@@ -358,6 +358,12 @@ extension String {
                                        attributes: defaultAttributes))
         }
       }
+      
+      if ms.string.contains("🐾") == true {
+        let logoRange = (ms.string as NSString).range(of: "🐾")//Do not use self here ist wrong range for snippet!
+        ms.addAttribute(.font, value: Const.Fonts.tazFont(), range: logoRange)
+      }
+      
       return ms
     }
   }
