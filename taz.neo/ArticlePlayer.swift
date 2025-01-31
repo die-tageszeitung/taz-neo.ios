@@ -70,7 +70,7 @@ class ArticlePlayer: DoesLog {
       aplayer.file = url(currentContent)
       
       aplayer.title = currentContent?.title
-      userInterface.titleLabel.text = currentContent?.title
+      userInterface.titleLabel.setTazzeText(currentContent?.title)
       
       ///album not shown on iOS 16, Phone in Lock Screen, CommandCenter, CommandCenter Extended Player
       aplayer.album = currentContent?.sectionTitle

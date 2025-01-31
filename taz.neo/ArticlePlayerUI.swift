@@ -583,6 +583,7 @@ class ArticlePlayerUI: UIView {
   
   private func updateLayout(stateChange: Bool = false){
     if self.superview == nil { return }
+    let attributedTitle = titleLabel.attributedText
     fixBottomPosition()
     switch state {
       case .mini:
@@ -724,6 +725,7 @@ class ArticlePlayerUI: UIView {
         authorLabel.contentFont(size: 17.0)
         wrapperConstrains?.bottom.isActive = true
     }
+    titleLabel.attributedText = attributedTitle//restore attributed text after font change
     updateWidth(doLayout: false)
     if stateChange {
       UIView.animateKeyframes(withDuration: 0.4, delay: 0, animations: {[weak self] in
