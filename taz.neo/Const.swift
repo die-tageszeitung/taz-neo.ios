@@ -625,6 +625,19 @@ public extension UIView {
 }
 
 extension UILabel {
+  
+  func setTazzeText(_ text: String?) {
+    guard let text = text,
+      text.contains("🐾") == true else {
+      self.text = text;
+      return
+    }
+    let attributedText = NSMutableAttributedString(string: text)
+    let logoRange = (text as NSString).range(of: "🐾")
+    attributedText.addAttribute(.font, value: Const.Fonts.tazFont(), range: logoRange)
+    self.attributedText = attributedText
+  }
+  
   /// set content font with default font size and return self (for chaining)
   ///  @todo may respect dark/light mode with param ignore dark/lightMode
   /// - Returns: self

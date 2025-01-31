@@ -181,6 +181,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     let now = UsTime.now
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
+    SharedTazFont.register(Const.Fonts.tazFont())
     showHome()
     feederContext?.updateResources(toVersion: -1)
   }
