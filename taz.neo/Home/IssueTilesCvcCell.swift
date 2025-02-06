@@ -38,10 +38,9 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
 
   func updateLabel(){
     guard let issue = data?.issue else {
-      button.label.text = data?.date.validityDateText(timeZone: GqlFeeder.tz,
-                                                            short: true,
-                                                            shorter: shorter,
-                                                            leadingText: "")
+      button.label.text = data?.date.validityDateText(short: true,
+                                                      shorter: shorter,
+                                                      leadingText: "")
       return
     }
     if issue.feed.cycle == .monthly {
@@ -97,7 +96,10 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
       guard let self = self else { return }
       guard let safeDate = self.data?.issue?.safeDate else { return }
       if (notif.object as? Issue)?.date != safeDate { return }
-      if let (loaded,total) = notif.content as? (Int64,Int64) {
+      if (notif.content as? String) == "deleted" {
+        self.button.indicator.downloadState = .notStarted
+      }
+      else if let (loaded,total) = notif.content as? (Int64,Int64) {
         let percent = Float(loaded)/Float(total)
         if percent > 0.05 {
           if percent != 1.0 {

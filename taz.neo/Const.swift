@@ -52,15 +52,18 @@ public struct Const {
     static let issueUpdate = "NotificationName.issueUpdate"
     static let articleLoaded = "NotificationName.articleLoaded"
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
+    static let removeRefreshDataOverlay = "NotificationName.removeRefreshDataOverlay"
     static let viewSizeTransition = "NotificationName.viewSizeTransition"
     static let traitCollectionDidChange = "NotificationName.traitCollectionDidChange"
     static let expiredAccountDateChanged = "NotificationName.expiredAccountDateChanged"
     static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
     static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
     static let bookmarkChanged = "Const.NotificationNames.bookmarkChanged"
+    static let bookmarksLoaded = "Const.NotificationNames.bookmarksLoaded"
     static let audioPlaybackStateChanged = "Const.NotificationNames.audioPlaybackStateChanged"
     static let audioPlaybackFinished = "Const.NotificationNames.audioPlaybackFinished"
     static let gotoIssue = "Const.NotificationNames.gotoIssue"
+    static let gotoSettings = "Const.NotificationNames.gotoSettings"
     static let gotoArticleInIssue = "Const.NotificationNames.gotoArticleInIssue"
     static let searchSelectedText = "Const.NotificationNames.searchSelectedText"
     
@@ -101,46 +104,41 @@ public struct Const {
     
     struct Light {
       static let CTBackground = UIColor.white
-      static let CTSection = ciColor
       static let CTArticle = UIColor.darkGray
-      static let CTDate = UIColor.black
       static let HBackground = UIColor.white
       static let HText = UIColor.black
-      static let ForegroundLight = UIColor.lightGray
-      static let ForegroundHeavy = UIColor.darkGray
       #if LMD
         static let HomeBackground = UIColor.rgb(0xd9d9d3)//LMD-background-darker
         static let HomeText = UIColor.rgb(0x1f1f1f)//LMD-offblack
         static let MenuBackground = UIColor.rgb(0xf0f0ed)//--LMD-background
-        static let MenuText = UIColor.rgb(0x000000)//LMD-black
       #else
         static let HomeBackground = UIColor.black
         static let HomeText = appIconGrey
         static let MenuBackground = UIColor.white//Const.SetColor.HBackground.color
-        static let MenuText = UIColor.black//Const.SetColor.HText.color
-
       #endif
+      static let Taz_BackgroundForms = UIColor.rgb(0xEBEBEB)
+      static let Taz_Notifications_error = UIColor.rgb(0xFF1919)
+      static let Taz_Notifications_errorText = UIColor.rgb(0xC01111)
+      static let Taz_Text_DisabledX = UIColor.rgb(0x6A6A6A)
     }
     struct Dark {
       static let CTBackground = darkSecondaryBG
-      static let CTSection = darkSecondaryText
       static let CTArticle = UIColor.rgb(0xacace0)
-      static let CTDate = UIColor.white
       static let HBackground = UIColor.black
       static let HText = darkSecondaryText
-      static let ForegroundLight = UIColor.darkGray
-      static let ForegroundHeavy = UIColor.lightGray
       #if LMD
         static let HomeBackground = UIColor.rgb(0xd9d9d3)//LMD-background-darker
         static let HomeText = UIColor.rgb(0x1f1f1f)//LMD-offblack
         static let MenuBackground = UIColor.rgb(0x121212)//LMD-Android-Dark-Theme-background
-        static let MenuText = UIColor.rgb(0xe3e3e3)//LMD-Logogrey
       #else
         static let HomeBackground = UIColor.black
         static let HomeText = appIconGrey
         static let MenuBackground = UIColor.black
-        static let MenuText = UIColor.rgb(0xebebf5)//darkSecondaryText
       #endif
+      static let Taz_BackgroundForms = UIColor.rgb(0x353535)
+      static let Taz_Notifications_error = UIColor.rgb(0xFF1919)
+      static let Taz_Notifications_errorText = UIColor.rgb(0xE3E3E3)
+      static let Taz_Text_Disabled = UIColor.rgb(0xA6A6A6)
     }
     
     struct iOSLight {
@@ -199,20 +197,13 @@ public struct Const {
   //and accessibilityContrast (default/height)
   enum SetColor{
     case CTBackground
-    case CTSection
     case CTArticle
-    case ForegroundLight
-    case ForegroundHeavy
-    case CTDate
     case HBackground
     case HomeBackground
     case HomeText
     case MenuBackground
-    case MenuText
     case HText
-    case Test
     case CIColor
-    case PrimaryButton
     case ios_opaque(iOS_Opaque)
     enum iOS_Opaque {
       case closeXcircleBackground
@@ -226,7 +217,25 @@ public struct Const {
       case textFieldClear
       case textFieldText
       case textIconGray
+      case shade
+      case primaryForeground
+      case primaryBackground
       case secondaryBackground
+      case buttonBackground
+      case buttonActiveBackground
+      case buttonForeground
+      case buttonActiveForeground
+    }
+    case taz2(taz2_Custom)//new taz colors
+    enum taz2_Custom {
+      case backgroundForms
+      case notifications_error
+      case notifications_errorText
+      case text_disabled
+      case text_icon_grey
+      case text
+      case closeX
+      case closeX_background
     }
     case ios(iOS_SystemColors)
     enum iOS_SystemColors {
@@ -257,7 +266,9 @@ public struct Const {
     var color : UIColor {
       get{
         let set = colors(name: self)
-        return Defaults.darkMode ? set.dark ??  set.light : set.light
+        return UITraitCollection.current.accessibilityContrast == .high 
+        ? Defaults.darkMode ? set.darkHigh ?? set.dark : set.lightHigh ?? set.light
+        : Defaults.darkMode ? set.dark : set.light
       }
     }
     
@@ -265,7 +276,9 @@ public struct Const {
     var dynamicColor : UIColor {
       get{
         let set = colors(name: self)
-        return UIColor(light: set.light, dark: set.dark ?? set.light)
+        return UITraitCollection.current.accessibilityContrast == .high
+        ? UIColor(light: set.lightHigh ?? set.light, dark: set.darkHigh ?? set.dark)
+        : UIColor(light: set.light, dark: set.dark)
       }
     }
     
@@ -275,39 +288,23 @@ public struct Const {
       }
     }
     
-    fileprivate typealias ColorSet = ( light: UIColor, dark: UIColor?, lightHigh: UIColor?, darkHigh: UIColor?)
+    fileprivate typealias ColorSet = ( light: UIColor, dark: UIColor, lightHigh: UIColor?, darkHigh: UIColor?)
     
     fileprivate func colors(name: SetColor) -> ColorSet {
       switch name {
         case .CTBackground:
           return (UIColor.white, Const.Colors.darkSecondaryBG,nil,nil)
-        case .CTSection:
-          return (Const.Colors.ciColor, Const.Colors.darkSecondaryText,nil,nil)
-        case .ForegroundLight:
-          return (Const.Colors.Light.ForegroundLight, Const.Colors.Dark.ForegroundLight,nil,nil)
-        case .ForegroundHeavy:
-          return (Const.Colors.Light.ForegroundHeavy, Const.Colors.Dark.ForegroundHeavy,nil,nil)
         case .CTArticle:
           return (UIColor.darkGray, UIColor.rgb(0xacace0),nil,nil)
-        case .CTDate:
-          return (UIColor.black, UIColor.white,nil,nil)
         case .HBackground:
           return (UIColor.white,UIColor.black,nil,nil)
         case .HText:
           return (UIColor.black, Const.Colors.darkSecondaryText,nil,nil)
-        case .Test://Rainbow: use to test Light/Darkmode with lightHigh & darkHigh
-          return (UIColor.red, UIColor.green, UIColor.blue,UIColor.magenta)
         case .CIColor:
           #if LMD
-          return (Const.Colors.LMd.ci,nil,nil,nil)
+          return (Const.Colors.LMd.ci,Const.Colors.LMd.ci,nil,nil)
           #else
-          return (Const.Colors.ciColor,nil,nil,nil)
-          #endif
-        case .PrimaryButton:
-          #if LMD
-          return (.black,.white,nil,nil)
-          #else
-          return (Const.Colors.ciColor,nil,nil,nil)
+          return (Const.Colors.ciColor,Const.Colors.ciColor,nil,nil)
           #endif
         case .ios_opaque(.closeX):
           return (UIColor.rgb(0x5D5E63), UIColor.rgb(0xB8B8C1), nil, nil)
@@ -362,22 +359,49 @@ public struct Const {
         case .taz(.textFieldText):
           return (UIColor.rgb(0x1F1F1F), UIColor.rgb(0xF0F0F0), nil, nil)
         case .taz(.textDisabled): fallthrough
+        case .taz2(.text_disabled): fallthrough
         case .taz(.textFieldPlaceholder):
-          return (UIColor.rgb(0xA6A6A6), UIColor.rgb(0x505050), nil, nil)
+          return (UIColor.rgb(0x6A6A6A), UIColor.rgb(0xA6A6A6), nil, nil)
         case .taz(.textFieldClear):
           return (UIColor.rgb(0x9C9C9C), UIColor.rgb(0x9C9C9C), nil, nil)
+        case .taz2(.text_icon_grey): fallthrough
         case .taz(.textIconGray):
-          return (UIColor.rgb(0x565656), UIColor.rgb(0x929292), nil, nil)
+          return (UIColor.rgb(0x565656), UIColor.rgb(0xbdbdbd), nil, nil)
+        case .taz(.primaryBackground):
+          return (.white, .black, nil, nil)
+        case .taz(.primaryForeground)://same: .taz(.buttonForeground):
+          return (.black, .white, nil, nil)
+        case .taz(.shade):
+          return (.black, UIColor.rgb(0x9C9C9C), nil, nil)
         case .taz(.secondaryBackground):
           return (UIColor.rgb(0xDEDEDE), UIColor.rgb(0x323232), nil, nil)
+        case .taz(.buttonBackground):
+          //derived from and Figma f4f4f4 > ios(.secondarySystemBackground) is 0xF2F2F7 0x1C1C1E
+          return (UIColor.rgb(0xF4F4F4), UIColor.rgb(0x101010), nil, nil)
+        case .taz(.buttonForeground):
+          return (.black, .white, nil, nil)
+        case .taz(.buttonActiveBackground):
+          return (.black, .white, nil, nil)
+        case .taz(.buttonActiveForeground):
+          return (.white, .black, nil, nil)
         case .HomeBackground:
           return (Const.Colors.Light.HomeBackground, Const.Colors.Dark.HomeBackground,nil,nil)
         case .HomeText:
           return (Const.Colors.Light.HomeText, Const.Colors.Dark.HomeText,nil,nil)
         case .MenuBackground:
           return (Const.Colors.Light.MenuBackground, Const.Colors.Dark.MenuBackground,nil,nil)
-        case .MenuText:
-          return (Const.Colors.Light.MenuText, Const.Colors.Dark.MenuText,nil,nil)
+        case .taz2(.backgroundForms):
+          return (Const.Colors.Light.Taz_BackgroundForms, Const.Colors.Dark.Taz_BackgroundForms, nil, nil)
+        case .taz2(.notifications_error):
+          return (Const.Colors.Light.Taz_Notifications_error, Const.Colors.Dark.Taz_Notifications_error, nil, nil)
+        case .taz2(.notifications_errorText):
+          return (Const.Colors.Light.Taz_Notifications_errorText, Const.Colors.Dark.Taz_Notifications_errorText, nil, nil)
+        case .taz2(.closeX):
+          return (UIColor.rgb(0x3C3C43), UIColor.rgb(0xB3B3B5), nil, nil)
+        case .taz2(.closeX_background):
+          return (UIColor.rgb(0xE0E0E0), UIColor.rgb(0x48484A), nil, nil)
+        case .taz2(.text):
+          return (UIColor.rgb(0x1f1f1f), UIColor.rgb(0xe3e3e3), UIColor.rgb(0x000000), UIColor.rgb(0xffffff))
       }
     }
   } // SetColors
@@ -391,7 +415,10 @@ public struct Const {
         print("found font: \(name).woff")
       }
     }
-    
+
+    static var tazRegular: String? = UIFont.register(name: "TazWt05-Regular", type: "woff", subDir: "files")
+    static var tazSemiBold: String? = UIFont.register(name: "TazWt06-SemiBold", type: "woff", subDir: "files")
+    static var tazBold: String? = UIFont.register(name: "TazWt07-Bold", type: "woff", subDir: "files")
     static var quaTextRegularI: String? = UIFont.register(name: "QuaText-RegularItalic", type: "woff", subDir: "files")
     static var quaTextRegular: String? = UIFont.register(name: "QuaText-Regular", type: "woff", subDir: "files")
     static var quaTextB: String? = UIFont.register(name: "QuaText-Bold", type: "woff", subDir: "files")
@@ -404,6 +431,8 @@ public struct Const {
     static var lmdBentonItalic: String? = UIFont.register(name: "BentonSans-Italic", type: "woff", subDir: "files")
     static var lmdBentonBold: String? = UIFont.register(name: "BentonSans-Bold", type: "woff", subDir: "files")
     static var lmdBentonBoldItalic: String? = UIFont.register(name: "BentonSans-BoldItalic", type: "woff", subDir: "files")
+    static var americanTypewriterFontName: String = "AmericanTypewriter-CondensedBold"
+    static var knileLight: String? = UIFont.register(name: "knile-light-webfont", type: "woff", subDir: "files")
     /// *WARNING* Cannot use bundled Aktiv Grotesk fonts from Ressources, due just one font variant will be loaded,
     /// Hacky Workaround sleep(1) then load the other Problem is: multiple fonts have same generic font names
     /// from UIFont extension NorthLib -> register(data: Data)
@@ -431,6 +460,9 @@ public struct Const {
     
     static var contentTableFontName = titleFontName
     static var contentTextFont = quaTextRegular
+    static var tazFont = tazRegular
+    static var tazFontSemiBold = tazSemiBold
+    static var tazFontBold = tazBold
 
     static func font(name: String?, size: CGFloat) -> UIFont {
       var font: UIFont? = nil
@@ -440,7 +472,7 @@ public struct Const {
     }
     
     /// The font to use for content
-    static func contentFont(size: CGFloat) -> UIFont
+    static func contentFont(size: CGFloat = 30.0) -> UIFont
     { return font(name: contentFontName, size: size) }
     
     /// The font to use in titles
@@ -452,26 +484,46 @@ public struct Const {
     { return font(name: contentTableFontName, size: size) }
     
     /// The font to use in content tables
-    static func contentTextFont(size: CGFloat) -> UIFont
+    static func contentTextFont(size: CGFloat = Const.Size.DefaultFontSize) -> UIFont
     { return font(name: contentTextFont, size: size) }
+
+    static func tazFont(size: CGFloat = Const.Size.DefaultFontSize) -> UIFont
+    { return font(name: tazFont, size: size) }
+    
+    static func tazFontSemiBold(size: CGFloat = Const.Size.DefaultFontSize) -> UIFont
+    { return font(name: tazFontSemiBold, size: size) }
+    
+    static func tazFontBold(size: CGFloat = Const.Size.DefaultFontSize) -> UIFont
+    { return font(name: tazFontBold, size: size) }
+
+    
+    
+    /// The font to use in modals
+    static func marketingHeadFont(size: CGFloat = 30.0) -> UIFont
+    { return font(name: knileLight, size: size) }
     
     static var contentFont: UIFont = contentFont(size: Size.DefaultFontSize)
     static var boldContentFont: UIFont = titleFont(size: Size.DefaultFontSize)
   } // Fonts
   
   struct Size {
-    static let TextViewPadding = CGFloat(10.0)
+    static let TextViewPadding = SmallPadding
+    static let TextFieldPadding = SmallPadding
     static let MiniPageNumberFontSize = CGFloat(12)
     static let DefaultFontSize = CGFloat(16)
+    static let DefaultButtonFontSize = CGFloat(17)
     static let SmallerFontSize = CGFloat(14)
     static let LargeTitleFontSize = CGFloat(34)
     static let TitleFontSize = CGFloat(25)
     static let SubtitleFontSize = CGFloat(21)
+    static let DT_Head_extrasmall = CGFloat(20.5)
     static let DottedLineHeight = CGFloat(2.4)
     static let DefaultPadding = CGFloat(15.0)
+    static let TabletSidePadding = CGFloat(35.0)
+    static let TabletFormMinWidth = CGFloat(550.0)
+    static let BiggerPadding = CGFloat(20.0)
     static let NewTextFieldHeight = CGFloat(40.0)
     static let TextFieldHeight = CGFloat(36.0)//Default Height of Search Controllers Text Input
-    static let TextFieldPadding = SmallPadding
     static let SmallPadding = CGFloat(10.0)
     static let TinyPadding = CGFloat(5.0)
     static let ContentTableFontSize = CGFloat(22.0)
@@ -500,6 +552,10 @@ public struct Const {
     static let Default = UIEdgeInsets(top: 0,
                                     left: Const.Size.DefaultPadding,
                                     bottom: 0,
+                                    right: -Const.Size.DefaultPadding)
+    static let DefaultAll = UIEdgeInsets(top: Const.Size.DefaultPadding,
+                                    left: Const.Size.DefaultPadding,
+                                    bottom: -Const.Size.DefaultPadding,
                                     right: -Const.Size.DefaultPadding)
     static let NegDefault = UIEdgeInsets(top: 0,
                                     left: -Const.Size.DefaultPadding,
@@ -532,9 +588,27 @@ public struct Const {
     }
   }
   
-  /// Various Shadow values
+  /// Various Shadow values??
   struct Dist {
     static let margin: CGFloat = 12.0
+  }
+  
+  struct Dist2 {
+    /// small dist beetween related elements e.g. Image and Caption
+    static let s5: CGFloat = 5.0
+    /// small dist beetween related elements e.g. Headline and Subhead or same types of objects
+    static let s10: CGFloat = 10.0
+    /// medium dist to seperate components wich are not related together; e.g. top/left/right margin; inner elements
+    static let m15: CGFloat = 15.0
+    /// medium dist to seperate components wich are not related together; e.g. Image/Head; Text/Info, Buttons
+    static let m20: CGFloat = 20.0
+    /// medium dist to seperate components wich are not related together; e.g. Form Fields
+    static let m25: CGFloat = 25.0
+    /// medium dist to seperate components wich are not related together; e.g. before Buttons; between caption and Headline
+    static let m30: CGFloat = 30.0
+    ///biggest dist at end of content
+    static let l: CGFloat = 40.0
+    static let s10AndL: CGFloat = 60.0
   }
   
 } // Const
@@ -551,6 +625,19 @@ public extension UIView {
 }
 
 extension UILabel {
+  
+  func setTazzeText(_ text: String?) {
+    guard let text = text,
+      text.contains("🐾") == true else {
+      self.text = text;
+      return
+    }
+    let attributedText = NSMutableAttributedString(string: text)
+    let logoRange = (text as NSString).range(of: "🐾")
+    attributedText.addAttribute(.font, value: Const.Fonts.tazFont(), range: logoRange)
+    self.attributedText = attributedText
+  }
+  
   /// set content font with default font size and return self (for chaining)
   ///  @todo may respect dark/light mode with param ignore dark/lightMode
   /// - Returns: self
@@ -566,6 +653,14 @@ extension UILabel {
   @discardableResult
   func boldContentFont(size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
     self.font = Const.Fonts.titleFont(size: size)
+    return self
+  }
+  
+  /// set americanTypewriter font with default font size and return self (for chaining)
+  /// - Returns: self
+  @discardableResult
+  func americanTypewriter(size: CGFloat = Const.Size.DefaultFontSize) -> UILabel {
+    self.font = Const.Fonts.font(name: Const.Fonts.americanTypewriterFontName, size: size)
     return self
   }
   
@@ -610,6 +705,14 @@ extension UILabel {
   @discardableResult
   func titleFont(size: CGFloat = Const.Size.LargeTitleFontSize) -> UILabel {
     self.font = Const.Fonts.titleFont(size: size)
+    return self
+  }
+  
+  /// set font to marketing head knile with its default font size of 30 and return self (for chaining)
+  /// - Returns: self
+  @discardableResult
+  func marketingHead(size: CGFloat = 30) -> UILabel {
+    self.font = Const.Fonts.marketingHeadFont(size: size)
     return self
   }
   
@@ -687,21 +790,36 @@ extension UILabel {
                    type: tazFontType = .content,
                    color: Const.SetColor = .ios(.label),
                    align: NSTextAlignment = .natural) {
+    var font: UIFont
+    switch type {
+      case .bold:
+        font = Const.Fonts.titleFont(size: Const.Size.DefaultFontSize)
+      case .content:
+        font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
+      case .small:
+        font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
+      case .title:
+        font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
+      case .contentText:
+        font = Const.Fonts.contentTextFont(size: Const.Size.DefaultFontSize)
+    }
     self.init()
     text = _text
     numberOfLines = _numberOfLines
-    switch type {
-      case .bold:
-        self.font = Const.Fonts.titleFont(size: Const.Size.DefaultFontSize)
-      case .content:
-        self.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
-      case .small:
-        self.font = Const.Fonts.contentFont(size: Const.Size.MiniPageNumberFontSize)
-      case .title:
-        self.font = Const.Fonts.titleFont(size: Const.Size.LargeTitleFontSize)
-      case .contentText:
-        self.font = Const.Fonts.contentTextFont(size: Const.Size.DefaultFontSize)
-    }
+    self.font = font
+    self.textColor = color.color
+    self.textAlignment = align
+  }
+  
+  internal convenience init(_ _text : String,
+                   _numberOfLines : Int = 0,
+                   font: UIFont,
+                   color: Const.SetColor = .ios(.label),
+                   align: NSTextAlignment = .natural) {
+    self.init()
+    text = _text
+    numberOfLines = _numberOfLines
+    self.font = font
     self.textColor = color.color
     self.textAlignment = align
     

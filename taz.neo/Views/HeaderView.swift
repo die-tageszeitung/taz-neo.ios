@@ -11,7 +11,7 @@ import NorthLib
 enum TitleType { case bigLeft, article, section, section0, search  }
 
 /// The Header to show on top of sections and articles
-open class HeaderView: UIView,  Touchable {
+open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
   let maxOffset = 40.0
   
   private var beginScrollOffset: CGFloat?
@@ -180,7 +180,7 @@ open class HeaderView: UIView,  Touchable {
     = pin(titleLabel.top, to: self.topGuide(), dist: titleTopIndentL)
     
     titleBottomConstraint
-    = pin(titleLabel.bottom, to: self.bottom, dist:titleBottomIndentL)
+    = pin(titleLabel.bottom, to: self.bottom, dist:titleBottomIndentL, priority: .defaultHigh)
     
     pin(subTitleLabel.bottom, to: self.bottom, dist: -5)
     
@@ -189,15 +189,16 @@ open class HeaderView: UIView,  Touchable {
     leftConstraint = pin(pageNumberLabel.left, to: self.left, dist:sidePadding)
     
     titleLeftConstraint = pin(titleLabel.left, to: pageNumberLabel.right, dist: 8)
-    pin(titleLabel.right, to: self.right, dist: -sidePadding)
+    pin(titleLabel.right, to: self.right, dist: -sidePadding).priority = .defaultHigh
     
     pin(line.left, to: self.left, dist:sidePadding)
-    pin(line.right, to: self.right, dist:-sidePadding)
+    pin(line.right, to: self.right, dist:-sidePadding).priority = .defaultHigh
     titleLineDistConstraint =
     pin(line.top, to: titleLabel.bottom, dist: 0)
     
     pin(subTitleLabel.left, to: self.left, dist:sidePadding)
-    pin(subTitleLabel.right, to: self.right, dist:-sidePadding)
+    pin(subTitleLabel.right, to: self.right, dist:-sidePadding).priority = .defaultHigh
+    registerForStyleUpdates()
   }
   
   open override func layoutSubviews() {
@@ -238,7 +239,6 @@ extension HeaderView {
   
   private func didScrolling(offsetDelta:CGFloat, end: Bool){
     if titletype == .bigLeft { return }
-    let miniPadding = titletype == .section0 ? 2.6 : 0.0
      
     let isMaxi = lastRatio == 0.0
     let isMini = lastRatio == 1.0

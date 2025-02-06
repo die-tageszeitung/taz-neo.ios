@@ -7,12 +7,12 @@
 //
 
 import NorthLib
-import MessageUI
 import UIKit
 
-class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate {
+class TazAppEnvironment: NSObject, DoesLog {
   
   class Spinner: UIViewController {
+    #warning("Required? try to remove and test, handled in MainTabVc, but for startup?")
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
       super.viewWillTransition(to: size, with: coordinator)
       Notification.send(Const.NotificationNames.viewSizeTransition,
@@ -27,7 +27,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self.view.backgroundColor = .black
       let spinner = UIActivityIndicatorView()
       view.addSubview(spinner)
-      spinner.center()
+      spinner.centerAxis()
       spinner.color = .white
       spinner.startAnimating()
       let lb = UILabel()
@@ -54,6 +54,8 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     }
   }
   
+  var audioDisclaimerPlayed: Bool = false
+  
   private var threeFingerAlertOpen: Bool = false
   private var devGestureRecognizer: UIGestureRecognizer?
   
@@ -79,8 +81,9 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   }
   
   public static let sharedInstance = TazAppEnvironment()
+  ///shared startup info
+  public static var openedFromNotificationCenter:PushNotification.Payload.ArticlePushData?
   
-  var showAnimations = false
   lazy var consoleLogger = Log.Logger()
   lazy var fileLogger = Log.FileLogger()
   var feederContext: FeederContext?
@@ -99,6 +102,8 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       }
     }
   }
+  
+  var nextWindowSize: CGSize
 
   @Key("dataPolicyAccepted")
   public var dataPolicyAccepted: Bool
@@ -109,10 +114,20 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   @Key("usageTrackingAcceptanceTesting")
   fileprivate var usageTrackingAcceptanceTesting: Bool
   
-  public private(set) var isErrorReporting = false
+  @Default("articleTextSize")
+  private var articleTextSize: Int
+  
+  public internal(set) var isErrorReporting = false {
+    didSet {
+      print("isErrorReporting set to: \(isErrorReporting)")
+    }
+  }
+  public internal(set) var gqlErrorShown = false
+  public internal(set) var lastErrormessage: String?
   private var isForeground = false
   
   override init(){
+    nextWindowSize = UIWindow.size
     super.init()
     Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
       self?.goingBackground()
@@ -124,18 +139,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self?.appWillTerminate()
     }
     setup()
-    copyDemoContent()
     registerForStyleUpdates()
-  }
-  
-  func copyDemoContent(){
-    let demoFiles = ["trial", "extend", "switch"]
-    for filename in demoFiles {
-      if let url = Bundle.main.url(forResource: filename, withExtension: "html", subdirectory: "BundledResources") {
-        let file = File(url.path )
-        file.copy(to: Dir.appSupportPath.appending("/taz/resources/\(filename).html"))
-      }
-    }
   }
   
   func setup(){
@@ -169,23 +173,16 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   func startup() {
     let dfl = Defaults.singleton
-    let oneWeek = 7*24*3600
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
     debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
     logKeychain(msg: "initial")
     logSystemEvents()
     let now = UsTime.now
-    self.showAnimations = (nStarted < 2) || (now.sec - lastStarted.sec) > oneWeek
-    SectionVC.showAnimations = self.showAnimations
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
-    if !dataPolicyAccepted {
-      showIntro() { self.showHome() }
-    }
-    else {
-      showHome()
-    }
+    SharedTazFont.register(Const.Fonts.tazFont())
+    showHome()
     feederContext?.updateResources(toVersion: -1)
   }
   
@@ -197,7 +194,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   func goingForeground() {
     isForeground = true
-    debug("Entering foreground is connected?: \(feederContext?.isConnected)")
+    debug("Entering foreground is connected?: \(feederContext?.isConnected ?? false)")
   }
   
   func appWillTerminate() {
@@ -209,7 +206,7 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     reset(isDelete: true)
   }
   
-  func deleteData() {
+  private func deleteData() {
     for f in Dir.appSupport.scan() {
       debug("remove: \(f)")
       File(f).remove()
@@ -278,13 +275,10 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     ?? (DefaultAuthenticator.getUserData().token != nil)
   }
   
-  var hasValidAuth: Bool {
-    isAuthenticated && Defaults.expiredAccount == false
-  }
-
-  func unlinkSubscriptionId() {
-    authenticator?.unlinkSubscriptionId()
-  }
+  var hasValidAuth: Bool { !shouldAuthenticate }
+  
+  ///show login or expired Form
+  var shouldAuthenticate: Bool{ !isAuthenticated || Defaults.expiredAccount }
   
   func deleteUserData(logoutFromServer: Bool = false, resetAppState: Bool) {
     SimpleAuthenticator.deleteUserData(logoutFromServer: logoutFromServer)
@@ -339,6 +333,22 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     debug("\(intro)\(str)")
   }
   
+  func logRelevantSettings() {
+    let settings = """
+        Current app settings for diagnostics - some values may have changed!
+        ---
+        newIssueSystemSetting: \(Defaults.newIssueSystemSetting)
+        specialArticleSystemSetting: \(Defaults.specialArticleSystemSetting)
+        autoloadNewIssues: \(Defaults.singleton["autoloadNewIssues"] ?? "-")
+        autoloadOnlyInWLAN: \(Defaults.singleton["autoloadOnlyInWLAN"] ?? "-")
+        App.isAvailable(.AUTODOWNLOAD): \(App.isAvailable(.AUTODOWNLOAD))
+        ---
+        voiceoverControls: \(Defaults.singleton["voiceoverControls"] ?? "-")
+        smartBackFromArticle: \(Defaults.singleton["smartBackFromArticle"] ?? "-")
+    """
+    self.log(settings)
+  }
+  
   func logSystemEvents() {
     
     NotificationCenter.default.addObserver(forName: NSNotification.Name.NSProcessInfoPowerStateDidChange,
@@ -357,31 +367,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     
     self.log("isLowPowerModeEnabled: \(ProcessInfo.processInfo.isLowPowerModeEnabled)")
     self.log("backgroundRefreshStatus: \(UIApplication.shared.backgroundRefreshStatus)")
-  }
-  
-  func showIntro(closure: @escaping ()->()) {
-    Notification.receiveOnce("resourcesReady") { [weak self] _ in
-      guard let self = self else { return }
-      self.debug("Showing Intro")
-      let introVC = TazIntroVC()
-      let feeder = self.feederContext?.storedFeeder
-      introVC.webView.toggleBottomButton = false
-      introVC.htmlDataPolicy = feeder?.dataPolicy
-      introVC.htmlIntro = feeder?.welcomeSlides
-      Notification.receiveOnce("dataPolicyAccepted") { notif in
-        let kc = Keychain.singleton
-        kc["dataPolicyAccepted"] = "true"
-        closure()
-      }
-      self.rootViewController = introVC
-      onMainAfter(0.3) { [weak self] in
-        guard let self = self,
-                let fc = self.feederContext else { return }
-        self.service = IssueOverviewService(feederContext: fc)
-        _ = self.service?.cellData(for: 0)
-        _ = self.service?.cellData(for: 3)
-      }
-    }
   }
   
   func showHome() {
@@ -440,7 +425,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
     
     let akActive = self.usageTrackingAcceptanceTesting ? "Aktiv" : "Inaktiv"
     
-    actions.append(Alert.action("Abo-Verknüpfung löschen") {[weak self] _ in self?.unlinkSubscriptionId() })
     actions.append(Alert.action("Abo-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.subscription) })
     actions.append(Alert.action("Download-Push anfordern") {[weak self] _ in self?.testNotification(type: NotificationType.newIssue) })
     actions.append(Alert.action("Tracking AK Test: \(akActive)") {[weak self] _ in
@@ -476,11 +460,6 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
       self?.threeFingerAlertOpen = false
     }
   }
-  func mailComposeController(_ controller: MFMailComposeViewController,
-    didFinishWith result: MFMailComposeResult, error: Error?) {
-    controller.dismiss(animated: true)
-    isErrorReporting = false
-  }
   
   @objc func twoFingerErrorReportActivated(_ sender: UIGestureRecognizer) {
     if isErrorReporting == true { return }//Prevent multiple Calls
@@ -489,69 +468,13 @@ class TazAppEnvironment: NSObject, DoesLog, MFMailComposeViewControllerDelegate 
   
   func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil, screenshot: UIImage? = nil) {
     isErrorReporting = true //No Check here to ensure error reporting is available at least from settings
-    
+    logRelevantSettings()
     FeedbackComposer.showWith(logData: fileLogger.mem?.data,
                               screenshot: screenshot,
                               feederContext: self.feederContext,
                               feedbackType: feedbackType) {[weak self] didSend in
       self?.log("Feedback send? \(didSend)")
       self?.isErrorReporting = false
-    }
-  }
-  
-  func reportFatalError(err: Log.Message) {
-    guard !isErrorReporting else { return }
-    isErrorReporting = true
-    
-    
-    
-    if let topVc = UIViewController.top(),
-       topVc.presentedViewController != nil {
-      topVc.dismiss(animated: false)
-    }
-    Usage.track(Usage.event.dialog.FatalError)
-    Alert.confirm(title: "Interner Fehler",
-                  message: "Es liegt ein schwerwiegender interner Fehler vor, möchten Sie uns " +
-                           "darüber mit einer Nachricht informieren?\n" +
-                           "Interne Fehlermeldung:\n\(err)") { yes in
-      if yes {
-        self.produceErrorReport(recipient: "app@taz.de", subject: "Interner Fehler")
-      }
-      else { self.isErrorReporting = false }
-    }
-  }
-  
-  func produceErrorReport(recipient: String,
-                          subject: String = "Feedback",
-                          logData: Data? = nil,
-                          addScreenshot: Bool = true,
-                          completion: (()->())? = nil) {
-    if MFMailComposeViewController.canSendMail() {
-      let mail =  MFMailComposeViewController()
-      let screenshot = UIWindow.screenshot?.jpeg
-      let logData = logData ?? fileLogger.mem?.data
-      mail.mailComposeDelegate = self
-      mail.setToRecipients([recipient])
-      
-      var tazIdText = ""
-      let data = DefaultAuthenticator.getUserData()
-      if let tazID = data.id, tazID.isEmpty == false {
-        tazIdText = " taz-Konto: \(tazID)"
-      }
-      
-      mail.setSubject("\(subject) \"\(App.name)\" (iOS)\(tazIdText)")
-      mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
-        isHTML: false)
-      if addScreenshot, let screenshot = screenshot {
-        mail.addAttachmentData(screenshot, mimeType: "image/jpeg",
-                               fileName: "taz.neo-screenshot.jpg")
-      }
-      if let logData = logData {
-        mail.addAttachmentData(logData, mimeType: "text/plain",
-                               fileName: "taz.neo-logfile.txt")
-      }
-      UIViewController.top()?.topmostModalVc.present(mail, animated: true, completion: completion)
     }
   }
   
@@ -717,12 +640,11 @@ extension TazAppEnvironment {
 // Player extension
 extension TazAppEnvironment {
   func playBookmarks(){
-    guard let feeder = feederContext?.storedFeeder else { return }
-    let bookmarkFeed = BookmarkFeed.allBookmarks(feeder: feeder)
-    guard let bi = (bookmarkFeed.issues ?? []).first as? BookmarkIssue else { return }
-    ArticlePlayer.singleton.play(issue: bi,
+    guard let bmIssue = Bookmarks.shared.bookmarkIssue else { return }
+    ArticlePlayer.singleton.play(issue: bmIssue,
                                  startFromArticle: nil,
-                                 enqueueType: .replaceCurrent)
+                                 enqueueType: .replaceCurrent,
+                                 loadIssueIfNeeded: false)
   }
   
   func playLatestIssue(){
@@ -799,16 +721,14 @@ enum Shortcuts{
   static func currentItems() -> [UIApplicationShortcutItem]{
     var itms:[UIApplicationShortcutItem]
     = [Shortcuts.playLatestIssue.shortcutItem]
-    
-    if let sf = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder ,
-       BookmarkFeed.allBookmarks(feeder: sf).issues?.first?.allArticles.count ?? 0 > 0 {
+    if Bookmarks.shared.bookmarkSection?.articles?.count ?? 0 > 0 {
       itms.append(Shortcuts.playBookmarks.shortcutItem)
     }
     // No Server Switch for Release App
     if App.isRelease { return itms }
     itms.append(Shortcuts.liveServer.shortcutItem)
-    itms.append(Shortcuts.lmdServer.shortcutItem)
     itms.append(Shortcuts.testServer.shortcutItem)
+    itms.append(Shortcuts.lmdServer.shortcutItem)
     return itms
   }
   
@@ -875,6 +795,24 @@ extension App {
       return true
     #else
       return false
+    #endif
+  }
+  
+  /// Are we running the taz app?
+  static var shortName: String {
+    #if TAZ
+      return "taz"
+    #else
+      return "LMd"
+    #endif
+  }
+  
+  /// AppIcon from Assets in given size
+  static func appIcon(size: String) -> String {
+    #if TAZ
+      return "AppIcon\(size)"
+    #else
+      return "AppIconLMD\(size)"
     #endif
   }
 } // App

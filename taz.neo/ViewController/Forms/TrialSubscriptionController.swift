@@ -9,19 +9,12 @@
 import UIKit
 import NorthLib
 
-// MARK: - ConnectTazIDController
 /// Presents Register TazID Form and Functionallity
 /// ChildViews/Controller are pushed modaly
 
-/**
- **TBD** This Controller offers the option to create a Trial Subscription
- it has 3 characteristics for users which have no Abo-ID
- 1. User has no Taz ID => TrialSubscriptionController with E-mail, new Password, Firstname, Lastname
- 2. User with taz-ID
- a) with first/Lastname => This form will not be used, its just for the "Service"
- b) without first and/or Lastname
- 
- */
+/// The Register Controller is presented modally.
+/// This controller provides the functionality to create a trial subscription.
+/// Primarily intended for new users without a taz-ID, but also supports existing taz-IDs that do not yet have a subscription.
 class TrialSubscriptionController : FormsController {
   
   var onMissingNameRequested:(()->())?
@@ -33,7 +26,6 @@ class TrialSubscriptionController : FormsController {
   override func viewDidLoad() {
     super.viewDidLoad()
     ui.registerButton.touch(self, action: #selector(handleSubmit))
-    ui.cancelButton.touch(self, action: #selector(handleBack))
     ui.agbAcceptTV.textView.delegate = self ///FormsController cares
   }
   
@@ -42,7 +34,7 @@ class TrialSubscriptionController : FormsController {
     ui.blocked = true
     
     if let errormessage = ui.validate() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
       Usage.track(Usage.event.subscription.InquiryFormValidationError)
       return
@@ -104,7 +96,7 @@ class TrialSubscriptionController : FormsController {
             case .invalidMail:
               /// invalid mail address (only syntactic check)
               self.ui.mailInput.bottomMessage = Localized("login_email_error_no_email")
-              Toast.show(Localized("register_validation_issue"))
+              Alert.message(message: Localized("register_validation_issue"))
             case .waitForProc:
               self.showResultWith(message: Localized("wait_for_proc_result_Text"),
                                               backButtonTitle: Self.backButtonTitle,
@@ -115,28 +107,27 @@ class TrialSubscriptionController : FormsController {
                                          resultSuccessText: Localized("trialsubscription_successful_header"))
             case .invalidFirstname: //What if No Form and this Issue occours? @Test with: Web Change Name prepared the +12 Account
               self.ui.firstnameInput.bottomMessage = Localized("invalid_chars")
-              Toast.show(Localized("register_validation_issue"))
+              Alert.message(message: Localized("register_validation_issue"))
             case .invalidSurname:
               self.ui.lastnameInput.bottomMessage = Localized("invalid_chars")
-              Toast.show(Localized("register_validation_issue"))
+              Alert.message(message: Localized("register_validation_issue"))
             case .invalidAccountholder:
               self.ui.firstnameInput.bottomMessage = Localized("invalid_chars")
               self.ui.lastnameInput.bottomMessage = Localized("invalid_chars")
-              Toast.show(Localized("register_validation_issue"))
+              Alert.message(message: Localized("register_validation_issue"))
             case .nameTooLong:
                self.ui.lastnameInput.bottomMessage = Localized("too_many_chars")
                self.ui.firstnameInput.bottomMessage = Localized("too_many_chars")
                Alert.message(title: Localized("info"), message: Localized("name_too_long_issue"))
-//               Toast.show(Localized("name_too_long_issue"))
             case .noFirstname, .noSurname:/// no surname provided - seems to be necessary fro trial subscriptions
               if self.onMissingNameRequested == nil { fallthrough }
               self.onMissingNameRequested?()
             case .subscriptionIdNotValid:/// from different context should not arrear here
               fallthrough
-            case .invalidConnection:///should not arrear here
+            case .invalidConnection:///should not appear here
               /// AboId valid but connected to different tazId
               fallthrough
-            case .noPollEntry:///should not arrear here
+            case .noPollEntry:///should not appear here
               /// user probably didn't confirm mail
               fallthrough
             case .expired:
@@ -146,11 +137,18 @@ class TrialSubscriptionController : FormsController {
               /// decoded from unknown string
               fallthrough
             default:
-              Toast.show(Localized("toast_login_failed_retry"))
+              Alert.message(message: Localized("toast_login_failed_retry"))
               self.log("Succeed with status: \(info.status) message: \(info.message ?? "-")")
         }
-        case .failure:
-          Toast.show(Localized("toast_login_failed_retry")+"\n(Fehler!)")
+        case .failure(let error):
+          if error is URLError {
+            Alert.message(title: "Fehler", message: Localized("communication_breakdown"))
+          } else {
+            ///"toast_login_failed_retry" = "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.";
+            ///"toast_login_wrong_retry" = "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben und versuchen Sie es erneut.";
+            ///"something_went_wrong_try_later" = "Etwas unerwartetes ist passiert. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut.";
+            Alert.message(title: "Fehler", message: Localized("something_went_wrong_try_later"))
+          }
       }
       self.ui.blocked = false
     })
@@ -180,7 +178,6 @@ class TrialSubscriptionRequestNameCtrl : TrialSubscriptionController{
       ui.lastnameInput,
       ui.agbAcceptTV,
       ui.registerButton,
-      ui.cancelButton,
       ui.registerTipsButton
       
     ]
@@ -195,7 +192,7 @@ class TrialSubscriptionRequestNameCtrl : TrialSubscriptionController{
     ui.blocked = true
     
     if let errormessage = ui.validate() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
       return
     }

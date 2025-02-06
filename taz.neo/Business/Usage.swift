@@ -42,14 +42,14 @@ public class Usage: NSObject, DoesLog{
   ///use to remove onDisplay handler
   fileprivate var lastPageCollectionVConDisplayClosureKey:String?
   ///remember last PageCollectionVC, to handle onDisplay change due swipe
-  fileprivate var lastPageCollectionVC:PageCollectionVC? {
+  fileprivate weak var lastPageCollectionVC:PageCollectionVC? {
     didSet {
       if let key = lastPageCollectionVConDisplayClosureKey {
         oldValue?.removeOnDisplay(forKey: key)
         lastPageCollectionVConDisplayClosureKey = nil
       }
       lastPageCollectionVConDisplayClosureKey
-      = lastPageCollectionVC?.onDisplay(closure: { [weak self] idx, _ in
+      = lastPageCollectionVC?.onDisplay(closure: { [weak self] idx, _, _ in
         guard let usageVc = self?.lastPageCollectionVC as? ScreenTracking else { return }
         usageVc.trackScreen()
       })
@@ -146,6 +146,7 @@ fileprivate extension Usage {
   }
   
   func trackGoal(_ goal: TrackingGoal){
+    if usageTrackingAllowed != true { return }
     log("track::Goal with ID: \"\(goal.goalId)\", revenue: \"\(goal.value)")
     self.matomoTracker.trackGoal(id: goal.goalId, revenue: goal.value)
   }
@@ -439,7 +440,8 @@ extension Usage {
            PDFModeSwitchHint = "PDF Mode Switch Hint",
            ConnectionError = "Connection Error",
            FatalError = "Fatal Error",
-           IssueDownloadError = "Issue Download Error"
+           IssueDownloadError = "Issue Download Error",
+           OpenLastArticleAgain = "Open last article again"
     }
     struct drawer {
       enum action_open: String, TrackingEvent {
@@ -488,10 +490,18 @@ extension Usage {
     enum share: String, TrackingEvent {
       var name: String { "Share" }
       var category: String { "Share" }
-      case Article = "Share Article",
-           SearchHit = "Share SearchHit",
-           FaksimilelePage = "Faksimilele Page",
-           IssueMoment = "Issue Moment"
+      case FaksimilelePage = "Faksimilele Page",
+           IssueMoment = "Issue Moment",
+           ArticleAppPDF2Files = "Share Article App PDF to Files",
+           ArticlePDF2Files = "Share Article PDF to Files",
+           ArticleAppPDF2Print = "Share Article App PDF to Print",
+           ArticlePDF2Print = "Share Article PDF to Print",
+           Copy2Clipboard = "Share Copy to Clipboard (PDF+Link)",
+           Mail = "Share Mail (App PDF+Link)",
+           Message = "Share Message (App PDF+Link)",
+           Browser = "Share Open in Browser",
+           Info = "Share Info",
+           Canceled = "Share Canceled"
     }
     enum subscription: String, TrackingEvent {
       var category: String { "Subscription" }
@@ -547,18 +557,15 @@ protocol TrackingGoal {
 extension Usage {
   struct xtrack {
     struct share {
-      static func article(article: Article?){
-        let evt = Usage.event.share.Article
-        trackEvent(category: evt.category,
-                   action: evt.action,
+      static func article(article: Article?, event: any TrackingEvent){
+        guard event.category == Usage.event.share.Info.category else {
+          Log.debug("wrong category for share: \(event.category)")
+          return
+        }
+        trackEvent(category: event.category,
+                   action: event.action,
                    name: article?.trackingPathWithID,
                    dimensions: article?.customDimensions)
-      }
-      static func searchHit(article: Article?){
-        let evt = Usage.event.share.SearchHit
-        trackEvent(category: evt.category,
-                   action: evt.action,
-                   name: article?.onlineLink)
       }
       static func faksimilelePage(issue: Issue, pagina: String){
         let evt = Usage.event.share.FaksimilelePage
@@ -786,12 +793,10 @@ class TazIntroVC: IntroVC, DefaultScreenTracking {
 
 extension SectionVC: ScreenTracking {
   public var screenUrl:URL? {
-    if self is BookmarkSectionVC { return URL(path: "bookmarks/list") }
     guard let trackingPath = section?.trackingPath else { return nil }
     return URL(path: "issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/\(trackingPath)")
   }
   public var screenTitle:String? {
-    if self is BookmarkSectionVC { return "Bookmarks List" }
     return section?.title
   }
 }

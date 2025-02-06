@@ -22,6 +22,8 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
 
   var data: TData {
     get {
+      _data.titleInpulCell.textField.text = _data.titleInpulCell.textField.text?.trimed
+      _data.authorInpulCell.textField.text = _data.authorInpulCell.textField.text?.trimed
       _data.settings.title = _data.titleInpulCell.textField.text
       _data.settings.author = _data.authorInpulCell.textField.text
       
@@ -43,25 +45,18 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
   var isOpen: Bool { get{ self.topConstraint?.constant == 0 }}
   
   // MARK: *** UI Elements ***
-  
-  lazy var searchButton: UIButton = {
-    let btn = UIButton()
-    btn.pinHeight(Const.Size.ButtonHeight)
-    btn.titleLabel?.font = Const.Fonts.boldContentFont
-    btn.layer.cornerRadius = Const.Size.ButtonHeight * 0.5
-    #if LMD
-    btn.setTitle("Suche starten", for: .normal)
-    #else
-    btn.setTitle("Suchen", for: .normal)
-    #endif
-    return btn
-  }()
+  #if LMD
+    let searchButton = Padded.Button(title: "Suche starten")
+  #else
+    let searchButton = Padded.Button(title: "Suchen")
+  #endif
   
   lazy var helpButton: UILabel = {
     let lbl = UILabel()
     lbl.text = "Hilfe"
     lbl.contentFont(size: Const.Size.SmallerFontSize)
-    lbl.textColor = Const.SetColor.ios(.link).color
+    lbl.textColor = Const.SetColor.taz2(.text_icon_grey).color
+    lbl.addBorderView(Const.SetColor.taz2(.text_icon_grey).color, edge: UIRectEdge.bottom)
     return lbl
   }()
   
@@ -71,13 +66,13 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
     v.addSubview(helpButton)
     
     pin(searchButton.top, to: v.top, dist: 5.0)
-    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding)
+    pin(searchButton.right, to: v.right, dist: -Const.Size.DefaultPadding, priority: .defaultHigh)
     pin(searchButton.left, to: v.left, dist: Const.Size.DefaultPadding)
     
     pin(helpButton.top, to: searchButton.bottom, dist: Const.Size.DefaultPadding)
     pin(helpButton.left, to: v.left, dist: Const.Size.DefaultPadding)
     //No need to close Autolayout due Footer needs Fix Frame foe easier use
-    v.frame = CGRect(x: 0, y: 0, width: 0, height: TazTextField.recomendedHeight+45)
+    v.frame = CGRect(x: 0, y: 0, width: 0, height: 120)
     v.backgroundColor = Const.SetColor.ios(.systemBackground).color
     return v
   }()
@@ -115,8 +110,6 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
   }
   
   func applyStyles() {
-    searchButton.backgroundColor = Const.SetColor.PrimaryButton.color
-    searchButton.setTitleColor(Const.SetColor.HBackground.color, for: .normal)
     self.shadow()
     self.layer.shadowOpacity = Const.Shadow.Light.Opacity
     self.layer.shadowColor = Defaults.darkMode ? UIColor.white.cgColor : Const.Shadow.Color
@@ -207,7 +200,6 @@ class SearchSettingsView: UITableView, UIStyleChangeDelegate {
       self.reloadAnimatedIfNeeded(oldContent: oldContent)
     }
     registerForStyleUpdates()
-    applyStyles()
   }
 
   // MARK: *** Lifecycle ***
@@ -241,10 +233,18 @@ extension SearchSettingsView: UITableViewDelegate {
   }
 }
 
-fileprivate class SimpleFooterView: UIView {
-  override func layoutSubviews() {
-    super.layoutSubviews()
+fileprivate class SimpleFooterView: UIView, UIStyleChangeDelegate {
+  func applyStyles() {
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
+  }
+  
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    registerForStyleUpdates()
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
 }
 
@@ -299,11 +299,6 @@ class TextInputCell: TazCell {
                               bottom: -5,
                               right: -Const.Size.DefaultPadding)
     pin(textField, to: contentView, insets: insets)
-  }
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    applyStyles()
   }
   
   override func applyStyles() {

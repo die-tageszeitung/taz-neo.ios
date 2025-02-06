@@ -30,12 +30,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   public var menu: MenuActions?{
     return article?.contextMenu()
   }
-  
+
+  @Default("multiColumnOnboardingAnswered")
+  var multiColumnOnboardingAnswered: Bool
   
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
-    
-  var hasValidAbo: Bool {feederContext.isAuthenticated && !Defaults.expiredAccount}
+  
   var needValidAboToShareText: String {
     if feederContext.isAuthenticated == false {
       return "Sie müssen angemeldet sein, um Texte zu teilen!"
@@ -83,10 +84,11 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     // only insert new Article
     guard articles.firstIndex(where: { $0.html?.name == name }) == nil
     else { return }
-    let all = delegate.issue.allArticles
-    if let idx = all.firstIndex(where: { $0.html?.name == name }) {
-      articles.insert(article, at: idx)
-      insertContent(content: article, at: idx)
+    
+    if let idx = delegate.issue.allArticles.firstIndex(where: { $0.html?.name == name }) {
+      ///print(">>> Insert article: \(article.title ?? "-") at index: \(idx) / \(articles.count - 1 )")
+      articles.insert(article, at: max(0, min(idx, articles.count - 1)))
+      insertContent(content: article, at: max(0, min(idx, contents.count - 1)))
     }
   }
   
@@ -99,26 +101,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     
     if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
     else { self.bookmarkButton.buttonView.name = "star" }
-  }
-  
-  func toggleBookmark(art: StoredArticle?) {
-    guard let art = art else { return }
-    var msg: String
-    var completion:((Bool)->())? = nil
-    
-    if art.hasBookmark {
-      msg = "Der Artikel wurde aus ihrer Leseliste entfernt.<br/>Löschen rückgängig durch Antippen"
-      completion = { wasTapped in
-        guard wasTapped else { return }
-        art.hasBookmark = true
-        Toast.show("Löschen wurde wiederrufen!")
-      }
-    }
-    else { msg = "Der Artikel wurde in ihrer Leseliste gespeichert." }
-    Toast.show("<h3>\(art.title ?? "")</h3>\(msg)",
-               minDuration: 0,
-               completion: completion)
-    art.hasBookmark.toggle()
   }
   
   func updateAudioButton(){
@@ -137,7 +119,11 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
                   smoothPreviewForImage: true)
     playButtonContextMenu?.itemPrivider = self
     
-    if let arts = self.adelegate?.issue.allArticles {
+    if self.adelegate?.issue.isBookmarkIssue == true,
+        let arts = self.adelegate?.issue.allArticles {
+      self.articles = (arts as? [StoredArticle])?.bookmarkOrder() ?? arts
+    }
+    else if let arts = self.adelegate?.issue.allArticles {
       self.articles = arts
     }
     super.setup(contents: articles, isLargeHeader: false)
@@ -145,53 +131,76 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,
-         cart.html?.name == art.html?.name {
+         art.serverId != nil,
+         cart.serverId == art.serverId {
          self.displayBookmark(art: art)
       }
     }
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.updateAudioButton()
     }
-    onDisplay { [weak self] (idx, oview) in
+    
+    /// do not add this in onDosplay otherwise it is called multiple times after swipe/scroll
+    self.atEndOfContent { [weak self] isAtEnd in
+      self?.handleAtEndOfContent(isAtEnd: isAtEnd)
+    }
+    
+    self.onBookmark { [weak self] _ in
+      guard let art = self?.article else { return }
+      Bookmarks.toggle(article: art)
+    }
+    
+    self.onPlay { [weak self] _ in
+      guard let art = self?.article,
+            let issue = self?.issue,
+      art.canPlayAudio else { return }
+      art.toggleAudio(issue: issue)
+    }
+    
+    ArticlePlayer.singleton.onEnd { [weak self] err in
+      self?.playButton.buttonView.name = "audio"
+      if let err = err {
+        self?.debug("Failed on end with err: \(err)")
+      }
+    }
+    
+    onDisplay { [weak self] (idx, _, _) in
       guard let self = self else { return }
       guard let art = self.articles.valueAt(idx) else {
         ///prevent crash on search result login on 2nd or later load more results
         log("fail to access artikel at index: \(idx)  when only \(self.articles.count) exist")
         return
       }
+      #if TAZ //Tom Stuff
+      if art is VirtualArticle {
+        bookmarkButton.isHidden = true
+        updateAudioButton()
+        shareButton.isHidden = true
+        textSettingsButton.isHidden = true
+        self.setHeader(artIndex: idx)
+        self.currentWebView?.baseDir = art.baseURL
+        return
+      }
+      #endif
+      shareButton.isHidden = false
+      textSettingsButton.isHidden = false
 
       if self.smartBackFromArticle {
         self.adelegate?.article = art
       }
-      self.shareButton.isHidden = self.hasValidAbo && art.onlineLink?.isEmpty != false
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
-      let player = ArticlePlayer.singleton
+      if !self.issue.isBookmarkIssue {
+        LastReadBusiness.persist(lastArticle: art, page: nil, in: self.issue)
+      }
       if art.canPlayAudio {
         updateAudioButton()
-        self.onPlay { [weak self] _ in
-          guard let self = self else { return }
-          art.toggleAudio(issue: self.issue)
-        }
       }
-      else { self.onPlay(closure: nil) }
-      player.onEnd { [weak self] err in
-        self?.playButton.buttonView.name = "audio"
-        guard let err = err else { return }
-      }
-      self.onBookmark { [weak self] _ in
-        guard let self = self else { return }
-        self.toggleBookmark(art: art as? StoredArticle)
-      }
-      ///     && (feederContext.isAuthenticated == false || Defaults.expiredAccount) bookmarks finally did not refresh
-      if art.primaryIssue?.isReduced == true {
-        self.atEndOfContent() { [weak self] isAtEnd in
-          if isAtEnd { self?.feederContext.authenticate() }
-        }
-      }
+      playButton.isHidden = !art.canPlayAudio
       self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
       self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
-    }
+      showCoachmarkIfNeeded()
+    } ///eof: onDisplay
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
           after re-enter app due wired Scroll Pos change
@@ -206,17 +215,49 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     whenLoaded {
       Notification.send(Const.NotificationNames.articleLoaded)
     }
-    header.onTitle { [weak self] _ in
-      self?.debug("*** Action: ToSection pressed")
-      self?.navigationController?.popViewController(animated: true)
-    }
     header.titletype = .article
+  }
+  
+  func handleAtEndOfContent(isAtEnd: Bool){
+    ///**FORMER:** art.primaryIssue?.isReduced == true
+    /// did not work for Issue Independent Bookmarks in Bookmarks Article View
+    guard isAtEnd,
+    let art = self.article,
+    art.isReducedArticle else { return }
+   
+    if TazAppEnvironment.sharedInstance.shouldAuthenticate {
+      ///show Login OR Expired Form
+      self.feederContext.authenticate()
+      return
+    }
+    
+    /// TazAppEnvironment.sharedInstance.hasValidAuth ...should no be demo
+    if TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
+      Toast.show(Localized("error_download"))
+    }
   }
 
   // Define Header elements
   #warning("ToDo: Refactor get HeaderField with Protocol! (ArticleVC, SectionVC...)")
   func setHeader(artIndex: Int) {
-    if let art = article, let name = art.html?.name {
+    #if TAZ
+    let tazTomVirtualArticle = article is VirtualArticle
+    #else
+    let tazTomVirtualArticle = App.isTAZ ///false, but supress "Will never be executed" warning 2 lines later
+    #endif
+
+    if tazTomVirtualArticle {
+      header.title = article?.title
+      header.pageNumber = nil
+    }
+    else if adelegate?.issue.isBookmarkIssue == true {
+      let idx = articles.firstIndex {$0.serverId == article?.serverId } ?? -2
+      if let st = article?.sectionTitle { header.title = st }
+      header.titletype = .search
+      header.subTitle = "Ausgabe \(article?.issueDate?.short ?? "")"
+      header.pageNumber = "\(idx+1) von \(articles.count)"
+    }
+    else if let art = article, let name = art.html?.name {
       if let sections = adelegate?.article2section[name],
          sections.count > 0 {
         let section = sections[0]
@@ -228,22 +269,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           }
           if let st = art.sectionTitle { header.title = st }
           else { header.title = "\(title)" }
-       
-          
-          if section is BookmarkSection {
-            header.titletype = .search
-            header.subTitle = "Ausgabe \(art.issueDate.short)"
-            header.pageNumber = "\(i+1) von \(articles.count)"
-          }
-          else {
-            header.pageNumber = "\(i+1)/\(articles.count)"
-          }
+          header.pageNumber = "\(i+1)/\(articles.count)"
           contentTable?.setActive(row: i,
                                   section: adelegate?.article2index(art: art))
         }
       }
       else if art.title != nil,
-              art.html?.isEqualTo(adelegate?.issue.imprint?.html) ?? false,
+              art.html?.isEqualTo(adelegate?.issue.imprint?.html) == true,
               art.sectionTitle == nil {
         header.title = art.title
         header.pageNumber = nil
@@ -251,36 +283,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     }
   }
   
-  @available(iOS 14.0, *)
-  private func exportPdf(article art: Article, from button: UIView? = nil) {
-    if let webView = currentWebView {
-      webView.pdf { data in
-        guard let data = data else { return }
-        let dialogue = ExportDialogue<Data>()
-        let altText = "\(art.teaser ?? "")\n\(art.onlineLink!)"
-        dialogue.present(item: data, altText: altText, onlineLink: art.onlineLink, view: button,
-                         subject: art.title)
-      }
-    }
-  }
-
   // Export/Share article
-  public static func exportArticle(article: Article?, artvc: ArticleVC? = nil, 
-                                   from button: UIView? = nil) {
-    
-    let img = article?.images?.first?.image(dir: artvc?.delegate.issue.dir)
-    
-    if let art = article,
-       let link = art.onlineLink,
-       !link.isEmpty{
-          let dialogue = ExportDialogue<Any>()
-        dialogue.present(item: link,
-                       altText: nil,
-                       onlineLink: link,
-                       view: button,
-                       subject: art.title,
-                       image: img)
-    }
+  public func exportArticle() {
+    guard let art = self.article else { return }
+    export(article: art)
   }
   
   public override func setupSlider() {
@@ -307,8 +313,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")
       self?.slider?.close()
-      self?.navigationController?.popViewController(animated: false)
+      let issueDate = self?.issue.date
       self?.adelegate?.closeIssue()
+      Notification.send(Const.NotificationNames.gotoIssue, content: issueDate , sender: self)
     }
   }
   
@@ -325,7 +332,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
     }
-    if self.parent is BookmarkNC { /*NO CONTENT TABLE*/}
+    else if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
     else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
     else if self.contentTable == nil {
       self.contentTable = NewContentTableVC()
@@ -343,8 +350,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     super.viewDidAppear(animated)
     onShare { [weak self] _ in
       guard let self = self else { return }
+      CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.share)
       self.debug("*** Action: Share Article")
-      if (self.article?.onlineLink ?? "").isEmpty {
+      if self.article?.isShareable == false && feeder.hasValidAbo == false {
         Usage.track(Usage.event.dialog.SharingNotPossible)
         Alert.actionSheet(message: self.needValidAboToShareText,
                           actions: UIAlertAction.init( title: self.feederContext.isAuthenticated ? "Weitere Informationen" : "Anmelden",
@@ -352,18 +360,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           self?.feederContext.authenticate()
         })
       } else {
-        if self.issue is SearchResultIssue {
-          Usage.xtrack.share.searchHit(article: self.article)
-        }
-        else {
-          Usage.xtrack.share.article(article: self.article)
-        }
-        ArticleVC.exportArticle(article: self.article, artvc: self, from: self.shareButton)
+        self.exportArticle()
       }
     }
     
     let suche = UIMenuItem(title: "Suche", action: #selector(search))
     UIMenuController.shared.menuItems = [suche]
+    showMultiColumnOnboardingIfNeeded()
   }
   
   public override func viewDidDisappear(_ animated: Bool) {
@@ -380,7 +383,7 @@ extension ArticleVC {
       if let e = err { self.log(e.description)}
       //#warning("ToDo: 0.9.4+ Implement Search")
       guard let txt = selectedText as? String, txt.length > 3 else {
-        log("No valid Selection for Search: \(selectedText)")
+        log("No valid Selection for Search: \(String(describing: selectedText))")
         return
       }
       Notification.send(Const.NotificationNames.searchSelectedText,
@@ -388,5 +391,167 @@ extension ArticleVC {
                         error: nil,
                         sender: self)
     })
+  }
+}
+
+extension ArticleVC: CoachmarkVC {
+  
+  public var viewName: String { Coachmarks.Article.typeName }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    guard let item = item as? Coachmarks.Article else { return nil }
+    
+    switch item {
+      case .audio:
+        return playButton.buttonView
+      case .share:
+        return shareButton.buttonView
+      case .font:
+        return textSettingsButton.buttonView
+    }
+  }
+}
+
+
+extension ArticleVC {
+  private static var dialogAlreadyShown = false
+  
+  func showMultiColumnOnboardingIfNeeded(){
+    ///issue comes from delegate and may be unset on deinit; so check it before use it
+    guard self.delegate != nil, self.issue.isReduced == false else { return }
+    guard multiColumnOnboardingAnswered == false else { return }
+    guard Device.isIpad else { return }
+    guard UIDevice.isLandscape else { return }
+    guard traitCollection.horizontalSizeClass == .regular else { return }
+    guard Self.dialogAlreadyShown == false else { return }
+    guard multiColumnModeLandscape == false else { return }
+    Self.dialogAlreadyShown = true
+    showMultiColumnOnboarding()
+  }
+  private func showMultiColumnOnboarding(){
+    mcoBottomSheet = BottomSheet2(slider:mcoVc , into: self)
+    mcoBottomSheet?.handle?.isHidden = true
+    mcoBottomSheet?.onX {[weak self] in
+      self?.mcoBottomSheet?.close()
+    }
+    mcoBottomSheet?.xButton.tazX()
+    mcoBottomSheet?.updateMaxWidth(defaultWidth: 620)
+    mcoBottomSheet?.sliderView.backgroundColor = Const.SetColor.taz(.primaryBackground).color
+    /*
+    let s = mcoVc.view.sizeThatFits(CGSize(width: mcoVc.view.frame.size.width, height: 3000))
+    print(">>>sizeThatFits w: \(mcoVc.view.frame.size.width) is: \(s)")
+    mcoBottomSheet?.coverage = s.height + 30*/
+    mcoBottomSheet?.coverage = 525
+    mcoBottomSheet?.open()
+    mcoVc.contentView.declineButton.addTarget(self,
+                                        action: #selector(declineButtonPressed),
+                                        for: .touchUpInside)
+    mcoVc.contentView.activateButton.addTarget(self,
+                                        action: #selector(activateButtonPressed),
+                                        for: .touchUpInside)
+  }
+  
+  @objc func declineButtonPressed(sender: UIButton) {
+    multiColumnOnboardingAnswered = true
+    mcoBottomSheet?.close()
+  }
+  
+  @objc func activateButtonPressed(sender: UIButton) {
+    multiColumnOnboardingAnswered = true
+    multiColumnModeLandscape = true
+    edgeTapToNavigate = true
+    Notification.send(globalStylesChangedNotification)
+    updateTapArea()
+    mcoBottomSheet?.close()
+    ensureToolbarInFrontOfTapButtons()
+  }
+  
+  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+    super.viewWillTransition(to: size, with: coordinator)
+    if UIDevice.isPortrait { mcoBottomSheet?.close() }
+  }
+}
+
+class MultiColumnOnboarding: UIViewController {
+  lazy var contentView = MultiColumnOnboardingView()
+  public override func viewDidLoad() {
+    super.viewDidLoad()
+    self.view.addSubview(contentView)
+    pin(contentView, to: self.view)
+  }
+}
+
+class MultiColumnOnboardingView: UIView {
+  var title = UILabel(Localized("multicol_onboarding_title")).marketingHead()
+  var text = UILabel(Localized("multicol_onboarding_text"), _numberOfLines: 0).contentFont()
+  var iv = UIImageView()
+  
+  lazy var spacer: UIView = {
+    let s = UIView(frame: CGRectZero)
+    s.setContentHuggingPriority(.fittingSizeLevel, for: .vertical)
+    return s
+  }()
+  
+  lazy var buttonsStack: UIStackView = {
+    let s = UIStackView()
+    s.axis = .horizontal
+    s.distribution = .fillEqually
+    s.spacing = 18.0
+    s.addArrangedSubview(declineButton)
+    s.addArrangedSubview(activateButton)
+    return s
+  }()
+  
+  lazy var image: UIImage? = {
+    guard let img = UIImage(named: "BundledResources/MultiColumn.jpeg")else {
+      log("Bundled MultiColumn.png not found!")
+      return nil
+    }
+    return img
+  }()
+  
+  var declineButton = Padded.Button(type: .outline, title: Localized("multicol_onboarding_btn_decline"))
+  var activateButton = Padded.Button(title: Localized("multicol_onboarding_btn_activate"))
+  private func setup() {
+    self.addSubview(title)
+    self.addSubview(iv)
+    self.addSubview(text)
+    self.addSubview(buttonsStack)
+    self.addSubview(spacer)
+    let pad = 33.0
+    pin(title, to: self, dist: pad, exclude: .bottom)
+    
+    title.setContentHuggingPriority(.defaultHigh, for: .vertical)
+    text.setContentHuggingPriority(.defaultHigh, for: .vertical)
+    
+    iv.image = image
+    iv.contentMode = .scaleAspectFit
+    
+    pin(iv.top, to: title.bottom, dist: pad)
+    pin(text.top, to: title.bottom, dist: 18)
+    pin(buttonsStack.top, to: text.bottom, dist: 18)
+    pin(spacer.top, to: text.bottom, dist: pad)
+    pin(spacer.bottom, to: self.bottomGuide())
+    
+    pin(iv.left, to: self.left, dist: pad)
+    pin(text.right, to: self.right, dist: -pad)
+    pin(text.left, to: iv.right, dist: 18.0)
+    
+    iv.pinWidth(to: declineButton.width)
+    iv.pinHeight(to: text.height, factor: 0.9)
+    
+    pin(buttonsStack.left, to: self.left, dist: pad)
+    pin(buttonsStack.right, to: self.right, dist: -pad)
+    backgroundColor = Const.SetColor.taz(.primaryBackground).color
+  }
+  
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+    setup()
+  }
+  
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
   }
 }

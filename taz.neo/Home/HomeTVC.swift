@@ -12,12 +12,12 @@ import NorthLib
 /// Protocol to handle Open and Display an Issue
 protocol OpenIssueDelegate {
   /// open a Issue
-  func openIssue(_ issue:StoredIssue, at article: Article?, isReloadOpened: Bool)
+  func openIssue(_ issue:StoredIssue, atArticle: Int?, atPage: Int?, isReloadOpened: Bool)
 }
 extension OpenIssueDelegate {
   /// open a Issue
   func openIssue(_ issue:StoredIssue, isReloadOpened: Bool = false){
-    openIssue(issue, at: nil,  isReloadOpened: isReloadOpened)
+    openIssue(issue, atArticle: nil, atPage: nil, isReloadOpened: isReloadOpened)
   }
 }
 
@@ -26,6 +26,37 @@ protocol PushIssueDelegate {
   /// delagate back the push of a child VC to prevent multiple pushes
   func push(_ viewController:UIViewController, issueInfo: IssueDisplayService)
 }
+
+extension HomeTVC: CoachmarkVC {
+  
+  public var preventCoachmark: Bool { return preventCoachmarkOnNextAppear }
+  
+  var viewName: String { Coachmarks.IssueCarousel.typeName }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    guard let item = item as? Coachmarks.IssueCarousel else { return nil }
+    
+    switch item {
+      case .pdfButton:
+        return togglePdfButton
+      case .loading:
+        if carouselController.downloadButton.indicator.downloadState == .notStarted {
+          return carouselController.downloadButton
+        }
+        fallthrough
+      default:
+        return nil
+    }
+  }
+  
+  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
+    guard let item = item as? Coachmarks.IssueCarousel,
+          item == .tiles else { return nil }
+    return (UIImage(named: "cm-scroll")?.withRenderingMode(.alwaysOriginal), [], [])
+    as? (UIImage, [UIView], [CGPoint]) ?? nil
+  }
+}
+
 
 class HomeTVC: UITableViewController {
 
@@ -37,7 +68,15 @@ class HomeTVC: UITableViewController {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  @Default("voiceoverControls")
+  var voiceoverControls: Bool
+  
   private var dataPolicyToast: NewInfoToast?
+  
+  /// Temporary variable to prevent the same issue from being opened multiple times due to repeated touches.
+  private var openingIssue: Issue?
+  
+  var preventCoachmarkOnNextAppear: Bool = false
   
   #warning("Refactor ContentVC should hold it's IssueInfo Reference")
   ///Needed because ContentVC did not has a strong reference to its IssueInfo Object
@@ -88,7 +127,8 @@ class HomeTVC: UITableViewController {
     didSet {
       if oldValue == isAccessibilityMode { return }
       accessibilityControlls.isHidden = !isAccessibilityMode
-      scroll(up: true)
+      scroll(up: true, animated: false)
+      tableView.isScrollEnabled = !isAccessibilityMode
       tableView.reloadData()
     }
   }
@@ -117,6 +157,7 @@ class HomeTVC: UITableViewController {
                                    enqueueType: .replaceCurrent)
     }
     accessibilityPlayHelper.numberOfLines = 2
+    accessibilityPlayHelper.accessibilityTraits = .button
     accessibilityPlayHelper.boldContentFont().color(.white).centerText()
     //--
     accessibilityOlderHelper.onTapping {[weak self] _ in
@@ -124,6 +165,7 @@ class HomeTVC: UITableViewController {
       self?.carouselController.scrollTo(idx+1, animated: false)
     }
     accessibilityOlderHelper.accessibilityLabel = "Ausgabe zurück"
+    accessibilityOlderHelper.accessibilityTraits = .button
     accessibilityOlderHelper.isAccessibilityElement = true
     accessibilityOlderHelper.image = UIImage(named: "forward")
     accessibilityOlderHelper.image?.accessibilityTraits = .none
@@ -135,10 +177,17 @@ class HomeTVC: UITableViewController {
       self?.carouselController.scrollTo(idx-1, animated: false)
     }
     accessibilityNewerHelper.accessibilityLabel = "Ausgabe vor"
+    accessibilityNewerHelper.accessibilityTraits = .button
     accessibilityNewerHelper.isAccessibilityElement = true
     accessibilityNewerHelper.image = UIImage(named: "backward")
     accessibilityNewerHelper.image?.accessibilityTraits = .none
     accessibilityNewerHelper.tintColor = .white
+    
+    accessibilityPlayHelper.accessibilityLabel = "aktuelle Ausgabe abspielen, bitte benutzen Sie die Mediensteuerung auf dem Speerbildschirm um zwischen den Artikeln zu wechseln"
+    accessibilityPlayHelper.text = "aktuelle Ausgabe abspielen"
+    accessibilityPlayHelper.accessibilityTraits = .button
+    accessibilityPlayHelper.isAccessibilityElement = true
+    
     //--
     let accessibilityInfoLabel = UILabel(frame: CGRect(x: 5, y: 50, width: 10, height: 4))
     accessibilityInfoLabel.text = "Voiceover Hilfsschaltflächen aktiviert\nVoiceover deaktivieren\num diese zu deaktivieren"
@@ -152,6 +201,7 @@ class HomeTVC: UITableViewController {
     wrapper.addSubview(accessibilityOlderHelper)
     wrapper.addSubview(accessibilityNewerHelper)
     wrapper.addSubview(accessibilityInfoLabel)
+    wrapper.backgroundColor = UIColor.black.withAlphaComponent(0.8)
     //--
     pin(accessibilityOlderHelper.right, to: wrapper.right)
     pin(accessibilityNewerHelper.left, to: wrapper.left)
@@ -195,13 +245,15 @@ class HomeTVC: UITableViewController {
     #if TAZ
       setupTogglePdfButton()
       togglePdfButton.isAccessibilityElement = false
-    #endif    
+    #endif
     carouselController.dateLabel.isAccessibilityElement = false
     carouselControllerCell.isAccessibilityElement = false
     carouselController.collectionView.isAccessibilityElement = false
     tilesControllerCell.isAccessibilityElement = false
     tilesControllerCell.contentView.isAccessibilityElement = false
     tilesController.collectionView.isAccessibilityElement = false
+    $voiceoverControls.onChange{ [weak self] _ in self?.updateAccessibillityHelper() }
+    updateAccessibillityHelper()
    }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -215,23 +267,31 @@ class HomeTVC: UITableViewController {
       togglePdfButton.isHidden = true
     #endif
     super.viewWillDisappear(animated)
+    preventCoachmarkOnNextAppear = false
   }
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     #if TAZ
-      togglePdfButton.showAnimated()
+    togglePdfButton.isHidden = false
     #endif
     showRequestTrackingIfNeeded()
-//    showPdfInfoIfNeeded()//DEACTIVATED FOR 1.1.0 // In 1.2.0 Coachmarks shloud come DELETE IT!
     self.carouselController.showScrollDownAnimationIfNeeded()
     scroll(up: wasUp)
     Rating.homeAppeared()
+    _ = StoreBusiness.canRegister///initially check App Store
+  }
+  
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    openingIssue = nil
   }
   
  @objc private func updateAccessibillityHelper(){
+   let isLoggedIn = loginButton.superview == nil
    isAccessibilityMode
-    = loginButton.superview == nil
+    = isLoggedIn
+    && voiceoverControls
     && UIAccessibility.isVoiceOverRunning
   }
   
@@ -262,7 +322,7 @@ class HomeTVC: UITableViewController {
   
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     // #warning Incomplete implementation, return the number of rows
-    return isAccessibilityMode ? 1 : 2
+    return UIAccessibility.isVoiceOverRunning ? 1 : 2
   }
   
   override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -339,7 +399,14 @@ protocol IssueSelectionChangeDelegate {
 
 extension HomeTVC: IssueSelectionChangeDelegate {
   func  setCurrent(cellData: IssueCellData, idx: Int) {
-    accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) abspielen"
+    if cellData.issue?.audioFiles.count ?? 0 > 0 {
+      accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) abspielen"
+      accessibilityPlayHelper.accessibilityLabel = "taz vom\n\(cellData.date.date.short) abspielen"
+    }
+    else {
+      accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) laden und abspielen"
+      accessibilityPlayHelper.accessibilityLabel = "taz vom\n\(cellData.date.date.short) laden und abspielen"
+    }
   }
 }
 
@@ -416,6 +483,7 @@ extension HomeTVC {
   func onPDF(sender:Any){
     self.isFacsimile = !self.isFacsimile
     Usage.track(self.isFacsimile ? Usage.event.appMode.SwitchToPDFMode : Usage.event.appMode.SwitchToMobileMode)
+    deactivateCoachmark(Coachmarks.IssueCarousel.pdfButton)
     
     if let imageButton = sender as? Button<ImageView> {
       imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
@@ -423,7 +491,7 @@ extension HomeTVC {
     }
     Toast.show(self.isFacsimile
     ? "<h2>Zeitungsansicht</h2><p>Sie können jetzt die taz im Layout<br>der Zeitungsansicht lesen.</p>"
-    : "<h2>App-Ansicht</h2><p>Sie können jetzt die taz in der<br>für mobile Geräte<br>optimierten Ansicht lesen.</p>")
+    : "<h2>App-Ansicht</h2><p>Sie können jetzt die taz in der<br>für mobile Geräte<br>optimierten Ansicht lesen.</p>", isDefaultToast: true)
     self.tilesController.reloadVisibleCells()
     self.carouselController.reloadVisibleCells()
     self.carouselController.updateBottomWrapper(for: self.carouselController.centerIndex ?? 0,
@@ -466,7 +534,7 @@ extension HomeTVC {
 }
 
 extension HomeTVC: OpenIssueDelegate {
-  func openIssue(_ issue: StoredIssue, at article: Article?, isReloadOpened: Bool = false) {
+  func openIssue(_ issue: StoredIssue, atArticle: Int? = nil, atPage: Int? = nil, isReloadOpened: Bool = false) {
     ///How to prevent multiple open?
     ///already pushed => no problem
     ///3 downloads in Progress => first downloaded? n/ last clicked?
@@ -477,11 +545,14 @@ extension HomeTVC: OpenIssueDelegate {
     ///should i allow?
     ///YES: Which one is selected? What if selected is no reference here?
     ///if  not what happen if i only have
-    
+    ///TRY TO BUGFIX MULTIPLE OPEN OF Logged Out not downloaded issue due it causes other errors by saving which issue was tried to open and unset after 10 seconds od push delegate happen
+    if openingIssue?.date.issueKey == issue.date.issueKey { return }
+    onMainAfter(10) {[weak self] in self?.openingIssue = nil }
+    openingIssue = issue
     let issueInfo = IssueDisplayService(feederContext: feederContext,
                                     issue: issue)
     loadingIssueInfos.append(issueInfo)
-    issueInfo.showIssue(pushDelegate: self, at: article, isReloadOpened: isReloadOpened)
+    issueInfo.showIssue(pushDelegate: self, atArticle: atArticle, atPage:atPage, isReloadOpened: isReloadOpened)
   }
 }
 
@@ -514,9 +585,9 @@ extension HomeTVC {
   }
   
   fileprivate func setupCarouselControllerCell() {
-    carouselController.view.isAccessibilityElement = false
+    carouselController.view.isAccessibilityElement = !isAccessibilityMode
     carouselControllerCell.contentView.addSubview(carouselController.view)
-    pin(carouselController.view, toSafe: carouselControllerCell).bottom.constant = -UIWindow.topInset
+    pin(carouselController.view, toSafe: carouselControllerCell).bottom?.constant = -UIWindow.topInset
     carouselControllerCell.backgroundColor = .clear
     
     Notification.receive(Const.NotificationNames.authenticationSucceeded) { _ in
@@ -529,7 +600,7 @@ extension HomeTVC {
     carouselControllerCell.contentView.addSubview(accessibilityControlls)
     pin(accessibilityControlls.left, to: carouselControllerCell.contentView.left, dist: 12.0)
     pin(accessibilityControlls.right, to: carouselControllerCell.contentView.right, dist: -12.0)
-    pin(accessibilityControlls.topGuide(), to: carouselControllerCell.contentView.top)
+    pin(accessibilityControlls.top, to: carouselControllerCell.contentView.topGuide(isMargin: true), dist: 15)
   }
   
   fileprivate func updateLoginButton(){
@@ -604,7 +675,10 @@ extension HomeTVC {
 // MARK: - ShowPDF Info Toast
 extension HomeTVC {
   func showRequestTrackingIfNeeded() {
-    if Defaults.usageTrackingAllowed != nil { return }
+    if Defaults.usageTrackingAllowed != nil {
+      showCoachmarkIfNeeded()
+      return
+    }
     guard let image = UIImage(named: "BundledResources/UsagePopover.png")else {
       log("Bundled UsagePopover.png not found!")
       return
@@ -621,6 +695,14 @@ extension HomeTVC {
                             button2Handler: { Defaults.usageTrackingAllowed = false },
                             dataPolicyHandler: {[weak self] in self?.showDataPolicyModal()})
     }
+    dataPolicyToast?.accessibilityViewIsModal = true
+    dataPolicyToast?.button1.accessibilityLabel = "Tracking zustimmen"
+    dataPolicyToast?.button2.accessibilityLabel = "Tracking verweigern"
+    ///unfortunately links are not accessible @see: https://stackoverflow.com/a/49366620
+    #warning("accessibility: Change Component")
+    dataPolicyToast?.privacyText.accessibilityLabel = "Hinweise zum Datenschutz finden Sie in den Einstellungen"
+    dataPolicyToast?.privacyText.isAccessibilityElement = false
+    dataPolicyToast?.privacyText.accessibilityTraits = .none
     dataPolicyToast?.show(fromBottom: fromBottom)
   }
   
@@ -641,54 +723,13 @@ extension HomeTVC {
     self.present(introVC, animated: true) {
       //Overwrite Default in: IntroVC viewDidLoad
       introVC.webView.buttonLabel.text = nil
-      //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
-      guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
-      bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
-      bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
-    }
-  }
-}
-
-// MARK: - ShowPDF Info Toast
-extension HomeTVC {
-  func showPdfInfoIfNeeded(_ delay:Double = 3.0) {
-    if Defaults.usageTrackingAllowed == nil { return }
-    if showPdfInfoToast == false {
-      self.carouselController.showScrollDownAnimationIfNeeded()
-      return
-    }
-    
-    onThreadAfter(delay) { [weak self] in
-        guard let url = Bundle.main.url(forResource: "lottiePopup",
-                                     withExtension: "html",
-                                        subdirectory: "BundledResources") else {
-          self?.log("Bundled lottie HTML not found!")
-          return
-        }
-      
-        let file = File(url)
-        guard file.exists  else {
-          self?.log("Bundled lottie HTML File not found!")
-          return
-        }
-      
-      InfoToast.showWith(lottieUrl: url,
-                          title: "Entdecken Sie jetzt die Zeitungsansicht",
-                          text: "Hier können Sie zwischen der mobilen und der Ansicht der Zeitungsseiten wechseln",
-                          buttonText: "OK",
-                          hasCloseX: true,
-                          autoDisappearAfter: nil) {   [weak self] in
-        self?.log("PdfInfoToast showen and closed")
-        self?.showPdfInfoToast = false
-        self?.carouselController.showScrollDownAnimationIfNeeded()
-      }
-      Usage.track(Usage.event.dialog.PDFModeSwitchHint)
     }
   }
 }
 
 extension HomeTVC: ReloadAfterAuthChanged {
   public func reloadOpened(){
+    preventCoachmarkOnNextAppear = true ///reverted in: viewWillDisappear fixes Login reload..
     guard let selectedIssue = self.issueInfo?.issue as? StoredIssue else { return }
     navigationController?.popToRootViewController(animated: false)
     if selectedIssue.isDownloading == false {

@@ -186,12 +186,16 @@ public class FeedbackViewController : UIViewController{
     var emptyFields:[String] = []
     let err = type != FeedbackType.feedback
     
-    if !feedbackView.messageTextView.isFilled{ emptyFields.append("Nachricht")}
-    if err && !feedbackView.lastInteractionTextView.isFilled{
-      emptyFields.append("Letzte Interaktion")
+    if feedbackView.messageTextView.text?.isEmpty == true { emptyFields.append("Nachricht")
+      feedbackView.messageTextView.errorMessage = "Bitte ausfüllen!"
     }
-    if err && !feedbackView.environmentTextView.isFilled{
+    if err && feedbackView.lastInteractionTextView.text?.isEmpty == true {
+      emptyFields.append("Letzte Interaktion")
+      feedbackView.lastInteractionTextView.errorMessage = "Bitte ausfüllen!"
+    }
+    if err && feedbackView.environmentTextView.text?.isEmpty == true {
       emptyFields.append("Zustand")
+      feedbackView.environmentTextView.errorMessage = "Bitte ausfüllen!"
     }
     
     if force == false && emptyFields.count > 0 {

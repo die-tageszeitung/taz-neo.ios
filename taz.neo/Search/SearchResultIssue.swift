@@ -9,7 +9,7 @@
 import Foundation
 import NorthLib
 
-public class SearchResultIssue: BookmarkIssue {
+public class SearchResultIssue: VirtualIssue {
   
   public override var isComplete: Bool {
     get{
@@ -49,7 +49,11 @@ class SearchArticle:GqlArticle{
   /// every Article from a search can have a own issue
   /// every issue has a own base url
   /// use this field to transfer the issue base url from serachHit to downloader
-  var originalIssueBaseURL: String?
+  var baseURL: String?
+  
+  var sectionTitle: String?
+  
+  var originalIssueDate: Date?
   
   override var primaryIssue: Issue? {
     get{ SearchResultIssue.shared }
@@ -58,7 +62,7 @@ class SearchArticle:GqlArticle{
 }
 
 /// A Section of searched  Articles
-public class SearchSection: BookmarkSection {}
+public class SearchSection: VirtualSection {}
 
 /// A temporary file entry
 public class TmpFileEntry: FileEntry {

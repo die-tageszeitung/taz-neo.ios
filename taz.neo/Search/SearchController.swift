@@ -9,13 +9,13 @@
 import NorthLib
 import UIKit
 
-class SearchController: UIViewController {
+class SearchController: UIViewController, UIStyleChangeDelegate {
+  
   // MARK: *** Properties ***
   var feederContext: FeederContext
   
   private var defaultSection: SearchSection
   private var searchResultIssue: SearchResultIssue
-  private var lastArticleShown: Article?
   
   private var articleVC:SearchResultArticleVc
   
@@ -54,33 +54,44 @@ class SearchController: UIViewController {
   
   enum searchState: String {case initial, firstSearch, result, emptyResult}
   
-  private var currentState: searchState = .initial {
+  var blockedState = false
+  
+  public private(set) var currentState: searchState = .initial {
     didSet {
-      switch currentState {
-        case .initial:
-          resultsTable.hideAnimated()
-          placeholderView.showAnimated()
-        case .firstSearch:
-          resultsTable.hideAnimated()
-          resultsTable.scrollTop()
-          placeholderView.hideAnimated()
-          centralActivityIndicator.isHidden = false
-          centralActivityIndicator.startAnimating()
-        case .result:
-          centralActivityIndicator.isHidden = false
-          centralActivityIndicator.stopAnimating()
-          resultsTable.isHidden = false
-          onMainAfter(0.7){[weak self] in
-            self?.resultsTable.isHidden = false
-          }
-        case .emptyResult:
-          centralActivityIndicator.isHidden = true
-          onMainAfter(0.7){[weak self] in
-            self?.placeholderView.showAnimated()
-          }
-          resultsTable.hideAnimated()
-      }
+      checkStateChange()
     }
+  }
+  
+  func checkStateChange(){
+    if blockedState == true {
+      onMainAfter{[weak self] in self?.checkStateChange() }
+      return
+    }
+    blockedState = true
+    
+    switch currentState {
+      case .initial:
+        placeholderView.label.text = Localized("search_placeholder_initial")
+        resultsTable.hideAnimated()
+        placeholderView.showAnimated()
+      case .firstSearch:
+        resultsTable.hideAnimated()
+        resultsTable.scrollTop()
+        placeholderView.hideAnimated()
+        centralActivityIndicator.isHidden = false
+        centralActivityIndicator.startAnimating()
+      case .result:
+        centralActivityIndicator.isHidden = false
+        centralActivityIndicator.stopAnimating()
+        resultsTable.isHidden = false
+      case .emptyResult:
+        placeholderView.label.text = Localized("search_placeholder_empty_result")
+        centralActivityIndicator.isHidden = true
+        placeholderView.showAnimated()
+        resultsTable.hideAnimated()
+    }
+    //Animations should be finished
+    onMainAfter(0.6){[weak self] in self?.blockedState = false }
   }
   
   // MARK: *** UIComponents ***
@@ -92,6 +103,17 @@ class SearchController: UIViewController {
     v.openSearchHit = { [weak self] hit in
       self?.openSearchHit(hit)
     }
+    v.shareArticle = { [weak self] (hit, sourceView) in
+      guard let artVc = self?.articleVC,
+            let issue = self?.issue else { return }
+      if let idx = self?.searchItem.allArticles?.firstIndex(where: {$0.serverId == hit.article.serverId}) {
+        artVc.index = idx
+      }
+      ArticleExportDialogue.show(article: hit.article,
+                                 image: hit.article.images?.first?.image(dir: issue.dir),
+                                 sourceView: sourceView)
+    }
+    
     v.handleScrolling = { [weak self] (offset,end) in
       self?.header.setHeader(scrollOffset: offset, animateEnd: end)
     }
@@ -109,6 +131,7 @@ class SearchController: UIViewController {
     header.extendedSearchButton.onTapping { [weak self] _ in
       self?.header.setHeader(showMaxi: true)
       self?.searchSettingsView.toggle()
+      self?.deactivateCoachmark(Coachmarks.Search.filter)
       self?.checkFilter()
     }
     header.searchTextField.delegate = self
@@ -157,35 +180,41 @@ class SearchController: UIViewController {
       self?.present(introVC, animated: true) {
         //Overwrite Default in: IntroVC viewDidLoad
         introVC.webView.buttonLabel.text = nil
-        //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
-        guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
-        bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
-        bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
       }
     }
     v.textFieldDelegate = self
     return v
   }()
   
-  lazy var placeholderView = PlaceholderView("Suche nach Autor*innen, Artikeln, Rubriken oder Themen", image: UIImage(named: "search-magnifier"))
+  lazy var placeholderView = PlaceholderView(Localized("search_placeholder_initial"),
+                                             image: UIImage(named: "search-magnifier"))
+
   
   lazy var centralActivityIndicator = UIActivityIndicatorView()
     
   // MARK: *** Lifecycle ***
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    if let lastArticle = lastArticleShown,
+    if let lastArticle = articleVC.article,
        let hitList = searchItem.searchHitList,
        let idx = hitList.firstIndex(where: { lastArticle.isEqualTo(otherArticle: $0.article)}) {
       resultsTable.scrollToRow(at: IndexPath(row: idx, section:0 ), at: .top, animated: false)
     }
   }
   
-  override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
-    self.view.backgroundColor = Const.SetColor.HBackground.color
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    showCoachmarkIfNeeded()
   }
   
+  func applyStyles() {
+    self.view.backgroundColor = Const.SetColor.HBackground.color
+    self.resultsTable.reloadData()
+    self.resultsTable.applyStyles()
+    self.header.applyStyles()
+    self.searchSettingsView.applyStyles()
+  }
+    
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.addSubview(placeholderView)
@@ -193,10 +222,7 @@ class SearchController: UIViewController {
     self.view.addSubview(resultsTable)
     self.view.addSubview(searchSettingsView)
     self.view.addSubview(header)
-    placeholderView.onTapping {[weak self] _ in
-        self?.header.searchTextField.resignFirstResponder()
-    }
-    centralActivityIndicator.center()
+    centralActivityIndicator.centerAxis()
     pin(placeholderView, toSafe: self.view)
     pin(resultsTable, toSafe: self.view, exclude: .top)
     pin(resultsTable.top, to: header.bottom)
@@ -223,6 +249,8 @@ class SearchController: UIViewController {
         name: UIResponder.keyboardWillHideNotification,
         object: nil
     )
+    
+    registerForStyleUpdates()
     
   }
   
@@ -419,8 +447,8 @@ extension SearchController: ArticleVCdelegate {
   }
   
   public var article: Article? {
-    get { return lastArticleShown }
-    set { lastArticleShown = newValue }
+    get { return articleVC.article }
+    set {  }
   }
   
   public var article2section: [String : [Section]] {
@@ -500,3 +528,15 @@ fileprivate extension SearchSettings {
   }
 }
 
+extension SearchController: CoachmarkVC {
+  
+   public var viewName: String { Coachmarks.Search.typeName }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    guard let item = item as? Coachmarks.Search else { return nil }
+    switch item {
+      case .filter:
+        return header.extendedSearchButton
+    }
+  }
+}

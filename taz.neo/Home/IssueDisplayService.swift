@@ -19,6 +19,9 @@ class IssueDisplayService: NSObject, IssueInfo, DoesLog {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  @Default("reopenArticleSetting")
+  public var reopenArticleSetting: Bool
+  
   var feederContext: FeederContext
   var sissue: StoredIssue
   
@@ -37,9 +40,8 @@ extension IssueDisplayService {
                          atArticle: Int? = nil,
                          atPage: Int? = nil,
                          pushDelegate: PushIssueDelegate) {
-    #warning("DO prevent multiple pushes!")
-    //prevent multiple pushes!
-    //      if self.navigationController?.topViewController != self { return }
+    // prevent multiple pushes!
+    // if self.navigationController?.topViewController != self { return }
     let authenticatePDF = { [weak self] in
       guard let self = self else { return }
       if self.feederContext.isAuthenticated && self.feederContext.gqlFeeder.isExpiredAccount {
@@ -47,6 +49,9 @@ extension IssueDisplayService {
         self.feederContext.authenticate()
         return
       }
+      //...not show login if logged in!
+      if self.feederContext.isAuthenticated == true { return }
+      /// ...show Login
       let loginAction = UIAlertAction(title: Localized("login_button"),
                                       style: .default) { _ in
         self.feederContext.authenticate()
@@ -66,7 +71,9 @@ extension IssueDisplayService {
         if issue.status == .reduced {
           authenticatePDF()
         }
-        
+        else if let page = atPage{
+          vc.index = page
+        }
       }
       ///in case of errors
       let handleError = {
@@ -104,21 +111,40 @@ extension IssueDisplayService {
                               atArticle: atArticle)
     sectionVC.delegate = self
     
-    if atArticle == nil {
+    let lastArticleShown = LastReadBusiness.getLast(for: issue)
+    var reopenArticle = true
+        
+    if atArticle == nil && reopenArticleSetting == true {
       sectionVC.whenLoaded {
+        if reopenArticle, let lastArticle = lastArticleShown.lastArticle, let changed = lastArticleShown.changed{
+          reopenArticle = false
+          let actions: [UIAlertAction] = [
+            Alert.action("Weiterlesen") {_ in
+              sectionVC.showArticle(lastArticle)
+              Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Open")
+            },
+          ]
+          let title = "Letzten Artikel erneut öffnen?"
+          let msg = "Sie haben auf diesem Gerät am \(changed.date.short) um \(changed.date.timeFromDate) den Artikel \"\(lastArticle.title ?? "")\" geöffnet. Möchten Sie diesen erneut anzeigen?"
+          Alert.actionSheet(title: title, message: msg, actions: actions, cancelHandler:  { _ in
+            Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Cancel")
+          })
+        }
         Notification.send(Const.NotificationNames.articleLoaded)
       }
+    }
+    else if reopenArticleSetting == false {
+      Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Disabled")
     }
     pushDelegate.push(sectionVC, issueInfo: self)
   }
   
   
-  func showIssue(pushDelegate: PushIssueDelegate, at targetArticle: Article? = nil, isReloadOpened: Bool = false){
+  func showIssue(pushDelegate: PushIssueDelegate, atArticle: Int? = nil, atPage: Int? = nil, isReloadOpened: Bool = false){
     let issue = self.sissue
     
     if issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0 {
-      debug("Issue: \(issue.date.short ?? "-") has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
-      debug("This may fail!")
+      debug("Issue: \(issue.date.short) has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
     }
       
     
@@ -134,9 +160,9 @@ extension IssueDisplayService {
     guard feederContext.needsUpdate(issue: issue,
                                     toShowPdf: isFacsimile) else {
       openIssue(issue: issue,
-                atSection: issue.lastSection,
-                atArticle: targetArticle?.index ?? issue.lastArticle,
-                atPage: issue.lastPage,
+                atSection: nil,
+                atArticle: atArticle,
+                atPage: atPage ?? issue.lastPage,
                 pushDelegate: pushDelegate)
       if feederContext.isAuthenticated,
          feederContext.gqlFeeder.isExpiredAccount == false,
@@ -158,10 +184,10 @@ extension IssueDisplayService {
       if let err = notif.error {
         if issue.status.watchable && self.isFacsimile {
           self.openIssue(issue: issue,
-                    atSection: issue.lastSection,
-                    atArticle: targetArticle?.index ?? issue.lastArticle,
-                    atPage: issue.lastPage,
-                    pushDelegate: pushDelegate) }
+                         atSection: issue.lastSection,
+                         atArticle: atArticle ?? issue.lastArticle,
+                         atPage: atPage ?? issue.lastPage,
+                         pushDelegate: pushDelegate) }
         return
       }
       guard let sect0 = issue.sections?.first else {
@@ -173,15 +199,15 @@ extension IssueDisplayService {
         guard err == nil else {
           if issue.status.watchable && self.isFacsimile { self.openIssue(issue: issue,
                                                                     atSection: issue.lastSection,
-                                                                    atArticle: targetArticle?.index ?? issue.lastArticle,
-                                                                    atPage: issue.lastPage,
+                                                                    atArticle: atArticle ?? issue.lastArticle,
+                                                                    atPage: atPage ?? issue.lastPage,
                                                                     pushDelegate: pushDelegate)  }
           return
         }
         self.openIssue(issue: issue,
                   atSection: issue.lastSection,
-                  atArticle: targetArticle?.index ?? issue.lastArticle,
-                  atPage: issue.lastPage,
+                  atArticle: atArticle ?? issue.lastArticle,
+                  atPage: atPage ?? issue.lastPage,
                   pushDelegate: pushDelegate)
         Notification.receiveOnce("issue", from: issue) { [weak self] notif in
           guard let self = self else { return }
@@ -197,13 +223,20 @@ extension IssueDisplayService {
         }
       }
     }
+    
+    let preventOpenDirect
+    = issue.isReduced
+    && feederContext.isAuthenticated
+    && feederContext.gqlFeeder.isExpiredAccount == false
+    
     if issue.status.watchable
+        && preventOpenDirect == false
         && issue.sections?.isEmpty == false
         && isReloadOpened == false {
       self.openIssue(issue: issue,
                 atSection: issue.lastSection,
-                atArticle: targetArticle?.index ?? issue.lastArticle,
-                atPage: issue.lastPage,
+                atArticle: atArticle ?? issue.lastArticle,
+                atPage: atPage ?? issue.lastPage,
                 pushDelegate: pushDelegate)
     }
     self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile, isAutomatically: false)
@@ -248,9 +281,22 @@ extension IssueDisplayService {
 
 }
 
-extension Article {
-  var index: Int? {
-    return self.primaryIssue?.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: self) })
+extension Issue {
+  func indexOfArticle(with id: Int) -> Int? {
+    return allArticles.firstIndex(where: { art in art.serverId == id })
   }
   
+  func indexOfArticle(with url: URL) -> Int? {
+    return allArticles.firstIndex(where: { art in art.html?.fileName == url.lastPathComponent })
+  }
+  
+  func indexOf(article: Article?) -> Int? {
+    guard let article = article else { return nil }
+    return allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: article) })
+  }
+  func pageIndexOf(article: Article?) -> Int? {
+    return pages?.firstIndex(where: { page in
+      return article?.pageNames?.contains{ $0 == page.pdf?.name } ?? false
+    })
+  }
 }

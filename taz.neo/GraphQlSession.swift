@@ -119,9 +119,6 @@ open class GraphQlSession: HttpSession {
           print("error: ", error)
           result = .failure(self.fatal("JSON decoding error"))
         }
-        catch {
-          result = .failure(self.fatal("JSON decoding error"))
-        }
       }
     }
     else { result = .failure(self.fatal("No data from GraphQL server")) }

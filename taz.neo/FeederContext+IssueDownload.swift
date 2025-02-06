@@ -68,6 +68,8 @@ extension FeederContext {
                                isAutomatically: Bool,
                                force: Bool = false,
                                withAudio: Bool = false) {
+    /// prevent unexpected Behaviour e.g. with: issue.date != dissue.date 
+    if issue.isBookmarkIssue { return }
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
     Usage.track(isAutomatically ? Usage.event.issue.autoDownload : Usage.event.issue.download,
                 name: issue.date.ISO8601,
@@ -88,6 +90,7 @@ extension FeederContext {
     if self.isConnected {
       gqlFeeder.issues(feed: issue.feed, 
                        date: issue.date,
+                       key: issue.key,
                        count: 1,
                        isPages: loadPages, 
                        withAudio: withAudio) { res in
@@ -149,7 +152,9 @@ extension FeederContext {
     if let dlId = dlId {
       let nsec = UsTime.now.timeInterval - tstart.timeInterval
       debug("Sending stop of download to server")
-      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec){_ in}
+      self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec){[weak self] _ in
+        self?.cleanupOldIssues()
+      }
     }
   }
   

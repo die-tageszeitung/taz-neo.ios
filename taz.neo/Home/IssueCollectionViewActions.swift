@@ -16,9 +16,7 @@ protocol IssueCollectionViewActions: UIContextMenuInteractionDelegate where Self
 extension IssueCollectionViewActions {
   
   func deleteIssue(issue: StoredIssue,
-                   at indexPath: IndexPath,
-                   force: Bool = false,
-                   bookmarksCount:Int? = nil) {
+                   at indexPath: IndexPath) {
     if issue.isDownloading {
       ///WARNING May not catch all states, due isDownloading is set if Downloader.downloading files;
       ///not in first Step: get Structure Data @REFACTORING
@@ -27,27 +25,13 @@ extension IssueCollectionViewActions {
       return
     }
     
-    let bookmarksCount = bookmarksCount ?? StoredArticle.bookmarkedArticlesInIssue(issue: issue).count
-    
-    if force == true
-    || bookmarksCount == 0 {
-      Log.debug("Delete Issue: \(issue.date.short)")
-      Usage.track(Usage.event.issue.delete,
-                  name: issue.date.ISO8601)
-      Notification.send("issueDelete", content: issue.date)
-      issue.delete()
-      self.collectionView.reloadItems(at: [indexPath])
-      self.updateCarouselDownloadButton()
-      return
-    }
-    
-    Alert.confirm(title: "Achtung!", message: "Die Ausgabe vom \(issue.date.short) enthält \(bookmarksCount) Lesezeichen. Soll die Ausgabe mit Lesezeichen gelöscht werden?", okText: "Löschen") {[weak self] delete in
-      guard delete else { return }
-      self?.deleteIssue(issue: issue, 
-                        at: indexPath,
-                        force: true,
-                        bookmarksCount: bookmarksCount)
-    }
+    Log.debug("Delete Issue: \(issue.date.short)")
+    Usage.track(Usage.event.issue.delete,
+                name: issue.date.ISO8601)
+    Notification.send("issueDelete", content: issue.date)
+    issue.delete()
+    self.collectionView.reloadItems(at: [indexPath])
+    self.updateCarouselDownloadButton()
   }
   
   func updateCarouselDownloadButton(){
@@ -56,16 +40,7 @@ extension IssueCollectionViewActions {
     = self.service.cellData(for: ccvc.centerIndex ?? 0)?.downloadState
   }
   
-  func _contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-    let loc = interaction.location(in: collectionView)
-    guard let indexPath = self.collectionView.indexPathForItem(at: loc) else {
-      return nil
-    }
-
-    guard let issue = self.service.cellData(for: indexPath.row)?.issue else {
-      return nil
-    }
-    
+  func contextMenuInteraction(for indexPath: IndexPath, issue: StoredIssue) -> UIContextMenuConfiguration? {
     let actions = MenuActions()
     
     actions.addMenuItem(title: "Ausgabe löschen",
@@ -74,15 +49,16 @@ extension IssueCollectionViewActions {
       self?.deleteIssue(issue: issue, at: indexPath)
     }
     
-    if issue.isComplete && issue.isAudioComplete == false {
-        actions.addMenuItem(title: "Audioinhalte laden",
-                            icon: "download",
-                            enabled: issue.isDownloading == false) {[weak self] _ in
-          self?.service.download(issueAt: issue.date, withAudio: true)
-          guard let ccvc = self as? IssueCarouselCVC,
-                ccvc.centerIndex == indexPath.row else { return }
-          ccvc.downloadButton.indicator.downloadState = .waiting
-        }
+    if issue.isComplete && issue.isAudioComplete == false && issue.hasAudio
+    {
+      actions.addMenuItem(title: "Audioinhalte laden",
+                          icon: "download",
+                          enabled: issue.isDownloading == false) {[weak self] _ in
+        self?.service.download(issueAt: issue.date, withAudio: true)
+        guard let ccvc = self as? IssueCarouselCVC,
+              ccvc.centerIndex == indexPath.row else { return }
+        ccvc.downloadButton.indicator.downloadState = .waiting
+      }
     } else if issue.isComplete == false {
       actions.addMenuItem(title: "Ausgabe laden",
                           icon: "download",
@@ -92,6 +68,7 @@ extension IssueCollectionViewActions {
               ccvc.centerIndex == indexPath.row else { return }
         ccvc.downloadButton.indicator.downloadState = .waiting
       }
+      ///issue.audioFiles.count > 0 not possible until download
       actions.addMenuItem(title: "Ausgabe mit Audio laden",
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in
@@ -121,5 +98,28 @@ extension IssueCollectionViewActions {
                                       previewProvider: nil){ _ -> UIMenu? in
       return actions.contextMenu
     }
+  }
+  
+  func _contextMenuInteraction(_ interaction: UIContextMenuInteraction,
+                               configurationForMenuAtLocation location: CGPoint)
+  -> UIContextMenuConfiguration? {
+    // Determine the position within the CollectionView
+    let locationInCollectionView = interaction.location(in: collectionView)
+    
+    // Main logic: Create a context menu for the cell at the specified position
+    if let indexPath = collectionView.indexPathForItem(at: locationInCollectionView),
+       let issue = service.cellData(for: indexPath.row)?.issue {
+      return contextMenuInteraction(for: indexPath, issue: issue)
+    }
+    
+    // Fallback: Handle cases where no indexPath could be determined (e.g., during scrolling)
+    if let tappedCell = interaction.view?.superview?.superview as? IssueCollectionViewCell,
+       let issue = tappedCell.data?.issue,
+       let indexPath = collectionView.indexPath(for: tappedCell) {
+      return contextMenuInteraction(for: indexPath, issue: issue)
+    }
+    
+    // No context menu available
+    return nil
   }
 }

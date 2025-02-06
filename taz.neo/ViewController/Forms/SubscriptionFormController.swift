@@ -9,19 +9,6 @@
 import UIKit
 import NorthLib
 
-// MARK: - ConnectTazIDController
-/// Presents Register TazID Form and Functionallity
-/// ChildViews/Controller are pushed modaly
-
-/**
- **TBD** This Controller offers the option to create a Trial Subscription
- it has 3 characteristics for users which have no Abo-ID
- 1. User has no Taz ID => TrialSubscriptionController with E-mail, new Password, Firstname, Lastname
- 2. User with taz-ID
- a) with first/Lastname => This form will not be used, its just for the "Service"
- b) without first and/or Lastname
- 
- */
 class SubscriptionFormController : FormsController {
   var onMissingNameRequested:(()->())?
   
@@ -32,7 +19,6 @@ class SubscriptionFormController : FormsController {
   override func viewDidLoad() {
     super.viewDidLoad()
     ui.sendButton.touch(self, action: #selector(handleSubmit))
-    ui.cancelButton.touch(self, action: #selector(handleBack))
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -49,8 +35,9 @@ class SubscriptionFormController : FormsController {
     ui.blocked = true
     
     if let errormessage = ui.validate() {
-      Toast.show(errormessage, .alert)
+      Alert.message(message: errormessage)
       ui.blocked = false
+      ui.scrollView.scrollRectToVisible(CGRect(x: 1, y: 1, width: 1, height: 1), animated: true)
       Usage.track(Usage.event.subscription.InquiryFormValidationError)
       return
     }
@@ -87,15 +74,27 @@ class SubscriptionFormController : FormsController {
           else {
             Usage.track(Usage.event.subscription.InquiryServerError, name: err.description)
           }
-          
+          var message = ""
           if let fe = err as? SubscriptionFormDataError, let msg = fe.associatedValue {
-            Toast.show("<b>Fehler beim senden</b></br>\(msg)", .alert)
+            self?.ui.handle(formError: fe)
+            message = msg
+          }
+          else if err is URLError {
+            ///(err as? URLError)?.description is probably: "Es besteht anscheinend keine Verbindung zum Internet."
+            message = Localized("communication_breakdown")
           }
           else{
-            Toast.show("Fehler beim senden", .alert)
+            message = Localized("unknown_communication_error")
           }
+          Alert.message(title: "Fehler beim senden", message: message)
           self?.log("Failed: \(err)")
       }
+    }
+  }
+  
+  func setupDismissOnAccountReactivation(){
+    Notification.receive(Const.NotificationNames.removeLoginRefreshDataOverlay) {_ in
+      onMainAfter(1.7) {[weak self] in self?.dismiss() }
     }
   }
     
@@ -108,6 +107,11 @@ class SubscriptionFormController : FormsController {
                            expireDate: expireDate,
                            customerType: customerType)
     super.init(auth)
+    switch formType {
+      case .print2Digi, .printPlusDigi: break; //do Nothing
+      case .expiredDigiSubscription, .trialSubscription, .expiredDigiPrint:
+        setupDismissOnAccountReactivation()
+    }
   }
   
   required init?(coder: NSCoder) {

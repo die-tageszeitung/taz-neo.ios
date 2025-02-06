@@ -101,11 +101,6 @@ extension NewContentTableVC {
 /// section Header = section title + chevron > or ^
 /// cell as Article Preview (like in serach or bookmarks
 public class NewContentTableVC: UIViewController {
-  
-  fileprivate static let CellIdentifier = "NewContentTableVcCell"
-  fileprivate static let SectionHeaderIdentifier = "ContentTableHeaderFooterView"
-  fileprivate static let SectionFooterIdentifier = "ContentTableFooterSeperatorView"
-  
   private var tableView = UITableView(frame: .zero, style: .plain)
   ///for SectionVc the highlighted SectionHeader
   private var sectIndex: Int?
@@ -130,6 +125,13 @@ public class NewContentTableVC: UIViewController {
       sectIndex = nil
       activeItem = nil
       collapseAll()
+    }
+  }
+  
+  var audioPlaybackStateChangedObserver:Notification.Observer? {
+    didSet {
+      guard let old = oldValue else { return }
+      Notification.remove(observer: old)
     }
   }
   
@@ -212,11 +214,9 @@ extension NewContentTableVC {
     tableView.dataSource = self
     tableView.delegate = self
     self.tableView.register(NewContentTableVcCell.self,
-                            forCellReuseIdentifier: Self.CellIdentifier)
+                            forCellReuseIdentifier: NewContentTableVcCell.ReuseIdentifier)
     self.tableView.register(ContentTableHeaderFooterView.self,
-                            forHeaderFooterViewReuseIdentifier: Self.SectionHeaderIdentifier)
-    self.tableView.register(ContentTableFooterView.self,
-                            forHeaderFooterViewReuseIdentifier: Self.SectionFooterIdentifier)
+                            forHeaderFooterViewReuseIdentifier: ContentTableHeaderFooterView.ReuseIdentifier)
     self.tableView.rowHeight = UITableView.automaticDimension
     self.tableView.separatorStyle = .none
     self.tableView.estimatedRowHeight = 100.0
@@ -233,11 +233,21 @@ extension NewContentTableVC {
     pin(tableView, to: self.view, exclude: .top)
     pin(tableView.top, to: header.bottom)
     
+    audioPlaybackStateChangedObserver =
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+      ///prevent crash bug; better remove observer
+      ///if ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey == nil { return }
       self?.header.listenIconActive =
       ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey
       == self?.issue?.date.issueKey
     }
+  }
+  
+  func releaseOnDisappear(){
+    feeder = nil
+    issue = nil
+    image = nil
+    audioPlaybackStateChangedObserver = nil
   }
   
   public override func viewWillAppear(_ animated: Bool) {
@@ -272,6 +282,7 @@ extension NewContentTableVC {
         self?.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: sectIndex), at: .top, animated: false)
       }
     }
+    CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Section.slider)
   }
 }
 
@@ -308,13 +319,14 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
   }
   
   public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: Self.SectionHeaderIdentifier)
+    guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: ContentTableHeaderFooterView.ReuseIdentifier)
             as? ContentTableHeaderFooterView else { return nil}
     
     if let ressort = issue?.sections?.valueAt(section) {
       header.label.text = ressort.name
-      header.chevron.isHidden = ressort.type == .advertisement
-      header.dottedLine.isHidden = ressort.type == .advertisement
+      let unexpandable = ressort.type == .advertisement || ressort.type == .podcast
+      header.chevron.isHidden = unexpandable
+      header.dottedLine.isHidden = unexpandable
     } else if section == issue?.sections?.count ?? 0 {
       header.label.text = issue?.imprint?.title ?? "Impressum"
       header.chevron.isHidden = true
@@ -328,6 +340,7 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     header.collapsed = !expandedSections.contains(section)
 
     header.tag = section
+    header.topSeperator?.isHidden = section == 0
     
     let isImprint = section == issue?.sections?.count ?? 0
     
@@ -352,19 +365,6 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     return header
   }
   
-  public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    return 1.0
-  }
-  
-  public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    return tableView.dequeueReusableHeaderFooterView(withIdentifier: Self.SectionFooterIdentifier)
-  }
-  
-  public func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
-    if section < (issue?.sections?.count ?? 0) { return }
-    (view as? ContentTableFooterView)?.seperator.isHidden = true
-  }
-  
   public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     guard let art = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row) else {
       log("Article you tapped not found for section: \(indexPath.section), row: \(indexPath.row)")
@@ -377,7 +377,7 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
   public func tableView(_ tableView: UITableView,
                                  cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell
-    = tableView.dequeueReusableCell(withIdentifier: Self.CellIdentifier,
+    = tableView.dequeueReusableCell(withIdentifier: NewContentTableVcCell.ReuseIdentifier,
                                     for: indexPath) as? NewContentTableVcCell
     ?? NewContentTableVcCell()
     cell.article = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row)
@@ -395,13 +395,13 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     = Defaults.darkMode
     ? Const.Shadow.Dark.Opacity
     : Const.Shadow.Light.Opacity
-    self.imageView.layer.shadowColor = Const.SetColor.CTDate.color.cgColor
-    listenLabel.textColor = Const.SetColor.CTDate.color
-    bottomBorder?.backgroundColor = Const.SetColor.CTDate.color
+    self.imageView.layer.shadowColor = Const.SetColor.taz2(.text).color.cgColor
+    listenLabel.textColor = Const.SetColor.taz2(.text).color
+    bottomBorder?.backgroundColor = Const.SetColor.taz2(.text).color
     collapseIcon.image
     = UIImage(named:"chevron-doubleup")?
       .withRenderingMode(.alwaysOriginal)
-      .withTintColor(Const.SetColor.CTDate.color)
+      .withTintColor(Const.SetColor.taz2(.text).color)
     updateListenIcon()
   }
   
@@ -411,6 +411,9 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
       topLabel.text
       = "\(issue?.validityDateText(timeZone: GqlFeeder.tz) ?? "")"
         .replacingOccurrences(of: ", ", with: ",\n")
+      let hasAudio = issue?.audioFiles.count ?? 0 > 0
+      listenIcon.isHidden = !hasAudio
+      listenLabel.isHidden = !hasAudio
     }
   }
   
@@ -440,7 +443,7 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     listenIcon.image
     = UIImage(named: listenIconActive ?  "audio-active" : "audio")?
       .withRenderingMode(.alwaysOriginal)
-      .withTintColor(Const.SetColor.CTDate.color)
+      .withTintColor(Const.SetColor.taz2(.text).color)
   }
   
   var listenIconActive: Bool = false { didSet { updateListenIcon() }}
@@ -518,7 +521,7 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     
     pin(listenLabel.left, to: listenIcon.right, dist: 5, priority: .fittingSizeLevel)
     
-    bottomBorder = self.addBorderView(Const.SetColor.CTDate.color, 0.7,
+    bottomBorder = self.addBorderView(Const.SetColor.taz2(.text).color, 0.7,
                                       edge: .bottom,
                                       insets: Const.Insets.Default)
     registerForStyleUpdates()
@@ -527,7 +530,9 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
   }
 }
 
-fileprivate  class NewContentTableVcCell: UITableViewCell {
+class NewContentTableVcCell: UITableViewCell {
+  
+  static let ReuseIdentifier = "NewContentTableVcCellIdentifier"
   
   var imageZeroHeightConstraint: NSLayoutConstraint?
   var imageDefaultHeightConstraint: NSLayoutConstraint?
@@ -571,8 +576,8 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     }
     bottomLabel.attributedText = attributedString
     
-    titleLabel.text = article?.title
-    customTextLabel.text = article?.teaser
+    titleLabel.setTazzeText(article?.title)
+    customTextLabel.setTazzeText(article?.teaser)
     
     bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
     bookmarkButton.tintColor = Const.Colors.appIconGrey
@@ -632,16 +637,8 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     v.addSubview(customTextLabel)
     v.addSubview(bottomLabel)
     
-//    titleLabel.addBorder(.red)
-//    customTextLabel.addBorder(.yellow)
-//    bottomLabel.addBorder(.green)
-    
     rightCenterVerticalSpacer.pinWidth(10.0)
     rightCenterVerticalSpacer.pinHeight(10.0, priority: .fittingSizeLevel)
-    
-//    customImageView.addBorder(.red)
-//    rightCenterVerticalSpacer.addBorder(.yellow)
-//    bookmarkButton.addBorder(.green)
     
     v.addSubview(customImageView)
     v.addSubview(rightCenterVerticalSpacer)
@@ -707,7 +704,9 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     
     bookmarkButton.onTapping {[weak self] _ in
       Usage.track(Usage.event.drawer.action_tap.Bookmark)
-      self?.article?.hasBookmark.toggle()
+      onMainAfter(0.1){[weak self] in ///prevent additional  cell tap due async call
+        self?.article?.hasBookmark.toggle()
+      }
     }
     
     return v
@@ -720,7 +719,9 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
     dottedLine.pinHeight(Const.Size.DottedLineHeight*0.7)
     pin(dottedLine.left, to: self.contentView.left, dist: Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
     pin(dottedLine.right, to: self.contentView.right, dist: -Const.ASize.DefaultPadding, priority: .fittingSizeLevel)
-    pin(dottedLine.top, to: self.contentView.top)
+    if self is BookmarksCell == false {
+      pin(dottedLine.top, to: self.contentView.top)
+    }
     pin(content, to: contentView, dist: Const.Size.DefaultPadding)
     selectionStyle = .none
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
@@ -740,44 +741,10 @@ fileprivate  class NewContentTableVcCell: UITableViewCell {
   }
 }
 
-fileprivate class ContentTableFooterView: UITableViewHeaderFooterView, UIStyleChangeDelegate{
-  
-  var seperator = UIView(frame: CGRect(x: 0, y: 0, width: 1000, height: 0.7))
-  
-  func setup(){
-    self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
-    self.contentView.addSubview(seperator)
-    pin(seperator.left, to: self.contentView.left, dist: Const.Size.DefaultPadding, priority: .fittingSizeLevel)
-    pin(seperator.right, to: self.contentView.right, dist: -Const.Size.DefaultPadding, priority: .fittingSizeLevel)
-    pin(seperator.top, to: self.contentView.top)
-    seperator.pinHeight(0.7)
-    registerForStyleUpdates()
-  }
-  
-  override func prepareForReuse() {
-    seperator.isHidden = false
-  }
-  
-  func applyStyles() {
-    self.contentView.backgroundColor = Const.SetColor.HBackground.color
-    seperator.backgroundColor = Const.SetColor.HText.color
-  }
-  
-  override init(reuseIdentifier: String?) {
-    super.init(reuseIdentifier: reuseIdentifier)
-    setup()
-  }
-  
-  required init?(coder: NSCoder) {
-    super.init(coder: coder)
-    setup()
-  }
-}
-  
-  
 fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
-  
+  static let ReuseIdentifier = "ContentTableHeaderFooterViewIdentifier"
   let dottedLine = DottedLineView()
+  var topSeperator: UIView?
   
   var active: Bool = false {
     didSet {
@@ -798,6 +765,7 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     super.setup()
     dottedLine.isHorizontal = false
     self.contentView.addSubview(dottedLine)
+    topSeperator = self.contentView.addBorderView(Const.SetColor.HText.color, 0.7, edge: .top, insets: Const.Insets.Default, lastEdgePriority: .fittingSizeLevel)
     
     dottedLine.clipsToBounds = true
     pin(dottedLine.top, to: self.contentView.top, dist: 9.5, priority: .fittingSizeLevel)
@@ -806,8 +774,6 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
     dottedLine.pinWidth(Const.Size.DottedLineHeight*0.6)
     dottedLine.fillColor = Const.SetColor.HText.color
     dottedLine.strokeColor = Const.SetColor.HText.color
-//    chevron.activeColor = .lightGray
-//    chevron.color = Const.SetColor.HText.color
     chevron.tintColor = Const.SetColor.HText.color
 
     label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -816,8 +782,7 @@ fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
   override func setColors() {
     super.setColors()
     chevron.tintColor = Const.SetColor.HText.color
-
-//    chevron.color = Const.SetColor.HText.color
+    topSeperator?.backgroundColor = Const.SetColor.HText.color
   }
 }
 

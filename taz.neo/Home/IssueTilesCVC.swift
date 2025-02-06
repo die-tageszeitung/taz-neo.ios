@@ -39,7 +39,7 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
   }
   
   public override func viewWillAppear(_ animated: Bool) {
-    if UIDevice.current.orientation.isLandscape && Device.isIphone {
+    if UIDevice.isLandscape && Device.isIphone {
       UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
     }
     super.viewWillAppear(animated)

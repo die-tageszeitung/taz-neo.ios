@@ -260,6 +260,13 @@ public class DefaultAuthenticator: Authenticator {
     ?? UIWindow.rootVC
     else { return }
     
+    if rootVC.view.window == nil {
+      onMainAfter(2.0) {[weak self] in
+        self?.authenticate(with: targetVC)
+      }
+      return
+    }
+    
     if self.feeder.isAuthenticated && TazAppEnvironment.sharedInstance.feederContext?.needsReInit() ?? false {
       TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin)
       return
@@ -308,11 +315,6 @@ public class DefaultAuthenticator: Authenticator {
       }
     })
   }
-  
-  public func unlinkSubscriptionId() { 
-    SimpleAuthenticator(feeder: self.feeder).unlinkSubscriptionId()
-  }
-  
 } // DefaultAuthenticator
 
 
@@ -351,12 +353,12 @@ extension UIDevice {
 }
 
 
-protocol NameDescribable {
+public protocol NameDescribable {
     var typeName: String { get }
     static var typeName: String { get }
 }
 
-extension NameDescribable {
+public extension NameDescribable {
     var typeName: String {
         return String(describing: type(of: self))
     }

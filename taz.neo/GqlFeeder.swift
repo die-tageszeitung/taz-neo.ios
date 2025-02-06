@@ -43,9 +43,11 @@ enum GqlAuthStatus: String, CodableEnum {
   case invalid = "invalid(notValid)" 
   /// account provided by token is expired (ISO-Date in message)
   case expired = "expired(elapsed)"      
-  /// ID not linked to subscription
-  case unlinked = "unlinked(tazIdNotLinked)"  
-  // AboId exists but PW is wrong 
+  /// ID not linked to subscription DEPRECIATED
+  case unlinked = "unlinked(tazIdNotLinked)"
+  /// new Status Code for migration
+  case unlinkedAbo = "noAboLinked"
+  // AboId exists but PW is wrong
   case notValidMail = "notValidMail" 
   /// AboId already linked to tazId
   case alreadyLinked = "alreadyLinked" 
@@ -298,6 +300,9 @@ class GqlArticle: Article, GQLObject {
   /// File storing article HTML
   var articleHtml: GqlFile
   var html: FileEntry? { return articleHtml }
+  ///pdf for sharing
+  var gqlPdf: GqlFile?
+  var pdf: FileEntry? { return gqlPdf }
   var gqlAudio: GqlAudio?
   var audioItem: Audio?{ return gqlAudio }
   /// Article title
@@ -320,6 +325,7 @@ class GqlArticle: Article, GQLObject {
 
   static var fields = """
   articleHtml { \(GqlFile.fields) }
+  gqlPdf:pdf { \(GqlFile.fields) }
   gqlAudio: audio { \(GqlAudio.fields) }
   title
   teaser
@@ -409,6 +415,8 @@ class GqlPage: Page, GQLObject {
   /// Frames in page
   var frameList: [GqlFrame]?
   var frames: [Frame]? { return frameList }
+  ///add the following field to test errors on requests
+  ///gqlFacsimile: facsimileTestForErrorAndEndlessReturn { \(GqlImage.fields) }
   
   static var fields = """
   pagePdf { \(GqlFile.fields) }
@@ -858,8 +866,14 @@ open class GqlFeeder: Feeder, DoesLog {
     guard let st = status else { return [] }
     return st.feeds
   }
+
+  private var _gqlSession: GraphQlSession?
+  
   /// The GraphQL server delivering the Feeds
-  public var gqlSession: GraphQlSession?
+  public var gqlSession: GraphQlSession? {
+    set { _gqlSession = newValue }
+    get { return _gqlSession }
+  }
   /// Last weekly status
   private var wasWeekly = false
   
@@ -876,9 +890,8 @@ open class GqlFeeder: Feeder, DoesLog {
     let appVersion = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
     return ""
       + "deviceType: \(deviceType), "   //apple Default
-      + "deviceName: \"\(UIDevice().model)\", " // e.g.: iPhone iPad iPod touch (Ringos iPhone)
+      + "deviceName: \"\(Utsname.machineModel)\", "
       //e.g. iPhone12,3 (modelName) for iPhone 11 Pro (modelNameReadable)
-      + "deviceVersion: \"\(Utsname.machineModel)\", "//e.g. iPhone 11 Pro
       + "deviceFormat: \(deviceFormat), " //e.g.: mobile, tablet
       + "appVersion: \"\(appVersion)\", " //e.g.: Taz App (de.taz.taz.2) Version 0.4.9 (#2020090951)
       + "deviceOS: \"iOS \(UIDevice.current.systemVersion)\""
@@ -925,25 +938,6 @@ open class GqlFeeder: Feeder, DoesLog {
       self.lastUpdated =  Date()
       closure(ret)
       self.isUpdating = false
-    }
-  }
-  
-  //ToDo: Ensure this is just done once not on every net status Change
-  public func checkMinVersion(closure: @escaping(Result<Feeder,Error>)->()){
-    GqlAppInfo.query(feeder: self) { [weak self] res in
-      guard let self else { return }
-      if let mv = res.value() {
-        if let mvs = mv.minVersion {
-          let minVersion = Version(mvs)
-          self.debug("Version check: current(\(App.version), server(mvs)")
-          if App.version < minVersion {
-            closure(.failure(FeederError.minVersionRequired(mvs)))
-            return
-          }
-        }
-        else { self.debug("Server doesn't return minVersion") }
-      }
-      else { self.error("Can't get minimal App version from server") }
     }
   }
   
@@ -999,7 +993,7 @@ open class GqlFeeder: Feeder, DoesLog {
             self?.authToken = token
           }
           switch atoken.authInfo.status {
-            case .expired, .unlinked, .invalid, .alreadyLinked, .notValidMail, .unknown:
+            case .expired, .unlinked, .unlinkedAbo, .invalid, .alreadyLinked, .notValidMail, .unknown:
               if let token = atoken.token {
                 self?.authToken = token
               }
@@ -1037,6 +1031,7 @@ open class GqlFeeder: Feeder, DoesLog {
     let request = """
       notification(\(pToken), \(oToken) 
                    textNotification: \(isTextNotification ? "true" : "false"),
+                   appVersionCode: \(App.bundleVersionCode),
                    \(deviceInfoString)
                   )
     """
@@ -1318,6 +1313,7 @@ open class GqlFeeder: Feeder, DoesLog {
     downloadStart(
       feedName: "\(feed.name)", 
       issueDate: "\(self.date2a(issue.date))",
+      appVersionCode: \(App.bundleVersionCode),
       isPush: \(isPush ? "true" : "false"),
       \(pToken)
       isAutomatically: \(isAutomatically ? "true" : "false"),
@@ -1379,7 +1375,7 @@ open class GqlFeeder: Feeder, DoesLog {
 
 
     fields["deviceOS"] = "iOS \(UIDevice.current.systemVersion)"
-    fields["deviceName"] = UIDevice().model
+    fields["deviceName"] = Utsname.machineModel
     fields["eMail"] = eMail
     //    fields["deviceVersion"] = deviceVersion
     fields["appVersion"] = "\(App.name) (\(App.bundleIdentifier)) Ver.:\(App.bundleVersion) #\(App.buildNumber)"
@@ -1389,7 +1385,6 @@ open class GqlFeeder: Feeder, DoesLog {
     fields["ramAvailable"] = deviceData?.ramAvailable
     fields["ramUsed"] = deviceData?.ramUsed
     fields["pushToken"] = Defaults.singleton["pushToken"]
-    fields["architecture"] = Utsname.machine
     fields["screenshotName"] = screenshotName
     fields["screenshot"] = screenshot
     
@@ -1448,6 +1443,7 @@ extension GqlFeeder {
       TazAppEnvironment.sharedInstance.expiredAccountInfoShown = false
       TazAppEnvironment.sharedInstance.feederContext?.clearExpiredAccountFeederError()
       Defaults.expiredAccountDate = nil
+      self.log("Account Reactivation")
       Notification.send(Const.NotificationNames.authenticationSucceeded,
                         content: "Ihr Abo ist wieder aktiv!")
       //Usage.track(uEvt.subscriptionStatus(.SubcriptionRenewed))///Is already tracked by expiredAccountDate change
@@ -1467,54 +1463,72 @@ extension GqlFeeder {
 }
 
 extension FeederError {
-  /// Feeder has flagged an error
+  /// Handles feeder errors by triggering the appropriate UI alert or action.
   func handle() {
-    let currentFeederErrorReason
-    = TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
-    //prevent multiple appeariance of the same alert
+    let currentFeederErrorReason = TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
+    
+    // Prevent multiple appearances of the same alert
     if let curr = currentFeederErrorReason, curr === self {
-      ///not refactor and add closures to alert cause in case of later changes/programming errors may
-      ///lot of similar closure calls added and may result in other errors e.g. multiple times of calling getOwvIssue...
-      Log.log("Closure not added"); return
+      // Avoid adding closures to prevent redundant calls and possible errors
+      // (e.g., multiple invocations of getOwvIssue).
+      Log.log("Closure not added")
+      return
     }
+    
     Log.debug("handleFeederError for: \(self)")
-    TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason
-    = self
+    TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason = self
     var text = ""
+    var buttonTitle:String? = nil
+    var additionalActions: [UIAlertAction]? = nil
+    
     switch self {
       case .expiredAccount:
-        text = "Ihr Abonnement ist am \(self.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        text = "Ihr Abonnement ist am \(self.expiredAccountDate?.gDate() ?? "-") abgelaufen.\nSie können bereits heruntergeladene Ausgaben weiterhin lesen.\n\nUm auf weitere Ausgaben zuzugreifen, melden Sie sich bitte mit einem aktiven Abo an. Für Fragen zu Ihrem Abonnement kontaktieren Sie bitte unseren Service via: digiabo@taz.de."
+        
+        // Show the alert only once after expiration
         if Defaults.expiredAccountDate != nil {
-          return //dont show popup on each start
+          return
         }
+        
         if Defaults.expiredAccountDate == nil {
-          Defaults.expiredAccountDate =  self.expiredAccountDate ?? Date()
+          Defaults.expiredAccountDate = self.expiredAccountDate ?? Date()
         }
+        
+        // Update the subscription status and attempt re-authentication
         TazAppEnvironment.sharedInstance.feederContext?.updateSubscriptionStatus { _ in
           TazAppEnvironment.sharedInstance.feederContext?.authenticator.authenticate(with: nil)
         }
-        return; //Prevent default Popup
+        return // Prevent default alert popup
+
       case .invalidAccount:
         text = "Ihre Kundendaten sind nicht korrekt."
         fallthrough
+
       case .changedAccount:
         let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder
         text = "Ihre Kundendaten haben sich geändert.\n\nSie wurden abgemeldet. Bitte melden Sie sich erneut an!"
+        buttonTitle = "Abbrechen"
         Log.debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == gqlFeeder?.authToken) 4ses: \(gqlFeeder?.gqlSession?.authToken == gqlFeeder?.authToken)")
         
-        TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true,
-                                                        resetAppState: false)
+        let loginAction = UIAlertAction(title: "Anmelden", style: .default) { _ in ///OK/ABbrechen already has cancel 2 will crash
+          TazAppEnvironment.sharedInstance.feederContext?.authenticator.authenticate(with: nil)
+        }
+        additionalActions = [loginAction]
+        // Log out and clear user data while keeping the app state
+        TazAppEnvironment.sharedInstance.deleteUserData(logoutFromServer: true, resetAppState: false)
+
       case .unexpectedResponse:
-        Alert.message(title: "Fehler",
-                      message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
+        Alert.message(title: "Fehler", message: "Es gab ein Problem bei der Kommunikation mit dem Server") {
           exit(0)
         }
-      case .minVersionRequired: break
+
+      case .minVersionRequired:
+        break
     }
-    Alert.message(title: "Fehler", message: text, additionalActions: nil,  closure: {
-      ///Do not authenticate here because its not needed here e.g.
-      /// expired account due probeabo, user may not want to auth again
-      /// additionally it makes more problems currently e.g. Overlay may appear and not disappear
+    
+    // Display the error alert with additional actions if applicable
+    Alert.message(title: "Fehler", message: text, additionalActions: additionalActions, buttonTitle: buttonTitle, closure: {
+      // Reset the error reason; avoid re-authenticating to prevent overlay issues, especially with expired accounts.
       TazAppEnvironment.sharedInstance.feederContext?.currentFeederErrorReason = nil
     })
   }

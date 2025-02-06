@@ -15,18 +15,44 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
+    TazAppEnvironment.sharedInstance.nextWindowSize = size
     Notification.send(Const.NotificationNames.viewSizeTransition,
                       content: size,
                       error: nil,
                       sender: nil)
   }
-  
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
     super.traitCollectionDidChange(previousTraitCollection)
     Notification.send(Const.NotificationNames.traitCollectionDidChange,
                       content: self.traitCollection,
                       error: nil,
                       sender: nil)
+    updateTraitOverrides()
+  }
+  
+  private func updateTraitOverrides() {
+    guard #available(iOS 18.0, *),
+          Device.isIpad else { return }
+    // Update the current size class to display original design
+    traitOverrides.horizontalSizeClass = .unspecified
+    if let original = UIWindow.keyWindow?.traitCollection.horizontalSizeClass {
+      // Updates every tab with the window size class
+      viewControllers?.forEach { $0.traitOverrides.horizontalSizeClass = original }
+      // restore Tabbar's size class: if enought space name left of icon
+      tabBar.traitOverrides.horizontalSizeClass = original
+    }
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    updateTraitOverrides()
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    guard let data = TazAppEnvironment.openedFromNotificationCenter else { return }
+    TazAppEnvironment.openedFromNotificationCenter = nil
+    gotoArticleInIssue(with: data)
   }
   
   override func viewDidLoad() {
@@ -46,38 +72,179 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       self?.selectedIndex = 2
       searchCtrl.searchFor(searchString: searchString)
     }
+
+    Notification.receive(Const.NotificationNames.gotoSettings) { [weak self] notif in
+      self?.selectedIndex = 3
+    }
     
     Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in
-      self?.selectedIndex = 0
-      (self?.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
-      guard let date = notif.content as? Date,
-            let home = ((self?.selectedViewController as? UINavigationController)?
-                .viewControllers.first as? HomeTVC) else { return }
-      home.scroll(up: true)
-      let idx = home.carouselController.service.nextIndex(for: date)
-      home.carouselController.scrollTo(idx, animated: true)
+      self?.gotoIssue(at: notif.content as? Date)
     }
     
     Notification.receive(Const.NotificationNames.gotoArticleInIssue) { [weak self] notif in
       self?.selectedIndex = 0
-      guard let article = notif.content as? Article,
-            let issue = article.primaryIssue as? StoredIssue,
-            let home = ((self?.selectedViewController as? UINavigationController)?
-                .viewControllers.first as? HomeTVC) else { return }
-      if let sectVc = home.navigationController?.viewControllers.valueAt(1) as? SectionVC,
-      let sectIssue = sectVc.issue as? StoredIssue,
-          issue == sectIssue {
-        sectVc.showArticle(article, animated: true)
-        home.togglePdfButton.isHidden = true
+      if let data = notif.content as? PushNotification.Payload.ArticlePushData {
+        self?.gotoArticleInIssue(with: data)
+        return 
       }
-      else {
-        home.navigationController?.popToRootViewController(animated: false)
-        home.openIssue(issue, at: article)
-        home.togglePdfButton.isHidden = true
+      else if let data = notif.content as? ArticleLinkOpen {
+        self?.gotoArticleInIssue(with: data.issueDate, articleUrl: data.articleUrl)
+        return
       }
+      guard let article = notif.content as? Article else { return }
+      self?.gotoArticleInIssue(article: article)
     }
     
+    Notification.receive("issue") { [weak self] notification in
+      self?.handleIssueDownloadNotification(notification: notification)
+    }
+    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
+      self?.handleIssueDownloadNotification(notification: notification)
+    }
   } // viewDidLoad
+  
+  var searchArticleToOpen: SearchArticle?
+  
+  func handleIssueDownloadNotification(notification: Notification){
+    guard let art = searchArticleToOpen,
+          art.originalIssueDate != nil,
+          let issue = (notification.content as? Issue)
+                    ?? (notification.content as? IssueCellData)?.issue,
+          art.originalIssueDate?.issueKey == issue.date.issueKey else { return }
+    openArticleFromSearch(article: art)
+  }
+  
+  var isLoadingIssueInBackground = false
+  
+  func showLoadingOverlayIfNeeded(data: PushNotification.Payload.ArticlePushData){
+    if isLoadingIssueInBackground { return }
+    isLoadingIssueInBackground = true
+    let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
+    WaitingAppOverlay.show(alpha: 1.0,
+                           backbround: snap,
+                           showSpinner: true,
+                           titleMessage: "Aktualisiere Daten",
+                           bottomMessage: "lade \"\(data.articleTitle ?? "Artikel")\" aus Ausgabe: \(data.articleDate.short)\nBitte haben Sie einen Moment Geduld!",
+                           dismissNotification: Const.NotificationNames.removeRefreshDataOverlay)
+    onMainAfter(7.0) {[weak self] in
+      Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
+      self?.isLoadingIssueInBackground = false
+    }
+  }
+  
+  func gotoArticleInIssue(with data: PushNotification.Payload.ArticlePushData){
+    log("open issue with date: \(data.articleDate) and Article: \(data.articleTitle ?? "\(data.articleMsId)")")
+    guard let issue = self.service.issue(at: data.articleDate) else {
+      showLoadingOverlayIfNeeded(data: data)
+      Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: data)}
+      service.download(issueAt: data.articleDate, withAudio: false)
+      gotoIssue(at: data.articleDate)
+      return
+    }
+    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+      showLoadingOverlayIfNeeded(data: data)
+      Notification.receiveOnce("issue") { [weak self] _ in self?.gotoArticleInIssue(with: data)}
+      service.download(issueAt: data.articleDate, withAudio: false)
+      gotoIssue(at: data.articleDate)
+      return
+    }
+    
+    guard let issueArtIndex = issue.indexOfArticle(with: data.articleMsId),
+          let artInTargetIssue = issue.allArticles.valueAt(issueArtIndex) else {
+      gotoIssue(at: data.articleDate)
+      return
+    }
+    gotoArticleInIssue(article: artInTargetIssue)
+    onMainAfter(0.6) {[weak self] in
+      Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
+      self?.isLoadingIssueInBackground = false
+    }
+  }
+  
+  func gotoArticleInIssue(with issueDate: Date, articleUrl: URL) {
+    log("open issue with date: \(issueDate) and Article: \(articleUrl)")
+    guard let issue = self.service.issue(at: issueDate) else {
+      Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: issueDate, articleUrl: articleUrl)
+      }
+      service.download(issueAt: issueDate, withAudio: false)
+      gotoIssue(at: issueDate)
+      return
+    }
+    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+      Notification.receiveOnce("issue") { [weak self] _ in self?.gotoArticleInIssue(with: issueDate, articleUrl: articleUrl)
+      }
+      service.download(issueAt: issueDate, withAudio: false)
+      gotoIssue(at: issueDate)
+      return
+    }
+    
+    guard let issueArtIndex = issue.indexOfArticle(with: articleUrl),
+          let artInTargetIssue = issue.allArticles.valueAt(issueArtIndex) else {
+      gotoIssue(at: issueDate)
+      return
+    }
+    gotoArticleInIssue(article: artInTargetIssue)
+  }
+  
+  
+  func gotoArticleInIssue(article: Article){
+    CoachmarksBusiness.shared.currentCoachmarkView?.closeClosure?()
+    if let art = article as? SearchArticle {
+      self.openArticleFromSearch(article: art)
+      return
+    }
+    self.searchArticleToOpen = nil
+    guard let issue = article.primaryIssue as? StoredIssue,
+          let home = ((self.selectedViewController as? UINavigationController)?
+            .viewControllers.first as? HomeTVC) else { return }
+    if let sectVc = home.navigationController?.viewControllers.valueAt(1) as? SectionVC,
+       let sectIssue = sectVc.issue as? StoredIssue,
+       issue == sectIssue {
+      sectVc.showArticle(article, animated: true)
+      home.togglePdfButton.isHidden = true
+    }
+    else {
+      home.navigationController?.popToRootViewController(animated: false)
+      home.openIssue(issue, atArticle: issue.indexOf(article: article), atPage: issue.pageIndexOf(article: article))
+      home.togglePdfButton.isHidden = true
+    }
+  }
+  
+  func openArticleFromSearch(article: SearchArticle){
+    guard let date = article.originalIssueDate else {
+      gotoIssue(at: nil)
+      return
+    }
+    searchArticleToOpen = article
+    guard let issue = self.service.issue(at: date) else {
+      service.download(issueAt: date, withAudio: false)
+      gotoIssue(at: date)
+      return
+    }
+    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+      service.download(issueAt: date, withAudio: false)
+      gotoIssue(at: date)
+      return
+    }
+    
+    guard let issueArtIndex = issue.indexOf(article: article),
+          let artInTargetIssue = issue.allArticles.valueAt(issueArtIndex) else {
+      gotoIssue(at: date)
+      return
+    }
+    gotoArticleInIssue(article: artInTargetIssue)
+  }
+  
+  func gotoIssue(at date: Date?){
+    self.selectedIndex = 0
+    (self.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
+    guard let date = date,
+        let home = ((self.selectedViewController as? UINavigationController)?
+              .viewControllers.first as? HomeTVC) else { return }
+    home.scroll(up: true)
+    let idx = home.carouselController.service.nextIndex(for: date)
+    home.carouselController.scrollTo(idx, animated: true)
+  }
   
   func setupTabbar() {
     self.tabBar.barTintColor = Const.Colors.iOSDark.secondarySystemBackground
@@ -93,7 +260,8 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     let homeNc = NavigationController(rootViewController: home)
     homeNc.isNavigationBarHidden = true
     
-    let bookmarksNc = BookmarkNC(feederContext: feederContext)
+    let bookmarksOverview = BookmarkTVC()
+    let bookmarksNc = NavigationController(rootViewController: bookmarksOverview)
     bookmarksNc.title = "Leseliste"
     bookmarksNc.tabBarItem.image = UIImage(named: "star")
     bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
@@ -122,7 +290,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   }
   
   func setupTracking(){
-//    if Usage.sharedInstance.usageTrackingAllowed == false { return }
     for case let nc as UINavigationController in viewControllers ?? [] {
       nc.delegate = Usage.shared
       (nc as? NavigationController)?.navigationDelegate = Usage.shared
@@ -156,31 +323,39 @@ extension MainTabVC {
   public func authenticationSucceededCheckReload(alertMessage: String? = nil) {
     feederContext.updateAuthIfNeeded()
     
-    let selectedNc = selectedViewController as? UINavigationController
-    var reloadTarget: ReloadAfterAuthChanged?
-    
-    if let home = selectedNc?.viewControllers.first as? HomeTVC,
-       selectedNc?.topViewController != home {
-      reloadTarget = home
-    }
-    else if let search = selectedNc?.viewControllers.first as? SearchController,
-            selectedNc?.topViewController != search {
-      reloadTarget = search
-    }
-    else if let target = selectedNc as? ReloadAfterAuthChanged {
-      reloadTarget = target
-    }
-    
-    ///Settings need to be reloaded no matter if selected!
-    if let settings = selectedViewController as? SettingsVC {
-      settings.refreshAndReload()
-    } else  {
-      for case let settings as SettingsVC in self.viewControllers ?? [] {
+    var reloadTargets: [ReloadAfterAuthChanged] = []
+        
+    for case let tabNav as UINavigationController in self.viewControllers ?? [] {
+      let firstVc = tabNav.viewControllers.first
+      let vcCount = tabNav.viewControllers.count
+      if let home = firstVc as? HomeTVC {
+        ///if full issue > text settngs > settings > login no more refresh data will appear for compleete issue
+        if let issue = (tabNav.viewControllers.valueAt(1) as? SectionVC)?.issue,
+           feederContext.needsUpdate(issue: issue, toShowPdf: false) == false {
+          continue
+        }
+        else if let issue = (tabNav.viewControllers.valueAt(1) as? TazPdfPagesViewController)?.issue,
+           feederContext.needsUpdate(issue: issue, toShowPdf: true) == false {
+          continue
+        }
+        ///Facsimile/PDF View or Article/Section VC wich need Update
+        if vcCount > 1 { reloadTargets.append(home)}
+      }
+      else if let search = firstVc as? SearchController{
+        if search.currentState == .result { reloadTargets.append(search)}
+      }
+      else if let bookmarks = firstVc as? BookmarkTVC{
+        if bookmarks.navigationController?.viewControllers.last != bookmarks { reloadTargets.append(bookmarks)
+        }
+      }
+      else if let target = firstVc as? ReloadAfterAuthChanged {
+        reloadTargets.append(target)
+      }
+      else if let settings = firstVc as? SettingsVC {
         settings.refreshAndReload()
       }
     }
-              
-    guard let reloadTarget = reloadTarget else {
+    if reloadTargets.count == 0 {
       if let alertMessage = alertMessage {
         Alert.message(message: alertMessage)
       }
@@ -200,19 +375,23 @@ extension MainTabVC {
                            titleMessage: "\(alertMessage ?? "")\nAktualisiere Daten",
                            bottomMessage: "Bitte haben Sie einen Moment Geduld!",
                            dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
-    if !(reloadTarget is BookmarkNC) {
-      Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
-        Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
-      }
+    Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
     }
-  
     Notification.receiveOnce(Const.NotificationNames.feederUnreachable) { _ in
       /// popToRootViewController is no more needed here due its done by reloadTarget.reloadOpened
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
       Toast.show(Localized("error"))
     }
     onMainAfter(1.0) {
-      reloadTarget.reloadOpened()
+      for reloadTarget in reloadTargets {
+        reloadTarget.reloadOpened()
+      }
+    }
+    onMainAfter(15.0) {
+      //dirty hack sometimes reload opened did not work
+      //had it unreproduceable in debug, and sendt the following notification enter foreground hock/Breakpoint
+      Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
     }
   }
 }

@@ -43,6 +43,8 @@ taz.neo is available under the AGPL. See the LICENSE file for more info.
    - **alpha** branch
      - review code on merge (reviewer is the developer)
      - sync with master/beta frequently (at least after/before Release)
+ - there is no permanent **lmd** branch, lmd is a feature branch which should be merged from release or beta and merged to alpha/beta
+    - when lmd branch is merged to beta, a Build/SMoke Test is required on the lmd target
 - there are additionally temporary branches: hotfix-someStrangeBugFix, feature-aNewFeature
   - **hotfix-...** branch
      - branched from release, targeting release

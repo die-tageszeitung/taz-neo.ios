@@ -21,7 +21,7 @@ class OverlayTest: UIViewController, CanRotate {
     label.text = "Hallo Test"
     _ = label.titleFont()
     container.addSubview(label)
-    (label as UIView).center()//conflict with center labale
+    label.centerAxis()
     self.view.addSubview(container)
     _ = pin(container, toSafe: self.view, dist: 20, exclude: .top)
     container.pinHeight(400)

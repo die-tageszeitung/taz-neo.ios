@@ -228,7 +228,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   var autoHideToolbar: Bool
   
   private var hideOnScroll: Bool {
-    if UIScreen.isIpadRegularSize {
+    if UIScreen.isIpadRegularHorizontalSize {
       return false
     }
     if autoHideToolbar == false {
@@ -257,7 +257,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let art = article else { return }
       let i = mod.pageIndexForArticle(art)
       self.index = i
+      #if LMD
       childArticleVC?.header.title = "Seite \((i ?? 0) + 1)"
+      #endif
     }
   }
   ///reference to pushed child vc, if any
@@ -411,12 +413,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         section.toggleAudio()
         return
       }
-      
-      if self.feederContext.isAuthenticated == false || Defaults.expiredAccount {
-        self.feederContext.authenticate()
-        return
-      }
-      
       if self.articleFromPdf == false { return }
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
@@ -505,7 +501,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       Usage.track(Usage.event.drawer.action_tap.Page)
     }
     
-    onDisplay { [weak self]  (idx, oview) in
+    onDisplay { [weak self]  (idx, _, _) in
       self?.issue.lastPage = idx
       self?.updateSlider(index: idx)
       ArticleDB.save()
@@ -588,6 +584,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     slider.image = UIImage.init(named: logo)
     slider.image?.accessibilityLabel = "Inhalt"
     slider.buttonAlpha = 1.0
+    if !App.isLMD { slider.hideButtonOnClose = true }
     slider.button.additionalTapOffset = 50
     slider.close()
     #if LMD
@@ -615,6 +612,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     #endif
   }
   
+  var lastWindowSize: CGSize?
+  
+  open override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    lastWindowSize = UIWindow.size
+  }
+  
   // MARK: - viewWillAppear
   open override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -628,6 +632,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     updateSlidersWidth(self.view.frame.size)
     slider?.button.isHidden = false
     self.updateMenuItems()
+    //PDF>Article>Rotate>PDF: fix layout pos
+    if lastWindowSize == nil || lastWindowSize == UIWindow.size { return }
+    guard let ziv = self.currentView as? ZoomedImageView else { return }
+    onMainAfter{[weak self] in
+      self?.applyPageLayout(ziv)
+    }
   }
   
   open override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -655,7 +665,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   // MARK: - setupViewProvider
   open override func setupViewProvider(){
     super.setupViewProvider()
-    onDisplay { [weak self] (idx, optionalView) in
+    onDisplay { [weak self] (_, optionalView, _) in
       let sectionAudio = self?.sectionAudio()
       self?.toolBar.setToolbar(sectionAudio == nil ? 0 : 1)
       guard let ziv = optionalView as? ZoomedImageView,
@@ -753,7 +763,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       slider = nil
     }
   }
-  
+    
   // MARK: - viewDidAppear
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
@@ -792,7 +802,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       let origin = App.isLMD ? "LMd" : "taz"
       dialogue.present(item: tmpFile,
                        view: self.shareButton ?? self.toolBar,
-                       subject: "\(origin) vom \(self.issue.date.short) Seite \(page)")
+                       subject: "\(origin) vom \(self.issue.date.short) Seite \(page)",
+                       image: UIImage(named: App.appIcon(size: "60x60")))
      Usage.xtrack.share.faksimilelePage(issue: issue, pagina: page)
     }
     
@@ -988,13 +999,11 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   }
   
   override func setHeader(artIndex: Int) {
-    updateHeader()
-  }
-  
-  private func updateHeader(){
     #if LMD
     guard let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC else { return }
     header.title = "Seite \(lmdSliderContentVc.currentPage?.pagina ?? "")"
+    #else
+    super.setHeader(artIndex: artIndex)
     #endif
   }
   
@@ -1010,6 +1019,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
+    if self.parentViewController != nil { return }
     (slider as? MyButtonSlider)?.hideContentAnimated()
     self.releaseOnDisappear()
     #if LMD
@@ -1023,7 +1033,10 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     super.viewWillAppear(animated)
     #if LMD
     (sliderContent as? LMdSliderContentVC)?.currentArticle = self.article
-    updateHeader()
+    if let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC {
+      header.title = "Seite \(lmdSliderContentVc.currentPage?.pagina ?? "")"
+    }
+    
     #endif
     updateSlidersWidth(self.view.frame.size)
   }
@@ -1084,8 +1097,17 @@ fileprivate extension CGSize {
   func sliderWidth(for horizontalSizeClass: UIUserInterfaceSizeClass? = nil) -> CGFloat {
     if horizontalSizeClass ?? UIWindow.keyWindow?.traitCollection.horizontalSizeClass
         == .compact {
-      return self.width
+      return self.width - 28.0
     }
-    return min(self.width, Const.Size.ContentSliderMaxWidth)
+    return min(self.width, Const.Size.ContentSliderMaxWidth + 28.0) - 28.0
   }
 }
+
+#if LMD
+extension Article {
+  var index: Int? {
+    return self.primaryIssue?.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: self) })
+  }
+  
+}
+#endif

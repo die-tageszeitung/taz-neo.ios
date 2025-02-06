@@ -1,11 +1,3 @@
-/* taz Id Account Create */
-"taz_id_account_create_intro" = "Sie haben noch kein taz-Konto? Hier können Sie sich selbst ein neues taz-Konto mit einer E-Mail-Adresse und Ihrem persönlichen Passwort aussuchen.";
-
-"taz_id_account_create_intro2" = "Um die neue taz App zu nutzen, müssen Sie sich zukünftig mit Ihrer E-Mail-Adresse und selbst gewähltem Passwort einloggen.";
-
-/* taz Id Account Create */
-"login_missing_credentials_switch_to_login" = "Ich habe schon ein taz-Konto";
-
 /* translation from Android */
 "login_missing_credentials_header_login" = "Sollten Sie bereits bei taz.de mit E-Mail-Adresse und Passwort registriert sein, geben Sie hier bitte diese Daten an.";
 
@@ -20,11 +12,9 @@
 
 /* translation from Android */
 "login_password_hint" = "Passwort";
+"login_password_placeholder" = "Mein Passwort";
 
 "close_window" = "Fenster Schließen";
-
-/* translation from Android */
-"article_read_onreadon" = "Wir möchten Ihnen den Zugang zu unseren digitalen Produkten erleichtern und stellen deshalb unser Anmeldeverfahren in einem zweistufigen Verfahren um. Geben Sie bitte zunächst Ihre bisherige Abo-ID und Passwort ein. In einem zweiten Schritt werden Sie gebeten sich mit einer gültigen E-Mail-Adresse und einem selbst gewählten Passwort anzumelden. Fertig! Sie können sich ab jetzt mit Ihrer E-Mail-Adresse anmelden.";
 
 /* login erforderlich */
 "login_required" = "Bitte melden Sie sich an, um weiterzulesen.";
@@ -41,21 +31,21 @@
 
 /* translation from Android */
 "login_trial_subscription_title" = "Noch kein Abo?";
-"login_trial_subscription_body" = "Testen Sie uns doch mal 6 Wochen für umme! Nach 6 Wochen können Sie unabhängigen Journalismus mit 45.000 anderen digitalen Leser:innen in verschiedenen Abo-Modellen lesen.";
+"login_trial_subscription_body" = "Testen Sie uns doch einfach mal 6 Wochen kostenlos! Und wenn Sie danach weiterlesen wollen – was wir natürlich stark hoffen – können Sie unseren unabhängigen Journalismus in verschiedenen Abo-Modellen lesen.";
 "login_trial_subscription_button_text" = "Jetzt kostenlos testen";
 "login_switch_print2digi_title" = "Papierlos glücklich lesen";
-"login_switch_print2digi_body" = "Sie haben ein Print-Abo und wollen nur noch digital lesen? Auf in die Zukunft! taz wird digital. Machen Sie es wie weitere 45.000 digitale Leser:innen.\nWie es geht? Kontaktieren Sie unser Service-Team.";
+"login_switch_print2digi_body" = "Sie haben ein Print-Abo und wollen aber nur noch digital lesen? Auf in die Zukunft! Machen Sie es wie bereits 45.000 andere digitale Leser:innen.\nWie? Kontaktieren Sie einfach unser Service-Team.";
 "login_switch_print2digi_button_text" = "Jetzt informieren";
 "login_extend_print_with_digi_title" = "Sie haben die taz im Print \nund möchten diese um Digital erweitern?";
-"login_extend_print_with_digi_body" = "Kein Problem — kontaktieren Sie unser Service-Team.";
+"login_extend_print_with_digi_body" = "Kontaktieren Sie zur Aktivierung einfach unser Service-Team.";
 "login_extend_print_with_digi_button_text" = "Jetzt Infos anfordern";
 
 /* translation from Android */
-"fragment_login_help" = "Geben Sie bitte entweder Ihre numerische Abo-ID und das dazu gehörige, von uns mitgeteilte, Passwort oder — falls Ihre E-Mail-Adresse bei uns registriert ist — diese und das von Ihnen bei der Registrierung gewählte Passwort ein.";
 "fragment_login_help_lmd" = "Wenn Sie sich bereits mit Ihrer E-Mail-Adresse registriert und ein Passwort erstellt haben, nutzen Sie bitte diese, um sich anzumelden.\n\nFalls nicht, können Sie es mit Ihrer numerischen Abo-ID und dem dazugehörigen, von uns mitgeteilten Passwort versuchen.\n\nSollten Sie diese Informationen nicht finden, helfen wir Ihnen gerne weiter. Bitte kontaktieren Sie uns unter: app@monde-diplomatique.de";
+"fragment_login_help" = "Bitte geben Sie Ihre bei uns registrierte E-Mail-Adresse sowie das bei der Registrierung gewählte Passwort ein.\n\nWenn Sie sich bisher mit Ihrer Abo-ID und dem dazugehörigen Passwort angemeldet haben, dies aber nicht mehr funktioniert und Sie unsere E-Mail zur Umstellung auf das Login mit Ihrer E-Mail-Adresse nicht finden, wenden Sie sich bitte an app@taz.de.";
 
 "no_mail_title" = "Achtung";
-"no_mail_text" = "Zum Senden des Feedbacks verwendet diese App die iOS Mail Funktionalität.\nLeider kann derzeit von Ihrem Gerät keine E-Mail versendet werden. Bitte überprüfen Sie die Einstellungen zum Senden von E-Mails oder senden Sie Ihr Feedback direkt an: app@taz.de.\nBei Problemen oder Rückfragen geben Sie bitte auch Ihre taz-Konto E-Mail-Adresse oder Abo-ID an.";
+"no_mail_text" = "Die iOS Mail Funktionalität kann nicht gestartet werden. Bitte überprüfen Sie die Einstellungen zum Senden von E-Mails oder senden Sie Ihre Anfrage mit Ihrem Webmailer an: app@taz.de.\nBitte geben Sie auch Ihre taz-Konto E-Mail-Adresse oder Abo-ID an.";
 
 /* translation from Android */
 "register_button" = "Kostenlos Probelesen";
@@ -63,10 +53,13 @@
 "register_tips_button" = "Hinweise zum taz Probeabo";
 "register_free_button" = "Kostenlos Probelesen";
 
-"register_tips_text" = "Nach Ihrer Bestellung erhalten Sie eine Bestätigungs-E-Mail mit Aktivierungs-Link. Durch Aufruf dieses Links, wird Ihr Probeabo aktiviert. Sollten Sie diese E-Mail nicht erhalten, überprüfen Sie bitte Ihren Spam Ordner.\nDie digitale Ausgabe der taz steht Ihnen bereits am Vorabend des Erscheinungstages in der App zur Verfügung.\nDas Probeabo endet automatisch.";
+"register_tips_text" = "Nach Ihrer Bestellung erhalten Sie eine Bestätigungs-E-Mail mit einem Aktivierungs-Link. Sobald Sie diesen aufrufen, wird Ihr Probeabo freigeschaltet. Falls Sie die E-Mail nicht in Ihrem Posteingang finden, schauen Sie bitte auch in Ihrem Spam-Ordner nach.\n\nDie digitale Ausgabe der taz können Sie bereits am Vorabend des Erscheinungstages bequem in der App lesen.\n\nIhr Probeabo endet automatisch, eine Kündigung ist also nicht notwendig. Es entstehen keinerlei Zahlungspflichten durch das Probeabo.";
+
+"register_tips_text_existingtazid" = "Nach Ihrer Anfrage wird das Probeabo für Ihre E-Mail-Adresse unmittelbar freigeschaltet.\n\nDie digitale Ausgabe der taz können Sie bereits am Vorabend des Erscheinungstages bequem in der App lesen.\n\nIhr Probeabo endet automatisch, eine Kündigung ist also nicht notwendig. Es entstehen keinerlei Zahlungspflichten durch das Probeabo.";
 
 /* translation from Android */
 "login_forgot_password" = "Haben Sie Ihr Passwort vergessen?";
+"login_privacy_link" = "Hier finden Sie unsere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
 
 /* translation from Android */
 "login_forgot_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre E-Mail-Adresse an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
@@ -89,15 +82,16 @@
 "back_button" = "Zurück";
 
 /* translation from Android */
-"login_forgot_password_email_sent_header" = "Falls Sie ein bestehendes taz-Konto unter der E-Mail-Adresse haben, wurde Ihnen eine E-Mail zugesandt. Bitte schauen Sie in Ihr Mail-Postfach.\nSollten Sie die E-Mail nicht finden, schauen Sie bitte auch in Ihrem Spam-Ordner nach.\nFür weitere Fragen wenden Sie sich bitte an app@taz.de.";
+"forgot_password_email_sent_top" = "Falls ein bestehendes taz-Konto unter der E-Mail-Adresse existiert, wurde Ihnen eine E-Mail zugesandt.\nBitte schauen Sie in Ihr Mail-Postfach und gegebenenfalls auch in Ihrem Spam-Ordner nach.";
+"forgot_password_email_sent_bottom" = "Falls Sie keine E-Mail empfangen haben, stimmt die von Ihnen eingegebene E-Mail-Adresse eventuell nicht mit der bei uns für Sie gespeicherten Adresse überein. Probieren Sie gerne erneut die Passwort zurücksetzen Funktion mit einer anderen, Ihrer möglicherweise bei uns hinterlegten E-Mail Adressen aus.\n\nFalls Sie sich nicht sicher sind, welche E-Mail-Adresse zu Ihrem Abo hinterlegt ist bzw. auf das bei uns hinterlegte E-Mail Postfach keinen Zugriff mehr haben, wenden Sie sich bitte an unseren Service unter:";
+"forgot_password_aboid_sent_top" = "Falls zu Ihrem Abo eine E-Mail-Adresse hinterlegt ist, haben wir Ihnen eine E-Mail gesendet.\n\nBitte schauen Sie in Ihr Mail-Postfach und gegebenenfalls auch in Ihrem Spam-Ordner nach.
+Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte E-Mail-Adresse wissen und darauf Zugriff haben, nutzen Sie bitte die Passwort vergessen Funktion mit dieser E-Mail-Adresse.\n\nHaben Sie Ihre Zugangsdaten gefunden?";
+"forgot_password_aboid_sent_bottom" = "Falls Sie keine E-Mail erhalten haben und sich nicht sicher sind, welche E-Mail zu Ihrem Abo hinterlegt ist bzw. auf das bei uns hinterlegte E-Mail Postfach keinen Zugriff mehr haben, wenden Sie sich bitte an unseren Service unter:";
 
 "login_forgot_password_email_sent_header_lmd" = "Falls Sie ein bestehendes LMd-Konto unter der E-Mail-Adresse haben, wurde Ihnen eine E-Mail zugesandt. Bitte überprüfen Ihr E-Mail-Postfach.\nSollten Sie die E-Mail nicht finden, sehen Sie bitte auch im Spam-Ordner nach.\nFür weitere Fragen wenden Sie sich bitte an app@monde-diplomatique.de.";
 
 /* translation from Android */
 "login_forgot_password_email_sent_back" = "Zurück zur Anmeldung";
-
-/* translation from Android */
-"login_subscription_taken_body" = "Oder wenden Sie sich an unseren Service unter:";
 
 /* Abo Mail */
 "digiabo_email" = "app@taz.de";
@@ -106,16 +100,16 @@
 "digiabo_access_request_subject" = "Digiabo Zugangsdaten";
 
 /* Abo Mail Text*/
-"digiabo_access_request_message" = "Hallo,\nich kann mich nicht in der taz App anmelden.\n\nMeine AboID lautet: \n\n(Bitte ggf. um weitere Informationen ergänzen!)";
-
-/* Haben Sie Ihre Zugangsdaten gefunden? */
-"subscription_reset_found_link" = "Haben Sie Ihre Zugangsdaten gefunden?";
+"digiabo_access_request_message" = "Hallo,\nich kann mich nicht in der taz App anmelden.\n\nMeine Abo-ID lautet: \n\n(Bitte ggf. um weitere Informationen ergänzen!)";
 
 /* Fehler */
 "error" = "Es ist ein Fehler aufgetreten, versuchen Sie es später noch einmal.";
 
+/* Kein Netz */
+"error_download" = "Es ist ein Fehler aufgetreten.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später noch einmal.";
+
 /* Fehler keine E-Mail */
-"error_invalid_email_or_abo_id" = "Keine gültige E-Mail-Adresse oder AboId";
+"error_invalid_email" = "Keine gültige E-Mail-Adresse";
 
 /* Fehler ID/Mail empty */
 "login_username_error_empty" = "E-Mail-Adresse darf nicht leer sein.";
@@ -123,15 +117,12 @@
 /* translation from Android */
 "login_password_error_empty" = "Passwort darf nicht leer sein.";
 
+"forms_error_empty" = "Bitte überprüfen, darf nicht leer sein.";
+
 /* translation from Android */
 "toast_login_failed_retry" = "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.";
 
-/* translation from Android */
-"fragment_login_missing_credentials_switch_to_login" = "Ich habe schon eine taz-Konto";
-
-/* translation from Android */
-"fragment_login_missing_credentials_switch_to_registration" = "Ich habe noch kein taz-Konto";
-
+"toast_login_wrong_retry" = "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben und versuchen Sie es erneut.";
 
 /* translation from Android */
 "login_email_hint" = "E-Mail-Adresse";
@@ -162,9 +153,7 @@
 "login_password_confirmation_error_match" = "Passwörter stimmen nicht überein";
 
 /* translation from Android */
-"fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/welcomeTerms.html'>AGB</a> sowie die Hinweise zum <a href='https://taz.de/welcomeRevocation.html'>Widerruf</a> und <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutz</a>.";
-
-"fragment_tracking_privacy_info" = "Hier finden Sie unsere <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutzbestimmungen</a>.";
+"fragment_login_request_test_subscription_terms_and_conditions" = "Ich akzeptiere die <a href='https://taz.de/welcomeTerms.html'>AGB</a> sowie die Hinweise zum <a href='https://taz.de/welcomeSlidesDataPolicy.html'>Datenschutz</a>.";
 
 /* translation from Android */
 "something_went_wrong_try_later" = "Etwas unerwartetes ist passiert. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut.";
@@ -172,8 +161,10 @@
 /* Fehler lokale Validierung */
 "register_validation_issue" = "Bitte überprüfen Sie Ihre Eingaben!";
 
+
+
 /* Fehler lokale Validierung */
-"register_validation_issue_agb" = "Bitte bestätigen Sie die AGB sowie die Hinweise zum Widerruf und Datenschutz!";
+"register_validation_issue_agb" = "Bitte bestätigen Sie die AGB sowie die Hinweise zum Datenschutz!";
 
 /* taz id register intro */
 "taz_id_register_intro" = "Um die neue App zu nutzen, müssen Sie sich zukünftig mit Ihrer E-Mail-Adresse und selbst gewähltem Passwort anmelden.";
@@ -208,34 +199,17 @@
 "password_contains_mail" = "Ihr Passwort darf nicht Teile Ihrer E-Mail enthalten!";
 
 /* zum Probeabo */
-"trial_subscroption" = "Probeabo abschließen";
+"trial_subscroption" = "kostenloses Probeabo anfragen";
 
 /* Header tazID ohne Abo ID */
-"unconnected_taz_id_header" = "Bisher ist kein Abo mit Ihrer E-Mail-Adresse verknüpft.\n\nMöchten Sie ein bestehendes Abo mit Ihrer E-Mail-Adresse verknüpfen?";
+"unconnected_taz_id_header" = "Bisher ist kein Abo mit Ihrer E-Mail-Adresse %@ verknüpft.\n\nMöchten Sie die digitale Ausgabe der taz 6 Wochen kostenlos und unverbindlich testen?";
 
-/* tazID ohne Abo ID bestehendes abo verknüpfen*/
-"connect_abo_id" = "Bestehendes Abo verknüpfen";
+"unconnected_taz_id_contact1" = "Falls Sie bereits ein Print-Abo der taz haben, können Sie mit dem nachfolgenden Formular Kontakt zur Abo-Abteilung aufnehmen, um Ihr bestehendes Abo mit der E-Mail-Adresse: %@ zu verknüpfen.";
 
-/* tazID ohne Abo ID bestehendes abo verknüpfen*/
-"connect_abo_id_title" = "Bitte geben Sie hier Ihre Abo-ID und das zugehörige Passwort ein.";
-
-/* translation from Android */
-"login_subscription_hint" = "Abo-ID";
-
-/* translation from Android */
-"login_tazid_hint" = "E-Mail-Adresse";
-
-/* aboId mit taz Id Verknüfpen */
-"connect_this_abo_id_with_taz_id" = "Abo mit taz-Konto verknüpfen";
+"unconnected_taz_id_contact" = "Falls Sie bereits ein Print-Abo der taz haben, können Sie mit den nachfolgenden Formularen Kontakt zur Abo-Abteilung aufnehmen, um Ihr bestehendes Abo mit der E-Mail-Adresse: %@ zu verknüpfen.";
 
 /* aboId mit taz Id Verknüfpen */
 "send_button" = "Abschicken";
-
-/* translation from Android */
-"login_subscription_error_invalid" = "Die Abo-ID ist ungültig.";
-
-/* translation from Android */
-"login_subscription_error_empty" = "Bitte Abo-ID angeben.";
 
 /* translation from Android */
 "fragment_login_missing__names_header" = "Zu Ihrem taz-Konto ist noch kein Vor- und Nachname registriert. Dies ist zur Erstellung eines Probeabos notwendig.";
@@ -259,9 +233,25 @@
 /* Kein Netz */
 "communication_breakdown" = "Es gab ein Problem bei der Kommunikation mit dem Server.\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
 
+/* Kein Netz */
+"unknown_communication_error" = "Bitte überprüfen Sie Ihre Eingaben und Ihre Internetverbindung und versuchen Sie es erneut!\nSollte der Fehler weiterhin auftreten, würden wir uns über eine Rückmeldung an app@taz.de freuen.";
+
 /* FAQ Button Text */
 "open_faq_in_browser" = "Öffne FAQ im Browser";
 
 
 /* abo-id-validation error digit */
 "abo_id_validation_error_digit" = "Abo-ID muss eine max. 9-stellige Zahl sein.";
+
+
+/* Search Placeholder initial */
+"search_placeholder_initial" = "Auf die Suche, fertig, los!\n\nOb Autor*innen, konkrete Artikel, Rubriken oder Themen – mit der Suchfunktion geht’s direkt zu den Wunschinhalten.";
+
+/* Search Placeholder empty result */
+"search_placeholder_empty_result" = "Hm, wir finden zu diesem Suchbegriff nichts\n\nWir haben dazu mehrere Vermutungen:\n1. Gibt es eventuell eine andere Schreibweise des Begriffs?\n2. Oder hat sich ein Tippfehler eingeschlichen?\n3. Vielleicht haben wir aber auch wirklich keinen Eintrag dazu. (Sieht uns eigentlich gar nicht ähnlich.)";
+
+/* FAQ Button Text */
+"multicol_onboarding_title" = "Lesemodus ändern?";
+"multicol_onboarding_text" = "Sie lesen die Ausgabe auf einem iPad im Querformat. Wir empfehlen für Ihr Lesevergnügen das Mehrspaltige Layout.\n\nIm Mehrspaltigen Layout scrollen Sie horizontal durch die Texte.\nZum noch einfacheren Scrollen und Artikelwechsel wird die Funktion 'Tap am Rand' aktiviert. Alle Einstellungen können Sie jederzeit über die Texteinstellungen in der Toolbar wieder ändern.";
+"multicol_onboarding_btn_decline" = "Alles so lassen, wie es ist";
+"multicol_onboarding_btn_activate" = "Mehrspaltigkeit aktivieren";

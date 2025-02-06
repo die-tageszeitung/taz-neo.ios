@@ -53,10 +53,7 @@ public protocol Authenticator: DoesLog {
   /// Ask user for id/password, check with GraphQL-Server, store using method 
   /// 'storeUserData' and call closure to indicate success (closure(nil) is success)
   func authenticate(with targetVC:UIViewController?)
- 
-  /// Unlink the connection between ID and subscription ID
-  func unlinkSubscriptionId()
- 
+  
   /**
    Use this method to store user authentication data in user defaults and keychain
    
@@ -109,6 +106,10 @@ extension Authenticator {
     
     TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
     Usage.track(Usage.event.user.Login)
+  }
+  
+  public static var isTazLogin: Bool {
+    return (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de")
   }
   
   public static func getUserData(requestKeychainPassword: Bool = false) -> (id: String?, password: String?, token: String?) {

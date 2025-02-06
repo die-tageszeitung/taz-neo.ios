@@ -12,7 +12,7 @@ import UIKit
  A SettingsVC is a view controller to edit app's user Settings; Cells are not re-used!
  */
 // MARK: - SettingsVC
-open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
+open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   @Default("persistedIssuesCount")
   var persistedIssuesCount: Int
@@ -20,8 +20,33 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("autoloadOnlyInWLAN")
   var autoloadOnlyInWLAN: Bool
   
+  @Default("voiceoverControls")
+  var voiceoverControls: Bool
+  
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
+  
+  @Default("reopenArticleSetting")
+  public var reopenArticleSetting: Bool
+  
+  @Default("defaultToastsDisabled")
+  public var defaultToastsDisabled: Bool
+  
+  private var orgOvwFields = GqlIssue.ovwFields
+  private lazy var failureOvwFields : String = {
+    ///WARNING AT FIRST Init Issue Fields, that this would be correct for later Access!!
+    _ = GqlIssue.fields
+    ///...DONE
+    let wrongFacsimile =  """
+    gqlFacsimile: facsimileTestForErrorAndEndlessReturn { \(GqlImage.fields) }
+    """
+    return orgOvwFields.replacingOccurrences(of: "gqlAudio: podcast", with: "\(wrongFacsimile) gqlAudio: podcast")
+  }()
+  private var sendFailureRequestToServer: Bool = false {
+    didSet {
+      GqlIssue.ovwFields = sendFailureRequestToServer ? failureOvwFields : orgOvwFields
+    }
+  }
   
   @Default("autoloadPdf")
   var autoloadPdf: Bool
@@ -40,9 +65,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("usageTrackingAllowed")
   var usageTrackingAllowed: Bool
   
-  @Default("bookmarksListTeaserEnabled")
-  var bookmarksListTeaserEnabled: Bool
-  
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   
@@ -52,17 +74,29 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
   
+  @Default("showCoachmarks")
+  var showCoachmarks: Bool
+  
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
   
   @Default("doubleTapToZoomPdf")
   public var doubleTapToZoomPdf: Bool
   
+  ///Required rename to enable setting and intotruce feature with a coachmark
+  ///if old value was already set to true just a coachmark will be shown
+  ///if old setting was still false; now its true and a coachmark will be shown
   @Default("edgeTapToNavigate")
   public var edgeTapToNavigate: Bool
   
-  @Default("edgeTapToNavigateVisible")
-  public var edgeTapToNavigateVisible: Bool
+  @Default("edgeTapToNavigateVisible2")
+  public var edgeTapToNavigateVisible2: Bool
+  
+  @Default("multiColumnSnap")
+  public var multiColumnSnap: Bool
+  
+  @Default("multiColumnFixedScrolling")
+  public var multiColumnFixedScrolling: Bool
   
   var initialTextNotificationSetting: Bool?
   
@@ -142,6 +176,28 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                   initialValue: autoloadOnlyInWLAN,
                   onChange: {[weak self] newValue in
     self?.autoloadOnlyInWLAN = newValue })
+  
+  lazy var voiceoverControlsCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Voiceover Steuerung",
+                  detailText: "Alternative Steuerelemente für Ausgabenauswahl bei aktiviertem Voiceover verwenden",
+                  initialValue: voiceoverControls,
+                  onChange: {[weak self] newValue in
+    self?.voiceoverControls = newValue })
+  
+  lazy var reopenArticleSettingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Weiterlesen",
+                  detailText: "Letzten Artikel erneut öffnen Abfrage",
+                  initialValue: reopenArticleSetting,
+                  onChange: {[weak self] newValue in
+    self?.reopenArticleSetting = newValue })
+  
+  lazy var defaultToastsDisabledCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Standard Toast Nachrichten",
+                  detailText: "Zeige Toasts bei Bookmarks und PDF Umschaltung (nur für @taz.de Accounts)",
+                  initialValue: !defaultToastsDisabled,
+                  onChange: {[weak self] newValue in
+    self?.defaultToastsDisabled = !newValue })
+  
   lazy var epaperLoadCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Zeitungsansicht immer mit laden",
                   initialValue: autoloadPdf,
@@ -154,48 +210,25 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   ///notifications, mitteilungen
   var notificationsCell: NotificationsSettingsCell {
     
-    let systemNotificationsEnabled
-    = NotificationBusiness.sharedInstance.systemNotificationsEnabled
-    
-    var detailText: NSMutableAttributedString
-    
-    var defaultText = App.isLMD
-    ? NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem Push-Hinweis, sobald die neue Ausgabe zum Download bereitsteht.")
-    : NSMutableAttributedString(string: "\nBleiben Sie immer informiert mit einem täglichen Push-Hinweis, auf die aktuelle Ausgabe.")
-    
-    switch (isTextNotification, systemNotificationsEnabled) {
-      case (true, true):
-        detailText = defaultText
-      case (true, false):
-        detailText
-        = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen  deaktiviert. Diese müssen aktiviert sein, um Mitteilungen zu erhalten.")
-        detailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 30, length: 20))
-      case (false, true):
-        detailText = defaultText
-      case (false, false):
-        detailText
-        = NSMutableAttributedString(string: "\nDie Mitteilungen sind in den Systemeinstellungen ebenfalls zu aktivieren.")
-        detailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 30, length: 20))
-      case (_, _):
-        detailText
-        = NSMutableAttributedString(string: "\n\n")
-    }
-    
-    let cell = NotificationsSettingsCell(toggleWithText: "Mitteilungen erlauben".lowerIfTaz, detailText: detailText, initialValue: isTextNotification, onChange: {[weak self] newValue in
-      self?.isTextNotification = newValue
-      TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
-      self?.refreshAndReload()
+    let cell = NotificationsSettingsCell(
+      toggleWithText: "Mitteilungen erlauben".lowerIfTaz,
+      detailText: NotificationBusiness.sharedInstance.settingsDetailText,
+      initialValue: isTextNotification,
+      onChange: {[weak self] newValue in
+        self?.isTextNotification = newValue
+        TazAppEnvironment.sharedInstance.feederContext?.setupRemoteNotifications(force: true)
+        NotificationBusiness.sharedInstance.updateSettingsDetailText()
+        self?.refreshAndReload()
     })
     
-    if systemNotificationsEnabled == false && isTextNotification == true {
+    if NotificationBusiness.sharedInstance.settingsDetailTextAlert {
       cell.detailLabelTextColor = .red
-      (cell.customAccessoryView as? UISwitch)?.onTintColor = UIColor(white: 0.95, alpha: 1.0)
+      cell.applyStyles()
+      (cell.customAccessoryView as? UISwitch)?.onTintColor = UIColor(white: 0.6, alpha: 1.0)
     }
-    
-    if systemNotificationsEnabled == false {
+    if NotificationBusiness.sharedInstance.settingsLink {
       cell.tapHandler = { NotificationBusiness.sharedInstance.openAppInSystemSettings() }
     }
-    
     return cell
   }
 
@@ -230,6 +263,7 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var feedbackCell: XSettingsCell
   = XSettingsCell(text: "Feedback geben",
                   tapHandler: {TazAppEnvironment.sharedInstance.showFeedbackErrorReport(.feedback)} )
+ 
   ///rechtliches
   lazy var termsCell: XSettingsCell
   = XSettingsCell(text: "Allgemeine Geschäftsbedingungen (AGB)",
@@ -237,9 +271,6 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   lazy var privacyCell: XSettingsCell
   = XSettingsCell(text: "Datenschutzerklärung",
                   tapHandler: {[weak self] in self?.showPrivacy()} )
-  lazy var revokeCell: XSettingsCell
-  = XSettingsCell(text: "Widerruf",
-                  tapHandler: {[weak self] in self?.showRevocation()} )
   
   lazy var usageCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nutzungsdaten senden",
@@ -254,31 +285,36 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   = XSettingsCell(toggleWithText: "Tap am Rand",
                   detailText: "Tap am unteren Rand einer Seite oder eines Artikels, um zu scrollen oder zum nächsten Element zu gelangen.",
                   initialValue: edgeTapToNavigate,
-                  onChange: {[weak self] newValue in 
+                  onChange: {[weak self] newValue in
     self?.edgeTapToNavigate = newValue
     Usage.track(Usage.event.tapEdge.state, name: newValue ? "Ein" : "Aus")
     (self?.edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = newValue
   })
   lazy var edgeTapToNavigateVisibleCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Tap am Rand sichtbar",
-                  detailText: "Bereich für \"Tap am Rand\" sichtbar",
-                  initialValue: edgeTapToNavigateVisible,
+                  detailText: "Bereich für \"Tap am Rand\" sichtbar (Alpha Feature)",
+                  initialValue: edgeTapToNavigateVisible2,
                   onChange: {[weak self] newValue in
-    self?.edgeTapToNavigateVisible = newValue
+    self?.edgeTapToNavigateVisible2 = newValue
     Usage.track(Usage.event.tapEdge.visibility, name: newValue ? "Ein" : "Aus")
 
   })
-  lazy var bookmarksTeaserCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Leseliste Anrisstext",
-                  detailText: "Zeige Anrisstext in Leseliste",
-                  initialValue: bookmarksListTeaserEnabled,
+  lazy var multiColumnSnapCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Mehrspaltigkeit einrasten",
+                  detailText: "Beim manuellem Scrollen in der mehrspaltigen Ansicht automatisch Spaltenweise einrasten.",
+                  initialValue: multiColumnSnap,
                   onChange: {[weak self] newValue in
-                    self?.bookmarksListTeaserEnabled = newValue
-                    Notification.send(Const.NotificationNames.bookmarkChanged)
-                  })
-    
+    self?.multiColumnSnap = newValue
+  })
+  lazy var multiColumnFixedScrollingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Mehrspaltigkeit gleichmäßiges Scrollen",
+                  detailText: "In der mehrspaltigen Ansicht bei 'Tap am Rand' immer die gleiche Anzahl von Spalten weiterscrollen.\nDies wirkt sich nur beim 'vorwärts Tap' auf dem letzten Bildschirmbereich (Seite) aus und kann dazu führen, dass dort nur eine dicke Linie zu sehen ist.",
+                  initialValue: multiColumnFixedScrolling,
+                  onChange: {[weak self] newValue in
+    self?.multiColumnFixedScrolling = newValue
+  })
   lazy var tabbarInSectionCellALPHA: XSettingsCell
-  = XSettingsCell(toggleWithText: "Teige Tabbar auf Sectionebene",
+  = XSettingsCell(toggleWithText: "Zeige Tabbar auf Sectionebene",
                   detailText: "Alpha Feature",
                   initialValue: tabbarInSection,
                   onChange: {[weak self] newValue in
@@ -301,6 +337,17 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
                     self?.autoHideToolbar = newValue
                   })
   
+  lazy var showCoachmarksCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Coachmarks anzeigen",
+                  initialValue: showCoachmarks,
+                  onChange: {[weak self] newValue in
+                    if self?.showCoachmarks == false && newValue == true {
+                      CoachmarksBusiness.shared.reset()
+                      Toast.show("Re-Aktiviere alle Coachmarks.")
+                    }
+                    self?.showCoachmarks = newValue
+                  })
+  
   lazy var memoryUsageCell: XSettingsCell
   = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
   lazy var deleteDatabaseCell: XSettingsCell
@@ -311,6 +358,14 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
                   isDestructive: true,
                   tapHandler: {[weak self] in self?.requestResetApp()} )
+  lazy var sendFailureRequestCell: XSettingsCell
+  = XSettingsCell(text: "Sende fehlerhaften Page Request für die Ausgabenübersicht",
+                  detailText: "ALPHA-App :: erneut antippen zum Wechsel",
+                  isDestructive: true,
+                  tapHandler: {[weak self] in
+    self?.sendFailureRequestToServer = !(self?.sendFailureRequestToServer ?? true)
+    Toast.show("Nachfolgende Page Requests sind: \(self?.sendFailureRequestToServer == true ? "fehlerhaft" : "normal")")
+  })
   lazy var contentChangeSettingCellALPHA: XSettingsCell
   = XSettingsCell(toggleWithText: "Zeige Toolbar bei Artikelwechsel",
                   detailText: "Alpha Feature",
@@ -328,6 +383,24 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     return v
   }()
   
+  private lazy var settingsTable:UITableView = {
+    let tv = UITableView(frame: .zero, style: .grouped)
+    tv.estimatedRowHeight = 100.0
+    tv.separatorInset = .zero
+    if #available(iOS 15.0, *) {
+      tv.sectionHeaderTopPadding = 0
+    }
+    tv.dataSource = self
+    tv.delegate = self
+    
+    let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
+    tv.addGestureRecognizer(longTap)
+    
+    tv.tableFooterView = footer
+    tv.bounces = true
+    return tv
+  }()
+  
   let blockingView = BlockingProcessView()
   
   var uiBlocked:Bool = false {
@@ -341,14 +414,20 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     }
   }
   
-  open override func viewDidLoad() {
-    self.tableView = UITableView(frame: .zero, style: .grouped)
+  public override func viewDidLoad() {
     super.viewDidLoad()
+    
+    self.view.addSubview(header)
+    pin(header, to: self.view, exclude: .bottom)
+    
+    self.view.addSubview(settingsTable)
+    pin(settingsTable, to: self.view, exclude: .top)
+
+    pin(settingsTable.top, to: header.bottom, dist: -2)
+    
     data = TableData(sectionContent: currentSectionContent())
     setup()
-    registerForStyleUpdates()
-    let longTap = UILongPressGestureRecognizer(target: self, action: #selector(handleLongTap(sender:)))
-    tableView.addGestureRecognizer(longTap)
+
     initialTextNotificationSetting = isTextNotification
     $articleFromPdf.onChange{[weak self] _ in
       guard let self = self else { return }
@@ -360,21 +439,15 @@ open class SettingsVC: UITableViewController, UIStyleChangeDelegate {
     }
   }
   
-  open override func viewWillAppear(_ animated: Bool) {
+  public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    if let sv = self.view.superview {
-      sv.addSubview(header)
-      pin(header, to: sv, exclude: .bottom)
-      pin(self.tableView, toSafe: sv, exclude: .top).bottom?.constant = -50.0
-      pin(self.tableView.top, to: header.bottom)
-    }
-    self.tableView.contentInset = UIEdgeInsets(top: 23, left: 0, bottom: 0, right: 0)
   }
   
-  open override func viewDidAppear(_ animated: Bool) {
+  public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     checkNotifications()
     trackScreen()
+    memoryUsageCell.detailTextLabel?.text = storageDetails
   }
     
   required public init(feederContext: FeederContext) {
@@ -403,7 +476,7 @@ extension SettingsVC {
   }
   
   public func applyStyles() {
-    tableView.backgroundColor = Const.SetColor.HBackground.color
+    settingsTable.backgroundColor = Const.SetColor.HBackground.color
     if let toggle = self.darkmodeSettingsCell.customAccessoryView as? UISwitch,
        toggle.isOn != Defaults.darkMode {
       toggle.isOn = Defaults.darkMode
@@ -411,7 +484,7 @@ extension SettingsVC {
   }
   
   func setup(){
-    tableView.separatorInset = .zero
+    settingsTable.separatorInset = .zero
     header.layoutIfNeeded()
     registerForStyleUpdates()
     NotificationCenter.default
@@ -427,70 +500,59 @@ extension SettingsVC {
     data = TableData(sectionContent: currentSectionContent())
     
     if oldData.sectionsCount != data.sectionsCount {
-      tableView.reloadData()
+      settingsTable.reloadData()
       return
     }
     
     let diff = data.changedIndexPaths(oldData: oldData)
         
     if (diff.added.count + diff.deleted.count) == 0 {
-      tableView.reloadData()
+      settingsTable.reloadData()
       return
     }
     
-    self.tableView.performBatchUpdates {   [weak self] in
+    self.settingsTable.performBatchUpdates {   [weak self] in
       guard let self = self else { return }
       if diff.deleted.count > 0 {
-        self.tableView.deleteRows(at: diff.deleted, with: .fade)
+        self.settingsTable.deleteRows(at: diff.deleted, with: .fade)
       }
       
       if diff.added.count > 0 {
-        self.tableView.insertRows(at: diff.added, with: .fade)
+        self.settingsTable.insertRows(at: diff.added, with: .fade)
       }
     }
   }
   
   @objc private func handleLongTap(sender: UILongPressGestureRecognizer) {
     if sender.state == .began {
-      let touchPoint = sender.location(in: tableView)
-      guard let indexPath = tableView.indexPathForRow(at: touchPoint) else { return }
+      let touchPoint = sender.location(in: settingsTable)
+      guard let indexPath = settingsTable.indexPathForRow(at: touchPoint) else { return }
       data.cell(at: indexPath)?.longTapHandler?()
     }
   }
 }
 
-extension SettingsVC {
-  open override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    self.header.scrollViewDidScroll(scrollView.contentOffset.y)
-  }
-  
-  open override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    self.header.scrollViewDidEndDragging(scrollView.contentOffset.y)
-  }
-  
-  open override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-    self.header.scrollViewWillBeginDragging(scrollView.contentOffset.y)
-  }
-}
-
 // MARK: - UITableViewDataSource
-extension SettingsVC {
-  open override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+extension SettingsVC: UITableViewDataSource, UITableViewDelegate {
+  public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     return data.rowsIn(section: section)
   }
   
-  open override func numberOfSections(in tableView: UITableView) -> Int {
+  public func numberOfSections(in tableView: UITableView) -> Int {
     return data.sectionsCount
   }
   
-  open override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+  public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     return data.cell(at: indexPath) ?? UITableViewCell()
   }
   
-  open override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+  public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
     guard let sectionData = data.sectionData(for: section),
           let title = sectionData.title else { return nil }
     let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
+    if section == 6 {
+      header.label.accessibilityLabel = "\(title) \(self.extendedSettingsCollapsed ? "zum öffnen doppelt tippen" : "geöffnet")"
+    }
     header.collapsed = self.extendedSettingsCollapsed
     header.onTapping { [weak self] _ in
       guard let self = self else { return }
@@ -505,23 +567,23 @@ extension SettingsVC {
     return header
   }
   
-  open override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+  public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     return section == data.sectionsCount - 1 ? footer : nil
   }
   
-  open override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
+  public func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
     view.backgroundColor = .clear
   }
   
-  open override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+  public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
     return data.footerHeight(for: section)
   }
   
-  open override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+  public func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
     return data.canTap(at: indexPath) ? indexPath : nil
   }
   
-  open override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+  public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     tableView.deselectRow(at: indexPath, animated: true)
     data.cell(at: indexPath)?.tapHandler?()
   }
@@ -651,6 +713,13 @@ extension SettingsVC {
   
   var isAuthenticated: Bool { return feederContext.isAuthenticated }
   
+  var showPasswordCell: Bool {
+    if isAuthenticated == false { return true }///all not logged in users
+    guard let uid = SimpleAuthenticator.getUserData().id else { return true }///also not logged in
+    if uid.hasSuffix("@taz.de") { return false }
+    return uid.isValidEmail()//All E-Mails, not 12345 Abo-ID's not SpecialLoginForGroups
+  }
+  
   var showDeleteAccountCell: Bool {
     if isAuthenticated == false { return false }
     let uid = SimpleAuthenticator.getUserData().id ?? ""
@@ -677,17 +746,13 @@ extension SettingsVC {
     var cells = [isAuthenticated ? logoutCell : loginCell]
 
     if App.isLMD {
-      cells.append(manageAccountCell)
-      cells.append(resetPasswordCell)
       cells.append(notificationsCell)
       return cells
     }
     
     cells.append(manageAccountCell)
     
-    if isAuthenticated,
-       SimpleAuthenticator.getUserData().id?.isValidEmail() == true,
-       SimpleAuthenticator.getUserData().id?.hasSuffix("@taz.de") == false {
+    if showPasswordCell {
       cells.insert(resetPasswordCell, at: 1)
     }
     if showDeleteAccountCell {
@@ -719,12 +784,22 @@ extension SettingsVC {
   var extendedSettingsCells:[XSettingsCell] {
     (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
-      bookmarksTeaserCell,
       smartBackFromArticleCell,
+      reopenArticleSettingCell,
+      voiceoverControlsCell,
       memoryUsageCell,
       deleteDatabaseCell,
       resetAppCell
     ]
+    
+    if Device.isIpad {
+      cells.insert(multiColumnFixedScrollingCell, at: 1)
+      cells.insert(multiColumnSnapCell, at: 1)
+    }
+    
+    if TazAppEnvironment.hasValidAuth {
+      cells.insert(showCoachmarksCell, at: 1)
+    }
     
     if Device.isIphone {
       cells.insert(hideToolbarCell, at: 0)
@@ -734,6 +809,15 @@ extension SettingsVC {
       cells.append(contentChangeSettingCellALPHA)
       cells.append(tabbarInSectionCellALPHA)
     }
+    
+    if App.isAlpha && SimpleAuthenticator.getUserData().id == "145489" {
+      cells.append(sendFailureRequestCell)
+    }
+    
+    if DefaultAuthenticator.isTazLogin {
+      cells.append(defaultToastsDisabledCell)
+    }
+    
     return cells
   }
   
@@ -741,21 +825,20 @@ extension SettingsVC {
   func currentSectionContent() -> [tSectionContent] {
     ///**WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
     #if TAZ
-    let rechtlichesCells = [termsCell, privacyCell, revokeCell, usageCell]
+    let rechtlichesCells = [termsCell, privacyCell, usageCell]
     #else
-    let rechtlichesCells = [termsCell, privacyCell, revokeCell]
+    let rechtlichesCells = [termsCell, privacyCell]
     #endif
+    
+    let displayCells
+    = App.isAlpha
+    ? [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell, edgeTapToNavigateVisibleCell]
+    : [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell]
+    
     return [
       ("Konto".lowerIfTaz, false, accountSettingsCells),
       ("Ausgabenverwaltung".lowerIfTaz, false, issueSettingsCells),
-      ("Darstellung".lowerIfTaz, false,
-       [
-        textSizeSettingsCell,
-        darkmodeSettingsCell,
-        edgeTapToNavigateCell,
-        edgeTapToNavigateVisibleCell
-       ]
-      ),
+      ("Darstellung".lowerIfTaz, false, displayCells),
       (  App.isTAZ 
          ? "steuerung in der Zeitungsansicht"
          : "Steuerung in der Zeitungsansicht", false,
@@ -829,7 +912,7 @@ extension SettingsVC {
     else if let cLink = status.cancellationLink,
               !cLink.isEmpty,
             let url = URL(string: cLink){
-      text = "Webseite zum Löschen Ihres Konto aufrufen?"
+      text = "Webseite zum Löschen Ihres Kontos aufrufen?"
       actionButton = UIAlertAction.init( title: "Webseite öffnen",
                                          style: .default,
                                          handler: { _ in
@@ -888,10 +971,12 @@ extension SettingsVC {
               return
             }
 //      TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
-      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, deleteOrphanFolders: true)
+      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, doDelete: true, deleteOrphanFolders: true)
+//      StoredIssue.deleteAllIssues(feed: storedFeed) Idea: delete everything
       onMainAfter { [weak self] in
         self?.refreshAndReload()
-        Notification.send("reloadIssues")
+        self?.memoryUsageCell.detailTextLabel?.text = self?.storageDetails
+        TazAppEnvironment.sharedInstance.feederContext?.checkForNewIssues()
       }
     } ) )
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
@@ -899,12 +984,12 @@ extension SettingsVC {
   }
   
   func requestDatabaseDelete(){
-    let alert = UIAlertController.init( title: "Daten zurücksetzen", message: "Falls Ihre App wiederholt ungewollt beendet wird, benutzen Sie diese Aktion. Die App wird nach Ausführung der Aktion automatisch beendet und kann von Ihnen erneut gestartet werden.\nBei dieser Aktion bleiben viele Daten erhalten, es wird nur eine geringe Menge Daten zum Abgleich der Ausgaben erneut heruntergeladen.\nBitte nutzen Sie auch auch unsere \"Fehler melden\" Funktion um uns Fehler in der App mitzuteilen!",
+    let alert = UIAlertController.init( title: "Daten zurücksetzen", message: "Falls diese App wiederholt ungewollt beendet wird, benutzen Sie diese Aktion. Die App wird nach Ausführung der Aktion automatisch beendet und kann von Ihnen erneut gestartet werden.\nBei dieser Aktion bleiben viele Daten erhalten, es wird nur eine geringe Menge Daten zum Abgleich der Ausgaben erneut heruntergeladen.\nBitte nutzen Sie auch auch unsere \"Fehler melden\" Funktion um uns Fehler in der App mitzuteilen!\nAchtung, es werden auch die Lesezeichen gelöscht.",
                                         preferredStyle:  .actionSheet)
     
     alert.addAction( UIAlertAction.init( title: "Daten zurücksetzen", style: .destructive,
                                          handler: { _ in
-      TazAppEnvironment.sharedInstance.deleteAll()
+      TazAppEnvironment.sharedInstance.reset(isDelete: true)
     } ) )
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
@@ -962,6 +1047,10 @@ extension SettingsVC {
   }
   
   func openFaq(){
+    if StoreBusiness.canRegister == false {
+      Alert.message(message: "Leider können wir Ihnen keinen direkten Link zu unseren häufig gestellten Fragen zur App (App-FAQ) anbieten. Sie finden diese Informationen auf unserer Webseite.")
+      return
+    }
     guard let url = Const.Urls.faqUrl else { return }
     UIApplication.shared.open(url, options: [:], completionHandler: nil)
   }
@@ -982,12 +1071,8 @@ extension SettingsVC {
     introVC.modalPresentationStyle = .fullScreen
     introVC.webView.webView.scrollDelegate.atEndOfContent {_ in }
     self.present(introVC, animated: true) {
-      //Overwrite Default in: IntroVC viewDidLoad
+      ///Overwrite Default in: IntroVC viewDidLoad, hide Accept Button from former ux
       introVC.webView.buttonLabel.text = nil
-      //fix X-Button color due meta pages (terms, privacy) are currently not in darkmode
-      guard let bv = introVC.webView.xButton as? Button<ImageView> else { return }
-      bv.buttonView.color =  Const.Colors.iOSLight.secondaryLabel
-      bv.layer.backgroundColor = Const.Colors.iOSLight.secondarySystemFill.cgColor
     }
   }
 }
@@ -995,7 +1080,7 @@ extension SettingsVC {
 // MARK: - Nested Classes / UI Components
 
 // MARK: -
-class XSettingsCell:UITableViewCell {
+class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   var padding = 10.0
   var tapHandler:(()->())?
   var isDestructive: Bool = false
@@ -1015,11 +1100,6 @@ class XSettingsCell:UITableViewCell {
   
   override func prepareForReuse() {
     debug("XSettingsCell prepareForReuse ...should not be called due not reuse cells!")
-  }
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    applyStyles()
   }
   
   func applyStyles() {
@@ -1091,6 +1171,7 @@ class XSettingsCell:UITableViewCell {
   }
   
   func setupLayout(){
+    registerForStyleUpdates()
     guard let label = self.textLabel else { return }
     
     let dist = Const.ASize.DefaultPadding
@@ -1101,7 +1182,7 @@ class XSettingsCell:UITableViewCell {
       av.updateConstraintsIfNeeded()
       av.layoutIfNeeded()
       self.contentView.addSubview(av)
-      av.pinWidth(av.bounds.size.width)
+      av.pinWidth(av.bounds.size.width, priority: .defaultHigh)
       pin(av.right, to: contentView.right, dist: -dist)
       if self.detailTextLabel == nil{
         av.centerY()
@@ -1237,7 +1318,7 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     rightButton.circleIconButton(true)
     label.text = "\(articleTextSize)%"
   }
-  
+ 
   override func layoutSubviews() {
     super.layoutSubviews()
     applyStyles()
@@ -1252,6 +1333,8 @@ class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
     
     leftButton.circleIconButton(symbol: "minus")
     rightButton.circleIconButton(symbol: "plus")
+    leftButton.accessibilityLabel = "kleiner"
+    rightButton.accessibilityLabel = "größer"
     
     leftButton.buttonView.hinset = 0.23
     rightButton.buttonView.hinset = 0.23
@@ -1293,7 +1376,7 @@ class CustomHStack: UIStackView {
 }
 
 // MARK: -
-class SectionHeader: UIView {
+class SectionHeader: UIView, UIStyleChangeDelegate {
   
   let label = UILabel()
   var chevron: UIImageView?
@@ -1318,10 +1401,6 @@ class SectionHeader: UIView {
     chevron?.transform = CGAffineTransform(rotationAngle: self.collapsed ? CGFloat.pi : CGFloat.pi*2)
   }
   
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    applyStyles()
-  }
   
   func applyStyles() {
     label.textColor =  Const.SetColor.ios(.label).color
@@ -1352,6 +1431,7 @@ class SectionHeader: UIView {
       chevron?.tintColor = Const.SetColor.ios(.secondaryLabel).color
     }
     setup()
+    registerForStyleUpdates()
   }
   
   required init?(coder: NSCoder) {

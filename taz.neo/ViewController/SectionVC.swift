@@ -49,9 +49,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   public override var delegate: IssueInfo! {
     didSet { if oldValue == nil { self.setup() } }
   }
-  
-  /// Perform slider animations?
-  static var showAnimations = true
 
   /// Is top VC
   public var isVisibleVC: Bool {
@@ -70,7 +67,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   func showArticle(_ article: Article, animated: Bool = true) {
-    guard let i = article.index else { return }
+    guard let i = issue.indexOf(article: article) else { return }
     showArticle(index: i, animated: animated)
   }
   
@@ -91,6 +88,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   func sectionIfAudio(atIndex: Int?) -> Section?{
+    if self.navigationController == nil { return nil }//Prevent Crash on not released old sectVC @see commit
     if let idx = atIndex,
        let section = contents.valueAt(idx) as? Section,
        section.type == .podcast,
@@ -102,7 +100,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   public func linkPressed(from: URL?, to: URL?) {
     guard let to = to else { return }
-    if let section = sectionIfAudio(atIndex: index) {
+    if to.isFileURL == false, let section = sectionIfAudio(atIndex: index) {
       ArticlePlayer.singleton.play(sectionAudio: section)
       return
     }
@@ -176,10 +174,13 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
-    onDisplay { [weak self] (secIndex, oview) in
+    onDisplay { [weak self] (secIndex, _, isFromScroll) in
       guard let self = self else { return }
       self.contentTable?.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex)")
+      if isFromScroll {
+        deactivateCoachmark(Coachmarks.Section.swipe)
+      }
       self.setHeader(secIndex: secIndex)
       self.updatePlayButton()
       if self.isVisibleVC { 
@@ -190,6 +191,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.showImageGallery = false
     articleVC = ArticleVC(feederContext: feederContext)
     articleVC?.delegate = self
+    articleVC?.header.onTitle { [weak self] _ in
+      self?.debug("*** Action: ToSection pressed")
+      guard let aDelegate = self?.articleVC?.delegate as? ArticleVCdelegate,
+            let art = self?.articleVC?.article else { return }
+      let sIdx = aDelegate.article2index(art: art)
+      self?.index = sIdx
+      self?.articleVC?.navigationController?.popViewController(animated: true)
+    }
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
           after re-enter app due wired Scroll Pos change
@@ -221,6 +230,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     Notification.receiveOnce("issue", from: issue) { [weak self] notif in
       guard let nIssue = notif.content as? Issue else { return }
       guard self?.delegate != nil && self?.delegate.issue != nil else { return }
+      if self?.issue.date ?? nil == nil { return }
       guard nIssue.date.issueKey == self?.issue.date.issueKey else { return }
       if nIssue.sections?.count == self?.issue.sections?.count
       && nIssue.allArticles.count == self?.issue.allArticles.count { return }
@@ -276,9 +286,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       ///@Refactor: Thread 1: Fatal error: Unexpectedly found nil while unwrapping an Optional value
       ///StoredSection.type.getter
       ///Particular Download? => STOP?=> Account unexpired => Tap on Issue => Crash
-      self.slider?.collapsedButton = section.type == .advertisement
+      let hideItems
+      = section.type == .advertisement || section.type == .podcast
+      self.slider?.collapsedButton = hideItems
       
-      if section.type == .advertisement {
+      if hideItems {
         header.title = section.title ?? ""
         header.show(show: false, animated: true)
         toolBar.show(show:false, animated: true)
@@ -325,15 +337,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     contentTable?.onImagePress { [weak self] in
       self?.debug("*** Action: Moment in Slider pressed")
       self?.slider?.close()
+      let issueDate = self?.issue.date
       self?.closeIssue()
+      Notification.send(Const.NotificationNames.gotoIssue, content: issueDate , sender: self)
     }
   }
   
   override public func viewDidLoad() {
     super.viewDidLoad()
-    if !(self is BookmarkSectionVC){
-      contentTable = NewContentTableVC()
-    }
+    contentTable = NewContentTableVC()
     self.showImageGallery = false
     self.index = initialSection ?? 0
     
@@ -351,12 +363,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     Rating.issueOpened()
   }
   
+  fileprivate var doPreventCoachmark = false
+  
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     if let iart = initialArticle {
+      doPreventCoachmark = true
       articleVC?.view.doLayout()
       self.showArticle(index: iart, animated: false)
-      SectionVC.showAnimations = false
       initialArticle = nil
       self.header.isHidden = true
       self.collectionView?.isHidden = true
@@ -367,16 +381,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.viewDidAppear(animated)
     self.header.isHidden = false
     self.collectionView?.isHidden = false
-    if SectionVC.showAnimations && issue.sections?.count ?? 0 > 1 {
-      SectionVC.showAnimations = false
-      delay(seconds: 1.5) {
-        self.slider?.open() {_ in
-          delay(seconds: 1.5) {[weak self] in
-            self?.slider?.close()
-          }
-        }
-      }
-    }
+    showCoachmarkIfNeeded()
+  }
+  
+  public override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    doPreventCoachmark = false
   }
   
   open override func didMove(toParent parent: UIViewController?) {
@@ -416,3 +426,28 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
 
 } // SectionVC
+
+extension SectionVC: CoachmarkVC {
+  public var viewName: String { Coachmarks.Section.typeName }
+  
+  public var preventCoachmark: Bool { return doPreventCoachmark }
+  
+  public func targetView(for item: CoachmarkItem) -> UIView? {
+    if let item = item as? Coachmarks.Section {
+      switch item {
+        case .slider:
+          return slider?.button
+        case .swipe:
+          return currentView as? UIView
+      }
+    }
+    return nil
+  }
+  
+  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
+    guard index ?? 0 > 0,
+          let item = item as? Coachmarks.Section,
+          item == .swipe else { return nil }
+    return (UIImage(named: "cm-swipe")?.withRenderingMode(.alwaysOriginal), [], []) as? (UIImage, [UIView], [CGPoint]) ?? nil
+  }
+}

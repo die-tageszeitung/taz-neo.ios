@@ -166,21 +166,7 @@ enum SubscriptionFormDataError: Error {
       case .unexpectedResponse(let msg): return msg
     }
   }
-
 } // SubscriptionFormDataError
-
-
-/// A GqlSubscriptionResetInfo describes the result of a subscriptionReset method
-struct GqlSubscriptionResetInfo: GQLObject {  
-  /// Subscription reset status
-  var status:  GqlSubscriptionResetStatus
-  
-  static var fields = "status"
-  
-  func toString() -> String {
-    "status: \(status.toString())"
-  }  
-} // GqlSubscriptionResetInfo
 
 /// GqlCancellationStatus describes the result for user account cancelation/deletion
 struct GqlCancellationStatus: GQLObject {
@@ -348,54 +334,7 @@ extension GqlFeeder {
       closure(ret)
     }
   }
-  
-  // Ask server to send a "password change email" to a user with aboId
-  func subscriptionReset(aboId: String,
-    closure: @escaping(Result<GqlSubscriptionResetInfo,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
-      closure(.failure(fatal("Not connected"))); return
-    }
-    let request = """
-      subscriptionReset(\(deviceInfoString), subscriptionId: \(aboId)) {
-        \(GqlSubscriptionResetInfo.fields)
-      }
-    """
-    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionResetInfo].self) { (res) in
-      var ret: Result<GqlSubscriptionResetInfo,Error>
-      switch res {
-      case .success(let dict):   
-        let si = dict["subscriptionReset"]!
-        ret = .success(si)
-      case .failure(let err):  ret = .failure(err)
-      }
-      closure(ret)
-    }
-  }
-  
-  // Unlink the connection of a certain subsciptionId with a tazId
-  func unlinkSubscriptionId(aboId: String, password: String,
-    closure: @escaping(Result<GqlAuthInfo,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
-      closure(.failure(fatal("Not connected"))); return
-    }
-    let id = Int32(aboId) ?? 0
-    let request = """
-    unlinkSubscriptionId(\(self.deviceInfoString), subscriptionId: \(id), password: \(password.quote())) {
-        \(GqlAuthInfo.fields)      
-      }
-    """
-    gqlSession.mutation(graphql: request, type: [String:GqlAuthInfo].self) { (res) in
-      var ret: Result<GqlAuthInfo,Error>
-      switch res {
-      case .success(let dict):   
-        let ai = dict["unlinkSubscriptionId"]!
-        ret = .success(ai)
-      case .failure(let err):  ret = .failure(err)
-      }
-      closure(ret)
-    }
-  }
-  
+    
   /// send error report to server
   func requestAccountDeletion(forceDelete: Bool = false,
                                      finished: @escaping(Result<GqlCancellationStatus,Error>)->()) {

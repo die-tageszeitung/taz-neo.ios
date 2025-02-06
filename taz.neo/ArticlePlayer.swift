@@ -10,7 +10,7 @@ import NorthLib
 import MediaPlayer
 
 
-enum PlayerEnqueueType { case replaceCurrent, enqueueNext, enqueueLast}
+enum PlayerEnqueueType { case replaceCurrent, enqueueNext, enqueueLast/*, enqueueOneNext, enqueueOneNextAndPlay*/}
 
 /// The ArticlePlayer plays one or more Articles as audio streams
 class ArticlePlayer: DoesLog {
@@ -63,35 +63,14 @@ class ArticlePlayer: DoesLog {
   var nextContent: [Content] = []
   var lastContent: [Content] = []
   
-  private var blockPlayNext = false
-  
-  private func cleanup(){
-    blockPlayNext = true
-    Alert.message(title: "Ausgabe gelöscht",
-                  message: "Die zur aktuellen Wiedergabe gehörende Ausgabe wurde gelöscht.\nDie Wiedergabeliste wird überprüft und nicht mehr abspielbare Elemente werden gelöscht.") {[weak self] in
-      self?.doCleanup()
-    }
-  }
-  
-  private func doCleanup(){
-    lastContent.removeAll{ $0.primaryIssue == nil }
-    nextContent.removeAll{ $0.primaryIssue == nil }
-    blockPlayNext = false
-    playNext()
-  }
-  
   var currentContent: Content? {
     didSet {
-      if let cc = currentContent, cc.primaryIssue == nil {
-        cleanup()
-        return
-      }
       Usage.xtrack.audio.play(content: currentContent)
       let wasPaused = !aplayer.isPlaying && aplayer.file != nil
       aplayer.file = url(currentContent)
       
       aplayer.title = currentContent?.title
-      userInterface.titleLabel.text = currentContent?.title
+      userInterface.titleLabel.setTazzeText(currentContent?.title)
       
       ///album not shown on iOS 16, Phone in Lock Screen, CommandCenter, CommandCenter Extended Player
       aplayer.album = currentContent?.sectionTitle
@@ -135,13 +114,14 @@ class ArticlePlayer: DoesLog {
       = currentContent?.audioItem?.breaks?.isEmpty == false
       
       let articleImage = currentContent?.contentImage
-      let issueImage = currentContent?.contentImage
+      let issueImage = (currentContent as? Article)?.primaryIssue?.image
       aplayer.addLogo = articleImage != nil
-      aplayer.image = articleImage ?? issueImage
+      aplayer.image = articleImage ?? issueImage ?? appIcon
       userInterface.image = articleImage
       
       if aplayer.file != nil {
         userInterface.show()
+        CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.audio)
         _ = commandCenter//setup if needed
         if !wasPaused { aplayer.play() }
         aPlayerPlayed = true
@@ -152,12 +132,17 @@ class ArticlePlayer: DoesLog {
     }
   }
   
+  private var appIcon: UIImage? {
+    UIImage(named: "AppIcon60x60")
+  }
+  
   private var isDisclaimer: Bool {
     return  aplayer.file == disclaimerUrlFemale
     || aplayer.file == disclaimerUrlMale
   }
   
   private func playDisclaimer(){
+    if TazAppEnvironment.sharedInstance.audioDisclaimerPlayed == true { return }
     if isDisclaimer {
       self.pause()
       let cc = currentContent
@@ -173,10 +158,11 @@ class ArticlePlayer: DoesLog {
       disclaimer = disclaimerUrlFemale ?? disclaimerUrlMale
     }
     if disclaimer == nil { return }
+    TazAppEnvironment.sharedInstance.audioDisclaimerPlayed = true
     userInterface.slider.value = 0.0
     aplayer.file = disclaimer
-    aplayer.image = UIImage(named: "AppIcon60x60")
-    userInterface.image = UIImage(named: "AppIcon60x60")
+    aplayer.image = appIcon
+    userInterface.image = appIcon
     aplayer.addLogo = false
     userInterface.titleLabel.text = "Hinweis"
     aplayer.artist = "vertonung@taz.de"
@@ -214,6 +200,37 @@ class ArticlePlayer: DoesLog {
     self.userInterface.progressCircle.waiting = true
   }
   
+  private func showCloseOnDemoAlert(){
+    Alert.message(title: "Wiedergabe beendet", message: "In Ihrer Wiedergabeliste befanden sich gekürzte Demo Artikel. Mit gültigem Abonnement können die vollständigen Inhalte wiedergegeben werden.\nBitte starten Sie die Wiedergabe erneut.")
+    self.userInterface.removeFromSuperview()
+    self.close()
+    self.userInterface.isErrorState = false
+  }
+  
+  private func handleAuthenticationSucceeded(){
+    /* Edge Case Szenario: What happen if there are some Demo Articles in nextContent, now we have a valid auth?
+     - former: the app just crashed, due demo Issue was deleted and loaded new
+     **What can we do**
+     - reject play if demo Audio: no good idea, because this can be a selling point "hey look at this great feature you want to have it!"
+     - stop and close player: what if there are full audio inside e.g. because of subsciption department or tecnical problems  ...verry bad idea
+     - exchange all content, download missing ...a lot of work to handle offline states and more
+     - solve deleted status issue to not to crash and extend player to download stuff ...would be the best but also a lot of work
+     - solution for the moment: remove all demo stuff, in next, delete all last, if next is empty toast and close player
+    */
+    lastContent = []
+    ///prevent crash on end
+    if currentContent?.primaryIssue?.isReduced == true {
+      showCloseOnDemoAlert()
+      return
+    }
+    for content in nextContent {
+      if content.primaryIssue?.isReduced == true {
+        showCloseOnDemoAlert()
+        return
+      }
+    }
+  }
+  
   private init() {
     aplayer = AudioPlayer()
     Usage.xtrack.audio.autoPlayNext(enable: autoPlayNext, initial: true)
@@ -231,6 +248,11 @@ class ArticlePlayer: DoesLog {
     ///Handle reachability changes: show offline status
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
       self?.feederReachable()
+    }
+    
+    Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
+      guard TazAppEnvironment.hasValidAuth else { return }
+      self?.handleAuthenticationSucceeded()
     }
     
     aplayer.onStatusChange {[weak self] status in
@@ -493,24 +515,28 @@ class ArticlePlayer: DoesLog {
     if let localFile = content?.localAudioPathIfExist {
       return localFile
     }
-    if let article = content as? Article,
-       let baseUrl = (article as? SearchArticle)?.originalIssueBaseURL
-                     ?? article.primaryIssue?.baseUrl,
-       let afn = article.audioItem?.file?.fileName {
-      return "\(baseUrl)/\(afn)"
-    }
     if let section = content as? Section,
        let baseUrl = section.primaryIssue?.baseUrl,
        let afn = section.audioItem?.file?.fileName {
       return "\(baseUrl)/\(afn)"
     }
-    return nil
+    /// **WARNING:** (article as? SearchArticle)?.baseURL **!=** article.baseURL
+    guard let article = content as? Article,
+          let baseUrl = (article as? SearchArticle)?.baseURL 
+            ?? article.baseURL 
+            ?? article.primaryIssue?.baseUrl,
+          let _afn = article.audioItem?.file?.fileName else { return nil }
+    var afn = _afn
+    if article.primaryIssue?.isReduced != true,
+       article.primaryIssue?.isComplete == true {
+      afn = afn.replacingOccurrences(of: ".public.mp3", with: ".mp3")
+    }
+    return "\(baseUrl)/\(afn)"
   }
   
   func deleteHistory(){ lastContent = []   }
   
   func playNext(origin: Usage.xtrack.audio.buttonOrigin? = nil) {
-    if blockPlayNext { return }
     if let origin = origin {
       Usage.xtrack.audio.skip.Next(origin: origin)
     }
@@ -612,7 +638,8 @@ class ArticlePlayer: DoesLog {
     
     let feederContext = TazAppEnvironment.sharedInstance.feederContext
     
-    if let storedIssue = issue as? StoredIssue,
+    if issue.isBookmarkIssue == false,
+       let storedIssue = issue as? StoredIssue,
        feederContext?.needsUpdate(issue: issue) ?? true {
       let msg = enqueueType == .replaceCurrent
       ? "Die Wiedergabe wird nach Download der Ausgabe gestartet."
@@ -623,6 +650,10 @@ class ArticlePlayer: DoesLog {
       Notification.receiveOnce("issueStructure", from: issue) { [weak self] notif in
         guard notif.userInfo?["error"] == nil else {
           Toast.show(Localized("error"))
+          return
+        }
+        if issue.audioFiles.count == 0 {
+          Toast.show("Für diese Ausgabe ist leider keine Vorlesefuktion verfügbar!")
           return
         }
         self?.play(issue: issue,
@@ -656,6 +687,12 @@ class ArticlePlayer: DoesLog {
         nextContent = arts
         isPlaying ? nil : aplayer.close()
         playNext()
+//      case .enqueueOneNext:
+//        guard let a = startFromArticle else { return }
+//        nextContent.append(a)
+//      case .enqueueOneNextAndPlay:
+//        guard let a = startFromArticle else { return }
+//        nextContent.append(a)
     }
   }
   
@@ -697,21 +734,20 @@ extension Article {
   }
 }
 
-extension BookmarkIssue {
-  func contextMenu(group: Int) -> MenuActions {
-    return _contextMenu(group:group)
-  }
-}
-
 extension StoredIssue {
   func contextMenu(group: Int) -> MenuActions {
     return _contextMenu(group:group)
   }
 }
 extension Issue {
+
+  var hasAudio: Bool { get { self.audioFiles.count > 0 }}
+  
   func _contextMenu(group: Int) -> MenuActions {
     
     let menu = MenuActions()
+    
+    if isComplete && hasAudio == false { return menu }
     
     menu.addMenuItem(title: "Wiedergabe",
                      icon: "play.fill",

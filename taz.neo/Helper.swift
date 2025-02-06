@@ -46,7 +46,25 @@ extension Defaults{
   
   struct articleTextSize {
     @Default("articleTextSize")
-    static var articleTextSize: Int
+    static var articleTextSize: Int {
+      didSet {
+        print("articleTextSize changed to: \(articleTextSize)")
+        calculateMinColumnWidth()
+      }
+    }
+    
+    static let lbl = UILabel()
+    
+    static func calculateMinColumnWidth() {
+      print("calculateMinColumnWidth")
+      /// 49 Char Blindtext to determine the column width minimal complexity
+      onMain {
+        lbl.numberOfLines = 0
+        lbl.text = "die Tageszeitung, Politik, Zukunft, Gesellschaft"
+        lbl.doLayout()
+        print("label width for \(lbl.text?.count ?? 0) is: \(lbl.width)")
+      }
+    }
     
     @discardableResult
     static func increase() -> Int { if articleTextSize < 200 { articleTextSize += 10 }
@@ -54,7 +72,7 @@ extension Defaults{
     }
     
     @discardableResult
-    static func decrease() -> Int { if articleTextSize > 30 { articleTextSize -= 10 }
+    static func decrease() -> Int { if articleTextSize > 50 { articleTextSize -= 10 }
       return articleTextSize
     }
     

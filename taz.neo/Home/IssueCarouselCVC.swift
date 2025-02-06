@@ -98,6 +98,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
       if let issue = data.issue {
         self?.downloadButton.indicator.downloadState = .waiting
         self?.service.download(issueAt: data.date.date, withAudio: false)
+        CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.IssueCarousel.loading)
       }
     }
     return v
@@ -187,7 +188,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
                                              idx: cidx)
     let isMonthly = service.feed.cycle == .monthly
     let txt = isMonthly ? data.date.date.gMonthYear(tz: GqlFeeder.tz) :
-                          data.date.validityDateText(timeZone: GqlFeeder.tz, short: true)
+                          data.date.validityDateText(short: true)
     let newKey = data.date.date.issueKey
     if force || newKey != centerIssueDateKey {
       downloadButton.indicator.downloadState = data.downloadState
@@ -385,7 +386,10 @@ extension IssueCarouselCVC {
     Notification.receive("issueProgress", closure: { [weak self] notif in
       guard let key = self?.centerIssueDateKey,
             (notif.object as? Issue)?.date.issueKey == key else { return }
-      if let (loaded,total) = notif.content as? (Int64,Int64) {
+      if (notif.content as? String) == "deleted" {
+        self?.downloadButton.indicator.downloadState = .notStarted
+      }
+      else if let (loaded,total) = notif.content as? (Int64,Int64) {
         let percent = Float(loaded)/Float(total)
         if percent > 0.05 {
           if percent != 1.0 {

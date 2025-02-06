@@ -37,6 +37,6 @@ class CvSeperator: UICollectionReusableView {
 
 extension CvSeperator: UIStyleChangeDelegate{
   public func applyStyles() {
-    border.backgroundColor = Const.SetColor.CTDate.color
+    border.backgroundColor = Const.SetColor.taz2(.text).color
   }
 }

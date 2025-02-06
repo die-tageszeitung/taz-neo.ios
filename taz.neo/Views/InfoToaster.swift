@@ -229,7 +229,7 @@ fileprivate extension InfoToasterView {
       self.scrollViewYConstraint = pin(scrollView.bottom, to: sv.bottom)
     }
     else {
-      self.scrollViewYConstraint = scrollView.center().y
+      self.scrollViewYConstraint = scrollView.centerAxis().y
     }
   }
   func updatePosition(toShow:Bool){

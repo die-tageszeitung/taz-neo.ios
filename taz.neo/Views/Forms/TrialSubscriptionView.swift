@@ -83,16 +83,15 @@ public class TrialSubscriptionView : FormView{
   
   var registerButton = Padded.Button(title: Localized("register_button"))
   
-  var cancelButton =  Padded.Button(type:.outline, title: Localized("cancel_button"))
-  
   // MARK: agbAcceptLabel with Checkbox
   lazy var agbAcceptTV : CheckboxWithText = {
     let view = CheckboxWithText()
     view.textView.isEditable = false
     view.textView.attributedText = Localized("fragment_login_request_test_subscription_terms_and_conditions").htmlAttributed
-    view.textView.linkTextAttributes = [.foregroundColor : Const.SetColor.CIColor.color, .underlineColor: UIColor.clear]
+    view.textView.linkTextAttributes = [.foregroundColor : Const.SetColor.taz2(.text).color, .underlineColor: Const.SetColor.taz2(.text).color]
     view.textView.font = Const.Fonts.contentFont(size: DefaultFontSize)
     view.textView.textColor = Const.SetColor.HText.color
+    view.checkbox.accessibilityPrefix = "AGB und Hinweise akzeptieren"
     return view
   }()
     
@@ -100,6 +99,9 @@ public class TrialSubscriptionView : FormView{
     passInput.textContentType = .newPassword
     passInput.delegate = self
     pass2Input.delegate = self
+    
+    let registerWrapper = registerButton.centeredWrapper()
+    registerWrapper.paddingBottom = Const.Dist2.m20
     
     return   [
       Padded.Label(title: Localized("trial_subscription_title")),
@@ -111,8 +113,7 @@ public class TrialSubscriptionView : FormView{
       Padded.Label(title:
         Localized("fragment_login_request_test_subscription_existing_account")),
       agbAcceptTV,
-      registerButton,
-      cancelButton,
+      registerWrapper,
       registerTipsButton
     ]
   }

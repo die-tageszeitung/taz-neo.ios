@@ -55,13 +55,15 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   
   /// Create a ZoomedImage from a pair of images
   private func zoomedImage(pair: (normal: ImageEntry?, high: ImageEntry?)) -> ZoomedImage? {
-    guard let normal = pair.normal else { return nil }
+    guard let normal = pair.normal,
+          let baseUrl = (content as? SearchArticle)?.baseURL
+            ?? content.baseURL else { return nil }
     let image = ZoomedImage()
     let path = content.dir.path
     image.waitingImage = UIImage(contentsOfFile: "\(path)/\(normal.fileName)")
     if let high = pair.high {
       image.imageEntry = high
-      delegate.dloader.downloadIssueFiles(from: content.baseURL, 
+      delegate.dloader.downloadIssueFiles(from: baseUrl,
         to: content.dir, files: [high])
       { [weak self] err in
         if err == nil { 
@@ -130,10 +132,14 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   }
   
   private func setupImageCollectionVC() {
+    ///permanent show close x button!
     self.xButton.isHidden = true
+    self.xButton.buttonView.color = Const.SetColor.taz2(.closeX).color
+    self.xButton.buttonView.activeColor = Const.SetColor.taz2(.closeX).color.withAlphaComponent(0.5)
     self.onTap { [weak self] (_,_,_) in self?.xButton.isHidden.toggle() }
+    self.view.onTapping { [weak self] _ in self?.xButton.isHidden.toggle() }//Background Tap
     self.onX { [weak self] in self?.toCloseClosure?() }
-    self.onDisplay { [weak self] (idx, oview) in
+    self.onDisplay { [weak self] (idx, _, _) in
       guard let self = self else { return }
       if let zi = self.images[idx] as? ZoomedImage {
         if let ziv = self.currentView as? ZoomedImageView, ziv.menu.menu.count == 0 {

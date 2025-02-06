@@ -63,7 +63,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
                                                    length: attributedString.length))
       authorLabel.text = ""
       authorLabel.lmdArnhem(italic: true)
-      authorLabel.textColor = Const.SetColor.CTDate.color
+      authorLabel.textColor = Const.SetColor.taz2(.text).color
       authorLabel.attributedText = attributedString
       
       bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
@@ -137,9 +137,9 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
 
 extension LMdPageArticleCell: UIStyleChangeDelegate{
   public func applyStyles() {
-    titleLabel.textColor = Const.SetColor.CTDate.color
-    teaserLabel.textColor = Const.SetColor.CTDate.color
-    authorLabel.textColor = Const.SetColor.CTDate.color
+    titleLabel.textColor = Const.SetColor.taz2(.text).color
+    teaserLabel.textColor = Const.SetColor.taz2(.text).color
+    authorLabel.textColor = Const.SetColor.taz2(.text).color
   }
 }
 

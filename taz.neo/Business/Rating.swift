@@ -140,7 +140,7 @@ class Rating: NSObject, DoesLog{
     }
     
     guard let ratingRequestedDate = ratingRequestedDate else {
-      ///-7 Days: first Rating requested after 3 Days
+      ///-7 Days: first Rating requested after 3 Days ??? 3 Days? => 7 Days 60*50 ?? => 60*60
       ratingRequestedDate = Date().addingTimeInterval(-60*50*24*7)
       return
     }

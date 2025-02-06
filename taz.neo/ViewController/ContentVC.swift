@@ -16,6 +16,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
 
   private var loadClosure: (ContentUrl)->()
   private var _isAvailable = false
+  private var preventNotify = false
   private var errorCount = 0
   
   public var isAvailable: Bool {
@@ -33,10 +34,16 @@ public class ContentUrl: WebViewUrl, DoesLog {
       return true
     }
     set {
+      ///WARNING, if fired twice "wird geladen" may not disappear!
+      ///if _isAvailable == newValue { return } DISABLED: Problem: if wird geladen not disappers tap on it wount work just
       _isAvailable = newValue
       if _isAvailable {
         errorCount = 0
-        $whenAvailable.notify(sender: self)
+        if preventNotify == false {
+          preventNotify = true
+          onMainAfter(1.0) {[weak self] in self?.preventNotify = false }
+          $whenAvailable.notify(sender: self)
+        }
       }
       else if errorCount > 5,
         TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
@@ -74,9 +81,9 @@ public class ContentUrl: WebViewUrl, DoesLog {
             self.content.html != nil else { return }
       self.loadClosure(self)
     }
-    onMainAfter(25.0) {[weak self] in
+    onMainAfter(15.0) {[weak self] in
       guard let self = self,
-            self.content.html == nil else { return }
+            self.content.html != nil else { return }
       self.log("started autoload again! (no crash)")
       self.loadClosure(self)
     }
@@ -109,11 +116,17 @@ extension String {
 
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
+  @Default("multiColumnSnap")
+  public var multiColumnSnap: Bool
+  
+  @Default("multiColumnFixedScrolling")
+  public var multiColumnFixedScrolling: Bool
+  
   @Default("autoHideToolbar")
   var autoHideToolbar: Bool
   
   private var hideOnScroll: Bool {
-    if UIScreen.isIpadRegularSize {
+    if UIScreen.isIpadRegularHorizontalSize {
       return false
     }
     if autoHideToolbar == false {
@@ -129,8 +142,51 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public class var topMargin: CGFloat { return 40 }
   public static let bottomMargin: CGFloat = 50
   
+  var multiColumnGap: CGFloat = 0.0
+  var multiColumnWidth: CGFloat = 0.0
+  var screenColumnsCount: Int = 1
+  
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
+  
+  @Default("articleLineLengthAdjustment")
+  private var articleLineLengthAdjustment: Int
+  
+  @Default("articleTextSize")
+  private var articleTextSize: Int
+
+  @Default("multiColumnModePortrait")
+  var multiColumnModePortrait: Bool
+  
+  @Default("multiColumnModeLandscape")
+  var multiColumnModeLandscape: Bool
+  ///indicator if multiColumnMode == true & tablet & enough space to display multi columns
+  
+  var multiColumnMode: Bool {
+    return UIDevice.isPortrait && multiColumnModePortrait
+    || UIDevice.isLandscape && multiColumnModeLandscape
+  }
+  
+  private var isMultiColumnMode = false {
+    didSet {
+      if self.isKind(of: ArticleVC.self)
+          && oldValue == true
+          && isMultiColumnMode == false
+          && multiColumnMode == true {
+        var tip = ""
+        if Device.isIpad && UIDevice.isPortrait {
+          tip = "iPad ins Querformat drehen."
+        }
+        else if UIScreen.main.bounds.size.width > UIWindow.size.width {
+          tip = "App vergrößern."
+        }
+        else {
+          tip = "Schriftgröße verkleinern."
+        }
+        Toast.show("Mehrspaltigkeit nicht verfügbar!<br>Zum Aktivieren der Mehrspaltigkeit \(tip)")
+      }
+    }
+  }
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
@@ -167,10 +223,21 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var textSettingsClosure: ((ContentVC)->())?
   public var shareButton = Button<ImageView>()
   private var shareClosure: ((ContentVC)->())?
-  private var imageOverlay: Overlay?
+  private var imageOverlay: Overlay? {
+    didSet {
+      currentWebView?.suppressLinkPressedNotification = imageOverlay != nil
+    }
+  }
   
-  var settingsBottomSheet: BottomSheet?
-  private var textSettingsVC = TextSettingsVC()
+  var isImageOverlay:Bool{
+    return imageOverlay != nil
+  }
+  
+  var settingsBottomSheet: BottomSheet2?
+  private var textSettingsVC:TextSettingsVC? = TextSettingsVC()
+  
+  var mcoBottomSheet:BottomSheet2?
+  var mcoVc = MultiColumnOnboarding()
   
   private var issueObserver: Notification.Observer?
   private var reloadLoaded: Bool = false
@@ -195,6 +262,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     //Circular reference with: onImagePress, onSectionPress
     settingsBottomSheet = nil
     slider = nil
+    textSettingsVC = nil
+    contentTable?.releaseOnDisappear()
+    contentTable = nil
     super.releaseOnDisappear()
   }
 
@@ -202,20 +272,18 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     #warning("ToDo delegate.resetIssueList")
 //    delegate.resetIssueList()
   }
+  
+  var textSize: Int { Int(Defaults.singleton["articleTextSize"] ?? "100") ?? 100}
 
   /// Write tazApi.css to resource directory
   public func writeTazApiCss(topMargin: CGFloat? = nil,
                              bottomMargin: CGFloat? = nil, callback: (()->())? = nil) {
     let bottomMargin = bottomMargin ?? Self.bottomMargin
     let dfl = Defaults.singleton
-    let textSize = Int(dfl["articleTextSize"]!)!
-    let percentageMaxWidth = Int(dfl["articleColumnPercentageWidth"]!)!
-    let maxWidth = percentageMaxWidth * 6
-    let mediaLimit = max(Int(UIWindow.size.width), maxWidth)
     let colorMode = dfl["colorMode"]
-    let textAlign = dfl["textAlign"]
+    let textAlign = dfl["textAlign"] ?? "initial"
     var colorModeImport: String = ""
-    if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\";" }
+    if colorMode == "dark" { colorModeImport = "@import \"themeNight.css\", screen;" }
     let cssContent = """
       \(colorModeImport)
 
@@ -227,28 +295,191 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       #content:first-child > *:first-child > *:first-child > img:first-child{
              padding-top: -20px
       }
-
     
       body {
         padding-top: 78px;
         padding-bottom: \(bottomMargin+UIWindow.bottomInset/2)px;
       }
+      \(bookmarkAntiSnippetCss)
       p {
-        text-align: \(textAlign!);
+        text-align: \(textAlign);
       }
-      @media (min-width: \(mediaLimit)px) {
-        body #content {
-            width: \(maxWidth)px;
-            margin-left: \(-maxWidth/2)px;
-            position: absolute;
-            left: 50%;
-        }
+      @media screen {
+        \(multiColumnCss)
+      }
+      \(heightContrastDarkmodeTextColor)
+    
+      @media print {
+        #content p, img { page-break-inside: avoid;}
+    
+        .Autor, .AutorProfil, .AutorImg {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }    
       }
     """
     URLCache.shared.removeAllCachedResponses()
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
       callback?()
     }
+  }
+  
+  var heightContrastDarkmodeTextColor : String {
+    if App.isRelease && DefaultAuthenticator.isTazLogin == false { return ""}
+    if Defaults.darkMode == false { return ""}
+    if UITraitCollection.current.accessibilityContrast != .high { return ""}
+    return "a:link, a:visited, body, span.AbstraktUntenLinks, span.AbstraktUntenRechts, div.AnzeigenSonderSeitenTitel::before, em.ctColorBlack, div.AnzeigenSonderSeitenTitel, h4.Dach, div.ArtikelTyp_AKOM1_2017 h4.Dach, div.ArtikelTyp_AKOM2_2017 h4.Dach, div.ArtikelTyp_AKolumne1_2017 h4.Dach, span.Stichwort, h4.AutorName, h5.AutorJob, span.TitelSpitz, span.Spitzmarke, div.Shorty, .ShortyTitel, div.Shorty h2.Titel, div.eptShorty, h2 span.Stichwort, div.eptBildbox h2 span.Stichwort, div.ArtikelTyp_AKOM1 h4.Dach, div.ArtikelTyp_AKOM2 h4.Dach, div.ArtikelTyp_AKolumne1 h4.Dach, div.Shorty, div.VerzeichnisArtikel, div.Autoren, div.SectionArticleEnd, div.SectionArticleEnd.Kurztitel, .SectionArticleEnd.Linkliste, div.lastElement, div.Autor, div.eptMeldung h4.Dach, div.eptKommentar h4.Dach, div.eptKolumne h4.Dach, div.eptShorty h2.Titel, div.eptShorty p.ShortyTitel, div.AnzeigenSonderSeitenUnterzeile {color: #fff}"
+  }
+  
+  var multiColumnCss : String {
+    let css = getMultiColumnCss()
+    isMultiColumnMode = css != nil
+    self.collectionView?.showsHorizontalScrollIndicator = false
+    return css ?? singleColumnCss
+  }
+  
+  ///CSS fix for Search Article Result with snippet css highlight, removes highlight
+  var bookmarkAntiSnippetCss : String {
+    guard delegate != nil else {
+      log("!ERROR!: Prevented crash on disappeared VC\nIt seams there is a unreleased Reference again! Fix it!")
+      return ""
+    }
+    if issue.isBookmarkIssue {
+      return """
+        body span.snippet {
+          background-color  : unset;
+        }
+      """
+    }
+    return ""
+  }
+  
+  var singleColumnCss : String {
+    if Device.isIpad == false { return "" }
+    let textSizeFactor = floor(CGFloat(textSize)/10)/10 ///(0.3...2.0)
+    let rowWidth = 825.0*textSizeFactor //734 for 0.8&0.9 / 835 fot 0.6 and 0.8
+    var maxWidth = min(rowWidth, UIWindow.size.width - 36)
+    if articleLineLengthAdjustment < 0 {
+      maxWidth *= 0.7
+    }
+    else if articleLineLengthAdjustment == 0 {
+      maxWidth *= 0.8
+    }
+    maxWidth = floor(maxWidth)
+    return """
+    body #content {
+        width: \(maxWidth)px;
+        margin-left: \(-maxWidth/2)px;
+        position: absolute;
+        left: 50%;
+    }
+    """
+  }
+  
+  public override func handleRightTap() -> Bool {
+    guard isMultiColumnMode else { return super.handleRightTap() }
+    guard let sv = self.currentWebView?.scrollView  else { return false }
+    if sv.contentOffset.x + 2 + sv.frame.size.width > sv.contentSize.width { return false }
+    /// scroll visible row count right usually:
+    /// contentOffset.x + sv.frame.size.width - multiColumnGap
+    /// but in case of misplaced scrolling/offset, we need to 'snap' next row
+    let currentRow = sv.contentOffset.x/CGFloat(rowWidth)
+//    let wrongOffset = currentRow - floor(currentRow) > 0.1
+    let offset = 0 // wrongOffset ? 1 : 0 Offset Calc only for left tap!?
+    let nextRow = CGFloat(Int(currentRow) + max(1, screenColumnsCount - offset))
+    var x = rowWidth*nextRow
+    if !multiColumnFixedScrolling {
+      let maxX = CGFloat(sv.contentSize.width - sv.frame.size.width)
+      if maxX - x < 5 { x = maxX }  ///fix round errors
+      x = min(maxX, x)
+    }
+    sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
+    sv.flashScrollIndicators()
+    return true
+  }
+  
+  var rowWidth:CGFloat { multiColumnWidth + multiColumnGap}
+  
+  public override func handleLeftTap() -> Bool {
+    guard isMultiColumnMode else { return super.handleLeftTap() }
+    guard let sv = self.currentWebView?.scrollView  else { return false }
+    if sv.contentOffset.x - 2 < 0 { return false }
+    /// scroll visible row count right usually:
+    /// contentOffset.x + sv.frame.size.width - multiColumnGap
+    /// but in case of misplaced scrolling/offset, we need to 'snap' next row
+    let currentRow = sv.contentOffset.x/CGFloat(rowWidth)
+    let wrongOffset = abs(floor(currentRow) - currentRow) > 0.1
+    let offset = wrongOffset ? 1 : 0
+    let nextRow = CGFloat(Int(currentRow) - max(1, screenColumnsCount - offset))
+    var x = max(0, rowWidth*nextRow)//nextStart
+    if x < 5 { x = 0 }///fix round errors
+    sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
+    sv.flashScrollIndicators()
+    return true
+  }
+  
+  func getMultiColumnCss() -> String?  {
+    let columns = Defaults.columnSetting.used
+    guard multiColumnMode && columns >= 2 else { return nil }
+    
+    let padding
+    = articleTextSize <= 100
+    ? 30.0
+    : 30.0 * floor(CGFloat(articleTextSize)/10)/10
+    let colF = CGFloat(columns)
+    multiColumnWidth = floor((UIWindow.size.width + 1 - (colF + 1)*padding)/colF)
+    screenColumnsCount = columns
+    multiColumnGap = padding
+    let hFix = Int(128 + UIWindow.bottomInset)
+    let buFix = hFix - 20 + Int(CGFloat(articleTextSize*70)/100)
+      
+    print("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenColumnsCount)")
+    /**
+     ***pretty ugly css** but:
+        * content paddings&margins increase column gap
+        * need to add padding/margin at end
+        * tap to scroll needs perect alligned columns
+        * body #content minus margin-left fixes: gap increase
+        * body needs padding bottom of 50, but set this activates vertical scrolling
+        * => set height  height: calc(100vh - 128px); 128 = 68+50 top/bottom + 10px extra margin/padding
+      */
+    return """
+      html {
+        height: 100%;
+      }
+      body:has(.article) {
+        padding: 68px 0 0 0;
+        height: calc(100vh - \(hFix)px);
+        margin-left: \(Int(multiColumnGap))px;
+        overflow-x: scroll;
+        column-width: \(Int(multiColumnWidth))px;
+        width: fit-content;
+        column-fill: auto;
+        column-gap: 0;
+        orphans: 3; /*at least 3 lines in a block at end*/
+        widows: 3; /*at least 3 lines in a block at start*/
+      }
+      body #content.article {
+        margin: 0;
+        width: \(Int(multiColumnWidth))px;
+        padding-right: \(Int(multiColumnGap))px;
+        position: relative;/*important overwrite scroll.css defaults*/
+        left: 0;/*important overwrite scroll.css defaults*/
+        overflow-y: hidden;
+      }
+      body #content.article .Autor {
+        break-inside: avoid;
+      }
+      body #content.article #foto img {
+        break-inside: avoid;
+        object-fit: contain;
+        max-height: calc(100vh - \(buFix)px);
+      }
+      #content div {
+        /*fix: 240417-w+u-1 author box broken text in ip6m/ios17.4/100%fontSize/Landscape */
+        break-inside: avoid;
+      }
+    """
   }
   
   /// Return dictionary for dynamic HTML style data
@@ -309,9 +540,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                         object: nil)
         self.imageOverlay?.onClose {[weak self] in
-          // reset orientation to portrait //no negative effect on iPad
+          self?.imageOverlay = nil///former we had a delayed set nil
+          guard Device.isIphone else { return }
+          /// reset orientation to portrait, really no negative effect on iPad?
           UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-          self?.imageOverlay = nil
         }
         imgVC.toClose {[weak self] in
           self?.imageOverlay?.close(animated: true, toBottom: true)
@@ -331,7 +563,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       return NSNull()
     }
     self.bridge?.addfunc("setBookmark") { [weak self] jscall in
-      guard let self else { return NSNull() }
+      guard self != nil else { return NSNull() }
       if let args = jscall.args, args.count > 1,
          let name = args[0] as? String,
          let hasBookmark = args[1] as? Int {
@@ -342,28 +574,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         if arts.count == 0 {
           arts = StoredArticle.get(file: name + ".public.html")
         }
-        
-        if arts.count > 0 {
-          let art = arts[0]
-          if art.hasBookmark != bm {
-            art.hasBookmark = bm
-            ArticleDB.save()
-            if args.count > 2, let showToast = args[2] as? Int, showToast != 0 {
-              let msg = bm ? "Der Artikel wurde in ihrer Leseliste gespeichert." :
-                             "Der Artikel wurde aus ihrer Leseliste entfernt."
-              if let title = art.title {
-                Toast.show("<h3>\(title)</h3>\(msg)", minDuration: 0)
-              }
-              else { Toast.show(msg, minDuration: 0) }
-            }
-          }
-        }
+        arts.first?.hasBookmark.toggle()
       }
       return NSNull()
     }
     self.bridge?.addfunc("getBookmarks") { [weak self] jscall in
       guard let _ = self else { return NSNull() }
-      let arts = StoredArticle.bookmarkedArticles()
+      let arts = Bookmarks.shared.bookmarkSection?.articles ?? []
       var names: [String] = []
       for a in arts { names += a.html?.name.nonPublic() ?? "-" }
       return names
@@ -373,7 +590,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if let args = jscall.args, args.count > 0,
          let name = args[0] as? String,
          let art = self.issue.article(artname: name) {
-        ArticleVC.exportArticle(article: art)
+        self.export(article: art)
       }
       return NSNull()
     }
@@ -410,6 +627,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       Task { try? await self.setDynamicStyles(webView: wv) }
       return NSNull()
     }
+    self.bridge?.addfunc("gotoStart") { [weak self] _ in
+      self?.index = 0
+      Toast.show("Das ist der Anfang!")
+      return NSNull()
+    }
+  }
+  
+  func export(article: Article){
+    ArticleExportDialogue.show(article: article,
+                               image: article.images?.first?.image(dir: delegate.issue.dir),
+                               sourceView: shareButton)
   }
   
   /// Write tazApi.js to resource directory
@@ -442,7 +670,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     tazApi.setDynamicStyles = function() {
       tazApi.call("setDynamicStyles", undefined);
     };
-    
+    tazApi.gotoStart = function() {
+      tazApi.call("gotoStart", undefined);
+    };
     log2bridge(tazApi);\n
     """
     tazApiJs.string = JSBridgeObject.js + "\n\n" + apiJs + "\n"
@@ -477,23 +707,34 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     else { toolBar.setArticlePlayBar() }
   }
   
+  var bottomSheetDefaultCoverage: CGFloat {
+    448 + UIWindow.safeInsets.bottom + (self.textSettingsVC?.multiColumnButtonsAdditionalHeight ?? 0)
+  }
+  
+  var bottomSheetDefaultSlideDown: CGFloat { self.textSettingsVC?.slideDownHeight ?? 0 }
+  
   func setupSettingsBottomSheet() {
-    settingsBottomSheet = BottomSheet(slider: textSettingsVC, into: self, maxWidth: 500)
-    ///was 130 >= 208 //Now 195 => 273//with Align 260 => 338
-    settingsBottomSheet?.coverage =  338 + UIWindow.verticalInsets
-    
+    guard let textSettingsVC = textSettingsVC else { return }
+    settingsBottomSheet = BottomSheet2(slider: textSettingsVC, into: self)
+    settingsBottomSheet?.xButton.tazX()
+    settingsBottomSheet?.onX {[weak self] in
+      self?.settingsBottomSheet?.close()
+    }
+    settingsBottomSheet?.updateMaxWidth()
+    self.settingsBottomSheet?.coverage = self.bottomSheetDefaultCoverage
     onSettings{ [weak self] _ in
       guard let self = self else { return }
+      self.settingsBottomSheet?.coverage = self.bottomSheetDefaultCoverage
       self.debug("*** Action: <Settings> pressed")
       if self.settingsBottomSheet?.isOpen ?? false {
           self.settingsBottomSheet?.close()
       }
       else {
         self.settingsBottomSheet?.open()
-        self.settingsBottomSheet?.slideDown(130)
+        self.settingsBottomSheet?.slideDown(self.bottomSheetDefaultSlideDown)
       }
       
-      self.textSettingsVC.updateButtonValuesOnOpen()
+      self.textSettingsVC?.updateButtonValuesOnOpen()
     }
   }
   
@@ -537,13 +778,22 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.textSettingsClosure?(self)
       Usage.track(Usage.event.dialog.TextSettings)
+      CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.font)
     }
-    backButton.pinSize(CGSize(width: 35, height: 40))
-    shareButton.pinSize(CGSize(width: 30, height: 30))
-    textSettingsButton.pinSize(CGSize(width: 30, height: 30))
-    playButton.pinSize(CGSize(width: 30, height: 30))
-    bookmarkButton.pinSize(CGSize(width: 30, height: 30))
-    homeButton.pinSize(CGSize(width: 30, height: 30))
+    
+    backButton.pinSize(CGSize(width: 47, height: 47))
+    shareButton.pinSize(CGSize(width: 47, height: 47))
+    textSettingsButton.pinSize(CGSize(width: 47, height: 47))
+    playButton.pinSize(CGSize(width: 47, height: 47))
+    bookmarkButton.pinSize(CGSize(width: 47, height: 47))
+    homeButton.pinSize(CGSize(width: 47, height: 47))
+    
+    backButton.hinset = 0.15
+    shareButton.hinset = 0.15
+    textSettingsButton.hinset = 0.15
+    playButton.hinset = 0.15
+    bookmarkButton.hinset = 0.15
+    homeButton.hinset = 0.15
     
     backButton.buttonView.name = "chevron-left"
     backButton.buttonView.imageView.contentMode = .right
@@ -553,11 +803,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     playButton.buttonView.name = "audio"
     homeButton.buttonView.name = "home"
 
-    if self.isMember(of: SearchResultArticleVc.self) == false {
-      #warning("No Bookmark Button For Search Result Articles")
-      toolBar.addArticleButton(bookmarkButton, direction: .center)
-      toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
-    }
+    toolBar.addArticleButton(bookmarkButton, direction: .center)
+    toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
+    
     toolBar.addArticleButton(shareButton, direction: .center)
     toolBar.addArticlePlayButton(Toolbar.Spacer(), direction: .center)
     if self is SectionVC {
@@ -590,6 +838,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let curl = ContentUrl(content: content) { [weak self] curl in
       guard let self = self,
       self.delegate != nil else { return }
+      if content.primaryIssue?.isBookmarkIssue == true {
+        guard let baseUrl = curl.content.baseURL else { return }
+        self.dloader.downloadSearchHitFiles(files: curl.content.files,
+                                            baseUrl: baseUrl) { err in
+          curl.isAvailable = err == nil
+        }
+        return
+      }
+      
       self.dloader.downloadIssueData(issue: self.issue, files: curl.content.files) { err in
         curl.isAvailable = err == nil
       }
@@ -621,7 +878,21 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let selfSafeDloader = self.dloader
     
     let curls: [ContentUrl] = contents.map { cnt in
-      ContentUrl(content: cnt) { curl in
+      ContentUrl(content: cnt) {[weak self] curl in
+        if curl.content.primaryIssue == nil
+          || curl.content.primaryIssue?.isBookmarkIssue == true
+            || selfSafeIssue.isBookmarkIssue == true {
+          guard let baseUrl = curl.content.baseURL,
+                let issueDate = curl.content.issueDate,
+                let issueDir = Bookmarks.shared.commonIssueDir(for: issueDate)
+          else { return }
+          self?.dloader.downloadSearchHitFiles(files: curl.content.files,
+                                              baseUrl: baseUrl,
+                                              targetDir: issueDir) { err in
+            curl.isAvailable = err == nil
+          }
+          return
+        }
         selfSafeDloader.downloadIssueData(issue: selfSafeIssue,
                                           files: curl.content.files) { err in
           curl.isAvailable = err == nil
@@ -640,17 +911,22 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   // MARK: - viewDidLoad
   override public func viewDidLoad() {
-    if self is BookmarkSectionVC == false {
-      leftTapBottomDist = hideOnScroll ? -20 : 20
-    }
     super.viewDidLoad()
     writeTazApiCss()
     writeTazApiJs()
     self.view.addSubview(header)
-    self.collectionView?.showsHorizontalScrollIndicator = false
     pin(header, toSafe: self.view, exclude: .bottom)
     setupSettingsBottomSheet()
     setupToolbar()
+    
+    scrollViewDidEndScrolling{ [weak self] offset in
+      guard let self = self,
+              self.isMultiColumnMode,
+              self.multiColumnSnap,
+              self is ArticleVC else { return }
+      let nextRow = offset.x/CGFloat(self.rowWidth)
+      self.currentWebView?.scrollView.setContentOffset(CGPoint(x: rowWidth*round(nextRow), y: 0), animated: true)
+    }
     
     whenScrolled { [weak self] ratio in
       if (ratio < 0) {
@@ -661,7 +937,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         self?.slider?.collapsedButton = ratio < 0
       #endif
     }
-    onDisplay {[weak self]_, _  in
+    onDisplay {[weak self]_, _, _  in
       //Note: use this due onPageChange only fires on link @see WebCollectionView
       if self?.showBarsOnContentChange == true {
         self?.toolBar.show(show:true, animated: true)
@@ -702,13 +978,24 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   public func applyStyles() {
-    settingsBottomSheet?.color = Const.SetColor.ios(.secondarySystemBackground).color
+    settingsBottomSheet?.color = Const.SetColor.HBackground.color
     settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
+    settingsBottomSheet?.shadeView.backgroundColor = Const.SetColor.taz(.shade).color
+    settingsBottomSheet?.xButton.tazX()
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
     slider?.button.shadow()
+    updateWebwiews()
+  }
+  
+  open override var preferredStatusBarStyle: UIStatusBarStyle {
+    return Defaults.darkMode ?  .lightContent : .default
+  }
+  
+  func updateWebwiews(){
+    if isImageOverlay { return }
     writeTazApiCss {[weak self] in
       self?.reloadLoaded = true
       self?.reloadAllWebViews()
@@ -716,23 +1003,45 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
   }
   
-  open override var preferredStatusBarStyle: UIStatusBarStyle {
-    return Defaults.darkMode ?  .lightContent : .default
+  open override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    if sizeChanged {
+      sizeChanged = false
+      onMainAfter {[weak self] in
+        self?.updateWebwiews()
+      }
+    }
   }
+  
+  private var sizeChanged = false
   
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
-    updateSliderWidth(newParentWidth: size.width)
-    onMain(after: 1.0) {[weak self] in
-      let newCoverage = 338 + UIWindow.verticalInsets
-      if self?.settingsBottomSheet?.coverage == newCoverage { return }//no rotate
-      self?.settingsBottomSheet?.coverage =  newCoverage
-      if self?.settingsBottomSheet?.isOpen == false  { return }
-      self?.settingsBottomSheet?.close(animated: true, closure: { [weak self] _ in
-        self?.settingsBottomSheet?.open()
-        self?.settingsBottomSheet?.slideDown(130)
-      })
+    if self.view.frame.size != size {
+      sizeChanged = true
     }
+    updateSliderWidth(newParentWidth: size.width)
+    settingsBottomSheet?.updateMaxWidth(for: size.width)
+    onMain(after: 0.7) {[weak self] in
+      guard let self = self else { return }
+      let oldCoverage = self.settingsBottomSheet?.coverage ?? 0
+      let newCoverage = self.bottomSheetDefaultCoverage
+      if abs(oldCoverage - newCoverage) < 2 { return }//no rotate
+      ///**Tip** If there are update with issues, look in git history former the menu was closed and re-opened to fix this
+      self.settingsBottomSheet?.coverage =  newCoverage
+    }
+  }
+  
+  open override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    ensureToolbarInFrontOfTapButtons()
+  }
+  
+  /// ensures that left/right tap buttons are behind tollbar and content slider
+  func ensureToolbarInFrontOfTapButtons(){
+    toolBar.bringToFront()
+    slider?.sliderView.bringToFront()
+    slider?.button.bringToFront()
   }
   
   override public func viewWillAppear(_ animated: Bool) {

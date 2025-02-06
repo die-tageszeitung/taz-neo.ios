@@ -364,11 +364,11 @@ public protocol Content {
   /// Absolute pathname of content
   var path: String { get }
   /// Date of Issue encompassing this Content
-  var issueDate: Date { get }
+  var issueDate: Date? { get }
   /// Title of Section refering to this content
   var sectionTitle: String? { get }
   /// BaseURL of server for this content 
-  var baseURL: String { get }
+  var baseURL: String? { get }
 }
 
 public extension Content {
@@ -400,22 +400,9 @@ public extension Content {
     return "\(dir.path)/\(html.name)"
   }
   
-  /// Date of Issue encompassing this Content (refering to primaryIssue)
-  var defaultIssueDate: Date { 
-    guard let issue = primaryIssue
-    else { fatalError("Undefined primaryIssue") }
-    return issue.date
-  }
-  var issueDate: Date { defaultIssueDate }
-  
-  /// BaseURL of server for this content 
-  var defaultBaseURL: String { 
-    guard let issue = primaryIssue
-    else { fatalError("Undefined primaryIssue") }
-    return issue.baseUrl
-  }
-  var baseURL: String { defaultBaseURL }
-  
+  var issueDate: Date? { (self as? StoredArticle)?.pr.issueDate ?? primaryIssue?.date }
+  var baseURL: String? { primaryIssue?.baseUrl }
+    
   /// Title of Section refering to this content
   var sectionTitle: String? { nil }
  
@@ -429,10 +416,6 @@ public extension Content {
     if let auths = authors, auths.count > 0 {
       for au in auths { if let p = au.photo { ret += p } }
     }
-    #warning("Uncomment to enable audio file download")
-//    if let audioFile = audioItem?.file {
-//      ret += audioFile
-//    }
     return ret
   }
   
@@ -520,8 +503,8 @@ public protocol Article: Content, ToString {
   var teaser: String? { get }
   /// Link to online version
   var onlineLink: String? { get }
-  /// Has Article been bookmarked
-  var hasBookmark: Bool { get set }
+  /// File storing content as printable pdf
+  var pdf: FileEntry? { get }
   /// List of PDF page (-file) names containing this article
   var pageNames: [String]? { get }
   /// Teaser of article
@@ -545,24 +528,17 @@ public extension Article {
     if ArticlePlayer.singleton.currentContent?.html?.sha256 == self.html?.sha256 && self.html?.sha256 != nil {
       ArticlePlayer.singleton.toggle(origin: .appUi)
     }
-    else if let issue = issue as? BookmarkIssue {
+    else if issue is VirtualIssue || issue is StoredIssue {
       ArticlePlayer.singleton.play(issue: issue,
                                    startFromArticle: self,
-                                   enqueueType: .replaceCurrent)
-    }
-    else if let issue = issue as? StoredIssue {
-      ArticlePlayer.singleton.play(issue: issue,
-                                   startFromArticle: self,
-                                   enqueueType: .replaceCurrent)
+                                   enqueueType: .replaceCurrent,
+                                   loadIssueIfNeeded: !issue.isBookmarkIssue)
     }
     else {
       Log.debug("cannot play article")
     }
   }
-  
-  // By default Articles don't have bookmarks
-  var hasBookmark: Bool { get { false } set {} }
-  
+    
   func isEqualTo(otherArticle: Article) -> Bool{
     return self.html?.sha256 == otherArticle.html?.sha256
     && self.html?.name.length ?? 0 > 0
@@ -821,6 +797,11 @@ public extension Moment {
   
   /// Return the image with the lowest resolution
   func lowest(images: [ImageEntry]) -> ImageEntry? {
+    return Self.lowest(images: images)
+  }
+  
+  /// Return the image with the lowest resolution
+  static func lowest(images: [ImageEntry]) -> ImageEntry? {
     var ret: ImageEntry?
     for img in images {
       if let lowest = ret, img.resolution.rawValue >= lowest.resolution.rawValue
@@ -834,7 +815,9 @@ public extension Moment {
   var highres: ImageEntry? { highest(images: images) }
 
   /// Image in lowest resolution
-  var lowres: ImageEntry? { highest(images: images) }
+  #warning("BUG? THE FOLLOWING LINE WAS HERE CHANGED!")
+//  var lowres: ImageEntry? { highest(images: images) }
+  var lowres: ImageEntry? { lowest(images: images) }
   
   /// Credited image in highest resolution
   var creditedHighres: ImageEntry? { highest(images: creditedImages) }
@@ -885,10 +868,13 @@ public extension PublicationDate {
     return (self.date.short)
   }
   
-  func validityDateText(timeZone:String,
-                        short:Bool = false,
+  func validityDateText(short:Bool = false,
                         shorter:Bool = false,
                         leadingText: String? = "woche, ") -> String {
+    if App.isLMD {
+      return "Ausgabe " + date.gMonthYear(tz: GqlFeeder.tz, isNumeric: true)
+    }
+    
     return date.validityDateText(validityDate: validityDate,
                                  timeZone: GqlFeeder.tz,
                                  short: short,
@@ -983,7 +969,18 @@ public extension Issue {
         if let arts = sect.articles { ret.append(contentsOf: arts) } 
       }
     }
+    if self is SearchResultIssue { return ret }
+    if self.isBookmarkIssue {
+      return (ret as? [StoredArticle])?.bookmarkOrder() ?? ret
+      /// print(">>> allArticles cnt: \(ret.count)\n  \(ret.enumerated().map { (idx, elm) in "\(idx+1): \(elm.title ?? "-")" }.joined(separator: "\n  "))")
+    }
+    
     if let imp = imprint { ret += imp }
+    #if TAZ
+    for tom in Tom.toms(issue: self) {
+      ret += tom
+    }
+    #endif
     return ret
   }
   
@@ -1198,7 +1195,6 @@ public protocol Feed: ToString {
   /// Number of issues available
   var issueCnt: Int { get }
   /// Date of last issue available (newest)
-  #warning("WHERE FROM?? USING PUB DATES!!")
   var lastIssue: Date { get }
   /// Date of issue last read
   var lastIssueRead: Date? { get }
@@ -1218,6 +1214,7 @@ public protocol Feed: ToString {
 
 public extension Feed {  
   var dir: Dir { Dir(dir: feeder.baseDir.path, fname: name) }
+  var bookmarksDir: Dir { Dir(dir: feeder.baseDir.path, fname: "\(name)/bookmarks") }
   var type: FeedType { .publication }
   var lastIssueRead: Date? { nil }
   var lastUpdated: Date? { nil }
@@ -1312,6 +1309,8 @@ extension Feeder {
   public var isAuthenticated: Bool { return authToken != nil }
   /// Returns true if login/account is expired
   public var isExpiredAccount: Bool { return Defaults.expiredAccount }
+  /// Returns true if logged in with not expired account
+  public var hasValidAbo: Bool { return isAuthenticated && !isExpiredAccount }
   
   /// Returns directory where all feed specific data is stored
   public func feedDir(_ feed: String) -> Dir { return Dir(dir: baseDir.path, fname: feed) }
@@ -1323,6 +1322,7 @@ extension Feeder {
   /// Returns directory where all issue specific data is stored
   public func issueDir(issue: Issue) -> Dir {
     if issue is SearchResultIssue { return Dir.searchResults }
+    if issue.isBookmarkIssue { return issue.feed.bookmarksDir }
     return issueDir(feed: issue.feed.name, issue: date2a(issue.date))
   }
   
@@ -1337,6 +1337,8 @@ extension Feeder {
       file = issue.moment.facsimile
     }
     else {
+      ///fix race condition bug: demo issue deleted due update, issueservice calls moment crash
+      if (issue as? StoredIssue)?.pr.moment == nil { return nil }
       file = issue.moment.animatedGif
       if isCredited, let highres = issue.moment.creditedHighres {
         file = highres
@@ -1360,6 +1362,17 @@ extension Feeder {
       return "\(issueDir(issue: issue).path)/\(img.fileName)"
     }
     return nil
+  }
+  
+  /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
+  public func smallMomentImageName(article: StoredArticle)
+    -> String? {
+      guard let issueDate = article.issueDate,
+            let issue = article.primaryIssue,
+            let publicationDate = issue.feed.publicationDates?.first(where: {$0.date == issueDate}),
+            let fileName =  issue.moment.lowres?.fileName else { return nil }
+      let dir = issueDir(feed: issue.feed.name, issue: date2a(issueDate))
+      return "\(dir.path)/\(fileName)"
   }
 
   /// Returns the name of the first PDF page file name (if available)
@@ -1419,6 +1432,7 @@ public enum NotificationType: String, CodableEnum {
   case subscription = "subscription(subscriptionPoll)" 
   /// new issue available
   case newIssue = "newIssue(aboPoll)"
+  case articlePush = "articlePush(aboPollTestArticle)"
   case textNotificationAlert = "textNotificationAlert"
   case textNotificationToast = "textNotificationToast"
   case unknown      = "unknown"   /// decoded from unknown string
