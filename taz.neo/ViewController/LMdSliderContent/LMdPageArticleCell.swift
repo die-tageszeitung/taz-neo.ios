@@ -112,7 +112,10 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
     }
     bookmarkButton.onTapping {[weak self] _ in
       Usage.track(Usage.event.drawer.action_tap.Bookmark)
-      self?.article?.hasBookmark.toggle()
+      onMainAfter(0.1){[weak self] in ///prevent additional  cell tap due async call
+        self?.article?.hasBookmark.toggle()
+      }
+      
     }
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let art = msg.sender as? StoredArticle,
