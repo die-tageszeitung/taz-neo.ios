@@ -53,7 +53,7 @@ class LMdPageImageCell: UICollectionViewCell, LMdSliderCell {
   }
   
   func setup(){
-    pageImageView.pinAspect(ratio: 0.69,
+    pageImageView.pinAspect(ratio: Const.Size.LmdPageAspect,
                             pinWidth: false,
                             priority: .defaultHigh)
     pageImageView.contentMode = .scaleAspectFit

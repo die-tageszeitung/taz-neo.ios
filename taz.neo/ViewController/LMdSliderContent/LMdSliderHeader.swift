@@ -88,7 +88,7 @@ class LMdSliderHeader: UIView {
     panoPageAspectWidthConstraint = imageView.pinAspect(ratio: 1.38,
                                                         pinWidth: false)
     panoPageAspectWidthConstraint?.isActive = false
-    singlePageAspectWidthConstraint = imageView.pinAspect(ratio: 0.69,
+    singlePageAspectWidthConstraint = imageView.pinAspect(ratio: Const.Size.LmdPageAspect,
                                                           pinWidth: false)
     
     singlePageAspectWidthConstraint?.isActive = false

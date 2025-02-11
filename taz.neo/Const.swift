@@ -533,7 +533,7 @@ public struct Const {
     #else
     static let ButtonHeight = CGFloat(34.0)
     #endif
-    
+    static let LmdPageAspect = CGFloat(0.670219)
     
     static let ContentSliderMaxWidth = 420.0
     struct LMd {
