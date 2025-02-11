@@ -323,7 +323,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   lazy var smartBackFromArticleCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Intelligentes Zurück",
-                  detailText: "Zurück im Artikel führt zu zugehörigem Eintrag",
+                  detailText: "Zurück im Artikel führt zu zugehörigem Ressort",
                   initialValue: smartBackFromArticle,
                   onChange: {[weak self] newValue in
                     self?.smartBackFromArticle = newValue
