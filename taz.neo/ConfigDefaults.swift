@@ -86,6 +86,7 @@ private let configValuesLMD = [
   // Use facsimile mode for LMD
   "isFacsimile" : "true",
   "usageTrackingAllowed" : "false",
+  "smartBackFromArticle" : "true",///required for page Article header, otherwise current page is not displayed correctly
 ]
 
 #if LMD

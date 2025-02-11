@@ -784,13 +784,19 @@ extension SettingsVC {
   var extendedSettingsCells:[XSettingsCell] {
     (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
-      smartBackFromArticleCell,
-      reopenArticleSettingCell,
+      
       voiceoverControlsCell,
       memoryUsageCell,
       deleteDatabaseCell,
       resetAppCell
     ]
+    
+    if App.isTAZ {///only for taz
+      ///in LMd this is required for page Header, otherwise current page is not displayed correctly
+      cells.insert(smartBackFromArticleCell, at: 0)
+      ///reopen only work in app view, noit available in LMd
+      cells.insert(reopenArticleSettingCell, at: 1)
+    }
     
     if Device.isIpad {
       cells.insert(multiColumnFixedScrollingCell, at: 1)

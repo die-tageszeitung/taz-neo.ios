@@ -133,8 +133,9 @@ class NotificationsView: InfoToasterView {
     titleLabel.text = "Immer Bescheid wissen"
     
     messageLabel.text =
-    hours > 0
-    ? "Willkommen zurück! Seit \(hours) Stunde\(hours > 1 ? "n":"") finden Sie die neue Ausgabe der taz in Ihrer App.\n\nSie möchten auch in Zukunft keine Ausgabe mehr verpassen? Dann informieren wir Sie ab sofort gern per Pushnachricht."
+    hours > 0 ?
+    App.isTAZ ? "Willkommen zurück! Seit \(hours) Stunde\(hours > 1 ? "n":"") finden Sie die neue Ausgabe der taz in Ihrer App.\n\nSie möchten auch in Zukunft keine Ausgabe mehr verpassen? Dann informieren wir Sie ab sofort gern per Pushnachricht."
+    : "Willkommen zurück! Seit \(hours/24) Tag\(hours/24 > 1 ? "en":"") finden Sie die neue Ausgabe der LMd in Ihrer App.\n\nSie möchten auch in Zukunft keine Ausgabe mehr verpassen? Dann informieren wir Sie ab sofort gern per Pushnachricht."
     : "Willkommen zurück! Wir haben etwas Brandneues für Sie: Bleiben Sie auf dem Laufendem mit Benachrichtigungen.\n\nSie möchten auch in Zukunft keine Ausgabe mehr verpassen? Schalten Sie die Mitteilungen an und verpassen Sie nichts."
     super.init(frame: .zero)
     setup()
