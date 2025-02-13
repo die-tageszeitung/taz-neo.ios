@@ -2221,7 +2221,8 @@ public final class StoredIssue: Issue, StoredObject {
           continue
         }
         if lastCompleeteIssues.contains(issue) { continue }
-        if let issueDate = TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date {
+        if let storedIssue = TazAppEnvironment.sharedInstance.feederContext?.openedIssue as? StoredIssue,
+           let issueDate = storedIssue.safeDate {
             if issueDate == issue.safeDate {
                 continue
             }
