@@ -1829,7 +1829,9 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
 
 extension StoredIssue: Equatable {
   static public func ==(lhs: StoredIssue, rhs: StoredIssue) -> Bool {
-    return lhs.date == rhs.date
+    ///cannot ensure they are the same, usually the are not due one is deleted or prepared sor deletion
+    if lhs.safeDate == nil { return false }
+    return lhs.safeDate == rhs.safeDate
   }
 }
 
@@ -2219,7 +2221,11 @@ public final class StoredIssue: Issue, StoredObject {
           continue
         }
         if lastCompleeteIssues.contains(issue) { continue }
-        if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.safeDate { continue }
+        if let issueDate = TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date {
+            if issueDate == issue.safeDate {
+                continue
+            }
+        }
         if doDelete {
           deletedIssueDates.append(issue.safeDate?.short ?? "-")
           issue.delete()

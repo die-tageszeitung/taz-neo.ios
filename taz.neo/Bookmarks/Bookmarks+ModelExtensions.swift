@@ -45,7 +45,8 @@ extension StoredArticle {
 extension Issue {
   /// Checks if the issue is the bookmark issue.
   var isBookmarkIssue: Bool {
-    return self is StoredIssue && baseUrl == Bookmarks.bookmarkURL
+    guard let self = self as? StoredIssue else { return false }
+    return self.pr.baseUrl == Bookmarks.bookmarkURL
   }
 }
 

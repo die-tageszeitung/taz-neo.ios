@@ -968,23 +968,38 @@ extension SettingsVC {
   }
   
   func requestDeleteAllIssues(){
-    let alert = UIAlertController.init( title: "Alle Ausgaben löschen", message: nil,
+    let isDownloading = TazAppEnvironment.sharedInstance.feederContext?.dloader.isDownloading == true
+    
+    let title = isDownloading ? "Achtung aktiver Download" : "Alle Ausgaben löschen?"
+    let message = isDownloading ? "Möchten Sie den Download abbrechen und alle Ausgaben löschen?" : nil
+    
+    let alert = UIAlertController.init( title: title, message: message,
                                         preferredStyle:  .alert )
     alert.addAction( UIAlertAction.init( title: "Löschen", style: .destructive,
                                          handler:  { [weak self] _ in
       guard let storedFeeder = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder,
             let storedFeed = storedFeeder.storedFeeds.first else {
-              return
-            }
-//      TazAppEnvironment.sharedInstance.feederContext?.cancelAll()
-      StoredIssue.removeOldest(feed: storedFeed, keepDownloaded: 0, keepPreviews: 20, doDelete: true, deleteOrphanFolders: true)
-//      StoredIssue.deleteAllIssues(feed: storedFeed) Idea: delete everything
+        return
+      }
+      if isDownloading {
+        TazAppEnvironment.sharedInstance.feederContext?.stopDownloadsAndResetDownloader()
+      }
+      Notification.send(Const.NotificationNames.closeOpenIssues)
+      TazAppEnvironment.sharedInstance.feederContext?.openedIssue = nil
+      /* Only for testing e.g. if crash after download occures
+      StoredIssue.removeOldest(feed: storedFeed,
+                               keepDownloaded: 0,
+                               keepPreviews: 0,
+                               doDelete: true,
+                               deleteOrphanFolders: true)*/
+      StoredIssue.deleteAllIssues(feed: storedFeed)
       onMainAfter { [weak self] in
         self?.refreshAndReload()
         self?.memoryUsageCell.detailTextLabel?.text = self?.storageDetails
+        Notification.send(Const.NotificationNames.refreshOverview)
         TazAppEnvironment.sharedInstance.feederContext?.checkForNewIssues()
       }
-    } ) )
+    } ) )//eof: alert.addAction
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.deleteIssuesCell)
   }

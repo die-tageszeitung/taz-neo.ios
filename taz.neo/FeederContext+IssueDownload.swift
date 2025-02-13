@@ -69,7 +69,7 @@ extension FeederContext {
                                force: Bool = false,
                                withAudio: Bool = false) {
     /// prevent unexpected Behaviour e.g. with: issue.date != dissue.date 
-    if issue.isBookmarkIssue { return }
+    if issue.isBookmarkIssue || issue.safeDate == nil { return }
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
     Usage.track(isAutomatically ? Usage.event.issue.autoDownload : Usage.event.issue.download,
                 name: issue.date.ISO8601,

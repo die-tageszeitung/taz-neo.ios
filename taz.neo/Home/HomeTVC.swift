@@ -346,6 +346,11 @@ class HomeTVC: UITableViewController {
     
     self.addChild(carouselController)
     self.addChild(tilesController)
+    ///Handle delete all Issues
+    Notification.receive(Const.NotificationNames.refreshOverview) { [weak self] _ in
+      self?.carouselController.collectionView.reloadData()
+      self?.tilesController.collectionView.reloadData()
+    }
     ///Handle new issues
     Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
       if self?.view.superview == nil {

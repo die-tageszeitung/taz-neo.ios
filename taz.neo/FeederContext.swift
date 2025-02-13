@@ -120,6 +120,11 @@ open class FeederContext: DoesLog {
     }
   }
   
+  func stopDownloadsAndResetDownloader(){
+    guard let gqlFeeder else { return }
+    self.dloader = Downloader(feeder: gqlFeeder)
+  }
+  
   var pollingTimer: Timer?
   var pollEnd: Int64?
   var updateAlert: AlertController?
