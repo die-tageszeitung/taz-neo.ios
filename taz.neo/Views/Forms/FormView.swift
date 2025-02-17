@@ -183,43 +183,23 @@ extension FormView {
     
     // Get the keyboard height
     guard let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
-    let keyboardHeight = self.convert(keyboardFrame, from: nil).height
-    
+    let keyBoardOffset = keyboardFrame.origin.y
+    let popoverYOffset = self.convert(CGPoint.zero, to: window).y
+    let visibleHeight = keyBoardOffset - popoverYOffset
     // Identify the active input field
     guard let field = UIResponder.currentFirstResponder() as? UIView else { return }
-    
-    // Use the actual window height instead of a fixed screen height
-    let windowHeight = UIApplication.shared.windows.first?.bounds.height ?? self.frame.height
-    let visibleArea = windowHeight - keyboardHeight
-    
     // Get the position of the input field relative to the entire screen
-    let fieldFrame = field.convert(field.bounds, to: nil)
-    let fieldBottom = fieldFrame.maxY
-    
+    let fieldBottom = field.maxY
     // Get the position of the Send button and extend the scroll area if needed
-    if let sendButton = self.scrollView.subviews.last {
-      let sendButtonFrame = sendButton.convert(sendButton.bounds, to: nil)
-      let sendButtonBottom = sendButtonFrame.maxY
-      
-      // Ensure there is enough space to reach the Send button
-      let additionalSpace = max(0, sendButtonBottom - fieldBottom + 20) // Extra padding for usability
-      self.scrollView.contentSize.height += additionalSpace
+    if let bottomItem = self.scrollView.subviews.last {
+      let bottomItemBottom = bottomItem.maxY + 10
+      self.scrollView.contentSize.height += bottomItemBottom
     }
-    
-    // If UIKit has already shifted the popover, no further scrolling is needed
-    if visibleArea < windowHeight / 2 {
-      return
-    }
-    
     // Check if the input field is covered by the keyboard
-    let isCovered = fieldBottom > visibleArea
-    if isCovered {
-      let offset = min(fieldBottom - visibleArea + 10, keyboardHeight / 3) // Scroll max 1/3 of the keyboard height
-      
-      UIView.animate(withDuration: 0.3) {
-        self.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: keyboardHeight / 3, right: 0)
-        self.scrollView.setContentOffset(CGPoint(x: 0, y: offset), animated: true)
-      }
+    if fieldBottom > visibleHeight {
+      let offset = fieldBottom - visibleHeight
+      self.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: keyBoardOffset, right: 0)
+      self.scrollView.setContentOffset(CGPoint(x: 0, y: offset), animated: true)
     }
   }
   
@@ -263,4 +243,13 @@ extension UIResponder {
     @objc private func findFirstResponder(_ sender: Any) {
         UIResponder.currentResponder = self
     }
+}
+
+fileprivate extension UIView {
+  var maxY: CGFloat {
+    if self is TazTextView.GrowableTextView {
+        return self.frame.origin.y + self.frame.size.height + (self.superview?.frame.origin.y ?? 0.0)
+    }
+    return self.frame.origin.y + self.frame.size.height
+  }
 }
