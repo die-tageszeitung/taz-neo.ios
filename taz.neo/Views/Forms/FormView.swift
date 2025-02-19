@@ -183,22 +183,25 @@ extension FormView {
     
     // Get the keyboard height
     guard let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
-    let keyBoardOffset = keyboardFrame.origin.y
-    let popoverYOffset = self.convert(CGPoint.zero, to: window).y
-    let visibleHeight = keyBoardOffset - popoverYOffset
-    // Identify the active input field
+    
+    //make space for the keyboard
+    let bottomInset = 20 + self.frame.size.height - keyboardFrame.origin.y
+    if bottomInset > 0 {
+      self.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset, right: 0)
+    }
+    
+    // Identify the active input field to scroll to it
     guard let field = UIResponder.currentFirstResponder() as? UIView else { return }
+    ///Warning: this value is maybe initially wrong, due small Popovers move to tom on keyboard appearance
+    let popoverYOffset = self.convert(CGPoint.zero, to: window).y
+    let visibleHeight = keyboardFrame.origin.y - popoverYOffset
+    
     // Get the position of the input field relative to the entire screen
     let fieldBottom = field.maxY
-    // Get the position of the Send button and extend the scroll area if needed
-    if let bottomItem = self.scrollView.subviews.last {
-      let bottomItemBottom = bottomItem.maxY + 10
-      self.scrollView.contentSize.height += bottomItemBottom
-    }
-    // Check if the input field is covered by the keyboard
+    
+    // Check if the input field is covered by the keyboard, then scroll to it
     if fieldBottom > visibleHeight {
       let offset = fieldBottom - visibleHeight
-      self.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: keyBoardOffset, right: 0)
       self.scrollView.setContentOffset(CGPoint(x: 0, y: offset), animated: true)
     }
   }
