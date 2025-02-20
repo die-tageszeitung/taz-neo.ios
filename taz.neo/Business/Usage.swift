@@ -808,7 +808,8 @@ extension ArticleVC: ScreenTracking {
           let artPath = article.trackingPath,
     let sectionFileName = adelegate?.article2section[artFileName]?.first?.html?.name
     else { return nil }
-    return URL(path: "issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/section/\(sectionFileName)/\(artPath)",
+    let date = (article as? SearchArticle)?.originalIssueDate ?? self.issue.date
+    return URL(path: "issue/\(self.feederContext.feedName)/\(date.ISO8601)/section/\(sectionFileName)/\(artPath)",
                id: article.serverId)
   }
   public var screenTitle:String? {
