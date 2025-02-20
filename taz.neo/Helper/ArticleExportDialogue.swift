@@ -152,7 +152,8 @@ extension ArticleExportDialogueItemSource: UIActivityItemSource {
         self.pdfGenerationService.createPDF()
         return article.generatedArticlePdfURL
         /** **Share Text+Link; if no link Nothing e.g. Social Media & TOM* may be disabled in excluded Items*/
-      case _ where activityType?.rawValue.hasPrefix("com.facebook") == true:
+      case _ where activityType?.rawValue.hasPrefix("com.facebook") == true,
+        _ where activityType?.rawValue.hasPrefix("org.whispersystems.signal.") == true:
         return shareTextIfLinkAvailable
         /** **Share local PDF* */
       case _ where activityType?.rawValue.hasPrefix("com.apple.DocumentManagerUICore") == true,
@@ -632,6 +633,7 @@ class ArticleExportDialogue: UIActivityViewController {
         UIActivity.ActivityType(rawValue: "com.google.Gmail.ShareExtension"),
         UIActivity.ActivityType(rawValue: "com.iwilab.KakaoTalk.Share"),
         UIActivity.ActivityType(rawValue: "com.hammerandchisel.discord.Share"),
+        UIActivity.ActivityType(rawValue: "org.whispersystems.signal.shareextension"),//Signal
         UIActivity.ActivityType(rawValue: "com.facebook.Messenger.ShareExtension"),
         UIActivity.ActivityType(rawValue: "net.whatsapp.WhatsApp.ShareExtension"),
         UIActivity.ActivityType(rawValue: "com.tinyspeck.chatlyio.share"), // Slack!
