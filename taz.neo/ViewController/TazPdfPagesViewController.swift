@@ -1096,10 +1096,6 @@ fileprivate extension TazPdfPagesViewController {
 fileprivate extension CGSize {
   func sliderWidth(for horizontalSizeClass: UIUserInterfaceSizeClass? = nil) -> CGFloat {
     let offset: CGFloat = App.isLMD ? 14.0 : 28.0
-    if horizontalSizeClass ?? UIWindow.keyWindow?.traitCollection.horizontalSizeClass
-        == .compact {
-      return self.width - offset
-    }
     return min(self.width, Const.Size.ContentSliderMaxWidth + offset) - offset
   }
 }
