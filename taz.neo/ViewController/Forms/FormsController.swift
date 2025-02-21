@@ -327,8 +327,10 @@ extension UIViewController {
 
 // MARK: - Modal Present extension for FormsResultController
 extension FormsResultController{
-  func modalFromBottom(_ controller:UIViewController, completion: (() -> Void)? = nil){
-    controller.modalPresentationStyle = .overCurrentContext
+  func modalFromBottom(_ controller:UIViewController,
+                       modalPresentationStyle:UIModalPresentationStyle? = nil,
+                       completion: (() -> Void)? = nil){
+    controller.modalPresentationStyle = modalPresentationStyle ?? .overCurrentContext
     controller.modalTransitionStyle = .coverVertical
     
     var topmostModalVc : UIViewController = self
