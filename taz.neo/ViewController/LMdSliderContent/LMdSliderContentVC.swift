@@ -119,7 +119,7 @@ extension LMdSliderContentVC {
     //setup ui with fixed header
     self.view.addSubview(header)
     self.view.addSubview(collectionView)
-    pin(header.top, to: self.view.top)
+    pin(header.top, to: self.view.topGuide())
     pin(header.left, to: self.view.leftGuide())
     pin(header.right, to: self.view.rightGuide())
     pin(collectionView.left, to: self.view.leftGuide())
