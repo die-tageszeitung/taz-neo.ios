@@ -806,7 +806,7 @@ extension SettingsVC {
       cells.insert(multiColumnSnapCell, at: 1)
     }
     
-    if TazAppEnvironment.hasValidAuth {
+    if App.isTAZ && TazAppEnvironment.hasValidAuth {
       cells.insert(showCoachmarksCell, at: 1)
     }
     
