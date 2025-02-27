@@ -557,11 +557,17 @@ class NewContentTableVcCell: UITableViewCell {
     if autors.length > 0 {
       autors.append(" ")
     }
+    if App.isLMD {
+      autors.append(" ")//more space needed
+    }
     let attributedString = NSMutableAttributedString(string: autors)
     let range = NSRange(location: 0, length: attributedString.length)
     
-    let boldFont = Const.Fonts.titleFont(size: 13.5)
-    attributedString.addAttribute(.font, value: boldFont, range: range)
+    let authorFont
+    = App.isLMD
+    ? Const.Fonts.font(name: Const.Fonts.lmdArnhemItalic, size: 15)
+    : Const.Fonts.titleFont(size: 13.5)
+    attributedString.addAttribute(.font, value: authorFont, range: range)
     attributedString.addAttribute(.backgroundColor, value: UIColor.clear, range: range)
 
     if let rd = article?.readingDuration {

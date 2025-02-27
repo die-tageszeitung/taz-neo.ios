@@ -40,7 +40,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   lazy var header:SettingsHeaderView = {
     let v = SettingsHeaderView()
     v.titletype = .bigLeft
-    v.title = "leseliste"
+    v.title = App.isLMD ? "Leseliste" :"leseliste"
     return v
   }()
   

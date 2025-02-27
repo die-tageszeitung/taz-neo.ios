@@ -59,7 +59,7 @@ class BookmarkTableHeaderCell: UITableViewCell, UIStyleChangeDelegate{
     
     pin(imgView.left, to: self.contentView.left, dist: Const.Size.DefaultPadding)
     pin(imgView.bottom, to: self.contentView.bottom, dist: -Const.Size.DefaultPadding + 5)
-    pin(dateLabel.centerY, to: imgView.centerY)
+    pin(dateLabel.centerY, to: imgView.centerY, dist: App.isLMD ? 2 : 0)
     textLeftImageConstraint = pin(dateLabel.left, to: imgView.right, dist: Const.Dist2.s10)
     textLeftImageConstraint?.isActive = false
     
@@ -68,7 +68,11 @@ class BookmarkTableHeaderCell: UITableViewCell, UIStyleChangeDelegate{
     self.contentView.layoutMargins.right = Const.Size.DefaultPadding
     
     registerForStyleUpdates()
-    dateLabel.boldContentFont()
+    if App.isLMD {
+      dateLabel.lmdArnhem(italic: true, size: 19)
+    } else {
+      dateLabel.boldContentFont()
+    }
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
