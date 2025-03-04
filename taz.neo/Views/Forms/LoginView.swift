@@ -119,6 +119,7 @@ public class LoginView : FormView{
         idInput,
         helpButton,
         passInput,
+        passForgottButton,
         loginWrapper]
     }
     return   [
