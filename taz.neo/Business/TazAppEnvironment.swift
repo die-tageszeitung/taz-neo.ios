@@ -85,7 +85,8 @@ class TazAppEnvironment: NSObject, DoesLog {
   public static var openedFromNotificationCenter:PushNotification.Payload.ArticlePushData?
   
   lazy var consoleLogger = Log.Logger()
-  lazy var fileLogger = Log.FileLogger()
+  public static let fileLogger = Log.FileLogger()
+  var fileLogger:Log.FileLogger  {  Self.fileLogger }
   var feederContext: FeederContext?
   var service: IssueOverviewService?
   let net = NetAvailability()
@@ -147,28 +148,11 @@ class TazAppEnvironment: NSObject, DoesLog {
     setupFeeder()
   }
   
-  /// Enable logging to file and otional to view
   func setupLogging() {
-    Log.log("Setting up logging")
-    Log.append(logger: fileLogger)
-    Log.minLogLevel = .Debug
-    HttpSession.isDebug = false
-    PdfRenderService.isDebug = false
-    ZoomedImageView.isDebug = false
-    Log.onFatal { msg in
-      self.log("fatal closure called, error id: \(msg.id)")
-      self.reportFatalError(err: msg)
-    }
-    net.onChange { (flags) in self.log("net changed: \(flags)") }
-    net.whenUp { self.log("Network up") }
-    net.whenDown { self.log("Network down") }
-    if !net.isAvailable { error("Network not available") }
-    log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-        "\(App.bundleIdentifier)\n" +
-        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
-        "git-hash: \(BuildConst.hash)\n" +
-        "Path: \(Dir.appSupportPath)\n" +
-        "isTAZ: \(App.isTAZ)")
+    Log.setupLogging(caller: self,
+                     fileLogger: Self.fileLogger,
+                     errorReportingDelegate: self,
+                     net: net)
   }
   
   func startup() {
@@ -695,6 +679,7 @@ extension Defaults{
   
   static var currentFeeder : (name: String, url: String, feed: String) {
     get {
+      return (name: "taz-test", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
       switch Defaults.singleton["currentServer"] {
         case Shortcuts.testServer.type:
           return (name: "taz-test", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
@@ -816,3 +801,33 @@ extension App {
     #endif
   }
 } // App
+
+
+extension Log {
+  /// Enable logging to file and otional to view
+  static func setupLogging(caller: DoesLog,
+                           fileLogger: FileLogger,
+                           errorReportingDelegate: TazAppEnvironment? = nil,
+                           net: NetAvailability? = nil) {
+    Log.log("Setting up logging")
+    Log.append(logger: fileLogger)
+    Log.minLogLevel = .Debug
+    HttpSession.isDebug = false
+    PdfRenderService.isDebug = false
+    ZoomedImageView.isDebug = false
+    Log.onFatal { msg in
+      caller.log("fatal closure called, error id: \(msg.id)")
+      errorReportingDelegate?.reportFatalError(err: msg)
+    }
+    net?.onChange { (flags) in caller.log("net changed: \(flags)") }
+    net?.whenUp { caller.log("Network up") }
+    net?.whenDown { caller.log("Network down") }
+    if net?.isAvailable == false { caller.error("Network not available") }
+    log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
+        "\(App.bundleIdentifier)\n" +
+        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
+        "git-hash: \(BuildConst.hash)\n" +
+        "Path: \(Dir.appSupportPath)\n" +
+        "isTAZ: \(App.isTAZ)")
+  }
+}

@@ -185,6 +185,9 @@ extension Defaults {
     }
   }
   
+  ///Helper to get autoloadPdf from user defaults for simple access in extensions
+  static var autoloadPdf : Bool { Defaults.singleton.bool(for: "autoloadPdf", false) }
+  
   typealias columnSettingData = (used:Int, available: Int, setting: Int)
   
   static var columnSetting : columnSettingData {

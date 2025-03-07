@@ -74,7 +74,9 @@ open class GraphQlSession: HttpSession {
   
   public init(_ url: String, authToken: String? = nil) {
     self.url = url
-    super.init(name: "GQL:\(url)")
+//    let name = isBackground ? "de.taz.backgound.downloadSession" : "GQL:\(url)"
+    #warning("BGDL: init with:  isBackground: isBackground may required to hate BG Session Config")
+    super.init(name: "de.taz.backgound.downloadSession")
     if let authToken {
       self.authToken = authToken
       header["X-tazAppAuthKey"] = authToken
@@ -126,11 +128,11 @@ open class GraphQlSession: HttpSession {
   }
   
   public func request<T>(requestType: String, graphql: String, type: T.Type,
-                         fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>)->())
+                         fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>, Data?)->())
     where T: Decodable {
     guard let url = self.url else { return }
     if let data = fromData {
-      closure(requestResult(data: data, graphql: graphql, type: type))
+      closure(requestResult(data: data, graphql: graphql, type: type), data)
     }
     else {
       let quoted = "\(requestType) {\(graphql)}".quote()
@@ -139,25 +141,25 @@ open class GraphQlSession: HttpSession {
       post(url, data: str.data(using: .utf8)!, returnOnMain: returnOnMain) { [weak self] res in
         guard let self = self else { return }
         if case let .success(data) = res {
-          closure(self.requestResult(data: data, graphql: graphql, type: type))
+          closure(self.requestResult(data: data, graphql: graphql, type: type), data)
         }
         else if case let .failure(err) = res {
-          closure(.failure(err))
+          closure(.failure(err), nil)
         }
       }
     }
   }
   
   public func query<T>(graphql: String, type: T.Type,
-                       fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>)->())
-    where T: Decodable { 
+                       fromData: Data? = nil, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>, Data?)->())
+    where T: Decodable {
       request(requestType: "query", graphql: graphql, type: type, fromData: fromData, returnOnMain: returnOnMain,
               closure: closure)
   }
   
-  public func mutation<T>(graphql: String, type: T.Type, closure: @escaping(Result<T,Error>)->()) 
-    where T: Decodable { 
-      request(requestType: "mutation", graphql: graphql, type: type, closure: closure)
+  public func mutation<T>(graphql: String, type: T.Type, returnOnMain: Bool = true, closure: @escaping(Result<T,Error>, Data?)->())
+    where T: Decodable {
+      request(requestType: "mutation", graphql: graphql, type: type, returnOnMain: returnOnMain, closure: closure)
   }
   
 } // class GraphQlSession

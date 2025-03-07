@@ -168,7 +168,7 @@ extension FeederContext {
       self.gqlFeeder.issues(feed: sFeed,
                             count: 1,
                             isOverview: false,
-                            isPages: self.autoloadPdf) { res in
+                            isPages: self.autoloadPdf) { (res, _) in
         if let issues = res.value() {//Fetch result got an 'latest' Issue
           guard issues.count == 1 else {
             self.error("Expected to find 1 issue found: \(issues.count)")

@@ -93,7 +93,7 @@ extension FeederContext {
                        key: issue.key,
                        count: 1,
                        isPages: loadPages, 
-                       withAudio: withAudio) { res in
+                       withAudio: withAudio) { (res, _) in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           #warning("Not needed, not used currently")
@@ -157,6 +157,27 @@ extension FeederContext {
       }
     }
   }
+  
+  func markStartDownloadAsync(feed: Feed, issue: Issue, isAutomatically: Bool) async -> (String?, UsTime) {
+      return await withCheckedContinuation { continuation in
+          markStartDownload(feed: feed, issue: issue, isAutomatically: isAutomatically) { dlId, time in
+              continuation.resume(returning: (dlId, time))
+          }
+      }
+  }
+
+  func markStopDownloadAsync(dlId: String?, tstart: UsTime) async {
+      guard let dlId = dlId else { return }
+      return await withCheckedContinuation { continuation in
+          let nsec = UsTime.now.timeInterval - tstart.timeInterval
+          debug("Sending stop of download to server")
+          self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) { [weak self] _ in
+              self?.cleanupOldIssues()
+              continuation.resume()
+          }
+      }
+  }
+
   
   ///check is new issue was available since popup should be shown (Step1)
   func didDownload(_ issue: Issue){

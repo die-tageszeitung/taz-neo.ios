@@ -256,5 +256,4 @@ open class Downloader: DoesLog {
     if issue.isComplete { closure(nil) }
     else { downloadIssueData(issue: issue, files: section.files, closure: closure) }
   }
-
 } // Downloader

@@ -14,6 +14,11 @@ class AppDelegate: NotifiedDelegate {
   var window: UIWindow?
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    if false {
+      self.window = UIWindow(frame: UIScreen.main.bounds)
+      self.window?.rootViewController = UIViewController()
+      return testDownload()
+    }
     TazAppEnvironment.updateDefaultsIfNeeded()
     TazAppEnvironment.saveLastLog()
     TazAppEnvironment.setupDefaultStyles()
@@ -48,13 +53,32 @@ class AppDelegate: NotifiedDelegate {
     = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
     return true
   }
+  
+  func testDownload() -> Bool {
+    onThreadAfter {
+      let _ = BackgroundDownloadService.shared
+    }
+    
+    onThreadAfter(10.0) {
+      let semaphore = DispatchSemaphore(value: 0)
+      
+      Task {
+        await BackgroundDownloadService.shared.checkForNewIssue()
+        semaphore.signal()
+      }
+      semaphore.wait()
+    }
+    return true
+  }
 
   #if TAZ
   /// Update App Icon Menu
   public func applicationWillResignActive(_ application: UIApplication) {
     application.shortcutItems = Shortcuts.currentItems()
+    log("applicationWillResignActive: \(application.stateDescription)")
   }
 
+  
   func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
     TazAppEnvironment.sharedInstance.handleShortcutItem(shortcutItem)
   }
@@ -65,12 +89,18 @@ class AppDelegate: NotifiedDelegate {
                    handleEventsForBackgroundURLSession identifier: String,
                    completionHandler: @escaping () -> Void) {
     log("store bg Download compleetion")
-    HttpSession.bgCompletionHandlers[identifier] = completionHandler
+#warning("REMOVED IN NORTHLIB!")
+  ///....but probably no more required
+//    HttpSession.bgCompletionHandlers[identifier] = completionHandler
+#warning("TODO")
+//    Background 
+    
   }
 
   func applicationDidEnterBackground(_ application: UIApplication) {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+    log("enter background: \(application.stateDescription)")
   }
 
   func applicationWillEnterForeground(_ application: UIApplication) {

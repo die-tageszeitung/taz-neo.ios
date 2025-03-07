@@ -210,7 +210,7 @@ extension GqlFeeder {
           \(GqlSubscriptionInfo.fields)
         }
     """
-    gqlSession.query(graphql: request, type: [String:GqlSubscriptionInfo].self) { (res) in
+    gqlSession.query(graphql: request, type: [String:GqlSubscriptionInfo].self) { (res, _) in
       var ret: Result<GqlSubscriptionInfo,Error>
       switch res {
       case .success(let ss):   
@@ -233,7 +233,7 @@ extension GqlFeeder {
         \(GqlAuthInfo.fields)
       }
     """
-    gqlSession.query(graphql: request, type: [String:GqlAuthInfo].self) { (res) in
+    gqlSession.query(graphql: request, type: [String:GqlAuthInfo].self) { (res, _) in
       var ret: Result<GqlAuthInfo,Error>
       switch res {
       case .success(let dict):   
@@ -268,7 +268,7 @@ extension GqlFeeder {
         \(GqlSubscriptionInfo.fields)
       }
     """
-    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionInfo].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionInfo].self) { (res, _) in
       var ret: Result<GqlSubscriptionInfo,Error>
       switch res {
       case .success(let dict):   
@@ -301,7 +301,7 @@ extension GqlFeeder {
         \(GqlSubscriptionInfo.fields)
       }
     """
-    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionInfo].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionInfo].self) { (res, _) in
       var ret: Result<GqlSubscriptionInfo,Error>
       switch res {
       case .success(let dict):   
@@ -323,7 +323,7 @@ extension GqlFeeder {
     let request = """
       passwordReset(\(deviceInfoString), eMail: "\(email)")
     """
-    gqlSession.mutation(graphql: request, type: [String:GqlPasswordResetInfo].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:GqlPasswordResetInfo].self) { (res, _) in
       var ret: Result<GqlPasswordResetInfo,Error>
       switch res {
       case .success(let dict):   
@@ -343,7 +343,7 @@ extension GqlFeeder {
     }
     let request = "cancellation(isForce: \(forceDelete ? "true" : "false")){\(GqlCancellationStatus.fields)}"
     
-    gqlSession.mutation(graphql: request, type: [String:GqlCancellationStatus].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:GqlCancellationStatus].self) { (res, _) in
       var ret: Result<GqlCancellationStatus,Error>
       switch res {
         case .success(let dict):
@@ -362,7 +362,7 @@ extension GqlFeeder {
     let request = """
       customerInfo{\(GqlCustomerInfo.fields)}
     """
-    gqlSession.query(graphql: request, type: [String:GqlCustomerInfo].self) { (res) in
+    gqlSession.query(graphql: request, type: [String:GqlCustomerInfo].self) { (res, _) in
       var ret: Result<GqlCustomerInfo,Error>
       switch res {
       case .success(let dict):
@@ -411,7 +411,7 @@ extension GqlFeeder {
       }
     """
     
-    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionFormData].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:GqlSubscriptionFormData].self) { (res, _) in
       var ret: Result<Bool,Error>
       switch res {
         case .success(let dict):

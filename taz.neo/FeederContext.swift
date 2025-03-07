@@ -493,3 +493,31 @@ open class FeederContext: DoesLog {
                              deleteOrphanFolders: true)
   }
 } // FeederContext
+//
+//extension Downloader {
+//    func downloadIssue(issue: Issue) async throws {
+//        guard let feeder else { throw DownloadError.noFeeder }
+//        let name = feeder.date2a(issue.date)
+//        
+//        try await downloadGlobalFiles(issue: issue)
+//        try await downloadIssueFiles(issue: issue, feed: issue.feed.name, issueName: name)
+//    }
+//
+//    private func downloadGlobalFiles(issue: Issue) async throws {
+//        let globalFiles = issue.files.filter { $0.storageType == .global }
+//        guard !globalFiles.isEmpty else { return }
+//        
+//        let hloader = HttpLoader(session: dlSession, baseUrl: feeder!.globalBaseUrl, toDir: feeder!.globalDir.path)
+//        try await hloader.download(globalFiles)
+//    }
+//
+//    private func downloadIssueFiles(issue: Issue, feed: String, issueName: String) async throws {
+//        let issueFiles = issue.files.filter { $0.storageType == .issue }
+//        guard !issueFiles.isEmpty else { return }
+//        
+//        let issueDir = feeder!.issueDir(feed: feed, issue: issueName)
+//        let hloader = HttpLoader(session: dlSession, baseUrl: issue.baseUrl, toDir: issueDir.path)
+//        try await hloader.download(issueFiles)
+//    }
+//}
+//
