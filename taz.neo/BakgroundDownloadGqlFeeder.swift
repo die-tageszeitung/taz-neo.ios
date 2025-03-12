@@ -12,61 +12,61 @@ import NorthLib
 import UIKit
 
 struct BackgroundDownloadError: Error {
-    let message: String
-    
-    init(_ parts: String...) {
-        self.message = parts.joined(separator: " ")
-    }
-    
-    var localizedDescription: String {
-        return message
-    }
+  let message: String
+  
+  init(_ parts: String...) {
+    self.message = parts.joined(separator: " ")
+  }
+  
+  var localizedDescription: String {
+    return message
+  }
 }
 
-class BakgroundDownloadGqlFeeder: GqlFeeder {
+class BakgroundDownloadGqlFeeder: GqlFeeder, IssueDownloaderDelegate {
+  func didFinishAllDownloads(error: (any Error)?) {
+    log("didFinishAllDownloads")
+  }
+  
+  @discardableResult
+  public func updateStatus() async throws -> Feeder {
+    let sess = self.gqlSession
+    if let sess =  sess {
+      log ("updateStatus with \(sess.isBackground ? "BG" : "FG") session")
+    }
+    else {
+      log ("updateStatus with currently no session")
+    }
+    
+    return try await withCheckedThrowingContinuation { continuation in
+      updateStatus(loadAllPublicationDates: false) { [weak self] result in
+        self?.log ("updateStatus done with result: \(result)")
+        switch result {
+          case .success(let feeder):
+            continuation.resume(returning: feeder)
+          case .failure(let error):
+            continuation.resume(throwing: error)
+        }
+      }
+    }
+  }
   
   /// backing var for backgroundSession
   private var _backgroundSession: URLSession?
   /// backing var for downloader
-  private var _dloader: Downloader?
+  private var _dloader: IssueDownloader?
   
   private var fetchCompletionHandler: FetchCompletionHandler?
-  
-  let downloader = BackgroundZipDownloader()
-  
   /// the Downloader to use
-  var dloader: Downloader? {
-    get {
-      if _dloader == nil {_dloader = createDownloader()}
-      return _dloader
-    }
-    set {
-      ///This fixes endless Loop of IssueOverviewService.apiLoadMomentImages
-      ///if offline scroll to unknown moment, go online due the used downloader did not recognize
-      ///online status
-      _dloader?.release() // Alte Instanz freigeben, wenn sie überschrieben wird
-      _dloader = newValue
-    }
-  }
-  
-
-  
-  /// Factory-Methode zum Erstellen eines Downloader-Objekts
-  private func createDownloader() -> Downloader {
-    return Downloader(feeder: self) // Falls Initialisierungsparameter nötig sind, hier ergänzen
-  }
+  var downloader: IssueDownloader?
   
   /// Initilialize with name/title and URL of GraphQL server
   required public init(title: String,
                        url: String,
                        token: String?) {
     super.init(title: title, url: url, token: token)
-    self.updateStatus { [weak self] res in
-      guard let self = self else { return }
-      //      self.dloader = Downloader(feeder: self)
-      //      self.dloader = Downloader(feeder: self)//NOT WORKING NEED BG Downloader!
-      self.log("updateStatus done with \(res)")
-    }
+    gqlSession?.isBackground = true
+    gqlSession?._session = nil
   }
 }
 
@@ -79,11 +79,17 @@ extension BakgroundDownloadGqlFeeder {
     guard let zipUrl = URL(string: issue.baseUrl.appending("/\(zipName)")) else {
       throw BackgroundDownloadError("No valid Zip URL for: ", issue.baseUrl+"/"+zipName)
     }
-
     let authKey = SimpleAuthenticator.getUserData().token ?? ""///No errr
     ///
     debug("Try to Download: \(zipUrl) \nwith:\n\(authKey)")
-    return try await downloader.downloadZip(sourceURL: zipUrl, authKey: authKey, targetDir: Dir.backgroundDownloads)
+    if downloader == nil {
+      downloader = IssueDownloader(authKey: authKey, isBackground: false)
+      downloader?.delegate = self
+    }
+    let issueDir = issue.dir
+    downloader?.download(files: [], toDir: issueDir)
+#warning("Placeholder toDo!")
+    return URL(fileURLWithPath: "")
   }
   
   
@@ -95,7 +101,7 @@ extension BakgroundDownloadGqlFeeder {
     await markStopDownloadAsync(dlId: dlId, tstart: tstart, returnOnMain: false)
     try extractDownloadedZip(zipURL: tmpZipUrl, issueDir: issue.dir)
   }
-    
+  
 #warning("Wo packe ich es hin? ins issue verzeichniss oder in ein DownloadTempVerzeichniss")
   private func extractDownloadedZip(zipURL: URL, issueDir: Dir) throws {
     debug("extracting zip to \(issueDir.path)")
@@ -156,8 +162,8 @@ class BGDownloadManager: DoesLog {
   
   private init() {
     feeder = BakgroundDownloadGqlFeeder(title: currentFeeder.name,
-                        url: currentFeeder.url,
-                        token: SimpleAuthenticator.getUserData().token)
+                                        url: currentFeeder.url,
+                                        token: SimpleAuthenticator.getUserData().token)
     feeder.updateStatus { [weak self] res in
       self?.log("updateStatus done with \(res)")
     }

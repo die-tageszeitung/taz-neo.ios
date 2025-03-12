@@ -14,11 +14,6 @@ class AppDelegate: NotifiedDelegate {
   var window: UIWindow?
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    if false {
-      self.window = UIWindow(frame: UIScreen.main.bounds)
-      self.window?.rootViewController = UIViewController()
-      return testDownload()
-    }
     TazAppEnvironment.updateDefaultsIfNeeded()
     TazAppEnvironment.saveLastLog()
     TazAppEnvironment.setupDefaultStyles()
@@ -54,23 +49,6 @@ class AppDelegate: NotifiedDelegate {
     return true
   }
   
-  func testDownload() -> Bool {
-    onThreadAfter {
-      let _ = BackgroundDownloadService.shared
-    }
-    
-    onThreadAfter(10.0) {
-      let semaphore = DispatchSemaphore(value: 0)
-      
-      Task {
-        await BackgroundDownloadService.shared.checkForNewIssue()
-        semaphore.signal()
-      }
-      semaphore.wait()
-    }
-    return true
-  }
-
   #if TAZ
   /// Update App Icon Menu
   public func applicationWillResignActive(_ application: UIApplication) {
@@ -78,7 +56,6 @@ class AppDelegate: NotifiedDelegate {
     log("applicationWillResignActive: \(application.stateDescription)")
   }
 
-  
   func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
     TazAppEnvironment.sharedInstance.handleShortcutItem(shortcutItem)
   }
@@ -88,13 +65,14 @@ class AppDelegate: NotifiedDelegate {
   func application(_ application: UIApplication,
                    handleEventsForBackgroundURLSession identifier: String,
                    completionHandler: @escaping () -> Void) {
-    log("store bg Download compleetion")
-#warning("REMOVED IN NORTHLIB!")
-  ///....but probably no more required
-//    HttpSession.bgCompletionHandlers[identifier] = completionHandler
-#warning("TODO")
-//    Background 
-    
+    do {
+      try BackgroundSession.resume(name: identifier,
+                                   completionHandler: completionHandler,
+                                   callback: BackgroundDownloadService.dlCallback)
+    }
+    catch {
+      log("BackgroundSession.resume failed: \(error)")
+    }
   }
 
   func applicationDidEnterBackground(_ application: UIApplication) {

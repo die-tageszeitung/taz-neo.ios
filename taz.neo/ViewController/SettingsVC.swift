@@ -166,11 +166,20 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   accessoryView: SaveLastCountIssuesSettings())
   lazy var autoloadNewIssuesCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
+                  detailText: autoloadCellDetailText,
                   initialValue: autoloadNewIssues,
                   onChange: {[weak self] newValue in
     self?.autoloadNewIssues = newValue
+    self?.autoloadNewIssuesCell.detailTextLabel?.text = self?.autoloadCellDetailText
     if newValue == true { self?.checkNotifications() }
   })
+  
+  var autoloadCellDetailText: String? {
+    return autoloadNewIssues
+    ? "Lädt neue Ausgaben nur, wenn die App nicht manuell beendet wurde."
+    : nil
+  }
+  
   lazy var wlanCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
                   initialValue: autoloadOnlyInWLAN,
@@ -369,6 +378,15 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
     self?.sendFailureRequestToServer = !(self?.sendFailureRequestToServer ?? true)
     Toast.show("Nachfolgende Page Requests sind: \(self?.sendFailureRequestToServer == true ? "fehlerhaft" : "normal")")
   })
+  
+  lazy var deleteSearchResultsFolder: XSettingsCell
+  = XSettingsCell(text: "Lösche Search Results Folder",
+                  detailText: "ALPHA-App!",
+                  isDestructive: true,
+                  tapHandler: {[weak self] in
+    Dir.searchResults.remove()
+  })
+  
   lazy var contentChangeSettingCellALPHA: XSettingsCell
   = XSettingsCell(toggleWithText: "Zeige Toolbar bei Artikelwechsel",
                   detailText: "Alpha Feature",
@@ -821,6 +839,7 @@ extension SettingsVC {
     
     if App.isAlpha && SimpleAuthenticator.getUserData().id == "145489" {
       cells.append(sendFailureRequestCell)
+      cells.append(deleteSearchResultsFolder)
     }
     
     if DefaultAuthenticator.isTazLogin {

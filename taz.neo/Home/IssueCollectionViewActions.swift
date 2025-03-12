@@ -95,43 +95,11 @@ extension IssueCollectionViewActions {
     
     actions.addMenuItem(title: "Auto Download Test",
                         icon: "download") {[weak self] _ in
-      self?.log("Auto-Download Test starts in 5 sec")
-      
-      let payload:[AnyHashable : Any] = [
-        "aps":[
-          "content-available" : 1,
-          "sound": nil],
-        "data":[
-          "refresh": "aboPoll"
-        ]
-      ]
-      
       onMain(after: 5.0) {
         self?.log("Auto-Download Test....")
-        
-        let semaphore = DispatchSemaphore(value: 0)
-        
-        Task {
-          await BackgroundDownloadService.shared.checkForNewIssue()
-          self?.log("Auto-Download Test....done")
-          semaphore.signal()
-        }
-        semaphore.wait()
-        
-        
-        //        BackgroundDownloadManager
-        //          .shared.processPushNotification(pn: PushNotification(),
-        //                                          payload:PushNotification.Payload(payload),
-        //                                          fetchCompletionHandler: { res in
-        //                                            self?.log("Auto-Download Test finished res: \(res)")
-        //          })
+        BackgroundDownloadService.checkForNewIssue()
       }
     }
-    actions.addMenuItem(title: "BackgroundDL2",
-                        icon: "download") {[weak self] _ in
-      BGDownloadManager.shared.fetchLatestIssue()
-    }
-    
     
     actions.actions.append(contentsOf: issue.contextMenu(group: 1).actions)
     Usage.track(Usage.event.dialog.IssueActions)

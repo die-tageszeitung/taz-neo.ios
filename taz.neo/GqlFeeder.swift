@@ -1112,8 +1112,8 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   // Get GqlFeederStatus
-  func feederStatus(loadAllPublicationDates:Bool = false,loadAllPublicationDates closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
+  func feederStatus(loadAllPublicationDates:Bool = false, loadAllPublicationDates closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
+    guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
@@ -1121,7 +1121,8 @@ open class GqlFeeder: Feeder, DoesLog {
         \(GqlFeederStatus.fields(loadAllPublicationDates:loadAllPublicationDates))
     }
     """
-    gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self) { (res, _) in
+    log("request feeder status with return on\(gqlSession.isBackground ? "Background" : "Main")")
+    gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self, returnOnMain: !gqlSession.isBackground) { (res, _) in
       var ret: Result<GqlFeederStatus,Error>
       switch res {
       case .success(let fs):   

@@ -15,7 +15,7 @@ class BackgroundZipDownloader: NSObject, URLSessionDownloadDelegate, DoesLog {
   private var targetURL: URL?
   
   lazy var backgroundSession: URLSession = {
-//    let config = URLSessionConfiguration.background(withIdentifier: "de.taz.background.downloadSession")
+    //    let config = URLSessionConfiguration.background(withIdentifier: "de.taz.background.downloadSession")
     let config = URLSessionConfiguration.default
     return URLSession(configuration: config, delegate: self, delegateQueue: nil)
   }()
@@ -62,5 +62,72 @@ class BackgroundZipDownloader: NSObject, URLSessionDownloadDelegate, DoesLog {
       continuation?.resume(throwing: error)
     }
     continuation = nil
+  }
+}
+
+
+import Foundation
+
+protocol IssueDownloaderDelegate: AnyObject {
+  func didFinishAllDownloads(error: Error?)
+}
+
+class IssueDownloader: NSObject, URLSessionDownloadDelegate {
+  
+  private var session: URLSession!
+  private var downloadQueue: [URL] = []
+  private var currentTask: URLSessionDownloadTask?
+  weak var delegate: IssueDownloaderDelegate?
+  private var targetDir: Dir?
+  private var error:Error?
+  private var authKey: String
+  
+  init(authKey: String, isBackground: Bool) {
+    self.authKey = authKey
+    super.init()
+    let config
+    = isBackground
+    ?  URLSessionConfiguration.background(withIdentifier: "de.taz.background.downloadSession")
+    : URLSessionConfiguration.default
+    session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+  }
+  
+  func download(files: [URL], toDir: Dir) {
+    guard !files.isEmpty else { return }
+    targetDir = toDir
+    downloadQueue = files
+    startNextDownload()
+  }
+  
+  private func startNextDownload() {
+    if error != nil  || downloadQueue.isEmpty {
+      self.delegate?.didFinishAllDownloads(error: error)
+      return
+    }
+    let nextFile = downloadQueue.removeFirst()
+    
+    var request = URLRequest(url: nextFile)
+    request.setValue(authKey, forHTTPHeaderField: "X-tazAppAuthKey")
+    
+    currentTask = session.downloadTask(with: request)
+    currentTask?.resume()
+  }
+    
+  func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+    let file = File(location)
+
+    if (downloadTask.originalRequest?.url?.lastPathComponent.hasSuffix(".zip")) == true,
+        let targetDir = targetDir {
+      let zfile = ZipFile(path: location.path)
+      do {
+        try zfile.unpack(toDir: targetDir.path)
+      } catch {
+        self.error = error
+      }
+    }
+    else if file.exists, let targetDir = targetDir {
+      file.move(to: targetDir.path, isOverwrite: true)
+    }
+    startNextDownload()
   }
 }
