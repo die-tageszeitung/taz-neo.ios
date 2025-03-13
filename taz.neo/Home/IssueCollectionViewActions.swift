@@ -97,7 +97,7 @@ extension IssueCollectionViewActions {
                         icon: "download") {[weak self] _ in
       onMain(after: 5.0) {
         self?.log("Auto-Download Test....")
-        BackgroundDownloadService.checkForNewIssue()
+        BackgroundDownloadService.checkForNewIssue(nil)
       }
     }
     

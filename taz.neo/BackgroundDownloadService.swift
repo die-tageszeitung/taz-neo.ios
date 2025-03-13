@@ -55,6 +55,11 @@ import NorthLib
 
 class BackgroundDownloadService: DoesLog {
   
+  var fetchCompletionHandler: FetchCompletionHandler?
+  
+  @Default("issueDownloadTestOffset")
+  var issueDownloadTestOffset: Int
+  
 //  var dlCallback: (Error?)->()
 //  static var dlCallback: (Error?)->() {
 //    get { return (UIApplication.shared.delegate as! AppDelegate).dlCallback }
@@ -73,7 +78,7 @@ class BackgroundDownloadService: DoesLog {
   
   
   fileprivate var currentFeederData : (name: String, url: String, feed: String)
-  //  = Defaults.currentFeeder
+//    = Defaults.currentFeeder
   = (name: "taz-test", url: "https://dl.taz.de/appGraphQl", feed: "taz")
   
   fileprivate var feeder: BakgroundDownloadGqlFeeder?
@@ -118,20 +123,20 @@ extension BackgroundDownloadService {
     }
   }
   
-  public static func checkForNewIssue() {
+  public static func checkForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler?) {
     print("...static checkForNewIssue requested")
     let semaphore = DispatchSemaphore(value: 0)
     
     Task {
       print("...static checkForNewIssue  do")
-      await BackgroundDownloadService.shared.checkForNewIssue()
+      await BackgroundDownloadService.shared.checkForNewIssue(fetchCompletionHandler)
       print("...static checkForNewIssue done")
       semaphore.signal()
     }
     semaphore.wait()
   }
   
-  private func checkForNewIssue() async {
+  private func checkForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler?) async {
     do {
       log("...checkForNewIssue")
       let token = SimpleAuthenticator.getUserData().token
@@ -161,8 +166,8 @@ extension BackgroundDownloadService {
       
       let withPages = false
       let withAudio = false
-      let date = Date(timeIntervalSinceNow: -60*60*24*1)
-      log("...fetch latest issue")
+      let date = Date(timeIntervalSinceNow: -60*60*24*Double(issueDownloadTestOffset))
+      log("...fetch latest issue for date: \(date.short)")
       let issueData = try await feeder.issues(feed: feed,
                                               date: date,
                                               count: 1,
@@ -196,7 +201,51 @@ extension BackgroundDownloadService {
       self.log("downloading to: \(issueDir.path)")
       bgSession.downloadZip(toDir: issueDir.path)
       
-      try issue.moment.carouselFiles.forEach {
+      var additionalFiles: [FileEntry] = issue.moment.carouselFiles
+///true = load pdf!
+      let pages = true ? issue.pages ?? [] : []
+      
+      for page in pages {
+        if page.isProbablyNotInZip,
+            let fileEntry = page.pdf {
+          log("download additionalfile for page: \(page.title ?? "-") (\(page.pagina ?? "-")) page frames #: \(page.frames?.count ?? -1) firstFrameUrl: \(page.frames?.first?.link.map { String($0.prefix(8)) } ?? "-")")
+          additionalFiles.append(fileEntry)
+        }
+      }
+      /**
+       Ausgabe 13.3. kann nicht erkennen, welche Dateien fehlen!
+       for facsimile: 1 page frames #: 19 firstFrameUrl: s0090131
+       for facsimile: 2 page frames #: 3 firstFrameUrl: art03895
+       for facsimile: 3 page frames #: 2 firstFrameUrl: art03895
+       for facsimile: 4-5 page frames #: 1 firstFrameUrl: art03895
+       for facsimile: 6 page frames #: 4 firstFrameUrl: art03895
+       for facsimile: 7 page frames #: 3 firstFrameUrl: https://
+       for facsimile: 8 page frames #: 5 firstFrameUrl: art03895
+       for facsimile: 9 page frames #: 2 firstFrameUrl: https://
+       for facsimile: 10 page frames #: 3 firstFrameUrl: art03895
+       for facsimile: 11 page frames #: 3 firstFrameUrl: https://
+       for facsimile: 1 page frames #: 1 firstFrameUrl: https://
+       for facsimile: 12 page frames #: 7 firstFrameUrl: s0090131
+       for facsimile: 13 page frames #: 1 firstFrameUrl: art03895
+       for facsimile: 14 page frames #: 2 firstFrameUrl: art03895
+       for facsimile: 15 page frames #: 2 firstFrameUrl: art03895
+       for facsimile: 16 page frames #: 4 firstFrameUrl: art03895
+       for facsimile: 17 page frames #: 4 firstFrameUrl: art03895
+       for facsimile: 2 page frames #: 1 firstFrameUrl: https://
+       for facsimile: 18 page frames #: 4 firstFrameUrl: art03895
+       for facsimile: 19 page frames #: 4 firstFrameUrl: https://
+       for facsimile: 20 page frames #: 8 firstFrameUrl: art03895
+       for facsimile: 21 page frames #: 2 firstFrameUrl: art03895
+       for facsimile: 22 page frames #: 6 firstFrameUrl: art03895
+       for facsimile: 23 page frames #: 1 firstFrameUrl: art03895
+       for facsimile: 24 page frames #: 5 firstFrameUrl: art03895
+       for facsimile: 25 page frames #: 2 firstFrameUrl: art03895
+       for facsimile: 26-27 page frames #: 5 firstFrameUrl: art03895
+       for facsimile: 28 page frames #: 2 firstFrameUrl: https://
+       
+       */
+      
+      try additionalFiles.forEach {
         let url = issue.baseUrl.appending("/\($0.fileName)")
         let bgSession = try BackgroundSession(url) {[weak self] err in
           self?.dlCallback(err: err)
@@ -204,10 +253,12 @@ extension BackgroundDownloadService {
         self.log("downloading \($0.fileName) from: \(url) to: \(issueDir.path)")
         bgSession.download(toDir: issueDir.path)
       }
+      fetchCompletionHandler?(.newData)
     }
     catch {
       log("downloadIssueData error: \(error)")
       feeder = nil
+      fetchCompletionHandler?(.noData)
     }
   }
   
@@ -219,6 +270,12 @@ extension BackgroundDownloadService {
     }
     
     let si = StoredIssue.persist(object: issue)
+    
+    if true {
+      log("create facsimile image for page with pagina: \(si.pages?.first?.pagina ?? "-")")
+      _ = si.pages?.first?.facsimile//create facsimile image!
+    }
+    
     let pd = StoredPublicationDate.new()
     pd.pr.feed = si.pr.feed//!requzired due set is not allowed due circular ref's
     pd.date = issue.date
@@ -264,3 +321,12 @@ fileprivate extension BakgroundDownloadGqlFeeder {
     }
   }
 }
+
+fileprivate extension Page {
+  var isProbablyNotInZip: Bool {
+    if title?.contains("anzeige") == true { return true }
+    if title?.contains("bundestalk") == true { return true }
+    return false
+  }
+}
+    

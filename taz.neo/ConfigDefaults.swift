@@ -58,6 +58,7 @@ private let configValues = [
   "autoloadPdf" : "false",
   // "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
+  "issueDownloadTestOffset": "0",
   // show teaser text in bookmarks list
   "smartBackFromArticle" : "false",
   "autoHideToolbar" : "true",

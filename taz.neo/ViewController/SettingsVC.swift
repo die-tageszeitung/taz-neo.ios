@@ -164,6 +164,13 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "Maximale Anzahl der zu speichernden Ausgaben",
                   detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
                   accessoryView: SaveLastCountIssuesSettings())
+  
+  lazy var issueDownloadTestOffsetCell: XSettingsCell
+  = XSettingsCell(text: "issueDownloadTestOffset",
+                  detailText: "issueDownloadTestOffset",
+                  accessoryView: IssueDlTestOffsetCountIssuesSettings())
+  
+  
   lazy var autoloadNewIssuesCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
                   detailText: autoloadCellDetailText,
@@ -817,6 +824,7 @@ extension SettingsVC {
       cells.insert(smartBackFromArticleCell, at: 0)
       ///reopen only work in app view, noit available in LMd
       cells.insert(reopenArticleSettingCell, at: 1)
+      cells.insert(issueDownloadTestOffsetCell, at: 2)
     }
     
     if Device.isIpad {
@@ -836,8 +844,8 @@ extension SettingsVC {
       cells.append(contentChangeSettingCellALPHA)
       cells.append(tabbarInSectionCellALPHA)
     }
-    
-    if App.isAlpha && SimpleAuthenticator.getUserData().id == "145489" {
+    //App.isAlpha
+    if true && SimpleAuthenticator.getUserData().id == "145489" {
       cells.append(sendFailureRequestCell)
       cells.append(deleteSearchResultsFolder)
     }
@@ -1342,6 +1350,46 @@ class SaveLastCountIssuesSettings: TextSizeSetting {
       self?.persistedIssuesCount = 20
     }
     updatePersistedIssuesCount()
+  }
+}
+
+
+// MARK: -
+class IssueDlTestOffsetCountIssuesSettings: TextSizeSetting {
+  
+  @Default("issueDownloadTestOffset")
+  private var issueDownloadTestOffset: Int {
+    didSet { updateIDLTOCount() }
+  }
+  
+  func updateIDLTOCount(){
+    label.text
+    = "\(issueDownloadTestOffset)"
+  }
+  
+  override func applyStyles() {
+    label.textColor =  Const.SetColor.ios(.label).color
+    leftButton.circleIconButton(true)
+    rightButton.circleIconButton(true)
+  }
+  
+  override func setup(){
+    super.setup()
+    label.text = "\(issueDownloadTestOffset)"
+    
+    leftButton.onPress { [weak self] _ in
+      guard let self = self, self.issueDownloadTestOffset > 0 else { return }
+      self.issueDownloadTestOffset -= 1
+    }
+    
+    rightButton.onPress { [weak self] _ in
+      self?.issueDownloadTestOffset += 1
+    }
+    
+    label.onTapping { [weak self] _ in
+      self?.issueDownloadTestOffset = 0
+    }
+    updateIDLTOCount()
   }
 }
 

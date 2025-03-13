@@ -156,7 +156,7 @@ extension FeederContext {
     }
     log("Handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)")
     ///Do not access feed here, its maybe uninitialized! self.defaultFeed.name
-    BackgroundDownloadService.checkForNewIssue()
+    BackgroundDownloadService.checkForNewIssue(fetchCompletionHandler)
     //WARNING handleNewIssuePush is probaably not called if App is Closed!
   }
 }
