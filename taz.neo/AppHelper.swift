@@ -110,6 +110,7 @@ public extension App {
       case .INTERNALBROWSER:
         return isAlpha //Only in Alpha Versions
       case .AUTODOWNLOAD:
+        return true
         return (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") || isAlpha //Only in Alpha Versions or taz Accounts
     }
   }

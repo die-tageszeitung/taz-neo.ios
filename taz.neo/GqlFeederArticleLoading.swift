@@ -88,7 +88,7 @@ extension GqlFeeder {
     let wasAuthenticated: Bool = authToken != nil
     let request = ArticleLoading.request(articles)
       
-      gqlSession.query(graphql: request, type: [String:ArticleLoading].self) { result in
+      gqlSession.query(graphql: request, type: [String:ArticleLoading].self) { (result, _) in
           switch result {
           case .success(let response):
               finished(.success((response["articleLoading"])?.articleList ?? []))

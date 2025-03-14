@@ -417,7 +417,7 @@ extension GqlFeeder {
     let request = searchItem.request
     let started = Date()
     gqlSession.query(graphql: request,
-                     type: GqlSearchResponseWrapper.self) {   [weak self] res in
+                     type: GqlSearchResponseWrapper.self) {   [weak self] (res, _) in
       guard let self = self else { return }
       print("Request Duration: \(Date().timeIntervalSince(started))s for: \(request)")
       searchItem.searching = false

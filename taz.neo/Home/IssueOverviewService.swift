@@ -214,7 +214,7 @@ class IssueOverviewService: NSObject, DoesLog {
                                         date: date,
                                         count: count,
                                         isOverview: true,
-                                        returnOnMain: true) {[weak self] res in
+                                        returnOnMain: true) {[weak self] (res, _) in
       guard let self = self else { return }
       var newIssues: [StoredIssue] = []
       self.debug("Finished load Issues for: \(date.issueKey), count: \(count)")

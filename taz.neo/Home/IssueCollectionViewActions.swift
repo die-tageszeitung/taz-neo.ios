@@ -92,6 +92,15 @@ extension IssueCollectionViewActions {
       }
     }
     
+    
+    actions.addMenuItem(title: "Auto Download Test",
+                        icon: "download") {[weak self] _ in
+      onMain(after: 5.0) {
+        self?.log("Auto-Download Test....")
+        BackgroundDownloadService.checkForNewIssue(nil)
+      }
+    }
+    
     actions.actions.append(contentsOf: issue.contextMenu(group: 1).actions)
     Usage.track(Usage.event.dialog.IssueActions)
     return UIContextMenuConfiguration(identifier: nil,

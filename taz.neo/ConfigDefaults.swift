@@ -58,6 +58,7 @@ private let configValues = [
   "autoloadPdf" : "false",
   // "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
+  "issueDownloadTestOffset": "0",
   // show teaser text in bookmarks list
   "smartBackFromArticle" : "false",
   "autoHideToolbar" : "true",
@@ -72,6 +73,7 @@ private let configValues = [
   "showCoachmarks" : Device.isSimulator ? "false" : "true",
   "cmLastPrio": "1",
   "cmSessionCount": "0",
+  "autoDownloadedIssuesSinceLastAppUse": "0",
   "multiColumnModeLandscape": "false",
   "multiColumnModePortrait": "false",
   "columnCountLandscape": "3",
@@ -151,6 +153,24 @@ extension Defaults {
   }
   
   ///Helper to get current server from user defaults
+  static var backgroundDownloadIssueDate : Date? {
+    get {
+      if let curr = Defaults.singleton["backgroundDownloadIssueDate"] {
+        return Date.fromString(curr)
+      }
+      return nil
+    }
+    set {
+      if let date = newValue {
+        Defaults.singleton["backgroundDownloadIssueDate"] = Date.toString(date)
+      }
+      else {
+        Defaults.singleton["backgroundDownloadIssueDate"] = nil
+      }
+    }
+  }
+  
+  ///Helper to get current server from user defaults
   static var notificationsActivationPopupRejectedTemporaryDate : Date? {
     get {
       if let curr = Defaults.singleton["notificationsActivationPopupRejectedTemporaryDate"] {
@@ -184,6 +204,9 @@ extension Defaults {
       }
     }
   }
+  
+  ///Helper to get autoloadPdf from user defaults for simple access in extensions
+  static var autoloadPdf : Bool { Defaults.singleton.bool(for: "autoloadPdf", false) }
   
   typealias columnSettingData = (used:Int, available: Int, setting: Int)
   
