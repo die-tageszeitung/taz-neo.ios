@@ -8,6 +8,7 @@
 
 import Foundation
 import NorthLib
+import UIKit
 
 /**
  
@@ -55,35 +56,33 @@ import NorthLib
 
 class BackgroundDownloadService: DoesLog {
   
+  @Default("autoloadNewIssues")
+  var autoloadNewIssues: Bool
+  
+  @Default("autoloadPdf")
+  var autoloadPdf: Bool
+  
+  @Default("autoloadAudio")
+  var autoloadAudio: Bool
+  
+  @Default("autoloadOnlyInWLAN")
+  var autoloadOnlyInWLAN: Bool
+  
+  @Default("autoDownloadedIssuesSinceLastAppUse")
+  var autoDownloadedIssuesSinceLastAppUse: Int
+
+  static let maxUnreadIssuesToDownload: Int = 3
+  
   var fetchCompletionHandler: FetchCompletionHandler?
+    
+  static func dlCallback(err: Error?) { Self.shared.dlCallback(err: err) }
   
-  @Default("issueDownloadTestOffset")
-  var issueDownloadTestOffset: Int
+  fileprivate var currentFeederData = Defaults.currentFeeder
   
-//  var dlCallback: (Error?)->()
-//  static var dlCallback: (Error?)->() {
-//    get { return (UIApplication.shared.delegate as! AppDelegate).dlCallback }
-//    set { (UIApplication.shared.delegate as! AppDelegate).dlCallback = newValue }
-//  }
-  
-  static func dlCallback(err: Error?) {
-    if let err { Self.shared.log("Error in download: \(err)") }
-    else { Self.shared.log("Download successful") }
-  }
-  
-//  private func dlCallback(err: Error?) {
-//    if let err { log("Error in download: \(err)") }
-//    else { log("Download successful") }
-//  }
-  
-  
-  fileprivate var currentFeederData : (name: String, url: String, feed: String)
-//    = Defaults.currentFeeder
-  = (name: "taz-test", url: "https://dl.taz.de/appGraphQl", feed: "taz")
-  
-  fileprivate var feeder: BakgroundDownloadGqlFeeder?
-  
-  fileprivate var downloadingIssues: [Issue] = []
+  fileprivate var feeder: BackgroundDownloadGqlFeeder?
+
+  fileprivate var downloadId: String?
+  fileprivate var downloadStart: UsTime?
   
   fileprivate static let shared = BackgroundDownloadService()
   private init() {}
@@ -104,33 +103,87 @@ extension BackgroundDownloadService {
       return
     }
     
-#warning("Use the right one!")
-    guard let issue = downloadingIssues.pop() else {
-      log("Download succeed but no issue to persist!")
+    guard let issueDate = Defaults.backgroundDownloadIssueDate else {
+      self.log("No Issue Date found to update")
       return
     }
     
+    if let downloadStart = downloadStart, let downloadId = downloadId {
+      let nsec = UsTime.now.timeInterval - downloadStart.timeInterval
+      feeder?.stopDownload(dlId: downloadId, seconds: nsec, returnOnMain: false) { [weak self] err in
+        self?.log("send stop to server for dlId: \(downloadId) with err: \(err)")
+        self?.downloadId = nil
+        self?.downloadStart = nil
+      }
+    }
+    else {
+      log("cannot send stop to server missing downloadStart or downloadId")
+    }
+    
+    updateDatabase {[weak self] in
+      self?.setIssueCompleete(for: issueDate)
+    }
+  }
+  
+  private func updateDatabase(handler: @escaping()-> Void) {
     onMain {
       if ArticleDB.singleton == nil {
-        //self.currentFeeder.name
-        ArticleDB(name: "taz-test") { [weak self] _ in
-          self?.persist(issue: issue)
+        let dbName = Defaults.currentFeeder.name
+        ArticleDB(name: dbName) {[weak self] err in
+          if let err = err {
+            self?.log("failed open database \(err)")
+            self?.log("try update anyway ...may crash?")
+          }
+          handler()
         }
       }
       else {
-        self.persist(issue: issue)
+        handler()
       }
     }
   }
   
+  func setIssueCompleete(for issueDate: Date) {
+    self.log("Update Issue for \(issueDate.short) after Download")
+    ///just for testing
+    guard let storedFeeder =  StoredFeeder.get(name: currentFeederData.name).first else {
+      self.log("no storedFeeder found for \(currentFeederData.name)")
+      return
+    }
+    
+    guard let feed = storedFeeder.feeds.first as? StoredFeed else {
+      self.log("no stored Feed found for \(currentFeederData.name)")
+      return
+    }
+    
+    guard let si = StoredIssue.get(date: issueDate, inFeed: feed).first else {
+      self.log("no StoredIssue for date: \(issueDate.short) found in feed \(currentFeederData.name)")
+      return
+    }
+    
+#warning("May refactor to create this on Startup?")
+    if autoloadPdf {
+      log("create facsimile image for page with pagina: \(si.pages?.first?.pagina ?? "-")")
+      _ = si.pages?.first?.facsimile//create facsimile image!
+    }
+    
+    si.isComplete = true
+    ArticleDB.save()
+    self.log("Background Download & Update finished")
+    
+    if Defaults.newIssueSystemSetting {
+      LocalNotifications.notify(message: "taz vom \(issueDate.short) heruntergeladen")
+    }
+  }
+  
   public static func checkForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler?) {
-    print("...static checkForNewIssue requested")
+    Self.shared.log("...static checkForNewIssue requested")
     let semaphore = DispatchSemaphore(value: 0)
     
     Task {
-      print("...static checkForNewIssue  do")
+      Self.shared.log("...static checkForNewIssue  do")
       await BackgroundDownloadService.shared.checkForNewIssue(fetchCompletionHandler)
-      print("...static checkForNewIssue done")
+      Self.shared.log("...static checkForNewIssue done")
       semaphore.signal()
     }
     semaphore.wait()
@@ -139,6 +192,36 @@ extension BackgroundDownloadService {
   private func checkForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler?) async {
     do {
       log("...checkForNewIssue")
+      
+      guard autoloadNewIssues else {
+        throw BackgroundDownloadError("autoloadNewIssues disabled")
+      }
+      
+      guard App.isAvailable(.AUTODOWNLOAD) else {
+        throw BackgroundDownloadError("autoload not available")
+      }
+      
+      guard autoDownloadedIssuesSinceLastAppUse < Self.maxUnreadIssuesToDownload else {
+        throw BackgroundDownloadError("Do not download issues anymore due they are not read yet!")
+      }
+      
+      if await UIApplication.shared.applicationState == .active {
+        guard let feederContext = TazAppEnvironment.sharedInstance.feederContext else {
+          throw BackgroundDownloadError("Currently in active State bnut no feederContext!")
+        }
+        Notification.receiveOnce(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
+          guard let lastIssueDate = TazAppEnvironment.sharedInstance.service?.lastIssueDate else {
+            self?.log("No last IssueDate available")
+            return
+          }
+          self?.log("Try to download issue withDate: \(lastIssueDate.short) in active State")
+          TazAppEnvironment.sharedInstance.service?.download(issueAt: lastIssueDate,
+                                                             withAudio: self?.autoloadAudio ?? false)
+        }
+        feederContext.checkForNewIssues(force: true)
+        throw BackgroundDownloadError("prevent Background Download in Forground")
+      }
+      
       let token = SimpleAuthenticator.getUserData().token
       
       guard (token?.length ?? 0) > 10 else {
@@ -147,7 +230,7 @@ extension BackgroundDownloadService {
       
       if feeder == nil {
         log("...create feeder")
-        feeder = BakgroundDownloadGqlFeeder(title: currentFeederData.name,
+        feeder = BackgroundDownloadGqlFeeder(title: currentFeederData.name,
                                             url: currentFeederData.url,
                                             token: token)
       }
@@ -166,10 +249,8 @@ extension BackgroundDownloadService {
       
       let withPages = false
       let withAudio = false
-      let date = Date(timeIntervalSinceNow: -60*60*24*Double(issueDownloadTestOffset))
-      log("...fetch latest issue for date: \(date.short)")
       let issueData = try await feeder.issues(feed: feed,
-                                              date: date,
+                                              date: nil,
                                               count: 1,
                                               isPages: withPages,
                                               withAudio: withAudio, returnOnMain: false)
@@ -184,7 +265,8 @@ extension BackgroundDownloadService {
         throw BackgroundDownloadError("No Zip to Download!")
       }
       
-      downloadingIssues.append(issue)
+      Defaults.backgroundDownloadIssueDate = issue.date
+
       let issueDir = issue.dir
       if !issueDir.exists {
         issueDir.create()
@@ -194,17 +276,29 @@ extension BackgroundDownloadService {
         if !glink.isLink { glink.link(to: feeder.globalDir.path) }
       }
       
+      updateDatabase {[weak self] in
+        self?.persist(issue: issue)
+      }
+      
       let bgSession = try BackgroundSession(zipUrl) {[weak self] err in
         self?.dlCallback(err: err)
       }
       
+      log("mark start download for issue in feed \(issue.feed.name)")
+      let startDlResult = try await feeder.markStartDownloadAsync(feed: issue.feed,
+                                                                  issue: issue,
+                                                                  isAutomatically: true,
+                                                                  returnOnMain: false)
+      self.downloadId = startDlResult.0
+      self.downloadStart = startDlResult.1
+      
       self.log("downloading to: \(issueDir.path)")
+      bgSession.allowMobile = !autoloadOnlyInWLAN
       bgSession.downloadZip(toDir: issueDir.path)
-      
+#warning("Change this if ZIPS contain everything!")
       var additionalFiles: [FileEntry] = issue.moment.carouselFiles
-///true = load pdf!
       let pages = true ? issue.pages ?? [] : []
-      
+#warning("Remove this if ZIPS contain everything!")
       for page in pages {
         if page.isProbablyNotInZip,
             let fileEntry = page.pdf {
@@ -212,47 +306,21 @@ extension BackgroundDownloadService {
           additionalFiles.append(fileEntry)
         }
       }
-      /**
-       Ausgabe 13.3. kann nicht erkennen, welche Dateien fehlen!
-       for facsimile: 1 page frames #: 19 firstFrameUrl: s0090131
-       for facsimile: 2 page frames #: 3 firstFrameUrl: art03895
-       for facsimile: 3 page frames #: 2 firstFrameUrl: art03895
-       for facsimile: 4-5 page frames #: 1 firstFrameUrl: art03895
-       for facsimile: 6 page frames #: 4 firstFrameUrl: art03895
-       for facsimile: 7 page frames #: 3 firstFrameUrl: https://
-       for facsimile: 8 page frames #: 5 firstFrameUrl: art03895
-       for facsimile: 9 page frames #: 2 firstFrameUrl: https://
-       for facsimile: 10 page frames #: 3 firstFrameUrl: art03895
-       for facsimile: 11 page frames #: 3 firstFrameUrl: https://
-       for facsimile: 1 page frames #: 1 firstFrameUrl: https://
-       for facsimile: 12 page frames #: 7 firstFrameUrl: s0090131
-       for facsimile: 13 page frames #: 1 firstFrameUrl: art03895
-       for facsimile: 14 page frames #: 2 firstFrameUrl: art03895
-       for facsimile: 15 page frames #: 2 firstFrameUrl: art03895
-       for facsimile: 16 page frames #: 4 firstFrameUrl: art03895
-       for facsimile: 17 page frames #: 4 firstFrameUrl: art03895
-       for facsimile: 2 page frames #: 1 firstFrameUrl: https://
-       for facsimile: 18 page frames #: 4 firstFrameUrl: art03895
-       for facsimile: 19 page frames #: 4 firstFrameUrl: https://
-       for facsimile: 20 page frames #: 8 firstFrameUrl: art03895
-       for facsimile: 21 page frames #: 2 firstFrameUrl: art03895
-       for facsimile: 22 page frames #: 6 firstFrameUrl: art03895
-       for facsimile: 23 page frames #: 1 firstFrameUrl: art03895
-       for facsimile: 24 page frames #: 5 firstFrameUrl: art03895
-       for facsimile: 25 page frames #: 2 firstFrameUrl: art03895
-       for facsimile: 26-27 page frames #: 5 firstFrameUrl: art03895
-       for facsimile: 28 page frames #: 2 firstFrameUrl: https://
-       
-       */
+      
+      if autoloadAudio {
+        additionalFiles.append(contentsOf: issue.audioFiles)
+      }
       
       try additionalFiles.forEach {
         let url = issue.baseUrl.appending("/\($0.fileName)")
         let bgSession = try BackgroundSession(url) {[weak self] err in
           self?.dlCallback(err: err)
         }
+        bgSession.allowMobile = !autoloadOnlyInWLAN
         self.log("downloading \($0.fileName) from: \(url) to: \(issueDir.path)")
         bgSession.download(toDir: issueDir.path)
       }
+      autoDownloadedIssuesSinceLastAppUse += 1
       fetchCompletionHandler?(.newData)
     }
     catch {
@@ -264,17 +332,12 @@ extension BackgroundDownloadService {
   
   func persist(issue: Issue) {
     ///just for testing
-    guard let storedFeeder =  StoredFeeder.get(name: self.currentFeederData.name).first else {
+    guard StoredFeeder.get(name: self.currentFeederData.name).first != nil else {
       self.log("no storedFeeder found for \(self.currentFeederData.name)")
       return
     }
     
     let si = StoredIssue.persist(object: issue)
-    
-    if true {
-      log("create facsimile image for page with pagina: \(si.pages?.first?.pagina ?? "-")")
-      _ = si.pages?.first?.facsimile//create facsimile image!
-    }
     
     let pd = StoredPublicationDate.new()
     pd.pr.feed = si.pr.feed//!requzired due set is not allowed due circular ref's
@@ -295,7 +358,7 @@ fileprivate extension BackgroundDownloadService {
   }
 }
 
-fileprivate extension BakgroundDownloadGqlFeeder {
+fileprivate extension BackgroundDownloadGqlFeeder {
   typealias IssueData = (issues: [Issue], data: Data?)
   
   func issues(feed: Feed,

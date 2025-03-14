@@ -147,8 +147,8 @@
 		77ECD87E2A814ED100DFBBB6 /* LocalNotifications+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD87D2A814ED100DFBBB6 /* LocalNotifications+Extension.swift */; };
 		77EE1AE52D7229C8002FA027 /* BackgroundZipDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EE1AE42D7229C8002FA027 /* BackgroundZipDownloader.swift */; };
 		77EE1AE62D7229C8002FA027 /* BackgroundZipDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EE1AE42D7229C8002FA027 /* BackgroundZipDownloader.swift */; };
-		77F66E122D760CC60025F459 /* BakgroundDownloadGqlFeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F66E112D760CC60025F459 /* BakgroundDownloadGqlFeeder.swift */; };
-		77F66E132D760CC60025F459 /* BakgroundDownloadGqlFeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F66E112D760CC60025F459 /* BakgroundDownloadGqlFeeder.swift */; };
+		77F66E122D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F66E112D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift */; };
+		77F66E132D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F66E112D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift */; };
 		77FABFA22A4DD56500FB9EB1 /* ArticlePlayerUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */; };
 		94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94487DAB274BCCE10066BCD0 /* AppHelper.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
@@ -435,7 +435,7 @@
 		77EE1AE42D7229C8002FA027 /* BackgroundZipDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundZipDownloader.swift; sourceTree = "<group>"; };
 		77F0D1342742B4E900D3A432 /* addLocalResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addLocalResources.sh; sourceTree = "<group>"; };
 		77F0D1392742B58400D3A432 /* LastBuildNumber.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = LastBuildNumber.rb; sourceTree = "<group>"; };
-		77F66E112D760CC60025F459 /* BakgroundDownloadGqlFeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BakgroundDownloadGqlFeeder.swift; sourceTree = "<group>"; };
+		77F66E112D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundDownloadGqlFeeder.swift; sourceTree = "<group>"; };
 		77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticlePlayerUI.swift; sourceTree = "<group>"; };
 		94487DAB274BCCE10066BCD0 /* AppHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelper.swift; sourceTree = "<group>"; };
 		948E40CD2745447500D32CFE /* post-checkout-prototype.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "post-checkout-prototype.sh"; sourceTree = "<group>"; };
@@ -797,7 +797,7 @@
 				AE822631232A717E00FFBE67 /* DataModel.swift */,
 				AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */,
 				77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */,
-				77F66E112D760CC60025F459 /* BakgroundDownloadGqlFeeder.swift */,
+				77F66E112D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift */,
 				77EE1AE42D7229C8002FA027 /* BackgroundZipDownloader.swift */,
 				AEC7D46C249A598B008630FB /* FeederContext.swift */,
 				77CB2D212A814A3100021804 /* FeederContext+IssueDownload.swift */,
@@ -1243,7 +1243,7 @@
 				77C766762C29C30300198324 /* LastReadBusiness.swift in Sources */,
 				AE5131A62AFBCADB002289E8 /* FormsController.swift in Sources */,
 				773E74C12D55235700570E46 /* VirtualIssue.swift in Sources */,
-				77F66E122D760CC60025F459 /* BakgroundDownloadGqlFeeder.swift in Sources */,
+				77F66E122D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift in Sources */,
 				7758CCB32B504DAA000B8E30 /* LMdSliderHeader.swift in Sources */,
 				AE5131A72AFBCADB002289E8 /* FeederContext+Notifications.swift in Sources */,
 				77E839922CED2F55001CBB35 /* BookmarkTVC.swift in Sources */,
@@ -1429,7 +1429,7 @@
 				774C6F8129CB5BAF001285FB /* KeyboardToolbarForText.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
 				77E6E99D2CF8520500430B83 /* BookmarkTableHeaderCell.swift in Sources */,
-				77F66E132D760CC60025F459 /* BakgroundDownloadGqlFeeder.swift in Sources */,
+				77F66E132D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift in Sources */,
 				777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */,
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,
 				AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */,

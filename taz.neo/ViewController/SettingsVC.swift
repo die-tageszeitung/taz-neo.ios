@@ -20,6 +20,9 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("autoloadOnlyInWLAN")
   var autoloadOnlyInWLAN: Bool
   
+  @Default("autoloadAudio")
+  var autoloadAudio: Bool
+  
   @Default("voiceoverControls")
   var voiceoverControls: Bool
   
@@ -192,6 +195,13 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   initialValue: autoloadOnlyInWLAN,
                   onChange: {[weak self] newValue in
     self?.autoloadOnlyInWLAN = newValue })
+  
+  lazy var autoloadAudioCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Audiodateien ebenfalls automatisch herunterladen",
+                  detailText: "Hinweis: Führt zu höherem Datenverbrauch und erheblich höherer Speicherbelegung.",
+                  initialValue: autoloadAudio,
+                  onChange: {[weak self] newValue in
+    self?.autoloadAudio = newValue })
   
   lazy var voiceoverControlsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Voiceover Steuerung",
@@ -801,6 +811,7 @@ extension SettingsVC {
     
     if autoloadNewIssues && App.isAvailable(.AUTODOWNLOAD) {
       cells.append(wlanCell)
+      cells.append(autoloadAudioCell)
     }
     #if TAZ
     cells.append(epaperLoadCell)

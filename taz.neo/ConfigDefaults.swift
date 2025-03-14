@@ -73,6 +73,7 @@ private let configValues = [
   "showCoachmarks" : Device.isSimulator ? "false" : "true",
   "cmLastPrio": "1",
   "cmSessionCount": "0",
+  "autoDownloadedIssuesSinceLastAppUse": "0",
   "multiColumnModeLandscape": "false",
   "multiColumnModePortrait": "false",
   "columnCountLandscape": "3",
@@ -147,6 +148,24 @@ extension Defaults {
       }
       else {
         Defaults.singleton["notificationsActivationPopupRejectedDate"] = nil
+      }
+    }
+  }
+  
+  ///Helper to get current server from user defaults
+  static var backgroundDownloadIssueDate : Date? {
+    get {
+      if let curr = Defaults.singleton["backgroundDownloadIssueDate"] {
+        return Date.fromString(curr)
+      }
+      return nil
+    }
+    set {
+      if let date = newValue {
+        Defaults.singleton["backgroundDownloadIssueDate"] = Date.toString(date)
+      }
+      else {
+        Defaults.singleton["backgroundDownloadIssueDate"] = nil
       }
     }
   }

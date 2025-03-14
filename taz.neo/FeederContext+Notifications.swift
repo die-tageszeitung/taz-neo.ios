@@ -147,17 +147,9 @@ extension FeederContext {
     ///
     ///**ENSURE INTERNAL USERS DID NOT HANDLE SILENT PN ABO POLL ...App may crash in BG State**
     ///but its still testable if app would crash for the changed code, just by turn on autodownload
-    if self.autoloadNewIssues == false
-        || App.isAvailable(.AUTODOWNLOAD) == false
-        || Defaults.newIssueSystemSetting == false {
-      log("Do not handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
-      fetchCompletionHandler?(.noData)
-      return
-    }
     log("Handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)")
     ///Do not access feed here, its maybe uninitialized! self.defaultFeed.name
     BackgroundDownloadService.checkForNewIssue(fetchCompletionHandler)
-    //WARNING handleNewIssuePush is probaably not called if App is Closed!
   }
 }
 
