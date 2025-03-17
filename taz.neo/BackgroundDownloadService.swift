@@ -177,36 +177,38 @@ extension BackgroundDownloadService {
   }
   
   public static func checkForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler?) {
-    Self.shared.log("...static checkForNewIssue requested")
-    let semaphore = DispatchSemaphore(value: 0)
+    Self.shared.log("...static checkForNewIssue requested, App State: \(UIApplication.shared.stateDescription)")
+    let appState = UIApplication.shared.applicationState
     
     Task {
       Self.shared.log("...static checkForNewIssue  do")
-      await BackgroundDownloadService.shared.checkForNewIssue(fetchCompletionHandler)
+      await BackgroundDownloadService.shared.checkForNewIssue(fetchCompletionHandler, currentAppState: appState)
       Self.shared.log("...static checkForNewIssue done")
-      semaphore.signal()
     }
-    semaphore.wait()
   }
   
-  private func checkForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler?) async {
+  private func checkForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler?, currentAppState: UIApplication.State) async {
     do {
       log("...checkForNewIssue")
       
       guard autoloadNewIssues else {
         throw BackgroundDownloadError("autoloadNewIssues disabled")
       }
-      
+      log("...checkForNewIssue #2")
       guard App.isAvailable(.AUTODOWNLOAD) else {
+        log("...checkForNewIssue #2x")
         throw BackgroundDownloadError("autoload not available")
       }
-      
+      log("...checkForNewIssue #3")
       guard autoDownloadedIssuesSinceLastAppUse < Self.maxUnreadIssuesToDownload else {
+        log("...checkForNewIssue #3x")
         throw BackgroundDownloadError("Do not download issues anymore due they are not read yet!")
       }
       
-      if await UIApplication.shared.applicationState == .active {
+      if currentAppState == .active {
+        log("...checkForNewIssue 4 > active!")
         guard let feederContext = TazAppEnvironment.sharedInstance.feederContext else {
+          log("...checkForNewIssue # no feeder context")
           throw BackgroundDownloadError("Currently in active State bnut no feederContext!")
         }
         Notification.receiveOnce(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
