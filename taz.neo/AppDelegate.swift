@@ -66,6 +66,7 @@ class AppDelegate: NotifiedDelegate {
                    handleEventsForBackgroundURLSession identifier: String,
                    completionHandler: @escaping () -> Void) {
     do {
+      log("application handleEventsForBackgroundURLSession identifier: \(identifier)")
       try BackgroundSession.resume(name: identifier,
                                    completionHandler: completionHandler,
                                    callback: BackgroundDownloadService.dlCallback)

@@ -233,6 +233,7 @@ open class FeederContext: DoesLog {
   }
   
   func checkForNewIssues(force: Bool = false){
+    log("checkForNewIssues force: \(force) url: \(netAvailability.url)")
     if force || netAvailability.isConnected == false {
       netAvailability.recheck(force: force)
 //      Notification.send(Const.NotificationNames.checkForNewIssues,

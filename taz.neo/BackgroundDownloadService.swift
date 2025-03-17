@@ -96,8 +96,8 @@ fileprivate extension Issue {
 }
 
 extension BackgroundDownloadService {
-  func dlCallback(err: Error?) {
-    log("dlCallback called...")
+  func dlCallback(err: Error?, downloadUrl: String? = nil) {
+    log("dlCallback called...for URL: \(downloadUrl ?? "-")")
     if let err = err {
       log("Failed to Download with err: \(err)")
       return
@@ -220,7 +220,7 @@ extension BackgroundDownloadService {
           TazAppEnvironment.sharedInstance.service?.download(issueAt: lastIssueDate,
                                                              withAudio: self?.autoloadAudio ?? false)
         }
-        feederContext.checkForNewIssues(force: true)
+        feederContext.checkForNewIssues(force: false)
         throw BackgroundDownloadError("prevent Background Download in Forground")
       }
       
@@ -283,7 +283,7 @@ extension BackgroundDownloadService {
       }
       
       let bgSession = try BackgroundSession(zipUrl) {[weak self] err in
-        self?.dlCallback(err: err)
+        self?.dlCallback(err: err, downloadUrl: zipUrl)
       }
       
       log("mark start download for issue in feed \(issue.feed.name)")
@@ -316,7 +316,7 @@ extension BackgroundDownloadService {
       try additionalFiles.forEach {
         let url = issue.baseUrl.appending("/\($0.fileName)")
         let bgSession = try BackgroundSession(url) {[weak self] err in
-          self?.dlCallback(err: err)
+          self?.dlCallback(err: err, downloadUrl: zipUrl)
         }
         bgSession.allowMobile = !autoloadOnlyInWLAN
         self.log("downloading \($0.fileName) from: \(url) to: \(issueDir.path)")
