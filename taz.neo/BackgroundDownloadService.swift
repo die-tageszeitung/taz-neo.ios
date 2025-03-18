@@ -103,6 +103,11 @@ extension BackgroundDownloadService {
       return
     }
     
+    if downloadUrl?.lastPathComponent.hasSuffix(".zip") == false {
+      self.log("Do not update Database for file \(downloadUrl?.lastPathComponent ?? "-")")
+      return
+    }
+    
     guard let issueDate = Defaults.backgroundDownloadIssueDate else {
       self.log("No Issue Date found to update")
       return
