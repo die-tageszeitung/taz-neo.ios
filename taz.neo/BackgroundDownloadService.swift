@@ -103,7 +103,7 @@ extension BackgroundDownloadService {
       return
     }
     
-    if downloadUrl?.lastPathComponent.hasSuffix(".zip") == false {
+    if (downloadUrl?.lastPathComponent ?? "").hasSuffix(".zip") == false {
       self.log("Do not update Database for file \(downloadUrl?.lastPathComponent ?? "-")")
       return
     }
@@ -133,6 +133,7 @@ extension BackgroundDownloadService {
   private func updateDatabase(handler: @escaping()-> Void) {
     onMain {
       if ArticleDB.singleton == nil {
+        self.log("open database")
         let dbName = Defaults.currentFeeder.name
         ArticleDB(name: dbName) {[weak self] err in
           if let err = err {
@@ -143,9 +144,38 @@ extension BackgroundDownloadService {
         }
       }
       else {
+        self.log("use already opened database")
         handler()
       }
     }
+  }
+  
+  func openDbFfNeeded() async {
+      // Alles auf dem Main-Thread ausführen
+      await MainActor.run {
+          if ArticleDB.singleton == nil {
+              log("open database")
+          } else {
+              log("use already opened database")
+              return
+          }
+      }
+
+      let dbName = Defaults.currentFeeder.name
+
+      do {
+          try await withCheckedThrowingContinuation { continuation in
+            ArticleDB(name: dbName) {[weak self] err in
+                  if let err = err {
+                    self?.log("failed to open database \(err)")
+                    self?.log("try update anyway ... may crash?")
+                  }
+                  continuation.resume()
+              }
+          }
+      } catch {
+          log("Fehler beim Öffnen der Datenbank: \(error)")
+      }
   }
   
   func setIssueCompleete(for issueDate: Date) {
@@ -217,7 +247,8 @@ extension BackgroundDownloadService {
           throw BackgroundDownloadError("Currently in active State bnut no feederContext!")
         }
         Notification.receiveOnce(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
-          guard let lastIssueDate = TazAppEnvironment.sharedInstance.service?.lastIssueDate else {
+          guard let lastIssueDate = TazAppEnvironment.sharedInstance.service?.feederContext.gqlFeeder.latestIssue else {
+            self?.log("\(TazAppEnvironment.sharedInstance.service?.lastIssueDate.short ?? "-")")
             self?.log("No last IssueDate available")
             return
           }
@@ -228,6 +259,9 @@ extension BackgroundDownloadService {
         feederContext.checkForNewIssues(force: false)
         throw BackgroundDownloadError("prevent Background Download in Forground")
       }
+      
+      let issue: StoredIssue? = await fetchLastestIssueFromDb()
+      let latestRessources: StoredResources? = await fetchLatestRessourcesFromDb()
       
       let token = SimpleAuthenticator.getUserData().token
       
@@ -249,7 +283,7 @@ extension BackgroundDownloadService {
       try await feeder.updateStatus()
       
       let feed = feeder.feeds.first { $0.name == currentFeederData.feed }
-      log("...use matching feeder")
+      log("...use matching feeder current resources version: \(feeder.resourceVersion)")
       guard let feed = feed else {
         throw BackgroundDownloadError("Matching Feed not found! Feeder has \(feeder.feeds.count) feeds, required: \(currentFeederData.feed), first name: \(feeder.feeds.first?.name ?? "N/A")")
       }
@@ -272,16 +306,20 @@ extension BackgroundDownloadService {
         throw BackgroundDownloadError("No Zip to Download!")
       }
       
+      if Defaults.backgroundDownloadIssueDate?.short == issue.date.short {
+        log("...issue already downloaded, do not enqueue again!")
+        return
+      }
       Defaults.backgroundDownloadIssueDate = issue.date
 
       let issueDir = issue.dir
       if !issueDir.exists {
         issueDir.create()
-        let rlink = File(dir: issueDir.path, fname: "resources")
-        let glink = File(dir: issueDir.path, fname: "global")
-        if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
-        if !glink.isLink { glink.link(to: feeder.globalDir.path) }
       }
+      let rlink = File(dir: issueDir.path, fname: "resources")
+      let glink = File(dir: issueDir.path, fname: "global")
+      if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
+      if !glink.isLink { glink.link(to: feeder.globalDir.path) }
       
       updateDatabase {[weak self] in
         self?.persist(issue: issue)
@@ -298,6 +336,12 @@ extension BackgroundDownloadService {
                                                                   returnOnMain: false)
       self.downloadId = startDlResult.0
       self.downloadStart = startDlResult.1
+      
+      log("check if ressources download needed? \(issue.minResourceVersion) < \(latestRessources?.resourceVersion ?? 0)")
+      
+      if issue.minResourceVersion < latestRessources?.resourceVersion ?? 0 {
+        log("TODO Resources Download required!  ")
+      }
       
       self.log("downloading to: \(issueDir.path)")
       bgSession.allowMobile = !autoloadOnlyInWLAN
@@ -335,6 +379,22 @@ extension BackgroundDownloadService {
       feeder = nil
       fetchCompletionHandler?(.noData)
     }
+  }
+  
+  func fetchLastestIssueFromDb() async -> StoredIssue? {
+    await openDbFfNeeded()
+    ///just for testing
+    let feed = StoredFeeder.get(name: self.currentFeederData.name).first?.feeds.first
+    guard let sf = feed as? StoredFeed else {
+      self.log("no feed found for \(self.currentFeederData.name) first feed is: \(feed?.name ?? "-")")
+      return nil
+    }
+    return StoredIssue.latest(feed: sf)
+  }
+
+  func fetchLatestRessourcesFromDb() async -> StoredResources? {
+    await openDbFfNeeded()
+    return StoredResources.latest()
   }
   
   func persist(issue: Issue) {
@@ -400,3 +460,16 @@ fileprivate extension Page {
   }
 }
     
+extension ArticleDB {
+    public func openAsync() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            self.open { error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+}
