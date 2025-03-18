@@ -87,9 +87,10 @@ extension FeederContext {
         handleArticlePush(pn: pn, payload: payload, fetchCompletionHandler: fetchCompletionHandler)
       case .textNotificationAlert:
         #warning("may comes in double if real PN!")
-        if UIApplication.shared.applicationState == .active {
-          LocalNotifications.notify(payload: payload)
-        }
+        //This code triggers a local notification if App would be started
+        //if UIApplication.shared.applicationState == .active {
+        //  LocalNotifications.notify(payload: payload)
+        //}
         fetchCompletionHandler?(.noData)
       case .textNotificationToast:
         if UIApplication.shared.applicationState == .active,
