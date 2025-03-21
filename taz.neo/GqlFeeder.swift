@@ -584,6 +584,8 @@ class GqlIssue: Issue, GQLObject {
   var zipName: String?
   /// Name of zip file with all data plus PDF
   var zipNamePdf: String?
+  /// Name of zip file with all audio
+  var zipAudioName: String?
   /// Issue imprint
   var gqlImprint: GqlArticle?
   var imprint: Article? { return gqlImprint }

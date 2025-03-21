@@ -25,6 +25,7 @@ public class VirtualIssue: Issue {
   public var minResourceVersion: Int { 0 }
   public var zipName: String? { nil }
   public var zipNamePdf: String? { nil }
+  public var zipAudioName: String? { nil }
   public var imprint: Article? { nil }
   public var sections: [Section]?
   public var pages: [Page]? { nil }

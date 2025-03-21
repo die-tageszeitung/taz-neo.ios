@@ -1837,7 +1837,6 @@ extension StoredIssue: Equatable {
 
 /// A stored Issue
 public final class StoredIssue: Issue, StoredObject {
-  
   public static var entity = "Issue"
   public var pr: PersistentIssue // persistent record
   public var feed: Feed {
@@ -1904,6 +1903,10 @@ public final class StoredIssue: Issue, StoredObject {
   public var zipNamePdf: String? {
     get { return pr.zipNamePdf }
     set { pr.zipNamePdf = newValue }
+  }
+  public var zipAudioName: String? {
+    get { return pr.zipAudioName }
+    set { pr.zipAudioName = newValue }
   }
   public var fileList: [String]? { nil }
   public var fileListPdf: [String]? { nil }
