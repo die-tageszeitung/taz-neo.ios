@@ -55,6 +55,9 @@ import UIKit
 
 
 class BackgroundDownloadService: DoesLog {
+
+  @Default("currentIssueZipUrl")
+  var currentIssueZipUrl: String
   
   @Default("autoloadNewIssues")
   var autoloadNewIssues: Bool
@@ -102,13 +105,15 @@ fileprivate extension Issue {
 
 extension BackgroundDownloadService {
   func dlCallback(err: Error?, downloadUrl: String? = nil) {
-    log("dlCallback called...for URL: \(downloadUrl ?? "-")")
+    log("Download finished for URL: \(downloadUrl ?? "-")")
     if let err = err {
       log("Failed to Download with err: \(err)")
       return
     }
     
-    if (downloadUrl?.lastPathComponent ?? "").hasSuffix(".zip") == false {
+
+    log("Current Issue zip URL is: \(currentIssueZipUrl)")
+    if currentIssueZipUrl != downloadUrl {
       self.log("Do not update Database for file \(downloadUrl?.lastPathComponent ?? "-")")
       return
     }
@@ -230,6 +235,7 @@ extension BackgroundDownloadService {
   private func checkForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler?, currentAppState: UIApplication.State) async {
     do {
       log("...checkForNewIssue")
+      log("last Issue zip URL: \(currentIssueZipUrl)")
       
       guard autoloadNewIssues else {
         throw BackgroundDownloadError("autoloadNewIssues disabled")
@@ -332,7 +338,7 @@ extension BackgroundDownloadService {
         self?.persist(issue: issue)
       }
       
-      let bgSession = try BackgroundSession(zipUrl) {[weak self] err in
+      let zipDownloadSession = try BackgroundSession(zipUrl) {[weak self] err in
         self?.dlCallback(err: err, downloadUrl: zipUrl)
       }
       
@@ -350,17 +356,25 @@ extension BackgroundDownloadService {
 //        log("TODO Resources Download required!  ")
 //      }
       ///<<<EOF DISABLED
-      self.log("downloading to: \(issueDir.path)")
-      bgSession.allowMobile = !autoloadOnlyInWLAN
-      bgSession.downloadZip(toDir: issueDir.path)
+      zipDownloadSession.allowMobile = !autoloadOnlyInWLAN
+      if BackgroundSession.search(url: zipUrl) == false {
+        log("downloading \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issueDir.path)")
+        currentIssueZipUrl = zipUrl
+        zipDownloadSession.downloadZip(toDir: issueDir.path)
+      }
+      else {
+        log("skip download of \(zipUrl.lastPathComponent) its already downloading!")
+      }
       
       if autoloadAudio, let audioUrl = issue.zipAudioUrl {
-        let bgSession = try BackgroundSession(audioUrl) {[weak self] err in
+        let audioDownloadSession = try BackgroundSession(audioUrl) {[weak self] err in
           self?.dlCallback(err: err, downloadUrl: zipUrl)
         }
-        bgSession.allowMobile = !autoloadOnlyInWLAN
-        self.log("downloading \(audioUrl.lastPathComponent) from: \(audioUrl) to: \(issueDir.path)")
-        bgSession.downloadZip(toDir: issueDir.path)
+        audioDownloadSession.allowMobile = !autoloadOnlyInWLAN
+        self.log("downloading audio zip \(audioUrl.lastPathComponent) from: \(audioUrl) to: \(issueDir.path)")
+        if BackgroundSession.search(url: audioUrl) == false {
+          audioDownloadSession.downloadZip(toDir: issueDir.path)
+        }
       }
       autoDownloadedIssuesSinceLastAppUse += 1
       fetchCompletionHandler?(.newData)
