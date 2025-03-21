@@ -265,10 +265,10 @@ extension BackgroundDownloadService {
         feederContext.checkForNewIssues(force: false)
         throw BackgroundDownloadError("prevent Background Download in Forground")
       }
-      
-      let issue: StoredIssue? = await fetchLastestIssueFromDb()
-      let latestRessources: StoredResources? = await fetchLatestRessourcesFromDb()
-      
+#warning("disabled to get rid of crash!?")
+//      let issue: StoredIssue? = await fetchLastestIssueFromDb()
+//      let latestRessources: StoredResources? = await fetchLatestRessourcesFromDb()
+      ///<<<EOF DISABLED
       let token = SimpleAuthenticator.getUserData().token
       
       guard (token?.length ?? 0) > 10 else {
@@ -343,13 +343,13 @@ extension BackgroundDownloadService {
                                                                   returnOnMain: false)
       self.downloadId = startDlResult.0
       self.downloadStart = startDlResult.1
-      
-      log("check if ressources download needed? \(issue.minResourceVersion) < \(latestRessources?.resourceVersion ?? 0)")
-      
-      if issue.minResourceVersion < latestRessources?.resourceVersion ?? 0 {
-        log("TODO Resources Download required!  ")
-      }
-      
+#warning("disabled to get rid of crash!?")
+//      log("check if ressources download needed? \(issue.minResourceVersion) < \(latestRessources?.resourceVersion ?? 0)")
+//      
+//      if issue.minResourceVersion < latestRessources?.resourceVersion ?? 0 {
+//        log("TODO Resources Download required!  ")
+//      }
+      ///<<<EOF DISABLED
       self.log("downloading to: \(issueDir.path)")
       bgSession.allowMobile = !autoloadOnlyInWLAN
       bgSession.downloadZip(toDir: issueDir.path)
@@ -387,8 +387,9 @@ extension BackgroundDownloadService {
     await openDbFfNeeded()
     return StoredResources.latest()
   }
-  
+#warning("DB MAYBE NOT AVAILABLE!!!!")
   func persist(issue: Issue) {
+    log("persist new issue from: \(issue.date.short) in feed: \(issue.feed.name)...is DB available")
     ///just for testing
     guard StoredFeeder.get(name: self.currentFeederData.name).first != nil else {
       self.log("no storedFeeder found for \(self.currentFeederData.name)")
