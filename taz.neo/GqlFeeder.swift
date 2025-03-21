@@ -930,15 +930,18 @@ open class GqlFeeder: Feeder, DoesLog {
   
   //ToDo: Ensure this is just done once not on every net status Change
   public func updateStatus(loadAllPublicationDates:Bool = false, closure: @escaping(Result<Feeder,Error>)->()){
+    log("updateStatus loadAllPublicationDates:\(loadAllPublicationDates)")
     isUpdating = true
     let wasAuthenticated: Bool = authToken != nil
     feederStatus(loadAllPublicationDates:loadAllPublicationDates) { [weak self] (res) in
       guard let self = self else { return }
-      self.debug("feederStatus->res \(res)")
+      self.log("feederStatus->res \(res)")
       var ret: Result<Feeder,Error>
       switch res {
         case .success(let st):
-          self.checkResponse(authInfo: st.authInfo, wasAuthenticated: wasAuthenticated)
+          if gqlSession?.isBackground == false {
+            self.checkResponse(authInfo: st.authInfo, wasAuthenticated: wasAuthenticated)
+          }
           ret = .success(self)
           self.status = st
         case .failure(let err):

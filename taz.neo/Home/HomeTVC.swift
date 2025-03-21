@@ -353,6 +353,7 @@ class HomeTVC: UITableViewController {
     }
     ///Handle new issues
     Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
+      self?.log("received publicationDatesChanged")
       if self?.view.superview == nil {
         _ = service.reloadPublicationDates(refresh: nil, verticalCv: true)
         ///Old Data, Offline, In Issue, Online => Update => Back to Home: this fixes home in wired state

@@ -25,22 +25,23 @@ struct BackgroundDownloadError: Error {
 
 class BackgroundDownloadGqlFeeder: GqlFeeder, IssueDownloaderDelegate {
   func didFinishAllDownloads(error: (any Error)?) {
-    log("didFinishAllDownloads")
+    log("...didFinishAllDownloads")
   }
   
   @discardableResult
   public func updateStatus() async throws -> Feeder {
     let sess = self.gqlSession
     if let sess =  sess {
-      log ("updateStatus with \(sess.isBackground ? "BG" : "FG") session")
+      log("...updateStatus with \(sess.isBackground ? "BG" : "FG") session")
     }
     else {
-      log ("updateStatus with currently no session")
+      log("...updateStatus with currently no session")
     }
     
     return try await withCheckedThrowingContinuation { continuation in
+      self.log("....do updateStatus with await")
       updateStatus(loadAllPublicationDates: false) { [weak self] result in
-        self?.log ("updateStatus done with result: \(result)")
+        self?.log("...updateStatus done with result: \(result)")
         switch result {
           case .success(let feeder):
             continuation.resume(returning: feeder)

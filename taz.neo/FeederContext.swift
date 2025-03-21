@@ -215,6 +215,7 @@ open class FeederContext: DoesLog {
         ///No feeder update possible if offline
         return
       }
+      log("No stored Feeder found, update Feeder caLLED FROM INIT")
       updateFeeder()
       return
     }
@@ -225,7 +226,8 @@ open class FeederContext: DoesLog {
     notify("feederReady")
     cleanupOldIssues()//requires inited bookmarks
     checkAppUpdate()
-    if needUpdate {
+    if needUpdate {///NOT REACHABLE!!
+      ///
       updateFeeder(loadAllPublicationDates: loadAll)
     }
     
@@ -246,8 +248,9 @@ open class FeederContext: DoesLog {
         updateFeeder()
     }
   }
-  
+#warning("maybe do not use this in BG Download Stuff!!!")
   private func updateFeeder(loadAllPublicationDates:Bool = false){
+    log("...updateFeeder called, loadAllPublicationDates: \(loadAllPublicationDates)")
     if loadAllPublicationDates == false && gqlFeeder.isUpdating { return }
     Notification.send(Const.NotificationNames.checkForNewIssues,
                       content: FetchNewStatusHeader.status.fetchNewIssues,
@@ -269,9 +272,16 @@ open class FeederContext: DoesLog {
           self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
           if publicationDatesChanged {
             ArticleDB.save()
-            Notification.send(Const.NotificationNames.publicationDatesChanged)
+            log("...publication dates changed, only inform UI if not in background")
+            if gqlFeeder.gqlSession?.isBackground == false {
+              log("...inform")
+              Notification.send(Const.NotificationNames.publicationDatesChanged)
+              self.notifyNetStatus(isConnected: true)
+            }
+            else {
+              log("...not inform")
+            }
           }
-          self.notifyNetStatus(isConnected: true)
         case .failure:
           if let err = res.error() as? FeederError {
             if case .minVersionRequired(let smv) = err {
@@ -414,6 +424,7 @@ open class FeederContext: DoesLog {
       netAvailability.recheck()
     }
     else {
+      log("Enter Foreground, updateFeeder")
       updateFeeder()
     }
   }

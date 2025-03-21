@@ -2443,6 +2443,7 @@ public final class StoredFeed: Feed, StoredObject {
   
   /// Overwrite the persistent values
   public func update(from object: Feed) {
+    log("update Feed: \(object.name)")
     self.name = object.name
     self.feeder = object.feeder
     self.cycle = object.cycle
@@ -2586,6 +2587,7 @@ public final class StoredFeeder: Feeder, StoredObject {
   
   /// Overwrite the persistent values
   public func update(from object: Feeder) {
+    log("update feeder, persist feeds")
     self.title = object.title
     self.timeZone = object.timeZone
     self.baseUrl = object.baseUrl

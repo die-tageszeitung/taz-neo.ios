@@ -105,34 +105,34 @@ fileprivate extension Issue {
 
 extension BackgroundDownloadService {
   func dlCallback(err: Error?, downloadUrl: String? = nil) {
-    log("Download finished for URL: \(downloadUrl ?? "-")")
+    log("...Download finished for URL: \(downloadUrl ?? "-")")
     if let err = err {
-      log("Failed to Download with err: \(err)")
+      log("...Failed to Download with err: \(err)")
       return
     }
     
 
-    log("Current Issue zip URL is: \(currentIssueZipUrl)")
+    log("...Current Issue zip URL is: \(currentIssueZipUrl)")
     if currentIssueZipUrl != downloadUrl {
-      self.log("Do not update Database for file \(downloadUrl?.lastPathComponent ?? "-")")
+      self.log("...Do not update Database for file \(downloadUrl?.lastPathComponent ?? "-")")
       return
     }
     
     guard let issueDate = Defaults.backgroundDownloadIssueDate else {
-      self.log("No Issue Date found to update")
+      self.log("...No Issue Date found to update")
       return
     }
     
     if let downloadStart = downloadStart, let downloadId = downloadId {
       let nsec = UsTime.now.timeInterval - downloadStart.timeInterval
       feeder?.stopDownload(dlId: downloadId, seconds: nsec, returnOnMain: false) { [weak self] err in
-        self?.log("send stop to server for dlId: \(downloadId) with err: \(err)")
+        self?.log("...send stop to server for dlId: \(downloadId) with err: \(err)")
         self?.downloadId = nil
         self?.downloadStart = nil
       }
     }
     else {
-      log("cannot send stop to server missing downloadStart or downloadId")
+      log("...cannot send stop to server missing downloadStart or downloadId")
     }
     
     updateDatabase {[weak self] in
@@ -143,18 +143,18 @@ extension BackgroundDownloadService {
   private func updateDatabase(handler: @escaping()-> Void) {
     onMain {
       if ArticleDB.singleton == nil {
-        self.log("open database")
+        self.log("...open database")
         let dbName = Defaults.currentFeeder.name
         ArticleDB(name: dbName) {[weak self] err in
           if let err = err {
-            self?.log("failed open database \(err)")
-            self?.log("try update anyway ...may crash?")
+            self?.log("...failed open database \(err)")
+            self?.log("...try update anyway ...may crash?")
           }
           handler()
         }
       }
       else {
-        self.log("use already opened database")
+        self.log("...use already opened database")
         handler()
       }
     }
@@ -164,9 +164,9 @@ extension BackgroundDownloadService {
       // Alles auf dem Main-Thread ausführen
       await MainActor.run {
           if ArticleDB.singleton == nil {
-              log("open database")
+              log("...open database")
           } else {
-              log("use already opened database")
+              log("...use already opened database")
               return
           }
       }
@@ -177,44 +177,44 @@ extension BackgroundDownloadService {
           try await withCheckedThrowingContinuation { continuation in
             ArticleDB(name: dbName) {[weak self] err in
                   if let err = err {
-                    self?.log("failed to open database \(err)")
-                    self?.log("try update anyway ... may crash?")
+                    self?.log("...failed to open database \(err)")
+                    self?.log("...try update anyway ... may crash?")
                   }
                   continuation.resume()
               }
           }
       } catch {
-          log("Fehler beim Öffnen der Datenbank: \(error)")
+          log("...Fehler beim Öffnen der Datenbank: \(error)")
       }
   }
   
   func setIssueCompleete(for issueDate: Date) {
-    self.log("Update Issue for \(issueDate.short) after Download")
+    self.log("...Update Issue for \(issueDate.short) after Download")
     ///just for testing
     guard let storedFeeder =  StoredFeeder.get(name: currentFeederData.name).first else {
-      self.log("no storedFeeder found for \(currentFeederData.name)")
+      self.log("...no storedFeeder found for \(currentFeederData.name)")
       return
     }
     
     guard let feed = storedFeeder.feeds.first as? StoredFeed else {
-      self.log("no stored Feed found for \(currentFeederData.name)")
+      self.log("...no stored Feed found for \(currentFeederData.name)")
       return
     }
     
     guard let si = StoredIssue.get(date: issueDate, inFeed: feed).first else {
-      self.log("no StoredIssue for date: \(issueDate.short) found in feed \(currentFeederData.name)")
+      self.log("...no StoredIssue for date: \(issueDate.short) found in feed \(currentFeederData.name)")
       return
     }
     
 #warning("May refactor to create this on Startup?")
     if autoloadPdf {
-      log("create facsimile image for page with pagina: \(si.pages?.first?.pagina ?? "-")")
+      log("...create facsimile image for page with pagina: \(si.pages?.first?.pagina ?? "-")")
       _ = si.pages?.first?.facsimile//create facsimile image!
     }
     
     si.isComplete = true
     ArticleDB.save()
-    self.log("Background Download & Update finished")
+    self.log("...Background Download & Update finished")
     
     if Defaults.newIssueSystemSetting {
       LocalNotifications.notify(message: "taz vom \(issueDate.short) heruntergeladen")
@@ -235,7 +235,7 @@ extension BackgroundDownloadService {
   private func checkForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler?, currentAppState: UIApplication.State) async {
     do {
       log("...checkForNewIssue")
-      log("last Issue zip URL: \(currentIssueZipUrl)")
+      log("...last Issue zip URL: \(currentIssueZipUrl)")
       
       guard autoloadNewIssues else {
         throw BackgroundDownloadError("autoloadNewIssues disabled")
@@ -246,13 +246,14 @@ extension BackgroundDownloadService {
         throw BackgroundDownloadError("autoload not available")
       }
       log("...checkForNewIssue #3")
-      guard autoDownloadedIssuesSinceLastAppUse < Self.maxUnreadIssuesToDownload else {
+      #warning("IMPLEMENT TODO 1.5.0")
+      guard true || autoDownloadedIssuesSinceLastAppUse < Self.maxUnreadIssuesToDownload else {
         log("...checkForNewIssue #3x")
         throw BackgroundDownloadError("Do not download issues anymore due they are not read yet!")
       }
       
-      //if false && currentAppState == .active { Debugging "active" state => more/different errors
-      if currentAppState == .active {
+      if false && currentAppState == .active { //Debugging "active" state => more/different errors
+//      if currentAppState == .active {
         log("...checkForNewIssue 4 > active!")
         guard let feederContext = TazAppEnvironment.sharedInstance.feederContext else {
           log("...checkForNewIssue # no feeder context")
@@ -260,11 +261,11 @@ extension BackgroundDownloadService {
         }
         Notification.receiveOnce(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
           guard let lastIssueDate = TazAppEnvironment.sharedInstance.service?.feederContext.gqlFeeder.latestIssue else {
-            self?.log("\(TazAppEnvironment.sharedInstance.service?.lastIssueDate.short ?? "-")")
-            self?.log("No last IssueDate available")
+            self?.log("...\(TazAppEnvironment.sharedInstance.service?.lastIssueDate.short ?? "-")")
+            self?.log("...No last IssueDate available")
             return
           }
-          self?.log("Try to download issue withDate: \(lastIssueDate.short) in active State")
+          self?.log("...Try to download issue withDate: \(lastIssueDate.short) in active State")
           TazAppEnvironment.sharedInstance.service?.download(issueAt: lastIssueDate,
                                                              withAudio: self?.autoloadAudio ?? false)
         }
@@ -318,9 +319,10 @@ extension BackgroundDownloadService {
       guard let zipUrl = issue.zipUrl else {
         throw BackgroundDownloadError("No Zip to Download!")
       }
-      
-      if Defaults.backgroundDownloadIssueDate?.short == issue.date.short {
+#warning("revert")
+      if false && Defaults.backgroundDownloadIssueDate?.short == issue.date.short {
         log("...issue already downloaded, do not enqueue again!")
+        throw BackgroundDownloadError("Issue already downloaded, do not enqueue again")
         return
       }
       Defaults.backgroundDownloadIssueDate = issue.date
@@ -342,7 +344,7 @@ extension BackgroundDownloadService {
         self?.dlCallback(err: err, downloadUrl: zipUrl)
       }
       
-      log("mark start download for issue in feed \(issue.feed.name)")
+      log("...mark start download for issue in feed \(issue.feed.name)")
       let startDlResult = try await feeder.markStartDownloadAsync(feed: issue.feed,
                                                                   issue: issue,
                                                                   isAutomatically: true,
@@ -350,20 +352,20 @@ extension BackgroundDownloadService {
       self.downloadId = startDlResult.0
       self.downloadStart = startDlResult.1
 #warning("disabled to get rid of crash!?")
-//      log("check if ressources download needed? \(issue.minResourceVersion) < \(latestRessources?.resourceVersion ?? 0)")
+//      log("...check if ressources download needed? \(issue.minResourceVersion) < \(latestRessources?.resourceVersion ?? 0)")
 //      
 //      if issue.minResourceVersion < latestRessources?.resourceVersion ?? 0 {
-//        log("TODO Resources Download required!  ")
+//        log("...TODO Resources Download required!  ")
 //      }
       ///<<<EOF DISABLED
       zipDownloadSession.allowMobile = !autoloadOnlyInWLAN
       if BackgroundSession.search(url: zipUrl) == false {
-        log("downloading \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issueDir.path)")
+        log("...downloading \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issueDir.path)")
         currentIssueZipUrl = zipUrl
         zipDownloadSession.downloadZip(toDir: issueDir.path)
       }
       else {
-        log("skip download of \(zipUrl.lastPathComponent) its already downloading!")
+        log("...skip download of \(zipUrl.lastPathComponent) its already downloading!")
       }
       
       if autoloadAudio, let audioUrl = issue.zipAudioUrl {
@@ -371,7 +373,7 @@ extension BackgroundDownloadService {
           self?.dlCallback(err: err, downloadUrl: zipUrl)
         }
         audioDownloadSession.allowMobile = !autoloadOnlyInWLAN
-        self.log("downloading audio zip \(audioUrl.lastPathComponent) from: \(audioUrl) to: \(issueDir.path)")
+        self.log("...downloading audio zip \(audioUrl.lastPathComponent) from: \(audioUrl) to: \(issueDir.path)")
         if BackgroundSession.search(url: audioUrl) == false {
           audioDownloadSession.downloadZip(toDir: issueDir.path)
         }
@@ -380,7 +382,7 @@ extension BackgroundDownloadService {
       fetchCompletionHandler?(.newData)
     }
     catch {
-      log("downloadIssueData error: \(error)")
+      log("...downloadIssueData error: \(error)")
       feeder = nil
       fetchCompletionHandler?(.noData)
     }
@@ -391,7 +393,7 @@ extension BackgroundDownloadService {
     ///just for testing
     let feed = StoredFeeder.get(name: self.currentFeederData.name).first?.feeds.first
     guard let sf = feed as? StoredFeed else {
-      self.log("no feed found for \(self.currentFeederData.name) first feed is: \(feed?.name ?? "-")")
+      self.log("...no feed found for \(self.currentFeederData.name) first feed is: \(feed?.name ?? "-")")
       return nil
     }
     return StoredIssue.latest(feed: sf)
@@ -403,10 +405,10 @@ extension BackgroundDownloadService {
   }
 #warning("DB MAYBE NOT AVAILABLE!!!!")
   func persist(issue: Issue) {
-    log("persist new issue from: \(issue.date.short) in feed: \(issue.feed.name)...is DB available")
+    log("...persist new issue from: \(issue.date.short) in feed: \(issue.feed.name)...is DB available")
     ///just for testing
     guard StoredFeeder.get(name: self.currentFeederData.name).first != nil else {
-      self.log("no storedFeeder found for \(self.currentFeederData.name)")
+      self.log("...no storedFeeder found for \(self.currentFeederData.name)")
       return
     }
     
@@ -418,7 +420,7 @@ extension BackgroundDownloadService {
     pd.validityDate = issue.validityDate
     si.isComplete = true
     ArticleDB.save()
-    self.log("issue persisted \(si.date) issueDate in feed: \(pd.feed?.name ?? "-")")
+    self.log("...issue persisted \(si.date) issueDate in feed: \(pd.feed?.name ?? "-")")
   }
 }
 
@@ -443,7 +445,7 @@ fileprivate extension BackgroundDownloadGqlFeeder {
               withAudio: Bool = false,
               returnOnMain: Bool = true,
               isBackGround: Bool = true) async throws -> IssueData {
-    log("fetch issue data for \(feed.name) return on Main: \(returnOnMain) inBackground: \(isBackGround)")
+    log("...fetch issue data for \(feed.name) return on Main: \(returnOnMain) inBackground: \(isBackGround)")
     return try await withCheckedThrowingContinuation { continuation in
       issues(feed: feed, date: date, key: key, count: count,
              isOverview: isOverview, isPages: isPages, withAudio: withAudio,
