@@ -93,6 +93,11 @@ fileprivate extension Issue {
     guard let zipName = Defaults.autoloadPdf ? zipNamePdf : zipName else { return nil }
     return baseUrl.appending("/\(zipName)")
   }
+  
+  var zipAudioUrl: String? {
+    guard let zipAudioName = zipAudioName else { return nil }
+    return baseUrl.appending("/\(zipAudioName)")
+  }
 }
 
 extension BackgroundDownloadService {
@@ -160,7 +165,7 @@ extension BackgroundDownloadService {
               return
           }
       }
-
+      
       let dbName = Defaults.currentFeeder.name
 
       do {
@@ -240,6 +245,7 @@ extension BackgroundDownloadService {
         throw BackgroundDownloadError("Do not download issues anymore due they are not read yet!")
       }
       
+      //if false && currentAppState == .active { Debugging "active" state => more/different errors
       if currentAppState == .active {
         log("...checkForNewIssue 4 > active!")
         guard let feederContext = TazAppEnvironment.sharedInstance.feederContext else {
@@ -294,7 +300,8 @@ extension BackgroundDownloadService {
                                               date: nil,
                                               count: 1,
                                               isPages: withPages,
-                                              withAudio: withAudio, returnOnMain: false)
+                                              withAudio: withAudio,
+                                              returnOnMain: false)
       log("...fetch latest issue done")
       guard let issue = issueData.issues.first else {
         throw BackgroundDownloadError("Fetch Issue failed!")
@@ -346,30 +353,14 @@ extension BackgroundDownloadService {
       self.log("downloading to: \(issueDir.path)")
       bgSession.allowMobile = !autoloadOnlyInWLAN
       bgSession.downloadZip(toDir: issueDir.path)
-#warning("Change this if ZIPS contain everything!")
-      var additionalFiles: [FileEntry] = issue.moment.carouselFiles
-      let pages = true ? issue.pages ?? [] : []
-#warning("Remove this if ZIPS contain everything!")
-      for page in pages {
-        if page.isProbablyNotInZip,
-            let fileEntry = page.pdf {
-          log("download additionalfile for page: \(page.title ?? "-") (\(page.pagina ?? "-")) page frames #: \(page.frames?.count ?? -1) firstFrameUrl: \(page.frames?.first?.link.map { String($0.prefix(8)) } ?? "-")")
-          additionalFiles.append(fileEntry)
-        }
-      }
       
-      if autoloadAudio {
-        additionalFiles.append(contentsOf: issue.audioFiles)
-      }
-      
-      try additionalFiles.forEach {
-        let url = issue.baseUrl.appending("/\($0.fileName)")
-        let bgSession = try BackgroundSession(url) {[weak self] err in
+      if autoloadAudio, let audioUrl = issue.zipAudioUrl {
+        let bgSession = try BackgroundSession(audioUrl) {[weak self] err in
           self?.dlCallback(err: err, downloadUrl: zipUrl)
         }
         bgSession.allowMobile = !autoloadOnlyInWLAN
-        self.log("downloading \($0.fileName) from: \(url) to: \(issueDir.path)")
-        bgSession.download(toDir: issueDir.path)
+        self.log("downloading \(audioUrl.lastPathComponent) from: \(audioUrl) to: \(issueDir.path)")
+        bgSession.downloadZip(toDir: issueDir.path)
       }
       autoDownloadedIssuesSinceLastAppUse += 1
       fetchCompletionHandler?(.newData)
@@ -436,7 +427,8 @@ fileprivate extension BackgroundDownloadGqlFeeder {
               isPages: Bool = false,
               withAudio: Bool = false,
               returnOnMain: Bool = true,
-              isBackGround: Bool = false) async throws -> IssueData {
+              isBackGround: Bool = true) async throws -> IssueData {
+    log("fetch issue data for \(feed.name) return on Main: \(returnOnMain) inBackground: \(isBackGround)")
     return try await withCheckedThrowingContinuation { continuation in
       issues(feed: feed, date: date, key: key, count: count,
              isOverview: isOverview, isPages: isPages, withAudio: withAudio,

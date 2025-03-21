@@ -2383,7 +2383,13 @@ public final class StoredFeed: Feed, StoredObject {
     set { pr.firstSearchableIssue = newValue }
   }
   public var lastIssue: Date {
-    get { return pr.lastIssue! }
+    get { 
+      if pr.isFault {
+        log("Core Data Fault \(pr) \(pr.isFault)")
+        pr.managedObjectContext?.refresh(pr, mergeChanges: true)
+        log("Is loaded now? \(pr) \(pr.isFault) moc:\(String(describing: pr.managedObjectContext))")
+      }
+      return pr.lastIssue! }
     set { pr.lastIssue = newValue }
   }
   public var lastIssueRead: Date? {
