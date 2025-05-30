@@ -124,7 +124,6 @@ public class FormView: UIView {
     else {
       pin(previous!.bottom, to: container.bottom, dist: -margin - 30.0)
     }
-    
     scrollView.addSubview(container)
     NorthLib.pin(container, to: scrollView)
     self.addSubview(scrollView)
@@ -180,18 +179,41 @@ extension FormView {
   }
   
   @objc func keyboardWillShow(_ notification: Notification) {
-    if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
-      scrollView.contentInset
-      = UIEdgeInsets(top: 0,
-                     left: 0,
-                     bottom: keyboardFrame.cgRectValue.height,
-                     right: 0)
+    guard let userInfo = notification.userInfo else { return }
+    
+    // Get the keyboard height
+    guard let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+    
+    //make space for the keyboard
+    let bottomInset = 20 + self.frame.size.height - keyboardFrame.origin.y
+    if bottomInset > 0 {
+      self.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset, right: 0)
+    }
+    
+    // Identify the active input field to scroll to it
+    guard let field = UIResponder.currentFirstResponder() as? UIView else { return }
+    ///Warning: this value is maybe initially wrong, due small Popovers move to tom on keyboard appearance
+    let popoverYOffset = self.convert(CGPoint.zero, to: window).y
+    let visibleHeight = keyboardFrame.origin.y - popoverYOffset
+    
+    // Get the position of the input field relative to the entire screen
+    let fieldBottom = field.maxY
+    
+    // Check if the input field is covered by the keyboard, then scroll to it
+    if fieldBottom > visibleHeight {
+      let offset = fieldBottom - visibleHeight
+      self.scrollView.setContentOffset(CGPoint(x: 0, y: offset), animated: true)
     }
   }
   
-  @objc func keyboardWillHide(notification:NSNotification){
-    scrollView.contentInset = UIEdgeInsets.zero
+  @objc func keyboardWillHide(_ notification: Notification) {
+    UIView.animate(withDuration: 0.3) {
+      self.scrollView.contentInset = .zero
+      // Reset content size to the height of the container
+      self.scrollView.contentSize.height = self.container.frame.height
+    }
   }
+
 }
 
 extension UIView {
@@ -209,5 +231,28 @@ extension UIView {
     wrapper.paddingTop = Const.Dist2.m30
     wrapper.paddingBottom = Const.Dist2.l
     return wrapper
+  }
+}
+
+extension UIResponder {
+    private static weak var currentResponder: UIResponder?
+
+    static func currentFirstResponder() -> UIResponder? {
+        currentResponder = nil
+        UIApplication.shared.sendAction(#selector(findFirstResponder(_:)), to: nil, from: nil, for: nil)
+        return currentResponder
+    }
+
+    @objc private func findFirstResponder(_ sender: Any) {
+        UIResponder.currentResponder = self
+    }
+}
+
+fileprivate extension UIView {
+  var maxY: CGFloat {
+    if self is TazTextView.GrowableTextView {
+        return self.frame.origin.y + self.frame.size.height + (self.superview?.frame.origin.y ?? 0.0)
+    }
+    return self.frame.origin.y + self.frame.size.height
   }
 }

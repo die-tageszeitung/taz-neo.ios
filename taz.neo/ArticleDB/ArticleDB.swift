@@ -1829,13 +1829,14 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
 
 extension StoredIssue: Equatable {
   static public func ==(lhs: StoredIssue, rhs: StoredIssue) -> Bool {
-    return lhs.date == rhs.date
+    ///cannot ensure they are the same, usually the are not due one is deleted or prepared sor deletion
+    if lhs.safeDate == nil { return false }
+    return lhs.safeDate == rhs.safeDate
   }
 }
 
 /// A stored Issue
 public final class StoredIssue: Issue, StoredObject {
-  
   public static var entity = "Issue"
   public var pr: PersistentIssue // persistent record
   public var feed: Feed {
@@ -1903,6 +1904,10 @@ public final class StoredIssue: Issue, StoredObject {
     get { return pr.zipNamePdf }
     set { pr.zipNamePdf = newValue }
   }
+  public var zipAudioName: String? {
+    get { return pr.zipAudioName }
+    set { pr.zipAudioName = newValue }
+  }
   public var fileList: [String]? { nil }
   public var fileListPdf: [String]? { nil }
   public var imprint: Article? {
@@ -1940,6 +1945,10 @@ public final class StoredIssue: Issue, StoredObject {
       if newValue { pr.isOvwComplete = newValue }
     }
   }
+  public var isAutodownloading: Bool {
+    get { return pr.isAutodownloading }
+    set { pr.isAutodownloading = newValue }
+  }
   public var isOvwComplete: Bool {
     get { return pr.isOvwComplete }
     set { pr.isOvwComplete = newValue }
@@ -1971,6 +1980,8 @@ public final class StoredIssue: Issue, StoredObject {
     self.feed = object.feed
     self.date = object.date
     self.validityDate = object.validityDate
+    self.isAutodownloading = object.isAutodownloading
+    self.isDownloading = object.isDownloading
     self.moTime = object.moTime
     self.isWeekend = object.isWeekend
     self.moment = object.moment
@@ -2063,6 +2074,13 @@ public final class StoredIssue: Issue, StoredObject {
     return get(request: request)
   }
   
+  /// Return stored record with given params or nil
+  public static func get(baseUrl: String, inFeed feed: StoredFeed) -> StoredIssue? {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "baseUrl = %@", baseUrl, feed.pr)
+    return get(request: request).first
+  }
+  
   public static func get(object: Issue, inFeed feed: StoredFeed) -> StoredIssue? {
     let issues = get(date: object.date, inFeed: feed)
     if issues.count > 0 { return issues[0] }
@@ -2098,6 +2116,14 @@ public final class StoredIssue: Issue, StoredObject {
     request.sortDescriptors = [NSSortDescriptor(key: "payload.downloadStarted",
                                                 ascending: true)]
     if count > 0 { request.fetchLimit = count }
+    return get(request: request)
+  }
+  
+  /// Return all issues that are currently being autodownloaded
+  public static func unfinishedAutodownloading(feed: StoredFeed) -> [StoredIssue] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "feed = %@ AND isAutodownloading = true", feed.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
     return get(request: request)
   }
   
@@ -2219,7 +2245,12 @@ public final class StoredIssue: Issue, StoredObject {
           continue
         }
         if lastCompleeteIssues.contains(issue) { continue }
-        if TazAppEnvironment.sharedInstance.feederContext?.openedIssue?.date == issue.safeDate { continue }
+        if let storedIssue = TazAppEnvironment.sharedInstance.feederContext?.openedIssue as? StoredIssue,
+           let issueDate = storedIssue.safeDate {
+            if issueDate == issue.safeDate {
+                continue
+            }
+        }
         if doDelete {
           deletedIssueDates.append(issue.safeDate?.short ?? "-")
           issue.delete()
@@ -2277,6 +2308,10 @@ public final class StoredIssue: Issue, StoredObject {
     
     for path in allSubdirs {
       if knownDirs.contains(path) {
+        skipDeleteFolders.append(path.lastPathComponents(4))
+        continue
+      }
+      if File("\(path)/\(BackgroundDownloadService.jsonDataFilename)").exists {
         skipDeleteFolders.append(path.lastPathComponents(4))
         continue
       }
@@ -2376,7 +2411,13 @@ public final class StoredFeed: Feed, StoredObject {
     set { pr.firstSearchableIssue = newValue }
   }
   public var lastIssue: Date {
-    get { return pr.lastIssue! }
+    get { 
+      if pr.isFault {
+        log("Core Data Fault \(pr) \(pr.isFault)")
+        pr.managedObjectContext?.refresh(pr, mergeChanges: true)
+        log("Is loaded now? \(pr) \(pr.isFault) moc:\(String(describing: pr.managedObjectContext))")
+      }
+      return pr.lastIssue! }
     set { pr.lastIssue = newValue }
   }
   public var lastIssueRead: Date? {
@@ -2427,6 +2468,7 @@ public final class StoredFeed: Feed, StoredObject {
   
   /// Overwrite the persistent values
   public func update(from object: Feed) {
+    log("update Feed: \(object.name)")
     self.name = object.name
     self.feeder = object.feeder
     self.cycle = object.cycle
@@ -2570,6 +2612,7 @@ public final class StoredFeeder: Feeder, StoredObject {
   
   /// Overwrite the persistent values
   public func update(from object: Feeder) {
+    log("update feeder, persist feeds")
     self.title = object.title
     self.timeZone = object.timeZone
     self.baseUrl = object.baseUrl

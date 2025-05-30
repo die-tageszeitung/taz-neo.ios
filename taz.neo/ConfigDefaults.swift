@@ -52,11 +52,11 @@ private let configValues = [
   "showPdfInfoToast" : "true",
   // need to show Bottom Tiles Animation
   "showBottomTilesAnimation" : "true",
-  // Experimental
-  "autoloadOnlyInWLAN" : "false",
+  "autoloadOnlyInWLAN2" : "true",//renamed due previous value was false
   "showBarsOnContentChange" : "false",
   "autoloadPdf" : "false",
-  // "autoloadNewIssues" : "true",
+  "autoloadAudio" : "false",
+  "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
   // show teaser text in bookmarks list
   "smartBackFromArticle" : "false",
@@ -72,6 +72,7 @@ private let configValues = [
   "showCoachmarks" : Device.isSimulator ? "false" : "true",
   "cmLastPrio": "1",
   "cmSessionCount": "0",
+  "autoDownloadedIssuesSinceLastAppUse": "0",
   "multiColumnModeLandscape": "false",
   "multiColumnModePortrait": "false",
   "columnCountLandscape": "3",
@@ -79,13 +80,16 @@ private let configValues = [
   "multiColumnOnboardingAnswered" : "false",
   "multiColumnFixedScrolling" : "true",
   "reopenArticleSetting" : "true",
-  //"defaultToastsDisabled" : "false" NO Default Setting to restore setting over reset!
+  //"defaultToastsDisabled" : "false" NO Default Setting to persist/restore setting over reset!
+
 ]
 
 private let configValuesLMD = [
   // Use facsimile mode for LMD
   "isFacsimile" : "true",
+  "showCoachmarks": "false",///only first level would be available due "Logic" and LMd has no PDF switch Button
   "usageTrackingAllowed" : "false",
+  "smartBackFromArticle" : "true",///required for page Article header, otherwise current page is not displayed correctly
 ]
 
 #if LMD
@@ -100,7 +104,11 @@ extension Defaults {
   ///Provide getter only
   public static var isTextNotification:Bool { Defaults.singleton["isTextNotification"]!.bool }
   
+  public static var useTestServer:Bool {
+    Defaults.singleton.bool(for: "useTestServer", false)
+  }
   public static var newIssueSystemSetting:Bool {
+    
     Defaults.singleton.bool(for: "newIssueSystemSetting", true)
   }
   
@@ -147,7 +155,7 @@ extension Defaults {
       }
     }
   }
-  
+    
   ///Helper to get current server from user defaults
   static var notificationsActivationPopupRejectedTemporaryDate : Date? {
     get {
@@ -182,6 +190,11 @@ extension Defaults {
       }
     }
   }
+  
+  ///Helper to get autoloadPdf from user defaults for simple access in extensions
+  static var autoloadPdf : Bool { Defaults.singleton.bool(for: "autoloadPdf", false) }
+  
+  static var testAutodownload : Bool { Defaults.singleton.bool(for: "testAutodownload", false) }
   
   typealias columnSettingData = (used:Int, available: Int, setting: Int)
   

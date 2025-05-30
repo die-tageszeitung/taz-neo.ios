@@ -42,7 +42,10 @@ extension BookmarkTVC: UITableViewDataSource {
             let feed = Bookmarks.shared.bookmarkIssue?.feed as? StoredFeed else { return BookmarkTableHeaderCell() }
       
       let article = article(for: IndexPath(item: 1, section: indexPath.section))
-      headerCell.dateLabel.text = article?.issueDate?.validityDateText(timeZone: GqlFeeder.tz, feed: feed)
+      headerCell.dateLabel.text
+      = App.isLMD
+      ? article?.issueDate?.stringWith(dateFormat: "MMMM YYYY")
+      : article?.issueDate?.validityDateText(timeZone: GqlFeeder.tz, feed: feed)
       headerCell.image = Bookmarks.lowresMomentImage(for: article)
       return headerCell
     }

@@ -583,6 +583,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     slider.sliderView.clipsToBounds = false
     slider.image = UIImage.init(named: logo)
     slider.image?.accessibilityLabel = "Inhalt"
+    slider.closedBottonImageOffsetX = App.isTAZ ? 0.0 : 8.0
     slider.buttonAlpha = 1.0
     if !App.isLMD { slider.hideButtonOnClose = true }
     slider.button.additionalTapOffset = 50
@@ -972,6 +973,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
       slider.sliderView.clipsToBounds = false
       slider.image = UIImage.init(named: logo)
       slider.image?.accessibilityLabel = "Inhalt"
+      slider.closedBottonImageOffsetX = App.isTAZ ? 0.0 : 8.0
       slider.buttonAlpha = 1.0
       slider.button.additionalTapOffset = 50
       slider.close()
@@ -1095,11 +1097,8 @@ fileprivate extension TazPdfPagesViewController {
 
 fileprivate extension CGSize {
   func sliderWidth(for horizontalSizeClass: UIUserInterfaceSizeClass? = nil) -> CGFloat {
-    if horizontalSizeClass ?? UIWindow.keyWindow?.traitCollection.horizontalSizeClass
-        == .compact {
-      return self.width - 28.0
-    }
-    return min(self.width, Const.Size.ContentSliderMaxWidth + 28.0) - 28.0
+    let offset: CGFloat = App.isLMD ? 14.0 : 28.0
+    return min(self.width, Const.Size.ContentSliderMaxWidth + offset) - offset
   }
 }
 

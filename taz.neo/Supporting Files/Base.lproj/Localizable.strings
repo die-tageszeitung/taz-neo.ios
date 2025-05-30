@@ -41,6 +41,7 @@
 "login_extend_print_with_digi_button_text" = "Jetzt Infos anfordern";
 
 /* translation from Android */
+"fragment_login_help_lmd" = "Wenn Sie sich bereits mit Ihrer E-Mail-Adresse registriert und ein Passwort erstellt haben, nutzen Sie bitte diese, um sich anzumelden.\n\nFalls nicht, können Sie es mit Ihrer numerischen Abo-ID und dem dazugehörigen, von uns mitgeteilten Passwort versuchen.\n\nSollten Sie diese Informationen nicht finden, helfen wir Ihnen gerne weiter. Bitte kontaktieren Sie uns unter: app@monde-diplomatique.de";
 "fragment_login_help" = "Bitte geben Sie Ihre bei uns registrierte E-Mail-Adresse sowie das bei der Registrierung gewählte Passwort ein.\n\nWenn Sie sich bisher mit Ihrer Abo-ID und dem dazugehörigen Passwort angemeldet haben, dies aber nicht mehr funktioniert und Sie unsere E-Mail zur Umstellung auf das Login mit Ihrer E-Mail-Adresse nicht finden, wenden Sie sich bitte an app@taz.de.";
 
 "no_mail_title" = "Achtung";
@@ -63,6 +64,14 @@
 /* translation from Android */
 "login_forgot_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre E-Mail-Adresse an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
 
+"login_forgot_password_header_lmd" = "Sie haben Ihr Passwort vergessen? Geben Sie Ihre E-Mail-Adresse ein, und wir senden Ihnen eine Anleitung zum Zurücksetzen Ihres Passworts.\n\nFalls Sie unsicher sind, ob Ihre E-Mail-Adresse bereits registriert ist, und Sie sich bisher nur mit Ihrer Abo-ID angemeldet haben, kontaktieren Sie uns bitte unter app@monde-diplomatique.de.";
+
+/* PW Vergessen bei Subscription Reset nach mit bestehender taz-ID verknüpfen */
+"login_forgot_subscription_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre Abo-ID an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
+
+/* PW Vergessen für taz id */
+"login_forgot_tazid_password_header" = "Sie haben Ihr Passwort vergessen? Geben Sie hier Ihre E-Mail-Adresse an und Sie erhalten eine E-Mail zum weiteren Vorgehen.";
+
 /* translation from Android */
 "login_forgot_password_send" = "Senden und Link anfordern";
 
@@ -78,6 +87,8 @@
 "forgot_password_aboid_sent_top" = "Falls zu Ihrem Abo eine E-Mail-Adresse hinterlegt ist, haben wir Ihnen eine E-Mail gesendet.\n\nBitte schauen Sie in Ihr Mail-Postfach und gegebenenfalls auch in Ihrem Spam-Ordner nach.
 Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte E-Mail-Adresse wissen und darauf Zugriff haben, nutzen Sie bitte die Passwort vergessen Funktion mit dieser E-Mail-Adresse.\n\nHaben Sie Ihre Zugangsdaten gefunden?";
 "forgot_password_aboid_sent_bottom" = "Falls Sie keine E-Mail erhalten haben und sich nicht sicher sind, welche E-Mail zu Ihrem Abo hinterlegt ist bzw. auf das bei uns hinterlegte E-Mail Postfach keinen Zugriff mehr haben, wenden Sie sich bitte an unseren Service unter:";
+
+"login_forgot_password_email_sent_header_lmd" = "Falls Sie ein bestehendes LMd-Konto unter der E-Mail-Adresse haben, wurde Ihnen eine E-Mail zugesandt. Bitte überprüfen Ihr E-Mail-Postfach.\nSollten Sie die E-Mail nicht finden, sehen Sie bitte auch im Spam-Ordner nach.\nFür weitere Fragen wenden Sie sich bitte an app@monde-diplomatique.de.";
 
 /* translation from Android */
 "login_forgot_password_email_sent_back" = "Zurück zur Anmeldung";

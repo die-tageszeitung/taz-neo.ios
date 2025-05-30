@@ -75,10 +75,14 @@ class LoginController: FormsController {
   }
   func handleWhereIsTheAboId() {
     let faqAction = self.ui.openFaqAction()
-    
-    Alert.message(title:"",
-                  message: App.isLMD ? Localized("fragment_login_help_lmd") : Localized("fragment_login_help"),
-                  additionalActions: [faqAction])
+    if App.isLMD {
+      Alert.message(title:"",
+                    message:Localized("fragment_login_help_lmd"), additionalActions: [faqAction])
+    }
+    else {
+      Alert.message(title:"",
+                    message:Localized("fragment_login_help"), additionalActions: [faqAction])
+    }
     Usage.track(Usage.event.dialog.LoginHelp)
   }
   
@@ -130,7 +134,11 @@ class LoginController: FormsController {
                 (self.auth as? DefaultAuthenticator)?.notifySuccess()
               }
               
-              self.modalFromBottom(expiredForm)
+              var modalPresentationStyle:UIModalPresentationStyle?
+              ///in LMd App the Login Form is smaller on iPad then the Expired Form; prevent unneccessary scrolling
+              ///tested also in Popovber and Split View: no 
+              if App.isLMD && Device.isIpad { modalPresentationStyle = .formSheet }
+              self.modalFromBottom(expiredForm, modalPresentationStyle: modalPresentationStyle)
             case .unlinked, .unlinkedAbo:
               self.modalFromBottom(AskForTrial_Controller(tazId: tazId,
                                                     tazIdPass: tazIdPass,

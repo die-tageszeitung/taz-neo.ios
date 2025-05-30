@@ -503,8 +503,8 @@ class MultiColumnOnboardingView: UIView {
   }()
   
   lazy var image: UIImage? = {
-    guard let img = UIImage(named: "BundledResources/MultiColumn.jpeg")else {
-      log("Bundled MultiColumn.png not found!")
+    guard let img = UIImage(named: "BundledResources\(App.isTAZ ? "" : "LMd")/MultiColumn.jpeg")else {
+      log("Bundled MultiColumn.jpeg not found!")
       return nil
     }
     return img

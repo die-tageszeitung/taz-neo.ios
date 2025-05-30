@@ -49,6 +49,7 @@ public struct Const {
     static let publicationDatesChanged = "NotificationName.publicationDatesChanged"
     static let feederReachable = "NotificationName.feederReachable"
     static let feederUnreachable = "NotificationName.feederUnreachable"
+    static let feederUpdateDone = "NotificationName.feederUpdateDone"
     static let issueUpdate = "NotificationName.issueUpdate"
     static let articleLoaded = "NotificationName.articleLoaded"
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
@@ -64,6 +65,11 @@ public struct Const {
     static let audioPlaybackFinished = "Const.NotificationNames.audioPlaybackFinished"
     static let gotoIssue = "Const.NotificationNames.gotoIssue"
     static let gotoSettings = "Const.NotificationNames.gotoSettings"
+    static let closeOpenIssues = "Const.NotificationNames.closeOpenIssues"
+    static let refreshOverview = "Const.NotificationNames.refreshOverview"
+    static let showLatestIssue = "Const.NotificationNames.showLatestIssue"
+    static let viewModeChanged = "Const.NotificationNames.viewModeChanged"
+    static let newAutolIssueLoaded = "Const.NotificationNames.newAutolIssueLoaded"
     static let gotoArticleInIssue = "Const.NotificationNames.gotoArticleInIssue"
     static let searchSelectedText = "Const.NotificationNames.searchSelectedText"
     
@@ -533,7 +539,7 @@ public struct Const {
     #else
     static let ButtonHeight = CGFloat(34.0)
     #endif
-    
+    static let LmdPageAspect = CGFloat(0.670219)
     
     static let ContentSliderMaxWidth = 420.0
     struct LMd {

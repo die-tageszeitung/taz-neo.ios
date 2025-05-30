@@ -77,6 +77,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       self?.selectedIndex = 3
     }
     
+    Notification.receive(Const.NotificationNames.closeOpenIssues) { [weak self] _ in
+      (self?.viewControllers?.first as? UINavigationController)?.popToRootViewController(animated: false)
+    }
+    
     Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in
       self?.gotoIssue(at: notif.content as? Date)
     }

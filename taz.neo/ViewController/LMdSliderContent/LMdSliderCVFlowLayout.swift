@@ -59,7 +59,7 @@ class LMdSliderCVFlowLayout: UICollectionViewFlowLayout, DoesLog {
     }
     if cachedAttributes.count > 0 { return }
     guard let collectionView = collectionView,
-      let cvc = collectionView.dataSource as? LMdSliderContentVC else { return }
+          let cvc = collectionView.dataSource as? LMdSliderContentVC else { return }
     
     var leftYOffset = self.sectionInset.top
     var rightYOffset = self.sectionInset.top
@@ -67,57 +67,64 @@ class LMdSliderCVFlowLayout: UICollectionViewFlowLayout, DoesLog {
     let cvWidth = oldBounds?.width ?? collectionView.frame.size.width
     let leftCellWidth = cvWidth * Const.Size.LMd.Slider.xLeft
     
-    let rightCellWidth
-    = cvWidth - leftCellWidth
-    - sectionInset.left - sectionInset.right - minimumInteritemSpacing
-    let rightCellXOffset 
-    = leftCellWidth + sectionInset.left + minimumInteritemSpacing
+    let rightCellWidth = cvWidth - leftCellWidth - sectionInset.left - sectionInset.right - minimumInteritemSpacing
+    let rightCellXOffset = leftCellWidth + sectionInset.left + minimumInteritemSpacing
     
     guard collectionView.numberOfSections > 0 else { return }
     
-    for sect in 0...(collectionView.numberOfSections ) - 1 {
-      var max = max(leftYOffset, rightYOffset)
+    for sect in 0..<collectionView.numberOfSections {
+      var maxOffset = max(leftYOffset, rightYOffset)
       
       if sect > 0 {
-        let seperatorAttr
-        = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self,
-                                           with: IndexPath(row: 0, section: sect))
-        seperatorAttr.frame = CGRect(x: 15, y: max, width: cvWidth - 30, height: 40)
-        max += 40
-        cachedAttributes.append(seperatorAttr)
+        let separatorAttr = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self,
+                                                             with: IndexPath(row: 0, section: sect))
+        separatorAttr.frame = CGRect(x: 15, y: maxOffset, width: cvWidth - 30, height: 40)
+        maxOffset += 40
+        cachedAttributes.append(separatorAttr)
       }
       
-      leftYOffset = max
-      rightYOffset = max
-      for row in 0...collectionView.numberOfItems(inSection: sect) - 1 {
+      leftYOffset = maxOffset
+      rightYOffset = maxOffset
+      
+      for row in 0..<collectionView.numberOfItems(inSection: sect) {
         let ip = IndexPath(row: row, section: sect)
         
         if row > 1 {
-          let seperatorAttr
-          = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self,
-                                             with: ip)
-          seperatorAttr.frame = CGRect(x: rightCellXOffset, y: rightYOffset, width: cvWidth - rightCellXOffset - 15 , height: 40)
+          let separatorAttr = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self,
+                                                               with: ip)
+          separatorAttr.frame = CGRect(x: rightCellXOffset, y: rightYOffset, width: cvWidth - rightCellXOffset - 15, height: 40)
           rightYOffset += 40
-          cachedAttributes.append(seperatorAttr)
+          cachedAttributes.append(separatorAttr)
         }
         
-        
-        guard let cell = cvc.collectionView(collectionView,
-                                            cellForItemAt: ip) as? LMdSliderCell else { continue }
         let attr = UICollectionViewLayoutAttributes(forCellWith: ip)
+        
         if row == 0 {
+          // 📌 Linke Zelle (Bildzelle) → feste Höhe basierend auf Seitenverhältnis 1.34x Breite
+          let cellWidth = leftCellWidth
+          let cellHeight = cellWidth / Const.Size.LmdPageAspect + 30.0 //additional Space for label
           attr.frame = CGRect(origin: CGPoint(x: self.sectionInset.left, y: leftYOffset),
-                              size:  cell.fittingSizeFor(width: leftCellWidth))
-          leftYOffset += attr.frame.size.height
+                              size: CGSize(width: cellWidth, height: cellHeight))
+          leftYOffset += cellHeight
         } else {
+          // 📌 Rechte Zelle (Artikelzelle) → dynamische Höhe über `systemLayoutSizeFitting`
+          let prototypeCell = LMdPageArticleCell(frame: .zero)
+          prototypeCell.article = cvc.articleAt(indexPath: ip)
+          
+          let fittingSize = prototypeCell.systemLayoutSizeFitting(
+            CGSize(width: rightCellWidth, height: UIView.layoutFittingCompressedSize.height),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+          )
+          
           attr.frame = CGRect(origin: CGPoint(x: rightCellXOffset, y: rightYOffset),
-                              size:  cell.fittingSizeFor(width: rightCellWidth))
-          rightYOffset += attr.frame.size.height
+                              size: fittingSize)
+          rightYOffset += fittingSize.height
         }
+        
         cachedAttributes.append(attr)
       }
     }
-    
     customContentSize
     = CGSize(width: rightCellXOffset + rightCellWidth + sectionInset.right,
              height:  max(leftYOffset, rightYOffset) + sectionInset.bottom)

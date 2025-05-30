@@ -236,6 +236,19 @@ class HomeTVC: UITableViewController {
     Notification.receive(UIAccessibility.voiceOverStatusDidChangeNotification){   [weak self] _ in
       self?.updateAccessibillityHelper()
     }
+    Notification.receive(Const.NotificationNames.newAutolIssueLoaded) {[weak self] _ in
+      self?.log("received newAutolIssueLoaded on Main-Thread: \(Thread.isMainThread) send reload to ctrl's")
+      self?.issueOverviewService.updateIssues()
+      _ = self?.issueOverviewService.reloadPublicationDates(refresh: nil, verticalCv: false)
+      self?.carouselController.collectionView.reloadData()
+      self?.tilesController.collectionView.reloadData()
+      self?.carouselController.updateBottomWrapper(for: 0)
+      self?.onHome()
+      Notification.send(Const.NotificationNames.checkForNewIssues,
+                        content: FetchNewStatusHeader.status.none,
+                        error: nil,
+                        sender: self?.issueOverviewService)
+    }
     
     carouselController.issueSelectionChangeDelegate = self
     setupCarouselControllerCell()
@@ -346,8 +359,22 @@ class HomeTVC: UITableViewController {
     
     self.addChild(carouselController)
     self.addChild(tilesController)
+    ///Handle delete all Issues
+    Notification.receive(Const.NotificationNames.refreshOverview) { [weak self] _ in
+      self?.carouselController.collectionView.reloadData()
+      self?.tilesController.collectionView.reloadData()
+    }
+    Notification.receive(Const.NotificationNames.showLatestIssue) { [weak self] _ in
+      self?.onHome()
+    }
+    Notification.receive(Const.NotificationNames.viewModeChanged) { [weak self] _ in
+      guard let self = self else { return}
+      refreshPDFButton(imageButton: togglePdfButton)
+    }
+    
     ///Handle new issues
     Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
+      self?.log("received publicationDatesChanged")
       if self?.view.superview == nil {
         _ = service.reloadPublicationDates(refresh: nil, verticalCv: true)
         ///Old Data, Offline, In Issue, Online => Update => Back to Home: this fixes home in wired state
@@ -486,17 +513,22 @@ extension HomeTVC {
     deactivateCoachmark(Coachmarks.IssueCarousel.pdfButton)
     
     if let imageButton = sender as? Button<ImageView> {
-      imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
-      imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
+      refreshPDFButton(imageButton: imageButton)
     }
-    Toast.show(self.isFacsimile
-    ? "<h2>Zeitungsansicht</h2><p>Sie können jetzt die taz im Layout<br>der Zeitungsansicht lesen.</p>"
-    : "<h2>App-Ansicht</h2><p>Sie können jetzt die taz in der<br>für mobile Geräte<br>optimierten Ansicht lesen.</p>", isDefaultToast: true)
     self.tilesController.reloadVisibleCells()
     self.carouselController.reloadVisibleCells()
     self.carouselController.updateBottomWrapper(for: self.carouselController.centerIndex ?? 0,
                                                 force: true)
     trackScreen()
+  }
+  
+  func refreshPDFButton(imageButton: Button<ImageView>){
+    imageButton.buttonView.name = self.isFacsimile ? "mobile-device" : "newspaper"
+    imageButton.buttonView.accessibilityLabel = self.isFacsimile ? "App Ansicht" : "Zeitungsansicht"
+    
+    Toast.show(self.isFacsimile
+    ? "<h2>Zeitungsansicht</h2><p>Sie können jetzt die taz im Layout<br>der Zeitungsansicht lesen.</p>"
+    : "<h2>App-Ansicht</h2><p>Sie können jetzt die taz in der<br>für mobile Geräte<br>optimierten Ansicht lesen.</p>", isDefaultToast: true)
   }
 }
 

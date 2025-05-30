@@ -40,7 +40,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   lazy var header:SettingsHeaderView = {
     let v = SettingsHeaderView()
     v.titletype = .bigLeft
-    v.title = "leseliste"
+    v.title = App.isLMD ? "Leseliste" :"leseliste"
     return v
   }()
   
@@ -177,7 +177,6 @@ extension BookmarkTVC {
     if let issue = article.primaryIssue {
       artImage = article.images?.first?.image(dir: issue.dir)?.invertedIfNeeded
     }
-    
     ArticleExportDialogue.show(article: article,
                                image: artImage,
                                sourceView: sourceView)

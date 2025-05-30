@@ -889,6 +889,9 @@ public protocol Issue: ToString, AnyObject {
   var isDownloading: Bool { get set }
   /// Has this Issue been downloaded
   var isComplete: Bool { get set }
+  /// Is this Issue currently autodownloading in Background
+  /// all database is compleete but files are missing
+  var isAutodownloading: Bool { get set }
   /// Reference to Feed providing this Issue
   var feed: Feed { get set }
   /// Issue date
@@ -913,6 +916,8 @@ public protocol Issue: ToString, AnyObject {
   var zipName: String? { get }
   /// Name of zip file with all data plus PDF
   var zipNamePdf: String? { get }
+  /// Name of zip file with all audioFiles
+  var zipAudioName: String? { get }
   /// Issue imprint
   var imprint: Article? { get }
   /// List of sections in this Issue
@@ -1019,6 +1024,7 @@ public extension Issue {
   }
   
   #warning("expensive call todo: may remember status")
+  #warning("Create optional Bool isPDFCompleete, just execute once after set compleete ...?")
   //Pro fast //Con: what if other process killed a File?
   //May remember temporary? / In Memory ...until: isOvwComplete, isComplete, status changed ...in St
   func isCompleetePDF(in localDir:Dir) -> Bool {
@@ -1028,7 +1034,7 @@ public extension Issue {
     //=> Up/downscrolling re-calls function, if PDF view!
     for p in pgs {
       if let pdf = p.pdf,
-         pdf.exists(inDir: localDir.path) == false {
+         pdf.existsIgnoringTime(inDir: localDir.path) == false {
         return false
       }
     }

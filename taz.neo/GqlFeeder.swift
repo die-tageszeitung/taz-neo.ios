@@ -456,7 +456,7 @@ class GqlPublicationDate: PublicationDate, GQLObject {
   }
   static var fields: String { Self.fields() }
   
-  static func fields(loadAllPublicationDates: Bool = false) -> String {
+  static func fields(loadAllPublicationDates: Bool = false) -> String {      
     var startArg = ""
     if loadAllPublicationDates == false,
         let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
@@ -506,6 +506,10 @@ class GqlValidityDate: GQLObject {
   }
   
   static var fields: String {
+    ///PreventChrash on background Thread
+    if Thread.isMainThread == false {
+      return ""
+    }
     var startArg = ""
     if let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
       startArg = """
@@ -577,6 +581,8 @@ class GqlIssue: Issue, GQLObject {
   var zipName: String?
   /// Name of zip file with all data plus PDF
   var zipNamePdf: String?
+  /// Name of zip file with all audio
+  var zipAudioName: String?
   /// Issue imprint
   var gqlImprint: GqlArticle?
   var imprint: Article? { return gqlImprint }
@@ -595,6 +601,7 @@ class GqlIssue: Issue, GQLObject {
   }
   
   var isOverview: Bool = false
+  var isAutodownloading: Bool = false
   
   var _isDownloading: Bool? = nil
   var isDownloading: Bool {
@@ -627,6 +634,7 @@ class GqlIssue: Issue, GQLObject {
     case minResourceVersion
     case zipName
     case zipNamePdf
+    case zipAudioName
     case gqlImprint
     case sectionList
     case pageList
@@ -645,6 +653,7 @@ class GqlIssue: Issue, GQLObject {
     minResourceVersion = try container.decode(Int.self, forKey: .minResourceVersion)
     zipName = try container.decodeIfPresent(String.self, forKey: .zipName)
     zipNamePdf = try container.decodeIfPresent(String.self, forKey: .zipNamePdf)
+    zipAudioName = try container.decodeIfPresent(String.self, forKey: .zipAudioName)
     gqlImprint = try container.decodeIfPresent(GqlArticle.self, forKey: .gqlImprint)
     sectionList = try container.decodeIfPresent([GqlSection].self, 
                                                 forKey: .sectionList)
@@ -672,6 +681,7 @@ class GqlIssue: Issue, GQLObject {
   key 
   zipName
   zipNamePdf: zipPdfName
+  zipAudioName
   gqlImprint: imprint { \(GqlArticle.fields) }
   sectionList { \(GqlSection.fields) }
   """
@@ -748,6 +758,20 @@ class GqlFeed: Feed, GQLObject {
           \(GqlValidityDate.fields)
         """
   }
+  
+  static func fields(latestKnownPublicationDate: Date?) -> String {
+    guard let pubDate = latestKnownPublicationDate else {
+      return fields()
+    }
+        return """
+          name cycle momentRatio issueCnt
+          sLastIssue: issueMaxDate
+          sFirstIssue: issueMinDate
+          sFirstSearchableIssue: issueMinSearchDate
+          gqlPublicationDates:publicationDates(start:"\(pubDate.isoDate(tz: GqlFeeder.tz))")
+        """
+  }
+  
 } // class GqlFeed
 
 /// GqlAppInfo stores data regarding the running App as provided by the server
@@ -771,7 +795,7 @@ class GqlAppInfo: GQLObject {
       closure(.failure(Log.error("No GraphQl Session")))
       return
     }
-    session.query(graphql: request, type: [String:GqlAppInfo].self) { res in
+    session.query(graphql: request, type: [String:GqlAppInfo].self) { (res, _) in
       var ret: Result<GqlAppInfo,Error>
       switch res {
       case .success(let str): 
@@ -798,13 +822,22 @@ class GqlFeederStatus: GQLObject {
   var feeds: [GqlFeed]
   
   static var fields: String { Self.fields() }
-  static func fields(loadAllPublicationDates: Bool = false) -> String {
+  static func fields(loadAllPublicationDates: Bool = false, latestKnownPublicationDate: Date? = nil) -> String {
+    
+    var feedFields = ""
+    if let pubDate = latestKnownPublicationDate {
+      feedFields = GqlFeed.fields(latestKnownPublicationDate: pubDate)
+    }
+    else {
+      feedFields = GqlFeed.fields(loadAllPublicationDates: loadAllPublicationDates)
+    }
+    
     return """
       authInfo{\(GqlAuthInfo.fields)}
       resourceVersion
       resourceBaseUrl
       globalBaseUrl
-      feeds: feedList { \(GqlFeed.fields(loadAllPublicationDates: loadAllPublicationDates)) }
+      feeds: feedList { \(feedFields) }
     """
   }
   
@@ -921,15 +954,26 @@ open class GqlFeeder: Feeder, DoesLog {
   
   //ToDo: Ensure this is just done once not on every net status Change
   public func updateStatus(loadAllPublicationDates:Bool = false, closure: @escaping(Result<Feeder,Error>)->()){
+    log("updateStatus loadAllPublicationDates:\(loadAllPublicationDates)")
     isUpdating = true
     let wasAuthenticated: Bool = authToken != nil
     feederStatus(loadAllPublicationDates:loadAllPublicationDates) { [weak self] (res) in
-      guard let self = self else { return }
-      self.debug("feederStatus->res \(res)")
+      guard let self = self else {
+        print("...deallocated!")
+        let userInfo
+        = [NSLocalizedDescriptionKey: "Self deallocated before completion"]
+        closure(.failure(NSError(domain: "updateStatus",
+                                 code: -1,
+                                 userInfo: userInfo)))
+        return
+      }
+      self.log("feederStatus->res \(res)")
       var ret: Result<Feeder,Error>
       switch res {
         case .success(let st):
-          self.checkResponse(authInfo: st.authInfo, wasAuthenticated: wasAuthenticated)
+          if gqlSession?.isBackground == false {
+            self.checkResponse(authInfo: st.authInfo, wasAuthenticated: wasAuthenticated)
+          }
           ret = .success(self)
           self.status = st
         case .failure(let err):
@@ -983,7 +1027,7 @@ open class GqlFeeder: Feeder, DoesLog {
       }
     """
     wasWeekly = status?.authInfo.weekly ?? false
-    gqlSession.query(graphql: request, type: [String:GqlAuthToken].self) { [weak self] (res) in
+    gqlSession.query(graphql: request, type: [String:GqlAuthToken].self) { [weak self] (res, _) in
       var ret: Result<String,Error>
       switch res {
         case .success(let auth):
@@ -1035,7 +1079,7 @@ open class GqlFeeder: Feeder, DoesLog {
                    \(deviceInfoString)
                   )
     """
-    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res, _) in
       var ret: Result<Bool,Error>
       switch res {
       case .success(let dict):   
@@ -1064,7 +1108,7 @@ open class GqlFeeder: Feeder, DoesLog {
         isSilent: true
       )
     """
-    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res, _) in
       var ret: Result<Bool,Error>
       switch res {
       case .success(let dict):   
@@ -1087,7 +1131,7 @@ open class GqlFeeder: Feeder, DoesLog {
       }
     """
     gqlSession.query(graphql: request, type: [String:GqlResources].self,
-                     fromData: fromData) { (res) in
+                     fromData: fromData) { (res, _) in
       var ret: Result<Resources,Error>
       switch res {
       case .success(let str): 
@@ -1105,8 +1149,8 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   // Get GqlFeederStatus
-  func feederStatus(loadAllPublicationDates:Bool = false,loadAllPublicationDates closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
+  func feederStatus(loadAllPublicationDates:Bool = false, loadAllPublicationDates closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
+    guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
@@ -1114,7 +1158,8 @@ open class GqlFeeder: Feeder, DoesLog {
         \(GqlFeederStatus.fields(loadAllPublicationDates:loadAllPublicationDates))
     }
     """
-    gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self) { (res) in
+    log("request feeder status with return on\(gqlSession.isBackground ? "Background" : "Main")")
+    gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self, returnOnMain: !gqlSession.isBackground) { (res, _) in
       var ret: Result<GqlFeederStatus,Error>
       switch res {
       case .success(let fs):   
@@ -1198,56 +1243,75 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   */
  
+  
+  struct FeedRequest: Decodable {
+    var authInfo: GqlAuthInfo
+    var feeds: [GqlFeed]
+    static func request(feedName: String,
+                        date: Date?,
+                        key: String?,
+                        count: Int,
+                        isOverview: Bool,
+                        latestKnownPublicationDate: Date?) -> String {
+      var dateArg = ""
+      if let date = date {
+        dateArg = ",issueDate:\"\(date.isoDate(tz: GqlFeeder.tz))\""
+      }
+      var keyArg = ""
+      if let key = key {
+        keyArg = ",key:\"\(key)\""
+      }
+      
+      var feedFields = GqlFeed.fields
+      
+      if let latestKnownPublicationDate = latestKnownPublicationDate {
+        feedFields = GqlFeed.fields(latestKnownPublicationDate:latestKnownPublicationDate)
+      }
+      
+      return """
+      feedRequest: product {
+        authInfo { \(GqlAuthInfo.fields) }
+        feeds: feedList(name:"\(feedName)") {
+            \(feedFields)
+          gqlIssues: issueList(limit:\(count)\(dateArg)\(keyArg)) {
+            \(isOverview ? GqlIssue.ovwFields : GqlIssue.fields)
+          }
+        }
+      }
+      """
+    }
+  }
+  
   // Get Issues
-  public func issues(feed: Feed, 
+  @available(*, deprecated, message: "Migrate to Issues+FeedResponse @see below")
+  public func issues(feed: Feed,
                      date: Date? = nil,
                      key: String? = nil,
                      count: Int = 20, 
                      isOverview: Bool = false,
                      isPages: Bool = false,
                      withAudio: Bool = false,
+                     latestKnownPublicationDate: Date? = nil,
                      returnOnMain: Bool = true,
-    closure: @escaping(Result<[Issue],Error>)->()) {
-    struct FeedRequest: Decodable {
-      var authInfo: GqlAuthInfo
-      var feeds: [GqlFeed]
-      static func request(feedName: String, date: Date?, key: String?,
-                          count: Int, isOverview: Bool) -> String {
-        var dateArg = ""
-        if let date = date {
-          dateArg = ",issueDate:\"\(date.isoDate(tz: GqlFeeder.tz))\""
-        }
-        var keyArg = ""
-        if let key = key {
-          keyArg = ",key:\"\(key)\""
-        }
-        return """
-        feedRequest: product {
-          authInfo { \(GqlAuthInfo.fields) }
-          feeds: feedList(name:"\(feedName)") {
-            \(GqlFeed.fields)
-            gqlIssues: issueList(limit:\(count)\(dateArg)\(keyArg)) {
-              \(isOverview ? GqlIssue.ovwFields : GqlIssue.fields)
-            }
-          }
-        }
-        """
-      }
-    }
-    guard let gqlSession = self.gqlSession else { 
-      closure(.failure(fatal("Not connected"))); return
+                     isBackGround: Bool = false,
+    closure: @escaping(Result<[Issue],Error>, Data?)->()) {
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected")), nil); return
     }
     let wasAuthenticated: Bool = authToken != nil
     let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
-                                      count: count, isOverview: isOverview)
+                                      count: count, isOverview: isOverview, latestKnownPublicationDate: latestKnownPublicationDate)
     gqlSession.query(graphql: request,
-      type: [String:FeedRequest].self, returnOnMain: returnOnMain) {[weak self]  (res) in
+      type: [String:FeedRequest].self, returnOnMain: returnOnMain) {[weak self]  (res, data) in
+      self?.log("Request done with return on main?: \(returnOnMain) isBg  \(isBackGround)")
       guard let self = self else { return }
       var ret: Result<[Issue],Error>? = nil
       switch res {
       case .success(let frq):  
         guard let frqResponse = frq["feedRequest"] else { return }
-          self.checkResponse(authInfo: frqResponse.authInfo, wasAuthenticated: wasAuthenticated)
+          if isBackGround == false {
+            self.checkResponse(authInfo: frqResponse.authInfo, wasAuthenticated: wasAuthenticated)
+          }
           if let issues = frqResponse.feeds[0].issues, issues.count > 0 {
             for issue in issues {
               issue.feed = feed
@@ -1275,9 +1339,73 @@ open class GqlFeeder: Feeder, DoesLog {
       case .failure(let err):
         ret = .failure(err)
       }
-      closure(ret!)
+      closure(ret!, data)
     }
   }
+  
+  
+  // Get Issues
+  public func feedWithIssues(feed: Feed,
+                     date: Date? = nil,
+                     key: String? = nil,
+                     count: Int = 20,
+                     isOverview: Bool = false,
+                     isPages: Bool = false,
+                     withAudio: Bool = false,
+                     latestKnownPublicationDate: Date?,
+                     returnOnMain: Bool = true,
+                     isBackGround: Bool = false,
+    closure: @escaping(Result<Feed,Error>, Data?)->()) {
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected")), nil); return
+    }
+    let wasAuthenticated: Bool = authToken != nil
+    let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
+                                      count: count, isOverview: isOverview, latestKnownPublicationDate: latestKnownPublicationDate)
+    gqlSession.query(graphql: request,
+      type: [String:FeedRequest].self, returnOnMain: returnOnMain) {[weak self]  (res, data) in
+      self?.log("Request done with return on main?: \(returnOnMain) isBg  \(isBackGround)")
+      guard let self = self else { return }
+      var ret: Result<Feed,Error>? = nil
+      switch res {
+      case .success(let frq):
+        guard let frqResponse = frq["feedRequest"] else { return }
+          if isBackGround == false {
+            self.checkResponse(authInfo: frqResponse.authInfo, wasAuthenticated: wasAuthenticated)
+          }
+          if let feedResponse = frqResponse.feeds.first {
+            feedResponse.gqlFeeder = self
+            for issue in feedResponse.issues ?? [] {
+              issue.feed = feed
+              if isOverview {
+                (issue as? GqlIssue)?.isOverview = true
+              }
+              (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages, withAudio: withAudio)
+              if let sections = issue.sections as? [GqlSection] {
+                for section in sections {
+                  section.primaryIssue = issue
+                  if let articles = section.articles as? [GqlArticle] {
+                    for article in articles {
+                      article.primaryIssue = issue
+                    }
+                  }
+                }
+              }
+            }
+            ret = .success(feedResponse)
+          }
+          else {
+            ret = .failure(FeederError.unexpectedResponse(
+              "Server didn't return issues"))
+          }
+      case .failure(let err):
+        ret = .failure(err)
+      }
+      closure(ret!, data)
+    }
+  }
+  
+  
   
 //  // Get Issue
 //  public func issue(feed: Feed, date: Date? = nil, key: String? = nil,
@@ -1299,6 +1427,7 @@ open class GqlFeeder: Feeder, DoesLog {
   /// Signal server that download has been started
   public func startDownload(feed: Feed, issue: Issue, isPush: Bool,
                             pushToken: String?, isAutomatically: Bool,
+                            returnOnMain: Bool = true,
                             closure: @escaping(Result<String,Error>)->()) {
     guard let gqlSession = self.gqlSession else { 
       closure(.failure(fatal("Not connected"))); return
@@ -1322,7 +1451,7 @@ open class GqlFeeder: Feeder, DoesLog {
        \(deviceInfoString)
     )
     """
-    gqlSession.mutation(graphql: request, type: [String:String].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:String].self, returnOnMain: returnOnMain) { (res, _) in
       var ret: Result<String,Error>
       switch res {
       case .success(let dict):   
@@ -1335,15 +1464,17 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   /// Signal server that download has been finished
-  public func stopDownload(dlId: String, seconds: Double, 
-                    closure: @escaping(Result<Bool,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
+  public func stopDownload(dlId: String,
+                           seconds: Double,
+                           returnOnMain: Bool = true,
+                           closure: @escaping(Result<Bool,Error>)->()) {
+    guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
       downloadStop(\(deviceInfoString), downloadId: "\(dlId)", downloadTime: \(seconds))
     """
-    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:Bool].self, returnOnMain: returnOnMain) { (res, _) in
       var ret: Result<Bool,Error>
       switch res {
       case .success(let dict):   
@@ -1411,7 +1542,7 @@ open class GqlFeeder: Feeder, DoesLog {
     
     let request = "errorReport(\(arrayData.joined(separator: ", ")))"
     
-    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res) in
+    gqlSession.mutation(graphql: request, type: [String:Bool].self) { (res, _) in
       var ret: Result<Bool,Error>
       switch res {
         case .success(let dict):

@@ -21,9 +21,15 @@ extension UIAlertAction {
           "refresh": "aboPoll"
         ]
       ]
-      TazAppEnvironment.sharedInstance.feederContext?.processPushNotification(pn: PushNotification(),
-                                                                              payload: PushNotification.Payload(payload),
-                                                                              fetchCompletionHandler: nil)
+      Toast.show("Simulate Push in 30 Seconds.....")
+      Log.log("Simulate Push in 30 Seconds.....")
+      onMain(after: 30.0) {
+        TazAppEnvironment.sharedInstance.feederContext?.processPushNotification(pn: PushNotification(),
+                                                                                payload: PushNotification.Payload(payload),
+                                                                                fetchCompletionHandler: { result in
+          Log.log("processPushNotification compleeted")
+        })
+      }
       callback(false)
     }
     

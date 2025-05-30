@@ -67,7 +67,7 @@ public extension App {
     return bundleIdentifier == BuildConst.tazBundleIdentifierAlpha
   }()
   
-  enum Feature { case  INTERNALBROWSER, AUTODOWNLOAD, ABOIDLOGIN}
+  enum Feature { case  INTERNALBROWSER, ABOIDLOGIN}
   
   
   /// Is the beta App
@@ -109,8 +109,6 @@ public extension App {
         return true //WARNING Handle expiredSubscription may not work correct!! do not turn off this feature for Release
       case .INTERNALBROWSER:
         return isAlpha //Only in Alpha Versions
-      case .AUTODOWNLOAD:
-        return (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") || isAlpha //Only in Alpha Versions or taz Accounts
     }
   }
 }

@@ -263,8 +263,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     settingsBottomSheet = nil
     slider = nil
     textSettingsVC = nil
-    contentTable?.releaseOnDisappear()
-    contentTable = nil
+    if contentTable != nil {
+      contentTable?.releaseOnDisappear()
+      contentTable = nil
+    }
     super.releaseOnDisappear()
   }
 
@@ -969,6 +971,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.image = UIImage.init(named: logo)
     slider?.image?.accessibilityLabel = "Inhalt"
     slider?.buttonAlpha = 1.0
+    slider?.closedBottonImageOffsetX = App.isTAZ ? 0.0 : 8.0
     header.leftConstraint?.constant = 8 + (slider?.visibleButtonWidth ?? 0.0)
     ///enable shadow for sliderView
     slider?.sliderView.clipsToBounds = false

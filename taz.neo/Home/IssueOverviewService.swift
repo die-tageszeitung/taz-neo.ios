@@ -34,6 +34,8 @@ extension Date {
                             leadingText:leadingText)
   }
   
+  
+  
   func validityDateText(validityDate: Date?,
                         timeZone:String,
                         short:Bool = false,
@@ -153,23 +155,26 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   private func hasDownloadableContent(issue: Issue, withAudio: Bool) -> Bool {
-    guard let sIssue = issue as? StoredIssue else { return true }
-    if sIssue.isAudioComplete == false && withAudio == true { return true }
-    return feederContext.needsUpdate(issue: sIssue,toShowPdf: isFacsimile)
+    return feederContext.hasDownloadableContent(issue: issue, withAudio: withAudio, toShowPdf: isFacsimile)
   }
   
-  @discardableResult
-  func download(issueAt date: Date, withAudio: Bool) -> StoredIssue? {
-    guard let issue = issue(at: date),
-          hasDownloadableContent(issue: issue, withAudio: withAudio) else {
-      self.log("not downloading issue from: \(date.issueKey)")
-      return nil
+  func download(issueAt date: Date, withAudio: Bool){
+    guard let issue = issue(at: date) else {
+      self.log("issue not found for: \(date.issueKey)")
+      return
+    }
+    download(issue: issue, withAudio: withAudio)
+  }
+  
+  func download(issue: StoredIssue, withAudio: Bool) {
+    guard hasDownloadableContent(issue: issue, withAudio: withAudio) else {
+      self.log("not downloading issue from: \(issue.date.issueKey)")
+      return
     }
     feederContext.getCompleteIssue(issue: issue,
                                    isPages: self.isFacsimile,
-                                   isAutomatically: false, 
+                                   isAutomatically: false,
                                    withAudio: withAudio)
-    return issue
   }
   
   func date(at index: Int) -> PublicationDate? {
@@ -206,7 +211,7 @@ class IssueOverviewService: NSObject, DoesLog {
       d.addDays(1)
     }
     
-    if lds.count == 0 { return }//prevent multiple times enqueued same item 
+    if lds.count == 0 { return }//prevent multiple times enqueued same item
     
     count = max(1, lds.count/feederContext.defaultFeed.cycle.multiplicator)//prevent load same issue multiple times
     
@@ -214,7 +219,7 @@ class IssueOverviewService: NSObject, DoesLog {
                                         date: date,
                                         count: count,
                                         isOverview: true,
-                                        returnOnMain: true) {[weak self] res in
+                                        returnOnMain: true) {[weak self] (res, _) in
       guard let self = self else { return }
       var newIssues: [StoredIssue] = []
       self.debug("Finished load Issues for: \(date.issueKey), count: \(count)")
@@ -278,9 +283,12 @@ class IssueOverviewService: NSObject, DoesLog {
       files = issue.moment.carouselFiles
     }
     var dlFiles: [FileEntry] = []
-    for f in files { if f.exists(inDir: dir.path) == false { dlFiles.append(f)}}
-    
-    
+    self.debug(">>> scan dir \(dir.path)")
+    for f in files { if f.exists(inDir: dir.path) == false {
+      self.debug(">> \(f.name) not found, download it")
+      dlFiles.append(f)}
+    }
+        
     if dlFiles.count == 0 && isPdf {
       ///It seams on last Execution there was missing the convert from PDF to jpg, do it now
       (issue.pages?.first as? StoredPage)?.facsimile = nil
@@ -397,7 +405,7 @@ class IssueOverviewService: NSObject, DoesLog {
     var usedOld: [String] = []
     
     ///find added and move items indexPaths
-    for (nIdx, newElm) in newDates.enumerated() {
+    for (nIdx, newElm) in newDates.enumerated() {///SLOW IN DEBUG! 15s on iPadA2
       var found = false
       for (oIdx, oldElm) in oldDates.enumerated() {
         if newElm == oldElm {
@@ -431,11 +439,10 @@ class IssueOverviewService: NSObject, DoesLog {
     = verticalCv
     ? collectionView.contentSize.height - collectionView.contentOffset.y
     : collectionView.contentSize.width - collectionView.contentOffset.x
-    
+    debug(">>>performBatchUpdates on collectionView counts (imd): \(insertIp.count),\(movedIp.count),\(deletedIp.count)")
     ///Update Issue Carousel
     CATransaction.begin()
     CATransaction.setDisableActions(true)
-    
     collectionView.performBatchUpdates({
       if insertIp.count > 0 {
         collectionView.insertItems(at: insertIp)
@@ -456,6 +463,7 @@ class IssueOverviewService: NSObject, DoesLog {
       CATransaction.commit()
     })
     ///inform sender to refresh other collectionView
+    debug(">>>performBatchUpdates on collectionView done")
     return true
   }
     
@@ -518,6 +526,7 @@ class IssueOverviewService: NSObject, DoesLog {
       self?.updateIssues()
     }
     self.ovwHelper.onTimer{ [weak self] in
+      if UIApplication.shared.applicationState != .active { return }
       self?.loadMissingItems()
     }
   }
@@ -758,5 +767,13 @@ class LoadOverviewHelperBusiness: DoesLog {
     }
     skipCount = 0
     return true
+  }
+}
+
+extension FeederContext {
+  func hasDownloadableContent(issue: Issue, withAudio: Bool, toShowPdf: Bool) -> Bool {
+    guard let sIssue = issue as? StoredIssue else { return true }
+    if sIssue.isAudioComplete == false && withAudio == true { return true }
+    return self.needsUpdate(issue: sIssue, toShowPdf: toShowPdf)
   }
 }

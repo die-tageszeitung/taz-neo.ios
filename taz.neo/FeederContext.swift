@@ -108,8 +108,11 @@ open class FeederContext: DoesLog {
   public private(set) var storedFeeder: StoredFeeder!
   
   /// The default Feed to show
-  public var defaultFeed: StoredFeed!
-  /// The Downloader to use 
+  public var defaultFeed: StoredFeed! {
+    didSet { if let feed = defaultFeed { BackgroundDownloadService.shared.updateFeed(feed)}}
+  }
+  
+  /// The Downloader to use
   public var dloader: Downloader! {
     didSet {
       guard let old = oldValue else { return }
@@ -120,6 +123,11 @@ open class FeederContext: DoesLog {
     }
   }
   
+  func stopDownloadsAndResetDownloader(){
+    guard let gqlFeeder else { return }
+    self.dloader = Downloader(feeder: gqlFeeder)
+  }
+  
   var pollingTimer: Timer?
   var pollEnd: Int64?
   var updateAlert: AlertController?
@@ -127,7 +135,7 @@ open class FeederContext: DoesLog {
   ///Helper to handle Network changes
   private(set) var netAvailability: ExtendedNetAvailability
   
-  @Default("autoloadOnlyInWLAN")
+  @Default("autoloadOnlyInWLAN2")
   var autoloadOnlyInWLAN: Bool
   
   @Default("autoloadPdf")
@@ -210,6 +218,7 @@ open class FeederContext: DoesLog {
         ///No feeder update possible if offline
         return
       }
+      log("No stored Feeder found, update Feeder caLLED FROM INIT")
       updateFeeder()
       return
     }
@@ -220,6 +229,7 @@ open class FeederContext: DoesLog {
     notify("feederReady")
     cleanupOldIssues()//requires inited bookmarks
     checkAppUpdate()
+    handleUnfinshedDownloads()
     if needUpdate {
       updateFeeder(loadAllPublicationDates: loadAll)
     }
@@ -228,6 +238,7 @@ open class FeederContext: DoesLog {
   }
   
   func checkForNewIssues(force: Bool = false){
+    log("checkForNewIssues force: \(force) url: \(netAvailability.url)")
     if force || netAvailability.isConnected == false {
       netAvailability.recheck(force: force)
 //      Notification.send(Const.NotificationNames.checkForNewIssues,
@@ -240,9 +251,21 @@ open class FeederContext: DoesLog {
         updateFeeder()
     }
   }
-  
+#warning("maybe do not use this in BG Download Stuff!!!")
   private func updateFeeder(loadAllPublicationDates:Bool = false){
-    if loadAllPublicationDates == false && gqlFeeder.isUpdating { return }
+    if loadAllPublicationDates == false && gqlFeeder.isUpdating {
+      debug("...updateFeeder called BUT CANCELED, loadAllPublicationDates: \(loadAllPublicationDates) isUpdating: \(gqlFeeder.isUpdating)")
+      return
+    }
+    
+    if gqlFeeder.gqlSession?.isBackground == true {
+      log("########################### W A R N I N G #######################")
+      log("got a bg SESSION!?")
+      log("########################### W A R N I N G #######################")
+    }
+    
+    
+    log("...updateFeeder called, loadAllPublicationDates: \(loadAllPublicationDates) is backgroundFeeder? \(gqlFeeder.gqlSession?.isBackground)")
     Notification.send(Const.NotificationNames.checkForNewIssues,
                       content: FetchNewStatusHeader.status.fetchNewIssues,
                       error: nil,
@@ -263,9 +286,12 @@ open class FeederContext: DoesLog {
           self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
           if publicationDatesChanged {
             ArticleDB.save()
+            log("...publication dates changed, inform UI (if not in background mode)")
             Notification.send(Const.NotificationNames.publicationDatesChanged)
+            self.notifyNetStatus(isConnected: true)
+          } else {
+            debug("...publication dates NOT changed")///4345 Issues
           }
-          self.notifyNetStatus(isConnected: true)
         case .failure:
           if let err = res.error() as? FeederError {
             if case .minVersionRequired(let smv) = err {
@@ -329,11 +355,12 @@ open class FeederContext: DoesLog {
   }
   
   private func netStatusChanged(isConnected:Bool){
-    debug("NET STATUS CHANGED isConnected: \(isConnected)")
+    log("NET STATUS CHANGED isConnected: \(isConnected)")
     isConnected ? updateFeeder() : notifyNetStatus(isConnected: false)
   }
   
   private func notifyNetStatus(isConnected:Bool){
+    return;
     if isConnected {
       self.debug("Feeder now reachable")
       notify(Const.NotificationNames.feederReachable)
@@ -408,8 +435,10 @@ open class FeederContext: DoesLog {
       netAvailability.recheck()
     }
     else {
+      log("Enter Foreground, updateFeeder")
       updateFeeder()
     }
+    BackgroundDownloadService.shared.handleEnterForeground()
   }
   
   /// release closes the Database and removes all feeder specific content
@@ -479,6 +508,10 @@ open class FeederContext: DoesLog {
     return needsUpdate
   }
   
+  func handleUnfinshedDownloads(){
+    BackgroundDownloadService.shared.applicationRestarted(with: self)
+  }
+  
   func cleanupOldIssues(){
     if self.dloader.isDownloading { return }
     guard let feed = self.storedFeeder?.feeds[0] as? StoredFeed else { return }
@@ -487,4 +520,4 @@ open class FeederContext: DoesLog {
                              keepDownloaded: persistedIssuesCount,
                              deleteOrphanFolders: true)
   }
-} // FeederContext
+} // eof FeederContext

@@ -27,6 +27,22 @@ public class LoginView : FormView{
   var registerButton = Padded.Button(type: .outline,
                                      title: Localized("register_free_button"))
   
+  var loginWithAboLabel: Padded.View = {
+    let lbl = UILabel()
+    lbl.text = "Falls Ihr Abo-Zugang noch nicht auf Ihre E-Mail-Adresse umgestellt wurde, geben Sie hier bitte Ihre Abo-ID ein."
+    lbl.contentFont()
+    lbl.numberOfLines = 0
+    let wrapper = Padded.View()
+    wrapper.addSubview(lbl)
+    //Allow label to shink if wrapper shrinks, not alow to grow more than needed
+    pin(lbl, to: wrapper).right.priority = .defaultLow
+    lbl.setContentHuggingPriority(.required, for: .horizontal)
+    lbl.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+    wrapper.paddingBottom = 0.0
+    wrapper.paddingTop = 0.0
+    return wrapper
+  }()
+  
   var marketingContainer: MarketingContainerWrapperView = MarketingContainerWrapperView()
   
   var buttonWidthConstraint: NSLayoutConstraint?
@@ -99,9 +115,11 @@ public class LoginView : FormView{
     if App.isLMD {
       return   [
         label,
+        loginWithAboLabel,
         idInput,
         helpButton,
         passInput,
+        passForgottButton,
         loginWrapper]
     }
     return   [

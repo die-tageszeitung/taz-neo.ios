@@ -53,6 +53,7 @@ class AppDelegate: NotifiedDelegate {
   /// Update App Icon Menu
   public func applicationWillResignActive(_ application: UIApplication) {
     application.shortcutItems = Shortcuts.currentItems()
+    log("applicationWillResignActive: \(application.stateDescription)")
   }
 
   func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
@@ -64,13 +65,21 @@ class AppDelegate: NotifiedDelegate {
   func application(_ application: UIApplication,
                    handleEventsForBackgroundURLSession identifier: String,
                    completionHandler: @escaping () -> Void) {
-    log("store bg Download compleetion")
-    HttpSession.bgCompletionHandlers[identifier] = completionHandler
+    do {
+      log("application handleEventsForBackgroundURLSession identifier: \(identifier)")
+      try BackgroundSession.resumeBackgroundURLSession(name: identifier,
+                                   completionHandler: completionHandler,
+                                   callback: BackgroundDownloadService.dlCallback)
+    }
+    catch {
+      log("BackgroundSession.resume failed: \(error)")
+    }
   }
 
   func applicationDidEnterBackground(_ application: UIApplication) {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+    log("enter background: \(application.stateDescription)")
   }
 
   func applicationWillEnterForeground(_ application: UIApplication) {

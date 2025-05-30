@@ -141,7 +141,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     self.onX { [weak self] in self?.toCloseClosure?() }
     self.onDisplay { [weak self] (idx, _, _) in
       guard let self = self else { return }
-      if let zi = self.images[idx] as? ZoomedImage {
+      if let zi = self.images.valueAt(idx) as? ZoomedImage {
         if let ziv = self.currentView as? ZoomedImageView, ziv.menu.menu.count == 0 {
           if zi.imageEntry?.sharable ?? true {
             ziv.addMenuItem(title: "Bild Teilen", icon: "share") { [weak self] title in

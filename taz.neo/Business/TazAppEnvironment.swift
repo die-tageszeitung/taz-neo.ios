@@ -8,6 +8,7 @@
 
 import NorthLib
 import UIKit
+import BackgroundTasks
 
 class TazAppEnvironment: NSObject, DoesLog {
   
@@ -85,7 +86,8 @@ class TazAppEnvironment: NSObject, DoesLog {
   public static var openedFromNotificationCenter:PushNotification.Payload.ArticlePushData?
   
   lazy var consoleLogger = Log.Logger()
-  lazy var fileLogger = Log.FileLogger()
+  public static let fileLogger = Log.FileLogger()
+  var fileLogger:Log.FileLogger  {  Self.fileLogger }
   var feederContext: FeederContext?
   var service: IssueOverviewService?
   let net = NetAvailability()
@@ -147,28 +149,11 @@ class TazAppEnvironment: NSObject, DoesLog {
     setupFeeder()
   }
   
-  /// Enable logging to file and otional to view
   func setupLogging() {
-    Log.log("Setting up logging")
-    Log.append(logger: fileLogger)
-    Log.minLogLevel = .Debug
-    HttpSession.isDebug = false
-    PdfRenderService.isDebug = false
-    ZoomedImageView.isDebug = false
-    Log.onFatal { msg in
-      self.log("fatal closure called, error id: \(msg.id)")
-      self.reportFatalError(err: msg)
-    }
-    net.onChange { (flags) in self.log("net changed: \(flags)") }
-    net.whenUp { self.log("Network up") }
-    net.whenDown { self.log("Network down") }
-    if !net.isAvailable { error("Network not available") }
-    log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-        "\(App.bundleIdentifier)\n" +
-        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
-        "git-hash: \(BuildConst.hash)\n" +
-        "Path: \(Dir.appSupportPath)\n" +
-        "isTAZ: \(App.isTAZ)")
+    Log.setupLogging(caller: self,
+                     fileLogger: Self.fileLogger,
+                     errorReportingDelegate: self,
+                     net: net)
   }
   
   func startup() {
@@ -189,6 +174,8 @@ class TazAppEnvironment: NSObject, DoesLog {
   func goingBackground() {
     isForeground = false
     ArticleDB.save()
+    debug("Database saved")
+    BackgroundDownloadService.shared.handleGoingBackground()
     debug("Going background")
   }
   
@@ -219,10 +206,14 @@ class TazAppEnvironment: NSObject, DoesLog {
     feederContext?.release(isRemove: isDelete) { [weak self] in
       guard let self else { return }
       self.feederContext = nil
-      if isDelete { self.deleteData() } 
+      BackgroundSession.cleanupAllSessions()
+      if isDelete { self.deleteData() }
         // TODO: reinitialize feederContext when this no longer crashes
 //      self.setupFeeder(isStartup: false)
-      exit(0) // until feederContext is removed properly
+      onMain(after: 2.0) {
+        // until feederContext is removed properly
+        exit(0)
+      }
     }
   }
   
@@ -312,9 +303,23 @@ class TazAppEnvironment: NSObject, DoesLog {
       self.debug(fctx.storedFeeder.toString())
       if isStartup { self.startup() }
       else { self.showHome() }
+      
+      if let sf = feederContext?.defaultFeed {
+        log("ToDo finalizePendingDownloads")
+        #warning("DOWNLOAD LATEST ISSUE ON APP START AFTER EXIT")
+//        BackgroundDownloadService.finalizePendingDownloads(for: sf)
+      }
+      else {
+        log("ERROR cannot finalizePendingDownloads, missing SortFeed")
+      }
+     
       _ = Usage.shared//init usage, setup Tracking
     }
     feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
+    
+    BGTaskScheduler.shared.register(forTaskWithIdentifier: "de.taz.taz.neo.refresh", using: nil) { task in
+      BackgroundDownloadService.shared.handleIssueCheckTask(task: task as! BGAppRefreshTask)
+    }
   }
   
   // Logs Keychain variables if in debug mode
@@ -340,8 +345,7 @@ class TazAppEnvironment: NSObject, DoesLog {
         newIssueSystemSetting: \(Defaults.newIssueSystemSetting)
         specialArticleSystemSetting: \(Defaults.specialArticleSystemSetting)
         autoloadNewIssues: \(Defaults.singleton["autoloadNewIssues"] ?? "-")
-        autoloadOnlyInWLAN: \(Defaults.singleton["autoloadOnlyInWLAN"] ?? "-")
-        App.isAvailable(.AUTODOWNLOAD): \(App.isAvailable(.AUTODOWNLOAD))
+        autoloadOnlyInWLAN: \(Defaults.singleton["autoloadOnlyInWLAN2"] ?? "-")
         ---
         voiceoverControls: \(Defaults.singleton["voiceoverControls"] ?? "-")
         smartBackFromArticle: \(Defaults.singleton["smartBackFromArticle"] ?? "-")
@@ -374,11 +378,14 @@ class TazAppEnvironment: NSObject, DoesLog {
       log("FeaderContextNot ready!")
       return
     }
+    let issueOverviewService = service ?? IssueOverviewService(feederContext: feederContext)
+    self.service = issueOverviewService
     self.rootViewController = MainTabVC(feederContext: feederContext,
-                                        service: service
-                                        ?? IssueOverviewService(feederContext: feederContext))
+                                        service: issueOverviewService)
     feederContext.setupRemoteNotifications()
   }
+  
+  
   
   private func isTazUser() -> Bool {
     let dfl = Defaults.singleton
@@ -500,6 +507,8 @@ class TazAppEnvironment: NSObject, DoesLog {
     let dfl = Defaults.singleton
     dfl.setDefaults(values: ConfigDefaults)
   }
+  
+  
   
   static func setupDefaultStyles(){
     if let defaultFontName = Const.Fonts.contentFontName,
@@ -670,6 +679,8 @@ extension TazAppEnvironment : UIStyleChangeDelegate {
   }
 }
 
+enum FeedName:String { case taz = "taz", LMd = "LMd" }
+
 // Defaults Server Switch extension
 extension Defaults{
 #if TAZ  
@@ -692,16 +703,22 @@ extension Defaults{
       }
     }
   }
-  
+
   static var currentFeeder : (name: String, url: String, feed: String) {
     get {
+      if Defaults.useTestServer {
+        return (name: "taz", url: "https://testdl.taz.de/appGraphQl", feed: FeedName.taz.rawValue)
+      }
       switch Defaults.singleton["currentServer"] {
         case Shortcuts.testServer.type:
-          return (name: "taz-test", url: "https://testdl.taz.de/appGraphQl", feed: "taz")
+          return (name: "taz-test", url: "https://testdl.taz.de/appGraphQl",
+                  feed: FeedName.taz.rawValue)
         case Shortcuts.lmdServer.type:
-          return (name: "LMd", url: "https://dl.monde-diplomatique.de/appGraphQl", feed: "LMd")
+          return (name: "LMd", url: "https://dl.monde-diplomatique.de/appGraphQl",
+                  feed: FeedName.LMd.rawValue)
         default:
-          return (name: "taz", url: "https://dl.taz.de/appGraphQl", feed: "taz")
+          return (name: "taz", url: "https://dl.taz.de/appGraphQl",
+                  feed: FeedName.taz.rawValue)
       }
     }
   }
@@ -816,3 +833,33 @@ extension App {
     #endif
   }
 } // App
+
+
+extension Log {
+  /// Enable logging to file and otional to view
+  static func setupLogging(caller: DoesLog,
+                           fileLogger: FileLogger,
+                           errorReportingDelegate: TazAppEnvironment? = nil,
+                           net: NetAvailability? = nil) {
+    Log.log("Setting up logging")
+    Log.append(logger: fileLogger)
+    Log.minLogLevel = .Debug
+    HttpSession.isDebug = false
+    PdfRenderService.isDebug = false
+    ZoomedImageView.isDebug = false
+    Log.onFatal { msg in
+      caller.log("fatal closure called, error id: \(msg.id)")
+      errorReportingDelegate?.reportFatalError(err: msg)
+    }
+    net?.onChange { (flags) in caller.log("net changed: \(flags)") }
+    net?.whenUp { caller.log("Network up") }
+    net?.whenDown { caller.log("Network down") }
+    if net?.isAvailable == false { caller.error("Network not available") }
+    log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
+        "\(App.bundleIdentifier)\n" +
+        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
+        "git-hash: \(BuildConst.hash)\n" +
+        "Path: \(Dir.appSupportPath)\n" +
+        "isTAZ: \(App.isTAZ)")
+  }
+}

@@ -69,7 +69,7 @@ extension FeederContext {
                                force: Bool = false,
                                withAudio: Bool = false) {
     /// prevent unexpected Behaviour e.g. with: issue.date != dissue.date 
-    if issue.isBookmarkIssue { return }
+    if issue.isBookmarkIssue || issue.safeDate == nil { return }
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
     Usage.track(isAutomatically ? Usage.event.issue.autoDownload : Usage.event.issue.download,
                 name: issue.date.ISO8601,
@@ -93,7 +93,7 @@ extension FeederContext {
                        key: issue.key,
                        count: 1,
                        isPages: loadPages, 
-                       withAudio: withAudio) { res in
+                       withAudio: withAudio) { (res, _) in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           #warning("Not needed, not used currently")
@@ -158,8 +158,30 @@ extension FeederContext {
     }
   }
   
+  func markStartDownloadAsync(feed: Feed, issue: Issue, isAutomatically: Bool) async -> (String?, UsTime) {
+      return await withCheckedContinuation { continuation in
+          markStartDownload(feed: feed, issue: issue, isAutomatically: isAutomatically) { dlId, time in
+              continuation.resume(returning: (dlId, time))
+          }
+      }
+  }
+
+  func markStopDownloadAsync(dlId: String?, tstart: UsTime) async {
+      guard let dlId = dlId else { return }
+      return await withCheckedContinuation { continuation in
+          let nsec = UsTime.now.timeInterval - tstart.timeInterval
+          debug("Sending stop of download to server")
+          self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) { [weak self] _ in
+              self?.cleanupOldIssues()
+              continuation.resume()
+          }
+      }
+  }
+
+  
   ///check is new issue was available since popup should be shown (Step1)
   func didDownload(_ issue: Issue){
+    BackgroundDownloadService.shared.updateLatestIssueDownloadDate(ifNewer: issue.date)
     guard issue.date == self.defaultFeed.lastIssue else { return }
     guard let momentPublicationDate = issue.moment.files.first?.moTime else { return }
     ///momentPublicationDate is in UTC timeIntervalSinceNow calculates also with utc, so timeZone calculation needed!
