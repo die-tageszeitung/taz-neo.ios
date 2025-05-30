@@ -17,7 +17,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("persistedIssuesCount")
   var persistedIssuesCount: Int
   
-  @Default("autoloadOnlyInWLAN")
+  @Default("autoloadOnlyInWLAN2")
   var autoloadOnlyInWLAN: Bool
   
   @Default("autoloadAudio")
@@ -50,6 +50,15 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
       GqlIssue.ovwFields = sendFailureRequestToServer ? failureOvwFields : orgOvwFields
     }
   }
+
+  @Default("useTestServer")
+  var useTestServer: Bool
+  
+  @Default("newIssueSystemSetting")
+  var newIssueSystemSetting: Bool
+  
+  @Default("specialArticleSystemSetting")
+  var specialArticleSystemSetting: Bool
   
   @Default("autoloadPdf")
   var autoloadPdf: Bool
@@ -168,12 +177,6 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   detailText: "Nach dem Download einer weiteren Ausgabe, wird die älteste heruntergeladene Ausgabe gelöscht.",
                   accessoryView: SaveLastCountIssuesSettings())
   
-  lazy var issueDownloadTestOffsetCell: XSettingsCell
-  = XSettingsCell(text: "issueDownloadTestOffset",
-                  detailText: "issueDownloadTestOffset",
-                  accessoryView: IssueDlTestOffsetCountIssuesSettings())
-  
-  
   lazy var autoloadNewIssuesCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
                   detailText: autoloadCellDetailText,
@@ -192,9 +195,18 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   lazy var wlanCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Nur im WLAN herunterladen",
+                  detailText: "Automatischer Download nur im WLAN",
                   initialValue: autoloadOnlyInWLAN,
                   onChange: {[weak self] newValue in
-    self?.autoloadOnlyInWLAN = newValue })
+    self?.autoloadOnlyInWLAN = newValue
+    if newValue == true { return }//No Warning if Download only in WLAN
+    let audio = self?.autoloadAudio == true
+    let message
+    = audio
+    ? "Der Download von Audiodateien kann Ihr mobiles Datenvolumen stark beanspruchen. Eine Werktagsausgabe benötigt etwa 100 MB, eine Wochentaz oder LMd Ausgabe etwa 250 MB. Wir empfehlen den Download über WLAN."
+    : "Der Download einer Ausgabe kann Ihr mobiles Datenvolumen beanspruchen. Die Downloadgröße pro Ausgabe beträgt ca. 10-20 MB ohne Audiodateien."
+    Alert.message(title: audio ? "Achtung" : "Hinweis", message: message)
+  })
   
   lazy var autoloadAudioCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Audiodateien ebenfalls automatisch herunterladen",
@@ -229,6 +241,15 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   initialValue: autoloadPdf,
                   onChange: {[weak self] newValue in
     self?.autoloadPdf = newValue })
+  
+  lazy var testServerCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Testserver",
+                  initialValue: useTestServer,
+                  onChange: {[weak self] newValue in
+    self?.useTestServer = newValue })
+  
+  
+  
   lazy var deleteIssuesCell: XSettingsCell
   = XSettingsCell(text: "Alle Ausgaben löschen",
                   isDestructive: true,
@@ -257,6 +278,22 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
     }
     return cell
   }
+  
+  lazy var specialArticleNotificationCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Besonderer Artikel",
+                    detailText: "Benachrichtigung in der Mitteilungszentrale für redaktionell ausgewählte Artikel",
+                  initialValue: specialArticleSystemSetting,
+                  onChange: {[weak self] newValue in
+    self?.specialArticleSystemSetting = newValue })
+  
+  
+  lazy var newIssueNotificationCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Neue Ausgabe",
+                  detailText: "Benachrichtigung in der Mitteilungszentrale bei neuer Ausgabe",
+                  initialValue: newIssueSystemSetting,
+                  onChange: {[weak self] newValue in
+    self?.newIssueSystemSetting = newValue })
+  
 
   ///darstellung
   lazy var textSizeSettingsCell: XSettingsCell
@@ -378,7 +415,15 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   })
   
   lazy var memoryUsageCell: XSettingsCell
-  = XSettingsCell(text: "Speichernutzung", detailText: storageDetails)
+  = XSettingsCell(text: "Speichernutzung",
+                  detailText: storageDetails,
+                  tapHandler: {[weak self] in
+    #warning("DEBUG CODE")
+    self?.log("StorageDetails tapped")
+    BackgroundSession.logWaiting()
+//    BackgroundSession.cleanupUserDefaults()
+  })
+  
   lazy var deleteDatabaseCell: XSettingsCell
   = XSettingsCell(text: "Daten zurücksetzen",
                   isDestructive: true,
@@ -387,6 +432,12 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
                   isDestructive: true,
                   tapHandler: {[weak self] in self?.requestResetApp()} )
+
+  lazy var resetBGSessionsCell: XSettingsCell
+  = XSettingsCell(text: "Reset Background Download Sessions",
+                  isDestructive: true,
+                  tapHandler: {[weak self] in BackgroundSession.cleanupAllSessions() } )
+  
   lazy var sendFailureRequestCell: XSettingsCell
   = XSettingsCell(text: "Sende fehlerhaften Page Request für die Ausgabenübersicht",
                   detailText: "ALPHA-App :: erneut antippen zum Wechsel",
@@ -395,7 +446,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
     self?.sendFailureRequestToServer = !(self?.sendFailureRequestToServer ?? true)
     Toast.show("Nachfolgende Page Requests sind: \(self?.sendFailureRequestToServer == true ? "fehlerhaft" : "normal")")
   })
-  
+    
   lazy var deleteSearchResultsFolder: XSettingsCell
   = XSettingsCell(text: "Lösche Search Results Folder",
                   detailText: "ALPHA-App!",
@@ -797,19 +848,18 @@ extension SettingsVC {
       cells.append(deleteAccountCell)
     }
     cells.append(notificationsCell)
+    cells.append(newIssueNotificationCell)
+    cells.append(specialArticleNotificationCell)
     return cells
   }
   
   var issueSettingsCells:[XSettingsCell] {
     var cells = [
-      maxIssuesCell
+      maxIssuesCell,
+      autoloadNewIssuesCell
     ]
     
-    if App.isAvailable(.AUTODOWNLOAD) {
-      cells.append(autoloadNewIssuesCell)
-    }
-    
-    if autoloadNewIssues && App.isAvailable(.AUTODOWNLOAD) {
+    if autoloadNewIssues {
       cells.append(wlanCell)
       cells.append(autoloadAudioCell)
     }
@@ -823,7 +873,6 @@ extension SettingsVC {
   var extendedSettingsCells:[XSettingsCell] {
     (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
-      
       voiceoverControlsCell,
       memoryUsageCell,
       deleteDatabaseCell,
@@ -835,8 +884,11 @@ extension SettingsVC {
       cells.insert(smartBackFromArticleCell, at: 0)
       ///reopen only work in app view, noit available in LMd
       cells.insert(reopenArticleSettingCell, at: 1)
-      cells.insert(issueDownloadTestOffsetCell, at: 2)
     }
+    
+    #if DEBUG
+    cells.append(resetBGSessionsCell)
+    #endif
     
     if Device.isIpad {
       cells.insert(multiColumnFixedScrollingCell, at: 1)
@@ -851,18 +903,16 @@ extension SettingsVC {
       cells.insert(hideToolbarCell, at: 0)
     }
     
-    if App.isAlpha {
+    if isSpecialSettingAvailable {
+      cells.append(sendFailureRequestCell)
+      cells.append(deleteSearchResultsFolder)
       cells.append(contentChangeSettingCellALPHA)
       cells.append(tabbarInSectionCellALPHA)
     }
-    //App.isAlpha
-    if true && SimpleAuthenticator.getUserData().id == "145489" {
-      cells.append(sendFailureRequestCell)
-      cells.append(deleteSearchResultsFolder)
-    }
     
-    if DefaultAuthenticator.isTazLogin {
+    if DefaultAuthenticator.isTazLogin || isSpecialSettingAvailable {
       cells.append(defaultToastsDisabledCell)
+      cells.append(testServerCell)
     }
     
     return cells
@@ -886,7 +936,7 @@ extension SettingsVC {
       ("Konto".lowerIfTaz, false, accountSettingsCells),
       ("Ausgabenverwaltung".lowerIfTaz, false, issueSettingsCells),
       ("Darstellung".lowerIfTaz, false, displayCells),
-      (  App.isTAZ 
+      (  App.isTAZ
          ? "steuerung in der Zeitungsansicht"
          : "Steuerung in der Zeitungsansicht", false,
        [
@@ -908,6 +958,18 @@ extension SettingsVC {
        extendedSettingsCollapsed ? [] : extendedSettingsCells
       )
     ]
+  }
+}
+
+// MARK: - SettingsVC Extension
+extension SettingsVC {
+  var isSpecialSettingAvailable: Bool {
+    let uid = SimpleAuthenticator.getUserData().id
+    if App.isAlpha { return true}
+    if Device.isSimulator { return true}
+    if uid == "145489" { return true}
+    if uid == "ringo.mueller@taz.de" { return true}
+    return false
   }
 }
 
@@ -1361,46 +1423,6 @@ class SaveLastCountIssuesSettings: TextSizeSetting {
       self?.persistedIssuesCount = 20
     }
     updatePersistedIssuesCount()
-  }
-}
-
-
-// MARK: -
-class IssueDlTestOffsetCountIssuesSettings: TextSizeSetting {
-  
-  @Default("issueDownloadTestOffset")
-  private var issueDownloadTestOffset: Int {
-    didSet { updateIDLTOCount() }
-  }
-  
-  func updateIDLTOCount(){
-    label.text
-    = "\(issueDownloadTestOffset)"
-  }
-  
-  override func applyStyles() {
-    label.textColor =  Const.SetColor.ios(.label).color
-    leftButton.circleIconButton(true)
-    rightButton.circleIconButton(true)
-  }
-  
-  override func setup(){
-    super.setup()
-    label.text = "\(issueDownloadTestOffset)"
-    
-    leftButton.onPress { [weak self] _ in
-      guard let self = self, self.issueDownloadTestOffset > 0 else { return }
-      self.issueDownloadTestOffset -= 1
-    }
-    
-    rightButton.onPress { [weak self] _ in
-      self?.issueDownloadTestOffset += 1
-    }
-    
-    label.onTapping { [weak self] _ in
-      self?.issueDownloadTestOffset = 0
-    }
-    updateIDLTOCount()
   }
 }
 

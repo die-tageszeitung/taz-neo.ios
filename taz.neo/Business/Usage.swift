@@ -85,6 +85,11 @@ public class Usage: NSObject, DoesLog{
     }
   }
   
+  static func dispatch(){
+    shared.matomoTracker.dispatch()
+  }
+    
+  
   override init() {
     super.init()
     setup()

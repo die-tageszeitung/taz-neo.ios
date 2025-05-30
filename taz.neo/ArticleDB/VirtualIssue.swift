@@ -11,6 +11,7 @@ import NorthLib
 
 /// An Issue of Sections of bookmarked Articles
 public class VirtualIssue: Issue {
+  public var isAutodownloading: Bool { get { false } set {} }
   public var isDownloading: Bool { get { false } set {} }
   public var isComplete: Bool { get { false } set {} }
   public var feed: Feed

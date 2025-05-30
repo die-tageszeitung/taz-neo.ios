@@ -1945,6 +1945,10 @@ public final class StoredIssue: Issue, StoredObject {
       if newValue { pr.isOvwComplete = newValue }
     }
   }
+  public var isAutodownloading: Bool {
+    get { return pr.isAutodownloading }
+    set { pr.isAutodownloading = newValue }
+  }
   public var isOvwComplete: Bool {
     get { return pr.isOvwComplete }
     set { pr.isOvwComplete = newValue }
@@ -1976,6 +1980,8 @@ public final class StoredIssue: Issue, StoredObject {
     self.feed = object.feed
     self.date = object.date
     self.validityDate = object.validityDate
+    self.isAutodownloading = object.isAutodownloading
+    self.isDownloading = object.isDownloading
     self.moTime = object.moTime
     self.isWeekend = object.isWeekend
     self.moment = object.moment
@@ -2068,6 +2074,13 @@ public final class StoredIssue: Issue, StoredObject {
     return get(request: request)
   }
   
+  /// Return stored record with given params or nil
+  public static func get(baseUrl: String, inFeed feed: StoredFeed) -> StoredIssue? {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "baseUrl = %@", baseUrl, feed.pr)
+    return get(request: request).first
+  }
+  
   public static func get(object: Issue, inFeed feed: StoredFeed) -> StoredIssue? {
     let issues = get(date: object.date, inFeed: feed)
     if issues.count > 0 { return issues[0] }
@@ -2103,6 +2116,14 @@ public final class StoredIssue: Issue, StoredObject {
     request.sortDescriptors = [NSSortDescriptor(key: "payload.downloadStarted",
                                                 ascending: true)]
     if count > 0 { request.fetchLimit = count }
+    return get(request: request)
+  }
+  
+  /// Return all issues that are currently being autodownloaded
+  public static func unfinishedAutodownloading(feed: StoredFeed) -> [StoredIssue] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "feed = %@ AND isAutodownloading = true", feed.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
     return get(request: request)
   }
   
@@ -2287,6 +2308,10 @@ public final class StoredIssue: Issue, StoredObject {
     
     for path in allSubdirs {
       if knownDirs.contains(path) {
+        skipDeleteFolders.append(path.lastPathComponents(4))
+        continue
+      }
+      if File("\(path)/\(BackgroundDownloadService.jsonDataFilename)").exists {
         skipDeleteFolders.append(path.lastPathComponents(4))
         continue
       }

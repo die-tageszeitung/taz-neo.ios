@@ -52,13 +52,12 @@ private let configValues = [
   "showPdfInfoToast" : "true",
   // need to show Bottom Tiles Animation
   "showBottomTilesAnimation" : "true",
-  // Experimental
-  "autoloadOnlyInWLAN" : "false",
+  "autoloadOnlyInWLAN2" : "true",//renamed due previous value was false
   "showBarsOnContentChange" : "false",
   "autoloadPdf" : "false",
-  // "autoloadNewIssues" : "true",
+  "autoloadAudio" : "false",
+  "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
-  "issueDownloadTestOffset": "0",
   // show teaser text in bookmarks list
   "smartBackFromArticle" : "false",
   "autoHideToolbar" : "true",
@@ -81,7 +80,8 @@ private let configValues = [
   "multiColumnOnboardingAnswered" : "false",
   "multiColumnFixedScrolling" : "true",
   "reopenArticleSetting" : "true",
-  //"defaultToastsDisabled" : "false" NO Default Setting to restore setting over reset!
+  //"defaultToastsDisabled" : "false" NO Default Setting to persist/restore setting over reset!
+
 ]
 
 private let configValuesLMD = [
@@ -104,7 +104,11 @@ extension Defaults {
   ///Provide getter only
   public static var isTextNotification:Bool { Defaults.singleton["isTextNotification"]!.bool }
   
+  public static var useTestServer:Bool {
+    Defaults.singleton.bool(for: "useTestServer", false)
+  }
   public static var newIssueSystemSetting:Bool {
+    
     Defaults.singleton.bool(for: "newIssueSystemSetting", true)
   }
   
@@ -151,25 +155,7 @@ extension Defaults {
       }
     }
   }
-  
-  ///Helper to get current server from user defaults
-  static var backgroundDownloadIssueDate : Date? {
-    get {
-      if let curr = Defaults.singleton["backgroundDownloadIssueDate"] {
-        return Date.fromString(curr)
-      }
-      return nil
-    }
-    set {
-      if let date = newValue {
-        Defaults.singleton["backgroundDownloadIssueDate"] = Date.toString(date)
-      }
-      else {
-        Defaults.singleton["backgroundDownloadIssueDate"] = nil
-      }
-    }
-  }
-  
+    
   ///Helper to get current server from user defaults
   static var notificationsActivationPopupRejectedTemporaryDate : Date? {
     get {
@@ -207,6 +193,8 @@ extension Defaults {
   
   ///Helper to get autoloadPdf from user defaults for simple access in extensions
   static var autoloadPdf : Bool { Defaults.singleton.bool(for: "autoloadPdf", false) }
+  
+  static var testAutodownload : Bool { Defaults.singleton.bool(for: "testAutodownload", false) }
   
   typealias columnSettingData = (used:Int, available: Int, setting: Int)
   

@@ -73,6 +73,8 @@
 		774C27462BA05BA800835BB9 /* VirtualArticle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27452BA05BA800835BB9 /* VirtualArticle.swift */; };
 		774C27482BA05C4500835BB9 /* CoachmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27472BA05C4500835BB9 /* CoachmarkView.swift */; };
 		774C6F8129CB5BAF001285FB /* KeyboardToolbarForText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */; };
+		775153DF2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775153DE2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift */; };
+		775153E02DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775153DE2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift */; };
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7758CCB32B504DAA000B8E30 /* LMdSliderHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB12B504DA5000B8E30 /* LMdSliderHeader.swift */; };
 		7758CCB42B504DAD000B8E30 /* LMdSliderContentVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCAE2B504CCB000B8E30 /* LMdSliderContentVC.swift */; };
@@ -84,16 +86,26 @@
 		776CB3BB2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
 		77705A4A2D6F7E9900F3A631 /* BundledResourcesLMd in Resources */ = {isa = PBXBuildFile; fileRef = 77705A482D6F7E9900F3A631 /* BundledResourcesLMd */; };
+		7772D5622DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7772D5612DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift */; };
+		7772D5632DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7772D5612DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift */; };
+		7772D5652DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7772D5642DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift */; };
+		7772D5662DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7772D5642DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift */; };
 		777607EA2CE64FC70023D3EF /* StoreBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777607E92CE64FC70023D3EF /* StoreBusiness.swift */; };
 		777607ED2CE6503D0023D3EF /* CustomUIActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777607EB2CE6503D0023D3EF /* CustomUIActivity.swift */; };
 		777607EE2CE6503D0023D3EF /* ArticleExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777607EC2CE6503D0023D3EF /* ArticleExportDialogue.swift */; };
 		77791EB62BA0602200E9C0D9 /* CoachmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27472BA05C4500835BB9 /* CoachmarkView.swift */; };
 		777A49292B5817D6006956B7 /* CvSeperator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777A49282B5817D6006956B7 /* CvSeperator.swift */; };
+		777DF43B2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF43A2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift */; };
+		777DF43C2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF43A2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift */; };
+		777DF43E2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF43D2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift */; };
+		777DF43F2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF43D2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift */; };
+		777DF4412DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */; };
+		777DF4422DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */; };
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
-		778300802CEB40DF004E18FA /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 7783007F2CEB40DF004E18FA /* Settings.bundle */; };
 		778F741825CC60C80017E426 /* TazTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* TazTextField.swift */; };
 		778F741B25CC61340017E426 /* TazTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* TazTextView.swift */; };
-		779A88752D560E3E009C0F8A /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 7783007F2CEB40DF004E18FA /* Settings.bundle */; };
+		779229502DD5E85800A8AB81 /* BackgroundDownloadService+UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */; };
+		779229512DD5E85800A8AB81 /* BackgroundDownloadService+UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */; };
 		779DE96126FA3D790056187B /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779DE96026FA3D790056187B /* SettingsVC.swift */; };
 		779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779EF0CF2A03A16200D6A626 /* InfoToaster.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
@@ -104,6 +116,8 @@
 		77B993D82AC406F900C7D832 /* Rating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D72AC406F900C7D832 /* Rating.swift */; };
 		77B993DA2AC4706600C7D832 /* Usage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B993D92AC4706600C7D832 /* Usage.swift */; };
 		77B993DD2AC47F6400C7D832 /* MatomoTracker in Frameworks */ = {isa = PBXBuildFile; productRef = 77B993DC2AC47F6400C7D832 /* MatomoTracker */; };
+		77BA366D2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */; };
+		77BA366E2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */; };
 		77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA74642892836600D1039B /* SubscriptionFormView.swift */; };
 		77C766752C29C2EB00198324 /* TazAppEnvironment+ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */; };
 		77C766762C29C30300198324 /* LastReadBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */; };
@@ -122,6 +136,8 @@
 		77D434002CE694A100AC992A /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D433FF2CE694A100AC992A /* Bookmarks.swift */; };
 		77D434012CE694F800AC992A /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D433FF2CE694A100AC992A /* Bookmarks.swift */; };
 		77E5E1BC292D772200611148 /* Javascript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E5E1BB292D772200611148 /* Javascript.swift */; };
+		77E6BF162DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */; };
+		77E6BF172DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */; };
 		77E6E99A2CF850F300430B83 /* TableSectionSeperatorFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9992CF850F300430B83 /* TableSectionSeperatorFooterView.swift */; };
 		77E6E99B2CF850F300430B83 /* TableSectionSeperatorFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E9992CF850F300430B83 /* TableSectionSeperatorFooterView.swift */; };
 		77E6E99D2CF8520500430B83 /* BookmarkTableHeaderCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6E99C2CF8520500430B83 /* BookmarkTableHeaderCell.swift */; };
@@ -145,10 +161,6 @@
 		77ECD87A2A814C1F00DFBBB6 /* FeederContext+Polling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD8792A814C1F00DFBBB6 /* FeederContext+Polling.swift */; };
 		77ECD87C2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */; };
 		77ECD87E2A814ED100DFBBB6 /* LocalNotifications+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD87D2A814ED100DFBBB6 /* LocalNotifications+Extension.swift */; };
-		77EE1AE52D7229C8002FA027 /* BackgroundZipDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EE1AE42D7229C8002FA027 /* BackgroundZipDownloader.swift */; };
-		77EE1AE62D7229C8002FA027 /* BackgroundZipDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EE1AE42D7229C8002FA027 /* BackgroundZipDownloader.swift */; };
-		77F66E122D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F66E112D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift */; };
-		77F66E132D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F66E112D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift */; };
 		77FABFA22A4DD56500FB9EB1 /* ArticlePlayerUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */; };
 		94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94487DAB274BCCE10066BCD0 /* AppHelper.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
@@ -378,6 +390,7 @@
 		774C27452BA05BA800835BB9 /* VirtualArticle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualArticle.swift; sourceTree = "<group>"; };
 		774C27472BA05C4500835BB9 /* CoachmarkView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoachmarkView.swift; sourceTree = "<group>"; };
 		774C6F8029CB5BAF001285FB /* KeyboardToolbarForText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardToolbarForText.swift; sourceTree = "<group>"; };
+		775153DE2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+Persistance.swift"; sourceTree = "<group>"; };
 		7758CCAE2B504CCB000B8E30 /* LMdSliderContentVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderContentVC.swift; sourceTree = "<group>"; };
 		7758CCB12B504DA5000B8E30 /* LMdSliderHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderHeader.swift; sourceTree = "<group>"; };
 		7758CCB52B504DC5000B8E30 /* _LMdSliderCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _LMdSliderCell.swift; sourceTree = "<group>"; };
@@ -389,15 +402,20 @@
 		776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TazAppEnvironment+ErrorHandling.swift"; sourceTree = "<group>"; };
 		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
 		77705A482D6F7E9900F3A631 /* BundledResourcesLMd */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResourcesLMd; sourceTree = "<group>"; };
+		7772D5612DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+FinishedCallback.swift"; sourceTree = "<group>"; };
+		7772D5642DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+CheckForNewIssue.swift"; sourceTree = "<group>"; };
 		777607E92CE64FC70023D3EF /* StoreBusiness.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreBusiness.swift; sourceTree = "<group>"; };
 		777607EB2CE6503D0023D3EF /* CustomUIActivity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIActivity.swift; sourceTree = "<group>"; };
 		777607EC2CE6503D0023D3EF /* ArticleExportDialogue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleExportDialogue.swift; sourceTree = "<group>"; };
 		77770EC62AC2161A00511841 /* ArticleDB 3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "ArticleDB 3.xcdatamodel"; sourceTree = "<group>"; };
 		777A49282B5817D6006956B7 /* CvSeperator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CvSeperator.swift; sourceTree = "<group>"; };
+		777DF43A2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+AppRestart.swift"; sourceTree = "<group>"; };
+		777DF43D2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+AppResume.swift"; sourceTree = "<group>"; };
+		777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+Helper.swift"; sourceTree = "<group>"; };
 		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
-		7783007F2CEB40DF004E18FA /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* TazTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* TazTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazTextView.swift; sourceTree = "<group>"; };
+		7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+UserDefaults.swift"; sourceTree = "<group>"; };
 		779DE96026FA3D790056187B /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
 		779EF0CF2A03A16200D6A626 /* InfoToaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToaster.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
@@ -406,6 +424,7 @@
 		77ABEEC12D3AE73400D0F063 /* PdfGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfGenerationService.swift; sourceTree = "<group>"; };
 		77B993D72AC406F900C7D832 /* Rating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rating.swift; sourceTree = "<group>"; };
 		77B993D92AC4706600C7D832 /* Usage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Usage.swift; sourceTree = "<group>"; };
+		77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+SheduledCheck.swift"; sourceTree = "<group>"; };
 		77BA74642892836600D1039B /* SubscriptionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormView.swift; sourceTree = "<group>"; };
 		77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDownAnimationView.swift; sourceTree = "<group>"; };
 		77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundDownloadService.swift; sourceTree = "<group>"; };
@@ -419,6 +438,7 @@
 		77D1B5042CF9D2F3004CF5FC /* taz ui tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "taz ui tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		77D433FF2CE694A100AC992A /* Bookmarks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmarks.swift; sourceTree = "<group>"; };
 		77E5E1BB292D772200611148 /* Javascript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Javascript.swift; sourceTree = "<group>"; };
+		77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+JsonData.swift"; sourceTree = "<group>"; };
 		77E6E9992CF850F300430B83 /* TableSectionSeperatorFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableSectionSeperatorFooterView.swift; sourceTree = "<group>"; };
 		77E6E99C2CF8520500430B83 /* BookmarkTableHeaderCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkTableHeaderCell.swift; sourceTree = "<group>"; };
 		77E6E99F2CF8524E00430B83 /* BookmarksCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksCell.swift; sourceTree = "<group>"; };
@@ -432,10 +452,8 @@
 		77ECD8792A814C1F00DFBBB6 /* FeederContext+Polling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+Polling.swift"; sourceTree = "<group>"; };
 		77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushNotification.Payload+Extension.swift"; sourceTree = "<group>"; };
 		77ECD87D2A814ED100DFBBB6 /* LocalNotifications+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LocalNotifications+Extension.swift"; sourceTree = "<group>"; };
-		77EE1AE42D7229C8002FA027 /* BackgroundZipDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundZipDownloader.swift; sourceTree = "<group>"; };
 		77F0D1342742B4E900D3A432 /* addLocalResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addLocalResources.sh; sourceTree = "<group>"; };
 		77F0D1392742B58400D3A432 /* LastBuildNumber.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = LastBuildNumber.rb; sourceTree = "<group>"; };
-		77F66E112D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundDownloadGqlFeeder.swift; sourceTree = "<group>"; };
 		77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticlePlayerUI.swift; sourceTree = "<group>"; };
 		94487DAB274BCCE10066BCD0 /* AppHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelper.swift; sourceTree = "<group>"; };
 		948E40CD2745447500D32CFE /* post-checkout-prototype.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "post-checkout-prototype.sh"; sourceTree = "<group>"; };
@@ -475,7 +493,7 @@
 		AEAABADD24641BFA001BE414 /* Const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Const.swift; sourceTree = "<group>"; };
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
-		AEBAF564219ACD1900566205 /* die tageszeitung.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "die tageszeitung.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEBAF564219ACD1900566205 /* taz.alpha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.alpha.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AEBAF58D219ACFAC00566205 /* TestController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestController.swift; sourceTree = "<group>"; };
@@ -665,6 +683,23 @@
 			path = Cells;
 			sourceTree = "<group>";
 		};
+		77E6BF182DD7189200CABD9C /* BackgroundDownloads */ = {
+			isa = PBXGroup;
+			children = (
+				77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */,
+				777DF43A2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift */,
+				777DF43D2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift */,
+				7772D5642DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift */,
+				7772D5612DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift */,
+				777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */,
+				77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */,
+				775153DE2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift */,
+				77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */,
+				7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */,
+			);
+			path = BackgroundDownloads;
+			sourceTree = "<group>";
+		};
 		AE0A4D0123F4297500C44625 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -754,7 +789,6 @@
 				AEE3D4E9247D31FA00BEDEA3 /* LICENSE */,
 				AEE3D4E6247D316D00BEDEA3 /* README.md */,
 				AECD1A90282CFE38007E00EE /* NorthLib */,
-				7783007F2CEB40DF004E18FA /* Settings.bundle */,
 				AEBAF566219ACD1900566205 /* taz.neo */,
 				AEBAF565219ACD1900566205 /* Products */,
 				AE3D47D623030482002FF0A2 /* Frameworks */,
@@ -764,7 +798,7 @@
 		AEBAF565219ACD1900566205 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AEBAF564219ACD1900566205 /* die tageszeitung.app */,
+				AEBAF564219ACD1900566205 /* taz.alpha.app */,
 				AE5131F52AFBCADB002289E8 /* LMd.app */,
 				77D1B5042CF9D2F3004CF5FC /* taz ui tests.xctest */,
 			);
@@ -775,6 +809,7 @@
 			isa = PBXGroup;
 			children = (
 				AE16422D222FFEF200DF07DE /* ArticleDB */,
+				77E6BF182DD7189200CABD9C /* BackgroundDownloads */,
 				AED3760B285E1E5D00EFE608 /* Bookmarks */,
 				777048A727B3B057007164A0 /* Business */,
 				77CB2D1D2A8148C800021804 /* Helper */,
@@ -796,9 +831,6 @@
 				AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */,
 				AE822631232A717E00FFBE67 /* DataModel.swift */,
 				AE5D9EBB23DF61C50002C3B8 /* Downloader.swift */,
-				77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */,
-				77F66E112D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift */,
-				77EE1AE42D7229C8002FA027 /* BackgroundZipDownloader.swift */,
 				AEC7D46C249A598B008630FB /* FeederContext.swift */,
 				77CB2D212A814A3100021804 /* FeederContext+IssueDownload.swift */,
 				77CB2D252A814B1400021804 /* FeederContext+Notifications.swift */,
@@ -982,7 +1014,7 @@
 				77B993DC2AC47F6400C7D832 /* MatomoTracker */,
 			);
 			productName = taz.neo;
-			productReference = AEBAF564219ACD1900566205 /* die tageszeitung.app */;
+			productReference = AEBAF564219ACD1900566205 /* taz.alpha.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1042,7 +1074,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				779A88752D560E3E009C0F8A /* Settings.bundle in Resources */,
 				AEBCEE312B0E23060038392B /* files in Resources */,
 				AEBCEE352B0E23980038392B /* resources.json in Resources */,
 				AE5131E42AFBCADB002289E8 /* Localizable.strings in Resources */,
@@ -1057,7 +1088,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				778300802CEB40DF004E18FA /* Settings.bundle in Resources */,
 				AEBCEE2F2B0E22C10038392B /* files in Resources */,
 				773D56472614A4DF00B42FEF /* BundledResources in Resources */,
 				AEBCEE332B0E237D0038392B /* resources.json in Resources */,
@@ -1188,8 +1218,9 @@
 				AE51317A2AFBCADB002289E8 /* IntroVC.swift in Sources */,
 				AE51317B2AFBCADB002289E8 /* ConfigDefaults.swift in Sources */,
 				AE51317C2AFBCADB002289E8 /* IssueCollectionViewCell.swift in Sources */,
+				777DF4412DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */,
 				AE51317D2AFBCADB002289E8 /* SubscriptionFormController.swift in Sources */,
-				77EE1AE62D7229C8002FA027 /* BackgroundZipDownloader.swift in Sources */,
+				779229502DD5E85800A8AB81 /* BackgroundDownloadService+UserDefaults.swift in Sources */,
 				77E6E9B32CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift in Sources */,
 				AE51317E2AFBCADB002289E8 /* OverlayTest.swift in Sources */,
 				AE51317F2AFBCADB002289E8 /* OfflineAlert.swift in Sources */,
@@ -1216,6 +1247,7 @@
 				AE5131902AFBCADB002289E8 /* NewInfoToast.swift in Sources */,
 				AE5131912AFBCADB002289E8 /* PlaceholderView.swift in Sources */,
 				AE5131922AFBCADB002289E8 /* HomeTVC.swift in Sources */,
+				777DF43B2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift in Sources */,
 				AE5131932AFBCADB002289E8 /* FeederContext+Polling.swift in Sources */,
 				AE5131942AFBCADB002289E8 /* IssueCollectionViewActions.swift in Sources */,
 				AE5131952AFBCADB002289E8 /* IssueCarouselCVC.swift in Sources */,
@@ -1242,8 +1274,8 @@
 				AE5131A52AFBCADB002289E8 /* DefaultAuthenticator.swift in Sources */,
 				77C766762C29C30300198324 /* LastReadBusiness.swift in Sources */,
 				AE5131A62AFBCADB002289E8 /* FormsController.swift in Sources */,
+				775153DF2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift in Sources */,
 				773E74C12D55235700570E46 /* VirtualIssue.swift in Sources */,
-				77F66E122D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift in Sources */,
 				7758CCB32B504DAA000B8E30 /* LMdSliderHeader.swift in Sources */,
 				AE5131A72AFBCADB002289E8 /* FeederContext+Notifications.swift in Sources */,
 				77E839922CED2F55001CBB35 /* BookmarkTVC.swift in Sources */,
@@ -1254,8 +1286,10 @@
 				AE5131AD2AFBCADB002289E8 /* ContentToolbar.swift in Sources */,
 				77E6E9A12CF8524E00430B83 /* BookmarksCell.swift in Sources */,
 				AE5131AE2AFBCADB002289E8 /* NewContentTableVC.swift in Sources */,
+				77BA366E2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */,
 				77CD16C12CF8D79B00B1C3EE /* Bookmarks+InitHelper.swift in Sources */,
 				AE5131AF2AFBCADB002289E8 /* TazCustomized.swift in Sources */,
+				77E6BF162DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift in Sources */,
 				AE5131B02AFBCADB002289E8 /* FeederContext+AppUpdate.swift in Sources */,
 				AE5131B12AFBCADB002289E8 /* PwForgottView.swift in Sources */,
 				AE5131B22AFBCADB002289E8 /* FeederContext+IssueDownload.swift in Sources */,
@@ -1276,6 +1310,7 @@
 				AE5131BE2AFBCADB002289E8 /* FormView.swift in Sources */,
 				AE5131BF2AFBCADB002289E8 /* MomentView.swift in Sources */,
 				AE5131C02AFBCADB002289E8 /* ScrollDownAnimationView.swift in Sources */,
+				7772D5662DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift in Sources */,
 				773E74BC2D55219800570E46 /* ArticleExportDialogue.swift in Sources */,
 				77001DD32CF70452008CFE0A /* GqlFeederArticleLoading.swift in Sources */,
 				AE5131C12AFBCADB002289E8 /* GraphQlSession.swift in Sources */,
@@ -1292,7 +1327,9 @@
 				AE5131CA2AFBCADB002289E8 /* KeyboardToolbarForText.swift in Sources */,
 				AE5131CB2AFBCADB002289E8 /* SectionVC.swift in Sources */,
 				AE5131CC2AFBCADB002289E8 /* NotificationBusiness.swift in Sources */,
+				7772D5622DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift in Sources */,
 				AE5131CD2AFBCADB002289E8 /* GermanDate.swift in Sources */,
+				777DF43F2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift in Sources */,
 				77E6E99E2CF8520500430B83 /* BookmarkTableHeaderCell.swift in Sources */,
 				AE5131CE2AFBCADB002289E8 /* GqlFeeder.swift in Sources */,
 				7758CCC22B505181000B8E30 /* LMdSliderDataModel.swift in Sources */,
@@ -1317,6 +1354,7 @@
 			files = (
 				77459FD52D0A4FC200129592 /* ArticleDB+SaveErrorhandling.swift in Sources */,
 				4D308EE52834057200529592 /* SearchResultsTableView.swift in Sources */,
+				775153E02DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift in Sources */,
 				77001DD22CF70452008CFE0A /* GqlFeederArticleLoading.swift in Sources */,
 				AEAABADE24641BFA001BE414 /* Const.swift in Sources */,
 				77E5E1BC292D772200611148 /* Javascript.swift in Sources */,
@@ -1348,11 +1386,14 @@
 				77D434002CE694A100AC992A /* Bookmarks.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
+				777DF43E2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift in Sources */,
 				94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */,
 				776CB3BB2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift in Sources */,
 				7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */,
 				AE5DFACF267E10540035162C /* KeychainTest.swift in Sources */,
 				4D308ED6283404C700529592 /* GqlFeederSearch.swift in Sources */,
+				7772D5632DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift in Sources */,
+				777DF43C2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift in Sources */,
 				00E3D2A524E68F3300AE075A /* TrialSubscriptionView.swift in Sources */,
 				4D308EE72834057200529592 /* SearchSettingsView.swift in Sources */,
 				4D308EEC283405A900529592 /* MainTabVC.swift in Sources */,
@@ -1365,6 +1406,7 @@
 				773500B92A1C0B7E00678647 /* IssueCollectionViewActions.swift in Sources */,
 				773500AF2A1C0A7C00678647 /* IssueCarouselCVC.swift in Sources */,
 				77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */,
+				777DF4422DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */,
 				77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
 				77E6E9A02CF8524E00430B83 /* BookmarksCell.swift in Sources */,
 				779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */,
@@ -1377,6 +1419,7 @@
 				AE5D9EC023E1B82B0002C3B8 /* Downloader.swift in Sources */,
 				7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */,
 				77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */,
+				779229512DD5E85800A8AB81 /* BackgroundDownloadService+UserDefaults.swift in Sources */,
 				773500B42A1C0A7C00678647 /* FetchNewStatusHeader.swift in Sources */,
 				4D308EE82834057200529592 /* SearchResultIssue.swift in Sources */,
 				AE4C4FEF26A04EBD006079C8 /* ArticlePlayer.swift in Sources */,
@@ -1398,6 +1441,7 @@
 				77CB2D222A814A3100021804 /* FeederContext+IssueDownload.swift in Sources */,
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,
 				77ABEEC22D3AE73F00D0F063 /* PdfGenerationService.swift in Sources */,
+				77E6BF172DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift in Sources */,
 				7709E3162BEBA70400AC27F3 /* LastReadBusiness.swift in Sources */,
 				7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */,
 				773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */,
@@ -1407,6 +1451,7 @@
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,
 				4D308EDB283404D400529592 /* TazAppEnvironment.swift in Sources */,
 				4D308EE62834057200529592 /* SearchHeaderView.swift in Sources */,
+				77BA366D2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */,
 				AECCE11823FBD006007C2276 /* ArticleVC.swift in Sources */,
 				777607EA2CE64FC70023D3EF /* StoreBusiness.swift in Sources */,
 				004D4F0024ACDC1F008C4EE7 /* FormView.swift in Sources */,
@@ -1420,7 +1465,6 @@
 				AEC7D46D249A598B008630FB /* FeederContext.swift in Sources */,
 				AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */,
 				AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */,
-				77EE1AE52D7229C8002FA027 /* BackgroundZipDownloader.swift in Sources */,
 				77D1B4FB2CF9C2BE004CF5FC /* UIViewController+Active.swift in Sources */,
 				77E839912CED2F55001CBB35 /* BookmarkTVC.swift in Sources */,
 				AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */,
@@ -1429,7 +1473,6 @@
 				774C6F8129CB5BAF001285FB /* KeyboardToolbarForText.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
 				77E6E99D2CF8520500430B83 /* BookmarkTableHeaderCell.swift in Sources */,
-				77F66E132D760CC60025F459 /* BackgroundDownloadGqlFeeder.swift in Sources */,
 				777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */,
 				AE5D9EC723E2FD240002C3B8 /* GermanDate.swift in Sources */,
 				AE5D9EBF23E1B8270002C3B8 /* GqlFeeder.swift in Sources */,
@@ -1442,6 +1485,7 @@
 				777607EE2CE6503D0023D3EF /* ArticleExportDialogue.swift in Sources */,
 				77CAE0AA2D76F63D00F6A5FC /* BackgroundDownloadService.swift in Sources */,
 				778F741825CC60C80017E426 /* TazTextField.swift in Sources */,
+				7772D5652DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift in Sources */,
 				AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */,
 				7712A0012C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */,
 				77ECD87C2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift in Sources */,
@@ -1629,7 +1673,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2025032112;
+				CURRENT_PROJECT_VERSION = 2025052812;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
@@ -1639,7 +1683,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.6;
+				MARKETING_VERSION = 1.4.12;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -1864,7 +1908,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2025032112;
+				CURRENT_PROJECT_VERSION = 2025052812;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.magazines-and-newspapers";
@@ -1873,7 +1917,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.6;
+				MARKETING_VERSION = 1.4.12;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1891,7 +1935,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2025032112;
+				CURRENT_PROJECT_VERSION = 2025052812;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.magazines-and-newspapers";
@@ -1900,7 +1944,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.6;
+				MARKETING_VERSION = 1.4.12;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DTAZ";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

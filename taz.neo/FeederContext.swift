@@ -108,8 +108,11 @@ open class FeederContext: DoesLog {
   public private(set) var storedFeeder: StoredFeeder!
   
   /// The default Feed to show
-  public var defaultFeed: StoredFeed!
-  /// The Downloader to use 
+  public var defaultFeed: StoredFeed! {
+    didSet { if let feed = defaultFeed { BackgroundDownloadService.shared.updateFeed(feed)}}
+  }
+  
+  /// The Downloader to use
   public var dloader: Downloader! {
     didSet {
       guard let old = oldValue else { return }
@@ -132,7 +135,7 @@ open class FeederContext: DoesLog {
   ///Helper to handle Network changes
   private(set) var netAvailability: ExtendedNetAvailability
   
-  @Default("autoloadOnlyInWLAN")
+  @Default("autoloadOnlyInWLAN2")
   var autoloadOnlyInWLAN: Bool
   
   @Default("autoloadPdf")
@@ -226,8 +229,8 @@ open class FeederContext: DoesLog {
     notify("feederReady")
     cleanupOldIssues()//requires inited bookmarks
     checkAppUpdate()
-    if needUpdate {///NOT REACHABLE!!
-      ///
+    handleUnfinshedDownloads()
+    if needUpdate {
       updateFeeder(loadAllPublicationDates: loadAll)
     }
     
@@ -250,8 +253,19 @@ open class FeederContext: DoesLog {
   }
 #warning("maybe do not use this in BG Download Stuff!!!")
   private func updateFeeder(loadAllPublicationDates:Bool = false){
-    log("...updateFeeder called, loadAllPublicationDates: \(loadAllPublicationDates)")
-    if loadAllPublicationDates == false && gqlFeeder.isUpdating { return }
+    if loadAllPublicationDates == false && gqlFeeder.isUpdating {
+      debug("...updateFeeder called BUT CANCELED, loadAllPublicationDates: \(loadAllPublicationDates) isUpdating: \(gqlFeeder.isUpdating)")
+      return
+    }
+    
+    if gqlFeeder.gqlSession?.isBackground == true {
+      log("########################### W A R N I N G #######################")
+      log("got a bg SESSION!?")
+      log("########################### W A R N I N G #######################")
+    }
+    
+    
+    log("...updateFeeder called, loadAllPublicationDates: \(loadAllPublicationDates) is backgroundFeeder? \(gqlFeeder.gqlSession?.isBackground)")
     Notification.send(Const.NotificationNames.checkForNewIssues,
                       content: FetchNewStatusHeader.status.fetchNewIssues,
                       error: nil,
@@ -272,15 +286,11 @@ open class FeederContext: DoesLog {
           self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
           if publicationDatesChanged {
             ArticleDB.save()
-            log("...publication dates changed, only inform UI if not in background")
-            if gqlFeeder.gqlSession?.isBackground == false {
-              log("...inform")
-              Notification.send(Const.NotificationNames.publicationDatesChanged)
-              self.notifyNetStatus(isConnected: true)
-            }
-            else {
-              log("...not inform")
-            }
+            log("...publication dates changed, inform UI (if not in background mode)")
+            Notification.send(Const.NotificationNames.publicationDatesChanged)
+            self.notifyNetStatus(isConnected: true)
+          } else {
+            debug("...publication dates NOT changed")///4345 Issues
           }
         case .failure:
           if let err = res.error() as? FeederError {
@@ -345,11 +355,12 @@ open class FeederContext: DoesLog {
   }
   
   private func netStatusChanged(isConnected:Bool){
-    debug("NET STATUS CHANGED isConnected: \(isConnected)")
+    log("NET STATUS CHANGED isConnected: \(isConnected)")
     isConnected ? updateFeeder() : notifyNetStatus(isConnected: false)
   }
   
   private func notifyNetStatus(isConnected:Bool){
+    return;
     if isConnected {
       self.debug("Feeder now reachable")
       notify(Const.NotificationNames.feederReachable)
@@ -427,6 +438,7 @@ open class FeederContext: DoesLog {
       log("Enter Foreground, updateFeeder")
       updateFeeder()
     }
+    BackgroundDownloadService.shared.handleEnterForeground()
   }
   
   /// release closes the Database and removes all feeder specific content
@@ -496,6 +508,10 @@ open class FeederContext: DoesLog {
     return needsUpdate
   }
   
+  func handleUnfinshedDownloads(){
+    BackgroundDownloadService.shared.applicationRestarted(with: self)
+  }
+  
   func cleanupOldIssues(){
     if self.dloader.isDownloading { return }
     guard let feed = self.storedFeeder?.feeds[0] as? StoredFeed else { return }
@@ -504,32 +520,4 @@ open class FeederContext: DoesLog {
                              keepDownloaded: persistedIssuesCount,
                              deleteOrphanFolders: true)
   }
-} // FeederContext
-//
-//extension Downloader {
-//    func downloadIssue(issue: Issue) async throws {
-//        guard let feeder else { throw DownloadError.noFeeder }
-//        let name = feeder.date2a(issue.date)
-//        
-//        try await downloadGlobalFiles(issue: issue)
-//        try await downloadIssueFiles(issue: issue, feed: issue.feed.name, issueName: name)
-//    }
-//
-//    private func downloadGlobalFiles(issue: Issue) async throws {
-//        let globalFiles = issue.files.filter { $0.storageType == .global }
-//        guard !globalFiles.isEmpty else { return }
-//        
-//        let hloader = HttpLoader(session: dlSession, baseUrl: feeder!.globalBaseUrl, toDir: feeder!.globalDir.path)
-//        try await hloader.download(globalFiles)
-//    }
-//
-//    private func downloadIssueFiles(issue: Issue, feed: String, issueName: String) async throws {
-//        let issueFiles = issue.files.filter { $0.storageType == .issue }
-//        guard !issueFiles.isEmpty else { return }
-//        
-//        let issueDir = feeder!.issueDir(feed: feed, issue: issueName)
-//        let hloader = HttpLoader(session: dlSession, baseUrl: issue.baseUrl, toDir: issueDir.path)
-//        try await hloader.download(issueFiles)
-//    }
-//}
-//
+} // eof FeederContext

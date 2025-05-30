@@ -15,7 +15,6 @@ class IssueDisplayService: NSObject, IssueInfo, DoesLog {
     return sissue
   }
   
-  
   @Default("isFacsimile")
   public var isFacsimile: Bool
   

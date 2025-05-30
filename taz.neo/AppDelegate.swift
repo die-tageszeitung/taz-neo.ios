@@ -48,7 +48,7 @@ class AppDelegate: NotifiedDelegate {
     = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
     return true
   }
-  
+
   #if TAZ
   /// Update App Icon Menu
   public func applicationWillResignActive(_ application: UIApplication) {
@@ -67,7 +67,7 @@ class AppDelegate: NotifiedDelegate {
                    completionHandler: @escaping () -> Void) {
     do {
       log("application handleEventsForBackgroundURLSession identifier: \(identifier)")
-      try BackgroundSession.resume(name: identifier,
+      try BackgroundSession.resumeBackgroundURLSession(name: identifier,
                                    completionHandler: completionHandler,
                                    callback: BackgroundDownloadService.dlCallback)
     }

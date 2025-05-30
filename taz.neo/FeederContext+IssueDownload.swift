@@ -181,6 +181,7 @@ extension FeederContext {
   
   ///check is new issue was available since popup should be shown (Step1)
   func didDownload(_ issue: Issue){
+    BackgroundDownloadService.shared.updateLatestIssueDownloadDate(ifNewer: issue.date)
     guard issue.date == self.defaultFeed.lastIssue else { return }
     guard let momentPublicationDate = issue.moment.files.first?.moTime else { return }
     ///momentPublicationDate is in UTC timeIntervalSinceNow calculates also with utc, so timeZone calculation needed!

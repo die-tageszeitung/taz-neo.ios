@@ -135,11 +135,6 @@ public final class NotificationBusiness: DoesLog {
     
     settingsDetailText = NSMutableAttributedString(string: "\nDie Mitteilungseinstellungen für die \(App.shortName) App lassen derzeit keine \(itemsText) zu.\(bannerAdditionalText)\nTippen Sie hier, um zu den Systemeinstellungen für die taz App zu gelangen und diese anzupassen.")
     settingsDetailText.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: NSRange(location: 5, length: 25))
-    
-    if Defaults.newIssueSystemSetting == false && Defaults.specialArticleSystemSetting == false {
-      settingsDetailTextAlert = true
-      settingsDetailText.append(NSAttributedString(string: "\nBitte überprüfen Sie auch die Einstellungen der Benachrichtigungskategorien für \"Besonderer Artikel\" und \"Neue Ausgabe\"."))
-    }
   }
   
   /// Handles the failure of opening the system settings.

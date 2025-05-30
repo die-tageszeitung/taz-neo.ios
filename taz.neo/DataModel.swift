@@ -889,6 +889,9 @@ public protocol Issue: ToString, AnyObject {
   var isDownloading: Bool { get set }
   /// Has this Issue been downloaded
   var isComplete: Bool { get set }
+  /// Is this Issue currently autodownloading in Background
+  /// all database is compleete but files are missing
+  var isAutodownloading: Bool { get set }
   /// Reference to Feed providing this Issue
   var feed: Feed { get set }
   /// Issue date

@@ -215,7 +215,7 @@ extension CoachmarkVC {
 }
 
 ///Helper to save Array<String> to kvstore
-extension [CoachmarkItem]: StringConvertible {
+extension [CoachmarkItem]: @retroactive StringConvertible {
   public static func fromString(_ str: String?) -> [CoachmarkItem] {
     return str?.split(separator: "»").compactMap{String($0).coachmarkItem } ?? []
   }

@@ -86,14 +86,12 @@ extension FeederContext {
       case .articlePush:
         handleArticlePush(pn: pn, payload: payload, fetchCompletionHandler: fetchCompletionHandler)
       case .textNotificationAlert:
-        #warning("may comes in double if real PN!")
-        #warning("1.5.0 Release: ToDo")
-        //This code triggers a local notification if App would be started
-        ///**QUESTION?** In case of closes App & Push Notification for Special Article: should the Notification appear in Message Center? Its only piossible after App Start
-        ///**ToDO: ** refer USerstoires
-//        if UIApplication.shared.applicationState == .active {
-//          LocalNotifications.notify(payload: payload)
-//        }
+        ///the deactivated code triggers a local notification if App would be started
+        ///there is user feedback that the notification only appears in notification center if App is just started
+        ///that makes no sense > so deactivated
+        //if UIApplication.shared.applicationState == .active {
+        //  LocalNotifications.notify(payload: payload)
+        //}
         fetchCompletionHandler?(.noData)
       case .textNotificationToast:
         if UIApplication.shared.applicationState == .active,
