@@ -72,7 +72,6 @@ private let configValues = [
   "showCoachmarks" : Device.isSimulator ? "false" : "true",
   "cmLastPrio": "1",
   "cmSessionCount": "0",
-  "autoDownloadedIssuesSinceLastAppUse": "0",
   "multiColumnModeLandscape": "false",
   "multiColumnModePortrait": "false",
   "columnCountLandscape": "3",
@@ -80,6 +79,8 @@ private let configValues = [
   "multiColumnOnboardingAnswered" : "false",
   "multiColumnFixedScrolling" : "true",
   "reopenArticleSetting" : "true",
+  "newIssueSystemSetting" : "true",
+  "specialArticleSystemSetting" : "true",
   //"defaultToastsDisabled" : "false" NO Default Setting to persist/restore setting over reset!
 
 ]
@@ -106,16 +107,6 @@ extension Defaults {
   
   public static var useTestServer:Bool {
     Defaults.singleton.bool(for: "useTestServer", false)
-  }
-  public static var newIssueSystemSetting:Bool {
-    
-    Defaults.singleton.bool(for: "newIssueSystemSetting", true)
-  }
-  
-  public static var specialArticleSystemSetting:Bool {
-    ///Settings Bundle Default value is unset; prev Implementation returns false if unset; review setting is true
-    ///@see: https://stackoverflow.com/a/9181691
-    Defaults.singleton.bool(for: "specialArticleSystemSetting", true)
   }
   
   ///Helper to get current server from user defaults
@@ -193,8 +184,6 @@ extension Defaults {
   
   ///Helper to get autoloadPdf from user defaults for simple access in extensions
   static var autoloadPdf : Bool { Defaults.singleton.bool(for: "autoloadPdf", false) }
-  
-  static var testAutodownload : Bool { Defaults.singleton.bool(for: "testAutodownload", false) }
   
   typealias columnSettingData = (used:Int, available: Int, setting: Int)
   

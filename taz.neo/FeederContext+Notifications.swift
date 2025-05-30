@@ -120,7 +120,7 @@ extension FeederContext {
                                 fetchCompletionHandler: FetchCompletionHandler?) {
     log("Handle new Article Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.defaultFeed.name)")
     log("pn: \(pn) ")
-    if Defaults.specialArticleSystemSetting == false {
+    if specialArticleSystemSetting == false {
       log("do not notify user, deactivated")
       fetchCompletionHandler?(.noData)
       return

@@ -154,6 +154,9 @@ open class FeederContext: DoesLog {
   @Key("lastAppPreviewVersion")
   var lastAppPreviewVersion: String
   
+  @Default("specialArticleSystemSetting")
+  var specialArticleSystemSetting: Bool
+  
   var latestPublicationDate:Date? {
     guard defaultFeed != nil else { return nil }
     return defaultFeed.lastIssue

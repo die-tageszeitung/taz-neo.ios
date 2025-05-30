@@ -2119,15 +2119,6 @@ public final class StoredIssue: Issue, StoredObject {
     return get(request: request)
   }
   
-  /// Return all issues that are currently being autodownloaded
-  public static func unfinishedAutodownloading(feed: StoredFeed) -> [StoredIssue] {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "feed = %@ AND isAutodownloading = true", feed.pr)
-    request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-    return get(request: request)
-  }
-  
-  
   /// fetch helper for issue sorting
   public enum IssueSorting {
     case issueDate, payloadDownloadStarted

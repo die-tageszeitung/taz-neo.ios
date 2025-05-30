@@ -342,8 +342,8 @@ class TazAppEnvironment: NSObject, DoesLog {
     let settings = """
         Current app settings for diagnostics - some values may have changed!
         ---
-        newIssueSystemSetting: \(Defaults.newIssueSystemSetting)
-        specialArticleSystemSetting: \(Defaults.specialArticleSystemSetting)
+        newIssueSystemSetting: \(Defaults.singleton["newIssueSystemSetting"] ?? "-")
+        specialArticleSystemSetting: \(Defaults.singleton["specialArticleSystemSetting"] ?? "-")
         autoloadNewIssues: \(Defaults.singleton["autoloadNewIssues"] ?? "-")
         autoloadOnlyInWLAN: \(Defaults.singleton["autoloadOnlyInWLAN2"] ?? "-")
         ---
