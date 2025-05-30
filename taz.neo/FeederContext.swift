@@ -363,7 +363,6 @@ open class FeederContext: DoesLog {
   }
   
   private func notifyNetStatus(isConnected:Bool){
-    return;
     if isConnected {
       self.debug("Feeder now reachable")
       notify(Const.NotificationNames.feederReachable)
