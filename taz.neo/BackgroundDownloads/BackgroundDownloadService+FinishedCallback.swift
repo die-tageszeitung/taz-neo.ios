@@ -120,8 +120,8 @@ fileprivate extension BackgroundDownloadService {
       if let publicationDates = feed.publicationDates {
         tempStorage.add(publicationDates)
       }
-      
-      tempStorage.add(issue)
+#warning("CHECK: try")
+      try tempStorage.add(issue)
       issue.setAutodownloadCompleete()
       handlePendingTasks()
       

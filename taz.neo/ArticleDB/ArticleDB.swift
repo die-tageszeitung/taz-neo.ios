@@ -2095,6 +2095,16 @@ public final class StoredIssue: Issue, StoredObject {
   }
   
   /// Return an array of Issues in a Feed
+  public static func lastCompleete(feed: StoredFeed)
+  -> StoredIssue? {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
+    request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+    request.fetchLimit = 1
+    return get(request: request).first
+  }
+  
+  /// Return an array of Issues in a Feed
   public static func issuesInFeed(feed: StoredFeed, count: Int = -1, fromDate: Date? = nil)
   -> [StoredIssue] {
     let request = fetchRequest

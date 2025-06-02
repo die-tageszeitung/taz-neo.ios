@@ -41,7 +41,8 @@ extension BackgroundDownloadService {
             throw BackgroundDownloadError("No Issue found!")
           }
           tempStorage.add(feed.publicationDates ?? [])
-          tempStorage.add(issue)
+          #warning("CHECK: try")
+          try tempStorage.add(issue)
           log("...loaded data for issue: \(issueDateKey)")
           
           guard let zipUrl = issue.zipUrl else {

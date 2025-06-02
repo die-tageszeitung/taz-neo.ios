@@ -34,7 +34,7 @@ class BackgroundDownloadService: DoesLog {
   
   @Default("autoloadPublicationType")
   var autoloadPublicationType: String
-  
+  ///ToDo must be a compleetly downloaded one!! rename
   var latestIssueIssueDate: Date?
   
   var latestCheckForNewIssue: Date?
@@ -69,7 +69,15 @@ extension BackgroundDownloadService {
       autoloadPublicationType = PublicationType.taz.rawValue
     }
     updatePublicationtype()
-    updateLatestIssueDownloadDate(ifNewer: feed.lastIssue)
+    log ("Update updateLatestIssueDownloadDate...")
+    if let lastIssue = StoredIssue.lastCompleete(feed: feed) {
+      log ("... with date \(lastIssue.date.short)")
+      updateLatestIssueDownloadDate(ifNewer: lastIssue.date)
+    }
+    else {
+      log ("... no last issue found")
+    }
+//    updateLatestIssueDownloadDate(ifNewer: feed.lastIssue)//its maybe just an overview
   }
   
   fileprivate func updatePublicationtype(){

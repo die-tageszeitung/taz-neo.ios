@@ -151,7 +151,7 @@ extension FeederContext {
     ///but its still testable if app would crash for the changed code, just by turn on autodownload
     log("Handle new Issue Push\n  Current App State: \(UIApplication.shared.stateDescription)")
     ///Do not access feed here, its maybe uninitialized! self.defaultFeed.name
-    BackgroundDownloadService.checkForNewIssue(fetchCompletionHandler)
+    BackgroundDownloadService.checkForNewIssue(isPush: true, fetchCompletionHandler)
   }
 }
 

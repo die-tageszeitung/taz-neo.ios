@@ -54,7 +54,8 @@ extension BackgroundDownloadService {
       let group = DispatchGroup()
       group.enter()
       self?.log("Starting background issue check...")
-      Self.checkForNewIssue{ _ in
+        
+      Self.checkForNewIssue(isPush: false){ _ in
         self?.log("Finished issue check.")
         group.leave()
       }

@@ -30,7 +30,7 @@ fileprivate actor IssueCheckerGuard {
 }
 
 extension BackgroundDownloadService {
-  public static func checkForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler?) {
+  public static func checkForNewIssue(isPush: Bool, _ fetchCompletionHandler: FetchCompletionHandler?) {
     Self.shared.log("...static checkForNewIssue requested, App State: \(UIApplication.shared.stateDescription)")
     let currentAppState = UIApplication.shared.applicationState
     
@@ -39,9 +39,15 @@ extension BackgroundDownloadService {
       return
     }
     
+    if let date = Self.shared.latestIssueIssueDate, abs(date.startOfDay.timeIntervalSinceNow) < 60*60*17 {
+      Self.shared.log("...static checkForNewIssue skipped, last downloaded issue is from: \(date.short) \(abs(date.startOfDay.timeIntervalSinceNow)) < \(60*60*17)")
+      fetchCompletionHandler?(.noData)
+      return
+    }
+    
     Task {
       Self.shared.log("...static checkForNewIssue in \(currentAppState == .background ? "background" : "\(currentAppState)")")
-      await BackgroundDownloadService.shared.doCheckForNewIssue(fetchCompletionHandler)
+      await BackgroundDownloadService.shared.doCheckForNewIssue(isPush: isPush, fetchCompletionHandler)
       Self.shared.log("...static checkForNewIssue done")
     }
   }
@@ -53,7 +59,7 @@ fileprivate extension BackgroundDownloadService {
   /// triggert by Push Notification or timed background task
   /// - Parameters:
   ///   - fetchCompletionHandler: optional completion handler for required if called by push notification
-  func doCheckForNewIssue(_ fetchCompletionHandler: FetchCompletionHandler? = nil) async {
+  func doCheckForNewIssue(isPush: Bool, _ fetchCompletionHandler: FetchCompletionHandler? = nil) async {
     
     latestCheckForNewIssue = Date()
     
@@ -83,7 +89,8 @@ fileprivate extension BackgroundDownloadService {
       log("""
           ...checkForNewIssue 
              autoload: \(autoloadOnlyInWLAN ? "only in WLAN" : "in any network")
-             Triggered by \(fetchCompletionHandler == nil ? "BackgroundTask" : "Push")
+             Triggered by \(isPush ? "Push" : "BackgroundTask")
+             Latest known publication date: \(feederContext.latestPublicationDate?.short ?? "none")
           """)
       
       // MARK: - Fetch & Validate Issue
@@ -98,7 +105,6 @@ fileprivate extension BackgroundDownloadService {
       }
       
       guard !BackgroundSession.search(url: zipUrl) else {
-        
         throw BackgroundDownloadError("Already Downloading!")
         
         return
@@ -241,7 +247,7 @@ fileprivate extension BackgroundDownloadService {
     //wie passt publicationDate und issue zusammen?...egal solange das publicationDate existiert kann ich diese persitieren, es werden nur nicht in der db bekannte pubDates in die db übernommen
     
     tempStorage.add(publicationDatesAndIssue.publicationDates ?? [])
-    tempStorage.add(issue)
+    try tempStorage.add(issue)
     return issue
   }
   

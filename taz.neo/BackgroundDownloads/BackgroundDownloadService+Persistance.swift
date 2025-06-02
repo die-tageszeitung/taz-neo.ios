@@ -35,7 +35,7 @@ class BackgroundDownloadsTempStorage: DoesLog {
 
   /// Adds a new issue if it's not already present (based on issueKey).
   /// Removes the oldest issues if there are more than 7, and deletes their files.
-  func add(_ issue: Issue) {
+  func add(_ issue: Issue) throws{
     let newKey = issue.date.issueKey
 
     // Check outside of queue for performance
@@ -44,8 +44,7 @@ class BackgroundDownloadsTempStorage: DoesLog {
     }
 
     guard !exists else {
-      log("Issue with key \(newKey) already exists. Skipping.")
-      return
+      throw BackgroundDownloadError("Issue with key \(newKey) already exists. Skipping.")
     }
 
     // Append issue and clean up oldest ones if needed
@@ -141,9 +140,11 @@ extension BackgroundDownloadService {
   /// Updates the latest issue download date if the given date is more recent.
   func updateLatestIssueDownloadDate(ifNewer date: Date) {
     if let latest = latestIssueIssueDate, date > latest {
+      log("Updating latest issue download date from \(latest) to \(date)")
       latestIssueIssueDate = date
     } else if latestIssueIssueDate == nil {
       latestIssueIssueDate = date
+      log("Setting initial latest issue download date to \(date)")
     }
   }
   
