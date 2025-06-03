@@ -27,7 +27,8 @@ extension BackgroundDownloadService {
   
   /// call after Application Restart to load issues data from JSON files and persist them
   /// called in Background Thread
-  func applicationRestarted( with feederContext: FeederContext) {
+  /// **WARNING** currently delete UserDefaults download data if issue is already in temp storage:: check a more robust solution! in case of refactorings
+  func applicationRestarted(with feederContext: FeederContext) {
     Task.detached { [weak self] in
       guard let self = self else { return }
       var downloadMissing = false
@@ -41,7 +42,8 @@ extension BackgroundDownloadService {
             throw BackgroundDownloadError("No Issue found!")
           }
           tempStorage.add(feed.publicationDates ?? [])
-          #warning("CHECK: try")
+          /// In Case of error the next issueDateKey is handled
+          /// in case of error e.g. the issue is already in temp storage it woun't be added again
           try tempStorage.add(issue)
           log("...loaded data for issue: \(issueDateKey)")
           
@@ -63,6 +65,7 @@ extension BackgroundDownloadService {
         } catch {
           log("⚠️ Failed to load data for issue \(issueDateKey): \(error)")
           log("Delete Default for: \(issueDateKey)")
+          #warning("TODO:: should i really remove the download data in this case: temp storage already contains...")
           removeDownloadData(forIssueKey: issueDateKey)
         }
       }

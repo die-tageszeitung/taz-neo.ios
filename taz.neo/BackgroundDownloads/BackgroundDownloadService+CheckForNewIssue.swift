@@ -29,6 +29,8 @@ fileprivate actor IssueCheckerGuard {
   }
 }
 
+// MARK: - BackgroundDownloadService :: checkForNewIssue
+
 extension BackgroundDownloadService {
   public static func checkForNewIssue(isPush: Bool, _ fetchCompletionHandler: FetchCompletionHandler?) {
     Self.shared.log("...static checkForNewIssue requested, App State: \(UIApplication.shared.stateDescription)")
@@ -53,6 +55,8 @@ extension BackgroundDownloadService {
   }
 }
 
+// MARK: - BackgroundDownloadService :: checkForNewIssue logic
+
 //Mark: checkForNewIssue (called by push and sceduled background task)
 fileprivate extension BackgroundDownloadService {
   /// check remote for new issues and enqueue download in Background Mode
@@ -60,8 +64,6 @@ fileprivate extension BackgroundDownloadService {
   /// - Parameters:
   ///   - fetchCompletionHandler: optional completion handler for required if called by push notification
   func doCheckForNewIssue(isPush: Bool, _ fetchCompletionHandler: FetchCompletionHandler? = nil) async {
-    
-    latestCheckForNewIssue = Date()
     
     // MARK: - Initial Checks
     guard let feederContext = feederContext else {
@@ -98,6 +100,8 @@ fileprivate extension BackgroundDownloadService {
       let issue = try await fetchFromRemote()
       fetchSuccess = true
       log("...fetched issue: \(issue.date.short)")
+      
+      latestCheckForNewIssue = Date()
       
       guard let zipUrl = issue.zipUrl else {
         log("latestIssue baseUrl: \(issue.baseUrl) zipName: \(issue.zipName ?? "-")")
@@ -207,6 +211,8 @@ fileprivate extension BackgroundDownloadService {
   }
 }
 
+// MARK: - BackgroundDownloadService :: load structure data
+
 fileprivate extension BackgroundDownloadService {
   /// fetches latest issue and publicationDates from remote
   /// - Returns: the latest issue
@@ -255,8 +261,7 @@ fileprivate extension BackgroundDownloadService {
 }
 
 
-
-/// MARK: - Helper
+// MARK: - GqlFeeder helper extension
 
 fileprivate extension GqlFeeder {
   func latestIssueAndFeed(feed: Feed,
@@ -284,6 +289,8 @@ fileprivate extension GqlFeeder {
     }
   }
 }
+
+// MARK: - Issue helper extension
 
 fileprivate extension Issue {
   

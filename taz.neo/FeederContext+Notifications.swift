@@ -76,6 +76,9 @@ extension FeederContext {
   }
   
   func processPushNotification(pn: PushNotification, payload: PushNotification.Payload, fetchCompletionHandler: FetchCompletionHandler?){
+    ///process incomming Push Notifications within 30s!
+    ///@see:
+    ///https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:didreceiveremotenotification:fetchcompletionhandler:)
     log("Processing: \(payload) AppState: \(UIApplication.shared.stateDescription)")
     switch payload.notificationType {
       case .subscription:

@@ -37,6 +37,9 @@ class BackgroundDownloadService: DoesLog {
   ///ToDo must be a compleetly downloaded one!! rename
   var latestIssueIssueDate: Date?
   
+  /// The date of the last check for an new issue
+  /// will be set due check for new issues
+  /// is used by timed Background download
   var latestCheckForNewIssue: Date?
   
   var publicationType: PublicationType = .taz //just initial value
