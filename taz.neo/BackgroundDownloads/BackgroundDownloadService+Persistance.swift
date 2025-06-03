@@ -213,8 +213,11 @@ extension BackgroundDownloadService {
       ///     onApp resume/restart
       ///
       /// only remove completed ones
-      guard issue.isComplete else { continue }
-      removeDownloadData(forIssueKey: issue.date.issueKey)
+      guard issue.isComplete else {
+        log("Warning Issue \(issue.date.short) is not complete, skipping removal of download data.")
+        continue
+      }
+      removeDownloadData(forIssueKey: issue.date.ISO8601)
     }
   }
   
