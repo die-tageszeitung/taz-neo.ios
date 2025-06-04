@@ -172,7 +172,7 @@ extension BookmarkTVC {
   }
   
   func shareArticle(article: Article, sourceView: UIView){
-    guard let articleVC = articleVC else { return }
+    guard articleVC != nil else { return }
     var artImage: UIImage?
     if let issue = article.primaryIssue {
       artImage = article.images?.first?.image(dir: issue.dir)?.invertedIfNeeded
