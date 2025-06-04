@@ -186,8 +186,12 @@ extension BookmarkTVC {
     if article.isReducedArticle
         && TazAppEnvironment.sharedInstance.feederContext?.isConnected == true
         && TazAppEnvironment.hasValidAuth {
-      loadAndOpen(article: article)
-      return
+      if article.serverId != nil {
+        loadAndOpen(article: article)
+        return
+      }
+      log("article has no serverId, cannot load article...open it")
+      Toast.show("<b>Hinweis:</b> Dieser Eintrag scheint beschädigt zu sein.<br>Bitte löschen Sie ihn und fügen Sie ihn bei Bedarf erneut hinzu.")
     }
     guard let avc = articleVC else { return }
     avc.index = avc.articles.firstIndex { $0.serverId == article.serverId } ?? 0
@@ -196,7 +200,7 @@ extension BookmarkTVC {
   
   ///handler for tap in List on demo Article
   private func loadAndOpen(article: Article){
-    let serverId = article.serverId ///save bevore reload article
+    let serverId = article.serverId ///remember bevore reload article
     Notification.receiveOnce(Const.NotificationNames.bookmarksLoaded) { [weak self] _ in
       ///ensure Tabledata is refreshed earlier
       onMainAfter(0.2) {[weak self] in

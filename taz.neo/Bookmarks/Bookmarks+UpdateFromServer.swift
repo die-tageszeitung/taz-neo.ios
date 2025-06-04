@@ -12,19 +12,30 @@ import NorthLib
 /// Helper to load missing data from server
 extension Bookmarks {
   
+  private func removeOverlay() {
+    onMainAfter(0.8){
+      Notification.send(Const.NotificationNames.bookmarksLoaded, sender: nil)
+    }
+  }
+  
   /// Verify valid authentication, then check if reduced/demo articles are bookmarked, and load them
   func loadFullArticlesIfNeeded(){
     guard TazAppEnvironment.hasValidAuth else {
       log("no valid auth, skip loading")
-      Notification.send(Const.NotificationNames.bookmarksLoaded, sender: nil)
+      ///its checked before but maybe a race condition
+      removeOverlay()
       return
     }
     
     /// workflow: load article data, update "demo" article entity (including: onlineLink, Authors, files (content+images)...
     /// download files
-    let reducedArticles = bookmarkedArticles.filter { $0.isReducedArticle }
+    let reducedArticles = bookmarkedArticles.filter { $0.isReducedArticle && $0.serverId != nil }
     
-    if reducedArticles.count == 0 { return }
+    if reducedArticles.count == 0 {
+      log("no articles to load, skip loading")
+      removeOverlay()
+      return
+    }
     
     Bookmarks.shared.feederContext?.gqlFeeder.loadArticles(reducedArticles, finished:{[weak self] res in
       guard let self = self else { return }
