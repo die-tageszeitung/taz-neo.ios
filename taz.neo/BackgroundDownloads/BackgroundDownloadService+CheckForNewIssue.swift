@@ -151,15 +151,9 @@ fileprivate extension BackgroundDownloadService {
                                 isAutomatically: true,
                                 returnOnMain: false)
       
-      log("...downloading \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issue.tempDir.path)")
+      log("...downloading \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issue.dir.path)")
       
-      let targetDirs: [String: String] = [
-        "global": feederContext.storedFeeder.globalDir.path,
-        ".": ".."
-      ]
-      
-      issueDownloadSession.downloadZip(toDir: issue.tempDir.path,
-                                       moveFilesRealtion: targetDirs)
+      issueDownloadSession.downloadZip(toDir: issue.dir.path)
       
       issueDownloadEnqueued = true
       
@@ -294,13 +288,6 @@ fileprivate extension GqlFeeder {
 
 fileprivate extension Issue {
   
-  var tempDir: Dir {
-    if !dir.exists { dir.create() }
-    let tmpDir = Dir("\(dir.path)/tmp")
-    if !tmpDir.exists { tmpDir.create() }
-    return tmpDir
-  }
-  
   func createFolderStructureIfNeeded(for feederContext: FeederContext) {
     let issueDir = self.dir
     if !issueDir.exists { issueDir.create() }
@@ -308,8 +295,6 @@ fileprivate extension Issue {
     let glink = File(dir: issueDir.path, fname: "global")
     if !rlink.isLink { rlink.link(to: feederContext.storedFeeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feederContext.storedFeeder.globalDir.path) }
-    let tmpDir = Dir("\(issueDir.path)/tmp")
-    if !tmpDir.exists { tmpDir.create() }
   }
   
   var zipAudioUrl: String? {
