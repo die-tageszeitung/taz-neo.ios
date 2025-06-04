@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// Data Structure to persist background download data using UserDefaults.
 struct DownloadData: Codable {
   let isoDateKey: String           // z.B. "2025-05-15"
   var downloadId: String      // Eindeutige ID
@@ -25,6 +26,7 @@ struct DownloadData: Codable {
 }
 
 // MARK: - UserDefaults Erweiterung für Codable Dictionary
+
 private extension UserDefaults {
   private static let backgroundDownloadsKey = "BackgroundDownloadsDictionaryKey"
   
@@ -43,6 +45,10 @@ private extension UserDefaults {
   }
 }
 
+/// Helper to save and retrieve DownloadData in UserDefaults.
+/// `saveDownloadData` is called ONLY in doCheckForNewIssue currently after enqueuing the zip download of the issue
+/// `setDownloadFinished` is only called in `dlCallback` (successful  zip download of the issue) also if database is not saved yet.
+///  `getDownloadData` is called in getDownloadData and `applicationRestarted` to set the download finished for the issue, if it was not saved yet.
 extension BackgroundDownloadService {
   func saveDownloadData(forDownloadUrl url: String, date: Date, downloadId: String, startTime: Int64) {
     let data = DownloadData(isoDateKey: date.ISO8601, downloadId: downloadId, startTime: startTime)
@@ -64,12 +70,16 @@ extension BackgroundDownloadService {
     log("Set Download finished for issue with date: \(data.isoDateKey)")
   }
   
+  /// Returns an array of ISO date keys for all download entries in UserDefaults.
+  /// used on application Restart to check if there are downloads finished (zip Download)
+  /// which ain't saved to database yet. to save them now on app restart
   var downloadDateKeys: [String] {
     let dict = UserDefaults.standard.getDownloadDict()
     return dict.values.map { $0.isoDateKey }
   }
   
-  
+  ///called after download finished to get the DownloadData for the given download URL, to set the download finished
+  ///also called from `applicationRestarted`
   func getDownloadData(forDownloadUrl url: String) -> DownloadData? {
     UserDefaults.standard.getDownloadDict()[url]
   }

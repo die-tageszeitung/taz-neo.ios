@@ -158,7 +158,7 @@ extension BackgroundDownloadService {
   private func handlePendingTasksOnMain() {
     log("handlePendingTasks")
     
-    let storedIssues = persistCurrentIssues()
+    let finishedStoredIssues = persistCurrentIssues()
     ///1st persist existing if available > this should delete used json then load jsons available
     ///das mach ich doch beim neu erstellen des FeederContext.  => brauche ich hier nicht.
 //    persistJsonData()
@@ -182,9 +182,9 @@ extension BackgroundDownloadService {
       saveDatabase = false
       ArticleDB.save()
       log("...saved database")
-      tempStorage.deleteJsonFiles(for: storedIssues)
+      tempStorage.deleteJsonFiles(for: finishedStoredIssues)
       log("...removed obsolete JSON files")
-      removeDownloadData(for: storedIssues)
+      removeDownloadData(for: finishedStoredIssues)
       log("...removed obsolete UserDefaults Entries")
     }
     
@@ -213,8 +213,11 @@ extension BackgroundDownloadService {
       ///     onApp resume/restart
       ///
       /// only remove completed ones
-      guard issue.isComplete else { continue }
-      removeDownloadData(forIssueKey: issue.date.issueKey)
+      guard issue.isComplete else {
+        log("Warning Issue \(issue.date.short) is not complete, skipping removal of download data.")
+        continue
+      }
+      removeDownloadData(forIssueKey: issue.date.ISO8601)
     }
   }
   
