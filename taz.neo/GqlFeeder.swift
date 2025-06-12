@@ -1362,6 +1362,9 @@ open class GqlFeeder: Feeder, DoesLog {
     let wasAuthenticated: Bool = authToken != nil
     let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
                                       count: count, isOverview: isOverview, latestKnownPublicationDate: latestKnownPublicationDate)
+    
+    log("request \(request)")
+    
     gqlSession.query(graphql: request,
       type: [String:FeedRequest].self, returnOnMain: returnOnMain) {[weak self]  (res, data) in
       self?.log("Request done with return on main?: \(returnOnMain) isBg  \(isBackGround)")
