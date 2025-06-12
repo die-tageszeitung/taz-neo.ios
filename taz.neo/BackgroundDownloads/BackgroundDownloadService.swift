@@ -34,8 +34,16 @@ class BackgroundDownloadService: DoesLog {
   
   @Default("autoloadPublicationType")
   var autoloadPublicationType: String
-  ///ToDo must be a compleetly downloaded one!! rename
-  var latestIssueIssueDate: Date?
+  
+  /// The date of the last issue that was fully downloaded based on the user's auto-download settings.
+  ///
+  /// This value reflects the latest issue for which all enabled types (PDF and/or audio)
+  /// were successfully downloaded:
+  /// - If `autoloadPdf` is enabled, the issue must include the facsimiles.
+  /// - If `autoloadAudio` is enabled, the issue must include the audio files.
+  /// - If both are enabled, both downloads must be complete for the date to be updated.
+  /// - If no suitable issue has been fully downloaded yet, this value is `nil`.
+  var lastFullyDownloadedIssueDate: Date?
   
   /// The date of the last check for an new issue
   /// will be set due check for new issues
@@ -73,14 +81,15 @@ extension BackgroundDownloadService {
     }
     updatePublicationtype()
     log ("Update updateLatestIssueDownloadDate...")
-    if let lastIssue = StoredIssue.lastCompleete(feed: feed) {
+    if let lastIssue = StoredIssue.lastCompleete(feed: feed,
+                                                 isPages: autoloadPdf,
+                                                 withAudio: autoloadAudio) {
       log ("... with date \(lastIssue.date.short)")
       updateLatestIssueDownloadDate(ifNewer: lastIssue.date)
     }
     else {
       log ("... no last issue found")
     }
-//    updateLatestIssueDownloadDate(ifNewer: feed.lastIssue)//its maybe just an overview
   }
   
   fileprivate func updatePublicationtype(){

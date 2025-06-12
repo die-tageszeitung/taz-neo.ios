@@ -139,17 +139,21 @@ extension BackgroundDownloadService {
   
   /// Updates the latest issue download date if the given date is more recent.
   func updateLatestIssueDownloadDate(ifNewer date: Date) {
-    if let latest = latestIssueIssueDate, date > latest {
+    if let latest = lastFullyDownloadedIssueDate, date > latest {
       log("Updating latest issue download date from \(latest) to \(date)")
-      latestIssueIssueDate = date
-    } else if latestIssueIssueDate == nil {
-      latestIssueIssueDate = date
+      lastFullyDownloadedIssueDate = date
+    } else if lastFullyDownloadedIssueDate == nil {
+      lastFullyDownloadedIssueDate = date
       log("Setting initial latest issue download date to \(date)")
     }
   }
   
   /// execute tasks that need to be performed to persist data, generate facsimile or inform UI
   func handlePendingTasks() {
+    guard saveDatabase || tempStorage.publicationDates.count > 0 else {
+      log("WARNING?::No Pending Tasks available skip!")
+      return
+    }
     ensureMain {[weak self] in
       self?.handlePendingTasksOnMain()
     }
@@ -179,8 +183,8 @@ extension BackgroundDownloadService {
     
     if saveDatabase {
       log("...save database")
-      saveDatabase = false
       ArticleDB.save()
+      saveDatabase = false
       log("...saved database")
       tempStorage.deleteJsonFiles(for: finishedStoredIssues)
       log("...removed obsolete JSON files")

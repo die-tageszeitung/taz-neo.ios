@@ -41,14 +41,14 @@
       </BuildActionEntries>
    </BuildAction>
    <TestAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       codeCoverageEnabled = "YES">
       <Testables>
          <TestableReference
-            skipped = "NO">
+            skipped = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "77D1B5032CF9D2F3004CF5FC"
@@ -60,6 +60,17 @@
                identifier = "Berlin, Germany"
                referenceType = "1">
             </LocationScenarioReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "4D1D63482DFAD567004254B1"
+               BuildableName = "taz unittest.xctest"
+               BlueprintName = "taz unittest"
+               ReferencedContainer = "container:taz.neo.xcodeproj">
+            </BuildableReference>
          </TestableReference>
       </Testables>
    </TestAction>

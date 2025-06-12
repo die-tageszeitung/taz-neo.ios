@@ -41,9 +41,12 @@ extension BackgroundDownloadService {
       return
     }
     
-    if let date = Self.shared.latestIssueIssueDate, abs(date.startOfDay.timeIntervalSinceNow) < 60*60*17 {
-      Self.shared.log("...static checkForNewIssue skipped, last downloaded issue is from: \(date.short) \(abs(date.startOfDay.timeIntervalSinceNow)) < \(60*60*17)")
+    if Self.shared.isLastFullyDownloadedIssueOutdated == false {
+      Self.shared.log("...static checkForNewIssue skipped, last fully downloaded issue from: \(Self.shared.lastFullyDownloadedIssueDate?.short ?? "-")")
       fetchCompletionHandler?(.noData)
+      ///maybe enqueued not downloaded, not saved to db
+      Self.shared.handlePendingTasks()//persist stuff
+      ///maybe re-start download? BackgroundSession.restartAllArchivedDownloads EXPERIMENTELL!!!
       return
     }
     
@@ -180,9 +183,7 @@ fileprivate extension BackgroundDownloadService {
       /// Schedule background task to resume Download if Autodownload did not started
       scheduleBackgroundIssueCheck(earliestBeginDate: Date(timeIntervalSinceNow: 60 * 60))
       ///persist data to db
-      onMain { [weak self] in
-        self?.handlePendingTasks()
-      }
+        handlePendingTasks()
       ///push notification callback
       fetchCompletionHandler?(.newData)
     }

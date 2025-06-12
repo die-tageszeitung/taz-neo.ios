@@ -26,7 +26,7 @@ extension BackgroundDownloadService {
   func handleIssueCheckTask(task: BGAppRefreshTask) {
     scheduleBackgroundIssueCheck() // Schedule the next background task
     
-    log("Start timed check \(latestIssueIssueDate?.short.prepend("Latest Issue Date: ") ?? "")")
+    log("Start timed check \(lastFullyDownloadedIssueDate?.short.prepend("Latest Issue Date: ") ?? "")")
     
     let queue = OperationQueue()
     queue.maxConcurrentOperationCount = 1
@@ -43,7 +43,7 @@ extension BackgroundDownloadService {
     
     guard shouldCheckForNewIssue(tz: timeZone,
                                  typ: publicationType,
-                                 lastPublicationDate: latestIssueIssueDate?.expectedPublicationDateForIssueDate) else {
+                                 lastPublicationDate: lastFullyDownloadedIssueDate?.expectedPublicationDateForIssueDate) else {
       log("Skipping check: Not yet time for next issue.")
       task.setTaskCompleted(success: true)
       return
@@ -76,8 +76,7 @@ extension BackgroundDownloadService {
   
   func scheduleBackgroundIssueCheck(earliestBeginDate: Date? = nil) {
     let request = BGAppRefreshTaskRequest(identifier: "de.taz.taz.neo.refresh")
-#warning("TODO LAST DOWNLOAD IS CURRENTLY NOW!")
-    let nextCheck = earliestBeginDate ?? nextEligibleCheckDate(tz: self.timeZone, type: self.publicationType, lastDownload: Date())
+    let nextCheck = earliestBeginDate ?? nextEligibleCheckDate(tz: self.timeZone, type: self.publicationType, lastFullyDownloadedIssueDate: lastFullyDownloadedIssueDate)
     log("Scheduling background task at \(nextCheck.dateAndTime) (in \(nextCheck.timeIntervalSinceNow.readable))")
     request.earliestBeginDate = nextCheck
     do {
@@ -93,8 +92,14 @@ extension BackgroundDownloadService {
     case taz, wochentaz, lmd
   }
   
-  fileprivate func nextEligibleCheckDate(tz: TimeZone, type: PublicationType, lastDownload: Date) -> Date {
-    let now = Date()
+  func testNextEligibleCheckDate(tz: TimeZone, type: PublicationType, lastFullyDownloadedIssueDate: Date?, now: Date = Date()) -> Date {
+    return nextEligibleCheckDate(tz: tz, type: type, lastFullyDownloadedIssueDate: lastFullyDownloadedIssueDate, now: now)
+  }
+  
+  fileprivate func nextEligibleCheckDate(tz: TimeZone, type: PublicationType, lastFullyDownloadedIssueDate: Date?, now: Date = Date()) -> Date {
+    guard let lastDownload = lastFullyDownloadedIssueDate else {
+      return now.addingTimeInterval(60*1)//1 minute
+    }
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = tz
     
@@ -122,11 +127,13 @@ extension BackgroundDownloadService {
     
     switch type {
       case .taz:
-        let triggerHours = [6, 19, 20, 23]
-        if let next = nextHourFromList(triggerHours, excludingSaturdays: true),
-           next.timeIntervalSince(lastDownload) > 60 * 60 * 20 {
-          return next
-        }
+          let triggerHours = [6, 19, 20, 23]
+          if let next = nextHourFromList(triggerHours, excludingSaturdays: true) {
+              let requiredDelay: TimeInterval = 60 * 60 * 17
+              if next > lastDownload.addingTimeInterval(requiredDelay) {
+                  return next
+              }
+          }
         
       case .wochentaz:
         let triggerWeekdays = [5, 6, 7] // Thursday, Friday, Saturday
@@ -159,8 +166,38 @@ extension BackgroundDownloadService {
           }
         }
     }
-    // fallback: in 1h
+    // fallback: in 1h => TODO CHANGE TO in 1 DAY!!!
     return Date(timeIntervalSinceNow: 60 * 60)
+  }
+  
+  /// Returns `true` if the last fully downloaded issue is considered outdated based on the publication type.
+  ///
+  /// The threshold for being "outdated" varies per publication:
+  /// - `.lmd`: Considered outdated at the earliest 25 days after the last issue's 5 PM
+  /// - `.wochentaz`: Considered outdated at the earliest 5 days after the last issue's 5 PM
+  /// - `.taz`: Considered outdated once the current date passes the last issue's 5 PM
+  ///
+  /// If no issue has been downloaded yet, it is considered outdated by default.
+  var isLastFullyDownloadedIssueOutdated: Bool {
+    guard let lastDownload5PM = Self.shared.lastFullyDownloadedIssueDate?.fivePM else {
+          // No last download available → considered outdated
+          return true
+      }
+
+      let now = Date()
+      switch publicationType {
+      case .lmd:
+          // Outdated if 25 days have passed since the last issue's 5 PM
+          return now > lastDownload5PM.addingTimeInterval(60 * 60 * 24 * 25)
+          
+      case .wochentaz:
+          // Outdated if 5 days have passed since the last issue's 5 PM
+          return now > lastDownload5PM.addingTimeInterval(60 * 60 * 24 * 5)
+          
+      case .taz:
+          // Outdated as soon as current time is past 5 PM of the issue day
+          return now > lastDownload5PM
+      }
   }
   
   fileprivate func shouldCheckForNewIssue(tz: TimeZone, typ: PublicationType, lastPublicationDate: Date?) -> Bool {
@@ -257,5 +294,31 @@ fileprivate extension Date {
     components.second = 0
     
     return calendar.date(from: components)!
+  }
+}
+
+
+fileprivate extension Date {
+  
+  /// Returns a new `Date` set to 5:00 PM on the same calendar day as the original date.
+  var fivePM:Date {
+    let calendar = Calendar.current
+    let components = calendar.dateComponents([.year, .month, .day], from: self)
+    
+    var newComponents = DateComponents()
+    newComponents.year = components.year
+    newComponents.month = components.month
+    newComponents.day = components.day
+    newComponents.hour = 17
+    newComponents.minute = 0
+    newComponents.second = 0
+    
+    if let dateAtFive = calendar.date(from: newComponents) {
+        return dateAtFive
+    } else {
+        // Optional: Log unexpected failure
+        print("⚠️ Warning: Failed to create 5PM date from \(self)")
+        return self
+    }
   }
 }

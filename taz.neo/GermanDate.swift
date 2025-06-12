@@ -106,4 +106,53 @@ public extension Date {
       return dateFormatterGet.string(from: self)
     }
   }
+  
+  /// Creates a `Date` from a string in `"yyyy-MM-dd"` format using the `en_US_POSIX` locale.
+  /// - Parameter dateString: The date string in `"yyyy-MM-dd"` format.
+  /// - Returns: A `Date` if parsing succeeds, otherwise `nil`.
+  static func from(yyyyMMdd dateString: String) -> Date? {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    ///important additionally to dateFormat, makes sure the date is parsed correctly regardless of the user's locale settings
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    return formatter.date(from: dateString)
+  }
+  
+  /// Parses a date from a "yyyy-MM-dd" string and optional hour/minute values.
+  /// Defaults to 12:00 (noon) if time is not provided.
+  ///
+  /// - Parameters:
+  ///   - dateString: The date string in "yyyy-MM-dd" format.
+  ///   - hour: Optional hour (defaults to 12).
+  ///   - minute: Optional minute (defaults to 0).
+  ///   - timeZone: The timezone to interpret the date in (defaults to Europe/Berlin).
+  /// - Returns: A `Date` if parsing succeeds, otherwise `nil`.
+  static func from(
+    yyyyMMdd dateString: String,
+    hour: Int? = nil,
+    minute: Int? = nil,
+    timeZone: TimeZone? = TimeZone(identifier: "Europe/Berlin")
+  ) -> Date? {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = timeZone
+    
+    guard let baseDate = formatter.date(from: dateString) else {
+      return nil
+    }
+    
+    var calendar = Calendar(identifier: .gregorian)
+    if let tz = timeZone {
+      calendar.timeZone = tz
+    }
+    
+    var components = calendar.dateComponents([.year, .month, .day], from: baseDate)
+    components.hour = hour ?? 12
+    components.minute = minute ?? 0
+    components.second = 0
+    
+    return calendar.date(from: components)
+  }
 }

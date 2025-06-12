@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -321,6 +321,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		4D1D634D2DFAD567004254B1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AEBAF55C219ACD1900566205 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AEBAF563219ACD1900566205;
+			remoteInfo = taz.neo;
+		};
 		77D1B50A2CF9D2F3004CF5FC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AEBAF55C219ACD1900566205 /* Project object */;
@@ -345,6 +352,7 @@
 		00E3D2A624E68F4600AE075A /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		00E3D2A824E68F5500AE075A /* PwForgottView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PwForgottView.swift; sourceTree = "<group>"; };
 		080271C624ADDD68002CD2F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Localizable.strings; sourceTree = "<group>"; };
+		4D1D63492DFAD567004254B1 /* taz unittest.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "taz unittest.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D308ED4283404C700529592 /* GqlFeederSearch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GqlFeederSearch.swift; sourceTree = "<group>"; };
 		4D308ED9283404D400529592 /* TazAppEnvironment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazAppEnvironment.swift; sourceTree = "<group>"; };
 		4D308EDF2834057200529592 /* SearchResultsTableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultsTableView.swift; sourceTree = "<group>"; };
@@ -516,7 +524,18 @@
 		C794F23424FED184007168AC /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4D1D634A2DFAD567004254B1 /* taz unittest */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "taz unittest"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		4D1D63462DFAD567004254B1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		77D1B5012CF9D2F3004CF5FC /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -790,6 +809,7 @@
 				AEE3D4E6247D316D00BEDEA3 /* README.md */,
 				AECD1A90282CFE38007E00EE /* NorthLib */,
 				AEBAF566219ACD1900566205 /* taz.neo */,
+				4D1D634A2DFAD567004254B1 /* taz unittest */,
 				AEBAF565219ACD1900566205 /* Products */,
 				AE3D47D623030482002FF0A2 /* Frameworks */,
 			);
@@ -801,6 +821,7 @@
 				AEBAF564219ACD1900566205 /* die tageszeitung.app */,
 				AE5131F52AFBCADB002289E8 /* LMd.app */,
 				77D1B5042CF9D2F3004CF5FC /* taz ui tests.xctest */,
+				4D1D63492DFAD567004254B1 /* taz unittest.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -953,6 +974,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		4D1D63482DFAD567004254B1 /* taz unittest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4D1D634F2DFAD567004254B1 /* Build configuration list for PBXNativeTarget "taz unittest" */;
+			buildPhases = (
+				4D1D63452DFAD567004254B1 /* Sources */,
+				4D1D63462DFAD567004254B1 /* Frameworks */,
+				4D1D63472DFAD567004254B1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4D1D634E2DFAD567004254B1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4D1D634A2DFAD567004254B1 /* taz unittest */,
+			);
+			name = "taz unittest";
+			packageProductDependencies = (
+			);
+			productName = "taz unittest";
+			productReference = 4D1D63492DFAD567004254B1 /* taz unittest.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		77D1B5032CF9D2F3004CF5FC /* taz ui tests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 77D1B50C2CF9D2F3004CF5FC /* Build configuration list for PBXNativeTarget "taz ui tests" */;
@@ -1023,10 +1067,14 @@
 		AEBAF55C219ACD1900566205 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1540;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1230;
-				ORGANIZATIONNAME = "Norbert Thies";
+				ORGANIZATIONNAME = taz;
 				TargetAttributes = {
+					4D1D63482DFAD567004254B1 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = AEBAF563219ACD1900566205;
+					};
 					77D1B5032CF9D2F3004CF5FC = {
 						CreatedOnToolsVersion = 15.4;
 						TestTargetID = AEBAF563219ACD1900566205;
@@ -1058,11 +1106,19 @@
 				AEBAF563219ACD1900566205 /* taz.neo */,
 				AE5131672AFBCADB002289E8 /* lmd.neo */,
 				77D1B5032CF9D2F3004CF5FC /* taz ui tests */,
+				4D1D63482DFAD567004254B1 /* taz unittest */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4D1D63472DFAD567004254B1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		77D1B5022CF9D2F3004CF5FC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1186,6 +1242,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		4D1D63452DFAD567004254B1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		77D1B5002CF9D2F3004CF5FC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1499,6 +1562,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		4D1D634E2DFAD567004254B1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AEBAF563219ACD1900566205 /* taz.neo */;
+			targetProxy = 4D1D634D2DFAD567004254B1 /* PBXContainerItemProxy */;
+		};
 		77D1B50B2CF9D2F3004CF5FC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = AEBAF563219ACD1900566205 /* taz.neo */;
@@ -1536,6 +1604,80 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		4D1D63502DFAD567004254B1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3R3GBCY6FA;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.taz.taz.neo.unittest.taz-unittest";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/die tageszeitung.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/die tageszeitung";
+			};
+			name = Debug;
+		};
+		4D1D63512DFAD567004254B1 /* Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3R3GBCY6FA;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.taz.taz.neo.unittest.taz-unittest";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/die tageszeitung.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/die tageszeitung";
+			};
+			name = Beta;
+		};
+		4D1D63522DFAD567004254B1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3R3GBCY6FA;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "de.taz.taz.neo.unittest.taz-unittest";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/die tageszeitung.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/die tageszeitung";
+			};
+			name = Release;
+		};
 		77D1B50D2CF9D2F3004CF5FC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1881,6 +2023,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1937,6 +2080,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2025060401;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
+				ENABLE_TESTABILITY = YES;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.magazines-and-newspapers";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -1955,6 +2099,16 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		4D1D634F2DFAD567004254B1 /* Build configuration list for PBXNativeTarget "taz unittest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4D1D63502DFAD567004254B1 /* Debug */,
+				4D1D63512DFAD567004254B1 /* Beta */,
+				4D1D63522DFAD567004254B1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		77D1B50C2CF9D2F3004CF5FC /* Build configuration list for PBXNativeTarget "taz ui tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
