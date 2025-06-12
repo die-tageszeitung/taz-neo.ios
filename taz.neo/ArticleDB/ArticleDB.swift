@@ -2095,6 +2095,21 @@ public final class StoredIssue: Issue, StoredObject {
   }
   
   /// Return an array of Issues in a Feed
+  public static func lastCompleete(feed: StoredFeed, isPages: Bool, withAudio: Bool) -> StoredIssue? {
+      let request = fetchRequest
+      var predicates: [NSPredicate] = [
+          NSPredicate(format: "feed = %@", feed.pr),
+          NSPredicate(format: "isComplete = true")
+      ]
+      if isPages { predicates.append(NSPredicate(format: "zipNamePdf != nil"))  }
+      if withAudio { predicates.append(NSPredicate(format: "zipAudioName != nil")) }
+      // combine all predicates with AND
+      request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+      request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+      request.fetchLimit = 1
+      return get(request: request).first
+  }
+  
   public static func lastCompleete(feed: StoredFeed)
   -> StoredIssue? {
     let request = fetchRequest

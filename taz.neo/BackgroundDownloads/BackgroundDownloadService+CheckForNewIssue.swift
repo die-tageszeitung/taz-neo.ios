@@ -217,14 +217,15 @@ fileprivate extension BackgroundDownloadService {
       throw BackgroundDownloadError("Currently no feederContext available!")
     }
     
-    let latestPublicationDate = feederContext.latestPublicationDate
+    let lastLocalIssueDate = try lastLocalIssueDate(feederContext: feederContext)
+
     // MARK: fetch latest issue and publication Dates from server
     let response
     = try await feederContext.gqlFeeder
       .latestIssueAndFeed(feed: feederContext.defaultFeed,
                           isPages: autoloadPdf,
                           withAudio: autoloadAudio,
-                          latestKnownPublicationDate: latestPublicationDate,
+                          latestKnownPublicationDate: lastLocalIssueDate,
                           returnOnMain: false,
                           isBackGround: true)
     let publicationDatesAndIssue = response.0
@@ -235,6 +236,16 @@ fileprivate extension BackgroundDownloadService {
     
     guard let issue = publicationDatesAndIssue.issues?.first else {
       throw BackgroundDownloadError("No Issue found!")
+    }
+    
+    /// Checks whether the server-provided issue is newer than the most recent local one.
+    ///
+    /// The most recent local issue may come from the database (already downloaded)
+    /// or from a pending download (enqueued but not yet completed).
+    ///
+    /// If the server issue is not newer, an error is thrown to avoid redundant downloads.
+    guard issue.date > (lastLocalIssueDate ?? Date.distantPast) else {
+        throw BackgroundDownloadError("No New Issue on Server")
     }
     
     issue.createFolderStructureIfNeeded(for: feederContext)
@@ -255,6 +266,60 @@ fileprivate extension BackgroundDownloadService {
 }
 
 
+fileprivate extension BackgroundDownloadService {
+  
+  /// Returns the most recent available issue date from the local data sources, or `nil` if none are available.
+  /// - Throws: An error if accessing the database fails.
+  ///
+  /// This property checks three possible sources in the following order:
+  /// - `lastFromDatabase`: The latest issue date stored in the local database.
+  /// - `lastFromJsonFile`: The latest issue date loaded from a local JSON file.
+  /// - `lastFromSingleton`: The latest issue date held in memory (e.g., a singleton).
+  func lastLocalIssueDate(feederContext: FeederContext) throws -> Date? {
+    let dbDate = try lastFromDatabase(for: feederContext)
+    let lastFromJsonFile = try lastFromJsonFile(for: feederContext)
+    let allDates = [dbDate, lastFromJsonFile, lastFromSingleton]
+      return allDates.compactMap { $0 }.max()
+  }
+  
+  private func lastFromDatabase(for feederContext: FeederContext) throws -> Date? {
+    guard let feed = feederContext.defaultFeed else {
+      throw BackgroundDownloadError("db not initialized yet, try again later")
+    }
+     return StoredIssue.lastCompleete(feed: feed,
+                                                isPages: autoloadPdf,
+                                                withAudio: autoloadAudio)?.date
+  }
+  
+  /// check userDefault for last downloaded in earlier session, check if json is available **current feed!** TODO FEED SWITCH is not supported here ...for autodownload!
+  /// returns the date
+  private func lastFromJsonFile(for feederContext: FeederContext) throws -> Date? {
+    guard let issueDateKey = downloadDateKeys.max() else { return nil }
+    guard let feed = feederContext.defaultFeed else {
+      throw BackgroundDownloadError("db not initialized yet, try again later")
+    }
+    let feedPath = feederContext.storedFeeder.feedDir(feed.name).path
+    let filePath = "\(feedPath)/\(issueDateKey)/\(BackgroundDownloadService.jsonDataFilename)"
+    let file = File(filePath)
+    guard file.exists else {
+      throw BackgroundDownloadError("File \(filePath) does not exist.")
+    }
+    let date = Date.fromString(issueDateKey)
+    guard date.ISO8601 == issueDateKey else {
+      throw BackgroundDownloadError("ToDo used wrong formater to parse date from string: \(issueDateKey) != \(date.ISO8601)")
+    }
+    log("...lastIssue in json File: \(date.short)")
+    return date
+  }
+  
+  private var lastFromSingleton: Date? {
+    ///Hack shortcut: publicationDate is in sync with latest issueDate!
+    tempStorage.latestPublicationDate()
+  }
+}
+
+
+
 // MARK: - GqlFeeder helper extension
 
 fileprivate extension GqlFeeder {
@@ -267,7 +332,7 @@ fileprivate extension GqlFeeder {
                           isBackGround: Bool = true) async throws -> (Feed, Data?) {
     var dateString = ""
     if let date = latestKnownPublicationDate { dateString = ", latestKnownPublicationDate: \(date.ISO8601)" }
-    log("...fetch issue/feed data for \(feed.name) return on Main: \(returnOnMain) inBackground: \(isBackGround)\(dateString)")
+    log("...fetch issue/feed data for \(feed.name) return on Main: \(returnOnMain) inBackground: \(isBackGround) last issue: \(dateString)")
     return try await withCheckedThrowingContinuation { continuation in
       feedWithIssues(feed: feed, date: nil, key: key, count: 1,
                      isOverview: false, isPages: isPages, withAudio: withAudio,
