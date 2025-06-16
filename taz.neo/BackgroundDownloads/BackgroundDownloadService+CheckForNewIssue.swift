@@ -41,7 +41,8 @@ extension BackgroundDownloadService {
       return
     }
     
-    if Self.shared.isLastFullyDownloadedIssueOutdated == false {
+    if isPush == false &&
+        Self.shared.isLastFullyDownloadedIssueOutdated == false {
       Self.shared.log("...static checkForNewIssue skipped, last fully downloaded issue from: \(Self.shared.lastFullyDownloadedIssueDate?.short ?? "-")")
       fetchCompletionHandler?(.noData)
       ///maybe enqueued not downloaded, not saved to db
@@ -84,8 +85,9 @@ fileprivate extension BackgroundDownloadService {
     
     // Ensure guard reset
     defer { Task { await IssueCheckerGuard.instance.finish() } }
-    
+    ///helper to return noData/newData in case of errors
     var issueDownloadEnqueued = false
+    ///In case of fetch error e.g. due broken network try again 10 minutes later (if internet available - this ensures BGFetchTask)
     var fetchSuccess = false
     
     do {
@@ -101,7 +103,6 @@ fileprivate extension BackgroundDownloadService {
       // MARK: - Fetch & Validate Issue
       
       let issue = try await fetchFromRemote()
-      fetchSuccess = true
       log("...fetched issue: \(issue.date.short)")
       
       latestCheckForNewIssue = Date()
@@ -112,21 +113,13 @@ fileprivate extension BackgroundDownloadService {
       }
       
       guard !BackgroundSession.search(url: zipUrl) else {
-        throw BackgroundDownloadError("Already Downloading!")
-        
-        return
-        // TODO: check if download restart required!
-        /// **Where are the existing Downloads? In Active or archived?**
-        
+        fetchSuccess = true
         log("restartAllArchivedDownloads")
         try BackgroundSession.restartAllArchivedDownloads { [weak self] url, err in
-          self?.log("restarted AllArchivedDownloads callback")
-          if url != zipUrl {
-            self?.log("ERROR: URL mismatch for issue download \(url) != \(zipUrl)")
-          }
+          self?.log("restarted all ArchivedDownloads callback")
           self?.dlCallback(downloadUrl: zipUrl, err: err)
         }
-        //        BackgroundSession.restartAllPendingDownloads()
+        BackgroundSession.restartAllPendingDownloads()
         throw BackgroundDownloadError("Already Downloading!")
       }
       
@@ -191,7 +184,7 @@ fileprivate extension BackgroundDownloadService {
       log("❌ Autodownload Error: \(error) issueDownloadEnqueued: \(issueDownloadEnqueued)")
       
       if fetchSuccess == false {
-        ///Fetch failed: retry soon!
+        ///Edge Case Fetch failed: retry soon! ...maybe its a lot fo later, if internet is not available for long time
         scheduleBackgroundIssueCheck(earliestBeginDate: Date(timeIntervalSinceNow: 60 * 10))
       }
       

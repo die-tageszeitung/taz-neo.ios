@@ -35,19 +35,21 @@ extension BackgroundDownloadService {
       queue.cancelAllOperations()
     }
     
-    guard let storedFeed = feederContext?.defaultFeed else {
-      log("Skipping check: No stored feed available.")
-      task.setTaskCompleted(success: true)
-      return
-    }
-    
-    guard shouldCheckForNewIssue(tz: timeZone,
-                                 typ: publicationType,
-                                 lastPublicationDate: lastFullyDownloadedIssueDate?.expectedPublicationDateForIssueDate) else {
-      log("Skipping check: Not yet time for next issue.")
-      task.setTaskCompleted(success: true)
-      return
-    }
+//    guard let storedFeed = feederContext?.defaultFeed else {
+//      log("Skipping check: No stored feed available.")
+//      task.setTaskCompleted(success: true)
+//      return
+//    }
+    ///disabled due other logic: download enqueue is better
+    ///@warning: WHAT IF ENQUEUED IN 10 Minutes,,,,,prevent double downloads!!
+#warning("TODO!! WHAT IF ENQUEUED IN 10 Minutes,,,,,prevent double downloads!!")
+    //    guard shouldCheckForNewIssue(tz: timeZone,
+//                                 typ: publicationSchedule,
+//                                 lastPublicationDate: lastFullyDownloadedIssueDate?.expectedPublicationDateForIssueDate) else {
+//      log("Skipping check: Not yet time for next issue.")
+//      task.setTaskCompleted(success: true)
+//      return
+//    }
     
     // Define the operation
     let checkOperation = BlockOperation { [weak self] in
@@ -76,7 +78,9 @@ extension BackgroundDownloadService {
   
   func scheduleBackgroundIssueCheck(earliestBeginDate: Date? = nil) {
     let request = BGAppRefreshTaskRequest(identifier: "de.taz.taz.neo.refresh")
-    let nextCheck = earliestBeginDate ?? nextEligibleCheckDate(tz: self.timeZone, type: self.publicationType, lastFullyDownloadedIssueDate: lastFullyDownloadedIssueDate)
+    let nextCheck = earliestBeginDate
+    ?? publicationSchedule.nextScheduledCheck(lastIssueDate: lastFullyDownloadedIssueDate)
+    
     log("Scheduling background task at \(nextCheck.dateAndTime) (in \(nextCheck.timeIntervalSinceNow.readable))")
     request.earliestBeginDate = nextCheck
     do {
@@ -88,87 +92,6 @@ extension BackgroundDownloadService {
 }
 
 extension BackgroundDownloadService {
-  enum PublicationType: String {
-    case taz, wochentaz, lmd
-  }
-  
-  func testNextEligibleCheckDate(tz: TimeZone, type: PublicationType, lastFullyDownloadedIssueDate: Date?, now: Date = Date()) -> Date {
-    return nextEligibleCheckDate(tz: tz, type: type, lastFullyDownloadedIssueDate: lastFullyDownloadedIssueDate, now: now)
-  }
-  
-  fileprivate func nextEligibleCheckDate(tz: TimeZone, type: PublicationType, lastFullyDownloadedIssueDate: Date?, now: Date = Date()) -> Date {
-    guard let lastDownload = lastFullyDownloadedIssueDate else {
-      return now.addingTimeInterval(60*1)//1 minute
-    }
-    var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = tz
-    
-    let today = calendar.startOfDay(for: now)
-    
-    func nextDateMatching(hour: Int) -> Date? {
-      let components = DateComponents(hour: hour)
-      return calendar.nextDate(after: now, matching: components, matchingPolicy: .nextTimePreservingSmallerComponents)
-    }
-    
-    func nextHourFromList(_ hours: [Int], excludingSaturdays: Bool = false) -> Date? {
-      for offset in 0..<7 {
-        guard let day = calendar.date(byAdding: .day, value: offset, to: today) else { continue }
-        let weekday = calendar.component(.weekday, from: day)
-        if excludingSaturdays && weekday == 7 { continue }
-        
-        for hour in hours {
-          if let candidate = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: day), candidate > now {
-            return candidate
-          }
-        }
-      }
-      return nil
-    }
-    
-    switch type {
-      case .taz:
-          let triggerHours = [6, 19, 20, 23]
-          if let next = nextHourFromList(triggerHours, excludingSaturdays: true) {
-              let requiredDelay: TimeInterval = 60 * 60 * 17
-              if next > lastDownload.addingTimeInterval(requiredDelay) {
-                  return next
-              }
-          }
-        
-      case .wochentaz:
-        let triggerWeekdays = [5, 6, 7] // Thursday, Friday, Saturday
-        let triggerHour = 20
-        
-        for offset in 0..<7 {
-          if let day = calendar.date(byAdding: .day, value: offset, to: today),
-             triggerWeekdays.contains(calendar.component(.weekday, from: day)),
-             let candidate = calendar.date(bySettingHour: triggerHour, minute: 0, second: 0, of: day),
-             candidate > now,
-             candidate.timeIntervalSince(lastDownload) > 60 * 60 * 24 * 4 {
-            return candidate
-          }
-        }
-        
-      case .lmd:
-        let triggerWeekdays = [4, 5, 6, 7] // Wednesday, Thursday, Friday, Saturday
-        let triggerHours = [8, 20]
-        
-        for offset in 0..<7 {
-          if let day = calendar.date(byAdding: .day, value: offset, to: today),
-             triggerWeekdays.contains(calendar.component(.weekday, from: day)) {
-            for hour in triggerHours {
-              if let candidate = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: day),
-                 candidate > now,
-                 candidate.timeIntervalSince(lastDownload) > 60 * 60 * 24 * 25 {
-                return candidate
-              }
-            }
-          }
-        }
-    }
-    // fallback: in 1h => TODO CHANGE TO in 1 DAY!!!
-    return Date(timeIntervalSinceNow: 60 * 60)
-  }
   
   /// Returns `true` if the last fully downloaded issue is considered outdated based on the publication type.
   ///
@@ -185,14 +108,14 @@ extension BackgroundDownloadService {
       }
 
       let now = Date()
-      switch publicationType {
+      switch publicationSchedule {
       case .lmd:
-          // Outdated if 25 days have passed since the last issue's 5 PM
-          return now > lastDownload5PM.addingTimeInterval(60 * 60 * 24 * 25)
+          /// Outdated if at least 28 days have passed since last issue
+          return now > lastDownload5PM.addingTimeInterval(60 * 60 * 24 * 28)
           
       case .wochentaz:
-          // Outdated if 5 days have passed since the last issue's 5 PM
-          return now > lastDownload5PM.addingTimeInterval(60 * 60 * 24 * 5)
+          // Outdated if 6 days have passed since the last issue
+          return now > lastDownload5PM.addingTimeInterval(60 * 60 * 24 * 6)
           
       case .taz:
           // Outdated as soon as current time is past 5 PM of the issue day
@@ -200,7 +123,10 @@ extension BackgroundDownloadService {
       }
   }
   
-  fileprivate func shouldCheckForNewIssue(tz: TimeZone, typ: PublicationType, lastPublicationDate: Date?) -> Bool {
+  /// deactivated due enqueued uses better calculation
+  /// in case of download finished/success a better date is enqueued/set
+  /*
+  fileprivate func shouldCheckForNewIssue(tz: TimeZone, typ: PublicationSchedule, lastPublicationDate: Date?) -> Bool {
     
     guard let lastPublicationDate = lastPublicationDate else {
       log("LastDownload/lastPublicationDate is nil => Download now")
@@ -262,7 +188,7 @@ extension BackgroundDownloadService {
         return isOldEnough && isRightTime
     }
   }
-  
+  */
   
 }
 
@@ -302,22 +228,34 @@ fileprivate extension Date {
   
   /// Returns a new `Date` set to 5:00 PM on the same calendar day as the original date.
   var fivePM:Date {
+    return newWith(hour: 17, minute: 0, second: 0)
+  }
+  
+  /// Returns a new `Date` object by adding the given number of seconds to the start of the day.
+  /// - Parameter seconds: The number of seconds to add to the start of the day.
+  /// - Returns: A new `Date` representing `startOfDay + seconds`.
+  func sameDateAtTime(seconds: TimeInterval) -> Date {
+      return self.startOfDay.addingTimeInterval(seconds)
+  }
+  
+  /// Returns a new `Date` set to given components on the same calendar day as the original date.
+  func newWith(year: Int? = nil, month: Int? = nil, day: Int? = nil, hour: Int? = nil, minute: Int? = nil, second: Int? = nil) -> Date {
     let calendar = Calendar.current
     let components = calendar.dateComponents([.year, .month, .day], from: self)
     
     var newComponents = DateComponents()
-    newComponents.year = components.year
-    newComponents.month = components.month
-    newComponents.day = components.day
-    newComponents.hour = 17
-    newComponents.minute = 0
-    newComponents.second = 0
+    newComponents.year = year ?? components.year
+    newComponents.month = month ?? components.month
+    newComponents.day = day ?? components.day
+    newComponents.hour = hour ?? components.hour
+    newComponents.minute = minute ?? components.minute
+    newComponents.second = second ?? components.second
     
-    if let dateAtFive = calendar.date(from: newComponents) {
-        return dateAtFive
+    if let newDate = calendar.date(from: newComponents) {
+        return newDate
     } else {
         // Optional: Log unexpected failure
-        print("⚠️ Warning: Failed to create 5PM date from \(self)")
+        print("⚠️ Warning: Failed to create date from \(self)")
         return self
     }
   }

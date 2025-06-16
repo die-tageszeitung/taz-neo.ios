@@ -50,7 +50,7 @@ class BackgroundDownloadService: DoesLog {
   /// is used by timed Background download
   var latestCheckForNewIssue: Date?
   
-  var publicationType: PublicationType = .taz //just initial value
+  var publicationSchedule: PublicationSchedule = .taz //just initial value
   
   var feederContext: FeederContext? {
     TazAppEnvironment.sharedInstance.feederContext
@@ -71,13 +71,13 @@ extension BackgroundDownloadService {
   
   func updateFeed(_ feed: StoredFeed) {
     if feed.name == FeedName.LMd.rawValue {
-      autoloadPublicationType = PublicationType.lmd.rawValue
+      autoloadPublicationType = PublicationSchedule.lmd.rawValue
     }
     else if feed.cycle == .weekly {
-      autoloadPublicationType = PublicationType.wochentaz.rawValue
+      autoloadPublicationType = PublicationSchedule.wochentaz.rawValue
     }
     else {
-      autoloadPublicationType = PublicationType.taz.rawValue
+      autoloadPublicationType = PublicationSchedule.taz.rawValue
     }
     updatePublicationtype()
     log ("Update updateLatestIssueDownloadDate...")
@@ -94,12 +94,12 @@ extension BackgroundDownloadService {
   
   fileprivate func updatePublicationtype(){
     switch autoloadPublicationType {
-      case PublicationType.lmd.rawValue:
-        publicationType = .lmd
-      case PublicationType.wochentaz.rawValue:
-        publicationType = .wochentaz
+      case PublicationSchedule.lmd.rawValue:
+        publicationSchedule = .lmd
+      case PublicationSchedule.wochentaz.rawValue:
+        publicationSchedule = .wochentaz
       default:
-        publicationType = .taz
+        publicationSchedule = .taz
     }
   }
 }

@@ -33,6 +33,8 @@
 		4D3131F2289159FE0087EE1B /* SubscriptionFormController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3131F1289159FE0087EE1B /* SubscriptionFormController.swift */; };
 		77001DD22CF70452008CFE0A /* GqlFeederArticleLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77001DD12CF70452008CFE0A /* GqlFeederArticleLoading.swift */; };
 		77001DD32CF70452008CFE0A /* GqlFeederArticleLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77001DD12CF70452008CFE0A /* GqlFeederArticleLoading.swift */; };
+		7700E0C92E0030B000AE4151 /* PublicationSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7700E0C82E0030B000AE4151 /* PublicationSchedule.swift */; };
+		7700E0CA2E0030B000AE4151 /* PublicationSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7700E0C82E0030B000AE4151 /* PublicationSchedule.swift */; };
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
 		7709E3162BEBA70400AC27F3 /* LastReadBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */; };
@@ -365,6 +367,7 @@
 		4D308EED283405D900529592 /* PlaceholderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
 		4D3131F1289159FE0087EE1B /* SubscriptionFormController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormController.swift; sourceTree = "<group>"; };
 		77001DD12CF70452008CFE0A /* GqlFeederArticleLoading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlFeederArticleLoading.swift; sourceTree = "<group>"; };
+		7700E0C82E0030B000AE4151 /* PublicationSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationSchedule.swift; sourceTree = "<group>"; };
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
 		7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastReadBusiness.swift; sourceTree = "<group>"; };
@@ -715,6 +718,7 @@
 				775153DE2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift */,
 				77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */,
 				7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */,
+				7700E0C82E0030B000AE4151 /* PublicationSchedule.swift */,
 			);
 			path = BackgroundDownloads;
 			sourceTree = "<group>";
@@ -1352,6 +1356,7 @@
 				77BA366E2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */,
 				77CD16C12CF8D79B00B1C3EE /* Bookmarks+InitHelper.swift in Sources */,
 				AE5131AF2AFBCADB002289E8 /* TazCustomized.swift in Sources */,
+				7700E0CA2E0030B000AE4151 /* PublicationSchedule.swift in Sources */,
 				77E6BF162DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift in Sources */,
 				AE5131B02AFBCADB002289E8 /* FeederContext+AppUpdate.swift in Sources */,
 				AE5131B12AFBCADB002289E8 /* PwForgottView.swift in Sources */,
@@ -1424,6 +1429,7 @@
 				AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */,
 				77B993DA2AC4706600C7D832 /* Usage.swift in Sources */,
 				773500B02A1C0A7C00678647 /* IssueTilesCvcCell.swift in Sources */,
+				7700E0C92E0030B000AE4151 /* PublicationSchedule.swift in Sources */,
 				7715969525CC605D00508DE8 /* DeviceData.swift in Sources */,
 				77CD16C02CF8D79B00B1C3EE /* Bookmarks+InitHelper.swift in Sources */,
 				77CB2D282A814B6100021804 /* FeederContext+ResourcesUpdate.swift in Sources */,
