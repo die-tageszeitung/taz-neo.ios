@@ -23,7 +23,6 @@ extension BackgroundDownloadService {
                         sender: service)
     }
   }
-    
   
   /// call after Application Restart to load issues data from JSON files and persist them
   /// called in Background Thread
@@ -68,7 +67,6 @@ extension BackgroundDownloadService {
         } catch {
           log("⚠️ Failed to load data for issue \(issueDateKey): \(error)")
           log("Delete Default for: \(issueDateKey)")
-          #warning("TODO:: should i really remove the download data in this case: temp storage already contains...")
           removeDownloadData(forIssueKey: issueDateKey)
         }
       }
@@ -76,16 +74,7 @@ extension BackgroundDownloadService {
         do { try restartAll() }
         catch { log("Failed to restart downloads Err: \(error)") }
       }
-      /**
-       WHAT HAPPEN IF App restartet, new Issue appeared => download it
-       
-       
-       
-       */
-//      StoredIssue.latest(feed: <#T##StoredFeed#>)
-//      feederContext.gqlFeeder.iss
-      
-      notifyHome(downloadMissing ? .downloadError : .none)
+      notifyHome(restartDownloads ? .loadIssue : .none)
       handlePendingTasks()
     }
     
