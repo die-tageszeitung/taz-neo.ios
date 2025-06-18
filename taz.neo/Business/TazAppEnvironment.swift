@@ -305,14 +305,17 @@ class TazAppEnvironment: NSObject, DoesLog {
       else { self.showHome() }
       
       if let sf = feederContext?.defaultFeed {
-        log("ToDo finalizePendingDownloads")
-        #warning("DOWNLOAD LATEST ISSUE ON APP START AFTER EXIT")
-//        BackgroundDownloadService.finalizePendingDownloads(for: sf)
+        let latestLocalIssue = StoredIssue.latest(feed: sf)
+        if latestLocalIssue?.isComplete == false {
+          BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "setupFeeder, latest local issue is incompleete")
+        }
+        else {
+          BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "setupFeeder, Check and Download latest Issue if available on init")
+        }
       }
       else {
         log("ERROR cannot finalizePendingDownloads, missing SortFeed")
       }
-     
       _ = Usage.shared//init usage, setup Tracking
     }
     feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)

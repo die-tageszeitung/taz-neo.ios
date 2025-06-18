@@ -201,7 +201,9 @@ extension BackgroundDownloadService {
     }
     
     if informUIAfterSave {
-      Notification.send(Const.NotificationNames.newAutolIssueLoaded)
+      onMainAfter {
+        Notification.send(Const.NotificationNames.newAutolIssueLoaded)
+      }
     }
   }
   

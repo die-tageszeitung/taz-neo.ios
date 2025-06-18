@@ -32,6 +32,7 @@ extension BackgroundDownloadService {
     Task.detached { [weak self] in
       guard let self = self else { return }
       var downloadMissing = false
+      var restartDownloads = false
       for issueDateKey in downloadDateKeys {
         notifyHome(.loadIssue)
         do {
@@ -59,8 +60,10 @@ extension BackgroundDownloadService {
           log("DownloadData for issue: \(issueDateKey) found issue is: \(idd.isDownloaded ? "downloaded" : "not downloaded")")
           if idd.isDownloaded == true {
             issue.setAutodownloadCompleete()
+          } else if BackgroundSession.search(url: zipUrl) == true {
+            restartDownloads = true
           } else {
-            downloadMissing = true
+            throw BackgroundDownloadError("No Download found for Issue...remove DownloadData")
           }
         } catch {
           log("⚠️ Failed to load data for issue \(issueDateKey): \(error)")
@@ -69,6 +72,19 @@ extension BackgroundDownloadService {
           removeDownloadData(forIssueKey: issueDateKey)
         }
       }
+      if restartDownloads {
+        do { try restartAll() }
+        catch { log("Failed to restart downloads Err: \(error)") }
+      }
+      /**
+       WHAT HAPPEN IF App restartet, new Issue appeared => download it
+       
+       
+       
+       */
+//      StoredIssue.latest(feed: <#T##StoredFeed#>)
+//      feederContext.gqlFeeder.iss
+      
       notifyHome(downloadMissing ? .downloadError : .none)
       handlePendingTasks()
     }
@@ -83,4 +99,8 @@ extension BackgroundDownloadService {
       log("restart failed with: \(error)")
     }
   }
+  
+  /// In case of feeder update, no
+  func checkIfIssueNeedsToBeDownloaded(){}
+  
 }

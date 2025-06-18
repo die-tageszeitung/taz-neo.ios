@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import NorthLib
 
 extension BackgroundDownloadService {
   static func dlCallback(downloadUrl: String, err: Error?) {
@@ -66,26 +67,27 @@ extension BackgroundDownloadService {
       return
     }
     
-    ///** lookup in Database
-    if let issue = StoredIssue.get(baseUrl: serverBaseUrl,
-                                inFeed: storedFeed),
-       issue.isAutodownloading == true {
-      log("...found issue in databse: \(issue.date.short)")
-      /// If auto-downloading is true, full data is available—not just overview data.
-      issue.setAutodownloadCompleete()
-      handlePendingTasks()
-      return
-    }
-    
-    ///** No valid Entry found, load from JSON ...in a detatched Task
-    Task.detached { [weak self] in
-      await self?
-        .loadFromJsonAndFinish(feederContext: feederContext,
-                               feedName: storedFeed.name,
-                               issueDateKey: downloadData.isoDateKey)
+    ///** lookup in Database#
+    ensureMain {[weak self] in
+      if let issue = StoredIssue.get(baseUrl: serverBaseUrl,
+                                  inFeed: storedFeed),
+         issue.isAutodownloading == true {
+        self?.log("...found issue in databse: \(issue.date.short)")
+        /// If auto-downloading is true, full data is available—not just overview data.
+        issue.setAutodownloadCompleete()
+        self?.handlePendingTasks()
+        return
+      }
+      
+      ///** No valid Entry found, load from JSON ...in a detatched Task
+      Task.detached { [weak self] in
+        await self?
+          .loadFromJsonAndFinish(feederContext: feederContext,
+                                 feedName: storedFeed.name,
+                                 issueDateKey: downloadData.isoDateKey)
+      }
     }
   }
-  
 }
 
 ///Mark: - external call

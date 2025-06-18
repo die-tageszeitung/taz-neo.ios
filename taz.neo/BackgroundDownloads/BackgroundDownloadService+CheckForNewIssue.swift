@@ -32,8 +32,20 @@ fileprivate actor IssueCheckerGuard {
 // MARK: - BackgroundDownloadService :: checkForNewIssue
 
 extension BackgroundDownloadService {
-  public static func checkForNewIssue(isPush: Bool, _ fetchCompletionHandler: FetchCompletionHandler?) {
-    Self.shared.log("...static checkForNewIssue requested, App State: \(UIApplication.shared.stateDescription)")
+  public static func downloadNewIssueOnAppForeground(caller: String){
+    BackgroundDownloadService.shared.log("app FG DL Called from: \(caller)")
+    onMainAfter {///a little delay is required after app start/init feeder otherwise someone throws an error and autodownload not enqueued
+    /// DO NOT USE ON THREAD AFTER IT WILL CAUSE CRASH
+      checkForNewIssue(isPush: false, isBackground: false){res in
+        BackgroundDownloadService.shared.log("app FG DL Called from: \(caller)")
+        Self.shared.log("...publication dates changed, autodownload status: \(res.message)")
+        if res == .newData {  shared.notifyHome(.loadIssue) }
+      }
+    }
+  }
+  
+  public static func checkForNewIssue(isPush: Bool, isBackground: Bool, _ fetchCompletionHandler: FetchCompletionHandler?) {
+    Self.shared.log("...static checkForNewIssue requested, App State: \(UIApplication.shared.stateDescription) isBackground: \(isBackground)")
     let currentAppState = UIApplication.shared.applicationState
     
     guard Self.shared.autoloadNewIssues else {
@@ -53,7 +65,7 @@ extension BackgroundDownloadService {
     
     Task {
       Self.shared.log("...static checkForNewIssue in \(currentAppState == .background ? "background" : "\(currentAppState)")")
-      await BackgroundDownloadService.shared.doCheckForNewIssue(isPush: isPush, fetchCompletionHandler)
+      await BackgroundDownloadService.shared.doCheckForNewIssue(isPush: isPush, isBackground: isBackground, fetchCompletionHandler)
       Self.shared.log("...static checkForNewIssue done")
     }
   }
@@ -67,7 +79,7 @@ fileprivate extension BackgroundDownloadService {
   /// triggert by Push Notification or timed background task
   /// - Parameters:
   ///   - fetchCompletionHandler: optional completion handler for required if called by push notification
-  func doCheckForNewIssue(isPush: Bool, _ fetchCompletionHandler: FetchCompletionHandler? = nil) async {
+  func doCheckForNewIssue(isPush: Bool, isBackground: Bool, _ fetchCompletionHandler: FetchCompletionHandler? = nil) async {
     
     // MARK: - Initial Checks
     guard let feederContext = feederContext else {
@@ -114,12 +126,7 @@ fileprivate extension BackgroundDownloadService {
       
       guard !BackgroundSession.search(url: zipUrl) else {
         fetchSuccess = true
-        log("restartAllArchivedDownloads")
-        try BackgroundSession.restartAllArchivedDownloads { [weak self] url, err in
-          self?.log("restarted all ArchivedDownloads callback")
-          self?.dlCallback(downloadUrl: zipUrl, err: err)
-        }
-        BackgroundSession.restartAllPendingDownloads()
+        try restartAll()
         throw BackgroundDownloadError("Already Downloading!")
       }
       
@@ -132,7 +139,7 @@ fileprivate extension BackgroundDownloadService {
       
       let issueDownloadSession
       = try BackgroundSession(zipUrl,
-                              asBackgroundSession: true) { [weak self] url, err in
+                              asBackgroundSession: isBackground) { [weak self] url, err in
         if url != zipUrl {
           self?.log("ERROR: URL mismatch for issue download \(url) != \(zipUrl)")
         }
@@ -161,7 +168,7 @@ fileprivate extension BackgroundDownloadService {
       // MARK: - Optional Audio Download
       
       if autoloadAudio, let audioUrl = issue.zipAudioUrl {
-        let audioDownloadSession = try BackgroundSession(audioUrl, asBackgroundSession: true) { [weak self] url, err in
+        let audioDownloadSession = try BackgroundSession(audioUrl, asBackgroundSession: isBackground) { [weak self] url, err in
           if url != audioUrl {
             self?.log("ERROR: URL mismatch for audio download \(url) != \(audioUrl)")
           }
@@ -212,7 +219,7 @@ fileprivate extension BackgroundDownloadService {
     }
     
     let lastLocalIssueDate = try lastLocalIssueDate(feederContext: feederContext)
-
+    
     // MARK: fetch latest issue and publication Dates from server
     let response
     = try await feederContext.gqlFeeder
@@ -239,7 +246,7 @@ fileprivate extension BackgroundDownloadService {
     ///
     /// If the server issue is not newer, an error is thrown to avoid redundant downloads.
     guard issue.date > (lastLocalIssueDate ?? Date.distantPast) else {
-        throw BackgroundDownloadError("No New Issue on Server")
+      throw BackgroundDownloadError("No New Issue on Server")
     }
     
     issue.createFolderStructureIfNeeded(for: feederContext)
@@ -255,8 +262,17 @@ fileprivate extension BackgroundDownloadService {
     try tempStorage.add(issue)
     return issue
   }
+}
   
-  
+extension BackgroundDownloadService {
+  func restartAll() throws {
+    log("restartAllArchivedDownloads")
+    try BackgroundSession.restartAllArchivedDownloads { [weak self] url, err in
+      self?.log("restarted all ArchivedDownloads callback")
+      self?.dlCallback(downloadUrl: url, err: err)
+      BackgroundSession.restartAllPendingDownloads()
+    }
+  }
 }
 
 
@@ -280,9 +296,9 @@ fileprivate extension BackgroundDownloadService {
     guard let feed = feederContext.defaultFeed else {
       throw BackgroundDownloadError("db not initialized yet, try again later")
     }
-     return StoredIssue.lastCompleete(feed: feed,
-                                                isPages: autoloadPdf,
-                                                withAudio: autoloadAudio)?.date
+    return StoredIssue.lastCompleete(feed: feed,
+                                     isPages: autoloadPdf,
+                                     withAudio: autoloadAudio)?.date
   }
   
   /// check userDefault for last downloaded in earlier session, check if json is available **current feed!** TODO FEED SWITCH is not supported here ...for autodownload!
@@ -298,7 +314,9 @@ fileprivate extension BackgroundDownloadService {
     guard file.exists else {
       throw BackgroundDownloadError("File \(filePath) does not exist.")
     }
-    let date = Date.fromString(issueDateKey)
+    
+    
+    let date = UsTime(iso: issueDateKey).date
     guard date.ISO8601 == issueDateKey else {
       throw BackgroundDownloadError("ToDo used wrong formater to parse date from string: \(issueDateKey) != \(date.ISO8601)")
     }
@@ -359,5 +377,20 @@ fileprivate extension Issue {
   var zipAudioUrl: String? {
     guard let zipAudioName = zipAudioName else { return nil }
     return baseUrl.appending("/\(zipAudioName)")
+  }
+}
+
+fileprivate extension UIBackgroundFetchResult {
+  var message: String {
+    switch self {
+      case .newData:
+        return "New data available"
+      case .noData:
+        return "No new data available"
+      case .failed:
+        return "Fetch failed"
+      @unknown default:
+        return "Unknown result"
+    }
   }
 }

@@ -57,7 +57,7 @@ extension BackgroundDownloadService {
       group.enter()
       self?.log("Starting background issue check...")
         
-      Self.checkForNewIssue(isPush: false){ _ in
+      Self.checkForNewIssue(isPush: false, isBackground: true){ _ in
         self?.log("Finished issue check.")
         group.leave()
       }
