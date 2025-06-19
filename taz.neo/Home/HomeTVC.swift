@@ -242,12 +242,14 @@ class HomeTVC: UITableViewController {
       _ = self?.issueOverviewService.reloadPublicationDates(refresh: nil, verticalCv: false)
       self?.carouselController.collectionView.reloadData()
       self?.tilesController.collectionView.reloadData()
-      self?.carouselController.updateBottomWrapper(for: 0)
       self?.onHome()
       Notification.send(Const.NotificationNames.checkForNewIssues,
                         content: FetchNewStatusHeader.status.none,
                         error: nil,
                         sender: self?.issueOverviewService)
+      onMainAfter {[weak self] in
+        self?.carouselController.updateBottomWrapper(for: 0, force: true)
+      }
     }
     
     carouselController.issueSelectionChangeDelegate = self
