@@ -235,9 +235,7 @@ open class FeederContext: DoesLog {
     if needUpdate {
       updateFeeder(loadAllPublicationDates: loadAll)
     }
-    onMainAfter(2.0){
-      handleUnfinshedDownloads()
-    }
+    onMainAfter(2.0){[weak self] in  self?.handleUnfinshedDownloads() }
   }
   
   func checkForNewIssues(force: Bool = false){

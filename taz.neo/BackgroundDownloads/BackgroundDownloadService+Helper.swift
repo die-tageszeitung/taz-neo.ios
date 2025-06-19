@@ -59,6 +59,9 @@ struct BackgroundDownloadError: Error {
   var localizedDescription: String {
     return message
   }
+  
+  // MARK: - known error cases
+  static let noNewIssue = BackgroundDownloadError("No new Issue available!")
 }
 
 // MARK: - Issue Helper extension

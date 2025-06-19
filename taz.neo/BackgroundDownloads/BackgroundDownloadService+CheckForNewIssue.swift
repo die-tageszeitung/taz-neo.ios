@@ -118,7 +118,7 @@ fileprivate extension BackgroundDownloadService {
       log("...fetched issue: \(issue.date.short)")
       
       if issue.date.issueKey == feederContext.latestPublicationDate?.issueKey {
-        throw BackgroundDownloadError("No new Issue available!")
+        throw BackgroundDownloadError.noNewIssue
       }
       
       latestCheckForNewIssue = Date()
@@ -193,12 +193,15 @@ fileprivate extension BackgroundDownloadService {
     }
     catch {
       log("❌ Autodownload Error: \(error) issueDownloadEnqueued: \(issueDownloadEnqueued)")
-      
-      if fetchSuccess == false {
+      if let bde = error as? BackgroundDownloadError,
+          bde.message == BackgroundDownloadError.noNewIssue.message {
+        scheduleBackgroundIssueCheck()
+      }
+      else if fetchSuccess == false {
         ///Edge Case Fetch failed: retry soon! ...maybe its a lot fo later, if internet is not available for long time
         scheduleBackgroundIssueCheck(earliestBeginDate: Date(timeIntervalSinceNow: 60 * 10))
       }
-      
+
       if issueDownloadEnqueued {
         fetchCompletionHandler?(.newData)
       } else {

@@ -298,6 +298,7 @@ extension BackgroundDownloadService {
 
           informUIAfterSave = true
           log("✅ Issue marked as finished.")
+        scheduleBackgroundIssueCheck()
       } else {
         log("Issue is not complete...")
       }
