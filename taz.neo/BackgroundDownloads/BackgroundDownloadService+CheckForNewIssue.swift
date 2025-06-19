@@ -32,9 +32,9 @@ fileprivate actor IssueCheckerGuard {
 // MARK: - BackgroundDownloadService :: checkForNewIssue
 
 extension BackgroundDownloadService {
-  public static func downloadNewIssueOnAppForeground(caller: String){
+  public static func downloadNewIssueOnAppForeground(caller: String, delay: Double = 1.0){
     BackgroundDownloadService.shared.log("app FG DL Called from: \(caller)")
-    onMainAfter {///a little delay is required after app start/init feeder otherwise someone throws an error and autodownload not enqueued
+    onMainAfter(delay) {///a little delay is required after app start/init feeder otherwise someone throws an error and autodownload not enqueued
     /// DO NOT USE ON THREAD AFTER IT WILL CAUSE CRASH
       checkForNewIssue(isPush: false, isBackground: false){res in
         BackgroundDownloadService.shared.log("app FG DL Called from: \(caller)")

@@ -289,9 +289,9 @@ open class FeederContext: DoesLog {
             ArticleDB.save()
             log("...publication dates changed, inform UI (if not in background mode)")
             Notification.send(Const.NotificationNames.publicationDatesChanged)
+            self.notifyNetStatus(isConnected: true)
             BackgroundDownloadService
               .downloadNewIssueOnAppForeground(caller: "Feeder Context Update Status: publicationDatesChanged")
-            self.notifyNetStatus(isConnected: true)
           } else {
             debug("...publication dates NOT changed")///4345 Issues
           }
