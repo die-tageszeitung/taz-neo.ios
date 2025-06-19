@@ -100,20 +100,28 @@ class FetchNewStatusHeader: UIView {
   /// private property to store currentStatus, on set it animates ui components
   private var _currentStatus:status = .none {
     didSet {
-      label.hideAnimated() { [weak self] in
-        guard let self = self else { return }
-        self.label.text = self.currentStatus.infoMessage
-        self.label.textColor = self.currentStatus.textColor
-        
-        self.currentStatus.showActivity
-          ? self.activityIndicator.startAnimating()
-          : self.activityIndicator.stopAnimating()
-        
-        if self.label.text != nil {
-          self.label.showAnimated(){ self.animating = false }
-        } else{
-          self.animating = false
+      let callback = { [weak self] in
+          guard let self = self else { return }
+          self.label.text = self.currentStatus.infoMessage
+          self.label.textColor = self.currentStatus.textColor
+          
+          self.currentStatus.showActivity
+            ? self.activityIndicator.startAnimating()
+            : self.activityIndicator.stopAnimating()
+          
+          if self.label.text != nil {
+            self.label.showAnimated(){ self.animating = false }
+          } else{
+            self.animating = false
+          }
         }
+      if label.isHidden {
+        callback()
+        return
+      }
+      
+      label.hideAnimated() {
+        callback()
       }
     }
   }
