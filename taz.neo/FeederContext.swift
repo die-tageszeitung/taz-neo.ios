@@ -361,7 +361,8 @@ open class FeederContext: DoesLog {
   
   private func netStatusChanged(isConnected:Bool){
     log("NET STATUS CHANGED isConnected: \(isConnected)")
-    isConnected ? updateFeeder() : notifyNetStatus(isConnected: false)
+    if isConnected { updateFeeder()}
+    notifyNetStatus(isConnected: isConnected)
   }
   
   private func notifyNetStatus(isConnected:Bool){
