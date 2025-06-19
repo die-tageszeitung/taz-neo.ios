@@ -309,9 +309,6 @@ class TazAppEnvironment: NSObject, DoesLog {
         if latestLocalIssue?.isComplete == false {
           BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "setupFeeder, latest local issue is incompleete")
         }
-        else {
-          BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "setupFeeder, Check and Download latest Issue if available on init")
-        }
       }
       else {
         log("ERROR cannot finalizePendingDownloads, missing SortFeed")

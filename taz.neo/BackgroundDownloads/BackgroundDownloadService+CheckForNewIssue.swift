@@ -113,9 +113,13 @@ fileprivate extension BackgroundDownloadService {
           """)
       
       // MARK: - Fetch & Validate Issue
-      
+      ///if latest local known issue is from 1.7.25 and this is also the latest on server, the server returns 1.7. again
       let issue = try await fetchFromRemote()
       log("...fetched issue: \(issue.date.short)")
+      
+      if issue.date.issueKey == feederContext.latestPublicationDate?.issueKey {
+        throw BackgroundDownloadError("No new Issue available!")
+      }
       
       latestCheckForNewIssue = Date()
       
