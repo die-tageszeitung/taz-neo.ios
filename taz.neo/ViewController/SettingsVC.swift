@@ -188,8 +188,9 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   })
   
   var autoloadCellDetailText: String? {
+    let loginInfo = feederContext.gqlFeeder.hasValidAbo ? "": "Sie müssen mit einem gültigen Abo angemeldet sein.\n"
     return autoloadNewIssues
-    ? "Lädt neue Ausgaben nur, wenn die App nicht manuell beendet wurde."
+    ? "\(loginInfo)Lädt neue Ausgaben nur, wenn die App nicht manuell beendet wurde."
     : nil
   }
   

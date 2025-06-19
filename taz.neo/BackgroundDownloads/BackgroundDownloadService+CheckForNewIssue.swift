@@ -48,7 +48,9 @@ extension BackgroundDownloadService {
     Self.shared.log("...static checkForNewIssue requested, App State: \(UIApplication.shared.stateDescription) isBackground: \(isBackground)")
     let currentAppState = UIApplication.shared.applicationState
     
-    guard Self.shared.autoloadNewIssues else {
+    guard Self.shared.autoloadNewIssues,
+    Self.shared.feederContext?.gqlFeeder.hasValidAbo == true else {
+      Self.shared.log("...static checkForNewIssue skipped, no auto-load enabled or no valid abo")
       fetchCompletionHandler?(.noData)
       return
     }
