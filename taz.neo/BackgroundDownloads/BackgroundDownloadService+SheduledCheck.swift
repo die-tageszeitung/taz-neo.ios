@@ -35,22 +35,6 @@ extension BackgroundDownloadService {
       queue.cancelAllOperations()
     }
     
-//    guard let storedFeed = feederContext?.defaultFeed else {
-//      log("Skipping check: No stored feed available.")
-//      task.setTaskCompleted(success: true)
-//      return
-//    }
-    ///disabled due other logic: download enqueue is better
-    ///@warning: WHAT IF ENQUEUED IN 10 Minutes,,,,,prevent double downloads!!
-#warning("TODO!! WHAT IF ENQUEUED IN 10 Minutes,,,,,prevent double downloads!!")
-    //    guard shouldCheckForNewIssue(tz: timeZone,
-//                                 typ: publicationSchedule,
-//                                 lastPublicationDate: lastFullyDownloadedIssueDate?.expectedPublicationDateForIssueDate) else {
-//      log("Skipping check: Not yet time for next issue.")
-//      task.setTaskCompleted(success: true)
-//      return
-//    }
-    
     // Define the operation
     let checkOperation = BlockOperation { [weak self] in
       let group = DispatchGroup()
