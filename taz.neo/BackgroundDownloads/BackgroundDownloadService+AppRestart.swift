@@ -30,7 +30,6 @@ extension BackgroundDownloadService {
   func applicationRestarted(with feederContext: FeederContext) {
     Task.detached { [weak self] in
       guard let self = self else { return }
-      var downloadMissing = false
       var restartDownloads = false
       for issueDateKey in downloadDateKeys {
         notifyHome(.loadIssue)
