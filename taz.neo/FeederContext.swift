@@ -232,12 +232,12 @@ open class FeederContext: DoesLog {
     notify("feederReady")
     cleanupOldIssues()//requires inited bookmarks
     checkAppUpdate()
-    handleUnfinshedDownloads()
     if needUpdate {
       updateFeeder(loadAllPublicationDates: loadAll)
     }
-    
-
+    onMainAfter(2.0){
+      handleUnfinshedDownloads()
+    }
   }
   
   func checkForNewIssues(force: Bool = false){
