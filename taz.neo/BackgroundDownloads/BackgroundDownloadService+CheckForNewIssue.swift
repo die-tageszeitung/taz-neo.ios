@@ -147,6 +147,7 @@ fileprivate extension BackgroundDownloadService {
       }
       
       issueDownloadSession.allowMobile = !autoloadOnlyInWLAN
+      issueDownloadSession.waitForAvailability = true
       
       let (downloadId, startTime) = try await feederContext.gqlFeeder
         .markStartDownloadAsync(feed: feederContext.defaultFeed,
@@ -175,6 +176,7 @@ fileprivate extension BackgroundDownloadService {
           self?.log("Audio Download finished with Error: \(err ?? "-")")
         }
         audioDownloadSession.allowMobile = !autoloadOnlyInWLAN
+        audioDownloadSession.waitForAvailability = true
         log("...downloading audio zip \(audioUrl.lastPathComponent) from: \(audioUrl) to: \(issue.dir.path)")
         audioDownloadSession.downloadZip(toDir: issue.dir.path)
       }
