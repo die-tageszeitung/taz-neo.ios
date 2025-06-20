@@ -119,10 +119,6 @@ fileprivate extension BackgroundDownloadService {
       let issue = try await fetchFromRemote()
       log("...fetched issue: \(issue.date.short)")
       
-      if issue.date.issueKey == feederContext.latestPublicationDate?.issueKey {
-        throw BackgroundDownloadError.noNewIssue
-      }
-      
       latestCheckForNewIssue = Date()
       
       guard let zipUrl = issue.zipUrl else {
@@ -219,6 +215,7 @@ fileprivate extension BackgroundDownloadService {
 
 fileprivate extension BackgroundDownloadService {
   /// fetches latest issue and publicationDates from remote
+  /// throws an error, if fetched issue is not newer than last local
   /// - Returns: the latest issue
   func fetchFromRemote() async throws -> Issue {
     //add to publicationsdates and issues, returns latest issue
