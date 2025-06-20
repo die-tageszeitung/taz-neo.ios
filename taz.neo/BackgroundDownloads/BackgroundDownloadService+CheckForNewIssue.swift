@@ -198,6 +198,7 @@ fileprivate extension BackgroundDownloadService {
     }
     catch {
       log("❌ Autodownload Error: \(error) issueDownloadEnqueued: \(issueDownloadEnqueued)")
+      log("\(error.localizedDescription) != \(BackgroundDownloadError.noNewIssue.message) isBgDlError: \(error is BackgroundDownloadError) bgdle.message: \((error as? BackgroundDownloadError)?.message ?? "-")")
       if let bde = error as? BackgroundDownloadError,
           bde.message == BackgroundDownloadError.noNewIssue.message {
         scheduleBackgroundIssueCheck()
