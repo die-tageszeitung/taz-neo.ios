@@ -119,8 +119,6 @@ fileprivate extension BackgroundDownloadService {
       let issue = try await fetchFromRemote()
       log("...fetched issue: \(issue.date.short)")
       
-      latestCheckForNewIssue = Date()
-      
       guard let zipUrl = issue.zipUrl else {
         log("latestIssue baseUrl: \(issue.baseUrl) zipName: \(issue.zipName ?? "-")")
         throw BackgroundDownloadError("No Zip to Download!")

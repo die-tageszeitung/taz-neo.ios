@@ -45,11 +45,6 @@ class BackgroundDownloadService: DoesLog {
   /// - If no suitable issue has been fully downloaded yet, this value is `nil`.
   var lastFullyDownloadedIssueDate: Date?
   
-  /// The date of the last check for an new issue
-  /// will be set due check for new issues
-  /// is used by timed Background download
-  var latestCheckForNewIssue: Date?
-  
   var publicationSchedule: PublicationSchedule = .taz //just initial value
   
   var feederContext: FeederContext? {

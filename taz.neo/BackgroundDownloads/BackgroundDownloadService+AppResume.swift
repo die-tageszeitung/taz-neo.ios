@@ -16,10 +16,5 @@ extension BackgroundDownloadService {
       log("App entered foreground, execute pending tasks...")
       handlePendingTasks()
     }
-    ///What about canceld/stopped downloads?
-    ///..handled somewhere else
-    ///check if active not started downloads start immediately!
-    ///this is: restartPendingDownloads! ...
-    #warning("restartPendingDownloads is maybe required?")
   }
 }
