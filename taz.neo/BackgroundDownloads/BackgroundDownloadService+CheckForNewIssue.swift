@@ -188,6 +188,13 @@ fileprivate extension BackgroundDownloadService {
         handlePendingTasks()
       ///push notification callback
       fetchCompletionHandler?(.newData)
+      
+      ///In case of app restart in celuar show user info to enable wlan for download
+      if isBackground == false,
+          autoloadOnlyInWLAN,
+          TazAppEnvironment.sharedInstance.feederContext?.netAvailability.isMobile == true {
+        notifyHome(.autoloadErrorNoWlan)
+      }
     }
     catch {
       log("❌ Autodownload Error: \(error) issueDownloadEnqueued: \(issueDownloadEnqueued)")

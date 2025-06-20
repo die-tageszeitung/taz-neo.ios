@@ -278,6 +278,7 @@ open class FeederContext: DoesLog {
       switch res {
         ///no need to eval res.value due its updated:  self!.gqlFeeder === res.value()
         case .success:
+          let initialCall = self.storedFeeder == nil
           ///remember old data due on set storedFeeder  old reference is overwritten
           let publicationDatesChanged
           = self.storedFeeder != nil
@@ -295,6 +296,11 @@ open class FeederContext: DoesLog {
           } else {
             debug("...publication dates NOT changed")///4345 Issues
           }
+          
+          if initialCall, isAuthenticated {///initial app start is quite slow, but this is not the reason; checked 25-06-20 on iPad Air2
+            BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "Initially download latestIssue", delay: 5.0)
+          }
+          
         case .failure:
           if let err = res.error() as? FeederError {
             if case .minVersionRequired(let smv) = err {
