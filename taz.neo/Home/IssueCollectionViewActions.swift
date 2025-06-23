@@ -35,9 +35,9 @@ extension IssueCollectionViewActions {
   }
   
   func updateCarouselDownloadButton(){
-    guard let ccvc = self as? IssueCarouselCVC else { return }
-    ccvc.downloadButton.indicator.downloadState
-    = self.service.cellData(for: ccvc.centerIndex ?? 0)?.downloadState
+//    guard let ccvc = self as? IssueCarouselCVC else { return }
+//    ccvc.downloadButton.indicator.downloadState
+//    = self.service.cellData(for: ccvc.centerIndex ?? 0)?.downloadState
   }
   
   func contextMenuInteraction(for indexPath: IndexPath, issue: StoredIssue) -> UIContextMenuConfiguration? {
@@ -55,27 +55,27 @@ extension IssueCollectionViewActions {
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in
         self?.service.download(issueAt: issue.date, withAudio: true)
-        guard let ccvc = self as? IssueCarouselCVC,
-              ccvc.centerIndex == indexPath.row else { return }
-        ccvc.downloadButton.indicator.downloadState = .waiting
+//        guard let ccvc = self as? IssueCarouselCVC,
+//              ccvc.centerIndex == indexPath.row else { return }
+//        ccvc.downloadButton.indicator.downloadState = .waiting
       }
     } else if issue.isComplete == false {
       actions.addMenuItem(title: "Ausgabe laden",
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in
         self?.service.download(issueAt: issue.date, withAudio: false)
-        guard let ccvc = self as? IssueCarouselCVC,
-              ccvc.centerIndex == indexPath.row else { return }
-        ccvc.downloadButton.indicator.downloadState = .waiting
+//        guard let ccvc = self as? IssueCarouselCVC,
+//              ccvc.centerIndex == indexPath.row else { return }
+//        ccvc.downloadButton.indicator.downloadState = .waiting
       }
       ///issue.audioFiles.count > 0 not possible until download
       actions.addMenuItem(title: "Ausgabe mit Audio laden",
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in
         self?.service.download(issueAt: issue.date, withAudio: true)
-        guard let ccvc = self as? IssueCarouselCVC,
-              ccvc.centerIndex == indexPath.row else { return }
-        ccvc.downloadButton.indicator.downloadState = .waiting
+//        guard let ccvc = self as? IssueCarouselCVC,
+//              ccvc.centerIndex == indexPath.row else { return }
+//        ccvc.downloadButton.indicator.downloadState = .waiting
       }
     }
     
@@ -84,13 +84,13 @@ extension IssueCollectionViewActions {
       self?.service.exportMoment(issue: issue, sourceView: self?.view)
     }
     
-    if self.isKind(of: IssueCarouselCVC.self) {
-      actions.addMenuItem(title: "Scrollrichtung umkehren",
-                          icon: "repeat") {[weak self] _ in
-        guard let ccvc = self as? IssueCarouselCVC else { return }
-        ccvc.scrollFromLeftToRight = !ccvc.scrollFromLeftToRight
-      }
-    }
+//    if self.isKind(of: IssueCarouselCVC.self) {
+//      actions.addMenuItem(title: "Scrollrichtung umkehren",
+//                          icon: "repeat") {[weak self] _ in
+////        guard let ccvc = self as? IssueCarouselCVC else { return }
+////        ccvc.scrollFromLeftToRight = !ccvc.scrollFromLeftToRight
+//      }
+//    }
     
     actions.actions.append(contentsOf: issue.contextMenu(group: 1).actions)
     Usage.track(Usage.event.dialog.IssueActions)

@@ -200,17 +200,18 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     self.searchArticleToOpen = nil
     guard let issue = article.primaryIssue as? StoredIssue,
           let home = ((self.selectedViewController as? UINavigationController)?
-            .viewControllers.first as? HomeTVC) else { return }
+            .viewControllers.first as? HomeVC) else { return }
     if let sectVc = home.navigationController?.viewControllers.valueAt(1) as? SectionVC,
        let sectIssue = sectVc.issue as? StoredIssue,
        issue == sectIssue {
       sectVc.showArticle(article, animated: true)
-      home.togglePdfButton.isHidden = true
+      home.viewModeButton.isHidden = true
     }
     else {
       home.navigationController?.popToRootViewController(animated: false)
-      home.openIssue(issue, atArticle: issue.indexOf(article: article), atPage: issue.pageIndexOf(article: article))
-      home.togglePdfButton.isHidden = true
+      #warning("todo")
+//      home.openIssue(issue, atArticle: issue.indexOf(article: article), atPage: issue.pageIndexOf(article: article))
+      home.viewModeButton.isHidden = true
     }
   }
   
@@ -244,10 +245,11 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     (self.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
     guard let date = date,
         let home = ((self.selectedViewController as? UINavigationController)?
-              .viewControllers.first as? HomeTVC) else { return }
-    home.scroll(up: true)
-    let idx = home.carouselController.service.nextIndex(for: date)
-    home.carouselController.scrollTo(idx, animated: true)
+              .viewControllers.first as? HomeVC) else { return }
+    #warning("todo")
+//    home.scroll(up: true)
+//    let idx = home.carouselController.service.nextIndex(for: date)
+//    home.carouselController.scrollTo(idx, animated: true)
   }
   
   func setupTabbar() {
@@ -256,7 +258,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     self.tabBar.isTranslucent = false
     self.tabBar.tintColor = .white
     
-    let home = HomeTVC(service: service, feederContext: feederContext)
+    let home = HomeVC(service: service, feederContext: feederContext)
     home.title = "Home"
     home.tabBarItem.image = UIImage(named: "home")
     home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
@@ -332,7 +334,7 @@ extension MainTabVC {
     for case let tabNav as UINavigationController in self.viewControllers ?? [] {
       let firstVc = tabNav.viewControllers.first
       let vcCount = tabNav.viewControllers.count
-      if let home = firstVc as? HomeTVC {
+      if let home = firstVc as? HomeVC {
         ///if full issue > text settngs > settings > login no more refresh data will appear for compleete issue
         if let issue = (tabNav.viewControllers.valueAt(1) as? SectionVC)?.issue,
            feederContext.needsUpdate(issue: issue, toShowPdf: false) == false {
@@ -343,7 +345,9 @@ extension MainTabVC {
           continue
         }
         ///Facsimile/PDF View or Article/Section VC wich need Update
-        if vcCount > 1 { reloadTargets.append(home)}
+        ///
+        #warning("todo")
+        //        if vcCount > 1 { reloadTargets.append(home)}
       }
       else if let search = firstVc as? SearchController{
         if search.currentState == .result { reloadTargets.append(search)}
@@ -405,7 +409,7 @@ extension MainTabVC : UITabBarControllerDelegate {
     if tabBarController.selectedViewController != viewController { return true }
     
     if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
-       let home = firstVc as? HomeTVC
+       let home = firstVc as? HomeVC
     {
       home.onHome()
     }

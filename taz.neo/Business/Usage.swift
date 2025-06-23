@@ -735,14 +735,16 @@ public extension ScreenTracking {
 // MARK: -
 
 // MARK: - Screen Tracking for Individuell Controller
-extension HomeTVC: DefaultScreenTracking {
+extension HomeVC: DefaultScreenTracking {
   public var defaultScreen: Usage.DefaultScreen? {
-    switch (wasUp, isFacsimile) {
-      case (true, true): return .CoverflowPDF
-      case (true, false): return .CoverflowMobile
-      case (false, true): return .ArchivePDF
-      case (false, false): return .ArchiveMobile
-    }
+    return .CoverflowPDF
+    #warning("ToDO")
+//    switch (wasUp, isFacsimile) {
+//      case (true, true): return .CoverflowPDF
+//      case (true, false): return .CoverflowMobile
+//      case (false, true): return .ArchivePDF
+//      case (false, false): return .ArchiveMobile
+//    }
   }
 }
 

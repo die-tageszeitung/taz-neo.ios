@@ -70,7 +70,8 @@ fileprivate extension String {
 
 
 struct Coachmarks {
-  enum IssueCarousel: CoachmarkItem, CaseIterable { case pdfButton, loading, tiles}///HomeTVC
+#warning("ToDo: rename")
+  enum IssueCarousel: CoachmarkItem, CaseIterable { case pdfButton, loading, tiles}///HomeVC
   enum Section: CoachmarkItem, CaseIterable { case slider, swipe }///SectionVC
   enum Article: CoachmarkItem, CaseIterable { case audio, share, font}///ArticleVC
   enum Search: CoachmarkItem, CaseIterable { case filter }
