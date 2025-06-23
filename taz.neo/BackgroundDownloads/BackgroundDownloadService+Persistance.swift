@@ -44,7 +44,12 @@ class BackgroundDownloadsTempStorage: DoesLog {
     }
 
     guard !exists else {
-      throw BackgroundDownloadError("Issue with key \(newKey) already exists. Skipping.")
+      // Do not throw an error here. Due to a race condition during app restart,
+      // a new download may already be queued. If a push notification arrives
+      // before that download completes, it may conflict with finalization logic.
+      // Skip processing if the key already exists to avoid errors.
+      log("Issue with key \(newKey) already exists. Skipping.")
+      return
     }
 
     // Append issue and clean up oldest ones if needed

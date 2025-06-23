@@ -195,6 +195,7 @@ fileprivate extension BackgroundDownloadService {
           TazAppEnvironment.sharedInstance.feederContext?.netAvailability.isMobile == true {
         notifyHome(.autoloadErrorNoWlan)
       }
+      log("⏰ fin...download(s) enqueued, ui informed")
     }
     catch {
       log("❌ Autodownload Error: \(error) issueDownloadEnqueued: \(issueDownloadEnqueued)")
@@ -214,8 +215,6 @@ fileprivate extension BackgroundDownloadService {
         fetchCompletionHandler?(.noData)
       }
     }
-    
-    log("⏰ fin...download(s) enqueued")
   }
 }
 
@@ -233,6 +232,7 @@ fileprivate extension BackgroundDownloadService {
     }
     
     let lastLocalIssueDate = try lastLocalIssueDate(feederContext: feederContext)
+    log("lastLocalIssueDate: \(lastLocalIssueDate?.short ?? "-")")
     
     // MARK: fetch latest issue and publication Dates from server
     let response
@@ -304,7 +304,8 @@ fileprivate extension BackgroundDownloadService {
     let dbDate = try lastFromDatabase(for: feederContext)
     let lastFromJsonFile = try lastFromJsonFile(for: feederContext)
     let allDates = [dbDate, lastFromJsonFile, lastFromSingleton]
-      return allDates.compactMap { $0 }.max()
+    log("db: \(String(describing: dbDate?.short)), json: \(String(describing: lastFromJsonFile?.short)), singleton: \(String(describing: lastFromSingleton?.short))")
+    return allDates.compactMap { $0 }.max()
   }
   
   private func lastFromDatabase(for feederContext: FeederContext) throws -> Date? {
