@@ -259,9 +259,10 @@ fileprivate extension BackgroundDownloadService {
     /// or from a pending download (enqueued but not yet completed).
     ///
     /// If the server issue is not newer, an error is thrown to avoid redundant downloads.
-    guard issue.date > (lastLocalIssueDate ?? Date.distantPast) else {
+    guard issue.date.ISO8601 > (lastLocalIssueDate ?? Date.distantPast).ISO8601 else {
       throw BackgroundDownloadError("No New Issue on Server")
     }
+    log("\(issue.date.dateAndTime) > \(lastLocalIssueDate?.dateAndTime ?? "-")")
     
     issue.createFolderStructureIfNeeded(for: feederContext)
     
