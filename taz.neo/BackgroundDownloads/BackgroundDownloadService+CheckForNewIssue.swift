@@ -238,7 +238,7 @@ fileprivate extension BackgroundDownloadService {
     let response
     = try await feederContext.gqlFeeder
       .latestIssueAndFeed(feed: feederContext.defaultFeed,
-                          isPages: autoloadPdf,
+                          isPages: autoloadPdf || isFacsimile,
                           withAudio: autoloadAudio,
                           latestKnownPublicationDate: lastLocalIssueDate,
                           returnOnMain: false,
