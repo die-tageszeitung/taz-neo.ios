@@ -365,7 +365,10 @@ open class FeederContext: DoesLog {
   
   private func netStatusChanged(isConnected:Bool){
     log("NET STATUS CHANGED isConnected: \(isConnected)")
-    if isConnected { updateFeeder()}
+    if isConnected,
+       BackgroundDownloadService.shared.executeScheduledCheckIfNeeded() == false {
+      updateFeeder()
+    }
     notifyNetStatus(isConnected: isConnected)
   }
   

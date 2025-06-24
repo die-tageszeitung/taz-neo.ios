@@ -60,6 +60,28 @@ extension BackgroundDownloadService {
     queue.addOperation(checkOperation)
   }
   
+  /// Executes a background issue check if `nextScheduledCheck` is in the past or within the next 30 seconds.
+  /// Returns `true` if the check was performed, otherwise `false`.
+  func executeScheduledCheckIfNeeded() -> Bool {
+    // Only proceed if the next scheduled check is in the past or within the next 30 seconds
+    guard (nextScheduledCheck?.timeIntervalSinceNow ?? 60) < 30 else {
+      return false
+    }
+    
+    guard UIApplication.shared.applicationState == .background else {
+      log("App not in background, skipping background issue check")
+      return false
+    }
+    
+    log("Starting background issue check due to net status change and schedule reached")
+    
+    Self.checkForNewIssue(isPush: false, isBackground: true) { [weak self] _ in
+      self?.log("Finished issue check triggered by schedule")
+    }
+    
+    return true
+  }
+  
   func scheduleBackgroundIssueCheck(earliestBeginDate: Date? = nil) {
     let request = BGAppRefreshTaskRequest(identifier: "de.taz.taz.neo.refresh")
     let nextCheck = earliestBeginDate
@@ -67,6 +89,7 @@ extension BackgroundDownloadService {
     
     log("Scheduling background task at \(nextCheck.dateAndTime) (in \(nextCheck.timeIntervalSinceNow.readable))")
     request.earliestBeginDate = nextCheck
+    nextScheduledCheck = nextCheck
     do {
       try BGTaskScheduler.shared.submit(request)
     } catch {

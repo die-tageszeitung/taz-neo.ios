@@ -30,6 +30,8 @@ class BackgroundDownloadService: DoesLog {
   
   var saveDatabase = false
   
+  var nextScheduledCheck : Date?
+  
   var informUIAfterSave = false
   
   @Default("autoloadPublicationType")
