@@ -84,8 +84,7 @@ class HomeVC: UICollectionViewController {
     pin(downloadButton, to: v, exclude: .left).top?.constant = -8.0
     downloadButton.color = Const.SetColor.HomeText.dynamicColor
     dateLabel.textColor = Const.SetColor.HomeText.dynamicColor
-    pin(dateLabel.left, to: v.left, dist: 25, priority: .defaultLow)
-    pin(dateLabel.right, to: v.right, dist: -25, priority: .defaultLow)
+    dateLabel.centerX()
     v.pinHeight(28)
     
     dateLabel.onTapping {[weak self] _ in
@@ -166,9 +165,33 @@ class HomeVC: UICollectionViewController {
     return sorted[middleIndex]
   }
   
+  /// Determines whether scrolling to the given index should be animated or immediate.
+  ///
+  /// - Parameter index: The target item index to scroll to.
+  /// - Returns: `true` if the index is within or near the currently visible range (including a buffer),
+  ///            indicating that animated scrolling is appropriate. Returns `false` if the index is far away,
+  ///            in which case an immediate jump is preferred.
+  func shouldScrollAnimatedTo(_ index: Int) -> Bool {
+    let visibleIndexPaths = collectionView.indexPathsForVisibleItems
+    guard !visibleIndexPaths.isEmpty else { return false }
+    
+    let visibleRows = visibleIndexPaths.map(\.row)
+    let dist = isHomeTiles ? visibleRows.count : 10
+    guard let min = visibleRows.min(),
+          let max = visibleRows.max(),
+          index >= 0 else {
+      return false
+    }
+    
+    let range = (min - dist)...(max + dist)
+    return range.contains(index)
+  }
+  
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    let s = view.frame.size
+    isHomeTiles ? updateCarouselSize(s) : updateGridSize(s)//initially the not displayed one
     updateCollectionViewLayout()
   }
   
@@ -218,6 +241,7 @@ class HomeVC: UICollectionViewController {
     }
     
     self.view.addSubview(bottomItemsWrapper)
+    bottomItemsWrapper.isHidden = isHomeTiles
     bottomItemsWrapper.centerX()
     statusWrapperBottomConstraint = pin(bottomItemsWrapper.top, to: self.view.bottom, dist: 0)
     
@@ -259,14 +283,18 @@ class HomeVC: UICollectionViewController {
       URLCache.shared.removeAllCachedResponses()
       self?.service.checkForNewIssues()
     }
-    
-    statusHeader.currentStatus = .downloadError
   }
   
   override func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-    if let handler = pullToLoadMoreHandler,
-       scrollView.contentOffset.x < -1.3*self.collectionView.contentInset.left {
-      handler()
+    guard let handler = pullToLoadMoreHandler else { return }
+    if isHomeTiles {
+      if -scrollView.contentOffset.y > 0.2 * scrollView.bounds.height {
+        handler()
+      }
+    } else {
+      if scrollView.contentOffset.x < -1.3 * scrollView.contentInset.left {
+        handler()
+      }
     }
   }
   
@@ -286,8 +314,8 @@ class HomeVC: UICollectionViewController {
   func scrollTo(_ index: Int, animated:Bool = true){
     updateBottomWrapper(for: index)
     self.collectionView.scrollToItem(at: IndexPath(row: index, section: 0),
-                                     at: .centeredHorizontally,
-                                     animated: true)
+                                     at: isHomeTiles ? .centeredVertically : .centeredHorizontally,
+                                     animated: shouldScrollAnimatedTo(index))
   }
   
   func updateBottomWrapper(for cidx: Int, force: Bool = false){

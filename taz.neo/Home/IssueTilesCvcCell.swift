@@ -93,7 +93,6 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
         to: contentView.bottom,
         dist: -buttonHeight-buttonOffset,
         priority: .defaultHigh)
-    
     contentView.addSubview(button)
     pin(button, to: contentView, exclude: .top)
     button.pinHeight(buttonHeight)
@@ -102,6 +101,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     button.color = Const.SetColor.HomeText.color
     
     $isHomeTiles.onChange{[weak self] _ in self?.updateButtonVisibillity() }
+    updateButtonVisibillity()
     
     Notification.receive("issueProgress", closure: {   [weak self] notif in
       guard let self = self else { return }

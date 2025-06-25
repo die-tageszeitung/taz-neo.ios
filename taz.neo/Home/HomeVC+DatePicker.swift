@@ -32,18 +32,13 @@ extension HomeVC {
       guard let self else { return }
       let date = pickerCtrl.selectedDate
       let idx = self.service.nextIndex(for: date)
-      #warning("todo")
-//      self.scrollTo(idx, animated: true)
+      self.scrollTo(idx, animated: true)
       self.overlay?.close(animated: true)
     }
     overlay?.onClose(closure: {  [weak self] in
       self?.overlay = nil
-#warning("todo?")
-//      (self?.parent as? HomeTVC)?.tilesController.isActive = true
       self?.pickerCtrl = nil
     })
     overlay?.openAnimated(fromView: sourceView, toView: pickerCtrl.content)
-#warning("todo?")
-//    (self.parent as? HomeTVC)?.tilesController.isActive = false
   }
 }
