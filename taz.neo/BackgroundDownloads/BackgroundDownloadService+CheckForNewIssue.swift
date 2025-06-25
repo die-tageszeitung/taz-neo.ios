@@ -203,6 +203,7 @@ fileprivate extension BackgroundDownloadService {
       if let bde = error as? BackgroundDownloadError,
           bde.message == BackgroundDownloadError.noNewIssue.message {
         scheduleBackgroundIssueCheck()
+        BackgroundSession.restartAllPendingDownloads()
       }
       else if fetchSuccess == false {
         ///Edge Case Fetch failed: retry soon! ...maybe its a lot fo later, if internet is not available for long time
