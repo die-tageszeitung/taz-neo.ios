@@ -199,7 +199,7 @@ fileprivate extension BackgroundDownloadService {
     }
     catch {
       log("❌ Autodownload Error: \(error) issueDownloadEnqueued: \(issueDownloadEnqueued)")
-      log("\(error.localizedDescription) != \(BackgroundDownloadError.noNewIssue.message) isBgDlError: \(error is BackgroundDownloadError) bgdle.message: \((error as? BackgroundDownloadError)?.message ?? "-")")
+      log("\((error as? BackgroundDownloadError)?.message ?? "-") == \(BackgroundDownloadError.noNewIssue.message)")
       if let bde = error as? BackgroundDownloadError,
           bde.message == BackgroundDownloadError.noNewIssue.message {
         scheduleBackgroundIssueCheck()
@@ -260,7 +260,7 @@ fileprivate extension BackgroundDownloadService {
     ///
     /// If the server issue is not newer, an error is thrown to avoid redundant downloads.
     guard issue.date.ISO8601 > (lastLocalIssueDate ?? Date.distantPast).ISO8601 else {
-      throw BackgroundDownloadError("No New Issue on Server")
+      throw BackgroundDownloadError.noNewIssue
     }
     log("\(issue.date.dateAndTime) > \(lastLocalIssueDate?.dateAndTime ?? "-")")
     
