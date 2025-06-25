@@ -192,7 +192,7 @@ extension BackgroundDownloadService {
       saveDatabase = false
       log("...saved database")
       tempStorage.deleteJsonFiles(for: finishedStoredIssues)
-      log("...removed obsolete JSON files")
+      log("...removed obsolete JSON files for: \(finishedStoredIssues.count) issues")
       removeDownloadData(for: finishedStoredIssues)
       log("...removed obsolete UserDefaults Entries")
     }
