@@ -369,10 +369,6 @@ class HomeTVC: UITableViewController {
     Notification.receive(Const.NotificationNames.showLatestIssue) { [weak self] _ in
       self?.onHome()
     }
-    Notification.receive(Const.NotificationNames.viewModeChanged) { [weak self] _ in
-      guard let self = self else { return}
-      refreshPDFButton(imageButton: togglePdfButton)
-    }
     
     ///Handle new issues
     Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in

@@ -197,14 +197,6 @@ extension BackgroundDownloadService {
       log("...removed obsolete UserDefaults Entries")
     }
     
-    if isFacsimile == true
-        && autoloadPdf == false
-        && TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
-      ///prevent show empty items in UI
-      isFacsimile = false
-      Notification.send(Const.NotificationNames.viewModeChanged)
-    }
-    
     if informUIAfterSave {
       onMainAfter {
         Notification.send(Const.NotificationNames.newAutolIssueLoaded)

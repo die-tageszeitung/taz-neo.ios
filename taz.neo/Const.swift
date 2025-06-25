@@ -68,7 +68,6 @@ public struct Const {
     static let closeOpenIssues = "Const.NotificationNames.closeOpenIssues"
     static let refreshOverview = "Const.NotificationNames.refreshOverview"
     static let showLatestIssue = "Const.NotificationNames.showLatestIssue"
-    static let viewModeChanged = "Const.NotificationNames.viewModeChanged"
     static let newAutolIssueLoaded = "Const.NotificationNames.newAutolIssueLoaded"
     static let gotoArticleInIssue = "Const.NotificationNames.gotoArticleInIssue"
     static let searchSelectedText = "Const.NotificationNames.searchSelectedText"

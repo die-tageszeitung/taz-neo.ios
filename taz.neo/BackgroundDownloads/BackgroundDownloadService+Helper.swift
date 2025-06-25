@@ -74,7 +74,7 @@ public extension Issue {
   }
   
   var zipUrl: String? {
-    guard let zipName = Defaults.autoloadPdf ? zipNamePdf : zipName else { return nil }
+    guard let zipName = Defaults.autoloadPdfOrFacsimile ? zipNamePdf : zipName else { return nil }
     return baseUrl.appending("/\(zipName)")
   }
   

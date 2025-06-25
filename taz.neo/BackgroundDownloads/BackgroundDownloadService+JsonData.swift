@@ -44,7 +44,7 @@ extension BackgroundDownloadService {
       issue.feed = feederContext.defaultFeed
       (issue as? GqlIssue)?.setPayload(
         feeder: feederContext.gqlFeeder,
-        isPages: self.isFacsimile,
+        isPages: Defaults.autoloadPdfOrFacsimile,
         withAudio: self.autoloadAudio
       )
       

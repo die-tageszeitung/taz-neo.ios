@@ -20,9 +20,6 @@ class BackgroundDownloadService: DoesLog {
   @Default("autoloadAudio")
   var autoloadAudio: Bool
   
-  @Default("isFacsimile")
-  public var isFacsimile: Bool
-  
   @Default("autoloadOnlyInWLAN2")
   var autoloadOnlyInWLAN: Bool
   
