@@ -118,6 +118,11 @@ fileprivate extension BackgroundDownloadService {
       ///if latest local known issue is from 1.7.25 and this is also the latest on server, the server returns 1.7. again
       let issue = try await fetchFromRemote()
       log("...fetched issue: \(issue.date.short)")
+      log("...required Ressources: \(issue.minResourceVersion) localResources: \(feederContext.defaultFeed.feeder.resourceVersion) updateRequired: \(issue.minResourceVersion > feederContext.defaultFeed.feeder.resourceVersion)")
+      
+      if issue.minResourceVersion > feederContext.defaultFeed.feeder.resourceVersion {
+        //TODO: Add Resources Download...on next resume apply resources
+      }
       
       guard let zipUrl = issue.zipUrl else {
         log("latestIssue baseUrl: \(issue.baseUrl) zipName: \(issue.zipName ?? "-")")
@@ -244,7 +249,7 @@ fileprivate extension BackgroundDownloadService {
                           latestKnownPublicationDate: lastLocalIssueDate,
                           returnOnMain: false,
                           isBackGround: true)
-    let publicationDatesAndIssue = response.0
+    let publicationDatesAndIssue = response.0//feed
     
     if publicationDatesAndIssue.issues?.count ?? 0 > 1  {
       log("WARNING: more than one issue found, using the first one")
@@ -253,6 +258,7 @@ fileprivate extension BackgroundDownloadService {
     guard let issue = publicationDatesAndIssue.issues?.first else {
       throw BackgroundDownloadError("No Issue found!")
     }
+    log("returned: \(publicationDatesAndIssue.feeder.resourceBaseUrl)")
     
     /// Checks whether the server-provided issue is newer than the most recent local one.
     ///
