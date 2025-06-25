@@ -339,16 +339,27 @@ open class FeederContext: DoesLog {
       log("storedFeeder not initialized yet!")
       return true
     }
-    guard let feed = storedFeeder.feeds.first else { return true}
-    guard let pubDates = storedFeeder.feeds.first?.publicationDates else { return true}
+    guard let feed = storedFeeder.feeds.first else {
+      log("No Stored Feed => load all Publication Dates... for feed: \(storedFeeder.feeds.first?.name ?? "-")")
+      return true
+    }
+    guard let pubDates = storedFeeder.feeds.first?.publicationDates else {
+      log("No Publication Dates => load all Publication Dates... for feed: \(storedFeeder.feeds.first?.name ?? "-")")
+      return true
+    }
     
-    let first = pubDates.last?.date.startOfDay == feed.firstIssue.startOfDay
-    let last = pubDates.first?.date.startOfDay == feed.lastIssue.startOfDay
-    let count = pubDates.count == feed.issueCnt
+    let first = pubDates.last?.date.ISO8601 ?? "1980-01-01" == feed.firstIssue.ISO8601
+    let last = pubDates.first?.date.ISO8601 ?? "1980-01-01" >= feed.lastIssue.ISO8601
+    let count = pubDates.count >= feed.issueCnt
     
     if first && last && count {
       log("All data matching, no new issue or missing old issue")
       return false
+    }
+    
+    if pubDates.count != feed.issueCnt {
+      // TODO: Keep an eye on this — shouldn't cause issues.
+      log("⚠️ WARNING ⚠️")
     }
     
     let logString = """
