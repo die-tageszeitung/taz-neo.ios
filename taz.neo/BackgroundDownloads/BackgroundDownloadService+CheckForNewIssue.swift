@@ -106,10 +106,11 @@ fileprivate extension BackgroundDownloadService {
     
     do {
       // MARK: - Logging context
-      
+      feederContext.netAvailability.recheck(force: true)
       log("""
           ...checkForNewIssue 
              autoload: \(autoloadOnlyInWLAN ? "only in WLAN" : "in any network")
+             isMobile connected/isConnected: \(feederContext.netAvailability.isMobile)/\(feederContext.netAvailability.isConnected)
              Triggered by \(isPush ? "Push" : "BackgroundTask")
              Latest known publication date: \(feederContext.latestPublicationDate?.short ?? "none")
           """)
