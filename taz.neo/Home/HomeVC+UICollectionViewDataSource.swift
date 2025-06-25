@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import NorthLib
 
 // MARK: UICollectionViewDataSource
 
@@ -21,23 +22,44 @@ extension HomeVC  {
   }
   
   override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-    guard let cell = cell as? IssueCollectionViewCell,
+    guard let cell = cell as? IssueTilesCvcCell,
           let data = cell.data else { return }
     cell.data = nil
     service.removeFromLoadFromRemote(key: data.key)
   }
   
   override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-    guard let cell = cell as? IssueCollectionViewCell,
+    guard let cell = cell as? IssueTilesCvcCell,
           let data = service.cellData(for: indexPath.row) else { return }
     cell.data = data
   }
   
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    let cell
+    = collectionView.dequeueReusableCell( withReuseIdentifier: Self.reuseCellId,
+                                          for: indexPath)
+    guard let cell = cell as? IssueTilesCvcCell else { return cell }
+    cell.backgroundColor = Const.Colors.Light.HomeBackground
+    cell.update()
+    ///only add functions once
+    if cell.interactions.isEmpty {
+      let menuInteraction = UIContextMenuInteraction(delegate: self)
+      cell.addInteraction(menuInteraction)
+      cell.button.onTapping { [weak self] _ in
+        if let date = cell.data?.date.date,
+          self?.service.download(issueAt: date, withAudio: false) != nil {
+          cell.button.indicator.downloadState = .waiting
+        }
+      }
+    }
+    return cell
+  }
+  
+  func collectionView1(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(
       withReuseIdentifier: Self.reuseCellId,
       for: indexPath)
-    guard let cell = cell as? IssueCollectionViewCell else {
+    guard let cell = cell as? IssueTilesCvcCell else {
       return cell
     }
     
@@ -76,7 +98,43 @@ extension HomeVC  {
 //    if data.downloadState == .notStarted {
 //      downloadButton.indicator.downloadState = .waiting
 //    }
-//    (parent as? OpenIssueDelegate)?.openIssue(issue)
+    openIssue(issue)
   }
   
+}
+
+extension HomeVC {
+  func openIssue(_ issue: StoredIssue, atArticle: Int? = nil, atPage: Int? = nil, isReloadOpened: Bool = false) {
+    ///How to prevent multiple open?
+    ///already pushed => no problem
+    ///3 downloads in Progress => first downloaded? n/ last clicked?
+    ///previously first clicked was used so do it again
+    ///What happen if download fail? => Nothing another tap may download and open a issue
+    ///QUESTIONS
+    ///should/can i handle massive multiple downloads?
+    ///should i allow?
+    ///YES: Which one is selected? What if selected is no reference here?
+    ///if  not what happen if i only have
+    ///TRY TO BUGFIX MULTIPLE OPEN OF Logged Out not downloaded issue due it causes other errors by saving which issue was tried to open and unset after 10 seconds od push delegate happen
+    if openingIssue?.date.issueKey == issue.date.issueKey { return }
+    onMainAfter(10) {[weak self] in self?.openingIssue = nil }
+    openingIssue = issue
+    let issueInfo = IssueDisplayService(feederContext: feederContext,
+                                    issue: issue)
+    loadingIssueInfos.append(issueInfo)
+    issueInfo.showIssue(pushDelegate: self, atArticle: atArticle, atPage:atPage, isReloadOpened: isReloadOpened)
+  }
+}
+
+
+extension HomeVC: PushIssueDelegate {
+  func push(_ viewController: UIViewController, issueInfo: IssueDisplayService) {
+    loadingIssueInfos.removeAll(where: { $0 == issueInfo })
+    if navigationController?.topViewController != self {
+      log("skip pushing: \(viewController) since another is already pushed. the other: \(String(describing: navigationController?.topViewController))")
+      return
+    }
+    self.issueInfo = issueInfo
+    self.navigationController?.pushViewController(viewController, animated: true)
+  }
 }
