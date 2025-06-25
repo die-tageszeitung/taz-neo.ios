@@ -83,13 +83,14 @@ extension BackgroundDownloadService {
   }
   
   func scheduleBackgroundIssueCheck(earliestBeginDate: Date? = nil) {
-    let request = BGAppRefreshTaskRequest(identifier: "de.taz.taz.neo.refresh")
+    let request = BGProcessingTaskRequest(identifier: "de.taz.taz.neo.refresh")
+    request.requiresNetworkConnectivity = true
+    request.requiresExternalPower = false
     let nextCheck = earliestBeginDate
     ?? publicationSchedule.nextScheduledCheck(lastIssueDate: lastFullyDownloadedIssueDate)
     
     log("Scheduling background task at \(nextCheck.dateAndTime) (in \(nextCheck.timeIntervalSinceNow.readable))")
     request.earliestBeginDate = nextCheck
-    nextScheduledCheck = nextCheck
     do {
       try BGTaskScheduler.shared.submit(request)
     } catch {
