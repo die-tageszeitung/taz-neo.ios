@@ -10,11 +10,14 @@ import Foundation
 
 /// Data Structure to persist background download data using UserDefaults.
 struct DownloadData: Codable {
+  static let ressourcesDownloadID = "RessourcesDownloadID"
+  
   let isoDateKey: String           // z.B. "2025-05-15"
   var downloadId: String      // Eindeutige ID
   var startTime: Int64       // Unix-Timestamp
   
   var isDownloaded: Bool { startTime < 0 || downloadId.isEmpty }
+  var isRessourcesDownload: Bool { downloadId == Self.ressourcesDownloadID }
   mutating func setDownloaded(){ downloadId = "";  startTime = -1 }
   
   // Optional: Initializer mit Default-Werten oder Convenience-Logik
@@ -70,12 +73,16 @@ extension BackgroundDownloadService {
     log("Set Download finished for issue with date: \(data.isoDateKey)")
   }
   
-  /// Returns an array of ISO date keys for all download entries in UserDefaults.
-  /// used on application Restart to check if there are downloads finished (zip Download)
-  /// which ain't saved to database yet. to save them now on app restart
+  /// Returns an array of ISO date keys for all completed issue downloads stored in UserDefaults,
+  /// excluding resource-only downloads.
+  ///
+  /// Used on app launch to detect any finished downloads (e.g., ZIP files)
+  /// that haven't yet been persisted to the database, so they can be saved now.
   var downloadDateKeys: [String] {
     let dict = UserDefaults.standard.getDownloadDict()
-    return dict.values.map { $0.isoDateKey }
+    return dict.values
+      .filter { $0.downloadId != DownloadData.ressourcesDownloadID }
+      .map { $0.isoDateKey }
   }
   
   ///called after download finished to get the DownloadData for the given download URL, to set the download finished

@@ -817,6 +817,8 @@ class GqlFeederStatus: GQLObject {
   /// Base URL of resource files
   var resourceBaseUrl: String
   /// Base URL of global files
+  var resourceZipName: String
+  /// Base URL of global files
   var globalBaseUrl: String
   /// Feeds this Feeder provides
   var feeds: [GqlFeed]
@@ -836,6 +838,7 @@ class GqlFeederStatus: GQLObject {
       authInfo{\(GqlAuthInfo.fields)}
       resourceVersion
       resourceBaseUrl
+      resourceZipName: resourceZip,
       globalBaseUrl
       feeds: feedList { \(feedFields) }
     """
@@ -846,6 +849,7 @@ class GqlFeederStatus: GQLObject {
       authentication:  \(authInfo.toString())
       resourceVersion: \(resourceVersion)
       resourceBaseUrl: \(resourceBaseUrl)
+        resourceZipName: \(resourceZipName)
       globalBaseUrl:   \(globalBaseUrl)
       Feeds:
     """
@@ -893,6 +897,14 @@ open class GqlFeeder: Feeder, DoesLog {
   public var resourceBaseUrl: String {
     guard let st = status else { return "" }
     return st.resourceBaseUrl
+  }
+  
+  /// URL of resource zip
+  public var resourceZipUrl: String? {
+    guard let st = status,
+          st.resourceBaseUrl.length > 8,
+          st.resourceZipName.length > 4 else { return nil }
+    return st.resourceBaseUrl + "/" +  st.resourceZipName
   }
   /// The Feeds this Feeder is providing
   public var feeds: [Feed] {

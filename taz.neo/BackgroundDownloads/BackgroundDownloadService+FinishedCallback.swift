@@ -39,6 +39,11 @@ extension BackgroundDownloadService {
       return
     }
     
+    if downloadData.isRessourcesDownload {
+      log("...Downbloaded Ressources ToDo ...⚠️⚠️⚠️⚠️⚠️")
+      return
+    }
+    
     guard downloadData.isDownloaded == false else {
       log("⚠️WARNING: ...already downloaded, nothing to do")
       return
