@@ -318,7 +318,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
     
     BGTaskScheduler.shared.register(forTaskWithIdentifier: "de.taz.taz.neo.refresh", using: nil) { task in
-      BackgroundDownloadService.shared.handleIssueCheckTask(task: task as! BGAppRefreshTask)
+      BackgroundDownloadService.shared.handleIssueCheckTask(task: task)
     }
   }
   

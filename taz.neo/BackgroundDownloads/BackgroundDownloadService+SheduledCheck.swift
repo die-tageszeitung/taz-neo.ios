@@ -23,7 +23,7 @@ extension BackgroundDownloadService {
 
 ///Mark: - Background Task Handling
 extension BackgroundDownloadService {
-  func handleIssueCheckTask(task: BGAppRefreshTask) {
+  func handleIssueCheckTask(task: BGTask) {
     scheduleBackgroundIssueCheck() // Schedule the next background task
     
     log("Start timed check \(lastFullyDownloadedIssueDate?.short.prepend("Latest Issue Date: ") ?? "")")
@@ -31,7 +31,7 @@ extension BackgroundDownloadService {
     let queue = OperationQueue()
     queue.maxConcurrentOperationCount = 1
     
-    task.expirationHandler = {
+    (task as? BGProcessingTask ?? task as? BGAppRefreshTask)?.expirationHandler = {
       queue.cancelAllOperations()
     }
     
