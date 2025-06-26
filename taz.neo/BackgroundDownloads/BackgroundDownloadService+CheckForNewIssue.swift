@@ -109,11 +109,10 @@ fileprivate extension BackgroundDownloadService {
       log("""
           ...checkForNewIssue 
              autoload: \(autoloadOnlyInWLAN ? "only in WLAN" : "in any network")
-             isMobile connected/isConnected: \(feederContext.netAvailability.isMobile)/\(feederContext.netAvailability.isConnected)
              Triggered by \(isPush ? "Push" : "BackgroundTask")
              Latest known publication date: \(feederContext.latestPublicationDate?.short ?? "none")
           """)
-      
+      ///   isMobile connected/isConnected: \(feederContext.netAvailability.isMobile)/\(feederContext.netAvailability.isConnected) did not work!
       // MARK: - Fetch & Validate Issue
       ///if latest local known issue is from 1.7.25 and this is also the latest on server, the server returns 1.7. again
       let (issue, ressourcesUrl) = try await fetchFromRemote()
