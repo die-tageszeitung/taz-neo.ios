@@ -75,7 +75,12 @@ extension FeederContext {
                 name: issue.date.ISO8601,
                 dimensions: Usage.event.issue.downloadDim(pdf: isPages,
                                                            audio: withAudio))
-    if issue.isDownloading || BackgroundDownloadService.shared.hasActiveDownload(for: issue.date) {
+    
+    func shouldStopActiveBackgroundDownloads() -> Bool {
+      return netAvailability.isMobile && autoloadOnlyInWLAN
+    }
+    
+    if issue.isDownloading || BackgroundDownloadService.shared.hasActiveDownload(for: issue.date, stopActiveDownloads: shouldStopActiveBackgroundDownloads()) {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
         self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically, force: force, withAudio: withAudio)
       }

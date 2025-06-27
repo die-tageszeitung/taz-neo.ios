@@ -20,7 +20,7 @@ extension BackgroundDownloadService {
   ///   - stopInactiveDownloads: A Boolean value indicating whether to stop inactive downloads during the check. Defaults to `true`.
   ///
   /// - Returns: `true` if an active download exists for the given issue date; otherwise, `false`.
-  func hasActiveDownload(for issueDate: Date, stopInactiveDownloads: Bool = true) -> Bool {
+  func hasActiveDownload(for issueDate: Date, stopInactiveDownloads: Bool = true, stopActiveDownloads: Bool) -> Bool {
     guard let url = getUrl(forDateKey: issueDate.ISO8601) else {
       log("has NO Download Data for: \(issueDate.ISO8601)")
       return false
