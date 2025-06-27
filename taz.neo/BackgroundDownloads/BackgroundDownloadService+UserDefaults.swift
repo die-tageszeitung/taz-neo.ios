@@ -91,6 +91,31 @@ extension BackgroundDownloadService {
     UserDefaults.standard.getDownloadDict()[url]
   }
   
+  /// Returns the `DownloadData` associated with the given ISO date key (e.g., "2025-05-15").
+  ///
+  /// This method is used to retrieve the download data for a specific issue date, typically
+  /// to check download progress or metadata related to that date.
+  ///
+  /// - Parameter key: The ISO-formatted date string used as the lookup key.
+  /// - Returns: The `DownloadData` associated with the given date key, or `nil` if not found.
+  func getDownloadData(forDateKey key: String) -> DownloadData? {
+      let dict = UserDefaults.standard.getDownloadDict()
+      return dict.first { $0.value.isoDateKey == key }?.value
+  }
+  
+  /// Retrieves the download URL key for a given ISO-formatted date key.
+  ///
+  /// This method searches the stored background download dictionary for the first entry
+  /// where the associated `DownloadData` has a matching `isoDateKey`, and returns the
+  /// corresponding dictionary key (typically a download URL).
+  ///
+  /// - Parameter key: The ISO date key (e.g., "2025-06-27") to search for.
+  /// - Returns: The download URL string associated with the date key, or `nil` if not found.
+  func getUrl(forDateKey key: String) -> String? {
+      let dict = UserDefaults.standard.getDownloadDict()
+      return dict.first { $0.value.isoDateKey == key }?.key
+  }
+  
   func removeDownloadData(forDownloadUrl url: String) {
     var current = UserDefaults.standard.getDownloadDict()
     current.removeValue(forKey: url)

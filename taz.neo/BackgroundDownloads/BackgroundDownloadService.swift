@@ -46,6 +46,8 @@ class BackgroundDownloadService: DoesLog {
   
   var publicationSchedule: PublicationSchedule = .taz //just initial value
   
+  var preventDownloadOnce = false
+  
   var feederContext: FeederContext? {
     TazAppEnvironment.sharedInstance.feederContext
   }

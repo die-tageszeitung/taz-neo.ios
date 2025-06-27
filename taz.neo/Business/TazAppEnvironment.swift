@@ -629,6 +629,7 @@ extension TazAppEnvironment {
           self?.playBookmarks()
         }
       case Shortcuts.playLatestIssue.type:
+        BackgroundDownloadService.shared
         if UIApplication.shared.applicationState == .active {
           playLatestIssue()
           return
