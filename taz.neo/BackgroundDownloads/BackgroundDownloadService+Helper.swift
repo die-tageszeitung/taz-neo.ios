@@ -25,7 +25,7 @@ extension BackgroundDownloadService {
       log("has NO Download Data for: \(issueDate.ISO8601)")
       return false
     }
-    let hasActiveDownload = BackgroundSession.hasActiveDownload(for: url, cancelIfSuspended: stopInactiveDownloads)
+    let hasActiveDownload = BackgroundSession.hasActiveDownload(for: url, cancelIfSuspended: stopInactiveDownloads, cancelActiveDownloads: stopActiveDownloads)
     log("has Download Data for: \(issueDate.ISO8601) isActive: \(hasActiveDownload)")
     if hasActiveDownload == false { removeDownloadData(forDownloadUrl: url) }
     

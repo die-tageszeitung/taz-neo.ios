@@ -77,6 +77,7 @@ extension FeederContext {
                                                            audio: withAudio))
     
     func shouldStopActiveBackgroundDownloads() -> Bool {
+      ///located here (and not in BG Download Service) to hopefully not risk race condition and crash in init netAvailability
       return netAvailability.isMobile && autoloadOnlyInWLAN
     }
     
