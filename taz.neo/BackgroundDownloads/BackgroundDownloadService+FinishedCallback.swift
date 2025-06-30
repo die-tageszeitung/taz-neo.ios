@@ -33,17 +33,20 @@ extension BackgroundDownloadService {
       return
     }
     
+    if downloadUrl == updatedRessourcesUrl {
+      #warning("TODO")
+      log("...downbloaded Ressources handled when db actions / or on App REsume")
+      updatedRessourcesUrl = ""
+      handlePendingTasks()
+      return
+    }
+    
     ///** lookup for additional Data in Defaults
     guard let downloadData = getDownloadData(forDownloadUrl: downloadUrl) else {
       log("...No DownloadData for url: \(downloadUrl). Aborting... maybe audio Downbload or Ressources (TBD)")
       return
     }
-    
-    if downloadData.isRessourcesDownload {
-      log("...Downbloaded Ressources ToDo ...⚠️⚠️⚠️⚠️⚠️")
-      return
-    }
-    
+        
     guard downloadData.isDownloaded == false else {
       log("⚠️WARNING: ...already downloaded, nothing to do")
       return
@@ -64,6 +67,8 @@ extension BackgroundDownloadService {
       handlePendingTasks()
       return
     }
+    ///App Restarted by system!?
+    log("...issue NOT FOUND in tempStorage, try to fetch from database")
        
     ///** collect some environment
     guard let feederContext = feederContext,
@@ -83,7 +88,7 @@ extension BackgroundDownloadService {
         self?.handlePendingTasks()
         return
       }
-      
+      self?.log("issue not found in database, restore from JSON")
       ///** No valid Entry found, load from JSON ...in a detatched Task
       Task.detached { [weak self] in
         await self?

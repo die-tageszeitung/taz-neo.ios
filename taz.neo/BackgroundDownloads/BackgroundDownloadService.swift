@@ -34,6 +34,12 @@ class BackgroundDownloadService: DoesLog {
   @Default("autoloadPublicationType")
   var autoloadPublicationType: String
   
+  @Default("updatedRessourcesUrl")
+  var updatedRessourcesUrl: String
+  
+  @Default("updatedRessourcesLocalPath")
+  var updatedRessourcesLocalPath: String
+  
   /// The date of the last issue that was fully downloaded based on the user's auto-download settings.
   ///
   /// This value reflects the latest issue for which all enabled types (PDF and/or audio)

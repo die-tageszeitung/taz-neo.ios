@@ -115,16 +115,11 @@ fileprivate extension BackgroundDownloadService {
       ///   isMobile connected/isConnected: \(feederContext.netAvailability.isMobile)/\(feederContext.netAvailability.isConnected) did not work!
       // MARK: - Fetch & Validate Issue
       ///if latest local known issue is from 1.7.25 and this is also the latest on server, the server returns 1.7. again
-      let (issue, ressourcesUrl) = try await fetchFromRemote()
+      let issue = try await fetchFromRemote()
       log("...fetched issue: \(issue.date.short)")
       log("...required Ressources: \(issue.minResourceVersion) localResources: \(feederContext.defaultFeed.feeder.resourceVersion) updateRequired: \(issue.minResourceVersion > feederContext.defaultFeed.feeder.resourceVersion)")
       
-       ///Where to download?
-      ///feederContext.storedFeeder.resourcesDir.path
-      ///or Dir.
-      downloadRessourcesIfNeeded(from: ressourcesUrl,
-                                 isBackground: isBackground,
-                                 targetPath:  Dir.tmpPath)
+      downloadRessourcesIfNeeded(isBackground: isBackground)
       
       guard let zipUrl = issue.zipUrl else {
         log("latestIssue baseUrl: \(issue.baseUrl) zipName: \(issue.zipName ?? "-")")
@@ -232,7 +227,9 @@ fileprivate extension BackgroundDownloadService {
   /// fetches latest issue and publicationDates from remote
   /// throws an error, if fetched issue is not newer than last local
   /// - Returns: the latest issue, the current ressourcesUrl if update required
-  func fetchFromRemote() async throws -> (Issue, String?) {
+  /// ressourcesUrl brauche ich nicht mehr zurückgeben, das mache ich über die userDefault Variablen
+  
+  func fetchFromRemote() async throws -> Issue {
     //add to publicationsdates and issues, returns latest issue
     
     guard let feederContext = feederContext else {
@@ -251,34 +248,21 @@ fileprivate extension BackgroundDownloadService {
                           latestKnownPublicationDate: lastLocalIssueDate,
                           returnOnMain: false,
                           isBackGround: true)
-    let feed = response.0//feed
+    let fetchedFeed = response.0//feed
     
-    if feed.issues?.count ?? 0 > 1  {
+    if fetchedFeed.issues?.count ?? 0 > 1  {
       log("WARNING: more than one issue found, using the first one")
     }
     
-    guard let issue = feed.issues?.first else {
+    guard let issue = fetchedFeed.issues?.first else {
       throw BackgroundDownloadError("No Issue found!")
     }
     
-    print(">>> self.gqlFeeder.resVersionFile: \((feed.feeder as? GqlFeeder)?.resourceZipUrl ?? "-")")
+    print(">>> self.gqlFeeder.resVersionFile: \((fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl ?? "-")")
     
-    let resourcesUpdateRequired
-    = issue.minResourceVersion > feederContext.defaultFeed.feeder.resourceVersion
-    var resourcesZipUrl:String? = (feed.feeder as? GqlFeeder)?.resourceZipUrl
-    
-    if resourcesUpdateRequired && resourcesZipUrl == nil {
-      log("❌ WARNING: Need to upddate resources but missing zipURL!")
-    }
-    else if resourcesUpdateRequired {
-      log("⚠️ Need to upddate resources from \(resourcesZipUrl ?? "-")")
-    }
-    else {
-      log("No Resources Update required. Resources zip URL: \(resourcesZipUrl ?? "-")")
-      #warning("Uncomment the following line for Release")
-//      resourcesZipUrl = nil //TODO: Disabled for Callback&Download Test
-    }
-    
+    prepareIfResoucesUpdateRequired(issueMinResourceVersion: issue.minResourceVersion,
+                                    fetchedResourceUrl: (fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl, storedFeed: feederContext.defaultFeed)
+  
     /// Checks whether the server-provided issue is newer than the most recent local one.
     ///
     /// The most recent local issue may come from the database (already downloaded)
@@ -299,42 +283,12 @@ fileprivate extension BackgroundDownloadService {
     }
     //wie passt publicationDate und issue zusammen?...egal solange das publicationDate existiert kann ich diese persitieren, es werden nur nicht in der db bekannte pubDates in die db übernommen
     
-    tempStorage.add(feed.publicationDates ?? [])
+    tempStorage.add(fetchedFeed.publicationDates ?? [])
     try tempStorage.add(issue)
-    return (issue, resourcesZipUrl)
+    return issue
   }
 }
   
-extension BackgroundDownloadService {
-  func downloadRessourcesIfNeeded(from zipUrl:String?, isBackground:Bool, targetPath:String) {
-    guard let zipUrl = zipUrl else { return }
-    
-    if BackgroundSession.search(url: zipUrl) {
-      ///already downloading, maybe a restart to trigger is required
-      do { try restartAll() }
-      catch { log("restartAll failed: \(error)") }
-      return
-    }
-    
-    do {
-      let resourcesDownload
-      = try BackgroundSession(zipUrl, asBackgroundSession: isBackground) { [weak self] url, err in
-        self?.log("resourcesDownload finished")
-        self?.dlCallback(downloadUrl: zipUrl, err: err)
-      }
-      resourcesDownload.allowMobile = !autoloadOnlyInWLAN
-      resourcesDownload.waitForAvailability = true
-      resourcesDownload.downloadZip(toDir: targetPath)
-      saveDownloadData(forDownloadUrl: zipUrl,
-                       date: Date(timeIntervalSince1970: 0),
-                       downloadId: DownloadData.ressourcesDownloadID,
-                       startTime: 0)
-    }
-    catch { log("❌ downloadRessources failed: \(error)")  }
-  }
-}
-
-
 extension BackgroundDownloadService {
   func restartAll() throws {
     log("restartAllArchivedDownloads")
@@ -351,6 +305,8 @@ fileprivate extension BackgroundDownloadService {
   
   /// Returns the most recent available issue date from the local data sources, or `nil` if none are available.
   /// - Throws: An error if accessing the database fails.
+  ///
+  /// - Attention: lastFromJsonFile uses the last json File, there are probably multiple json files, the json files are stored in the issue folder e.g. 2025-07-01
   ///
   /// This property checks three possible sources in the following order:
   /// - `lastFromDatabase`: The latest issue date stored in the local database.

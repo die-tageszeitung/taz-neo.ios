@@ -10,8 +10,14 @@ import Foundation
 
 /// MARK: - Application Restart Handling
 extension BackgroundDownloadService {
-  
+  ///fast & lightweight...do not load from json!
   func handleEnterForeground() {
+    if hasDownloadedRessources {
+      //  FeederContext+ResourcesUpdate.swift
+      ///private func loadResources(res: Resources, fromCacheDir: String? = nil) {
+      ///**missing Resources!!**
+    }
+    
     if tempStorage.hasActiveDownloads {
       log("App entered foreground, execute pending tasks...")
       handlePendingTasks()

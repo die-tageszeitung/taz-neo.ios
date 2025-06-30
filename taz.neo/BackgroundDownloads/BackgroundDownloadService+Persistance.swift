@@ -155,6 +155,35 @@ extension BackgroundDownloadService {
   
   /// execute tasks that need to be performed to persist data, generate facsimile or inform UI
   func handlePendingTasks() {
+    ///Best Place to apply resources update...or on resume, not only on app Restart == not enought
+    ///resume...downloadDateKey...dow
+    ///die ressourcen sind aktuell im UserDefaults Dict
+    ///werden rausgeholt, wenn download finished:
+    ///Q: wann werden sie da wieder rausgeschmissen?
+    ///Q: wann werden sie in die DB geschrieben?
+    /// A: bei App-Resume App Neustart
+    /// => um sie bei App-Resume in die DB zu schreiben brauche ich einen "Schnellzugriff!"
+    /// BackgroundDownloadsTempStorage   var tempStorage = BackgroundDownloadsTempStorage()
+    /// ...ist an die Instanz gekoppelt
+    /// ...d.h. nach erzwungenem neustart nicht mehr da
+    ///
+    /// aktuell speuichere ich in
+    /// - doCheckForNewIssue
+    /// > fetchFromRemote
+    /// > downloadRessourcesIfNeeded(from zipUrl:String?, isBackground:Bool, targetPath:String)
+    /// > saveDownloadData == UserDefaults URL ...
+    /// ich habe aber nur EINE aktuelle Ressources (die haben immer die gleiche Remote URL und sind rückwärts kompatibel!)
+    /// ...also nicht mehr in die DownloadData packen sondern einen direkten string ResourcesDownloadURL
+    /// ...wenn download finished ...early exiit => und in diesen wert reinschreiben, beim nächsten Start aktualisiere Datenbank
+    /// dann auf leerstring setzen (nachDB save)
+    ///
+    /// jetzt wohin downloaden?
+    /// .../taz/taz/updatedResources
+    ///
+    /// save bei feed wechsel? Ja!? wenn ich die lokale URL reinschreibe suffix vergleiche
+    /// ...deutlich besser aber nicht perfekt...müsste dann speziell nochmal getestet werden
+    
+    
     guard saveDatabase || tempStorage.publicationDates.count > 0 else {
       log("WARNING?::No Pending Tasks available skip!")
       return
@@ -170,7 +199,9 @@ extension BackgroundDownloadService {
     let finishedStoredIssues = persistCurrentIssues()
     ///1st persist existing if available > this should delete used json then load jsons available
     ///das mach ich doch beim neu erstellen des FeederContext.  => brauche ich hier nicht.
-//    persistJsonData()
+    ///
+    #warning("TODO")
+    //    persistJsonData()...nö nicht (mehr?)
     
     if let storedFeed = feederContext?.defaultFeed,
        tempStorage.publicationDates.count > 0
@@ -185,6 +216,10 @@ extension BackgroundDownloadService {
     else {
       log("WARNING CANNOT PERSIST \(tempStorage.publicationDates.count) PUBLICATIONDATES")
     }
+    
+    ///resources Update
+#warning("TODO")
+    
     
     if saveDatabase {
       log("...save database")

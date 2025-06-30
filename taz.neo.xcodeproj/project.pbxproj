@@ -104,6 +104,8 @@
 		777DF4412DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */; };
 		777DF4422DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */; };
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
+		778599B42E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */; };
+		778599B52E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */; };
 		778F741825CC60C80017E426 /* TazTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* TazTextField.swift */; };
 		778F741B25CC61340017E426 /* TazTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* TazTextView.swift */; };
 		779229502DD5E85800A8AB81 /* BackgroundDownloadService+UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */; };
@@ -424,6 +426,7 @@
 		777DF43D2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+AppResume.swift"; sourceTree = "<group>"; };
 		777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+Helper.swift"; sourceTree = "<group>"; };
 		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
+		778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+RessourcesUpdate.swift"; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* TazTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* TazTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazTextView.swift; sourceTree = "<group>"; };
 		7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+UserDefaults.swift"; sourceTree = "<group>"; };
@@ -716,6 +719,7 @@
 				777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */,
 				77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */,
 				775153DE2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift */,
+				778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */,
 				77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */,
 				7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */,
 				7700E0C82E0030B000AE4151 /* PublicationSchedule.swift */,
@@ -1272,6 +1276,7 @@
 				AE5131712AFBCADB002289E8 /* WebViewTests.swift in Sources */,
 				77E6E99B2CF850F300430B83 /* TableSectionSeperatorFooterView.swift in Sources */,
 				AE5131722AFBCADB002289E8 /* Usage.swift in Sources */,
+				778599B42E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */,
 				AE5131732AFBCADB002289E8 /* IssueTilesCvcCell.swift in Sources */,
 				AE5131742AFBCADB002289E8 /* DeviceData.swift in Sources */,
 				77ABEEC32D3AE73F00D0F063 /* PdfGenerationService.swift in Sources */,
@@ -1482,6 +1487,7 @@
 				773500B12A1C0A7C00678647 /* IssueTilesCVC.swift in Sources */,
 				779DE96126FA3D790056187B /* SettingsVC.swift in Sources */,
 				006E17E924D418090092DC0D /* FormComponents.swift in Sources */,
+				778599B52E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */,
 				004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */,
 				AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */,
 				77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */,
