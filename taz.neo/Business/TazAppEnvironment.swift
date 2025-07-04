@@ -29,23 +29,18 @@ class TazAppEnvironment: NSObject, DoesLog {
       let spinner = UIActivityIndicatorView()
       view.addSubview(spinner)
       spinner.centerAxis()
-      spinner.color = .white
-      spinner.startAnimating()
+      spinner.startAnimating()//spinner startet initial auf langsamen Gerät nicht
       let lb = UILabel()
-      lb.isHidden = true
-      lb.text = "Verbinde..."
+      lb.text = "Aktualisiere Daten..."
       lb.textAlignment = .center
       view.addSubview(lb)
       lb.numberOfLines = 0
       pin(lb.left, to: view.left, dist: 10.0)
       pin(lb.right, to: view.right, dist: -10.0)
-      lb.contentFont(size: 12.0)
+      lb.contentFont(size: 13.0)
       lb.textColor = .lightGray
       pin(lb.top, to: spinner.bottom, dist: 20.0)
-      onMain(after: 2.0) {
-        lb.showAnimated()
-      }
-      onMain(after: 9.0) {
+      onMain(after: 8.0) {
         lb.text = "Ups, das dauert aber heute lang!\n\nBitte überprüfen Sie Ihre Internetverbindung oder tippen Sie bitte hier, um uns einen Fehler zu melden."
         lb.onTapping {_ in
           TazAppEnvironment.sharedInstance.showFeedbackErrorReport(screenshot: UIWindow.screenshot)
