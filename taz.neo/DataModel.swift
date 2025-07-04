@@ -1262,7 +1262,7 @@ public protocol Feeder: ToString, AnyObject {
                     closure: @escaping(Result<String,Error>)->())
   
   /// Request list of resource files
-  func resources(closure: @escaping(Result<Resources,Error>)->())  
+  func resources(closure: @escaping(Result<Resources,Error>, Data?)->())  
 } // Feeder
 
 extension Feeder {

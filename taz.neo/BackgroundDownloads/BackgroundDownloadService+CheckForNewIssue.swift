@@ -115,7 +115,7 @@ fileprivate extension BackgroundDownloadService {
       ///   isMobile connected/isConnected: \(feederContext.netAvailability.isMobile)/\(feederContext.netAvailability.isConnected) did not work!
       // MARK: - Fetch & Validate Issue
       ///if latest local known issue is from 1.7.25 and this is also the latest on server, the server returns 1.7. again
-      let issue = try await fetchFromRemote()
+      let issue = try await fetchFromRemote(isBackground: isBackground)
       log("...fetched issue: \(issue.date.short)")
       log("...required Ressources: \(issue.minResourceVersion) localResources: \(feederContext.defaultFeed.feeder.resourceVersion) updateRequired: \(issue.minResourceVersion > feederContext.defaultFeed.feeder.resourceVersion)")
       
@@ -229,7 +229,7 @@ fileprivate extension BackgroundDownloadService {
   /// - Returns: the latest issue, the current ressourcesUrl if update required
   /// ressourcesUrl brauche ich nicht mehr zurückgeben, das mache ich über die userDefault Variablen
   
-  func fetchFromRemote() async throws -> Issue {
+  func fetchFromRemote(isBackground: Bool) async throws -> Issue {
     //add to publicationsdates and issues, returns latest issue
     
     guard let feederContext = feederContext else {
@@ -247,7 +247,7 @@ fileprivate extension BackgroundDownloadService {
                           withAudio: autoloadAudio,
                           latestKnownPublicationDate: lastLocalIssueDate,
                           returnOnMain: false,
-                          isBackGround: true)
+                          isBackGround: isBackground)
     let fetchedFeed = response.0//feed
     
     if fetchedFeed.issues?.count ?? 0 > 1  {
@@ -261,7 +261,8 @@ fileprivate extension BackgroundDownloadService {
     print(">>> self.gqlFeeder.resVersionFile: \((fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl ?? "-")")
     
     prepareIfResoucesUpdateRequired(issueMinResourceVersion: issue.minResourceVersion,
-                                    fetchedResourceUrl: (fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl, storedFeed: feederContext.defaultFeed)
+                                    fetchedResourceUrl: (fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl, feederContext: feederContext,
+                                    isBackground: isBackground)
   
     /// Checks whether the server-provided issue is newer than the most recent local one.
     ///

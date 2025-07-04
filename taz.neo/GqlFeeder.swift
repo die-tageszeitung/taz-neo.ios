@@ -1133,9 +1133,9 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   /// Requests a ResourceList object from the server
-  public func resources(fromData: Data? = nil, closure: @escaping(Result<Resources,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
-      closure(.failure(fatal("Not connected"))); return
+  public func resources(fromData: Data? = nil, closure: @escaping(Result<Resources,Error>, Data?)->()) {
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected")), nil); return
     }
     let request = """
       resources: product {
@@ -1143,7 +1143,7 @@ open class GqlFeeder: Feeder, DoesLog {
       }
     """
     gqlSession.query(graphql: request, type: [String:GqlResources].self,
-                     fromData: fromData) { (res, _) in
+                     fromData: fromData) { (res, data) in
       var ret: Result<Resources,Error>
       switch res {
       case .success(let str): 
@@ -1152,11 +1152,11 @@ open class GqlFeeder: Feeder, DoesLog {
         ret = .success(resources)
       case .failure(let err):   ret = .failure(err)
       }
-      closure(ret)
+      closure(ret, data)
     }
   }
   
-  public func resources(closure: @escaping (Result<Resources, Error>) -> ()) {
+  public func resources(closure: @escaping (Result<Resources, Error>, Data?) -> ()) {
     resources(fromData: nil, closure: closure)
   }
 

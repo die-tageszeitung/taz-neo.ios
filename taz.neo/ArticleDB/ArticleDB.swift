@@ -2683,8 +2683,8 @@ public final class StoredFeeder: Feeder, StoredObject {
     closure(.failure(error("Can't authenticate at DB Feeder")))
   }
   
-  public func resources(closure: @escaping(Result<Resources,Error>)->()) {
-    closure(.failure(error("Currently no resources available")))
+  public func resources(closure: @escaping(Result<Resources,Error>, Data?)->()) {
+    closure(.failure(error("Currently no resources available")), nil)
   }
   
 } // StoredFeeder

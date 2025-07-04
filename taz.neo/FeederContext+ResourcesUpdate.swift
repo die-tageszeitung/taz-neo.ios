@@ -35,14 +35,14 @@ extension FeederContext {
       return
     }
     // update from server needed
-    gqlFeeder.resources { [weak self] result in
+    gqlFeeder.resources { [weak self] result, data in
       guard let self = self, let res = result.value() else { return }
       self.loadResources(res: res)
     }
   }
   
   /// Load resources from server with optional cache directory
-  private func loadResources(res: Resources, fromCacheDir: String? = nil) {
+  func loadResources(res: Resources, fromCacheDir: String? = nil, completion: (() -> Void)? = nil) {
     let previous = StoredResources.latest()
     let resources = StoredResources.persist(object: res)
     self.dloader.createDirs()
@@ -66,6 +66,7 @@ extension FeederContext {
         ArticleDB.save()
       }
       self.isUpdatingResources = false
+      completion?()
     }
   }
   
