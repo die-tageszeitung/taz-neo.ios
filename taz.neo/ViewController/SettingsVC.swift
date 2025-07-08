@@ -245,9 +245,12 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   lazy var testServerCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Testserver",
+                  detailText: "nur für @taz.de Accounts",
                   initialValue: useTestServer,
                   onChange: {[weak self] newValue in
-    self?.useTestServer = newValue })
+    self?.useTestServer = newValue
+    Toast.show("Zum Anwenden: App neu staren!")
+  })
   
   
   
