@@ -117,8 +117,7 @@ fileprivate extension BackgroundDownloadService {
       ///if latest local known issue is from 1.7.25 and this is also the latest on server, the server returns 1.7. again
       let issue = try await fetchFromRemote(isBackground: isBackground)
       log("...fetched issue: \(issue.date.short)")
-      log("...required Ressources: \(issue.minResourceVersion) localResources: \(feederContext.defaultFeed.feeder.resourceVersion) updateRequired: \(issue.minResourceVersion > feederContext.defaultFeed.feeder.resourceVersion)")
-      
+ 
       downloadRessourcesIfNeeded(isBackground: isBackground)
       
       guard let zipUrl = issue.zipUrl else {
@@ -236,6 +235,9 @@ fileprivate extension BackgroundDownloadService {
       throw BackgroundDownloadError("Currently no feederContext available!")
     }
     
+    let lastLocalResourceVersion = feederContext.defaultFeed.feeder.resourceVersion//remember after fetch its updated!
+    log("lastLocalResourceVersion: \(lastLocalResourceVersion)")
+    
     let lastLocalIssueDate = try lastLocalIssueDate(feederContext: feederContext)
     log("lastLocalIssueDate: \(lastLocalIssueDate?.short ?? "-")")
     
@@ -261,7 +263,9 @@ fileprivate extension BackgroundDownloadService {
     print(">>> self.gqlFeeder.resVersionFile: \((fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl ?? "-")")
     
     prepareIfResoucesUpdateRequired(issueMinResourceVersion: issue.minResourceVersion,
-                                    fetchedResourceUrl: (fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl, feederContext: feederContext,
+                                    lastLocalResourceVersion: lastLocalResourceVersion,
+                                    fetchedResourceUrl: (fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl,
+                                    feederContext: feederContext,
                                     isBackground: isBackground)
   
     /// Checks whether the server-provided issue is newer than the most recent local one.

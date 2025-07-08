@@ -15,17 +15,17 @@ extension BackgroundDownloadService {
   static let updatedRessourcesDir: String = "updatedRessources"
   
   func prepareIfResoucesUpdateRequired(issueMinResourceVersion: Int,
+                                       lastLocalResourceVersion: Int,
                                        fetchedResourceUrl: String?,
                                        feederContext: FeederContext,
                                        isBackground: Bool) {
     
     guard let storedFeed = feederContext.defaultFeed else { return }
     
-    #warning("uncomment the following lines for Release!")
-//    guard issueMinResourceVersion > storedFeed.feeder.resourceVersion else {
-//      log("No Ressource update required")
-//      return
-//    }
+    guard issueMinResourceVersion > lastLocalResourceVersion else {
+      log("No Ressource update required")
+      return
+    }
     
     guard let fetchedResourceUrl = fetchedResourceUrl,
           fetchedResourceUrl.length > 6 else {
@@ -79,6 +79,7 @@ extension BackgroundDownloadService {
     
     guard let file = updatedRessourcesLocalJsonFile, file.exists else {
       log("ERROR: Missing Ressources Data File")
+      ///updatedRessourcesLocalPath was not empty, but the file did not exist. maybe deleted?
       completion()
       return
     }
@@ -101,9 +102,15 @@ extension BackgroundDownloadService {
     
     // callOnce Wrapper for completion
     var didCallCompletion = false
-    func callOnce() {
+    func callOnce(_ msg: String) {
       guard !didCallCompletion else { return }
       didCallCompletion = true
+      if updatedRessourcesLocalPath.length > 5 {
+        Dir(dir: updatedRessourcesLocalPath, fname: "").remove()
+        log("deleteed updatedRessourcesLocalPath: \(updatedRessourcesLocalPath)")
+      }
+      updatedRessourcesLocalPath = ""
+      log("... done \(msg)")
       DispatchQueue.main.async {
         completion()
       }
@@ -111,21 +118,21 @@ extension BackgroundDownloadService {
     
     let timeout = DispatchWorkItem {[weak self] in
       self?.log("⚠️ Timeout: Resource update took too long, continuing anyway.")
-      callOnce()
+      callOnce("Canceled - Timeout")
     }
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: timeout)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: timeout)
     feederContext.gqlFeeder.resources(fromData: file.data) {[weak self] res, _ in
       switch res {
         case .success(let resources):
           feederContext.loadResources(res: resources, fromCacheDir: self?.updatedRessourcesLocalPath) {
             timeout.cancel()
-            callOnce()
+            callOnce("success")
           }
         case .failure(let err):
           self?.log("Failed to load resources with error: \(err)")
           timeout.cancel()
-          callOnce()
+          callOnce("failed")
       }
     }
   }

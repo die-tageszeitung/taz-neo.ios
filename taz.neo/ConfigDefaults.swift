@@ -52,11 +52,7 @@ private let configValues = [
   "showPdfInfoToast" : "true",
   // need to show Bottom Tiles Animation
   "showBottomTilesAnimation" : "true",
-  "autoloadOnlyInWLAN2" : "true",//renamed due previous value was false
   "showBarsOnContentChange" : "false",
-  "autoloadPdf" : "false",
-  "autoloadAudio" : "false",
-  "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
   // show teaser text in bookmarks list
   "smartBackFromArticle" : "false",
@@ -67,6 +63,17 @@ private let configValues = [
   "autoPlayNext" : "true",
   "playbackRate": "1.0",
   "edgeTapToNavigate" : "false",
+  /**===AUTODOWNLOAD SETTINGS FOR RESET===**/
+  "autoloadOnlyInWLAN2" : "true",//renamed due previous value was false
+  "autoloadPdf" : "false",
+  "autoloadAudio" : "false",
+  "autoloadNewIssues" : "true",
+  /**===AUTODOWNLOAD SETTINGS FOR ACTIVE DOWNLOADS====**/
+  "autoloadPublicationType" : nil,
+  "updatedRessourcesUrl" : nil,
+  "updatedRessourcesLocalPath" : nil,
+  "BackgroundSessions" : nil,
+  /**======**/
   "edgeTapToNavigateVisible2" : "false",
   // coachmark defaults
   "showCoachmarks" : Device.isSimulator ? "false" : "true",

@@ -20,7 +20,15 @@ extension FeederContext {
     }
     isUpdatingResources = true
     let version = (toVersion < 0) ? storedFeeder.resourceVersion : toVersion
-    if StoredResources.latest() == nil { loadBundledResources(/*setVersion: 1*/) }
+    /// Initially apply bundled resources.
+    /// Always use bundled resources from the live server (even in alpha builds).
+    /// Do not apply newer bundled resources when using the test server!
+    /// The test server currently has an older bundled resources version (213),
+    /// while the live server and the bundled resources has version 216 as of 2025-07-07.
+    if StoredResources.latest() == nil
+        && Defaults.useTestServer == false {
+      loadBundledResources(/*setVersion: 1*/)
+    }
     if let latest = StoredResources.latest() {
       if latest.resourceVersion >= version, latest.isComplete {
         isUpdatingResources = false
@@ -35,6 +43,7 @@ extension FeederContext {
       return
     }
     // update from server needed
+    log("update Resources from server needed; Application State: \(UIApplication.shared.stateDescription)")
     gqlFeeder.resources { [weak self] result, data in
       guard let self = self, let res = result.value() else { return }
       self.loadResources(res: res)
@@ -43,6 +52,7 @@ extension FeederContext {
   
   /// Load resources from server with optional cache directory
   func loadResources(res: Resources, fromCacheDir: String? = nil, completion: (() -> Void)? = nil) {
+    log("loadResources for Version \(res.resourceVersion) from: \(fromCacheDir == nil ? "server" : "local dir") Application State: \(UIApplication.shared.stateDescription)")
     let previous = StoredResources.latest()
     let resources = StoredResources.persist(object: res)
     self.dloader.createDirs()
