@@ -28,6 +28,8 @@ class TazAppEnvironment: NSObject, DoesLog {
       self.view.backgroundColor = .black
       let spinner = UIActivityIndicatorView()
       view.addSubview(spinner)
+      spinner.style = .medium
+      spinner.color = .white
       spinner.centerAxis()
       spinner.startAnimating()//spinner startet initial auf langsamen Gerät nicht
       let lb = UILabel()
