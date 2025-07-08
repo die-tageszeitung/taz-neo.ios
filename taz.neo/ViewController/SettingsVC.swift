@@ -913,12 +913,19 @@ extension SettingsVC {
       cells.append(contentChangeSettingCellALPHA)
       cells.append(tabbarInSectionCellALPHA)
     }
-    
-    if DefaultAuthenticator.isTazLogin || isSpecialSettingAvailable {
+
+    if DefaultAuthenticator.isTazLogin
+    || isSpecialSettingAvailable
+    {
       cells.append(defaultToastsDisabledCell)
-      cells.append(testServerCell)
     }
     
+    if DefaultAuthenticator.isTazLogin
+        || isSpecialSettingAvailable
+        || useTestServer {
+      cells.append(testServerCell)
+    }
+
     return cells
   }
   
