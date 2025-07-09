@@ -295,10 +295,10 @@ extension BackgroundDownloadService {
           _ = storedIssue.pages?.first?.facsimile
 
           informUIAfterSave = true
-          log("✅ Issue marked as finished.")
+          log("✅ Issue \(issue.date.short) is marked as finished.")
         scheduleBackgroundIssueCheck()
       } else {
-        log("Issue is not complete...")
+        log("Issue \(issue.date.short) is not complete...")
       }
       
       return storedIssue
