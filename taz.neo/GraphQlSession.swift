@@ -60,16 +60,17 @@ public class GraphQlError: LocalizedError, Codable, CustomStringConvertible {
 } // GraphQlError
 
 /// A class to read/write from GraphQL servers
-open class GraphQlSession: HttpSession {
+public final class GraphQlSession: HttpSession {
   
   public override var isDebugLogging: Bool { false }
   
   /// The Server URL to get data from
-  public var url: String?
+  public let url: String?
   
   /// The authentication token to use
   public var authToken: String? {
-    didSet { header["X-tazAppAuthKey"] = authToken }
+      get { header["X-tazAppAuthKey"] }
+      set { header["X-tazAppAuthKey"] = newValue }
   }
   
   public init(_ url: String, authToken: String? = nil) {
