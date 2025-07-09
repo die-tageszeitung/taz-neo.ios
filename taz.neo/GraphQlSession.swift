@@ -75,9 +75,7 @@ public final class GraphQlSession: HttpSession {
   
   public init(_ url: String, authToken: String? = nil) {
     self.url = url
-//    let name = isBackground ? "de.taz.backgound.downloadSession" : "GQL:\(url)"
-    #warning("BGDL: init with:  isBackground: isBackground may required to hate BG Session Config")
-    super.init(name: "de.taz.backgound.downloadSession")
+    super.init(name: "GQL:\(url)")
     if let authToken {
       self.authToken = authToken
       header["X-tazAppAuthKey"] = authToken
