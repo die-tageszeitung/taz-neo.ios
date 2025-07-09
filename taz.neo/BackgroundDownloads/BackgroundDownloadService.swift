@@ -40,9 +40,6 @@ class BackgroundDownloadService: DoesLog {
   @Default("updatedRessourcesLocalPath")
   var updatedRessourcesLocalPath: String
   
-  ///prevent duplicate handlePendingTasksOnMain Calls
-  var isUpdatingResources = false
-  
   /// The date of the last issue that was fully downloaded based on the user's auto-download settings.
   ///
   /// This value reflects the latest issue for which all enabled types (PDF and/or audio)

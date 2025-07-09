@@ -63,78 +63,51 @@ extension BackgroundDownloadService {
     }
   }
   
-  /// Checks whether updated resources need to be processed.
-  /// If so, performs the update asynchronously and invokes the callback when finished.
-  /// If the update takes longer than 2 seconds, a timeout callback is triggered.
-  ///
-  /// - Parameter completion: Called after resource update handling (if any).
-  func updateRessourcesIfNeeded(completion: @escaping () -> Void){
-    guard updatedRessourcesUrl.isEmpty
-            && updatedRessourcesLocalPath.length > 6 else {
-      //TODO:  Background Download log>debug
-      log("No need to update Ressources due \(updatedRessourcesUrl.isEmpty ? "" : "not downloaded yet") \(updatedRessourcesLocalPath.length <= 6 ? "no Update available" : "")")
-      completion()
-      return
-    }
-    
-    guard let file = updatedRessourcesLocalJsonFile, file.exists else {
-      log("ERROR: Missing Ressources Data File")
-      ///updatedRessourcesLocalPath was not empty, but the file did not exist. maybe deleted?
-      completion()
-      return
-    }
-    
-    guard Thread.isMainThread else {
-      /// Do not terminate the app here.
-      /// Updating resources is rarely needed, and terminating the app doesn't help verify if it's functioning correctly.
-      /// Alternatively, using `ensureMain` would wrap this in another closure,
-      /// which could introduce a race condition due to delayed execution on the main thread.
-      log("❌❌ ERROR: only available in Main Thread!")
-      completion()
-      return
-    }
-    
-    guard let feederContext = feederContext else {
-      log("ERROR: Missing feederContext")
-      completion()
-      return
-    }
-    
-    // callOnce Wrapper for completion
-    var didCallCompletion = false
-    func callOnce(_ msg: String) {
-      guard !didCallCompletion else { return }
-      didCallCompletion = true
+  /// Handles the completion of a resource download by checking if the downloaded
+  /// resource file exists and then initiating asynchronous processing of the data.
+  /// If valid data is present, it will decode the resource information and load it
+  /// on the main thread. Temporary files and state are cleaned up afterward.
+  func handleRessourcesDownloadFinished(for url: String) {
+    log("...RessourcesDownloadFinished")
+
+    func cleanup() {
       if updatedRessourcesLocalPath.length > 5 {
         Dir(dir: updatedRessourcesLocalPath, fname: "").remove()
-        log("deleteed updatedRessourcesLocalPath: \(updatedRessourcesLocalPath)")
+        log("Deleted updatedRessourcesLocalPath: \(updatedRessourcesLocalPath)")
       }
+      updatedRessourcesUrl = ""
       updatedRessourcesLocalPath = ""
-      log("... done \(msg)")
-      DispatchQueue.main.async {
-        completion()
-      }
     }
-    
-    let timeout = DispatchWorkItem {[weak self] in
-      self?.log("⚠️ Timeout: Resource update took too long, continuing anyway.")
-      callOnce("Canceled - Timeout")
+
+    guard let file = updatedRessourcesLocalJsonFile, file.exists else {
+      log("ERROR: Missing Ressources Data File")
+      cleanup()
+      return
     }
+
+    guard let feederContext = feederContext else {
+      log("ERROR: Missing feederContext")
+      cleanup()
+      return
+    }
+
     log("Start Update Ressources")
-    DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: timeout)
-    feederContext.gqlFeeder.resources(fromData: file.data) {[weak self] res, _ in
-      self?.log(">> Update Ressources callback")
+    feederContext.gqlFeeder.resources(fromData: file.data, returnOnMain: false) { [weak self] res, _ in
+      guard let self = self else { return }
+      self.log(">> Update Ressources callback")
+
       switch res {
         case .success(let resources):
-          feederContext.loadResources(res: resources, fromCacheDir: self?.updatedRessourcesLocalPath) {
-            self?.log("Loaded resources succeed!")
-            timeout.cancel()
-            callOnce("success")
+          DispatchQueue.main.async(qos: .utility) { [weak self] in
+            guard let self = self else { return }
+            feederContext.loadResources(res: resources, fromCacheDir: self.updatedRessourcesLocalPath) {
+              self.log("Loaded resources succeed!")
+              cleanup()
+            }
           }
         case .failure(let err):
-          self?.log("Failed to load resources with error: \(err)")
-          timeout.cancel()
-          callOnce("failed")
+          self.log("Failed to load resources with error: \(err)")
+          cleanup()
       }
     }
   }

@@ -156,19 +156,7 @@ extension BackgroundDownloadService {
   /// execute tasks that need to be performed to persist data, generate facsimile or inform UI
   func handlePendingTasks() {
     ensureMain { [weak self] in
-      guard let self = self else { return }
-
-      guard self.isUpdatingResources == false else {
-        self.log("Skip, update already in progress.")
-        return
-      }
-
-      self.isUpdatingResources = true
-
-      self.updateRessourcesIfNeeded { [weak self] in
-        self?.isUpdatingResources = false
-        self?.handlePendingTasksOnMain()
-      }
+      self?.handlePendingTasksOnMain()
     }
   }
   
