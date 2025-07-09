@@ -138,7 +138,7 @@ open class GraphQlSession: HttpSession {
       let quoted = "\(requestType) {\(graphql)}".quote()
       let str = "{ \"query\": \(quoted) }"
       if isBackground { self.log("Sending on bg: \(requestType) {\n\(graphql)\n}") }
-      else { self.debug("Sending: \(requestType) {\n\(graphql)\n}")}
+      else { self.log("Sending: \(requestType) {\n\(graphql)\n}")}
       post(url, data: str.data(using: .utf8)!, returnOnMain: returnOnMain) { [weak self] res in
         guard let self = self else { return }
         if case let .success(data) = res {

@@ -120,12 +120,14 @@ extension BackgroundDownloadService {
       self?.log("⚠️ Timeout: Resource update took too long, continuing anyway.")
       callOnce("Canceled - Timeout")
     }
-
+    log("Start Update Ressources")
     DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: timeout)
     feederContext.gqlFeeder.resources(fromData: file.data) {[weak self] res, _ in
+      self?.log(">> Update Ressources callback")
       switch res {
         case .success(let resources):
           feederContext.loadResources(res: resources, fromCacheDir: self?.updatedRessourcesLocalPath) {
+            self?.log("Loaded resources succeed!")
             timeout.cancel()
             callOnce("success")
           }

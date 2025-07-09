@@ -35,7 +35,7 @@ extension BackgroundDownloadService {
     
     if downloadUrl == updatedRessourcesUrl {
       #warning("TODO")
-      log("...downbloaded Ressources handled when db actions / or on App REsume")
+      log("...downbloaded Ressources handled when db actions / or on App Resume")
       updatedRessourcesUrl = ""
       handlePendingTasks()
       return
