@@ -106,10 +106,15 @@ fileprivate extension BackgroundDownloadService {
     
     do {
       // MARK: - Logging context
+      
+      ///remember current localResources, after fetch its updated but not downloaded here
+      let localResources = StoredResources.latest()
+      
       log("""
           ...checkForNewIssue 
              autoload: \(autoloadOnlyInWLAN ? "only in WLAN" : "in any network")
              Triggered by \(isPush ? "Push" : "BackgroundTask")
+              \(localResources?.resourceVersion.description.prepend("lastLocalResourceVersion: ") ?? "WARNING: No local resources found!")
              Latest known publication date: \(feederContext.latestPublicationDate?.short ?? "none")
           """)
       ///   isMobile connected/isConnected: \(feederContext.netAvailability.isMobile)/\(feederContext.netAvailability.isConnected) did not work!
@@ -118,8 +123,6 @@ fileprivate extension BackgroundDownloadService {
       let issue = try await fetchFromRemote(isBackground: isBackground)
       log("...fetched issue: \(issue.date.short)")
  
-      downloadRessourcesIfNeeded(isBackground: isBackground)
-      
       guard let zipUrl = issue.zipUrl else {
         log("latestIssue baseUrl: \(issue.baseUrl) zipName: \(issue.zipName ?? "-")")
         throw BackgroundDownloadError("No Zip to Download!")
@@ -135,6 +138,13 @@ fileprivate extension BackgroundDownloadService {
         log("Too many downloads, stop older ones...")
         BackgroundSession.cleanupAllSessions()
       }
+      
+      
+      // MARK: - Optional Resouces Download
+      let resDl = await updateRessourcesIfNeeded(issueMinResourceVersion: issue.minResourceVersion,
+                                     localResources: localResources,
+                                     feederContext: feederContext,
+                                     isBackground: isBackground)
       
       // MARK: - Start Issue Download
       
@@ -180,6 +190,12 @@ fileprivate extension BackgroundDownloadService {
         audioDownloadSession.waitForAvailability = true
         log("...downloading audio zip \(audioUrl.lastPathComponent) from: \(audioUrl) to: \(issue.dir.path)")
         audioDownloadSession.downloadZip(toDir: issue.dir.path)
+      }
+      
+      if let resourcesDownload = resDl?.0,
+       let files = resDl?.1 {
+        resourcesDownload.download(files: files,
+                                    toDir: updatedRessourcesLocalPath)
       }
       
       // MARK: - Finish Tasks
@@ -234,9 +250,7 @@ fileprivate extension BackgroundDownloadService {
     guard let feederContext = feederContext else {
       throw BackgroundDownloadError("Currently no feederContext available!")
     }
-    
-    let lastLocalResourceVersion = feederContext.defaultFeed.feeder.resourceVersion//remember after fetch its updated!
-    log("lastLocalResourceVersion: \(lastLocalResourceVersion)")
+
     
     let lastLocalIssueDate = try lastLocalIssueDate(feederContext: feederContext)
     log("lastLocalIssueDate: \(lastLocalIssueDate?.short ?? "-")")
@@ -261,13 +275,8 @@ fileprivate extension BackgroundDownloadService {
     }
     
     print(">>> self.gqlFeeder.resVersionFile: \((fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl ?? "-")")
+    remoteRessourcesBaseUrl = (fetchedFeed.feeder as? GqlFeeder)?.resourceBaseUrl ?? ""
     
-    prepareIfResoucesUpdateRequired(issueMinResourceVersion: issue.minResourceVersion,
-                                    lastLocalResourceVersion: lastLocalResourceVersion,
-                                    fetchedResourceUrl: (fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl,
-                                    feederContext: feederContext,
-                                    isBackground: isBackground)
-  
     /// Checks whether the server-provided issue is newer than the most recent local one.
     ///
     /// The most recent local issue may come from the database (already downloaded)

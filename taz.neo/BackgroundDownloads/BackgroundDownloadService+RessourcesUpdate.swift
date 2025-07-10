@@ -14,53 +14,107 @@ extension BackgroundDownloadService {
   
   static let updatedRessourcesDir: String = "updatedRessources"
   
-  func prepareIfResoucesUpdateRequired(issueMinResourceVersion: Int,
-                                       lastLocalResourceVersion: Int,
-                                       fetchedResourceUrl: String?,
+  func updateRessourcesIfNeeded(issueMinResourceVersion: Int,
+                                       localResources: Resources?,
                                        feederContext: FeederContext,
-                                       isBackground: Bool) {
+                                      isBackground: Bool) async -> (BackgroundSession, [String])? {
     
-    guard let storedFeed = feederContext.defaultFeed else { return }
+    guard let storedFeed = feederContext.defaultFeed else { return nil }
+    let localResourceFiles = localResources?.resourceFiles ?? []
+    guard let lastLocalResourceVersion = localResources?.resourceVersion else {
+      log("❌ WARNING: No Local Ressource given")
+      return nil
+    }
     
     guard issueMinResourceVersion > lastLocalResourceVersion else {
       log("No Ressource update required")
-      return
+      return nil
     }
     
-    guard let fetchedResourceUrl = fetchedResourceUrl,
-          fetchedResourceUrl.length > 6 else {
-      log("❌ WARNING: Need to update resources but missing zipURL!")
-      return
+    guard remoteRessourcesBaseUrl.length > 6 else {
+      log("❌ WARNING: Need to update resources but missing remoteResourceBaseUrl!")
+      return nil
     }
     
     if isBackground == false {
       log("Update resources in foreground")
       feederContext.updateResources()
-      return
+      return nil
     }
-
-    log("Update resources in background")
     
-    updatedRessourcesUrl = fetchedResourceUrl
+    log("Update resources in background ")
     updatedRessourcesLocalPath = localResourceUrl(for: storedFeed.feeder, feed: storedFeed).path
+    
+    guard updatedRessourcesLocalPath.length > 6 else {
+      log("no ressources Download Required due to missing localPath: \(updatedRessourcesLocalPath)")
+      return nil
+    }
+    
     let jsonFile = updatedRessourcesLocalJsonFile
     if jsonFile?.exists == false { jsonFile?.string = "" }///create path structure before bg download finish!
     
-    //fetch latest ressources Data (not files)
-    feederContext.gqlFeeder.resources {[weak self] resources, data in
-      switch resources {
-        case .success(_):
-          let jsonFile = self?.updatedRessourcesLocalJsonFile
-          guard let data = data else {
-            self?.log("ERROR: No data fetched for saving to: \(jsonFile?.path ?? "-")")
-            return
-          }
-          jsonFile?.data = data
-          self?.log("persist \(data.count) bytes of data to filesystem for later use in: \(jsonFile?.path ?? "-")")
-        case .failure(let err):
-          self?.log("ERROR: No data fetched")
-      }
+    guard let response = await feederContext.gqlFeeder.resources() else {
+      log("ERROR: No data fetched")
+      return nil
     }
+    
+    let res = response.0 ///the ressources
+    let resJsonData = response.1 ///the ressources as JSON Data
+    
+    let remoteResourceFiles: [FileEntry] = res.resourceFiles
+    
+    self.updatedResourcesFiles = remoteResourceFiles.filter { remoteFile in
+      // lookup for matching fileentry with same name
+      guard let localFile = localResourceFiles.first(where: { $0.name == remoteFile.name }) else {
+        return true ///no local fileentry => new file
+      }
+      return remoteFile.sha256 != localFile.sha256
+    }
+    log("updatedResourcesFiles contains \(updatedResourcesFiles.count) files")
+    
+    guard updatedResourcesFiles.isEmpty == false else {
+      log("ERROR: No updated Files to download, skip Ressources Update")
+      return nil
+    }
+    
+    guard let data = resJsonData else {
+      log("ERROR: No data fetched for saving to: \(jsonFile?.path ?? "-")")
+      return nil
+    }
+    jsonFile?.data = data
+    log("persist \(data.count) bytes of data to filesystem for later use in: \(jsonFile?.path ?? "-")")
+    log("need to download \(updatedResourcesFiles.count) updated resource files")
+    
+      
+    #warning("Check if restart make sense here; its not essential required")
+    ///MAYBE TODO RESTART but required refactoring of BackgroundSession to find different resources urls;
+    ///did not match BackgroundDownloadService logic for ressources download on new fetch&issuedownload a new resources download ist probably initiated
+    ///...easy way just download them...
+    //    if BackgroundSession.search(url: updatedRessourcesUrl) {
+    //      ///already downloading, maybe a restart to trigger is required
+    //      do { try restartAll() }
+    //      catch { log("restartAll failed: \(error)") }
+    //      return
+    //    }
+      
+    do {
+      let filenames = updatedResourcesFiles.map { $0.name }
+      let resourcesDownload =
+      try BackgroundSession(remoteRessourcesBaseUrl, asBackgroundSession: isBackground) { [weak self] url, err in
+       self?.log("resourcesDownload finished for: \(url)")
+       self?.dlCallback(downloadUrl: url, err: err)
+     }
+      resourcesDownload.allowMobile = !autoloadOnlyInWLAN
+      resourcesDownload.waitForAvailability = true
+      
+      ///reset after download enqueued;
+      ///its not ensured that download finishes callback has access to the array;
+      ///maybe the app is restarted
+      updatedResourcesFiles = []
+      return (resourcesDownload, filenames)
+    }
+    catch { log("❌ downloadRessources failed: \(error)")  }
+    return nil
   }
   
   /// Handles the completion of a resource download by checking if the downloaded
@@ -68,6 +122,31 @@ extension BackgroundDownloadService {
   /// If valid data is present, it will decode the resource information and load it
   /// on the main thread. Temporary files and state are cleaned up afterward.
   func handleRessourcesDownloadFinished(for url: String) {
+    
+    var downloadingResourcesFiles = UserDefaults.standard.downloadingResourcesFiles
+    
+    guard downloadingResourcesFiles.isEmpty == false else {
+      log("ERROR: No resources are currently being downloaded.")
+      return
+    }
+    
+    let fileName = url.lastPathComponent
+   
+    
+    if let index = downloadingResourcesFiles.firstIndex(of: fileName) {
+      downloadingResourcesFiles.remove(at: index)
+      log("Check if downloadedFile: \(fileName) is in downloadingResourcesFiles")
+    } else {
+      log("ERROR: File \(fileName) not found in downloadingResourcesFiles")
+      return
+    }
+    
+    if downloadingResourcesFiles.isEmpty == false {
+      UserDefaults.standard.downloadingResourcesFiles = downloadingResourcesFiles
+      log("Resources still downloading: \(downloadingResourcesFiles.count) files remaining")
+      return
+    }
+    UserDefaults.standard.downloadingResourcesFiles = []
     log("...RessourcesDownloadFinished")
 
     func cleanup() {
@@ -75,7 +154,7 @@ extension BackgroundDownloadService {
         Dir(dir: updatedRessourcesLocalPath, fname: "").remove()
         log("Deleted updatedRessourcesLocalPath: \(updatedRessourcesLocalPath)")
       }
-      updatedRessourcesUrl = ""
+      remoteRessourcesBaseUrl = ""
       updatedRessourcesLocalPath = ""
     }
 
@@ -130,37 +209,42 @@ extension BackgroundDownloadService {
     return File(dir: updatedRessourcesLocalPath,
                 fname: "fetchedResources.json")
   }
+}
+
+// MARK: - UserDefaults Extension to save download resource files in an array (Thread-safe)
+fileprivate extension UserDefaults {
+  private static let backgroundDownloadResourcesFilesKey = "backgroundDownloadResourcesFilesKey"
   
-  var hasDownloadedRessources: Bool {
-    updatedRessourcesUrl.length == 0 && updatedRessourcesLocalPath.length > 6
-  }
+  private static let userDefaultsQueue = DispatchQueue(label: "de.taz.userdefaults.background.dl.ressources.array.queue")
   
-  func downloadRessourcesIfNeeded(isBackground:Bool) {
-    guard updatedRessourcesUrl.length > 6,
-    updatedRessourcesLocalPath.length > 6 else {
-      log("no ressources Download Required due to missing url: \(updatedRessourcesUrl) or localPath: \(updatedRessourcesLocalPath)")
-      return
-    }
-    
-    if BackgroundSession.search(url: updatedRessourcesUrl) {
-      ///already downloading, maybe a restart to trigger is required
-      do { try restartAll() }
-      catch { log("restartAll failed: \(error)") }
-      return
-    }
-    
-    do {
-      let resourcesDownload
-      = try BackgroundSession(updatedRessourcesUrl, asBackgroundSession: isBackground) { [weak self] url, err in
-        self?.log("resourcesDownload finished for: \(url)")
-        self?.dlCallback(downloadUrl: url, err: err)
+  var downloadingResourcesFiles: [String] {
+    get {
+      return Self.userDefaultsQueue.sync {
+        return array(forKey: Self.backgroundDownloadResourcesFilesKey) as? [String] ?? []
       }
-      resourcesDownload.allowMobile = !autoloadOnlyInWLAN
-      resourcesDownload.waitForAvailability = true
-      resourcesDownload.downloadZip(toDir: updatedRessourcesLocalPath)
-      ///cachePolicy is: requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-      ///should be no Problem for updated zip
     }
-    catch { log("❌ downloadRessources failed: \(error)")  }
+    set {
+      Self.userDefaultsQueue.sync {
+        set(newValue, forKey: Self.backgroundDownloadResourcesFilesKey)
+      }
+    }
+  }
+}
+
+
+fileprivate extension GqlFeeder {
+  
+  func resources() async -> (Resources, Data?)? {
+    await withCheckedContinuation { continuation in
+      resources {[weak self] result, data in
+        switch result {
+          case .success(let resources):
+            continuation.resume(returning: (resources, data))
+          case .failure(let error):
+            self?.log("Error fetching resources: \(error)")
+            continuation.resume(returning: nil)
+        }
+      }
+    }
   }
 }

@@ -33,7 +33,8 @@ extension BackgroundDownloadService {
       return
     }
     
-    if downloadUrl == updatedRessourcesUrl {
+    if remoteRessourcesBaseUrl.length > 6,
+       downloadUrl.contains(remoteRessourcesBaseUrl) {
       handleRessourcesDownloadFinished(for: downloadUrl)
       return
     }

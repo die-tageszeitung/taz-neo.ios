@@ -136,6 +136,12 @@ extension FileEntry {
       && self.name == otherFileEntry.name
       && self.sha256 == otherFileEntry.sha256
     }
+  
+  func sizeMatch(_ other: FileEntry?) -> Bool {
+      guard let otherFileEntry = other as? Self else { return false }
+    return self.size > 0
+    && self.size == otherFileEntry.size
+  }
 }
 
 public extension FileEntry {

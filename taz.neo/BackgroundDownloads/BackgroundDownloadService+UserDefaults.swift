@@ -27,7 +27,6 @@ struct DownloadData: Codable {
 }
 
 // MARK: - UserDefaults Erweiterung für Codable Dictionary
-
 private extension UserDefaults {
   private static let backgroundDownloadsKey = "BackgroundDownloadsDictionaryKey"
   

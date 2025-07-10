@@ -34,11 +34,13 @@ class BackgroundDownloadService: DoesLog {
   @Default("autoloadPublicationType")
   var autoloadPublicationType: String
   
-  @Default("updatedRessourcesUrl")
-  var updatedRessourcesUrl: String
+  @Default("remoteRessourcesBaseUrl")
+  var remoteRessourcesBaseUrl: String
   
   @Default("updatedRessourcesLocalPath")
   var updatedRessourcesLocalPath: String
+  
+  var updatedResourcesFiles: [FileEntry] = []
   
   /// The date of the last issue that was fully downloaded based on the user's auto-download settings.
   ///

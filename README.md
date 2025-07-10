@@ -1,5 +1,76 @@
 # taz.neo
 
+
+WTF
+
+(M124 2025-07-10 00:18:27) BackgroundDownloadService.prepareIfResoucesUpdateRequired(issueMinResourceVersion:localResources:remoteResourceBaseUrl:feederContext:isBackground:) Info:
+  need to download 124 updated resource files
+
+(T111 2025-07-10 00:18:23) BackgroundDownloadService.downloadRessourcesIfNeeded(isBackground:) Info:
+  updatedResourcesFiles contains: 0 files
+
+Background Ressources Update alalysing log Protokoll_25-07-09_13/57/15.txt
+✅❌⚠️
+Auf dem Gerät
+- Test Server, push token geholt, live server, offline app restart, background ✅
+- send push.✅..analyse
+
+Log:
+- TazAppEnvironment.setupFeeder     resourceVersion = 213 
+✅ ist vom TestServer
+-  feederStatus: product...:publicationDates(start:"2024-07-25") 
+✅ ist testServer
+- ... NSErrorFailingURLStringKey=https://dl.taz.de/appGraphQl,  
+✅ Live Server Aktiv
+- BackgroundDownloadService.fetchFromRemote(isBackground:) Info: lastLocalIssueDate: 25.7.2024 
+⚠️ unerwartet: macht gleich mal ein offline fetch der BG Download, kommt von Resume??? 
+- GqlFeeder.latestIssueAndFeed(feed:key:isPages:withAudio:latestKnownPublicationDate:returnOnMain:isBackGround:) Info:
+  ...fetch issue/feed data for taz return on Main: false **inBackground: false** last issue: , latestKnownPublicationDate: 2024-07-25
+✅ nicht im BG MODUS!! 
+**TODO: ANALYSIERE!!** ist das deaktivierbar? nach feederContext und Network Status? was passiert bei online wird korrekt geladen (... nach diesem Testplan ...Testserver...)
+- BackgroundDownloadService.scheduleBackgroundIssueCheck(earliestBeginDate:) Info:
+  Scheduling background task at 09.07.25 13:56:59 (in 59s)
+✅ der scheduleBackgroundIssueCheck wird nach fehlschlag richtig eingereiht
+**TODO: ANALYSIERE!!** teste damit den schedule check!!!
+- BackgroundDownloadService.doCheckForNewIssue(isPush:isBackground:_:) Info: ❌ Autodownload Error: 
+✅ schlägt wie zu erwarten fehl
+...
+(T73 2025-07-09 13:55:59) BackgroundDownloadService.applicationRestarted(with:) Info:
+  ...loaded data for issue: 2024-07-25
+(T74 2025-07-09 13:55:59) BackgroundDownloadService.applicationRestarted(with:) Info:
+  DownloadData for issue: 2024-07-25 found issue is: not downloaded
+(T75 2025-07-09 13:55:59) BackgroundDownloadService.applicationRestarted(with:) Info:
+  ⚠️ Failed to load data for issue 2024-07-25: BackgroundDownloadError(message: "No Download found for Issue...remove DownloadData")
+(T76 2025-07-09 13:55:59) BackgroundDownloadService.applicationRestarted(with:) Info:
+  Delete Default for: 2024-07-25
+**TODO: ANALYSIERE!!** ist das so korrekt?
+lösche die download daten bei Resume wenn offline? Was ist mit richtigen Downloads?
+
+(M88 2025-07-09 13:56:00) AppDelegate.applicationDidEnterBackground(_:) Info:
+  enter background: background
+**OK**
+  (M89 2025-07-09 13:56:24) FeederContext.netStatusChanged(isConnected:) Info:
+  NET STATUS CHANGED isConnected: true 
+**SCHLECHT!**
+jetzt macht er einen GqlFeeder.feederStatus bekommt die neuen PubDates und die Ressourcen
+...eigentlich ganz gut ABER
+**Werden die Ressourcen jetzt 2x geladen?**
+
+**❌❌❌ Wieso muss ich das Ressourcen ZIP laden, obwohl nur 1-2Dateien aktualisiert wurden? ❌❌❌**
+
+3 AUFGABEN:
+...finde alle ressources raus, die sich aktualisiert haben
+...lade nur die aktualisierten Ressources
+...verwende nur eine BG Session!!!
+
+
+
+wie komme ich an meine lokalen ressourcen?
+
+es soll ja nur eine Ressources geben also StoredRessources 
+
+
+
 iOS-App for reading the "taz" digital newspaper
 
 ## Author
