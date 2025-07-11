@@ -35,10 +35,12 @@ extension BackgroundDownloadService {
   public static func downloadNewIssueOnAppForeground(caller: String, delay: Double = 1.0){
     BackgroundDownloadService.shared.log("app FG DL Called from: \(caller)")
     onMainAfter(delay) {///a little delay is required after app start/init feeder otherwise someone throws an error and autodownload not enqueued
-    /// DO NOT USE ON THREAD AFTER IT WILL CAUSE CRASH
-      checkForNewIssue(isPush: false, isBackground: false){res in
+      /// DO NOT USE ON THREAD AFTER IT WILL CAUSE CRASH
+      checkForNewIssue(isPush: false, isBackground: false){ res in
         BackgroundDownloadService.shared.log("app FG DL Called from: \(caller)")
         Self.shared.log("...publication dates changed, autodownload status: \(res.message)")
+#warning("TODO this is the reason why after fresh install a 'Lade Ausgabe' comes!")
+#warning("TODO download did not really start initially")
         if res == .newData {  shared.notifyHome(.loadIssue) }
       }
     }
@@ -49,7 +51,7 @@ extension BackgroundDownloadService {
     let currentAppState = UIApplication.shared.applicationState
     
     guard Self.shared.autoloadNewIssues,
-    Self.shared.feederContext?.gqlFeeder.hasValidAbo == true else {
+          Self.shared.feederContext?.gqlFeeder.hasValidAbo == true else {
       Self.shared.log("...static checkForNewIssue skipped, no auto-load enabled or no valid abo")
       fetchCompletionHandler?(.noData)
       return
@@ -99,10 +101,7 @@ fileprivate extension BackgroundDownloadService {
     
     // Ensure guard reset
     defer { Task { await IssueCheckerGuard.instance.finish() } }
-    ///helper to return noData/newData in case of errors
-    var issueDownloadEnqueued = false
-    ///In case of fetch error e.g. due broken network try again 10 minutes later (if internet available - this ensures BGFetchTask)
-    var fetchSuccess = false
+    var fetchResult = UIBackgroundFetchResult.noData
     
     do {
       // MARK: - Logging context
@@ -122,117 +121,96 @@ fileprivate extension BackgroundDownloadService {
       ///if latest local known issue is from 1.7.25 and this is also the latest on server, the server returns 1.7. again
       let issue = try await fetchFromRemote(isBackground: isBackground)
       log("...fetched issue: \(issue.date.short)")
- 
+      
       guard let zipUrl = issue.zipUrl else {
         log("latestIssue baseUrl: \(issue.baseUrl) zipName: \(issue.zipName ?? "-")")
+        fetchResult = .failed
         throw BackgroundDownloadError("No Zip to Download!")
       }
       
-      guard !BackgroundSession.search(url: zipUrl) else {
-        fetchSuccess = true
-        try restartAll()
-        throw BackgroundDownloadError("Already Downloading!")
-      }
+      //      guard !BackgroundSession.search(url: zipUrl) else {
+      //        fetchSuccess = true
+      //        try restartAll()
+      //        throw BackgroundDownloadError("Already Downloading!")
+      //      }
       
-      if BackgroundSession.waitingCount > 5 {
-        log("Too many downloads, stop older ones...")
-        BackgroundSession.cleanupAllSessions()
-      }
+      //      if BackgroundSession.waitingCount > 5 {
+      //        log("Too many downloads, stop older ones...")
+      //        BackgroundSession.cleanupAllSessions()
+      //      }
       
+      await prepareResourcesUpdateIfNeeded(issueMinResourceVersion: issue.minResourceVersion,
+                                           localResources: localResources,
+                                           feederContext: feederContext,
+                                           isBackground: isBackground)
       
-      // MARK: - Optional Resouces Download
-      let resDl = await updateRessourcesIfNeeded(issueMinResourceVersion: issue.minResourceVersion,
-                                     localResources: localResources,
-                                     feederContext: feederContext,
-                                     isBackground: isBackground)
+      let downloadSession = BackgroundSession.shared(forBackground: isBackground, callback: dlCallback)
+      downloadSession.allowMobile = !autoloadOnlyInWLAN
+      downloadSession.waitForAvailability = true
       
       // MARK: - Start Issue Download
-      
-      let issueDownloadSession
-      = try BackgroundSession(zipUrl,
-                              asBackgroundSession: isBackground) { [weak self] url, err in
-        if url != zipUrl {
-          self?.log("ERROR: URL mismatch for issue download \(url) != \(zipUrl)")
-        }
-        self?.dlCallback(downloadUrl: zipUrl, err: err)
-      }
-      
-      issueDownloadSession.allowMobile = !autoloadOnlyInWLAN
-      issueDownloadSession.waitForAvailability = true
+      downloadSession.download(urlString: zipUrl, destPath: issue.dir.path, unzip: true)
+      fetchResult = .newData
+      log("...downloading IssueData \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issue.dir.path)")
       
       let (downloadId, startTime) = try await feederContext.gqlFeeder
         .markStartDownloadAsync(feed: feederContext.defaultFeed,
                                 issue: issue,
                                 isAutomatically: true,
                                 returnOnMain: false)
-      
-      log("...downloading \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issue.dir.path)")
-      
-      issueDownloadSession.downloadZip(toDir: issue.dir.path)
-      
-      issueDownloadEnqueued = true
-      
       saveDownloadData(forDownloadUrl: zipUrl,
                        date: issue.date,
                        downloadId: downloadId,
                        startTime: startTime.sec)
       
+      
       // MARK: - Optional Audio Download
-      
       if autoloadAudio, let audioUrl = issue.zipAudioUrl {
-        let audioDownloadSession = try BackgroundSession(audioUrl, asBackgroundSession: isBackground) { [weak self] url, err in
-          if url != audioUrl {
-            self?.log("ERROR: URL mismatch for audio download \(url) != \(audioUrl)")
-          }
-          self?.log("Audio Download finished with Error: \(err ?? "-")")
+        downloadSession.download(urlString: audioUrl, destPath: issue.dir.path, unzip: true)
+        log("...downloading Audio \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issue.dir.path)")
+      }
+      
+      // MARK: - Optional Resouces Download
+      if updatedResourcesLocalPath.length > 6 {
+        for file in updatedResourcesFiles {
+          log("download \(file.name)")
+          let urlString = "\(remoteResourcesBaseUrl)/\(file.name)"
+          downloadSession.download(urlString: urlString, destPath: updatedResourcesLocalPath, unzip: false)
+          log("...downloading Resource \(file.name) from: \(zipUrl) to: \(updatedResourcesLocalPath)")
         }
-        audioDownloadSession.allowMobile = !autoloadOnlyInWLAN
-        audioDownloadSession.waitForAvailability = true
-        log("...downloading audio zip \(audioUrl.lastPathComponent) from: \(audioUrl) to: \(issue.dir.path)")
-        audioDownloadSession.downloadZip(toDir: issue.dir.path)
+        UserDefaults.standard.addDownloadingResourceFiles( updatedResourcesFiles.compactMap{$0.name})
+        updatedResourcesFiles = []
       }
-      
-      if let resourcesDownload = resDl?.0,
-       let files = resDl?.1 {
-        resourcesDownload.download(files: files,
-                                    toDir: updatedRessourcesLocalPath)
-      }
-      
       // MARK: - Finish Tasks
       /// Schedule background task to resume Download if Autodownload did not started
       scheduleBackgroundIssueCheck(earliestBeginDate: Date(timeIntervalSinceNow: 60 * 60))
       ///persist data to db
-        handlePendingTasks()
+      handlePendingTasks()
       ///push notification callback
-      fetchCompletionHandler?(.newData)
-      
+      ///
       ///In case of app restart in celuar show user info to enable wlan for download
       if isBackground == false,
-          autoloadOnlyInWLAN,
-          TazAppEnvironment.sharedInstance.feederContext?.netAvailability.isMobile == true {
+         autoloadOnlyInWLAN,
+         TazAppEnvironment.sharedInstance.feederContext?.netAvailability.isMobile == true {
         notifyHome(.autoloadErrorNoWlan)
       }
       log("⏰ fin...download(s) enqueued, ui informed")
     }
     catch {
-      log("❌ Autodownload Error: \(error) issueDownloadEnqueued: \(issueDownloadEnqueued)")
+      fetchResult = .failed
+      log("❌ Autodownload Error: \(error)")
       log("\((error as? BackgroundDownloadError)?.message ?? "-") == \(BackgroundDownloadError.noNewIssue.message)")
       if let bde = error as? BackgroundDownloadError,
-          bde.message == BackgroundDownloadError.noNewIssue.message {
+         bde.message == BackgroundDownloadError.noNewIssue.message {
         scheduleBackgroundIssueCheck()
-        BackgroundSession.restartAllPendingDownloads()
+        //        BackgroundSession.restartAllPendingDownloads()
       }
-      else if fetchSuccess == false {
+      else {
         ///Edge Case Fetch failed: retry soon! ...maybe its a lot fo later, if internet is not available for long time
         scheduleBackgroundIssueCheck(earliestBeginDate: Date(timeIntervalSinceNow: 60 * 10))
       }
-
-      if issueDownloadEnqueued {
-        fetchCompletionHandler?(.newData)
-      } else {
-        fetchCompletionHandler?(.noData)
-      }
     }
+    fetchCompletionHandler?(fetchResult)
   }
 }
 
@@ -241,8 +219,8 @@ fileprivate extension BackgroundDownloadService {
 fileprivate extension BackgroundDownloadService {
   /// fetches latest issue and publicationDates from remote
   /// throws an error, if fetched issue is not newer than last local
-  /// - Returns: the latest issue, the current ressourcesUrl if update required
-  /// ressourcesUrl brauche ich nicht mehr zurückgeben, das mache ich über die userDefault Variablen
+  /// - Returns: the latest issue, the current resourcesUrl if update required
+  /// resourcesUrl brauche ich nicht mehr zurückgeben, das mache ich über die userDefault Variablen
   
   func fetchFromRemote(isBackground: Bool) async throws -> Issue {
     //add to publicationsdates and issues, returns latest issue
@@ -250,7 +228,7 @@ fileprivate extension BackgroundDownloadService {
     guard let feederContext = feederContext else {
       throw BackgroundDownloadError("Currently no feederContext available!")
     }
-
+    
     
     let lastLocalIssueDate = try lastLocalIssueDate(feederContext: feederContext)
     log("lastLocalIssueDate: \(lastLocalIssueDate?.short ?? "-")")
@@ -275,7 +253,7 @@ fileprivate extension BackgroundDownloadService {
     }
     
     print(">>> self.gqlFeeder.resVersionFile: \((fetchedFeed.feeder as? GqlFeeder)?.resourceZipUrl ?? "-")")
-    remoteRessourcesBaseUrl = (fetchedFeed.feeder as? GqlFeeder)?.resourceBaseUrl ?? ""
+    remoteResourcesBaseUrl = (fetchedFeed.feeder as? GqlFeeder)?.resourceBaseUrl ?? ""
     
     /// Checks whether the server-provided issue is newer than the most recent local one.
     ///
@@ -302,15 +280,15 @@ fileprivate extension BackgroundDownloadService {
     return issue
   }
 }
-  
+
 extension BackgroundDownloadService {
   func restartAll() throws {
-    log("restartAllArchivedDownloads")
-    try BackgroundSession.restartAllArchivedDownloads { [weak self] url, err in
-      self?.log("restarted all ArchivedDownloads callback")
-      self?.dlCallback(downloadUrl: url, err: err)
-      BackgroundSession.restartAllPendingDownloads()
-    }
+//    log("restartAllArchivedDownloads")
+//    try BackgroundSession.restartAllArchivedDownloads { [weak self] url, err in
+//      self?.log("restarted all ArchivedDownloads callback")
+//      self?.dlCallback(downloadUrl: url, err: err)
+//      BackgroundSession.restartAllPendingDownloads()
+//    }
   }
 }
 

@@ -424,7 +424,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   tapHandler: {[weak self] in
     #warning("DEBUG CODE")
     self?.log("StorageDetails tapped")
-    BackgroundSession.logWaiting()
+//    BackgroundSession.logWaiting()
 //    BackgroundSession.cleanupUserDefaults()
   })
   
@@ -440,7 +440,10 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   lazy var resetBGSessionsCell: XSettingsCell
   = XSettingsCell(text: "Reset Background Download Sessions",
                   isDestructive: true,
-                  tapHandler: {[weak self] in BackgroundSession.cleanupAllSessions() } )
+                  tapHandler: {[weak self] in
+//    BackgroundSession.cleanupAllSessions()
+    
+  } )
   
   lazy var sendFailureRequestCell: XSettingsCell
   = XSettingsCell(text: "Sende fehlerhaften Page Request für die Ausgabenübersicht",

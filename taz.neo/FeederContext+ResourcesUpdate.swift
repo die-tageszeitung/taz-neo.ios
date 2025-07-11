@@ -152,7 +152,7 @@ extension FeederContext {
     }
     resources.isDownloading = false
     if success == false {
-      log("* Warning: There was an error due persisting Bundled Ressources ....delete them.")
+      log("* Warning: There was an error due persisting Bundled Resources ....delete them.")
       resources.delete()
     }
     return success

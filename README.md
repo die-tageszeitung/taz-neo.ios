@@ -6,10 +6,10 @@ WTF
 (M124 2025-07-10 00:18:27) BackgroundDownloadService.prepareIfResoucesUpdateRequired(issueMinResourceVersion:localResources:remoteResourceBaseUrl:feederContext:isBackground:) Info:
   need to download 124 updated resource files
 
-(T111 2025-07-10 00:18:23) BackgroundDownloadService.downloadRessourcesIfNeeded(isBackground:) Info:
+(T111 2025-07-10 00:18:23) BackgroundDownloadService.downloadResourcesIfNeeded(isBackground:) Info:
   updatedResourcesFiles contains: 0 files
 
-Background Ressources Update alalysing log Protokoll_25-07-09_13/57/15.txt
+Background Resources Update alalysing log Protokoll_25-07-09_13/57/15.txt
 ✅❌⚠️
 Auf dem Gerät
 - Test Server, push token geholt, live server, offline app restart, background ✅
@@ -59,15 +59,15 @@ jetzt macht er einen GqlFeeder.feederStatus bekommt die neuen PubDates und die R
 **❌❌❌ Wieso muss ich das Ressourcen ZIP laden, obwohl nur 1-2Dateien aktualisiert wurden? ❌❌❌**
 
 3 AUFGABEN:
-...finde alle ressources raus, die sich aktualisiert haben
-...lade nur die aktualisierten Ressources
+...finde alle resources raus, die sich aktualisiert haben
+...lade nur die aktualisierten Resources
 ...verwende nur eine BG Session!!!
 
 
 
 wie komme ich an meine lokalen ressourcen?
 
-es soll ja nur eine Ressources geben also StoredRessources 
+es soll ja nur eine Resources geben also StoredResources 
 
 
 

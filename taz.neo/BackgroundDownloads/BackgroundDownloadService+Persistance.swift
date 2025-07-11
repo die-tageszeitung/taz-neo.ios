@@ -181,7 +181,7 @@ extension BackgroundDownloadService {
       }
     }
     else {
-      log("WARNING CANNOT PERSIST \(tempStorage.publicationDates.count) PUBLICATIONDATES")
+      log("No (\(tempStorage.publicationDates.count)) PublicationDates to persist!")
     }
     
     if saveDatabase {

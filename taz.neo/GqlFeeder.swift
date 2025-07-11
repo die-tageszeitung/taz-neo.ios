@@ -1142,12 +1142,15 @@ open class GqlFeeder: Feeder, DoesLog {
         \(GqlResources.fields)
       }
     """
-    if let jsonData = fromData, let jsonString = String(data: jsonData, encoding: .utf8)  {
-      log("updateRessources from data \(jsonString)")
-    }
-    else {
-      log("updateRessources from server")
-    }
+    log("updateResources from \(fromData == nil ? "server" : "data")")
+//    if let jsonData = fromData, String(data: jsonData, encoding: .utf8) != nil  {
+//      log("updateResources from data")
+//      ///let jsonString = String(data: jsonData, encoding: .utf8)
+//      ///log("updateResources from data \(jsonString)")
+//    }
+//    else {
+//      log("updateResources from server")
+//    }
     
     gqlSession.query(graphql: request, type: [String:GqlResources].self,
                      fromData: fromData, returnOnMain: returnOnMain) { (res, data) in

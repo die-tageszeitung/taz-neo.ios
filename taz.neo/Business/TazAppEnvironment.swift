@@ -203,7 +203,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     feederContext?.release(isRemove: isDelete) { [weak self] in
       guard let self else { return }
       self.feederContext = nil
-      BackgroundSession.cleanupAllSessions()
+//      BackgroundSession.cleanupAllSessions()
       if isDelete { self.deleteData() }
         // TODO: reinitialize feederContext when this no longer crashes
 //      self.setupFeeder(isStartup: false)

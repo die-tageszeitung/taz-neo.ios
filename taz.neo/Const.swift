@@ -413,7 +413,7 @@ public struct Const {
   
   /// Various font values
   struct Fonts {
-    ///Helper to print all Bundled woff Fonts from Bundled Ressources (copied to files folder)
+    ///Helper to print all Bundled woff Fonts from Bundled Resources (copied to files folder)
     static func printBundledFonts(type: String = "woff", in dir: String = "files"){
       for  font in Bundle.main.paths(forResourcesOfType: type, inDirectory: dir) {
         let name = URL(fileURLWithPath: font).deletingPathExtension().lastPathComponent
@@ -438,7 +438,7 @@ public struct Const {
     static var lmdBentonBoldItalic: String? = UIFont.register(name: "BentonSans-BoldItalic", type: "woff", subDir: "files")
     static var americanTypewriterFontName: String = "AmericanTypewriter-CondensedBold"
     static var knileLight: String? = UIFont.register(name: "knile-light-webfont", type: "woff", subDir: "files")
-    /// *WARNING* Cannot use bundled Aktiv Grotesk fonts from Ressources, due just one font variant will be loaded,
+    /// *WARNING* Cannot use bundled Aktiv Grotesk fonts from Resources, due just one font variant will be loaded,
     /// Hacky Workaround sleep(1) then load the other Problem is: multiple fonts have same generic font names
     /// from UIFont extension NorthLib -> register(data: Data)
     ///  print("try to register font: \(String(describing: cgFont.postScriptName)) (\(String(describing: cgFont.fullName))

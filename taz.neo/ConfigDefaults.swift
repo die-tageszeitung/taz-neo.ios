@@ -65,14 +65,15 @@ private let configValues = [
   "edgeTapToNavigate" : "false",
   /**===AUTODOWNLOAD SETTINGS FOR RESET===**/
   "autoloadOnlyInWLAN2" : "true",//renamed due previous value was false
-  "autoloadPdf" : "false",
-  "autoloadAudio" : "false",
+  "autoloadPdf" : "true",
+  "autoloadAudio" : "true",
   "autoloadNewIssues" : "true",
   /**===AUTODOWNLOAD SETTINGS FOR ACTIVE DOWNLOADS====**/
   "autoloadPublicationType" : nil,
-  "updatedRessourcesUrl" : nil,
-  "updatedRessourcesLocalPath" : nil,
+  "updatedResourcesUrl" : nil,
+  "updatedResourcesLocalPath" : nil,
   "BackgroundSessions" : nil,
+  "useTestServer" : "true",
   /**======**/
   "edgeTapToNavigateVisible2" : "false",
   // coachmark defaults

@@ -34,11 +34,11 @@ class BackgroundDownloadService: DoesLog {
   @Default("autoloadPublicationType")
   var autoloadPublicationType: String
   
-  @Default("remoteRessourcesBaseUrl")
-  var remoteRessourcesBaseUrl: String
+  @Default("remoteResourcesBaseUrl")
+  var remoteResourcesBaseUrl: String
   
-  @Default("updatedRessourcesLocalPath")
-  var updatedRessourcesLocalPath: String
+  @Default("updatedResourcesLocalPath")
+  var updatedResourcesLocalPath: String
   
   var updatedResourcesFiles: [FileEntry] = []
   

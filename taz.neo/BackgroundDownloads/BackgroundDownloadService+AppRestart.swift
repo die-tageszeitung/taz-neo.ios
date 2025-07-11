@@ -31,6 +31,8 @@ extension BackgroundDownloadService {
     Task.detached { [weak self] in
       guard let self = self else { return }
       var restartDownloads = false
+      let downloadDateKeys = downloadDateKeys ///local var for reuse
+      log("restore Download Data from UserDefaults for: \(downloadDateKeys.count) issue dates")
       for issueDateKey in downloadDateKeys {
         notifyHome(.loadIssue)
         do {
@@ -58,7 +60,8 @@ extension BackgroundDownloadService {
           log("DownloadData for issue: \(issueDateKey) found issue is: \(idd.isDownloaded ? "downloaded" : "not downloaded")")
           if idd.isDownloaded == true {
             issue.setAutodownloadCompleete()
-          } else if BackgroundSession.search(url: zipUrl) == true {
+          } else if false /* BackgroundSession.search(url: zipUrl) == true */ {
+            #warning("ToDo")
             restartDownloads = true
           } else {
             throw BackgroundDownloadError("No Download found for Issue...remove DownloadData")
@@ -70,6 +73,7 @@ extension BackgroundDownloadService {
         }
       }
       if restartDownloads {
+        log("Restarting all downloads & notifyHome")
         do { try restartAll() }
         catch { log("Failed to restart downloads Err: \(error)") }
       }
@@ -77,15 +81,15 @@ extension BackgroundDownloadService {
       handlePendingTasks()
     }
     
-    do {
-      log("restart AllArchivedDownloads...")
-      try BackgroundSession.restartAllArchivedDownloads { [weak self] url, err in
-        self?.log("restarted AllArchivedDownloads callback")
-        self?.dlCallback(downloadUrl: url, err: err)
-      }
-    } catch {
-      log("restart failed with: \(error)")
-    }
+//    do {
+//      log("restart AllArchivedDownloads...")
+//      try BackgroundSession.restartAllArchivedDownloads { [weak self] url, err in
+//        self?.log("restarted AllArchivedDownloads callback")
+//        self?.dlCallback(downloadUrl: url, err: err)
+//      }
+//    } catch {
+//      log("restart failed with: \(error)")
+//    }
   }
   
   /// In case of feeder update, no

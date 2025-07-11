@@ -33,15 +33,15 @@ extension BackgroundDownloadService {
       return
     }
     
-    if remoteRessourcesBaseUrl.length > 6,
-       downloadUrl.contains(remoteRessourcesBaseUrl) {
-      handleRessourcesDownloadFinished(for: downloadUrl)
+    if remoteResourcesBaseUrl.isEmpty == false,
+       downloadUrl.contains(remoteResourcesBaseUrl) {
+      handleResourcesDownloadFinished(for: downloadUrl)
       return
     }
     
     ///** lookup for additional Data in Defaults
     guard let downloadData = getDownloadData(forDownloadUrl: downloadUrl) else {
-      log("...No DownloadData for url: \(downloadUrl). Aborting... maybe audio Downbload or Ressources (TBD)")
+      log("...No DownloadData for url: \(downloadUrl). Aborting... maybe audio Downbload or Resources (TBD)")
       return
     }
         

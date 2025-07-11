@@ -12,7 +12,7 @@ import Foundation
 extension BackgroundDownloadService {
   ///fast & lightweight...do not load from json!
   func handleEnterForeground() {
-    #warning("maybe update ressources and from known cache folder?")
+    #warning("maybe update resources and from known cache folder?")
     if tempStorage.hasActiveDownloads {
       log("App entered foreground, execute pending tasks...")
       handlePendingTasks()

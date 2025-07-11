@@ -11,8 +11,6 @@ import NorthLib
 
 /// MARK: - Helper Methods TEMP COLLECTION
 extension BackgroundDownloadService {
-  
-  
   /// Checks whether there is an active download for the given issue date.
   ///
   /// - Parameters:
@@ -21,15 +19,18 @@ extension BackgroundDownloadService {
   ///
   /// - Returns: `true` if an active download exists for the given issue date; otherwise, `false`.
   func hasActiveDownload(for issueDate: Date, stopInactiveDownloads: Bool = true, stopActiveDownloads: Bool) -> Bool {
-    guard let url = getUrl(forDateKey: issueDate.ISO8601) else {
-      log("has NO Download Data for: \(issueDate.ISO8601)")
-      return false
-    }
-    let hasActiveDownload = BackgroundSession.hasActiveDownload(for: url, cancelIfSuspended: stopInactiveDownloads, cancelActiveDownloads: stopActiveDownloads)
-    log("has Download Data for: \(issueDate.ISO8601) isActive: \(hasActiveDownload)")
-    if hasActiveDownload == false { removeDownloadData(forDownloadUrl: url) }
     
-    return hasActiveDownload
+    return false // TODO: remove this line, this is a temporary collection
+    #warning("ToDo Implement!")
+//    guard let url = getUrl(forDateKey: issueDate.ISO8601) else {
+//      log("has NO Download Data for: \(issueDate.ISO8601)")
+//      return false
+//    }
+//    let hasActiveDownload = BackgroundSession.hasActiveDownload(for: url, cancelIfSuspended: stopInactiveDownloads, cancelActiveDownloads: stopActiveDownloads)
+//    log("has Download Data for: \(issueDate.ISO8601) isActive: \(hasActiveDownload)")
+//    if hasActiveDownload == false { removeDownloadData(forDownloadUrl: url) }
+//    
+//    return hasActiveDownload
   }
   
   ///send stop to server
