@@ -18,10 +18,6 @@ extension BackgroundDownloadService {
                                       localResources: Resources?,
                                       feederContext: FeederContext,
                                       isBackground: Bool) async {
-    #warning("really?????")
-    updatedResourcesFiles = []
-//    remoteResourcesBaseUrl = ""WRONG IS REQUIRED BELOW
-    
     guard let storedFeed = feederContext.defaultFeed else { return }
     let localResourceFiles = localResources?.resourceFiles ?? []
     guard let lastLocalResourceVersion = localResources?.resourceVersion else {
@@ -74,9 +70,6 @@ extension BackgroundDownloadService {
       return remoteFile.sha256 != localFile.sha256
     }
     log("updatedResourcesFiles contains \(updatedResourcesFiles.count) files")
-    
-    #warning("TESTTEST DOWNLOAD ALL RESOURCES")
-    self.updatedResourcesFiles = remoteResourceFiles
     
     guard updatedResourcesFiles.isEmpty == false else {
       log("ERROR: No updated Files to download, skip Resources Update")
