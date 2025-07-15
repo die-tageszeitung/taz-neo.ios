@@ -26,6 +26,16 @@ struct DownloadData: Codable {
   }
 }
 
+extension DownloadData {
+  var date: Date? {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.timeZone = TimeZone(identifier: GqlFeeder.tz) ?? TimeZone.current
+    return formatter.date(from: self.isoDateKey)
+  }
+}
+  
+
 // MARK: - UserDefaults Erweiterung für Codable Dictionary
 private extension UserDefaults {
   private static let backgroundDownloadsKey = "BackgroundDownloadsDictionaryKey"

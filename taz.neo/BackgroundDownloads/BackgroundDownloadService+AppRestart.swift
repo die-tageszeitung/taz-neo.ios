@@ -24,16 +24,28 @@ extension BackgroundDownloadService {
     }
   }
   
-  /// call after Application Restart to load issues data from JSON files and persist them
-  /// called in Background Thread
-  /// **WARNING** currently delete UserDefaults download data if issue is already in temp storage:: check a more robust solution! in case of refactorings
   func applicationRestarted(with feederContext: FeederContext) {
-    Task.detached { [weak self] in
+    Task{[weak self] in
       guard let self = self else { return }
-      var restartDownloads = false
-      let downloadDateKeys = downloadDateKeys ///local var for reuse
-      log("restore Download Data from UserDefaults for: \(downloadDateKeys.count) issue dates")
-      for issueDateKey in downloadDateKeys {
+      /// Helper
+      var outdatedDurationDays : Double {
+        switch publicationSchedule {
+          case .wochentaz: return 15.0
+          case .lmd: return 60.0
+          default: return 7.0 //taz
+        }
+      }
+      
+      func isOutdated(date:Date?) -> Bool {
+        guard let date = date else { return true }
+        return date.timeIntervalSinceNow  < -outdatedDurationDays * 24 * 60 * 60
+      }
+      
+      ///local var for reuse
+      let downloadDateKeys = downloadDateKeys
+      
+      log("BDL: restore Download Data from UserDefaults for: \(downloadDateKeys.count) issue dates and resume all download Tasks")
+      for issueDateKey in downloadDateKeys { //only issue downloads here
         notifyHome(.loadIssue)
         do {
           let feed = try await loadFeedFromJsonFile(feederContext: feederContext,
@@ -46,53 +58,37 @@ extension BackgroundDownloadService {
           /// In Case of error the next issueDateKey is handled
           /// in case of error e.g. the issue is already in temp storage it woun't be added again
           try tempStorage.add(issue)
-          log("...loaded data for issue: \(issueDateKey)")
+          log("BDL ...loaded data for issue: \(issueDateKey)")
           
           guard let zipUrl = issue.zipUrl else {
-            log("No zipUrl for issue: \(issueDateKey)")
+            log("BDL No zipUrl for issue: \(issueDateKey)")
             continue
           }
-            
+          
           guard let idd = getDownloadData(forDownloadUrl: zipUrl) else {
-            log("No DownloadData for issue: \(issueDateKey)")
+            log("BDL No DownloadData for issue: \(issueDateKey)")
             continue
           }
-          log("DownloadData for issue: \(issueDateKey) found issue is: \(idd.isDownloaded ? "downloaded" : "not downloaded")")
+          log("BDL DownloadData for issue: \(issueDateKey) found issue is: \(idd.isDownloaded ? "downloaded" : "not downloaded")")
           if idd.isDownloaded == true {
             issue.setAutodownloadCompleete()
-          } else if false /* BackgroundSession.search(url: zipUrl) == true */ {
-            #warning("ToDo")
-            restartDownloads = true
-          } else {
-            throw BackgroundDownloadError("No Download found for Issue...remove DownloadData")
+          }
+          else if isOutdated(date: idd.date) {
+            ///KISS: in case of outdated download data, remove it
+            ///maybe background session download it and moves files to issue folder; cleanup deletes them later
+            ///multiple newer issues will be loaded meanwhile
+            throw BackgroundDownloadError("Download outdated for issue \(issueDateKey) remove data!")
           }
         } catch {
-          log("⚠️ Failed to load data for issue \(issueDateKey): \(error)")
-          log("Delete Default for: \(issueDateKey)")
+          log("BDL ⚠️ Failed to load data for issue \(issueDateKey): \(error)")
+          log("BDL ...Delete Default for: \(issueDateKey)")///could not be restored
           removeDownloadData(forIssueKey: issueDateKey)
         }
       }
-      if restartDownloads {
-        log("Restarting all downloads & notifyHome")
-        do { try restartAll() }
-        catch { log("Failed to restart downloads Err: \(error)") }
-      }
-      notifyHome(restartDownloads ? .loadIssue : .none)
+      let openDl = backgroundSession.hasOpenDownloads ///issue, audio and resources downloads
+      notifyHome(openDl ? .loadIssue : .none)
       handlePendingTasks()
+      if openDl { backgroundSession.resume(archived: true, priority: 1.0)}
     }
-    
-//    do {
-//      log("restart AllArchivedDownloads...")
-//      try BackgroundSession.restartAllArchivedDownloads { [weak self] url, err in
-//        self?.log("restarted AllArchivedDownloads callback")
-//        self?.dlCallback(downloadUrl: url, err: err)
-//      }
-//    } catch {
-//      log("restart failed with: \(error)")
-//    }
   }
-  
-  /// In case of feeder update, no
-  func checkIfIssueNeedsToBeDownloaded(){}
-  
 }

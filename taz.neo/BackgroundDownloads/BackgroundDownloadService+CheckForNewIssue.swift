@@ -144,7 +144,7 @@ fileprivate extension BackgroundDownloadService {
                                            feederContext: feederContext,
                                            isBackground: isBackground)
       
-      let downloadSession = BackgroundSession.shared(forBackground: isBackground, callback: dlCallback)
+      let downloadSession = BackgroundSession.shared(callback: dlCallback)
       downloadSession.allowMobile = !autoloadOnlyInWLAN
       downloadSession.waitForAvailability = true
       
@@ -280,18 +280,6 @@ fileprivate extension BackgroundDownloadService {
     return issue
   }
 }
-
-extension BackgroundDownloadService {
-  func restartAll() throws {
-//    log("restartAllArchivedDownloads")
-//    try BackgroundSession.restartAllArchivedDownloads { [weak self] url, err in
-//      self?.log("restarted all ArchivedDownloads callback")
-//      self?.dlCallback(downloadUrl: url, err: err)
-//      BackgroundSession.restartAllPendingDownloads()
-//    }
-  }
-}
-
 
 fileprivate extension BackgroundDownloadService {
   

@@ -60,6 +60,9 @@ class BackgroundDownloadService: DoesLog {
     TazAppEnvironment.sharedInstance.feederContext
   }
   
+  lazy var backgroundSession
+  = BackgroundSession.shared(callback: BackgroundDownloadService.dlCallback)
+  
   static let shared = BackgroundDownloadService()
   
   private init(){ updatePublicationtype()}
