@@ -425,7 +425,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
     #warning("DEBUG CODE")
     self?.log("StorageDetails tapped")
 //    BackgroundSession.logWaiting()
-//    BackgroundSession.cleanupUserDefaults()
+    BackgroundSession.cleanupUserDefaults()
   })
   
   lazy var deleteDatabaseCell: XSettingsCell
