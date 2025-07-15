@@ -176,7 +176,7 @@ fileprivate extension BackgroundDownloadService {
           log("download \(file.name)")
           let urlString = "\(remoteResourcesBaseUrl)/\(file.name)"
           downloadSession.download(urlString: urlString, destPath: updatedResourcesLocalPath, unzip: false)
-          log("...downloading Resource \(file.name) from: \(zipUrl) to: \(updatedResourcesLocalPath)")
+          log("...downloading Resource \(file.name) from: \(urlString) to: \(updatedResourcesLocalPath)")
         }
         UserDefaults.standard.addDownloadingResourceFiles( updatedResourcesFiles.compactMap{$0.name})
         updatedResourcesFiles = []
