@@ -73,7 +73,6 @@ private let configValues = [
   "updatedResourcesUrl" : nil,
   "updatedResourcesLocalPath" : nil,
   "BackgroundSessions" : nil,
-  "useTestServer" : "true",
   /**======**/
   "edgeTapToNavigateVisible2" : "false",
   // coachmark defaults
