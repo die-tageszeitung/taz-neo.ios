@@ -42,7 +42,9 @@ extension BackgroundDownloadService {
     }
     
     log("Update resources in background ")
-    updatedResourcesLocalPath = localResourceUrl(for: storedFeed.feeder, feed: storedFeed).path
+    let localResourcesDir = localResourceUrl(for: storedFeed.feeder, feed: storedFeed)
+    if !localResourcesDir.exists { localResourcesDir.create() }
+    updatedResourcesLocalPath = localResourcesDir.path
     
     guard updatedResourcesLocalPath.length > 6 else {
       log("no resources Download Required due to missing localPath: \(updatedResourcesLocalPath)")
