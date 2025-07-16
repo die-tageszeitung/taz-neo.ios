@@ -1773,18 +1773,14 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
     
     if let insertResult = try? ArticleDB.context.execute(request) as? NSBatchInsertResult,
        let objectIDs = insertResult.result as? [NSManagedObjectID] {
-      // 🔁 Wichtig: Merge damit fetch später funktioniert
+      // Importent: for later fetch
       let changes = [NSInsertedObjectsKey: objectIDs]
       NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [ArticleDB.context])
     }
     
-    // ❗ Jetzt erst erscheinen die neuen Objekte im Kontext
+    // new objects are now in context, so we can fetch them
     let pds = StoredPublicationDate.getAllWithoutFeed()
-    for pd in pds {
-      feed.pr.addToPublicationDates(pd.pr)
-    }
-    
-    try? ArticleDB.context.save()
+    for pd in pds { feed.pr.addToPublicationDates(pd.pr) }
     
     Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
   }
