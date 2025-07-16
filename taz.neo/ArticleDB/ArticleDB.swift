@@ -1715,44 +1715,31 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
     get { return pr.validityDate }
     set { pr.validityDate = newValue }
   }
-  ///For future Performance Studies, after initial installation, with manipulated get PubDates of last 200 Days this Version took 14s on M1 Pro Simulator
-  //  static func persistGet(publicationDates: [PublicationDate],
-  //                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
-  //    var start = Date()
-  //    var ret:[StoredPublicationDate] = []
-  //    let allPr = Self.getAll(inFeed: feed)
-  //
-  //    for pubDate in publicationDates {
-  //      let storedRecord: StoredPublicationDate
-  //      = allPr.first(where: { $0.date == pubDate.date }) ?? new()
-  //      storedRecord.update(from: pubDate)
-  //      storedRecord.feed = feed
-  //      ret.append(storedRecord)
-  //      feed.pr.addToPublicationDates(storedRecord.pr)
-  //    }
-  //    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
-  //    return ret
-  //  }
   
-  ///For future Performance Studies, after initial installation, with manipulated get PubDates of last 200 Days this Version took 13s on M1 Pro Simulator
-  //  public static func persist(publicationDates: [PublicationDate],
-  //                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
-  //    var start = Date()
-  //    var ret:[StoredPublicationDate] = []
-  //
-  //    for pubDate in publicationDates {
-  //      let storedRecord: StoredPublicationDate
-  //      = Self.get(object: pubDate, inFeed: feed) ?? new()
-  //      storedRecord.update(from: pubDate)
-  //      storedRecord.feed = feed
-  //      ret.append(storedRecord)
-  //      feed.pr.addToPublicationDates(storedRecord.pr)
-  //    }
-  //    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
-  //    return ret
-  //  }
-  ///optimal Performance for huge amount of new items: write all existing in Dict => update existing
-  ///in addition to indexed pubDates in Database
+  /// Persists an array of `PublicationDate` objects into the Core Data store for the specified feed.
+  ///
+  /// This method inserts all provided `publicationDates` into the persistent store using a high-performance
+  /// batch insert. It intentionally avoids filtering out duplicates in Swift prior to insertion due to
+  /// the performance cost of comparing thousands of entries in memory (e.g., using `Set` or `filter` operations).
+  ///
+  /// Instead, this method relies on a **Core Data Unique Constraint** defined on the `date` attribute
+  /// of the `PublicationDate` entity to ensure that no duplicates are inserted.
+  ///
+  /// - Important:
+  ///   - The `PublicationDate` entity must define a **Unique Constraint on `date`** in the Core Data model.
+  ///   - This allows the underlying SQLite engine to automatically discard duplicates efficiently during insert.
+  ///   - As a result, no Swift-side filtering or deduplication logic is needed, resulting in significantly better performance,
+  ///     especially when inserting thousands of items.
+  ///
+  /// - Performance:
+  ///   - On a test device (iPad Air 2 running iOS 15.8), the previous Swift-based filtering implementation
+  ///     took approximately **9 seconds** to process ~4,000 items.
+  ///   - With the current approach that delegates duplicate handling to Core Data via unique constraints,
+  ///     the same insert takes only around **2 seconds**, including fetch and batch insert.
+  ///
+  /// - Parameters:
+  ///   - publicationDates: An array of `PublicationDate` instances to be persisted.
+  ///   - feed: The `StoredFeed` entity to which the publication dates belong.
   public static func persist(publicationDates: [PublicationDate],
                              inFeed feed: StoredFeed) {
     let start = Date()
@@ -1840,6 +1827,13 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   }
   
 } //StoredPublicationDate
+
+extension Date {
+    var dayKey: Int {
+        let comps = Calendar(identifier: .gregorian).dateComponents([.year, .month, .day], from: self)
+        return comps.year! * 10000 + comps.month! * 100 + comps.day!
+    }
+}
 
 extension StoredIssue: Equatable {
   static public func ==(lhs: StoredIssue, rhs: StoredIssue) -> Bool {
