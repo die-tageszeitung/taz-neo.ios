@@ -29,11 +29,14 @@ public final class NotificationBusiness: DoesLog {
   @Default("isTextNotification")
   var isTextNotification: Bool
   
+  @Default("autoloadNewIssues")
+  var autoloadNewIssues: Bool
+  
   // Check if notifications are required based on user preferences
   /// Indicates whether notifications are required based on user preferences.
   var notificationsRequired: Bool {
     get {
-      return isTextNotification // || autoloadNewIssues
+      return isTextNotification || autoloadNewIssues
     }
   }
   

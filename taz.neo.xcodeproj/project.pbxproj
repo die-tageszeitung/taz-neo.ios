@@ -139,6 +139,8 @@
 		77D1B5102CF9D306004CF5FC /* UITest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D1B4FD2CF9D137004CF5FC /* UITest.swift */; };
 		77D434002CE694A100AC992A /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D433FF2CE694A100AC992A /* Bookmarks.swift */; };
 		77D434012CE694F800AC992A /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D433FF2CE694A100AC992A /* Bookmarks.swift */; };
+		77E2636A2E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E263692E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift */; };
+		77E2636B2E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E263692E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift */; };
 		77E5E1BC292D772200611148 /* Javascript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E5E1BB292D772200611148 /* Javascript.swift */; };
 		77E6BF162DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */; };
 		77E6BF172DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */; };
@@ -451,6 +453,7 @@
 		77D1B4FD2CF9D137004CF5FC /* UITest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITest.swift; sourceTree = "<group>"; };
 		77D1B5042CF9D2F3004CF5FC /* taz ui tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "taz ui tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		77D433FF2CE694A100AC992A /* Bookmarks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmarks.swift; sourceTree = "<group>"; };
+		77E263692E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+LocalNotifications.swift"; sourceTree = "<group>"; };
 		77E5E1BB292D772200611148 /* Javascript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Javascript.swift; sourceTree = "<group>"; };
 		77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+JsonData.swift"; sourceTree = "<group>"; };
 		77E6E9992CF850F300430B83 /* TableSectionSeperatorFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableSectionSeperatorFooterView.swift; sourceTree = "<group>"; };
@@ -719,6 +722,7 @@
 				777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */,
 				77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */,
 				775153DE2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift */,
+				77E263692E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift */,
 				778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */,
 				77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */,
 				7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */,
@@ -1379,6 +1383,7 @@
 				77CAE0A92D76F63D00F6A5FC /* BackgroundDownloadService.swift in Sources */,
 				AE5131BC2AFBCADB002289E8 /* SearchHeaderView.swift in Sources */,
 				7758CCBA2B504E4D000B8E30 /* _LMdSliderCell.swift in Sources */,
+				77E2636A2E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift in Sources */,
 				AE5131BD2AFBCADB002289E8 /* ArticleVC.swift in Sources */,
 				AE5131BE2AFBCADB002289E8 /* FormView.swift in Sources */,
 				AE5131BF2AFBCADB002289E8 /* MomentView.swift in Sources */,
@@ -1559,6 +1564,7 @@
 				AEBAF594219ACFAC00566205 /* TestController.swift in Sources */,
 				777607EE2CE6503D0023D3EF /* ArticleExportDialogue.swift in Sources */,
 				77CAE0AA2D76F63D00F6A5FC /* BackgroundDownloadService.swift in Sources */,
+				77E2636B2E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift in Sources */,
 				778F741825CC60C80017E426 /* TazTextField.swift in Sources */,
 				7772D5652DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift in Sources */,
 				AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */,

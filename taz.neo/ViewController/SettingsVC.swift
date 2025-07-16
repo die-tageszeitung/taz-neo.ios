@@ -17,11 +17,24 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("persistedIssuesCount")
   var persistedIssuesCount: Int
   
+  
+  @Default("autoloadPdf")
+  var autoloadPdf: Bool
+  
+  @Default("autoloadNewIssues")
+  var autoloadNewIssues: Bool {
+    ///show/hide autoloadOnlyInWLAN
+    didSet { if oldValue != autoloadNewIssues {  refreshAndReload()  }}
+  }
+  
   @Default("autoloadOnlyInWLAN2")
   var autoloadOnlyInWLAN: Bool
   
   @Default("autoloadAudio")
   var autoloadAudio: Bool
+  
+  @Default("autoloadNotifications")
+  var autoloadNotifications: Bool
   
   @Default("voiceoverControls")
   var voiceoverControls: Bool
@@ -59,15 +72,6 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   @Default("specialArticleSystemSetting")
   var specialArticleSystemSetting: Bool
-  
-  @Default("autoloadPdf")
-  var autoloadPdf: Bool
-  
-  @Default("autoloadNewIssues")
-  var autoloadNewIssues: Bool {
-    ///show/hide autoloadOnlyInWLAN
-    didSet { if oldValue != autoloadNewIssues { refreshAndReload() }}
-  }
   
   var extendedSettingsCollapsed: Bool = true
   
@@ -179,19 +183,20 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   lazy var autoloadNewIssuesCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
-                  detailText: autoloadCellDetailText,
+                  detailText: autoloadCellDetailText(autoloadNewIssues),
                   initialValue: autoloadNewIssues,
                   onChange: {[weak self] newValue in
-    self?.autoloadNewIssues = newValue
-    self?.autoloadNewIssuesCell.detailTextLabel?.text = self?.autoloadCellDetailText
+    self?.autoloadNewIssuesCell.detailTextLabel?.text
+    = self?.autoloadCellDetailText(newValue)
+    self?.autoloadNewIssues = newValue //perform reload!
     if newValue == true { self?.checkNotifications() }
   })
   
-  var autoloadCellDetailText: String? {
+  func autoloadCellDetailText(_ enabled: Bool) -> String? {
     let loginInfo = feederContext.gqlFeeder.hasValidAbo ? "": "Sie müssen mit einem gültigen Abo angemeldet sein.\n"
-    return autoloadNewIssues
+    return enabled
     ? "\(loginInfo)Lädt neue Ausgaben nur, wenn die App nicht manuell beendet wurde."
-    : nil
+    : " "
   }
   
   lazy var wlanCell: XSettingsCell
@@ -215,6 +220,14 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   initialValue: autoloadAudio,
                   onChange: {[weak self] newValue in
     self?.autoloadAudio = newValue })
+  
+  
+  lazy var autoloadNotificationsCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Benachrichtigung bei neuen Downloads",
+                  detailText: "Erhalte Mitteilungen auf dem Sperrbildschirm und in der Mitteilungszentrale, wenn neue Ausgaben automatisch heruntergeladen werden.",
+                  initialValue: autoloadNotifications,
+                  onChange: {[weak self] newValue in
+    self?.autoloadNotifications = newValue })
   
   lazy var voiceoverControlsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Voiceover Steuerung",
@@ -869,7 +882,9 @@ extension SettingsVC {
     if autoloadNewIssues {
       cells.append(wlanCell)
       cells.append(autoloadAudioCell)
+      cells.append(autoloadNotificationsCell)
     }
+    
     #if TAZ
     cells.append(epaperLoadCell)
     #endif

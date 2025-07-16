@@ -68,6 +68,7 @@ private let configValues = [
   "autoloadPdf" : "true",
   "autoloadAudio" : "true",
   "autoloadNewIssues" : "true",
+  "useTestServer" : "true",
   /**===AUTODOWNLOAD SETTINGS FOR ACTIVE DOWNLOADS====**/
   "autoloadPublicationType" : nil,
   "updatedResourcesUrl" : nil,

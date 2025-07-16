@@ -40,6 +40,9 @@ class BackgroundDownloadService: DoesLog {
   @Default("updatedResourcesLocalPath")
   var updatedResourcesLocalPath: String
   
+  @Default("autoloadNotifications")
+  var autoloadNotifications: Bool
+  
   var updatedResourcesFiles: [FileEntry] = []
   
   /// The date of the last issue that was fully downloaded based on the user's auto-download settings.

@@ -194,6 +194,10 @@ fileprivate extension BackgroundDownloadService {
          TazAppEnvironment.sharedInstance.feederContext?.netAvailability.isMobile == true {
         notifyHome(.autoloadErrorNoWlan)
       }
+      
+      if isBackground {
+        notify(issueDate: issue.date, finished: false)
+      }
       log("⏰ fin...download(s) enqueued, ui informed")
     }
     catch {
