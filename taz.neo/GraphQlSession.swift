@@ -134,10 +134,11 @@ public final class GraphQlSession: HttpSession {
       closure(requestResult(data: data, graphql: graphql, type: type), data)
     }
     else {
+      let gqlLog = graphql.starts(with: "errorReport") ? "(HIDDEN:ERRORREPORT!)" :"\(graphql)"
       let quoted = "\(requestType) {\(graphql)}".quote()
       let str = "{ \"query\": \(quoted) }"
-      if isBackground { self.log("Sending on bg: \(requestType) {\n\(graphql)\n}") }
-      else { self.log("Sending: \(requestType) {\n\(graphql)\n}")}
+      if isBackground { self.debug("Sending on bg: \(requestType) {\n\(gqlLog)\n}") }
+      else { self.debug("Sending: \(requestType) {\n\(gqlLog)\n}")}
       post(url, data: str.data(using: .utf8)!, returnOnMain: returnOnMain) { [weak self] res in
         guard let self = self else { return }
         if case let .success(data) = res {
