@@ -1756,22 +1756,36 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   public static func persist(publicationDates: [PublicationDate],
                              inFeed feed: StoredFeed) {
     let start = Date()
-    let allPr = Self.getAll(inFeed: feed)
     
-    var dbItems:[String:StoredPublicationDate] = [:]
+    let objectsArray: [[String: Any]] = publicationDates.map {
+      [
+        "date": $0.date,
+        "validityDate": $0.validityDate ?? NSNull()
+      ]
+    }
     
-    for prPubDate in allPr {
-      dbItems[prPubDate.date.short] = prPubDate
+    guard let entD = NSEntityDescription.entity(forEntityName: StoredPublicationDate.entity, in: ArticleDB.context) else {
+      Log.log("Could not get entity for \(StoredPublicationDate.entity)")
+      return
     }
-    Log.log("Get & prepare took \(Date().timeIntervalSince(start))s")
-    for pubDate in publicationDates {
-      let storedRecord: StoredPublicationDate
-      = dbItems[pubDate.date.short] ?? new()
-      storedRecord.date = pubDate.date
-      storedRecord.validityDate = pubDate.validityDate
-//      storedRecord.feed = feed
-      feed.pr.addToPublicationDates(storedRecord.pr)
+    
+    let request = NSBatchInsertRequest(entity: entD, objects: objectsArray)
+    
+    if let insertResult = try? ArticleDB.context.execute(request) as? NSBatchInsertResult,
+       let objectIDs = insertResult.result as? [NSManagedObjectID] {
+      // 🔁 Wichtig: Merge damit fetch später funktioniert
+      let changes = [NSInsertedObjectsKey: objectIDs]
+      NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [ArticleDB.context])
     }
+    
+    // ❗ Jetzt erst erscheinen die neuen Objekte im Kontext
+    let pds = StoredPublicationDate.getAllWithoutFeed()
+    for pd in pds {
+      feed.pr.addToPublicationDates(pd.pr)
+    }
+    
+    try? ArticleDB.context.save()
+    
     Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
   }
   
@@ -1789,6 +1803,12 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   public static func getAll(inFeed feed: StoredFeed) -> [StoredPublicationDate] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "(feed = %@)", feed.pr)
+    return get(request: request)
+  }
+    
+  private static func getAllWithoutFeed() -> [StoredPublicationDate] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "feed == nil")
     return get(request: request)
   }
   
