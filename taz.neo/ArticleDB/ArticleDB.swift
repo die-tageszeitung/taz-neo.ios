@@ -1754,9 +1754,8 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   ///optimal Performance for huge amount of new items: write all existing in Dict => update existing
   ///in addition to indexed pubDates in Database
   public static func persist(publicationDates: [PublicationDate],
-                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+                             inFeed feed: StoredFeed) {
     let start = Date()
-    var ret:[StoredPublicationDate] = []
     let allPr = Self.getAll(inFeed: feed)
     
     var dbItems:[String:StoredPublicationDate] = [:]
@@ -1764,17 +1763,16 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
     for prPubDate in allPr {
       dbItems[prPubDate.date.short] = prPubDate
     }
-    
+    Log.log("Get & prepare took \(Date().timeIntervalSince(start))s")
     for pubDate in publicationDates {
       let storedRecord: StoredPublicationDate
       = dbItems[pubDate.date.short] ?? new()
-      storedRecord.update(from: pubDate)
-      storedRecord.feed = feed
+      storedRecord.date = pubDate.date
+      storedRecord.validityDate = pubDate.validityDate
+//      storedRecord.feed = feed
       feed.pr.addToPublicationDates(storedRecord.pr)
-      ret.append(storedRecord)
     }
     Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
-    return ret
   }
   
   /// Return stored record with given name
@@ -2461,21 +2459,21 @@ public final class StoredFeed: Feed, StoredObject {
   public var storedPublicationDates: [StoredPublicationDate] {
     let dates = StoredPublicationDate.publicationDatesInFeed(feed: self)
     if !dates.isEmpty { return dates }
-    return publicationDatesFromStoredIssues()
+    createPublicationDatesFromStoredIssues()
+    return StoredPublicationDate.publicationDatesInFeed(feed: self)
   }
   
-  private func publicationDatesFromStoredIssues() -> [StoredPublicationDate] {
+  ///Helper for migation from 1.1? to newer version
+  private func createPublicationDatesFromStoredIssues(){
     var dates: [PublicationDate] = []
     for issue in storedIssues {
       let date = GqlPublicationDate(from: issue.date.dbIssueRepresentation, feed: self)
       date.validityDate = issue.validityDate
       dates.append(date)
     }
-    guard (issues?.first) != nil else { return [] }
-    let sDates
-    = StoredPublicationDate.persist(publicationDates: dates, inFeed: self)
+    guard (issues?.first) != nil else { return }
+    StoredPublicationDate.persist(publicationDates: dates, inFeed: self)
     ArticleDB.save()
-    return sDates
   }
   
   public var publicationDates: [PublicationDate]? { storedPublicationDates }
@@ -2511,11 +2509,7 @@ public final class StoredFeed: Feed, StoredObject {
     }
     if let pubDates = object.publicationDates {
       let start = Date()
-      let storedPubDates = StoredPublicationDate.persist(publicationDates: pubDates, inFeed: self)
-      for spd in storedPubDates {
-        pr.addToPublicationDates(spd.pr)
-      }
-      
+      StoredPublicationDate.persist(publicationDates: pubDates, inFeed: self)
 #warning("not removing wrong publicationDates!")
       /// Remove publicationDates no longer needed e.g. wrongly delivered by temporary api error
       /// **is not possible due we request only the newest ones
