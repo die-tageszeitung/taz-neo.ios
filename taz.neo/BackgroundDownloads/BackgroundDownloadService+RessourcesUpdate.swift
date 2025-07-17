@@ -41,9 +41,12 @@ extension BackgroundDownloadService {
       return
     }
     
-    log("Update resources in background ")
+    log("Update resources in background ")///<last beforecrash>
     let localResourcesDir = localResourceUrl(for: storedFeed.feeder, feed: storedFeed)
-    if !localResourcesDir.exists { localResourcesDir.create() }
+    if !localResourcesDir.exists {
+      log("Create localResourcesDir at: \(localResourcesDir.path)")
+      localResourcesDir.create()
+    }
     updatedResourcesLocalPath = localResourcesDir.path
     
     guard updatedResourcesLocalPath.length > 6 else {
@@ -52,7 +55,12 @@ extension BackgroundDownloadService {
     }
     
     let jsonFile = updatedResourcesLocalJsonFile
-    if jsonFile?.exists == false { jsonFile?.string = "" }///create path structure before bg download finish!
+    if jsonFile?.exists == false {
+      log("Create empty Resources JSON file at: \(jsonFile?.path ?? "-")")
+      jsonFile?.string = ""
+    } else {
+      log("Resources JSON file already exists at: \(jsonFile?.path ?? "-")")
+    }
     
     guard let response = await feederContext.gqlFeeder.resources() else {
       log("ERROR: No data fetched")
