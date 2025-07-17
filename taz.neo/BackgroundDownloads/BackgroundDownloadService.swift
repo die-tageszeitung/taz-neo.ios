@@ -23,6 +23,9 @@ class BackgroundDownloadService: DoesLog {
   @Default("autoloadOnlyInWLAN2")
   var autoloadOnlyInWLAN: Bool
   
+  @Default("useTestServer")
+  var useTestServer: Bool
+  
   var tempStorage = BackgroundDownloadsTempStorage()
   
   var saveDatabase = false

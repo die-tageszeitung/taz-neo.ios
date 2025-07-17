@@ -128,17 +128,6 @@ fileprivate extension BackgroundDownloadService {
         throw BackgroundDownloadError("No Zip to Download!")
       }
       
-      //      guard !BackgroundSession.search(url: zipUrl) else {
-      //        fetchSuccess = true
-      //        try restartAll()
-      //        throw BackgroundDownloadError("Already Downloading!")
-      //      }
-      
-      //      if BackgroundSession.waitingCount > 5 {
-      //        log("Too many downloads, stop older ones...")
-      //        BackgroundSession.cleanupAllSessions()
-      //      }
-      
       await prepareResourcesUpdateIfNeeded(issueMinResourceVersion: issue.minResourceVersion,
                                            localResources: localResources,
                                            feederContext: feederContext,

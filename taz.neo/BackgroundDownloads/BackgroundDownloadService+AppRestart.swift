@@ -73,7 +73,7 @@ extension BackgroundDownloadService {
           if idd.isDownloaded == true {
             issue.setAutodownloadCompleete()
           }
-          else if isOutdated(date: idd.date) {
+          else if isOutdated(date: idd.date) && useTestServer == false {
             ///KISS: in case of outdated download data, remove it
             ///maybe background session download it and moves files to issue folder; cleanup deletes them later
             ///multiple newer issues will be loaded meanwhile

@@ -196,6 +196,7 @@ extension BackgroundDownloadService {
     }
     
     if informUIAfterSave {
+      debug(">>..informUIAfterSave")
       onMainAfter {
         Notification.send(Const.NotificationNames.newAutolIssueLoaded)
         for issue in finishedStoredIssues {
