@@ -101,11 +101,10 @@ extension BackgroundDownloadService {
     }
     
     let fileName = url.lastPathComponent
-   
     
     if let index = downloadingResourcesFiles.firstIndex(of: fileName) {
       downloadingResourcesFiles.remove(at: index)
-      log("Check if downloadedFile: \(fileName) is in downloadingResourcesFiles")
+      log("Removed downloadedFile: \(fileName) from downloadingResourcesFiles")
     } else {
       log("ERROR: File \(fileName) not found in downloadingResourcesFiles")
       return

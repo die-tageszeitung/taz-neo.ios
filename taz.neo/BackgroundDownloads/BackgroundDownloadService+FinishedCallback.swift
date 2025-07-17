@@ -27,9 +27,9 @@ extension BackgroundDownloadService {
     
     ///** Error Handling
     if let err = err {
-      log("...Failed to Download with err: \(err)")
-      #warning("TODO: not implemented!!")
-      restartDownloadForIssue(with: downloadUrl)
+      ///since now this only happend after server switch; in case of missing downloads maybe handle later
+      ///after server switch & 
+      log("⚠️⚠️...Failed to Download for: \(downloadUrl)\n  with err: \(err)")
       return
     }
     
@@ -41,7 +41,7 @@ extension BackgroundDownloadService {
     
     ///** lookup for additional Data in Defaults
     guard let downloadData = getDownloadData(forDownloadUrl: downloadUrl) else {
-      log("...No DownloadData for url: \(downloadUrl). Aborting... maybe audio Downbload or Resources (TBD)")
+      log("...No DownloadData for url: \(downloadUrl). Audio or Resources Downbload")
       return
     }
         

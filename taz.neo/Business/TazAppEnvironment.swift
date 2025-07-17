@@ -343,6 +343,8 @@ class TazAppEnvironment: NSObject, DoesLog {
         specialArticleSystemSetting: \(Defaults.singleton["specialArticleSystemSetting"] ?? "-")
         autoloadNewIssues: \(Defaults.singleton["autoloadNewIssues"] ?? "-")
         autoloadOnlyInWLAN: \(Defaults.singleton["autoloadOnlyInWLAN2"] ?? "-")
+        BackgroundSession.hasOpenDownloads: \(BackgroundDownloadService.shared.backgroundSession.hasOpenDownloads)
+        BackgroundDownloadService.tempStorage.hasActiveDownloads: \(BackgroundDownloadService.shared.tempStorage.hasActiveDownloads)
         ---
         voiceoverControls: \(Defaults.singleton["voiceoverControls"] ?? "-")
         smartBackFromArticle: \(Defaults.singleton["smartBackFromArticle"] ?? "-")

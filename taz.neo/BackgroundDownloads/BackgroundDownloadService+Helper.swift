@@ -57,15 +57,6 @@ extension BackgroundDownloadService {
       Usage.dispatch()
     }
   }
-  
-  func restartDownloadForIssue(with zipUrl: String) {
-    ///WARNING TODO ⚠️ entweder verwerfen oder neustarten merke in defaults restarted...kommt das vor, funktioniert dies...verwerfen == userdefaults eintrag entfernen
-    ///db eintrag kann bleiben hat dann halt autodownloading== true, aber dieser Indikator ist nicht eindeutig, da ohne db speichern es auch dazu kommen kann
-    log("⚠️⚠️ TODO restart Download for: \(zipUrl)")
-    //ist es issue/audio/ressourcen
-    ///was war der Fehler
-    ///habe ich überhaupt daten (in json oder currentIssues?
-  }
 }
 
 // MARK: - Custom Error Class for BackgroundDownloadService
