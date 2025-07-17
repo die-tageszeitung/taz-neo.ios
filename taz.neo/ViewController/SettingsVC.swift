@@ -882,12 +882,14 @@ extension SettingsVC {
     if autoloadNewIssues {
       cells.append(wlanCell)
       cells.append(autoloadAudioCell)
-      cells.append(autoloadNotificationsCell)
     }
     
     #if TAZ
     cells.append(epaperLoadCell)
     #endif
+    if autoloadNewIssues {
+      cells.append(autoloadNotificationsCell)
+    }
     cells.append(deleteIssuesCell)
     return cells
   }
