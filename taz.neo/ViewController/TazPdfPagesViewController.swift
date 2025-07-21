@@ -577,17 +577,22 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   // MARK: - setupSlider
   func setupSlider(sliderContent:UIViewController){
     slider = MyButtonSlider(slider: sliderContent, into: self)
-    if App.isLMD { slider?.openShiftRatio = 0.95 }
     guard let slider = slider else { return }
     let logo = App.isTAZ ? "logo" : "logoLMD"
-    slider.sliderView.clipsToBounds = false
-    slider.image = UIImage.init(named: logo)
-    slider.image?.accessibilityLabel = "Inhalt"
-    slider.closedBottonImageOffsetX = App.isTAZ ? 0.0 : 8.0
+    slider.setImage( UIImage(named: logo),
+                      menuImage: UIImage(named: "BurgerMenu")?.withTintColor(.white, renderingMode: .alwaysOriginal),
+                      closeImage: UIImage(named: "closeX")?.withTintColor(.white, renderingMode: .alwaysOriginal))
+    slider.button.accessibilityLabel = "Inhalt"
+    slider.button.backgroundColor = Const.SetColor.CIColor.color
     slider.buttonAlpha = 1.0
-    if !App.isLMD { slider.hideButtonOnClose = true }
-    slider.button.additionalTapOffset = 50
-    slider.close()
+    slider.closedBottonImageOffsetX = 0.0
+    slider.sliderView.clipsToBounds = false
+    slider.onOpen{ _ in
+      Usage.track(Usage.event.drawer.action_open.Open, name: "Logo Tap")
+    }
+//    if !App.isLMD { slider.hideButtonOnClose = true }
+    slider.button.additionalTapOffset = 20
+//    slider.close()
     #if LMD
     (sliderContent as? LMdSliderContentVC)?.header.imageView.onTapping{[weak self] _ in
       self?.slider?.close()
@@ -611,6 +616,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     sliderContentVc.currentPage = page
     (childArticleVC?.sliderContent as? LMdSliderContentVC)?.currentPage = page
     #endif
+    slider?.showMenuImage = false
   }
   
   var lastWindowSize: CGSize?
@@ -692,8 +698,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
           return
         }
         self?.toolBar.show(show:!zoomedIn, animated: true)
+        #warning("Did not work on initial PAGE!!!")
+        self?.slider?.showMenuImage = zoomedIn
       }
       self?.toolBar.show(show:true, animated: true)
+      self?.slider?.showMenuImage = false
     }
   }
 
@@ -961,22 +970,12 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     guard sliderContent != nil else { return }
     let width = (newParentSize ?? self.view.frame.size).sliderWidth(for: transitionNextCollection?.horizontalSizeClass)
     transitionNextCollection = nil
-    (slider as? MyButtonSlider)?.ocoverage = width
+    slider?.ocoverage = width
   }
   
   override func setupSlider() {
     if let sContent = self.sliderContent {
       slider = MyButtonSlider(slider: sContent, into: self)
-      if App.isLMD { (slider as? MyButtonSlider)?.openShiftRatio = 0.95 }
-      guard let slider = slider else { return }
-      let logo = App.isTAZ ? "logo" : "logoLMD"
-      slider.sliderView.clipsToBounds = false
-      slider.image = UIImage.init(named: logo)
-      slider.image?.accessibilityLabel = "Inhalt"
-      slider.closedBottonImageOffsetX = App.isTAZ ? 0.0 : 8.0
-      slider.buttonAlpha = 1.0
-      slider.button.additionalTapOffset = 50
-      slider.close()
     }
     #if LMD
     if let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC {
