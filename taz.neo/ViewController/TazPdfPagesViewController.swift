@@ -422,6 +422,27 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
   }
   
+  var playingCurrentSection: Bool {
+    return ArticlePlayer.singleton.isPlaying
+    && ArticlePlayer.singleton.currentContent?.html?.sha256 ==
+    sectionAudio()?.html?.sha256
+  }
+  
+  var playingCurrentIssue: Bool {
+    ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey
+    == self.issue.date.issueKey
+  }
+  
+  private func updateMenuAudioButton(){
+    guard let cell = (sliderContentController as? PdfOverviewCollectionVC)?.titleCell else { return }
+    let playing = playingCurrentIssue && ArticlePlayer.singleton.isPlaying
+    cell.listenLabel.text = playing ? "Wiedergabe beenden" : "Ausgabe hören"
+    
+    cell.listenIcon.image  = UIImage(named: playing  ? "audio-active" : "audio")?
+          .withRenderingMode(.alwaysOriginal)
+          .withTintColor(.white)
+  }
+  
   func openArticle(name: String?, path: String?){
     guard let pdfModel = pdfModel as? NewPdfModel else { return }
     guard let issueInfo = pdfModel.issueInfo else { return }
@@ -517,11 +538,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     Rating.issueOpened()
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.audioButton?.buttonView.name
-      = ArticlePlayer.singleton.isPlaying
-      && ArticlePlayer.singleton.currentContent?.html?.sha256 ==
-      self?.sectionAudio()?.html?.sha256
-      ? "audio-active"
-      : "audio"
+      = self?.playingCurrentSection ?? false
+      ? "audio-active" : "audio"
+      self?.updateMenuAudioButton()
     }
     
     onRightTap {[weak self] in
@@ -673,6 +692,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   open override func setupViewProvider(){
     super.setupViewProvider()
     onDisplay { [weak self] (_, optionalView, _) in
+      ///sectionAudio e.g. for bundestalk
       let sectionAudio = self?.sectionAudio()
       self?.toolBar.setToolbar(sectionAudio == nil ? 0 : 1)
       guard let ziv = optionalView as? ZoomedImageView,
@@ -769,6 +789,10 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         nModel.images = []
       }
       self.pdfModel = nil
+      if let ctrl = sliderContentController as? PdfOverviewCollectionVC {
+        ctrl.onTitleCellChange { _ in }
+        ctrl.titleCell = nil
+      }
       sliderContentController = nil
       slider = nil
     }
@@ -788,6 +812,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
   
   private var shareButton: Button<ImageView>?
+  ///sectionAudio Button only used in state 1 e.g. for bundestalk
   private var audioButton: Button<ImageView>?
   
   // MARK: - setupToolbar
@@ -846,6 +871,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                                direction: .center,
                                atToolbars: [0,1],
                                accessibilityLabel: "Teilen")
+    ///sectionAudio in state 1 e.g. for bundestalk
     toolBar.addSpacer(.center, atToolbars: [1])
     audioButton = toolBar.addImageButton(name: "audio",
                                onPress: onPlay,
@@ -882,11 +908,44 @@ extension TazPdfPagesViewController {
   func createTazSliderChildController(pdfModel: PdfModel) -> PdfOverviewCollectionVC {
     let ctrl = PdfOverviewCollectionVC(pdfModel:pdfModel)
     ctrl.cellLabelFont = Const.Fonts.titleFont(size: 12)
-    ctrl.titleCellLabelFont = Const.Fonts.contentFont(size: 12)
     ctrl.cellLabelLinesCount = 2
     ctrl.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
+    ctrl.onTitleCellChange {[weak self] cell in
+      cell?.dateLabel.font = Const.Fonts.contentFont(size: 12)
+      cell?.dateLabel.text = pdfModel.title
+      cell?.dateLabel.textColor = Const.Colors.appIconGrey
+      
+      cell?.listenLabel.font = Const.Fonts.contentFont(size: 12)
+      cell?.listenLabel.isHidden = false
+      cell?.listenIcon.isHidden = false
+      
+      if let layout = ctrl.collectionView?.collectionViewLayout as? TwoColumnUICollectionViewFlowLayout {
+        cell?.imageWidthConstraint?.constant = layout.singleItemSize.width
+      }
+      cell?.imageWidthConstraint?.isActive = true
+      cell?.listenLabel.textColor = Const.Colors.darkPrimaryText
+      cell?.listenLabel.onTapping { [weak self] _ in
+        self?.tapPlayInSlider()
+      }
+      cell?.listenIcon.onTapping { [weak self] _ in
+        self?.tapPlayInSlider()
+      }
+      self?.updateMenuAudioButton()
+    }
     return ctrl
   }
+  
+  func tapPlayInSlider(){
+    if playingCurrentIssue {
+      ArticlePlayer.singleton.close()
+      return
+    }
+    ArticlePlayer.singleton.play(issue: issue,
+               startFromArticle: nil,
+               enqueueType: .replaceCurrent)
+    Usage.track(Usage.event.drawer.action_tap.PlayIssue)
+  }
+  
   
   #if LMD
   func createLmdSliderChildController(issueInfo: IssueInfo) -> LMdSliderContentVC {
@@ -1021,7 +1080,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     if self.parentViewController != nil { return }
-    (slider as? MyButtonSlider)?.hideContentAnimated()
+    slider?.hideContentAnimated()
     self.releaseOnDisappear()
     #if LMD
     (self.sliderContent as? LMdSliderContentVC)?.dataSource = nil

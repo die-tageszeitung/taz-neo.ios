@@ -221,9 +221,7 @@ class ArticlePlayerUI: UIView {
   lazy var closeButton: Button<ImageView> = {
     let btn = Button<ImageView>()
     btn.onPress { [weak self] _ in
-      self?.removeFromSuperview()
       self?.closeClosure?()
-      self?.isErrorState = false
     }
     btn.pinSize(CGSize(width: 38, height: 38))
     btn.hinset = 0.1//20%

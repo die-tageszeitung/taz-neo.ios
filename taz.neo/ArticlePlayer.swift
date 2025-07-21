@@ -202,9 +202,7 @@ class ArticlePlayer: DoesLog {
   
   private func showCloseOnDemoAlert(){
     Alert.message(title: "Wiedergabe beendet", message: "In Ihrer Wiedergabeliste befanden sich gekürzte Demo Artikel. Mit gültigem Abonnement können die vollständigen Inhalte wiedergegeben werden.\nBitte starten Sie die Wiedergabe erneut.")
-    self.userInterface.removeFromSuperview()
     self.close()
-    self.userInterface.isErrorState = false
   }
   
   private func handleAuthenticationSucceeded(){
@@ -619,7 +617,8 @@ class ArticlePlayer: DoesLog {
     Notification.send(Const.NotificationNames.gotoArticleInIssue, content: currentArticle, sender: self)
   }
   /// Stop the currently being played article
-  private func close() {
+  func close() {
+    userInterface.removeFromSuperview()
     nextContent = []
     lastContent = []
     aplayer.close()
@@ -629,6 +628,7 @@ class ArticlePlayer: DoesLog {
     commandCenter.playCommand.isEnabled = false
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     Usage.xtrack.audio.close()
+    userInterface.isErrorState = false
   }
   
   public func play(issue:Issue,
