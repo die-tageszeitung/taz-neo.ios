@@ -69,6 +69,11 @@ private let configValues = [
   "autoloadAudio" : "true",
   "autoloadNewIssues" : "true",
   "useTestServer" : "false",
+  /**===LastReadBusiness====**/
+  "articleFileName" : nil,
+  "lastReadPage" : nil,
+  "lastReadIssueDate" : nil,
+  "lastReadChanged" : nil,
   /**===AUTODOWNLOAD SETTINGS FOR ACTIVE DOWNLOADS====**/
   "autoloadPublicationType" : nil,
   "updatedResourcesUrl" : nil,

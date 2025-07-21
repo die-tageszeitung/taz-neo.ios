@@ -29,9 +29,24 @@ extension IssueCollectionViewActions {
     Usage.track(Usage.event.issue.delete,
                 name: issue.date.ISO8601)
     Notification.send("issueDelete", content: issue.date)
+    LastReadBusiness.resetFor(issue: issue)
+    issue.lastPage = nil
+    issue.lastArticle = nil
+    issue.lastSection = nil
     issue.delete()
     self.collectionView.reloadItems(at: [indexPath])
     self.updateCarouselDownloadButton()
+  }
+  
+  func resetIssue(issue: StoredIssue,
+                   at indexPath: IndexPath) {
+    issue.lastPage = nil
+    issue.lastArticle = nil
+    issue.lastSection = nil
+    LastReadBusiness.resetFor(issue: issue)
+    ///reload is not needed currently
+    //self.collectionView.reloadItems(at: [indexPath])
+    //self.updateCarouselDownloadButton()
   }
   
   func updateCarouselDownloadButton(){
@@ -45,6 +60,12 @@ extension IssueCollectionViewActions {
     
     actions.addMenuItem(title: "Ausgabe löschen",
                         icon: "trash",
+                        enabled: issue.isDownloading == false) {[weak self] _ in
+      self?.deleteIssue(issue: issue, at: indexPath)
+    }
+    
+    actions.addMenuItem(title: "Lesestatus zurücksetzen",//Als neu/ungelesen markieren
+                        icon: "sparkles",//arrow.counterclockwise
                         enabled: issue.isDownloading == false) {[weak self] _ in
       self?.deleteIssue(issue: issue, at: indexPath)
     }

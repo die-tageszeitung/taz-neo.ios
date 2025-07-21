@@ -55,6 +55,20 @@ public class LastReadBusiness: NSObject, DoesLog{
     }
   }
   
+  ///Reset last Read info for the given issue.
+  ///if issue is nil, reset last read for all issues.
+  static func resetFor(issue: Issue?){
+    if let id = issue?.date, id.issueKey != sharedInstance.issueDate.issueKey {
+      return
+    }
+    ///issue date not given => delete last read
+    ///issue date given and matching last Read => delete last read
+    sharedInstance.issueDate = Date.distantPast
+    sharedInstance.page = -1
+    sharedInstance.articleFileName = ""
+    sharedInstance.lastReadChanged = UsTime.now.toString()
+  }
+  
   static func getLast(for issue: Issue) -> (lastArticle: Article?, page: Int?, changed: UsTime?){
     if issue.date != sharedInstance.issueDate {
       return (nil, nil, nil)
