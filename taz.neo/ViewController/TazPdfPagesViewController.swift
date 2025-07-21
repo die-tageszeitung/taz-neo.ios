@@ -691,10 +691,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   // MARK: - setupViewProvider
   open override func setupViewProvider(){
     super.setupViewProvider()
-    onDisplay { [weak self] (_, optionalView, _) in
+    onDisplay { [weak self] (idx, optionalView, _) in
       ///sectionAudio e.g. for bundestalk
       let sectionAudio = self?.sectionAudio()
       self?.toolBar.setToolbar(sectionAudio == nil ? 0 : 1)
+      (self?.sliderContentController as? PdfOverviewCollectionVC)?.activeIndex = idx
       guard let ziv = optionalView as? ZoomedImageView,
             let pdfImg = ziv.optionalImage as? ZoomedPdfImageSpec else { return }
       ziv.menu.menu = self?.menuItems ?? []
@@ -908,6 +909,8 @@ extension TazPdfPagesViewController {
   func createTazSliderChildController(pdfModel: PdfModel) -> PdfOverviewCollectionVC {
     let ctrl = PdfOverviewCollectionVC(pdfModel:pdfModel)
     ctrl.cellLabelFont = Const.Fonts.titleFont(size: 12)
+    ctrl.cellLabelActiveColor = Const.Colors.darkPrimaryText
+    ctrl.cellLabelInActiveColor = Const.Colors.appIconGrey
     ctrl.cellLabelLinesCount = 2
     ctrl.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
     ctrl.onTitleCellChange {[weak self] cell in
