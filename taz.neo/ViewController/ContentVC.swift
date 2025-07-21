@@ -205,7 +205,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var issue: Issue { delegate.issue }
   public var feed: Feed { issue.feed }
   public var dloader: Downloader { delegate.dloader }
-  var slider:ButtonSlider?
+  var slider:MyButtonSlider?
   /// Whether to show all content images in a gallery
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
@@ -932,12 +932,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     
     whenScrolled { [weak self] ratio in
       if (ratio < 0) {
+        self?.slider?.showMenuImage = true
         if self?.hideOnScroll == false { return }
         self?.toolBar.show(show: false, animated: true)}
-      else { self?.toolBar.show(show:true, animated: true)}
-      #if LMD
-        self?.slider?.collapsedButton = ratio < 0
-      #endif
+      else {
+        self?.slider?.showMenuImage = false
+        self?.toolBar.show(show:true, animated: true)
+      }
     }
     onDisplay {[weak self]_, _, _  in
       //Note: use this due onPageChange only fires on link @see WebCollectionView
@@ -961,17 +962,20 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   func updateSliderWidth(newParentWidth: CGFloat? = nil){
     guard contentTable != nil else { return }
     let maxWidth = Const.Size.ContentSliderMaxWidth
-    (slider as? MyButtonSlider)?.ocoverage
+    slider?.ocoverage
     = min(maxWidth, (newParentWidth ?? maxWidth + 28.0) - 28.0 )
   }
   
   public func setupSlider() {
     updateSliderWidth(newParentWidth: UIScreen.shortSide)
     let logo = App.isTAZ ? "logo" : "logoLMD"
-    slider?.image = UIImage.init(named: logo)
-    slider?.image?.accessibilityLabel = "Inhalt"
+    slider?.setImage( UIImage(named: logo),
+                      menuImage: UIImage(named: "BurgerMenu")?.withTintColor(.white, renderingMode: .alwaysOriginal),
+                      closeImage: UIImage(named: "closeX")?.withTintColor(.white, renderingMode: .alwaysOriginal))
+    slider?.button.accessibilityLabel = "Inhalt"
+    slider?.button.backgroundColor = Const.SetColor.CIColor.color
     slider?.buttonAlpha = 1.0
-    slider?.closedBottonImageOffsetX = App.isTAZ ? 0.0 : 8.0
+    slider?.closedBottonImageOffsetX = 0.0
     header.leftConstraint?.constant = 8 + (slider?.visibleButtonWidth ?? 0.0)
     ///enable shadow for sliderView
     slider?.sliderView.clipsToBounds = false
@@ -1032,6 +1036,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if abs(oldCoverage - newCoverage) < 2 { return }//no rotate
       ///**Tip** If there are update with issues, look in git history former the menu was closed and re-opened to fix this
       self.settingsBottomSheet?.coverage =  newCoverage
+      self.slider?.applyImage(open: self.slider?.isOpen ?? false)
     }
   }
   
