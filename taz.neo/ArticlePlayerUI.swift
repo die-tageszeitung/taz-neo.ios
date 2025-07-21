@@ -477,7 +477,7 @@ class ArticlePlayerUI: UIView {
     pin(rateButton.right, to: wrapper.right)
     titleLabelRightConstraint = pin(titleLabel.right, to: wrapper.right)
     authorLabelRightConstraint = pin(authorLabel.right, to: wrapper.right)
-    authorLabelBottomConstraint = pin(authorLabel.bottom, to: wrapper.bottom)
+    authorLabelBottomConstraint = pin(authorLabel.bottom, to: wrapper.bottom, priority: .defaultLow)
     
     titleLabelTopConstraint_Mini = pin(titleLabel.top, to: imageView.top, dist: -1.0)
     titleLabelTopConstraint_Mini?.isActive = false
@@ -489,6 +489,9 @@ class ArticlePlayerUI: UIView {
   
     titleLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
     authorLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+    
+    titleLabel.setContentHuggingPriority(.required, for: .vertical)
+    titleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
     toggleButtonYConstraint_Mini = toggleButton.centerY()
     toggleButtonYConstraint_Mini?.isActive = false
