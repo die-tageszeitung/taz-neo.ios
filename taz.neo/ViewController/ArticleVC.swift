@@ -164,6 +164,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       }
     }
     
+    onEndDisplayCell { [weak self] (idx, wv) in
+      guard let self = self,
+            let webView = wv?.activeView as? WebView,
+            let art = self.articles.valueAt(idx) else { return }
+      persistReadProgress(art: art, webView: webView)
+    }
+    
     onDisplay { [weak self] (idx, _, _) in
       guard let self = self else { return }
       guard let art = self.articles.valueAt(idx) else {
@@ -191,7 +198,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
       if !self.issue.isBookmarkIssue {
-        LastReadBusiness.persist(lastArticle: art, page: nil, in: self.issue)
+        LastReadBusiness.persist(lastArticle: art, page: nil, scrollProgress: 0.0, in: self.issue)
       }
       if art.canPlayAudio {
         updateAudioButton()
@@ -212,10 +219,22 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       if UIApplication.shared.applicationState != .active { return }
       self?.adelegate?.linkPressed(from: from, to: to)
     }
-    whenLoaded {
+    whenLoaded {[weak self] in
+      guard let self = self else { return }
       Notification.send(Const.NotificationNames.articleLoaded)
+      let lastRead = LastReadBusiness.getLast(for: self.issue)
+      guard self.article?.serverId == lastRead.lastArticleServerId, self.article?.serverId != nil else { return }
+      self.currentWebView?.scrollProgress = CGFloat(lastRead.scrollProgress ?? 0.0)
     }
     header.titletype = .article
+    header.isWochentaz = issue.isWeekend
+  }
+  
+  func persistReadProgress(art: Article? = nil, webView: WebView? = nil) {
+    guard let art = art ?? self.article,
+    let wv = webView ?? self.currentWebView as WebView? else { return }
+    log(">>> persistReadProgress for article: \(art.title ?? "-") at \(wv.scrollProgress*100)% ")
+    LastReadBusiness.persist(lastArticle: art, page: nil, scrollProgress: Float(wv.scrollProgress), in: self.issue)
   }
   
   func handleAtEndOfContent(isAtEnd: Bool){
@@ -280,6 +299,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         header.title = art.title
         header.pageNumber = nil
       }
+      header.updateFonts()
     }
   }
   
@@ -553,5 +573,49 @@ class MultiColumnOnboardingView: UIView {
   required init?(coder: NSCoder) {
     super.init(coder: coder)
     setup()
+  }
+}
+
+extension WebView {
+  /// Lesefortschritt (0.0–1.0) – vertikal oder horizontal je nach Layout
+  var scrollProgress: CGFloat {
+    get {
+      let scrollView = self.scrollView
+      let contentSize = scrollView.contentSize
+      let boundsSize = scrollView.bounds.size
+      let offset = scrollView.contentOffset
+      
+      if Defaults.multiColumnMode {
+        guard contentSize.width > boundsSize.width else { return 0.0 }
+        let progress = offset.x / (contentSize.width - boundsSize.width)
+        return clamp(progress)
+      } else {
+        guard contentSize.height > boundsSize.height else { return 0.0 }
+        let progress = offset.y / (contentSize.height - boundsSize.height)
+        return clamp(progress)
+      }
+    }
+    
+    set {
+      print(">>> setting scrollProgress to \(newValue)")
+      let scrollView = self.scrollView
+      let contentSize = scrollView.contentSize
+      let boundsSize = scrollView.bounds.size
+      let clampedProgress = clamp(newValue)
+      
+      if Defaults.multiColumnMode {
+        guard contentSize.width > boundsSize.width else { return }
+        let offsetX = CGFloat(clampedProgress) * (contentSize.width - boundsSize.width)
+        scrollView.setContentOffset(CGPoint(x: offsetX, y: 0), animated: false)
+      } else {
+        guard contentSize.height > boundsSize.height else { return }
+        let offsetY = CGFloat(clampedProgress) * (contentSize.height - boundsSize.height)
+        scrollView.setContentOffset(CGPoint(x: 0, y: offsetY), animated: false)
+      }
+    }
+  }
+  
+  private func clamp(_ value: CGFloat) -> CGFloat {
+    return min(max(value, 0.0), 1.0)
   }
 }

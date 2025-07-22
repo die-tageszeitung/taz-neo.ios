@@ -66,12 +66,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
   }
   
-  func showArticle(_ article: Article, animated: Bool = true) {
+  func showArticle(_ article: Article, animated: Bool = true, scrollPos: CGFloat?) {
     guard let i = issue.indexOf(article: article) else { return }
-    showArticle(index: i, animated: animated)
+    showArticle(index: i, animated: animated, scrollPos: scrollPos)
   }
   
-  private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true) {
+  private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true, scrollPos: CGFloat?) {
     if let avc = articleVC {
       if let url = url { avc.gotoUrl(url: url) }
       else if let index = index { avc.index = index }
@@ -81,6 +81,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
           avc.writeTazApiCss()
           avc.toolBar.show(show:true, animated: false)
           avc.header.show(show: true, animated: false)
+          if let scrollPos = scrollPos {
+            avc.currentWebView?.scrollProgress = scrollPos
+            log("set scrollPos: \(scrollPos) for ArticleVC")
+          }
           nvc.pushViewController(avc, animated: animated)
         }
       }
@@ -110,8 +114,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     if to.isFileURL {
       if article2sectionHtml[fn] != nil {
         lastIndex = nil
-        showArticle(url: to)
-      }    
+        showArticle(url: to, scrollPos: 0.0)
+      }
       else {
         for s in self.sections {
           if fn == s.html?.name {
@@ -239,6 +243,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.updateAudioButton()
     }
+    
+    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+      self?.articleVC?.persistReadProgress()
+    }
+    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
+      self?.articleVC?.persistReadProgress()
+    }
+    header.isWochentaz = issue.isWeekend
   }
   
   func updateAudioButton(){
@@ -370,7 +382,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     if let iart = initialArticle {
       doPreventCoachmark = true
       articleVC?.view.doLayout()
-      self.showArticle(index: iart, animated: false)
+      self.showArticle(index: iart, animated: false, scrollPos: 0.0)
       initialArticle = nil
       self.header.isHidden = true
       self.collectionView?.isHidden = true

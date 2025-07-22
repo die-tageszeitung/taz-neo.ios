@@ -18,8 +18,11 @@ class IssueDisplayService: NSObject, IssueInfo, DoesLog {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
-  @Default("reopenArticleSetting")
-  public var reopenArticleSetting: Bool
+  @Default("reopenHintSetting")
+  public var reopenHintSetting: Bool
+  
+  @Default("reopenAutomaticSetting")
+  public var reopenAutomaticSetting: Bool 
   
   var feederContext: FeederContext
   var sissue: StoredIssue
@@ -110,32 +113,46 @@ extension IssueDisplayService {
                               atArticle: atArticle)
     sectionVC.delegate = self
     
-    let lastArticleShown = LastReadBusiness.getLast(for: issue)
-    var reopenArticle = true
-        
-    if atArticle == nil && reopenArticleSetting == true {
+//    let lastArticleShown = LastReadBusiness.getLast(for: issue)
+//    var reopenArticle = true
+    
+    if atArticle == nil { reopenIfNeeded(with: sectionVC) }
+    pushDelegate.push(sectionVC, issueInfo: self)
+  }
+  
+  private func reopenIfNeeded(with sectionVC: SectionVC) {
+    let lastPos = LastReadBusiness.getLast(for: issue)
+    guard let id = lastPos.lastArticleServerId,
+          let lastArticle = issue.allArticles.first(where: { $0.serverId == id }),
+          let scrollProgress = lastPos.scrollProgress else { return }
+    let scrollPos = CGFloat(scrollProgress)
+    
+    if reopenAutomaticSetting == true {
       sectionVC.whenLoaded {
-        if reopenArticle, let lastArticle = lastArticleShown.lastArticle, let changed = lastArticleShown.changed{
-          reopenArticle = false
-          let actions: [UIAlertAction] = [
-            Alert.action("Weiterlesen") {_ in
-              sectionVC.showArticle(lastArticle)
-              Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Open")
-            },
-          ]
-          let title = "Letzten Artikel erneut öffnen?"
-          let msg = "Sie haben auf diesem Gerät am \(changed.date.short) um \(changed.date.timeFromDate) den Artikel \"\(lastArticle.title ?? "")\" geöffnet. Möchten Sie diesen erneut anzeigen?"
-          Alert.actionSheet(title: title, message: msg, actions: actions, cancelHandler:  { _ in
-            Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Cancel")
-          })
-        }
+        sectionVC.showArticle(lastArticle, scrollPos: scrollPos)
+        Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "OpenAutomatic")
         Notification.send(Const.NotificationNames.articleLoaded)
       }
     }
-    else if reopenArticleSetting == false {
+    else if reopenHintSetting == true {
+      sectionVC.whenLoaded {
+        let actions: [UIAlertAction] = [
+          Alert.action("Weiterlesen") {_ in
+            sectionVC.showArticle(lastArticle, scrollPos: scrollPos)
+            Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Open")
+          },
+        ]
+        let title = "Letzten Artikel erneut öffnen?"
+        let msg = "Sie haben den Artikel \"\(lastArticle.title ?? "")\" geöffnet. Möchten Sie diesen erneut anzeigen?"
+        Alert.actionSheet(title: title, message: msg, actions: actions, cancelHandler:  { _ in
+          Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Cancel")
+        })
+      }
+      Notification.send(Const.NotificationNames.articleLoaded)
+    }
+    else {//both false
       Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Disabled")
     }
-    pushDelegate.push(sectionVC, issueInfo: self)
   }
   
   

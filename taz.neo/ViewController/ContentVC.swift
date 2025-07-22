@@ -154,25 +154,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   @Default("articleTextSize")
   private var articleTextSize: Int
-
-  @Default("multiColumnModePortrait")
-  var multiColumnModePortrait: Bool
-  
   @Default("multiColumnModeLandscape")
   var multiColumnModeLandscape: Bool
   ///indicator if multiColumnMode == true & tablet & enough space to display multi columns
-  
-  var multiColumnMode: Bool {
-    return UIDevice.isPortrait && multiColumnModePortrait
-    || UIDevice.isLandscape && multiColumnModeLandscape
-  }
   
   private var isMultiColumnMode = false {
     didSet {
       if self.isKind(of: ArticleVC.self)
           && oldValue == true
           && isMultiColumnMode == false
-          && multiColumnMode == true {
+          && Defaults.multiColumnMode == true {
         var tip = ""
         if Device.isIpad && UIDevice.isPortrait {
           tip = "iPad ins Querformat drehen."
@@ -422,7 +413,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   func getMultiColumnCss() -> String?  {
     let columns = Defaults.columnSetting.used
-    guard multiColumnMode && columns >= 2 else { return nil }
+    guard Defaults.multiColumnMode && columns >= 2 else { return nil }
     
     let padding
     = articleTextSize <= 100
@@ -1121,3 +1112,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     fatalError("init(coder:) has not been implemented")
   }
 }
+
+
+extension Defaults {
+  static var multiColumnMode: Bool {
+    return UIDevice.isPortrait && Defaults.singleton["multiColumnModePortrait"]?.bool ?? false
+    || UIDevice.isLandscape && Defaults.singleton["multiColumnModeLandscape"]?.bool ?? false
+  }
+}
+

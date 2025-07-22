@@ -204,7 +204,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     if let sectVc = home.navigationController?.viewControllers.valueAt(1) as? SectionVC,
        let sectIssue = sectVc.issue as? StoredIssue,
        issue == sectIssue {
-      sectVc.showArticle(article, animated: true)
+      sectVc.showArticle(article, animated: true, scrollPos: 0.0)
       home.togglePdfButton.isHidden = true
     }
     else {
