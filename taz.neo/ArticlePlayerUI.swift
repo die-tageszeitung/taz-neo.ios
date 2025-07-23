@@ -546,6 +546,10 @@ class ArticlePlayerUI: UIView {
     self.layer.shadowOffset = CGSize(width: 2, height: 2)
     self.layer.shadowRadius = 5
     self.layer.shadowColor = UIColor.black.cgColor
+//    self.layer.shadowColor = Const.SetColor.taz(.shade).cgColor
+    self.layer.borderWidth = 0.3
+    self.layer.borderColor = Const.Colors.appIconGrey.cgColor
+//    registerForStyleUpdates()
     
     Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
       guard let newSize = notification.content as? CGSize else { return }
@@ -770,6 +774,13 @@ class ArticlePlayerUI: UIView {
     }
   }
 }
+
+//extension ArticlePlayerUI : UIStyleChangeDelegate {
+//  public func applyStyles() {
+////    self.layer.shadowColor = Const.SetColor.taz(.shade).cgColor
+//    self.layer.borderColor = Const.SetColor.taz(.shade).cgColor
+//  }
+//}
 
 extension UIImage {
   var blurred:UIImage {
