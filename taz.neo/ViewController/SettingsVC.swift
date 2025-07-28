@@ -42,8 +42,11 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
-  @Default("reopenArticleSetting")
-  public var reopenArticleSetting: Bool
+  @Default("reopenHintSetting")
+  public var reopenHintSetting: Bool
+  
+  @Default("reopenAutomaticSetting")
+  public var reopenAutomaticSetting: Bool
   
   @Default("defaultToastsDisabled")
   public var defaultToastsDisabled: Bool
@@ -236,12 +239,21 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   onChange: {[weak self] newValue in
     self?.voiceoverControls = newValue })
   
-  lazy var reopenArticleSettingCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Weiterlesen",
-                  detailText: "Letzten Artikel erneut öffnen Abfrage",
-                  initialValue: reopenArticleSetting,
+  lazy var reopenHintSettingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Weiterlesen anzeigen",
+                  detailText: "Zeigt beim Öffnen einer Ausgabe ein Hinweisfenster zum Fortsetzen an der zuletzt gelesenen Stelle  (Artikel oder Seite).",
+                  initialValue: reopenHintSetting,
                   onChange: {[weak self] newValue in
-    self?.reopenArticleSetting = newValue })
+    self?.reopenHintSetting = newValue })
+  
+  lazy var reopenAutomaticSettingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Automatisch Weiterlesen",
+                  detailText: "Springt beim Öffnen einer Ausgabe automatisch zur zuletzt gelesenen Stelle (Artikel oder Seite), ohne Nachfrage.",
+                  initialValue: reopenAutomaticSetting,
+                  onChange: {[weak self] newValue in
+    self?.reopenAutomaticSetting = newValue
+    self?.reopenHintSettingCell.isEnabled = !newValue
+  })
   
   lazy var defaultToastsDisabledCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Standard Toast Nachrichten",
@@ -907,7 +919,6 @@ extension SettingsVC {
       ///in LMd this is required for page Header, otherwise current page is not displayed correctly
       cells.insert(smartBackFromArticleCell, at: 0)
       ///reopen only work in app view, noit available in LMd
-      cells.insert(reopenArticleSettingCell, at: 1)
     }
     
     #if DEBUG
@@ -958,10 +969,12 @@ extension SettingsVC {
     let rechtlichesCells = [termsCell, privacyCell, revokeCell]
     #endif
     
+    reopenHintSettingCell.isEnabled = !reopenAutomaticSetting
+    
     let displayCells
     = App.isAlpha
-    ? [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell, edgeTapToNavigateVisibleCell]
-    : [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell]
+    ? [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell, edgeTapToNavigateVisibleCell, reopenHintSettingCell, reopenAutomaticSettingCell]
+    : [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell, reopenHintSettingCell, reopenAutomaticSettingCell]
     
     return [
       ("Konto".lowerIfTaz, false, accountSettingsCells),
@@ -1239,6 +1252,24 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   var padding = 10.0
   var tapHandler:(()->())?
   var isDestructive: Bool = false
+  var isEnabled: Bool = true {
+    didSet {
+      self.isUserInteractionEnabled = isEnabled
+      self.textLabel?.alpha = isEnabled ? 1.0 : 0.4
+      self.detailTextLabel?.alpha = isEnabled ? 1.0 : 0.5
+      self.customAccessoryView?.alpha = isEnabled ? 1.0 : 0.4
+      (self.customAccessoryView as? UISwitch)?.isEnabled = isEnabled
+      if isEnabled {
+        self.accessibilityLabel = "Weiterlesen anzeigen"
+        self.accessibilityValue = (self.customAccessoryView as? UISwitch)?.isOn ?? false ? "Ein" : "Aus"
+        self.accessibilityHint = "Zeigt beim Öffnen der Ausgabe ein Hinweisfenster zum Fortsetzen an."
+      } else {
+        self.accessibilityLabel = "Weiterlesen anzeigen, deaktiviert"
+        self.accessibilityValue = "Nicht verfügbar"
+        self.accessibilityHint = "Nicht änderbar, da 'Automatisch Weiterlesen' aktiviert ist."
+      }
+    }
+  }
   var longTapHandler:(()->())?
   private var toggleHandler: ((Bool)->())?
   

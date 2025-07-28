@@ -46,6 +46,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   private var initialSection: Int?
   private var initialArticle: Int?
   
+  override var reopenArticleDocName: String? {
+    set { articleVC?.reopenArticleDocName = newValue }
+    get { articleVC?.reopenArticleDocName }
+  }
+  override var reopenArticleScrollPos: CGFloat? {
+    set { articleVC?.reopenArticleScrollPos = newValue }
+    get { articleVC?.reopenArticleScrollPos }
+  }
+  
   public override var delegate: IssueInfo! {
     didSet { if oldValue == nil { self.setup() } }
   }
@@ -111,7 +120,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if article2sectionHtml[fn] != nil {
         lastIndex = nil
         showArticle(url: to)
-      }    
+      }
       else {
         for s in self.sections {
           if fn == s.html?.name {
@@ -239,6 +248,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.updateAudioButton()
     }
+    
+    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+      self?.articleVC?.persistReadProgress()
+    }
+    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
+      self?.articleVC?.persistReadProgress()
+    }
+    header.isWochentaz = issue.isWeekend
   }
   
   func updateAudioButton(){
@@ -372,8 +389,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       articleVC?.view.doLayout()
       self.showArticle(index: iart, animated: false)
       initialArticle = nil
-      self.header.isHidden = true
-      self.collectionView?.isHidden = true
+      self.header.isHidden = false
+      self.collectionView?.isHidden = true//??
     }
   }
   
@@ -401,8 +418,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
    
   /// Initialize with FeederContext
-  public init(feederContext: FeederContext, atSection: Int? = nil, 
-              atArticle: Int? = nil) {
+  public init(feederContext: FeederContext,
+              atSection: Int? = nil,
+              atArticle: Int? = nil,
+              atArticlePercent: CGFloat? = nil) {
     initialSection = atSection
     initialArticle = atArticle
     super.init(feederContext: feederContext)

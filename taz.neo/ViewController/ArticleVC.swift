@@ -190,9 +190,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       }
       self.setHeader(artIndex: idx)
       self.issue.lastArticle = idx
-      if !self.issue.isBookmarkIssue {
-        LastReadBusiness.persist(lastArticle: art, page: nil, in: self.issue)
-      }
+      /**Do not persist last Article here anymore,  due it overwrites the scroll Position**/
+      //if !self.issue.isBookmarkIssue {}
       if art.canPlayAudio {
         updateAudioButton()
       }
@@ -212,10 +211,17 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       if UIApplication.shared.applicationState != .active { return }
       self?.adelegate?.linkPressed(from: from, to: to)
     }
-    whenLoaded {
+    whenLoaded { _ in
       Notification.send(Const.NotificationNames.articleLoaded)
     }
     header.titletype = .article
+  }
+  
+  func persistReadProgress(art: Article? = nil, webView: WebView? = nil) {
+    guard let art = art ?? self.article,
+    let wv = webView ?? self.currentWebView as WebView? else { return }
+    debug(">>> persistReadProgress for article: \(art.title ?? "-") at \(wv.scrollProgress)")
+    LastReadBusiness.persist(lastArticle: art, page: nil, scrollProgress: Float(wv.scrollProgress), in: self.issue)
   }
   
   func handleAtEndOfContent(isAtEnd: Bool){
@@ -372,6 +378,11 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     UIMenuController.shared.menuItems = nil
+  }
+  
+  override public func viewWillDisappear(_ animated: Bool) {
+    persistReadProgress()
+    super.viewWillDisappear(animated)
   }
 } // ArticleVC
 
@@ -553,5 +564,30 @@ class MultiColumnOnboardingView: UIView {
   required init?(coder: NSCoder) {
     super.init(coder: coder)
     setup()
+  }
+}
+
+extension WebView {
+  
+  var scrollProgress: CGFloat {
+    let contentSize = scrollView.contentSize
+    let boundsSize = scrollView.bounds.size
+    let offset = scrollView.contentOffset
+    
+    if Defaults.multiColumnMode {
+      guard contentSize.width > boundsSize.width else { return 0.0 }
+      let progress = offset.x / (contentSize.width - boundsSize.width)
+      debug(">>> getScrollProgressH \(clamp(progress)) forOffset: \(offset.x), csWidth: \(contentSize.width), bsWidth: \(boundsSize.width)")
+      return clamp(progress)
+    } else {
+      guard contentSize.height > boundsSize.height else { return 0.0 }
+      let progress = (offset.y) / contentSize.height
+      debug(">>> getScrollProgressV \(clamp(progress)) forOffset: \(offset.y), csHeight: \(contentSize.height), bsHeight: \(boundsSize.height)")
+      return clamp(progress)
+    }
+  }
+  
+  private func clamp(_ value: CGFloat) -> CGFloat {
+    return min(max(value, 0.0), 1.0)
   }
 }

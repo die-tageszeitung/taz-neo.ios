@@ -9,89 +9,91 @@
 import Foundation
 import NorthLib
 
-public class LastReadBusiness: NSObject, DoesLog{
 
-  @Default("articleFileName")
-  private var articleFileName: String {
-    didSet {
-      
-    }
+public class LastReadBusiness: NSObject, DoesLog {
+  
+  private static let maxEntries = 5
+  private static let userDefaultsKey = "lastReadPositions"
+  
+  struct LastReadEntry: Codable {
+    var issueKey: String
+    var lastArticleServerId: Int
+    var lastPage: Int
+    var changed: String
+    var scrollProgress: Float // 0.0 ... 1.0
   }
-  
-//  @Default("mediaSyncId") ..iis an optional try not to use!
-//  private var mediaSyncId: Int
-  
-  @Default("lastReadPage")
-  private var page: Int
-  
-  @Default("lastReadIssueDate")
-  private var issueDate: Date
-  
-  @Default("lastReadChanged")
-  private var lastReadChanged: String
-  
-  private var device: String = "diesem Gerät"
   
   private static let sharedInstance = LastReadBusiness()
   
-  static func persist(lastArticle: Article?, page: Int?, in issue:Issue){
-    if let art = lastArticle, let page = page {
-      sharedInstance.issueDate = issue.date
-      sharedInstance.page = page
-      sharedInstance.articleFileName = art.path.lastPathComponent
-      sharedInstance.lastReadChanged = UsTime.now.toString()
+  private var lastReadPositions: [LastReadEntry] {
+    get {
+      guard let data = UserDefaults.standard.data(forKey: Self.userDefaultsKey) else { return [] }
+      let decoded = try? JSONDecoder().decode([LastReadEntry].self, from: data)
+      return decoded ?? []
     }
-    else if let art = lastArticle {
-      sharedInstance.issueDate = issue.date
-      sharedInstance.page = -1
-      sharedInstance.articleFileName = art.path.lastPathComponent
-      sharedInstance.lastReadChanged = UsTime.now.toString()
-    }
-    else if let page = page {
-      sharedInstance.issueDate = issue.date
-      sharedInstance.page = page
-      sharedInstance.articleFileName = ""
-      sharedInstance.lastReadChanged = UsTime.now.toString()
-    }
-  }
-  
-  ///Reset last Read info for the given issue.
-  ///if issue is nil, reset last read for all issues.
-  static func resetFor(issue: Issue?){
-    if let id = issue?.date, id.issueKey != sharedInstance.issueDate.issueKey {
-      return
-    }
-    ///issue date not given => delete last read
-    ///issue date given and matching last Read => delete last read
-    sharedInstance.issueDate = Date.distantPast
-    sharedInstance.page = -1
-    sharedInstance.articleFileName = ""
-    sharedInstance.lastReadChanged = UsTime.now.toString()
-  }
-  
-  static func getLast(for issue: Issue) -> (lastArticle: Article?, page: Int?, changed: UsTime?){
-    if issue.date != sharedInstance.issueDate {
-      return (nil, nil, nil)
-    }
-    var lastArticle:Article?
-    
-    let fn = sharedInstance.articleFileName
-    if fn.length > 0 {
-      lastArticle = issue.allArticles.first { art in
-        art.path.lastPathComponent == fn
+    set {
+      if let data = try? JSONEncoder().encode(newValue) {
+        UserDefaults.standard.set(data, forKey: Self.userDefaultsKey)
       }
     }
-    
-    let page:Int? = sharedInstance.page >= 0 ? sharedInstance.page : nil
-    return (lastArticle, page, UsTime(sharedInstance.lastReadChanged))
   }
   
-  func sync(){
-    //todo: read server data
-    // save local data if newer
-    //sync on app start
-    //sync on reconnect
-    //persist on enter background
-    //sync on enter foregrond ...if last sync is > 60s?
+  static func persist(lastArticle: Article, page: Int?, scrollProgress: Float?, in issue: Issue) {
+    guard let serverId = lastArticle.serverId else { return }
+    var positions = sharedInstance.lastReadPositions
+    
+    
+    let entry = LastReadEntry(
+      issueKey: issue.date.issueKey,
+      lastArticleServerId: serverId,
+      lastPage: page ?? -1,
+      changed: UsTime.now.toString(),
+      scrollProgress: scrollProgress ?? 0.0
+    )
+    Log.debug(">>> persist scrollProgress \(scrollProgress) forArtWithServerId: \(serverId)")
+    positions.removeAll { $0.issueKey == issue.date.issueKey }
+    positions.insert(entry, at: 0)
+    
+    if positions.count > Self.maxEntries {
+      positions = Array(positions.prefix(Self.maxEntries))
+    }
+    
+    sharedInstance.lastReadPositions = positions
+  }
+  
+  static func resetFor(issue: Issue?) {
+    var positions = sharedInstance.lastReadPositions
+    
+    if let key = issue?.date.issueKey {
+      positions.removeAll { $0.issueKey == key }
+    } else {
+      positions.removeAll()
+    }
+    
+    sharedInstance.lastReadPositions = positions
+  }
+  
+  static func getLast(for issue: Issue) -> (lastArticleServerId: Int?, page: Int?, changed: UsTime?, scrollProgress: Float?) {
+    let key = issue.date.issueKey
+    guard let entry = sharedInstance.lastReadPositions.first(where: { $0.issueKey == key }) else {
+      return (nil, nil, nil, nil)
+    }
+      
+    let page = entry.lastPage >= 0 ? entry.lastPage : nil
+    let changed = UsTime(entry.changed)
+    let progress = entry.scrollProgress
+    print(">>> get scrollProgress \(progress) forArtWithServerId: \(entry.lastArticleServerId)")
+    return (entry.lastArticleServerId, page, changed, progress)
+  }
+  
+  static func getAll() -> [(issueKey: String, lastArticleServerId: Int?, page: Int?, changed: UsTime, scrollProgress: Float)] {
+    return sharedInstance.lastReadPositions.map { entry in
+      let lastPage = entry.lastPage >= 0 ? entry.lastPage : nil
+      return (entry.issueKey, entry.lastArticleServerId, lastPage, UsTime(entry.changed), entry.scrollProgress)
+    }
+  }
+  
+  func sync() {
+    // Placeholder for sync logic
   }
 }

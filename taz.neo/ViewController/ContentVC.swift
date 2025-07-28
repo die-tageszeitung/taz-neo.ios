@@ -154,25 +154,16 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   @Default("articleTextSize")
   private var articleTextSize: Int
-
-  @Default("multiColumnModePortrait")
-  var multiColumnModePortrait: Bool
-  
   @Default("multiColumnModeLandscape")
   var multiColumnModeLandscape: Bool
+
   ///indicator if multiColumnMode == true & tablet & enough space to display multi columns
-  
-  var multiColumnMode: Bool {
-    return UIDevice.isPortrait && multiColumnModePortrait
-    || UIDevice.isLandscape && multiColumnModeLandscape
-  }
-  
   private var isMultiColumnMode = false {
     didSet {
       if self.isKind(of: ArticleVC.self)
           && oldValue == true
           && isMultiColumnMode == false
-          && multiColumnMode == true {
+          && Defaults.multiColumnMode == true {
         var tip = ""
         if Device.isIpad && UIDevice.isPortrait {
           tip = "iPad ins Querformat drehen."
@@ -422,7 +413,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   func getMultiColumnCss() -> String?  {
     let columns = Defaults.columnSetting.used
-    guard multiColumnMode && columns >= 2 else { return nil }
+    guard Defaults.multiColumnMode && columns >= 2 else { return nil }
     
     let padding
     = articleTextSize <= 100
@@ -435,7 +426,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     let hFix = Int(128 + UIWindow.bottomInset)
     let buFix = hFix - 20 + Int(CGFloat(articleTextSize*70)/100)
       
-    print("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenColumnsCount)")
+    debug("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenColumnsCount)")
     /**
      ***pretty ugly css** but:
         * content paddings&margins increase column gap
@@ -515,11 +506,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     else { return false }
   }
   
-  /// pageReady is called when the WebView is ready rendering its contents
-  private func pageReady(percentSeen: Int, position: Int) {
-    debug("Page Ready: index: \(self.index!), percentSeen: \(percentSeen), position: \(position)")
-  }
-  
   /// Setup JS bridge
   private func setupBridge() {
     self.bridge = JSBridgeObject(name: "tazApi")
@@ -553,17 +539,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
-    self.bridge?.addfunc("pageReady") { [weak self] jscall in
-      guard let self = self else { return NSNull() }
-      if let args = jscall.args, args.count > 1,
-         let sPrecentSeen = args[0] as? String,
-         let percentSeen = Int(sPrecentSeen),
-         let sPosition = args[1] as? String,
-         let position = Int(sPosition) {
-        self.pageReady(percentSeen: percentSeen, position: position)
-      }
-      return NSNull()
-    }
+
     self.bridge?.addfunc("setBookmark") { [weak self] jscall in
       guard self != nil else { return NSNull() }
       if let args = jscall.args, args.count > 1,
@@ -651,13 +627,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     tazApi.openImage = function (url) {
       tazApi.call("openImage", undefined, url)
     };
-    tazApi.pageReady = function (percentSeen, position, npages) {
-      tazApi.call("pageReady", undefined, percentSeen, position, npages);
-    };
-    tazApi.setBookmark = function (artName, hasBookmark, showToast) {
-      tazApi.call("setBookmark", undefined, artName, hasBookmark, showToast);
-    };
     tazApi.getBookmarks = function (callback) {
+        tazApi.log("Hallo bookmarks..."); 
       tazApi.call("getBookmarks", callback);
     };
     tazApi.shareArticle = function (artName) {
@@ -675,10 +646,105 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     tazApi.gotoStart = function() {
       tazApi.call("gotoStart", undefined);
     };
+    \(Defaults.multiColumnMode ? scrollToPosJsH : scrollToPosJsV)
     log2bridge(tazApi);\n
     """
     tazApiJs.string = JSBridgeObject.js + "\n\n" + apiJs + "\n"
   }
+  
+  var reopenArticleDocName: String?
+  var reopenArticleScrollPos: CGFloat?
+  
+  var scrollToPosJsV: String {
+    guard let scrollPos = reopenArticleScrollPos,
+          let docname = reopenArticleDocName else { return "" }
+    return """
+      const url = new URL(window.location.href);
+      const pathParts = url.pathname.split('/');
+      const filename = pathParts.pop();
+      const docname = "\(docname)";
+      if (filename == docname) { 
+        window.addEventListener("load", () => {
+          const scrollHeight = document.documentElement.scrollHeight;
+          const clientHeight = document.documentElement.clientHeight;
+          const maxScrollY = scrollHeight;
+          const targetScrollY = \(scrollPos) * maxScrollY;
+          tazApi.log(`>>> Scroll ${docname} to: \(scrollPos) yPos: ${targetScrollY}`);
+          window.scrollTo({
+            top: targetScrollY,
+            behavior: 'auto'
+          });
+        });
+      }
+      """
+    /**
+     Debug Helper:
+     tazApi.log(`>>> Apply last ScrollPos if: ${filename} == ${docname}`);
+     tazApi.log(`>>> Scroling vars scrollHeight : ${scrollHeight} clientHeight : ${clientHeight}`);
+     tazApi.log(`>>> Apply last ScrollPos (\(scrollPos)) for: ${docname}`);
+     */
+  }
+  
+  var scrollToPosJsH: String {
+    guard let scrollPos = reopenArticleScrollPos,
+          let docname = reopenArticleDocName else { return "" }
+    return """
+      const url = new URL(window.location.href);
+      const pathParts = url.pathname.split('/');
+      const filename = pathParts.pop();
+      const docname = "\(docname)";
+      if (filename == docname) { 
+        window.addEventListener("load", () => {
+          const scrollWidth = document.documentElement.scrollWidth;
+          const clientWidth = document.documentElement.clientWidth;
+          const maxScroll = scrollWidth - clientWidth 
+          const targetScrollX = \(scrollPos) * maxScroll;
+          tazApi.log(`>>> Scroll ${docname} to: \(scrollPos) yPos: ${targetScrollX}`);
+          window.scrollTo({
+            left: targetScrollX,
+            behavior: 'auto'
+          });
+        });
+      }
+      """
+    /**
+     
+     tazApi.log(`>>> Apply last ScrollPos (\(scrollPos)) for: ${docname}`);
+     window.addEventListener("load", () => {
+       const scrollHeight = document.documentElement.scrollHeight;
+       const clientHeight = document.documentElement.clientHeight;
+       tazApi.log(`>>> Scroling vars scrollHeight : ${scrollHeight} clientHeight : ${clientHeight}`);
+       const maxScrollY = scrollHeight - clientHeight + 34.0;
+       const targetScrollY = \(scrollPos) * maxScrollY;
+       tazApi.log(`>>> Scroll ${docname} to: \(scrollPos) yPos: ${targetScrollY}`);
+       window.scrollTo({
+         top: targetScrollY,
+         behavior: 'auto'
+       });
+     });
+   }
+   """
+}
+     
+     
+     
+     Debug Helper:
+     tazApi.log(`>>> Apply last ScrollPos if: ${filename} == ${docname}`);
+     tazApi.log(`>>> Scroling vars scrollHeight : ${scrollHeight} clientHeight : ${clientHeight}`);
+     tazApi.log(`>>> Apply last ScrollPos (\(scrollPos)) for: ${docname}`);
+     */
+  }
+  
+  /**
+   scrollHeight - clientHeight - 34.0; => 5 px zu wenig gescrollt wenn 20%
+                            => bei 90% 30px zu weit gescrollt!
+   gespeichert: 2858 >  0.9566041945560019
+   wiederhergestellt:  to: 0.9566041827201843 yPos: 2923.3823823928833" => 70px zu viel
+   
+   llHeight : 3800 clientHeight : 778"
+   > getScrollProgress 0.06570727353859884 forOffset: 196.33333333333334, csHeight: 3800.0, bsHeight: 812.0
+   812 - 778 = 34
+   */
   
   /// Define the closure to call when the back button is tapped
   public func onBack(closure: @escaping (ContentVC)->()) 
@@ -741,6 +807,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   @objc func backButtonLongPress(_ sender: UIGestureRecognizer) {
+    (self as? ArticleVC)?.persistReadProgress()
     self.navigationController?.popToRootViewController(animated: true)
   }
   
@@ -758,11 +825,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.bookmarkClosure?(self)
     }
-    
-//    bookmarkButton.onLongPress { [weak self] _ in
-//      guard let self = self else { return }
-//      Toast.show("bookmarkButton Long Tap", .alert)
-//    }
     
     self.playButton.buttonView.onTapping { [weak self] _ in
       guard let self = self else { return }
@@ -1121,3 +1183,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     fatalError("init(coder:) has not been implemented")
   }
 }
+
+
+extension Defaults {
+  static var multiColumnMode: Bool {
+    return UIDevice.isPortrait && Defaults.singleton["multiColumnModePortrait"]?.bool ?? false
+    || UIDevice.isLandscape && Defaults.singleton["multiColumnModeLandscape"]?.bool ?? false
+  }
+}
+

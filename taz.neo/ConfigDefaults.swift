@@ -91,7 +91,8 @@ private let configValues = [
   "articleLineLengthAdjustment": "0",
   "multiColumnOnboardingAnswered" : "false",
   "multiColumnFixedScrolling" : "true",
-  "reopenArticleSetting" : "true",
+  "reopenHintSetting" : "true",
+  "reopenAutomaticSetting" : "false",
   "newIssueSystemSetting" : "true",
   "specialArticleSystemSetting" : "true",
   //"defaultToastsDisabled" : "false" NO Default Setting to persist/restore setting over reset!
