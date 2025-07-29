@@ -25,6 +25,11 @@ class ArticlePlayer: DoesLog {
     userInterface.superview != nil
   }
   
+  var ui: UIView? {
+    if isOpen == false { return nil }
+    return userInterface
+  }
+  
   var disclaimerUrlFemale: String?
   var disclaimerUrlMale: String?
   
@@ -783,7 +788,7 @@ extension Issue {
 
 
 // MARK: - Helper
-fileprivate extension Article {
+extension Article {
   var firstImage:UIImage? {
     guard let fn = images?.first?.fileName else { return nil }
     let path = "\(self.dir.path)/\(fn)"

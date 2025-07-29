@@ -42,6 +42,12 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
+  @Default("resumeReadAccepted")
+  public var resumeReadAccepted: Int
+  
+  @Default("resumeReadDismissed")
+  public var resumeReadDismissed: Int
+  
   @Default("reopenHintSetting")
   public var reopenHintSetting: Bool
   
@@ -244,7 +250,10 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   detailText: "Zeigt beim Öffnen einer Ausgabe ein Hinweisfenster zum Fortsetzen an der zuletzt gelesenen Stelle  (Artikel oder Seite).",
                   initialValue: reopenHintSetting,
                   onChange: {[weak self] newValue in
-    self?.reopenHintSetting = newValue })
+    self?.reopenHintSetting = newValue
+    self?.resumeReadAccepted = 0
+    self?.resumeReadDismissed = 0
+  })
   
   lazy var reopenAutomaticSettingCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Automatisch Weiterlesen",
@@ -253,6 +262,8 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   onChange: {[weak self] newValue in
     self?.reopenAutomaticSetting = newValue
     self?.reopenHintSettingCell.isEnabled = !newValue
+    self?.resumeReadAccepted = 0
+    self?.resumeReadDismissed = 0
   })
   
   lazy var defaultToastsDisabledCell: XSettingsCell

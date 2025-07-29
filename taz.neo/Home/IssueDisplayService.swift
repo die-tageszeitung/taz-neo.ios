@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import UIKit
 import NorthLib
 
 class IssueDisplayService: NSObject, IssueInfo, DoesLog {
@@ -18,15 +17,24 @@ class IssueDisplayService: NSObject, IssueInfo, DoesLog {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  @Default("resumeReadAccepted")
+  public var resumeReadAccepted: Int
+  
+  @Default("resumeReadDismissed")
+  public var resumeReadDismissed: Int
+  
   @Default("reopenHintSetting")
   public var reopenHintSetting: Bool
   
   @Default("reopenAutomaticSetting")
-  public var reopenAutomaticSetting: Bool 
+  public var reopenAutomaticSetting: Bool
+  
+  var resumeReadHandled = false
+  
+  var continueReadingCtrl: ContinueReadingController?
   
   var feederContext: FeederContext
   var sissue: StoredIssue
-  
   /// Initialize with FeederContext
   public init(feederContext: FeederContext, issue: StoredIssue) {
     self.feederContext = feederContext
@@ -116,48 +124,9 @@ extension IssueDisplayService {
                               atArticle: atArticle)
     sectionVC.delegate = self
     
-//    let lastArticleShown = LastReadBusiness.getLast(for: issue)
-//    var reopenArticle = true
-    
-    if atArticle == nil { reopenIfNeeded(with: sectionVC) }
+    if atArticle == nil { handleContinueReading(with: sectionVC) }
     pushDelegate.push(sectionVC, issueInfo: self)
   }
-  
-  private func reopenIfNeeded(with sectionVC: SectionVC) {
-    let lastPos = LastReadBusiness.getLast(for: issue)
-    guard let id = lastPos.lastArticleServerId,
-          let lastArticle = issue.allArticles.first(where: { $0.serverId == id }),
-          let scrollProgress = lastPos.scrollProgress else { return }
-    if reopenAutomaticSetting == true {
-      sectionVC.reopenArticleDocName = lastArticle.html?.name
-      sectionVC.reopenArticleScrollPos = CGFloat(scrollProgress)
-      sectionVC.whenLoaded {
-        sectionVC.showArticle(lastArticle)
-        Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "OpenAutomatic")
-        Notification.send(Const.NotificationNames.articleLoaded)
-      }
-    }
-    else if reopenHintSetting == true {
-      sectionVC.whenLoaded {
-        let actions: [UIAlertAction] = [
-          Alert.action("Weiterlesen") {_ in
-            sectionVC.showArticle(lastArticle)
-            Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Open")
-          },
-        ]
-        let title = "Letzten Artikel erneut öffnen?"
-        let msg = "Sie haben den Artikel \"\(lastArticle.title ?? "")\" geöffnet. Möchten Sie diesen erneut anzeigen?"
-        Alert.actionSheet(title: title, message: msg, actions: actions, cancelHandler:  { _ in
-          Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Cancel")
-        })
-      }
-      Notification.send(Const.NotificationNames.articleLoaded)
-    }
-    else {//both false
-      Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Disabled")
-    }
-  }
-  
   
   func showIssue(pushDelegate: PushIssueDelegate, atArticle: Int? = nil, atPage: Int? = nil, isReloadOpened: Bool = false){
     let issue = self.sissue

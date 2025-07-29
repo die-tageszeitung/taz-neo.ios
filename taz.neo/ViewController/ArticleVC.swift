@@ -215,6 +215,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       Notification.send(Const.NotificationNames.articleLoaded)
     }
     header.titletype = .article
+    header.isWochentaz = issue.isWeekend
   }
   
   func persistReadProgress(art: Article? = nil, webView: WebView? = nil) {
@@ -286,6 +287,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         header.title = art.title
         header.pageNumber = nil
       }
+      header.updateFonts()
     }
   }
   

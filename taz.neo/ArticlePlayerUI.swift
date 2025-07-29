@@ -28,7 +28,7 @@ class ArticlePlayerUI: UIView {
     let w
     = noGap
     ? viewSize.width
-    : min(375, viewSize.width - 2*miniPadding)
+    : min(Const.Size.OverlayMaxWidth, viewSize.width - 2*miniPadding)
     if widthConstraint == nil {
       widthConstraint = self.pinWidth(w)
     }
@@ -465,7 +465,6 @@ class ArticlePlayerUI: UIView {
     imageAspectConstraint_Maxi?.isActive = false
     
     bgImageView.contentMode = .scaleToFill
-    pin(bgImageView, to: imageView)
     pin(blurredEffectView, to: imageView)
     blurredEffectView.alpha = 0.8
     
@@ -543,7 +542,7 @@ class ArticlePlayerUI: UIView {
     
     self.backgroundColor = Const.Colors.darkSecondaryBG
     self.layer.shadowOpacity = 0.40
-    self.layer.shadowOffset = CGSize(width: 2, height: 2)
+    self.layer.shadowOffset = CGSize(width: 1, height: 1)
     self.layer.shadowRadius = 5
     self.layer.shadowColor = UIColor.black.cgColor
 //    self.layer.shadowColor = Const.SetColor.taz(.shade).cgColor

@@ -1,0 +1,290 @@
+//
+//  ContinueReadingController.swift
+//  taz.neo
+//
+//  Created by Ringo Müller on 28.07.25.
+//  Copyright © 2025 taz. All rights reserved.
+//
+
+import UIKit
+import NorthLib
+
+class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
+  func applyStyles() {
+    bottomSheet?.color = Const.SetColor.taz(.textFieldBackground).color
+  }
+  
+  var padding = 9.0
+  
+  var bottomSheet: Sheet?
+  private var tapRecognizer: UITapGestureRecognizer?
+  private var panRecognizer: UIPanGestureRecognizer?
+  private var tapTargetView: UIView?
+  
+  private var finishHandler: ((Bool?)->())?
+  
+  var isClosing = false
+  
+  /**
+   Where to add?
+   
+   ArticlePlayerUI.addAndShow()
+   guard let view
+           = (TazAppEnvironment.sharedInstance.rootViewController
+              as? UITabBarController)?.view  else { return }
+   view.addSubview(self)
+   self.isHidden = true
+   parentBottomConstraint = pin(self.bottom, to: view.bottomGuide(), dist: -64.0)
+   
+   
+   ArticlePlayer.singleton.isPlaying //Maxi/Mini
+   ArticlePlayer.singleton.topAnchor
+   
+   */
+  
+  private lazy var imageView: UIImageView = {
+    let v = UIImageView()
+    v.pinHeight(32.0, priority: .required)
+    v.pinAspect(ratio: 1.0)
+    v.clipsToBounds = true
+    return v
+  }()
+  
+  private lazy var topLabel: UILabel = {
+    let lbl = UILabel()
+    lbl.contentFont(size: 13)
+    lbl.text = "Weiterlesen"
+    return lbl
+  }()
+  
+  private lazy var bottomLabel: UILabel = {
+    let lbl = UILabel()
+    lbl.numberOfLines = 0
+    lbl.boldContentFont(size: 13)
+    return lbl
+  }()
+  
+  private lazy var confirmLabel: UILabel = {
+    let lbl = UILabel()
+    lbl.boldContentFont()
+    lbl.onTapping {[weak self] _ in
+      self?.finishHandler?(true)
+      self?.cleanup()
+    }
+    return lbl
+  }()
+  
+  private lazy var declineLabel: UILabel = {
+    let lbl = UILabel()
+    lbl.contentFont()
+    lbl.onTapping {[weak self] _ in
+      self?.finishHandler?(false)
+      self?.cleanup()
+    }
+    return lbl
+  }()
+  
+  override func viewDidLoad() {
+    ///Warning: bottomSheet is not available yet!
+    super.viewDidLoad()
+    self.view.addSubview(topLabel)
+    self.view.addSubview(bottomLabel)
+    self.view.addSubview(imageView)
+    
+    pin(imageView.top, to: view.top, dist: 0)
+    pin(imageView.left, to: view.left, dist: padding)
+    pin(imageView.bottom, to: view.bottom, dist: -padding - 10, priority: .defaultLow)
+    
+    pin(topLabel.top, to: view.top, dist: -5.0)
+    pin(bottomLabel.top, to: topLabel.bottom, dist: 2.0)
+    
+    let leftAnchor = imageView.image == nil ? view.left : imageView.right
+    
+    pin(topLabel.left, to: leftAnchor, dist: padding)
+    pin(bottomLabel.left, to: leftAnchor, dist: padding)
+    ///Close x has a width of 28px
+    pin(topLabel.right, to: view.right, dist: -(2*padding + 28.0) )
+    pin(bottomLabel.right, to: view.right, dist: -(2*padding + 28.0))
+    
+    view.pinWidth(Const.Size.OverlayMaxWidth, priority: .required)
+    view.onTapping(closure: { [weak self] _ in self?.handleAction() })
+    registerForStyleUpdates()
+  }
+  
+  func cleanup(){
+    guard !isClosing else { return }
+    isClosing = true
+    bottomSheet?.close()
+    removeGestures()
+    finishHandler = nil
+  }
+  
+  func handleAction(){
+    let handler = finishHandler
+    let answer:Bool? = declineLabel.superview == nil ? true : nil
+    cleanup()
+    onMainAfter { handler?(answer) }//fix ugly animation with onMainAfter; no Effect in Dismiss
+  }
+  
+  func handleDismiss(){
+    let handler = finishHandler
+    let answer:Bool? = declineLabel.superview == nil ? false : nil
+    cleanup()
+    handler?(answer)
+  }
+  
+  func setupButtons(){
+    self.view.addSubview(confirmLabel)
+    self.view.addSubview(declineLabel)
+    pin(confirmLabel.top, to: bottomLabel.bottom, dist: padding)
+    pin(declineLabel.top, to: confirmLabel.bottom, dist: padding)
+    
+    pin(confirmLabel.left, to: view.left, dist: padding)
+    pin(declineLabel.left, to: view.left, dist: padding)
+    
+    pin(confirmLabel.right, to: view.right, dist: -padding)
+    pin(declineLabel.right, to: view.right, dist: -padding)
+  }
+  
+  func setup(){
+    let bottomView = declineLabel.superview != nil ? declineLabel : bottomLabel
+    pin(bottomView.bottom, to: view.bottom, dist: -padding - 10)
+    
+    view.doLayout()
+    
+    bottomSheet?.maxOverlayWidth = Const.Size.OverlayMaxWidth
+    bottomSheet?.sidePadding = Const.Size.SmallPadding
+    bottomSheet?.color = Const.SetColor.taz(.textFieldBackground).color
+    bottomSheet?.handleColor = .clear
+    if Defaults.darkMode{
+      bottomSheet?.sliderView.addBorder(Const.Colors.appIconGrey, 0.3)
+    }
+    else {
+      bottomSheet?.sliderView.shadow()
+      bottomSheet?.sliderView.layer.shadowOffset = CGSize(width: 1, height: 1)
+    }
+    bottomSheet?.sliderView.clipsToBounds = false
+    bottomSheet?.xButton.tazX()
+    bottomSheet?.onX {[weak self] in self?.handleDismiss()}
+    let io = TazAppEnvironment.sharedInstance.infoOffset
+    self.bottomSheet?.bottomOffset = io + Const.Dist.margin
+    
+//    log(">> bottomOffset is: \(self.bottomSheet?.bottomOffset ?? 0)")
+//    log(">> view.frame.size.height is: \(view.frame.size.height)")
+//    log(">> coverage is?: \(view.frame.size.height + 30)")
+    
+    bottomSheet?.coverage = view.frame.size.height + 30
+    
+    self.view.doLayout()
+    self.bottomSheet?.open()
+  }
+  
+  init(article:Article?,
+       targetVc: UIViewController,
+       finishHandler: @escaping (Bool?)->()){
+    super.init(nibName: nil, bundle: nil)
+    imageView.image = article?.firstImage
+    self.finishHandler = finishHandler
+    bottomSheet = Sheet(slider: self, into: targetVc)
+    bottomLabel.text = article?.title ?? "(kein Titel angegeben)"
+    setup()
+    setupTouches(targetVc: targetVc)
+  }
+  
+  @discardableResult
+  init(title: String,
+       text: String,
+       confirmText: String,
+       declineText: String,
+       targetVc: UIViewController,
+       finishHandler: @escaping (Bool?)->()){
+    super.init(nibName: nil, bundle: nil)
+    padding = 12.0
+    self.finishHandler = finishHandler
+    bottomSheet = Sheet(slider: self, into: targetVc)
+    topLabel.text = title
+    bottomLabel.text = text
+    topLabel.textColor = UIColor.label.withAlphaComponent(0.85)
+    bottomLabel.textColor = UIColor.label.withAlphaComponent(0.85)
+    
+    confirmLabel.text = confirmText
+    declineLabel.text = declineText
+    
+    topLabel.boldContentFont()
+    bottomLabel.contentFont()
+    setupButtons()
+    setup()
+    setupTouches(targetVc: targetVc)
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  func removeGestures(){
+    guard let tapRecognizer = self.tapRecognizer,
+          let panRecognizer = self.panRecognizer else { return }
+    self.tapRecognizer = nil
+    self.panRecognizer = nil
+    tapTargetView?.removeGestureRecognizer(tapRecognizer)
+    tapTargetView?.removeGestureRecognizer(panRecognizer)
+  }
+  
+  func setupTouches(targetVc: UIViewController){
+    guard let targetView
+            = (targetVc as? ContentVC)?.currentWebView ?? targetVc.view else { return }
+    bottomSheet?.shadeView.removeFromSuperview()
+    removeGestures()
+    self.tapTargetView = targetView
+    let tapRecognizer = UITapGestureRecognizer(target: self,
+                                               action: #selector(handleTapBackground))
+    tapRecognizer.numberOfTapsRequired = 1
+    tapRecognizer.cancelsTouchesInView = false
+    tapRecognizer.delegate = self
+    targetView.addGestureRecognizer(tapRecognizer)
+    self.tapRecognizer = tapRecognizer
+    
+    let panRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handleTapBackground))
+    panRecognizer.cancelsTouchesInView = false
+    panRecognizer.delegate = self
+    targetView.addGestureRecognizer(panRecognizer)
+    self.panRecognizer = panRecognizer
+  }
+  
+  @objc private func handleTapBackground() {
+    Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Cancel")
+    handleDismiss()
+  }
+}
+
+extension ContinueReadingController : UIGestureRecognizerDelegate {
+  public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                         shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+      return true
+  }
+}
+
+
+extension TazAppEnvironment {
+  var infoOffset: CGFloat {
+    if let aPlayer = ArticlePlayer.singleton.ui, let window = aPlayer.window {
+      let frameInWindow = aPlayer.convert(aPlayer.bounds, to: window)
+      let distanceFromBottom = window.bounds.height - frameInWindow.origin.y
+      return distanceFromBottom
+    }
+    guard let tabVc = self.rootViewController as? MainTabVC else { return 0 }
+    
+    if let contentVc = (tabVc.selectedViewController as? UINavigationController)?.topViewController as? ContentVC {
+      let tabBarFrame = contentVc.toolBar.convert(contentVc.toolBar.bounds, to: nil)
+      let screenHeight = UIScreen.main.bounds.height
+      return screenHeight - tabBarFrame.origin.y
+    }
+    let tabBarFrame = tabVc.tabBar.convert(tabVc.tabBar.bounds, to: nil)
+    let screenHeight = UIScreen.main.bounds.height
+    return screenHeight - tabBarFrame.origin.y
+  }
+}
+
+extension UIView{
+  var oiD:String { ObjectIdentifier(self).debugDescription }
+}

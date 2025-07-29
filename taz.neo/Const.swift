@@ -230,6 +230,7 @@ public struct Const {
       case buttonActiveBackground
       case buttonForeground
       case buttonActiveForeground
+      case darkViewBorderColor
     }
     case taz2(taz2_Custom)//new taz colors
     enum taz2_Custom {
@@ -276,6 +277,8 @@ public struct Const {
         : Defaults.darkMode ? set.dark : set.light
       }
     }
+    
+    var cgColor : CGColor { color.cgColor }
     
     /// using a color that responds to `userInterfaceStyle` trait changes
     var dynamicColor : UIColor {
@@ -389,6 +392,8 @@ public struct Const {
           return (.black, .white, nil, nil)
         case .taz(.buttonActiveForeground):
           return (.white, .black, nil, nil)
+        case .taz(.darkViewBorderColor):
+          return (.clear, UIColor.rgb(0xDEDEDE), nil, nil)
         case .HomeBackground:
           return (Const.Colors.Light.HomeBackground, Const.Colors.Dark.HomeBackground,nil,nil)
         case .HomeText:
@@ -437,7 +442,11 @@ public struct Const {
     static var lmdBentonBold: String? = UIFont.register(name: "BentonSans-Bold", type: "woff", subDir: "files")
     static var lmdBentonBoldItalic: String? = UIFont.register(name: "BentonSans-BoldItalic", type: "woff", subDir: "files")
     static var americanTypewriterFontName: String = "AmericanTypewriter-CondensedBold"
+    #warning("All knile woff fonts have the same internal name: font000000002e2f77c0 => only the first registered font can be used!")
     static var knileLight: String? = UIFont.register(name: "knile-light-webfont", type: "woff", subDir: "files")
+//    static var knileRegular: String? = UIFont.register(name: "knile-regular-webfont", type: "woff", subDir: "files")
+//    static var knileSemiBold: String? = UIFont.register(name: "knile-semibold-webfont", type: "woff", subDir: "files")
+//    static var knileBold: String? = UIFont.register(name: "knile-bold-webfont", type: "woff", subDir: "files")
     /// *WARNING* Cannot use bundled Aktiv Grotesk fonts from Resources, due just one font variant will be loaded,
     /// Hacky Workaround sleep(1) then load the other Problem is: multiple fonts have same generic font names
     /// from UIFont extension NorthLib -> register(data: Data)
@@ -480,6 +489,18 @@ public struct Const {
     static func contentFont(size: CGFloat = 30.0) -> UIFont
     { return font(name: contentFontName, size: size) }
     
+    static func knileLightFont(size: CGFloat) -> UIFont
+    { return font(name: knileLight, size: size) }
+//    
+//    static func knileRegularFont(size: CGFloat) -> UIFont
+//    { return font(name: knileRegular, size: size) }
+    
+//    static func knileSemiBoldFont(size: CGFloat) -> UIFont
+//    { return font(name: knileSemiBold, size: size) }
+    
+//    static func knileBoldFont(size: CGFloat) -> UIFont
+//    { return font(name: knileBold, size: size) }
+    
     /// The font to use in titles
     static func titleFont(size: CGFloat) -> UIFont
     { return font(name: titleFontName, size: size) }
@@ -501,8 +522,6 @@ public struct Const {
     static func tazFontBold(size: CGFloat = Const.Size.DefaultFontSize) -> UIFont
     { return font(name: tazFontBold, size: size) }
 
-    
-    
     /// The font to use in modals
     static func marketingHeadFont(size: CGFloat = 30.0) -> UIFont
     { return font(name: knileLight, size: size) }
@@ -512,6 +531,7 @@ public struct Const {
   } // Fonts
   
   struct Size {
+    static let OverlayMaxWidth = CGFloat(375)
     static let TextViewPadding = SmallPadding
     static let TextFieldPadding = SmallPadding
     static let MiniPageNumberFontSize = CGFloat(12)

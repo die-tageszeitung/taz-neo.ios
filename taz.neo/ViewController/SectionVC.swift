@@ -21,7 +21,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     return ["issue", self.feederContext.feedName, self.issue.date.ISO8601, "section", sectFileName]
   }
   
-  private var articleVC: ArticleVC?
+  public private(set) var articleVC: ArticleVC?
   private var lastIndex: Int?
   public var sections: [Section] = []
   public var section: Section? { 
@@ -398,7 +398,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.viewDidAppear(animated)
     self.header.isHidden = false
     self.collectionView?.isHidden = false
-    showCoachmarkIfNeeded()
+//    showCoachmarkIfNeeded()
   }
   
   public override func viewDidDisappear(_ animated: Bool) {

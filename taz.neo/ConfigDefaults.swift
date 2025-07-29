@@ -74,6 +74,8 @@ private let configValues = [
   "lastReadPage" : nil,
   "lastReadIssueDate" : nil,
   "lastReadChanged" : nil,
+  "resumeReadAccepted": "0",
+  "resumeReadDismissed": "0",
   /**===AUTODOWNLOAD SETTINGS FOR ACTIVE DOWNLOADS====**/
   "autoloadPublicationType" : nil,
   "updatedResourcesUrl" : nil,
